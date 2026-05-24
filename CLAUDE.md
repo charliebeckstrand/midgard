@@ -4,7 +4,7 @@
 
 - Hold yourself to a staff engineer standard. Challenge your own work before presenting it.
 - Understand before modifying. Read the surrounding code and follow its conventions.
-- Extend before inventing. Grow what's there; spin off a new module only at a genuinely distinct boundary.
+- Extend before inventing. Spin off a new module only at a genuinely distinct boundary.
 - Solve the stated problem, not adjacent ones.
 
 ## Voice
@@ -16,12 +16,12 @@
 
 ## Judgment
 
-- **Ambiguous request → ask one specific clarifying question.** Don't guess; don't propose N options. For genuinely fuzzy ideas you can't form a concrete proposal from, route to `/deliberate`.
+- **Ambiguous request → ask one specific clarifying question.** Don't guess; don't propose N options. For ideas too fuzzy for a concrete proposal, route to `/deliberate`.
 - **Scope creep → ask first.** Never quietly turn a bug fix into a refactor.
 - **Shared component almost fits → ask** whether extending it makes sense long-term, not just for the immediate use case. Never update a shared component without explicit approval.
 - **Skill precondition missing → stop and surface the gap.** Missing manifest, missing test runner, missing type-check script — each skill's expected behavior is to fail loud, not paper over.
-- **Check fails after an edit → fix the cause; never weaken the check.** If a test must legitimately change, the change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
-- **Work is done when `/postmortem` returns PROCEED**, or every chained downstream skill clears without a blocking finding (see `/postmortem` §4–§5 for the verdict-shape protocol), and you have re-read the diff. Until then, work is in progress.
+- **Check fails after an edit → fix the cause; never weaken the check.** A legitimate test change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
+- **Work is done when `/postmortem` returns PROCEED**, or every chained downstream skill clears without a blocking finding (see `/postmortem` §4–§5 for the verdict-shape protocol), and you have re-read the diff.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ Formatting is tooling's job. Never fight the formatter.
 
 ## Quality check
 
-A session's work is not done until it has cleared the quality chain. `/postmortem` orchestrates the chain at commit time, but it doesn't run on every session — explorations, partial work, and answers-without-commits all bypass it. Run the chain yourself before saying "done", on every session, in this order:
+Work isn't done until the quality chain clears. `/postmortem` orchestrates the chain at commit time but doesn't run on commit-less sessions (exploration, partial work, Q&A) — run the chain yourself before saying "done", in this order:
 
 1. **`/typescript:format`** — run whenever the session touched `.ts` / `.tsx`. Applies the repo's structural conventions (the ones Biome doesn't see) and surfaces non-mechanical concerns. Cheap; always safe to run.
 2. **`/orator comments`** (or `/orator` on the relevant prose surface) — run whenever the session wrote prose: code comments, JSDoc, READMEs, commit / PR copy. Polishes language without touching facts.
@@ -54,9 +54,9 @@ The chain runs in that order: format the surface first so the next two skills se
 
 ## Skills
 
-Project skills live in `.claude/commands/` and read `./manifest.json` at the top of each flow. Default behavior: halt with a pointer to `/repo:manifest` when the manifest is missing. `/postmortem` and `/premortem` are the exception — as lifecycle skills they silently invoke `/repo:manifest --quiet` to create or refresh the manifest in flight, surfacing only `/repo:manifest`'s own warnings.
+Project skills live in `.claude/commands/` and read `./manifest.json` at the top of each flow. Default behavior: halt with a pointer to `/repo:manifest` when the manifest is missing. `/postmortem` and `/premortem` are the exception — they silently invoke `/repo:manifest --quiet` to create or refresh the manifest in flight, surfacing only its warnings.
 
-Each skill's canonical description lives in its own file. The catalog below is an index; read the skill file for the full contract.
+The catalog below is an index — each skill's full contract lives in its own file.
 
 ### Discovery
 
@@ -69,7 +69,7 @@ Each skill's canonical description lives in its own file. The catalog below is a
 - **`/debate`** — run a question through two parties via propose-interrogate-swap; lighter than `/council`.
 - **`/premortem`** — stress-test a plan via 5 failure archetypes.
 
-**`/council` vs `/debate`:** pick `/council` for high-stakes proposals with multiple parties or non-obvious tradeoffs; pick `/debate` when only one or two real tradeoffs need rubber-ducking. The bullets above cover the rest.
+**`/council` vs `/debate`:** pick `/council` for high-stakes proposals with multiple parties or non-obvious tradeoffs; pick `/debate` when only one or two real tradeoffs need rubber-ducking.
 
 ### Authoring
 
@@ -87,5 +87,5 @@ Each skill's canonical description lives in its own file. The catalog below is a
 
 ### Commit-time gating
 
-- **`/postmortem`** — pre-commit triage. The pre-commit orchestrator — decides whether `/typescript:review` is necessary; don't invoke `/typescript:review` unconditionally before every commit on your own.
+- **`/postmortem`** — pre-commit orchestrator; decides whether `/typescript:review` fires. Don't invoke `/typescript:review` directly.
 - **`/typescript:review`** — TypeScript review gate; returns PASS or BLOCK. Two invocation paths: `/postmortem` invokes diff mode as part of the commit chain; `/ui:component:compose` and `/tests:compose` invoke file mode after writing a new file. Don't invoke directly outside those paths unless the user asks for a review explicitly.
