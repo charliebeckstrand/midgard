@@ -24,6 +24,7 @@ export function EditableGridCurrencyEditor<T>(props: EditableGridCurrencyEditorP
 			currency={props.currency}
 			locale={props.locale}
 			precision={props.precision}
+			prefix={false}
 		/>
 	)
 }
