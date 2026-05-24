@@ -25,15 +25,15 @@ Write terse, technical prose. Optimize for information density.
 
 Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
 
-## Quality check
+**Quality check**
 
-Work isn't done until the quality chain clears. `/postmortem` orchestrates the chain at commit time but doesn't run on commit-less sessions (exploration, partial work, Q&A) — run the chain yourself before saying "done", in this order:
+Not done until the chain clears. `/postmortem` runs at commit time; commit-less sessions (exploration, Q&A, partial work) skip — so run yourself before claiming "done":
 
-1. **`/typescript:format`** — run whenever the session touched `.ts` / `.tsx`. Applies the repo's structural conventions (the ones Biome doesn't see) and surfaces non-mechanical concerns. Cheap; always safe to run.
-2. **`/orator comments`** (or `/orator` on the relevant prose surface) — run whenever the session wrote prose: code comments, JSDoc, READMEs, commit / PR copy.
-3. **`/typescript:review`** — run only when the change carries logical risk (logic edit, type surface change, multi-file change, new dependency, auth / security surface, speculative abstraction). Cosmetic JSDoc, formatting-only, and mechanical renames do not need it. When unclear, defer to `/postmortem`'s classification table.
+1. `/typescript:format` — touched `.ts`/`.tsx`.
+2. `/orator comments` — wrote prose (comments, JSDoc, READMEs, commit/PR copy).
+3. `/typescript:review` — logical risk only: logic, types, multi-file, new deps, auth/security, speculative abstraction. Skip cosmetic/formatting/renames; unsure → `/postmortem` table.
 
-Format first so downstream skills see clean code. A BLOCK from any step halts the "done" claim until resolved or explicitly waived.
+Format first. Any BLOCK halts "done" until resolved or waived.
 
 ## Git
 
