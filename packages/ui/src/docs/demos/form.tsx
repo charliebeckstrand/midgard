@@ -233,7 +233,7 @@ function ControlledValuesExample() {
 	}
 
 	return (
-		<>
+		<Stack gap="lg">
 			<Button onClick={loadUser} loading={loading}>
 				Load user
 			</Button>
@@ -254,7 +254,7 @@ function ControlledValuesExample() {
 					Reset
 				</Button>
 			)}
-		</>
+		</Stack>
 	)
 }
 
