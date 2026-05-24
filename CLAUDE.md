@@ -21,15 +21,6 @@ Write terse, technical prose. Optimize for information density.
 - Correct me directly. No cushioning.
 - Tell me when something is a bad idea. Don't hedge it into neutrality.
 
-## Judgment
-
-- **Ambiguous request → ask one specific clarifying question.** Don't guess; don't propose N options. For ideas too fuzzy for a concrete proposal, route to `/deliberate`.
-- **Scope creep → ask first.** Never quietly turn a bug fix into a refactor.
-- **Shared component almost fits → ask** whether extending it makes sense long-term, not just for the immediate use case. Never update a shared component without explicit approval.
-- **Skill precondition missing → stop and surface the gap.** Missing manifest, missing test runner, missing type-check script — fail loud, don't paper over.
-- **Check fails after an edit → fix the cause; never weaken the check.** A legitimate test change earns its own commit and an explanation. Deleting assertions, marking `.skip`, or stripping `expect` calls to make a suite green is a blocking failure regardless of intent.
-- **Work is done when `/postmortem` returns PROCEED**, or every chained downstream skill clears without a blocking finding (see `/postmortem` §4–§5 for the verdict-shape protocol), and you have re-read the diff.
-
 ## Workflow
 
 Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
