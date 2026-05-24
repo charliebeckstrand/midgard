@@ -167,7 +167,8 @@ export function useEditableGridWrapper<T>({
 					return
 				}
 				case 'Enter':
-				case 'F2': {
+				case 'F2':
+				case ' ': {
 					if (!active) return
 
 					const row = rowsRef.current[active.row]

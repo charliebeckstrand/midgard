@@ -1,8 +1,7 @@
 'use client'
 
-import { useCallback, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
 import {
 	DataTable,
 	type DataTableSelection,
@@ -11,22 +10,15 @@ import {
 } from '../data-table'
 import type { TableVariants } from '../table'
 import { type EditableGridContextValue, EditableGridProvider } from './context'
-import type {
-	CellChange,
-	EditableGridColumn,
-	EditableGridRowsApi,
-	EditableGridSelectionApi,
-} from './types'
+import { EditableGridStyles } from './editable-grid-styles'
+import type { CellChange, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
 import { useEditableGridDraft } from './use-editable-grid-draft'
 import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
+import { useEditableGridRows } from './use-editable-grid-rows'
+import { useEditableGridSelection } from './use-editable-grid-selection'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
-
-// Stable empty-selection sentinel: a fresh Set per render breaks referential
-// equality for `selectionRef` and any downstream memo/effect that reads it.
-// Treated as read-only — all updates go through `setSelectionRaw(new Set(...))`.
-const EMPTY_SELECTION = new Set<string | number>()
 
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
@@ -80,70 +72,15 @@ export function EditableGrid<T>({
 	striped,
 	className,
 }: EditableGridProps<T>) {
-	const [selectionRaw, setSelectionRaw] = useControllable<Set<string | number>>({
-		value: selectionConfig?.value,
-		defaultValue: selectionConfig?.defaultValue ?? new Set(),
-		onValueChange: selectionConfig?.onValueChange,
-	})
+	const { selection, setSelection, selectionApi } = useEditableGridSelection(selectionConfig)
 
-	const selection = selectionRaw ?? EMPTY_SELECTION
-
-	// Stable refs so callbacks don't rebuild every render.
-	const rowsRef = useRef(rows)
-
-	rowsRef.current = rows
-
-	const selectionRef = useRef(selection)
-
-	selectionRef.current = selection
+	const { rowsApi, rowIndexMap } = useEditableGridRows<T>({ rows, columns, getKey })
 
 	const wrapperRef = useRef<HTMLTableElement>(null)
 
-	// Editable column indices (exclude selectable / actions) — these are the
-	// columns the active-cell cursor can land on.
-	const editableCols = useMemo(() => columns.filter((c) => !c.selectable && !c.actions), [columns])
-
-	const rowIndexMap = useMemo(() => {
-		const m = new Map<T, number>()
-
-		rows.forEach((r, i) => {
-			m.set(r, i)
-		})
-
-		return m
-	}, [rows])
-
-	const formatCell = useCallback((row: T, col: EditableGridColumn<T>) => {
-		if (col.format) return col.format(row)
-
-		if (!col.field) return ''
-
-		const v = row[col.field]
-
-		return v == null ? '' : String(v)
-	}, [])
-
-	const parseValue = useCallback((raw: string, row: T, col: EditableGridColumn<T>): unknown => {
-		if (col.parse) return col.parse(raw, row)
-
-		return raw
-	}, [])
-
-	const rowsApi: EditableGridRowsApi<T> = {
-		rowsRef,
-		editableCols,
-		getKey,
-		formatCell,
-		parseValue,
-	}
-
-	const selectionApi: EditableGridSelectionApi = {
-		selectionRef,
-	}
-
 	const nav = useEditableGridNavigation<T>({
-		rowsRef,
-		editableColCount: editableCols.length,
+		rowsRef: rowsApi.rowsRef,
+		editableColCount: rowsApi.editableCols.length,
 	})
 
 	const mutations = useEditableGridMutations<T>({
@@ -170,7 +107,7 @@ export function EditableGrid<T>({
 		rowIndexMap,
 		nav,
 		draft,
-		formatCell,
+		formatCell: rowsApi.formatCell,
 	})
 
 	const context = useMemo<EditableGridContextValue>(
@@ -192,12 +129,13 @@ export function EditableGrid<T>({
 
 	return (
 		<EditableGridProvider value={context}>
+			<EditableGridStyles />
 			<DataTable
 				columns={augmentedColumns}
 				rows={rows}
 				getKey={getKey}
 				sort={sortConfig}
-				selection={{ ...selectionConfig, value: selection, onValueChange: setSelectionRaw }}
+				selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
 				rowClassName={rowClassName}
 				stickyHeader={stickyHeader}
 				maxHeight={maxHeight}

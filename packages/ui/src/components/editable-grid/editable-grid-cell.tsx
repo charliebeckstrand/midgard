@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGrid } from './context'
@@ -29,6 +30,20 @@ export function EditableGridCell<T>({
 	const { active, anchor, extraCells, editing, draft, setDraft, commitEdit, cancelEdit } =
 		useEditableGrid()
 
+	// Re-render the flash overlay with a fresh key each time the rendered value
+	// changes so the keyframe animation restarts even on consecutive edits.
+	const prevFormattedRef = useRef(formatted)
+
+	const [flashKey, setFlashKey] = useState(0)
+
+	useEffect(() => {
+		if (prevFormattedRef.current === formatted) return
+
+		prevFormattedRef.current = formatted
+
+		setFlashKey((n) => n + 1)
+	}, [formatted])
+
 	const isActive = active?.row === rowIdx && active?.col === colIdx
 
 	const inRect =
@@ -55,6 +70,7 @@ export function EditableGridCell<T>({
 			)}
 		>
 			<span className={cn('truncate', showEditor && 'invisible')}>{formatted || ' '}</span>
+			{flashKey > 0 && <span key={flashKey} aria-hidden className={cn(k.cellFlash)} />}
 			{showEditor && (
 				<div className="absolute inset-0 flex items-stretch">
 					<Editor

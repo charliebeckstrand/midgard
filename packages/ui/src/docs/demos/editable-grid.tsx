@@ -318,8 +318,8 @@ export function Demo() {
 							<Icon icon={<Info />} />
 						</TooltipTrigger>
 						<TooltipContent>
-							Double click a cell to or press Enter to edit. Press Enter or blur to save, Escape to
-							cancel.
+							Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or
+							click away to save, Escape to cancel.
 						</TooltipContent>
 					</Tooltip>
 				</Flex>
@@ -332,8 +332,8 @@ export function Demo() {
 							<Icon icon={<Info />} />
 						</TooltipTrigger>
 						<TooltipContent>
-							Check the boxes to select multiple rows, then edit a cell to apply the change to all
-							selected rows.
+							Select multiple rows using the checkboxes, then edit a cell to apply that change to
+							every selected row.
 						</TooltipContent>
 					</Tooltip>
 				</Flex>

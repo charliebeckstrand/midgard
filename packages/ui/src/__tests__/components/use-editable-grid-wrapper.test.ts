@@ -278,6 +278,14 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 		expect(beginEdit).toHaveBeenCalled()
 	})
 
+	it('Space begins edit with the formatted value rather than typing a space', () => {
+		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(' '))
+
+		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'a1')
+	})
+
 	it('printable characters begin edit with the typed value replacing the original', () => {
 		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
 

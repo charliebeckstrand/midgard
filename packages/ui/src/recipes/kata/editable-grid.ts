@@ -37,5 +37,11 @@ export const k = {
 		'dark:after:ring-blue-500',
 	],
 	cellReadOnly: ['cursor-default', iro.text.muted],
+	cellFlash: [
+		'pointer-events-none absolute inset-0',
+		'bg-amber-400/40 dark:bg-amber-500/30',
+		'motion-reduce:hidden',
+		'motion-safe:animate-[editable-grid-cell-flash_700ms_ease-out_forwards]',
+	],
 	editInput,
 }
