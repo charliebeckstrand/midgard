@@ -66,8 +66,11 @@ export const sen = {
 	focus: {
 		ring: 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
 		inset: 'outline-none focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
-		outline:
+		outline: [
 			'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600',
+			/** Outset outline on a `:has(:focus-visible)` wrapper; swaps to an inset ring inside `[data-scroll-region]` ancestors so `overflow-y-auto` parents can't clip it. */
+			'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
+		],
 		indicator: 'not-data-current:focus-visible:after:bg-blue-600',
 		lifted: 'z-10 shadow-md focus-visible:ring-violet-600',
 	},

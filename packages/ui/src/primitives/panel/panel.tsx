@@ -127,7 +127,14 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	}
 
 	function Body({ className, ...props }: PanelBodyProps) {
-		return <div data-slot={`${slotPrefix}-body`} className={cn(bodyClass, className)} {...props} />
+		return (
+			<div
+				data-slot={`${slotPrefix}-body`}
+				data-scroll-region
+				className={cn(bodyClass, className)}
+				{...props}
+			/>
+		)
 	}
 
 	function Footer({ className, ...props }: PanelFooterProps) {

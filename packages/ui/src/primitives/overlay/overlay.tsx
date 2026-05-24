@@ -66,7 +66,7 @@ export function Overlay({
 						<div
 							ref={refs.setFloating}
 							data-slot="overlay"
-							className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
+							className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed')}
 							{...props}
 						>
 							<motion.div

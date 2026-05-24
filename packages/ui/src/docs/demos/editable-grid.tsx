@@ -251,30 +251,28 @@ export function Demo() {
 					<DialogHeader>
 						<DialogTitle>Edit {selection.size} selected</DialogTitle>
 						{selection.size > 1 && (
-							<DialogDescription>
-								<Flex gap="md">
-									<Icon icon={<Info />} />
-									<span>
-										Leave a field blank to keep the current value, or enter a new value to apply it
-										to all selected rows.
-									</span>
-								</Flex>
-							</DialogDescription>
+							<Flex gap="md" align="center">
+								<Icon icon={<Info />} />
+								<DialogDescription>
+									Leave a field blank to keep the current value, or enter a new value to apply it to
+									all selected rows.
+								</DialogDescription>
+							</Flex>
 						)}
 					</DialogHeader>
-					<DialogContent>
-						<Form
-							defaultValues={editDefaults}
-							onSubmit={(values) => {
-								const patch: Partial<Pick<LaneRate, 'perMile' | 'minCharge' | 'fuelPct'>> = {}
+					<Form
+						defaultValues={editDefaults}
+						onSubmit={(values) => {
+							const patch: Partial<Pick<LaneRate, 'perMile' | 'minCharge' | 'fuelPct'>> = {}
 
-								if (typeof values.perMile === 'number') patch.perMile = values.perMile
-								if (typeof values.minCharge === 'number') patch.minCharge = values.minCharge
-								if (typeof values.fuelPct === 'number') patch.fuelPct = values.fuelPct
+							if (typeof values.perMile === 'number') patch.perMile = values.perMile
+							if (typeof values.minCharge === 'number') patch.minCharge = values.minCharge
+							if (typeof values.fuelPct === 'number') patch.fuelPct = values.fuelPct
 
-								applyBulkEdit(patch)
-							}}
-						>
+							applyBulkEdit(patch)
+						}}
+					>
+						<DialogContent>
 							<DialogBody>
 								<Stack gap="lg">
 									<Field>
@@ -303,8 +301,8 @@ export function Demo() {
 								</Button>
 								<SubmitButton color="blue">Apply</SubmitButton>
 							</DialogFooter>
-						</Form>
-					</DialogContent>
+						</DialogContent>
+					</Form>
 				</Dialog>
 			</>
 		)
