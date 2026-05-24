@@ -155,4 +155,4 @@ Save two files to cwd. Capture the filename timestamp via `date +%Y%m%d-%H%M%S` 
 - Past tense, always. Narratives report failures that already happened; they don't predict.
 - The Examiner may override the loudest narrative when peer reviews show it's overdramatized. When overriding, name the replacement explicitly in Most Likely Failure — don't hedge between them.
 - Don't premortem trivial plans. If the failure mode is obvious or the plan is a one-line change, skip.
-- When no concrete plan exists, recommend `/council` (decision still open) or `/deliberate` (idea still vague) and wait for the user to confirm. Never auto-invoke either.
+- When no concrete plan exists, recommend `/council` (decision still open) or `/deliberate` (idea still vague). Never auto-invoke; wait for the user.
