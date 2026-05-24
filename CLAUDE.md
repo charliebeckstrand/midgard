@@ -62,33 +62,24 @@ Any BLOCK halts "done" until resolved or waived.
 ### Before Committing
 
 - Review staged changes with `git diff --staged` before every commit
-
 - Run tests and linters before committing, not after
-
 - Never commit secrets, credentials, API keys, or `.env` files
-
 - Keep a well-maintained `.gitignore` to prevent accidental commits
 
 ### History
 
 - Don't rewrite history (rebase, amend, force-push) on shared/public branches
-
 - Prefer `git pull --rebase` to keep history linear and avoid noise merge commits
-
 - Use `git rebase -i` to clean up local commits before opening a PR
 
 ### Pull Requests
 
 - Keep PRs small and focused; large PRs are hard to review well
-
 - Write a clear description: what changed, why, and how to test it
-
 - Ensure CI passes before requesting review
 
 ### General
 
 - Commit early and often locally; push when work is in a shareable state
-
 - Pull frequently to minimize merge conflicts
-
 - Never use `git add .` blindly; stage intentionally
