@@ -29,7 +29,7 @@ Delegate research to subagents — one focused task per agent — and keep the m
 
 Not done until the chain clears. 
 
-`/postmortem` runs at commit time; commit-less sessions (exploration, Q&A, partial work) skip.
+`/postmortem` runs at commit time; commit-less sessions skip.
 
 1. `/typescript:format` — touched `.ts`/`.tsx`.
 2. `/orator comments` — wrote prose (comments, JSDoc, READMEs, commit/PR copy).
