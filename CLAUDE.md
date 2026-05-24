@@ -52,6 +52,7 @@ Format first so downstream skills see clean code. A BLOCK from any step halts th
 - Imperative mood. Commit by feature group. Split only when changes are genuinely independent.
 - Feature branches for non-trivial work. Never force-push shared branches.
 - Review your own diff before committing.
+- Commit and push when the task is done. Asking permission you'll override is a fake handoff.
 
 ## Skills
 
