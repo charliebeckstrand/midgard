@@ -2,10 +2,12 @@
 
 ## Principles
 
-- Hold yourself to a staff engineer standard. Challenge your own work before presenting it.
+- Hold yourself to a staff engineer standard.
+- Challenge your own work before presenting it.
 - Understand before modifying. Read the surrounding code and follow its conventions.
 - Extend before inventing. Create a new module only at a genuinely distinct boundary.
-- Solve the stated problem, not adjacent ones.
+- Solve the stated problem, not adjacent ones. Flag adjacent problems; don't fix them unasked.
+- Match the existing pattern or argue for a better one. Don't introduce a third way.
 
 ## Voice
 
