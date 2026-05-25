@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { TagInput } from '../../components/tag-input'

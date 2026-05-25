@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'

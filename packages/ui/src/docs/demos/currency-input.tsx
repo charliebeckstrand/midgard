@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { CurrencyInput } from '../../components/currency-input'
 import { Field, Label } from '../../components/fieldset'

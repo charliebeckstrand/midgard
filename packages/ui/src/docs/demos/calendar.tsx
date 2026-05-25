@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
 import { Example } from '../components/example'

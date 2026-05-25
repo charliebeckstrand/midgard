@@ -1,5 +1,3 @@
-'use client'
-
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { collectJsonTreePaths, JsonTree } from '../../components/json-tree'

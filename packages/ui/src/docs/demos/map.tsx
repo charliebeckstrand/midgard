@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import {

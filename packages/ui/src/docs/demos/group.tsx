@@ -1,5 +1,3 @@
-'use client'
-
 import { Heading1, Heading2, Heading3 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'

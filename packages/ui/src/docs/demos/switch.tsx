@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'

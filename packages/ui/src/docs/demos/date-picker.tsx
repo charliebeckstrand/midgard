@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { DatePicker } from '../../components/date-picker'
 import { Glass } from '../../components/glass'

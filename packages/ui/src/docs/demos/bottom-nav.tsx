@@ -1,5 +1,3 @@
-'use client'
-
 import { Home, MessageCircle, Search, Settings, User } from 'lucide-react'
 import { useState } from 'react'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'

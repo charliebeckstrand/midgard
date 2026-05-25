@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'

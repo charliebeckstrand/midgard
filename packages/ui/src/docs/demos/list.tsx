@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { Stack } from '../../components/stack'

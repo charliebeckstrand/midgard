@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardDescription, CardTitle } from '../../components/card'

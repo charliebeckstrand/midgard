@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
