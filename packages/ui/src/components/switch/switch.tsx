@@ -5,7 +5,7 @@ import { cn, invalidAttrs } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
-import { useFormToggle } from '../form/context'
+import { useFormToggle } from '../form/use-form-toggle'
 import { Placeholder } from '../placeholder'
 
 export type SwitchProps = SwitchVariants & {

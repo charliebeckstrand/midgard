@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { createContext } from '../../core'
 
 export type FormStateValue = {
@@ -103,70 +103,5 @@ export function useFormStatus(): FormStatus | undefined {
 		submitting: context.submitting,
 		dirty: context.isDirty,
 		valid: context.isValid,
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Binding hooks — thin wrappers that return props ready to spread onto
-// native elements. Each control type extracts values differently, so we
-// provide one hook per shape rather than a single polymorphic hook.
-// ---------------------------------------------------------------------------
-
-export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
-	value: string
-	onChange: (e: ChangeEvent<E>) => void
-	onBlur: (e: FocusEvent<E>) => void
-	invalid: boolean
-}
-
-/** Binding for string-value controls (Input, Textarea). */
-export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>(
-	name: string | undefined,
-	handlers?: {
-		onChange?: (e: ChangeEvent<E>) => void
-		onBlur?: (e: FocusEvent<E>) => void
-	},
-): FormTextBinding<E> | undefined {
-	const field = useFormField(name)
-
-	if (!field) return undefined
-
-	return {
-		value: typeof field.value === 'string' ? field.value : '',
-		onChange: (e) => {
-			field.setValue(e.target.value)
-			handlers?.onChange?.(e)
-		},
-		onBlur: (e) => {
-			field.setTouched()
-			handlers?.onBlur?.(e)
-		},
-		invalid: field.errors !== undefined && field.errors.length > 0,
-	}
-}
-
-export type FormToggleBinding = {
-	checked: boolean
-	onChange: (e: ChangeEvent<HTMLInputElement>) => void
-	invalid: boolean
-}
-
-/** Binding for boolean-value controls (Checkbox, Switch). */
-export function useFormToggle(
-	name: string | undefined,
-	handlers?: { onChange?: (e: ChangeEvent<HTMLInputElement>) => void },
-): FormToggleBinding | undefined {
-	const field = useFormField(name)
-
-	if (!field) return undefined
-
-	return {
-		checked: typeof field.value === 'boolean' ? field.value : false,
-		onChange: (e) => {
-			field.setValue(e.target.checked)
-			field.setTouched()
-			handlers?.onChange?.(e)
-		},
-		invalid: field.errors !== undefined && field.errors.length > 0,
 	}
 }

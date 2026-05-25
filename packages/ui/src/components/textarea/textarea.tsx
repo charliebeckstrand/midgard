@@ -9,7 +9,7 @@ import type { Step } from '../../recipes'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useFormText } from '../form/context'
+import { useFormText } from '../form/use-form-text'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 

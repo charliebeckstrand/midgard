@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 'react'
-import { type FormTextBinding, useFormText } from '../form/context'
+import { type FormTextBinding, useFormText } from '../form/use-form-text'
 
 type UseInputValueOptions = {
 	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
