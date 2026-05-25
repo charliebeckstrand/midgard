@@ -6,10 +6,10 @@ import { createContext } from '../../core'
 export type FormStateValue = {
 	values: Record<string, unknown>
 	errors: Record<string, string[] | undefined>
-	touched: Record<string, boolean>
-	dirty: Record<string, boolean>
-	isDirty: boolean
-	isValid: boolean
+	touchedFields: Record<string, boolean>
+	dirtyFields: Record<string, boolean>
+	dirty: boolean
+	valid: boolean
 	submitting: boolean
 }
 
@@ -82,8 +82,8 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 		setValue: (v) => context.setValue(name, v),
 		setTouched: () => context.setTouched(name),
 		errors: context.errors[name],
-		touched: context.touched[name] ?? false,
-		dirty: context.dirty[name] ?? false,
+		touched: context.touchedFields[name] ?? false,
+		dirty: context.dirtyFields[name] ?? false,
 	}
 }
 
@@ -101,7 +101,7 @@ export function useFormStatus(): FormStatus | undefined {
 
 	return {
 		submitting: context.submitting,
-		dirty: context.isDirty,
-		valid: context.isValid,
+		dirty: context.dirty,
+		valid: context.valid,
 	}
 }

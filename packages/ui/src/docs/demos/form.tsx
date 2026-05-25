@@ -35,11 +35,11 @@ function StatusDisplay() {
 
 	return (
 		<Flex gap="sm" align="start">
-			<Badge variant="outline" color={form.isDirty ? 'amber' : 'green'}>
-				dirty: {form.isDirty ? 'yes' : 'no'}
+			<Badge variant="outline" color={form.dirty ? 'amber' : 'green'}>
+				dirty: {form.dirty ? 'yes' : 'no'}
 			</Badge>
-			<Badge variant="outline" color={form.isValid ? 'green' : 'red'}>
-				valid: {form.isValid ? 'yes' : 'no'}
+			<Badge variant="outline" color={form.valid ? 'green' : 'red'}>
+				valid: {form.valid ? 'yes' : 'no'}
 			</Badge>
 		</Flex>
 	)
