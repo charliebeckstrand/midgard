@@ -7,6 +7,7 @@ type ComboboxContextValue<T = unknown> = {
 	multiple: boolean
 	onSelect: (value: T) => void
 	query: string
+	deferredQuery: string
 }
 
 export const [ComboboxProvider, useComboboxContext] =
