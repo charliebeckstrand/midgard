@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
 import { Confirm } from '../../components/confirm'
@@ -14,7 +14,6 @@ export function Demo() {
 	const [discardOpen, setDiscardOpen] = useState(false)
 	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)
 	const [accepted, setAccepted] = useState(false)
-	const termsId = useId()
 
 	return (
 		<>
@@ -65,13 +64,8 @@ export function Demo() {
 								qui officia deserunt mollit anim id est laborum.
 							</Text>
 							<CheckboxField>
-								<Checkbox
-									id={termsId}
-									color="blue"
-									checked={accepted}
-									onChange={() => setAccepted(!accepted)}
-								/>
-								<Label htmlFor={termsId}>Accept terms and conditions</Label>
+								<Checkbox color="blue" checked={accepted} onChange={() => setAccepted(!accepted)} />
+								<Label>Accept terms and conditions</Label>
 							</CheckboxField>
 						</Stack>
 					</DialogBody>
