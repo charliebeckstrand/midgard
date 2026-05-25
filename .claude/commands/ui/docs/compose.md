@@ -23,7 +23,7 @@ Pull:
 | Field | Use |
 |---|---|
 | `packages[*]` | pick the package owning the component (longest-prefix match on `componentsDir`). With multiple frontend packages and no disambiguation, ask. |
-| `framework` | `react` or `next`; determines whether the demo needs `'use client'` |
+| `framework` | `react` or `next`; the demo needs `'use client'` only when the docs site itself ships an RSC tree. Pure CSR docs (Vite SPA, Storybook) never need it, even when `framework: next`. |
 | `componentsDir` | source of truth for importable components |
 | `primitivesDir`, `hooksDir`, `tokensDir` | what the docs can compose alongside the target |
 
@@ -64,7 +64,7 @@ Extract:
 - **Meta export** — most projects expose `export const meta = { category: '…' }`. Drives sidebar grouping.
 - **Example wrapper's props** — usually some combination of `title`, `actions`, `prefix`, `preview`, `footer`, `code`, `children`.
 - **Controls helpers** — variant/size/color pickers usually live as shared components under `docs/components/`. Reuse; don't reinvent.
-- **`'use client'` discipline** — match the sibling that uses similar React features.
+- **`'use client'` discipline** — the directive only carries meaning inside an RSC tree. If the docs site is a CSR Vite SPA or Storybook, drop it. If the docs site IS RSC-rendered, match the sibling that uses similar React features.
 - **Section ordering** — typically variants → colors/tones → sizes → states (loading/disabled) → compound examples.
 - **Formatting** — match formatter output, not your preference.
 
@@ -156,8 +156,6 @@ Honor sibling conventions from §2.
 Grouped by origin, alphabetized within each group:
 
 ```tsx
-'use client'
-
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
@@ -168,7 +166,7 @@ import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 ```
 
-Drop `'use client'` when the demo has no hooks, event handlers, or browser APIs and siblings drop it.
+Add `'use client'` only when the docs site renders demos inside an RSC tree. CSR docs (Vite SPA, Storybook) never need it. Match siblings.
 
 ### 4b. Meta and constants
 
@@ -275,7 +273,8 @@ Before declaring done:
 - [ ] File lives at the docs directory §1 discovered.
 - [ ] File extension and casing match sibling demos.
 - [ ] If siblings expose `export const meta = { category: '…' }`, it matches an existing category (and is in `categoryOrder` if used).
-- [ ] `'use client'` matches sibling demos.
+- [ ] `'use client'` matches sibling demos (and is absent when the docs site is CSR-only).
+- [ ] Label/control pairs use `useId()` (or rely on the project's field-context auto-wiring) instead of hard-coded `id` strings.
 - [ ] Default export is named `<Name>Demo`, wraps content in the project's outermost layout primitive.
 - [ ] Every `<Example>` has a `title`; interactive controls live in `actions=`.
 - [ ] Each iteration loop uses an explicit `key={…}`.
