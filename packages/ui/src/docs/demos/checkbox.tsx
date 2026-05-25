@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
 import { Example } from '../components/example'
@@ -7,13 +8,19 @@ export const meta = { category: 'Forms' }
 const colors = ['blue', 'green', 'red'] as const
 
 export function Demo() {
+	const termsId = useId()
+	const newsletterId = useId()
+	const optOutId = useId()
+	const disabledId = useId()
+	const colorIds = useId()
+
 	return (
 		<>
 			<Example title="Default">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-terms" />
-						<Label htmlFor="checkbox-terms">Accept terms and conditions</Label>
+						<Checkbox id={termsId} />
+						<Label htmlFor={termsId}>Accept terms and conditions</Label>
 						<Description>You agree to our Terms of Service and Privacy Policy.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
@@ -22,14 +29,14 @@ export function Demo() {
 			<Example title="Group">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-newsletter" />
-						<Label htmlFor="checkbox-newsletter">Subscribe to newsletter</Label>
+						<Checkbox id={newsletterId} />
+						<Label htmlFor={newsletterId}>Subscribe to newsletter</Label>
 						<Description>Get the latest news and updates.</Description>
 					</CheckboxField>
 
 					<CheckboxField>
-						<Checkbox id="opt-out" />
-						<Label htmlFor="opt-out">Opt out of data collection</Label>
+						<Checkbox id={optOutId} />
+						<Label htmlFor={optOutId}>Opt out of data collection</Label>
 						<Description>We will not collect any personal data.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
@@ -39,8 +46,8 @@ export function Demo() {
 				<CheckboxGroup>
 					{colors.map((color) => (
 						<CheckboxField key={color}>
-							<Checkbox id={`checkbox-${color}`} value={color} color={color} defaultChecked />
-							<Label htmlFor={`checkbox-${color}`}>{color}</Label>
+							<Checkbox id={`${colorIds}-${color}`} value={color} color={color} defaultChecked />
+							<Label htmlFor={`${colorIds}-${color}`}>{color}</Label>
 						</CheckboxField>
 					))}
 				</CheckboxGroup>
@@ -49,8 +56,8 @@ export function Demo() {
 			<Example title="Disabled">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-disabled" disabled />
-						<Label htmlFor="checkbox-disabled">Disabled option</Label>
+						<Checkbox id={disabledId} disabled />
+						<Label htmlFor={disabledId}>Disabled option</Label>
 						<Description>This checkbox is disabled and cannot be interacted with.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
