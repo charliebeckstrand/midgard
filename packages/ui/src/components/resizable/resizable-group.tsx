@@ -3,7 +3,7 @@
 import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
-import { ResizableIndexProvider, ResizableProvider } from './context'
+import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import type { PanelConfig, ResizableDirection } from './types'
@@ -61,13 +61,13 @@ export function ResizableGroup({
 			if (child.type === ResizablePanel) {
 				const idx = panelIdx++
 
-				return <ResizableIndexProvider value={{ panelIndex: idx }}>{child}</ResizableIndexProvider>
+				return <ResizableIndexContext value={{ panelIndex: idx }}>{child}</ResizableIndexContext>
 			}
 
 			if (child.type === ResizableHandle) {
 				const idx = handleIdx++
 
-				return <ResizableIndexProvider value={{ handleIndex: idx }}>{child}</ResizableIndexProvider>
+				return <ResizableIndexContext value={{ handleIndex: idx }}>{child}</ResizableIndexContext>
 			}
 
 			return child
@@ -80,7 +80,7 @@ export function ResizableGroup({
 	)
 
 	return (
-		<ResizableProvider value={contextValue}>
+		<ResizableContext value={contextValue}>
 			<div
 				ref={groupRef}
 				data-slot="resizable-group"
@@ -89,6 +89,6 @@ export function ResizableGroup({
 			>
 				{wrapped}
 			</div>
-		</ResizableProvider>
+		</ResizableContext>
 	)
 }

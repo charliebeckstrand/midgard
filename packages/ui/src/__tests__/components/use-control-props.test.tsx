@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { type ControlContextValue, ControlProvider } from '../../components/control/context'
+import { ControlContext, type ControlContextValue } from '../../components/control/context'
 import { useControlProps } from '../../components/control/use-control-props'
 
 function withControl(value: ControlContextValue | undefined) {
 	return function Wrapper({ children }: { children: ReactNode }) {
-		return <ControlProvider value={value}>{children}</ControlProvider>
+		return <ControlContext value={value}>{children}</ControlContext>
 	}
 }
 

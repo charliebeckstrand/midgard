@@ -3,7 +3,7 @@
 import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
 import { Card } from '../../components/card'
-import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
+import { Nav, NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
 import { Example } from '../components/example'
@@ -24,7 +24,7 @@ function NavProviderDemo() {
 	const [current, setCurrent] = useState('home')
 
 	return (
-		<NavProvider value={{ value: current, onChange: setCurrent }}>
+		<NavContext value={{ value: current, onChange: setCurrent }}>
 			<Navbar>
 				<NavItems />
 				<Spacer />
@@ -40,7 +40,7 @@ function NavProviderDemo() {
 					<NavContent value="contact">Contact information</NavContent>
 				</NavContents>
 			</Card>
-		</NavProvider>
+		</NavContext>
 	)
 }
 
@@ -69,7 +69,7 @@ export function Demo() {
 				</Navbar>
 			</Example>
 
-			<Example title="With NavProvider">
+			<Example title="With NavContext">
 				<NavProviderDemo />
 			</Example>
 

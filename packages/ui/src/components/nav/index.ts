@@ -1,4 +1,4 @@
-export { type NavContextValue, NavProvider, useNavContext } from './context'
+export { NavContext, type NavContextValue, useNavContext } from './context'
 export {
 	Nav,
 	type NavProps,

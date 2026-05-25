@@ -2,4 +2,4 @@
 
 import { createContext } from '../../core'
 
-export const [NavbarProvider, useNavbar] = createContext<boolean>('Navbar', { default: false })
+export const [NavbarContext, useNavbar] = createContext<boolean>('Navbar', { default: false })

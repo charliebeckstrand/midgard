@@ -18,5 +18,5 @@ export type EditableGridContextValue = {
 	cancelEdit: () => void
 }
 
-export const [EditableGridProvider, useEditableGrid] =
+export const [EditableGridContext, useEditableGrid] =
 	createContext<EditableGridContextValue>('EditableGrid')

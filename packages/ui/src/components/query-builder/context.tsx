@@ -26,14 +26,13 @@ export type QueryBuilderContextValue = QueryBuilderStateValue &
 // lives in its own narrow context so rule/group consumers that only depend
 // on configuration skip re-renders when a sibling rule is edited.
 
-const [QueryBuilderStateProvider, useQueryBuilderState] =
+const [QueryBuilderStateContext, useQueryBuilderState] =
 	createContext<QueryBuilderStateValue>('QueryBuilderState')
 
-const [QueryBuilderActionsProvider, useQueryBuilderActions] =
+const [QueryBuilderActionsContext, useQueryBuilderActions] =
 	createContext<QueryBuilderActions>('QueryBuilderActions')
 
-const [QueryBuilderRootProvider, useQueryBuilderRoot] =
-	createContext<QueryGroup>('QueryBuilderRoot')
+const [QueryBuilderRootContext, useQueryBuilderRoot] = createContext<QueryGroup>('QueryBuilderRoot')
 
 export { useQueryBuilderActions, useQueryBuilderState }
 
@@ -50,11 +49,11 @@ export function QueryBuilderProvider({
 	children: ReactNode
 }) {
 	return (
-		<QueryBuilderActionsProvider value={actions}>
-			<QueryBuilderStateProvider value={state}>
-				<QueryBuilderRootProvider value={root}>{children}</QueryBuilderRootProvider>
-			</QueryBuilderStateProvider>
-		</QueryBuilderActionsProvider>
+		<QueryBuilderActionsContext value={actions}>
+			<QueryBuilderStateContext value={state}>
+				<QueryBuilderRootContext value={root}>{children}</QueryBuilderRootContext>
+			</QueryBuilderStateContext>
+		</QueryBuilderActionsContext>
 	)
 }
 

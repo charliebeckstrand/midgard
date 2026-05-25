@@ -1,6 +1,6 @@
 export {
-	type KanbanColumnContext,
-	type KanbanContext,
+	type KanbanColumnContextValue,
+	type KanbanContextValue,
 	useKanbanColumnContext,
 	useKanbanContext,
 } from './context'

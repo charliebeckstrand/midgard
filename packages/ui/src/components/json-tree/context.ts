@@ -3,7 +3,7 @@
 import { createContext } from '../../core/create-context'
 import type { SearchIndex } from './json-tree-utilities'
 
-type JsonTreeContext = {
+type JsonTreeContextValue = {
 	depth: number
 	defaultExpandDepth: number
 	search: string
@@ -14,4 +14,4 @@ type JsonTreeContext = {
 	onExpandedChange?: (expanded: Set<string>) => void
 }
 
-export const [JsonTreeProvider, useJsonTreeContext] = createContext<JsonTreeContext>('JsonTree')
+export const [JsonTreeContext, useJsonTreeContext] = createContext<JsonTreeContextValue>('JsonTree')

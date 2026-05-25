@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k, type TreeSize } from '../../recipes/kata/tree'
-import { TreeProvider } from './context'
+import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
 import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
@@ -67,7 +67,7 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 	}
 
 	return (
-		<TreeProvider value={rootContextValue}>
+		<TreeContext value={rootContextValue}>
 			<div
 				ref={ref}
 				role="tree"
@@ -78,6 +78,6 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 			>
 				{children}
 			</div>
-		</TreeProvider>
+		</TreeContext>
 	)
 }

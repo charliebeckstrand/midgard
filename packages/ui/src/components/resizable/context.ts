@@ -13,14 +13,14 @@ type ResizableContextType = {
 	resize: (handleIndex: number, delta: number) => void
 }
 
-export const [ResizableProvider, useResizable] = createContext<ResizableContextType>('Resizable')
+export const [ResizableContext, useResizable] = createContext<ResizableContextType>('Resizable')
 
 type ResizableIndexContextType = {
 	panelIndex?: number
 	handleIndex?: number
 }
 
-export const [ResizableIndexProvider, useResizableIndex] = createContext<ResizableIndexContextType>(
+export const [ResizableIndexContext, useResizableIndex] = createContext<ResizableIndexContextType>(
 	'ResizableIndex',
 	{ default: {} },
 )

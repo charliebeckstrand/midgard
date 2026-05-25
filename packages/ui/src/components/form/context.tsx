@@ -24,14 +24,13 @@ export type FormActions = {
 /** Combined shape for consumers that need both state and actions. */
 export type FormContextValue = FormStateValue & FormActions
 
-const [FormStateProvider, useFormState] = createContext<FormStateValue | undefined>('FormState', {
+const [FormStateContext, useFormState] = createContext<FormStateValue | undefined>('FormState', {
 	default: undefined,
 })
 
-const [FormActionsProvider, useFormActions] = createContext<FormActions | undefined>(
-	'FormActions',
-	{ default: undefined },
-)
+const [FormActionsContext, useFormActions] = createContext<FormActions | undefined>('FormActions', {
+	default: undefined,
+})
 
 export { useFormActions, useFormState }
 
@@ -46,9 +45,9 @@ export function FormProvider({
 	children: ReactNode
 }) {
 	return (
-		<FormActionsProvider value={actions}>
-			<FormStateProvider value={state}>{children}</FormStateProvider>
-		</FormActionsProvider>
+		<FormActionsContext value={actions}>
+			<FormStateContext value={state}>{children}</FormStateContext>
+		</FormActionsContext>
 	)
 }
 

@@ -28,6 +28,6 @@ export const densityToSize: Record<DensityLevel, Step> = {
  *
  * Defaults to `'snug'` (equivalent to `size: 'md'`) outside any provider.
  */
-export const [DensityProvider, useDensity] = createContext<DensityLevel>('Density', {
+export const [DensityContext, useDensity] = createContext<DensityLevel>('Density', {
 	default: 'snug',
 })

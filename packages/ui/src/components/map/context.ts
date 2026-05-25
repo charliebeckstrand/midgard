@@ -8,4 +8,4 @@ export type MapContextValue = {
 	onReady: (cb: (map: MapLibreMap) => void) => () => void
 }
 
-export const [MapProvider, useMapContext] = createContext<MapContextValue>('Map')
+export const [MapContext, useMapContext] = createContext<MapContextValue>('Map')

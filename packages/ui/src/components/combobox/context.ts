@@ -9,5 +9,4 @@ type ComboboxContextValue<T = unknown> = {
 	query: string
 }
 
-export const [ComboboxProvider, useComboboxContext] =
-	createContext<ComboboxContextValue>('Combobox')
+export const [ComboboxContext, useComboboxContext] = createContext<ComboboxContextValue>('Combobox')

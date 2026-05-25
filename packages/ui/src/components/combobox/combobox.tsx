@@ -23,7 +23,7 @@ import { SelectTrigger } from '../select/select-trigger'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay } from './combobox-utilities'
-import { ComboboxProvider } from './context'
+import { ComboboxContext } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
@@ -203,7 +203,7 @@ export function Combobox<T>({
 	}
 
 	return (
-		<ComboboxProvider value={contextValue}>
+		<ComboboxContext value={contextValue}>
 			<SelectTrigger
 				open={open}
 				setReference={refs.setReference}
@@ -259,6 +259,6 @@ export function Combobox<T>({
 			>
 				{rendered}
 			</ComboboxPanel>
-		</ComboboxProvider>
+		</ComboboxContext>
 	)
 }

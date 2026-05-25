@@ -8,7 +8,7 @@ import {
 	type ReactNode,
 	useMemo,
 } from 'react'
-import { JoinProvider } from '../../primitives/join'
+import { JoinContext } from '../../primitives/join'
 import type { GroupOrientation, GroupPosition } from '../../recipes'
 
 function positionAt(index: number, length: number): GroupPosition {
@@ -64,7 +64,7 @@ export function useGroup(children: ReactNode, orientation: GroupOrientation): Re
 				key,
 			} as Partial<unknown>)
 
-			return createElement(JoinProvider, { key, value: { position, orientation } }, cloned)
+			return createElement(JoinContext, { key, value: { position, orientation } }, cloned)
 		})
 	}, [children, orientation])
 }

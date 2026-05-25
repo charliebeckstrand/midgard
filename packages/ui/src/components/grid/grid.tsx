@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'
-import { GridProvider } from './context'
+import { GridContext } from './context'
 import {
 	alignMap,
 	flowMap,
@@ -45,7 +45,7 @@ export function Grid({
 	const resolvedRows = resolveRows(rows)
 
 	return (
-		<GridProvider value={{ columns }}>
+		<GridContext value={{ columns }}>
 			<div
 				data-slot="grid"
 				className={cn(
@@ -63,6 +63,6 @@ export function Grid({
 			>
 				{children}
 			</div>
-		</GridProvider>
+		</GridContext>
 	)
 }

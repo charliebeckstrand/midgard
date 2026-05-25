@@ -12,7 +12,7 @@ import { cn } from '../../core'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { noop } from '../../utilities'
-import { ListItemProvider, ListProvider } from './context'
+import { ListContext, ListItemContext } from './context'
 import { ListItemSortable } from './list-item-sortable'
 import { ListItemStatic } from './list-item-static'
 import { useListDrag } from './use-list-drag'
@@ -141,7 +141,7 @@ export function List<T>({
 	)
 
 	return (
-		<ListProvider value={contextValue}>
+		<ListContext value={contextValue}>
 			{interactive ? (
 				<DndContext {...dndContextProps} onDragStart={handleDragStart}>
 					<SortableContext items={itemIds} strategy={strategy}>
@@ -149,7 +149,7 @@ export function List<T>({
 					</SortableContext>
 					<DragOverlay dropAnimation={null}>
 						{activeItem != null ? (
-							<ListItemProvider
+							<ListItemContext
 								value={{
 									id: effectiveGetKey(activeItem),
 									setNodeRef: noop,
@@ -161,13 +161,13 @@ export function List<T>({
 								}}
 							>
 								{children(activeItem, activeIndex)}
-							</ListItemProvider>
+							</ListItemContext>
 						) : null}
 					</DragOverlay>
 				</DndContext>
 			) : (
 				ul
 			)}
-		</ListProvider>
+		</ListContext>
 	)
 }

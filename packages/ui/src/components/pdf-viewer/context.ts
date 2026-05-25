@@ -5,5 +5,5 @@ import type { UsePdfViewerResult } from './use-pdf-viewer'
 
 type PdfViewerContextValue = UsePdfViewerResult
 
-export const [PdfViewerProvider, usePdfViewerContext] =
+export const [PdfViewerContext, usePdfViewerContext] =
 	createContext<PdfViewerContextValue>('PdfViewer')

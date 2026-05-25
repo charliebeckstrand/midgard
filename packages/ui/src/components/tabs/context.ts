@@ -14,6 +14,6 @@ type TabsContextValue = {
 	size: TabsSize
 }
 
-export const [TabsProvider, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {
+export const [TabsContext, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {
 	default: undefined,
 })

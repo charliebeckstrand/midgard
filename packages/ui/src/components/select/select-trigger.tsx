@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { AffixProvider, affixStepDown } from '../../primitives/affix'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { k } from '../../recipes/kata/select'
 import type { ControlSize } from '../control/context'
@@ -49,7 +49,7 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<AffixProvider value={affixStepDown(size)}>
+		<AffixContext value={affixStepDown(size)}>
 			<div
 				data-slot="control"
 				ref={setReference}
@@ -83,6 +83,6 @@ export function SelectTrigger({
 					)}
 				</ControlFrame>
 			</div>
-		</AffixProvider>
+		</AffixContext>
 	)
 }

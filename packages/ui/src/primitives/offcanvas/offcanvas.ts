@@ -7,12 +7,12 @@ type OffcanvasContextValue = {
 }
 
 /**
- * Provider + raw context for the offcanvas close handle. Children that want to
- * close the surrounding offcanvas (e.g. nav items, close buttons) read it via
- * `use(OffcanvasContext)`. The provider is given by the offcanvas's state owner
- * — typically a layout calling `useOffcanvas()` from `ui/hooks/use-offcanvas`.
+ * Context for the offcanvas close handle. Children that want to close the
+ * surrounding offcanvas (e.g. nav items, close buttons) read it via
+ * `use(OffcanvasContext)`. The provider is given by the offcanvas's state
+ * owner — typically a layout calling `useOffcanvas()` from
+ * `ui/hooks/use-offcanvas`.
  */
-export const [OffcanvasProvider, , OffcanvasContext] = createContext<OffcanvasContextValue | null>(
-	'Offcanvas',
-	{ default: null },
-)
+export const [OffcanvasContext] = createContext<OffcanvasContextValue | null>('Offcanvas', {
+	default: null,
+})

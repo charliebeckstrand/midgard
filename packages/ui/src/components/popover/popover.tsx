@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useMemo } from 'react'
 import { cn } from '../../core'
 import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { PopoverProvider } from './context'
+import { PopoverContext } from './context'
 
 export type PopoverProps = {
 	placement?: Placement
@@ -69,10 +69,10 @@ export function Popover({
 	)
 
 	return (
-		<PopoverProvider value={contextValue}>
+		<PopoverContext value={contextValue}>
 			<div data-slot="popover" className={cn(className)}>
 				{children}
 			</div>
-		</PopoverProvider>
+		</PopoverContext>
 	)
 }

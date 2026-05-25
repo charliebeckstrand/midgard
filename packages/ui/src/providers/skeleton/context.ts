@@ -7,6 +7,6 @@ import { createContext } from '../../core'
  * to render a `<Placeholder>` shaped from `kokkaku` instead of their real
  * markup. Read at the leaf; does not compose into size resolution.
  */
-export const [SkeletonProvider, useSkeleton] = createContext<boolean>('Skeleton', {
+export const [SkeletonContext, useSkeleton] = createContext<boolean>('Skeleton', {
 	default: false,
 })

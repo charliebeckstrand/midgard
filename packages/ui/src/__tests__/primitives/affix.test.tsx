@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { AffixProvider, useAffix } from '../../primitives/affix'
+import { AffixContext, useAffix } from '../../primitives/affix'
 import { Density, densityPresets, useSizeWide } from '../../primitives/density'
 
 describe('useAffix', () => {
-	it('returns null outside any AffixProvider', () => {
+	it('returns null outside any AffixContext', () => {
 		const { result } = renderHook(() => useAffix())
 
 		expect(result.current).toBeNull()
@@ -12,18 +12,18 @@ describe('useAffix', () => {
 
 	it('returns the broadcast Ma value when wrapped', () => {
 		const { result } = renderHook(() => useAffix(), {
-			wrapper: ({ children }) => <AffixProvider value="xs">{children}</AffixProvider>,
+			wrapper: ({ children }) => <AffixContext value="xs">{children}</AffixContext>,
 		})
 
 		expect(result.current).toBe('xs')
 	})
 
-	it('innermost AffixProvider wins', () => {
+	it('innermost AffixContext wins', () => {
 		const { result } = renderHook(() => useAffix(), {
 			wrapper: ({ children }) => (
-				<AffixProvider value="md">
-					<AffixProvider value="xs">{children}</AffixProvider>
-				</AffixProvider>
+				<AffixContext value="md">
+					<AffixContext value="xs">{children}</AffixContext>
+				</AffixContext>
 			),
 		})
 
@@ -40,7 +40,7 @@ describe('useSizeWide', () => {
 
 	it('falls through to Affix when no explicit value', () => {
 		const { result } = renderHook(() => useSizeWide(), {
-			wrapper: ({ children }) => <AffixProvider value="xs">{children}</AffixProvider>,
+			wrapper: ({ children }) => <AffixContext value="xs">{children}</AffixContext>,
 		})
 
 		expect(result.current).toBe('xs')
@@ -64,7 +64,7 @@ describe('useSizeWide', () => {
 		const { result } = renderHook(() => useSizeWide(), {
 			wrapper: ({ children }) => (
 				<Density size="lg">
-					<AffixProvider value="xs">{children}</AffixProvider>
+					<AffixContext value="xs">{children}</AffixContext>
 				</Density>
 			),
 		})
@@ -74,7 +74,7 @@ describe('useSizeWide', () => {
 
 	it('explicit prop wins over Affix', () => {
 		const { result } = renderHook(() => useSizeWide('xl'), {
-			wrapper: ({ children }) => <AffixProvider value="xs">{children}</AffixProvider>,
+			wrapper: ({ children }) => <AffixContext value="xs">{children}</AffixContext>,
 		})
 
 		expect(result.current).toBe('xl')

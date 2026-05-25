@@ -2,7 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { PdfViewerProvider } from './context'
+import { PdfViewerContext } from './context'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
 import { PdfViewerViewport } from './pdf-viewer-viewport'
@@ -65,7 +65,7 @@ export function PdfViewer({
 	})
 
 	return (
-		<PdfViewerProvider value={context}>
+		<PdfViewerContext value={context}>
 			<section
 				ref={context.rootRef}
 				data-slot="pdf-viewer"
@@ -78,6 +78,6 @@ export function PdfViewer({
 					<PdfViewerViewport />
 				</div>
 			</section>
-		</PdfViewerProvider>
+		</PdfViewerContext>
 	)
 }

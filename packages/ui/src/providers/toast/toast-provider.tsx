@@ -2,10 +2,10 @@
 
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import {
+	ToastContext,
 	type ToastContextValue,
-	ToastValueProvider,
+	ToastViewportContext,
 	type ToastViewportContextValue,
-	ToastViewportProvider,
 } from './context'
 import type { ToastData, ToastInput } from './types'
 import { useToastQueue } from './use-toast-queue'
@@ -138,8 +138,8 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	}
 
 	return (
-		<ToastValueProvider value={publicValue}>
-			<ToastViewportProvider value={viewportValue}>{children}</ToastViewportProvider>
-		</ToastValueProvider>
+		<ToastContext value={publicValue}>
+			<ToastViewportContext value={viewportValue}>{children}</ToastViewportContext>
+		</ToastContext>
 	)
 }

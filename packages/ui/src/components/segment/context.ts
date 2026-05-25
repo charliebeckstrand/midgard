@@ -7,4 +7,4 @@ export type SegmentContextValue = {
 	size: Step
 }
 
-export const [SegmentProvider, useSegmentContext] = createContext<SegmentContextValue>('Segment')
+export const [SegmentContext, useSegmentContext] = createContext<SegmentContextValue>('Segment')

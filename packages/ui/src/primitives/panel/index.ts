@@ -1,7 +1,7 @@
 export * from './panel'
 export { PanelClose, type PanelCloseProps } from './panel-close'
 export {
-	PanelCloseProvider,
+	PanelCloseContext,
 	usePanelCloseContext,
 	usePanelCloseValue,
 } from './panel-close-context'

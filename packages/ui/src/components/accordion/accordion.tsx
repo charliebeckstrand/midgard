@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable, useRoving } from '../../hooks'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
-import { AccordionProvider } from './context'
+import { AccordionContext } from './context'
 
 type SingleProps = {
 	type?: 'single'
@@ -108,7 +108,7 @@ export function Accordion(props: AccordionProps) {
 	})
 
 	return (
-		<AccordionProvider value={context}>
+		<AccordionContext value={context}>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
 			<div
 				ref={ref}
@@ -118,6 +118,6 @@ export function Accordion(props: AccordionProps) {
 			>
 				{children}
 			</div>
-		</AccordionProvider>
+		</AccordionContext>
 	)
 }

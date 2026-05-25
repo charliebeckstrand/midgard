@@ -18,8 +18,8 @@ export type ToastViewportContextValue = {
 }
 
 /** Public — caller-facing API for emitting and dismissing toasts. */
-export const [ToastValueProvider, useToast] = createContext<ToastContextValue>('Toast')
+export const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 
 /** Internal — viewport state consumed by the `<Toast>` viewport. */
-export const [ToastViewportProvider, useToastViewport] =
+export const [ToastViewportContext, useToastViewport] =
 	createContext<ToastViewportContextValue>('ToastViewport')

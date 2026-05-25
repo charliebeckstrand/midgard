@@ -17,4 +17,4 @@ type TooltipContextValue = {
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
 }
 
-export const [TooltipProvider, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')
+export const [TooltipContext, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')

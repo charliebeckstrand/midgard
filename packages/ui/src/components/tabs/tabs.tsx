@@ -2,9 +2,9 @@
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
-import { CurrentProvider, useCurrentState } from '../../primitives/current'
+import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
-import { type TabsOrientation, TabsProvider, type TabsSize, type TabsVariant } from './context'
+import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	value?: string
@@ -47,8 +47,8 @@ export function Tabs({
 	const isVertical = resolvedOrientation === 'vertical'
 
 	return (
-		<CurrentProvider value={context}>
-			<TabsProvider value={tabsContext}>
+		<CurrentContext value={context}>
+			<TabsContext value={tabsContext}>
 				<div
 					data-slot="tab-group"
 					data-orientation={resolvedOrientation}
@@ -57,7 +57,7 @@ export function Tabs({
 				>
 					{children}
 				</div>
-			</TabsProvider>
-		</CurrentProvider>
+			</TabsContext>
+		</CurrentContext>
 	)
 }

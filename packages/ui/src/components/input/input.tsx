@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { AffixProvider, affixStepDown } from '../../primitives/affix'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
@@ -119,7 +119,7 @@ export function Input(props: InputProps) {
 
 	return (
 		<DensityScope scale={size}>
-			<AffixProvider value={affixStep}>
+			<AffixContext value={affixStep}>
 				<ControlFrame
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
@@ -165,7 +165,7 @@ export function Input(props: InputProps) {
 						</span>
 					)}
 				</ControlFrame>
-			</AffixProvider>
+			</AffixContext>
 		</DensityScope>
 	)
 }

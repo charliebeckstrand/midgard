@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
-import { type DataTableRowContextValue, DataTableRowProvider, useDataTable } from './context'
+import { DataTableRowContext, type DataTableRowContextValue, useDataTable } from './context'
 import type { DataTableColumn } from './types'
 
 type DataTableRowProps<T> = {
@@ -27,7 +27,7 @@ function DataTableRowImpl<T>({ row, rowKey, columns, loading, className }: DataT
 	)
 
 	return (
-		<DataTableRowProvider value={rowContext}>
+		<DataTableRowContext value={rowContext}>
 			<TableRow
 				data-selected={selected || undefined}
 				className={cn(loading && k.rowLoading, className)}
@@ -66,7 +66,7 @@ function DataTableRowImpl<T>({ row, rowKey, columns, loading, className }: DataT
 					)
 				})}
 			</TableRow>
-		</DataTableRowProvider>
+		</DataTableRowContext>
 	)
 }
 

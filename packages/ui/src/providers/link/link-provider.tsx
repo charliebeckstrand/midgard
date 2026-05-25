@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { type LinkComponent, type LinkContextValue, LinkValueProvider } from '../../primitives/link'
+import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
 
 type LinkProviderProps = {
 	/**
@@ -21,5 +21,5 @@ type LinkProviderProps = {
 export function LinkProvider({ component, children }: LinkProviderProps) {
 	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
 
-	return <LinkValueProvider value={value}>{children}</LinkValueProvider>
+	return <LinkContext value={value}>{children}</LinkContext>
 }

@@ -2,12 +2,12 @@
 
 import { createContext } from '../../core'
 
-type PasswordConfirmContext = {
+type PasswordConfirmContextValue = {
 	status: 'idle' | 'warning'
 	setConfirm: (value: string) => void
 	setConfirmName: (name: string | undefined) => void
 	confirmHasFormError: boolean
 }
 
-export const [PasswordConfirmProvider, usePasswordConfirm] =
-	createContext<PasswordConfirmContext>('PasswordConfirm')
+export const [PasswordConfirmContext, usePasswordConfirm] =
+	createContext<PasswordConfirmContextValue>('PasswordConfirm')

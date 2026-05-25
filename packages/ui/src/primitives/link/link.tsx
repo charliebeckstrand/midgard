@@ -23,6 +23,6 @@ export type LinkContextValue = {
  * `providers/link`. Primitives consume the context to render links without
  * depending on either.
  */
-export const [LinkValueProvider, useLink] = createContext<LinkContextValue>('Link', {
+export const [LinkContext, useLink] = createContext<LinkContextValue>('Link', {
 	default: { component: 'a' },
 })

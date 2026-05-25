@@ -11,7 +11,7 @@ import {
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { KanbanProvider } from './context'
+import { KanbanContext } from './context'
 import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
@@ -83,7 +83,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	)
 
 	return (
-		<KanbanProvider value={contextValue}>
+		<KanbanContext value={contextValue}>
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCorners}
@@ -110,6 +110,6 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					</DragOverlay>
 				) : null}
 			</DndContext>
-		</KanbanProvider>
+		</KanbanContext>
 	)
 }

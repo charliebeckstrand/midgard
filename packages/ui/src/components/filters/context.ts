@@ -9,4 +9,4 @@ export type FiltersContextValue = {
 	activeCount: number
 }
 
-export const [FiltersProvider, useFilters] = createContext<FiltersContextValue>('Filters')
+export const [FiltersContext, useFilters] = createContext<FiltersContextValue>('Filters')

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card } from '../../components/card'
-import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
+import { NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -21,7 +21,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Value model with content">
-				<NavProvider value={{ value: current, onChange: setCurrent }}>
+				<NavContext value={{ value: current, onChange: setCurrent }}>
 					<NavList orientation="horizontal">
 						<NavItem value="account">Account</NavItem>
 						<NavItem value="notifications">Notifications</NavItem>
@@ -34,7 +34,7 @@ export function Demo() {
 							<NavContent value="billing">Billing information</NavContent>
 						</NavContents>
 					</Card>
-				</NavProvider>
+				</NavContext>
 			</Example>
 
 			<Example title="With links">

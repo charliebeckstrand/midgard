@@ -16,4 +16,4 @@ type PopoverContextValue = {
 	onExitComplete?: () => void
 }
 
-export const [PopoverProvider, usePopoverContext] = createContext<PopoverContextValue>('Popover')
+export const [PopoverContext, usePopoverContext] = createContext<PopoverContextValue>('Popover')

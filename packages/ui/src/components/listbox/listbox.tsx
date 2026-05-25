@@ -12,7 +12,7 @@ import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
 import { SelectTrigger } from '../select/select-trigger'
-import { ListboxProvider } from './context'
+import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
@@ -136,7 +136,7 @@ export function Listbox<T>({
 	}
 
 	return (
-		<ListboxProvider value={contextValue}>
+		<ListboxContext value={contextValue}>
 			<SelectTrigger
 				open={open}
 				setReference={refs.setReference}
@@ -179,6 +179,6 @@ export function Listbox<T>({
 			>
 				{children}
 			</ListboxPanel>
-		</ListboxProvider>
+		</ListboxContext>
 	)
 }

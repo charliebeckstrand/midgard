@@ -4,7 +4,7 @@ import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
-import { JsonTreeProvider } from './context'
+import { JsonTreeContext } from './context'
 import { JsonTreeNode } from './json-tree-node'
 import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
@@ -90,7 +90,7 @@ export function JsonTree({
 	}
 
 	return (
-		<JsonTreeProvider
+		<JsonTreeContext
 			value={{
 				depth: 0,
 				defaultExpandDepth,
@@ -111,6 +111,6 @@ export function JsonTree({
 			>
 				<JsonTreeNode keyName={rootKey} value={data} />
 			</div>
-		</JsonTreeProvider>
+		</JsonTreeContext>
 	)
 }
