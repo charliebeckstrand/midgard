@@ -24,7 +24,7 @@ import type { Ma, Step } from '../../recipes'
  * for everyone else. Returns `null` outside any provider — consumers
  * treat `null` as "fall through to the Density cascade".
  */
-const [AffixProvider, useAffix] = createContext<Ma | null>('Affix', { default: null })
+const [AffixContext, useAffix] = createContext<Ma | null>('Affix', { default: null })
 
 const AFFIX_STEP_DOWN: Record<Step, Ma> = { sm: 'xs', md: 'sm', lg: 'md' }
 
@@ -42,4 +42,4 @@ export function affixStepDown(hostSize: Step): Ma {
 	return AFFIX_STEP_DOWN[hostSize]
 }
 
-export { AffixProvider, useAffix }
+export { AffixContext, useAffix }

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
-import { AffixProvider } from '../../primitives/affix'
+import { AffixContext } from '../../primitives/affix'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -244,7 +244,7 @@ describe('Button', () => {
 		})
 
 		// Regression: `<Input>` / `<SelectTrigger>` wrap their affix descendants
-		// in an `<AffixProvider>` carrying the one-step-smaller affix size. The
+		// in an `<AffixContext>` carrying the one-step-smaller affix size. The
 		// Affix cascade is read first by `useSizeWide` — so when `<Density>` (or
 		// a surrounding `<Card>`) mounts an outer Step cascade at the app root,
 		// the affix wrap still pins the button to the smaller affix size.
@@ -252,9 +252,9 @@ describe('Button', () => {
 		it('Affix wins over an enclosing Density', () => {
 			const { container } = renderUI(
 				<Density scale="lg">
-					<AffixProvider value="sm">
+					<AffixContext value="sm">
 						<Button>Affix</Button>
-					</AffixProvider>
+					</AffixContext>
 				</Density>,
 			)
 
@@ -265,9 +265,9 @@ describe('Button', () => {
 		it('Affix can drop a button to xs', () => {
 			const { container } = renderUI(
 				<Density scale="sm">
-					<AffixProvider value="xs">
+					<AffixContext value="xs">
 						<Button>Affix</Button>
-					</AffixProvider>
+					</AffixContext>
 				</Density>,
 			)
 
@@ -277,9 +277,9 @@ describe('Button', () => {
 		it('explicit size prop still wins over Affix', () => {
 			const { container } = renderUI(
 				<Density scale="lg">
-					<AffixProvider value="sm">
+					<AffixContext value="sm">
 						<Button size="md">Override</Button>
-					</AffixProvider>
+					</AffixContext>
 				</Density>,
 			)
 

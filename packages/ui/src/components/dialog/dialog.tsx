@@ -6,8 +6,8 @@ import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
 import {
-	PanelA11yProvider,
-	PanelCloseProvider,
+	PanelA11yContext,
+	PanelCloseContext,
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
@@ -75,9 +75,9 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelCloseProvider value={closeValue}>
-						<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
-					</PanelCloseProvider>
+					<PanelCloseContext value={closeValue}>
+						<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
+					</PanelCloseContext>
 				</motion.div>
 			</div>
 		</Overlay>

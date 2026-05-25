@@ -14,6 +14,6 @@ type JoinContextValue = {
 	orientation: GroupOrientation
 }
 
-export const [JoinProvider, useJoin] = createContext<JoinContextValue | null>('Join', {
+export const [JoinContext, useJoin] = createContext<JoinContextValue | null>('Join', {
 	default: null,
 })

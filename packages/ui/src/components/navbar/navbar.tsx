@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type NavbarVariants } from '../../recipes/kata/navbar'
-import { NavbarProvider } from './context'
+import { NavbarContext } from './context'
 
 export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
 
@@ -14,7 +14,7 @@ export function Navbar({
 	...props
 }: NavbarProps) {
 	return (
-		<NavbarProvider value={true}>
+		<NavbarContext value={true}>
 			<ActiveIndicatorScope>
 				<nav
 					data-slot="navbar"
@@ -25,6 +25,6 @@ export function Navbar({
 					{children}
 				</nav>
 			</ActiveIndicatorScope>
-		</NavbarProvider>
+		</NavbarContext>
 	)
 }

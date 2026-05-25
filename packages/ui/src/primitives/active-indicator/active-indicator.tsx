@@ -6,7 +6,7 @@ import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
 
-const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<string | undefined>(
+const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<string | undefined>(
 	'ActiveIndicatorScope',
 	{ default: undefined },
 )
@@ -20,11 +20,11 @@ export function ActiveIndicatorScope({ children, id }: { id?: string; children: 
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
 	return (
-		<ActiveIndicatorScopeProvider value={layoutId}>
+		<ActiveIndicatorScopeContext value={layoutId}>
 			<ReducedMotion>
 				<LayoutGroup id={layoutId}>{children}</LayoutGroup>
 			</ReducedMotion>
-		</ActiveIndicatorScopeProvider>
+		</ActiveIndicatorScopeContext>
 	)
 }
 

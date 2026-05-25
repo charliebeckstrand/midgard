@@ -9,7 +9,7 @@ import {
 	type DataTableVirtualize,
 } from '../data-table'
 import type { TableVariants } from '../table'
-import { type EditableGridContextValue, EditableGridProvider } from './context'
+import { EditableGridContext, type EditableGridContextValue } from './context'
 import { EditableGridStyles } from './editable-grid-styles'
 import type { CellChange, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
@@ -128,7 +128,7 @@ export function EditableGrid<T>({
 	)
 
 	return (
-		<EditableGridProvider value={context}>
+		<EditableGridContext value={context}>
 			<EditableGridStyles />
 			<DataTable
 				columns={augmentedColumns}
@@ -156,6 +156,6 @@ export function EditableGrid<T>({
 					onBlur: onWrapperBlur,
 				}}
 			/>
-		</EditableGridProvider>
+		</EditableGridContext>
 	)
 }

@@ -6,8 +6,8 @@ import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import {
-	PanelA11yProvider,
-	PanelCloseProvider,
+	PanelA11yContext,
+	PanelCloseContext,
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
@@ -61,13 +61,13 @@ export function Drawer({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
-				<PanelCloseProvider value={closeValue}>
-					<PanelA11yProvider value={providerValue}>
+				<PanelCloseContext value={closeValue}>
+					<PanelA11yContext value={providerValue}>
 						<Density density={resolvedSize} size={resolvedSize}>
 							{children}
 						</Density>
-					</PanelA11yProvider>
-				</PanelCloseProvider>
+					</PanelA11yContext>
+				</PanelCloseContext>
 			</motion.div>
 		</Overlay>
 	)

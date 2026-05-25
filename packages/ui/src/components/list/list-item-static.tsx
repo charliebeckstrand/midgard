@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { noop } from '../../utilities'
-import { ListItemProvider } from './context'
+import { ListItemContext } from './context'
 
 type ListItemStaticProps = {
 	id: string
@@ -11,7 +11,7 @@ type ListItemStaticProps = {
 
 export function ListItemStatic({ id, children }: ListItemStaticProps) {
 	return (
-		<ListItemProvider
+		<ListItemContext
 			value={{
 				id,
 				setNodeRef: noop,
@@ -23,6 +23,6 @@ export function ListItemStatic({ id, children }: ListItemStaticProps) {
 			}}
 		>
 			{children}
-		</ListItemProvider>
+		</ListItemContext>
 	)
 }

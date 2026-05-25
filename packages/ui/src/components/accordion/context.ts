@@ -9,7 +9,7 @@ type AccordionContextValue = {
 	toggle: (value: string) => void
 }
 
-export const [AccordionProvider, useAccordion] = createContext<AccordionContextValue>('Accordion')
+export const [AccordionContext, useAccordion] = createContext<AccordionContextValue>('Accordion')
 
 type AccordionItemContextValue = {
 	value: string
@@ -18,5 +18,5 @@ type AccordionItemContextValue = {
 	disabled: boolean
 }
 
-export const [AccordionItemProvider, useAccordionItem] =
+export const [AccordionItemContext, useAccordionItem] =
 	createContext<AccordionItemContextValue>('AccordionItem')

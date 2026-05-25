@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { AffixProvider } from '../../primitives/affix'
+import { AffixContext } from '../../primitives/affix'
 import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -89,11 +89,11 @@ export function Button({
 	const labelled = hasLabelContent(children)
 
 	const content = (
-		<AffixProvider value={resolvedSize}>
+		<AffixContext value={resolvedSize}>
 			{loading ? <Spinner {...loadingOptions} /> : prefix}
 			{children}
 			{suffix}
-		</AffixProvider>
+		</AffixContext>
 	)
 
 	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {

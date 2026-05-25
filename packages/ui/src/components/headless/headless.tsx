@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { HeadlessProvider } from './context'
+import { HeadlessContext } from './context'
 
 export type HeadlessProps = {
 	children: ReactNode
@@ -12,5 +12,5 @@ export type HeadlessProps = {
  * keeping `kasane`'s `has-[>:disabled]` selectors intact.
  */
 export function Headless({ children }: HeadlessProps) {
-	return <HeadlessProvider value={true}>{children}</HeadlessProvider>
+	return <HeadlessContext value={true}>{children}</HeadlessContext>
 }

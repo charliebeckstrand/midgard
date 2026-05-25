@@ -7,4 +7,4 @@ export type ToolbarContextValue = {
 	orientation: ToolbarOrientation
 }
 
-export const [ToolbarProvider, useToolbarContext] = createContext<ToolbarContextValue>('Toolbar')
+export const [ToolbarContext, useToolbarContext] = createContext<ToolbarContextValue>('Toolbar')

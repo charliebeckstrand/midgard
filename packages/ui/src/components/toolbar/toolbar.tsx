@@ -4,7 +4,7 @@ import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
-import { type ToolbarContextValue, ToolbarProvider } from './context'
+import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import type { ToolbarOrientation } from './types'
 
@@ -34,7 +34,7 @@ export function Toolbar({
 	const context: ToolbarContextValue = { orientation }
 
 	return (
-		<ToolbarProvider value={context}>
+		<ToolbarContext value={context}>
 			<div
 				ref={ref}
 				data-slot="toolbar"
@@ -47,6 +47,6 @@ export function Toolbar({
 			>
 				{children}
 			</div>
-		</ToolbarProvider>
+		</ToolbarContext>
 	)
 }

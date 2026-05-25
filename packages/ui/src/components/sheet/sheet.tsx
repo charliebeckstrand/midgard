@@ -5,8 +5,8 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { Overlay } from '../../primitives/overlay'
 import {
-	PanelA11yProvider,
-	PanelCloseProvider,
+	PanelA11yContext,
+	PanelCloseContext,
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
@@ -63,9 +63,9 @@ export function Sheet({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
 			>
-				<PanelCloseProvider value={closeValue}>
-					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
-				</PanelCloseProvider>
+				<PanelCloseContext value={closeValue}>
+					<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
+				</PanelCloseContext>
 			</motion.div>
 		</Overlay>
 	)

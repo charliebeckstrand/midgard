@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
-import { type CurrentContextValue, CurrentProvider } from '../../primitives/current'
+import { CurrentContext, type CurrentContextValue } from '../../primitives/current'
 
 export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 	value?: string
@@ -15,10 +15,10 @@ export function Nav({ value, onValueChange, className, children, ...props }: Nav
 	)
 
 	return (
-		<CurrentProvider value={context}>
+		<CurrentContext value={context}>
 			<nav data-slot="nav" className={className} {...props}>
 				{children}
 			</nav>
-		</CurrentProvider>
+		</CurrentContext>
 	)
 }

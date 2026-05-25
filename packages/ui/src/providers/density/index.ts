@@ -1,6 +1,6 @@
 export {
+	DensityContext,
 	type DensityLevel,
-	DensityProvider,
 	densityLevels,
 	densityToSize,
 	useDensity,

@@ -8,6 +8,6 @@ import { createContext } from '../../core'
  * keeping the rest of their behavior (Control / Form wiring, disabled state,
  * `data-slot`, ref forwarding).
  */
-export const [HeadlessProvider, useHeadless] = createContext<boolean>('Headless', {
+export const [HeadlessContext, useHeadless] = createContext<boolean>('Headless', {
 	default: false,
 })

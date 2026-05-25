@@ -7,4 +7,4 @@ export type TableContextValue = {
 	striped: boolean
 }
 
-export const [TableProvider, useTable] = createContext<TableContextValue>('Table')
+export const [TableContext, useTable] = createContext<TableContextValue>('Table')

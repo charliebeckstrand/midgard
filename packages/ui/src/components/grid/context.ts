@@ -8,6 +8,6 @@ type GridContextValue = {
 }
 
 /** Returns the grid context, or null outside a Grid. */
-export const [GridProvider, useGrid] = createContext<GridContextValue | null>('Grid', {
+export const [GridContext, useGrid] = createContext<GridContextValue | null>('Grid', {
 	default: null,
 })

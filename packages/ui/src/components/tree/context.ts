@@ -3,10 +3,10 @@
 import { createContext } from '../../core/create-context'
 import type { TreeSize } from '../../recipes/kata/tree'
 
-type TreeContext = {
+type TreeContextValue = {
 	depth: number
 	size: TreeSize
 	indent: boolean
 }
 
-export const [TreeProvider, useTreeContext] = createContext<TreeContext>('Tree')
+export const [TreeContext, useTreeContext] = createContext<TreeContextValue>('Tree')

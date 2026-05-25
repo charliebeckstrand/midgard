@@ -3,7 +3,7 @@
 import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } from 'react'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
-import { PasswordConfirmProvider } from './context'
+import { PasswordConfirmContext } from './context'
 import { handlePasswordInput } from './password-confirm-utilities'
 import { usePasswordConfirmState } from './use-password-confirm-state'
 
@@ -49,7 +49,7 @@ export function PasswordConfirm({
 	)
 
 	return (
-		<PasswordConfirmProvider value={context}>
+		<PasswordConfirmContext value={context}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (
@@ -58,6 +58,6 @@ export function PasswordConfirm({
 					</div>
 				)}
 			</div>
-		</PasswordConfirmProvider>
+		</PasswordConfirmContext>
 	)
 }

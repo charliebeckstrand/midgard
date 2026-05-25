@@ -1,7 +1,7 @@
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
-import { GlassProvider } from '../../components/glass/context'
-import { SkeletonProvider } from '../../providers/skeleton'
+import { GlassContext } from '../../components/glass/context'
+import { SkeletonContext } from '../../providers/skeleton'
 
 type UIContextOptions = {
 	skeleton?: boolean
@@ -23,11 +23,11 @@ export function renderUI(ui: ReactElement, options: UIRenderOptions = {}): Rende
 		let node = children
 
 		if (skeleton !== undefined) {
-			node = <SkeletonProvider value={skeleton}>{node}</SkeletonProvider>
+			node = <SkeletonContext value={skeleton}>{node}</SkeletonContext>
 		}
 
 		if (glass !== undefined) {
-			node = <GlassProvider value={glass}>{node}</GlassProvider>
+			node = <GlassContext value={glass}>{node}</GlassContext>
 		}
 
 		return <>{node}</>

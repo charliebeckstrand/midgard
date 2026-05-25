@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { type MapContextValue, MapProvider } from '../../components/map/context'
+import { MapContext, type MapContextValue } from '../../components/map/context'
 import { HIT_LAYER_WIDTH } from '../../components/map/map-route-constants'
 import type { SegmentStatus } from '../../components/map/map-route-utilities'
 import type { RouteData } from '../../components/map/types'
@@ -187,7 +187,7 @@ function Harness({
 	})
 
 	return (
-		<MapProvider value={mapValue}>
+		<MapContext value={mapValue}>
 			<RouteLayersConsumer
 				sourceId={sourceId}
 				layerId={layerId}
@@ -198,7 +198,7 @@ function Harness({
 				latestRef={latestRef}
 				handleSelectRef={handleSelectRef}
 			/>
-		</MapProvider>
+		</MapContext>
 	)
 }
 

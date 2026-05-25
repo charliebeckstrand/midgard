@@ -7,7 +7,7 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/collapse'
 import { CollapsePanel } from './collapse-panel'
 import { CollapseTrigger } from './collapse-trigger'
-import { CollapseProvider } from './context'
+import { CollapseContext } from './context'
 
 export type CollapseProps = {
 	/** Initial open state — uncontrolled. */
@@ -58,7 +58,7 @@ export function Collapse({
 	const panelId = scope.sub('panel')
 
 	return (
-		<CollapseProvider value={{ open, toggle, animate: animateProp, triggerId, panelId }}>
+		<CollapseContext value={{ open, toggle, animate: animateProp, triggerId, panelId }}>
 			<div data-slot="collapse" data-open={open || undefined} className={cn(k.base, className)}>
 				{trigger !== undefined ? (
 					<>
@@ -69,6 +69,6 @@ export function Collapse({
 					children
 				)}
 			</div>
-		</CollapseProvider>
+		</CollapseContext>
 	)
 }

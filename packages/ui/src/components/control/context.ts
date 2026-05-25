@@ -30,7 +30,7 @@ export type ControlContextValue = {
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
  * radio.
  */
-export const [ControlProvider, useControl] = createContext<ControlContextValue | undefined>(
+export const [ControlContext, useControl] = createContext<ControlContextValue | undefined>(
 	'Control',
 	{ default: undefined },
 )

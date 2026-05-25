@@ -1,7 +1,7 @@
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'
-import { TimelineProvider, type TimelineVariant, useTimeline } from './context'
+import { TimelineContext, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
 import { TimelineMarker } from './timeline-marker'
 
@@ -35,10 +35,10 @@ export function TimelineItem(props: TimelineItemProps) {
 			data-current={current || undefined}
 			className={cn(k.item({ orientation }), className)}
 		>
-			<TimelineProvider value={providerValue}>
+			<TimelineContext value={providerValue}>
 				{!hasMarker && <TimelineMarker {...markerConfig} />}
 				{children}
-			</TimelineProvider>
+			</TimelineContext>
 		</li>
 	)
 }

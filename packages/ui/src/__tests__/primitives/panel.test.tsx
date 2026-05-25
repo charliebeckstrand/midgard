@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { createPanel, PanelA11yProvider, PanelClose, usePanelA11y } from '../../primitives/panel'
+import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
@@ -76,9 +76,9 @@ describe('createPanel', () => {
 
 	it('Title uses titleId from context', () => {
 		const { container } = renderUI(
-			<PanelA11yProvider value={{ titleId: 'my-title' }}>
+			<PanelA11yContext value={{ titleId: 'my-title' }}>
 				<Title>Title</Title>
-			</PanelA11yProvider>,
+			</PanelA11yContext>,
 		)
 
 		const el = bySlot(container, 'dialog-title')

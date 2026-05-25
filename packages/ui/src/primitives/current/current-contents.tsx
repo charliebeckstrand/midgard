@@ -5,7 +5,7 @@ import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
-import { CurrentFadeProvider } from './current'
+import { CurrentFadeContext } from './current'
 import { useCurrentContentsHeight } from './use-current-contents-height'
 
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
@@ -41,7 +41,7 @@ export function CurrentContents({
 	}
 
 	return (
-		<CurrentFadeProvider value>
+		<CurrentFadeContext value>
 			<ReducedMotion>
 				<motion.div
 					ref={containerRef}
@@ -54,6 +54,6 @@ export function CurrentContents({
 					{children}
 				</motion.div>
 			</ReducedMotion>
-		</CurrentFadeProvider>
+		</CurrentFadeContext>
 	)
 }

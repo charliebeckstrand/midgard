@@ -26,7 +26,7 @@ type PanelA11yContextValue = {
 	registerDescription?: () => () => void
 }
 
-export const [PanelA11yProvider, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
+export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
 	default: {},
 })
 

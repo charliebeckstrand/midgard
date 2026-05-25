@@ -4,7 +4,7 @@ import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
-import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
+import { ControlContext, type ControlContextValue, useControl } from '../control/context'
 
 export type FieldProps = {
 	autoComplete?: string
@@ -33,13 +33,13 @@ export function Field({ autoComplete, className, disabled, htmlFor, ...props }: 
 	)
 
 	return (
-		<ControlProvider value={value}>
+		<ControlContext value={value}>
 			<div
 				data-slot="field"
 				{...(disabled || parent?.disabled ? { 'data-disabled': true } : {})}
 				className={cn(k.field, className)}
 				{...props}
 			/>
-		</ControlProvider>
+		</ControlContext>
 	)
 }

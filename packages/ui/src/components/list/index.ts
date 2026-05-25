@@ -1,6 +1,6 @@
 export {
-	type ListContext,
-	type ListItemContext,
+	type ListContextValue,
+	type ListItemContextValue,
 	useListContext,
 	useListItemContext,
 } from './context'

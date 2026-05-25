@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/table'
-import { type TableContextValue, TableProvider } from './context'
+import { TableContext, type TableContextValue } from './context'
 
 export type TableVariants = {
 	/**
@@ -60,12 +60,12 @@ export function Table({
 	)
 
 	return (
-		<TableProvider value={context}>
+		<TableContext value={context}>
 			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 				<table {...tableProps} className={cn(k.base, className, tableProps?.className)}>
 					{children}
 				</table>
 			</div>
-		</TableProvider>
+		</TableContext>
 	)
 }

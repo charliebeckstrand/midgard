@@ -9,4 +9,4 @@ type ListboxContextValue<T = unknown> = {
 	close: () => void
 }
 
-export const [ListboxProvider, useListboxContext] = createContext<ListboxContextValue>('Listbox')
+export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox')

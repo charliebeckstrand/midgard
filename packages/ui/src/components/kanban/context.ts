@@ -3,7 +3,7 @@
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
 
-export type KanbanContext = {
+export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
 	interactive: boolean
 	/** Card id currently being dragged, if any. */
@@ -20,11 +20,11 @@ export type KanbanContext = {
 	onCardBlur: () => void
 }
 
-export const [KanbanProvider, useKanbanContext] = createContext<KanbanContext>('Kanban')
+export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
 
-export type KanbanColumnContext = {
+export type KanbanColumnContextValue = {
 	columnId: string
 }
 
-export const [KanbanColumnProvider, useKanbanColumnContext] =
-	createContext<KanbanColumnContext>('KanbanColumn')
+export const [KanbanColumnContext, useKanbanColumnContext] =
+	createContext<KanbanColumnContextValue>('KanbanColumn')

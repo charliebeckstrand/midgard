@@ -18,7 +18,7 @@ export type DataTableContextValue = {
 	stickyHeader: boolean
 }
 
-export const [DataTableProvider, useDataTable] = createContext<DataTableContextValue>('DataTable')
+export const [DataTableContext, useDataTable] = createContext<DataTableContextValue>('DataTable')
 
 export type DataTableRowContextValue<T = unknown> = {
 	row: T
@@ -27,5 +27,5 @@ export type DataTableRowContextValue<T = unknown> = {
 	loading: boolean
 }
 
-export const [DataTableRowProvider, useDataTableRow] =
+export const [DataTableRowContext, useDataTableRow] =
 	createContext<DataTableRowContextValue>('DataTableRow')

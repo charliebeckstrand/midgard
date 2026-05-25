@@ -3,7 +3,7 @@
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/accordion'
-import { AccordionItemProvider, useAccordion } from './context'
+import { AccordionItemContext, useAccordion } from './context'
 
 export type AccordionItemProps = {
 	value: string
@@ -32,7 +32,7 @@ export function AccordionItem({
 	)
 
 	return (
-		<AccordionItemProvider value={context}>
+		<AccordionItemContext value={context}>
 			<div
 				data-slot="accordion-item"
 				data-open={open || undefined}
@@ -40,6 +40,6 @@ export function AccordionItem({
 			>
 				{children}
 			</div>
-		</AccordionItemProvider>
+		</AccordionItemContext>
 	)
 }

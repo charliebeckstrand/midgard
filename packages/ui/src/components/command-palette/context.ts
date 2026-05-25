@@ -7,5 +7,5 @@ type CommandPaletteContextValue = {
 	query: string
 }
 
-export const [CommandPaletteProvider, useCommandPaletteContext] =
+export const [CommandPaletteContext, useCommandPaletteContext] =
 	createContext<CommandPaletteContextValue>('CommandPalette')

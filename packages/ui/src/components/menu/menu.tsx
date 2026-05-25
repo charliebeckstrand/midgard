@@ -4,7 +4,7 @@ import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
-import { MenuActionsProvider, MenuStateProvider } from './context'
+import { MenuActionsContext, MenuStateContext } from './context'
 import { useMenuState } from './use-menu-state'
 
 export type MenuProps = {
@@ -27,8 +27,8 @@ export function Menu({ defaultOpen, placement, size, className, children }: Menu
 	})
 
 	return (
-		<MenuActionsProvider value={actions}>
-			<MenuStateProvider value={state}>
+		<MenuActionsContext value={actions}>
+			<MenuStateContext value={state}>
 				<div
 					data-slot="menu"
 					className={cn(className)}
@@ -36,7 +36,7 @@ export function Menu({ defaultOpen, placement, size, className, children }: Menu
 				>
 					{children}
 				</div>
-			</MenuStateProvider>
-		</MenuActionsProvider>
+			</MenuStateContext>
+		</MenuActionsContext>
 	)
 }
