@@ -6,7 +6,7 @@ import { cn, invalidAttrs } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
-import { useFormToggle } from '../form/context'
+import { useFormToggle } from '../form/use-form-toggle'
 import { CheckboxSkeleton } from './checkbox-skeleton'
 
 export type CheckboxProps = CheckboxVariants & {

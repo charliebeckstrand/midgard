@@ -4,15 +4,11 @@ export {
 	type FormFieldState,
 	type FormStateValue,
 	type FormStatus,
-	type FormTextBinding,
-	type FormToggleBinding,
 	useFormActions,
 	useFormContext,
 	useFormField,
 	useFormState,
 	useFormStatus,
-	useFormText,
-	useFormToggle,
 } from './context'
 export {
 	Form,
@@ -28,3 +24,5 @@ export {
 	type ZodParseResult,
 	zodResolver,
 } from './form-zod-resolver'
+export { type FormTextBinding, useFormText } from './use-form-text'
+export { type FormToggleBinding, useFormToggle } from './use-form-toggle'
