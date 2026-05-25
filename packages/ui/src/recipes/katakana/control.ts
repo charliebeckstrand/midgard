@@ -2,8 +2,12 @@
  * Control applicator — the text-input branch of the Control family
  * archetype. Covers `input`, `textarea`, `listbox`, `combobox`, and
  * `date-picker`: kata that frame a user-input element with the library's
- * signature kasane chrome and the `default` / `outline` / `glass`
- * surface vocabulary.
+ * signature kasane chrome.
+ *
+ * Public variant surface is `'default' | 'outline'`. The recipe also
+ * accepts `'glass'` for internal use only — components route to it via
+ * `useGlass()` when nested inside a glass overlay (Dialog, Drawer, Sheet),
+ * never as an explicit caller-chosen variant.
  *
  * The check-input branch (`checkbox`, `radio`) lives in a sibling
  * `check` applicator; `switch` reads only `check.hidden` and uses

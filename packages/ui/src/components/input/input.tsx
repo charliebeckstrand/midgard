@@ -17,8 +17,9 @@ import { useHeadless } from '../headless/context'
 import { Spinner } from '../spinner'
 import { useInputValue } from './use-input-value'
 
-export type InputProps = Omit<InputVariants, 'size'> & {
+export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: Step
+	variant?: 'default' | 'outline'
 	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode

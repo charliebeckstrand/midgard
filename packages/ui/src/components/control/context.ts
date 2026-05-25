@@ -3,7 +3,10 @@
 import { createContext } from '../../core'
 
 export type ControlSize = 'sm' | 'md' | 'lg'
-export type ControlVariant = 'default' | 'outline' | 'glass'
+// `'glass'` is intentionally absent: glass is routed automatically by the
+// Glass provider context (`useGlass()` in input/textarea/date-picker), never
+// chosen as an explicit variant. The recipe still accepts it internally.
+export type ControlVariant = 'default' | 'outline'
 
 export type ControlContextValue = {
 	id: string

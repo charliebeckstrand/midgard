@@ -13,8 +13,9 @@ import { useFormText } from '../form/use-form-text'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 
-export type TextareaProps = Omit<TextareaVariants, 'size'> & {
+export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
+	variant?: 'default' | 'outline'
 	className?: string
 	actions?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
