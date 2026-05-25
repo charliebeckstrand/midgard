@@ -1,5 +1,3 @@
-'use client'
-
 // Cell-change flash keyframe. Hoisted and deduplicated by React 19 via
 // `precedence` so the component ships its own animation regardless of how
 // the consumer wires Tailwind.

@@ -1,5 +1,3 @@
-'use client'
-
 import { Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Icon } from '../icon'

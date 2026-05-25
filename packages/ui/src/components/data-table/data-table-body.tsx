@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactNode, RefObject } from 'react'
 import { TableBody, TableEmpty, TableLoading } from '../table'
 import { DataTableRow } from './data-table-row'
