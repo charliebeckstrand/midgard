@@ -30,10 +30,9 @@ export function useComboboxState<T>({
 }: UseComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
-	// Skip the one-frame lag when the query empties — select() clears the query
-	// in multi-select mode and the panel stays open, so a stale filtered list
-	// would flash before catching up. An empty query renders the full list,
-	// which is the cheap case anyway.
+	// Bypass deferral on empty query: select() clears it in multi-select while
+	// the panel stays open, so the deferred copy would otherwise paint one stale
+	// frame of the prior filter.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal

@@ -19,11 +19,10 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	className?: string
 	/**
 	 * Items to render in the palette. Pass a function to receive the live query
-	 * plus a deferred copy — filter against `deferredQuery` to keep typing
-	 * responsive while React catches up on a separate priority. CommandPalette
-	 * does not virtualize its result list — keep the rendered set to a few
-	 * hundred items at most, or wrap the children in your own windowed renderer
-	 * for larger result sets.
+	 * and a deferred copy; filter against `deferredQuery` to keep typing
+	 * responsive. CommandPalette does not virtualize — keep the rendered set to
+	 * a few hundred items, or wrap children in your own windowed renderer for
+	 * larger sets.
 	 */
 	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
 }

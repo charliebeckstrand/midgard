@@ -11,9 +11,9 @@ type UseCommandPaletteStateOptions = {
 export function useCommandPaletteState({ open, onOpenChange }: UseCommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
-	// Skip the one-frame lag when the query empties — the palette resets the
-	// query on close and on every new open, and we want the full result set to
-	// render immediately, not after a stale frame.
+	// Bypass deferral on empty query: the palette resets it on close and on every
+	// open, so the deferred copy would otherwise paint one stale frame of the
+	// prior filter.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal

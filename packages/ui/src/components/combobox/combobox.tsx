@@ -58,8 +58,8 @@ type ComboboxBaseProps<T> = {
 	'data-group-orientation'?: string
 	/**
 	 * Items to render inside the panel. Pass a function to receive the live
-	 * query plus a deferred copy — use `deferredQuery` to filter heavy lists so
-	 * typing stays responsive while React catches up on a separate priority.
+	 * query and a deferred copy; filter heavy lists against `deferredQuery` to
+	 * keep typing responsive.
 	 */
 	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
 }
