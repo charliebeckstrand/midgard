@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactElement, type ReactNode, useCallback } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
@@ -97,8 +97,6 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
-	const close = useCallback(() => setOpen(false), [setOpen])
-
 	if (!open) return null
 
 	const resolvedVariant = variant ?? 'soft'
@@ -143,7 +141,7 @@ export function Alert({
 					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
 					aria-label="Dismiss"
 					className={cn(k.close, 'self-center')}
-					onClick={close}
+					onClick={() => setOpen(false)}
 				>
 					<Icon icon={<X />} />
 				</Button>
