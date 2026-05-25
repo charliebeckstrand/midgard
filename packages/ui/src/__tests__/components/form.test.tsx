@@ -766,7 +766,7 @@ describe('useFormContext', () => {
 
 		expect(typeof result.current?.setValue).toBe('function')
 
-		expect(result.current?.isDirty).toBe(false)
+		expect(result.current?.dirty).toBe(false)
 	})
 })
 

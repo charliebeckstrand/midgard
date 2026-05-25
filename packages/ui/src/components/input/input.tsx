@@ -84,27 +84,30 @@ export function Input(props: InputProps) {
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
-	if (headless) {
-		return (
-			<input
-				ref={ref}
-				data-slot="input"
-				type={type}
-				id={scope.id}
-				name={name}
-				autoComplete={sharedAttrs.autoComplete}
-				disabled={sharedAttrs.disabled}
-				required={sharedAttrs.required}
-				readOnly={sharedAttrs.readOnly}
-				value={valueState.value}
-				onChange={valueState.onChange}
-				onBlur={valueState.onBlur}
-				className={className}
-				{...invalidAttrs(resolvedInvalid)}
-				{...rest}
-			/>
-		)
-	}
+	const inputEl = (
+		<input
+			ref={ref}
+			data-slot="input"
+			type={type}
+			id={scope.id}
+			name={name}
+			autoComplete={sharedAttrs.autoComplete}
+			disabled={sharedAttrs.disabled}
+			required={sharedAttrs.required}
+			readOnly={sharedAttrs.readOnly}
+			value={valueState.value}
+			onChange={valueState.onChange}
+			onBlur={valueState.onBlur}
+			className={cn(
+				!headless && k({ variant: resolvedVariant, density: token.density, size: token.size }),
+				className,
+			)}
+			{...invalidAttrs(resolvedInvalid)}
+			{...rest}
+		/>
+	)
+
+	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix
@@ -134,30 +137,7 @@ export function Input(props: InputProps) {
 						</span>
 					)}
 
-					<input
-						ref={ref}
-						data-slot="input"
-						type={type}
-						id={scope.id}
-						name={name}
-						autoComplete={sharedAttrs.autoComplete}
-						disabled={sharedAttrs.disabled}
-						required={sharedAttrs.required}
-						readOnly={sharedAttrs.readOnly}
-						value={valueState.value}
-						onChange={valueState.onChange}
-						onBlur={valueState.onBlur}
-						className={cn(
-							k({
-								variant: resolvedVariant,
-								density: token.density,
-								size: token.size,
-							}),
-							className,
-						)}
-						{...invalidAttrs(resolvedInvalid)}
-						{...rest}
-					/>
+					{inputEl}
 
 					{resolvedSuffix && (
 						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>

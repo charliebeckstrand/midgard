@@ -133,7 +133,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	valuesRef.current = values
 
-	const dirty = useMemo(() => {
+	const dirtyFields = useMemo(() => {
 		const d: Record<string, boolean> = {}
 
 		for (const key in values) {
@@ -143,9 +143,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		return d
 	}, [values])
 
-	const isDirty = useMemo(() => Object.values(dirty).some(Boolean), [dirty])
+	const dirty = useMemo(() => Object.values(dirtyFields).some(Boolean), [dirtyFields])
 
-	const isValid = useMemo(() => {
+	const valid = useMemo(() => {
 		const v = validateRef.current
 
 		if (!v) return true
@@ -274,13 +274,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		() => ({
 			values,
 			errors,
-			touched,
+			touchedFields: touched,
+			dirtyFields,
 			dirty,
-			isDirty,
-			isValid,
+			valid,
 			submitting,
 		}),
-		[values, errors, touched, dirty, isDirty, isValid, submitting],
+		[values, errors, touched, dirtyFields, dirty, valid, submitting],
 	)
 
 	const actions = useMemo<FormActions>(
