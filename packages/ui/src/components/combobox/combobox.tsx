@@ -56,7 +56,12 @@ type ComboboxBaseProps<T> = {
 	onQueryChange?: (query: string) => void
 	'data-group'?: string
 	'data-group-orientation'?: string
-	children: ReactNode | ((query: string) => ReactNode)
+	/**
+	 * Items to render inside the panel. Pass a function to receive the live
+	 * query and a deferred copy; filter heavy lists against `deferredQuery` to
+	 * keep typing responsive.
+	 */
+	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
 }
 
 type ComboboxSingleProps<T> = {
@@ -138,19 +143,29 @@ export function Combobox<T>({
 
 	const keyboardSettled = useKeyboardSettled()
 
-	const { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending } =
-		useComboboxState<T>({
-			multiple,
-			nullable,
-			selectable,
-			closeOnSelect,
-			open: openProp,
-			inputRef,
-			onOpenChange,
-			onQueryChange,
-			onValueChange: onValueChange as ((value: T) => void) | undefined,
-			setValue,
-		})
+	const {
+		query,
+		deferredQuery,
+		setQuery,
+		open,
+		setOpen,
+		editing,
+		setEditing,
+		close,
+		select,
+		flushPending,
+	} = useComboboxState<T>({
+		multiple,
+		nullable,
+		selectable,
+		closeOnSelect,
+		open: openProp,
+		inputRef,
+		onOpenChange,
+		onQueryChange,
+		onValueChange: onValueChange as ((value: T) => void) | undefined,
+		setValue,
+	})
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
@@ -191,11 +206,11 @@ export function Combobox<T>({
 		[scrollWithin],
 	)
 
-	const rendered = typeof children === 'function' ? children(query) : children
+	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
 
 	const contextValue = useMemo(
-		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query }),
-		[value, multiple, select, query],
+		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query, deferredQuery }),
+		[value, multiple, select, query, deferredQuery],
 	)
 
 	if (skeleton) {

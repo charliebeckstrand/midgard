@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useId, useMemo, useRef, useState } from 'react'
 import { useRoving } from '../../hooks'
 
 type UseCommandPaletteStateOptions = {
@@ -10,6 +10,13 @@ type UseCommandPaletteStateOptions = {
 
 export function useCommandPaletteState({ open, onOpenChange }: UseCommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
+
+	// Bypass deferral on empty query: the palette resets it on close and on every
+	// open, so the deferred copy would otherwise paint one stale frame of the
+	// prior filter.
+	const deferredQueryInternal = useDeferredValue(query)
+
+	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
 	const listboxId = useId()
 
@@ -33,7 +40,17 @@ export function useCommandPaletteState({ open, onOpenChange }: UseCommandPalette
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
-	const context = useMemo(() => ({ close, query }), [close, query])
+	const context = useMemo(() => ({ close, query, deferredQuery }), [close, query, deferredQuery])
 
-	return { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, context }
+	return {
+		query,
+		deferredQuery,
+		setQuery,
+		listboxId,
+		inputRef,
+		listRef,
+		onKeyDown,
+		close,
+		context,
+	}
 }

@@ -19,11 +19,12 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	className?: string
 	/**
 	 * Items to render in the palette. Pass a function to receive the live query
-	 * string and filter inline. CommandPalette does not virtualize its result
-	 * list — keep the rendered set to a few hundred items at most, or wrap the
-	 * children in your own windowed renderer for larger result sets.
+	 * and a deferred copy; filter against `deferredQuery` to keep typing
+	 * responsive. CommandPalette does not virtualize — keep the rendered set to
+	 * a few hundred items, or wrap children in your own windowed renderer for
+	 * larger sets.
 	 */
-	children: ReactNode | ((query: string) => ReactNode)
+	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
 }
 
 /** Searchable command launcher in a modal dialog — children receive the live query for client-side filtering. */
@@ -37,10 +38,19 @@ export function CommandPalette({
 	className,
 	children,
 }: CommandPaletteProps) {
-	const { query, setQuery, listboxId, inputRef, listRef, onKeyDown, close, context } =
-		useCommandPaletteState({ open, onOpenChange })
+	const {
+		query,
+		deferredQuery,
+		setQuery,
+		listboxId,
+		inputRef,
+		listRef,
+		onKeyDown,
+		close,
+		context,
+	} = useCommandPaletteState({ open, onOpenChange })
 
-	const rendered = typeof children === 'function' ? children(query) : children
+	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
 
 	return (
 		<Dialog

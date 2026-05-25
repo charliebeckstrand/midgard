@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useState } from 'react'
+import { type RefObject, useCallback, useDeferredValue, useState } from 'react'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseComboboxStateParams<T> = {
@@ -29,6 +29,13 @@ export function useComboboxState<T>({
 	inputRef,
 }: UseComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
+
+	// Bypass deferral on empty query: select() clears it in multi-select while
+	// the panel stays open, so the deferred copy would otherwise paint one stale
+	// frame of the prior filter.
+	const deferredQueryInternal = useDeferredValue(query)
+
+	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
 	const [internalOpen, setInternalOpen] = useState(false)
 
@@ -91,5 +98,16 @@ export function useComboboxState<T>({
 		[selectable, shouldClose, toggle, enqueue, onValueChange, close, setQuery, inputRef],
 	)
 
-	return { query, setQuery, open, setOpen, editing, setEditing, close, select, flushPending }
+	return {
+		query,
+		deferredQuery,
+		setQuery,
+		open,
+		setOpen,
+		editing,
+		setEditing,
+		close,
+		select,
+		flushPending,
+	}
 }
