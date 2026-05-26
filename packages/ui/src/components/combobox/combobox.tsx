@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { ChevronsUpDown } from 'lucide-react'
+import { ChevronsUpDown, X } from 'lucide-react'
 import {
 	type InputHTMLAttributes,
 	type ReactNode,
@@ -15,6 +15,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
+import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
@@ -48,6 +49,8 @@ type ComboboxBaseProps<T> = {
 	closeOnSelect?: boolean
 	/** Clears the value when the user empties the input while editing. */
 	clearOnEmpty?: boolean
+	/** Show a clear button in place of the chevron when a value is selected. */
+	clearable?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -98,6 +101,7 @@ export function Combobox<T>({
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
 	clearOnEmpty = false,
+	clearable = false,
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
@@ -208,6 +212,30 @@ export function Combobox<T>({
 
 	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
 
+	const hasValue = multiple
+		? Array.isArray(value) && value.length > 0
+		: value !== undefined && !Array.isArray(value)
+
+	const showClear = clearable && hasValue && !resolvedDisabled
+
+	const clearSuffix = (
+		<Button
+			variant="bare"
+			className="pointer-events-auto"
+			aria-label="Clear selection"
+			onMouseDown={(event) => event.stopPropagation()}
+			onClick={(event) => {
+				event.stopPropagation()
+
+				setValue(multiple ? ([] as T[]) : undefined)
+
+				inputRef.current?.focus()
+			}}
+		>
+			<Icon icon={<X />} />
+		</Button>
+	)
+
 	const contextValue = useMemo(
 		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query, deferredQuery }),
 		[value, multiple, select, query, deferredQuery],
@@ -229,9 +257,9 @@ export function Combobox<T>({
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				prefix={prefix}
-				suffix={suffix || <Icon icon={<ChevronsUpDown />} />}
+				suffix={suffix || (showClear ? clearSuffix : <Icon icon={<ChevronsUpDown />} />)}
 				suffixProps={
-					suffix
+					suffix || showClear
 						? undefined
 						: {
 								role: 'button',

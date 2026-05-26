@@ -1,12 +1,13 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { ChevronsUpDown } from 'lucide-react'
+import { ChevronsUpDown, X } from 'lucide-react'
 import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
+import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
@@ -38,6 +39,12 @@ type ListboxBaseProps = {
 	 * the label. @default true
 	 */
 	truncate?: boolean
+	/** Show a clear button in place of the chevron when a value is selected. */
+	clearable?: boolean
+	/** Controlled menu open state. */
+	open?: boolean
+	/** Fires when the menu open state changes. */
+	onOpenChange?: (open: boolean) => void
 	'data-group'?: string
 	'data-group-orientation'?: string
 	children: ReactNode
@@ -78,6 +85,9 @@ export function Listbox<T>({
 	inputId,
 	tabularNums,
 	truncate = true,
+	clearable = false,
+	open: openProp,
+	onOpenChange,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	children,
@@ -113,6 +123,8 @@ export function Listbox<T>({
 	const { open, setOpen, close, select, flushPending } = useListboxState<T>({
 		multiple,
 		nullable,
+		open: openProp,
+		onOpenChange,
 		setValue,
 	})
 
@@ -125,6 +137,28 @@ export function Listbox<T>({
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })
+
+	const hasValue = multiple
+		? Array.isArray(value) && value.length > 0
+		: value !== undefined && !Array.isArray(value)
+
+	const showClear = clearable && hasValue && !resolvedDisabled
+
+	const clearSuffix = (
+		<Button
+			variant="bare"
+			className="pointer-events-auto"
+			aria-label="Clear selection"
+			onMouseDown={(event) => event.stopPropagation()}
+			onClick={(event) => {
+				event.stopPropagation()
+
+				setValue(multiple ? ([] as T[]) : undefined)
+			}}
+		>
+			<Icon icon={<X />} />
+		</Button>
+	)
 
 	const contextValue = useMemo(
 		() => ({ value, multiple, onSelect: select as (v: unknown) => void, close }),
@@ -148,7 +182,7 @@ export function Listbox<T>({
 				data-group-orientation={dataGroupOrientation}
 				frameProps={{ onClick: () => setOpen(!open) }}
 				prefix={prefix}
-				suffix={suffix || <Icon icon={<ChevronsUpDown />} />}
+				suffix={suffix || (showClear ? clearSuffix : <Icon icon={<ChevronsUpDown />} />)}
 			>
 				<ListboxButton
 					id={resolvedId}
