@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, type Ref, useRef } from 'react'
+import { type KeyboardEvent, useRef } from 'react'
 
 import { cn } from '../../core'
 import { useIsTruncated } from '../../hooks'
@@ -21,7 +21,6 @@ type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
-	triggerRef?: Ref<HTMLButtonElement>
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
 	displayValue: string
@@ -40,7 +39,6 @@ export function DatePickerTrigger({
 	open,
 	onOpenChange,
 	triggerId,
-	triggerRef,
 	setReference,
 	getReferenceProps,
 	displayValue,
@@ -75,7 +73,6 @@ export function DatePickerTrigger({
 			>
 				<Headless>
 					<Button
-						ref={triggerRef}
 						type="button"
 						id={triggerId}
 						aria-haspopup="dialog"
