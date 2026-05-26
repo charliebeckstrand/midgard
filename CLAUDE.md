@@ -23,7 +23,7 @@ Write terse, technical prose. Optimize for information density.
 
 ## Workflow
 
-Delegate research to subagents — one focused task per agent — and keep the main context window clean. Summarize at milestones, not line by line.
+Delegate research to subagents with focused, single-purpose tasks. Have them report a concise summary.
 
 ## Quality check
 
