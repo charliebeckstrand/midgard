@@ -27,7 +27,7 @@ Delegate research to subagents with focused, single-purpose tasks. Have them rep
 
 ## Quality check
 
-Before considering any task done and ready to commit, run the following skill(s) based on what changed.
+Before considering any task done and ready to commit, run the following skill(s) based on what changed:
 
 - Prose changed (docs, comments, README, user-facing copy) → `orator`
 - TypeScript files changed → `typescript:format`
