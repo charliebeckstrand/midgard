@@ -1,7 +1,9 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
+import type { KeybindingsMap } from 'tinykeys'
+import { useKeybindings } from '../../hooks/use-keybindings'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Flex } from '../flex'
@@ -18,6 +20,12 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	dismissOnBackdrop?: boolean
 	className?: string
 	/**
+	 * Global shortcut that toggles the palette — tinykeys syntax, e.g.
+	 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
+	 * disable. @default '$mod+KeyK'
+	 */
+	triggerShortcut?: string | string[] | false
+	/**
 	 * Items to render in the palette. Pass a function to receive the live query
 	 * and a deferred copy; filter against `deferredQuery` to keep typing
 	 * responsive. CommandPalette does not virtualize — keep the rendered set to
@@ -26,6 +34,8 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	 */
 	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
 }
+
+const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
 /** Searchable command launcher in a modal dialog — children receive the live query for client-side filtering. */
 export function CommandPalette({
@@ -36,6 +46,7 @@ export function CommandPalette({
 	dismissOnBackdrop = true,
 	size = '2xl',
 	className,
+	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
 	children,
 }: CommandPaletteProps) {
 	const {
@@ -49,6 +60,23 @@ export function CommandPalette({
 		close,
 		context,
 	} = useCommandPaletteState({ open, onOpenChange })
+
+	const triggerBindings = useMemo<KeybindingsMap>(() => {
+		if (triggerShortcut === false) return {}
+
+		const keys = Array.isArray(triggerShortcut) ? triggerShortcut : [triggerShortcut]
+
+		const toggle = (e: KeyboardEvent) => {
+			e.preventDefault()
+
+			onOpenChange(!open)
+		}
+
+		return Object.fromEntries(keys.map((key) => [key, toggle]))
+	}, [triggerShortcut, open, onOpenChange])
+
+	// Fire even inside form fields so the shortcut works from any focused input.
+	useKeybindings(triggerBindings, { ignore: () => false })
 
 	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
 

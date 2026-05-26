@@ -244,6 +244,93 @@ describe('CommandPaletteLabel and CommandPaletteDescription', () => {
 	})
 })
 
+describe('CommandPalette triggerShortcut', () => {
+	// tinykeys resolves `$mod` to ctrlKey on non-Mac platforms; jsdom is non-Mac.
+	function pressModK() {
+		window.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'k', code: 'KeyK', ctrlKey: true, bubbles: true }),
+		)
+	}
+
+	it('opens the palette when the default $mod+KeyK fires while closed', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK()
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+
+	it('closes the palette when the shortcut fires while open', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={onOpenChange}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('does not bind a shortcut when triggerShortcut is false', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange} triggerShortcut={false}>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		pressModK()
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	it('accepts a custom shortcut string', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open={false} onOpenChange={onOpenChange} triggerShortcut="Shift+KeyP">
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		window.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'P', code: 'KeyP', shiftKey: true, bubbles: true }),
+		)
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+
+	it('accepts an array of shortcuts', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<CommandPalette
+				open={false}
+				onOpenChange={onOpenChange}
+				triggerShortcut={['Shift+KeyP', 'Shift+KeyQ']}
+			>
+				<div>Items</div>
+			</CommandPalette>,
+		)
+
+		window.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Q', code: 'KeyQ', shiftKey: true, bubbles: true }),
+		)
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+})
+
 describe('CommandPalette open/close transitions', () => {
 	it('clears the query when the palette transitions from open to closed', async () => {
 		const { rerender } = renderUI(
