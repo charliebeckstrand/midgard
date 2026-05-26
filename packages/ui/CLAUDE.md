@@ -15,9 +15,9 @@ UI-specific skills (project-wide skills live in the root `CLAUDE.md`):
 
 This package owns the repo's only test runner (`vitest`). Lefthook gates "everything green" pre-commit.
 
-- Inside the editing loop, never run `pnpm --filter ui test` or `pnpm test`. Run a scoped subset; let lefthook catch the rest at commit.
-- Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) prefer scoped commands (`scripts.test:related`, `scripts.test:changed`); they fall back to the full suite only when no scoped command applies.
-- Skip tests that drive a third-party async lifecycle (`fetch`, `@tanstack/react-virtual`, floating-ui, pdfjs). They flake on Linux-based Azure CI; they pass locally. Cover the surface at a synchronous seam — a pure reducer, a typed harness, a unit-level callback — or skip it.
+- Inside the editing loop, never run `pnpm --filter ui test` or `pnpm test`. Run a scoped subset; let lefthook catch the rest at commit
+- Skills that run tests (`/typescript:review`, `/tests:compose`, `/postmortem`) prefer scoped commands (`scripts.test:related`, `scripts.test:changed`); they fall back to the full suite only when no scoped command applies
+- Skip tests that drive a third-party async lifecycle (`fetch`, `@tanstack/react-virtual`, floating-ui, pdfjs). They flake on Linux-based Azure CI; they pass locally. Cover the surface at a synchronous seam — a pure reducer, a typed harness, a unit-level callback — or skip it
 
 ## File naming
 
