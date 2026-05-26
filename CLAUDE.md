@@ -32,7 +32,7 @@ Before considering any task done and ready to commit, run the applicable skills 
 ### Routing
 
 - **Prose changed** (docs, comments, README, user-facing copy) → `orator`
-- **TypeScript changed** → `typescript:format`.
+- **TypeScript changed** → `typescript:format`
 - **TypeScript changed with new logic, refactors, or other non-trivial changes** → `typescript:review`
 - **A full task or feature is complete** → `postmortem`. Postmortem carries its own checklist, so don't duplicate its work — let it cover the final pass
 
