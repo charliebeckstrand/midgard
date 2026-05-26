@@ -68,7 +68,8 @@ export function CommandPalette({
 						ref={inputRef}
 						prefix={icon ?? <Icon icon={<Search />} />}
 						role="combobox"
-						aria-expanded={true}
+						aria-label={placeholder}
+						aria-expanded={open}
 						aria-haspopup="listbox"
 						aria-controls={listboxId}
 						aria-autocomplete="list"
@@ -83,7 +84,13 @@ export function CommandPalette({
 					</Button>
 				</Flex>
 				<DialogBody>
-					<div ref={listRef} id={listboxId} role="listbox" data-slot="command-palette-list">
+					<div
+						ref={listRef}
+						id={listboxId}
+						role="listbox"
+						aria-label={placeholder}
+						data-slot="command-palette-list"
+					>
 						{rendered}
 					</div>
 				</DialogBody>
