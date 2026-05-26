@@ -81,7 +81,7 @@ describe('BottomNavItem', () => {
 
 		const item = bySlot(container, 'bottom-nav-item')
 
-		expect(item).toHaveAttribute('data-current', '')
+		expect(item).toHaveAttribute('data-current', 'true')
 	})
 
 	it('marks item as current via Nav value context', () => {
@@ -98,7 +98,7 @@ describe('BottomNavItem', () => {
 
 		const items = allBySlot(container, 'bottom-nav-item')
 
-		expect(items[0]).toHaveAttribute('data-current', '')
+		expect(items[0]).toHaveAttribute('data-current', 'true')
 
 		expect(items[1]).not.toHaveAttribute('data-current')
 	})

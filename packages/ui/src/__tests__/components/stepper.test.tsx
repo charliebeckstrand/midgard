@@ -234,7 +234,7 @@ describe('StepperStep interactive mode', () => {
 
 		expect(el?.tagName).toBe('DIV')
 
-		expect(el).toHaveAttribute('data-disabled', '')
+		expect(el).toHaveAttribute('data-disabled', 'true')
 	})
 
 	it('partitions vertical-orientation children so non-indicator content lives in stepper-content', () => {

@@ -43,7 +43,7 @@ export function CurrentContent({
 	return (
 		<motion.div
 			data-slot={`${slotPrefix}-content`}
-			data-current={current ? '' : undefined}
+			data-current={current || undefined}
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
 			initial={false}
 			transition={k.transition}

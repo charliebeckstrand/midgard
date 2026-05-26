@@ -100,7 +100,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 			data-slot="stepper-step"
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}
-			data-disabled={disabled ? '' : undefined}
+			data-disabled={disabled || undefined}
 			className={classes}
 		>
 			{inner}

@@ -183,9 +183,9 @@ describe('Tab', () => {
 		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
 
 		// First tab matches the context value "a" → current; second is forced via prop.
-		expect(tabs[0]).toHaveAttribute('data-current', '')
+		expect(tabs[0]).toHaveAttribute('data-current', 'true')
 
-		expect(tabs[1]).toHaveAttribute('data-current', '')
+		expect(tabs[1]).toHaveAttribute('data-current', 'true')
 
 		expect(tabs[1]).toHaveAttribute('aria-selected', 'true')
 	})
@@ -255,7 +255,7 @@ describe('Tab', () => {
 		// Segment variant emits a different recipe; sanity check that the tab still renders.
 		expect(tab).toBeInTheDocument()
 
-		expect(tab).toHaveAttribute('data-current', '')
+		expect(tab).toHaveAttribute('data-current', 'true')
 	})
 
 	it('applies a custom className on Tab', () => {

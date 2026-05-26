@@ -55,7 +55,7 @@ export function Tab({
 		<span className="group relative" {...indicator.tapHandlers}>
 			<button
 				data-slot="tab"
-				data-current={current ? '' : undefined}
+				data-current={current || undefined}
 				role="tab"
 				id={id}
 				aria-selected={current ?? false}

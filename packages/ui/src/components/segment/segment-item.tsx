@@ -28,7 +28,7 @@ export function SegmentItem({ value, disabled, className, children }: SegmentIte
 			{/* biome-ignore lint/a11y/useSemanticElements: a styled button with role="radio" is standard for segmented controls */}
 			<button
 				data-slot="segment-item"
-				data-current={current ? '' : undefined}
+				data-current={current || undefined}
 				type="button"
 				role="radio"
 				aria-checked={current}
