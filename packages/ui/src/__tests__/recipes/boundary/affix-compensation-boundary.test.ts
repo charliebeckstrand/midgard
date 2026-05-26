@@ -7,25 +7,25 @@ import { k as button } from '../../../recipes/kata/button'
 
 // Affix `data-slot` compensation invariant.
 //
-// Equidistance: affix padding equals `input.px` so a text affix's
-// *content* sits the same distance from chrome as input-text does in
-// an affix-less control.
+// Affix padding equals `input.px` so a text affix's *content* sits the
+// same distance from chrome as input-text does in an affix-less control.
 //
-// When the slot hosts an element with its own outer chrome — a
-// non-bare Button or a Badge, matched on `data-slot` — the affix
-// padding shrinks by that element's own `pl` so its *content* lands
-// at the same position. `affixStepDown` moves the slot's child one
-// notch down per host density step. Both scales grow 0.5 per notch,
-// so the increments cancel and the compensation collapses to a
-// constant:
+// When the slot hosts an element with its own outer chrome — a non-bare
+// Button or a Badge, matched on `data-slot` — the affix padding shrinks
+// to a constant `1.5` spacing-units at every density step, pulling the
+// chip's *content* 0.5 units inside the text-equidistance line so its
+// chrome reads with breathing room from the slot edge. The single
+// constant works because `affixStepDown` moves the slot's child one
+// notch down per host density step and both scales grow 0.5 per notch —
+// the per-step deltas cancel, leaving only the 0.5 inset:
 //
-//   affix.pl(has-chip) = input.px − child.p[affixStepDown(step)] = 1
+//   affix.pl(has-chip) = input.px − child.p[affixStepDown(step)] + 0.5 = 1.5
 //
-// The test parses live recipe values rather than the literal `1` — if
-// any of (input.px, button.p, affixStepDown) drifts, the assertion
-// fails with the calculated delta and points at the source. Button's
-// `p` stands in for any chip's `p` because Button and Badge share the
-// same per-step horizontal padding scale (kasane.p).
+// The test parses live recipe values rather than the literal `1.5` — if
+// any of (input.px, button.p, affixStepDown, or the 0.5 inset) drifts,
+// the assertion fails with the calculated delta and points at the source.
+// Button's `p` stands in for any chip's `p` because Button and Badge
+// share the same per-step horizontal padding scale (kasane.p).
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 
@@ -45,6 +45,8 @@ function findSpacing(classes: readonly unknown[], prefix: string): number {
 
 const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly Step[]
 
+const CHIP_INSET = 0.5
+
 describe('control affix has-button compensation', () => {
 	for (const step of STEPS) {
 		const buttonSize = affixStepDown(step)
@@ -55,21 +57,21 @@ describe('control affix has-button compensation', () => {
 
 		const buttonPx = findSpacing(buttonClasses, 'p-[')
 
-		const expected = hostPx - buttonPx
+		const expected = hostPx - buttonPx + CHIP_INSET
 
-		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) = ${expected}`, () => {
+		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.prefix[step],
-				'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:pl-[',
 			)
 
 			expect(actual).toBe(expected)
 		})
 
-		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) = ${expected}`, () => {
+		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.suffix[step],
-				'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:pr-[',
 			)
 
 			expect(actual).toBe(expected)
