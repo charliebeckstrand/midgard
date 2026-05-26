@@ -97,6 +97,7 @@ function nextIndexGrid(
 			// Wrap to the bottommost item in the same column. Columns past the
 			// last row's fill land one row up.
 			const col = currentIndex % cols
+
 			const lastRowFill = itemCount % cols
 
 			return lastRowFill > 0 && col < lastRowFill
