@@ -57,7 +57,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
-				data-disabled={disabled ? '' : undefined}
+				data-disabled={disabled || undefined}
 				className={classes}
 				onClick={handleSelect}
 				{...rest}
@@ -82,7 +82,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 			role="option"
 			tabIndex={-1}
 			data-slot="command-palette-item"
-			data-disabled={disabled ? '' : undefined}
+			data-disabled={disabled || undefined}
 			className={classes}
 			onClick={handleSelect}
 			{...rest}

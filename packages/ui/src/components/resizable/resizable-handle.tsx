@@ -54,7 +54,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 		// biome-ignore lint/a11y/useSemanticElements: a focusable separator is the correct role for a resize handle
 		<div
 			data-slot="resizable-handle"
-			data-dragging={isDragging ? '' : undefined}
+			data-dragging={isDragging || undefined}
 			role="separator"
 			aria-orientation={direction}
 			aria-label="Resize"

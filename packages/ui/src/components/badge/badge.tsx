@@ -51,8 +51,8 @@ export function Badge({
 				as="span"
 				dataSlot="badge"
 				data-step={resolvedSize}
-				data-has-prefix={prefix ? '' : undefined}
-				data-has-suffix={suffix ? '' : undefined}
+				data-has-prefix={!!prefix || undefined}
+				data-has-suffix={!!suffix || undefined}
 				href={href}
 				className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}
 				{...props}

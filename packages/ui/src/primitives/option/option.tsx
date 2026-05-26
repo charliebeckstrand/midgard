@@ -53,8 +53,8 @@ export function BaseOption({
 			role="option"
 			aria-selected={selected}
 			aria-disabled={disabled || undefined}
-			data-selected={selected ? '' : undefined}
-			data-disabled={disabled ? '' : undefined}
+			data-selected={selected || undefined}
+			data-disabled={disabled || undefined}
 			tabIndex={-1}
 			onClick={() => !disabled && onSelect()}
 			onKeyDown={(event) => {

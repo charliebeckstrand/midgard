@@ -99,7 +99,7 @@ describe('Segment', () => {
 		const items = allBySlot(container, 'segment-item')
 
 		expect(items[0]).not.toHaveAttribute('data-current')
-		expect(items[1]).toHaveAttribute('data-current', '')
+		expect(items[1]).toHaveAttribute('data-current', 'true')
 	})
 
 	it('sets tabIndex=0 on the current item and -1 on others', () => {

@@ -46,7 +46,7 @@ export function MenuItem(props: MenuItemProps) {
 					tabIndex={-1}
 					aria-disabled={true}
 					data-slot="menu-item"
-					data-disabled=""
+					data-disabled={true}
 					className={classes}
 				>
 					{children}
@@ -91,7 +91,7 @@ export function MenuItem(props: MenuItemProps) {
 			tabIndex={-1}
 			aria-disabled={disabled || undefined}
 			data-slot="menu-item"
-			data-disabled={disabled ? '' : undefined}
+			data-disabled={disabled || undefined}
 			className={classes}
 			onClick={handleSelect}
 			onKeyDown={(e) => {

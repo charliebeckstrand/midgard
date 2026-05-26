@@ -100,7 +100,7 @@ export function createNavItem(config: NavItemConfig) {
 				<Headless>
 					<Button
 						dataSlot={innerSlot}
-						data-current={current ? '' : undefined}
+						data-current={current || undefined}
 						aria-current={current ? 'page' : undefined}
 						className={cn(config.variants({ size: resolvedSize }), 'relative z-10', className)}
 						onClick={handleClick}

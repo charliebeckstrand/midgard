@@ -44,7 +44,7 @@ export function BottomNavItem({
 			as="button"
 			dataSlot="bottom-nav-item"
 			href={href}
-			data-current={isCurrent ? '' : undefined}
+			data-current={isCurrent || undefined}
 			aria-current={isCurrent ? 'page' : undefined}
 			className={cn(k.item, isCurrent && k.current, className)}
 			onClick={handleClick}
