@@ -96,7 +96,6 @@ Schema (and a representative full output):
 {
   "version": 1,
   "generatedAt": "2030-01-01T00:00:00Z",
-  "repoRoot": "/home/dev/acme",
   "packageManager": "pnpm",
   "monorepo": {
     "tool": "turbo",

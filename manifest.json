@@ -1,11 +1,13 @@
 {
 	"version": 1,
 	"generatedAt": "2026-05-15T18:27:45Z",
-	"repoRoot": "/Users/charliebeckstrand/Sites/midgard",
 	"packageManager": "pnpm",
 	"monorepo": {
 		"tool": "turbo",
-		"workspaces": ["apps/*", "packages/*"]
+		"workspaces": [
+			"apps/*",
+			"packages/*"
+		]
 	},
 	"packages": [
 		{
@@ -126,14 +128,21 @@
 	],
 	"preCommit": {
 		"tool": "lefthook",
-		"gates": ["lint", "type", "filenames", "test"]
+		"gates": [
+			"lint",
+			"type",
+			"filenames",
+			"test"
+		]
 	},
 	"ci": {
 		"provider": null,
 		"jobs": []
 	},
 	"conventions": {
-		"files": ["CLAUDE.md"],
+		"files": [
+			"CLAUDE.md"
+		],
 		"principles": [
 			"Simplicity above all; abstractions are extracted from proven duplication, never predicted.",
 			"Solve the stated problem, not adjacent ones — a bug fix is not a refactoring opportunity.",
