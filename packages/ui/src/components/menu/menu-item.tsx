@@ -36,6 +36,24 @@ export function MenuItem(props: MenuItemProps) {
 	const classes = cn('group/option', k.item({ size }), className)
 
 	if (props.href !== undefined) {
+		// Anchors with href stay navigable via middle-click, Cmd-click, and "Open
+		// in new tab" — none fire onClick. Render disabled items without an
+		// anchor so those paths don't exist.
+		if (disabled) {
+			return (
+				<span
+					role="menuitem"
+					tabIndex={-1}
+					aria-disabled={true}
+					data-slot="menu-item"
+					data-disabled=""
+					className={classes}
+				>
+					{children}
+				</span>
+			)
+		}
+
 		const {
 			disabled: _disabled,
 			className: _className,
@@ -48,9 +66,7 @@ export function MenuItem(props: MenuItemProps) {
 			<Link
 				role="menuitem"
 				tabIndex={-1}
-				aria-disabled={disabled || undefined}
 				data-slot="menu-item"
-				data-disabled={disabled ? '' : undefined}
 				className={classes}
 				onClick={handleSelect}
 				{...rest}
