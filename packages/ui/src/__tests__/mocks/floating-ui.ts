@@ -60,6 +60,7 @@ const floatingUIMock = {
 			setFloating: noop,
 			reference: { current: null },
 			floating: { current: null },
+			domReference: { current: null },
 		},
 		floatingStyles: {},
 		context: { open: opts?.open, onOpenChange: opts?.onOpenChange } as MockContext,

@@ -55,6 +55,29 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 	return middleware
 }
 
+const SCROLLABLE_RE = /auto|scroll/
+
+function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
+	const style = getComputedStyle(target)
+
+	const scrollableX = SCROLLABLE_RE.test(style.overflowX)
+	const scrollableY = SCROLLABLE_RE.test(style.overflowY)
+
+	const canScrollX =
+		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth
+	const canScrollY =
+		scrollableY && target.clientHeight > 0 && target.scrollHeight > target.clientHeight
+
+	const onVerticalScrollbar =
+		canScrollY &&
+		(style.direction === 'rtl'
+			? event.offsetX <= target.offsetWidth - target.clientWidth
+			: event.offsetX > target.clientWidth)
+	const onHorizontalScrollbar = canScrollX && event.offsetY > target.clientHeight
+
+	return onVerticalScrollbar || onHorizontalScrollbar
+}
+
 export type UseFloatingPanelOptions = {
 	placement: Placement
 	open: boolean
@@ -117,6 +140,14 @@ type UseFloatingUIOptions = UseFloatingPanelOptions & {
 /**
  * Floating panel with built-in dismiss and role interactions — the common
  * pattern for listbox, combobox, dropdown menu, and date picker surfaces.
+ *
+ * Outside-press is handled by a custom document-level pointerdown listener
+ * rather than floating-ui's `useDismiss` outside-press. floating-ui's variant
+ * treats clicks inside a sibling portal as "third-party injected" when a
+ * parent modal (`FloatingFocusManager modal`) has marked outside content
+ * inert — which suppresses dismissal for any floating element nested inside
+ * a `Sheet`/`Dialog`. The custom listener checks the press target against
+ * the floating panel + reference directly, with no false positive.
  */
 export function useFloatingUI({
 	role: roleProp = 'listbox',
@@ -124,11 +155,42 @@ export function useFloatingUI({
 }: UseFloatingUIOptions): UseFloatingUIResult {
 	const { refs, floatingStyles, context } = useFloatingPanel(rest)
 
-	const dismiss = useDismiss(context)
+	const dismiss = useDismiss(context, { outsidePress: false })
 
 	const role = useRole(context, { role: roleProp })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+
+	const { open, onOpenChange } = rest
+
+	const onOpenChangeRef = useRef(onOpenChange)
+
+	onOpenChangeRef.current = onOpenChange
+
+	useEffect(() => {
+		if (!open) return
+
+		const onPointerDown = (event: PointerEvent) => {
+			const target = event.target
+
+			if (!(target instanceof Node)) return
+
+			const floating = refs.floating.current
+
+			// Skip while the panel hasn't mounted — nothing to compare against.
+			if (!floating) return
+
+			if (floating.contains(target)) return
+			if (refs.domReference.current?.contains(target)) return
+			if (target instanceof HTMLElement && isScrollbarPress(event, target)) return
+
+			onOpenChangeRef.current(false)
+		}
+
+		document.addEventListener('pointerdown', onPointerDown)
+
+		return () => document.removeEventListener('pointerdown', onPointerDown)
+	}, [open, refs])
 
 	return { refs, floatingStyles, context, getReferenceProps, getFloatingProps }
 }
