@@ -4,8 +4,6 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import type { Orientation } from '../types'
 import { useScrollWithin } from './use-scroll-within'
 
-const ACTIVE_ATTR = 'data-active'
-
 type RovingConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */
 	cols?: number
@@ -14,13 +12,10 @@ type RovingConfig = {
 }
 
 /** All elements matching `selector` inside `container`. */
-export function queryItems<T extends HTMLElement = HTMLElement>(
-	container: HTMLElement | null,
-	selector: string,
-): T[] {
+export function queryItems(container: HTMLElement | null, selector: string): HTMLElement[] {
 	if (!container) return []
 
-	return Array.from(container.querySelectorAll<T>(selector))
+	return Array.from(container.querySelectorAll<HTMLElement>(selector))
 }
 
 /**
@@ -98,11 +93,11 @@ function nextIndexGrid(
 			// last row's fill land one row up.
 			const col = currentIndex % cols
 
-			const lastRowFill = itemCount % cols
+			const lastRowFill = itemCount % cols || cols
 
-			return lastRowFill > 0 && col < lastRowFill
-				? itemCount - lastRowFill + col
-				: itemCount - cols - lastRowFill + col
+			const bottomRowStart = itemCount - lastRowFill
+
+			return col < lastRowFill ? bottomRowStart + col : bottomRowStart - cols + col
 		}
 		default:
 			return null
@@ -127,7 +122,7 @@ type UseRovingOptions = RovingConfig & {
 }
 
 /** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
-export function useRoving<T extends HTMLElement = HTMLElement>(
+export function useRoving(
 	containerRef: RefObject<HTMLElement | null>,
 	{
 		itemSelector,
@@ -143,29 +138,19 @@ export function useRoving<T extends HTMLElement = HTMLElement>(
 
 	return useCallback(
 		(e: KeyboardEvent) => {
-			const items = queryItems<T>(containerRef.current, itemSelector)
+			const items = queryItems(containerRef.current, itemSelector)
 
 			if (!items.length) return
 
-			if (mode === 'focus') {
-				const currentIndex = items.indexOf(document.activeElement as T)
+			const isVirtual = mode === 'virtual'
 
-				if (currentIndex === -1 && !focusOnEmpty) return
+			const currentIndex = isVirtual
+				? items.findIndex((el) => el.dataset.active !== undefined)
+				: items.indexOf(document.activeElement as HTMLElement)
 
-				const nextIndex = nextIndexForKey(e.key, currentIndex, items.length, { cols, orientation })
+			if (!isVirtual && currentIndex === -1 && !focusOnEmpty) return
 
-				if (nextIndex === null) return
-
-				e.preventDefault()
-
-				items[nextIndex]?.focus()
-
-				return
-			}
-
-			const currentIndex = items.findIndex((el) => el.dataset.active !== undefined)
-
-			if (activationKey && e.key === activationKey) {
+			if (isVirtual && activationKey && e.key === activationKey) {
 				if (currentIndex === -1) return
 
 				e.preventDefault()
@@ -181,10 +166,14 @@ export function useRoving<T extends HTMLElement = HTMLElement>(
 
 			e.preventDefault()
 
-			for (const [i, el] of items.entries()) {
-				if (i === nextIndex) el.setAttribute(ACTIVE_ATTR, '')
-				else el.removeAttribute(ACTIVE_ATTR)
+			if (!isVirtual) {
+				items[nextIndex]?.focus()
+
+				return
 			}
+
+			items[currentIndex]?.removeAttribute('data-active')
+			items[nextIndex]?.setAttribute('data-active', '')
 
 			if (scrollIntoView) {
 				const item = items[nextIndex]
