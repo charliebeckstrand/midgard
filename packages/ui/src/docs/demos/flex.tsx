@@ -2,14 +2,13 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
 import { Flex } from '../../components/flex'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default (row)">
 				<Flex gap="md">
 					<Card>One</Card>
@@ -70,6 +69,6 @@ export function Demo() {
 					<Button>Save changes</Button>
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

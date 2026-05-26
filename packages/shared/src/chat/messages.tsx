@@ -5,7 +5,7 @@ import { ChatMessage } from './message'
 import type { ChatContent } from './types'
 import { useScrollToBottom } from './use-scroll-to-bottom'
 
-interface ChatMessagesProps {
+type ChatMessagesProps = {
 	messages: ChatContent[]
 }
 

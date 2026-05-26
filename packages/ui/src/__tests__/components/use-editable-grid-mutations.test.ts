@@ -30,7 +30,6 @@ function setup(
 	]
 
 	const onValueChange = vi.fn()
-	const setSelection = vi.fn()
 
 	const partialNav: Partial<EditableGridNavigationApi> = {
 		activeRef: { current: options.active ?? null },
@@ -52,13 +51,12 @@ function setup(
 			},
 			selection: {
 				selectionRef: { current: options.selection ?? new Set() },
-				setSelection,
 			},
 			onValueChange,
 		}),
 	)
 
-	return { api: result.current, onValueChange, setSelection }
+	return { api: result.current, onValueChange }
 }
 
 describe('useEditableGridMutations: applyCellWrite', () => {
@@ -95,7 +93,7 @@ describe('useEditableGridMutations: applyCellWrite', () => {
 	})
 
 	it('fills the column across all rows in the selection', () => {
-		const { api, onValueChange, setSelection } = setup({
+		const { api, onValueChange } = setup({
 			selection: new Set(['a', 'b']),
 		})
 
@@ -105,8 +103,6 @@ describe('useEditableGridMutations: applyCellWrite', () => {
 			{ rowKey: 'a', columnId: 'value', value: 'bulk' },
 			{ rowKey: 'b', columnId: 'value', value: 'bulk' },
 		])
-
-		expect(setSelection).toHaveBeenCalledWith(new Set())
 	})
 })
 
@@ -178,17 +174,6 @@ describe('useEditableGridMutations: applyBulkFill', () => {
 		const changes = onValueChange.mock.calls[0]?.[0]
 
 		expect(changes).toEqual([{ rowKey: 'a', columnId: 'value', value: 'x' }])
-	})
-
-	it('clears the selection after a successful fill', () => {
-		const { api, setSelection } = setup({
-			active: { row: 0, col: 0 },
-			selection: new Set(['a']),
-		})
-
-		api.applyBulkFill('x')
-
-		expect(setSelection).toHaveBeenCalledWith(new Set())
 	})
 
 	it('returns true even when no writable cells are targeted', () => {

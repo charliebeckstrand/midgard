@@ -8,6 +8,37 @@ export type CellChange = {
 	value: unknown
 }
 
+/** Direction the cursor moves after a successful commit. */
+export type EditableGridCommitAdvance = 'down' | 'right' | 'left' | 'none'
+
+/**
+ * Props passed to a column's editor slot when it mounts in the active cell.
+ * The grid owns the draft buffer, commit guard, and cursor advance; the slot
+ * decides how to render the editor surface.
+ */
+export type EditableGridEditorProps<T> = {
+	row: T
+	column: EditableGridColumn<T>
+	draft: string
+	setDraft: Dispatch<SetStateAction<string>>
+	/**
+	 * Commit the current draft and advance the cursor. Returns `false` when the
+	 * advance would exit the grid (caller may let the browser handle Tab).
+	 */
+	commit: (advance: EditableGridCommitAdvance) => boolean
+	cancel: () => void
+	align: 'left' | 'center' | 'right'
+	ariaLabel: string
+	/**
+	 * `true` when the edit was opened via Enter / F2 / double-click (draft seeded
+	 * from the cell's formatted value); `false` when it was opened by typing a
+	 * printable character into the active cell.
+	 */
+	selectAllOnFocus: boolean
+}
+
+export type EditableGridEditor<T = unknown> = (props: EditableGridEditorProps<T>) => ReactNode
+
 export type EditableGridColumn<T> = {
 	id: string | number
 	title?: ReactNode
@@ -17,6 +48,13 @@ export type EditableGridColumn<T> = {
 	format?: (row: T) => string
 	/** Parse the raw editor string. Defaults to the raw string. */
 	parse?: (raw: string, row: T) => unknown
+	/**
+	 * Inline editor mounted when the cell enters edit mode. Defaults to a plain
+	 * text input. Built-in adapters are exported alongside the grid
+	 * (`EditableGridCurrencyEditor`, `EditableGridNumberEditor`); custom editors
+	 * receive the same {@link EditableGridEditorProps} contract.
+	 */
+	editor?: EditableGridEditor<T>
 	/** Cells in this column can't be edited. Nav still visits them. */
 	readOnly?: boolean
 	align?: 'left' | 'center' | 'right'
@@ -38,7 +76,6 @@ export type EditableGridRowsApi<T> = {
 
 export type EditableGridSelectionApi = {
 	selectionRef: RefObject<Set<string | number>>
-	setSelection: (selection: Set<string | number>) => void
 }
 
 export type EditableGridNavigationApi = {
@@ -67,6 +104,6 @@ export type EditableGridDraftApi = {
 	draft: string
 	setDraft: Dispatch<SetStateAction<string>>
 	beginEdit: (coord: Coord, initial?: string, original?: string) => void
-	commitEdit: (advance: 'down' | 'right' | 'left' | 'none') => boolean
+	commitEdit: (advance: EditableGridCommitAdvance) => boolean
 	cancelEdit: () => void
 }

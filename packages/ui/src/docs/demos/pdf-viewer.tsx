@@ -1,5 +1,4 @@
 import { PdfViewer } from '../../components/pdf-viewer'
-import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
@@ -25,14 +24,7 @@ function DefaultExample() {
 
 function EmptyExample() {
 	return (
-		<Example
-			title="Empty"
-			code={code`
-				import { PdfViewer } from 'ui/pdf-viewer'
-
-				<PdfViewer pages={[]} />
-			`}
-		>
+		<Example title="Empty">
 			<PdfViewer pages={[]} />
 		</Example>
 	)
@@ -40,9 +32,9 @@ function EmptyExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DefaultExample />
 			<EmptyExample />
-		</Stack>
+		</>
 	)
 }

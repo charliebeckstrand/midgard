@@ -6,12 +6,10 @@ export const meta = { category: 'Feedback' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
-			<Example title="Default">
-				<Stack gap="sm" className="sm:max-w-90">
-					<Placeholder />
-				</Stack>
-			</Example>
-		</Stack>
+		<Example title="Default">
+			<Stack gap="sm" className="sm:max-w-90">
+				<Placeholder />
+			</Stack>
+		</Example>
 	)
 }

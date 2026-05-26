@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, use, useId, useLayoutEffect } from 'react'
+import { Fragment, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
@@ -16,12 +16,39 @@ import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
 import { demos, preloadDemo, sortedCategories } from '../registry'
 
+const SEARCH_PAGE_SIZE = 20
+
+function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const node = ref.current
+
+		if (!node) return
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry?.isIntersecting) onVisible()
+			},
+			{ threshold: 0 },
+		)
+
+		observer.observe(node)
+
+		return () => observer.disconnect()
+	}, [onVisible])
+
+	return <div ref={ref} aria-hidden="true" />
+}
+
 export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
 
 	const offcanvas = use(OffcanvasContext)
 
 	const scrollWithin = useScrollWithin()
+
+	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -46,6 +73,10 @@ export function SidebarContent({ route }: { route: string }) {
 				placeholder="Search components"
 				autoComplete="off"
 				selectable={false}
+				onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
+				onOpenChange={(open) => {
+					if (!open) setSearchLimit(SEARCH_PAGE_SIZE)
+				}}
 				onValueChange={(id) => {
 					if (!id) return
 
@@ -64,17 +95,28 @@ export function SidebarContent({ route }: { route: string }) {
 				{(query) => {
 					const q = query.toLowerCase()
 
-					return demos
-						.filter((d) => !q || d.name.toLowerCase().includes(q))
-						.map((d) => (
-							<ComboboxOption key={d.id} value={d.id}>
-								{d.name}
-							</ComboboxOption>
-						))
+					const filtered = demos.filter((d) => !q || d.name.toLowerCase().includes(q))
+
+					const visible = filtered.slice(0, searchLimit)
+
+					const hasMore = visible.length < filtered.length
+
+					return (
+						<>
+							{visible.map((d) => (
+								<ComboboxOption key={d.id} value={d.id}>
+									{d.name}
+								</ComboboxOption>
+							))}
+							{hasMore && (
+								<SearchLoadMore onVisible={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)} />
+							)}
+						</>
+					)
 				}}
 			</Combobox>
 			<SidebarBody>
-				<div className="flex flex-col gap-md">
+				<div className="flex flex-col gap-3">
 					{sortedCategories.map(([category, items]) => (
 						<Fragment key={category}>
 							<span className="text-zinc-500 leading-none px-2">{category}</span>

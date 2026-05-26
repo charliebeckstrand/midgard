@@ -1,11 +1,9 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { DatePicker } from '../../components/date-picker'
-import { Dialog, DialogActions, DialogBody, DialogTitle } from '../../components/dialog'
-import { Drawer, DrawerActions, DrawerBody, DrawerTitle } from '../../components/drawer'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
+import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../components/drawer'
 import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Glass } from '../../components/glass'
@@ -20,7 +18,7 @@ import {
 } from '../../components/menu'
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
+import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
@@ -44,11 +42,11 @@ function DialogExample() {
 				<DialogBody>
 					<Text>This dialog inherits glass mode from the Glass wrapper.</Text>
 				</DialogBody>
-				<DialogActions>
+				<DialogFooter>
 					<Button variant="plain" onClick={() => setOpen(false)}>
 						Close
 					</Button>
-				</DialogActions>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)
@@ -68,9 +66,9 @@ function DrawerExample() {
 				<DrawerBody>
 					<Text>Inherits glass mode from context.</Text>
 				</DrawerBody>
-				<DrawerActions>
+				<DrawerFooter>
 					<Button onClick={() => setOpen(false)}>Close</Button>
-				</DrawerActions>
+				</DrawerFooter>
 			</Drawer>
 		</>
 	)
@@ -90,9 +88,9 @@ function SheetExample() {
 				<SheetBody>
 					<Text>Inherits glass mode from context.</Text>
 				</SheetBody>
-				<SheetActions>
+				<SheetFooter>
 					<Button onClick={() => setOpen(false)}>Close</Button>
-				</SheetActions>
+				</SheetFooter>
 			</Sheet>
 		</>
 	)
@@ -104,7 +102,7 @@ export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Glass wrapper">
 				<Glass>
 					<Stack>
@@ -196,6 +194,6 @@ export function Demo() {
 					</Flex>
 				</Glass>
 			</Example>
-		</Stack>
+		</>
 	)
 }

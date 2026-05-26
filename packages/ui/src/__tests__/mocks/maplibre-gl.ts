@@ -81,6 +81,8 @@ class FakeMap {
 
 	setStyle() {}
 
+	resize() {}
+
 	addControl() {
 		return this
 	}

@@ -1,7 +1,6 @@
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Glass } from '../../components/glass'
-import { Stack } from '../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { Example } from '../components/example'
 
@@ -11,7 +10,7 @@ const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Tooltip>
 					<TooltipTrigger>
@@ -64,6 +63,6 @@ export function Demo() {
 					</Tooltip>
 				</Glass>
 			</Example>
-		</Stack>
+		</>
 	)
 }

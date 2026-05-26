@@ -7,14 +7,14 @@ import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
-import { omote, ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/overlay'
 import { ReducedMotion } from '../reduced-motion'
-import { notifyOverlayOpened } from './overlay-signal'
+import { notifyOverlaySignal } from './overlay-signal'
 
-export type OverlayProps = {
+type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	outsideClick?: boolean
+	dismissOnBackdrop?: boolean
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -32,7 +32,7 @@ export type OverlayProps = {
 export function Overlay({
 	open,
 	onOpenChange,
-	outsideClick = true,
+	dismissOnBackdrop = true,
 	glass,
 	className,
 	children,
@@ -53,7 +53,7 @@ export function Overlay({
 	useScrollLock(open && !scoped)
 
 	useEffect(() => {
-		if (open) notifyOverlayOpened()
+		if (open) notifyOverlaySignal()
 	}, [open])
 
 	if (typeof document === 'undefined') return null
@@ -66,17 +66,16 @@ export function Overlay({
 						<div
 							ref={refs.setFloating}
 							data-slot="overlay"
-							className={cn(scoped ? 'absolute inset-0 z-99' : 'fixed inset-0 z-99')}
+							className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed')}
 							{...props}
 						>
 							<motion.div
-								{...ugoki.overlay}
+								{...k.motion}
 								data-slot="overlay-backdrop"
 								className={
-									className ??
-									cn('absolute inset-0', glass ? omote.backdrop.glass : omote.backdrop.base)
+									className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
 								}
-								onClick={outsideClick ? () => onOpenChange(false) : undefined}
+								onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 								aria-hidden="true"
 							/>
 							{children}

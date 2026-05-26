@@ -1,6 +1,0 @@
-@import 'tailwindcss';
-@import 'shared/globals.css';
-
-@source './';
-@source '../../../packages/shared/src';
-@source '../../../packages/ui/src';

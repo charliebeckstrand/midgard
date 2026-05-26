@@ -4,8 +4,9 @@ import type { ReactNode } from 'react'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
-	DialogActions,
 	DialogDescription,
+	DialogFooter,
+	DialogHeader,
 	type DialogPanelVariants,
 	DialogTitle,
 } from '../dialog'
@@ -44,17 +45,21 @@ export function Confirm({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange} size={size} className={className}>
-			{title && <DialogTitle>{title}</DialogTitle>}
-			{description && <DialogDescription>{description}</DialogDescription>}
+			{(title || description) && (
+				<DialogHeader>
+					{title && <DialogTitle>{title}</DialogTitle>}
+					{description && <DialogDescription>{description}</DialogDescription>}
+				</DialogHeader>
+			)}
 			{children}
-			<DialogActions>
+			<DialogFooter>
 				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
 					{cancel?.label ?? 'Cancel'}
 				</Button>
 				<Button color={confirm?.color} disabled={confirm?.disabled} onClick={onConfirm}>
 					{confirm?.label ?? 'Confirm'}
 				</Button>
-			</DialogActions>
+			</DialogFooter>
 		</Dialog>
 	)
 }

@@ -1,10 +1,7 @@
-'use client'
-
 import { type ReactNode, useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
@@ -56,7 +53,7 @@ function PresetsExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<PresetsExample />
 
 			<Example title="Custom ratio">
@@ -66,6 +63,6 @@ export function Demo() {
 					</AspectRatio>
 				</Sizer>
 			</Example>
-		</Stack>
+		</>
 	)
 }

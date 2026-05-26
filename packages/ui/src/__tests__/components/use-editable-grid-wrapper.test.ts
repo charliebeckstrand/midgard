@@ -31,7 +31,6 @@ function setup(
 		hasMultiSelection?: boolean
 		wrapper?: HTMLTableElement | null
 		rows?: Row[]
-		selection?: Set<string | number>
 	} = {},
 ) {
 	const rows = options.rows ?? [
@@ -52,7 +51,6 @@ function setup(
 		applyCellWrite: vi.fn(),
 		applyBulkFill: vi.fn(),
 		onValueChange: vi.fn(),
-		setSelection: vi.fn(),
 	}
 
 	// hasMultiSelection is derived inside the wrapper as `!!anchor || extras.size > 0`;
@@ -101,10 +99,6 @@ function setup(
 				getKey: (r) => r.id,
 				formatCell: (row, col) => String(row[col.id as keyof Row] ?? ''),
 				parseValue: (raw) => raw,
-			},
-			selection: {
-				selectionRef: { current: options.selection ?? new Set() },
-				setSelection: mocks.setSelection,
 			},
 			wrapperRef: { current: wrapper },
 			onValueChange: mocks.onValueChange,
@@ -204,10 +198,6 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 					formatCell: () => '',
 					parseValue: (raw) => raw,
 				},
-				selection: {
-					selectionRef: { current: new Set() },
-					setSelection: vi.fn(),
-				},
 				wrapperRef: { current: document.createElement('table') },
 				onValueChange: vi.fn(),
 			}),
@@ -286,6 +276,14 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('F2'))
 
 		expect(beginEdit).toHaveBeenCalled()
+	})
+
+	it('Space begins edit with the formatted value rather than typing a space', () => {
+		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
+
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(' '))
+
+		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'a1')
 	})
 
 	it('printable characters begin edit with the typed value replacing the original', () => {
@@ -470,20 +468,6 @@ describe('useEditableGridWrapper: onWrapperPaste', () => {
 		])
 	})
 
-	it('clears the selection after a successful matrix paste', () => {
-		const { api, setSelection } = setup({
-			selection: new Set(['a']),
-			rows: [
-				{ id: 'a', value: '' },
-				{ id: 'b', value: '' },
-			],
-		})
-
-		api.onWrapperPaste(makePaste('x\ny'))
-
-		expect(setSelection).toHaveBeenCalledWith(new Set())
-	})
-
 	it('is a no-op while editing', () => {
 		const { api, applyCellWrite } = setup({ editing: true })
 
@@ -559,10 +543,6 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 					getKey: (r) => r.id,
 					formatCell: () => '',
 					parseValue: (raw) => raw,
-				},
-				selection: {
-					selectionRef: { current: new Set() },
-					setSelection: vi.fn(),
 				},
 				wrapperRef: { current: wrapper },
 				onValueChange: vi.fn(),

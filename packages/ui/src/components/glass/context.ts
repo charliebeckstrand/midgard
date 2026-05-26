@@ -8,7 +8,7 @@ import { createContext } from '../../core'
  * Dialog, etc.) takes a `glass` prop and consumers pass `useGlass()` through.
  * Read at the leaf; does not compose into size resolution.
  */
-export const [GlassProvider, useGlass] = createContext<boolean>('Glass', { default: false })
+export const [GlassContext, useGlass] = createContext<boolean>('Glass', { default: false })
 
 /**
  * Resolve the `surface` variant for a chrome panel, falling back to `'glass'`

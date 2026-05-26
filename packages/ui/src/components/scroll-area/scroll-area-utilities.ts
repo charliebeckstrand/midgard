@@ -1,13 +1,13 @@
-import { HIDDEN_THUMB, MIN_THUMB_SIZE, type ThumbState } from './scroll-area-constants'
+import { hiddenThumb, MIN_THUMB_SIZE, type ThumbState } from './scroll-area-constants'
 
-/** Computes thumb size and offset for one axis. Returns HIDDEN_THUMB when content fits. */
+/** Computes thumb size and offset for one axis. Returns hiddenThumb when content fits. */
 export function computeThumb(
 	scrollPos: number,
 	viewportSize: number,
 	contentSize: number,
 	trackSize: number,
 ): ThumbState {
-	if (contentSize <= viewportSize || trackSize <= 0) return HIDDEN_THUMB
+	if (contentSize <= viewportSize || trackSize <= 0) return hiddenThumb
 
 	const rawSize = (viewportSize / contentSize) * trackSize
 	const size = Math.max(rawSize, MIN_THUMB_SIZE)

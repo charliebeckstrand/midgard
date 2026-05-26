@@ -21,6 +21,6 @@ export type LocaleConfig = {
 	timeZone?: string
 }
 
-export const [LocaleValueProvider, useLocale] = createContext<LocaleConfig>('Locale', {
+export const [LocaleContext, useLocale] = createContext<LocaleConfig>('Locale', {
 	default: {},
 })

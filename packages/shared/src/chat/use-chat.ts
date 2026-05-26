@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 
-interface UseChatOptions {
+type UseChatOptions = {
 	onDelete?: () => void
 }
 

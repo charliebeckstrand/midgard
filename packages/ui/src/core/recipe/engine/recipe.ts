@@ -10,6 +10,15 @@
  *     as direct properties (`recipe.title`, `recipe.body`).
  *   - `palette` expands at creation time into an implicit `color` axis
  *     plus compound rules. See `palette.ts`.
+ *   - `skeleton` is reserved at the config root and attaches to the
+ *     recipe as `k.skeleton` with its caller-inferred type. Lives with
+ *     the other reserved fields because the payload describes the
+ *     recipe, not a callable sibling.
+ *   - `extras` (optional second argument) attaches arbitrary kata-shaped
+ *     siblings to the recipe — `motion`, sub-recipes, fragment maps.
+ *     The returned recipe stays callable as `k({...})` and gains the
+ *     extras as direct properties (`k.motion`). Keeps every kata's
+ *     public surface to a single binding.
  *
  * The kata exports the recipe as `k`; callers use `k(...)` for the variant
  * call and `k.title` for slot classes — one binding per kata.
@@ -36,13 +45,22 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 	'compound',
 	'slots',
 	'defaults',
+	'skeleton',
 ])
 
 const twMerge = extendTailwindMerge({
 	extend: { theme: { spacing: ['xs', 'sm', 'md', 'lg', 'xl'] } },
 })
 
-export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
+export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
+export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
+	config: C,
+	extras: X,
+): Recipe<C> & X
+export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
+	config: C,
+	extras?: X,
+): Recipe<C> | (Recipe<C> & X) {
 	const resolved = expand(config)
 
 	const slotCache: Record<string, string> = {}
@@ -87,11 +105,16 @@ export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C> {
 
 	Object.assign(recipe, slotCache)
 
+	if (config.skeleton !== undefined) Object.assign(recipe, { skeleton: config.skeleton })
+
+	if (extras) Object.assign(recipe, extras)
+
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// The slot properties and `.config` are attached at runtime; the type
-	// system can't see them. Assert the final shape.
-	return recipe as Recipe<C>
+	// The slot properties, `.config`, and any caller-supplied extras are
+	// attached at runtime; the type system can't see them. Assert the final
+	// shape.
+	return recipe as Recipe<C> & X
 }
 
 function matches(rule: CompoundRule, values: Record<string, string | undefined>): boolean {

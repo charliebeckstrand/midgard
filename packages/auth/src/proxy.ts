@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 const guestRoutes = ['/login', '/register']
 
-export interface ProxyOptions {
+export type ProxyOptions = {
 	homepage?: string
 	protect?: boolean
 }

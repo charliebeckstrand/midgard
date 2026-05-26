@@ -1,4 +1,5 @@
-import { defineRecipe, hannou, iro, ji, narabi, type VariantPropsOf } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { hannou, iro, ji, narabi } from '../kiso'
 
 const label = defineRecipe({
 	base: [
@@ -63,5 +64,3 @@ export const k = {
 	description,
 	message,
 }
-
-export type FieldsetMessageVariants = VariantPropsOf<typeof message>

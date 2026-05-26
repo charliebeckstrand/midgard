@@ -48,7 +48,7 @@ function defaultValueFor(field?: QueryField): unknown {
 	return ''
 }
 
-const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
+const defaultOperators: Record<QueryFieldType, QueryOperator[]> = {
 	text: [
 		{ value: 'equals', label: 'equals' },
 		{ value: 'notEquals', label: 'does not equal' },
@@ -82,7 +82,7 @@ const DEFAULT_OPERATORS: Record<QueryFieldType, QueryOperator[]> = {
 }
 
 export function getOperators(field: QueryField): QueryOperator[] {
-	return field.operators ?? DEFAULT_OPERATORS[field.type] ?? []
+	return field.operators ?? defaultOperators[field.type] ?? []
 }
 
 /** Returns true when the group (or any nested group) contains at least one rule. */

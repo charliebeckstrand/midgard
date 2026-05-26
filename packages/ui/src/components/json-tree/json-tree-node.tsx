@@ -3,9 +3,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/json-tree'
-import { JsonTreeProvider, useJsonTreeContext } from './context'
+import { JsonTreeContext, useJsonTreeContext } from './context'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
@@ -115,12 +114,12 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<motion.div data-slot="json-group" {...ugoki.collapse.fade} className={k.group}>
-							<JsonTreeProvider value={childContextValue}>
+						<motion.div data-slot="json-group" {...k.motion} className={k.group}>
+							<JsonTreeContext value={childContextValue}>
 								{visibleEntries.map(([childKey, childValue]) => (
 									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
 								))}
-							</JsonTreeProvider>
+							</JsonTreeContext>
 							<JsonTreeBranchClose depth={depth} isArray={isArray} />
 						</motion.div>
 					)}

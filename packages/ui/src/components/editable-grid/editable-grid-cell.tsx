@@ -1,27 +1,48 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGrid } from './context'
+import type { EditableGridColumn, EditableGridEditor } from './types'
 
-export type EditableGridCellContentProps = {
+type EditableGridCellContentProps<T> = {
 	rowIdx: number
 	colIdx: number
 	readOnly: boolean
 	align: 'left' | 'center' | 'right'
 	formatted: string
+	row: T
+	column: EditableGridColumn<T>
+	editor: EditableGridEditor<T>
 }
 
-export function EditableGridCell({
+export function EditableGridCell<T>({
 	rowIdx,
 	colIdx,
 	readOnly,
 	align,
 	formatted,
-}: EditableGridCellContentProps) {
+	row,
+	column,
+	editor: Editor,
+}: EditableGridCellContentProps<T>) {
 	const { active, anchor, extraCells, editing, draft, setDraft, commitEdit, cancelEdit } =
 		useEditableGrid()
+
+	// Re-render the flash overlay with a fresh key each time the rendered value
+	// changes so the keyframe animation restarts even on consecutive edits.
+	const prevFormattedRef = useRef(formatted)
+
+	const [flashKey, setFlashKey] = useState(0)
+
+	useEffect(() => {
+		if (prevFormattedRef.current === formatted) return
+
+		prevFormattedRef.current = formatted
+
+		setFlashKey((n) => n + 1)
+	}, [formatted])
 
 	const isActive = active?.row === rowIdx && active?.col === colIdx
 
@@ -35,33 +56,7 @@ export function EditableGridCell({
 
 	const inRange = !isActive && (inRect || extraCells.has(`${rowIdx},${colIdx}`))
 
-	const showInput = isActive && editing && !readOnly
-
-	const inputRef = useRef<HTMLInputElement>(null)
-
-	// Snapshot the draft/formatted at the moment the input mounts; subsequent
-	// changes (the user typing) shouldn't retrigger the cursor placement.
-	const editEntryRef = useRef({ draft, formatted })
-
-	editEntryRef.current = { draft, formatted }
-
-	useLayoutEffect(() => {
-		if (!showInput) return
-
-		const input = inputRef.current
-
-		if (!input) return
-
-		input.focus()
-
-		const entry = editEntryRef.current
-
-		// Enter / F2 / double-click open the existing value → select all so the
-		// next keystroke replaces it. Typing-to-edit seeds the draft with the
-		// typed char, so place the cursor at the end to keep appending.
-		if (entry.draft === entry.formatted) input.select()
-		else input.setSelectionRange(entry.draft.length, entry.draft.length)
-	}, [showInput])
+	const showEditor = isActive && editing && !readOnly
 
 	return (
 		<div
@@ -71,34 +66,25 @@ export function EditableGridCell({
 			className={cn(
 				k.cell({ align }),
 				readOnly && k.cellReadOnly,
-				isActive && !showInput && k.cellActive,
+				isActive && !showEditor && k.cellActive,
 			)}
 		>
-			<span className={cn('truncate', showInput && 'invisible')}>{formatted || ' '}</span>
-			{showInput && (
-				<input
-					ref={inputRef}
-					data-slot="editable-grid-input"
-					size={1}
-					aria-label={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
-					className={k.editInput({ align })}
-					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
-					onBlur={() => commitEdit('none')}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') {
-							e.preventDefault()
-
-							commitEdit('down')
-						} else if (e.key === 'Escape') {
-							e.preventDefault()
-
-							cancelEdit()
-						} else if (e.key === 'Tab') {
-							if (commitEdit(e.shiftKey ? 'left' : 'right')) e.preventDefault()
-						}
-					}}
-				/>
+			<span className={cn('truncate', showEditor && 'invisible')}>{formatted || ' '}</span>
+			{flashKey > 0 && <span key={flashKey} aria-hidden className={cn(k.cellFlash)} />}
+			{showEditor && (
+				<div className="absolute inset-0 flex items-stretch">
+					<Editor
+						row={row}
+						column={column}
+						draft={draft}
+						setDraft={setDraft}
+						commit={commitEdit}
+						cancel={cancelEdit}
+						align={align}
+						ariaLabel={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
+						selectAllOnFocus={draft === formatted}
+					/>
+				</div>
 			)}
 		</div>
 	)

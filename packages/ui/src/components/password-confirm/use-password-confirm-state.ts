@@ -3,7 +3,7 @@ import { deriveStatus } from './password-confirm-utilities'
 
 type LastEdited = 'password' | 'confirm' | null
 
-export type UsePasswordConfirmStateOptions = {
+type UsePasswordConfirmStateOptions = {
 	/**
 	 * Suppresses match/mismatch firing and forces `status` to `'idle'` while set.
 	 * Callers use this to hold the confirm warning back when the password field
@@ -14,7 +14,7 @@ export type UsePasswordConfirmStateOptions = {
 	onPasswordMismatch?: () => void
 }
 
-export type UsePasswordConfirmStateResult = {
+type UsePasswordConfirmStateResult = {
 	password: string
 	confirm: string
 	status: 'idle' | 'warning'

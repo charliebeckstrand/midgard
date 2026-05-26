@@ -36,4 +36,12 @@ describe('Icon', () => {
 
 		expect(el).toHaveStyle({ width: '24px', height: '24px' })
 	})
+
+	it('does not shrink inside a flex container', () => {
+		const { container } = renderUI(<Icon icon={<svg />} />)
+
+		const el = bySlot(container, 'icon')
+
+		expect(el?.getAttribute('class')).toContain('shrink-0')
+	})
 })

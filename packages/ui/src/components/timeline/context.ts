@@ -11,7 +11,7 @@ type TimelineContextValue = {
 	variant: TimelineVariant
 }
 
-export const [TimelineProvider, useTimeline] = createContext<TimelineContextValue>('Timeline', {
+export const [TimelineContext, useTimeline] = createContext<TimelineContextValue>('Timeline', {
 	default: { orientation: 'vertical', variant: 'solid' },
 })
 

@@ -4,7 +4,7 @@ import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { MapProvider } from './context'
+import { MapContext } from './context'
 import { type MapPreset, mapPresets } from './map-styles'
 import type { LngLat } from './types'
 import { useMapInstance } from './use-map-instance'
@@ -57,7 +57,7 @@ function MapView({
 			data-ready={ready || undefined}
 			className={cn(k.base, className)}
 		>
-			<MapProvider value={contextValue}>{ready ? children : null}</MapProvider>
+			<MapContext value={contextValue}>{ready ? children : null}</MapContext>
 		</div>
 	)
 }

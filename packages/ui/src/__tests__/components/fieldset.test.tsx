@@ -135,7 +135,7 @@ describe('Message', () => {
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ name: '' }}
-				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string>) => void }) => {
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
 					helpers.setErrors({ name: 'required' })
 				}}
 			>

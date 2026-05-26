@@ -1,5 +1,8 @@
-import { defineRecipe, hannou, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { slider } from '../genkei/slider'
+import { hannou } from '../kiso'
+
+const { color } = slider
 
 const root = defineRecipe({
 	base: ['relative', 'w-full', ...hannou.cursor, 'select-none', 'touch-none', hannou.disabled],
@@ -8,7 +11,7 @@ const root = defineRecipe({
 		md: 'py-4',
 		lg: 'py-5',
 	},
-	color: slider.color,
+	color,
 	defaults: { size: 'md', color: 'blue' },
 })
 
@@ -54,4 +57,4 @@ export const k = {
 	thumb,
 }
 
-export type RangeSliderVariants = VariantPropsOf<typeof root>
+export type RangeSliderVariants = VariantProps<typeof root>

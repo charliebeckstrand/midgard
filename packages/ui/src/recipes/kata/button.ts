@@ -1,89 +1,93 @@
-import {
-	defineRecipe,
-	hannou,
-	iro,
-	ji,
-	merge,
-	palette,
-	sen,
-	shaku,
-	tsunagi,
-	type VariantPropsOf,
-} from '..'
+import { defineRecipe, merge, palette, type VariantProps } from '../../core/recipe'
+import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 const { inherit } = iro.text
 
-// Pre-merged variant × colour bundles — kept as named exports for cross-kata
-// consumers (e.g. calendar reads `buttonSoft.blue` for selected-cell colour).
-export const buttonSolid = { ...merge(solid.bg, solid.text, solid.hover), inherit }
-export const buttonSoft = { ...merge(soft.bg, soft.text, soft.hover), inherit }
-export const buttonOutline = { ...merge(outline.ring, outline.text, outline.hover), inherit }
-export const buttonPlain = { ...merge(plain.text, plain.hover), inherit }
-export const buttonBare = { ...merge(bare.text, bare.hover), inherit }
-export const buttonGhost = { ...plain.text, inherit }
+const solidBundle = { ...merge(solid.bg, solid.text, solid.hover), inherit }
+const softBundle = { ...merge(soft.bg, soft.text, soft.hover), inherit }
+const outlineBundle = { ...merge(outline.ring, outline.text, outline.hover), inherit }
+const plainBundle = { ...merge(plain.text, plain.hover), inherit }
+const bareBundle = { ...merge(bare.text, bare.hover), inherit }
+const ghostBundle = { ...plain.text, inherit }
 
-export const k = defineRecipe({
-	base: [
-		'relative isolate',
-		'inline-flex items-center justify-center',
-		'w-fit shrink-0 font-semibold rounded-lg',
-		sen.focus.inset,
-		...hannou.disabled,
-		...hannou.cursor,
-		...tsunagi.base,
-	],
-	variant: {
-		outline: 'ring-1 ring-inset',
-	},
-	size: {
-		xs: [
-			ji.xs,
-			shaku.icon.xs,
-			'gap-0.5',
-			'p-[calc(--spacing(1.5)-1px)]',
-			'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+export const k = defineRecipe(
+	{
+		base: [
+			'relative isolate',
+			'inline-flex items-center justify-center',
+			'w-fit shrink-0 font-semibold',
+			sen.focus.inset,
+			...hannou.disabled,
+			...hannou.cursor,
+			...tsunagi.base,
 		],
-		sm: [
-			ji.sm,
-			shaku.icon.sm,
-			'gap-0.75',
-			'p-[calc(--spacing(2)-1px)]',
-			'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
-		],
-		md: [
-			ji.md,
-			shaku.icon.md,
-			'gap-xs',
-			'p-[calc(--spacing(2.5)-1px)]',
-			'data-[has-label]:py-[calc(--spacing(2)-1px)]',
-		],
-		lg: [
-			ji.lg,
-			shaku.icon.lg,
-			'gap-sm',
-			'p-[calc(--spacing(3)-1px)]',
-			'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
-		],
-	},
-	palette: palette(
-		{
-			solid: [solid.bg, solid.text, solid.hover],
-			soft: [soft.bg, soft.text, soft.hover],
-			outline: [outline.ring, outline.text, outline.hover],
-			plain: [plain.text, plain.hover],
-			bare: [bare.text, bare.hover],
-			ghost: plain.text,
+		variant: {
+			outline: 'ring-1 ring-inset',
 		},
-		{ inherit },
-	),
-	compound: [
-		{
-			variant: 'bare',
-			class: ['p-0', 'before:content-[""] before:absolute before:-inset-2'],
+		size: {
+			xs: [
+				ji.xs,
+				shaku.icon.xs,
+				kasane.g('0.5'),
+				kasane.p('1.5'),
+				kasane.r('1'),
+				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+			],
+			sm: [
+				ji.sm,
+				shaku.icon.sm,
+				kasane.g('0.75'),
+				kasane.p('2'),
+				kasane.r('1.5'),
+				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
+			],
+			md: [
+				ji.md,
+				shaku.icon.md,
+				kasane.g('1'),
+				kasane.p('2.5'),
+				kasane.r('2'),
+				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
+			],
+			lg: [
+				ji.lg,
+				shaku.icon.lg,
+				kasane.g('1.25'),
+				kasane.p('3'),
+				kasane.r('2.5'),
+				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
+			],
 		},
-	],
-	defaults: { variant: 'solid', color: 'zinc', size: 'md' },
-})
+		palette: palette(
+			{
+				solid: [solid.bg, solid.text, solid.hover],
+				soft: [soft.bg, soft.text, soft.hover],
+				outline: [outline.ring, outline.text, outline.hover],
+				plain: [plain.text, plain.hover],
+				bare: [bare.text, bare.hover],
+				ghost: plain.text,
+			},
+			{ inherit },
+		),
+		compound: [
+			{
+				variant: 'bare',
+				class: ['p-0', 'before:content-[""] before:absolute before:-inset-2'],
+			},
+		],
+		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		skeleton: kokkaku.button,
+	},
+	{
+		solid: solidBundle,
+		soft: softBundle,
+		outline: outlineBundle,
+		plain: plainBundle,
+		bare: bareBundle,
+		ghost: ghostBundle,
+		motion: ugoki.spring,
+	},
+)
 
-export type ButtonVariants = VariantPropsOf<typeof k>
+export type ButtonVariants = VariantProps<typeof k>

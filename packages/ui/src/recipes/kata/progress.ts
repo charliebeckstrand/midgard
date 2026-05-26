@@ -1,26 +1,13 @@
-import { defineRecipe, iro, type VariantPropsOf } from '..'
-
-export const k = defineRecipe({
-	base: ['overflow-hidden', 'rounded-full', 'bg-zinc-200', 'dark:bg-zinc-800'],
-	size: {
-		sm: 'h-2',
-		md: 'h-3',
-		lg: 'h-4',
-	},
-	slots: {
-		barIndeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
-		trackStroke: 'stroke-zinc-200 dark:stroke-zinc-700',
-	},
-	defaults: { size: 'md' },
-})
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, ji } from '../kiso'
 
 /**
  * Per-colour fill / bg / stroke classes shared between bar + gauge. The
  * gauge reads all three (`fill` on the indicator circle, `stroke` on the
- * track, `bg` on the central label); `progressBarFill` indexes into the
+ * track, `bg` on the central label); `bar.fill` indexes into the
  * `bg` slice for its colour axis.
  */
-export const color = {
+const color = {
 	zinc: {
 		fill: 'fill-zinc-600 dark:fill-zinc-400',
 		bg: 'bg-zinc-600 dark:bg-zinc-400',
@@ -48,7 +35,7 @@ export const color = {
 	},
 }
 
-export const progressBarFill = defineRecipe({
+const barFill = defineRecipe({
 	base: ['h-full', 'rounded-full'],
 	color: {
 		zinc: color.zinc.bg,
@@ -60,7 +47,7 @@ export const progressBarFill = defineRecipe({
 	defaults: { color: 'zinc' },
 })
 
-export const progressGauge = defineRecipe({
+const gaugeRoot = defineRecipe({
 	base: ['relative', 'inline-flex items-center justify-center'],
 	size: {
 		sm: 'size-12',
@@ -71,18 +58,41 @@ export const progressGauge = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-export const progressGaugeLabel = defineRecipe({
+const gaugeLabel = defineRecipe({
 	base: ['absolute', 'font-semibold', ...iro.text.default],
 	size: {
-		sm: 'text-xs',
-		md: 'text-sm',
-		lg: 'text-md',
-		xl: 'text-lg',
+		sm: ji.xs,
+		md: ji.sm,
+		lg: ji.md,
+		xl: ji.lg,
 	},
 	defaults: { size: 'md' },
 })
 
-export type ProgressTrackVariants = VariantPropsOf<typeof k>
-export type ProgressBarFillVariants = VariantPropsOf<typeof progressBarFill>
-export type ProgressGaugeVariants = VariantPropsOf<typeof progressGauge>
-export type ProgressGaugeLabelVariants = VariantPropsOf<typeof progressGaugeLabel>
+export const k = defineRecipe(
+	{
+		base: ['overflow-hidden', 'rounded-full', 'bg-zinc-200', 'dark:bg-zinc-800'],
+		size: {
+			sm: 'h-2',
+			md: 'h-3',
+			lg: 'h-4',
+		},
+		defaults: { size: 'md' },
+	},
+	{
+		color,
+		bar: {
+			fill: barFill,
+			indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
+		},
+		gauge: {
+			root: gaugeRoot,
+			label: gaugeLabel,
+			track: 'stroke-zinc-200 dark:stroke-zinc-700',
+		},
+	},
+)
+
+export type ProgressTrackVariants = VariantProps<typeof k>
+export type ProgressBarFillVariants = VariantProps<typeof barFill>
+export type ProgressGaugeVariants = VariantProps<typeof gaugeRoot>

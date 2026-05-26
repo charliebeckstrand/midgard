@@ -1,6 +1,6 @@
 export {
+	CurrentContext,
 	type CurrentContextValue,
-	CurrentProvider,
 	useCurrent,
 	useCurrentState,
 } from './current'

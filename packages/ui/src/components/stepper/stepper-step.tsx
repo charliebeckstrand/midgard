@@ -3,7 +3,7 @@
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
-import { StepperStepProvider, type StepState, useStepper } from './context'
+import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
 export type StepperStepProps = {
@@ -74,7 +74,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
 
-	const inner = <StepperStepProvider value={providerValue}>{layoutChildren}</StepperStepProvider>
+	const inner = <StepperStepContext value={providerValue}>{layoutChildren}</StepperStepContext>
 
 	// Interactive when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {

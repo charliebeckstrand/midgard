@@ -3,7 +3,7 @@
 import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
 import type { Step } from '../../recipes'
-import { TooltipProvider } from './context'
+import { TooltipContext } from './context'
 import { useTooltipState } from './use-tooltip-state'
 
 export type TooltipProps = {
@@ -26,5 +26,5 @@ export type TooltipProps = {
 export function Tooltip({ children, ...props }: TooltipProps) {
 	const contextValue = useTooltipState(props)
 
-	return <TooltipProvider value={contextValue}>{children}</TooltipProvider>
+	return <TooltipContext value={contextValue}>{children}</TooltipContext>
 }

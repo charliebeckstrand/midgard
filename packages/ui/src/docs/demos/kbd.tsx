@@ -1,14 +1,13 @@
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Kbd } from '../../components/kbd'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Kbd>K</Kbd>
 			</Example>
@@ -37,6 +36,6 @@ export function Demo() {
 					</Button>
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }

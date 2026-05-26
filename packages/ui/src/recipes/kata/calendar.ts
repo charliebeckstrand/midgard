@@ -1,5 +1,7 @@
-import { defineRecipe, iro, ji, sen } from '..'
-import { buttonSoft } from './button'
+import { defineRecipe } from '../../core/recipe'
+import { iro, ji, sen } from '../kiso'
+
+const { soft } = iro.palette
 
 const base = defineRecipe({
 	base: ['inline-flex flex-col', 'select-none'],
@@ -14,9 +16,9 @@ const base = defineRecipe({
 const header = defineRecipe({
 	base: 'flex items-center justify-between',
 	size: {
-		sm: 'mb-xs',
-		md: 'mb-sm',
-		lg: 'mb-md',
+		sm: 'mb-1',
+		md: 'mb-2',
+		lg: 'mb-3',
 	},
 	defaults: { size: 'md' },
 })
@@ -24,9 +26,9 @@ const header = defineRecipe({
 const footer = defineRecipe({
 	base: ['flex items-center justify-center'],
 	size: {
-		sm: 'pb-xs gap-xs',
-		md: 'pb-xs gap-sm',
-		lg: 'pb-md gap-md',
+		sm: 'pb-1 gap-1',
+		md: 'pb-1 gap-2',
+		lg: 'pb-3 gap-3',
 	},
 	defaults: { size: 'md' },
 })
@@ -34,9 +36,9 @@ const footer = defineRecipe({
 const pickerGrid = defineRecipe({
 	base: 'grid grid-cols-3',
 	size: {
-		sm: 'px-sm',
-		md: 'px-md',
-		lg: 'px-lg',
+		sm: 'px-2',
+		md: 'px-3',
+		lg: 'px-4',
 	},
 	defaults: { size: 'md' },
 })
@@ -58,7 +60,7 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		cellCurrent: ['font-semibold', ...buttonSoft.blue],
+		cellCurrent: ['font-semibold', soft.bg.blue, soft.text.blue, soft.hover.blue],
 	},
 	weekday,
 	day: {

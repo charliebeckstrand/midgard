@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
@@ -18,7 +16,7 @@ export function Demo() {
 	const [accepted, setAccepted] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Confirm">
 				<Button color="amber" onClick={() => setDiscardOpen(true)}>
 					Discard changes
@@ -66,18 +64,13 @@ export function Demo() {
 								qui officia deserunt mollit anim id est laborum.
 							</Text>
 							<CheckboxField>
-								<Checkbox
-									id="terms"
-									color="blue"
-									checked={accepted}
-									onChange={() => setAccepted(!accepted)}
-								/>
-								<Label htmlFor="terms">Accept terms and conditions</Label>
+								<Checkbox color="blue" checked={accepted} onChange={() => setAccepted(!accepted)} />
+								<Label>Accept terms and conditions</Label>
 							</CheckboxField>
 						</Stack>
 					</DialogBody>
 				</Confirm>
 			</Example>
-		</Stack>
+		</>
 	)
 }

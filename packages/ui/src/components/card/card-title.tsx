@@ -4,18 +4,12 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
-import { type Ji, ji } from '../../recipes'
+import { k } from '../../recipes/kata/card'
 import { Heading } from '../heading'
 export type CardTitleProps = {
 	className?: string
 	size?: Step
 } & Omit<ComponentPropsWithoutRef<'h3'>, 'className'>
-
-const titleText: Record<Step, Ji> = {
-	sm: 'md',
-	md: 'lg',
-	lg: 'xl',
-}
 
 export function CardTitle({ className, size, children, ...props }: CardTitleProps) {
 	const inherited = useDensity()
@@ -26,7 +20,7 @@ export function CardTitle({ className, size, children, ...props }: CardTitleProp
 		<Heading
 			level={3}
 			data-slot="card-title"
-			className={cn('font-semibold', ji[titleText[resolvedSize]], className)}
+			className={cn(k.title({ size: resolvedSize }), className)}
 			{...props}
 		>
 			{children}

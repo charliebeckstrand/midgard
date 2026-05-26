@@ -1,6 +1,5 @@
 import { Card } from '../../components/card'
 import { Frame } from '../../components/frame'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
@@ -8,7 +7,7 @@ export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Frame gap="sm">
 					<Card className="w-64">Sidebar</Card>
@@ -42,6 +41,6 @@ export function Demo() {
 					<Card className="flex-1">Content</Card>
 				</Frame>
 			</Example>
-		</Stack>
+		</>
 	)
 }

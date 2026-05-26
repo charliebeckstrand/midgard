@@ -1,6 +1,5 @@
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -9,12 +8,12 @@ const colors = ['blue', 'green', 'red'] as const
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-terms" />
-						<Label htmlFor="checkbox-terms">Accept terms and conditions</Label>
+						<Checkbox />
+						<Label>Accept terms and conditions</Label>
 						<Description>You agree to our Terms of Service and Privacy Policy.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
@@ -23,14 +22,14 @@ export function Demo() {
 			<Example title="Group">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-newsletter" />
-						<Label htmlFor="checkbox-newsletter">Subscribe to newsletter</Label>
+						<Checkbox />
+						<Label>Subscribe to newsletter</Label>
 						<Description>Get the latest news and updates.</Description>
 					</CheckboxField>
 
 					<CheckboxField>
-						<Checkbox id="opt-out" />
-						<Label htmlFor="opt-out">Opt out of data collection</Label>
+						<Checkbox />
+						<Label>Opt out of data collection</Label>
 						<Description>We will not collect any personal data.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
@@ -40,8 +39,8 @@ export function Demo() {
 				<CheckboxGroup>
 					{colors.map((color) => (
 						<CheckboxField key={color}>
-							<Checkbox id={`checkbox-${color}`} value={color} color={color} defaultChecked />
-							<Label htmlFor={`checkbox-${color}`}>{color}</Label>
+							<Checkbox value={color} color={color} defaultChecked />
+							<Label>{color}</Label>
 						</CheckboxField>
 					))}
 				</CheckboxGroup>
@@ -50,12 +49,12 @@ export function Demo() {
 			<Example title="Disabled">
 				<CheckboxGroup>
 					<CheckboxField>
-						<Checkbox id="checkbox-disabled" disabled />
-						<Label htmlFor="checkbox-disabled">Disabled option</Label>
+						<Checkbox disabled />
+						<Label>Disabled option</Label>
 						<Description>This checkbox is disabled and cannot be interacted with.</Description>
 					</CheckboxField>
 				</CheckboxGroup>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -1,9 +1,9 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { type LinkComponent, type LinkContextValue, LinkValueProvider } from '../../primitives/link'
+import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
 
-export type LinkProviderProps = {
+type LinkProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export) that
 	 * the library should render whenever it emits a link. Defaults to a plain
@@ -21,5 +21,5 @@ export type LinkProviderProps = {
 export function LinkProvider({ component, children }: LinkProviderProps) {
 	const value = useMemo<LinkContextValue>(() => ({ component }), [component])
 
-	return <LinkValueProvider value={value}>{children}</LinkValueProvider>
+	return <LinkContext value={value}>{children}</LinkContext>
 }

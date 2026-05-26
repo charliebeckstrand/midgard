@@ -4,7 +4,7 @@ TRIGGER when: rename a type/function across files, lift a type to a shared home,
 
 Perform type-driven migrations in staged, checkpointable steps. Each stage produces a clean diff and runs the project's type-checker and scoped tests before advancing. The repo stays valid after every stage.
 
-This skill writes code. It runs as a sequence of small commits, each independently revertable.
+Writes code as a sequence of small commits, each independently revertable.
 
 ## Modes
 
@@ -73,7 +73,7 @@ If the scope is large (>20 files), surface the count and ask the user to confirm
 
 ## 3. Produce the staging plan
 
-Per mode, the staging pattern is opinionated. Each stage is independently committable.
+The staging pattern is opinionated per mode. Each stage is independently committable.
 
 ### 3a. `rename`
 
@@ -101,9 +101,9 @@ Watch for: `const enum` usage (these inline at use sites — removal is a textua
 
 ### 3d. `any-to-unknown`
 
-Per-occurrence. Each `any` site gets its own micro-stage. Bottom-up, narrowing one site at a time.
+Per-occurrence. Each `any` site gets its own micro-stage. Bottom-up, narrowing one at a time.
 
-- **Per stage**: replace one `any` with `unknown`, then add the narrowing the call site needs (`typeof`, `in`, `instanceof`, a type predicate, or a runtime check). Run scoped tests and type-check.
+- **Per stage**: replace one `any` with `unknown`, then add the narrowing the call site needs (`typeof`, `in`, `instanceof`, a type predicate, a runtime check). Run scoped tests and type-check.
 
 Test gate per stage: scoped tests for the touched file.
 
@@ -137,9 +137,9 @@ Test gate per stage: scoped tests for the touched file, plus type-check after ea
 
 ## 4. Premortem the plan
 
-Produce the plan as Markdown at `~/.claude/plans/typescript-migrate-<mode>-<slug>-<timestamp>.md`, where `<slug>` is the target name kebab-cased and `<timestamp>` comes from `date +%Y%m%d-%H%M%S`. Then invoke `/premortem`; it picks the file up automatically and stress-tests through five archetypes.
+Write the plan as Markdown at `~/.claude/plans/typescript-migrate-<mode>-<slug>-<timestamp>.md`, where `<slug>` is the kebab-cased target and `<timestamp>` comes from `date +%Y%m%d-%H%M%S`. Invoke `/premortem`; it picks the file up automatically and stress-tests through five archetypes.
 
-If premortem returns concrete diffs to the plan, apply them. If premortem flags a Point-of-No-Return failure, restructure to add a checkpoint before the irreversible step.
+When premortem returns concrete diffs, apply them. When premortem flags a Point-of-No-Return failure, restructure to add a checkpoint before the irreversible step.
 
 For `--dry-run`, stop here. Output the plan to the user without executing.
 
@@ -147,20 +147,20 @@ For `--dry-run`, stop here. Output the plan to the user without executing.
 
 ## 5. Execute stage by stage
 
-After premortem-driven revisions, ask the user to confirm execution. Per stage:
+After premortem revisions, ask the user to confirm execution. Per stage:
 
 1. Perform the stage's edits.
 2. Run the stage's test gate using the package's scoped test command:
    - **vitest**: `<pm> --filter=<pkg> exec vitest related --run <touched-files>` (or `--changed` after staging).
    - **jest**: `<pm> --filter=<pkg> exec jest --findRelatedTests <touched-files>`.
-   - **bun / node**: `<pm> turbo test --filter=<pkg>` (full package suite; bun/node test runners don't expose change-driven flags).
-3. Run the package's type-check. Read `scripts.check-types` from the manifest. If null, skip the type-check (no script declared). Otherwise invoke `<pm> turbo check-types --filter=<pkg>`.
+   - **bun / node**: `<pm> turbo test --filter=<pkg>` (full package suite; bun/node runners don't expose change-driven flags).
+3. Run the package's type-check. Read `scripts.check-types` from the manifest; if null, skip. Otherwise invoke `<pm> turbo check-types --filter=<pkg>`.
 4. If either gate fails: stop, surface, don't advance. The user fixes or aborts.
-5. If both gates pass: invoke `/typescript:review` in file mode against the stage's touched files as a single space-separated path list (`/typescript:review <file-1> <file-2> ...`). BLOCK halts the stage; the user resolves or waives.
+5. If both gates pass: invoke `/typescript:review` in file mode against the stage's touched files as a space-separated path list (`/typescript:review <file-1> <file-2> ...`). BLOCK halts the stage; the user resolves or waives.
 6. Ask the user to commit. **Never auto-commit.** Commit messages follow the project's git conventions (imperative mood, atomic).
 7. Advance only after the previous stage is committed.
 
-Example stage commit messages: "rename formatCurrency to formatMoney in apps/storefront", "lift UserId to packages/design-system", "convert Status enum to as-const object".
+Example commits: "rename formatCurrency to formatMoney in apps/storefront", "lift UserId to packages/design-system", "convert Status enum to as-const object".
 
 ---
 
@@ -178,11 +178,11 @@ If the user abandons mid-migration, the repo is in a valid state at whatever sta
 
 ## Rules
 
-- This skill writes code; every stage produces a real diff and a real commit. Treat that responsibility carefully.
-- Never bundle stages. Each stage's commit is independently revertable — the whole point of the staging pattern.
+- Every stage produces a real diff and a real commit. Treat that responsibility carefully.
+- Never bundle stages. Each commit is independently revertable — the whole point of the staging pattern.
 - Never auto-commit. The user approves every commit.
 - Never skip the type-check gate.
-- Never skip the `/typescript:review` file-mode pass at each stage. The review catches issues the migration itself might introduce (lost generics, dropped `readonly`, widened return types).
-- If a stage requires a judgment call (an `any` site that genuinely needs `any`, a JSDoc type with no clean TS equivalent), surface and ask rather than guessing.
-- Never modify `.gitignore`, lockfiles, CI configs, or other tracked-but-not-source files as part of a migration. If the migration needs config changes (e.g. removing `allowJs` after `jsdoc-to-ts`), surface as a separate proposed edit at the wrap-up step.
+- Never skip the `/typescript:review` file-mode pass at each stage. It catches issues the migration might introduce (lost generics, dropped `readonly`, widened return types).
+- When a stage requires a judgment call (an `any` site that genuinely needs `any`, a JSDoc type with no clean TS equivalent), surface and ask. Don't guess.
+- Never modify `.gitignore`, lockfiles, CI configs, or other tracked-but-not-source files. When the migration needs config changes (e.g. removing `allowJs` after `jsdoc-to-ts`), surface as a separate proposed edit at wrap-up.
 - Success means tests pass, review returns PASS, and the diff reads cleanly.

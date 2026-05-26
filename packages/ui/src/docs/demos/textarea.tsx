@@ -1,12 +1,9 @@
-'use client'
-
 import { ArrowUp, Paperclip } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Spacer } from '../../components/spacer'
-import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
@@ -48,7 +45,7 @@ function WithActionsExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Field>
 					<Label htmlFor="textarea-message">Message</Label>
@@ -107,6 +104,6 @@ export function Demo() {
 					<Textarea id="textarea-invalid" data-invalid={true} placeholder="Something went wrong" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

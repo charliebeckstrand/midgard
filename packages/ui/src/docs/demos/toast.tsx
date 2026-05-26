@@ -1,5 +1,3 @@
-'use client'
-
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'

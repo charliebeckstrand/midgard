@@ -1,5 +1,4 @@
 import { File, Folder, Image, Music, Video } from 'lucide-react'
-import { Stack } from '../../components/stack'
 import { Tree, TreeItem } from '../../components/tree'
 import { Example } from '../components/example'
 
@@ -7,7 +6,7 @@ export const meta = { category: 'Data Display' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Tree>
 					<TreeItem label="Documents" icon={<Folder />}>
@@ -66,6 +65,6 @@ export function Demo() {
 					</TreeItem>
 				</Tree>
 			</Example>
-		</Stack>
+		</>
 	)
 }

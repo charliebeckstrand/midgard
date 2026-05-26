@@ -6,9 +6,7 @@ import { useScrollWithin } from './use-scroll-within'
 
 const ACTIVE_ATTR = 'data-active'
 
-export type { Orientation }
-
-export type RovingConfig = {
+type RovingConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */
 	cols?: number
 	/** Axis for 1D navigation. Ignored when `cols` is set. */
@@ -102,7 +100,7 @@ function nextIndexGrid(
 	}
 }
 
-export type UseRovingOptions = RovingConfig & {
+type UseRovingOptions = RovingConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
 	/**

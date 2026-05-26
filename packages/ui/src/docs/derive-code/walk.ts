@@ -117,7 +117,7 @@ function hasExplicitKey(element: ReactElement): element is ReactElement & { key:
  * Render a single recognized component element. Unknown components are
  * transparently unwrapped so their internal composition can still contribute.
  */
-export function renderElement(element: ReactElement, context: Context, indent: string): string {
+function renderElement(element: ReactElement, context: Context, indent: string): string {
 	const info = context.registry.byType.get(element.type)
 
 	if (!info) {
@@ -170,11 +170,7 @@ export function renderElement(element: ReactElement, context: Context, indent: s
  * exist but nothing was renderable — so the parent shows as `<Foo>…</Foo>`
  * instead of misleadingly collapsing to `<Foo />`.
  */
-export function renderChildrenContent(
-	nodes: ReactNode[],
-	context: Context,
-	indent: string,
-): string {
+function renderChildrenContent(nodes: ReactNode[], context: Context, indent: string): string {
 	if (nodes.length === 0) return ''
 
 	const rendered = renderNodes(nodes, context, indent)

@@ -6,7 +6,7 @@ import { Link } from '../link'
 // Type intentionally loose at the call boundary — the public discriminated
 // shape lives on `ButtonProps`; this internal helper accepts the parent's
 // post-destructure rest and casts to the right element type at the spread.
-export type ButtonHeadlessProps = {
+type ButtonHeadlessProps = {
 	href?: string
 	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>
 	dataSlot?: string

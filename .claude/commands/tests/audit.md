@@ -34,7 +34,7 @@ Per package, capture:
 
 Read `testHelpersDir`. If `null`, glob the package source for `test-utils.{ts,tsx}`, `setup.{ts,tsx}`, `helpers.{ts,tsx}`, or `__tests__/helpers/`. Treat the discovered file as the canonical render-helper source.
 
-Security-sensitive and project-specific paths aren't in the schema — detect them inline. Never invent a manifest field.
+Security-sensitive and project-specific paths aren't in the schema — detect inline. Never invent a manifest field.
 
 ---
 
@@ -63,7 +63,7 @@ Record the mode: `single` / `changed` / `suite`.
 
 ## 4. Checks
 
-Each check defines one baseline. A check that holds emits nothing. A nit earns its row only when it would survive a second reader's review.
+Each check defines one baseline. A check that holds emits nothing. A nit earns its row only when it survives a second reader's review.
 
 Severity:
 
@@ -180,7 +180,7 @@ Coverage: <X>/<Y> testable units have tests (<percent>%)
 
 ## 6. Offer to fix
 
-After findings, ask whether to apply auto-fixable items:
+Ask whether to apply auto-fixable items:
 
 | Finding | Fix |
 |---|---|
@@ -199,6 +199,6 @@ Never modify an existing test file beyond the structural fixes above; new files 
 - Source analysis only. Never run the test suite, boot a dev server, or write to test files without explicit go-ahead.
 - The verdict is the deliverable; deviations are evidence. CLEAN is a successful run. Don't manufacture nits.
 - Read `testRunner`, `testLayout`, `componentsDir`, and per-package source roots from the manifest. Never invent values.
-- REQUIRED patterns from `/tests:compose` §4 are the canonical coverage matrix. New required patterns belong in `/tests:compose`, not here.
+- REQUIRED patterns from `/tests:compose` §4 are the canonical coverage matrix. New required patterns belong in `/tests:compose`.
 - Honor exclusion lists in `CLAUDE.md` / `AGENTS.md` under a `## Tests skip list` heading. If none, no exclusions.
 - In `suite` mode: rank, then truncate.

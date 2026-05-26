@@ -1,9 +1,10 @@
-import { defineRecipe, iro, sen, type VariantPropsOf } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { iro, sen } from '../kiso'
 
 const cellSize = {
-	sm: 'px-xs py-xs',
-	md: 'px-sm py-sm',
-	lg: 'px-md py-md',
+	sm: 'px-1 py-1',
+	md: 'px-2 py-2',
+	lg: 'px-3 py-3',
 }
 
 const grid = {
@@ -34,6 +35,3 @@ export const k = {
 	striped: ['*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'],
 	empty: ['text-center', iro.text.muted],
 }
-
-export type TableCellVariants = VariantPropsOf<typeof cell>
-export type TableHeaderVariants = VariantPropsOf<typeof header>

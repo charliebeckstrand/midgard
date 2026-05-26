@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { AffixProvider } from '../../primitives/affix'
+import { AffixContext } from '../../primitives/affix'
 import { useSizeWide } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -18,7 +18,7 @@ import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
 import { hasLabelContent } from './button-utilities'
 
-export type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
+type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
 type ButtonBaseProps = ButtonVariants & {
 	block?: boolean
@@ -89,11 +89,11 @@ export function Button({
 	const labelled = hasLabelContent(children)
 
 	const content = (
-		<AffixProvider value={resolvedSize}>
+		<AffixContext value={resolvedSize}>
 			{loading ? <Spinner {...loadingOptions} /> : prefix}
 			{children}
 			{suffix}
-		</AffixProvider>
+		</AffixContext>
 	)
 
 	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {
@@ -110,6 +110,7 @@ export function Button({
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
+						data-step={resolvedSize}
 						data-variant={variant}
 						data-has-prefix={!!prefix || undefined}
 						data-has-label={labelled || undefined}
@@ -138,6 +139,7 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
+				data-step={resolvedSize}
 				data-variant={variant}
 				data-has-prefix={!!prefix || undefined}
 				data-has-label={labelled || undefined}

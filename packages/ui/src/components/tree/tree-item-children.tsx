@@ -3,11 +3,10 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode, useMemo } from 'react'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { ugoki } from '../../recipes'
 import { k } from '../../recipes/kata/tree'
-import { TreeProvider, useTreeContext } from './context'
+import { TreeContext, useTreeContext } from './context'
 
-export type TreeItemChildrenProps = {
+type TreeItemChildrenProps = {
 	open: boolean
 	label: ReactNode
 	children: ReactNode
@@ -25,17 +24,17 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 		<ReducedMotion>
 			<AnimatePresence initial={false}>
 				{open && (
-					<TreeProvider value={childContextValue}>
+					<TreeContext value={childContextValue}>
 						<motion.div
 							role="group"
 							aria-label={typeof label === 'string' ? label : undefined}
 							data-slot="tree-group"
-							{...ugoki.collapse.fade}
+							{...k.motion}
 							className={k.group}
 						>
 							{children}
 						</motion.div>
-					</TreeProvider>
+					</TreeContext>
 				)}
 			</AnimatePresence>
 		</ReducedMotion>

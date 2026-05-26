@@ -1,9 +1,9 @@
 'use client'
 
 import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 'react'
-import { type FormTextBinding, useFormText } from '../form/context'
+import { type FormTextBinding, useFormText } from '../form/use-form-text'
 
-export type UseInputValueOptions = {
+type UseInputValueOptions = {
 	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
 	hasValueProp: boolean
 	name?: string
@@ -12,7 +12,7 @@ export type UseInputValueOptions = {
 	onBlur?: FocusEventHandler<HTMLInputElement>
 }
 
-export type UseInputValueResult = {
+type UseInputValueResult = {
 	value: InputHTMLAttributes<HTMLInputElement>['value']
 	onChange: ChangeEventHandler<HTMLInputElement> | undefined
 	onBlur: FocusEventHandler<HTMLInputElement> | undefined

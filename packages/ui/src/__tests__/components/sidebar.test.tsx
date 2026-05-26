@@ -11,7 +11,7 @@ import {
 	SidebarSection,
 	SidebarSpacer,
 } from '../../components/sidebar'
-import { OffcanvasProvider } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sidebar', () => {
@@ -57,11 +57,11 @@ describe('SidebarHeader', () => {
 		const close = vi.fn()
 
 		const { container } = renderUI(
-			<OffcanvasProvider value={{ close }}>
+			<OffcanvasContext value={{ close }}>
 				<Sidebar>
 					<SidebarHeader>Header</SidebarHeader>
 				</Sidebar>
-			</OffcanvasProvider>,
+			</OffcanvasContext>,
 		)
 
 		const header = bySlot(container, 'sidebar-header')
@@ -81,13 +81,13 @@ describe('SidebarHeader', () => {
 		const close = vi.fn()
 
 		renderUI(
-			<OffcanvasProvider value={{ close }}>
+			<OffcanvasContext value={{ close }}>
 				<Sidebar>
 					<SidebarHeader closeIcon={<span data-testid="custom-close">x</span>}>
 						Header
 					</SidebarHeader>
 				</Sidebar>
-			</OffcanvasProvider>,
+			</OffcanvasContext>,
 		)
 
 		expect(screen.getByTestId('custom-close')).toBeInTheDocument()

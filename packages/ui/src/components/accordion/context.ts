@@ -3,20 +3,20 @@
 import { createContext } from '../../core/create-context'
 import type { AccordionVariants } from '../../recipes/kata/accordion'
 
-export type AccordionContextValue = {
+type AccordionContextValue = {
 	variant: NonNullable<AccordionVariants['variant']>
 	isOpen: (value: string) => boolean
 	toggle: (value: string) => void
 }
 
-export const [AccordionProvider, useAccordion] = createContext<AccordionContextValue>('Accordion')
+export const [AccordionContext, useAccordion] = createContext<AccordionContextValue>('Accordion')
 
-export type AccordionItemContextValue = {
+type AccordionItemContextValue = {
 	value: string
 	open: boolean
 	toggle: () => void
 	disabled: boolean
 }
 
-export const [AccordionItemProvider, useAccordionItem] =
+export const [AccordionItemContext, useAccordionItem] =
 	createContext<AccordionItemContextValue>('AccordionItem')

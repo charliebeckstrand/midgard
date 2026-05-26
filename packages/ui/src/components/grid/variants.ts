@@ -18,7 +18,7 @@ export type GridGap = Ma
 
 type ClassMap = Record<Breakpoint, string>
 
-export type ResolvedResponsive = {
+type ResolvedResponsive = {
 	classes: string[]
 	style: CSSProperties
 }
@@ -62,7 +62,7 @@ function resolveScalar<T>(
 	return { classes, style: style as CSSProperties }
 }
 
-const COLS: ClassMap = {
+const cols: ClassMap = {
 	initial: 'grid-cols-[repeat(var(--cols),minmax(0,1fr))]',
 	sm: 'sm:grid-cols-[repeat(var(--cols-sm),minmax(0,1fr))]',
 	md: 'md:grid-cols-[repeat(var(--cols-md),minmax(0,1fr))]',
@@ -71,7 +71,7 @@ const COLS: ClassMap = {
 	'2xl': '2xl:grid-cols-[repeat(var(--cols-2xl),minmax(0,1fr))]',
 }
 
-const ROWS: ClassMap = {
+const rows: ClassMap = {
 	initial: 'grid-rows-[repeat(var(--rows),minmax(0,1fr))]',
 	sm: 'sm:grid-rows-[repeat(var(--rows-sm),minmax(0,1fr))]',
 	md: 'md:grid-rows-[repeat(var(--rows-md),minmax(0,1fr))]',
@@ -80,15 +80,15 @@ const ROWS: ClassMap = {
 	'2xl': '2xl:grid-rows-[repeat(var(--rows-2xl),minmax(0,1fr))]',
 }
 
-const GAP_MAP = {
-	xs: 'gap-xs',
-	sm: 'gap-sm',
-	md: 'gap-md',
-	lg: 'gap-lg',
-	xl: 'gap-xl',
+const gapMap = {
+	xs: 'gap-1',
+	sm: 'gap-2',
+	md: 'gap-3',
+	lg: 'gap-4',
+	xl: 'gap-6',
 } as const satisfies Record<GridGap, string>
 
-const SPAN: ClassMap = {
+const span: ClassMap = {
 	initial: 'col-span-(--span)',
 	sm: 'sm:col-span-(--span-sm)',
 	md: 'md:col-span-(--span-md)',
@@ -97,7 +97,7 @@ const SPAN: ClassMap = {
 	'2xl': '2xl:col-span-(--span-2xl)',
 }
 
-const SPAN_FULL: ClassMap = {
+const spanFull: ClassMap = {
 	initial: 'col-span-full',
 	sm: 'sm:col-span-full',
 	md: 'md:col-span-full',
@@ -106,7 +106,7 @@ const SPAN_FULL: ClassMap = {
 	'2xl': '2xl:col-span-full',
 }
 
-const ROW_SPAN: ClassMap = {
+const rowSpan: ClassMap = {
 	initial: 'row-span-(--row-span)',
 	sm: 'sm:row-span-(--row-span-sm)',
 	md: 'md:row-span-(--row-span-md)',
@@ -115,7 +115,7 @@ const ROW_SPAN: ClassMap = {
 	'2xl': '2xl:row-span-(--row-span-2xl)',
 }
 
-const COL_START: ClassMap = {
+const colStart: ClassMap = {
 	initial: 'col-start-(--col-start)',
 	sm: 'sm:col-start-(--col-start-sm)',
 	md: 'md:col-start-(--col-start-md)',
@@ -124,7 +124,7 @@ const COL_START: ClassMap = {
 	'2xl': '2xl:col-start-(--col-start-2xl)',
 }
 
-const ROW_START: ClassMap = {
+const rowStart: ClassMap = {
 	initial: 'row-start-(--row-start)',
 	sm: 'sm:row-start-(--row-start-sm)',
 	md: 'md:row-start-(--row-start-md)',
@@ -136,31 +136,31 @@ const ROW_START: ClassMap = {
 const asNumber = (n: number) => n
 
 export function resolveCols(value: Responsive<number> | undefined): ResolvedResponsive {
-	return resolveScalar(value, 'cols', COLS, asNumber)
+	return resolveScalar(value, 'cols', cols, asNumber)
 }
 
 export function resolveRows(value: Responsive<number> | undefined): ResolvedResponsive {
-	return resolveScalar(value, 'rows', ROWS, asNumber)
+	return resolveScalar(value, 'rows', rows, asNumber)
 }
 
 export function resolveGap(value: Responsive<GridGap> | undefined): string[] {
 	return resolveResponsive(value, (v, bp) => {
-		const cls = GAP_MAP[v]
+		const cls = gapMap[v]
 
 		return bp ? `${bp}:${cls}` : cls
 	})
 }
 
 export function resolveRowSpan(value: Responsive<number> | undefined): ResolvedResponsive {
-	return resolveScalar(value, 'row-span', ROW_SPAN, asNumber)
+	return resolveScalar(value, 'row-span', rowSpan, asNumber)
 }
 
 export function resolveColStart(value: Responsive<number> | undefined): ResolvedResponsive {
-	return resolveScalar(value, 'col-start', COL_START, asNumber)
+	return resolveScalar(value, 'col-start', colStart, asNumber)
 }
 
 export function resolveRowStart(value: Responsive<number> | undefined): ResolvedResponsive {
-	return resolveScalar(value, 'row-start', ROW_START, asNumber)
+	return resolveScalar(value, 'row-start', rowStart, asNumber)
 }
 
 /**
@@ -178,9 +178,9 @@ export function resolveSpan(
 	if (value === undefined) return EMPTY
 
 	if (value === 'full') {
-		if (columns === undefined) return { classes: [SPAN_FULL.initial], style: {} }
+		if (columns === undefined) return { classes: [spanFull.initial], style: {} }
 
-		return resolveScalar(columns, 'span', SPAN, asNumber)
+		return resolveScalar(columns, 'span', span, asNumber)
 	}
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -196,12 +196,12 @@ export function resolveSpan(
 			if (v === undefined) continue
 
 			if (v === 'full') {
-				classes.push(SPAN_FULL[bp])
+				classes.push(spanFull[bp])
 
 				continue
 			}
 
-			classes.push(SPAN[bp])
+			classes.push(span[bp])
 
 			style[varName('span', bp)] = v
 		}
@@ -209,7 +209,7 @@ export function resolveSpan(
 		return { classes, style: style as CSSProperties }
 	}
 
-	return resolveScalar(value as number, 'span', SPAN, asNumber)
+	return resolveScalar(value as number, 'span', span, asNumber)
 }
 
 export const flowMap = {

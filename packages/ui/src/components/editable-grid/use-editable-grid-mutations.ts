@@ -13,7 +13,7 @@ import type {
 export function useEditableGridMutations<T>({
 	nav: { activeRef, anchorRef, extraCellsRef },
 	rows: { rowsRef, editableCols, getKey, parseValue },
-	selection: { selectionRef, setSelection },
+	selection: { selectionRef },
 	onValueChange,
 }: {
 	nav: EditableGridNavigationApi
@@ -55,10 +55,8 @@ export function useEditableGridMutations<T>({
 			}
 
 			onValueChange(changes)
-
-			if (sel.size > 0) setSelection(new Set())
 		},
-		[editableCols, rowsRef, selectionRef, getKey, parseValue, onValueChange, setSelection],
+		[editableCols, rowsRef, selectionRef, getKey, parseValue, onValueChange],
 	)
 
 	const applyBulkFill = useCallback(
@@ -120,26 +118,11 @@ export function useEditableGridMutations<T>({
 				})
 			}
 
-			if (changes.length) {
-				onValueChange(changes)
-
-				if (selectionRef.current.size > 0) setSelection(new Set())
-			}
+			if (changes.length) onValueChange(changes)
 
 			return true
 		},
-		[
-			editableCols,
-			rowsRef,
-			selectionRef,
-			activeRef,
-			anchorRef,
-			extraCellsRef,
-			getKey,
-			parseValue,
-			onValueChange,
-			setSelection,
-		],
+		[editableCols, rowsRef, activeRef, anchorRef, extraCellsRef, getKey, parseValue, onValueChange],
 	)
 
 	return { applyCellWrite, applyBulkFill }

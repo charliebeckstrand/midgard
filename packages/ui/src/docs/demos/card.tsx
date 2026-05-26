@@ -17,7 +17,7 @@ export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Alert severity="info" closable>
 				<AlertTitle>Card extends Box.</AlertTitle>
 				<AlertDescription>
@@ -76,6 +76,6 @@ export function Demo() {
 					</Card>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

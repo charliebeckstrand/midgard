@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { TooltipProvider } from '../../components/tooltip/context'
-import { notifyOverlayOpened } from '../../primitives/overlay'
+import { TooltipContext } from '../../components/tooltip/context'
+import { notifyOverlaySignal } from '../../primitives/overlay'
 import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const noop = () => {}
@@ -68,7 +68,7 @@ describe('Tooltip', () => {
 
 		await waitFor(() => expect(screen.getByText('Tooltip text')).toBeInTheDocument())
 
-		act(() => notifyOverlayOpened())
+		act(() => notifyOverlaySignal())
 
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
 	})
@@ -77,9 +77,9 @@ describe('Tooltip', () => {
 describe('TooltipContent', () => {
 	it('renders the floating panel when the tooltip context reports open=true', () => {
 		const { container } = renderUI(
-			<TooltipProvider value={makeContext({ open: true })}>
+			<TooltipContext value={makeContext({ open: true })}>
 				<TooltipContent>Tip body</TooltipContent>
-			</TooltipProvider>,
+			</TooltipContext>,
 		)
 
 		expect(bySlot(container, 'tooltip-content')).toBeInTheDocument()
@@ -89,9 +89,9 @@ describe('TooltipContent', () => {
 
 	it('omits the floating panel when the tooltip is closed', () => {
 		const { container } = renderUI(
-			<TooltipProvider value={makeContext({ open: false })}>
+			<TooltipContext value={makeContext({ open: false })}>
 				<TooltipContent>Hidden</TooltipContent>
-			</TooltipProvider>,
+			</TooltipContext>,
 		)
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
@@ -99,9 +99,9 @@ describe('TooltipContent', () => {
 
 	it('marks the open panel as pointer-events:auto when interactive=true', () => {
 		const { container } = renderUI(
-			<TooltipProvider value={makeContext({ open: true, interactive: true })}>
+			<TooltipContext value={makeContext({ open: true, interactive: true })}>
 				<TooltipContent>Interactive</TooltipContent>
-			</TooltipProvider>,
+			</TooltipContext>,
 		)
 
 		const panel = bySlot(container, 'tooltip-content') as HTMLElement
@@ -113,9 +113,9 @@ describe('TooltipContent', () => {
 
 	it('marks the open panel as pointer-events:none when interactive=false', () => {
 		const { container } = renderUI(
-			<TooltipProvider value={makeContext({ open: true, interactive: false })}>
+			<TooltipContext value={makeContext({ open: true, interactive: false })}>
 				<TooltipContent>Static</TooltipContent>
-			</TooltipProvider>,
+			</TooltipContext>,
 		)
 
 		const panel = bySlot(container, 'tooltip-content') as HTMLElement
@@ -125,9 +125,9 @@ describe('TooltipContent', () => {
 
 	it('resolves the explicit size prop into the data-step attribute', () => {
 		const { container } = renderUI(
-			<TooltipProvider value={makeContext({ open: true })}>
+			<TooltipContext value={makeContext({ open: true })}>
 				<TooltipContent size="lg">Big</TooltipContent>
-			</TooltipProvider>,
+			</TooltipContext>,
 		)
 
 		const panel = bySlot(container, 'tooltip-content') as HTMLElement

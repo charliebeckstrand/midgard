@@ -1,8 +1,5 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { ZipcodeInput } from '../../components/zipcode-input'
 import { Example } from '../components/example'
 
@@ -23,7 +20,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="US">
 				<Field>
 					<Label>ZIP</Label>
@@ -82,6 +79,6 @@ export function Demo() {
 					<ZipcodeInput data-invalid />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

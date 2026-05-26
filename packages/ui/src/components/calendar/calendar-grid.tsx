@@ -4,12 +4,12 @@ import type { KeyboardEventHandler, RefObject } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
-import type { CalendarDayContext, CalendarDayProps } from './calendar'
+import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { WEEKDAYS } from './calendar-constants'
 import { CalendarDayCell } from './calendar-day-cell'
 import { isSameDay } from './calendar-utilities'
 
-export type CalendarGridProps = {
+type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
 	onGridKeyDown: KeyboardEventHandler<HTMLElement>
 	size: Step
@@ -19,7 +19,7 @@ export type CalendarGridProps = {
 	value: Date | null | undefined
 	activeGridDate: Date | null
 	isDisabled: (date: Date) => boolean
-	getDayProps?: (context: CalendarDayContext) => CalendarDayProps
+	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	onSelect: (date: Date) => void
 }
 

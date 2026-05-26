@@ -16,7 +16,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 		<div
 			ref={setReference}
 			data-slot="tooltip-trigger"
-			className={cn(k.trigger, enabled && k.triggerEnabled, className)}
+			className={cn(k.trigger, enabled && k.cursor, className)}
 			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}
 		>
 			{children}

@@ -1,7 +1,6 @@
-export { k as kanbanVariants } from '../../recipes/kata/kanban'
 export {
-	type KanbanColumnContext,
-	type KanbanContext,
+	type KanbanColumnContextValue,
+	type KanbanContextValue,
 	useKanbanColumnContext,
 	useKanbanContext,
 } from './context'

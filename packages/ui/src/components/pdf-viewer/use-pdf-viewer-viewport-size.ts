@@ -2,7 +2,7 @@
 
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 
-export type ViewportSize = { width: number; height: number }
+type ViewportSize = { width: number; height: number }
 
 /**
  * Tracks the content-box size of `ref.current` (`clientWidth`/`Height` minus padding).

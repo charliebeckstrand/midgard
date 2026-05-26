@@ -2,20 +2,12 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { AffixProvider, affixStepDown } from '../../primitives/affix'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { hannou, iro } from '../../recipes'
-import { control as controlRecipe } from '../../recipes/genkei/control'
+import { k } from '../../recipes/kata/select'
 import type { ControlSize } from '../control/context'
 
-const affixBase = [
-	'flex items-center min-w-0',
-	'*:data-[slot=icon]:pointer-events-none',
-	...iro.text.muted,
-	...hannou.cursor,
-]
-
-export type SelectTriggerProps = {
+type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
@@ -57,7 +49,7 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<AffixProvider value={affixStepDown(size)}>
+		<AffixContext value={affixStepDown(size)}>
 			<div
 				data-slot="control"
 				ref={setReference}
@@ -68,13 +60,13 @@ export function SelectTrigger({
 					data-open={open || undefined}
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && controlRecipe.surface.default)}
+					className={cn(!glass && k.surface.default)}
 					{...frameProps}
 				>
 					{prefix && (
 						<span
 							data-slot="prefix"
-							className={cn('peer/prefix', affixBase, controlRecipe.affix.prefix[size])}
+							className={cn('peer/prefix', k.affix.base, k.affix.prefix[size])}
 						>
 							{prefix}
 						</span>
@@ -83,7 +75,7 @@ export function SelectTrigger({
 					{suffix !== undefined && (
 						<span
 							data-slot="suffix"
-							className={cn('peer/suffix', affixBase, controlRecipe.affix.suffix[size])}
+							className={cn('peer/suffix', k.affix.base, k.affix.suffix[size])}
 							{...suffixProps}
 						>
 							{suffix}
@@ -91,6 +83,6 @@ export function SelectTrigger({
 					)}
 				</ControlFrame>
 			</div>
-		</AffixProvider>
+		</AffixContext>
 	)
 }

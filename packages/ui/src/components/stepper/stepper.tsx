@@ -6,7 +6,7 @@ import { useMinWidth, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type StepperVariants } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
-import { type StepperOrientation, StepperProvider } from './context'
+import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
 export type StepperProps = StepperVariants & {
@@ -91,7 +91,7 @@ export function Stepper({
 	)
 
 	return (
-		<StepperProvider value={contextValue}>
+		<StepperContext value={contextValue}>
 			<ActiveIndicatorScope>
 				{panelsChildren.length === 0 ? (
 					row
@@ -102,6 +102,6 @@ export function Stepper({
 					</Stack>
 				)}
 			</ActiveIndicatorScope>
-		</StepperProvider>
+		</StepperContext>
 	)
 }

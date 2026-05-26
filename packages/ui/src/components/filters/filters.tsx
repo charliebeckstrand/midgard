@@ -4,7 +4,7 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Flex } from '../flex'
-import { type FiltersContextValue, FiltersProvider } from './context'
+import { FiltersContext, type FiltersContextValue } from './context'
 
 type FilterValue = Record<string, unknown>
 
@@ -92,7 +92,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	)
 
 	return (
-		<FiltersProvider value={context}>
+		<FiltersContext value={context}>
 			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
 				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
 				<Flex
@@ -115,6 +115,6 @@ export function Filters<T extends FilterValue = FilterValue>({
 				</Flex>
 				{suffix && <div data-slot="filters-suffix">{suffix}</div>}
 			</div>
-		</FiltersProvider>
+		</FiltersContext>
 	)
 }

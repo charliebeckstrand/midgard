@@ -4,8 +4,7 @@ import { motion } from 'motion/react'
 import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving, useScrollWithin } from '../../hooks'
-import { omote, sen, ugoki } from '../../recipes'
-import { popover } from '../../recipes/genkei/popover'
+import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
 
 export function PopoverPanel({
@@ -28,42 +27,42 @@ export function PopoverPanel({
 	glass?: boolean
 	onKeyDown?: KeyboardEventHandler
 }) {
-	const menuRef = useRef<HTMLDivElement>(null)
+	const panelRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(menuRef, { itemSelector, focusOnEmpty: true })
+	const handleKeyDown = useRoving(panelRef, { itemSelector, focusOnEmpty: true })
 
 	const scrollWithin = useScrollWithin()
 
 	useLayoutEffect(() => {
-		if (!autoFocus || !menuRef.current) return
+		if (!autoFocus || !panelRef.current) return
 
-		const selected = menuRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
+		const selected = panelRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
 
 		if (selected) {
 			selected.focus()
 
 			scrollWithin(selected, { block: 'nearest' })
 		} else {
-			menuRef.current.focus()
+			panelRef.current.focus()
 		}
 	}, [autoFocus, itemSelector, scrollWithin])
 
 	return (
 		<ReducedMotion>
 			<motion.div
-				ref={menuRef}
+				ref={panelRef}
 				id={id}
 				data-slot="popover-panel"
 				role={role}
 				tabIndex={-1}
-				{...ugoki.popover}
-				onKeyDown={(e) => {
-					handleKeyDown(e)
-					onKeyDownProp?.(e)
+				{...k.panel.motion}
+				onKeyDown={(event) => {
+					handleKeyDown(event)
+					onKeyDownProp?.(event)
 				}}
 				className={cn(
-					glass ? ['group/glass', omote.glass, sen.ring] : omote.popover,
-					popover.panel,
+					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,
+					k.panel.base,
 					className,
 				)}
 			>

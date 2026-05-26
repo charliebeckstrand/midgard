@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/calendar'
 import {
 	Calendar,
 	type CalendarActive,
-	type CalendarDayContext,
+	type CalendarDayContextValue,
 	type CalendarHandle,
 } from './calendar'
 import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
@@ -48,7 +48,7 @@ export function CalendarRange({
 	const effectiveEnd = hoverDate ?? rangeEnd
 
 	const getDayProps = useCallback(
-		(context: CalendarDayContext) => {
+		(context: CalendarDayContextValue) => {
 			const { date } = context
 
 			const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)

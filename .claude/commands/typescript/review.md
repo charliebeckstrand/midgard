@@ -2,7 +2,7 @@
 
 TRIGGER when: `/postmortem` routes here because the staged diff contains `.ts` / `.tsx` changes. Also when `/ui:component:compose`, `/tests:compose`, or another caller finishes writing a new `.ts` / `.tsx` file and needs it vetted before handing control back. Also when the user asks "review my diff", "review this TS file", "check this before I commit".
 
-Review TypeScript code — a staged diff (postmortem path) or one or more newly-created files (post-creation path) — against the project's tests, type-checker, and the principles below. Produces a PASS / BLOCK verdict; the commit (diff mode) or the handoff (file mode) does not proceed until PASS.
+Review TypeScript code — a staged diff (postmortem path) or one or more newly-created files (post-creation path) — against the project's tests, type-checker, and the principles below. Returns PASS / BLOCK; the commit (diff mode) or the handoff (file mode) doesn't proceed until PASS.
 
 ## Arguments
 
@@ -54,23 +54,23 @@ Empty diff → stop.
 
 ### File mode
 
-Read every target file in full. Also read **one sibling file** in the same directory to capture local conventions (type-vs-interface, export style, generic naming, where types live).
+Read every target file in full. Also read **one sibling file** in the same directory for local conventions (type-vs-interface, export style, generic naming, where types live).
 
-**Sibling fallback for new folders.** When the target's immediate directory contains no other `.ts` / `.tsx` file — the common case when `/ui:component:compose` scaffolds a brand-new component folder — climb one level and pick the most-recently-modified `.ts` / `.tsx` under that parent's sibling directories (e.g. the nearest cousin in `componentsDir`). If even that yields nothing, skip the convention-sample step and rely on §5 universal principles plus `conventions.principles` from the manifest. Never stall the review for lack of a sibling.
+**Sibling fallback for new folders.** When the target's immediate directory has no other `.ts` / `.tsx` — common when `/ui:component:compose` scaffolds a brand-new component folder — climb one level and pick the most-recently-modified `.ts` / `.tsx` under that parent's sibling directories (the nearest cousin in `componentsDir`). If even that yields nothing, skip the convention-sample step and rely on §5 plus `conventions.principles`. Never stall the review for lack of a sibling.
 
 ---
 
 ## 2. Map files to packages
 
-For each `.ts` / `.tsx` file in the surface, find the longest `packages[*].path` that prefixes the file. Collect the unique set of affected packages.
+For each `.ts` / `.tsx` file, find the longest `packages[*].path` that prefixes it. Collect the unique set of affected packages.
 
-Files outside any package (root configs, top-level docs) are skipped from the test and type-check runs — they still get reviewed in §7.
+Files outside any package (root configs, top-level docs) skip the test and type-check runs — they still get reviewed in §7.
 
 ---
 
 ## 3. Run tests for the touched packages
 
-Run the smallest test command that still covers the diff. For each touched package whose `scripts.test` is set, pick by runner:
+Run the smallest test command that covers the diff. Per touched package whose `scripts.test` is set, pick by runner:
 
 | Runner | Diff mode | File mode |
 |---|---|---|
@@ -80,32 +80,32 @@ Run the smallest test command that still covers the diff. For each touched packa
 
 Substitute `<pm>` with `packageManager`. When touched packages have different runners, run each separately rather than a single `turbo test`.
 
-If the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel), the scoped run widens to the full suite — let it.
+When the diff touches a fan-out file (`recipes/`, `core/`, `primitives/`, a barrel), the scoped run widens to the full suite — let it.
 
-For every test file in the diff itself (diff mode) or every newly-created test file (file mode), confirm:
+For every test file in the diff (diff mode) or every newly-created test file (file mode), confirm:
 
 - The test still passes.
 - The test wasn't deleted, marked `.skip`, or weakened (assertions removed, `expect` calls deleted, real assertions replaced with no-ops).
 
-A weakened test counts as a **blocking** finding even when the suite is green.
+A weakened test is a **blocking** finding even when the suite is green.
 
 ---
 
 ## 4. Type-check the touched packages
 
-For each touched package, read `scripts.check-types` from the manifest. Skip the package when null (no type-check script declared). Then invoke a single command across the remaining packages:
+Per touched package, read `scripts.check-types` from the manifest. Skip the package when null. Then invoke one command across the remaining packages:
 
 ```
 <pm> turbo check-types --filter=<pkg-1> --filter=<pkg-2>
 ```
 
-Any type error blocks the verdict. Type-check is always a single invocation regardless of test runners.
+Any type error blocks the verdict. Type-check is one invocation regardless of test runners.
 
 ---
 
 ## 5. Universal TypeScript principles
 
-Surface a finding only when the code violates one; don't pad with principles the surrounding code already follows.
+Surface a finding only when the code violates one. Don't pad with principles the surrounding code already follows.
 
 - **Strict mode is the floor.** Assume `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Code that compiles only with looser settings is a finding.
 - **Prefer `unknown` to `any`.** Reserve `any` for genuine pass-through (a logger recording arbitrary payloads); require an inline justification.
@@ -114,7 +114,7 @@ Surface a finding only when the code violates one; don't pad with principles the
 - **Readonly by default for shared data.** Function parameters, returned arrays, and module-level data default to `readonly`. Mutability is opt-in.
 - **No `enum`.** Use `as const` objects or literal-string unions. Enums emit runtime code, conflate types with values, behave oddly under `isolatedModules`.
 - **Type predicates carry the contract.** A `boolean`-returning function that gates a narrowing is typed `x is T` or `asserts x is T`.
-- **One canonical home for a type.** A type used in two files is colocated with the function that owns it; the consumer imports it. Parallel definitions are a refactor finding.
+- **One canonical home per type.** A type used in two files is colocated with the function that owns it; the consumer imports it. Parallel definitions are a refactor finding.
 
 ---
 
@@ -241,7 +241,7 @@ Per finding: `path/to/file.ts:42` + one-sentence concern with the principle or f
 
 ### Angle emphasis (when `--angle=` was passed)
 
-For each declared angle, surface one advisory finding that names the lens and points at the touched files, even when no concrete defect exists — the caller routed here because the diff matched a pattern (auth surface, single-use abstraction) that warrants the human-visible nudge. An angle finding alone does not BLOCK; it BLOCKs only when paired with a concrete defect under that lens.
+Per declared angle, surface one advisory finding naming the lens and pointing at the touched files, even when no concrete defect exists — the caller routed here because the diff matched a pattern (auth surface, single-use abstraction) that warrants the human-visible nudge. An angle finding alone doesn't BLOCK; it BLOCKs only when paired with a concrete defect under that lens.
 
 - **`security`** — review the touched surface for OWASP-shaped concerns (input validation, authn/authz, secret handling, injection, SSRF, IDOR). Cite `file:line` for any concrete issue; otherwise emit one advisory finding stating the surface was reviewed under the security lens.
 - **`simplification`** — review the touched surface for single-use abstractions, speculative generics, premature interfaces, unused parameters, dead branches. Cite `file:line` for any concrete issue; otherwise emit one advisory finding stating the surface was reviewed under the simplification lens.
@@ -266,7 +266,7 @@ Then one of:
 ## Rules
 
 - BLOCK halts the caller's commit chain; this skill returns a verdict, never invokes `git commit`.
-- Never auto-fix during the review — surface, let the caller decide.
+- Never auto-fix during the review. Surface; let the caller decide.
 - Never skip a review for surface size.
 - Type holes (`any`, `@ts-ignore`, `as` without a guard) are **blocking by default** — require an inline justification or a refactor.
 - Don't pad. PASS is one line.

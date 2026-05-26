@@ -1,5 +1,4 @@
 import { Link } from '../../components/link'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -8,7 +7,7 @@ export const meta = { category: 'Navigation' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Link href="#link">Read the documentation</Link>
 			</Example>
@@ -45,6 +44,6 @@ export function Demo() {
 					Every Link in the tree renders through it; otherwise Link falls back to a plain anchor.
 				</Text>
 			</Example>
-		</Stack>
+		</>
 	)
 }

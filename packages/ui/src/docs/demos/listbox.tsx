@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -63,7 +60,7 @@ function MultiListboxExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Single">
 				<SingleListboxExample />
 			</Example>
@@ -71,6 +68,6 @@ export function Demo() {
 			<Example title="Multiple">
 				<MultiListboxExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

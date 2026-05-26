@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react'
 
 import type { ChatContent } from './types'
 
-interface UseSendMessageOptions {
+type UseSendMessageOptions = {
 	onChatCreated?: () => void
 }
 

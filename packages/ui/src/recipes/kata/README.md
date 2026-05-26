@@ -1,52 +1,107 @@
-# Kata 型 - Forms
+# Kata 型 - Form
 
-Per-component recipes. One file per `src/components/<name>/`.
+One file per unit — usually `src/components/<name>/`, sometimes
+`src/primitives/<name>/` when the primitive needs its own recipe surface.
 
 ## Boundary
 
 `kata/` is internal — omitted from `package.json` `exports` and not
-re-exported from `src/recipes/index.ts`. Components consume kata via
-relative path: `from '../../recipes/kata/<name>'`. A kata composes
-freely from the substrate ([`kiso/`](../kiso/README.md)) and
-[`genkei/`](../genkei/README.md); sideways composition between kata
-is forbidden — shared concerns promote to `genkei/` instead. The
-contract is pinned by
-`src/__tests__/recipes/boundary/recipe-boundary.test.ts`.
+re-exported from `src/recipes/index.ts`. **Kata is the only recipe
+funnel for consumers**: every value a component or primitive reads
+from the design system flows through its kata. Consumers reach kata
+via relative path: `from '../../recipes/kata/<name>'`. Sideways
+composition between kata is forbidden — shared concerns promote
+either to a katakana applicator (function-shaped, for archetype
+members) or to genkei (raw fragments, for cross-archetype sharing).
+The contract is pinned by
+`src/__tests__/recipes/boundary/recipe-boundary.test.ts`,
+`src/__tests__/components/boundary/component-recipe-boundary.test.ts`,
+and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
+
+A kata reaches the layers below in one of three ways:
+
+- **Through a katakana applicator** (`from '../katakana'`) when the
+  kata matches an archetype shape (input, textarea, checkbox, dialog,
+  …). The applicator owns the variant axes and the standard slot wiring.
+- **Through `defineRecipe` directly** (`from '../../core/recipe'`)
+  when the kata doesn't fit any archetype (button, alert, card, code, …).
+- **Through `genkei/*` directly** when the kata needs a subset of an
+  archetype's fragments without the full chrome (combobox / listbox /
+  date-picker use control's input / density / size; slider /
+  slider-range share the slider colour table).
+
+All three reaches compose [`kiso/`](../kiso/README.md) freely for
+substrate tokens.
+
+When a component and primitive share the same UI surface (e.g.
+`components/popover/` and `primitives/popover/PopoverPanel`), one
+kata serves both — `kata/popover.ts` exposes flat slots
+(`k.trigger`, `k.portal`, `k.text`, `k.panel`) that both consumers
+read.
 
 ## Shape
 
-Every kata exports the recipe as `k`, built via `defineRecipe(...)`.
-The kata's `defaults` resolves `size` from any enclosing Density
-context. Slots declared in the `slots:` field attach to the recipe as
-direct properties — consumers reach them as `k.title`.
+Every kata exports exactly one runtime value, `k`. The shape `k` takes
+depends on how the kata reaches the recipe layer:
 
-Sub-recipes that aren't the primary entry get named exports alongside
-`k` (`item`, `bubble`, `track`, …). Plain-data kata without variants
-export `k` as an object literal.
+- **Archetype kata** (`k = applicator({...}, {...})`) — the kata
+  delegates to a katakana applicator that builds and returns the `k`
+  surface. The applicator owns the recipe construction; the kata
+  supplies per-call overlays.
+- **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a
+  `defineRecipe(...)` callable, used as `k({ variant, size, … })`.
+  Slots and sibling sub-recipes attach as direct properties (`k.title`,
+  `k.thumb`) via the `defineRecipe(config, extras)` form. Default size
+  resolves from any enclosing Density context.
+- **Object-literal kata** (`k = { … }`) — `k` is a plain object. Used
+  when the component has no top-level variants axis but still needs a
+  curated surface (slot fragments, sub-recipes, motion configs,
+  skeleton data). Recipes for individual slots are inner
+  `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
+
+Type exports sit alongside (`type FooVariants = VariantPropsOf<typeof k>`
+or `VariantPropsOf<typeof k.button>`). Archetype kata may also re-export
+the applicator's variant type — e.g.
+`export type { ControlVariants as InputVariants } from '../katakana'`.
+
+When a component reads kiso fragments directly (a skeleton-using file
+reading `kokkaku.<name>`, a motion-using file reading `ugoki.<thing>`,
+a popover-content-shape file reading the popover bundle), the kata
+absorbs those reads through `k` — `k.skeleton`, `k.motion`, `k.content`
+are the established slot names. The component imports only its kata; the
+kiso / genkei / katakana reach stops at the kata file.
 
 Filenames are `<name>.ts`, matching the component folder.
 
 ## Families
 
-Several kata share archetypes that live in `genkei/` rather than being
-duplicated.
+Several kata share archetypes that live in
+[`katakana/`](../katakana/README.md). The applicator owns the recipe
+construction; the kata is a thin call site.
 
-| Family  | Members                                                                                                  | Archetype                                                                                              |
-| ------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Control | `input`, `textarea`, `listbox`, `combobox`, `date-picker`, `checkbox`, `radio`, `switch`, `ControlFrame` | `genkei/control` — frame, surface, field reset, size, icon, affix, resets, check.                        |
-| Option  | `combobox`, `listbox`, `select`                                                                          | `genkei/option` — base / size / content / label / description for select rows.                           |
-| Panel   | `dialog`, `drawer`, `sheet`, `inspector`                                                                 | `genkei/panel` — title / description / header / body / actions / close slots via `definePanelRecipe`.    |
-| Popover | `popover`, `combobox`, `listbox`, `date-picker`                                                          | `genkei/popover` — trigger / portal / panel for floating overlays anchored to a trigger.                 |
+| Family  | Members                                                                                                  | Applicator                                                                                                                            |
+| ------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Control | `input`, `textarea`                                                                                      | `katakana.control` — kasane chrome + `default` / `outline` / `glass` surface vocabulary + density + size + affix.                     |
+| Check   | `checkbox`, `radio`                                                                                      | `katakana.check` — `check.surface` chrome + visually-hidden native input + colour-axis-driven checked overlay.                        |
+| Popover | `popover`                                                                                                | `katakana.popover` — trigger / portal positioning + panel slot bundle (base, surface, glass, ring, motion).                           |
+| Segment | `segment`, `tabs` (via `k.segment`)                                                                      | `katakana.segment` — control + item recipes + indicator fragment.                                                                     |
+| Panel   | `dialog`, `drawer`, `sheet`                                                                              | `katakana.panel` — wraps caller-supplied `panel` (and optional `backdrop`) recipes with the standard title / description / header / body / actions / close slot bundle. |
 
-See [genkei/README.md](../genkei/README.md) for each archetype's wire
-format and slot inventory.
+Kata that need only a subset of an archetype's fragments (combobox /
+listbox / date-picker / select — control's input / density / size
+without the full chrome) reach `genkei/*` directly. See the
+[katakana](../katakana/README.md) and [genkei](../genkei/README.md)
+READMEs for the full archetype contracts.
 
 ## Rules
 
 - **Compose, don't redefine.** A kata that reinvents a recipe already
-  in the substrate or `genkei/` is a defect — fold it into the existing
-  module.
-- **No sideways imports.** If two kata need the same fragment, promote
-  the shared concern to `genkei/`.
+  in a katakana applicator, in `genkei/`, or in `kiso/` is a defect —
+  fold it into the existing module.
+- **No sideways imports.** Kata never import from sibling kata.
+  Shared concerns promote to katakana (function-shaped, for archetype
+  members) or to genkei (raw fragments, for cross-archetype sharing).
+  `import { k as <name> }` in a component is a signal the archetype
+  belongs in katakana.
 - **Variants earn their axis.** Add a variant axis when ≥2 components
   or call sites need it. Single-use variants stay inline.

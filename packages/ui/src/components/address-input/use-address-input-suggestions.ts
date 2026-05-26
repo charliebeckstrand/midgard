@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AddressProvider, AddressSuggestion } from './types'
 
-export type UseAddressSuggestionsOptions = {
+type UseAddressSuggestionsOptions = {
 	enabled: boolean
 	provider: AddressProvider
 	query: string

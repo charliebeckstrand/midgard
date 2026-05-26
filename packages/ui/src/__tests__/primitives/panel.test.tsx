@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { createPanel, PanelA11yProvider, usePanelA11y } from '../../primitives/panel'
+import { describe, expect, it, vi } from 'vitest'
+import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
-	const { Title, Description, Body, Actions } = createPanel('dialog')
+	const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
 
 	it('Title renders with correct data-slot', () => {
 		const { container } = renderUI(<Title>My Title</Title>)
@@ -26,6 +26,16 @@ describe('createPanel', () => {
 		expect(el?.tagName).toBe('P')
 	})
 
+	it('Header renders with correct data-slot', () => {
+		const { container } = renderUI(<Header>Header content</Header>)
+
+		const el = bySlot(container, 'dialog-header')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DIV')
+	})
+
 	it('Body renders with correct data-slot', () => {
 		const { container } = renderUI(<Body>Body content</Body>)
 
@@ -36,10 +46,20 @@ describe('createPanel', () => {
 		expect(el?.tagName).toBe('DIV')
 	})
 
-	it('Actions renders with correct data-slot', () => {
-		const { container } = renderUI(<Actions>action buttons</Actions>)
+	it('Footer renders with correct data-slot', () => {
+		const { container } = renderUI(<Footer>footer buttons</Footer>)
 
-		const el = bySlot(container, 'dialog-actions')
+		const el = bySlot(container, 'dialog-footer')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DIV')
+	})
+
+	it('Content renders with correct data-slot', () => {
+		const { container } = renderUI(<Content>content area</Content>)
+
+		const el = bySlot(container, 'dialog-content')
 
 		expect(el).toBeInTheDocument()
 
@@ -56,9 +76,9 @@ describe('createPanel', () => {
 
 	it('Title uses titleId from context', () => {
 		const { container } = renderUI(
-			<PanelA11yProvider value={{ titleId: 'my-title' }}>
+			<PanelA11yContext value={{ titleId: 'my-title' }}>
 				<Title>Title</Title>
-			</PanelA11yProvider>,
+			</PanelA11yContext>,
 		)
 
 		const el = bySlot(container, 'dialog-title')
@@ -72,5 +92,19 @@ describe('usePanelA11y', () => {
 		const { result } = renderHook(() => usePanelA11y())
 
 		expect(result.current).toEqual({})
+	})
+})
+
+describe('PanelClose', () => {
+	it('throws a descriptive error when rendered outside a modal panel root', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		expect(() =>
+			renderUI(
+				<PanelClose>
+					<button type="button">Close</button>
+				</PanelClose>,
+			),
+		).toThrow('PanelClose must be rendered inside a Dialog, Sheet, or Drawer')
 	})
 })

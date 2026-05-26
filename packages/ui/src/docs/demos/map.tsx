@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import {
@@ -10,7 +8,6 @@ import {
 	Map as MapView,
 	type RouteData,
 } from '../../components/map'
-import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -237,11 +234,11 @@ function InfoOnlyExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<PresetsExample />
 			<InteractiveRouteExample />
 			<ShipmentsExample />
 			<InfoOnlyExample />
-		</Stack>
+		</>
 	)
 }

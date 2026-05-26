@@ -1,7 +1,7 @@
 import { type ReactNode, useMemo } from 'react'
-import { type LocaleConfig, LocaleValueProvider } from './context'
+import { type LocaleConfig, LocaleContext } from './context'
 
-export type LocaleProviderProps = LocaleConfig & {
+type LocaleProviderProps = LocaleConfig & {
 	children: ReactNode
 }
 
@@ -23,5 +23,5 @@ export function LocaleProvider({
 		[locale, currency, numberFormat, dateFormat, timeZone],
 	)
 
-	return <LocaleValueProvider value={value}>{children}</LocaleValueProvider>
+	return <LocaleContext value={value}>{children}</LocaleContext>
 }

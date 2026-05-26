@@ -401,7 +401,7 @@ describe('Control + variant', () => {
 	it('Input explicit variant overrides Control variant', () => {
 		const { container } = renderUI(
 			<Control variant="outline">
-				<Input variant="glass" />
+				<Input variant="default" />
 			</Control>,
 		)
 		const input = bySlot(container, 'input')

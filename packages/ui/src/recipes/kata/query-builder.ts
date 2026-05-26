@@ -1,5 +1,4 @@
-import { sen } from '..'
-
+import { sen } from '../kiso'
 export const k = {
 	base: ['flex flex-col gap-3 p-3', sen.border, 'rounded-lg'],
 	group: 'flex flex-col gap-3',

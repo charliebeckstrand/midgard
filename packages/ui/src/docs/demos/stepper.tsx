@@ -1,8 +1,5 @@
-'use client'
-
 import { Fragment, useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
-import { Stack } from '../../components/stack'
 import {
 	Stepper,
 	StepperPanel,
@@ -32,7 +29,7 @@ export function Demo() {
 	const [panelsValue, setPanelsValue] = useState(0)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Alert severity="info" closable>
 				<AlertDescription>
 					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
@@ -141,6 +138,6 @@ export function Demo() {
 					))}
 				</Stepper>
 			</Example>
-		</Stack>
+		</>
 	)
 }

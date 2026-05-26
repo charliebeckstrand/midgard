@@ -50,6 +50,7 @@ export function Badge({
 			<Polymorphic
 				as="span"
 				dataSlot="badge"
+				data-step={resolvedSize}
 				data-has-prefix={prefix ? '' : undefined}
 				data-has-suffix={suffix ? '' : undefined}
 				href={href}

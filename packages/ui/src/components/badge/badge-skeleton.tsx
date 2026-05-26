@@ -2,8 +2,7 @@
 
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
-import { kokkaku } from '../../recipes'
-import type { BadgeVariants } from '../../recipes/kata/badge'
+import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { Placeholder } from '../placeholder'
 
 export type BadgeSkeletonProps = {
@@ -14,7 +13,5 @@ export type BadgeSkeletonProps = {
 export function BadgeSkeleton({ size, className }: BadgeSkeletonProps) {
 	const resolvedSize = useSizeWide(size)
 
-	return (
-		<Placeholder className={cn(kokkaku.badge.base, kokkaku.badge.size[resolvedSize], className)} />
-	)
+	return <Placeholder className={cn(k.skeleton.base, k.skeleton.size[resolvedSize], className)} />
 }

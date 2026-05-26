@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Density as DensityPrimitive } from '../../primitives/density'
-import { type DensityLevel, DensityProvider, densityToSize } from './context'
+import { DensityContext, type DensityLevel, densityToSize } from './context'
 
-export type DensityProps = {
+type DensityProps = {
 	density: DensityLevel
 	className?: string
 	children: ReactNode
@@ -23,12 +23,12 @@ export function Density({ density, className, children }: DensityProps) {
 	const step = densityToSize[density]
 
 	return (
-		<DensityProvider value={density}>
+		<DensityContext value={density}>
 			<DensityPrimitive density={step} size={step}>
 				<span data-slot="density" data-density={density} className={className ?? 'contents'}>
 					{children}
 				</span>
 			</DensityPrimitive>
-		</DensityProvider>
+		</DensityContext>
 	)
 }

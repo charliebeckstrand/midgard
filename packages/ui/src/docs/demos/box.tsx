@@ -6,7 +6,7 @@ export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Box>Content</Box>
 			</Example>
@@ -39,6 +39,6 @@ export function Demo() {
 					</Box>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

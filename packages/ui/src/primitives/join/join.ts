@@ -9,11 +9,11 @@ import type { GroupOrientation, GroupPosition } from '../../recipes'
  * end-cap radii and 1 px overlap as the real controls — without each leaf
  * having to forward `data-group` to its placeholder render path.
  */
-export type JoinContextValue = {
+type JoinContextValue = {
 	position: GroupPosition
 	orientation: GroupOrientation
 }
 
-export const [JoinProvider, useJoin] = createContext<JoinContextValue | null>('Join', {
+export const [JoinContext, useJoin] = createContext<JoinContextValue | null>('Join', {
 	default: null,
 })

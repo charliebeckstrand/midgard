@@ -1,6 +1,6 @@
 'use client'
 
-export type UseScrollWithinOptions = {
+type UseScrollWithinOptions = {
 	behavior?: ScrollBehavior
 	block?: 'start' | 'center' | 'end' | 'nearest'
 }

@@ -5,7 +5,7 @@ import { ToolbarGroup } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import type { PdfViewerZoom } from './types'
 
-export type PdfViewerZoomControlsProps = {
+type PdfViewerZoomControlsProps = {
 	zoom: PdfViewerZoom
 	disabled: boolean
 }

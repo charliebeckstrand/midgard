@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -73,13 +70,13 @@ function MultiComboboxExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Single">
 				<SingleComboboxExample />
 			</Example>
 			<Example title="Multiple">
 				<MultiComboboxExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

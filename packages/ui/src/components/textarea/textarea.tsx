@@ -6,16 +6,16 @@ import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
-import { kokkaku } from '../../recipes'
-import { k, type TextareaVariants, textareaControl } from '../../recipes/kata/textarea'
+import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useFormText } from '../form/context'
+import { useFormText } from '../form/use-form-text'
 import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 
-export type TextareaProps = Omit<TextareaVariants, 'size'> & {
+export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
+	variant?: 'default' | 'outline'
 	className?: string
 	actions?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
@@ -61,7 +61,7 @@ export function Textarea({
 	if (useSkeleton()) {
 		return (
 			<Placeholder
-				className={cn(kokkaku.textarea.base, className)}
+				className={cn(k.skeleton.base, className)}
 				style={{ height: `calc(${rows}lh + 1rem)` }}
 			/>
 		)
@@ -88,7 +88,7 @@ export function Textarea({
 
 	return (
 		<ControlFrame
-			className={cn(hasActions && k.frame, textareaControl({ variant: resolvedVariant }))}
+			className={cn(hasActions && k.frame, k.inputControl({ variant: resolvedVariant }))}
 		>
 			<textarea
 				data-slot="textarea"

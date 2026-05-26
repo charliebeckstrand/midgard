@@ -34,7 +34,7 @@ export type CalendarHandle = {
 	footerKeyDown: (e: KeyboardEvent) => void
 }
 
-export type CalendarDayContext = {
+export type CalendarDayContextValue = {
 	date: Date
 	disabled: boolean
 	today: boolean
@@ -59,7 +59,7 @@ export type CalendarProps = {
 	max?: Date
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
-	getDayProps?: (context: CalendarDayContext) => CalendarDayProps
+	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/**

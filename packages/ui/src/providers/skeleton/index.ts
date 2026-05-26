@@ -1,2 +1,2 @@
-export { SkeletonProvider, useSkeleton } from './context'
-export { Skeleton, type SkeletonProps } from './skeleton'
+export { SkeletonContext, useSkeleton } from './context'
+export { Skeleton } from './skeleton'

@@ -1,4 +1,5 @@
-import { defineRecipe, hannou, iro, ji, sen, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { hannou, iro, ji, sen } from '../kiso'
 
 const stepper = defineRecipe({
 	base: 'flex w-full',
@@ -55,12 +56,12 @@ export const k = {
 			'group-enabled:group-hover:bg-zinc-500',
 			'group-focus-visible:outline-2 group-focus-visible:outline-blue-600',
 		],
+		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 	},
 	description: [ji.sm, ...iro.text.muted],
-	activeIndicator: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 }
 
-export type StepperVariants = VariantPropsOf<typeof stepper>
-export type StepperStepVariants = VariantPropsOf<typeof step>
-export type StepperTitleVariants = VariantPropsOf<typeof title>
-export type StepperSeparatorVariants = VariantPropsOf<typeof separator>
+export type StepperVariants = VariantProps<typeof stepper>
+export type StepperStepVariants = VariantProps<typeof step>
+export type StepperTitleVariants = VariantProps<typeof title>
+export type StepperSeparatorVariants = VariantProps<typeof separator>

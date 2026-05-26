@@ -5,7 +5,7 @@ import { Icon } from '../icon'
 import { INDENT_REM } from './json-tree-constants'
 import { NodeKey } from './json-tree-utilities'
 
-export type JsonTreeBranchHeaderProps = {
+type JsonTreeBranchHeaderProps = {
 	depth: number
 	keyName?: string | number
 	isArray: boolean

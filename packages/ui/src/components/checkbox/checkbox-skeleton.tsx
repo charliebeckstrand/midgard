@@ -1,7 +1,5 @@
-'use client'
-
 import { cn } from '../../core'
-import { kokkaku } from '../../recipes'
+import { k } from '../../recipes/kata/checkbox'
 import { Placeholder } from '../placeholder'
 
 export type CheckboxSkeletonProps = {
@@ -9,5 +7,5 @@ export type CheckboxSkeletonProps = {
 }
 
 export function CheckboxSkeleton({ className }: CheckboxSkeletonProps) {
-	return <Placeholder className={cn(kokkaku.checkbox.base, className)} />
+	return <Placeholder className={cn(k.skeleton.base, className)} />
 }

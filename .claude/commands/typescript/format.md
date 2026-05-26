@@ -2,9 +2,9 @@
 
 TRIGGER when: format, tidy, align, or normalize TypeScript. Opt in casually — name a file to format only that file, a directory or list of paths to batch-format, or nothing at all to format the staged diff. Also when `/postmortem` chains here ahead of `/typescript:review`.
 
-Apply the repo's TypeScript structural conventions to `.ts` / `.tsx` — the ones Biome doesn't see: `type` over `interface`, named-only exports, vertical breathing between statements, `'use client'` placement, JSDoc shape, constant naming. Auto-applies the mechanical fixes; surfaces the rest as findings.
+Apply the repo's TypeScript structural conventions to `.ts` / `.tsx` — the ones Biome doesn't see: `type` over `interface`, named-only exports, vertical breathing between statements, `'use client'` placement, JSDoc shape, constant naming. Auto-applies mechanical fixes; surfaces the rest as findings.
 
-This skill writes code. Use `/typescript:review` for PASS / BLOCK gating on the same surface.
+Writes code. Use `/typescript:review` for PASS / BLOCK gating on the same surface.
 
 ---
 
@@ -74,13 +74,13 @@ Phases run in order. Each phase reports `clean` (nothing to do), `applied` (edit
 
 ### 3a. Biome auto-fix (mechanical)
 
-For each touched package whose `linter` is `biome`, run the package's `scripts.lint` with `--write`:
+Per touched package whose `linter` is `biome`, run `scripts.lint` with `--write`:
 
 ```
 <pm> --filter=<pkg> exec biome check --write --config-path=<root> <files>
 ```
 
-For root-level files (no package), run from the repo root: `<pm> exec biome check --write <files>`.
+Root-level files (no package): run from the repo root with `<pm> exec biome check --write <files>`.
 
 Biome handles, per `biome.json`:
 
@@ -94,7 +94,7 @@ If `linter` is `null` or `eslint`, skip §3a for that package and tell the user.
 
 ### 3b. Structural fixes (auto-apply when safe)
 
-Per file, apply these in order. Each rewrite is mechanical; if a rewrite cannot be made safely (ambiguity, declaration merging, default export with external consumers), surface it under §3c instead.
+Per file, apply in order. Each rewrite is mechanical; when a rewrite can't be made safely (ambiguity, declaration merging, default export with external consumers), surface under §3c instead.
 
 | Rule | Auto-fix | Skip-and-surface condition |
 |---|---|---|
@@ -108,7 +108,7 @@ Write the edits. Re-run Biome (`§3a`) on touched files to settle import orderin
 
 ### 3c. Non-mechanical concerns (surface only)
 
-Read every file in the surface for these. Auto-fixing any of them risks behavior change, breaking call sites, or requires a design decision. Surface as **BLOCK** when listed, **advisory** otherwise.
+Read every file for these. Auto-fixing risks behavior change, breaks call sites, or requires a design decision. Surface as **BLOCK** when listed, **advisory** otherwise.
 
 **BLOCK:**
 
@@ -137,9 +137,9 @@ Header:
 
 Then one of:
 
-- **CLEAN** — no edits applied, no findings. One line. Hand control back.
-- **APPLIED** — edits written. List every modified file. Tell the caller to restage (`git add -u`); when invoked by `/postmortem`, the chain halts pending that restage.
-- **BLOCK** — list every BLOCK finding with `file:line` and the fix or migration route. Refuse CLEAN until resolved. List advisories below; they do not gate the verdict.
+- **CLEAN** — no edits, no findings. One line. Hand control back.
+- **APPLIED** — edits written. List every modified file. Tell the caller to restage (`git add -u`); when invoked by `/postmortem`, the chain halts pending the restage.
+- **BLOCK** — list every BLOCK finding with `file:line` and the fix or migration route. Refuse CLEAN until resolved. List advisories below; they don't gate the verdict.
 
 Never rewrite silently. Every APPLIED verdict carries the full modified-file list.
 
@@ -147,7 +147,7 @@ Never rewrite silently. Every APPLIED verdict carries the full modified-file lis
 
 ## 5. Convention reference
 
-Citations for the rules above. Read this section when a finding's rationale needs the canonical principle.
+Citations for the rules above. Read when a finding's rationale needs the canonical principle.
 
 ### 5a. Set by tooling (Biome / tsconfig — do not restate as findings)
 
@@ -163,10 +163,10 @@ Citations for the rules above. Read this section when a finding's rationale need
 
 ### 5c. Types
 
-- **`type` aliases over `interface`.** Single-declaration interfaces convert mechanically. The only legitimate `interface` is declaration merging or module augmentation (`declare interface`) — keep those, document why.
+- **`type` aliases over `interface`.** Single-declaration interfaces convert mechanically. The only legitimate `interface` is declaration merging or module augmentation (`declare interface`) — keep, document why.
 - **No `enum`.** Use `as const` objects with `(typeof X)[keyof typeof X]` for the union, or a literal string union. `const enum` is also off the table — breaks `isolatedModules`.
 - **Generic parameters: single capital letter** (`T`, `K`, `V`, `U`). Reach for `TName` only when two generics need distinguishing names *and* siblings already use the prefix form.
-- **Inferred locals are not annotated.** Annotate parameters and exported return types; let inference do the rest. Reach for `satisfies` to constrain a literal without widening.
+- **Inferred locals stay unannotated.** Annotate parameters and exported return types; let inference handle the rest. Reach for `satisfies` to constrain a literal without widening.
 
 ### 5d. Exports
 
@@ -176,7 +176,7 @@ Citations for the rules above. Read this section when a finding's rationale need
 
 ### 5e. Vertical breathing
 
-The repo's signature style. Default to **one blank line between adjacent statements** — the reader's eye lands on one operation per beat. Blanks go between:
+The repo's signature style. Default to **one blank line between adjacent statements** — the eye lands on one operation per beat. Blanks go between:
 
 - Two `const` / `let` declarations.
 - Two hook calls (`useState`, `useEffect`, `useCallback`).
@@ -214,7 +214,7 @@ export type Orientation = 'horizontal' | 'vertical'
 export type ScrollOrientation = 'horizontal' | 'vertical' | 'both'
 ```
 
-The first set rhymes — `DEFAULT_`, `tag` — the eye reads them as one stanza. The second set diverges immediately after the keyword (`const` vs `type`, or `Orientation` vs `ScrollOrientation` — `Scroll` breaks the alignment). Imports always pack; Biome owns that block. When in doubt, sample a sibling. Default to a blank line.
+The first set rhymes — `DEFAULT_`, `tag` — the eye reads them as one stanza. The second diverges immediately after the keyword (`const` vs `type`, `Orientation` vs `ScrollOrientation` — `Scroll` breaks the alignment). Imports always pack; Biome owns that block. When in doubt, sample a sibling. Default to a blank line.
 
 ### 5f. JSDoc
 
@@ -226,7 +226,7 @@ The first set rhymes — `DEFAULT_`, `tag` — the eye reads them as one stanza.
 
 - Module-level **primitives, fixed enumerations, sentinel defaults** → `UPPER_SNAKE_CASE`.
 - Module-level **keyed lookup tables, config objects, initial-state shapes** → `camelCase`.
-- Rule of thumb: if you'd inline it as a literal, `UPPER_SNAKE`. If you'd index into it, `camelCase`.
+- Rule of thumb: would you inline it as a literal? `UPPER_SNAKE`. Would you index into it? `camelCase`.
 - Magic numbers used in two or more places lift to a sibling `<component>-constants.ts` when the package already follows that pattern (the data-table, hold-button, pagination, tag-input, tree directories model this).
 
 ### 5h. File naming (per `packages/ui/CLAUDE.md` § File naming)
@@ -251,7 +251,7 @@ Every component or hook file exports a symbol whose PascalCase (or `useCamelCase
 ## Rules
 
 - This skill writes. APPLIED means files changed on disk; cite every one.
-- Never touch uncommitted work outside the surface. Diff mode formats only files in the diff; file / dir / multi modes format the explicit paths and nothing else.
+- Never touch uncommitted work outside the surface. Diff mode formats only diff files; file / dir / multi modes format the explicit paths.
 - BLOCK halts the caller's chain. When invoked by `/postmortem`, BLOCK refuses to advance to extras or `/typescript:review`.
 - Never auto-create JSDoc — the writer owns the words.
 - Never extend the `ALLOWLIST` in `component-filename-boundary.test.ts`. Fix the file or the export.

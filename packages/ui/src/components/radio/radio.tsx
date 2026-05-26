@@ -2,16 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku } from '../../recipes'
-import {
-	indicatorSize,
-	type RadioVariants,
-	k as radio,
-	input as radioInput,
-} from '../../recipes/kata/radio'
-import { useControlProps } from '../control/use-control-props'
+import { k, type RadioVariants } from '../../recipes/kata/radio'
+import { useControlToggle } from '../control/use-control-toggle'
 import { Placeholder } from '../placeholder'
 
 export type RadioProps = RadioVariants & {
@@ -24,21 +17,18 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, disabled, required })
-
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+		size: resolvedSize,
+	} = useControlToggle({ id, disabled, required, size })
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(kokkaku.radio.base, className)} />
+		return <Placeholder className={cn(k.skeleton.base, className)} />
 	}
 
 	return (
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(radio({ color, size: resolvedSize }), className)}
+			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
 				type="radio"
@@ -47,7 +37,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				{...invalidAttrs(resolvedInvalid)}
-				className={radioInput()}
+				className={k.input()}
 				{...props}
 			/>
 			<span
@@ -55,7 +45,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				aria-hidden="true"
 				className={cn(
 					'absolute rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none',
-					indicatorSize[resolvedSize],
+					k.indicatorSize[resolvedSize],
 				)}
 			/>
 		</label>

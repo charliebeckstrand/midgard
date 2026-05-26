@@ -9,9 +9,10 @@ import { Glass } from '../../../components/glass'
 import { Icon } from '../../../components/icon'
 import {
 	Sheet,
-	SheetActions,
 	SheetBody,
 	SheetDescription,
+	SheetFooter,
+	SheetHeader,
 	SheetTitle,
 } from '../../../components/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -61,14 +62,16 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 			</Flex>
 			<Glass>
 				<Sheet open={open} onOpenChange={setOpen}>
-					<SheetTitle className="font-mono">{prop.name}</SheetTitle>
-					<SheetDescription className="font-mono">{prop.type}</SheetDescription>
+					<SheetHeader>
+						<SheetTitle className="font-mono">{prop.name}</SheetTitle>
+						<SheetDescription className="font-mono">{prop.type}</SheetDescription>
+					</SheetHeader>
 					<SheetBody>
 						<ReferencesPanel references={prop.references ?? {}} />
 					</SheetBody>
-					<SheetActions>
+					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
-					</SheetActions>
+					</SheetFooter>
 				</Sheet>
 			</Glass>
 		</>

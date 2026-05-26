@@ -1,13 +1,12 @@
-import { defineRecipe, iro, ji, sen, type VariantPropsOf } from '..'
-
-const root = defineRecipe({ base: '' })
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: ['flex flex-wrap items-center', 'gap-sm', 'break-words', ji.md],
+	base: ['flex flex-wrap items-center', 'gap-2', 'break-words', ji.md],
 })
 
 const item = defineRecipe({
-	base: ['inline-flex items-center', 'gap-sm'],
+	base: ['inline-flex items-center', 'gap-2'],
 	current: {
 		true: [iro.text.default, 'font-normal'],
 		false: '',
@@ -29,12 +28,11 @@ const separator = defineRecipe({
 })
 
 export const k = {
-	root,
 	list,
 	item,
 	link,
 	separator,
 }
 
-export type BreadcrumbItemVariants = VariantPropsOf<typeof item>
-export type BreadcrumbLinkVariants = VariantPropsOf<typeof link>
+export type BreadcrumbItemVariants = VariantProps<typeof item>
+export type BreadcrumbLinkVariants = VariantProps<typeof link>

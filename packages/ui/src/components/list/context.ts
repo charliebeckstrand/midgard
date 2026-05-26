@@ -6,7 +6,7 @@ import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 
-export type ListContext = {
+export type ListContextValue = {
 	/** Visual variant — see `List.variant` for semantics. */
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
@@ -27,9 +27,9 @@ export type ListContext = {
 	onItemBlur: () => void
 }
 
-export const [ListProvider, useListContext] = createContext<ListContext>('List')
+export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
-export type ListItemContext = {
+export type ListItemContextValue = {
 	id: string
 	/** Ref for the draggable `<li>` element. */
 	setNodeRef: (node: HTMLElement | null) => void
@@ -45,4 +45,4 @@ export type ListItemContext = {
 	dragging: boolean
 }
 
-export const [ListItemProvider, useListItemContext] = createContext<ListItemContext>('ListItem')
+export const [ListItemContext, useListItemContext] = createContext<ListItemContextValue>('ListItem')

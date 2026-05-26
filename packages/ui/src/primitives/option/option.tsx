@@ -3,10 +3,10 @@
 import { Check } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
 import { cn } from '../../core'
-import { option as k } from '../../recipes/genkei/option'
+import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
 
-const defaultCheckIcon = (
+const DEFAULT_CHECK_ICON = (
 	<Check
 		aria-hidden="true"
 		data-slot="icon"
@@ -14,13 +14,23 @@ const defaultCheckIcon = (
 	/>
 )
 
-export type BaseOptionProps = {
+type BaseOptionProps = {
 	className?: string
 	icon?: ReactNode
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'onSelect'>
+} & Omit<
+	ComponentPropsWithoutRef<'div'>,
+	| 'className'
+	| 'onSelect'
+	| 'onClick'
+	| 'onKeyDown'
+	| 'role'
+	| 'aria-selected'
+	| 'aria-disabled'
+	| 'tabIndex'
+>
 
 /** Shared option row for select-like components. */
 export function BaseOption({
@@ -36,7 +46,7 @@ export function BaseOption({
 
 	const sharedClasses = cn(k.content)
 
-	const checkIcon = icon ?? defaultCheckIcon
+	const checkIcon = icon ?? DEFAULT_CHECK_ICON
 
 	return (
 		<div
@@ -47,9 +57,9 @@ export function BaseOption({
 			data-disabled={disabled ? '' : undefined}
 			tabIndex={-1}
 			onClick={() => !disabled && onSelect()}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === ' ') {
-					e.preventDefault()
+			onKeyDown={(event) => {
+				if (event.key === 'Enter' || event.key === ' ') {
+					event.preventDefault()
 
 					if (!disabled) onSelect()
 				}
@@ -81,8 +91,8 @@ export function OptionDescription({
 	)
 }
 
-export type OptionProps = {
-	value: unknown
+export type OptionProps<TValue = unknown> = {
+	value: TValue
 	disabled?: boolean
 	icon?: ReactNode
 	className?: string
@@ -105,17 +115,17 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
  * cascade. When omitted, the primitive falls back to a static lucide `<Check>`
  * so direct callers still render something sensible.
  */
-export function createSelectOption(config: {
+export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string
 	useContext: () => {
-		value: unknown
+		value: TValue | TValue[] | undefined
 		multiple?: boolean
-		select: (value: unknown) => void
+		onSelect: (value: TValue) => void
 	}
 	CheckIcon?: ComponentType
 }) {
-	function Option({ value, disabled, icon, className, children }: OptionProps) {
-		const { value: selectedValue, multiple, select } = config.useContext()
+	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
+		const { value: selectedValue, multiple, onSelect } = config.useContext()
 
 		const selected =
 			multiple && Array.isArray(selectedValue)
@@ -129,7 +139,7 @@ export function createSelectOption(config: {
 				selected={selected}
 				disabled={disabled}
 				icon={resolvedIcon}
-				onSelect={() => select(value)}
+				onSelect={() => onSelect(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
 			>

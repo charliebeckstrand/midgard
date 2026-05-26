@@ -1,4 +1,5 @@
-import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, ji, kokkaku } from '../kiso'
 
 export const k = defineRecipe({
 	base: [...iro.text.default],
@@ -11,6 +12,7 @@ export const k = defineRecipe({
 		6: ['font-medium', ji.sm],
 	},
 	defaults: { level: 1 },
+	skeleton: kokkaku.heading,
 })
 
-export type HeadingVariants = VariantPropsOf<typeof k>
+export type HeadingVariants = VariantProps<typeof k>

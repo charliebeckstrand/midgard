@@ -19,7 +19,12 @@ import {
 import { Spacer } from 'ui/spacer'
 import { Text } from 'ui/text'
 
-export function DashboardClient({ user, children }: { user?: User; children: ReactNode }) {
+type DashboardClientProps = {
+	user?: User
+	children: ReactNode
+}
+
+export function DashboardClient({ user, children }: DashboardClientProps) {
 	const pathname = usePathname()
 
 	return (

@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
@@ -23,7 +20,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Field>
 					<Label htmlFor="num-default">Default</Label>
@@ -72,6 +69,6 @@ export function Demo() {
 					<NumberInput data-valid defaultValue={1} />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -5,7 +5,7 @@ import { ToolbarGroup } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { downloadPdf, printPdf } from './pdf-viewer-utilities'
 
-export type PdfViewerDocumentActionsProps = {
+type PdfViewerDocumentActionsProps = {
 	src: string
 	filename?: string
 	disabled: boolean

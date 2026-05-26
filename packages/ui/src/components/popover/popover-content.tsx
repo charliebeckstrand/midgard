@@ -1,14 +1,12 @@
 'use client'
 
-import { FloatingPortal } from '@floating-ui/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { FloatingSurface } from '../../primitives/floating-surface'
 import type { Step } from '../../recipes'
-import { iro, omote, ugoki } from '../../recipes'
-import { k } from '../../recipes/genkei/popover'
+import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
 import { useGlass } from '../glass/context'
 import { usePopoverContext } from './context'
@@ -55,40 +53,33 @@ export function PopoverContent({
 	}, [open, autoFocus])
 
 	return (
-		<FloatingPortal>
-			<ReducedMotion>
-				<AnimatePresence onExitComplete={onExitComplete}>
-					{open && (
-						<div
-							ref={setFloating}
-							style={floatingStyles}
-							className={k.portal}
-							{...getFloatingProps()}
-						>
-							<motion.div
-								{...ugoki.popover}
-								ref={contentRef}
-								tabIndex={autoFocus ? -1 : undefined}
-								data-slot="popover-content"
-								data-step={resolvedSize}
-								className={cn('z-50', iro.text.default, glass && omote.glass)}
-							>
-								<Density density={resolvedSize} size={resolvedSize}>
-									<Box
-										p={resolvedPadding}
-										bg={glass ? 'none' : 'popover'}
-										radius="lg"
-										outline={glass || undefined}
-										className={className}
-									>
-										{children}
-									</Box>
-								</Density>
-							</motion.div>
-						</div>
-					)}
-				</AnimatePresence>
-			</ReducedMotion>
-		</FloatingPortal>
+		<FloatingSurface
+			open={open}
+			setFloating={setFloating}
+			floatingStyles={floatingStyles}
+			getFloatingProps={getFloatingProps}
+			onExitComplete={onExitComplete}
+		>
+			<motion.div
+				{...k.panel.motion}
+				ref={contentRef}
+				tabIndex={autoFocus ? -1 : undefined}
+				data-slot="popover-content"
+				data-step={resolvedSize}
+				className={cn(k.text, glass && k.panel.glass)}
+			>
+				<Density density={resolvedSize} size={resolvedSize}>
+					<Box
+						p={resolvedPadding}
+						bg={glass ? 'none' : 'popover'}
+						radius="lg"
+						outline={glass || undefined}
+						className={className}
+					>
+						{children}
+					</Box>
+				</Density>
+			</motion.div>
+		</FloatingSurface>
 	)
 }

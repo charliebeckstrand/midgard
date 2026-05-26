@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { CurrencyInput } from '../../components/currency-input'
 import { Field, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
@@ -23,7 +20,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="USD">
 				<Field>
 					<Label>Amount</Label>
@@ -67,6 +64,6 @@ export function Demo() {
 					<CurrencyInput data-invalid defaultValue={500} />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

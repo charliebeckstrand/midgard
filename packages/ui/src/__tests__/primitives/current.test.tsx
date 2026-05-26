@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	CurrentContent,
 	CurrentContents,
-	CurrentProvider,
+	CurrentContext,
 	useCurrent,
 	useCurrentState,
 } from '../../primitives/current'
@@ -30,13 +30,13 @@ describe('useCurrentState', () => {
 describe('CurrentContents / CurrentContent', () => {
 	it('CurrentContents renders with correct data-slot', () => {
 		const { container } = renderUI(
-			<CurrentProvider value={{ value: 'a', onValueChange: undefined }}>
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
 					</CurrentContent>
 				</CurrentContents>
-			</CurrentProvider>,
+			</CurrentContext>,
 		)
 
 		expect(container.querySelector('[data-slot="test-contents"]')).toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('CurrentContents / CurrentContent', () => {
 
 	it('CurrentContent renders matching value', () => {
 		renderUI(
-			<CurrentProvider value={{ value: 'a', onValueChange: undefined }}>
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						Content A
@@ -53,7 +53,7 @@ describe('CurrentContents / CurrentContent', () => {
 						Content B
 					</CurrentContent>
 				</CurrentContents>
-			</CurrentProvider>,
+			</CurrentContext>,
 		)
 
 		expect(screen.getByText('Content A')).toBeInTheDocument()
@@ -63,7 +63,7 @@ describe('CurrentContents / CurrentContent', () => {
 
 	it('CurrentContent renders all when no value set', () => {
 		renderUI(
-			<CurrentProvider value={{ value: undefined, onValueChange: undefined }}>
+			<CurrentContext value={{ value: undefined, onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>
 					<CurrentContent slotPrefix="test" value="a">
 						A
@@ -72,7 +72,7 @@ describe('CurrentContents / CurrentContent', () => {
 						B
 					</CurrentContent>
 				</CurrentContents>
-			</CurrentProvider>,
+			</CurrentContext>,
 		)
 
 		expect(screen.getByText('A')).toBeInTheDocument()

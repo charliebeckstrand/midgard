@@ -1,15 +1,14 @@
-import { hannou, iro, ji, omote, sen } from '..'
-
+import { hannou, iro, ji, omote, sen } from '../kiso'
 export const k = {
-	wrapper: ['relative flex flex-col', 'gap-sm'],
+	wrapper: ['relative flex flex-col', 'gap-2'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
 		'flex items-center',
 		'min-h-12',
-		'gap-sm',
-		'px-sm',
-		'py-xs',
+		'gap-2',
+		'px-2',
+		'py-1',
 		sen.borderSubtle,
 		'rounded-lg',
 		'border-b',

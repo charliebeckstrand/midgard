@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-export type UsePageScaleOptions = {
+type UsePageScaleOptions = {
 	viewportSize: { width: number; height: number } | null
 	pageSize: { width: number; height: number } | null
 	/** True when the page is rotated 90° / 270°; swaps width and height in the layout. */

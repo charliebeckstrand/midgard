@@ -1,7 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
-import { kokkaku } from '../../recipes'
 import { type HeadingVariants, k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 
@@ -14,9 +13,7 @@ export type HeadingProps = HeadingVariants & {
 
 export function Heading({ level = 1, className, ...props }: HeadingProps) {
 	if (useSkeleton()) {
-		return (
-			<Placeholder className={cn(kokkaku.heading.base, kokkaku.heading.level[level], className)} />
-		)
+		return <Placeholder className={cn(k.skeleton.base, k.skeleton.level[level], className)} />
 	}
 
 	const Tag = `h${level}` as const

@@ -30,9 +30,9 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 		const check = () => {
 			const textWidth = measurer.getBoundingClientRect().width
 
-			const cs = getComputedStyle(el)
+			const styles = getComputedStyle(el)
 
-			const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+			const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
 
 			const contentWidth = el.getBoundingClientRect().width - paddingX
 

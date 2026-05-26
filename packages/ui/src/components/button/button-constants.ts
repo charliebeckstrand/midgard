@@ -1,6 +1,6 @@
-import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/button'
 
 export const buttonSpring = {
 	whileTap: { scale: 0.95 },
-	transition: ugoki.spring,
+	transition: k.motion,
 } as const

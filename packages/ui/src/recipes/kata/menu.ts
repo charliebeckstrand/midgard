@@ -1,4 +1,5 @@
-import { defineRecipe, hannou, iro, ji, narabi, sen, type VariantPropsOf } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { hannou, iro, ji, narabi, sen } from '../kiso'
 
 const item = defineRecipe({
 	base: ['group/option flex w-full items-center', ...hannou.item, ...narabi.item],
@@ -20,5 +21,3 @@ export const k = {
 	shortcut: 'ml-auto',
 	separator: sen.divider,
 }
-
-export type MenuItemVariants = VariantPropsOf<typeof item>

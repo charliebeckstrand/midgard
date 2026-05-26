@@ -1,8 +1,8 @@
 'use client'
 
-import { type KeyboardEvent, useCallback } from 'react'
+import type { KeyboardEvent } from 'react'
 
-export type UseKeyboardOptions = {
+type UseKeyboardOptions = {
 	/** Current input value. */
 	inputValue: string
 	/** Attempt to add a tag. Returns true on success. */
@@ -23,20 +23,17 @@ export function useTagInputKeyboard({
 	clearInput,
 	tagCount,
 }: UseKeyboardOptions) {
-	return useCallback(
-		(e: KeyboardEvent<HTMLInputElement>) => {
-			if ((e.key === 'Enter' || e.key === ',') && !e.nativeEvent.isComposing) {
-				e.preventDefault()
+	return (e: KeyboardEvent<HTMLInputElement>) => {
+		if ((e.key === 'Enter' || e.key === ',') && !e.nativeEvent.isComposing) {
+			e.preventDefault()
 
-				if (addTag(inputValue)) {
-					clearInput()
-				}
+			if (addTag(inputValue)) {
+				clearInput()
 			}
+		}
 
-			if (e.key === 'Backspace' && inputValue === '' && tagCount > 0) {
-				removeTag(tagCount - 1)
-			}
-		},
-		[inputValue, addTag, removeTag, clearInput, tagCount],
-	)
+		if (e.key === 'Backspace' && inputValue === '' && tagCount > 0) {
+			removeTag(tagCount - 1)
+		}
+	}
 }

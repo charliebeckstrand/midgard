@@ -1,8 +1,5 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
-import { Stack } from '../../components/stack'
 import { TagInput } from '../../components/tag-input'
 import { Example } from '../components/example'
 
@@ -56,7 +53,7 @@ function MaxTagInputExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<DefaultTagInputExample />
 			</Example>
@@ -75,6 +72,6 @@ export function Demo() {
 					<TagInput defaultValue={['Locked', 'Tags']} disabled placeholder="Cannot edit" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

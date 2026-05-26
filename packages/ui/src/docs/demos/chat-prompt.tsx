@@ -1,11 +1,8 @@
-'use client'
-
 import { CircleDashed } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { ChatPrompt } from '../../components/chat-prompt'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Chat' }
@@ -54,7 +51,7 @@ function StreamingExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<DefaultExample />
 			</Example>
@@ -66,6 +63,6 @@ export function Demo() {
 			<Example title="Streaming">
 				<StreamingExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -2,14 +2,13 @@ import { Lock } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { PasswordInput } from '../../components/password-input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Password' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Field>
 					<Label htmlFor="password-default">Password</Label>
@@ -74,6 +73,6 @@ export function Demo() {
 					<PasswordInput data-valid placeholder="Valid input" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -10,7 +10,7 @@ import { type buildSearchIndex, collectPaths, flattenTree } from './json-tree-ut
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
-export type JsonTreeVirtualizedProps = {
+type JsonTreeVirtualizedProps = {
 	ref: RefObject<HTMLDivElement | null>
 	data: JsonValue
 	rootKey: string | undefined
@@ -81,8 +81,8 @@ export function JsonTreeVirtualized({
 			onKeyDown={onKeyDown}
 		>
 			{topSpacer > 0 && <div data-slot="json-tree-spacer" style={{ height: topSpacer }} />}
-			{virtualItems.map((vi) => {
-				const node = flatNodes[vi.index]
+			{virtualItems.map((virtualItem) => {
+				const node = flatNodes[virtualItem.index]
 
 				if (!node) return null
 

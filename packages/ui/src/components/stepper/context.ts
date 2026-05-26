@@ -19,7 +19,7 @@ type StepperStepContextValue = {
 	state: StepState
 }
 
-export const [StepperProvider, useStepper] = createContext<StepperContextValue>('Stepper')
+export const [StepperContext, useStepper] = createContext<StepperContextValue>('Stepper')
 
-export const [StepperStepProvider, useStepperStep] =
+export const [StepperStepContext, useStepperStep] =
 	createContext<StepperStepContextValue>('StepperStep')

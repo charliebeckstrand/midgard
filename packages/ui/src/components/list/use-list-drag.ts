@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { type Orientation, useSortableList } from '../../hooks'
+import { useSortableList } from '../../hooks'
+import type { Orientation } from '../../types'
 
 type Options<T> = {
 	items: T[]

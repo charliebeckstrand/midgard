@@ -3,10 +3,10 @@
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
 import { type ReactNode, type Ref, useCallback, useId, useMemo } from 'react'
 import { cn, createContext } from '../../core'
-import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
 
-const [ActiveIndicatorScopeProvider, useActiveIndicatorScope] = createContext<string | undefined>(
+const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<string | undefined>(
 	'ActiveIndicatorScope',
 	{ default: undefined },
 )
@@ -20,11 +20,11 @@ export function ActiveIndicatorScope({ children, id }: { id?: string; children: 
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
 	return (
-		<ActiveIndicatorScopeProvider value={layoutId}>
+		<ActiveIndicatorScopeContext value={layoutId}>
 			<ReducedMotion>
 				<LayoutGroup id={layoutId}>{children}</LayoutGroup>
 			</ReducedMotion>
-		</ActiveIndicatorScopeProvider>
+		</ActiveIndicatorScopeContext>
 	)
 }
 
@@ -33,20 +33,17 @@ export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 
 	const onPointerDown = useCallback(() => {
-		animate(scope.current, { scale: 0.99 }, ugoki.spring)
+		animate(scope.current, { scale: 0.99 }, k.spring)
 	}, [animate, scope])
 
 	const onPointerUp = useCallback(() => {
-		animate(scope.current, { scale: 1 }, ugoki.spring)
+		animate(scope.current, { scale: 1 }, k.spring)
 	}, [animate, scope])
 
-	return useMemo(
-		() => ({
-			ref: scope,
-			tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
-		}),
-		[scope, onPointerDown, onPointerUp],
-	)
+	return {
+		ref: scope,
+		tapHandlers: { onPointerDown, onPointerUp, onPointerLeave: onPointerUp },
+	}
 }
 
 /**
@@ -85,7 +82,7 @@ export function ActiveIndicator({
 				layoutDependency={instanceId}
 				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
 				style={{ borderRadius: 8, ...style }}
-				transition={ugoki.spring}
+				transition={k.spring}
 			>
 				{children}
 			</motion.span>

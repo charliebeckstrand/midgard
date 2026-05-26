@@ -1,12 +1,9 @@
-'use client'
-
 import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
 import { Card } from '../../components/card'
-import { Nav, NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
+import { Nav, NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -25,7 +22,7 @@ function NavProviderDemo() {
 	const [current, setCurrent] = useState('home')
 
 	return (
-		<NavProvider value={{ value: current, onChange: setCurrent }}>
+		<NavContext value={{ value: current, onChange: setCurrent }}>
 			<Navbar>
 				<NavItems />
 				<Spacer />
@@ -41,13 +38,13 @@ function NavProviderDemo() {
 					<NavContent value="contact">Contact information</NavContent>
 				</NavContents>
 			</Card>
-		</NavProvider>
+		</NavContext>
 	)
 }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Navbar variant="outline">
 					<Nav value="home">
@@ -70,7 +67,7 @@ export function Demo() {
 				</Navbar>
 			</Example>
 
-			<Example title="With NavProvider">
+			<Example title="With NavContext">
 				<NavProviderDemo />
 			</Example>
 
@@ -89,6 +86,6 @@ export function Demo() {
 					</NavList>
 				</Navbar>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -10,7 +10,7 @@ export const meta = { category: 'Data Display' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Stat>
 					<StatLabel>Monthly recurring revenue</StatLabel>
@@ -95,6 +95,6 @@ export function Demo() {
 					</Card>
 				</div>
 			</Example>
-		</Stack>
+		</>
 	)
 }

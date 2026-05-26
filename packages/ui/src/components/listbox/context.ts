@@ -5,8 +5,8 @@ import { createContext } from '../../core'
 type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
 	multiple: boolean
-	select: (value: T) => void
+	onSelect: (value: T) => void
 	close: () => void
 }
 
-export const [ListboxProvider, useListboxContext] = createContext<ListboxContextValue>('Listbox')
+export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox')

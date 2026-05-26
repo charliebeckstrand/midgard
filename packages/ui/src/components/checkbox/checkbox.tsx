@@ -3,16 +3,10 @@
 import { Check, Minus } from 'lucide-react'
 import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
-import {
-	type CheckboxVariants,
-	k as checkbox,
-	input as checkboxInput,
-	checkSize,
-} from '../../recipes/kata/checkbox'
-import { useControlProps } from '../control/use-control-props'
-import { useFormToggle } from '../form/context'
+import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
+import { useControlToggle } from '../control/use-control-toggle'
+import { useFormToggle } from '../form/use-form-toggle'
 import { CheckboxSkeleton } from './checkbox-skeleton'
 
 export type CheckboxProps = CheckboxVariants & {
@@ -43,13 +37,10 @@ export function Checkbox({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, disabled, required, binding })
+		size: resolvedSize,
+	} = useControlToggle({ id, disabled, required, size, binding })
 
 	const internalRef = useRef<HTMLInputElement>(null)
-
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
 
 	const setRef = useCallback(
 		(el: HTMLInputElement | null) => {
@@ -69,14 +60,14 @@ export function Checkbox({
 
 	const checkClass = cn(
 		'pointer-events-none absolute stroke-(--checkbox-check) opacity-0',
-		checkSize[resolvedSize],
+		k.checkSize[resolvedSize],
 	)
 
 	return (
 		<label
 			data-slot="control"
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(checkbox({ color, size: resolvedSize }), className)}
+			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
 				type="checkbox"
@@ -89,7 +80,7 @@ export function Checkbox({
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
 				{...invalidAttrs(resolvedInvalid)}
-				className={checkboxInput()}
+				className={k.input()}
 				{...props}
 			/>
 			{indeterminate

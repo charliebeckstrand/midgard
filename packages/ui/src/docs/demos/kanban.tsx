@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import {
@@ -151,10 +149,10 @@ function DisabledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DefaultExample />
 			<ReadOnlyExample />
 			<DisabledExample />
-		</Stack>
+		</>
 	)
 }

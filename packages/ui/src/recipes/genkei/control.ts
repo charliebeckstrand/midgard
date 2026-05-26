@@ -1,33 +1,13 @@
 /**
- * Single source of truth for the control family — every recipe whose visual
- * identity is "a framed surface that wraps a user-input element".
+ * Control family archetype — the framed surface that wraps a user-input element.
  *
- * Consumers (input, textarea, listbox, combobox, datepicker, checkbox, radio,
- * and the ControlFrame primitive) compose from here rather than redefining any
- * of these concerns. If a new shared control concern emerges, add it here.
- *
- * Owns:
- *   - `frame`     — outer chrome: composes `kasane` (the 4-layer signature) +
- *                   block layout.
- *   - `surface`   — surface chrome variants (default / outline / glass).
- *   - `field`     — inner field reset: transparent bg, no native outline,
- *                   placeholder colour, disabled cursor.
- *   - `density`   — border-compensated padding, keyed by the density axis.
- *   - `size`      — font size, keyed by the size axis.
- *   - `icon`      — chevron / affix slot layout.
- *   - `affix`     — prefix / suffix slot padding (tracks density).
- *   - `resets`    — browser-default resets keyed by input type.
- *   - `check`     — visually hidden native input + custom check surface.
- *
- * Exposes plain class fragments (`string[]`) and fragment maps. Per the
- * genkei wire-format contract, `defineRecipe()` is invoked only at the kata public
- * surface; consumers compose these fragments into whatever shape they need.
- *
- * Layer: genkei · Concern: control field archetype
+ * Consumed by input, textarea, listbox, combobox, date-picker, checkbox, radio,
+ * and ControlFrame. Exposes class fragments (frame, surface, input, density,
+ * size, affix, resets, check) that each kata composes into its own recipe.
  */
 
-import { hannou, iro, ji, mode, omote, sen, tsunagi } from '..'
-import { kasane } from './kasane'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, omote, sen, tsunagi } from '../kiso'
 
 // `tsunagi.base` is data-attribute-gated, so it stays inert until a `<Group>`
 // stamps `data-group` / `data-group-orientation` onto the frame. Including it
@@ -44,8 +24,7 @@ const surface = {
 	glass: ['bg-transparent', omote.blur.md],
 } as const
 
-const field = [
-	'gap-sm',
+const input = [
 	'relative',
 	'w-full min-w-0 flex-1',
 	'border-0',
@@ -57,13 +36,20 @@ const field = [
 	'dark:placeholder:text-zinc-400',
 ]
 
-// Tracks the `density` axis of the Density token (padding + gap dimension).
-// Affix padding (`affix.prefix`, `affix.suffix`, `affix.autofill`) below is
-// the same axis — keyed by the density step, not the size step.
+// Tracks the `density` axis of the Density token (padding + radius +
+// child-gap dimension). Affix padding (`affix.prefix`, `affix.suffix`)
+// below is the same axis — keyed by the density step, not the size step.
+// Corner radius matches `py` at every step for a constant 1:1
+// padding-to-radius ratio across non-ControlFrame controls (listbox,
+// combobox, date-picker button); for ControlFrame consumers (input,
+// textarea, select trigger), `kata/control.ts` exposes `frameRadius` and
+// `<ControlFrame>` reads it from `useDensity()` so the chrome on the
+// wrapping frame carries the matching radius. Gap = py/2 at every step
+// (rounded to the spacing scale).
 const density = {
-	sm: 'px-[calc(--spacing(2.5)-1px)] py-[calc(--spacing(1.5)-1px)]',
-	md: 'px-[calc(--spacing(3)-1px)] py-[calc(--spacing(2)-1px)]',
-	lg: 'px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)]',
+	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('0.75')],
+	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('1')],
+	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5'), kasane.g('1.25')],
 } as const
 
 // Tracks the `size` axis of the Density token (text + icon dimension).
@@ -73,48 +59,52 @@ const size = {
 	lg: ji.lg,
 } as const
 
-const icon = ['flex items-center', 'pr-2', 'pointer-events-none']
-
+// Equidistance invariant: affix padding equals `input.px` so a text
+// affix's *content* sits the same distance from chrome as input-text
+// does in an affix-less control. When the slot hosts an element
+// with its own outer chrome — a non-bare `<Button>` or a `<Badge>`,
+// matched on `data-slot` — the affix padding shrinks by that
+// element's own `pl` so its *content* lands at the same position.
+// The compensation collapses to a constant `1` spacing-unit at every
+// density step because `affixStepDown` (`primitives/affix/affix.ts`)
+// moves the slot's child one notch down per density step, and both
+// scales grow 0.5 per notch — the increments cancel. The boundary
+// test at `__tests__/recipes/boundary/affix-compensation-boundary.test.ts`
+// pins this against the live recipes.
 const affix = {
 	prefix: {
 		sm: [
-			'pl-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
+			kasane.pl('2.5'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
 		],
 		md: [
-			'pl-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2)-1px)]',
+			kasane.pl('3'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
 		],
 		lg: [
-			'pl-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pl-[calc(--spacing(2.5)-1px)]',
+			kasane.pl('3.5'),
+			'has-[>[data-slot=badge]]:pl-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1)-1px)]',
 		],
 	},
 	suffix: {
 		sm: [
-			'pr-[calc(--spacing(2.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
+			kasane.pr('2.5'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
 		],
 		md: [
-			'pr-[calc(--spacing(3)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2)-1px)]',
+			kasane.pr('3'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
 		],
 		lg: [
-			'pr-[calc(--spacing(3.5)-1px)]',
-			'has-[button:not([data-variant=bare])]:pr-[calc(--spacing(2.5)-1px)]',
+			kasane.pr('3.5'),
+			'has-[>[data-slot=badge]]:pr-[calc(--spacing(1)-1px)]',
+			'has-[>[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1)-1px)]',
 		],
-	},
-	autofill: {
-		prefix: {
-			sm: 'autofill:ml-[calc(--spacing(2.5)-1px)] peer-has-[button]/prefix:autofill:ml-1',
-			md: 'autofill:ml-[calc(--spacing(3)-1px)] peer-has-[button]/prefix:autofill:ml-1.5',
-			lg: 'autofill:ml-[calc(--spacing(3.5)-1px)] peer-has-[button]/prefix:autofill:ml-2',
-		},
-		suffix: {
-			sm: 'autofill:mr-[calc(--spacing(2.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1',
-			md: 'autofill:mr-[calc(--spacing(3)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-1.5',
-			lg: 'autofill:mr-[calc(--spacing(3.5)-1px)] group-has-[[data-slot=suffix]_button]/control:autofill:mr-2',
-		},
 	},
 } as const
 
@@ -154,10 +144,9 @@ const check = {
 export const control = {
 	frame,
 	surface,
-	field,
+	input,
 	density,
 	size,
-	icon,
 	affix,
 	resets,
 	check,

@@ -1,27 +1,31 @@
 import {
 	createPanel,
-	type PanelActionsProps,
 	type PanelBodyProps,
 	type PanelDescriptionProps,
+	type PanelFooterProps,
+	type PanelHeaderProps,
 	type PanelTitleProps,
 } from '../../primitives/panel'
-import { k as sheet } from '../../recipes/kata/sheet'
+import { k } from '../../recipes/kata/sheet'
 
 export type SheetTitleProps = PanelTitleProps
 export type SheetDescriptionProps = PanelDescriptionProps
+export type SheetHeaderProps = PanelHeaderProps
 export type SheetBodyProps = PanelBodyProps
-export type SheetActionsProps = PanelActionsProps
+export type SheetFooterProps = PanelFooterProps
 
-const { Title, Description, Body, Actions } = createPanel('sheet', {
-	title: sheet.title,
-	description: sheet.description,
-	body: sheet.body,
-	actions: sheet.actions,
+const { Title, Description, Header, Body, Footer } = createPanel('sheet', {
+	title: k.title,
+	description: k.description,
+	header: k.header,
+	body: k.body,
+	footer: k.footer,
 })
 
 export {
-	Actions as SheetActions,
 	Body as SheetBody,
 	Description as SheetDescription,
+	Footer as SheetFooter,
+	Header as SheetHeader,
 	Title as SheetTitle,
 }

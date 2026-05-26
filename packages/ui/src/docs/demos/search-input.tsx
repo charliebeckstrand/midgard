@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { SearchInput } from '../../components/search-input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Input' }
@@ -28,7 +25,7 @@ function ControlledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Field>
 					<Label>Search</Label>
@@ -79,6 +76,6 @@ export function Demo() {
 					<SearchInput disabled placeholder={placeholder} />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -1,8 +1,5 @@
-'use client'
-
 import { useState } from 'react'
 import { Code, CodeBlock } from '../../components/code'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { code } from '../code'
 import { Example } from '../components/example'
@@ -18,7 +15,7 @@ export function Demo() {
 	const [size, setSize] = useState<Size>('md')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
@@ -47,16 +44,9 @@ export function Demo() {
 				/>
 			</Example>
 
-			<Example
-				title="Block with language"
-				code={code`
-					import { CodeBlock } from 'ui/code'
-
-					<CodeBlock inline lang="bash" code="pnpm add ui" />
-				`}
-			>
+			<Example title="Block with language">
 				<CodeBlock inline lang="bash" code="pnpm add ui" />
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -7,13 +7,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { iro, omote, ugoki } from '../../recipes'
-import { popover as kPopover } from '../../recipes/genkei/popover'
+import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../box'
 import type { ControlSize } from '../control/context'
 import { useGlass } from '../glass/context'
 
-export type DatePickerContentProps = {
+type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
@@ -51,15 +50,15 @@ export function DatePickerContent({
 							<div
 								ref={setFloating}
 								style={floatingStyles}
-								className={kPopover.portal}
+								className={k.content.portal}
 								tabIndex={-1}
 								{...getFloatingProps()}
 							>
 								<motion.div
-									{...ugoki.popover}
+									{...k.content.motion}
 									data-slot="datepicker-content"
 									data-step={size}
-									className={cn('z-50', iro.text.default, glass && omote.glass)}
+									className={cn('z-50', k.content.text, glass && k.content.glass)}
 									onMouseDown={(e) => e.preventDefault()}
 								>
 									<Density density={size} size={size}>

@@ -5,7 +5,8 @@ import { createContext } from '../../core'
 type CommandPaletteContextValue = {
 	close: () => void
 	query: string
+	deferredQuery: string
 }
 
-export const [CommandPaletteProvider, useCommandPaletteContext] =
+export const [CommandPaletteContext, useCommandPaletteContext] =
 	createContext<CommandPaletteContextValue>('CommandPalette')

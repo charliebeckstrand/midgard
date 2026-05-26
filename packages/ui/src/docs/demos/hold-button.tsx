@@ -1,12 +1,9 @@
-'use client'
-
 import { Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { HoldButton } from '../../components/hold-button'
 import { Icon } from '../../components/icon'
-import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
@@ -44,7 +41,7 @@ export function Demo() {
 	const [status, setStatus] = useState<'idle' | 'holding' | 'cancelled' | 'confirmed'>('idle')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example
 				title="Default"
 				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
@@ -94,6 +91,6 @@ export function Demo() {
 					Cannot hold
 				</HoldButton>
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -11,7 +11,7 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
-export type UsePdfViewerOptions = {
+type UsePdfViewerOptions = {
 	pages?: PdfViewerPage[]
 	src?: string
 	filename?: string

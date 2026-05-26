@@ -11,7 +11,7 @@ type RippleEntry = {
 	size: number
 }
 
-export type UseRippleOptions = {
+type UseRippleOptions = {
 	duration?: number
 }
 
@@ -38,7 +38,7 @@ export function useRipple({ duration = 0.5 }: UseRippleOptions = {}) {
 	}, [])
 
 	const remove = useCallback((key: number) => {
-		setRipples((prev) => prev.filter((r) => r.key !== key))
+		setRipples((prev) => prev.filter((ripple) => ripple.key !== key))
 	}, [])
 
 	const element = (
@@ -48,20 +48,20 @@ export function useRipple({ duration = 0.5 }: UseRippleOptions = {}) {
 				className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none"
 			>
 				<AnimatePresence>
-					{ripples.map((r) => (
+					{ripples.map((ripple) => (
 						<motion.span
-							key={r.key}
+							key={ripple.key}
 							className="absolute bg-current rounded-full"
 							style={{
-								left: r.x - r.size / 2,
-								top: r.y - r.size / 2,
-								width: r.size,
-								height: r.size,
+								left: ripple.x - ripple.size / 2,
+								top: ripple.y - ripple.size / 2,
+								width: ripple.size,
+								height: ripple.size,
 							}}
 							initial={{ scale: 0, opacity: 0.25 }}
 							animate={{ scale: 1, opacity: 0 }}
 							transition={{ duration }}
-							onAnimationComplete={() => remove(r.key)}
+							onAnimationComplete={() => remove(ripple.key)}
 						/>
 					))}
 				</AnimatePresence>

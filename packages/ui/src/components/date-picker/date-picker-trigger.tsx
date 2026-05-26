@@ -1,12 +1,11 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, type Ref, useRef } from 'react'
+import { type KeyboardEvent, useRef } from 'react'
 
 import { cn } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
-import { iro } from '../../recipes'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -18,11 +17,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 // Calendar icon is one step smaller than the trigger size (matches Input / SelectTrigger).
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
-export type DatePickerTriggerProps = {
+type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
-	triggerRef?: Ref<HTMLButtonElement>
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
 	displayValue: string
@@ -41,7 +39,6 @@ export function DatePickerTrigger({
 	open,
 	onOpenChange,
 	triggerId,
-	triggerRef,
 	setReference,
 	getReferenceProps,
 	displayValue,
@@ -62,7 +59,7 @@ export function DatePickerTrigger({
 
 	const valueNode = (
 		<span ref={valueRef} className={k.value({ truncate })}>
-			{displayValue || <span className={cn(iro.text.muted)}>{placeholder}</span>}
+			{displayValue || <span className={cn(k.placeholder)}>{placeholder}</span>}
 		</span>
 	)
 
@@ -72,11 +69,10 @@ export function DatePickerTrigger({
 				data-open={open || undefined}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
-				className={cn('', k.control[glass ? 'glass' : 'default'])}
+				className={cn('', k.surface[glass ? 'glass' : 'default'])}
 			>
 				<Headless>
 					<Button
-						ref={triggerRef}
 						type="button"
 						id={triggerId}
 						aria-haspopup="dialog"

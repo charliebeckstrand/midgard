@@ -22,7 +22,7 @@ import { useAffix } from '../affix'
  * API can carry friendlier labels (e.g. `compact / cozy / comfortable`)
  * without a refactor — translation lives at the prop surface, not the token.
  */
-export type DensityToken = {
+type DensityToken = {
 	density: Step
 	size: Step
 }
@@ -33,7 +33,7 @@ export type DensityToken = {
  * baseline with a preset (both axes), then explicit per-axis overrides still
  * win.
  */
-export type DensityInput = Partial<DensityToken> & { scale?: Step }
+type DensityInput = Partial<DensityToken> & { scale?: Step }
 
 /** Diagonal preset table — `scale="md"` resolves to `{ density: 'md', size: 'md' }`. */
 export const densityPresets: Record<Step, DensityToken> = {
@@ -50,11 +50,11 @@ const STEP_DOWN: Record<Step, Step> = { sm: 'sm', md: 'sm', lg: 'md' }
  * `<SelectTrigger>` chevron. Single function for both axes; they share the
  * `Step` scale.
  */
-export function stepDown(s: Step): Step {
-	return STEP_DOWN[s]
+export function stepDown(hostSize: Step): Step {
+	return STEP_DOWN[hostSize]
 }
 
-const [DensityProviderRaw, useDensityNullable] = createContext<DensityToken | null>('Density', {
+const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,
 })
 
@@ -115,7 +115,7 @@ export function Density({ children, scale, density: densityProp, size: sizeProp 
 		}
 	}, [scale, densityProp, sizeProp, parent])
 
-	return <DensityProviderRaw value={token}>{children}</DensityProviderRaw>
+	return <DensityTokenContext value={token}>{children}</DensityTokenContext>
 }
 
 /**

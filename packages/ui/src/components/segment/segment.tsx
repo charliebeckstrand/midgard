@@ -1,9 +1,9 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { CurrentProvider, useCurrentState } from '../../primitives/current'
+import { CurrentContext, useCurrentState } from '../../primitives/current'
 import type { SegmentControlVariants } from '../../recipes/kata/segment'
-import { SegmentProvider } from './context'
+import { SegmentContext } from './context'
 
 export type SegmentProps = SegmentControlVariants & {
 	value?: string
@@ -30,12 +30,12 @@ export function Segment({
 	const segmentContext = useMemo(() => ({ size: size ?? ('md' as const) }), [size])
 
 	return (
-		<CurrentProvider value={currentContext}>
-			<SegmentProvider value={segmentContext}>
+		<CurrentContext value={currentContext}>
+			<SegmentContext value={segmentContext}>
 				<div data-slot="segment" className={className}>
 					{children}
 				</div>
-			</SegmentProvider>
-		</CurrentProvider>
+			</SegmentContext>
+		</CurrentContext>
 	)
 }

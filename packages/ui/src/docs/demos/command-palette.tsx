@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	Archive,
 	Copy,
@@ -11,7 +9,7 @@ import {
 	Trash2,
 	User,
 } from 'lucide-react'
-import { type ReactElement, useEffect, useState } from 'react'
+import { type ReactElement, useState } from 'react'
 import { Alert, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
@@ -24,7 +22,7 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { Stack } from '../../components/stack'
+import { useKeybindings } from '../../hooks/use-keybindings'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -113,63 +111,57 @@ function filterCommands(query: string) {
 export function Demo() {
 	const [open, setOpen] = useState(false)
 
-	// Open on ⌘K / Ctrl+K
-	useEffect(() => {
-		function onKeyDown(e: KeyboardEvent) {
-			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+	useKeybindings(
+		{
+			'$mod+KeyK': (e) => {
 				e.preventDefault()
 
 				setOpen((prev) => !prev)
-			}
-		}
-
-		document.addEventListener('keydown', onKeyDown)
-
-		return () => document.removeEventListener('keydown', onKeyDown)
-	}, [])
+			},
+		},
+		{ ignore: () => false },
+	)
 
 	return (
-		<Stack gap="xl">
-			<Example title="Default">
-				<Button color="blue" variant="soft" suffix={<Kbd cmd>K</Kbd>} onClick={() => setOpen(true)}>
-					Open command palette
-				</Button>
+		<Example title="Default">
+			<Button color="blue" variant="soft" suffix={<Kbd cmd>K</Kbd>} onClick={() => setOpen(true)}>
+				Open command palette
+			</Button>
 
-				<CommandPalette open={open} onOpenChange={setOpen}>
-					{(query) => {
-						const results = filterCommands(query)
+			<CommandPalette open={open} onOpenChange={setOpen}>
+				{(query) => {
+					const results = filterCommands(query)
 
-						if (!results.length) {
-							return (
-								<Alert severity="warning" block>
-									<AlertTitle>No commands found</AlertTitle>
-								</Alert>
-							)
-						}
+					if (!results.length) {
+						return (
+							<Alert severity="warning" block>
+								<AlertTitle>No commands found</AlertTitle>
+							</Alert>
+						)
+					}
 
-						return groups.map((group) => {
-							const items = results.filter((c) => c.group === group)
+					return groups.map((group) => {
+						const items = results.filter((c) => c.group === group)
 
-							if (!items.length) return null
+						if (!items.length) return null
 
-							return (
-								<CommandPaletteGroup key={group} title={group}>
-									{items.map((c) => (
-										<CommandPaletteItem key={c.id}>
-											<Icon icon={c.icon} size="sm" />
-											<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
-											{c.description && (
-												<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
-											)}
-											{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
-										</CommandPaletteItem>
-									))}
-								</CommandPaletteGroup>
-							)
-						})
-					}}
-				</CommandPalette>
-			</Example>
-		</Stack>
+						return (
+							<CommandPaletteGroup key={group} title={group}>
+								{items.map((c) => (
+									<CommandPaletteItem key={c.id}>
+										<Icon icon={c.icon} size="sm" />
+										<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
+										{c.description && (
+											<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
+										)}
+										{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
+									</CommandPaletteItem>
+								))}
+							</CommandPaletteGroup>
+						)
+					})
+				}}
+			</CommandPalette>
+		</Example>
 	)
 }

@@ -1,17 +1,21 @@
-import { defineRecipe, hannou, iro, type VariantPropsOf } from '..'
+import { defineRecipe } from '../../core/recipe'
 import { control } from '../genkei/control'
+import { popover } from '../genkei/popover'
+import { hannou, iro } from '../kiso'
+
+const { input, density, size, surface } = control
+const { portal, panel } = popover
 
 const button = defineRecipe({
 	base: [
 		'flex items-center justify-between',
-		...control.field,
+		...input,
 		'text-left',
-		'rounded-lg',
 		'appearance-none',
 		...hannou.cursor,
 	],
-	density: control.density,
-	size: control.size,
+	density,
+	size,
 	defaults: { density: 'md', size: 'md' },
 })
 
@@ -25,13 +29,18 @@ const value = defineRecipe({
 })
 
 export const k = {
-	control: {
-		default: control.surface.default,
+	surface: {
+		default: surface.default,
 		glass: [],
 	},
 	button,
 	value,
 	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
+	placeholder: iro.text.muted,
+	content: {
+		portal,
+		motion: panel.motion,
+		text: iro.text.default,
+		glass: panel.glass,
+	},
 }
-
-export type DatePickerButtonVariants = VariantPropsOf<typeof button>

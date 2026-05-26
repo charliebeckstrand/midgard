@@ -1,7 +1,15 @@
 'use client'
 
 import { Button } from '../button'
-import { Sheet, SheetActions, SheetBody, SheetClose, SheetDescription, SheetTitle } from '../sheet'
+import {
+	Sheet,
+	SheetBody,
+	SheetClose,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from '../sheet'
 import {
 	Timeline,
 	TimelineDescription,
@@ -12,7 +20,7 @@ import {
 import { formatTimestamp, resolveCurrentIndex } from './map-route-utilities'
 import type { RouteStop } from './types'
 
-export type MapRouteTimelineProps = {
+type MapRouteTimelineProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	stops: RouteStop[]
@@ -23,12 +31,14 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange} size="sm">
-			<SheetTitle>Route timeline</SheetTitle>
-			{stops.length > 0 && (
-				<SheetDescription>
-					{stops.length} stop{stops.length === 1 ? '' : 's'}
-				</SheetDescription>
-			)}
+			<SheetHeader>
+				<SheetTitle>Route timeline</SheetTitle>
+				{stops.length > 0 && (
+					<SheetDescription>
+						{stops.length} stop{stops.length === 1 ? '' : 's'}
+					</SheetDescription>
+				)}
+			</SheetHeader>
 			<SheetBody>
 				<Timeline>
 					{stops.map((stop, index) => {
@@ -60,11 +70,11 @@ export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimeline
 					})}
 				</Timeline>
 			</SheetBody>
-			<SheetActions>
+			<SheetFooter>
 				<SheetClose>
 					<Button>Close</Button>
 				</SheetClose>
-			</SheetActions>
+			</SheetFooter>
 		</Sheet>
 	)
 }

@@ -4,6 +4,7 @@ import {
 	type CellChange,
 	EditableGrid,
 	type EditableGridColumn,
+	type EditableGridEditorProps,
 } from '../../components/editable-grid'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -503,6 +504,64 @@ describe('EditableGrid', () => {
 		expect(cells[3]).toHaveAttribute('data-active')
 	})
 
+	it('Shift+Tab from column 0 focuses the row selection checkbox', () => {
+		const selectableColumns: EditableGridColumn<Row>[] = [
+			{ id: 'select', selectable: true } as EditableGridColumn<Row>,
+			...columns,
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={selectableColumns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+				selection={{ value: new Set() }}
+			/>,
+		)
+
+		const grid = bySlot(container, 'editable-grid') as HTMLTableElement
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'Tab', shiftKey: true })
+
+		expect(document.activeElement).toBe(screen.getByRole('checkbox', { name: 'Select row 1' }))
+	})
+
+	it('Tab from a row selection checkbox returns focus to the cell cursor', () => {
+		const selectableColumns: EditableGridColumn<Row>[] = [
+			{ id: 'select', selectable: true } as EditableGridColumn<Row>,
+			...columns,
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={selectableColumns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+				selection={{ value: new Set() }}
+			/>,
+		)
+
+		const grid = bySlot(container, 'editable-grid') as HTMLTableElement
+
+		const rowCheckbox = screen.getByRole('checkbox', { name: 'Select row 2' })
+
+		rowCheckbox.focus()
+
+		fireEvent.keyDown(rowCheckbox, { key: 'Tab' })
+
+		expect(document.activeElement).toBe(grid)
+
+		// Row 2 is index 1; col 0 (first editable) of that row should be active.
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		// editableCols = [state, rate]; row 1 (second row) cell 0 = index 2.
+		expect(cells[2]).toHaveAttribute('data-active')
+	})
+
 	it('renders selectable and actions columns alongside editable ones', () => {
 		const mixedColumns: EditableGridColumn<Row>[] = [
 			{ id: 'select', selectable: true } as EditableGridColumn<Row>,
@@ -526,5 +585,53 @@ describe('EditableGrid', () => {
 		expect(screen.getAllByRole('checkbox', { name: /Select row/ }).length).toBe(rows.length)
 
 		expect(screen.getByText('Edit 1')).toBeInTheDocument()
+	})
+
+	it('renders a column-supplied editor slot in place of the default input', () => {
+		const onChange = vi.fn()
+
+		function CustomEditor({ draft, setDraft, commit }: EditableGridEditorProps<Row>) {
+			return (
+				<input
+					data-slot="custom-editor"
+					value={draft}
+					onChange={(e) => setDraft(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault()
+
+							commit('down')
+						}
+					}}
+				/>
+			)
+		}
+
+		const editable: EditableGridColumn<Row>[] = [
+			{ id: 'rate', title: 'Rate', field: 'rate', editor: CustomEditor },
+		]
+
+		const { container } = renderUI(
+			<EditableGrid
+				columns={editable}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={onChange}
+			/>,
+		)
+
+		fireEvent.doubleClick(allBySlot(container, 'editable-grid-cell')[0] as HTMLElement)
+
+		const customInput = bySlot(container, 'custom-editor') as HTMLInputElement
+
+		expect(customInput).toBeInTheDocument()
+
+		expect(bySlot(container, 'editable-grid-input')).not.toBeInTheDocument()
+
+		fireEvent.change(customInput, { target: { value: '8.88' } })
+
+		fireEvent.keyDown(customInput, { key: 'Enter' })
+
+		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '8.88' }])
 	})
 })

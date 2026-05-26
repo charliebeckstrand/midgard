@@ -1,5 +1,6 @@
-import { defineColors, defineRecipe, hannou, iro, sen, type VariantPropsOf } from '..'
-import { control } from '../genkei/control'
+import { defineColors, type VariantProps } from '../../core/recipe'
+import { check } from '../katakana'
+import { kokkaku } from '../kiso'
 
 const color = defineColors({
 	zinc: {
@@ -15,38 +16,31 @@ const color = defineColors({
 	blue: '[--radio-checked-indicator:var(--color-white)] [--radio-checked-bg:var(--color-blue-600)] [--radio-checked-border:var(--color-blue-800)]/90',
 })
 
-export const k = defineRecipe({
-	base: [
-		'relative',
-		'inline-flex items-center justify-center',
-		sen.focus.outline,
-		...hannou.cursor,
-		'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-		...control.check.surface,
-		'rounded-full',
-		'[--radio-checked-border:transparent]',
-		'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
-		'not-has-[:disabled]:has-checked:hover:opacity-90',
-	],
-	color,
-	size: {
-		sm: 'size-4',
-		md: 'size-4.5',
-		lg: 'size-5',
+export const k = check(
+	{
+		base: [
+			'has-checked:*:data-[slot=radio-indicator]:opacity-100',
+			'rounded-full',
+			'[--radio-checked-border:transparent]',
+			'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
+			'not-has-[:disabled]:has-checked:hover:opacity-90',
+		],
+		color,
+		size: {
+			sm: 'size-4',
+			md: 'size-4.5',
+			lg: 'size-5',
+		},
+		skeleton: kokkaku.radio,
 	},
-	defaults: { color: 'zinc', size: 'md' },
-})
+	{
+		/** Indicator dot size class per radio size step. Read by the component. */
+		indicatorSize: {
+			sm: 'size-1',
+			md: 'size-1.5',
+			lg: 'size-2',
+		} as const,
+	},
+)
 
-export const input = defineRecipe({ base: control.check.hidden })
-
-/** Indicator dot size class per radio size step. Read by the component. */
-export const indicatorSize = {
-	sm: 'size-1',
-	md: 'size-1.5',
-	lg: 'size-2',
-} as const
-
-/** Disabled-state text class shared by the radio field wrapper. */
-export const disabled = iro.text.disabled
-
-export type RadioVariants = VariantPropsOf<typeof k>
+export type RadioVariants = VariantProps<typeof k>

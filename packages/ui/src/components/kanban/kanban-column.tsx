@@ -5,7 +5,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { KanbanColumnProvider, useKanbanContext } from './context'
+import { KanbanColumnContext, useKanbanContext } from './context'
 
 export type KanbanColumnProps = {
 	/** Stable id matching an entry in the `columns` prop. */
@@ -30,7 +30,7 @@ export function KanbanColumn({
 	const over = interactive && isOver && activeId !== null
 
 	return (
-		<KanbanColumnProvider value={{ columnId }}>
+		<KanbanColumnContext value={{ columnId }}>
 			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
 				<section
 					ref={setNodeRef}
@@ -38,11 +38,11 @@ export function KanbanColumn({
 					data-column-id={columnId}
 					data-over={over || undefined}
 					aria-label={ariaLabel}
-					className={cn(k.column, over && k.columnOver, className)}
+					className={cn(k.column.base, over && k.column.over, className)}
 				>
 					{children}
 				</section>
 			</SortableContext>
-		</KanbanColumnProvider>
+		</KanbanColumnContext>
 	)
 }

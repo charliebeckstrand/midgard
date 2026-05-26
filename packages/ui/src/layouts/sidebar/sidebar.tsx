@@ -20,10 +20,10 @@ import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
-import { OffcanvasProvider } from '../../primitives/offcanvas'
+import { OffcanvasContext } from '../../primitives/offcanvas'
 import { k } from './variants'
 
-const [SidebarLayoutContextProvider, useSidebarLayoutContext] = createContext<{
+const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
 	size?: 'sm' | 'md' | 'lg'
 }>('SidebarLayout', { default: {} })
@@ -35,7 +35,7 @@ function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
 	return 'p-6'
 }
 
-export type SidebarLayoutProps = PropsWithChildren<{
+type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
@@ -123,7 +123,7 @@ export function SidebarLayout({
 
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onOpenChange={setOpen}>
-				<OffcanvasProvider value={{ close }}>
+				<OffcanvasContext value={{ close }}>
 					<div
 						ref={(node) => {
 							if (!node) return
@@ -136,7 +136,7 @@ export function SidebarLayout({
 					>
 						{sidebar}
 					</div>
-				</OffcanvasProvider>
+				</OffcanvasContext>
 			</Drawer>
 
 			{/* Navbar on mobile */}
@@ -152,18 +152,18 @@ export function SidebarLayout({
 			</Flex>
 
 			{/* Content */}
-			<SidebarLayoutContextProvider value={{ actions, size }}>
+			<SidebarLayoutContext value={{ actions, size }}>
 				<Frame direction="col" className={k.contentWrapper({ floating })}>
 					<Frame direction="col" className={k.content({ size, stickyHeader })}>
 						{children}
 					</Frame>
 				</Frame>
-			</SidebarLayoutContextProvider>
+			</SidebarLayoutContext>
 		</Frame>
 	)
 }
 
-export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
 	const { actions, size } = useSidebarLayoutContext()
@@ -176,7 +176,7 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	)
 }
 
-export type SidebarLayoutBodyProps = PropsWithChildren<{
+type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLDivElement>
 }>
@@ -189,7 +189,7 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 	)
 }
 
-export type SidebarLayoutFooterProps = PropsWithChildren
+type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (

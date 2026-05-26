@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { merge } from '../../recipes'
+import { merge } from '../../core/recipe'
 
 describe('merge', () => {
 	it('concatenates per-key class arrays across every input record', () => {

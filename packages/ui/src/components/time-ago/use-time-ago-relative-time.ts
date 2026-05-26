@@ -31,7 +31,7 @@ function adaptiveInterval(absMs: number) {
 	return DAY
 }
 
-export type UseRelativeTimeOptions = {
+type UseRelativeTimeOptions = {
 	date: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
@@ -41,7 +41,7 @@ export type UseRelativeTimeOptions = {
 	interval?: number | 'auto'
 }
 
-export type UseRelativeTimeResult = {
+type UseRelativeTimeResult = {
 	then: Date
 	valid: boolean
 	text: string

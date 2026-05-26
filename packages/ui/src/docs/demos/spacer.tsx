@@ -9,7 +9,7 @@ export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Justify">
 				<Card p="md" bg="none">
 					<Stack direction="row" align="center" className="w-full">
@@ -30,6 +30,6 @@ export function Demo() {
 					</Stack>
 				</Card>
 			</Example>
-		</Stack>
+		</>
 	)
 }

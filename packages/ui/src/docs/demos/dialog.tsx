@@ -1,12 +1,11 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import {
 	Dialog,
-	DialogActions,
 	DialogBody,
 	DialogDescription,
+	DialogFooter,
+	DialogHeader,
 	DialogTitle,
 } from '../../components/dialog'
 import { Field, Label } from '../../components/fieldset'
@@ -24,14 +23,16 @@ export function Demo() {
 	const [glassOpen, setGlassOpen] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Dialog">
 				<Button color="green" onClick={() => setOpen(true)}>
 					Create project
 				</Button>
 				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogTitle>Create project</DialogTitle>
-					<DialogDescription>Enter the details for your new project.</DialogDescription>
+					<DialogHeader>
+						<DialogTitle>Create project</DialogTitle>
+						<DialogDescription>Enter the details for your new project.</DialogDescription>
+					</DialogHeader>
 					<DialogBody>
 						<Stack gap="lg">
 							<Field>
@@ -44,14 +45,14 @@ export function Demo() {
 							</Field>
 						</Stack>
 					</DialogBody>
-					<DialogActions>
+					<DialogFooter>
 						<Button variant="plain" onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
 						<Button color="green" onClick={() => setOpen(false)}>
 							Create project
 						</Button>
-					</DialogActions>
+					</DialogFooter>
 				</Dialog>
 			</Example>
 
@@ -67,13 +68,13 @@ export function Demo() {
 							</Text>
 						</Stack>
 					</DialogBody>
-					<DialogActions>
+					<DialogFooter>
 						<Button variant="plain" onClick={() => setGlassOpen(false)}>
 							Close
 						</Button>
-					</DialogActions>
+					</DialogFooter>
 				</Dialog>
 			</Example>
-		</Stack>
+		</>
 	)
 }

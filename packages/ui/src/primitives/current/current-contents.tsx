@@ -3,9 +3,9 @@
 import { motion } from 'motion/react'
 import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
-import { ugoki } from '../../recipes'
+import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
-import { CurrentFadeProvider } from './current'
+import { CurrentFadeContext } from './current'
 import { useCurrentContentsHeight } from './use-current-contents-height'
 
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
@@ -28,9 +28,9 @@ export function CurrentContents({
 	children,
 	...props
 }: CurrentContentsProps) {
-	const ref = useRef<HTMLDivElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
 
-	const height = useCurrentContentsHeight(ref, fade)
+	const height = useCurrentContentsHeight(containerRef, fade)
 
 	if (!fade) {
 		return (
@@ -41,19 +41,19 @@ export function CurrentContents({
 	}
 
 	return (
-		<CurrentFadeProvider value>
+		<CurrentFadeContext value>
 			<ReducedMotion>
 				<motion.div
-					ref={ref}
+					ref={containerRef}
 					data-slot={`${slotPrefix}-contents`}
 					animate={height !== undefined ? { height } : undefined}
 					initial={false}
-					transition={ugoki.reveal.transition}
+					transition={k.transition}
 					className={cn('relative overflow-hidden', className)}
 				>
 					{children}
 				</motion.div>
 			</ReducedMotion>
-		</CurrentFadeProvider>
+		</CurrentFadeContext>
 	)
 }

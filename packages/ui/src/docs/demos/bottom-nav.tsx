@@ -1,10 +1,7 @@
-'use client'
-
 import { Home, MessageCircle, Search, Settings, User } from 'lucide-react'
 import { useState } from 'react'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
 import { Card } from '../../components/card'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -53,7 +50,7 @@ function WithLinksExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<BottomNavExample />
 			</Example>
@@ -61,6 +58,6 @@ export function Demo() {
 			<Example title="With links">
 				<WithLinksExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

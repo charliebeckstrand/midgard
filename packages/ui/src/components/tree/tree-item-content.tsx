@@ -8,7 +8,7 @@ import { Icon } from '../icon'
 import { useTreeContext } from './context'
 import { AFFIX_SELECTOR, PREFIX_INTERACTIVE_SELECTOR } from './tree-constants'
 
-export type TreeItemContentProps = {
+type TreeItemContentProps = {
 	label: ReactNode
 	icon?: ReactElement
 	prefix?: ReactNode
@@ -32,8 +32,6 @@ export function TreeItemContent({
 	className,
 }: TreeItemContentProps) {
 	const { depth, size, indent } = useTreeContext()
-
-	const iconSize = k.iconSize[size]
 
 	const paddingLeft = indent ? `${0.5 + depth * k.indentStep[size]}rem` : '0.5rem'
 
@@ -98,7 +96,7 @@ export function TreeItemContent({
 			className={cn(
 				'group/tree-item',
 				k.itemContent({ size }),
-				current && k.itemContentCurrent,
+				current && k.itemContent.current,
 				className,
 			)}
 			style={{ paddingLeft }}
@@ -107,7 +105,7 @@ export function TreeItemContent({
 		>
 			<span className={k.chevron({ size })} aria-hidden="true">
 				{hasChildren && (
-					<Icon icon={<ChevronRight />} size={iconSize} className={cn(open && 'rotate-90')} />
+					<Icon icon={<ChevronRight />} size={size} className={cn(open && 'rotate-90')} />
 				)}
 			</span>
 			{prefix != null && (
@@ -115,7 +113,7 @@ export function TreeItemContent({
 					{prefix}
 				</span>
 			)}
-			{icon && <Icon icon={icon} size={iconSize} />}
+			{icon && <Icon icon={icon} size={size} />}
 			<span className={k.label}>{label}</span>
 			{suffix != null && (
 				<span data-slot="tree-item-suffix" className="flex flex-none items-center">

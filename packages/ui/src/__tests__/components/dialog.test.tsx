@@ -67,9 +67,9 @@ describe('Dialog', () => {
 		expect(screen.getByText('Small')).toBeInTheDocument()
 	})
 
-	it('respects outsideClick=false', () => {
+	it('respects dismissOnBackdrop=false', () => {
 		renderUI(
-			<Dialog open outsideClick={false} onOpenChange={() => {}}>
+			<Dialog open dismissOnBackdrop={false} onOpenChange={() => {}}>
 				Locked
 			</Dialog>,
 		)

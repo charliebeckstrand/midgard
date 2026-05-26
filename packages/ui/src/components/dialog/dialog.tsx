@@ -1,23 +1,29 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yProvider, usePanelA11yScope } from '../../primitives/panel'
-import { ugoki } from '../../recipes'
-import { type DialogPanelVariants, k as dialog } from '../../recipes/kata/dialog'
+import {
+	PanelA11yContext,
+	PanelCloseContext,
+	usePanelA11yScope,
+	usePanelCloseValue,
+} from '../../primitives/panel'
+import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 import { useResolvedSurface } from '../glass/context'
 
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	align?: 'center' | 'start'
-	outsideClick?: boolean
+	dismissOnBackdrop?: boolean
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/** Element to receive initial focus when the dialog opens. Defaults to the first tabbable child. */
+	initialFocus?: RefObject<HTMLElement | null>
 }
 
 const alignClasses = {
@@ -29,12 +35,13 @@ export function Dialog({
 	open,
 	onOpenChange,
 	align = 'center',
-	outsideClick = true,
+	dismissOnBackdrop = true,
 	surface,
 	size,
 	glass,
 	className,
 	children,
+	initialFocus,
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
@@ -42,12 +49,15 @@ export function Dialog({
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope()
 
+	const closeValue = usePanelCloseValue(onOpenChange)
+
 	return (
 		<Overlay
 			open={open}
 			onOpenChange={onOpenChange}
-			outsideClick={outsideClick}
+			dismissOnBackdrop={dismissOnBackdrop}
 			glass={resolvedSurface === 'glass'}
+			initialFocus={initialFocus}
 		>
 			<div
 				className={cn(
@@ -56,16 +66,18 @@ export function Dialog({
 				)}
 			>
 				<motion.div
-					{...(isDesktop ? ugoki.popover : ugoki.panel.bottom)}
+					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
 					{...panelAriaProps}
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
-						dialog.panel({ surface: resolvedSurface, size }),
+						k.panel({ surface: resolvedSurface, size }),
 						className,
 					)}
 				>
-					<PanelA11yProvider value={providerValue}>{children}</PanelA11yProvider>
+					<PanelCloseContext value={closeValue}>
+						<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
+					</PanelCloseContext>
 				</motion.div>
 			</div>
 		</Overlay>

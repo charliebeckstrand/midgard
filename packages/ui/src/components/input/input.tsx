@@ -3,19 +3,12 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { AffixProvider, affixStepDown } from '../../primitives/affix'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
-import {
-	autofill,
-	type InputVariants,
-	inputControl,
-	k,
-	prefix as prefixPad,
-	suffix as suffixPad,
-} from '../../recipes/kata/input'
+import { type InputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlProps } from '../control/use-control-props'
@@ -24,8 +17,9 @@ import { useHeadless } from '../headless/context'
 import { Spinner } from '../spinner'
 import { useInputValue } from './use-input-value'
 
-export type InputProps = Omit<InputVariants, 'size'> & {
+export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: Step
+	variant?: 'default' | 'outline'
 	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode
@@ -91,27 +85,30 @@ export function Input(props: InputProps) {
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
-	if (headless) {
-		return (
-			<input
-				ref={ref}
-				data-slot="input"
-				type={type}
-				id={scope.id}
-				name={name}
-				autoComplete={sharedAttrs.autoComplete}
-				disabled={sharedAttrs.disabled}
-				required={sharedAttrs.required}
-				readOnly={sharedAttrs.readOnly}
-				value={valueState.value}
-				onChange={valueState.onChange}
-				onBlur={valueState.onBlur}
-				className={className}
-				{...invalidAttrs(resolvedInvalid)}
-				{...rest}
-			/>
-		)
-	}
+	const inputEl = (
+		<input
+			ref={ref}
+			data-slot="input"
+			type={type}
+			id={scope.id}
+			name={name}
+			autoComplete={sharedAttrs.autoComplete}
+			disabled={sharedAttrs.disabled}
+			required={sharedAttrs.required}
+			readOnly={sharedAttrs.readOnly}
+			value={valueState.value}
+			onChange={valueState.onChange}
+			onBlur={valueState.onBlur}
+			className={cn(
+				!headless && k({ variant: resolvedVariant, density: token.density, size: token.size }),
+				className,
+			)}
+			{...invalidAttrs(resolvedInvalid)}
+			{...rest}
+		/>
+	)
+
+	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <Spinner /> : suffix
@@ -126,55 +123,30 @@ export function Input(props: InputProps) {
 
 	return (
 		<DensityScope scale={size}>
-			<AffixProvider value={affixStep}>
+			<AffixContext value={affixStep}>
 				<ControlFrame
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
 					className={cn(
-						inputControl({ variant: resolvedVariant }),
+						k.inputControl({ variant: resolvedVariant }),
 						hasAffix && 'group/control flex flex-wrap items-center',
 					)}
 				>
 					{resolvedPrefix && (
-						<span className={cn('peer/prefix', k.affix, prefixPad[token.density])}>
+						<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
 							{resolvedPrefix}
 						</span>
 					)}
 
-					<input
-						ref={ref}
-						data-slot="input"
-						type={type}
-						id={scope.id}
-						name={name}
-						autoComplete={sharedAttrs.autoComplete}
-						disabled={sharedAttrs.disabled}
-						required={sharedAttrs.required}
-						readOnly={sharedAttrs.readOnly}
-						value={valueState.value}
-						onChange={valueState.onChange}
-						onBlur={valueState.onBlur}
-						className={cn(
-							k({
-								variant: resolvedVariant,
-								density: token.density,
-								size: token.size,
-							}),
-							resolvedPrefix && autofill.prefix[token.density],
-							resolvedSuffix && autofill.suffix[token.density],
-							className,
-						)}
-						{...invalidAttrs(resolvedInvalid)}
-						{...rest}
-					/>
+					{inputEl}
 
 					{resolvedSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, suffixPad[token.density])}>
+						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
 							{resolvedSuffix}
 						</span>
 					)}
 				</ControlFrame>
-			</AffixProvider>
+			</AffixContext>
 		</DensityScope>
 	)
 }

@@ -1,4 +1,5 @@
-import { defineRecipe, iro, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, kokkaku } from '../kiso'
 
 export const k = defineRecipe({
 	variant: {
@@ -18,6 +19,7 @@ export const k = defineRecipe({
 		blue: 'text-blue-600 dark:text-blue-500',
 	},
 	defaults: { variant: 'default' },
+	skeleton: kokkaku.text,
 })
 
-export type TextVariants = VariantPropsOf<typeof k>
+export type TextVariants = VariantProps<typeof k>

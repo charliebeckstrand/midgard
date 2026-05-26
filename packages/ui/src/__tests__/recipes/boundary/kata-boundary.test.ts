@@ -8,7 +8,15 @@ const RECIPE_IMPORT =
 	/import\s+\{[^}]*\bdefineRecipe\b[^}]*\}\s+from\s+['"][^'"]*\bcore\/recipe['"]/
 
 function isSanctioned(rel: string): boolean {
+	// Kata that don't match an archetype call `defineRecipe` directly
+	// (button, badge, alert, card, …). Kata that match an archetype route
+	// through their katakana applicator and don't call `defineRecipe`
+	// themselves. Both reaches are honest layering.
 	if (rel.startsWith('recipes/kata/') && rel.endsWith('.ts')) return true
+
+	// katakana/ is the applicator layer — it wraps `defineRecipe` on behalf
+	// of kata that match an archetype shape.
+	if (rel.startsWith('recipes/katakana/') && rel.endsWith('.ts')) return true
 
 	if (/^layouts\/[^/]+\/variants\.ts$/.test(rel)) return true
 
@@ -32,8 +40,9 @@ function* walk(dir: string): Generator<string> {
 }
 
 describe('kata boundary', () => {
-	// `defineRecipe` is the recipe primitive and lives only at the kata public
-	// surface (recipes/kata/*.ts) or in layout-local variants files
+	// `defineRecipe` is the recipe primitive and lives only at the kata
+	// surface (recipes/kata/*.ts), the katakana applicator layer
+	// (recipes/katakana/*.ts), or in layout-local variants files
 	// (layouts/*/variants.ts). Importing it anywhere else means styling has
 	// leaked out of the recipe layer.
 	it('defineRecipe from core/recipe is imported only in sanctioned files', () => {

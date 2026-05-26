@@ -2,9 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { useSortableItem } from '../../hooks'
-import { ListItemProvider } from './context'
+import { ListItemContext } from './context'
 
-export type ListItemSortableProps = {
+type ListItemSortableProps = {
 	id: string
 	children: ReactNode
 }
@@ -14,7 +14,7 @@ export function ListItemSortable({ id, children }: ListItemSortableProps) {
 		useSortableItem({ id })
 
 	return (
-		<ListItemProvider
+		<ListItemContext
 			value={{
 				id,
 				setNodeRef,
@@ -26,6 +26,6 @@ export function ListItemSortable({ id, children }: ListItemSortableProps) {
 			}}
 		>
 			{children}
-		</ListItemProvider>
+		</ListItemContext>
 	)
 }

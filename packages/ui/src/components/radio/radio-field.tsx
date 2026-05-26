@@ -1,10 +1,43 @@
-import type { ComponentPropsWithoutRef } from 'react'
+'use client'
+
+import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ToggleField } from '../../primitives/toggle'
-import { disabled } from '../../recipes/kata/radio'
+import { k } from '../../recipes/kata/radio'
+import { ControlContext, type ControlContextValue, useControl } from '../control/context'
 
-export type RadioFieldProps = ComponentPropsWithoutRef<'div'>
+export type RadioFieldProps = {
+	htmlFor?: string
+} & ComponentPropsWithoutRef<'div'>
 
-export function RadioField({ className, ...props }: RadioFieldProps) {
-	return <ToggleField className={cn(disabled, className)} {...props} />
+/**
+ * Pairs a Radio with its Label. Generates a scoped id and broadcasts it
+ * through `ControlContext` so the inner Radio and Label auto-wire without
+ * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
+ */
+export function RadioField({ className, htmlFor, ...props }: RadioFieldProps) {
+	const parent = useControl()
+
+	const scope = useIdScope({ id: htmlFor })
+
+	const value = useMemo<ControlContextValue>(
+		() => ({
+			id: scope.id,
+			autoComplete: parent?.autoComplete,
+			disabled: parent?.disabled,
+			invalid: parent?.invalid,
+			readOnly: parent?.readOnly,
+			required: parent?.required,
+			size: parent?.size,
+			variant: parent?.variant,
+		}),
+		[scope.id, parent],
+	)
+
+	return (
+		<ControlContext value={value}>
+			<ToggleField className={cn(k.disabled, className)} {...props} />
+		</ControlContext>
+	)
 }

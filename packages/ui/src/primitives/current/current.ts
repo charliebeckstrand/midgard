@@ -6,7 +6,7 @@ import { useControllable } from '../../hooks'
 
 export type CurrentContextValue = {
 	value: string | undefined
-	onValueChange: ((value: string) => void) | undefined
+	onValueChange: ((value: string | undefined) => void) | undefined
 }
 
 /**
@@ -14,7 +14,7 @@ export type CurrentContextValue = {
  * switches between mutually exclusive views. `CurrentContents` / `CurrentContent`
  * compare their own `value` against the context and render accordingly.
  */
-export const [CurrentProvider, useCurrent] = createContext<CurrentContextValue | undefined>(
+export const [CurrentContext, useCurrent] = createContext<CurrentContextValue | undefined>(
 	'Current',
 	{ default: undefined },
 )
@@ -35,6 +35,6 @@ export function useCurrentState(props: {
 }
 
 /** Internal: signals to `CurrentContent` that its `CurrentContents` parent is animating height. */
-export const [CurrentFadeProvider, useCurrentFade] = createContext<boolean>('CurrentFade', {
+export const [CurrentFadeContext, useCurrentFade] = createContext<boolean>('CurrentFade', {
 	default: false,
 })

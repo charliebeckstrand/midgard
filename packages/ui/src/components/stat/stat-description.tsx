@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
-import { k, statPlaceholder } from '../../recipes/kata/stat'
+import { k } from '../../recipes/kata/stat'
 import { Placeholder } from '../placeholder'
 
 export type StatDescriptionProps = {
@@ -10,7 +10,7 @@ export type StatDescriptionProps = {
 
 export function StatDescription({ className, children, ...props }: StatDescriptionProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn(statPlaceholder.description, className)} />
+		return <Placeholder className={cn(k.skeleton.description, className)} />
 	}
 
 	return (

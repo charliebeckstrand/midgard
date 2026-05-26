@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
@@ -59,7 +57,7 @@ export function Demo() {
 	const [colorVariant, setColorVariant] = useState<(typeof colorVariants)[number]>('soft')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				<Stack gap="md">
 					{variants.map((variant) => (
@@ -126,6 +124,6 @@ export function Demo() {
 			<Example title="Block">
 				<ClosableBlockExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

@@ -6,8 +6,8 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import {
+	ControlContext,
 	type ControlContextValue,
-	ControlProvider,
 	type ControlSize,
 	type ControlVariant,
 	useControl,
@@ -92,7 +92,7 @@ export function Control({
 	)
 
 	return (
-		<ControlProvider value={value}>
+		<ControlContext value={value}>
 			{mergedSize ? (
 				<Density density={mergedSize} size={mergedSize}>
 					{body}
@@ -100,6 +100,6 @@ export function Control({
 			) : (
 				body
 			)}
-		</ControlProvider>
+		</ControlContext>
 	)
 }

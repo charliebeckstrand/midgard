@@ -1,13 +1,12 @@
 import { Card } from '../../components/card'
 import { Grid, GridCell, GridDivider } from '../../components/grid'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Layout' }
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Columns">
 				<Grid columns={3} gap="lg">
 					<Card>One</Card>
@@ -64,6 +63,6 @@ export function Demo() {
 					<Card>Short</Card>
 				</Grid>
 			</Example>
-		</Stack>
+		</>
 	)
 }

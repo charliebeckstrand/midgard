@@ -1,7 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
+import { Heading } from '../../components/heading'
 import { Odometer } from '../../components/odometer'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
@@ -13,18 +12,11 @@ function CounterExample() {
 	const [value, setValue] = useState(1284)
 
 	return (
-		<Example
-			title="Counter"
-			code={code`
-				import { Odometer } from 'ui/odometer'
-
-				<Odometer value={value} />
-			`}
-		>
+		<Example title="Counter">
 			<Stack gap="md" align="start">
-				<div className="text-2xl font-semibold">
+				<Heading level={2}>
 					<Odometer value={value} />
-				</div>
+				</Heading>
 				<Button onClick={() => setValue(Math.floor(Math.random() * 100_000))}>Randomize</Button>
 			</Stack>
 		</Example>
@@ -48,9 +40,9 @@ function CurrencyExample() {
 			`}
 		>
 			<Stack gap="md" align="start">
-				<div className="text-2xl font-semibold">
+				<Heading level={2}>
 					<Odometer value={value} format={format} />
-				</div>
+				</Heading>
 				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
 			</Stack>
 		</Example>
@@ -61,21 +53,16 @@ export function Demo() {
 	const [value, setValue] = useState(1284)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<CounterExample />
 			<CurrencyExample />
 
-			<Example
-				title="Instant (duration=0)"
-				code={code`
+			<Example title="Instant (duration=0)">
+				<Heading level={2}>
 					<Odometer value={value} duration={0} />
-				`}
-			>
-				<div className="text-2xl font-semibold">
-					<Odometer value={value} duration={0} />
-				</div>
+				</Heading>
 				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
 			</Example>
-		</Stack>
+		</>
 	)
 }

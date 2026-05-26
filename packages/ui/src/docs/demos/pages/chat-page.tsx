@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowUp, CircleDashed, Plus, Trash } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../../components/button'

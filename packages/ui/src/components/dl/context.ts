@@ -5,6 +5,6 @@ import type { Orientation } from '../../types'
 
 export type DlOrientation = Orientation
 
-export const [DlProvider, useDlOrientation] = createContext<DlOrientation>('Dl', {
+export const [DlContext, useDlOrientation] = createContext<DlOrientation>('Dl', {
 	default: 'horizontal',
 })

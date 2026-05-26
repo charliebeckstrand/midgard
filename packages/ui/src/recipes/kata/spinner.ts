@@ -1,5 +1,4 @@
-import { defineRecipe, type VariantPropsOf } from '..'
-
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 export const k = defineRecipe({
 	base: 'inline-block shrink-0 animate-spin',
 	size: {
@@ -20,4 +19,4 @@ export const k = defineRecipe({
 	defaults: { size: 'md', color: 'current' },
 })
 
-export type SpinnerVariants = VariantPropsOf<typeof k>
+export type SpinnerVariants = VariantProps<typeof k>

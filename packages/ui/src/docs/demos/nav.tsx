@@ -1,9 +1,6 @@
-'use client'
-
 import { useState } from 'react'
 import { Card } from '../../components/card'
-import { NavContent, NavContents, NavItem, NavList, NavProvider } from '../../components/nav'
-import { Stack } from '../../components/stack'
+import { NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -12,7 +9,7 @@ export function Demo() {
 	const [current, setCurrent] = useState('account')
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<NavList orientation="horizontal">
 					<NavItem value="home">Home</NavItem>
@@ -22,7 +19,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Value model with content">
-				<NavProvider value={{ value: current, onChange: setCurrent }}>
+				<NavContext value={{ value: current, onChange: setCurrent }}>
 					<NavList orientation="horizontal">
 						<NavItem value="account">Account</NavItem>
 						<NavItem value="notifications">Notifications</NavItem>
@@ -35,7 +32,7 @@ export function Demo() {
 							<NavContent value="billing">Billing information</NavContent>
 						</NavContents>
 					</Card>
-				</NavProvider>
+				</NavContext>
 			</Example>
 
 			<Example title="With links">
@@ -45,6 +42,6 @@ export function Demo() {
 					<NavItem href="#docs">Documentation</NavItem>
 				</NavList>
 			</Example>
-		</Stack>
+		</>
 	)
 }

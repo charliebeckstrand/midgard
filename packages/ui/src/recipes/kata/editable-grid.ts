@@ -1,10 +1,11 @@
-import { defineRecipe, iro, sen, type VariantPropsOf } from '..'
+import { defineRecipe } from '../../core/recipe'
+import { iro, sen } from '../kiso'
 
 const cell = defineRecipe({
 	base: [
 		'relative flex h-full w-full items-center cursor-cell select-none outline-none',
-		'px-sm',
-		'py-sm',
+		'px-2',
+		'py-2',
 		sen.focus.inset,
 		'data-[active]:bg-blue-500/10 data-[in-range]:bg-blue-500/10',
 		'dark:data-[active]:bg-blue-400/15 dark:data-[in-range]:bg-blue-400/15',
@@ -18,7 +19,7 @@ const cell = defineRecipe({
 })
 
 const editInput = defineRecipe({
-	base: ['absolute inset-0 bg-transparent', sen.focus.inset, 'px-sm', 'py-sm', iro.text.default],
+	base: ['absolute inset-0 bg-transparent', sen.focus.inset, 'px-2', 'py-2', iro.text.default],
 	align: {
 		left: 'text-left',
 		center: 'text-center',
@@ -36,8 +37,11 @@ export const k = {
 		'dark:after:ring-blue-500',
 	],
 	cellReadOnly: ['cursor-default', iro.text.muted],
+	cellFlash: [
+		'pointer-events-none absolute inset-0',
+		'bg-amber-400/40 dark:bg-amber-500/30',
+		'motion-reduce:hidden',
+		'motion-safe:animate-[editable-grid-cell-flash_700ms_ease-out_forwards]',
+	],
 	editInput,
 }
-
-export type EditableGridCellVariants = VariantPropsOf<typeof cell>
-export type EditableGridCellInputVariants = VariantPropsOf<typeof editInput>

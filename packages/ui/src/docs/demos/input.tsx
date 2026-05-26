@@ -2,7 +2,6 @@ import { Check, Command, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 
@@ -12,7 +11,7 @@ const variants = ['default', 'outline'] as const
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Field key={variant}>
@@ -100,6 +99,6 @@ export function Demo() {
 					<Input data-valid placeholder="Valid input" />
 				</Field>
 			</Example>
-		</Stack>
+		</>
 	)
 }

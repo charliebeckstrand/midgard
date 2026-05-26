@@ -1,25 +1,7 @@
-import { defineRecipe, iro, ji, type VariantPropsOf } from '..'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, ji } from '../kiso'
 
-export const k = defineRecipe({
-	base: 'flex flex-col',
-	type: {
-		user: 'items-end',
-		assistant: 'items-start',
-		system: 'items-center',
-	},
-	slots: {
-		timestamp: [ji.xs, 'mt-1', ...iro.text.muted],
-		cursor: [
-			'ml-1 inline-block h-[1em] w-[2px] align-[-0.15em]',
-			'bg-current',
-			'motion-safe:animate-pulse',
-		],
-		actions: ['mt-1 flex items-center', 'gap-0.5'],
-	},
-	defaults: { type: 'assistant' },
-})
-
-export const bubble = defineRecipe({
+const bubble = defineRecipe({
 	base: ['w-fit max-w-[85%]', 'px-4 py-3', ji.md, 'rounded-2xl', 'whitespace-pre-wrap break-words'],
 	type: {
 		user: ['bg-blue-600 text-white', 'rounded-br-md'],
@@ -29,5 +11,27 @@ export const bubble = defineRecipe({
 	defaults: { type: 'assistant' },
 })
 
-export type ChatMessageVariants = VariantPropsOf<typeof k>
-export type ChatMessageBubbleVariants = VariantPropsOf<typeof bubble>
+export const k = defineRecipe(
+	{
+		base: 'flex flex-col',
+		type: {
+			user: 'items-end',
+			assistant: 'items-start',
+			system: 'items-center',
+		},
+		slots: {
+			timestamp: [ji.xs, 'mt-1', ...iro.text.muted],
+			cursor: [
+				'ml-1 inline-block h-[1em] w-[2px] align-[-0.15em]',
+				'bg-current',
+				'motion-safe:animate-pulse',
+			],
+			actions: ['mt-1 flex items-center', 'gap-0.5'],
+		},
+		defaults: { type: 'assistant' },
+	},
+	{ bubble },
+)
+
+export type ChatMessageVariants = VariantProps<typeof k>
+export type ChatMessageBubbleVariants = VariantProps<typeof bubble>

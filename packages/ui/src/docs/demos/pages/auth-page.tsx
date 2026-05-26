@@ -1,5 +1,3 @@
-'use client'
-
 import { type ComponentProps, type ReactNode, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Field, Fieldset, Label } from '../../../components/fieldset'

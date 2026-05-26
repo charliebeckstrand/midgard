@@ -1,5 +1,3 @@
-'use client'
-
 import { Heading1, Heading2, Heading3 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
@@ -27,7 +25,7 @@ export function Demo() {
 	const isInput = child === 'input'
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Flex gap="sm">
 				<Control>
 					<Listbox<ChildType>
@@ -151,6 +149,6 @@ export function Demo() {
 					</Group>
 				</Stack>
 			</Example>
-		</Stack>
+		</>
 	)
 }

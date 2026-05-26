@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, type RefObject, useEffect } from 'react'
 
 const noop = () => {}
 
@@ -7,6 +7,19 @@ const identity = <T>(x: T) => x
 type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
 
 type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
+
+type MockFocusManagerProps = {
+	children: ReactNode
+	initialFocus?: RefObject<HTMLElement | null>
+}
+
+function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerProps) {
+	useEffect(() => {
+		initialFocus?.current?.focus()
+	}, [initialFocus])
+
+	return children
+}
 
 /**
  * `@floating-ui/react` mock applied globally via `setup/module-mocks.ts`.
@@ -25,7 +38,7 @@ type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
  */
 const floatingUIMock = {
 	autoUpdate: noop,
-	FloatingFocusManager: ({ children }: { children: ReactNode }) => children,
+	FloatingFocusManager: MockFloatingFocusManager,
 	FloatingPortal: ({ children }: { children: ReactNode }) => children,
 	flip: () => ({}),
 	offset: () => ({}),

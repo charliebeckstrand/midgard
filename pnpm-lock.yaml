@@ -71,52 +71,6 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
 
-  apps/chat:
-    dependencies:
-      '@heroicons/react':
-        specifier: ^2.2.0
-        version: 2.2.0(react@19.2.4)
-      auth:
-        specifier: workspace:*
-        version: link:../../packages/auth
-      next:
-        specifier: ^16.1.0
-        version: 16.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: ^19.1.0
-        version: 19.2.4
-      react-dom:
-        specifier: ^19.1.0
-        version: 19.2.4(react@19.2.4)
-      shared:
-        specifier: workspace:*
-        version: link:../../packages/shared
-      ui:
-        specifier: workspace:*
-        version: link:../../packages/ui
-    devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.4.6
-        version: 2.4.6
-      '@tailwindcss/postcss':
-        specifier: ^4.1.0
-        version: 4.2.1
-      '@types/node':
-        specifier: ^25.3.3
-        version: 25.5.0
-      '@types/react':
-        specifier: ^19.1.6
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.1.6
-        version: 19.2.3(@types/react@19.2.14)
-      tailwindcss:
-        specifier: ^4.1.0
-        version: 4.2.1
-      typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
-
   packages/auth:
     devDependencies:
       '@biomejs/biome':
@@ -219,6 +173,9 @@ importers:
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
+      tinykeys:
+        specifier: ^4.0.0
+        version: 4.0.0
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.2.1
@@ -2613,6 +2570,10 @@ packages:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
     engines: {node: '>=12.0.0'}
 
+  tinykeys@4.0.0:
+    resolution: {integrity: sha512-z5bQRQHL1PSx3lGOZEAMM2oKp0EBtn5T5f7HJnaKPOzk6vEH0wUPvdHLeQ7F4tmkek8AgoTQISUFmn/5SNF2xA==}
+    engines: {node: '>=22'}
+
   tinyqueue@3.0.0:
     resolution: {integrity: sha512-gRa9gwYU3ECmQYv3lslts5hxuIa90veaEcxDYuu3QGOIAEM2mOZkVHp48ANJuu1CURtRdHKUBY5Lm1tHV+sD4g==}
 
@@ -4911,6 +4872,8 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
+
+  tinykeys@4.0.0: {}
 
   tinyqueue@3.0.0: {}
 

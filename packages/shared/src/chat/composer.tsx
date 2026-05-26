@@ -5,13 +5,13 @@ import { type KeyboardEvent, useState } from 'react'
 import { Button } from 'ui/button'
 import { Textarea } from 'ui/textarea'
 
-interface Props {
+type ChatComposerProps = {
 	disabled?: boolean
 	onSend: (message: string) => Promise<void> | void
 	className?: string
 }
 
-export function ChatComposer({ disabled, onSend, className }: Props) {
+export function ChatComposer({ disabled, onSend, className }: ChatComposerProps) {
 	const [input, setInput] = useState('')
 
 	async function handleSend() {

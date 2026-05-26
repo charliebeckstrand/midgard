@@ -1,12 +1,8 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - apps/*
+  - packages/*
+
 allowBuilds:
-  esbuild: true
+  esbuild: false
   lefthook: true
-  sharp: true
-onlyBuiltDependencies:
-  - "@biomejs/biome"
-  - esbuild
-  - lefthook
-  - sharp
+  sharp: false

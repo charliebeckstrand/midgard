@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { PasswordInput } from '../../components/password-input'
@@ -80,7 +78,7 @@ function CustomRulesExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="With password input">
 				<BasicExample />
 			</Example>
@@ -92,6 +90,6 @@ export function Demo() {
 			<Example title="Custom rules">
 				<CustomRulesExample />
 			</Example>
-		</Stack>
+		</>
 	)
 }

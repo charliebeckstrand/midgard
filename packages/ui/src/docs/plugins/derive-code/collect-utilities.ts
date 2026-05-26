@@ -1,6 +1,6 @@
 import ts from 'typescript'
 
-export type Helper = { name: string; code: string }
+type Helper = { name: string; code: string }
 
 function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boolean {
 	if (!modifiers) return false

@@ -21,10 +21,10 @@ type MenuActionsValue = {
 	setFloating: (node: HTMLElement | null) => void
 }
 
-export type MenuContextValue = MenuStateValue & MenuActionsValue
+type MenuContextValue = MenuStateValue & MenuActionsValue
 
-export const [MenuStateProvider, useMenuState] = createContext<MenuStateValue>('Menu')
-export const [MenuActionsProvider, useMenuActions] = createContext<MenuActionsValue>('Menu')
+export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('Menu')
+export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
 /** Returns combined state + actions. Prefer `useMenuActions` in leaves that only need `close`. */
 export function useMenuContext(): MenuContextValue {

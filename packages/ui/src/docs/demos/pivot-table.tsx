@@ -1,5 +1,4 @@
 import { PivotTable } from '../../components/pivot-table'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Table' }
@@ -30,7 +29,7 @@ const currency = (value: number) =>
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Loads by lane">
 				<PivotTable
 					rows={loads}
@@ -73,6 +72,6 @@ export function Demo() {
 					rowHeader="Carrier"
 				/>
 			</Example>
-		</Stack>
+		</>
 	)
 }

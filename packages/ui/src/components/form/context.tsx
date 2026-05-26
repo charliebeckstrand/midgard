@@ -1,37 +1,36 @@
 'use client'
 
-import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { createContext } from '../../core'
 
 export type FormStateValue = {
 	values: Record<string, unknown>
-	errors: Record<string, string | undefined>
-	touched: Record<string, boolean>
-	dirty: Record<string, boolean>
-	isDirty: boolean
-	isValid: boolean
+	errors: Record<string, string[] | undefined>
+	touchedFields: Record<string, boolean>
+	dirtyFields: Record<string, boolean>
+	dirty: boolean
+	valid: boolean
 	submitting: boolean
 }
 
 export type FormActions = {
 	getValue: (name: string) => unknown
 	setValue: (name: string, value: unknown) => void
-	setErrors: (errors: Record<string, string | undefined>) => void
+	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	setTouched: (name: string) => void
-	reset: () => void
+	reset: (nextDefaults?: Record<string, unknown>) => void
 }
 
 /** Combined shape for consumers that need both state and actions. */
 export type FormContextValue = FormStateValue & FormActions
 
-const [FormStateProvider, useFormState] = createContext<FormStateValue | undefined>('FormState', {
+const [FormStateContext, useFormState] = createContext<FormStateValue | undefined>('FormState', {
 	default: undefined,
 })
 
-const [FormActionsProvider, useFormActions] = createContext<FormActions | undefined>(
-	'FormActions',
-	{ default: undefined },
-)
+const [FormActionsContext, useFormActions] = createContext<FormActions | undefined>('FormActions', {
+	default: undefined,
+})
 
 export { useFormActions, useFormState }
 
@@ -46,9 +45,9 @@ export function FormProvider({
 	children: ReactNode
 }) {
 	return (
-		<FormActionsProvider value={actions}>
-			<FormStateProvider value={state}>{children}</FormStateProvider>
-		</FormActionsProvider>
+		<FormActionsContext value={actions}>
+			<FormStateContext value={state}>{children}</FormStateContext>
+		</FormActionsContext>
 	)
 }
 
@@ -66,7 +65,7 @@ export type FormFieldState = {
 	value: unknown
 	setValue: (value: unknown) => void
 	setTouched: () => void
-	error: string | undefined
+	errors: string[] | undefined
 	touched: boolean
 	dirty: boolean
 }
@@ -81,9 +80,9 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 		value: context.getValue(name),
 		setValue: (v) => context.setValue(name, v),
 		setTouched: () => context.setTouched(name),
-		error: context.errors[name],
-		touched: context.touched[name] ?? false,
-		dirty: context.dirty[name] ?? false,
+		errors: context.errors[name],
+		touched: context.touchedFields[name] ?? false,
+		dirty: context.dirtyFields[name] ?? false,
 	}
 }
 
@@ -101,72 +100,7 @@ export function useFormStatus(): FormStatus | undefined {
 
 	return {
 		submitting: context.submitting,
-		dirty: context.isDirty,
-		valid: context.isValid,
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Binding hooks — thin wrappers that return props ready to spread onto
-// native elements. Each control type extracts values differently, so we
-// provide one hook per shape rather than a single polymorphic hook.
-// ---------------------------------------------------------------------------
-
-export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
-	value: string
-	onChange: (e: ChangeEvent<E>) => void
-	onBlur: (e: FocusEvent<E>) => void
-	invalid: boolean
-}
-
-/** Binding for string-value controls (Input, Textarea). */
-export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>(
-	name: string | undefined,
-	handlers?: {
-		onChange?: (e: ChangeEvent<E>) => void
-		onBlur?: (e: FocusEvent<E>) => void
-	},
-): FormTextBinding<E> | undefined {
-	const field = useFormField(name)
-
-	if (!field) return undefined
-
-	return {
-		value: typeof field.value === 'string' ? field.value : '',
-		onChange: (e) => {
-			field.setValue(e.target.value)
-			handlers?.onChange?.(e)
-		},
-		onBlur: (e) => {
-			field.setTouched()
-			handlers?.onBlur?.(e)
-		},
-		invalid: field.error !== undefined,
-	}
-}
-
-export type FormToggleBinding = {
-	checked: boolean
-	onChange: (e: ChangeEvent<HTMLInputElement>) => void
-	invalid: boolean
-}
-
-/** Binding for boolean-value controls (Checkbox, Switch). */
-export function useFormToggle(
-	name: string | undefined,
-	handlers?: { onChange?: (e: ChangeEvent<HTMLInputElement>) => void },
-): FormToggleBinding | undefined {
-	const field = useFormField(name)
-
-	if (!field) return undefined
-
-	return {
-		checked: typeof field.value === 'boolean' ? field.value : false,
-		onChange: (e) => {
-			field.setValue(e.target.checked)
-			field.setTouched()
-			handlers?.onChange?.(e)
-		},
-		invalid: field.error !== undefined,
+		dirty: context.dirty,
+		valid: context.valid,
 	}
 }

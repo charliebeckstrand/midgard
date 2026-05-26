@@ -4,22 +4,18 @@ import { X } from 'lucide-react'
 import type { Color } from '../../recipes'
 import { Badge } from '../badge'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
-import { tagRemoveSize, tagSize } from './tag-input-constants'
 
-export type TagInputBadgeProps = {
+type TagInputBadgeProps = {
 	label: string
-	size: ControlSize
 	color: Color
 	disabled?: boolean
 	onRemove: () => void
 }
 
-export function TagInputBadge({ label, size, color, disabled, onRemove }: TagInputBadgeProps) {
+export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadgeProps) {
 	return (
 		<Badge
-			size={tagSize[size]}
 			variant="outline"
 			rounded="full"
 			color={color}
@@ -27,9 +23,7 @@ export function TagInputBadge({ label, size, color, disabled, onRemove }: TagInp
 				!disabled && (
 					<Button
 						aria-label={`Remove ${label}`}
-						className={tagRemoveSize[size]}
-						size="xs"
-						variant="plain"
+						variant="bare"
 						onMouseDown={(e) => e.preventDefault()}
 						onClick={(e) => {
 							e.stopPropagation()

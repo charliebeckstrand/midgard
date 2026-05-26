@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
-import type { Orientation } from '../../hooks'
+import type { Orientation } from '../../types'
 
 type Options<T> = {
 	items: T[]

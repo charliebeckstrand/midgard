@@ -5,7 +5,7 @@ export type Chat = {
 	updated_at: string
 }
 
-export interface ChatContent {
+export type ChatContent = {
 	id?: string
 	role: 'user' | 'agent'
 	content: string

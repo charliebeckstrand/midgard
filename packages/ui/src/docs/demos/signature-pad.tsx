@@ -1,9 +1,6 @@
-'use client'
-
 import { useRef, useState } from 'react'
 import { Button } from '../../components/button'
-import { Dialog } from '../../components/dialog'
-import { DialogActions, DialogBody, DialogTitle } from '../../components/dialog/slots'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
 import { Flex } from '../../components/flex'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import { Stack } from '../../components/stack'
@@ -33,7 +30,7 @@ function DefaultExample() {
 									className="border border-zinc-200 dark:border-zinc-700 bg-white p-2"
 								/>
 							</DialogBody>
-							<DialogActions>
+							<DialogFooter>
 								<Button
 									color="blue"
 									onClick={() => {
@@ -46,7 +43,7 @@ function DefaultExample() {
 									Download
 								</Button>
 								<Button onClick={() => setPreviewOpen(false)}>Close</Button>
-							</DialogActions>
+							</DialogFooter>
 						</Dialog>
 					</>
 				)}
@@ -109,10 +106,10 @@ function DisabledExample() {
 
 export function Demo() {
 	return (
-		<Stack gap="xl">
+		<>
 			<DefaultExample />
 			<ImperativeHandleExample />
 			<DisabledExample />
-		</Stack>
+		</>
 	)
 }

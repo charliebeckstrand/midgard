@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ReadyReveal } from '../../primitives/ready-reveal'
-import { SkeletonProvider } from './context'
+import { SkeletonContext } from './context'
 
-export type SkeletonProps = {
+type SkeletonProps = {
 	/** When provided, crossfades from skeleton to real content as ready flips. */
 	ready?: boolean
 	className?: string
@@ -17,11 +17,11 @@ export type SkeletonProps = {
 export function Skeleton({ ready, className, children }: SkeletonProps) {
 	if (ready === undefined) {
 		return (
-			<SkeletonProvider value={true}>
+			<SkeletonContext value={true}>
 				<span data-slot="skeleton" aria-busy="true" className={cn('contents', className)}>
 					{children}
 				</span>
-			</SkeletonProvider>
+			</SkeletonContext>
 		)
 	}
 
@@ -29,9 +29,9 @@ export function Skeleton({ ready, className, children }: SkeletonProps) {
 		<ReadyReveal
 			ready={ready}
 			className={className}
-			placeholder={<SkeletonProvider value={true}>{children}</SkeletonProvider>}
+			placeholder={<SkeletonContext value={true}>{children}</SkeletonContext>}
 		>
-			<SkeletonProvider value={false}>{children}</SkeletonProvider>
+			<SkeletonContext value={false}>{children}</SkeletonContext>
 		</ReadyReveal>
 	)
 }

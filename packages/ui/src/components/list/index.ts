@@ -1,7 +1,6 @@
-export { k as listVariants } from '../../recipes/kata/list'
 export {
-	type ListContext,
-	type ListItemContext,
+	type ListContextValue,
+	type ListItemContextValue,
 	useListContext,
 	useListItemContext,
 } from './context'

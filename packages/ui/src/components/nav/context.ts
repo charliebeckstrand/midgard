@@ -1,10 +1,10 @@
 'use client'
 
-import { type CurrentContextValue, CurrentProvider, useCurrent } from '../../primitives/current'
+import { CurrentContext, type CurrentContextValue, useCurrent } from '../../primitives/current'
 
 export type NavContextValue = CurrentContextValue
 
-export const NavProvider = CurrentProvider
+export const NavContext = CurrentContext
 
 export function useNavContext() {
 	return useCurrent()

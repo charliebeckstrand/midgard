@@ -14,21 +14,21 @@ export function useCurrentContentsHeight(
 	const [height, setHeight] = useState<number | undefined>(undefined)
 
 	useEffect(() => {
-		const el = ref.current
+		const element = ref.current
 
-		if (!el || !enabled) return
+		if (!element || !enabled) return
 
-		const ro = new ResizeObserver(([entry]) => {
+		const resizeObserver = new ResizeObserver(([entry]) => {
 			if (entry) setHeight(entry.contentRect.height)
 		})
 
 		// Observe the in-flow child (active content)
 		const observe = () => {
-			ro.disconnect()
+			resizeObserver.disconnect()
 
-			for (const child of el.children) {
+			for (const child of element.children) {
 				if (child.hasAttribute('data-current')) {
-					ro.observe(child)
+					resizeObserver.observe(child)
 
 					break
 				}
@@ -37,11 +37,11 @@ export function useCurrentContentsHeight(
 
 		observe()
 
-		const mo = new MutationObserver(observe)
+		const mutationObserver = new MutationObserver(observe)
 
 		// Watch only the dedicated data-current attribute — not `style`,
 		// which would fire on every framer-motion animation frame.
-		mo.observe(el, {
+		mutationObserver.observe(element, {
 			childList: true,
 			subtree: true,
 			attributes: true,
@@ -49,8 +49,8 @@ export function useCurrentContentsHeight(
 		})
 
 		return () => {
-			ro.disconnect()
-			mo.disconnect()
+			resizeObserver.disconnect()
+			mutationObserver.disconnect()
 		}
 	}, [ref, enabled])
 

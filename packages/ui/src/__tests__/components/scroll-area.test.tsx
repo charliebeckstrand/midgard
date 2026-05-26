@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { HIDDEN_THUMB } from '../../components/scroll-area/scroll-area-constants'
+import { hiddenThumb } from '../../components/scroll-area/scroll-area-constants'
 import {
 	computeThumb,
 	findScrollableAncestor,
@@ -87,11 +87,11 @@ describe('ScrollArea', () => {
 
 describe('computeThumb', () => {
 	it('returns the hidden thumb when content fits within the viewport', () => {
-		expect(computeThumb(0, 100, 80, 100)).toEqual(HIDDEN_THUMB)
+		expect(computeThumb(0, 100, 80, 100)).toEqual(hiddenThumb)
 	})
 
 	it('returns the hidden thumb when the track has no size', () => {
-		expect(computeThumb(0, 100, 200, 0)).toEqual(HIDDEN_THUMB)
+		expect(computeThumb(0, 100, 200, 0)).toEqual(hiddenThumb)
 	})
 
 	it('computes a visible thumb proportional to the viewport ratio', () => {

@@ -1,10 +1,7 @@
-'use client'
-
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
-import { Sheet, SheetActions, SheetBody, SheetTitle } from '../../components/sheet'
-import { Stack } from '../../components/stack'
+import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -16,7 +13,7 @@ export function Demo() {
 	const [glassRightOpen, setGlassRightOpen] = useState(false)
 
 	return (
-		<Stack gap="xl">
+		<>
 			<Example title="Default">
 				<Flex gap="md">
 					<Button variant="outline" onClick={() => setLeftOpen(true)}>
@@ -28,9 +25,9 @@ export function Demo() {
 						<SheetBody>
 							<p className="text-sm text-zinc-500">Slides from the left.</p>
 						</SheetBody>
-						<SheetActions>
+						<SheetFooter>
 							<Button onClick={() => setLeftOpen(false)}>Close</Button>
-						</SheetActions>
+						</SheetFooter>
 					</Sheet>
 
 					<Button onClick={() => setRightOpen(true)}>Open Right</Button>
@@ -40,9 +37,9 @@ export function Demo() {
 						<SheetBody>
 							<p className="text-sm text-zinc-500">Slides from the right.</p>
 						</SheetBody>
-						<SheetActions>
+						<SheetFooter>
 							<Button onClick={() => setRightOpen(false)}>Close</Button>
-						</SheetActions>
+						</SheetFooter>
 					</Sheet>
 				</Flex>
 			</Example>
@@ -58,9 +55,9 @@ export function Demo() {
 						<SheetBody>
 							<p className="text-sm dark:text-zinc-500">Transparent panel from the left.</p>
 						</SheetBody>
-						<SheetActions>
+						<SheetFooter>
 							<Button onClick={() => setGlassLeftOpen(false)}>Close</Button>
-						</SheetActions>
+						</SheetFooter>
 					</Sheet>
 
 					<Button variant="outline" onClick={() => setGlassRightOpen(true)}>
@@ -72,12 +69,12 @@ export function Demo() {
 						<SheetBody>
 							<p className="text-sm dark:text-zinc-500">Transparent panel from the right.</p>
 						</SheetBody>
-						<SheetActions>
+						<SheetFooter>
 							<Button onClick={() => setGlassRightOpen(false)}>Close</Button>
-						</SheetActions>
+						</SheetFooter>
 					</Sheet>
 				</Flex>
 			</Example>
-		</Stack>
+		</>
 	)
 }
