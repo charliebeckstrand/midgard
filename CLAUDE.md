@@ -27,17 +27,18 @@ Delegate research to subagents — one focused task per agent — and keep the m
 
 ## Quality check
 
-Not done until the chain clears. 
+Before considering any task done and ready to commit, run the applicable skill(s) based on what changed.
 
-`/postmortem` runs at commit time; commit-less sessions skip.
+### Routing
 
-1. `/typescript:format` — touched `.ts`/`.tsx`
-2. `/orator comments` — wrote prose (comments, JSDoc, READMEs, commit/PR copy)
-3. `/typescript:review` — when the change carries logical risk
-   Risk: logic edits, type-surface changes, multi-file changes, new deps, auth/security
-   Skip: cosmetic, formatting-only, mechanical renames. Unsure → `/postmortem`
-   
-Any BLOCK halts "done" until resolved or waived.
+- **Prose changed** (docs, comments, README, user-facing copy) → `orator`.
+- **TypeScript changed** → `typescript:format`.
+- **TypeScript changed with new logic, refactors, or other non-trivial changes** → `typescript:review`.
+- **A full task or feature is complete** → `postmortem`. Postmortem carries its own checklist, so don't duplicate its work — let it cover the final pass.
+
+### Definition of done
+
+A task is not done until every applicable skill has run and its findings are addressed. **Do not commit until all checks pass.** If a skill surfaces something you can't resolve, stop and report it rather than committing around it.
 
 ## Git
 
