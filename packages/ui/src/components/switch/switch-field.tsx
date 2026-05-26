@@ -4,7 +4,7 @@ import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SwitchFieldVariants } from '../../recipes/kata/switch'
-import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
+import { ControlContext, type ControlContextValue, useControl } from '../control/context'
 
 export type SwitchFieldProps = SwitchFieldVariants & {
 	className?: string
@@ -13,7 +13,7 @@ export type SwitchFieldProps = SwitchFieldVariants & {
 
 /**
  * Pairs a Switch with its Label. Generates a scoped id and broadcasts it
- * through `ControlProvider` so the inner Switch and Label auto-wire without
+ * through `ControlContext` so the inner Switch and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldProps) {
@@ -36,8 +36,8 @@ export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldP
 	)
 
 	return (
-		<ControlProvider value={value}>
+		<ControlContext value={value}>
 			<div data-slot="field" className={cn(k.field({ size }), k.disabled, className)} {...props} />
-		</ControlProvider>
+		</ControlContext>
 	)
 }

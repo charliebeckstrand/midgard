@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/radio'
-import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
+import { ControlContext, type ControlContextValue, useControl } from '../control/context'
 
 export type RadioFieldProps = {
 	htmlFor?: string
@@ -13,7 +13,7 @@ export type RadioFieldProps = {
 
 /**
  * Pairs a Radio with its Label. Generates a scoped id and broadcasts it
- * through `ControlProvider` so the inner Radio and Label auto-wire without
+ * through `ControlContext` so the inner Radio and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function RadioField({ className, htmlFor, ...props }: RadioFieldProps) {
@@ -36,8 +36,8 @@ export function RadioField({ className, htmlFor, ...props }: RadioFieldProps) {
 	)
 
 	return (
-		<ControlProvider value={value}>
+		<ControlContext value={value}>
 			<ToggleField className={cn(k.disabled, className)} {...props} />
-		</ControlProvider>
+		</ControlContext>
 	)
 }

@@ -1,9 +1,8 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'
+import { defaultAlignFromDirection } from './flex-utilities'
 import {
-	type FlexAlign,
-	type FlexDirection,
 	type ResponsiveAlign,
 	type ResponsiveDirection,
 	type ResponsiveGap,
@@ -36,7 +35,7 @@ export type FlexProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** @internal Shared flex implementation used by Flex and Stack. */
+/** @internal Shared flex implementation used by Flex, Stack, and Frame. */
 export function FlexBase({
 	dataSlot,
 	direction,
@@ -73,22 +72,6 @@ export function FlexBase({
 			{children}
 		</div>
 	)
-}
-
-function alignForDirection(dir: FlexDirection): FlexAlign {
-	return dir === 'col' || dir === 'col-reverse' ? 'start' : 'center'
-}
-
-function defaultAlignFromDirection(direction: ResponsiveDirection): ResponsiveAlign {
-	if (typeof direction === 'string') return alignForDirection(direction)
-
-	const align: Record<string, FlexAlign> = {}
-
-	for (const [bp, dir] of Object.entries(direction)) {
-		if (dir !== undefined) align[bp] = alignForDirection(dir)
-	}
-
-	return align
 }
 
 /**
