@@ -1,5 +1,3 @@
-'use client'
-
 import { Upload } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { FileUpload } from '../../components/file-upload'

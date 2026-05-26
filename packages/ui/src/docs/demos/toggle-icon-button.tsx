@@ -1,5 +1,3 @@
-'use client'
-
 import { Heart, Moon, Sun, Volume2, VolumeOff } from 'lucide-react'
 import { useState } from 'react'
 import { ToggleIconButton } from '../../components/toggle-icon-button'

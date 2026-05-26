@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Card } from '../../components/card'
 import { NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'

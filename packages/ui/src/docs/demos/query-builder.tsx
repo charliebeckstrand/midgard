@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { JsonTree, type JsonValue } from '../../components/json-tree'
 import { QueryBuilder, type QueryField, type QueryGroupNode } from '../../components/query-builder'

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Code, CodeBlock } from '../../components/code'
 import { Text } from '../../components/text'

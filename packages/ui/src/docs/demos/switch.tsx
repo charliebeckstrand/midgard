@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
@@ -22,47 +20,47 @@ export function Demo() {
 				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
 			>
 				<SwitchField size={size}>
-					<Label htmlFor="switch-notifications">Notifications</Label>
+					<Label>Notifications</Label>
 					<Description>Receive email notifications for new activity.</Description>
-					<Switch id="switch-notifications" size={size} />
+					<Switch size={size} />
 				</SwitchField>
 			</Example>
 
 			<Example title="Sizes">
 				<SwitchField size="sm">
-					<Label htmlFor="switch-sm">Small</Label>
-					<Switch id="switch-sm" size="sm" />
+					<Label>Small</Label>
+					<Switch size="sm" />
 				</SwitchField>
 				<SwitchField size="md">
-					<Label htmlFor="switch-md">Medium</Label>
-					<Switch id="switch-md" size="md" defaultChecked />
+					<Label>Medium</Label>
+					<Switch size="md" defaultChecked />
 				</SwitchField>
 				<SwitchField size="lg">
-					<Label htmlFor="switch-lg">Large</Label>
-					<Switch id="switch-lg" size="lg" />
+					<Label>Large</Label>
+					<Switch size="lg" />
 				</SwitchField>
 			</Example>
 
 			<Example title="Colors">
 				<SwitchField>
-					<Label htmlFor="switch-purple">Blue</Label>
-					<Switch id="switch-purple" color="blue" defaultChecked />
+					<Label>Blue</Label>
+					<Switch color="blue" defaultChecked />
 				</SwitchField>
 				<SwitchField>
-					<Label htmlFor="switch-green">Green</Label>
-					<Switch id="switch-green" color="green" defaultChecked />
+					<Label>Green</Label>
+					<Switch color="green" defaultChecked />
 				</SwitchField>
 				<SwitchField>
-					<Label htmlFor="switch-red">Red</Label>
-					<Switch id="switch-red" color="red" defaultChecked />
+					<Label>Red</Label>
+					<Switch color="red" defaultChecked />
 				</SwitchField>
 			</Example>
 
 			<Example title="Disabled">
 				<SwitchField>
-					<Label htmlFor="switch-disabled">Disabled</Label>
+					<Label>Disabled</Label>
 					<Description>This switch is disabled.</Description>
-					<Switch id="switch-disabled" disabled />
+					<Switch disabled />
 				</SwitchField>
 			</Example>
 		</>

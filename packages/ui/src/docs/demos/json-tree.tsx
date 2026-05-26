@@ -1,6 +1,4 @@
-'use client'
-
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useState } from 'react'
 import { Button } from '../../components/button'
 import { collectJsonTreePaths, JsonTree } from '../../components/json-tree'
 import { SearchInput } from '../../components/search-input'
@@ -26,12 +24,12 @@ const sample = {
 	],
 }
 
+const allSamplePaths = collectJsonTreePaths(sample)
+
 function ExpandAllExample() {
-	const allPaths = useMemo(() => collectJsonTreePaths(sample), [])
+	const [expanded, setExpanded] = useState<Set<string>>(allSamplePaths)
 
-	const [expanded, setExpanded] = useState<Set<string>>(allPaths)
-
-	const allExpanded = expanded.size === allPaths.size
+	const allExpanded = expanded.size === allSamplePaths.size
 
 	return (
 		<Stack gap="lg">
@@ -39,7 +37,7 @@ function ExpandAllExample() {
 				<Button
 					size="sm"
 					variant="outline"
-					onClick={() => setExpanded(allExpanded ? new Set() : allPaths)}
+					onClick={() => setExpanded(allExpanded ? new Set() : allSamplePaths)}
 				>
 					{allExpanded ? 'Collapse all' : 'Expand all'}
 				</Button>

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Avatar } from '../../components/avatar'
 import { Badge } from '../../components/badge'

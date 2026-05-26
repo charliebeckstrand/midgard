@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Banner } from '../../components/banner'
 import { Button } from '../../components/button'

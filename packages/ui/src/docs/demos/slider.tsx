@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Stack } from '../../components/stack'

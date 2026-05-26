@@ -1,5 +1,3 @@
-'use client'
-
 import { CircleDashed } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'

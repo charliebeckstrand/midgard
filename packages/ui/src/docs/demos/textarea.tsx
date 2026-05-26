@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowUp, Paperclip } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Button } from '../../components/button'

@@ -1,5 +1,3 @@
-'use client'
-
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'

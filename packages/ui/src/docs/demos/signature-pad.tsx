@@ -1,5 +1,3 @@
-'use client'
-
 import { useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'

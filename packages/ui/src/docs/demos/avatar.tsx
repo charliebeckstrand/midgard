@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
 import { Flex } from '../../components/flex'

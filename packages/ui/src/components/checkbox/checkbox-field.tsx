@@ -1,10 +1,43 @@
-import type { ComponentPropsWithoutRef } from 'react'
+'use client'
+
+import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
+import { type ControlContextValue, ControlProvider, useControl } from '../control/context'
 
-export type CheckboxFieldProps = ComponentPropsWithoutRef<'div'>
+export type CheckboxFieldProps = {
+	htmlFor?: string
+} & ComponentPropsWithoutRef<'div'>
 
-export function CheckboxField({ className, ...props }: CheckboxFieldProps) {
-	return <ToggleField className={cn(k.disabled, className)} {...props} />
+/**
+ * Pairs a Checkbox with its Label. Generates a scoped id and broadcasts it
+ * through `ControlProvider` so the inner Checkbox and Label auto-wire without
+ * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
+ */
+export function CheckboxField({ className, htmlFor, ...props }: CheckboxFieldProps) {
+	const parent = useControl()
+
+	const scope = useIdScope({ id: htmlFor })
+
+	const value = useMemo<ControlContextValue>(
+		() => ({
+			id: scope.id,
+			autoComplete: parent?.autoComplete,
+			disabled: parent?.disabled,
+			invalid: parent?.invalid,
+			readOnly: parent?.readOnly,
+			required: parent?.required,
+			size: parent?.size,
+			variant: parent?.variant,
+		}),
+		[scope.id, parent],
+	)
+
+	return (
+		<ControlProvider value={value}>
+			<ToggleField className={cn(k.disabled, className)} {...props} />
+		</ControlProvider>
+	)
 }

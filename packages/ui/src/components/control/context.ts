@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 
 export type ControlSize = 'sm' | 'md' | 'lg'
-export type ControlVariant = 'default' | 'outline' | 'glass'
+export type ControlVariant = 'default' | 'outline'
 
 export type ControlContextValue = {
 	id: string

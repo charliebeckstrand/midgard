@@ -1,5 +1,3 @@
-'use client'
-
 import { useMemo, useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
