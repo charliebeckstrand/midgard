@@ -22,7 +22,6 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { useKeybindings } from '../../hooks/use-keybindings'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -110,17 +109,6 @@ function filterCommands(query: string) {
 
 export function Demo() {
 	const [open, setOpen] = useState(false)
-
-	useKeybindings(
-		{
-			'$mod+KeyK': (e) => {
-				e.preventDefault()
-
-				setOpen((prev) => !prev)
-			},
-		},
-		{ ignore: () => false },
-	)
 
 	return (
 		<Example title="Default">
