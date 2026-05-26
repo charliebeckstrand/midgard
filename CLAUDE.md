@@ -27,13 +27,13 @@ Delegate research to subagents with focused, single-purpose tasks. Have them rep
 
 ## Quality check
 
-Before considering any task done and ready to commit, run the applicable skills based on what changed:
+Before considering any task done and ready to commit, run the following skill(s) based on what changed.
 
 - Prose changed (docs, comments, README, user-facing copy) → `orator`
 - TypeScript files changed → `typescript:format`
 - A full task or feature is complete → `postmortem`
 
-A task is not done until every applicable skill has run and its findings are addressed. Don't commit until all checks pass. If a skill surfaces something you can't resolve, stop and report it.
+A task is not done until every applicable skill has run and its findings are addressed. If a skill surfaces something you can't resolve, stop and report it.
 
 ## Git
 
