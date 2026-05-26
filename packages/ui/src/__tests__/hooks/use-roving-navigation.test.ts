@@ -96,6 +96,17 @@ describe('nextIndexForKey', () => {
 		expect(nextIndexForKey('ArrowUp', 1, 6, { cols: 3 })).toBe(4)
 	})
 
+	// 10 items × 3 cols → rows [0,1,2], [3,4,5], [6,7,8], [9]. Only col 0
+	// reaches row 3; cols 1 and 2 wrap one row earlier.
+	it('grid ArrowUp from top row, col present in partial last row, lands in last row', () => {
+		expect(nextIndexForKey('ArrowUp', 0, 10, { cols: 3 })).toBe(9)
+	})
+
+	it('grid ArrowUp from top row, col absent from partial last row, lands one row earlier', () => {
+		expect(nextIndexForKey('ArrowUp', 1, 10, { cols: 3 })).toBe(7)
+		expect(nextIndexForKey('ArrowUp', 2, 10, { cols: 3 })).toBe(8)
+	})
+
 	it('grid with a non-arrow non-Home/End key returns null', () => {
 		expect(nextIndexForKey('a', 0, 6, { cols: 3 })).toBeNull()
 	})
