@@ -383,8 +383,11 @@ describe('MenuItem', () => {
 		const item = screen.getByText('About').closest('[role="menuitem"]') as HTMLElement
 
 		expect(item).toHaveAttribute('data-disabled')
+
 		expect(item).toHaveAttribute('aria-disabled', 'true')
+
 		expect(item).not.toHaveAttribute('href')
+
 		expect(item.tagName).not.toBe('A')
 	})
 
