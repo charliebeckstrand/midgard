@@ -91,10 +91,19 @@ function nextIndexGrid(
 			return wrap(currentIndex - 1, itemCount)
 		case 'ArrowDown':
 			return currentIndex + cols < itemCount ? currentIndex + cols : currentIndex % cols
-		case 'ArrowUp':
-			return currentIndex - cols >= 0
-				? currentIndex - cols
-				: itemCount - cols + (currentIndex % cols)
+		case 'ArrowUp': {
+			if (currentIndex - cols >= 0) return currentIndex - cols
+
+			// Wrap to the bottommost item in the same column. Columns past the
+			// last row's fill land one row up.
+			const col = currentIndex % cols
+
+			const lastRowFill = itemCount % cols
+
+			return lastRowFill > 0 && col < lastRowFill
+				? itemCount - lastRowFill + col
+				: itemCount - cols - lastRowFill + col
+		}
 		default:
 			return null
 	}

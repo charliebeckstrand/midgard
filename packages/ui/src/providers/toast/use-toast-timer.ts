@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { ToastData } from './types'
 
 export function useToastTimer(
@@ -14,6 +14,8 @@ export function useToastTimer(
 	const startRef = useRef(0)
 
 	const pausedRef = useRef(false)
+
+	useEffect(() => () => clearTimeout(timerRef.current), [])
 
 	const startTimer = useCallback(() => {
 		clearTimeout(timerRef.current)

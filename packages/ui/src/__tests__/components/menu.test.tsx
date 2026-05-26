@@ -369,7 +369,7 @@ describe('MenuItem', () => {
 		expect(onAction).not.toHaveBeenCalled()
 	})
 
-	it('marks data-disabled on the href variant when disabled', () => {
+	it('renders the disabled href variant as a non-navigable element', () => {
 		renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -384,7 +384,11 @@ describe('MenuItem', () => {
 
 		expect(item).toHaveAttribute('data-disabled')
 
-		expect(item.tagName).toBe('A')
+		expect(item).toHaveAttribute('aria-disabled', 'true')
+
+		expect(item).not.toHaveAttribute('href')
+
+		expect(item.tagName).not.toBe('A')
 	})
 
 	it('applies custom className', () => {
