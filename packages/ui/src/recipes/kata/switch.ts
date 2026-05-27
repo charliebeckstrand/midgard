@@ -1,6 +1,6 @@
 import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
 import { control } from '../genkei/control'
-import { hannou, iro, kokkaku, narabi, sen } from '../kiso'
+import { hannou, kokkaku, narabi, sen } from '../kiso'
 
 const { check } = control
 
@@ -109,7 +109,7 @@ export const k = defineRecipe(
 		}),
 		field,
 		/** Disabled-state text class shared by the switch field wrapper. */
-		disabled: iro.text.disabled,
+		disabled: hannou.text.disabled,
 	},
 )
 

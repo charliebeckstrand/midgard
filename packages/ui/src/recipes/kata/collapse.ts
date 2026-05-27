@@ -7,7 +7,7 @@ export const k = {
 		'gap-2',
 		ji.md,
 		iro.text.muted,
-		iro.text.hover,
+		hannou.text.hover,
 		'group-data-[open]/collapse:text-zinc-950',
 		'dark:group-data-[open]/collapse:text-white',
 		sen.focus.ring,

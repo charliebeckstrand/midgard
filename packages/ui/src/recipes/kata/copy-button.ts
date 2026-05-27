@@ -1,4 +1,4 @@
-import { iro } from '../kiso'
+import { hannou, iro } from '../kiso'
 
 export const k = {
 	base: [
@@ -6,8 +6,8 @@ export const k = {
 		'flex items-center justify-center',
 		'rounded-lg',
 		iro.text.muted,
-		iro.text.hover,
-		iro.text.focus,
+		hannou.text.hover,
+		hannou.text.focus,
 		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
 	],
 }

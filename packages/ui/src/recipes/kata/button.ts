@@ -2,7 +2,10 @@ import { defineRecipe, merge, palette, type VariantProps } from '../../core/reci
 import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
-const { inherit } = iro.text
+
+// Synthetic colour entry: lets a button skip the palette and inherit
+// its parent's text colour, with a hover wash on non-disabled elements.
+const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
 
 const solidBundle = { ...merge(solid.bg, solid.text, solid.hover), inherit }
 const softBundle = { ...merge(soft.bg, soft.text, soft.hover), inherit }

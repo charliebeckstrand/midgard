@@ -28,7 +28,7 @@
 
 import { defineApplicator, defineRecipe } from '../../core/recipe'
 import { control as controlFragments } from '../genkei/control'
-import { hannou, iro, sen } from '../kiso'
+import { hannou, sen } from '../kiso'
 
 const { check: checkFragments } = controlFragments
 
@@ -47,7 +47,7 @@ const standardExtras = {
 	/** Visually-hidden native `<input>` overlaying the custom check surface. */
 	input: defineRecipe({ base: checkFragments.hidden }),
 	/** Disabled-state text class shared by the surrounding field wrapper. */
-	disabled: iro.text.disabled,
+	disabled: hannou.text.disabled,
 }
 
 export const check = defineApplicator({ config: standardConfig, extras: standardExtras })

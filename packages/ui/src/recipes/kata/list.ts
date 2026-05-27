@@ -27,7 +27,7 @@ const itemBase = [
 ]
 
 const itemVariant = {
-	separated: ['p-3', ...iro.bg.surface, sen.border, 'rounded-lg'],
+	separated: ['p-3', ...omote.surface, sen.border, 'rounded-lg'],
 	outline: ['p-3'],
 	plain: ['px-2', 'py-1.5'],
 	solid: ['p-3', ...omote.tint, sen.border, 'rounded-lg'],
@@ -38,7 +38,7 @@ export const k = {
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: ['z-10 relative', ...iro.bg.surface, 'rounded-md'],
+	itemActive: ['z-10 relative', ...omote.surface, 'rounded-md'],
 	itemLifted: sen.focus.lifted,
 	handle: [
 		'inline-flex flex-none items-center justify-center',

@@ -20,7 +20,7 @@ export const k = {
 	sortButton: [
 		'inline-flex items-center',
 		iro.text.muted,
-		iro.text.hover,
+		hannou.text.hover,
 		sen.focus.ring,
 		hannou.cursor,
 		'select-none',

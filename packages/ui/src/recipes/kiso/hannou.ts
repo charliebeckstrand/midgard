@@ -32,6 +32,19 @@ const disabled = [
 	ugoki.css.duration,
 ]
 
+const text = {
+	hover: mode('hover:not-disabled:text-zinc-950', 'dark:hover:not-disabled:text-white'),
+	focus: mode(
+		'focus-visible:not-disabled:text-zinc-950',
+		'dark:focus-visible:not-disabled:text-white',
+	),
+	disabled: mode(
+		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
+		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
+	),
+	current: mode('data-current:text-zinc-950', 'dark:data-current:text-white'),
+}
+
 // `cursor-pointer` stays at one-class specificity so the disabled variants
 // below override it on the element or its descendants, and so parent
 // overrides like `has-disabled:**:cursor-not-allowed` win for sibling-label
@@ -86,4 +99,6 @@ export const hannou = {
 	disabled,
 	/** Cursor feedback — pointer when interactive, not-allowed when disabled. */
 	cursor,
+	/** Text-colour feedback on hover / focus / disabled / current. */
+	text,
 }

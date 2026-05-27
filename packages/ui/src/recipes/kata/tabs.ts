@@ -16,7 +16,12 @@ const tab = defineRecipe({
 		'relative flex items-center',
 		'gap-2',
 		'font-medium',
-		...iro.text.tab,
+		iro.text.muted,
+		hannou.text.current,
+		// Tab-specific intermediate hover — between muted and default, only on
+		// non-current siblings.
+		'not-data-current:not-disabled:hover:text-zinc-700',
+		'dark:not-data-current:not-disabled:hover:text-zinc-200',
 		sen.focus.indicator,
 		...hannou.disabled,
 		'outline-none',

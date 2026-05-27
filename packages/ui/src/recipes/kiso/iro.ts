@@ -1,28 +1,19 @@
 /**
  * Iro (色) — colour.
  *
- * Semantic colour bundles and the palette matrix. The matrix is keyed by
- * variant (solid / soft / outline / plain / bare) and slot (bg / text /
- * hover / ring / border). Each slot is a `Record<Color, string[]>` built
- * via `shades()` — the dark class carries its own `dark:` prefix so the
- * full literal survives Tailwind's source scan.
+ * The palette matrix, keyed by variant (solid / soft / outline / plain
+ * / bare) × colour × slot (bg / text / hover / ring / border), plus
+ * the semantic intent-colour text bundle. Each shade entry pairs a
+ * light class with its `dark:` counterpart so both literals survive
+ * Tailwind's source scan.
+ *
+ * Surfaces live in `omote`. Interaction-state text colours live in
+ * `hannou.text`. Slot-specific composites live in their kata.
  *
  * Layer: kiso · Concern: colour
  */
 
 import { mode, shades } from '../../core/recipe'
-
-const bg = {
-	surface: mode('bg-white', 'dark:bg-zinc-900'),
-	panel: mode('bg-white', 'dark:bg-zinc-900'),
-	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
-	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
-	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
-	backdrop: {
-		md: mode('bg-white/50', 'dark:bg-zinc-950/50'),
-		lg: mode('bg-white/75', 'dark:bg-zinc-950/75'),
-	},
-}
 
 const text = shades({
 	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
@@ -39,30 +30,6 @@ const textBundle = {
 	warning: mode('text-amber-600', 'dark:text-amber-500'),
 	error: mode('text-red-600', 'dark:text-red-500'),
 	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
-	disabled: mode(
-		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
-		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
-	),
-	hover: mode('hover:not-disabled:text-zinc-950', 'dark:hover:not-disabled:text-white'),
-	focus: mode(
-		'focus-visible:not-disabled:text-zinc-950',
-		'dark:focus-visible:not-disabled:text-white',
-	),
-	/** Inherit text colour with hover effect on non-disabled elements. */
-	inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'],
-	/** Current-tab text colour with hover on non-current siblings. */
-	tab: mode(
-		[
-			'text-zinc-500',
-			'data-current:text-zinc-950',
-			'not-data-current:not-disabled:hover:text-zinc-700',
-		],
-		[
-			'dark:text-zinc-400',
-			'dark:data-current:text-white',
-			'dark:not-data-current:not-disabled:hover:text-zinc-200',
-		],
-	),
 }
 
 const hover = shades({
@@ -156,7 +123,6 @@ const bare = {
 const palette = { solid, soft, outline, plain, bare }
 
 export const iro = {
-	bg,
 	palette,
 	text: textBundle,
 }
