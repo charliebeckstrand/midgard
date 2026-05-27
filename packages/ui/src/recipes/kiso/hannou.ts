@@ -42,6 +42,7 @@ const text = {
 		['has-disabled:text-zinc-500', 'has-disabled:**:data-[slot=label]:text-zinc-500'],
 		['dark:has-disabled:text-zinc-400', 'dark:has-disabled:**:data-[slot=label]:text-zinc-400'],
 	),
+	current: mode('data-current:text-zinc-950', 'dark:data-current:text-white'),
 }
 
 // `cursor-pointer` stays at one-class specificity so the disabled variants
@@ -98,6 +99,6 @@ export const hannou = {
 	disabled,
 	/** Cursor feedback — pointer when interactive, not-allowed when disabled. */
 	cursor,
-	/** Text-colour feedback on hover / focus / disabled. */
+	/** Text-colour feedback on hover / focus / disabled / current. */
 	text,
 }
