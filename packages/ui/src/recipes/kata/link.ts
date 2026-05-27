@@ -6,7 +6,11 @@ export const k = defineRecipe({
 		...iro.palette.bare.text,
 		current: 'text-current dark:text-current',
 	},
-	defaults: { color: 'blue' },
+	underline: {
+		true: 'hover:underline underline-offset-4',
+		false: '',
+	},
+	defaults: { color: 'blue', underline: true },
 })
 
 export type LinkVariants = VariantProps<typeof k>
