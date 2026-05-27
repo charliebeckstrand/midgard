@@ -14,7 +14,7 @@ export const k = {
 		'gap-1',
 		ji.sm,
 		iro.text.muted,
-		iro.text.hover,
+		hannou.text.hover,
 		'font-medium',
 		sen.focus.inset,
 		...hannou.cursor,

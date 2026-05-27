@@ -37,7 +37,7 @@ export const k = defineRecipe(
 				'p-4',
 				ji.md,
 				iro.text.muted,
-				iro.text.hover,
+				hannou.text.hover,
 				'text-left font-medium',
 				'group-data-[open]/accordion-item:text-zinc-950',
 				'dark:group-data-[open]/accordion-item:text-white',

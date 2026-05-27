@@ -1,10 +1,10 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro } from '../kiso'
+import { omote } from '../kiso'
 export const k = defineRecipe({
 	base: 'inline-block rounded-full',
 	variant: {
 		solid: 'bg-current',
-		outline: ['border-2 border-current', ...iro.bg.surface],
+		outline: ['border-2 border-current', ...omote.surface],
 	},
 	status: {
 		inactive: 'text-zinc-300 dark:text-zinc-400',

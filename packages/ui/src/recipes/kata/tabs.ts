@@ -1,6 +1,6 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { segment } from '../katakana'
-import { hannou, iro, ji, sen } from '../kiso'
+import { hannou, ji, sen } from '../kiso'
 
 const list = defineRecipe({
 	base: ['flex', ...sen.borderSubtleColor],
@@ -11,12 +11,25 @@ const list = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
+const tabText = mode(
+	[
+		'text-zinc-500',
+		'data-current:text-zinc-950',
+		'not-data-current:not-disabled:hover:text-zinc-700',
+	],
+	[
+		'dark:text-zinc-400',
+		'dark:data-current:text-white',
+		'dark:not-data-current:not-disabled:hover:text-zinc-200',
+	],
+)
+
 const tab = defineRecipe({
 	base: [
 		'relative flex items-center',
 		'gap-2',
 		'font-medium',
-		...iro.text.tab,
+		...tabText,
 		sen.focus.indicator,
 		...hannou.disabled,
 		'outline-none',

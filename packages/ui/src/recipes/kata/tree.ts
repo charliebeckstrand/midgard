@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, sen, ugoki } from '../kiso'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 
@@ -10,7 +10,7 @@ const itemContent = defineRecipe(
 			'py-1 px-2',
 			'gap-2',
 			iro.text.muted,
-			iro.text.hover,
+			hannou.text.hover,
 			'rounded-lg',
 			sen.focus.inset,
 			'cursor-pointer',

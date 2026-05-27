@@ -19,7 +19,7 @@ const pageButton = defineRecipe({
 	],
 	current: {
 		true: [...iro.text.default],
-		false: [...iro.text.muted, ...iro.text.hover],
+		false: [...iro.text.muted, ...hannou.text.hover],
 	},
 	defaults: { current: false },
 })

@@ -1,4 +1,4 @@
-import { iro, ji, ugoki } from '../kiso'
+import { hannou, iro, ji, ugoki } from '../kiso'
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
@@ -28,7 +28,7 @@ export const k = {
 		'flex flex-1 items-center min-w-0 text-left cursor-pointer outline-none',
 		'gap-1',
 		iro.text.muted,
-		iro.text.hover,
+		hannou.text.hover,
 		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
 		'rounded-lg',
 	],
