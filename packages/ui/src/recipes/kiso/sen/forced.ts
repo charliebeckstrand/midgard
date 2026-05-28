@@ -17,4 +17,4 @@ export const forced = {
 		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',
 	/** Icon slot — keeps data-slot=icon children on CanvasText. */
 	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
-}
+} as const

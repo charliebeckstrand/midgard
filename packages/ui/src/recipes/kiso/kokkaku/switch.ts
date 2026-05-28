@@ -6,12 +6,14 @@
  * Layer: kiso · Concern: skeleton form · Unit: switch
  */
 
+import { kasane } from '../kasane'
+
 export const switchRecipe = {
-	base: 'rounded-full',
+	base: kasane.rounded.full,
 	size: {
 		sm: 'h-5 w-8',
 		md: 'h-6 w-10',
 		lg: 'h-7 w-12',
 	},
 	defaults: { size: 'md' as const },
-}
+} as const

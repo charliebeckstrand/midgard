@@ -7,4 +7,10 @@
  * Layer: kiso · Concern: content block
  */
 
-export const content = ['lg:bg-white dark:lg:bg-zinc-900', 'lg:rounded-lg', 'lg:shadow-xs']
+import { mode } from '../../../core/recipe'
+
+export const content = [
+	...mode('lg:bg-white', 'dark:lg:bg-zinc-900'),
+	'lg:rounded-lg',
+	'lg:shadow-xs',
+]

@@ -5,6 +5,8 @@
  * Layer: kiso · Concern: skeleton form · Unit: checkbox
  */
 
+import { kasane } from '../kasane'
+
 export const checkbox = {
-	base: 'size-4.5 rounded-sm',
-}
+	base: ['size-4.5', kasane.rounded.sm],
+} as const

@@ -5,10 +5,11 @@
  * Layer: kiso · Concern: skeleton form · Unit: avatar
  */
 
+import { kasane } from '../kasane'
 import { shaku } from '../shaku'
 
 export const avatar = {
-	base: 'rounded-full',
+	base: kasane.rounded.full,
 	size: shaku.avatar,
 	defaults: { size: 'md' as const },
 }

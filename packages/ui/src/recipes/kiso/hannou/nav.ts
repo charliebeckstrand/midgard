@@ -6,12 +6,13 @@
  * Layer: kiso · Concern: nav-item interaction surface
  */
 
+import { mode } from '../../../core/recipe'
 import { sen } from '../sen'
 import { shaku } from '../shaku'
 
 export const nav = [
 	shaku.icon.md,
-	'group-hover:bg-zinc-950/5 dark:group-hover:bg-white/5',
+	...mode('group-hover:bg-zinc-950/5', 'dark:group-hover:bg-white/5'),
 	'dark:text-white',
 	sen.focus.inset,
 ]

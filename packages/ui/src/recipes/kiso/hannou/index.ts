@@ -10,6 +10,7 @@ import { item } from './item'
 import { nav } from './nav'
 import { disabled } from './state'
 import { text } from './text'
+import { tint } from './tint'
 
 export const hannou = {
 	item,
@@ -18,6 +19,8 @@ export const hannou = {
 	disabled,
 	/** Cursor feedback — pointer when interactive, not-allowed when disabled. */
 	cursor,
+	/** Hover/focus tint — mode-neutral wash on the active surface. */
+	tint,
 	/** Text-colour feedback on hover / focus / disabled / current. */
 	text,
-}
+} as const

@@ -12,4 +12,4 @@ export const popover = {
 	trigger,
 	portal,
 	panel,
-}
+} as const

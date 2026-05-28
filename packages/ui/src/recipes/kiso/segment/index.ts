@@ -13,4 +13,4 @@ export const segment = {
 	control,
 	item,
 	indicator,
-}
+} as const

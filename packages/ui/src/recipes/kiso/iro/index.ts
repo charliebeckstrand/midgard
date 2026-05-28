@@ -19,4 +19,4 @@ import { intent } from './text'
 export const iro = {
 	palette: { solid, soft, outline, plain, bare },
 	text: intent,
-}
+} as const

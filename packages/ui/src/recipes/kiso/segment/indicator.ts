@@ -5,4 +5,6 @@
  * Layer: kiso · Archetype: segment · Concern: indicator
  */
 
-export const indicator = ['bg-white', 'dark:bg-zinc-600']
+import { mode } from '../../../core/recipe'
+
+export const indicator = mode('bg-white', 'dark:bg-zinc-600')

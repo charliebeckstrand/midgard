@@ -24,4 +24,4 @@ export const ugoki = {
 	tooltip,
 	collapse,
 	panel,
-}
+} as const

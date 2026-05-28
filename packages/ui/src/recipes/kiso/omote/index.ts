@@ -5,6 +5,7 @@
  */
 
 import { backdrop } from './backdrop'
+import { bg } from './bg'
 import { blur } from './blur'
 import { content } from './content'
 import { glass } from './glass'
@@ -14,20 +15,13 @@ import { surface } from './surface'
 import { tint } from './tint'
 
 export const omote = {
-	/** Solid surface background (cards, sidebars, navbars). */
+	bg,
 	surface,
-	/** Floating popover surface — translucent fill + ring + blur. */
 	popover,
-	/** Fully transparent glass surface — blur only. */
 	glass,
-	/** Backdrop fills (modal / sheet overlays). */
 	backdrop,
-	/** Card content block with viewport-dependent chrome. */
 	content,
-	/** Subtle tinted overlay — used for raised / striped rows. */
 	tint,
-	/** Loading skeleton background. */
 	skeleton,
-	/** Backdrop blur fragments. */
 	blur,
 } as const

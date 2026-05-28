@@ -12,8 +12,10 @@
  * Layer: kiso · Concern: skeleton form · Unit: control
  */
 
+import { kasane } from '../kasane'
+
 export const control = {
-	base: 'rounded-lg',
+	base: kasane.rounded.lg,
 	full: 'w-full',
 	group: {
 		sm: 'flex-1 min-w-16',
@@ -26,4 +28,4 @@ export const control = {
 		lg: 'h-11.5',
 	},
 	defaults: { size: 'md' as const },
-}
+} as const

@@ -17,4 +17,4 @@ export const bg = {
 		md: mode('bg-white/50', 'dark:bg-zinc-950/50'),
 		lg: mode('bg-white/75', 'dark:bg-zinc-950/75'),
 	},
-}
+} as const

@@ -25,4 +25,4 @@ export const focus = {
 	],
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
 	lifted: 'z-10 shadow-md focus-visible:ring-violet-600',
-}
+} as const

@@ -8,4 +8,4 @@
 export const blur = {
 	sm: 'backdrop-blur-sm',
 	md: 'backdrop-blur',
-}
+} as const

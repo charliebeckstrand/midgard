@@ -10,4 +10,4 @@ export const css = {
 	transform: 'transition-transform',
 	duration: 'duration-150',
 	pulse: 'animate-pulse',
-}
+} as const

@@ -13,6 +13,7 @@
 
 import { mode } from '../../../core/recipe'
 import { hannou } from '../hannou'
+import { narabi } from '../narabi'
 import { sen } from '../sen'
 
 /** Visually hidden native input overlaying the custom check surface. */
@@ -20,11 +21,10 @@ const hidden = ['absolute inset-0', 'opacity-0', ...hannou.cursor, sen.forced.co
 
 /** Custom check surface (the visible box / circle). */
 const surface = [
-	'border',
 	...mode(
 		[
 			'bg-white',
-			'border-zinc-950/15',
+			'border border-zinc-950/15',
 			'not-has-[:disabled]:hover:border-zinc-950/30 not-has-[:disabled]:group-hover/field:border-zinc-950/30',
 		],
 		[
@@ -37,12 +37,7 @@ const surface = [
 ]
 
 /** Layout shell — position, inline-flex centering, focus outline, cursor. */
-const shell = [
-	'relative',
-	'inline-flex items-center justify-center',
-	sen.focus.outline,
-	...hannou.cursor,
-]
+const shell = ['relative', narabi.inlineRow, 'justify-center', sen.focus.outline, ...hannou.cursor]
 
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
 const base = [...shell, ...surface]
@@ -52,4 +47,4 @@ export const check = {
 	surface,
 	shell,
 	base,
-}
+} as const

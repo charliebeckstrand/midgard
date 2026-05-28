@@ -12,4 +12,4 @@ import { blur } from './blur'
 export const backdrop = {
 	base: [bg.backdrop.md, blur.sm],
 	glass: bg.backdrop.lg,
-}
+} as const

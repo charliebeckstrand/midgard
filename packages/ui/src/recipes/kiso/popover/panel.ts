@@ -7,22 +7,26 @@
  * Layer: kiso · Archetype: popover · Concern: panel
  */
 
+import { hannou } from '../hannou'
+import { kasane } from '../kasane'
 import { omote } from '../omote'
 import { sen } from '../sen'
 import { ugoki } from '../ugoki'
 
 export const panel = {
 	base: [
-		'absolute z-50 isolate',
+		'z-50',
+		'absolute isolate',
 		'min-w-full',
 		'p-1 space-y-0.5',
 		'overflow-y-auto overscroll-contain',
-		'rounded-lg',
+		kasane.rounded.lg,
 		'outline outline-transparent focus:outline-hidden',
-		'cursor-pointer select-none',
+		...hannou.cursor,
+		'select-none',
 	],
 	surface: omote.popover,
 	glass: omote.glass,
 	ring: sen.ring,
 	motion: ugoki.popover,
-}
+} as const

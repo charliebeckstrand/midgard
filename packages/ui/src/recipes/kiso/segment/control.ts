@@ -6,13 +6,15 @@
  * Layer: kiso · Archetype: segment · Concern: control
  */
 
+import { kasane } from '../kasane'
+import { narabi } from '../narabi'
 import { omote } from '../omote'
 
 export const control = {
-	base: ['inline-flex items-center', 'rounded-lg', ...omote.tint],
+	base: [narabi.inlineRow, ...omote.tint, kasane.rounded.lg],
 	size: {
 		sm: 'p-0.5 gap-1',
 		md: 'p-1 gap-2',
 		lg: 'p-1 gap-3',
 	},
-}
+} as const

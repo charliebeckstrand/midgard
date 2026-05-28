@@ -5,8 +5,10 @@
  * Layer: kiso · Concern: skeleton form · Unit: button
  */
 
+import { kasane } from '../kasane'
+
 export const button = {
-	base: 'rounded-lg',
+	base: kasane.rounded.lg,
 	size: {
 		xs: 'h-6 w-16',
 		sm: 'h-7 w-20',
@@ -14,4 +16,4 @@ export const button = {
 		lg: 'h-11 w-28',
 	},
 	defaults: { size: 'md' as const },
-}
+} as const

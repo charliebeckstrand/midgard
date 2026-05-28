@@ -9,6 +9,8 @@
  * Layer: kiso · Concern: layered chrome
  */
 
+import { mode } from '../../../core/recipe'
+
 /**
  * Base ring that the layers are applied on top of. The ring uses solid
  * colours (not translucent like `sen.ringInset`) so adjacent rings in a
@@ -28,10 +30,10 @@ export const overlay = [
 ]
 
 /** Outer ring colour on hover — one shade darker / lighter than resting. */
-export const hover = [
+export const hover = mode(
 	'not-has-[>:disabled]:hover:ring-zinc-400',
 	'not-has-[>:disabled]:dark:hover:ring-zinc-600',
-]
+)
 
 /** `::after` 2 px focus ring — blue when no validation state is active. */
 export const focus = [

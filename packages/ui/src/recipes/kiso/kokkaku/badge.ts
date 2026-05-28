@@ -5,8 +5,10 @@
  * Layer: kiso · Concern: skeleton form · Unit: badge
  */
 
+import { kasane } from '../kasane'
+
 export const badge = {
-	base: 'rounded-md',
+	base: kasane.rounded.md,
 	size: {
 		xs: 'h-4 w-10',
 		sm: 'h-5 w-12',
@@ -14,4 +16,4 @@ export const badge = {
 		lg: 'h-7 w-16',
 	},
 	defaults: { size: 'md' as const },
-}
+} as const

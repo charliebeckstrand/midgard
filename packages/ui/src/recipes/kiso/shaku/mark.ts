@@ -5,11 +5,14 @@
  * Layer: kiso · Concern: inline-mark dimension
  */
 
+import { ji } from '../ji'
+import { kasane } from '../kasane'
+
 export const mark = {
-	base: ['font-mono', 'bg-current/15', 'rounded-md'],
+	base: [ji.family.mono, 'bg-current/15', kasane.rounded.md],
 	size: {
 		sm: ['text-[0.625rem]', 'p-1'],
-		md: ['text-xs', 'p-1.25'],
-		lg: ['text-sm', 'p-1.5'],
+		md: [ji.xs, 'p-1.25'],
+		lg: [ji.sm, 'p-1.5'],
 	},
 } as const

@@ -7,10 +7,10 @@
  * Layer: kiso · Archetype: panel · Concern: surface
  */
 
-import { mode } from '../../../core/recipe'
+import { omote } from '../omote'
 import { sen } from '../sen'
 
-const bg = mode('bg-white', 'dark:bg-zinc-900')
+const bg = omote.bg.surface
 
 export const surface = {
 	/** Background fill only. */
@@ -18,5 +18,5 @@ export const surface = {
 	/** Chrome only — ring + shadow + forced-colour outline, no fill. */
 	chrome: [sen.ring, sen.forced.outline],
 	/** Fill + chrome, everything a floating panel needs. */
-	base: [sen.ring, sen.forced.outline, bg],
-}
+	base: [sen.ring, sen.forced.outline, ...bg],
+} as const

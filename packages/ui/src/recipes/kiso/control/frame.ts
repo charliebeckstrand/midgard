@@ -9,11 +9,13 @@
  */
 
 import { kasane } from '../kasane'
+import { narabi } from '../narabi'
 import { tsunagi } from '../tsunagi'
 
 export const frame = [
 	'relative',
-	'group/control flex items-center',
+	'group/control',
+	narabi.row,
 	'w-full',
 	...kasane.all,
 	...tsunagi.base,

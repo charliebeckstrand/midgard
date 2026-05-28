@@ -7,23 +7,27 @@
 
 import { hannou } from '../hannou'
 import { ji } from '../ji'
+import { kasane } from '../kasane'
+import { narabi } from '../narabi'
 import { sen } from '../sen'
 
 export const item = {
 	base: [
-		'flex items-center justify-center',
+		narabi.row,
+		'justify-center',
 		'whitespace-nowrap',
-		'rounded-lg',
+		kasane.rounded.lg,
 		'outline-none',
-		'font-medium select-none',
+		ji.weight.medium,
+		'select-none',
 		sen.focus.indicator,
 		sen.focus.ring,
 		...hannou.disabled,
 		...hannou.cursor,
 	],
 	size: {
-		sm: ['px-2.5 py-1', ji.xs],
-		md: ['px-3 py-1.5', ji.sm],
-		lg: ['px-4 py-2', ji.md],
+		sm: [ji.xs, 'px-2.5 py-1'],
+		md: [ji.sm, 'px-3 py-1.5'],
+		lg: [ji.md, 'px-4 py-2'],
 	},
-}
+} as const
