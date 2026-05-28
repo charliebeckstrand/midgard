@@ -25,17 +25,15 @@ const surface = [
 		[
 			'bg-white',
 			'border-zinc-950/15',
-			'not-has-[:disabled]:hover:border-zinc-950/30',
-			'not-has-[:disabled]:group-hover/field:border-zinc-950/30',
+			'not-has-[:disabled]:hover:border-zinc-950/30 not-has-[:disabled]:group-hover/field:border-zinc-950/30',
 		],
 		[
 			'dark:bg-white/5',
 			'dark:border-white/15',
-			'dark:not-has-[:disabled]:hover:border-white/30',
-			'dark:not-has-[:disabled]:group-hover/field:border-white/30',
+			'dark:not-has-[:disabled]:hover:border-white/30 dark:not-has-[:disabled]:group-hover/field:border-white/30',
 		],
 	),
-	'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
+	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
 ]
 
 /** Layout shell — position, inline-flex centering, focus outline, cursor. */

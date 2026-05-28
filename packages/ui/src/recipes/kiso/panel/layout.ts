@@ -23,6 +23,6 @@ export const layout = {
 	description: [...iro.text.muted, ji.md, 'leading-tight'],
 	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
-	body: [...iro.text.muted, 'min-h-0', 'overflow-y-auto'],
+	body: [...iro.text.muted, 'min-h-0 overflow-y-auto'],
 	footer: ['flex items-center justify-end gap-2'],
 }

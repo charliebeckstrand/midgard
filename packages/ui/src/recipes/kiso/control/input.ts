@@ -17,13 +17,11 @@ import { kasane } from '../kasane'
 export const input = [
 	'relative',
 	'w-full min-w-0 flex-1',
+	'bg-transparent read-only:bg-transparent',
 	'border-0',
-	'bg-transparent',
-	'focus:outline-hidden',
-	'read-only:bg-transparent',
 	...iro.text.default,
-	'placeholder:text-zinc-500',
-	'dark:placeholder:text-zinc-400',
+	'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
+	'focus:outline-hidden',
 ]
 
 export const inputBase = [...input, kasane.rounded.lg]

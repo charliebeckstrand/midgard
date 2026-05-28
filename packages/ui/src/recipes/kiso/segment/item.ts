@@ -12,14 +12,14 @@ import { sen } from '../sen'
 export const item = {
 	base: [
 		'flex items-center justify-center',
-		'font-medium select-none',
 		'whitespace-nowrap',
 		'rounded-lg',
+		'outline-none',
+		'font-medium select-none',
 		sen.focus.indicator,
 		sen.focus.ring,
 		...hannou.disabled,
 		...hannou.cursor,
-		'outline-none',
 	],
 	size: {
 		sm: ['px-2.5 py-1', ji.xs],

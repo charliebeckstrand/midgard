@@ -21,21 +21,15 @@ import { glassItem } from './glass-item'
 import { disabled } from './state'
 
 const itemTint = mode(
-	[
-		'not-disabled:not-data-disabled:hover:bg-zinc-950/5',
-		'not-disabled:not-data-disabled:focus:bg-zinc-950/5',
-	],
-	[
-		'dark:not-disabled:not-data-disabled:hover:bg-white/5',
-		'dark:not-disabled:not-data-disabled:focus:bg-white/5',
-	],
+	'not-disabled:not-data-disabled:hover:bg-zinc-950/5 not-disabled:not-data-disabled:focus:bg-zinc-950/5',
+	'dark:not-disabled:not-data-disabled:hover:bg-white/5 dark:not-disabled:not-data-disabled:focus:bg-white/5',
 )
 
 export const item = [
-	iro.text.default,
+	'py-2.5 sm:py-1.5',
 	'rounded-lg',
-	'sm:py-1.5 py-2.5',
 	'outline-hidden',
+	iro.text.default,
 	ji.md,
 	sen.forced.text,
 	sen.forced.focus,

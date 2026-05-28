@@ -13,8 +13,8 @@
  */
 
 export const formControl = {
-	base: ['rounded-lg'],
-	full: ['w-full'],
+	base: 'rounded-lg',
+	full: 'w-full',
 	group: {
 		sm: 'flex-1 min-w-16',
 		md: 'flex-1 min-w-24',

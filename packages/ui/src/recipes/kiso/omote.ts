@@ -13,6 +13,7 @@
 import { mode } from '../../core/recipe'
 
 import { sen } from './sen'
+import { ugoki } from './ugoki'
 
 const bg = {
 	surface: mode('bg-white', 'dark:bg-zinc-900'),
@@ -43,11 +44,11 @@ export const omote = {
 		glass: bg.backdrop.lg,
 	},
 	/** Card content block with viewport-dependent chrome. */
-	content: ['lg:rounded-lg', 'lg:shadow-xs', 'lg:bg-white', 'dark:lg:bg-zinc-900'],
+	content: ['lg:bg-white dark:lg:bg-zinc-900', 'lg:rounded-lg', 'lg:shadow-xs'],
 	/** Subtle tinted overlay — used for raised / striped rows. */
 	tint: bg.tint,
 	/** Loading skeleton background. */
-	skeleton: [bg.skeleton, 'animate-pulse'],
+	skeleton: [bg.skeleton, ugoki.css.pulse],
 	/** Backdrop blur fragments. */
 	blur,
 } as const

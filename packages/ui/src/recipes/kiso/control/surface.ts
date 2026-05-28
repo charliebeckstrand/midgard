@@ -16,6 +16,6 @@ export const surface = {
 		['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5'],
 		['dark:bg-white/5', 'dark:before:hidden'],
 	),
-	outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30', 'dark:hover:border-white/30'],
+	outline: [...sen.borderEmphasis, 'hover:border-zinc-950/30 dark:hover:border-white/30'],
 	glass: ['bg-transparent', omote.blur.md],
 } as const

@@ -13,11 +13,12 @@ import { ugoki } from '../ugoki'
 
 export const panel = {
 	base: [
-		'rounded-lg',
-		'absolute isolate z-50 min-w-full',
+		'absolute z-50 isolate',
+		'min-w-full',
 		'p-1 space-y-0.5',
-		'outline outline-transparent focus:outline-hidden',
 		'overflow-y-auto overscroll-contain',
+		'rounded-lg',
+		'outline outline-transparent focus:outline-hidden',
 		'cursor-pointer select-none',
 	],
 	surface: omote.popover,

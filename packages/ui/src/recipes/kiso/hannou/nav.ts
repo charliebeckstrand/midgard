@@ -11,8 +11,7 @@ import { shaku } from '../shaku'
 
 export const nav = [
 	shaku.icon.md,
-	'group-hover:bg-zinc-950/5',
+	'group-hover:bg-zinc-950/5 dark:group-hover:bg-white/5',
 	'dark:text-white',
-	'dark:group-hover:bg-white/5',
 	sen.focus.inset,
 ]

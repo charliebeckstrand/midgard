@@ -90,3 +90,57 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 - **Compose, don't fork.** A kata, katakana applicator, or archetype
   that re-derives a token already in kiso is a defect; fold it back
   into the source module.
+
+## Utility-array style
+
+Class-fragment arrays in kiso follow a consistent shape so cross-file
+reads stay predictable.
+
+**Property order.** When an array carries multiple utilities, group them
+in this order:
+
+1. `z-index` (`z-10`, `z-50`)
+2. `position` (`relative`, `absolute`, `fixed`, `sticky`, `inset-*`,
+   `top-*`, `left-*`, ...)
+3. `display` and `flex/grid alignment` (`block`, `flex`, `inline-flex`,
+   `grid`, `items-*`, `justify-*`, `flex-1`, `min-w-0`, ...)
+4. `width / height / size` (`w-full`, `h-4`, `size-5`, `max-w-sm`, ...)
+5. `padding / margin / gap` (`p-2`, `mx-auto`, `gap-2`, ...)
+6. `bg` (`bg-white`, `bg-transparent`, ...)
+7. `border / ring / outline` (`border-0`, `border-zinc-200`, `ring-1`,
+   `outline-none`, ...)
+8. `radius` (`rounded-lg`, `rounded-full`, ...)
+9. `text` (`text-zinc-700`, `text-sm`, `font-medium`, `leading-tight`,
+   `placeholder:text-*`, ...)
+10. `interaction / state` (`hover:*`, `focus:*`, `disabled:*`,
+    `cursor-*`, ...)
+11. `motion` (`transition-*`, `duration-*`, `animate-*`)
+12. `forced-colors` safety nets
+
+Cross-cutting fragments spread from sibling kiso (`...iro.text.default`,
+`...hannou.cursor`) slot into the group that matches their concern.
+
+**One string per property.** Combine same-property utilities into a
+single quoted entry when their only difference is a variant prefix:
+
+```ts
+// good — bg with its read-only variant is one property
+'bg-transparent read-only:bg-transparent',
+
+// good — placeholder colour with its dark-mode pair
+'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
+
+// bad — same property, broken across two entries
+'bg-transparent',
+'read-only:bg-transparent',
+```
+
+**Separate strings carry meaning.** A string break signals a concern
+boundary — different property family, different axis, or a deliberate
+visual grouping. Don't break for the sake of breaking; don't merge
+unrelated properties to save a line.
+
+**Mode pairs go through `mode()`.** When both a light class and its
+`dark:` counterpart need to ship to the Tailwind scanner, use the
+`mode(light, dark)` helper from `core/recipe` rather than open-coding
+the pair.

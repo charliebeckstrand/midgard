@@ -10,9 +10,7 @@
 import { ugoki } from '../ugoki'
 
 export const disabled = [
-	'disabled:opacity-50',
-	'data-disabled:opacity-50',
-	'group-disabled:opacity-50',
+	'disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50',
 	ugoki.css.opacity,
 	ugoki.css.duration,
 ]

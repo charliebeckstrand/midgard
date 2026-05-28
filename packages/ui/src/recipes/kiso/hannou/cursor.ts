@@ -10,8 +10,5 @@
 
 export const cursor = [
 	'cursor-pointer',
-	'disabled:cursor-not-allowed',
-	'data-disabled:cursor-not-allowed',
-	'has-[:disabled]:cursor-not-allowed',
-	'has-[data-disabled]:cursor-not-allowed',
+	'disabled:cursor-not-allowed data-disabled:cursor-not-allowed has-[:disabled]:cursor-not-allowed has-[data-disabled]:cursor-not-allowed',
 ]

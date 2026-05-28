@@ -6,5 +6,5 @@
  */
 
 export const textarea = {
-	base: ['w-full', 'rounded-lg'],
+	base: 'w-full rounded-lg',
 }
