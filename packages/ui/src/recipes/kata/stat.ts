@@ -1,8 +1,8 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji } from '../kiso'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { iro, ji, narabi } from '../kiso'
 
 const label = defineRecipe({
-	base: [...iro.text.muted, 'font-medium'],
+	base: [...iro.text.muted, ji.weight.medium],
 	size: {
 		sm: ji.xs,
 		md: ji.sm,
@@ -12,7 +12,7 @@ const label = defineRecipe({
 })
 
 const value = defineRecipe({
-	base: ['font-semibold tracking-tight tabular-nums', ...iro.text.default],
+	base: [ji.weight.semibold, 'tracking-tight tabular-nums', ...iro.text.default],
 	size: {
 		sm: ji['2xl'],
 		md: ji['3xl'],
@@ -22,10 +22,10 @@ const value = defineRecipe({
 })
 
 const delta = defineRecipe({
-	base: ['inline-flex items-center', ji.sm, 'gap-1', 'font-medium tabular-nums'],
+	base: [narabi.inlineRow, ji.sm, 'gap-1', ji.weight.medium, 'tabular-nums'],
 	trend: {
-		up: 'text-green-600 dark:text-green-500',
-		down: 'text-red-600 dark:text-red-500',
+		up: mode('text-green-600', 'dark:text-green-500'),
+		down: mode('text-red-600', 'dark:text-red-500'),
 		neutral: [...iro.text.muted],
 	},
 	defaults: { trend: 'neutral' },
@@ -62,7 +62,7 @@ const skeleton = {
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col justify-center', 'h-full', 'gap-1'],
+		base: [narabi.col, 'justify-center', 'h-full', 'gap-1'],
 		slots: {
 			description: [ji.sm, ...iro.text.muted],
 		},

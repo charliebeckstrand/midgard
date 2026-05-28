@@ -1,4 +1,4 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
 
 const label = defineRecipe({
@@ -43,7 +43,7 @@ const message = defineRecipe({
 })
 
 const legend = defineRecipe({
-	base: ['font-semibold', iro.text.default, hannou.disabled],
+	base: [ji.weight.semibold, iro.text.default, hannou.disabled],
 	size: {
 		sm: ji.sm,
 		md: ji.md,
@@ -57,10 +57,12 @@ export const k = {
 	legend,
 	field: [
 		...narabi.field,
-		'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
-		'dark:data-disabled:border-white/15',
+		...mode(
+			'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
+			'dark:data-disabled:border-white/15',
+		),
 	],
 	label,
 	description,
 	message,
-}
+} as const

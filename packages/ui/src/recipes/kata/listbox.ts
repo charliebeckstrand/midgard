@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro } from '../kiso'
+import { hannou, iro, narabi } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
@@ -8,14 +8,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [
-			'flex items-center',
-			'w-full',
-			'text-left',
-			...reset,
-			'appearance-none',
-			...hannou.cursor,
-		],
+		base: [narabi.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...hannou.cursor],
 		density,
 		size,
 		slots: {

@@ -1,20 +1,21 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { omote } from '../kiso'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { kasane, omote, ugoki } from '../kiso'
+
 export const k = defineRecipe({
-	base: 'inline-block rounded-full',
+	base: ['inline-block', kasane.rounded.full],
 	variant: {
 		solid: 'bg-current',
 		outline: ['border-2 border-current', ...omote.surface],
 	},
 	status: {
-		inactive: 'text-zinc-300 dark:text-zinc-400',
+		inactive: mode('text-zinc-300', 'dark:text-zinc-400'),
 		active: 'text-green-500',
 		info: 'text-blue-500',
 		warning: 'text-amber-500',
 		error: 'text-red-500',
 	},
 	pulse: {
-		true: 'animate-pulse',
+		true: ugoki.css.pulse,
 		false: '',
 	},
 	size: {
