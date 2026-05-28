@@ -11,7 +11,7 @@ export const k = defineRecipe({
 	},
 	soft: {
 		true: [...border.subtleColor],
-		false: [...border.color],
+		false: [...border.defaultColor],
 	},
 	defaults: { orientation: 'horizontal', soft: false },
 })

@@ -7,7 +7,7 @@ const divider = defineRecipe({
 	base: 'border-t col-span-full',
 	soft: {
 		true: [...border.subtleColor],
-		false: [...border.color],
+		false: [...border.defaultColor],
 	},
 	defaults: { soft: false },
 })

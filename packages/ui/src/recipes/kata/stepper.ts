@@ -48,7 +48,7 @@ const title = defineRecipe({
 const separator = defineRecipe({
 	base: 'shrink-0',
 	orientation: {
-		horizontal: ['-mx-12 mt-2', flex.fill, 'self-start', 'border-t', ...border.color],
+		horizontal: ['-mx-12 mt-2', flex.fill, 'self-start', 'border-t', ...border.defaultColor],
 		vertical: 'hidden',
 	},
 	defaults: { orientation: 'horizontal' },

@@ -8,7 +8,7 @@ const { border } = sen
 export const k = defineRecipe({
 	base: [flex.row, 'gap-4', 'overflow-x-auto', 'px-4 py-2.5', rounded.lg, 'border'],
 	variant: {
-		outline: [...border.color],
+		outline: [...border.defaultColor],
 		plain: [...border.transparent],
 	},
 	defaults: { variant: 'outline' },
