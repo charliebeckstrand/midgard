@@ -8,7 +8,7 @@
 
 import { shades } from '../../../core/recipe'
 
-import { tone } from './tone'
+import { text } from './text'
 
 export const soft = {
 	bg: shades({
@@ -18,7 +18,7 @@ export const soft = {
 		green: 'bg-green-600/15',
 		blue: 'bg-blue-600/15',
 	}),
-	text: tone,
+	text,
 	hover: shades({
 		zinc: ['not-disabled:hover:bg-zinc-600/30', 'dark:not-disabled:hover:bg-zinc-500/30'],
 		red: ['not-disabled:hover:bg-red-600/30', 'dark:not-disabled:hover:bg-red-500/30'],

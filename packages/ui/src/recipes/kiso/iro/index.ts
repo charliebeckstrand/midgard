@@ -10,13 +10,13 @@
  */
 
 import { bare } from './bare'
+import { intent } from './intent'
 import { outline } from './outline'
 import { plain } from './plain'
 import { soft } from './soft'
 import { solid } from './solid'
-import { text } from './text'
 
 export const iro = {
 	palette: { solid, soft, outline, plain, bare },
-	text,
+	text: intent,
 } as const
