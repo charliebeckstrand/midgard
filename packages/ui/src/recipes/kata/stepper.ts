@@ -62,7 +62,7 @@ export const k = {
 		base: [
 			'relative',
 			'size-3.5 shrink-0',
-			kasane.rounded.full,
+			kasane.radius.rounded.full,
 			...mode('bg-zinc-400', 'dark:bg-zinc-600'),
 		],
 		interactive: [

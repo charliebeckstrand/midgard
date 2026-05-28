@@ -1,13 +1,14 @@
 /**
  * Kasane radius — corner rounding helpers.
  *
- * Two flavours sit here. The numeric `r(v)` / `ri(v)` / `ro(v)` / `radius(v)`
+ * Two flavours sit here. The numeric `r(v)` / `ri(v)` / `ro(v)` / `stack(v)`
  * helpers map a `--spacing(n)` stop to the matching outer / inset-fill /
  * overlay class so corner rounding stays proportional to the kasane layer
  * stack — a component with `py('2')` lands on `r('2')` for a 1:1
- * padding-to-radius ratio at every density step. The named `rounded` map
- * is a pass-through to Tailwind's named radius scale (`sm` / `md` / `lg`
- * / `full`) for the kata and katakana that pick a coarse named radius.
+ * padding-to-radius ratio at every density step. `stack(v)` returns all
+ * three. The named `rounded` map is a pass-through to Tailwind's named
+ * radius scale (`sm` / `md` / `lg` / `full`) for the kata and katakana
+ * that pick a coarse named radius.
  *
  * Layer: kiso · Concern: corner radius
  */
@@ -61,13 +62,13 @@ export const ri = (v: RadiusStop) => riStops[v]
 export const ro = (v: RadiusStop) => roStops[v]
 
 /** Outer + inset + overlay radii, coordinated for the full kasane stack. */
-export const radius = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
+export const stack = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
 
 /**
  * Named-radius aliases — pass-through to Tailwind's named radius scale.
- * Distinct from the numeric `r(v)` / `radius(v)` helpers above; the named
+ * Distinct from the numeric `r(v)` / `stack(v)` helpers above; the named
  * scale lives here so kata and katakana can reach common corner-rounding
- * by name (`kasane.rounded.lg`) instead of inlining `'rounded-lg'`.
+ * by name (`kasane.radius.rounded.lg`) instead of inlining `'rounded-lg'`.
  */
 export const rounded = {
 	sm: 'rounded-sm',

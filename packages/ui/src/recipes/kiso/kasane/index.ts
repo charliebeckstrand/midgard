@@ -1,42 +1,35 @@
 /**
  * Kasane 重ね — layered chrome plus its companion spacing helpers.
  *
- * The 4-layer chrome stack (`base` / `inset` / `overlay` / `hover` /
- * `focus` / `validation` / `disabled` / `all`) is the library's
- * signature inset-fill-plus-rings primitive — see `layers.ts`. The
- * ring-compensated `p` / `px` / `py` / `pl` / `pr` helpers and the
- * `r` / `ri` / `ro` / `radius` / `rounded` helpers sit alongside in
- * `padding.ts` and `radius.ts` because they exist to keep the inset fill
- * pixel-aligned with the outer ring. The `g` / `gx` / `gy` gap helpers
- * are pass-throughs that live here for symmetry with the rest of the
- * spacing surface.
+ * Four named axes:
+ *   - `layers` — the signature inset-fill-plus-rings stack (base /
+ *     inset / overlay / hover / focus / validation / disabled / all).
+ *   - `padding` — ring-compensated padding helpers
+ *     (p / px / py / pl / pr). Each `kasane.padding.x('2')` returns the
+ *     padding class with 1 px subtracted to land inside the outer ring.
+ *   - `radius` — ring-compensated corner radii (r / ri / ro / stack)
+ *     plus the named-Tailwind `rounded` aliases (sm / md / lg / full).
+ *   - `gap` — pass-through gap helpers (g / gx / gy) that live here for
+ *     symmetry; gap doesn't intersect the outer ring so no compensation.
  */
 
 import { g, gx, gy } from './gap'
 import { all, base, disabled, focus, hover, inset, overlay, validation } from './layers'
 import { p, pl, pr, px, py } from './padding'
-import { r, radius, ri, ro, rounded } from './radius'
+import { r, ri, ro, rounded, stack } from './radius'
 
 export const kasane = {
-	base,
-	inset,
-	overlay,
-	hover,
-	focus,
-	validation,
-	disabled,
-	all,
-	p,
-	px,
-	py,
-	pl,
-	pr,
-	r,
-	ri,
-	ro,
-	radius,
-	rounded,
-	g,
-	gx,
-	gy,
+	layers: {
+		base,
+		inset,
+		overlay,
+		hover,
+		focus,
+		validation,
+		disabled,
+		all,
+	},
+	padding: { p, px, py, pl, pr },
+	radius: { r, ri, ro, stack, rounded },
+	gap: { g, gx, gy },
 } as const

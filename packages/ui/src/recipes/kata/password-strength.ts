@@ -2,7 +2,7 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
 
 const segment = defineRecipe({
-	base: [narabi.fill, 'h-1', kasane.rounded.full, ...omote.bg.skeleton],
+	base: [narabi.fill, 'h-1', kasane.radius.rounded.full, ...omote.bg.skeleton],
 	level: {
 		weak: mode('bg-red-600', 'dark:bg-red-500'),
 		fair: mode('bg-amber-600', 'dark:bg-amber-500'),

@@ -7,7 +7,12 @@ const rootBase = [narabi.col, 'm-0 p-0', 'k-none']
 
 const rootVariant = {
 	separated: ['gap-2'],
-	outline: ['overflow-hidden', kasane.rounded.lg, ...sen.border.default, ...sen.divider.between],
+	outline: [
+		'overflow-hidden',
+		kasane.radius.rounded.lg,
+		...sen.border.default,
+		...sen.divider.between,
+	],
 	plain: sen.divider.between,
 	solid: ['gap-2'],
 } satisfies Record<ListVariant, unknown>
@@ -23,10 +28,10 @@ const itemBase = [
 ]
 
 const itemVariant = {
-	separated: ['p-3', ...omote.bg.surface, sen.border.default, kasane.rounded.lg],
+	separated: ['p-3', ...omote.bg.surface, sen.border.default, kasane.radius.rounded.lg],
 	outline: ['p-3'],
 	plain: ['px-2', 'py-1.5'],
-	solid: ['p-3', ...omote.bg.tint, sen.border.default, kasane.rounded.lg],
+	solid: ['p-3', ...omote.bg.tint, sen.border.default, kasane.radius.rounded.lg],
 } satisfies Record<ListVariant, unknown>
 
 export const k = {
@@ -34,7 +39,7 @@ export const k = {
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: ['z-10 relative', ...omote.bg.surface, kasane.rounded.md],
+	itemActive: ['z-10 relative', ...omote.bg.surface, kasane.radius.rounded.md],
 	itemLifted: sen.focus.lifted,
 	handle: [
 		narabi.inlineRow,

@@ -5,7 +5,7 @@ export const k = {
 		'relative isolate overflow-hidden',
 		'w-full h-full',
 		sen.border.default,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		hannou.disabled,
 	],
 	canvas: ['absolute inset-0'],

@@ -13,7 +13,7 @@ export const k = {
 	handleHorizontal: 'px-2 cursor-col-resize',
 	handleVertical: 'py-2 cursor-row-resize',
 	grip: [
-		kasane.rounded.full,
+		kasane.radius.rounded.full,
 		...mode(
 			'bg-zinc-300 group-hover/handle:bg-zinc-400',
 			'dark:bg-zinc-600 dark:group-hover/handle:bg-zinc-500',

@@ -5,7 +5,7 @@ export const k = {
 		'relative isolate overflow-hidden',
 		'bg-white',
 		sen.border.default,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		sen.focus.ring,
 		hannou.disabled,
 	],

@@ -8,7 +8,7 @@ export const k = defineRecipe(
 		base: [
 			'inline-grid place-items-center align-middle overflow-hidden',
 			'*:col-start-1 *:row-start-1',
-			kasane.rounded.full,
+			kasane.radius.rounded.full,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',

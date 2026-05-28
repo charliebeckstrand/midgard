@@ -54,7 +54,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: [kasane.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
+	base: [kasane.radius.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',

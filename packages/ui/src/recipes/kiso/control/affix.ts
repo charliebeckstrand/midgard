@@ -24,34 +24,34 @@ import { kasane } from '../kasane'
 export const affix = {
 	prefix: {
 		sm: [
-			kasane.pl('2.5'),
+			kasane.padding.pl('2.5'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 		],
 		md: [
-			kasane.pl('3'),
+			kasane.padding.pl('3'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 		],
 		lg: [
-			kasane.pl('3.5'),
+			kasane.padding.pl('3.5'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 		],
 	},
 	suffix: {
 		sm: [
-			kasane.pr('2.5'),
+			kasane.padding.pr('2.5'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 		],
 		md: [
-			kasane.pr('3'),
+			kasane.padding.pr('3'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 		],
 		lg: [
-			kasane.pr('3.5'),
+			kasane.padding.pr('3.5'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 		],

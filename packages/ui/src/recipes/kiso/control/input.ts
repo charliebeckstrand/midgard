@@ -25,4 +25,4 @@ export const reset = [
 	'focus:outline-hidden',
 ]
 
-export const input = [...reset, kasane.rounded.lg]
+export const input = [...reset, kasane.radius.rounded.lg]

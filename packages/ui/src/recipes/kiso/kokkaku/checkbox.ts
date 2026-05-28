@@ -8,5 +8,5 @@
 import { kasane } from '../kasane'
 
 export const checkbox = {
-	base: ['size-4.5', kasane.rounded.sm],
+	base: ['size-4.5', kasane.radius.rounded.sm],
 } as const

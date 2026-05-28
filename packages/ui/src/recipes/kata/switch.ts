@@ -66,7 +66,7 @@ export const k = defineRecipe(
 			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-			kasane.rounded.full,
+			kasane.radius.rounded.full,
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 			...mode(
@@ -104,7 +104,7 @@ export const k = defineRecipe(
 				'absolute top-1 left-1 inline-block',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
-				kasane.rounded.full,
+				kasane.radius.rounded.full,
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
 			],

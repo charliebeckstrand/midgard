@@ -11,7 +11,7 @@ export const k = {
 		'px-2',
 		'py-1',
 		sen.border.subtle,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		'border-b',
 		omote.bg.tint,
 	],

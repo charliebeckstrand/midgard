@@ -5,7 +5,7 @@ const base = [
 	...hannou.item,
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
-	kasane.rounded.lg,
+	kasane.radius.rounded.lg,
 	...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',

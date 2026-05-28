@@ -36,7 +36,7 @@ const color = {
 }
 
 const fill = defineRecipe({
-	base: ['h-full', kasane.rounded.full],
+	base: ['h-full', kasane.radius.rounded.full],
 	color: {
 		zinc: color.zinc.bg,
 		red: color.red.bg,
@@ -71,7 +71,11 @@ const label = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: ['overflow-hidden', kasane.rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
+		base: [
+			'overflow-hidden',
+			kasane.radius.rounded.full,
+			...mode('bg-zinc-200', 'dark:bg-zinc-800'),
+		],
 		size: {
 			sm: 'h-2',
 			md: 'h-3',

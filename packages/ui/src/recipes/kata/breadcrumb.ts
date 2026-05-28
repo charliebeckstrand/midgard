@@ -15,7 +15,7 @@ const item = defineRecipe({
 })
 
 const link = defineRecipe({
-	base: [kasane.rounded.sm, sen.focus.ring],
+	base: [kasane.radius.rounded.sm, sen.focus.ring],
 	current: {
 		true: [iro.text.default, ji.weight.normal],
 		false: [iro.text.muted, hannou.text.hover],

@@ -19,6 +19,6 @@ export const k = {
 		ji.size.md,
 		'text-left',
 		ji.weight.medium,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 	],
 } as const

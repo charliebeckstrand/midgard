@@ -9,7 +9,7 @@
 import { kasane } from '../kasane'
 
 export const switchRecipe = {
-	base: kasane.rounded.full,
+	base: kasane.radius.rounded.full,
 	size: {
 		sm: 'h-5 w-8',
 		md: 'h-6 w-10',

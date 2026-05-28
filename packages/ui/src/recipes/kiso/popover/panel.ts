@@ -20,7 +20,7 @@ export const panel = {
 		'min-w-full',
 		'p-1 space-y-0.5',
 		'overflow-y-auto overscroll-contain',
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		'outline outline-transparent focus:outline-hidden',
 		...hannou.cursor,
 		'select-none',

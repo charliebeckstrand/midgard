@@ -10,9 +10,9 @@ import { kasane } from '../kasane'
 export const card = {
 	base: 'w-full',
 	size: {
-		sm: ['h-24', kasane.rounded.sm],
-		md: ['h-32', kasane.rounded.md],
-		lg: ['h-40', kasane.rounded.lg],
+		sm: ['h-24', kasane.radius.rounded.sm],
+		md: ['h-32', kasane.radius.rounded.md],
+		lg: ['h-40', kasane.radius.rounded.lg],
 	},
 	defaults: { size: 'md' as const },
 } as const

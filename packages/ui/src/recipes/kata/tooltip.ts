@@ -4,9 +4,9 @@ import { iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 const content = defineRecipe({
 	base: ['max-w-sm', iro.text.default, ji.weight.medium],
 	size: {
-		sm: [kasane.p('1'), kasane.r('1'), ji.size.sm],
-		md: [kasane.p('2'), kasane.r('2'), ji.size.md],
-		lg: [kasane.p('3'), kasane.r('3'), ji.size.lg],
+		sm: [kasane.padding.p('1'), kasane.radius.r('1'), ji.size.sm],
+		md: [kasane.padding.p('2'), kasane.radius.r('2'), ji.size.md],
+		lg: [kasane.padding.p('3'), kasane.radius.r('3'), ji.size.lg],
 	},
 	defaults: { size: 'md' },
 })

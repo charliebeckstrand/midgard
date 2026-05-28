@@ -17,6 +17,6 @@ export const frame = [
 	'group/control',
 	narabi.row,
 	'w-full',
-	...kasane.all,
+	...kasane.layers.all,
 	...tsunagi.base,
 ]

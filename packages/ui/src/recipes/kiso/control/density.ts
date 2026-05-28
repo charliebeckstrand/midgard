@@ -16,7 +16,17 @@
 import { kasane } from '../kasane'
 
 export const density = {
-	sm: [kasane.px('2.5'), kasane.py('1.5'), kasane.r('1.5'), kasane.g('0.75')],
-	md: [kasane.px('3'), kasane.py('2'), kasane.r('2'), kasane.g('1')],
-	lg: [kasane.px('3.5'), kasane.py('2.5'), kasane.r('2.5'), kasane.g('1.25')],
+	sm: [
+		kasane.padding.px('2.5'),
+		kasane.padding.py('1.5'),
+		kasane.radius.r('1.5'),
+		kasane.gap.g('0.75'),
+	],
+	md: [kasane.padding.px('3'), kasane.padding.py('2'), kasane.radius.r('2'), kasane.gap.g('1')],
+	lg: [
+		kasane.padding.px('3.5'),
+		kasane.padding.py('2.5'),
+		kasane.radius.r('2.5'),
+		kasane.gap.g('1.25'),
+	],
 } as const

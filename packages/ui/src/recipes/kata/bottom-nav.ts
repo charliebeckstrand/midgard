@@ -25,6 +25,6 @@ export const k = {
 		'inset-x-4 bottom-auto top-0',
 		'h-0.5',
 		...mode('bg-zinc-950', 'dark:bg-white'),
-		kasane.rounded.full,
+		kasane.radius.rounded.full,
 	],
 } as const

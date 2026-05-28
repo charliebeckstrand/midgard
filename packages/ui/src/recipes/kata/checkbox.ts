@@ -26,9 +26,9 @@ export const k = check(
 		],
 		color,
 		size: {
-			sm: ['size-4', kasane.r('0.75')],
-			md: ['size-4.5', kasane.r('1')],
-			lg: ['size-5', kasane.r('1.25')],
+			sm: ['size-4', kasane.radius.r('0.75')],
+			md: ['size-4.5', kasane.radius.r('1')],
+			lg: ['size-5', kasane.radius.r('1.25')],
 		},
 		skeleton: kokkaku.checkbox,
 	},

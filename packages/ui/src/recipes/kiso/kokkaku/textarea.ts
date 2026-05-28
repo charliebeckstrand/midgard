@@ -8,5 +8,5 @@
 import { kasane } from '../kasane'
 
 export const textarea = {
-	base: ['w-full', kasane.rounded.lg],
+	base: ['w-full', kasane.radius.rounded.lg],
 } as const

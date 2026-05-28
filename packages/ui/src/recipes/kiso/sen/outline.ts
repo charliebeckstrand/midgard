@@ -1,6 +1,6 @@
 /**
  * Sen outline — `outline-style` 1 px lines in the three library
- * intensities. Used where a ring would conflict with `kasane.base` or
+ * intensities. Used where a ring would conflict with `kasane.layers.base` or
  * where the line needs to live outside the element's box (focus
  * indicators, panel chrome).
  *

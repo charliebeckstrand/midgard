@@ -5,7 +5,7 @@ export const k = {
 		'relative',
 		narabi.row,
 		'justify-center',
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		iro.text.muted,
 		hannou.text.hover,
 		hannou.text.focus,

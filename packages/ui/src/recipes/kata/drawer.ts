@@ -38,7 +38,7 @@ export const k = {
 				'p-1',
 				...iro.text.muted,
 				sen.focus.inset,
-				kasane.rounded.md,
+				kasane.radius.rounded.md,
 			],
 		},
 	}),

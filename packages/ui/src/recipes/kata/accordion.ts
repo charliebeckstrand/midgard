@@ -9,7 +9,7 @@ const item = defineRecipe({
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
-		separated: ['overflow-hidden', kasane.rounded.lg, ...sen.border.default],
+		separated: ['overflow-hidden', kasane.radius.rounded.lg, ...sen.border.default],
 		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 		plain: '',
 	},
@@ -23,7 +23,7 @@ export const k = defineRecipe(
 			separated: 'gap-1',
 			outline: [
 				'overflow-hidden',
-				kasane.rounded.lg,
+				kasane.radius.rounded.lg,
 				...sen.border.default,
 				...sen.divider.between,
 			],

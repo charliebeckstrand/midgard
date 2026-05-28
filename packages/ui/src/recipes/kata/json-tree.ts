@@ -18,7 +18,7 @@ const row = [
 	'gap-1',
 	'py-0.5',
 	ji.size.sm,
-	kasane.rounded.lg,
+	kasane.radius.rounded.lg,
 	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-600/30'),
 ]
 
@@ -36,7 +36,7 @@ export const k = {
 		iro.text.muted,
 		hannou.text.hover,
 		...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 	],
 	content: [narabi.inlineRow, 'min-w-0', 'gap-1'],
 	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
@@ -46,7 +46,7 @@ export const k = {
 	punctuation: iro.text.muted,
 	summary: iro.text.muted,
 	group: 'overflow-hidden',
-	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), kasane.rounded.lg],
+	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), kasane.radius.rounded.lg],
 	motion: ugoki.collapse.fade,
 	valueColor: color,
 } as const

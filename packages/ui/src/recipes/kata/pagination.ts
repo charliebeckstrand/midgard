@@ -14,7 +14,7 @@ const button = defineRecipe({
 		'p-2',
 		ji.size.sm,
 		ji.weight.medium,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		sen.focus.ring,
 		...hannou.cursor,
 	],

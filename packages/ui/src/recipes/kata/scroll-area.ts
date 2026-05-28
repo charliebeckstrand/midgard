@@ -19,7 +19,7 @@ const compound = orientations.flatMap((orientation) =>
 const wrapper = defineRecipe({
 	base: ['group relative overflow-hidden'],
 	rounded: {
-		true: kasane.rounded.lg,
+		true: kasane.radius.rounded.lg,
 		false: '',
 	},
 	bare: {
@@ -76,7 +76,7 @@ const scrollbar = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		kasane.rounded.full,
+		kasane.radius.rounded.full,
 		...mode(
 			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
 			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',

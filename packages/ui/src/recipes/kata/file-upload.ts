@@ -8,7 +8,7 @@ export const k = {
 		'gap-1',
 		ji.size.md,
 		iro.text.muted,
-		kasane.rounded.lg,
+		kasane.radius.rounded.lg,
 		sen.focus.ring,
 		'border border-dashed',
 		...mode('border-zinc-300', 'dark:border-zinc-700'),

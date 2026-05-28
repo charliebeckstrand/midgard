@@ -11,7 +11,7 @@ import { narabi } from '../narabi'
 import { omote } from '../omote'
 
 export const control = {
-	base: [narabi.inlineRow, ...omote.bg.tint, kasane.rounded.lg],
+	base: [narabi.inlineRow, ...omote.bg.tint, kasane.radius.rounded.lg],
 	size: {
 		sm: 'p-0.5 gap-1',
 		md: 'p-1 gap-2',

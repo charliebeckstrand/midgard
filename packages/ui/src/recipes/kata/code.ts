@@ -4,7 +4,7 @@ import { ji, kasane, shaku } from '../kiso'
 const bg = 'bg-[#0d1117]'
 
 const block = defineRecipe({
-	base: ['relative overflow-hidden', kasane.rounded.lg, bg],
+	base: ['relative overflow-hidden', kasane.radius.rounded.lg, bg],
 	inline: {
 		true: 'w-fit max-w-full',
 		false: '',

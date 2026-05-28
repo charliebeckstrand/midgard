@@ -12,7 +12,7 @@ const itemContent = defineRecipe(
 			'gap-2',
 			iro.text.muted,
 			hannou.text.hover,
-			kasane.rounded.lg,
+			kasane.radius.rounded.lg,
 			sen.focus.inset,
 			...hannou.cursor,
 			'select-none',

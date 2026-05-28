@@ -16,7 +16,7 @@ const root = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', kasane.rounded.full, 'bg-[var(--slider-track)]'],
+	base: ['absolute left-0 right-0', kasane.radius.rounded.full, 'bg-[var(--slider-track)]'],
 	size: {
 		sm: 'h-1',
 		md: 'h-1.5',
@@ -28,7 +28,7 @@ const track = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		kasane.rounded.full,
+		kasane.radius.rounded.full,
 		'-translate-x-1/2',
 		'bg-white',
 		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
@@ -49,7 +49,7 @@ const thumb = defineRecipe({
 export const k = {
 	root,
 	track,
-	fill: ['absolute', kasane.rounded.full, 'bg-[var(--slider-fill)]'],
+	fill: ['absolute', kasane.radius.rounded.full, 'bg-[var(--slider-fill)]'],
 	thumb,
 } as const
 
