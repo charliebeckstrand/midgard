@@ -12,7 +12,7 @@ import { badge } from './badge'
 import { button } from './button'
 import { card } from './card'
 import { checkbox } from './checkbox'
-import { formControl } from './form-control'
+import { control } from './control'
 import { heading } from './heading'
 import { radio } from './radio'
 import { switchRecipe } from './switch'
@@ -25,7 +25,7 @@ export const kokkaku = {
 	button,
 	card,
 	checkbox,
-	formControl,
+	control,
 	heading,
 	radio,
 	switch: switchRecipe,

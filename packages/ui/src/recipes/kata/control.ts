@@ -17,7 +17,7 @@ const frameRadius = {
 } as const
 
 export const k = {
-	skeleton: kokkaku.formControl,
+	skeleton: kokkaku.control,
 	frame,
 	frameRadius,
 }

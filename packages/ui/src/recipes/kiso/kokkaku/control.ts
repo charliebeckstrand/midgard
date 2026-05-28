@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — form control. Shared by every `<ControlFrame>`
+ * Kokkaku skeleton — control. Shared by every `<ControlFrame>`
  * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker).
  *
  * `full` is the standalone-skeleton default — outside a `<Group>`, the
@@ -9,10 +9,10 @@
  * share the row) with a size-aware floor. Override via `className`
  * (e.g. `w-44 flex-none`) to pin a fixed slot.
  *
- * Layer: kiso · Concern: skeleton form · Unit: form control
+ * Layer: kiso · Concern: skeleton form · Unit: control
  */
 
-export const formControl = {
+export const control = {
 	base: 'rounded-lg',
 	full: 'w-full',
 	group: {

@@ -138,5 +138,5 @@ The redesign collapsed the prior four-layer model
 - `kasane.ts` → `kasane/{layers, padding, radius, gap}.ts` (DONE)
 - `omote.ts` archetype chromes → respective `kiso/<archetype>/` sub-folders (DONE for panel)
 - `hannou.item` / `hannou.nav` → owning kata (`menu`, `nav`)
-- `kokkaku.ts` → `kokkaku/{avatar, badge, button, card, checkbox, form-control, heading, radio, switch, text, textarea}.ts`
+- `kokkaku.ts` → `kokkaku/{avatar, badge, button, card, checkbox, control, heading, radio, switch, text, textarea}.ts`
 - `ma` raw numerals → `ma.{p,m,gap}` full-utility maps (DONE)
