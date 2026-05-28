@@ -15,5 +15,3 @@ export const size = {
 	'3xl': 'text-3xl',
 	'4xl': 'text-4xl',
 } as const
-
-export type Size = keyof typeof size
