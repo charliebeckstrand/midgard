@@ -53,17 +53,17 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 | Module           | Concern                                                                                                          |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `iro` (色)       | Semantic colour bundles and the variant × slot palette matrix (`solid` / `soft` / `outline` / `plain` / `bare`). |
-| `ji` (字)        | Type-size scale — font-size with line-height bundled.                                                            |
+| `ji` (字)        | Typography — size scale (label → text class) spread at the top level for the dominant use case, plus `weight`, `leading`, and `family` aliases. |
 | `kasane/` (重ね) | The signature 4-layer chrome (inset fill, hover ring, focus ring, validation ring) plus the ring-compensated padding, radius, and gap helpers. Split into `layers.ts`, `padding.ts`, `radius.ts`, `gap.ts`. |
-| `ma` (間)        | Named spacing scale shared by padding, margin, and gap; projected as first-class Tailwind utilities.             |
-| `narabi` (並び)  | Sibling arrangement — field stacks, toggle grids, group adjacency. (Panel slot layout moved to `kiso/panel/layout.ts`.) |
+| `ma` (間)        | Named spacing scale — `p` / `px` / `py` / `pl` / `pr` / `pt` / `pb`, `m` / `mx` / `my` / `ml` / `mr` / `mt` / `mb`, `gap` / `gapX` / `gapY`. Each ships finished Tailwind utility maps keyed by the same `xs` / `sm` / `md` / `lg` / `xl` label set. `stops` keeps the raw numerals for arbitrary-value construction. |
+| `narabi` (並び)  | Sibling arrangement — field stacks, toggle grids, group adjacency, slide positioning, the truncated description spacer, and the flex primitives `row` / `inlineRow` / `col` / `fill`. (Panel slot layout moved to `kiso/panel/layout.ts`.) |
 | `omote` (面)     | Generic surface fills and chromes — surface · popover · glass · backdrop · content · tint · skeleton.            |
 | `hannou/` (反応) | Interaction feedback — hover, press, focus, disabled, cursor — plus the kata-shaped `item` and `nav` composites that compose those primitives. Split into `state.ts`, `text.ts`, `cursor.ts`, `glass-item.ts`, `item.ts`, `nav.ts`. |
 | `sen` (線)       | Borders, rings, dividers, focus indicators, and forced-colors safety nets.                                       |
 | `shaku` (尺)     | Dimension scales — width / height / icon slot / scroll area / panel max-width.                                   |
 | `sun` (寸)       | Named density steps (`sm` / `md` / `lg`) and the per-step token table.                                           |
 | `tsunagi` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime.                            |
-| `ugoki` (動き)   | Motion — CSS transition fragments and Framer Motion enter / exit configs.                                        |
+| `ugoki` (動き)   | Motion — CSS transition fragments (`opacity` / `transform` / `duration` / `pulse`) and Framer Motion enter / exit configs. |
 | `kokkaku/` (骨格) | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. One file per unit (avatar / badge / button / card / checkbox / form-control / heading / radio / switch / text / textarea). |
 
 ## Archetype sub-folders

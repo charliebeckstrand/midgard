@@ -1,14 +1,17 @@
 /**
  * Ji (字) — typography.
  *
- * Type-size scale: font-size with line-height bundled. Weight, tracking, and
- * family use the Tailwind utility directly (`font-semibold`,
- * `tracking-tight`, …) rather than routing through the recipe.
+ * Type-size scale (`size`) keyed by label, font-weight aliases
+ * (`weight`), line-height aliases (`leading`), and the family map
+ * (`family`). The bare `ji` const carries `size` keys at the top level
+ * for the dominant use case; weight / leading / family flow through
+ * named sub-objects so consumers reach finished class strings by name
+ * instead of inlining `'font-semibold'` / `'leading-tight'` / etc.
  *
  * Layer: kiso · Concern: typography
  */
 
-export const ji = {
+const size = {
 	xs: 'text-xs',
 	sm: 'text-sm',
 	md: 'text-base',
@@ -19,4 +22,32 @@ export const ji = {
 	'4xl': 'text-4xl',
 } as const
 
-export type Ji = keyof typeof ji
+const weight = {
+	normal: 'font-normal',
+	medium: 'font-medium',
+	semibold: 'font-semibold',
+	bold: 'font-bold',
+} as const
+
+const leading = {
+	none: 'leading-none',
+	tight: 'leading-tight',
+	normal: 'leading-normal',
+	relaxed: 'leading-relaxed',
+} as const
+
+const family = {
+	sans: 'font-sans',
+	mono: 'font-mono',
+	serif: 'font-serif',
+} as const
+
+export const ji = {
+	...size,
+	size,
+	weight,
+	leading,
+	family,
+} as const
+
+export type Ji = keyof typeof size

@@ -40,6 +40,7 @@ export const ugoki = {
 		opacity: 'transition-opacity',
 		transform: 'transition-transform',
 		duration: 'duration-150',
+		pulse: 'animate-pulse',
 	},
 
 	spring,

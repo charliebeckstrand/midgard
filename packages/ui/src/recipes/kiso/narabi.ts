@@ -24,6 +24,18 @@ const item = [shaku.icon.md, 'text-inherit', sen.forced.icon]
 /** Truncated description with a spacer pseudo-element for overflow. */
 const description = ['flex', 'flex-1', 'overflow-hidden', 'before:w-2 before:min-w-0 before:shrink']
 
+/** Horizontal flex row with vertical centering. */
+const row = 'flex items-center'
+
+/** Inline flex row with vertical centering — same alignment as `row` but inline. */
+const inlineRow = 'inline-flex items-center'
+
+/** Vertical flex column. */
+const col = 'flex flex-col'
+
+/** Fill remaining flex track. */
+const fill = 'flex-1'
+
 const slide = {
 	right: 'inset-y-0 right-0 h-full w-full',
 	left: 'inset-y-0 left-0 h-full w-full',
@@ -55,4 +67,8 @@ export const narabi = {
 	group,
 	item,
 	description,
+	row,
+	inlineRow,
+	col,
+	fill,
 } as const
