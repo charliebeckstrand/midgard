@@ -1,6 +1,8 @@
 import { hannou, iro } from '../kiso'
 import { control } from '../kiso/control'
 
+const { cursor } = hannou
+const { text } = iro
 const { surface, affix } = control
 
 export const k = {
@@ -10,8 +12,8 @@ export const k = {
 		base: [
 			'flex items-center min-w-0',
 			'*:data-[slot=icon]:pointer-events-none',
-			...iro.text.muted,
-			...hannou.cursor,
+			...text.muted,
+			...cursor,
 		],
 	},
 }

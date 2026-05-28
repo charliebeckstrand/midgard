@@ -1,8 +1,14 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
 
+const { palette, text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { bg } = omote
+
 const segment = defineRecipe({
-	base: [narabi.flex.fill, 'h-1', kasane.radius.rounded.full, ...omote.bg.skeleton],
+	base: [flex.fill, 'h-1', radius.rounded.full, ...bg.skeleton],
 	level: {
 		weak: mode('bg-red-600', 'dark:bg-red-500'),
 		fair: mode('bg-amber-600', 'dark:bg-amber-500'),
@@ -14,27 +20,27 @@ const segment = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: [ji.size.sm, ji.weight.medium],
+	base: [size.sm, weight.medium],
 	level: {
-		weak: iro.text.error,
-		fair: iro.text.warning,
-		good: iro.text.primary,
-		strong: iro.text.success,
-		empty: iro.text.muted,
+		weak: text.error,
+		fair: text.warning,
+		good: text.primary,
+		strong: text.success,
+		empty: text.muted,
 	},
 	defaults: { level: 'empty' },
 })
 
 export const k = {
-	root: [narabi.flex.col, 'gap-2'],
-	meter: [narabi.flex.row, 'gap-1'],
+	root: [flex.col, 'gap-2'],
+	meter: [flex.row, 'gap-1'],
 	segment,
 	label,
-	rules: [narabi.flex.col, 'gap-0.5'],
-	rule: [narabi.flex.inline, 'gap-1', ji.size.sm],
+	rules: [flex.col, 'gap-0.5'],
+	rule: [flex.inline, 'gap-1', size.sm],
 	ruleIcon: 'size-4 shrink-0',
-	ruleIconPass: iro.palette.bare.text.green,
-	ruleIconFail: iro.text.muted,
-	ruleText: iro.text.muted,
-	ruleTextPass: iro.text.default,
+	ruleIconPass: palette.bare.text.green,
+	ruleIconFail: text.muted,
+	ruleText: text.muted,
+	ruleTextPass: text.default,
 } as const

@@ -1,6 +1,8 @@
 import { narabi } from '../kiso'
 
+const { toggle, group } = narabi
+
 export const k = {
-	field: narabi.toggle,
-	group: narabi.group,
+	field: toggle,
+	group,
 }

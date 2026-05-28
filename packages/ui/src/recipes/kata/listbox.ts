@@ -3,12 +3,15 @@ import { hannou, iro, narabi } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
+const { cursor } = hannou
+const { text } = iro
+const { flex } = narabi
 const { reset, density, size } = control
 const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [narabi.flex.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...hannou.cursor],
+		base: [flex.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...cursor],
 		density,
 		size,
 		slots: {
@@ -26,6 +29,6 @@ export const k = defineRecipe(
 			defaults: { truncate: true },
 		}),
 		portal,
-		placeholder: iro.text.muted,
+		placeholder: text.muted,
 	},
 )

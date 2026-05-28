@@ -1,14 +1,16 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, kokkaku } from '../kiso'
 
+const { text } = iro
+
 export const k = defineRecipe({
 	variant: {
-		default: [...iro.text.default],
-		primary: [...iro.text.primary],
-		success: [...iro.text.success],
-		warning: [...iro.text.warning],
-		error: [...iro.text.error],
-		muted: [...iro.text.muted],
+		default: [...text.default],
+		primary: [...text.primary],
+		success: [...text.success],
+		warning: [...text.warning],
+		error: [...text.error],
+		muted: [...text.muted],
 	},
 	color: {
 		current: mode('text-current', 'dark:text-current'),

@@ -1,15 +1,18 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, kokkaku } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+
 export const k = defineRecipe({
-	base: [...iro.text.default],
+	base: [...text.default],
 	level: {
-		1: [ji.weight.bold, ji.size['3xl']],
-		2: [ji.weight.semibold, ji.size['2xl']],
-		3: [ji.weight.semibold, ji.size.xl],
-		4: [ji.weight.medium, ji.size.lg],
-		5: [ji.weight.medium, ji.size.md],
-		6: [ji.weight.medium, ji.size.sm],
+		1: [weight.bold, size['3xl']],
+		2: [weight.semibold, size['2xl']],
+		3: [weight.semibold, size.xl],
+		4: [weight.medium, size.lg],
+		5: [weight.medium, size.md],
+		6: [weight.medium, size.sm],
 	},
 	defaults: { level: 1 },
 	skeleton: kokkaku.heading,

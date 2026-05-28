@@ -2,6 +2,10 @@ import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/
 import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 
+const { cursor } = hannou
+const { radius } = kasane
+const { toggle } = narabi
+const { focus, ring } = sen
 const { check } = control
 
 const color = defineColors({
@@ -45,10 +49,10 @@ const color = defineColors({
 	},
 })
 
-const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ring.inset]
+const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...ring.inset]
 
 const field = defineRecipe({
-	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
+	base: [...toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
 	size: {
 		sm: 'grid-cols-[2rem_1fr]',
 		md: 'grid-cols-[2.5rem_1fr]',
@@ -61,12 +65,12 @@ export const k = defineRecipe(
 	{
 		base: [
 			'relative inline-flex shrink-0 items-center',
-			sen.focus.outline,
-			...hannou.cursor,
+			focus.outline,
+			...cursor,
 			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-			kasane.radius.rounded.full,
+			radius.rounded.full,
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 			...mode(
@@ -104,7 +108,7 @@ export const k = defineRecipe(
 				'absolute top-1 left-1 inline-block',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
-				kasane.radius.rounded.full,
+				radius.rounded.full,
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
 			],

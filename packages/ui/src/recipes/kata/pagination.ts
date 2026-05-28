@@ -1,44 +1,44 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
+const { cursor } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { focus } = sen
+
 const list = defineRecipe({
-	base: [narabi.flex.row, 'list-none', 'gap-1', 'm-0 p-0'],
+	base: [flex.row, 'list-none', 'gap-1', 'm-0 p-0'],
 })
 
 const button = defineRecipe({
 	base: [
 		'relative',
-		narabi.flex.inline,
+		flex.inline,
 		'justify-center',
 		'min-w-9',
 		'p-2',
-		ji.size.sm,
-		ji.weight.medium,
-		kasane.radius.rounded.lg,
-		sen.focus.ring,
-		...hannou.cursor,
+		size.sm,
+		weight.medium,
+		radius.rounded.lg,
+		focus.ring,
+		...cursor,
 	],
 	current: {
-		true: [...iro.text.default],
-		false: [...iro.text.muted, ...hannou.text.hover],
+		true: [...text.default],
+		false: [...text.muted, ...hannou.text.hover],
 	},
 	defaults: { current: false },
 })
 
 const gap = defineRecipe({
-	base: [
-		narabi.flex.inline,
-		'justify-center',
-		'min-w-9',
-		ji.size.sm,
-		...iro.text.muted,
-		'select-none',
-	],
+	base: [flex.inline, 'justify-center', 'min-w-9', size.sm, ...text.muted, 'select-none'],
 })
 
 export const k = defineRecipe(
 	{
-		base: [narabi.flex.row, 'list-none', 'gap-1'],
+		base: [flex.row, 'list-none', 'gap-1'],
 	},
 	{
 		list,

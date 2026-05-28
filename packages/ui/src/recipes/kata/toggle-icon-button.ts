@@ -1,12 +1,16 @@
 import { hannou, iro, kasane, narabi } from '../kiso'
 
+const { text } = iro
+const { radius } = kasane
+const { flex } = narabi
+
 export const k = {
 	base: [
 		'relative',
-		narabi.flex.row,
+		flex.row,
 		'justify-center',
-		kasane.radius.rounded.lg,
-		iro.text.muted,
+		radius.rounded.lg,
+		text.muted,
 		hannou.text.hover,
 		hannou.text.focus,
 	],

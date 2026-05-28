@@ -1,5 +1,9 @@
 import { kasane, omote, tsunagi } from '../kiso'
 
+const { radius } = kasane
+const { skeleton } = omote
+const { base } = tsunagi
+
 export const k = {
-	base: [omote.skeleton, 'block h-4', kasane.radius.rounded.lg, ...tsunagi.base],
+	base: [skeleton, 'block h-4', radius.rounded.lg, ...base],
 } as const

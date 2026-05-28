@@ -1,11 +1,15 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { kasane, omote, ugoki } from '../kiso'
 
+const { radius } = kasane
+const { bg } = omote
+const { css } = ugoki
+
 export const k = defineRecipe({
-	base: ['inline-block', kasane.radius.rounded.full],
+	base: ['inline-block', radius.rounded.full],
 	variant: {
 		solid: 'bg-current',
-		outline: ['border-2 border-current', ...omote.bg.surface],
+		outline: ['border-2 border-current', ...bg.surface],
 	},
 	status: {
 		inactive: mode('text-zinc-300', 'dark:text-zinc-400'),
@@ -15,7 +19,7 @@ export const k = defineRecipe({
 		error: 'text-red-500',
 	},
 	pulse: {
-		true: ugoki.css.pulse,
+		true: css.pulse,
 		false: '',
 	},
 	size: {

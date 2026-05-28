@@ -1,5 +1,7 @@
 import { ugoki } from '../kiso'
 
+const { reveal } = ugoki
+
 export const k = {
-	transition: ugoki.reveal.transition,
+	transition: reveal.transition,
 }

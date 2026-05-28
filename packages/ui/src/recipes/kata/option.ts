@@ -1,11 +1,15 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi } from '../kiso'
 
+const { text } = iro
+const { radius } = kasane
+const { flex, description } = narabi
+
 const base = [
 	...hannou.item,
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
-	kasane.radius.rounded.lg,
+	radius.rounded.lg,
 	...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
@@ -22,7 +26,7 @@ const size = {
 export const k = {
 	base,
 	size,
-	content: [narabi.flex.row, 'min-w-0', narabi.item],
+	content: [flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
-	description: [narabi.description, iro.text.muted],
+	description: [description, text.muted],
 } as const

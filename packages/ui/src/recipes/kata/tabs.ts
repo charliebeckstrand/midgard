@@ -2,8 +2,15 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { segment } from '../katakana'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
+const { cursor, disabled } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { border, focus } = sen
+
 const list = defineRecipe({
-	base: ['flex', ...sen.border.subtleColor],
+	base: ['flex', ...border.subtleColor],
 	orientation: {
 		horizontal: ['gap-4', 'border-b'],
 		vertical: ['flex-col', 'border-l'],
@@ -14,10 +21,10 @@ const list = defineRecipe({
 const tab = defineRecipe({
 	base: [
 		'relative',
-		narabi.flex.row,
+		flex.row,
 		'gap-2',
-		ji.weight.medium,
-		iro.text.muted,
+		weight.medium,
+		text.muted,
 		hannou.text.current,
 		// Tab-specific intermediate hover — between muted and default, only on
 		// non-current siblings.
@@ -25,10 +32,10 @@ const tab = defineRecipe({
 			'not-data-current:not-disabled:hover:text-zinc-700',
 			'dark:not-data-current:not-disabled:hover:text-zinc-200',
 		),
-		sen.focus.indicator,
-		...hannou.disabled,
+		focus.indicator,
+		...disabled,
 		'outline-none',
-		...hannou.cursor,
+		...cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
@@ -38,9 +45,9 @@ const tab = defineRecipe({
 		vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
 	},
 	size: {
-		sm: ji.size.sm,
-		md: ji.size.md,
-		lg: ji.size.lg,
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
 	},
 	compound: [
 		{ orientation: 'horizontal', size: 'sm', class: 'px-1 pb-3' },
@@ -54,7 +61,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: [kasane.radius.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
+	base: [radius.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',

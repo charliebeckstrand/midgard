@@ -1,9 +1,11 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro } from '../kiso'
 
+const { palette } = iro
+
 export const k = defineRecipe({
 	color: {
-		...iro.palette.bare.text,
+		...palette.bare.text,
 		current: 'text-current dark:text-current',
 	},
 	underline: {

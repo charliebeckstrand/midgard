@@ -1,35 +1,43 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
+const { cursor } = hannou
+const { text } = iro
+const { size } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { focus } = sen
+const { css, collapse } = ugoki
+
 export type TreeSize = 'sm' | 'md' | 'lg'
 
 const itemContent = defineRecipe(
 	{
 		base: [
-			narabi.flex.row,
+			flex.row,
 			'w-full',
 			'py-1 px-2',
 			'gap-2',
-			iro.text.muted,
+			text.muted,
 			hannou.text.hover,
-			kasane.radius.rounded.lg,
-			sen.focus.inset,
-			...hannou.cursor,
+			radius.rounded.lg,
+			focus.inset,
+			...cursor,
 			'select-none',
 			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
 		],
 		size: {
-			sm: ji.size.sm,
-			md: ji.size.md,
-			lg: ji.size.lg,
+			sm: size.sm,
+			md: size.md,
+			lg: size.lg,
 		},
 		defaults: { size: 'md' },
 	},
-	{ current: iro.text.default },
+	{ current: text.default },
 )
 
 const chevron = defineRecipe({
-	base: ['flex-none', narabi.flex.row, 'justify-center', ugoki.css.transform, ugoki.css.duration],
+	base: ['flex-none', flex.row, 'justify-center', css.transform, css.duration],
 	size: {
 		sm: 'w-4',
 		md: 'w-5',
@@ -40,7 +48,7 @@ const chevron = defineRecipe({
 
 export const k = {
 	base: [
-		narabi.flex.col,
+		flex.col,
 		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
@@ -56,5 +64,5 @@ export const k = {
 		md: 1.75,
 		lg: 2,
 	},
-	motion: ugoki.collapse.fade,
+	motion: collapse.fade,
 } as const

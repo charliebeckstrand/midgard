@@ -1,24 +1,32 @@
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+const { padding, radius } = kasane
+const { flex } = narabi
+const { popover, glass } = omote
+const { ring } = sen
+const { tooltip } = ugoki
+
 const content = defineRecipe({
-	base: ['max-w-sm', iro.text.default, ji.weight.medium],
+	base: ['max-w-sm', text.default, weight.medium],
 	size: {
-		sm: [kasane.padding.p('1'), kasane.radius.r('1'), ji.size.sm],
-		md: [kasane.padding.p('2'), kasane.radius.r('2'), ji.size.md],
-		lg: [kasane.padding.p('3'), kasane.radius.r('3'), ji.size.lg],
+		sm: [padding.p('1'), radius.r('1'), size.sm],
+		md: [padding.p('2'), radius.r('2'), size.md],
+		lg: [padding.p('3'), radius.r('3'), size.lg],
 	},
 	defaults: { size: 'md' },
 })
 
 export const k = {
-	trigger: narabi.flex.inline,
+	trigger: flex.inline,
 	portal: 'z-100',
 	cursor: 'cursor-help *:cursor-help',
 	content,
 	surface: {
-		default: omote.popover,
-		glass: [omote.glass, sen.ring.default],
+		default: popover,
+		glass: [glass, ring.default],
 	},
-	motion: ugoki.tooltip,
+	motion: tooltip,
 } as const

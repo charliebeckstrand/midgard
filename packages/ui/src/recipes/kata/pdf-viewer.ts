@@ -1,54 +1,56 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen } from '../kiso'
 
+const { cursor } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { flex } = narabi
+const { bg, skeleton } = omote
+const { border } = sen
+
 export const k = {
-	base: ['relative', narabi.flex.col, 'overflow-hidden', omote.bg.surface, sen.border.default],
+	base: ['relative', flex.col, 'overflow-hidden', bg.surface, border.default],
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
 		'overflow-x-auto',
 		'gap-1',
 		'px-2 py-1.5',
 		'border-b',
-		sen.border.color,
+		border.color,
 		'shrink-0',
 	],
-	toolbarSection: [narabi.flex.row, 'shrink-0', 'gap-1'],
-	pageStatus: [ji.size.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
+	toolbarSection: [flex.row, 'shrink-0', 'gap-1'],
+	pageStatus: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
-		narabi.flex.col,
+		flex.col,
 		'shrink-0 w-56 min-h-0',
 		'overflow-hidden',
 		'border-r',
-		sen.border.color,
+		border.color,
 		'transition-[margin] duration-150 ease-in-out',
 	],
 	sidebarClosed: '-ml-56',
 	sidebarHeader: [
-		narabi.flex.row,
+		flex.row,
 		'gap-1',
 		'px-3 py-2',
-		ji.size.md,
-		iro.text.muted,
-		ji.weight.semibold,
+		size.md,
+		text.muted,
+		weight.semibold,
 		'shrink-0',
 		'select-none',
 	],
-	thumbnails: [
-		narabi.flex.col,
-		'basis-0 grow shrink min-h-0',
-		'gap-2',
-		'overflow-y-auto px-4 pb-4',
-	],
+	thumbnails: [flex.col, 'basis-0 grow shrink min-h-0', 'gap-2', 'overflow-y-auto px-4 pb-4'],
 	thumbnailsGrid: ['grid grid-cols-2', 'gap-2'],
 	thumbnail: [
 		'group/thumb',
-		narabi.flex.col,
+		flex.col,
 		'items-center',
 		'gap-2',
 		'bg-transparent',
 		'outline-none',
-		...hannou.cursor,
+		...cursor,
 	],
 	thumbnailFrame: [
 		'relative block w-full aspect-[3/4]',
@@ -63,17 +65,11 @@ export const k = {
 		'group-data-current/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
-	thumbnailFallback: [
-		narabi.flex.row,
-		'justify-center',
-		'h-full w-full',
-		ji.size.sm,
-		iro.text.muted,
-	],
-	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
+	thumbnailFallback: [flex.row, 'justify-center', 'h-full w-full', size.sm, text.muted],
+	thumbnailPlaceholder: ['block w-full aspect-[3/4]', skeleton],
 	thumbnailLabel: [
-		ji.size.sm,
-		iro.text.muted,
+		size.sm,
+		text.muted,
 		...mode('group-data-current/thumb:text-zinc-950', 'dark:group-data-current/thumb:text-white'),
 		'tabular-nums select-none',
 	],
@@ -87,13 +83,6 @@ export const k = {
 	],
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
-	pagePlaceholder: ['w-full h-full', omote.skeleton],
-	pageEmpty: [
-		narabi.flex.row,
-		'justify-center',
-		'w-full h-full',
-		'py-2',
-		ji.size.sm,
-		iro.text.muted,
-	],
+	pagePlaceholder: ['w-full h-full', skeleton],
+	pageEmpty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', size.sm, text.muted],
 } as const

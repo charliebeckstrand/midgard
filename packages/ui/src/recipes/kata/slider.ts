@@ -2,6 +2,7 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou } from '../kiso'
 import { slider } from '../kiso/slider'
 
+const { cursor, disabled } = hannou
 const { color } = slider
 
 export const k = defineRecipe({
@@ -9,9 +10,9 @@ export const k = defineRecipe({
 		'w-full',
 		'appearance-none',
 		'bg-transparent',
-		...hannou.cursor,
+		...cursor,
 		'outline-none',
-		...hannou.disabled,
+		...disabled,
 
 		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',

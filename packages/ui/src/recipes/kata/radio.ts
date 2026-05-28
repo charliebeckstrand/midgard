@@ -2,6 +2,9 @@ import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 
+const { radius } = kasane
+const { radio } = kokkaku
+
 const color = defineColors({
 	zinc: {
 		light:
@@ -20,7 +23,7 @@ export const k = check(
 	{
 		base: [
 			'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-			kasane.radius.rounded.full,
+			radius.rounded.full,
 			'[--radio-checked-border:transparent]',
 			'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
@@ -31,7 +34,7 @@ export const k = check(
 			md: 'size-4.5',
 			lg: 'size-5',
 		},
-		skeleton: kokkaku.radio,
+		skeleton: radio,
 	},
 	{
 		/** Indicator dot size class per radio size step. Read by the component. */

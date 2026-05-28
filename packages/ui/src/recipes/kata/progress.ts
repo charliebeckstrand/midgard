@@ -1,6 +1,11 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, narabi } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+
 /**
  * Per-colour fill / bg / stroke classes shared between bar + gauge. The
  * gauge reads all three (`fill` on the indicator circle, `stroke` on the
@@ -36,7 +41,7 @@ const color = {
 }
 
 const fill = defineRecipe({
-	base: ['h-full', kasane.radius.rounded.full],
+	base: ['h-full', radius.rounded.full],
 	color: {
 		zinc: color.zinc.bg,
 		red: color.red.bg,
@@ -48,7 +53,7 @@ const fill = defineRecipe({
 })
 
 const root = defineRecipe({
-	base: ['relative', narabi.flex.inline, 'justify-center'],
+	base: ['relative', flex.inline, 'justify-center'],
 	size: {
 		sm: 'size-12',
 		md: 'size-16',
@@ -59,23 +64,19 @@ const root = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: ['absolute', ji.weight.semibold, ...iro.text.default],
+	base: ['absolute', weight.semibold, ...text.default],
 	size: {
-		sm: ji.size.xs,
-		md: ji.size.sm,
-		lg: ji.size.md,
-		xl: ji.size.lg,
+		sm: size.xs,
+		md: size.sm,
+		lg: size.md,
+		xl: size.lg,
 	},
 	defaults: { size: 'md' },
 })
 
 export const k = defineRecipe(
 	{
-		base: [
-			'overflow-hidden',
-			kasane.radius.rounded.full,
-			...mode('bg-zinc-200', 'dark:bg-zinc-800'),
-		],
+		base: ['overflow-hidden', radius.rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
 		size: {
 			sm: 'h-2',
 			md: 'h-3',

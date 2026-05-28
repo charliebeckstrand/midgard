@@ -2,10 +2,13 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, kasane, ugoki } from '../kiso'
 import { slider } from '../kiso/slider'
 
+const { cursor, disabled } = hannou
+const { radius } = kasane
+const { css } = ugoki
 const { color } = slider
 
 const root = defineRecipe({
-	base: ['relative', 'w-full', ...hannou.cursor, 'select-none', 'touch-none', hannou.disabled],
+	base: ['relative', 'w-full', ...cursor, 'select-none', 'touch-none', disabled],
 	size: {
 		sm: 'py-3',
 		md: 'py-4',
@@ -16,7 +19,7 @@ const root = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', kasane.radius.rounded.full, 'bg-[var(--slider-track)]'],
+	base: ['absolute left-0 right-0', radius.rounded.full, 'bg-[var(--slider-track)]'],
 	size: {
 		sm: 'h-1',
 		md: 'h-1.5',
@@ -28,12 +31,12 @@ const track = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		kasane.radius.rounded.full,
+		radius.rounded.full,
 		'-translate-x-1/2',
 		'bg-white',
 		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
 		'shadow-sm',
-		ugoki.css.transform,
+		css.transform,
 		'hover:scale-110',
 		'active:scale-110',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
@@ -49,7 +52,7 @@ const thumb = defineRecipe({
 export const k = {
 	root,
 	track,
-	fill: ['absolute', kasane.radius.rounded.full, 'bg-[var(--slider-fill)]'],
+	fill: ['absolute', radius.rounded.full, 'bg-[var(--slider-fill)]'],
 	thumb,
 } as const
 

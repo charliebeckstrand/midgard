@@ -1,6 +1,9 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+
 /**
  * Per-colour marker appearance. `dot` paints the status indicator;
  * `lineBefore` / `lineAfter` paint the inbound / outbound line segments.
@@ -61,7 +64,7 @@ const item = defineRecipe({
 })
 
 const title = defineRecipe({
-	base: [ji.weight.semibold, ji.size.lg, ...iro.text.default],
+	base: [weight.semibold, size.lg, ...text.default],
 	orientation: {
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
@@ -70,7 +73,7 @@ const title = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [ji.size.md],
+	base: [size.md],
 	orientation: {
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
@@ -79,7 +82,7 @@ const description = defineRecipe({
 })
 
 const timestamp = defineRecipe({
-	base: [ji.size.sm, ...iro.text.muted],
+	base: [size.sm, ...text.muted],
 	orientation: {
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',

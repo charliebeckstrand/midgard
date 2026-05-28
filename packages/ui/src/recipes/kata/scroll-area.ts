@@ -2,29 +2,34 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
 import { kasane, sen, shaku, ugoki } from '../kiso'
 
+const { radius } = kasane
+const { border } = sen
+const { scrollArea } = shaku
+const { css } = ugoki
+
 type Orientation = ScrollOrientation
-type Size = keyof (typeof shaku.scrollArea)['vertical']
+type Size = keyof (typeof scrollArea)['vertical']
 
 const orientations: Orientation[] = ['vertical', 'horizontal', 'both']
-const sizes = Object.keys(shaku.scrollArea.vertical) as Size[]
+const sizes = Object.keys(scrollArea.vertical) as Size[]
 
 const compound = orientations.flatMap((orientation) =>
 	sizes.map((size) => ({
 		orientation,
 		size,
-		class: shaku.scrollArea[orientation][size],
+		class: scrollArea[orientation][size],
 	})),
 )
 
 const wrapper = defineRecipe({
 	base: ['group relative overflow-hidden'],
 	rounded: {
-		true: kasane.radius.rounded.lg,
+		true: radius.rounded.lg,
 		false: '',
 	},
 	bare: {
 		true: '',
-		false: [...sen.border.default],
+		false: [...border.default],
 	},
 	orientation: {
 		vertical: '',
@@ -51,7 +56,7 @@ const viewport = defineRecipe({
 })
 
 const scrollbar = defineRecipe({
-	base: ['absolute touch-none select-none', ugoki.css.opacity, ugoki.css.duration],
+	base: ['absolute touch-none select-none', css.opacity, css.duration],
 	orientation: {
 		vertical: 'right-0 w-1.5',
 		horizontal: 'bottom-0 h-1.5',
@@ -76,7 +81,7 @@ const scrollbar = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		kasane.radius.rounded.full,
+		radius.rounded.full,
 		...mode(
 			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
 			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',

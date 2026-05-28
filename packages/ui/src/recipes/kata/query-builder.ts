@@ -1,17 +1,23 @@
 import { mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, sen } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { border } = sen
+
 export const k = {
-	base: [narabi.flex.col, 'gap-3 p-3', sen.border.default, kasane.radius.rounded.lg],
+	base: [flex.col, 'gap-3 p-3', border.default, radius.rounded.lg],
 	group: 'flex flex-col gap-3',
 	groupNested: [
 		'p-3',
 		...mode('bg-zinc-50', 'dark:bg-zinc-900/40'),
-		sen.border.default,
-		kasane.radius.rounded.lg,
+		border.default,
+		radius.rounded.lg,
 	],
-	rule: ['p-2', sen.border.default, kasane.radius.rounded.lg],
+	rule: ['p-2', border.default, radius.rounded.lg],
 	rowRemove: 'flex-none',
-	separator: [ji.size.xs, ji.weight.medium, ...iro.text.muted, 'uppercase'],
+	separator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
 	actions: 'flex items-center gap-2',
 } as const
