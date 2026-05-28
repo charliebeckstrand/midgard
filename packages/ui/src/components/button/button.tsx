@@ -107,8 +107,8 @@ export function Button({
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
-						data-step={resolvedSize}
 						data-variant={variant}
+						data-density={resolvedSize}
 						data-has-prefix={!!prefix || undefined}
 						data-has-suffix={!!suffix || undefined}
 						href={href}
@@ -135,8 +135,8 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
-				data-step={resolvedSize}
 				data-variant={variant}
+				data-density={resolvedSize}
 				data-has-prefix={!!prefix || undefined}
 				data-has-suffix={!!suffix || undefined}
 				type="button"

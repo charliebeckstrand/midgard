@@ -65,7 +65,7 @@ export function Group({
 			ref={ref}
 			dataSlot={dataSlot}
 			href={href}
-			data-step={resolvedSize}
+			data-density={resolvedSize}
 			data-group-orientation={orientation}
 			className={cn('inline-flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
 			{...props}

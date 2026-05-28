@@ -42,7 +42,7 @@ export function Avatar({
 	const avatarEl = (
 		<span
 			data-slot="avatar"
-			data-step={resolvedSize}
+			data-density={resolvedSize}
 			className={cn(k({ variant, color, size: resolvedSize }), !status && className)}
 			{...props}
 		>

@@ -36,11 +36,11 @@ export function Card({
 	return (
 		<Box
 			dataSlot="card"
+			data-density={token.size}
 			p={token.density}
 			bg={bg}
 			outline={outline}
 			radius={k.radius[token.size]}
-			data-step={token.size}
 			className={cn(
 				'overflow-hidden -outline-offset-1',
 				'[&:has(>[data-slot^=card-])]:p-0',
