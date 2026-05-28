@@ -12,7 +12,7 @@ export const k = defineRecipe({
 		true: 'hover:underline underline-offset-4',
 		false: '',
 	},
-	defaults: { color: 'blue', underline: true },
+	defaults: { color: 'blue', underline: false },
 })
 
 export type LinkVariants = VariantProps<typeof k>
