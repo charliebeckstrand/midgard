@@ -38,7 +38,7 @@ const wrapper = defineRecipe({
 	},
 	size: Object.fromEntries(sizes.map((key) => [key, ''])) as Record<Size, string>,
 	compound,
-	defaults: { rounded: false, bare: false, orientation: 'vertical' },
+	defaults: { rounded: false, bare: false, orientation: 'vertical', size: 'md' },
 })
 
 const viewport = defineRecipe({

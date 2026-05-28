@@ -24,5 +24,5 @@ export const focus = {
 		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
-	lifted: 'z-10 shadow-md focus-visible:ring-violet-600',
+	lifted: ['z-10', 'shadow-md', 'focus-visible:ring-violet-600'],
 } as const

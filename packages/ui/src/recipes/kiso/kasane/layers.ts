@@ -37,15 +37,15 @@ const hover = mode(
 
 /** `::after` 2 px focus ring — blue when no validation state is active. */
 const focus = [
-	'focus-within:after:ring-2',
-	'data-open:after:ring-2',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
-	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:data-open:after:ring-blue-600',
 	// Lift the focused element above its attached-group siblings so the join
 	// doesn't overpaint the joined-side focus ring with the neighbour's resting
 	// ring. `relative` already in `control.frame` provides the stacking context.
 	'focus-within:z-10',
 	'data-open:z-10',
+	'focus-within:after:ring-2',
+	'data-open:after:ring-2',
+	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
+	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:data-open:after:ring-blue-600',
 ]
 
 // Per-state validation rings on the outer ring + `::after`. The three blocks

@@ -37,10 +37,12 @@ export const k = {
 	segment,
 	label,
 	rules: [flex.col, 'gap-0.5'],
-	rule: [flex.inline, 'gap-1', size.sm],
-	ruleIcon: 'size-4 shrink-0',
-	ruleIconPass: palette.bare.text.green,
-	ruleIconFail: text.muted,
-	ruleText: text.muted,
-	ruleTextPass: text.default,
+	rule: {
+		base: [flex.inline, 'gap-1', size.sm],
+		icon: 'size-4 shrink-0',
+		iconPass: palette.bare.text.green,
+		iconFail: text.muted,
+		text: text.muted,
+		textPass: text.default,
+	},
 } as const
