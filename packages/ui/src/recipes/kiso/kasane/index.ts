@@ -18,7 +18,8 @@
 import { g, gx, gy } from './gap'
 import { all, base, disabled, focus, hover, inset, overlay, validation } from './layers'
 import { p, pl, pr, px, py } from './padding'
-import { r, ri, ro, rounded, stack } from './radius'
+import { r, ri, ro, stack } from './radius'
+import { rounded } from './rounded'
 
 export const kasane = {
 	layers: {

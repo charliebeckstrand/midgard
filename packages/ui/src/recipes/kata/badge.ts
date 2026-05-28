@@ -19,11 +19,7 @@ export const k = defineRecipe({
 		md: [size.md, icon.md, gap.g('0.75'), padding.py('1.25'), padding.px('2.5')],
 		lg: [size.lg, icon.lg, gap.g('0.75'), padding.py('1.5'), padding.px('3')],
 	},
-	rounded: {
-		...rounded,
-		none: 'rounded-none',
-		xl: 'rounded-xl',
-	},
+	rounded,
 	palette: definePalette({
 		solid: [palette.solid.bg, palette.solid.text],
 		soft: [palette.soft.bg, palette.soft.text],
