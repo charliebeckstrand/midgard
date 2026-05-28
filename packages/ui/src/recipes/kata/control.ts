@@ -12,9 +12,9 @@ const { frame } = control
  * input's `py` at every step: sm → 1.5, md → 2, lg → 2.5.
  */
 const frameRadius = {
-	sm: radius.stack('1.5'),
-	md: radius.stack('2'),
-	lg: radius.stack('2.5'),
+	sm: radius.all('1.5'),
+	md: radius.all('2'),
+	lg: radius.all('2.5'),
 } as const
 
 export const k = {

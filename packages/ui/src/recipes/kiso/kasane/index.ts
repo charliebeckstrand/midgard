@@ -7,7 +7,7 @@
  *   - `padding` — ring-compensated padding helpers
  *     (p / px / py / pl / pr). Each `kasane.padding.x('2')` returns the
  *     padding class with 1 px subtracted to land inside the outer ring.
- *   - `radius` — ring-compensated corner radii (r / ri / ro / stack).
+ *   - `radius` — ring-compensated corner radii (r / ri / ro / all).
  *   - `rounded` — pass-through to Tailwind's named radius scale
  *     (sm / md / lg / full); kept at the top so the kata read like the
  *     Tailwind class itself (`rounded.lg` → `rounded-lg`).
@@ -18,7 +18,7 @@
 import { g, gx, gy } from './gap'
 import { all, base, disabled, focus, hover, inset, overlay, validation } from './layers'
 import { p, pl, pr, px, py } from './padding'
-import { r, ri, ro, stack } from './radius'
+import { all as allRadii, r, ri, ro } from './radius'
 import { rounded } from './rounded'
 
 export const kasane = {
@@ -33,7 +33,7 @@ export const kasane = {
 		all,
 	},
 	padding: { p, px, py, pl, pr },
-	radius: { r, ri, ro, stack },
+	radius: { r, ri, ro, all: allRadii },
 	rounded,
 	gap: { g, gx, gy },
 } as const

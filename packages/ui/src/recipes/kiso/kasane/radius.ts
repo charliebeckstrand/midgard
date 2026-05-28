@@ -1,11 +1,12 @@
 /**
  * Kasane radius — numeric corner-rounding helpers tied to the kasane
- * layer stack. `r(v)` / `ri(v)` / `ro(v)` / `stack(v)` map a `--spacing(n)`
+ * layer stack. `r(v)` / `ri(v)` / `ro(v)` / `all(v)` map a `--spacing(n)`
  * stop to the matching outer / inset-fill / overlay class so corner
  * rounding stays proportional to the layer stack — a component with
  * `py('2')` lands on `r('2')` for a 1:1 padding-to-radius ratio at every
- * density step. `stack(v)` returns all three. The named-radius scale
- * (`sm` / `md` / `lg` / ...) lives next door in `rounded.ts`.
+ * density step. `all(v)` returns the coordinated trio, mirroring the
+ * `kasane.layers.all` bundle. The named-radius scale (`sm` / `md` /
+ * `lg` / ...) lives next door in `rounded.ts`.
  *
  * Layer: kiso · Concern: corner radius
  */
@@ -59,4 +60,4 @@ export const ri = (v: RadiusStop) => riStops[v]
 export const ro = (v: RadiusStop) => roStops[v]
 
 /** Outer + inset + overlay radii, coordinated for the full kasane stack. */
-export const stack = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
+export const all = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
