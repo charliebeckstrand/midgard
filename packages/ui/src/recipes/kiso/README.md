@@ -1,8 +1,7 @@
 # Kiso 基礎 - Foundation
 
-Every named utility-class recipe in the design system. Atomic concerns at
-the top level; archetype sub-folders for the shapes that ≥2 kata compose
-from.
+Every named utility-class recipe in the design system. One sub-folder
+per concern, each exposing a single named bundle through its `index.ts`.
 
 ## Boundary
 
@@ -25,18 +24,15 @@ and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
 
 ## Shape
 
-Two kinds of contents live here. The path makes which kind explicit:
+Every module is a sub-folder. One file per concern; `index.ts`
+assembles the named bundle. The bundle name matches the folder (`iro`,
+`ji`, `ma`, …) so consumers reach a finished surface by name; the
+sub-files are the internal organisation that makes each axis easier
+to author and maintain.
 
-- **Atomic modules** (`<name>.ts`) — one axis per file. Each module
-  exports one named const matching its filename — `iro`, `ji`, `ma`, … —
-  sealed with `as const` so kata derive prop types from the data.
-  Accompanying type exports (`Ji`, `Ma`, `Kokkaku`, `Step`, `SunStep`,
-  `GroupOrientation`, `GroupPosition`) sit alongside.
-- **Archetype sub-folders** (`<archetype>/`) — multi-fragment recipes
-  shared by ≥2 kata. Each folder exposes one named bundle through its
-  `index.ts` (matching the folder name) — `control`, `popover`,
-  `segment`, `slider`. Sub-files within the folder are internal
-  organization; consumers import the bundle, not the parts.
+The two exceptions are `sun.ts` and `tsunagi.ts` — each carries a
+single coherent concern small enough that splitting would add files
+without adding clarity.
 
 Every file opens with a `Layer: kiso · Concern: <concern>` (or
 `Layer: kiso · Archetype: <archetype> · Concern: <part>`) docblock that
@@ -45,43 +41,53 @@ class fragments — `defineRecipe()` is never invoked here. The recipe
 engine lives in [`core/recipe/`](../../core/recipe) and is called at the
 katakana or kata public surface, where the variants axis is declared.
 
-Atomic filenames are `<name>.ts`. Archetype filenames are
-`<archetype>/<part>.ts` plus `<archetype>/index.ts`.
+Type exports (`Ji`, `Ma`, `Kokkaku`, `Step`, `SunStep`,
+`GroupOrientation`, `GroupPosition`) flow through each folder's
+`index.ts` alongside the runtime bundle.
 
-## Atomic modules
+## Modules
 
-| Module           | Concern                                                                                                          |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `iro` (色)       | Semantic colour bundles and the variant × slot palette matrix (`solid` / `soft` / `outline` / `plain` / `bare`). |
-| `ji` (字)        | Typography — size scale (label → text class) spread at the top level for the dominant use case, plus `weight`, `leading`, and `family` aliases. |
-| `kasane/` (重ね) | The signature 4-layer chrome (inset fill, hover ring, focus ring, validation ring) plus the ring-compensated padding, radius, and gap helpers. Split into `layers.ts`, `padding.ts`, `radius.ts`, `gap.ts`. |
-| `ma` (間)        | Named spacing scale — `p` / `px` / `py` / `pl` / `pr` / `pt` / `pb`, `m` / `mx` / `my` / `ml` / `mr` / `mt` / `mb`, `gap` / `gapX` / `gapY`. Each ships finished Tailwind utility maps keyed by the same `xs` / `sm` / `md` / `lg` / `xl` label set. `stops` keeps the raw numerals for arbitrary-value construction. |
-| `narabi` (並び)  | Sibling arrangement — field stacks, toggle grids, group adjacency, slide positioning, the truncated description spacer, and the flex primitives `row` / `inlineRow` / `col` / `fill`. (Panel slot layout moved to `kiso/panel/layout.ts`.) |
-| `omote` (面)     | Generic surface fills and chromes — surface · popover · glass · backdrop · content · tint · skeleton.            |
-| `hannou/` (反応) | Interaction feedback — hover, press, focus, disabled, cursor — plus the kata-shaped `item` and `nav` composites that compose those primitives. Split into `state.ts`, `text.ts`, `cursor.ts`, `glass-item.ts`, `item.ts`, `nav.ts`. |
-| `sen` (線)       | Borders, rings, dividers, focus indicators, and forced-colors safety nets.                                       |
-| `shaku` (尺)     | Dimension scales — width / height / icon slot / scroll area / panel max-width.                                   |
-| `sun` (寸)       | Named density steps (`sm` / `md` / `lg`) and the per-step token table.                                           |
-| `tsunagi` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime.                            |
-| `ugoki` (動き)   | Motion — CSS transition fragments (`opacity` / `transform` / `duration` / `pulse`) and Framer Motion enter / exit configs. |
-| `kokkaku/` (骨格) | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. One file per unit (avatar / badge / button / card / checkbox / control / heading / radio / switch / text / textarea). |
+### Foundational concerns
 
-## Archetype sub-folders
+| Module             | Concern                                                                                                                            | Files                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `iro/` (色)        | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle.                                                | `solid`, `soft`, `outline`, `plain`, `bare`, `hover`, `text`                                                       |
+| `ji/` (字)         | Typography — size scale spread at the top level, plus `weight` / `leading` / `family` aliases.                                     | `size`, `weight`, `leading`, `family`                                                                              |
+| `ma/` (間)         | Named spacing scale projected as finished Tailwind utilities, plus the raw `--spacing` numerals.                                   | `stops`, `padding`, `margin`, `gap`                                                                                |
+| `narabi/` (並び)   | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncated description, flex primitives.          | `field`, `toggle`, `slide`, `item`, `description`, `flex`                                                          |
+| `omote/` (面)      | Generic surface fills and chromes.                                                                                                 | `bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `tint`, `skeleton`                             |
+| `hannou/` (反応)   | Interaction feedback plus the kata-shaped `item` and `nav` composites.                                                             | `state`, `text`, `cursor`, `glass-item`, `item`, `nav`                                                             |
+| `sen/` (線)        | Borders, rings, dividers, focus indicators, forced-colors safety nets.                                                             | `tone`, `border`, `outline`, `ring`, `divider`, `focus`, `forced`                                                  |
+| `shaku/` (尺)      | Dimension scales for distinct surfaces.                                                                                            | `icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`                                            |
+| `ugoki/` (動き)    | Motion — CSS transitions and Framer Motion enter/exit configs.                                                                     | `css`, `spring`, `reveal`, `popover`, `overlay`, `toast`, `tooltip`, `collapse`, `panel`                           |
+| `kasane/` (重ね)   | The signature 4-layer chrome stack plus the ring-compensated padding / radius / gap helpers.                                       | `layers`, `padding`, `radius`, `gap`                                                                               |
+| `kokkaku/` (骨格)  | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped.                                            | `avatar`, `badge`, `button`, `card`, `checkbox`, `control`, `heading`, `radio`, `switch`, `text`, `textarea`       |
+| `sun.ts` (寸)      | Named density steps (`sm` / `md` / `lg`) and the per-step token table. *Flat file — single coherent concern.*                      | —                                                                                                                  |
+| `tsunagi.ts` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. *Flat file — single coherent concern.*      | —                                                                                                                  |
 
-| Archetype | Concern                                                                                                                                                                                                                                | Consumers                                                                                                  |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `control` | Field archetype: frame + surface + input + density + size + affix + resets + check. Composes `kasane` for the chrome.                                                                                                                  | `katakana/control`, `katakana/check`; `kata/combobox`, `kata/listbox`, `kata/date-picker`, `kata/select`, `kata/control`, `kata/switch` (subset reaches). |
-| `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` fragments plus motion / surface / glass / ring class fragments for any kata that pops a floating panel anchored to a trigger.                                       | `katakana/popover`; `kata/combobox`, `kata/listbox`, `kata/date-picker` (subset reaches).                  |
-| `segment` | Segmented-control archetype — `control` / `item` size maps plus `indicator` colour fragments shared by the standalone `<Segment>` and `<Tabs variant="segment">`.                                                                       | `katakana/segment`.                                                                                        |
-| `panel`   | Panel archetype — `surface` (fill + chrome) and `layout` (title / description / header / body / footer slot arrangement) for dialog, drawer, and sheet bodies.                                                                          | `katakana/panel`; `kata/dialog`, `kata/drawer`, `kata/sheet`, `kata/box`, `kata/panel` (subset reaches).   |
-| `slider`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. Promoted because both kata read the same variables despite painting through different selector surfaces (native pseudo vs custom DOM).         | `kata/slider`, `kata/slider-range`.                                                                        |
+### Archetypes
+
+Archetype sub-folders carry multi-fragment recipes shared by ≥2 kata.
+A kata that needs the whole archetype routes through its katakana
+applicator; a kata that needs a *subset* of fragments reaches the
+archetype folder directly (combobox / listbox / date-picker take
+`control.input` + `density` + `size` without the full chrome; slider /
+slider-range share `slider.color`).
+
+| Archetype  | Concern                                                                                                                                                                                                                                | Consumers                                                                                                  |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `control/` | Field archetype: frame + surface + input + density + size + affix + resets + check. Composes `kasane` for the chrome.                                                                                                                  | `katakana/control`, `katakana/check`; `kata/combobox`, `kata/listbox`, `kata/date-picker`, `kata/select`, `kata/control`, `kata/switch` (subset reaches). |
+| `popover/` | Floating overlay archetype — shared `trigger` / `portal` / `panel` fragments.                                                                                                                                                          | `katakana/popover`; `kata/combobox`, `kata/listbox`, `kata/date-picker` (subset reaches).                  |
+| `segment/` | Segmented-control archetype — `control` / `item` size maps plus `indicator` colour fragments.                                                                                                                                          | `katakana/segment`.                                                                                        |
+| `panel/`   | Panel archetype — `surface` (fill + chrome) and `layout` (title / description / header / body / footer arrangement).                                                                                                                   | `katakana/panel`; `kata/dialog`, `kata/drawer`, `kata/sheet`, `kata/box`, `kata/panel` (subset reaches).   |
+| `slider/`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour.                                                                                                                                                | `kata/slider`, `kata/slider-range`.                                                                        |
 
 ## Rules
 
-- **One concern per atomic module.** If a new fragment crosses axes,
-  split rather than overload.
-- **Two consumers, or it doesn't get an archetype sub-folder.** A
-  fragment with one consumer stays inline in that consumer's kata.
+- **One concern per sub-file.** If a new fragment crosses axes, add a
+  new sub-file rather than overload an existing one.
+- **Two consumers, or it doesn't get its own module.** A fragment with
+  one consumer stays inline in that consumer's kata.
 - **No `defineRecipe()`.** Kiso emits class fragments and token maps;
   the variants axis is declared at the katakana applicator layer or at
   the kata surface.
