@@ -9,9 +9,9 @@
 
 import { tone } from './tone'
 
-/** Default outline — 1 px outline-style line. */
+/** Default outline — 1 px line, low-contrast palette. */
 export const outline = ['outline', ...tone.outline]
-/** Stronger outline — for emphasis on dark backgrounds. */
+/** Stronger outline — emphasis on dark backgrounds. */
 export const outlineStrong = ['outline', ...tone.outlineStrong]
 /** Subtle outline — secondary separators. */
 export const outlineSubtle = ['outline', ...tone.outlineSubtle]

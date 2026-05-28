@@ -9,7 +9,7 @@
 
 import { tone } from './tone'
 
-/** Default ring — 1 px outline-style line. */
+/** Default ring — 1 px line, low-contrast palette. */
 export const ring = ['ring-1', ...tone.ring]
 /** Inset ring — sits inside the element, subtle in light / stronger in dark. */
 export const ringInset = ['ring-1', ...tone.ring, 'ring-inset']

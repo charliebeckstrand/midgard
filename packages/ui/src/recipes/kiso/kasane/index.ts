@@ -3,8 +3,8 @@
  *
  * The 4-layer chrome stack (`base` / `inset` / `overlay` / `hover` /
  * `focus` / `validation` / `disabled` / `all`) is the library's
- * signature inset-fill-plus-rings primitive — see `layers.ts`. The ring
- * compensated `p` / `px` / `py` / `pl` / `pr` helpers and the
+ * signature inset-fill-plus-rings primitive — see `layers.ts`. The
+ * ring-compensated `p` / `px` / `py` / `pl` / `pr` helpers and the
  * `r` / `ri` / `ro` / `radius` / `rounded` helpers sit alongside in
  * `padding.ts` and `radius.ts` because they exist to keep the inset fill
  * pixel-aligned with the outer ring. The `g` / `gx` / `gy` gap helpers
