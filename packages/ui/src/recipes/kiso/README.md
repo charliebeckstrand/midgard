@@ -58,7 +58,7 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 | `ma` (間)        | Named spacing scale shared by padding, margin, and gap; projected as first-class Tailwind utilities.             |
 | `narabi` (並び)  | Sibling arrangement — field stacks, toggle grids, group adjacency. (Panel slot layout moved to `kiso/panel/layout.ts`.) |
 | `omote` (面)     | Generic surface fills and chromes — surface · popover · glass · backdrop · content · tint · skeleton.            |
-| `hannou` (反応)  | Interaction states — hover, press, focus, disabled, cursor feedback.                                             |
+| `hannou/` (反応) | Interaction feedback — hover, press, focus, disabled, cursor — plus the kata-shaped `item` and `nav` composites that compose those primitives. Split into `state.ts`, `text.ts`, `cursor.ts`, `glass-item.ts`, `item.ts`, `nav.ts`. |
 | `sen` (線)       | Borders, rings, dividers, focus indicators, and forced-colors safety nets.                                       |
 | `shaku` (尺)     | Dimension scales — width / height / icon slot / scroll area / panel max-width.                                   |
 | `sun` (寸)       | Named density steps (`sm` / `md` / `lg`) and the per-step token table.                                           |
