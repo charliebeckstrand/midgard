@@ -1,9 +1,11 @@
-import { hannou, iro } from '../kiso'
+import { hannou, iro, kasane, narabi } from '../kiso'
+
 export const k = {
 	base: [
 		'relative',
-		'flex items-center justify-center',
-		'rounded-lg',
+		narabi.row,
+		'justify-center',
+		kasane.rounded.lg,
 		iro.text.muted,
 		hannou.text.hover,
 		hannou.text.focus,
@@ -12,4 +14,4 @@ export const k = {
 		'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]',
 	active: 'scale-100 opacity-100 blur-0',
 	inactive: 'blur-xs scale-[0.25] opacity-0',
-}
+} as const

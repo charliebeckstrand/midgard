@@ -1,5 +1,5 @@
-import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku, narabi, sen } from '../kiso'
+import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 
 const { check } = control
@@ -45,7 +45,7 @@ const color = defineColors({
 	},
 })
 
-const track = ['bg-zinc-200', 'dark:bg-white/10', ...sen.ringInset]
+const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ringInset]
 
 const field = defineRecipe({
 	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
@@ -66,11 +66,13 @@ export const k = defineRecipe(
 			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-			'rounded-full',
+			kasane.rounded.full,
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
-			'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
-			'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+			...mode(
+				'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
+				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+			),
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 		],
@@ -102,7 +104,7 @@ export const k = defineRecipe(
 				'absolute top-1 left-1 inline-block',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
-				'rounded-full',
+				kasane.rounded.full,
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
 			],

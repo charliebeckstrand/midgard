@@ -1,21 +1,22 @@
-import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, ji, sen, ugoki } from '../kiso'
+import { defineRecipe, mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 export type TreeSize = 'sm' | 'md' | 'lg'
 
 const itemContent = defineRecipe(
 	{
 		base: [
-			'flex w-full items-center',
+			narabi.row,
+			'w-full',
 			'py-1 px-2',
 			'gap-2',
 			iro.text.muted,
 			hannou.text.hover,
-			'rounded-lg',
+			kasane.rounded.lg,
 			sen.focus.inset,
-			'cursor-pointer',
+			...hannou.cursor,
 			'select-none',
-			'data-[open]:text-zinc-950 dark:data-[open]:text-white',
+			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
 		],
 		size: {
 			sm: ji.sm,
@@ -28,7 +29,7 @@ const itemContent = defineRecipe(
 )
 
 const chevron = defineRecipe({
-	base: ['flex-none', 'flex items-center justify-center', ugoki.css.transform, ugoki.css.duration],
+	base: ['flex-none', narabi.row, 'justify-center', ugoki.css.transform, ugoki.css.duration],
 	size: {
 		sm: 'w-4',
 		md: 'w-5',
@@ -39,7 +40,7 @@ const chevron = defineRecipe({
 
 export const k = {
 	base: [
-		'flex flex-col',
+		narabi.col,
 		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',

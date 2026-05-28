@@ -1,15 +1,15 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
-import { sen, shaku, ugoki } from '../kiso'
+import { kasane, sen, shaku, ugoki } from '../kiso'
 
 type Orientation = ScrollOrientation
 type Size = keyof (typeof shaku.scrollArea)['vertical']
 
-const orientationKeys: Orientation[] = ['vertical', 'horizontal', 'both']
-const sizeKeys = Object.keys(shaku.scrollArea.vertical) as Size[]
+const orientations: Orientation[] = ['vertical', 'horizontal', 'both']
+const sizes = Object.keys(shaku.scrollArea.vertical) as Size[]
 
-const sizeCompoundRules = orientationKeys.flatMap((orientation) =>
-	sizeKeys.map((size) => ({
+const compound = orientations.flatMap((orientation) =>
+	sizes.map((size) => ({
 		orientation,
 		size,
 		class: shaku.scrollArea[orientation][size],
@@ -19,7 +19,7 @@ const sizeCompoundRules = orientationKeys.flatMap((orientation) =>
 const wrapper = defineRecipe({
 	base: ['group relative overflow-hidden'],
 	rounded: {
-		true: 'rounded-lg',
+		true: kasane.rounded.lg,
 		false: '',
 	},
 	bare: {
@@ -31,8 +31,8 @@ const wrapper = defineRecipe({
 		horizontal: '',
 		both: '',
 	},
-	size: Object.fromEntries(sizeKeys.map((key) => [key, ''])) as Record<Size, string>,
-	compound: sizeCompoundRules,
+	size: Object.fromEntries(sizes.map((key) => [key, ''])) as Record<Size, string>,
+	compound,
 	defaults: { rounded: false, bare: false, orientation: 'vertical' },
 })
 
@@ -75,9 +75,12 @@ const scrollbar = defineRecipe({
 
 const thumb = defineRecipe({
 	base: [
-		'absolute rounded-full',
-		'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
-		'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',
+		'absolute',
+		kasane.rounded.full,
+		...mode(
+			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
+			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',
+		),
 	],
 	orientation: {
 		vertical: 'w-full',
@@ -90,7 +93,7 @@ export const k = {
 	viewport,
 	scrollbar,
 	thumb,
-}
+} as const
 
 export type ScrollAreaWrapperVariants = VariantProps<typeof wrapper>
 export type ScrollAreaViewportVariants = VariantProps<typeof viewport>

@@ -1,6 +1,6 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { segment } from '../katakana'
-import { hannou, iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const list = defineRecipe({
 	base: ['flex', ...sen.border.subtleColor],
@@ -13,15 +13,18 @@ const list = defineRecipe({
 
 const tab = defineRecipe({
 	base: [
-		'relative flex items-center',
+		'relative',
+		narabi.row,
 		'gap-2',
-		'font-medium',
+		ji.weight.medium,
 		iro.text.muted,
 		hannou.text.current,
 		// Tab-specific intermediate hover — between muted and default, only on
 		// non-current siblings.
-		'not-data-current:not-disabled:hover:text-zinc-700',
-		'dark:not-data-current:not-disabled:hover:text-zinc-200',
+		...mode(
+			'not-data-current:not-disabled:hover:text-zinc-700',
+			'dark:not-data-current:not-disabled:hover:text-zinc-200',
+		),
 		sen.focus.indicator,
 		...hannou.disabled,
 		'outline-none',
@@ -51,7 +54,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: ['rounded-full', 'bg-zinc-950', 'dark:bg-white'],
+	base: [kasane.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',
@@ -64,4 +67,4 @@ export const k = {
 	tab,
 	indicator,
 	segment: segment(),
-}
+} as const

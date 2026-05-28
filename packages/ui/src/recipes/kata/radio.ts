@@ -1,6 +1,6 @@
 import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
-import { kokkaku } from '../kiso'
+import { kasane, kokkaku } from '../kiso'
 
 const color = defineColors({
 	zinc: {
@@ -20,7 +20,7 @@ export const k = check(
 	{
 		base: [
 			'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-			'rounded-full',
+			kasane.rounded.full,
 			'[--radio-checked-border:transparent]',
 			'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
