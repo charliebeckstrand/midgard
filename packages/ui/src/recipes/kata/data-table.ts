@@ -1,24 +1,25 @@
-import { hannou, iro, ji, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+
 export const k = {
-	wrapper: ['relative flex flex-col', 'gap-2'],
+	wrapper: ['relative', narabi.col, 'gap-2'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.surface],
 	batchBar: [
-		'flex items-center',
+		narabi.row,
 		'min-h-12',
 		'gap-2',
 		'px-2',
 		'py-1',
 		sen.border.subtle,
-		'rounded-lg',
+		kasane.rounded.lg,
 		'border-b',
 		omote.tint,
 	],
-	batchCount: ['font-medium whitespace-nowrap', ji.sm, iro.text.muted],
+	batchCount: [ji.weight.medium, 'whitespace-nowrap', ji.sm, iro.text.muted],
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [
-		'inline-flex items-center',
+		narabi.inlineRow,
 		iro.text.muted,
 		hannou.text.hover,
 		sen.focus.ring,
@@ -27,5 +28,5 @@ export const k = {
 	],
 	sortIcon: iro.text.muted,
 	sortIconActive: iro.text.default,
-	rowLoading: 'animate-pulse opacity-60',
-}
+	rowLoading: [ugoki.css.pulse, 'opacity-60'],
+} as const

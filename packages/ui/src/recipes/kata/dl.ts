@@ -1,17 +1,17 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, sen } from '../kiso'
+import { iro, ji, narabi, sen } from '../kiso'
 
 const root = defineRecipe({
 	base: ji.sm,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
-		vertical: 'flex flex-col',
+		vertical: narabi.col,
 	},
 	defaults: { orientation: 'horizontal' },
 })
 
 const term = defineRecipe({
-	base: [iro.text.muted, 'font-medium'],
+	base: [iro.text.muted, ji.weight.medium],
 	orientation: {
 		horizontal: [
 			'col-start-1',
@@ -37,4 +37,4 @@ export const k = {
 	root,
 	term,
 	details,
-}
+} as const

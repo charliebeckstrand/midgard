@@ -39,7 +39,7 @@ export function Card({
 			p={token.density}
 			bg={bg}
 			outline={outline}
-			radius={k.radiusForStep[token.size]}
+			radius={k.radius[token.size]}
 			data-step={token.size}
 			className={cn(
 				'overflow-hidden -outline-offset-1',
