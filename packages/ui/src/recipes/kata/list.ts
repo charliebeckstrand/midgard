@@ -12,7 +12,7 @@ const { border, divider, focus } = sen
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
 const root = defineRecipe({
-	base: [flex.col, 'm-0 p-0', 'k-none'],
+	base: [flex.col, 'm-0 p-0'],
 	variant: {
 		separated: ['gap-2'],
 		outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
@@ -27,7 +27,7 @@ const root = defineRecipe({
 })
 
 const item = defineRecipe({
-	base: ['group/k-item', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
+	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
 		separated: ['p-3', ...bg.surface, border.default, rounded.lg],
 		outline: ['p-3'],
