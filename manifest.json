@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"generatedAt": "2026-05-15T18:27:45Z",
+	"generatedAt": "2026-05-28T20:19:07Z",
 	"packageManager": "pnpm",
 	"monorepo": {
 		"tool": "turbo",
@@ -24,29 +24,6 @@
 				"check-types": "tsc --noEmit",
 				"build": "next build",
 				"dev": "next dev --port 3000 --turbopack"
-			},
-			"componentsDir": null,
-			"primitivesDir": null,
-			"hooksDir": null,
-			"tokensDir": null,
-			"testLayout": null,
-			"testHelpersDir": null,
-			"isFrontend": true
-		},
-		{
-			"name": "chat",
-			"path": "apps/chat",
-			"framework": "next",
-			"testRunner": null,
-			"linter": "biome",
-			"scripts": {
-				"test": null,
-				"test:changed": null,
-				"test:related": null,
-				"lint": "biome check --config-path=../.. .",
-				"check-types": "tsc --noEmit",
-				"build": "next build",
-				"dev": "next dev --port 3001 --turbopack"
 			},
 			"componentsDir": null,
 			"primitivesDir": null,
@@ -122,7 +99,7 @@
 			"hooksDir": "src/hooks",
 			"tokensDir": "src/recipes",
 			"testLayout": "mirror",
-			"testHelpersDir": "src/__tests__",
+			"testHelpersDir": "src/__tests__/helpers",
 			"isFrontend": true
 		}
 	],
@@ -131,7 +108,6 @@
 		"gates": [
 			"lint",
 			"type",
-			"filenames",
 			"test"
 		]
 	},
@@ -141,26 +117,28 @@
 	},
 	"conventions": {
 		"files": [
-			"CLAUDE.md"
+			"CLAUDE.md",
+			"packages/ui/CLAUDE.md"
 		],
 		"principles": [
-			"Simplicity above all; abstractions are extracted from proven duplication, never predicted.",
-			"Solve the stated problem, not adjacent ones — a bug fix is not a refactoring opportunity.",
-			"Dependencies flow inward: shared packages never depend on application code.",
-			"Let the type system carry its weight; if a type is hard to express, rethink the design.",
-			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, palette, merge). packages/ui/src/recipes/ has the design layer: kiso substrate (iro · ji · ma · narabi · omote · hannou · sen · shaku · tsunagi · ugoki · kokkaku), kata per-component recipes, and genkei multi-element archetypes; the recipes barrel re-exports the engine so consumers get one import surface. The internal boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
+			"Hold work to a staff-engineer standard and challenge it before presenting it.",
+			"Understand before modifying — read the surrounding code and follow its conventions; extend before inventing, adding a module only at a genuinely distinct boundary.",
+			"Solve the stated problem, not adjacent ones — flag adjacent problems, don't fix them unasked.",
+			"Match the existing pattern or argue for a better one; never introduce a third way.",
+			"Dependencies flow inward: apps depend on packages, packages never depend on application code.",
+			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, definePalette, merge). packages/ui/src/recipes/ has the design layer: kiso substrate (iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane, plus the control · popover · segment · panel · slider archetype sub-folders), katakana function-shaped applicators that wrap kiso archetypes, and kata per-component recipes. The recipes barrel is types-only; consumers reach recipe values through their kata and import the engine directly from core/recipe. The internal boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
 			"Files must be self-identifying out of context: components use <name>.tsx / <name>-<part>.tsx; hooks use use-<name>-<hook>.ts; every component or hook file exports a symbol whose PascalCase form matches its filename (enforced by packages/ui/src/__tests__/components/boundary/component-filename-boundary.test.ts).",
 			"Never extend the inline ALLOWLIST in component-filename-boundary.test.ts for new files — fix the file or fix the export instead.",
 			"Imperative-mood, atomic commits; each commit represents one logical change.",
 			"Inside the editing loop, never run the full ui test suite (`pnpm --filter ui test` or `pnpm test`); use scoped commands and let the lefthook pre-commit gate catch the rest.",
 			"When a check fails after an edit, fix the cause; never weaken the check (no deleting assertions, .skip, or stripping expect calls to make a suite green).",
-			"Work is done only when /postmortem returns PROCEED and the diff has been self-reviewed."
+			"Work is done only when the quality skills pass — /orator for prose, /typescript:format for TypeScript, and /postmortem gating the commit."
 		],
 		"vocabularyGlossary": {
-			"engine": "The recipe DSL under packages/ui/src/core/recipe/engine/ — `defineRecipe(config)` plus `palette(matrix, ...overlays)`. Reserved fields `base`, `palette`, `compound`, `slots`, `defaults`; any other top-level field is a variant axis.",
-			"kiso": "Design-token substrate (基礎 — foundation) under packages/ui/src/recipes/kiso/ — iro · ji · ma · narabi · omote · hannou · sen · shaku · tsunagi · ugoki · kokkaku. Re-exported from packages/ui/src/recipes/index.ts for in-package consumers.",
+			"engine": "The recipe DSL under packages/ui/src/core/recipe/engine/ — `defineRecipe(config)` plus `definePalette(matrix, ...overlays)`. Reserved fields `base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`; any other top-level field is a variant axis.",
+			"kiso": "Design-token substrate (基礎 — foundation) under packages/ui/src/recipes/kiso/ — iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane, plus the control · popover · segment · panel · slider archetype sub-folders. Consumed by katakana and kata via relative path; only foundational types flow through the types-only recipes barrel.",
+			"katakana": "Internal applicator layer (片仮名 — applicators) under packages/ui/src/recipes/katakana/ — function-shaped wrappers (control, check, popover, segment, panel) that take a kiso archetype's fragments plus a kata's per-call overlay and return the `k` surface the kata exports. Wiring only — no literal Tailwind classes, pinned by src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts. Same internal-only boundary as kata.",
 			"kata": "Internal per-component recipe layer (型 — form) under packages/ui/src/recipes/kata/ — every file exports the primary recipe as `k`. Imported via relative paths, deliberately not in package.json exports.",
-			"genkei": "Internal multi-element archetype layer (原型 — archetype) under packages/ui/src/recipes/genkei/ — shared structural templates (panel, control, option, popover, kasane) instantiated by ≥2 kata. Same internal-only boundary as kata.",
 			"Manifest": "Canonical project profile at ./manifest.json produced by /repo:manifest and consumed by every other skill.",
 			"Brief": "Output of /deliberate — a precise problem statement synthesized from ABCD-style answers to dimension gaps."
 		},
@@ -172,6 +150,10 @@
 			{
 				"skill": "/deliberate",
 				"trigger": "request is a fuzzy idea from which no concrete proposal can be formed"
+			},
+			{
+				"skill": "/orator",
+				"trigger": "prose changed — docs, comments, README, or user-facing copy; invoked first in /postmortem's prose chain and listed in CLAUDE.md § Quality check"
 			},
 			{
 				"skill": "/postmortem",
@@ -196,10 +178,10 @@
 		]
 	},
 	"notes": [
-		"apps/tms, packages/heimdall, and packages/sindri exist on disk as residual directories without package.json (only .turbo/ and dist/ artifacts). Git log shows tms was removed and heimdall/sindri were renamed to auth/shared — these directories should be cleaned up.",
 		"Both .husky/ and lefthook.yml are present; lefthook is the active tool (root package.json `prepare` script runs `lefthook install`).",
 		"No CI provider detected — no .github/workflows, .gitlab-ci.yml, or .circleci/config.yml.",
 		"packages/ui is the only package with a test runner (vitest), matching the documented testing policy in CLAUDE.md.",
-		"packages/auth and packages/shared list `next` in devDependencies/peerDependencies and so resolve to framework=next per the discovery table, though they ship as libraries (tsup build) consumed by the Next apps."
+		"packages/auth and packages/shared list `next` in devDependencies/peerDependencies and so resolve to framework=next per the discovery table, though they ship as libraries (tsup build) consumed by the Next apps.",
+		"Root `dev` script delegates to `hlidskjalf` (a local dependency), not a workspace package."
 	]
 }

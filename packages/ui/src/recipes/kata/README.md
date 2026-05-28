@@ -60,8 +60,8 @@ depends on how the kata reaches the recipe layer:
   skeleton data). Recipes for individual slots are inner
   `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
 
-Type exports sit alongside (`type FooVariants = VariantPropsOf<typeof k>`
-or `VariantPropsOf<typeof k.button>`). Archetype kata may also re-export
+Type exports sit alongside (`type FooVariants = VariantProps<typeof k>`
+or `VariantProps<typeof k.button>`). Archetype kata may also re-export
 the applicator's variant type — e.g.
 `export type { ControlVariants as InputVariants } from '../katakana'`.
 

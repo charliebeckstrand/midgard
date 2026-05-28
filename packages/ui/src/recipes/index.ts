@@ -5,8 +5,8 @@
  *               Atomic concerns (iro / ji / ma / narabi / omote / hannou /
  *               sen / shaku / sun / tsunagi / ugoki / kokkaku / kasane)
  *               plus archetype sub-folders (control / popover / segment /
- *               slider) for shapes shared by ≥2 kata. Consumed by katakana
- *               and kata.
+ *               panel / slider) for shapes shared by ≥2 kata. Consumed by
+ *               katakana and kata.
  *   katakana/ — function-shaped applicators that wrap kiso archetype
  *               fragments into ready-to-call recipe surfaces. Consumed by
  *               kata that match an archetype shape. Wiring only — no
