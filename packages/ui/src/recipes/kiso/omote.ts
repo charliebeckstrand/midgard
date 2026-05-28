@@ -1,11 +1,11 @@
 /**
  * Omote (面) — surfaces.
  *
- * Named surface chromes — the plane content sits on. The internal `bg`
- * map carries colour tokens keyed by surface role; the exported shape
+ * Named surface fills and generic chromes that apply across the design
+ * system. Archetype-specific chromes (panel, popover slot bundles) live
+ * with their archetype under `kiso/<archetype>/`. The internal `bg` map
+ * carries colour tokens keyed by surface role; the exported shape
  * composes them with `sen` lines, blur, and forced-colour fallbacks.
- * Popovers, panels, and backdrops each carry a multi-property chrome
- * that always applies together.
  *
  * Layer: kiso · Concern: surface
  */
@@ -16,7 +16,6 @@ import { sen } from './sen'
 
 const bg = {
 	surface: mode('bg-white', 'dark:bg-zinc-900'),
-	panel: mode('bg-white', 'dark:bg-zinc-900'),
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
@@ -34,15 +33,6 @@ const blur = {
 export const omote = {
 	/** Solid surface background (cards, sidebars, navbars). */
 	surface: bg.surface,
-	/** Solid panel background (dialogs, sheets, drawers). */
-	panel: {
-		/** Background fill only. */
-		bg: bg.panel,
-		/** Chrome only — ring + shadow + forced-colour outline, no fill. */
-		chrome: [sen.ring, sen.forced.outline],
-		/** Fill + chrome, everything a floating panel needs. */
-		base: [sen.ring, sen.forced.outline, bg.panel],
-	},
 	/** Floating popover surface — translucent fill + ring + blur. */
 	popover: [blur.md, bg.popover, sen.ring],
 	/** Fully transparent glass surface — blur only. */

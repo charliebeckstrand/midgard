@@ -1,11 +1,12 @@
 import { omote, sen } from '../kiso'
+import { panel } from '../kiso/panel'
 
 export const k = {
 	bg: {
 		none: 'bg-transparent',
 		surface: omote.surface,
 		tint: omote.tint,
-		panel: omote.panel.bg,
+		panel: panel.surface.bg,
 		popover: omote.popover,
 		glass: omote.glass,
 	},

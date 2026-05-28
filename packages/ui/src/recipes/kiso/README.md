@@ -54,10 +54,10 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `iro` (色)       | Semantic colour bundles and the variant × slot palette matrix (`solid` / `soft` / `outline` / `plain` / `bare`). |
 | `ji` (字)        | Type-size scale — font-size with line-height bundled.                                                            |
-| `kasane` (重ね)  | The signature 4-layer chrome — inset fill, hover ring, focus ring, validation ring — stacked on a single element. Also owns the ring-compensated padding, radius, and gap helpers. |
+| `kasane/` (重ね) | The signature 4-layer chrome (inset fill, hover ring, focus ring, validation ring) plus the ring-compensated padding, radius, and gap helpers. Split into `layers.ts`, `padding.ts`, `radius.ts`, `gap.ts`. |
 | `ma` (間)        | Named spacing scale shared by padding, margin, and gap; projected as first-class Tailwind utilities.             |
-| `narabi` (並び)  | Sibling arrangement — field stacks, panel slot layout, toggle grids, group adjacency.                            |
-| `omote` (面)     | Surface chromes — surface · panel · popover · glass · backdrop · content · tint · skeleton.                      |
+| `narabi` (並び)  | Sibling arrangement — field stacks, toggle grids, group adjacency. (Panel slot layout moved to `kiso/panel/layout.ts`.) |
+| `omote` (面)     | Generic surface fills and chromes — surface · popover · glass · backdrop · content · tint · skeleton.            |
 | `hannou` (反応)  | Interaction states — hover, press, focus, disabled, cursor feedback.                                             |
 | `sen` (線)       | Borders, rings, dividers, focus indicators, and forced-colors safety nets.                                       |
 | `shaku` (尺)     | Dimension scales — width / height / icon slot / scroll area / panel max-width.                                   |
@@ -73,6 +73,7 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 | `control` | Field archetype: frame + surface + input + density + size + affix + resets + check. Composes `kasane` for the chrome.                                                                                                                  | `katakana/control`, `katakana/check`; `kata/combobox`, `kata/listbox`, `kata/date-picker`, `kata/select`, `kata/control`, `kata/switch` (subset reaches). |
 | `popover` | Floating overlay archetype — shared `trigger` / `portal` / `panel` fragments plus motion / surface / glass / ring class fragments for any kata that pops a floating panel anchored to a trigger.                                       | `katakana/popover`; `kata/combobox`, `kata/listbox`, `kata/date-picker` (subset reaches).                  |
 | `segment` | Segmented-control archetype — `control` / `item` size maps plus `indicator` colour fragments shared by the standalone `<Segment>` and `<Tabs variant="segment">`.                                                                       | `katakana/segment`.                                                                                        |
+| `panel`   | Panel archetype — `surface` (fill + chrome) and `layout` (title / description / header / body / footer slot arrangement) for dialog, drawer, and sheet bodies.                                                                          | `katakana/panel`; `kata/dialog`, `kata/drawer`, `kata/sheet`, `kata/box`, `kata/panel` (subset reaches).   |
 | `slider`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. Promoted because both kata read the same variables despite painting through different selector surfaces (native pseudo vs custom DOM).         | `kata/slider`, `kata/slider-range`.                                                                        |
 
 ## Rules

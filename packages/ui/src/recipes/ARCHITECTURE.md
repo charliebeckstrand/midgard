@@ -29,8 +29,8 @@ The path makes which kind explicit:
   `omote/` (surface fills + glass).
 - **Archetypes** — sub-folder per shared shape that ≥2 kata compose from.
   `control/` (the framed user-input chrome), `popover/` (floating overlay),
-  `segment/` (segmented control), `panel/` (panel slot bundle),
-  `slider/` (slider colour table).
+  `segment/` (segmented control), `panel/` (panel surface + slot layout
+  for dialog/drawer/sheet), `slider/` (slider colour table).
 
 Archetypes are kiso, not a separate layer. They are still
 *utility-class recipes* — they emit class fragments, not `defineRecipe()`
@@ -134,9 +134,9 @@ The redesign collapsed the prior four-layer model
 - `genkei/popover.ts` → `kiso/popover/{trigger, portal, panel}.ts`
 - `genkei/segment.ts` → `kiso/segment/{control, item, indicator}.ts`
 - `genkei/slider.ts` → `kiso/slider/color.ts`
-- `omote.panel` + `narabi.panel` → `kiso/panel/{surface, layout}.ts`
-- `kasane.ts` → `kasane/{layers, padding, radius, gap}.ts`
-- `omote.ts` archetype chromes → respective `kiso/<archetype>/` sub-folders
+- `omote.panel` + `narabi.panel` → `kiso/panel/{surface, layout}.ts` (DONE)
+- `kasane.ts` → `kasane/{layers, padding, radius, gap}.ts` (DONE)
+- `omote.ts` archetype chromes → respective `kiso/<archetype>/` sub-folders (DONE for panel)
 - `hannou.item` / `hannou.nav` → owning kata (`menu`, `nav`)
 - `kokkaku.ts` → per-kata `k.skeleton`
 - `ma` raw numerals → `ma.{p,m,gap}` full-utility maps

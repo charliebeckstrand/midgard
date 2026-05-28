@@ -6,7 +6,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the three-layer model.
 
 | Layer                                              | Reach    | What                                                                                                                                          |
 | -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Kiso 基礎 - Foundation](./kiso/README.md)         | Internal | Every named utility-class recipe. Atomic concerns (iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane) plus the archetype sub-folders (control · popover · segment · slider). |
+| [Kiso 基礎 - Foundation](./kiso/README.md)         | Internal | Every named utility-class recipe. Atomic concerns (iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane) plus the archetype sub-folders (control · popover · segment · panel · slider). |
 | [Katakana 片仮名 - Applicators](./katakana/README.md) | Internal | Function-shaped applicators that wrap kiso archetype fragments into ready-to-call recipe surfaces for kata that match an archetype.        |
 | [Kata 型 - Form](./kata/README.md)                 | Internal | Per-unit recipes — the funnel components and primitives both read.                                                                            |
 

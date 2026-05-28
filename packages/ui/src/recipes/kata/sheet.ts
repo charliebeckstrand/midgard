@@ -1,13 +1,14 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { panel } from '../katakana'
+import { panel as panelApplicator } from '../katakana'
 import { iro, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
 
 export const k = {
-	...panel({
+	...panelApplicator({
 		panel: defineRecipe({
 			base: [
-				...omote.panel.chrome.flat(),
-				narabi.panel.base,
+				...panel.surface.chrome.flat(),
+				panel.layout.base,
 				'absolute overflow-y-auto',
 				'sm:rounded-xl',
 			],
@@ -28,7 +29,7 @@ export const k = {
 			size: shaku.panel,
 			surface: {
 				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
+				flat: [...panel.surface.bg],
 			},
 			compound: [
 				{ side: 'right', size: 'full', class: 'sm:left-4 sm:max-w-[calc(100%-2rem)]' },

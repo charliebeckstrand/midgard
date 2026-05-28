@@ -6,8 +6,6 @@
  * Layer: kiso · Concern: layout
  */
 
-import { iro } from './iro'
-import { ji } from './ji'
 import { sen } from './sen'
 import { shaku } from './shaku'
 
@@ -25,28 +23,6 @@ const item = [shaku.icon.md, 'text-inherit', sen.forced.icon]
 
 /** Truncated description with a spacer pseudo-element for overflow. */
 const description = ['flex', 'flex-1', 'overflow-hidden', 'before:w-2 before:min-w-0 before:shrink']
-
-/**
- * Panel slot layout shared by dialog, sheet, and drawer.
- *
- * Slot gaps come from `gap-4` on `base`, not per-slot `mt-*` — so slots compose
- * in any order without each one paying for its own first-child reset. `gap` (vs
- * `space-y`) survives `display: contents` wrappers like Form/Fieldset, keeping
- * the flex-shrink chain to the body's overflow intact when one wraps content.
- * `header` is the optional tight-gap wrapper for title + description (the only
- * pair where 4 feels loose); everything else stands on its own at 4.
- */
-const panel = {
-	base: 'flex flex-col gap-4',
-	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
-	header: 'flex flex-col space-y-2',
-	title: [...iro.text.default, ji.lg, 'font-semibold leading-none'],
-	description: [...iro.text.muted, ji.md, 'leading-tight'],
-	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
-	content: 'flex flex-col min-h-0 space-y-4',
-	body: [...iro.text.muted, 'min-h-0', 'overflow-y-auto'],
-	footer: ['flex items-center justify-end gap-2'],
-}
 
 const slide = {
 	right: 'inset-y-0 right-0 h-full w-full',
@@ -79,5 +55,4 @@ export const narabi = {
 	group,
 	item,
 	description,
-	panel,
 } as const

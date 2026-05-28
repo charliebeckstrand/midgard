@@ -1,3 +1,3 @@
-import { narabi } from '../kiso'
+import { panel } from '../kiso/panel'
 
-export const k = narabi.panel
+export const k = panel.layout
