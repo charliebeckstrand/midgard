@@ -7,15 +7,16 @@ into a ready-to-call surface for kata.
 
 `katakana/` is internal — omitted from `package.json` `exports` and not
 re-exported from `src/recipes/index.ts`. Kata consume katakana via
-relative path: `from '../katakana'`. An applicator composes
-[`kiso/`](../kiso/README.md) and reads its archetype's raw fragments
-from [`genkei/`](../genkei/README.md); it imports the recipe engine and
-the applicator helpers (`applyRecipe`, `defineApplicator`,
-`ApplicatorReturn`) directly from [`core/recipe`](../../core/recipe).
-Sideways composition between applicators is forbidden — shared concerns
-promote to genkei (raw fragments) or kiso (substrate). Applicators never
+relative path: `from '../katakana'`. An applicator reads its archetype's
+fragments from [`kiso/<archetype>`](../kiso/README.md) and composes other
+kiso atoms; it imports the recipe engine and the applicator helpers
+(`applyRecipe`, `defineApplicator`, `ApplicatorReturn`) directly from
+[`core/recipe`](../../core/recipe). Sideways composition between
+applicators is forbidden — shared concerns promote to a kiso archetype
+sub-folder (raw fragments) or a kiso atom (substrate). Applicators never
 reach upward into kata, components, primitives, layouts, hooks, or
-providers. The contract is pinned by
+providers, and they never inline literal Tailwind class strings — every
+fragment is reached by name through kiso. The contract is pinned by
 `src/__tests__/recipes/boundary/kata-boundary.test.ts`,
 `src/__tests__/components/boundary/component-recipe-boundary.test.ts`,
 and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
@@ -67,10 +68,11 @@ narrative.
   `check`, `popover`, and `panel` don't — checkbox and radio compute
   their own variants from `VariantPropsOf<typeof k>` (extra axes the
   applicator doesn't own), and panel's input shape is generic per-kata.
-- **Genkei holds the data; katakana wraps it.** Each applicator imports
-  its archetype's fragments from `genkei/*`. Don't fork the data into
-  the applicator file — fold any duplication back into genkei.
-- **Subset reaches stay on genkei.** Kata that need a *subset* of an
+- **Kiso holds the data; katakana wraps it.** Each applicator imports
+  its archetype's fragments from `kiso/<archetype>`. Don't fork the
+  data into the applicator file — fold any duplication back into kiso.
+- **Subset reaches stay on kiso.** Kata that need a *subset* of an
   archetype's fragments (combobox / listbox / date-picker use control's
-  input / density / size without the full chrome) reach `genkei/*`
-  directly. The applicator is for kata that consume the whole archetype.
+  input / density / size without the full chrome) reach
+  `kiso/<archetype>` directly. The applicator is for kata that consume
+  the whole archetype.

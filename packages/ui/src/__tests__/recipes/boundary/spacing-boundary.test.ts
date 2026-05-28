@@ -27,7 +27,10 @@ const srcDir = join(__dirname, '../../..')
 const SCAN_ROOTS = [
 	join(srcDir, 'recipes/kata'),
 	join(srcDir, 'recipes/katakana'),
-	join(srcDir, 'recipes/genkei'),
+	join(srcDir, 'recipes/kiso/control'),
+	join(srcDir, 'recipes/kiso/popover'),
+	join(srcDir, 'recipes/kiso/segment'),
+	join(srcDir, 'recipes/kiso/slider'),
 	join(srcDir, 'components'),
 ]
 
@@ -46,7 +49,7 @@ const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
  * bare cases in these files have already migrated to `kasane.p / px / py /
  * pl / pr`.
  */
-const RAW_CALC_ALLOWLIST = new Set(['recipes/genkei/control.ts', 'recipes/kata/button.ts'])
+const RAW_CALC_ALLOWLIST = new Set(['recipes/kiso/control/affix.ts', 'recipes/kata/button.ts'])
 
 describe('spacing boundary', () => {
 	it('no file outside the allowlist uses the legacy renamed spacing utilities', () => {

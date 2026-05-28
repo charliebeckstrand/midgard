@@ -27,8 +27,8 @@
  */
 
 import { defineApplicator, defineRecipe } from '../../core/recipe'
-import { control as controlFragments } from '../genkei/control'
 import { hannou, sen } from '../kiso'
+import { control as controlFragments } from '../kiso/control'
 
 const { check: checkFragments } = controlFragments
 

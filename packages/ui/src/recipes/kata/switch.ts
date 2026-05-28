@@ -1,6 +1,6 @@
 import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
-import { control } from '../genkei/control'
 import { hannou, kokkaku, narabi, sen } from '../kiso'
+import { control } from '../kiso/control'
 
 const { check } = control
 

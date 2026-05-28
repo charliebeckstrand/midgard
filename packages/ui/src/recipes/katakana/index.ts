@@ -26,16 +26,16 @@
  *
  * Three exceptions around one architecture, not separate paradigms.
  *
- * **Genkei is the raw-fragment data layer.** Each applicator imports
- * its archetype's fragments from `genkei/*` — control from
- * `genkei/control`, popover from `genkei/popover`, and so on. The two
- * layers have distinct concerns: genkei stores the shared class-fragment
- * data, katakana wraps it in callable applicator functions. Kata that
- * need a subset of an archetype's fragments — combobox / listbox /
- * date-picker use control's input / density / size without the full
- * chrome — reach `genkei/*` directly, the same way kata that don't fit
- * any archetype reach `defineRecipe` directly. Both reaches are honest
- * layering.
+ * **Kiso archetypes are the raw-fragment data layer.** Each applicator
+ * imports its archetype's fragments from `kiso/<archetype>` — control
+ * from `kiso/control`, popover from `kiso/popover`, and so on. The two
+ * layers have distinct concerns: kiso archetypes store the shared
+ * class-fragment data, katakana wraps it in callable applicator
+ * functions. Kata that need a subset of an archetype's fragments —
+ * combobox / listbox / date-picker use control's input / density / size
+ * without the full chrome — reach `kiso/<archetype>` directly, the same
+ * way kata that don't fit any archetype reach `defineRecipe` directly.
+ * Both reaches are honest layering.
  *
  * **What the barrel surfaces.** Applicators only. Engine primitives
  * (`defineRecipe`, `defineColors`, `palette`, `VariantProps`, …) stay

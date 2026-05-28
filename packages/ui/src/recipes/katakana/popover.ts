@@ -11,9 +11,8 @@
  */
 
 import type { ClassValue } from 'clsx'
-
-import { popover as popoverFragments } from '../genkei/popover'
 import { iro } from '../kiso'
+import { popover as popoverFragments } from '../kiso/popover'
 
 const { trigger, portal, panel } = popoverFragments
 

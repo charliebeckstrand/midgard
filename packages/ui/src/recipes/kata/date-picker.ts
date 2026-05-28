@@ -1,7 +1,7 @@
 import { defineRecipe } from '../../core/recipe'
-import { control } from '../genkei/control'
-import { popover } from '../genkei/popover'
 import { hannou, iro } from '../kiso'
+import { control } from '../kiso/control'
+import { popover } from '../kiso/popover'
 
 const { input, density, size, surface } = control
 const { portal, panel } = popover

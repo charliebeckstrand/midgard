@@ -29,7 +29,7 @@ import {
 	defineRecipe,
 	type VariantProps,
 } from '../../core/recipe'
-import { control as controlFragments } from '../genkei/control'
+import { control as controlFragments } from '../kiso/control'
 
 const { input, density, size, surface, affix, resets } = controlFragments
 

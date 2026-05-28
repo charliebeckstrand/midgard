@@ -1,5 +1,5 @@
-import { control } from '../genkei/control'
 import { hannou, iro } from '../kiso'
+import { control } from '../kiso/control'
 
 const { surface, affix } = control
 
