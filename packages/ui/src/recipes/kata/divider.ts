@@ -1,5 +1,8 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { sen } from '../kiso'
+
+const { border } = sen
+
 export const k = defineRecipe({
 	base: ['border-0'],
 	orientation: {
@@ -7,8 +10,8 @@ export const k = defineRecipe({
 		vertical: 'self-stretch border-l',
 	},
 	soft: {
-		true: [...sen.border.subtleColor],
-		false: [...sen.border.color],
+		true: [...border.subtleColor],
+		false: [...border.color],
 	},
 	defaults: { orientation: 'horizontal', soft: false },
 })

@@ -3,17 +3,13 @@ import { hannou, iro } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
+const { cursor } = hannou
+const { text } = iro
 const { reset, density, size, surface } = control
 const { portal, panel } = popover
 
 const button = defineRecipe({
-	base: [
-		'flex items-center justify-between',
-		...reset,
-		'text-left',
-		'appearance-none',
-		...hannou.cursor,
-	],
+	base: ['flex items-center justify-between', ...reset, 'text-left', 'appearance-none', ...cursor],
 	density,
 	size,
 	defaults: { density: 'md', size: 'md' },
@@ -35,12 +31,12 @@ export const k = {
 	},
 	button,
 	value,
-	icon: ['flex items-center', 'pointer-events-none', iro.text.muted],
-	placeholder: iro.text.muted,
+	icon: ['flex items-center', 'pointer-events-none', text.muted],
+	placeholder: text.muted,
 	content: {
 		portal,
 		motion: panel.motion,
-		text: iro.text.default,
+		text: text.default,
 		glass: panel.glass,
 	},
 }

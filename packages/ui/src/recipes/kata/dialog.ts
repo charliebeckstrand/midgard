@@ -3,12 +3,16 @@ import { panel as panelApplicator } from '../katakana'
 import { omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
+const { glass } = omote
+const { panel: shakuPanel } = shaku
+const { surface, layout } = panel
+
 export const k = {
 	...panelApplicator({
 		panel: defineRecipe({
 			base: [
-				...panel.surface.chrome.flat(),
-				panel.layout.base,
+				...surface.chrome.flat(),
+				layout.base,
 				'relative',
 				'w-full',
 				'p-6',
@@ -16,10 +20,10 @@ export const k = {
 				'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 			],
 			surface: {
-				glass: [...omote.glass],
-				flat: [...panel.surface.bg],
+				glass: [...glass],
+				flat: [...surface.bg],
 			},
-			size: shaku.panel,
+			size: shakuPanel,
 			defaults: { size: 'lg', surface: 'flat' },
 		}),
 	}),
