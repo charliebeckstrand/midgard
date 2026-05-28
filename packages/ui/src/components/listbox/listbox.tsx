@@ -180,7 +180,13 @@ export function Listbox<T>({
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
-				frameProps={{ onClick: () => setOpen(!open) }}
+				frameProps={{
+					onClick: () => setOpen(!open),
+					// While open, focus lives on the active option in the portalled panel. A
+					// mousedown would pull it onto the button; if released off-target, no click
+					// fires — stranding focus on the trigger and killing keyboard navigation.
+					onMouseDown: open ? (event) => event.preventDefault() : undefined,
+				}}
 				prefix={prefix}
 				suffix={suffix || (showClear ? clearSuffix : <Icon icon={<ChevronsUpDown />} />)}
 			>
