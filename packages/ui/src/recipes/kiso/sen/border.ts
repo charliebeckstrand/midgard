@@ -16,6 +16,8 @@ export const border = {
 	defaultColor: tone.border,
 	/** Emphasis border — hover / active states. */
 	emphasis: ['border', ...tone.borderEmphasis],
+	/** Emphasis border colour only. */
+	emphasisColor: tone.borderEmphasis,
 	/** Subtle border — secondary separators. */
 	subtle: ['border', ...tone.borderSubtle],
 	/** Subtle border colour only. */
