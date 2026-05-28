@@ -24,9 +24,9 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 /**
  * Group — a wrapper that joins adjacent children visually by stamping
  * `data-group` position attributes (`start` | `middle` | `end` | `only`)
- * onto each child. Participating kata read these attributes via
- * `tsunagi.base` to drop their inner radii and overlap by 1 px so adjacent
- * borders don't double.
+ * onto each child. CSS selectors in `styles/recipes/tsunagi.css` (pulled
+ * in as a side-effect import via `useGroup`) drop the inner radii and
+ * overlap by 1 px so adjacent borders don't double.
  *
  * Provides the Density cascade for its descendants: components that read
  * `useDensity()` (Button, Input, etc.) will default their `size` prop to

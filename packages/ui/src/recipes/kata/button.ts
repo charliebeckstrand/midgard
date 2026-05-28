@@ -1,5 +1,5 @@
 import { definePalette, defineRecipe, merge, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, tsunagi, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, ugoki } from '../kiso'
 
 const { palette } = iro
 const { cursor, disabled } = hannou
@@ -9,7 +9,6 @@ const { button } = kokkaku
 const { flex } = narabi
 const { focus } = sen
 const { icon } = shaku
-const { base } = tsunagi
 const { spring } = ugoki
 
 // Synthetic colour entry: lets a button skip the palette and inherit
@@ -40,7 +39,6 @@ export const k = defineRecipe(
 			focus.inset,
 			...disabled,
 			...cursor,
-			...base,
 		],
 		variant: {
 			outline: 'ring-1 ring-inset',
