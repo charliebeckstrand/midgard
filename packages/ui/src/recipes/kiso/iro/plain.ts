@@ -7,6 +7,6 @@
  */
 
 import { hover } from './hover'
-import { text } from './text'
+import { tone } from './tone'
 
-export const plain = { text, hover }
+export const plain = { text: tone, hover }

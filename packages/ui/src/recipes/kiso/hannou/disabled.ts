@@ -1,10 +1,10 @@
 /**
- * Hannou state — disabled / dormant. Dims the element and animates the
+ * Hannou disabled — dormant state. Dims the element and animates the
  * opacity transition. `cursor-not-allowed` lives separately in
  * `cursor.ts` so consumers can pick state without picking pointer
  * feedback.
  *
- * Layer: kiso · Concern: interaction state
+ * Layer: kiso · Concern: disabled state
  */
 
 import { ugoki } from '../ugoki'

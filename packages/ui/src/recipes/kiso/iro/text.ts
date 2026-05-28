@@ -1,24 +1,17 @@
 /**
- * Iro text — semantic text-colour bundle and the per-colour text shades
- * shared by every palette variant. `text` is the colour-axis map keyed
- * by the library's `Color` axis; `intent` is the semantic bundle
- * (default / primary / success / warning / error / muted) consumers
- * reach by purpose rather than colour.
+ * Iro text — the semantic intent-colour bundle. Default text colour plus
+ * the named intents (`primary` / `success` / `warning` / `error` /
+ * `muted`) that consumers reach by purpose rather than colour axis.
  *
- * Layer: kiso · Concern: text colour
+ * Per-colour text shades (the colour-axis source consumed by palette
+ * variants) live next door in `tone.ts`.
+ *
+ * Layer: kiso · Concern: semantic text intent
  */
 
-import { mode, shades } from '../../../core/recipe'
+import { mode } from '../../../core/recipe'
 
-export const text = shades({
-	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
-	red: ['text-red-700', 'dark:text-red-400'],
-	amber: ['text-amber-700', 'dark:text-amber-400'],
-	green: ['text-green-700', 'dark:text-green-400'],
-	blue: ['text-blue-700', 'dark:text-blue-400'],
-})
-
-export const intent = {
+export const text = {
 	default: mode('text-zinc-950', 'dark:text-white'),
 	primary: mode('text-blue-600', 'dark:text-blue-500'),
 	success: mode('text-green-600', 'dark:text-green-500'),

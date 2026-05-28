@@ -13,8 +13,8 @@ import { kasane } from '../kasane'
 import { sen } from '../sen'
 
 import { cursor } from './cursor'
+import { disabled } from './disabled'
 import { glassItem } from './glass-item'
-import { disabled } from './state'
 import { tint } from './tint'
 
 export const item = [

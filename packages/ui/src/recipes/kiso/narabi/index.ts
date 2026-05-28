@@ -5,8 +5,9 @@
  */
 
 import { description } from './description'
-import { field, group } from './field'
+import { field } from './field'
 import { flex } from './flex'
+import { group } from './group'
 import { item } from './item'
 import { slide } from './slide'
 import { toggle } from './toggle'

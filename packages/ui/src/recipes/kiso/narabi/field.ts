@@ -1,8 +1,7 @@
 /**
- * Narabi field — slot adjacency rules for `<Field>` and `<Fieldset>`
- * stacks. Sibling-selector margins keep label / description / control /
- * alert slots evenly spaced without each slot paying for its own
- * first-child reset.
+ * Narabi field — slot adjacency rules for `<Field>` stacks. Sibling-
+ * selector margins keep label / description / control / alert slots
+ * evenly spaced without each slot paying for its own first-child reset.
  *
  * Layer: kiso · Concern: field adjacency
  */
@@ -15,11 +14,4 @@ export const field = [
 	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
 	'[&>[data-slot=field]+[data-slot]]:mt-2',
 	'[&>[data-slot=field]+[role=alert]]:mt-2',
-]
-
-export const group = [
-	'[&>[data-slot=field]+[data-slot=field]]:mt-2',
-	'[&>[data-slot=label]+[data-slot=field]]:mt-4',
-	'**:data-[slot=label]:font-normal',
-	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
 ]

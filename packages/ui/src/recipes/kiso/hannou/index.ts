@@ -6,9 +6,9 @@
  */
 
 import { cursor } from './cursor'
+import { disabled } from './disabled'
 import { item } from './item'
 import { nav } from './nav'
-import { disabled } from './state'
 import { text } from './text'
 import { tint } from './tint'
 
