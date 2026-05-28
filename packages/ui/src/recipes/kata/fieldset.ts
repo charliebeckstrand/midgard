@@ -8,7 +8,7 @@ const { field } = narabi
 
 const label = defineRecipe({
 	base: [
-		'select-none',
+		'flex select-none',
 		...cursor,
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',

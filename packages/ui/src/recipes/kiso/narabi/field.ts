@@ -8,7 +8,7 @@
 
 export const field = [
 	'*:data-[slot=label]:font-medium',
-	'[&>[data-slot=label]+[data-slot]]:mt-1',
+	'[&>[data-slot=label]+[data-slot]:not([data-slot=description])]:mt-1',
 	'[&>[data-slot=description]+[data-slot]]:mt-1',
 	'[&>[data-slot=control]+[data-slot]]:mt-2',
 	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
