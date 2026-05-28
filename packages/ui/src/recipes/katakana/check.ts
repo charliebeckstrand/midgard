@@ -30,6 +30,7 @@ import { defineApplicator, defineRecipe } from '../../core/recipe'
 import { hannou } from '../kiso'
 import { control as controlFragments } from '../kiso/control'
 
+const { text } = hannou
 const { check: checkFragments } = controlFragments
 
 const config = {
@@ -41,7 +42,7 @@ const extras = {
 	/** Visually-hidden native `<input>` overlaying the custom check surface. */
 	input: defineRecipe({ base: checkFragments.hidden }),
 	/** Disabled-state text class shared by the surrounding field wrapper. */
-	disabled: hannou.text.disabled,
+	disabled: text.disabled,
 }
 
 export const check = defineApplicator({ config, extras })
