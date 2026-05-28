@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineRecipe, palette } from '../../core/recipe'
+import { definePalette, defineRecipe } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 
 describe('defineRecipe', () => {
@@ -102,7 +102,7 @@ describe('defineRecipe', () => {
 		// `tailwind-merge` resolves user rules last. Pinned so a kata that
 		// needs to override a palette cell never gets silently outranked.
 		const recipe = defineRecipe({
-			palette: palette({
+			palette: definePalette({
 				solid: { zinc: ['bg-zinc-600'], red: [], amber: [], green: [], blue: [] },
 			}),
 			compound: [{ variant: 'solid', color: 'zinc', class: 'bg-zinc-50' }],
@@ -137,7 +137,7 @@ describe('defineRecipe', () => {
 
 	it('palette overlay applies when caller picks the trailing colour', () => {
 		const recipe = defineRecipe({
-			palette: palette(
+			palette: definePalette(
 				{ solid: { zinc: ['solid-zinc'], red: ['solid-red'], amber: [], green: [], blue: [] } },
 				{ inherit: 'solid-inherit' },
 			),

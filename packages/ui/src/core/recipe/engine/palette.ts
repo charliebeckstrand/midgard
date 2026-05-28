@@ -1,5 +1,5 @@
 /**
- * palette() — declares a recipe's colour × variant matrix.
+ * definePalette() — declares a recipe's colour × variant matrix.
  *
  * First argument: the matrix. Each entry takes one of two shapes:
  *
@@ -32,7 +32,7 @@ export type PaletteConfig<E extends string = never, M extends string = string> =
 	overlays: Record<E, ClassValue>
 }
 
-export function palette<M extends string, E extends string = never>(
+export function definePalette<M extends string, E extends string = never>(
 	matrix: Record<M, PaletteEntry>,
 	...overlays: Record<E, ClassValue>[]
 ): PaletteConfig<E, M> {

@@ -1,4 +1,4 @@
-import { defineRecipe, merge, palette, type VariantProps } from '../../core/recipe'
+import { definePalette, defineRecipe, merge, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
@@ -64,7 +64,7 @@ export const k = defineRecipe(
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},
-		palette: palette(
+		palette: definePalette(
 			{
 				solid: [solid.bg, solid.text, solid.hover],
 				soft: [soft.bg, soft.text, soft.hover],

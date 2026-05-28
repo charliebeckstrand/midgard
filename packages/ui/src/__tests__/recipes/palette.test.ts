@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineRecipe, palette } from '../../core/recipe'
+import { definePalette, defineRecipe } from '../../core/recipe'
 
 describe('palette', () => {
 	it('exposes the matrix unchanged on the returned config', () => {
@@ -7,7 +7,7 @@ describe('palette', () => {
 			solid: { zinc: ['z-solid'], red: ['r-solid'], amber: [], green: [], blue: [] },
 		}
 
-		const config = palette(matrix)
+		const config = definePalette(matrix)
 
 		expect(config.matrix).toBe(matrix)
 	})
@@ -15,7 +15,7 @@ describe('palette', () => {
 	it('merges overlays left-to-right so a later overlay wins on key collision', () => {
 		// Each overlay carries the full key set per the signature; later
 		// `Object.assign` passes overwrite earlier values on the same key.
-		const config = palette(
+		const config = definePalette(
 			{ solid: { zinc: [], red: [], amber: [], green: [], blue: [] } },
 			{ inherit: 'first-inherit', mute: 'first-mute' },
 			{ inherit: 'second-inherit', mute: 'second-mute' },
@@ -26,7 +26,7 @@ describe('palette', () => {
 
 	it('scaffolds compound rules for every (variant × palette colour)', () => {
 		const recipe = defineRecipe({
-			palette: palette({
+			palette: definePalette({
 				solid: { zinc: ['z-solid'], red: ['r-solid'], amber: [], green: [], blue: [] },
 			}),
 			defaults: { variant: 'solid' },
@@ -41,7 +41,7 @@ describe('palette', () => {
 		// `hover`); a kata that wants the bundle passes them as an array and
 		// the engine concatenates per colour.
 		const recipe = defineRecipe({
-			palette: palette({
+			palette: definePalette({
 				solid: [
 					{ zinc: ['z-bg'], red: [], amber: [], green: [], blue: [] },
 					{ zinc: ['z-text'], red: [], amber: [], green: [], blue: [] },
@@ -61,7 +61,7 @@ describe('palette', () => {
 		// `variant:` — the engine adds it so the compound rules fire.
 		const recipe = defineRecipe({
 			variant: { outline: 'has-ring' },
-			palette: palette({
+			palette: definePalette({
 				solid: { zinc: ['solid-zinc'], red: [], amber: [], green: [], blue: [] },
 			}),
 			defaults: { color: 'zinc' },
