@@ -243,7 +243,7 @@ export function DataTable<T>({
 				{needsScrollWrapper ? (
 					<div
 						ref={scrollRef}
-						className={cn(k.stickyWrapper)}
+						className={cn(k.sticky.wrapper)}
 						style={maxHeight ? { maxHeight } : undefined}
 					>
 						{tableContent}
