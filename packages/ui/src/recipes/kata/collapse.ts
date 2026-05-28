@@ -1,22 +1,29 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
 
+const { cursor, disabled } = hannou
+const { text } = iro
+const { size } = ji
+const { flex } = narabi
+const { focus } = sen
+const { collapse } = ugoki
+
 export const k = {
 	base: 'group/collapse',
 	trigger: [
-		narabi.flex.inline,
+		flex.inline,
 		'gap-2',
-		ji.size.md,
-		iro.text.muted,
+		size.md,
+		text.muted,
 		hannou.text.hover,
 		...mode(
 			'group-data-[open]/collapse:text-zinc-950',
 			'dark:group-data-[open]/collapse:text-white',
 		),
-		sen.focus.ring,
-		...hannou.disabled,
-		...hannou.cursor,
+		focus.ring,
+		...disabled,
+		...cursor,
 	],
 	panel: 'overflow-hidden',
-	motion: ugoki.collapse,
+	motion: collapse,
 } as const

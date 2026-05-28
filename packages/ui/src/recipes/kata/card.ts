@@ -1,6 +1,9 @@
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kokkaku, type Step, sun } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+
 const radius = {
 	sm: sun.sm.radius,
 	md: sun.md.radius,
@@ -8,15 +11,15 @@ const radius = {
 } as const satisfies Record<Step, 'sm' | 'md' | 'lg'>
 
 const title = defineRecipe({
-	base: ji.weight.semibold,
-	size: { sm: ji.size.md, md: ji.size.lg, lg: ji.size.xl },
+	base: weight.semibold,
+	size: { sm: size.md, md: size.lg, lg: size.xl },
 	defaults: { size: 'md' },
 })
 
 export const k = {
 	skeleton: kokkaku.card,
 	radius,
-	header: iro.text.default,
+	header: text.default,
 	title,
-	description: [ji.size.sm, iro.text.muted],
+	description: [size.sm, text.muted],
 } as const
