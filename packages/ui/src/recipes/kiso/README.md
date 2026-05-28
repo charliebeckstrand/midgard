@@ -41,7 +41,7 @@ class fragments — `defineRecipe()` is never invoked here. The recipe
 engine lives in [`core/recipe/`](../../core/recipe) and is called at the
 katakana or kata public surface, where the variants axis is declared.
 
-Type exports (`Ji`, `Ma`, `Kokkaku`, `Step`, `SunStep`,
+Type exports (`Ji`, `Ma`, `Step`, `SunStep`,
 `GroupOrientation`, `GroupPosition`) flow through each folder's
 `index.ts` alongside the runtime bundle.
 
