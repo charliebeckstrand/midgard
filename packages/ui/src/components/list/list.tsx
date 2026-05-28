@@ -119,7 +119,7 @@ export function List<T>({
 			aria-label={ariaLabel}
 			data-slot="list"
 			data-orientation={orientation}
-			className={cn(k.root(variant), orientation === 'horizontal' && k.horizontal, className)}
+			className={cn(k.root({ variant, orientation }), className)}
 		>
 			{items.map((item, index) => {
 				const id = effectiveGetKey(item)

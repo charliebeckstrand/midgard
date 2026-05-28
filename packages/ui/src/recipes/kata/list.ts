@@ -11,14 +11,20 @@ const { border, divider, focus } = sen
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
-const rootBase = [flex.col, 'm-0 p-0', 'k-none']
-
-const rootVariant = {
-	separated: ['gap-2'],
-	outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
-	plain: divider.between,
-	solid: ['gap-2'],
-} satisfies Record<ListVariant, unknown>
+const root = defineRecipe({
+	base: [flex.col, 'm-0 p-0', 'k-none'],
+	variant: {
+		separated: ['gap-2'],
+		outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
+		plain: divider.between,
+		solid: ['gap-2'],
+	},
+	orientation: {
+		horizontal: 'flex-row',
+		vertical: '',
+	},
+	defaults: { variant: 'separated', orientation: 'vertical' },
+})
 
 const item = defineRecipe({
 	base: ['group/k-item', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
@@ -40,8 +46,7 @@ const item = defineRecipe({
 })
 
 export const k = {
-	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
-	horizontal: 'flex-row',
+	root,
 	item,
 	handle: [
 		flex.inline,
