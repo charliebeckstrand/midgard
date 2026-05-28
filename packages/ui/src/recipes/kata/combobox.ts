@@ -3,12 +3,12 @@ import { iro, ji } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
-const { input, density, size } = control
+const { reset, density, size } = control
 const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: ['block', 'truncate', ...input],
+		base: ['block', 'truncate', ...reset],
 		density,
 		size,
 		slots: {

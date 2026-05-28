@@ -4,7 +4,7 @@ export const k = {
 		'overflow-hidden',
 		'relative isolate',
 		'bg-white',
-		sen.border,
+		sen.border.default,
 		'rounded-lg',
 		sen.focus.ring,
 		hannou.disabled,

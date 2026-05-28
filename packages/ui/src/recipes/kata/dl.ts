@@ -16,7 +16,7 @@ const term = defineRecipe({
 		horizontal: [
 			'col-start-1',
 			'border-t first:border-none',
-			...sen.borderSubtleColor,
+			...sen.border.subtleColor,
 			'sm:py-2 pt-2 pr-2',
 		],
 		vertical: 'pt-4 first:pt-0',
@@ -27,7 +27,7 @@ const term = defineRecipe({
 const details = defineRecipe({
 	base: iro.text.default,
 	orientation: {
-		horizontal: [...sen.borderSubtleColor, 'sm:border-t sm:py-2 pb-2', 'sm:nth-2:border-none'],
+		horizontal: [...sen.border.subtleColor, 'sm:border-t sm:py-2 pb-2', 'sm:nth-2:border-none'],
 		vertical: 'pt-1',
 	},
 	defaults: { orientation: 'horizontal' },

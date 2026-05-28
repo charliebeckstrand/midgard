@@ -3,7 +3,7 @@ import { segment } from '../katakana'
 import { hannou, iro, ji, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: ['flex', ...sen.borderSubtleColor],
+	base: ['flex', ...sen.border.subtleColor],
 	orientation: {
 		horizontal: ['gap-4', 'border-b'],
 		vertical: ['flex-col', 'border-l'],

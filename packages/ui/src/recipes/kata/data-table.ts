@@ -9,7 +9,7 @@ export const k = {
 		'gap-2',
 		'px-2',
 		'py-1',
-		sen.borderSubtle,
+		sen.border.subtle,
 		'rounded-lg',
 		'border-b',
 		omote.tint,

@@ -8,7 +8,7 @@ const cellSize = {
 }
 
 const grid = {
-	true: ['border', sen.borderSubtleColor],
+	true: ['border', sen.border.subtleColor],
 	false: '',
 }
 
@@ -28,7 +28,7 @@ const header = defineRecipe({
 
 export const k = {
 	base: 'w-full text-left text-base',
-	head: [iro.text.muted, sen.borderSubtleColor],
+	head: [iro.text.muted, sen.border.subtleColor],
 	header,
 	row: [],
 	cell,

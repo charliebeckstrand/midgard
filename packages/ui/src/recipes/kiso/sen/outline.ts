@@ -1,5 +1,5 @@
 /**
- * Sen outline — `outline-style` 1px lines in the three library
+ * Sen outline — `outline-style` 1 px lines in the three library
  * intensities. Used where a ring would conflict with `kasane.base` or
  * where the line needs to live outside the element's box (focus
  * indicators, panel chrome).
@@ -9,9 +9,11 @@
 
 import { tone } from './tone'
 
-/** Default outline — 1 px line, low-contrast palette. */
-export const outline = ['outline', ...tone.outline]
-/** Stronger outline — emphasis on dark backgrounds. */
-export const outlineStrong = ['outline', ...tone.outlineStrong]
-/** Subtle outline — secondary separators. */
-export const outlineSubtle = ['outline', ...tone.outlineSubtle]
+export const outline = {
+	/** Default outline — 1 px line, low-contrast palette. */
+	default: ['outline', ...tone.outline],
+	/** Stronger outline — emphasis on dark backgrounds. */
+	strong: ['outline', ...tone.outlineStrong],
+	/** Subtle outline — secondary separators. */
+	subtle: ['outline', ...tone.outlineSubtle],
+} as const

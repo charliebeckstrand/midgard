@@ -14,7 +14,7 @@ const step = defineRecipe({
 	base: ['group relative text-left', 'outline-none', ...hannou.disabled, ...hannou.cursor],
 	orientation: {
 		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
-		vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.borderSubtleColor],
+		vertical: ['flex w-full items-center gap-4 py-1 first:pt-0', ...sen.border.subtleColor],
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -38,7 +38,7 @@ const title = defineRecipe({
 const separator = defineRecipe({
 	base: 'shrink-0',
 	orientation: {
-		horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...sen.borderColor],
+		horizontal: ['-mx-12 mt-2 flex-1 self-start', 'border-t', ...sen.border.color],
 		vertical: 'hidden',
 	},
 	defaults: { orientation: 'horizontal' },

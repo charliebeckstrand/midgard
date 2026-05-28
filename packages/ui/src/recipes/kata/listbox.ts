@@ -3,7 +3,7 @@ import { hannou, iro } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
-const { input, density, size } = control
+const { reset, density, size } = control
 const { portal } = popover
 
 export const k = defineRecipe(
@@ -12,7 +12,7 @@ export const k = defineRecipe(
 			'flex items-center',
 			'w-full',
 			'text-left',
-			...input,
+			...reset,
 			'appearance-none',
 			...hannou.cursor,
 		],

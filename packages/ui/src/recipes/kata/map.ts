@@ -3,7 +3,7 @@ export const k = {
 	base: [
 		'relative isolate overflow-hidden',
 		'w-full h-full',
-		sen.border,
+		sen.border.default,
 		'rounded-lg',
 		hannou.disabled,
 	],

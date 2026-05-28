@@ -1,13 +1,13 @@
 import { hannou, iro, ji, omote, sen } from '../kiso'
 export const k = {
-	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border],
+	base: ['relative flex flex-col', 'overflow-hidden', omote.surface, sen.border.default],
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
 		'overflow-x-auto',
 		'gap-1',
 		'px-2 py-1.5',
 		'border-b',
-		sen.borderColor,
+		sen.border.color,
 		'shrink-0',
 	],
 	toolbarSection: ['flex items-center shrink-0', 'gap-1'],
@@ -17,7 +17,7 @@ export const k = {
 		'flex flex-col shrink-0 w-56 min-h-0',
 		'overflow-hidden',
 		'border-r',
-		sen.borderColor,
+		sen.border.color,
 		'transition-[margin] duration-150 ease-in-out',
 	],
 	sidebarClosed: '-ml-56',

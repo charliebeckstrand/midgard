@@ -8,7 +8,7 @@ const rootVariant = {
 	outline: [
 		'overflow-hidden',
 		'rounded-lg',
-		...sen.border,
+		...sen.border.default,
 		'divide-y divide-zinc-950/10',
 		'dark:divide-white/10',
 	],
@@ -27,10 +27,10 @@ const itemBase = [
 ]
 
 const itemVariant = {
-	separated: ['p-3', ...omote.surface, sen.border, 'rounded-lg'],
+	separated: ['p-3', ...omote.surface, sen.border.default, 'rounded-lg'],
 	outline: ['p-3'],
 	plain: ['px-2', 'py-1.5'],
-	solid: ['p-3', ...omote.tint, sen.border, 'rounded-lg'],
+	solid: ['p-3', ...omote.tint, sen.border.default, 'rounded-lg'],
 } satisfies Record<ListVariant, unknown>
 
 export const k = {

@@ -4,8 +4,8 @@ import { sen } from '../kiso'
 const divider = defineRecipe({
 	base: 'border-t col-span-full',
 	soft: {
-		true: [...sen.borderSubtleColor],
-		false: [...sen.borderColor],
+		true: [...sen.border.subtleColor],
+		false: [...sen.border.color],
 	},
 	defaults: { soft: false },
 })

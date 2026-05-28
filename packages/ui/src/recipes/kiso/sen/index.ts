@@ -5,30 +5,16 @@
  * reads.
  */
 
-import {
-	border,
-	borderColor,
-	borderEmphasis,
-	borderSubtle,
-	borderSubtleColor,
-	borderTransparent,
-} from './border'
+import { border } from './border'
 import { divider } from './divider'
 import { focus } from './focus'
 import { forced } from './forced'
-import { outline, outlineStrong, outlineSubtle } from './outline'
+import { outline } from './outline'
 import { ring, ringInset } from './ring'
 
 export const sen = {
 	border,
-	borderColor,
-	borderEmphasis,
-	borderSubtle,
-	borderSubtleColor,
-	borderTransparent,
 	outline,
-	outlineStrong,
-	outlineSubtle,
 	ring,
 	ringInset,
 	divider,

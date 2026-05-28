@@ -31,10 +31,10 @@ import {
 } from '../../core/recipe'
 import { control as controlFragments } from '../kiso/control'
 
-const { inputBase, density, size, surface, affix, resets } = controlFragments
+const { input, density, size, surface, affix, resets } = controlFragments
 
-const standardConfig = {
-	base: inputBase,
+const config = {
+	base: input,
 	variant: {
 		default: [],
 		outline: [],
@@ -48,7 +48,7 @@ const standardConfig = {
 	defaults: { variant: 'default', density: 'md', size: 'md' },
 }
 
-const standardExtras = {
+const extras = {
 	inputControl: defineRecipe({
 		variant: {
 			default: surface.default,
@@ -61,7 +61,7 @@ const standardExtras = {
 	suffix: affix.suffix,
 }
 
-export const control = defineApplicator({ config: standardConfig, extras: standardExtras })
+export const control = defineApplicator({ config, extras })
 
 /**
  * Prop union of the outer-frame recipe for a kata with no extra axes.
@@ -72,6 +72,4 @@ export const control = defineApplicator({ config: standardConfig, extras: standa
  * the latter widens each generic to its constraint and yields a polluted
  * prop union — every string axis resolves to `boolean | undefined`.
  */
-export type ControlVariants = VariantProps<
-	ApplicatorReturn<typeof standardConfig, typeof standardExtras>
->
+export type ControlVariants = VariantProps<ApplicatorReturn<typeof config, typeof extras>>

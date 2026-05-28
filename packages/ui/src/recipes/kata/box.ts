@@ -11,8 +11,8 @@ export const k = {
 		glass: omote.glass,
 	},
 	outline: {
-		default: sen.outline,
-		subtle: sen.outlineSubtle,
-		strong: sen.outlineStrong,
+		default: sen.outline.default,
+		subtle: sen.outline.subtle,
+		strong: sen.outline.strong,
 	},
 } as const

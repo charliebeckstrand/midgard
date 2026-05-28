@@ -32,16 +32,16 @@ import { control as controlFragments } from '../kiso/control'
 
 const { check: checkFragments } = controlFragments
 
-const standardConfig = {
+const config = {
 	base: checkFragments.base,
 	defaults: { color: 'zinc', size: 'md' },
 }
 
-const standardExtras = {
+const extras = {
 	/** Visually-hidden native `<input>` overlaying the custom check surface. */
 	input: defineRecipe({ base: checkFragments.hidden }),
 	/** Disabled-state text class shared by the surrounding field wrapper. */
 	disabled: hannou.text.disabled,
 }
 
-export const check = defineApplicator({ config: standardConfig, extras: standardExtras })
+export const check = defineApplicator({ config, extras })

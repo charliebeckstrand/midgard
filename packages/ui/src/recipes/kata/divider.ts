@@ -7,8 +7,8 @@ export const k = defineRecipe({
 		vertical: 'self-stretch border-l',
 	},
 	soft: {
-		true: [...sen.borderSubtleColor],
-		false: [...sen.borderColor],
+		true: [...sen.border.subtleColor],
+		false: [...sen.border.color],
 	},
 	defaults: { orientation: 'horizontal', soft: false },
 })

@@ -24,7 +24,7 @@ const wrapper = defineRecipe({
 	},
 	bare: {
 		true: '',
-		false: [...sen.border],
+		false: [...sen.border.default],
 	},
 	orientation: {
 		vertical: '',

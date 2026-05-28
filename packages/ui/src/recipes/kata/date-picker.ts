@@ -3,13 +3,13 @@ import { hannou, iro } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
-const { input, density, size, surface } = control
+const { reset, density, size, surface } = control
 const { portal, panel } = popover
 
 const button = defineRecipe({
 	base: [
 		'flex items-center justify-between',
-		...input,
+		...reset,
 		'text-left',
 		'appearance-none',
 		...hannou.cursor,
