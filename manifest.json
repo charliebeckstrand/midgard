@@ -148,7 +148,7 @@
 			"Solve the stated problem, not adjacent ones — a bug fix is not a refactoring opportunity.",
 			"Dependencies flow inward: shared packages never depend on application code.",
 			"Let the type system carry its weight; if a type is hard to express, rethink the design.",
-			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, palette, merge). packages/ui/src/recipes/ has the design layer: kiso substrate (iro · ji · ma · narabi · omote · hannou · sen · shaku · tsunagi · ugoki · kokkaku), kata per-component recipes, and genkei multi-element archetypes; the recipes barrel re-exports the engine so consumers get one import surface. The internal boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
+			"packages/ui/src/core/recipe/ holds the recipe engine (defineRecipe, definePalette, merge). packages/ui/src/recipes/ has the design layer: kiso substrate (iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane, plus the control · popover · segment · panel · slider archetype sub-folders), katakana function-shaped applicators that wrap kiso archetypes, and kata per-component recipes. The recipes barrel is types-only; consumers reach recipe values through their kata and import the engine directly from core/recipe. The internal boundary is pinned by src/__tests__/recipes/boundary/recipe-boundary.test.ts.",
 			"Files must be self-identifying out of context: components use <name>.tsx / <name>-<part>.tsx; hooks use use-<name>-<hook>.ts; every component or hook file exports a symbol whose PascalCase form matches its filename (enforced by packages/ui/src/__tests__/components/boundary/component-filename-boundary.test.ts).",
 			"Never extend the inline ALLOWLIST in component-filename-boundary.test.ts for new files — fix the file or fix the export instead.",
 			"Imperative-mood, atomic commits; each commit represents one logical change.",
@@ -157,10 +157,10 @@
 			"Work is done only when /postmortem returns PROCEED and the diff has been self-reviewed."
 		],
 		"vocabularyGlossary": {
-			"engine": "The recipe DSL under packages/ui/src/core/recipe/engine/ — `defineRecipe(config)` plus `palette(matrix, ...overlays)`. Reserved fields `base`, `palette`, `compound`, `slots`, `defaults`; any other top-level field is a variant axis.",
-			"kiso": "Design-token substrate (基礎 — foundation) under packages/ui/src/recipes/kiso/ — iro · ji · ma · narabi · omote · hannou · sen · shaku · tsunagi · ugoki · kokkaku. Re-exported from packages/ui/src/recipes/index.ts for in-package consumers.",
+			"engine": "The recipe DSL under packages/ui/src/core/recipe/engine/ — `defineRecipe(config)` plus `definePalette(matrix, ...overlays)`. Reserved fields `base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`; any other top-level field is a variant axis.",
+			"kiso": "Design-token substrate (基礎 — foundation) under packages/ui/src/recipes/kiso/ — iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane, plus the control · popover · segment · panel · slider archetype sub-folders. Consumed by katakana and kata via relative path; only foundational types flow through the types-only recipes barrel.",
 			"kata": "Internal per-component recipe layer (型 — form) under packages/ui/src/recipes/kata/ — every file exports the primary recipe as `k`. Imported via relative paths, deliberately not in package.json exports.",
-			"genkei": "Internal multi-element archetype layer (原型 — archetype) under packages/ui/src/recipes/genkei/ — shared structural templates (panel, control, option, popover, kasane) instantiated by ≥2 kata. Same internal-only boundary as kata.",
+			"katakana": "Internal applicator layer (片仮名 — applicators) under packages/ui/src/recipes/katakana/ — function-shaped wrappers (control, check, popover, segment, panel) that take a kiso archetype's fragments plus a kata's per-call overlay and return the `k` surface the kata exports. Wiring only — no literal Tailwind classes, pinned by src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts. Same internal-only boundary as kata.",
 			"Manifest": "Canonical project profile at ./manifest.json produced by /repo:manifest and consumed by every other skill.",
 			"Brief": "Output of /deliberate — a precise problem statement synthesized from ABCD-style answers to dimension gaps."
 		},

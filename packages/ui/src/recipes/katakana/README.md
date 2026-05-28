@@ -58,7 +58,7 @@ narrative.
 
 - **Applicators only.** The barrel surfaces functions and the variant
   types real consumers import. Engine primitives (`defineRecipe`,
-  `defineColors`, `palette`, `VariantPropsOf`, …) stay in `core/recipe`
+  `defineColors`, `definePalette`, `VariantProps`, …) stay in `core/recipe`
   and kata import them from there. A kata that doesn't fit any
   archetype calls `defineRecipe` directly — routing it through a
   katakana alias would conflate the applicator layer with the recipe
@@ -66,7 +66,7 @@ narrative.
 - **Type exports follow real consumer needs.** `control` and `segment`
   expose variant types because consumer components import them.
   `check`, `popover`, and `panel` don't — checkbox and radio compute
-  their own variants from `VariantPropsOf<typeof k>` (extra axes the
+  their own variants from `VariantProps<typeof k>` (extra axes the
   applicator doesn't own), and panel's input shape is generic per-kata.
 - **Kiso holds the data; katakana wraps it.** Each applicator imports
   its archetype's fragments from `kiso/<archetype>`. Don't fork the
