@@ -1,15 +1,16 @@
 /**
- * Hannou text — text-colour feedback on interaction state. Hover / focus
- * darken the foreground; disabled lifts it; `current` marks the active
- * surface (e.g. the current nav item) without depending on a colour
- * variant.
+ * Hannou fg — foreground (text-colour) feedback on interaction state.
+ * Hover / focus darken the foreground; disabled lifts it; `current`
+ * marks the active surface (e.g. the current nav item) without
+ * depending on a colour variant. Pairs with `omote.bg` — `omote.bg.X`
+ * paints the surface, `hannou.fg.X` paints the text response.
  *
- * Layer: kiso · Concern: text-colour state
+ * Layer: kiso · Concern: foreground state
  */
 
 import { mode } from '../../../core/recipe'
 
-export const text = {
+export const fg = {
 	hover: mode('hover:not-disabled:text-zinc-950', 'dark:hover:not-disabled:text-white'),
 	focus: mode(
 		'focus-visible:not-disabled:text-zinc-950',

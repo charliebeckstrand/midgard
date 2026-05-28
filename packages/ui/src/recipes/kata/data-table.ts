@@ -1,6 +1,6 @@
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
-const { cursor } = hannou
+const { cursor, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -31,7 +31,7 @@ export const k = {
 	},
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
-	sortButton: [flex.inline, text.muted, hannou.text.hover, focus.ring, cursor, 'select-none'],
+	sortButton: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 	sortIcon: text.muted,
 	sortIconActive: text.default,
 	rowLoading: [css.pulse, 'opacity-60'],

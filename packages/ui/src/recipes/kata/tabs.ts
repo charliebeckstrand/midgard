@@ -2,7 +2,7 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { segment } from '../katakana'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
-const { cursor, disabled } = hannou
+const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -25,7 +25,7 @@ const tab = defineRecipe({
 		'gap-2',
 		weight.medium,
 		text.muted,
-		hannou.text.current,
+		fg.current,
 		// Tab-specific intermediate hover — between muted and default, only on
 		// non-current siblings.
 		...mode(

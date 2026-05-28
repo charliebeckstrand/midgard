@@ -2,7 +2,7 @@ import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/
 import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 
-const { cursor } = hannou
+const { cursor, fg } = hannou
 const { rounded } = kasane
 const { toggle } = narabi
 const { focus, ring } = sen
@@ -115,7 +115,7 @@ export const k = defineRecipe(
 		}),
 		field,
 		/** Disabled-state text class shared by the switch field wrapper. */
-		disabled: hannou.text.disabled,
+		disabled: fg.disabled,
 	},
 )
 

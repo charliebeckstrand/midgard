@@ -7,9 +7,9 @@
 
 import { cursor } from './cursor'
 import { disabled } from './disabled'
+import { fg } from './fg'
 import { item } from './item'
 import { nav } from './nav'
-import { text } from './text'
 import { tint } from './tint'
 
 export const hannou = {
@@ -21,6 +21,6 @@ export const hannou = {
 	cursor,
 	/** Hover/focus tint — mode-neutral wash on the active surface. */
 	tint,
-	/** Text-colour feedback on hover / focus / disabled / current. */
-	text,
+	/** Foreground (text-colour) feedback on hover / focus / disabled / current. */
+	fg,
 } as const

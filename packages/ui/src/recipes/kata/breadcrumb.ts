@@ -1,6 +1,7 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
+const { fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -24,7 +25,7 @@ const link = defineRecipe({
 	base: [rounded.sm, focus.ring],
 	current: {
 		true: [text.default, weight.normal],
-		false: [text.muted, hannou.text.hover],
+		false: [text.muted, fg.hover],
 	},
 	defaults: { current: false },
 })

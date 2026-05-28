@@ -1,7 +1,7 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
-const { cursor, disabled } = hannou
+const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -41,7 +41,7 @@ export const k = defineRecipe(
 				'p-4',
 				size.md,
 				text.muted,
-				hannou.text.hover,
+				fg.hover,
 				'text-left',
 				weight.medium,
 				...mode(

@@ -1,7 +1,7 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
 
-const { cursor, disabled } = hannou
+const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { flex } = narabi
@@ -15,7 +15,7 @@ export const k = {
 		'gap-2',
 		size.md,
 		text.muted,
-		hannou.text.hover,
+		fg.hover,
 		...mode(
 			'group-data-[open]/collapse:text-zinc-950',
 			'dark:group-data-[open]/collapse:text-white',

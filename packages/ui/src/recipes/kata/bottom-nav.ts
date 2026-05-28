@@ -1,7 +1,7 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, omote, sen } from '../kiso'
 
-const { cursor } = hannou
+const { cursor, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -22,7 +22,7 @@ export const k = {
 		'gap-1',
 		size.sm,
 		text.muted,
-		hannou.text.hover,
+		fg.hover,
 		weight.medium,
 		focus.inset,
 		...cursor,

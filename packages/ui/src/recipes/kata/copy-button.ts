@@ -1,5 +1,6 @@
 import { hannou, iro, kasane, narabi } from '../kiso'
 
+const { fg } = hannou
 const { text } = iro
 const { rounded } = kasane
 const { flex } = narabi
@@ -11,8 +12,8 @@ export const k = {
 		'justify-center',
 		rounded.lg,
 		text.muted,
-		hannou.text.hover,
-		hannou.text.focus,
+		fg.hover,
+		fg.focus,
 		'disabled:text-green-600 disabled:opacity-100 disabled:cursor-default',
 	],
 } as const

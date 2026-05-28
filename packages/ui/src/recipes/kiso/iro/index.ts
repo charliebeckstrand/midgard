@@ -6,7 +6,7 @@
  * named bundle that every kata reads.
  *
  * Surfaces live in `omote`. Interaction-state text colours live in
- * `hannou.text`. Slot-specific composites live in their kata.
+ * `hannou.fg`. Slot-specific composites live in their kata.
  */
 
 import { bare } from './bare'

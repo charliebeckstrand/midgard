@@ -1,7 +1,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
-const { cursor } = hannou
+const { cursor, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -19,7 +19,7 @@ const itemContent = defineRecipe(
 			'py-1 px-2',
 			'gap-2',
 			text.muted,
-			hannou.text.hover,
+			fg.hover,
 			rounded.lg,
 			focus.inset,
 			...cursor,
