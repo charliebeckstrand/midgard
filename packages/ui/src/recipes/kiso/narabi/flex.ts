@@ -6,14 +6,13 @@
  * Layer: kiso · Concern: flex primitives
  */
 
-/** Horizontal flex row with vertical centering. */
-export const row = 'flex items-center'
-
-/** Inline flex row with vertical centering. */
-export const inlineRow = 'inline-flex items-center'
-
-/** Vertical flex column. */
-export const col = 'flex flex-col'
-
-/** Fill remaining flex track. */
-export const fill = 'flex-1'
+export const flex = {
+	/** Horizontal flex row with vertical centering. */
+	row: 'flex items-center',
+	/** Vertical flex column. */
+	col: 'flex flex-col',
+	/** Inline flex row with vertical centering. */
+	inline: 'inline-flex items-center',
+	/** Fill remaining flex track. */
+	fill: 'flex-1',
+} as const

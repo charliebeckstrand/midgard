@@ -6,7 +6,7 @@ export const k = {
 	panel: 'relative overflow-hidden',
 	handle: [
 		'group/handle relative',
-		narabi.row,
+		narabi.flex.row,
 		'shrink-0 justify-center',
 		'outline-none touch-none',
 	],

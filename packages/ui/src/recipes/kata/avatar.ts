@@ -3,7 +3,7 @@ import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { solid, soft, outline } = iro.palette
 const { rounded } = kasane.radius
-const { row } = narabi
+const { row } = narabi.flex
 const { avatar } = shaku
 
 export const k = defineRecipe(

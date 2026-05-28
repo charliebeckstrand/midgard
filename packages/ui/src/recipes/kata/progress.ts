@@ -48,7 +48,7 @@ const fill = defineRecipe({
 })
 
 const root = defineRecipe({
-	base: ['relative', narabi.inlineRow, 'justify-center'],
+	base: ['relative', narabi.flex.inline, 'justify-center'],
 	size: {
 		sm: 'size-12',
 		md: 'size-16',

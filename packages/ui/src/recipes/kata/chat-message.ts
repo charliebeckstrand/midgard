@@ -22,7 +22,7 @@ const bubble = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: narabi.col,
+		base: narabi.flex.col,
 		type: {
 			user: 'items-end',
 			assistant: 'items-start',
@@ -35,7 +35,7 @@ export const k = defineRecipe(
 				'bg-current',
 				'motion-safe:animate-pulse',
 			],
-			actions: ['mt-1', narabi.row, 'gap-0.5'],
+			actions: ['mt-1', narabi.flex.row, 'gap-0.5'],
 		},
 		defaults: { type: 'assistant' },
 	},

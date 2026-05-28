@@ -5,7 +5,7 @@ export const k = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
 	column: {
 		base: [
-			narabi.col,
+			narabi.flex.col,
 			'min-w-0',
 			'gap-2',
 			'w-72 shrink-0',
@@ -15,15 +15,15 @@ export const k = {
 			kasane.radius.rounded.lg,
 		],
 		over: '',
-		header: [narabi.row, 'gap-2', ji.size.md, iro.text.default, ji.weight.semibold],
-		title: [narabi.fill, 'min-w-0 truncate'],
-		body: [narabi.col, narabi.fill, 'gap-1', 'overflow-y-auto'],
-		empty: [narabi.row, 'justify-center', 'min-h-16', ji.size.sm, iro.text.muted],
+		header: [narabi.flex.row, 'gap-2', ji.size.md, iro.text.default, ji.weight.semibold],
+		title: [narabi.flex.fill, 'min-w-0 truncate'],
+		body: [narabi.flex.col, narabi.flex.fill, 'gap-1', 'overflow-y-auto'],
+		empty: [narabi.flex.row, 'justify-center', 'min-h-16', ji.size.sm, iro.text.muted],
 	},
 	card: {
 		base: [
 			'group/kanban-card',
-			narabi.col,
+			narabi.flex.col,
 			'gap-1',
 			'p-2',
 			...mode('bg-white', 'dark:bg-zinc-950'),

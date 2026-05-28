@@ -13,7 +13,7 @@ import { sen } from '../sen'
 
 export const item = {
 	base: [
-		narabi.row,
+		narabi.flex.row,
 		'justify-center',
 		'whitespace-nowrap',
 		kasane.radius.rounded.lg,

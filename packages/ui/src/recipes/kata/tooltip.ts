@@ -12,7 +12,7 @@ const content = defineRecipe({
 })
 
 export const k = {
-	trigger: narabi.inlineRow,
+	trigger: narabi.flex.inline,
 	portal: 'z-100',
 	cursor: 'cursor-help *:cursor-help',
 	content,

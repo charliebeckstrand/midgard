@@ -2,11 +2,11 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: [narabi.row, 'flex-wrap', 'gap-2', 'break-words', ji.size.md],
+	base: [narabi.flex.row, 'flex-wrap', 'gap-2', 'break-words', ji.size.md],
 })
 
 const item = defineRecipe({
-	base: [narabi.inlineRow, 'gap-2'],
+	base: [narabi.flex.inline, 'gap-2'],
 	current: {
 		true: [iro.text.default, ji.weight.normal],
 		false: '',

@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 
 export type ListVariant = 'separated' | 'outline' | 'plain' | 'solid'
 
-const rootBase = [narabi.col, 'm-0 p-0', 'k-none']
+const rootBase = [narabi.flex.col, 'm-0 p-0', 'k-none']
 
 const rootVariant = {
 	separated: ['gap-2'],
@@ -19,7 +19,7 @@ const rootVariant = {
 
 const itemBase = [
 	'group/k-item',
-	narabi.row,
+	narabi.flex.row,
 	'gap-2',
 	'gap-y-0',
 	ji.size.md,
@@ -42,7 +42,7 @@ export const k = {
 	itemActive: ['z-10 relative', ...omote.bg.surface, kasane.radius.rounded.md],
 	itemLifted: sen.focus.lifted,
 	handle: [
-		narabi.inlineRow,
+		narabi.flex.inline,
 		'flex-none justify-center',
 		'px-3 -mx-3',
 		'cursor-grab data-readonly:cursor-default data-disabled:cursor-not-allowed',

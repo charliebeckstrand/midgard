@@ -2,7 +2,7 @@ import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 
 const item = defineRecipe({
-	base: ['group/option', narabi.row, 'w-full', ...hannou.item, ...narabi.item],
+	base: ['group/option', narabi.flex.row, 'w-full', ...hannou.item, ...narabi.item],
 	size: {
 		sm: ['gap-2 px-2.5 py-1', ji.size.sm],
 		md: ['gap-3 px-3 py-1.5', ji.size.md],

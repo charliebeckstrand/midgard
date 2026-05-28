@@ -14,7 +14,7 @@ const list = defineRecipe({
 const tab = defineRecipe({
 	base: [
 		'relative',
-		narabi.row,
+		narabi.flex.row,
 		'gap-2',
 		ji.weight.medium,
 		iro.text.muted,

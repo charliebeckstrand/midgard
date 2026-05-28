@@ -6,7 +6,7 @@
 
 import { description } from './description'
 import { field, group } from './field'
-import { col, fill, inlineRow, row } from './flex'
+import { flex } from './flex'
 import { item } from './item'
 import { slide } from './slide'
 import { toggle } from './toggle'
@@ -18,8 +18,5 @@ export const narabi = {
 	group,
 	item,
 	description,
-	row,
-	inlineRow,
-	col,
-	fill,
+	flex,
 } as const

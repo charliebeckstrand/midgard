@@ -13,7 +13,7 @@ const color: Record<JsonValueType, readonly string[] | string> = {
 
 const row = [
 	'group/json-node',
-	narabi.row,
+	narabi.flex.row,
 	'w-full',
 	'gap-1',
 	'py-0.5',
@@ -25,10 +25,10 @@ const row = [
 export const k = {
 	base: ['inline-flex flex-col', ji.family.mono],
 	row,
-	leaf: [narabi.row, narabi.fill, 'min-w-0 outline-none', 'gap-1'],
+	leaf: [narabi.flex.row, narabi.flex.fill, 'min-w-0 outline-none', 'gap-1'],
 	toggle: [
-		narabi.row,
-		narabi.fill,
+		narabi.flex.row,
+		narabi.flex.fill,
 		'min-w-0 text-left',
 		...hannou.cursor,
 		'outline-none',
@@ -38,7 +38,7 @@ export const k = {
 		...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
 		kasane.radius.rounded.lg,
 	],
-	content: [narabi.inlineRow, 'min-w-0', 'gap-1'],
+	content: [narabi.flex.inline, 'min-w-0', 'gap-1'],
 	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
 	chevronSpacer: 'inline-block w-4 flex-none',
 	key: color.key,

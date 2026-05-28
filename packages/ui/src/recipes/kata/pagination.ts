@@ -2,13 +2,13 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: [narabi.row, 'list-none', 'gap-1', 'm-0 p-0'],
+	base: [narabi.flex.row, 'list-none', 'gap-1', 'm-0 p-0'],
 })
 
 const button = defineRecipe({
 	base: [
 		'relative',
-		narabi.inlineRow,
+		narabi.flex.inline,
 		'justify-center',
 		'min-w-9',
 		'p-2',
@@ -27,7 +27,7 @@ const button = defineRecipe({
 
 const gap = defineRecipe({
 	base: [
-		narabi.inlineRow,
+		narabi.flex.inline,
 		'justify-center',
 		'min-w-9',
 		ji.size.sm,
@@ -38,7 +38,7 @@ const gap = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: [narabi.row, 'list-none', 'gap-1'],
+		base: [narabi.flex.row, 'list-none', 'gap-1'],
 	},
 	{
 		list,

@@ -2,7 +2,7 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { kasane, narabi, omote, sen } from '../kiso'
 
 const root = defineRecipe({
-	base: narabi.row,
+	base: narabi.flex.row,
 	orientation: {
 		horizontal: 'flex-row flex-wrap gap-1',
 		vertical: 'flex-col w-fit gap-1',
@@ -16,7 +16,7 @@ const root = defineRecipe({
 })
 
 const group = defineRecipe({
-	base: narabi.row,
+	base: narabi.flex.row,
 	orientation: {
 		horizontal: 'flex-row gap-0.5',
 		vertical: 'flex-col gap-0.5',

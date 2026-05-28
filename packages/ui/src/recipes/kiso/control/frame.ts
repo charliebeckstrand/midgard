@@ -15,7 +15,7 @@ import { tsunagi } from '../tsunagi'
 export const frame = [
 	'relative',
 	'group/control',
-	narabi.row,
+	narabi.flex.row,
 	'w-full',
 	...kasane.layers.all,
 	...tsunagi.base,

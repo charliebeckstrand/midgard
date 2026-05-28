@@ -5,7 +5,7 @@ const root = defineRecipe({
 	base: ji.size.sm,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
-		vertical: narabi.col,
+		vertical: narabi.flex.col,
 	},
 	defaults: { orientation: 'horizontal' },
 })

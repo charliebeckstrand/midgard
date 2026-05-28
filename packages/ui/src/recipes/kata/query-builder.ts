@@ -2,7 +2,7 @@ import { mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, sen } from '../kiso'
 
 export const k = {
-	base: [narabi.col, 'gap-3 p-3', sen.border.default, kasane.radius.rounded.lg],
+	base: [narabi.flex.col, 'gap-3 p-3', sen.border.default, kasane.radius.rounded.lg],
 	group: 'flex flex-col gap-3',
 	groupNested: [
 		'p-3',

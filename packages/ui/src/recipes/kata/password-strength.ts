@@ -2,7 +2,7 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
 
 const segment = defineRecipe({
-	base: [narabi.fill, 'h-1', kasane.radius.rounded.full, ...omote.bg.skeleton],
+	base: [narabi.flex.fill, 'h-1', kasane.radius.rounded.full, ...omote.bg.skeleton],
 	level: {
 		weak: mode('bg-red-600', 'dark:bg-red-500'),
 		fair: mode('bg-amber-600', 'dark:bg-amber-500'),
@@ -26,12 +26,12 @@ const label = defineRecipe({
 })
 
 export const k = {
-	root: [narabi.col, 'gap-2'],
-	meter: [narabi.row, 'gap-1'],
+	root: [narabi.flex.col, 'gap-2'],
+	meter: [narabi.flex.row, 'gap-1'],
 	segment,
 	label,
-	rules: [narabi.col, 'gap-0.5'],
-	rule: [narabi.inlineRow, 'gap-1', ji.size.sm],
+	rules: [narabi.flex.col, 'gap-0.5'],
+	rule: [narabi.flex.inline, 'gap-1', ji.size.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: iro.palette.bare.text.green,
 	ruleIconFail: iro.text.muted,

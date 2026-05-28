@@ -18,7 +18,7 @@ const item = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: narabi.col,
+		base: narabi.flex.col,
 		variant: {
 			separated: 'gap-1',
 			outline: [
@@ -32,7 +32,7 @@ export const k = defineRecipe(
 		slots: {
 			trigger: [
 				'w-full',
-				narabi.row,
+				narabi.flex.row,
 				'justify-between',
 				'gap-2',
 				'p-4',

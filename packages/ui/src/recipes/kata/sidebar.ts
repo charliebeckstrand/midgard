@@ -2,7 +2,7 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
 
 const item = defineRecipe({
-	base: [...hannou.nav, ...hannou.cursor, 'group relative', narabi.row, 'w-full', 'text-left'],
+	base: [...hannou.nav, ...hannou.cursor, 'group relative', narabi.flex.row, 'w-full', 'text-left'],
 	size: {
 		sm: [
 			ji.size.sm,
@@ -24,14 +24,14 @@ const item = defineRecipe({
 })
 
 export const k = {
-	base: ['overflow-y-auto', narabi.col, 'gap-y-4', 'h-full', 'py-6', 'px-4'],
+	base: ['overflow-y-auto', narabi.flex.col, 'gap-y-4', 'h-full', 'py-6', 'px-4'],
 	item,
-	section: [narabi.col, 'gap-0.5'],
+	section: [narabi.flex.col, 'gap-0.5'],
 	label: ['truncate'],
-	header: [narabi.row, 'justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
-	body: ['overflow-y-auto', narabi.col, narabi.fill, 'gap-4'],
+	header: [narabi.flex.row, 'justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
+	body: ['overflow-y-auto', narabi.flex.col, narabi.flex.fill, 'gap-4'],
 	divider: sen.divider.top,
-	footer: ['sticky bottom-0', narabi.col, 'gap-0.5', 'mt-auto'],
+	footer: ['sticky bottom-0', narabi.flex.col, 'gap-0.5', 'mt-auto'],
 } as const
 
 export type SidebarItemVariants = VariantProps<typeof item>

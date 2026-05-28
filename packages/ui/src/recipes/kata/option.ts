@@ -22,7 +22,7 @@ const size = {
 export const k = {
 	base,
 	size,
-	content: [narabi.row, 'min-w-0', narabi.item],
+	content: [narabi.flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
 	description: [narabi.description, iro.text.muted],
 } as const

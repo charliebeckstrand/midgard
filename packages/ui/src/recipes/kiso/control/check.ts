@@ -37,7 +37,13 @@ const surface = [
 ]
 
 /** Layout shell — position, inline-flex centering, focus outline, cursor. */
-const shell = ['relative', narabi.inlineRow, 'justify-center', sen.focus.outline, ...hannou.cursor]
+const shell = [
+	'relative',
+	narabi.flex.inline,
+	'justify-center',
+	sen.focus.outline,
+	...hannou.cursor,
+]
 
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
 const base = [...shell, ...surface]

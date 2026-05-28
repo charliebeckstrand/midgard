@@ -3,7 +3,7 @@ import { hannou, iro, kasane, narabi } from '../kiso'
 export const k = {
 	base: [
 		'relative',
-		narabi.row,
+		narabi.flex.row,
 		'justify-center',
 		kasane.radius.rounded.lg,
 		iro.text.muted,

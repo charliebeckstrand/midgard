@@ -6,7 +6,7 @@ export const k = {
 	title: ['p-2', ji.size.xs, iro.text.muted, ji.weight.medium],
 	item: [
 		'group/option',
-		narabi.row,
+		narabi.flex.row,
 		'w-full',
 		'px-2',
 		'gap-2',

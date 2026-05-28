@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 export const k = {
 	dropzone: [
-		narabi.col,
+		narabi.flex.col,
 		'items-center justify-center',
 		'gap-1',
 		ji.size.md,

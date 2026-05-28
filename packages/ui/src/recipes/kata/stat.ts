@@ -22,7 +22,7 @@ const value = defineRecipe({
 })
 
 const delta = defineRecipe({
-	base: [narabi.inlineRow, ji.size.sm, 'gap-1', ji.weight.medium, 'tabular-nums'],
+	base: [narabi.flex.inline, ji.size.sm, 'gap-1', ji.weight.medium, 'tabular-nums'],
 	trend: {
 		up: mode('text-green-600', 'dark:text-green-500'),
 		down: mode('text-red-600', 'dark:text-red-500'),
@@ -62,7 +62,7 @@ const skeleton = {
 
 export const k = defineRecipe(
 	{
-		base: [narabi.col, 'justify-center', 'h-full', 'gap-1'],
+		base: [narabi.flex.col, 'justify-center', 'h-full', 'gap-1'],
 		slots: {
 			description: [ji.size.sm, ...iro.text.muted],
 		},

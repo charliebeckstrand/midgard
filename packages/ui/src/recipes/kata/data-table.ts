@@ -1,11 +1,11 @@
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 export const k = {
-	wrapper: ['relative', narabi.col, 'gap-2'],
+	wrapper: ['relative', narabi.flex.col, 'gap-2'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 	stickyHead: ['sticky top-0 z-10', omote.bg.surface],
 	batchBar: [
-		narabi.row,
+		narabi.flex.row,
 		'min-h-12',
 		'gap-2',
 		'px-2',
@@ -19,7 +19,7 @@ export const k = {
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [
-		narabi.inlineRow,
+		narabi.flex.inline,
 		iro.text.muted,
 		hannou.text.hover,
 		sen.focus.ring,

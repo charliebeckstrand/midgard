@@ -14,7 +14,7 @@ const base = defineRecipe({
 })
 
 const header = defineRecipe({
-	base: [narabi.row, 'justify-between'],
+	base: [narabi.flex.row, 'justify-between'],
 	size: {
 		sm: 'mb-1',
 		md: 'mb-2',
@@ -24,7 +24,7 @@ const header = defineRecipe({
 })
 
 const footer = defineRecipe({
-	base: [narabi.row, 'justify-center'],
+	base: [narabi.flex.row, 'justify-center'],
 	size: {
 		sm: 'pb-1 gap-1',
 		md: 'pb-1 gap-2',
@@ -44,7 +44,13 @@ const pickerGrid = defineRecipe({
 })
 
 const weekday = defineRecipe({
-	base: [narabi.row, 'justify-center', 'w-full aspect-square', ji.weight.medium, iro.text.muted],
+	base: [
+		narabi.flex.row,
+		'justify-center',
+		'w-full aspect-square',
+		ji.weight.medium,
+		iro.text.muted,
+	],
 	size: {
 		sm: ji.size.xs,
 		md: ji.size.sm,

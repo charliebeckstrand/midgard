@@ -4,7 +4,7 @@ import { hannou, iro, ji, narabi, sen, ugoki } from '../kiso'
 export const k = {
 	base: 'group/collapse',
 	trigger: [
-		narabi.inlineRow,
+		narabi.flex.inline,
 		'gap-2',
 		ji.size.md,
 		iro.text.muted,

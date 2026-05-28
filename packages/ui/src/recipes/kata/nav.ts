@@ -10,7 +10,7 @@ export const k = {
 	},
 	item: [
 		'group relative',
-		narabi.row,
+		narabi.flex.row,
 		'w-full',
 		'p-2',
 		...hannou.nav,

@@ -6,11 +6,11 @@ const { size, weight } = ji
 const { g } = kasane.gap
 const { px, py } = kasane.padding
 const { rounded } = kasane.radius
-const { inlineRow } = narabi
+const { inline } = narabi.flex
 const { icon } = shaku
 
 export const k = defineRecipe({
-	base: ['group', inlineRow, 'w-fit', weight.medium],
+	base: ['group', inline, 'w-fit', weight.medium],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},

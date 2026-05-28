@@ -8,7 +8,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [narabi.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...hannou.cursor],
+		base: [narabi.flex.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...hannou.cursor],
 		density,
 		size,
 		slots: {

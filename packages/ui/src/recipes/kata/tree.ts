@@ -6,7 +6,7 @@ export type TreeSize = 'sm' | 'md' | 'lg'
 const itemContent = defineRecipe(
 	{
 		base: [
-			narabi.row,
+			narabi.flex.row,
 			'w-full',
 			'py-1 px-2',
 			'gap-2',
@@ -29,7 +29,7 @@ const itemContent = defineRecipe(
 )
 
 const chevron = defineRecipe({
-	base: ['flex-none', narabi.row, 'justify-center', ugoki.css.transform, ugoki.css.duration],
+	base: ['flex-none', narabi.flex.row, 'justify-center', ugoki.css.transform, ugoki.css.duration],
 	size: {
 		sm: 'w-4',
 		md: 'w-5',
@@ -40,7 +40,7 @@ const chevron = defineRecipe({
 
 export const k = {
 	base: [
-		narabi.col,
+		narabi.flex.col,
 		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',

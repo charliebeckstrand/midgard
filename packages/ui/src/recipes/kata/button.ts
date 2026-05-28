@@ -18,7 +18,7 @@ export const k = defineRecipe(
 	{
 		base: [
 			'relative isolate',
-			narabi.inlineRow,
+			narabi.flex.inline,
 			'justify-center',
 			'w-fit shrink-0',
 			ji.weight.semibold,
