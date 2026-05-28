@@ -1,30 +1,42 @@
 import { definePalette, defineRecipe, merge, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, tsunagi, ugoki } from '../kiso'
 
-const { solid, soft, outline, plain, bare } = iro.palette
+const { palette } = iro
+const { cursor, disabled } = hannou
+const { size, weight } = ji
+const { gap, padding, radius } = kasane
+const { flex } = narabi
+const { focus } = sen
+const { icon } = shaku
 
 // Synthetic colour entry: lets a button skip the palette and inherit
 // its parent's text colour, with a hover wash on non-disabled elements.
 const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
 
-const solidBundle = { ...merge(solid.bg, solid.text, solid.hover), inherit }
-const softBundle = { ...merge(soft.bg, soft.text, soft.hover), inherit }
-const outlineBundle = { ...merge(outline.ring, outline.text, outline.hover), inherit }
-const plainBundle = { ...merge(plain.text, plain.hover), inherit }
-const bareBundle = { ...merge(bare.text, bare.hover), inherit }
-const ghostBundle = { ...plain.text, inherit }
+const solidBundle = {
+	...merge(palette.solid.bg, palette.solid.text, palette.solid.hover),
+	inherit,
+}
+const softBundle = { ...merge(palette.soft.bg, palette.soft.text, palette.soft.hover), inherit }
+const outlineBundle = {
+	...merge(palette.outline.ring, palette.outline.text, palette.outline.hover),
+	inherit,
+}
+const plainBundle = { ...merge(palette.plain.text, palette.plain.hover), inherit }
+const bareBundle = { ...merge(palette.bare.text, palette.bare.hover), inherit }
+const ghostBundle = { ...palette.plain.text, inherit }
 
 export const k = defineRecipe(
 	{
 		base: [
 			'relative isolate',
-			narabi.flex.inline,
+			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',
-			ji.weight.semibold,
-			sen.focus.inset,
-			...hannou.disabled,
-			...hannou.cursor,
+			weight.semibold,
+			focus.inset,
+			...disabled,
+			...cursor,
 			...tsunagi.base,
 		],
 		variant: {
@@ -32,46 +44,46 @@ export const k = defineRecipe(
 		},
 		size: {
 			xs: [
-				ji.size.xs,
-				shaku.icon.xs,
-				kasane.gap.g('0.5'),
-				kasane.padding.p('1.5'),
-				kasane.radius.r('1'),
+				size.xs,
+				icon.xs,
+				gap.g('0.5'),
+				padding.p('1.5'),
+				radius.r('1'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
-				ji.size.sm,
-				shaku.icon.sm,
-				kasane.gap.g('0.75'),
-				kasane.padding.p('2'),
-				kasane.radius.r('1.5'),
+				size.sm,
+				icon.sm,
+				gap.g('0.75'),
+				padding.p('2'),
+				radius.r('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
-				ji.size.md,
-				shaku.icon.md,
-				kasane.gap.g('1'),
-				kasane.padding.p('2.5'),
-				kasane.radius.r('2'),
+				size.md,
+				icon.md,
+				gap.g('1'),
+				padding.p('2.5'),
+				radius.r('2'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
-				ji.size.lg,
-				shaku.icon.lg,
-				kasane.gap.g('1.25'),
-				kasane.padding.p('3'),
-				kasane.radius.r('2.5'),
+				size.lg,
+				icon.lg,
+				gap.g('1.25'),
+				padding.p('3'),
+				radius.r('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},
 		palette: definePalette(
 			{
-				solid: [solid.bg, solid.text, solid.hover],
-				soft: [soft.bg, soft.text, soft.hover],
-				outline: [outline.ring, outline.text, outline.hover],
-				plain: [plain.text, plain.hover],
-				bare: [bare.text, bare.hover],
-				ghost: plain.text,
+				solid: [palette.solid.bg, palette.solid.text, palette.solid.hover],
+				soft: [palette.soft.bg, palette.soft.text, palette.soft.hover],
+				outline: [palette.outline.ring, palette.outline.text, palette.outline.hover],
+				plain: [palette.plain.text, palette.plain.hover],
+				bare: [palette.bare.text, palette.bare.hover],
+				ghost: palette.plain.text,
 			},
 			{ inherit },
 		),
