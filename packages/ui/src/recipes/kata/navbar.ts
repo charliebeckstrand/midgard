@@ -1,7 +1,8 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { sen } from '../kiso'
+import { kasane, narabi, sen } from '../kiso'
+
 export const k = defineRecipe({
-	base: ['flex items-center gap-4', 'overflow-x-auto', 'px-4 py-2.5', 'rounded-lg', 'border'],
+	base: [narabi.row, 'gap-4', 'overflow-x-auto', 'px-4 py-2.5', kasane.rounded.lg, 'border'],
 	variant: {
 		outline: [...sen.border.color],
 		plain: [...sen.border.transparent],

@@ -1,14 +1,16 @@
-import { hannou, iro, ji, narabi } from '../kiso'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi } from '../kiso'
 
 const base = [
 	...hannou.item,
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
-	'rounded-lg',
-	'data-active:bg-zinc-950/5',
-	'dark:data-active:bg-white/5',
-	'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
-	'dark:group-data-editing/combobox:only-of-type:bg-white/5',
+	kasane.rounded.lg,
+	...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
+	...mode(
+		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
+		'dark:group-data-editing/combobox:only-of-type:bg-white/5',
+	),
 ]
 
 const size = {
@@ -20,7 +22,7 @@ const size = {
 export const k = {
 	base,
 	size,
-	content: ['flex min-w-0 items-center', narabi.item],
+	content: [narabi.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
 	description: [narabi.description, iro.text.muted],
 } as const

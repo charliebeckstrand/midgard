@@ -1,20 +1,20 @@
-import { defineRecipe } from '../../core/recipe'
-import { iro, ji } from '../kiso'
+import { defineRecipe, mode } from '../../core/recipe'
+import { iro, ji, kasane, narabi, omote } from '../kiso'
 
 const segment = defineRecipe({
-	base: ['flex-1 h-1', 'rounded-full', 'bg-zinc-200 dark:bg-zinc-700'],
+	base: [narabi.fill, 'h-1', kasane.rounded.full, ...omote.bg.skeleton],
 	level: {
-		weak: 'bg-red-600 dark:bg-red-500',
-		fair: 'bg-amber-600 dark:bg-amber-500',
-		good: 'bg-blue-600 dark:bg-blue-500',
-		strong: 'bg-green-600 dark:bg-green-500',
+		weak: mode('bg-red-600', 'dark:bg-red-500'),
+		fair: mode('bg-amber-600', 'dark:bg-amber-500'),
+		good: mode('bg-blue-600', 'dark:bg-blue-500'),
+		strong: mode('bg-green-600', 'dark:bg-green-500'),
 		empty: '',
 	},
 	defaults: { level: 'empty' },
 })
 
 const label = defineRecipe({
-	base: [ji.sm, 'font-medium'],
+	base: [ji.sm, ji.weight.medium],
 	level: {
 		weak: iro.text.error,
 		fair: iro.text.warning,
@@ -26,15 +26,15 @@ const label = defineRecipe({
 })
 
 export const k = {
-	root: ['flex flex-col', 'gap-2'],
-	meter: ['flex items-center', 'gap-1'],
+	root: [narabi.col, 'gap-2'],
+	meter: [narabi.row, 'gap-1'],
 	segment,
 	label,
-	rules: ['flex flex-col', 'gap-0.5'],
-	rule: ['inline-flex items-center', 'gap-1', ji.sm],
+	rules: [narabi.col, 'gap-0.5'],
+	rule: [narabi.inlineRow, 'gap-1', ji.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: iro.palette.bare.text.green,
 	ruleIconFail: iro.text.muted,
 	ruleText: iro.text.muted,
 	ruleTextPass: iro.text.default,
-}
+} as const

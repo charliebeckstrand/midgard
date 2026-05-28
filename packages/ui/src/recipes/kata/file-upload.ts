@@ -1,24 +1,26 @@
-import { hannou, iro, ji, sen } from '../kiso'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 export const k = {
 	dropzone: [
-		'flex flex-col items-center justify-center',
+		narabi.col,
+		'items-center justify-center',
 		'gap-1',
 		ji.md,
 		iro.text.muted,
-		'rounded-lg',
+		kasane.rounded.lg,
 		sen.focus.ring,
 		'border border-dashed',
-		'border-zinc-300',
-		'dark:border-zinc-700',
+		...mode('border-zinc-300', 'dark:border-zinc-700'),
 		...hannou.cursor,
-		'hover:not-disabled:border-zinc-400',
-		'dark:hover:not-disabled:border-zinc-500',
-		'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',
-		'dark:data-[drag-over]:border-blue-400 dark:data-[drag-over]:bg-blue-950/20',
+		...mode('hover:not-disabled:border-zinc-400', 'dark:hover:not-disabled:border-zinc-500'),
+		...mode(
+			'data-[drag-over]:border-blue-500 data-[drag-over]:bg-blue-50/50',
+			'dark:data-[drag-over]:border-blue-400 dark:data-[drag-over]:bg-blue-950/20',
+		),
 		...hannou.disabled,
 	],
 	icon: 'shrink-0',
-	label: ['font-medium', iro.text.default],
+	label: [ji.weight.medium, iro.text.default],
 	cursor: hannou.cursor,
-}
+} as const

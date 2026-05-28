@@ -1,6 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { panel as panelApplicator } from '../katakana'
-import { iro, omote, sen, ugoki } from '../kiso'
+import { iro, kasane, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 export const k = {
@@ -31,9 +31,15 @@ export const k = {
 		title: { extra: 'px-6 pt-6' },
 		description: { extra: 'px-6' },
 		footer: { extra: 'px-6 pb-6' },
-		body: { extra: ['flex-1 overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
+		body: { extra: [narabi.fill, 'overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
 		close: {
-			base: ['absolute right-4 top-4', 'p-1', ...iro.text.muted, sen.focus.inset, 'rounded-md'],
+			base: [
+				'absolute right-4 top-4',
+				'p-1',
+				...iro.text.muted,
+				sen.focus.inset,
+				kasane.rounded.md,
+			],
 		},
 	}),
 	motion: ugoki.panel.bottom,

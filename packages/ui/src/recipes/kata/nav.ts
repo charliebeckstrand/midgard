@@ -1,4 +1,5 @@
-import { hannou, ji } from '../kiso'
+import { hannou, ji, kasane, narabi } from '../kiso'
+
 export const k = {
 	list: {
 		base: 'flex',
@@ -8,13 +9,16 @@ export const k = {
 		},
 	},
 	item: [
-		'group relative flex w-full items-center',
+		'group relative',
+		narabi.row,
+		'w-full',
 		'p-2',
 		...hannou.nav,
 		...hannou.cursor,
 		'gap-2',
 		ji.md,
-		'text-left font-medium',
-		'rounded-lg',
+		'text-left',
+		ji.weight.medium,
+		kasane.rounded.lg,
 	],
-}
+} as const

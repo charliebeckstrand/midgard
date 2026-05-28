@@ -1,19 +1,20 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const list = defineRecipe({
-	base: ['flex items-center list-none', 'gap-1', 'm-0 p-0'],
+	base: [narabi.row, 'list-none', 'gap-1', 'm-0 p-0'],
 })
 
-const pageButton = defineRecipe({
+const button = defineRecipe({
 	base: [
 		'relative',
-		'inline-flex items-center justify-center',
+		narabi.inlineRow,
+		'justify-center',
 		'min-w-9',
 		'p-2',
 		ji.sm,
-		'font-medium',
-		'rounded-lg',
+		ji.weight.medium,
+		kasane.rounded.lg,
 		sen.focus.ring,
 		...hannou.cursor,
 	],
@@ -25,24 +26,18 @@ const pageButton = defineRecipe({
 })
 
 const gap = defineRecipe({
-	base: [
-		'inline-flex items-center justify-center',
-		'min-w-9',
-		ji.sm,
-		...iro.text.muted,
-		'select-none',
-	],
+	base: [narabi.inlineRow, 'justify-center', 'min-w-9', ji.sm, ...iro.text.muted, 'select-none'],
 })
 
 export const k = defineRecipe(
 	{
-		base: ['flex items-center list-none', 'gap-1'],
+		base: [narabi.row, 'list-none', 'gap-1'],
 	},
 	{
 		list,
-		pageButton,
+		pageButton: button,
 		gap,
 	},
 )
 
-export type PageButtonVariants = VariantProps<typeof pageButton>
+export type PageButtonVariants = VariantProps<typeof button>
