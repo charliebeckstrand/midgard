@@ -16,18 +16,18 @@ const { spring } = ugoki
 // its parent's text colour, with a hover wash on non-disabled elements.
 const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
 
-const solidBundle = {
+const solid = {
 	...merge(palette.solid.bg, palette.solid.text, palette.solid.hover),
 	inherit,
 }
-const softBundle = { ...merge(palette.soft.bg, palette.soft.text, palette.soft.hover), inherit }
-const outlineBundle = {
+const soft = { ...merge(palette.soft.bg, palette.soft.text, palette.soft.hover), inherit }
+const outline = {
 	...merge(palette.outline.ring, palette.outline.text, palette.outline.hover),
 	inherit,
 }
-const plainBundle = { ...merge(palette.plain.text, palette.plain.hover), inherit }
-const bareBundle = { ...merge(palette.bare.text, palette.bare.hover), inherit }
-const ghostBundle = { ...palette.plain.text, inherit }
+const plain = { ...merge(palette.plain.text, palette.plain.hover), inherit }
+const bare = { ...merge(palette.bare.text, palette.bare.hover), inherit }
+const ghost = { ...palette.plain.text, inherit }
 
 export const k = defineRecipe(
 	{
@@ -100,12 +100,12 @@ export const k = defineRecipe(
 		skeleton: button,
 	},
 	{
-		solid: solidBundle,
-		soft: softBundle,
-		outline: outlineBundle,
-		plain: plainBundle,
-		bare: bareBundle,
-		ghost: ghostBundle,
+		solid,
+		soft,
+		outline,
+		plain,
+		bare,
+		ghost,
 		motion: spring,
 	},
 )
