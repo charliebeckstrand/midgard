@@ -3,7 +3,7 @@ import { hannou, iro, ji, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
-const { flex } = narabi
+const { flex, description } = narabi
 
 export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
@@ -19,6 +19,6 @@ export const k = {
 		...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
 	],
 	label: 'truncate',
-	description: [narabi.description, size.xs, text.muted],
+	description: [description, size.xs, text.muted],
 	shortcut: 'ml-auto',
 } as const

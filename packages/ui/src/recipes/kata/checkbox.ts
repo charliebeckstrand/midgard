@@ -3,6 +3,7 @@ import { check } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 
 const { radius } = kasane
+const { checkbox } = kokkaku
 
 const color = defineColors({
 	zinc: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-600)] [--checkbox-checked-border:var(--color-zinc-700)]/90',
@@ -32,7 +33,7 @@ export const k = check(
 			md: ['size-4.5', radius.r('1')],
 			lg: ['size-5', radius.r('1.25')],
 		},
-		skeleton: kokkaku.checkbox,
+		skeleton: checkbox,
 	},
 	{
 		/** Check-icon size class per checkbox size step. Read by the component. */

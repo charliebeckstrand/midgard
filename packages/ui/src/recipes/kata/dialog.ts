@@ -5,6 +5,7 @@ import { panel } from '../kiso/panel'
 
 const { glass } = omote
 const { panel: shakuPanel } = shaku
+const { popover } = ugoki
 const { surface, layout } = panel
 
 export const k = {
@@ -27,7 +28,7 @@ export const k = {
 			defaults: { size: 'lg', surface: 'flat' },
 		}),
 	}),
-	motion: { desktop: ugoki.popover, mobile: ugoki.panel.bottom },
+	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 }
 
 export type DialogPanelVariants = VariantProps<typeof k.panel>

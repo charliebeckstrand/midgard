@@ -1,6 +1,14 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
+const { cursor, disabled } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { radius } = kasane
+const { flex } = narabi
+const { border, divider } = sen
+const { css } = ugoki
+
 const item = defineRecipe({
 	base: [
 		'group/accordion-item',
@@ -9,7 +17,7 @@ const item = defineRecipe({
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
-		separated: ['overflow-hidden', kasane.radius.rounded.lg, ...sen.border.default],
+		separated: ['overflow-hidden', radius.rounded.lg, ...border.default],
 		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 		plain: '',
 	},
@@ -18,45 +26,40 @@ const item = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: narabi.flex.col,
+		base: flex.col,
 		variant: {
 			separated: 'gap-1',
-			outline: [
-				'overflow-hidden',
-				kasane.radius.rounded.lg,
-				...sen.border.default,
-				...sen.divider.between,
-			],
-			plain: sen.divider.between,
+			outline: ['overflow-hidden', radius.rounded.lg, ...border.default, ...divider.between],
+			plain: divider.between,
 		},
 		slots: {
 			trigger: [
 				'w-full',
-				narabi.flex.row,
+				flex.row,
 				'justify-between',
 				'gap-2',
 				'p-4',
-				ji.size.md,
-				iro.text.muted,
+				size.md,
+				text.muted,
 				hannou.text.hover,
 				'text-left',
-				ji.weight.medium,
+				weight.medium,
 				...mode(
 					'group-data-[open]/accordion-item:text-zinc-950',
 					'dark:group-data-[open]/accordion-item:text-white',
 				),
 				'focus-visible:outline-none',
-				...hannou.disabled,
-				...hannou.cursor,
+				...disabled,
+				...cursor,
 			],
 			indicator: [
 				'shrink-0',
-				ugoki.css.transform,
-				ugoki.css.duration,
+				css.transform,
+				css.duration,
 				'group-data-[open]/accordion-item:rotate-180',
 			],
 			panel: 'overflow-hidden',
-			body: ['px-4 pb-4 pt-0', ji.size.md, iro.text.muted],
+			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },
 	},

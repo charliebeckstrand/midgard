@@ -5,9 +5,12 @@ const { palette } = iro
 const { cursor, disabled } = hannou
 const { size, weight } = ji
 const { gap, padding, radius } = kasane
+const { button } = kokkaku
 const { flex } = narabi
 const { focus } = sen
 const { icon } = shaku
+const { base } = tsunagi
+const { spring } = ugoki
 
 // Synthetic colour entry: lets a button skip the palette and inherit
 // its parent's text colour, with a hover wash on non-disabled elements.
@@ -37,7 +40,7 @@ export const k = defineRecipe(
 			focus.inset,
 			...disabled,
 			...cursor,
-			...tsunagi.base,
+			...base,
 		],
 		variant: {
 			outline: 'ring-1 ring-inset',
@@ -94,7 +97,7 @@ export const k = defineRecipe(
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
-		skeleton: kokkaku.button,
+		skeleton: button,
 	},
 	{
 		solid: solidBundle,
@@ -103,7 +106,7 @@ export const k = defineRecipe(
 		plain: plainBundle,
 		bare: bareBundle,
 		ghost: ghostBundle,
-		motion: ugoki.spring,
+		motion: spring,
 	},
 )
 

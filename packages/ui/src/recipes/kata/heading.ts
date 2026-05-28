@@ -3,6 +3,7 @@ import { iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
+const { heading } = kokkaku
 
 export const k = defineRecipe({
 	base: [...text.default],
@@ -15,7 +16,7 @@ export const k = defineRecipe({
 		6: [weight.medium, size.sm],
 	},
 	defaults: { level: 1 },
-	skeleton: kokkaku.heading,
+	skeleton: heading,
 })
 
 export type HeadingVariants = VariantProps<typeof k>

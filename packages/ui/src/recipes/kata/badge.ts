@@ -4,6 +4,7 @@ import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 const { palette } = iro
 const { size, weight } = ji
 const { gap, padding, radius } = kasane
+const { badge } = kokkaku
 const { flex } = narabi
 const { icon } = shaku
 
@@ -30,7 +31,7 @@ export const k = defineRecipe({
 		plain: palette.plain.text,
 	}),
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
-	skeleton: kokkaku.badge,
+	skeleton: badge,
 })
 
 export type BadgeVariants = VariantProps<typeof k>
