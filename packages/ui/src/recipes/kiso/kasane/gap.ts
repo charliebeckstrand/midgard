@@ -46,8 +46,8 @@ const gyStops = {
 
 export type GapStop = keyof typeof gStops
 
-export const g = (v: GapStop) => gStops[v]
-
-export const gx = (v: GapStop) => gxStops[v]
-
-export const gy = (v: GapStop) => gyStops[v]
+export const gap = {
+	g: (v: GapStop) => gStops[v],
+	gx: (v: GapStop) => gxStops[v],
+	gy: (v: GapStop) => gyStops[v],
+} as const

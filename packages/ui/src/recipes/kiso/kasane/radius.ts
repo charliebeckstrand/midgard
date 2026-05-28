@@ -53,11 +53,10 @@ const roStops = {
 
 export type RadiusStop = keyof typeof rStops
 
-export const r = (v: RadiusStop) => rStops[v]
-
-export const ri = (v: RadiusStop) => riStops[v]
-
-export const ro = (v: RadiusStop) => roStops[v]
-
-/** Outer + inset + overlay radii, coordinated for the full kasane stack. */
-export const all = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const
+export const radius = {
+	r: (v: RadiusStop) => rStops[v],
+	ri: (v: RadiusStop) => riStops[v],
+	ro: (v: RadiusStop) => roStops[v],
+	/** Outer + inset + overlay radii, coordinated for the full kasane stack. */
+	all: (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as const,
+} as const

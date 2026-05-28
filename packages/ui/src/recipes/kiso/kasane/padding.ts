@@ -67,12 +67,10 @@ const prStops = {
 
 export type PadStop = keyof typeof pStops
 
-export const p = (v: PadStop) => pStops[v]
-
-export const px = (v: PadStop) => pxStops[v]
-
-export const py = (v: PadStop) => pyStops[v]
-
-export const pl = (v: PadStop) => plStops[v]
-
-export const pr = (v: PadStop) => prStops[v]
+export const padding = {
+	p: (v: PadStop) => pStops[v],
+	px: (v: PadStop) => pxStops[v],
+	py: (v: PadStop) => pyStops[v],
+	pl: (v: PadStop) => plStops[v],
+	pr: (v: PadStop) => prStops[v],
+} as const

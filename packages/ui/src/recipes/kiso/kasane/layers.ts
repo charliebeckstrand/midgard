@@ -19,24 +19,24 @@ import { mode } from '../../../core/recipe'
  * for the outer-only case) so corner rounding can track each component's
  * density step rather than living as a fixed token.
  */
-export const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
+const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 
 /** `::before` inset fill — paints the surface inside the 1 px outer ring. */
-export const inset = ['before:absolute before:inset-px']
+const inset = ['before:absolute before:inset-px']
 
 /** `::after` overlay used by focus and validation rings. */
-export const overlay = [
+const overlay = [
 	'after:absolute after:inset-0 after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
 /** Outer ring colour on hover — one shade darker / lighter than resting. */
-export const hover = mode(
+const hover = mode(
 	'not-has-[>:disabled]:hover:ring-zinc-400',
 	'not-has-[>:disabled]:dark:hover:ring-zinc-600',
 )
 
 /** `::after` 2 px focus ring — blue when no validation state is active. */
-export const focus = [
+const focus = [
 	'focus-within:after:ring-2',
 	'data-open:after:ring-2',
 	'not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:focus-within:after:ring-blue-600',
@@ -79,10 +79,10 @@ const invalid = [
 ]
 
 /** Validation ring on the outer ring + `::after` — red / amber / green per data-* attribute. */
-export const validation = [...valid, ...warning, ...invalid]
+const validation = [...valid, ...warning, ...invalid]
 
 /** Disabled state — dims and locks pointer when the wrapped element is :disabled. */
-export const disabled = [
+const disabled = [
 	'has-[>:disabled]:opacity-50',
 	'has-[>:disabled]:before:shadow-none',
 	'has-[>:disabled]:cursor-not-allowed',
@@ -90,4 +90,15 @@ export const disabled = [
 ]
 
 /** Every fragment in the correct spread order for a `className`. */
-export const all = [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled]
+const all = [...base, ...inset, ...overlay, ...hover, ...focus, ...validation, ...disabled]
+
+export const layers = {
+	base,
+	inset,
+	overlay,
+	hover,
+	focus,
+	validation,
+	disabled,
+	all,
+} as const

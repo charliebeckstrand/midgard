@@ -15,25 +15,16 @@
  *     symmetry; gap doesn't intersect the outer ring so no compensation.
  */
 
-import { g, gx, gy } from './gap'
-import { all, base, disabled, focus, hover, inset, overlay, validation } from './layers'
-import { p, pl, pr, px, py } from './padding'
-import { all as allRadii, r, ri, ro } from './radius'
+import { gap } from './gap'
+import { layers } from './layers'
+import { padding } from './padding'
+import { radius } from './radius'
 import { rounded } from './rounded'
 
 export const kasane = {
-	layers: {
-		base,
-		inset,
-		overlay,
-		hover,
-		focus,
-		validation,
-		disabled,
-		all,
-	},
-	padding: { p, px, py, pl, pr },
-	radius: { r, ri, ro, all: allRadii },
+	layers,
+	padding,
+	radius,
 	rounded,
-	gap: { g, gx, gy },
+	gap,
 } as const
