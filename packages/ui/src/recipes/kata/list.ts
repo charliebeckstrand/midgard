@@ -1,4 +1,4 @@
-import { mode } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 
 const { disabled } = hannou
@@ -20,22 +20,29 @@ const rootVariant = {
 	solid: ['gap-2'],
 } satisfies Record<ListVariant, unknown>
 
-const itemBase = ['group/k-item', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset]
-
-const itemVariant = {
-	separated: ['p-3', ...bg.surface, border.default, rounded.lg],
-	outline: ['p-3'],
-	plain: ['px-2', 'py-1.5'],
-	solid: ['p-3', ...bg.tint, border.default, rounded.lg],
-} satisfies Record<ListVariant, unknown>
+const item = defineRecipe({
+	base: ['group/k-item', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
+	variant: {
+		separated: ['p-3', ...bg.surface, border.default, rounded.lg],
+		outline: ['p-3'],
+		plain: ['px-2', 'py-1.5'],
+		solid: ['p-3', ...bg.tint, border.default, rounded.lg],
+	},
+	active: {
+		true: ['z-10 relative', ...bg.surface, rounded.md],
+		false: '',
+	},
+	lifted: {
+		true: focus.lifted,
+		false: '',
+	},
+	defaults: { variant: 'separated', active: false, lifted: false },
+})
 
 export const k = {
-	base: rootBase,
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
-	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: ['z-10 relative', ...bg.surface, rounded.md],
-	itemLifted: focus.lifted,
+	item,
 	handle: [
 		flex.inline,
 		'flex-none justify-center',
