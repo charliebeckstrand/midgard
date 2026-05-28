@@ -8,8 +8,6 @@ const { rounded } = kasane
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
 const { focus } = sen
-const { panel: sheetSize } = shaku
-const { panel: panelMotion } = ugoki
 
 export const k = {
 	...panelApplicator({
@@ -34,7 +32,7 @@ export const k = {
 				top: slide.top,
 				bottom: slide.bottom,
 			},
-			size: sheetSize,
+			size: shaku.panel,
 			surface: {
 				glass: [...glass],
 				flat: [...panel.surface.bg],
@@ -61,7 +59,7 @@ export const k = {
 			base: ['absolute right-5 top-5', 'p-1', ...text.muted, focus.inset, rounded.md],
 		},
 	}),
-	motion: panelMotion,
+	motion: ugoki.panel,
 }
 
 export type SheetPanelVariants = VariantProps<typeof k.panel>

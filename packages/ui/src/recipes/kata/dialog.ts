@@ -4,7 +4,6 @@ import { omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { glass } = omote
-const { panel: shakuPanel } = shaku
 const { popover } = ugoki
 const { surface, layout } = panel
 
@@ -24,7 +23,7 @@ export const k = {
 				glass: [...glass],
 				flat: [...surface.bg],
 			},
-			size: shakuPanel,
+			size: shaku.panel,
 			defaults: { size: 'lg', surface: 'flat' },
 		}),
 	}),
