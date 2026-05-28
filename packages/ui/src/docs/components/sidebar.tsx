@@ -64,9 +64,7 @@ export function SidebarContent({ route }: { route: string }) {
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={1} className="flex-1 lg:py-2">
-					Components
-				</Heading>
+				<Heading level={1}>Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
 				id={`${id}-search-components`}

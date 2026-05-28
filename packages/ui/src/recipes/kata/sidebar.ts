@@ -19,11 +19,11 @@ const item = defineRecipe({
 })
 
 export const k = {
-	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'py-6', 'px-4'],
+	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-4'],
 	item,
 	section: [flex.col, 'gap-0.5'],
 	label: ['truncate'],
-	header: [flex.row, 'justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
+	header: [flex.row, 'justify-between', 'gap-3'],
 	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
 	divider: divider.top,
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],
