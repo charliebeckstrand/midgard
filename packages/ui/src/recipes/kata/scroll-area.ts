@@ -2,7 +2,7 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import type { ScrollOrientation } from '../../types'
 import { kasane, sen, shaku, ugoki } from '../kiso'
 
-const { radius } = kasane
+const { rounded } = kasane
 const { border } = sen
 const { scrollArea } = shaku
 const { css } = ugoki
@@ -24,7 +24,7 @@ const compound = orientations.flatMap((orientation) =>
 const wrapper = defineRecipe({
 	base: ['group relative overflow-hidden'],
 	rounded: {
-		true: radius.rounded.lg,
+		true: rounded.lg,
 		false: '',
 	},
 	bare: {
@@ -81,7 +81,7 @@ const scrollbar = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		radius.rounded.full,
+		rounded.full,
 		...mode(
 			'bg-zinc-950/20 hover:bg-zinc-950/30 active:bg-zinc-950/40',
 			'dark:bg-white/20 dark:hover:bg-white/30 dark:active:bg-white/40',

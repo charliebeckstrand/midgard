@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 const { border, focus } = sen
@@ -20,7 +20,7 @@ export const k = {
 		'px-2',
 		'py-1',
 		border.subtle,
-		radius.rounded.lg,
+		rounded.lg,
 		'border-b',
 		bg.tint,
 	],

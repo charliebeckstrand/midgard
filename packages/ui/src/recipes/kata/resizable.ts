@@ -1,7 +1,7 @@
 import { mode } from '../../core/recipe'
 import { kasane, narabi } from '../kiso'
 
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 
 export const k = {
@@ -11,7 +11,7 @@ export const k = {
 	handleHorizontal: 'px-2 cursor-col-resize',
 	handleVertical: 'py-2 cursor-row-resize',
 	grip: [
-		radius.rounded.full,
+		rounded.full,
 		...mode(
 			'bg-zinc-300 group-hover/handle:bg-zinc-400',
 			'dark:bg-zinc-600 dark:group-hover/handle:bg-zinc-500',

@@ -2,7 +2,7 @@ import { definePalette, defineRecipe, type VariantProps } from '../../core/recip
 import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { palette } = iro
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { avatar } = shaku
 
@@ -11,7 +11,7 @@ export const k = defineRecipe(
 		base: [
 			'inline-grid place-items-center align-middle overflow-hidden',
 			'*:col-start-1 *:row-start-1',
-			radius.rounded.full,
+			rounded.full,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',

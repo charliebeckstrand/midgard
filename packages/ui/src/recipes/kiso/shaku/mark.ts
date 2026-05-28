@@ -9,7 +9,7 @@ import { ji } from '../ji'
 import { kasane } from '../kasane'
 
 export const mark = {
-	base: [ji.family.mono, 'bg-current/15', kasane.radius.rounded.md],
+	base: [ji.family.mono, 'bg-current/15', kasane.rounded.md],
 	size: {
 		sm: ['text-[0.625rem]', 'p-1'],
 		md: [ji.size.xs, 'p-1.25'],

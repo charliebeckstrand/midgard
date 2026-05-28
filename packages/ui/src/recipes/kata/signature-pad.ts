@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 const { disabled } = hannou
 const { text } = iro
 const { size } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
 
@@ -12,7 +12,7 @@ export const k = {
 		'relative isolate overflow-hidden',
 		'bg-white',
 		border.default,
-		radius.rounded.lg,
+		rounded.lg,
 		focus.ring,
 		disabled,
 	],

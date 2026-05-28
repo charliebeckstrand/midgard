@@ -3,7 +3,7 @@ import { hannou, kasane, ugoki } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
-const { radius } = kasane
+const { rounded } = kasane
 const { css } = ugoki
 const { color } = slider
 
@@ -19,7 +19,7 @@ const root = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', radius.rounded.full, 'bg-[var(--slider-track)]'],
+	base: ['absolute left-0 right-0', rounded.full, 'bg-[var(--slider-track)]'],
 	size: {
 		sm: 'h-1',
 		md: 'h-1.5',
@@ -31,7 +31,7 @@ const track = defineRecipe({
 const thumb = defineRecipe({
 	base: [
 		'absolute',
-		radius.rounded.full,
+		rounded.full,
 		'-translate-x-1/2',
 		'bg-white',
 		...mode('ring-1 ring-zinc-950/20', 'dark:ring-white/20'),
@@ -52,7 +52,7 @@ const thumb = defineRecipe({
 export const k = {
 	root,
 	track,
-	fill: ['absolute', radius.rounded.full, 'bg-[var(--slider-fill)]'],
+	fill: ['absolute', rounded.full, 'bg-[var(--slider-fill)]'],
 	thumb,
 } as const
 

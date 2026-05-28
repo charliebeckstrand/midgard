@@ -4,7 +4,7 @@ import { iro, kasane, narabi, omote, sen, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { text } = iro
-const { radius } = kasane
+const { rounded } = kasane
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
 const { focus } = sen
@@ -58,7 +58,7 @@ export const k = {
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
 		close: {
-			base: ['absolute right-5 top-5', 'p-1', ...text.muted, focus.inset, radius.rounded.md],
+			base: ['absolute right-5 top-5', 'p-1', ...text.muted, focus.inset, rounded.md],
 		},
 	}),
 	motion: panelMotion,

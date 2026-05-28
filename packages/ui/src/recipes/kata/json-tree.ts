@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, ugoki } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { family, size } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { collapse, css } = ugoki
 
@@ -25,7 +25,7 @@ const row = [
 	'gap-1',
 	'py-0.5',
 	size.sm,
-	radius.rounded.lg,
+	rounded.lg,
 	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-600/30'),
 ]
 
@@ -43,7 +43,7 @@ export const k = {
 		text.muted,
 		hannou.text.hover,
 		...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
-		radius.rounded.lg,
+		rounded.lg,
 	],
 	content: [flex.inline, 'min-w-0', 'gap-1'],
 	chevron: ['flex-none', css.transform, css.duration],
@@ -53,7 +53,7 @@ export const k = {
 	punctuation: text.muted,
 	summary: text.muted,
 	group: 'overflow-hidden',
-	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), radius.rounded.lg],
+	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
 	motion: collapse.fade,
 	valueColor: color,
 } as const

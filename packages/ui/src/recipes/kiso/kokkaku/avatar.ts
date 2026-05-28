@@ -9,7 +9,7 @@ import { kasane } from '../kasane'
 import { shaku } from '../shaku'
 
 export const avatar = {
-	base: kasane.radius.rounded.full,
+	base: kasane.rounded.full,
 	size: shaku.avatar,
 	defaults: { size: 'md' as const },
 }

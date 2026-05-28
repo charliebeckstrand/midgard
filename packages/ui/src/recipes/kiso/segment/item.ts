@@ -16,7 +16,7 @@ export const item = {
 		narabi.flex.row,
 		'justify-center',
 		'whitespace-nowrap',
-		kasane.radius.rounded.lg,
+		kasane.rounded.lg,
 		'outline-none',
 		ji.weight.medium,
 		'select-none',

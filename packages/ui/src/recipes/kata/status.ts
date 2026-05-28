@@ -1,12 +1,12 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { kasane, omote, ugoki } from '../kiso'
 
-const { radius } = kasane
+const { rounded } = kasane
 const { bg } = omote
 const { css } = ugoki
 
 export const k = defineRecipe({
-	base: ['inline-block', radius.rounded.full],
+	base: ['inline-block', rounded.full],
 	variant: {
 		solid: 'bg-current',
 		outline: ['border-2 border-current', ...bg.surface],

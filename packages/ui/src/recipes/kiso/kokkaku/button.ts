@@ -8,7 +8,7 @@
 import { kasane } from '../kasane'
 
 export const button = {
-	base: kasane.radius.rounded.lg,
+	base: kasane.rounded.lg,
 	size: {
 		xs: 'h-6 w-16',
 		sm: 'h-7 w-20',

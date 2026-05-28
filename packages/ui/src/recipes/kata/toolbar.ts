@@ -1,7 +1,7 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { kasane, narabi, omote, sen } from '../kiso'
 
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 const { border } = sen
@@ -14,8 +14,8 @@ const root = defineRecipe({
 	},
 	variant: {
 		plain: '',
-		outline: [...border.default, radius.rounded.lg, 'p-1'],
-		solid: [...bg.tint, 'border border-transparent', radius.rounded.lg, 'p-1'],
+		outline: [...border.default, rounded.lg, 'p-1'],
+		solid: [...bg.tint, 'border border-transparent', rounded.lg, 'p-1'],
 	},
 	defaults: { orientation: 'horizontal', variant: 'plain' },
 })

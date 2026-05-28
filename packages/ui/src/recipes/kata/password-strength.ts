@@ -3,12 +3,12 @@ import { iro, ji, kasane, narabi, omote } from '../kiso'
 
 const { palette, text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 
 const segment = defineRecipe({
-	base: [flex.fill, 'h-1', radius.rounded.full, ...bg.skeleton],
+	base: [flex.fill, 'h-1', rounded.full, ...bg.skeleton],
 	level: {
 		weak: mode('bg-red-600', 'dark:bg-red-500'),
 		fair: mode('bg-amber-600', 'dark:bg-amber-500'),

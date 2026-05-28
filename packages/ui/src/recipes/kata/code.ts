@@ -2,13 +2,13 @@ import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ji, kasane, shaku } from '../kiso'
 
 const { size } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { mark } = shaku
 
 const bg = 'bg-[#0d1117]'
 
 const block = defineRecipe({
-	base: ['relative overflow-hidden', radius.rounded.lg, bg],
+	base: ['relative overflow-hidden', rounded.lg, bg],
 	inline: {
 		true: 'w-fit max-w-full',
 		false: '',

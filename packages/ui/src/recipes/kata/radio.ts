@@ -2,7 +2,7 @@ import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 
-const { radius } = kasane
+const { rounded } = kasane
 const { radio } = kokkaku
 
 const color = defineColors({
@@ -23,7 +23,7 @@ export const k = check(
 	{
 		base: [
 			'has-checked:*:data-[slot=radio-indicator]:opacity-100',
-			radius.rounded.full,
+			rounded.full,
 			'[--radio-checked-border:transparent]',
 			'has-checked:bg-(--radio-checked-bg) has-checked:border-(--radio-checked-border)',
 			'not-has-[:disabled]:has-checked:hover:opacity-90',

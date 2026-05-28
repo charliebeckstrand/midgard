@@ -3,7 +3,7 @@ import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { palette } = iro
 const { size, weight } = ji
-const { gap, padding, radius } = kasane
+const { gap, padding, rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
 const { icon } = shaku
@@ -20,7 +20,7 @@ export const k = defineRecipe({
 		lg: [size.lg, icon.lg, gap.g('0.75'), padding.py('1.5'), padding.px('3')],
 	},
 	rounded: {
-		...radius.rounded,
+		...rounded,
 		none: 'rounded-none',
 		xl: 'rounded-xl',
 	},

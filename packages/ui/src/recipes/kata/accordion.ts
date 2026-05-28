@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 const { cursor, disabled } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { border, divider } = sen
 const { css } = ugoki
@@ -17,7 +17,7 @@ const item = defineRecipe({
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
-		separated: ['overflow-hidden', radius.rounded.lg, ...border.default],
+		separated: ['overflow-hidden', rounded.lg, ...border.default],
 		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 		plain: '',
 	},
@@ -29,7 +29,7 @@ export const k = defineRecipe(
 		base: flex.col,
 		variant: {
 			separated: 'gap-1',
-			outline: ['overflow-hidden', radius.rounded.lg, ...border.default, ...divider.between],
+			outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
 			plain: divider.between,
 		},
 		slots: {

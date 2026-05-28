@@ -3,11 +3,11 @@ import { iro, ji, kasane, narabi } from '../kiso'
 
 const { palette } = iro
 const { size, weight, leading } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 
 export const k = defineRecipe({
-	base: [flex.row, 'w-fit', 'p-4', 'gap-2', radius.rounded.lg, size.md],
+	base: [flex.row, 'w-fit', 'p-4', 'gap-2', rounded.lg, size.md],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},

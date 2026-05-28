@@ -2,14 +2,14 @@ import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi } from '../kiso'
 
 const { text } = iro
-const { radius } = kasane
+const { rounded } = kasane
 const { flex, description } = narabi
 
 const base = [
 	...hannou.item,
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
-	radius.rounded.lg,
+	rounded.lg,
 	...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',

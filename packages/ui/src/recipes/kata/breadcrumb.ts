@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
 
@@ -21,7 +21,7 @@ const item = defineRecipe({
 })
 
 const link = defineRecipe({
-	base: [radius.rounded.sm, focus.ring],
+	base: [rounded.sm, focus.ring],
 	current: {
 		true: [text.default, weight.normal],
 		false: [text.muted, hannou.text.hover],

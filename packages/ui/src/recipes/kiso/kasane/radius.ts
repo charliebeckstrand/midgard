@@ -67,8 +67,8 @@ export const stack = (v: RadiusStop) => [rStops[v], riStops[v], roStops[v]] as c
 /**
  * Named-radius aliases — pass-through to Tailwind's named radius scale.
  * Distinct from the numeric `r(v)` / `stack(v)` helpers above; the named
- * scale lives here so kata and katakana can reach common corner-rounding
- * by name (`kasane.radius.rounded.lg`) instead of inlining `'rounded-lg'`.
+ * scale is re-exported from `kasane.rounded` so kata read like the
+ * Tailwind class (`rounded.lg` → `rounded-lg`).
  */
 export const rounded = {
 	sm: 'rounded-sm',

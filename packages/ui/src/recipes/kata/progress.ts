@@ -3,7 +3,7 @@ import { iro, ji, kasane, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 
 /**
@@ -41,7 +41,7 @@ const color = {
 }
 
 const fill = defineRecipe({
-	base: ['h-full', radius.rounded.full],
+	base: ['h-full', rounded.full],
 	color: {
 		zinc: color.zinc.bg,
 		red: color.red.bg,
@@ -76,7 +76,7 @@ const label = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: ['overflow-hidden', radius.rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
+		base: ['overflow-hidden', rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
 		size: {
 			sm: 'h-2',
 			md: 'h-3',

@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
 
@@ -21,7 +21,7 @@ const button = defineRecipe({
 		'p-2',
 		size.sm,
 		weight.medium,
-		radius.rounded.lg,
+		rounded.lg,
 		focus.ring,
 		...cursor,
 	],

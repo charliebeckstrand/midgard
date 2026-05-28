@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 const { cursor } = hannou
 const { text } = iro
 const { size } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
 const { css, collapse } = ugoki
@@ -20,7 +20,7 @@ const itemContent = defineRecipe(
 			'gap-2',
 			text.muted,
 			hannou.text.hover,
-			radius.rounded.lg,
+			rounded.lg,
 			focus.inset,
 			...cursor,
 			'select-none',

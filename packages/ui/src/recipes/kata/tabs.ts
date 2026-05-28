@@ -5,7 +5,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 const { cursor, disabled } = hannou
 const { text } = iro
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
 
@@ -61,7 +61,7 @@ const tab = defineRecipe({
 })
 
 const indicator = defineRecipe({
-	base: [radius.rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
+	base: [rounded.full, ...mode('bg-zinc-950', 'dark:bg-white')],
 	orientation: {
 		horizontal: 'inset-x-0 -bottom-px top-auto h-0.5',
 		vertical: 'inset-y-0 -left-px right-auto w-0.5',

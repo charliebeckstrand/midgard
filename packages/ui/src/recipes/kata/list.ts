@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 const { disabled } = hannou
 const { text } = iro
 const { size } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 const { border, divider, focus } = sen
@@ -15,7 +15,7 @@ const rootBase = [flex.col, 'm-0 p-0', 'k-none']
 
 const rootVariant = {
 	separated: ['gap-2'],
-	outline: ['overflow-hidden', radius.rounded.lg, ...border.default, ...divider.between],
+	outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
 	plain: divider.between,
 	solid: ['gap-2'],
 } satisfies Record<ListVariant, unknown>
@@ -23,10 +23,10 @@ const rootVariant = {
 const itemBase = ['group/k-item', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset]
 
 const itemVariant = {
-	separated: ['p-3', ...bg.surface, border.default, radius.rounded.lg],
+	separated: ['p-3', ...bg.surface, border.default, rounded.lg],
 	outline: ['p-3'],
 	plain: ['px-2', 'py-1.5'],
-	solid: ['p-3', ...bg.tint, border.default, radius.rounded.lg],
+	solid: ['p-3', ...bg.tint, border.default, rounded.lg],
 } satisfies Record<ListVariant, unknown>
 
 export const k = {
@@ -34,7 +34,7 @@ export const k = {
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: ['z-10 relative', ...bg.surface, radius.rounded.md],
+	itemActive: ['z-10 relative', ...bg.surface, rounded.md],
 	itemLifted: focus.lifted,
 	handle: [
 		flex.inline,

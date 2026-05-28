@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 const { cursor, disabled } = hannou
 const { text } = iro
 const { size, weight, leading } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 
@@ -64,7 +64,7 @@ export const k = {
 		base: [
 			'relative',
 			'size-3.5 shrink-0',
-			radius.rounded.full,
+			rounded.full,
 			...mode('bg-zinc-400', 'dark:bg-zinc-600'),
 		],
 		interactive: [

@@ -19,7 +19,7 @@ import { tint } from './tint'
 
 export const item = [
 	'py-2.5 sm:py-1.5',
-	kasane.radius.rounded.lg,
+	kasane.rounded.lg,
 	'outline-hidden',
 	iro.text.default,
 	ji.size.md,

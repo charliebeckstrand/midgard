@@ -8,7 +8,7 @@
 import { kasane } from '../kasane'
 
 export const badge = {
-	base: kasane.radius.rounded.md,
+	base: kasane.rounded.md,
 	size: {
 		xs: 'h-4 w-10',
 		sm: 'h-5 w-12',

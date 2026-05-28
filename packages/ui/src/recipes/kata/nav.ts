@@ -2,7 +2,7 @@ import { hannou, ji, kasane, narabi } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size, weight } = ji
-const { radius } = kasane
+const { rounded } = kasane
 const { flex } = narabi
 
 export const k = {
@@ -24,6 +24,6 @@ export const k = {
 		size.md,
 		'text-left',
 		weight.medium,
-		radius.rounded.lg,
+		rounded.lg,
 	],
 } as const
