@@ -8,11 +8,14 @@
 import { ji } from '../ji'
 import { kasane } from '../kasane'
 
+const { family, size } = ji
+const { rounded } = kasane
+
 export const mark = {
-	base: [ji.family.mono, 'bg-current/15', kasane.rounded.md],
+	base: [family.mono, 'bg-current/15', rounded.md],
 	size: {
 		sm: ['text-[0.625rem]', 'p-1'],
-		md: [ji.size.xs, 'p-1.25'],
-		lg: [ji.size.sm, 'p-1.5'],
+		md: [size.xs, 'p-1.25'],
+		lg: [size.sm, 'p-1.5'],
 	},
 } as const

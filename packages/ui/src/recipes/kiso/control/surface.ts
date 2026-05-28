@@ -11,11 +11,14 @@ import { mode } from '../../../core/recipe'
 import { omote } from '../omote'
 import { sen } from '../sen'
 
+const { glass } = omote
+const { border } = sen
+
 export const surface = {
 	default: mode(
 		['bg-white', 'has-[>:disabled]:before:bg-zinc-950/5'],
 		['dark:bg-white/5', 'dark:before:hidden'],
 	),
-	outline: [...sen.border.emphasis, 'hover:border-zinc-950/30 dark:hover:border-white/30'],
-	glass: omote.glass,
+	outline: [...border.emphasis, 'hover:border-zinc-950/30 dark:hover:border-white/30'],
+	glass,
 } as const

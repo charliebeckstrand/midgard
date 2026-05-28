@@ -10,12 +10,14 @@
 
 import { iro } from '../iro'
 
+const { text } = iro
+
 export const reset = [
 	'relative',
 	'w-full min-w-0 flex-1',
 	'bg-transparent read-only:bg-transparent',
 	'border-0',
-	...iro.text.default,
+	...text.default,
 	'placeholder:text-zinc-500 dark:placeholder:text-zinc-400',
 	'focus:outline-hidden',
 ]

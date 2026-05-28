@@ -10,8 +10,12 @@ import { kasane } from '../kasane'
 import { narabi } from '../narabi'
 import { omote } from '../omote'
 
+const { rounded } = kasane
+const { flex } = narabi
+const { bg } = omote
+
 export const control = {
-	base: [narabi.flex.inline, ...omote.bg.tint, kasane.rounded.lg],
+	base: [flex.inline, ...bg.tint, rounded.lg],
 	size: {
 		sm: 'p-0.5 gap-1',
 		md: 'p-1 gap-2',

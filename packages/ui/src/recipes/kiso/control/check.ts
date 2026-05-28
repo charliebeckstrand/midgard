@@ -16,8 +16,12 @@ import { hannou } from '../hannou'
 import { narabi } from '../narabi'
 import { sen } from '../sen'
 
+const { cursor } = hannou
+const { flex } = narabi
+const { focus, forced } = sen
+
 /** Visually hidden native input overlaying the custom check surface. */
-const hidden = ['absolute inset-0', 'opacity-0', ...hannou.cursor, sen.forced.control]
+const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
 
 /** Custom check surface (the visible box / circle). */
 const surface = [
@@ -37,13 +41,7 @@ const surface = [
 ]
 
 /** Layout shell — position, inline-flex centering, focus outline, cursor. */
-const shell = [
-	'relative',
-	narabi.flex.inline,
-	'justify-center',
-	sen.focus.outline,
-	...hannou.cursor,
-]
+const shell = ['relative', flex.inline, 'justify-center', focus.outline, ...cursor]
 
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
 const base = [...shell, ...surface]

@@ -9,4 +9,6 @@ import { ugoki } from '../ugoki'
 
 import { bg } from './bg'
 
-export const skeleton = [bg.skeleton, ugoki.css.pulse]
+const { css } = ugoki
+
+export const skeleton = [bg.skeleton, css.pulse]

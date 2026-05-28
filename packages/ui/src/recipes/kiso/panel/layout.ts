@@ -15,14 +15,17 @@
 import { iro } from '../iro'
 import { ji } from '../ji'
 
+const { text } = iro
+const { size, weight, leading } = ji
+
 export const layout = {
 	base: 'flex flex-col gap-4',
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
-	title: [...iro.text.default, ji.size.lg, ji.weight.semibold, ji.leading.none],
-	description: [...iro.text.muted, ji.size.md, ji.leading.tight],
+	title: [...text.default, size.lg, weight.semibold, leading.none],
+	description: [...text.muted, size.md, leading.tight],
 	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
-	body: [...iro.text.muted, 'min-h-0 overflow-y-auto'],
+	body: [...text.muted, 'min-h-0 overflow-y-auto'],
 	footer: ['flex items-center justify-end gap-2'],
 } as const

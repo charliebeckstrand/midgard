@@ -17,14 +17,19 @@ import { disabled } from './disabled'
 import { glassItem } from './glass-item'
 import { tint } from './tint'
 
+const { text } = iro
+const { size } = ji
+const { rounded } = kasane
+const { forced } = sen
+
 export const item = [
 	'py-2.5 sm:py-1.5',
-	kasane.rounded.lg,
+	rounded.lg,
 	'outline-hidden',
-	iro.text.default,
-	ji.size.md,
-	sen.forced.text,
-	sen.forced.focus,
+	text.default,
+	size.md,
+	forced.text,
+	forced.focus,
 	disabled,
 	cursor,
 	tint,

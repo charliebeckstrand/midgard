@@ -14,8 +14,10 @@
 
 import { kasane } from '../kasane'
 
+const { rounded } = kasane
+
 export const control = {
-	base: kasane.rounded.lg,
+	base: rounded.lg,
 	full: 'w-full',
 	group: {
 		sm: 'flex-1 min-w-16',

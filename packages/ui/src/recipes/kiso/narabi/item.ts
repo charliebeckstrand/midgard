@@ -9,4 +9,7 @@
 import { sen } from '../sen'
 import { shaku } from '../shaku'
 
-export const item = [shaku.icon.md, 'text-inherit', sen.forced.icon]
+const { forced } = sen
+const { icon } = shaku
+
+export const item = [icon.md, 'text-inherit', forced.icon]

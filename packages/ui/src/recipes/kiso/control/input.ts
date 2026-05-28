@@ -11,4 +11,6 @@ import { kasane } from '../kasane'
 
 import { reset } from './reset'
 
-export const input = [...reset, kasane.rounded.lg]
+const { rounded } = kasane
+
+export const input = [...reset, rounded.lg]

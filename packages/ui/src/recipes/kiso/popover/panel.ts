@@ -13,6 +13,11 @@ import { omote } from '../omote'
 import { sen } from '../sen'
 import { ugoki } from '../ugoki'
 
+const { cursor } = hannou
+const { rounded } = kasane
+const { popover, glass } = omote
+const { ring } = sen
+
 export const panel = {
 	base: [
 		'z-50',
@@ -20,13 +25,13 @@ export const panel = {
 		'min-w-full',
 		'p-1 space-y-0.5',
 		'overflow-y-auto overscroll-contain',
-		kasane.rounded.lg,
+		rounded.lg,
 		'outline outline-transparent focus:outline-hidden',
-		...hannou.cursor,
+		...cursor,
 		'select-none',
 	],
-	surface: omote.popover,
-	glass: omote.glass,
-	ring: sen.ring.default,
+	surface: popover,
+	glass,
+	ring: ring.default,
 	motion: ugoki.popover,
 } as const

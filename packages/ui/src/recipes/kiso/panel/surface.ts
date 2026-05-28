@@ -10,13 +10,14 @@
 import { omote } from '../omote'
 import { sen } from '../sen'
 
-const bg = omote.bg.surface
+const { bg } = omote
+const { ring, forced } = sen
 
 export const surface = {
 	/** Background fill only. */
-	bg,
+	bg: bg.surface,
 	/** Chrome only — ring + shadow + forced-colour outline, no fill. */
-	chrome: [sen.ring.default, sen.forced.outline],
+	chrome: [ring.default, forced.outline],
 	/** Fill + chrome, everything a floating panel needs. */
-	base: [sen.ring.default, sen.forced.outline, ...bg],
+	base: [ring.default, forced.outline, ...bg.surface],
 } as const

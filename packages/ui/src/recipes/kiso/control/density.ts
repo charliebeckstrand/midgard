@@ -15,18 +15,10 @@
 
 import { kasane } from '../kasane'
 
+const { padding, radius, gap } = kasane
+
 export const density = {
-	sm: [
-		kasane.padding.px('2.5'),
-		kasane.padding.py('1.5'),
-		kasane.radius.r('1.5'),
-		kasane.gap.g('0.75'),
-	],
-	md: [kasane.padding.px('3'), kasane.padding.py('2'), kasane.radius.r('2'), kasane.gap.g('1')],
-	lg: [
-		kasane.padding.px('3.5'),
-		kasane.padding.py('2.5'),
-		kasane.radius.r('2.5'),
-		kasane.gap.g('1.25'),
-	],
+	sm: [padding.px('2.5'), padding.py('1.5'), radius.r('1.5'), gap.g('0.75')],
+	md: [padding.px('3'), padding.py('2'), radius.r('2'), gap.g('1')],
+	lg: [padding.px('3.5'), padding.py('2.5'), radius.r('2.5'), gap.g('1.25')],
 } as const

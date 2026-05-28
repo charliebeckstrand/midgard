@@ -10,4 +10,6 @@ import { sen } from '../sen'
 import { bg } from './bg'
 import { blur } from './blur'
 
-export const popover = [blur.md, bg.popover, sen.ring.default]
+const { ring } = sen
+
+export const popover = [blur.md, bg.popover, ring.default]

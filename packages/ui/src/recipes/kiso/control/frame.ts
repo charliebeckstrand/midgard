@@ -12,11 +12,8 @@ import { kasane } from '../kasane'
 import { narabi } from '../narabi'
 import { tsunagi } from '../tsunagi'
 
-export const frame = [
-	'relative',
-	'group/control',
-	narabi.flex.row,
-	'w-full',
-	...kasane.layers.all,
-	...tsunagi.base,
-]
+const { layers } = kasane
+const { flex } = narabi
+const { base } = tsunagi
+
+export const frame = ['relative', 'group/control', flex.row, 'w-full', ...layers.all, ...base]
