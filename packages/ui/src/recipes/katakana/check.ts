@@ -27,27 +27,22 @@
  */
 
 import { defineApplicator, defineRecipe } from '../../core/recipe'
-import { control as controlFragments } from '../genkei/control'
-import { hannou, sen } from '../kiso'
+import { hannou } from '../kiso'
+import { control as controlFragments } from '../kiso/control'
 
+const { fg } = hannou
 const { check: checkFragments } = controlFragments
 
-const standardConfig = {
-	base: [
-		'relative',
-		'inline-flex items-center justify-center',
-		sen.focus.outline,
-		...hannou.cursor,
-		...checkFragments.surface,
-	],
+const config = {
+	base: checkFragments.base,
 	defaults: { color: 'zinc', size: 'md' },
 }
 
-const standardExtras = {
+const extras = {
 	/** Visually-hidden native `<input>` overlaying the custom check surface. */
 	input: defineRecipe({ base: checkFragments.hidden }),
 	/** Disabled-state text class shared by the surrounding field wrapper. */
-	disabled: hannou.text.disabled,
+	disabled: fg.disabled,
 }
 
-export const check = defineApplicator({ config: standardConfig, extras: standardExtras })
+export const check = defineApplicator({ config, extras })

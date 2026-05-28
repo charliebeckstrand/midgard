@@ -1,31 +1,32 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, sen, shaku } from '../kiso'
+import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
+
+const { nav, cursor } = hannou
+const { size } = ji
+const { gap, padding, radius } = kasane
+const { flex } = narabi
+const { divider } = sen
+const { icon } = shaku
 
 const item = defineRecipe({
-	base: [
-		...hannou.nav,
-		...hannou.cursor,
-		'group relative',
-		'flex w-full items-center',
-		'text-left',
-	],
+	base: [...nav, ...cursor, 'group relative', flex.row, 'w-full', 'text-left'],
 	size: {
-		sm: [ji.sm, kasane.g('1.5'), kasane.p('1.5'), kasane.r('1.5'), shaku.icon.sm],
-		md: [ji.md, kasane.g('2'), kasane.p('2'), kasane.r('2'), shaku.icon.md],
-		lg: [ji.lg, kasane.g('2.5'), kasane.p('2.5'), kasane.r('2.5'), shaku.icon.lg],
+		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
+		md: [size.md, gap.g('2'), padding.p('2'), radius.r('2'), icon.md],
+		lg: [size.lg, gap.g('2.5'), padding.p('2.5'), radius.r('2.5'), icon.lg],
 	},
 	defaults: { size: 'md' },
 })
 
 export const k = {
-	base: ['overflow-y-auto', 'flex flex-col gap-y-4', 'h-full', 'py-6', 'px-4'],
+	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-4'],
 	item,
-	section: ['flex flex-col', 'gap-0.5'],
+	section: [flex.col, 'gap-0.5'],
 	label: ['truncate'],
-	header: ['flex items-center justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
-	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-4'],
-	divider: sen.divider,
-	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
-}
+	header: [flex.row, 'justify-between', 'gap-3'],
+	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
+	divider: divider.top,
+	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],
+} as const
 
 export type SidebarItemVariants = VariantProps<typeof item>

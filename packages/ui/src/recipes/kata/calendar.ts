@@ -1,7 +1,10 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, sen } from '../kiso'
+import { iro, ji, narabi, sen } from '../kiso'
 
-const { soft } = iro.palette
+const { palette, text } = iro
+const { size, weight } = ji
+const { flex } = narabi
+const { focus } = sen
 
 const base = defineRecipe({
 	base: ['inline-flex flex-col', 'select-none'],
@@ -14,7 +17,7 @@ const base = defineRecipe({
 })
 
 const header = defineRecipe({
-	base: 'flex items-center justify-between',
+	base: [flex.row, 'justify-between'],
 	size: {
 		sm: 'mb-1',
 		md: 'mb-2',
@@ -24,7 +27,7 @@ const header = defineRecipe({
 })
 
 const footer = defineRecipe({
-	base: ['flex items-center justify-center'],
+	base: [flex.row, 'justify-center'],
 	size: {
 		sm: 'pb-1 gap-1',
 		md: 'pb-1 gap-2',
@@ -44,11 +47,11 @@ const pickerGrid = defineRecipe({
 })
 
 const weekday = defineRecipe({
-	base: ['flex items-center justify-center', 'w-full aspect-square', 'font-medium', iro.text.muted],
+	base: [flex.row, 'justify-center', 'w-full aspect-square', weight.medium, text.muted],
 	size: {
-		sm: ji.xs,
-		md: ji.sm,
-		lg: ji.md,
+		sm: size.xs,
+		md: size.sm,
+		lg: size.md,
 	},
 	defaults: { size: 'md' },
 })
@@ -60,14 +63,19 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		cellCurrent: ['font-semibold', soft.bg.blue, soft.text.blue, soft.hover.blue],
+		cellCurrent: [
+			weight.semibold,
+			palette.soft.bg.blue,
+			palette.soft.text.blue,
+			palette.soft.hover.blue,
+		],
 	},
 	weekday,
 	day: {
 		base: 'w-full ring-inset',
-		active: [...sen.focus.ring],
+		active: [...focus.ring],
 		activeSelected: 'bg-blue-600',
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},
-}
+} as const

@@ -1,48 +1,50 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+
+const { cursor, fg } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { focus } = sen
 
 const list = defineRecipe({
-	base: ['flex items-center list-none', 'gap-1', 'm-0 p-0'],
+	base: [flex.row, 'list-none', 'gap-1', 'm-0 p-0'],
 })
 
-const pageButton = defineRecipe({
+const button = defineRecipe({
 	base: [
 		'relative',
-		'inline-flex items-center justify-center',
+		flex.inline,
+		'justify-center',
 		'min-w-9',
 		'p-2',
-		ji.sm,
-		'font-medium',
-		'rounded-lg',
-		sen.focus.ring,
-		...hannou.cursor,
+		size.sm,
+		weight.medium,
+		rounded.lg,
+		focus.ring,
+		...cursor,
 	],
 	current: {
-		true: [...iro.text.default],
-		false: [...iro.text.muted, ...hannou.text.hover],
+		true: [...text.default],
+		false: [...text.muted, ...fg.hover],
 	},
 	defaults: { current: false },
 })
 
 const gap = defineRecipe({
-	base: [
-		'inline-flex items-center justify-center',
-		'min-w-9',
-		ji.sm,
-		...iro.text.muted,
-		'select-none',
-	],
+	base: [flex.inline, 'justify-center', 'min-w-9', size.sm, ...text.muted, 'select-none'],
 })
 
 export const k = defineRecipe(
 	{
-		base: ['flex items-center list-none', 'gap-1'],
+		base: [flex.row, 'list-none', 'gap-1'],
 	},
 	{
 		list,
-		pageButton,
+		pageButton: button,
 		gap,
 	},
 )
 
-export type PageButtonVariants = VariantProps<typeof pageButton>
+export type PageButtonVariants = VariantProps<typeof button>

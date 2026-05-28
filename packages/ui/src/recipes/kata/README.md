@@ -12,7 +12,8 @@ from the design system flows through its kata. Consumers reach kata
 via relative path: `from '../../recipes/kata/<name>'`. Sideways
 composition between kata is forbidden — shared concerns promote
 either to a katakana applicator (function-shaped, for archetype
-members) or to genkei (raw fragments, for cross-archetype sharing).
+members) or to a kiso archetype sub-folder (raw fragments, for
+cross-archetype sharing).
 The contract is pinned by
 `src/__tests__/recipes/boundary/recipe-boundary.test.ts`,
 `src/__tests__/components/boundary/component-recipe-boundary.test.ts`,
@@ -25,9 +26,9 @@ A kata reaches the layers below in one of three ways:
   …). The applicator owns the variant axes and the standard slot wiring.
 - **Through `defineRecipe` directly** (`from '../../core/recipe'`)
   when the kata doesn't fit any archetype (button, alert, card, code, …).
-- **Through `genkei/*` directly** when the kata needs a subset of an
-  archetype's fragments without the full chrome (combobox / listbox /
-  date-picker use control's input / density / size; slider /
+- **Through `kiso/<archetype>` directly** when the kata needs a subset
+  of an archetype's fragments without the full chrome (combobox /
+  listbox / date-picker use control's input / density / size; slider /
   slider-range share the slider colour table).
 
 All three reaches compose [`kiso/`](../kiso/README.md) freely for
@@ -69,7 +70,7 @@ reading `kokkaku.<name>`, a motion-using file reading `ugoki.<thing>`,
 a popover-content-shape file reading the popover bundle), the kata
 absorbs those reads through `k` — `k.skeleton`, `k.motion`, `k.content`
 are the established slot names. The component imports only its kata; the
-kiso / genkei / katakana reach stops at the kata file.
+kiso / katakana reach stops at the kata file.
 
 Filenames are `<name>.ts`, matching the component folder.
 
@@ -89,19 +90,19 @@ construction; the kata is a thin call site.
 
 Kata that need only a subset of an archetype's fragments (combobox /
 listbox / date-picker / select — control's input / density / size
-without the full chrome) reach `genkei/*` directly. See the
-[katakana](../katakana/README.md) and [genkei](../genkei/README.md)
+without the full chrome) reach `kiso/<archetype>` directly. See the
+[katakana](../katakana/README.md) and [kiso](../kiso/README.md)
 READMEs for the full archetype contracts.
 
 ## Rules
 
 - **Compose, don't redefine.** A kata that reinvents a recipe already
-  in a katakana applicator, in `genkei/`, or in `kiso/` is a defect —
-  fold it into the existing module.
+  in a katakana applicator or in `kiso/` is a defect — fold it into
+  the existing module.
 - **No sideways imports.** Kata never import from sibling kata.
   Shared concerns promote to katakana (function-shaped, for archetype
-  members) or to genkei (raw fragments, for cross-archetype sharing).
-  `import { k as <name> }` in a component is a signal the archetype
-  belongs in katakana.
+  members) or to a kiso archetype sub-folder (raw fragments, for
+  cross-archetype sharing). `import { k as <name> }` in a component is
+  a signal the archetype belongs in katakana.
 - **Variants earn their axis.** Add a variant axis when ≥2 components
   or call sites need it. Single-use variants stay inline.

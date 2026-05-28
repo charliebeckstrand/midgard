@@ -1,7 +1,11 @@
-import { defineColors, defineRecipe, type VariantProps } from '../../core/recipe'
-import { control } from '../genkei/control'
-import { hannou, kokkaku, narabi, sen } from '../kiso'
+import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
+import { control } from '../kiso/control'
 
+const { cursor, fg } = hannou
+const { rounded } = kasane
+const { toggle } = narabi
+const { focus, ring } = sen
 const { check } = control
 
 const color = defineColors({
@@ -45,10 +49,10 @@ const color = defineColors({
 	},
 })
 
-const track = ['bg-zinc-200', 'dark:bg-white/10', ...sen.ringInset]
+const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...ring.inset]
 
 const field = defineRecipe({
-	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
+	base: [...toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
 	size: {
 		sm: 'grid-cols-[2rem_1fr]',
 		md: 'grid-cols-[2.5rem_1fr]',
@@ -61,16 +65,18 @@ export const k = defineRecipe(
 	{
 		base: [
 			'relative inline-flex shrink-0 items-center',
-			sen.focus.outline,
-			...hannou.cursor,
+			focus.outline,
+			...cursor,
 			'has-checked:*:data-[slot=switch-thumb]:bg-(--switch)',
 			'has-checked:*:data-[slot=switch-thumb]:shadow-(--switch-shadow)',
 			'has-checked:*:data-[slot=switch-thumb]:ring-(--switch-ring)',
-			'rounded-full',
+			rounded.full,
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
-			'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
-			'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+			...mode(
+				'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
+				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+			),
 			'not-has-[:disabled]:has-checked:hover:opacity-90',
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 		],
@@ -102,14 +108,14 @@ export const k = defineRecipe(
 				'absolute top-1 left-1 inline-block',
 				'bg-white ring-1 ring-zinc-950/5',
 				'shadow-sm',
-				'rounded-full',
+				rounded.full,
 				'pointer-events-none',
 				'transition-[left] duration-200 ease-in-out',
 			],
 		}),
 		field,
 		/** Disabled-state text class shared by the switch field wrapper. */
-		disabled: hannou.text.disabled,
+		disabled: fg.disabled,
 	},
 )
 

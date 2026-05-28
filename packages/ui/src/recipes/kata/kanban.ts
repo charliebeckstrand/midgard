@@ -1,42 +1,51 @@
-import { hannou, iro, ji, sen } from '../kiso'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+
+const { cursor, disabled } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { border, focus } = sen
 
 export const k = {
 	base: ['overflow-x-auto flex gap-4 items-stretch', 'min-h-0'],
 	column: {
 		base: [
-			'flex flex-col min-w-0',
+			flex.col,
+			'min-w-0',
 			'gap-2',
 			'w-72 shrink-0',
 			'p-4',
-			'bg-zinc-50 dark:bg-zinc-900/50',
-			sen.border,
-			'rounded-lg',
+			...mode('bg-zinc-50', 'dark:bg-zinc-900/50'),
+			border.default,
+			rounded.lg,
 		],
 		over: '',
-		header: ['flex items-center', 'gap-2', ji.md, iro.text.default, 'font-semibold'],
-		title: 'flex-1 min-w-0 truncate',
-		body: ['flex flex-col flex-1', 'gap-1', 'overflow-y-auto'],
-		empty: ['flex items-center justify-center', 'min-h-16', ji.sm, iro.text.muted],
+		header: [flex.row, 'gap-2', size.md, text.default, weight.semibold],
+		title: [flex.fill, 'min-w-0 truncate'],
+		body: [flex.col, flex.fill, 'gap-1', 'overflow-y-auto'],
+		empty: [flex.row, 'justify-center', 'min-h-16', size.sm, text.muted],
 	},
 	card: {
 		base: [
 			'group/kanban-card',
-			'flex flex-col',
+			flex.col,
 			'gap-1',
 			'p-2',
-			'bg-white dark:bg-zinc-950',
-			sen.border,
-			ji.sm,
-			iro.text.default,
-			'rounded-md',
+			...mode('bg-white', 'dark:bg-zinc-950'),
+			border.default,
+			size.sm,
+			text.default,
+			rounded.md,
 			'transition-shadow',
-			sen.focus.inset,
-			...hannou.disabled,
-			...hannou.cursor,
+			focus.inset,
+			...disabled,
+			...cursor,
 		],
 		draggable: 'cursor-grab touch-none select-none',
 		dragging: '',
-		lifted: sen.focus.lifted,
+		lifted: focus.lifted,
 		active: 'z-10 shadow-lg relative opacity-95',
 	},
-}
+} as const

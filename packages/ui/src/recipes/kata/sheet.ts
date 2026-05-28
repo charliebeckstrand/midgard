@@ -1,13 +1,20 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { panel } from '../katakana'
-import { iro, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { panel as panelApplicator } from '../katakana'
+import { iro, kasane, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
+
+const { text } = iro
+const { rounded } = kasane
+const { flex, slide } = narabi
+const { glass, backdrop } = omote
+const { focus } = sen
 
 export const k = {
-	...panel({
+	...panelApplicator({
 		panel: defineRecipe({
 			base: [
-				...omote.panel.chrome.flat(),
-				narabi.panel.base,
+				...panel.surface.chrome.flat(),
+				panel.layout.base,
 				'absolute overflow-y-auto',
 				'sm:rounded-xl',
 			],
@@ -22,13 +29,13 @@ export const k = {
 					'max-sm:rounded-l-none',
 					'sm:top-4 sm:left-4 sm:bottom-4',
 				],
-				top: narabi.slide.top,
-				bottom: narabi.slide.bottom,
+				top: slide.top,
+				bottom: slide.bottom,
 			},
 			size: shaku.panel,
 			surface: {
-				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
+				glass: [...glass],
+				flat: [...panel.surface.bg],
 			},
 			compound: [
 				{ side: 'right', size: 'full', class: 'sm:left-4 sm:max-w-[calc(100%-2rem)]' },
@@ -39,17 +46,17 @@ export const k = {
 		backdrop: defineRecipe({
 			base: 'absolute inset-0',
 			surface: {
-				glass: [...omote.backdrop.glass],
-				flat: [...omote.backdrop.base],
+				glass: [...backdrop.glass],
+				flat: [...backdrop.base],
 			},
 			defaults: { surface: 'flat' },
 		}),
 		title: { extra: 'px-6 pt-6' },
 		description: { extra: 'px-6' },
 		footer: { extra: 'px-6 pb-6' },
-		body: { extra: ['flex-1 overflow-y-auto px-6 first:pt-6'] },
+		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
 		close: {
-			base: [...iro.text.muted, sen.focus.inset, 'rounded-md', 'absolute right-5 top-5', 'p-1'],
+			base: ['absolute right-5 top-5', 'p-1', ...text.muted, focus.inset, rounded.md],
 		},
 	}),
 	motion: ugoki.panel,

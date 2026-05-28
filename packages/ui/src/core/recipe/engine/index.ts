@@ -1,5 +1,5 @@
 export { type ApplicatorReturn, applyRecipe, defineApplicator } from './applicator'
-export { type PaletteConfig, type PaletteEntry, palette } from './palette'
+export { definePalette, type PaletteConfig, type PaletteEntry } from './palette'
 export { defineRecipe } from './recipe'
 export type {
 	CompoundRule,

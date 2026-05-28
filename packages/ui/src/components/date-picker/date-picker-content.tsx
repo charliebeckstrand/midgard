@@ -57,7 +57,7 @@ export function DatePickerContent({
 								<motion.div
 									{...k.content.motion}
 									data-slot="datepicker-content"
-									data-step={size}
+									data-density={size}
 									className={cn('z-50', k.content.text, glass && k.content.glass)}
 									onMouseDown={(e) => e.preventDefault()}
 								>

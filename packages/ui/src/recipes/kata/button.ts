@@ -1,75 +1,90 @@
-import { defineRecipe, merge, palette, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
+import { definePalette, defineRecipe, merge, type VariantProps } from '../../core/recipe'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, ugoki } from '../kiso'
 
-const { solid, soft, outline, plain, bare } = iro.palette
+const { palette } = iro
+const { cursor, disabled } = hannou
+const { size, weight } = ji
+const { gap, padding, radius } = kasane
+const { button } = kokkaku
+const { flex } = narabi
+const { focus } = sen
+const { icon } = shaku
+const { spring } = ugoki
 
 // Synthetic colour entry: lets a button skip the palette and inherit
 // its parent's text colour, with a hover wash on non-disabled elements.
 const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
 
-const solidBundle = { ...merge(solid.bg, solid.text, solid.hover), inherit }
-const softBundle = { ...merge(soft.bg, soft.text, soft.hover), inherit }
-const outlineBundle = { ...merge(outline.ring, outline.text, outline.hover), inherit }
-const plainBundle = { ...merge(plain.text, plain.hover), inherit }
-const bareBundle = { ...merge(bare.text, bare.hover), inherit }
-const ghostBundle = { ...plain.text, inherit }
+const solid = {
+	...merge(palette.solid.bg, palette.solid.text, palette.solid.hover),
+	inherit,
+}
+const soft = { ...merge(palette.soft.bg, palette.soft.text, palette.soft.hover), inherit }
+const outline = {
+	...merge(palette.outline.ring, palette.outline.text, palette.outline.hover),
+	inherit,
+}
+const plain = { ...merge(palette.plain.text, palette.plain.hover), inherit }
+const bare = { ...merge(palette.bare.text, palette.bare.hover), inherit }
+const ghost = { ...palette.plain.text, inherit }
 
 export const k = defineRecipe(
 	{
 		base: [
 			'relative isolate',
-			'inline-flex items-center justify-center',
-			'w-fit shrink-0 font-semibold',
-			sen.focus.inset,
-			...hannou.disabled,
-			...hannou.cursor,
-			...tsunagi.base,
+			flex.inline,
+			'justify-center',
+			'w-fit shrink-0',
+			weight.semibold,
+			focus.inset,
+			...disabled,
+			...cursor,
 		],
 		variant: {
 			outline: 'ring-1 ring-inset',
 		},
 		size: {
 			xs: [
-				ji.xs,
-				shaku.icon.xs,
-				kasane.g('0.5'),
-				kasane.p('1.5'),
-				kasane.r('1'),
-				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+				size.xs,
+				icon.xs,
+				gap.g('0.5'),
+				padding.p('1.5'),
+				radius.r('1'),
+				// 'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
-				ji.sm,
-				shaku.icon.sm,
-				kasane.g('0.75'),
-				kasane.p('2'),
-				kasane.r('1.5'),
-				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
+				size.sm,
+				icon.sm,
+				gap.g('0.75'),
+				padding.p('2'),
+				radius.r('1.5'),
+				// 'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
-				ji.md,
-				shaku.icon.md,
-				kasane.g('1'),
-				kasane.p('2.5'),
-				kasane.r('2'),
-				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
+				size.md,
+				icon.md,
+				gap.g('1'),
+				padding.p('2.5'),
+				radius.r('2'),
+				// 'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
-				ji.lg,
-				shaku.icon.lg,
-				kasane.g('1.25'),
-				kasane.p('3'),
-				kasane.r('2.5'),
-				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
+				size.lg,
+				icon.lg,
+				gap.g('1.25'),
+				padding.p('3'),
+				radius.r('2.5'),
+				// 'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},
-		palette: palette(
+		palette: definePalette(
 			{
-				solid: [solid.bg, solid.text, solid.hover],
-				soft: [soft.bg, soft.text, soft.hover],
-				outline: [outline.ring, outline.text, outline.hover],
-				plain: [plain.text, plain.hover],
-				bare: [bare.text, bare.hover],
-				ghost: plain.text,
+				solid: [palette.solid.bg, palette.solid.text, palette.solid.hover],
+				soft: [palette.soft.bg, palette.soft.text, palette.soft.hover],
+				outline: [palette.outline.ring, palette.outline.text, palette.outline.hover],
+				plain: [palette.plain.text, palette.plain.hover],
+				bare: [palette.bare.text, palette.bare.hover],
+				ghost: palette.plain.text,
 			},
 			{ inherit },
 		),
@@ -80,16 +95,16 @@ export const k = defineRecipe(
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
-		skeleton: kokkaku.button,
+		skeleton: button,
 	},
 	{
-		solid: solidBundle,
-		soft: softBundle,
-		outline: outlineBundle,
-		plain: plainBundle,
-		bare: bareBundle,
-		ghost: ghostBundle,
-		motion: ugoki.spring,
+		solid,
+		soft,
+		outline,
+		plain,
+		bare,
+		ghost,
+		motion: spring,
 	},
 )
 

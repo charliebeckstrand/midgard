@@ -1,66 +1,73 @@
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
+
+const { cursor, disabled } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { field } = narabi
 
 const label = defineRecipe({
 	base: [
-		'select-none',
-		hannou.cursor,
+		'flex select-none',
+		...cursor,
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
-		iro.text.default,
-		hannou.disabled,
+		text.default,
+		...disabled,
 	],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
 	},
 	defaults: { size: 'md' },
 })
 
 const description = defineRecipe({
-	base: [iro.text.muted, hannou.disabled],
+	base: [text.muted, ...disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
 	},
 	defaults: { size: 'md' },
 })
 
 const message = defineRecipe({
-	base: [hannou.disabled],
+	base: [...disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
 	},
 	variant: {
-		error: iro.text.error,
-		success: iro.text.success,
+		error: text.error,
+		success: text.success,
 	},
 	defaults: { size: 'md', variant: 'error' },
 })
 
 const legend = defineRecipe({
-	base: ['font-semibold', iro.text.default, hannou.disabled],
+	base: [weight.semibold, text.default, ...disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
 	},
 	defaults: { size: 'md' },
 })
 
 export const k = {
-	base: ['[&>legend+*]:pt-4', hannou.disabled],
+	base: ['[&>legend+*]:pt-4', ...disabled],
 	legend,
 	field: [
-		...narabi.field,
-		'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
-		'dark:data-disabled:border-white/15',
+		...field,
+		...mode(
+			'data-disabled:border-zinc-950/20 data-disabled:cursor-not-allowed',
+			'dark:data-disabled:border-white/15',
+		),
 	],
 	label,
 	description,
 	message,
-}
+} as const

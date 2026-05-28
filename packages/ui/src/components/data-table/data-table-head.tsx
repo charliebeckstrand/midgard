@@ -28,7 +28,7 @@ export function DataTableHead<T>({ columns, hasRows }: DataTableHeadProps<T>) {
 						return (
 							<TableHeader
 								key={col.id}
-								className={cn(k.selectCell, stickyHeader && k.stickyHead, col.headerClassName)}
+								className={cn(k.selectCell, stickyHeader && k.sticky.head, col.headerClassName)}
 								style={col.width ? { width: col.width } : undefined}
 							>
 								{hasRows && (
@@ -78,7 +78,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 }: DataTableColumnHeaderProps) {
 	return (
 		<TableHeader
-			className={cn(stickyHeader && k.stickyHead, col.headerClassName)}
+			className={cn(stickyHeader && k.sticky.head, col.headerClassName)}
 			style={col.width ? { width: col.width } : undefined}
 		>
 			{col.sortable ? (

@@ -1,17 +1,22 @@
 import { omote, sen } from '../kiso'
+import { panel } from '../kiso/panel'
+
+const { bg, popover, glass } = omote
+const { outline } = sen
+const { surface } = panel
 
 export const k = {
 	bg: {
 		none: 'bg-transparent',
-		surface: omote.surface,
-		tint: omote.tint,
-		panel: omote.panel.bg,
-		popover: omote.popover,
-		glass: omote.glass,
+		surface: bg.surface,
+		tint: bg.tint,
+		panel: surface.bg,
+		popover,
+		glass,
 	},
 	outline: {
-		default: sen.outline,
-		subtle: sen.outlineSubtle,
-		strong: sen.outlineStrong,
+		default: outline.default,
+		subtle: outline.subtle,
+		strong: outline.strong,
 	},
 } as const

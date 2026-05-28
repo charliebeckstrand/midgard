@@ -36,7 +36,7 @@ export function ListItem({ prefix, children, className }: ListItemProps) {
 			data-item-id={id}
 			data-active={dragging || undefined}
 			data-lifted={lifted || undefined}
-			className={cn(k.item(variant), dragging && k.itemActive, lifted && k.itemLifted, className)}
+			className={cn(k.item({ variant, active: dragging, lifted }), className)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>

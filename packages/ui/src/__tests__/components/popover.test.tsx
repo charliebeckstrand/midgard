@@ -83,7 +83,7 @@ describe('PopoverContent size context', () => {
 	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
 	const buttonInPopover = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
-	it('defaults to size="md" and exposes data-step on the content', () => {
+	it('defaults to size="md" and exposes data-density on the content', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>
@@ -93,10 +93,10 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-step', 'md')
+		expect(popoverContent()).toHaveAttribute('data-density', 'md')
 	})
 
-	it('reflects an explicit size prop on data-step', () => {
+	it('reflects an explicit size prop on data-density', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>
@@ -106,7 +106,7 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-step', 'lg')
+		expect(popoverContent()).toHaveAttribute('data-density', 'lg')
 	})
 
 	it('descendant Buttons inherit the PopoverContent size', () => {
@@ -121,7 +121,7 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		// sun.sm.text = 'sm' → ji.sm = 'text-sm'
+		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(buttonInPopover()?.className).toContain('text-sm')
 	})
 
@@ -137,7 +137,7 @@ describe('PopoverContent size context', () => {
 			</Density>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-step', 'sm')
+		expect(popoverContent()).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('explicit size prop wins over an ambient Density', () => {
@@ -152,7 +152,7 @@ describe('PopoverContent size context', () => {
 			</Density>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-step', 'lg')
+		expect(popoverContent()).toHaveAttribute('data-density', 'lg')
 	})
 })
 

@@ -1,21 +1,29 @@
-import { hannou, iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+
+const { disabled } = hannou
+const { text } = iro
+const { size } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { border, focus } = sen
+
 export const k = {
 	base: [
-		'overflow-hidden',
-		'relative isolate',
+		'relative isolate overflow-hidden',
 		'bg-white',
-		sen.border,
-		'rounded-lg',
-		sen.focus.ring,
-		hannou.disabled,
+		border.default,
+		rounded.lg,
+		focus.ring,
+		...disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [
 		'absolute inset-0',
-		'flex items-center justify-center',
-		ji.sm,
-		iro.text.muted,
+		flex.row,
+		'justify-center',
+		size.sm,
+		text.muted,
 		'pointer-events-none',
 	],
-	actions: ['absolute right-2 bottom-2', 'flex items-center', 'gap-1'],
-}
+	actions: ['absolute right-2 bottom-2', flex.row, 'gap-1'],
+} as const

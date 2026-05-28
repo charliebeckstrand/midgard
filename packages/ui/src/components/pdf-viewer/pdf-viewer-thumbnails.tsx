@@ -42,7 +42,7 @@ export function PdfViewerThumbnails() {
 	const renderList = (onSelect?: () => void, layout: 'list' | 'grid' = 'list') => (
 		<ul
 			data-slot="pdf-viewer-thumbnails"
-			className={cn(layout === 'grid' ? k.thumbnailsGrid : k.thumbnails)}
+			className={cn(layout === 'grid' ? k.thumbnails.grid : k.thumbnails.base)}
 		>
 			{loading && thumbnailList.length === 0
 				? ['a', 'b', 'c', 'd', 'e', 'f'].map((key) => (
@@ -50,7 +50,7 @@ export function PdfViewerThumbnails() {
 							<span
 								aria-hidden="true"
 								data-slot="pdf-viewer-thumbnail-placeholder"
-								className={cn(k.thumbnailPlaceholder)}
+								className={cn(k.thumbnail.placeholder)}
 							/>
 						</li>
 					))
@@ -68,25 +68,25 @@ export function PdfViewerThumbnails() {
 							data-current={isCurrent || undefined}
 							aria-label={`Go to ${item.label}`}
 							aria-current={isCurrent ? 'page' : undefined}
-							className={cn(k.thumbnail)}
+							className={cn(k.thumbnail.base)}
 							onClick={() => {
 								goToPage(item.pageNumber)
 								onSelect?.()
 							}}
 						>
-							<span className={cn(k.thumbnailFrame)}>
+							<span className={cn(k.thumbnail.frame)}>
 								{item.thumbnail ? (
 									<img
 										src={item.thumbnail}
 										alt=""
 										loading="lazy"
-										className={cn(k.thumbnailImage)}
+										className={cn(k.thumbnail.image)}
 									/>
 								) : (
-									<span className={cn(k.thumbnailFallback)}>{item.pageNumber}</span>
+									<span className={cn(k.thumbnail.fallback)}>{item.pageNumber}</span>
 								)}
 							</span>
-							<span className={cn(k.thumbnailLabel)}>{item.pageNumber}</span>
+							<span className={cn(k.thumbnail.label)}>{item.pageNumber}</span>
 						</button>
 					</li>
 				)
@@ -102,10 +102,10 @@ export function PdfViewerThumbnails() {
 				<aside
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
-					className={cn(k.sidebar)}
+					className={cn(k.sidebar.base)}
 					onKeyDown={handleSidebarKeyDown}
 				>
-					<div className={cn(k.sidebarHeader)}>Pages</div>
+					<div className={cn(k.sidebar.header)}>Pages</div>
 					{renderList()}
 				</aside>
 			)}

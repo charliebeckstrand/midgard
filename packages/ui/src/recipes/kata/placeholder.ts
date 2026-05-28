@@ -1,4 +1,8 @@
-import { omote, tsunagi } from '../kiso'
+import { kasane, omote } from '../kiso'
+
+const { rounded } = kasane
+const { skeleton } = omote
+
 export const k = {
-	base: [omote.skeleton, 'block h-4', 'rounded-lg', ...tsunagi.base],
-}
+	base: [skeleton, 'block h-4', rounded.lg],
+} as const

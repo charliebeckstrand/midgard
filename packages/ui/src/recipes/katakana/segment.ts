@@ -13,7 +13,7 @@
  */
 
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { segment as segmentFragments } from '../genkei/segment'
+import { segment as segmentFragments } from '../kiso/segment'
 
 const { control: controlFragments, item: itemFragments, indicator } = segmentFragments
 

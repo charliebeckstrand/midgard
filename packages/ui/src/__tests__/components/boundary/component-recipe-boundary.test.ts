@@ -3,12 +3,11 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Components reach the recipe layer through their owning kata. Value imports
-// from `recipes` (the types-only barrel), `recipes/katakana/*`,
-// `recipes/genkei/*`, or `recipes/kiso/*` would bypass the kata curation and
-// pull applicator, archetype, or substrate fragments into the component
-// layer directly. Type-only imports from the barrel are fine — the barrel
-// surfaces `Step` / `Ma` / `Color` / `Ji` / `GroupOrientation` /
-// `GroupPosition` for prop-union derivation.
+// from `recipes` (the types-only barrel), `recipes/katakana/*`, or
+// `recipes/kiso/*` would bypass the kata curation and pull applicator or
+// substrate fragments into the component layer directly. Type-only imports
+// from the barrel are fine — the barrel surfaces `Step` / `Ma` / `Color` /
+// `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 
 const componentsDir = join(__dirname, '../../../components')
 const srcDir = join(__dirname, '../../..')
@@ -37,7 +36,7 @@ describe('component recipe-import boundary', () => {
 
 				const isBarrel = /\/recipes['"]?$/.test(path) || path.endsWith('/recipes')
 
-				const isInternalLayer = /\/recipes\/(?:katakana|genkei|kiso)\//.test(path)
+				const isInternalLayer = /\/recipes\/(?:katakana|kiso)\//.test(path)
 
 				if (isBarrel && isTypeOnly) continue
 

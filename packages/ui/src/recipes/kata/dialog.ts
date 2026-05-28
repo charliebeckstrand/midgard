@@ -1,13 +1,18 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { panel } from '../katakana'
-import { narabi, omote, shaku, ugoki } from '../kiso'
+import { panel as panelApplicator } from '../katakana'
+import { omote, shaku, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
+
+const { glass } = omote
+const { popover } = ugoki
+const { surface, layout } = panel
 
 export const k = {
-	...panel({
+	...panelApplicator({
 		panel: defineRecipe({
 			base: [
-				...omote.panel.chrome.flat(),
-				narabi.panel.base,
+				...surface.chrome.flat(),
+				layout.base,
 				'relative',
 				'w-full',
 				'p-6',
@@ -15,14 +20,14 @@ export const k = {
 				'sm:rounded-2xl sm:max-h-[calc(100dvh-2rem)]',
 			],
 			surface: {
-				glass: [...omote.glass],
-				flat: [...omote.panel.bg],
+				glass: [...glass],
+				flat: [...surface.bg],
 			},
 			size: shaku.panel,
 			defaults: { size: 'lg', surface: 'flat' },
 		}),
 	}),
-	motion: { desktop: ugoki.popover, mobile: ugoki.panel.bottom },
+	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 }
 
 export type DialogPanelVariants = VariantProps<typeof k.panel>

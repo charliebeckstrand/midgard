@@ -1,6 +1,8 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ugoki } from '../kiso'
 
+const { toast } = ugoki
+
 const viewport = defineRecipe({
 	base: [
 		'fixed z-[100] top-0 bottom-0 flex flex-col',
@@ -25,7 +27,7 @@ export const k = {
 		'pointer-events-auto',
 	],
 	card: 'w-80 max-sm:w-full',
-	motion: ugoki.toast,
+	motion: toast,
 }
 
 export type ToastViewportVariants = VariantProps<typeof viewport>

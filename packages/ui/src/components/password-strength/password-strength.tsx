@@ -87,13 +87,13 @@ export function PasswordStrength({
 							key={rule.id}
 							data-slot="password-strength-rule"
 							data-passed={passed || undefined}
-							className={cn(k.rule)}
+							className={cn(k.rule.base)}
 						>
 							<Icon
 								icon={passed ? <Check /> : <Dot />}
-								className={cn(k.ruleIcon, passed ? k.ruleIconPass : k.ruleIconFail)}
+								className={cn(k.rule.icon, passed ? k.rule.iconPass : k.rule.iconFail)}
 							/>
-							<span className={cn(passed ? k.ruleTextPass : k.ruleText)}>{rule.label}</span>
+							<span className={cn(passed ? k.rule.textPass : k.rule.text)}>{rule.label}</span>
 						</li>
 					))}
 				</ul>

@@ -46,7 +46,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 			getFloatingProps={getFloatingProps}
 			style={{ pointerEvents: interactive ? 'auto' : 'none' }}
 			data-slot="tooltip-content"
-			data-step={resolvedSize}
+			data-density={resolvedSize}
 		>
 			<motion.div
 				{...k.motion}

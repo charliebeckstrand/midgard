@@ -1,46 +1,59 @@
-import { hannou, iro, ji, ugoki } from '../kiso'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, ugoki } from '../kiso'
+
+const { cursor, fg } = hannou
+const { text } = iro
+const { family, size } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { collapse, css } = ugoki
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
-const jsonValueColor: Record<JsonValueType, readonly string[] | string> = {
-	key: ['text-sky-700', 'dark:text-sky-400'],
-	string: ['text-emerald-700', 'dark:text-emerald-400'],
-	number: ['text-amber-700', 'dark:text-amber-400'],
-	boolean: ['text-violet-700', 'dark:text-violet-400'],
-	null: iro.text.muted,
+const color: Record<JsonValueType, readonly string[] | string> = {
+	key: mode('text-sky-700', 'dark:text-sky-400'),
+	string: mode('text-emerald-700', 'dark:text-emerald-400'),
+	number: mode('text-amber-700', 'dark:text-amber-400'),
+	boolean: mode('text-violet-700', 'dark:text-violet-400'),
+	null: text.muted,
 }
 
-const rowBase = [
+const row = [
 	'group/json-node',
-	'flex w-full items-center',
+	flex.row,
+	'w-full',
 	'gap-1',
 	'py-0.5',
-	ji.sm,
-	'rounded-lg',
-	'has-focus-visible:bg-blue-100/60 dark:has-focus-visible:bg-blue-600/30',
+	size.sm,
+	rounded.lg,
+	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-600/30'),
 ]
 
 export const k = {
-	base: 'inline-flex flex-col font-mono',
-	row: rowBase,
-	leaf: ['flex flex-1 items-center min-w-0 outline-none', 'gap-1'],
+	base: ['inline-flex flex-col', family.mono],
+	row,
+	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', 'gap-1'],
 	toggle: [
-		'flex flex-1 items-center min-w-0 text-left cursor-pointer outline-none',
+		flex.row,
+		flex.fill,
+		'min-w-0 text-left',
+		...cursor,
+		'outline-none',
 		'gap-1',
-		iro.text.muted,
-		hannou.text.hover,
-		'data-[open]:text-zinc-950 dark:data-[open]:text-white',
-		'rounded-lg',
+		text.muted,
+		fg.hover,
+		...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
+		rounded.lg,
 	],
-	content: ['inline-flex items-center min-w-0', 'gap-1'],
-	chevron: ['flex-none', ugoki.css.transform, ugoki.css.duration],
+	content: [flex.inline, 'min-w-0', 'gap-1'],
+	chevron: ['flex-none', css.transform, css.duration],
 	chevronSpacer: 'inline-block w-4 flex-none',
-	key: jsonValueColor.key,
-	index: iro.text.muted,
-	punctuation: iro.text.muted,
-	summary: iro.text.muted,
+	key: color.key,
+	index: text.muted,
+	punctuation: text.muted,
+	summary: text.muted,
 	group: 'overflow-hidden',
-	highlight: ['bg-amber-100/60', 'dark:bg-amber-500/15', 'rounded-lg'],
-	motion: ugoki.collapse.fade,
-	valueColor: jsonValueColor,
-}
+	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
+	motion: collapse.fade,
+	valueColor: color,
+} as const

@@ -8,17 +8,19 @@
  * kata defines them via its own `defineRecipe` call and hands the result
  * to `panel(...)`, which stitches it into the standard slot bundle
  * (title / description / header / body / footer / close) by composing
- * `narabi.panel` with caller extras.
+ * the panel archetype's `layout` with caller extras.
  *
  * Like `popover` and `segment`, `panel` doesn't fit `defineApplicator`'s
  * shape and hand-rolls — see `katakana/index.ts` for how the three
  * exceptions sit alongside the helper.
  */
 
-import { narabi } from '../kiso'
+import { panel as panelFragments } from '../kiso/panel'
+
+const { layout } = panelFragments
 
 type Slot = {
-	/** Classes appended after the `narabi.panel.*` default for this slot. */
+	/** Classes appended after the `panel.layout.*` default for this slot. */
 	extra?: string | string[]
 }
 
@@ -58,8 +60,9 @@ function toArray(v?: string | string[]): string[] {
  * `defineRecipe(...)` results — they carry the kata's variants and stay
  * callable, so consumers keep `VariantProps<typeof result.panel>`
  * inference. The other slots (title, description, header, body, footer,
- * close) are zero-variant class fragments built from `narabi.panel` plus
- * optional caller extras, applied via `cn(...)` at the call site.
+ * close) are zero-variant class fragments built from the panel archetype's
+ * `layout` plus optional caller extras, applied via `cn(...)` at the
+ * call site.
  *
  * The function name `panel` collides visually with the field
  * `input.panel`; the JS syntax (parens vs colon) keeps them distinct at
@@ -83,11 +86,11 @@ export function panel<P, B = undefined>(
 		// cast normalises the optional field to match the return. When B
 		// is inferred from a passed recipe, the cast is a no-op.
 		backdrop: input.backdrop as B,
-		title: [...narabi.panel.title, ...toArray(input.title?.extra)],
-		description: [...narabi.panel.description, ...toArray(input.description?.extra)],
-		header: [narabi.panel.header, ...toArray(input.header?.extra)],
-		body: [...narabi.panel.body, ...toArray(input.body?.extra)],
-		footer: [...narabi.panel.footer, ...toArray(input.footer?.extra)],
+		title: [...layout.title, ...toArray(input.title?.extra)],
+		description: [...layout.description, ...toArray(input.description?.extra)],
+		header: [layout.header, ...toArray(input.header?.extra)],
+		body: [...layout.body, ...toArray(input.body?.extra)],
+		footer: [...layout.footer, ...toArray(input.footer?.extra)],
 		close: toArray(input.close?.base),
 	}
 }

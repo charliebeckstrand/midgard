@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { affixStepDown } from '../../../primitives/affix/affix'
 import type { Step } from '../../../recipes'
-import { control } from '../../../recipes/genkei/control'
 import { k as button } from '../../../recipes/kata/button'
+import { control } from '../../../recipes/kiso/control'
 
 // Affix `data-slot` compensation invariant.
 //

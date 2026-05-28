@@ -1,30 +1,37 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { iro, ji, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+
+const { fg } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { focus } = sen
 
 const list = defineRecipe({
-	base: ['flex flex-wrap items-center', 'gap-2', 'break-words', ji.md],
+	base: [flex.row, 'flex-wrap', 'gap-2', 'break-words', size.md],
 })
 
 const item = defineRecipe({
-	base: ['inline-flex items-center', 'gap-2'],
+	base: [flex.inline, 'gap-2'],
 	current: {
-		true: [iro.text.default, 'font-normal'],
+		true: [text.default, weight.normal],
 		false: '',
 	},
 	defaults: { current: false },
 })
 
 const link = defineRecipe({
-	base: ['rounded-sm', sen.focus.ring],
+	base: [rounded.sm, focus.ring],
 	current: {
-		true: [iro.text.default, 'font-normal'],
-		false: [iro.text.muted, 'hover:text-zinc-950', 'dark:hover:text-white'],
+		true: [text.default, weight.normal],
+		false: [text.muted, fg.hover],
 	},
 	defaults: { current: false },
 })
 
 const separator = defineRecipe({
-	base: [...iro.text.muted, '[&>svg]:size-3.5'],
+	base: [...text.muted, '[&>svg]:size-3.5'],
 })
 
 export const k = {
@@ -32,7 +39,7 @@ export const k = {
 	item,
 	link,
 	separator,
-}
+} as const
 
 export type BreadcrumbItemVariants = VariantProps<typeof item>
 export type BreadcrumbLinkVariants = VariantProps<typeof link>

@@ -2,6 +2,9 @@ import { defineColors, type VariantProps } from '../../core/recipe'
 import { check } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 
+const { radius } = kasane
+const { checkbox } = kokkaku
+
 const color = defineColors({
 	zinc: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-zinc-600)] [--checkbox-checked-border:var(--color-zinc-700)]/90',
 	red: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-red-600)] [--checkbox-checked-border:var(--color-red-800)]/90',
@@ -26,11 +29,11 @@ export const k = check(
 		],
 		color,
 		size: {
-			sm: ['size-4', kasane.r('0.75')],
-			md: ['size-4.5', kasane.r('1')],
-			lg: ['size-5', kasane.r('1.25')],
+			sm: ['size-4', radius.r('0.75')],
+			md: ['size-4.5', radius.r('1')],
+			lg: ['size-5', radius.r('1.25')],
 		},
-		skeleton: kokkaku.checkbox,
+		skeleton: checkbox,
 	},
 	{
 		/** Check-icon size class per checkbox size step. Read by the component. */

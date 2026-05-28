@@ -16,7 +16,6 @@ import { Spinner, type SpinnerProps } from '../spinner'
 import { buttonSpring } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
-import { hasLabelContent } from './button-utilities'
 
 type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
@@ -86,8 +85,6 @@ export function Button({
 		return <ButtonSkeleton size={size} className={className} />
 	}
 
-	const labelled = hasLabelContent(children)
-
 	const content = (
 		<AffixContext value={resolvedSize}>
 			{loading ? <Spinner {...loadingOptions} /> : prefix}
@@ -110,10 +107,9 @@ export function Button({
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={dataSlot}
-						data-step={resolvedSize}
 						data-variant={variant}
+						data-density={resolvedSize}
 						data-has-prefix={!!prefix || undefined}
-						data-has-label={labelled || undefined}
 						data-has-suffix={!!suffix || undefined}
 						href={href}
 						className={classes}
@@ -139,10 +135,9 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={dataSlot}
-				data-step={resolvedSize}
 				data-variant={variant}
+				data-density={resolvedSize}
 				data-has-prefix={!!prefix || undefined}
-				data-has-label={labelled || undefined}
 				data-has-suffix={!!suffix || undefined}
 				type="button"
 				className={classes}

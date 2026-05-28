@@ -29,20 +29,20 @@ export function PdfViewerViewport() {
 		<div
 			ref={viewportRef}
 			data-slot="pdf-viewer-viewport"
-			className={cn(k.viewport)}
+			className={cn(k.viewport.base)}
 			style={{ aspectRatio }}
 		>
 			{activePage && !loading ? (
 				<div
 					data-slot="pdf-viewer-page-frame"
-					className={cn(k.pageFrame)}
+					className={cn(k.viewport.page.frame)}
 					style={{ width: frameW, height: frameH }}
 				>
 					<img
 						key={activePage.id ?? safePage}
 						src={activePage.src}
 						alt={activePage.label ?? `Page ${safePage}`}
-						className={cn(k.page)}
+						className={cn(k.viewport.page.base)}
 						style={{
 							width: imageW,
 							height: imageH,
@@ -53,15 +53,15 @@ export function PdfViewerViewport() {
 					/>
 				</div>
 			) : error ? (
-				<div className={cn(k.pageEmpty)}>Failed to load PDF: {error.message}</div>
+				<div className={cn(k.viewport.page.empty)}>Failed to load PDF: {error.message}</div>
 			) : loading ? (
 				<output
 					data-slot="pdf-viewer-page-frame"
 					aria-label="Loading PDF"
-					className={cn(k.pagePlaceholder)}
+					className={cn(k.viewport.page.placeholder)}
 				/>
 			) : (
-				<div className={cn(k.pageEmpty)}>No pages to display</div>
+				<div className={cn(k.viewport.page.empty)}>No pages to display</div>
 			)}
 		</div>
 	)

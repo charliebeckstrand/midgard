@@ -1,4 +1,4 @@
-import { Children, isValidElement, type ReactNode } from 'react'
+import { isValidElement } from 'react'
 import { Icon } from '../icon'
 
 // An "icon" child is the library's <Icon>, a raw <svg>, or any element that
@@ -12,14 +12,4 @@ export function isIconElement(node: unknown): boolean {
 	const props = node.props as { 'data-slot'?: unknown }
 
 	return props['data-slot'] === 'icon'
-}
-
-export function hasLabelContent(children: ReactNode): boolean {
-	return Children.toArray(children).some((child) => {
-		if (typeof child === 'string') return child.trim().length > 0
-
-		if (typeof child === 'number' || typeof child === 'bigint') return true
-
-		return isValidElement(child) && !isIconElement(child)
-	})
 }

@@ -1,6 +1,5 @@
 import { Link } from '../../components/link'
 import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -24,25 +23,10 @@ export function Demo() {
 				</Link>
 			</Example>
 
-			<Example
-				title="With provider"
-				code={code`
-					import { Link } from 'ui/link'
-					import { LinkProvider } from 'ui/providers/link'
-					import NextLink from 'next/link'
-
-					<LinkProvider component={NextLink}>
-						<App />
-					</LinkProvider>
-
-					// Inside App, every Link renders through next/link:
-					<Link href="/about">About</Link>
-				`}
-			>
-				<Text variant="muted">
-					Register a framework-specific component (e.g. next/link) at the app root via LinkProvider.
-					Every Link in the tree renders through it; otherwise Link falls back to a plain anchor.
-				</Text>
+			<Example title="Underline">
+				<Link href="#link" underline>
+					Read the documentation
+				</Link>
 			</Example>
 		</>
 	)

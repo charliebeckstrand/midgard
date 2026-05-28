@@ -55,7 +55,7 @@ const content = defineRecipe({
 })
 
 const header = defineRecipe({
-	base: ['flex items-center shrink-0', '**:data-[slot=heading]:leading-none'],
+	base: ['flex items-center shrink-0'],
 	size: {
 		sm: 'lg:pt-4 pb-4',
 		md: 'lg:pt-6 pb-6',

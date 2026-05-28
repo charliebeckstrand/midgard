@@ -1,11 +1,13 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { sen } from '../kiso'
 
+const { border } = sen
+
 const divider = defineRecipe({
 	base: 'border-t col-span-full',
 	soft: {
-		true: [...sen.borderSubtleColor],
-		false: [...sen.borderColor],
+		true: [...border.subtleColor],
+		false: [...border.defaultColor],
 	},
 	defaults: { soft: false },
 })

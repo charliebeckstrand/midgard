@@ -1,25 +1,28 @@
-import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
-import { iro, kokkaku, shaku } from '../kiso'
+import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
 
-const { solid, soft, outline } = iro.palette
+const { palette } = iro
+const { rounded } = kasane
+const { flex } = narabi
+const { avatar } = shaku
 
 export const k = defineRecipe(
 	{
 		base: [
 			'inline-grid place-items-center align-middle overflow-hidden',
 			'*:col-start-1 *:row-start-1',
-			'rounded-full',
+			rounded.full,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		size: shaku.avatar,
-		palette: palette({
-			solid: [solid.bg, solid.text],
-			soft: [soft.bg, soft.text],
-			outline: [outline.ring, outline.text],
+		size: avatar,
+		palette: definePalette({
+			solid: [palette.solid.bg, palette.solid.text],
+			soft: [palette.soft.bg, palette.soft.text],
+			outline: [palette.outline.ring, palette.outline.text],
 		}),
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
 		skeleton: kokkaku.avatar,
@@ -29,7 +32,7 @@ export const k = defineRecipe(
 		image: 'size-full object-cover',
 		/** Avatar-group container classes. */
 		group: {
-			base: 'flex items-center',
+			base: flex.row,
 			ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
 			spacing: {
 				sm: '-space-x-1.5',

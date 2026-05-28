@@ -1,5 +1,13 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, sen, ugoki } from '../kiso'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+
+const { cursor, disabled, fg } = hannou
+const { text } = iro
+const { size, weight } = ji
+const { rounded } = kasane
+const { flex } = narabi
+const { border, divider } = sen
+const { css } = ugoki
 
 const item = defineRecipe({
 	base: [
@@ -9,7 +17,7 @@ const item = defineRecipe({
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
-		separated: ['overflow-hidden', 'rounded-lg', ...sen.border],
+		separated: ['overflow-hidden', rounded.lg, ...border.default],
 		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 		plain: '',
 	},
@@ -18,41 +26,40 @@ const item = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: 'flex flex-col',
+		base: flex.col,
 		variant: {
 			separated: 'gap-1',
-			outline: [
-				'overflow-hidden',
-				'rounded-lg',
-				...sen.border,
-				'divide-y divide-zinc-950/10',
-				'dark:divide-white/10',
-			],
-			plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+			outline: ['overflow-hidden', rounded.lg, ...border.default, ...divider.between],
+			plain: divider.between,
 		},
 		slots: {
 			trigger: [
-				'w-full flex items-center justify-between',
+				'w-full',
+				flex.row,
+				'justify-between',
 				'gap-2',
 				'p-4',
-				ji.md,
-				iro.text.muted,
-				hannou.text.hover,
-				'text-left font-medium',
-				'group-data-[open]/accordion-item:text-zinc-950',
-				'dark:group-data-[open]/accordion-item:text-white',
+				size.md,
+				text.muted,
+				fg.hover,
+				'text-left',
+				weight.medium,
+				...mode(
+					'group-data-[open]/accordion-item:text-zinc-950',
+					'dark:group-data-[open]/accordion-item:text-white',
+				),
 				'focus-visible:outline-none',
-				...hannou.disabled,
-				...hannou.cursor,
+				...disabled,
+				...cursor,
 			],
 			indicator: [
 				'shrink-0',
-				ugoki.css.transform,
-				ugoki.css.duration,
+				css.transform,
+				css.duration,
 				'group-data-[open]/accordion-item:rotate-180',
 			],
 			panel: 'overflow-hidden',
-			body: ['px-4 pb-4 pt-0', ji.md, iro.text.muted],
+			body: ['px-4 pb-4 pt-0', size.md, text.muted],
 		},
 		defaults: { variant: 'separated' },
 	},

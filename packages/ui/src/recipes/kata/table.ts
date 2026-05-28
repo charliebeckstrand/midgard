@@ -1,6 +1,9 @@
 import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 
+const { text } = iro
+const { border } = sen
+
 const cellSize = {
 	sm: 'px-1 py-1',
 	md: 'px-2 py-2',
@@ -8,19 +11,19 @@ const cellSize = {
 }
 
 const grid = {
-	true: ['border', sen.borderSubtleColor],
+	true: border.subtle,
 	false: '',
 }
 
 const cell = defineRecipe({
-	base: [iro.text.default],
+	base: [text.default],
 	size: cellSize,
 	grid,
 	defaults: { size: 'md', grid: false },
 })
 
 const header = defineRecipe({
-	base: ['font-bold', iro.text.muted],
+	base: ['font-bold', text.muted],
 	size: cellSize,
 	grid,
 	defaults: { size: 'md', grid: false },
@@ -28,10 +31,10 @@ const header = defineRecipe({
 
 export const k = {
 	base: 'w-full text-left text-base',
-	head: [iro.text.muted, sen.borderSubtleColor],
+	head: [text.muted, border.subtleColor],
 	header,
 	row: [],
 	cell,
 	striped: ['*:even:bg-zinc-950/2.5', 'dark:*:even:bg-white/2.5'],
-	empty: ['text-center', iro.text.muted],
+	empty: ['text-center', text.muted],
 }

@@ -34,8 +34,8 @@ export function PdfViewerToolbar() {
 	const controlsDisabled = loading || isEmpty
 
 	return (
-		<Toolbar aria-label="PDF controls" className={cn(k.toolbar)}>
-			<div className={cn(k.toolbarSection)}>
+		<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
+			<div className={cn(k.toolbar.section)}>
 				{total > 0 && (
 					<>
 						{!isDesktop && (
@@ -77,7 +77,7 @@ export function PdfViewerToolbar() {
 								})}
 							</Listbox>
 							<span className="mx-1">/</span>
-							<span data-slot="pdf-viewer-page-status" className={cn(k.pageStatus)}>
+							<span data-slot="pdf-viewer-page-status" className={cn(k.toolbar.pageStatus)}>
 								{total}
 							</span>
 						</ToolbarGroup>
@@ -87,7 +87,7 @@ export function PdfViewerToolbar() {
 
 			<ToolbarSeparator />
 
-			<div className={cn(k.toolbarSection)}>
+			<div className={cn(k.toolbar.section)}>
 				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 				<ToolbarGroup aria-label="View">
 					<Tooltip>

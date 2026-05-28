@@ -1,6 +1,9 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
+const { text } = iro
+const { size, weight } = ji
+
 /**
  * Per-colour marker appearance. `dot` paints the status indicator;
  * `lineBefore` / `lineAfter` paint the inbound / outbound line segments.
@@ -10,7 +13,7 @@ import { iro, ji } from '../kiso'
  * `lineAfter = lineBefore.replace('before:', 'after:')` would silently
  * drop the generated classes.
  */
-const markerPalette: Record<Color, { dot: string; lineBefore: string; lineAfter: string }> = {
+const palette: Record<Color, { dot: string; lineBefore: string; lineAfter: string }> = {
 	zinc: {
 		dot: 'text-zinc-500 dark:text-zinc-400',
 		lineBefore: 'before:bg-zinc-200 dark:before:bg-zinc-700',
@@ -38,7 +41,7 @@ const markerPalette: Record<Color, { dot: string; lineBefore: string; lineAfter:
 	},
 }
 
-const timeline = defineRecipe({
+const root = defineRecipe({
 	base: ['list-none p-0 m-0'],
 	orientation: {
 		vertical: 'flex flex-col',
@@ -61,7 +64,7 @@ const item = defineRecipe({
 })
 
 const title = defineRecipe({
-	base: ['font-semibold', ji.lg, ...iro.text.default],
+	base: [weight.semibold, size.lg, ...text.default],
 	orientation: {
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
@@ -70,7 +73,7 @@ const title = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [ji.md],
+	base: [size.md],
 	orientation: {
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
@@ -79,7 +82,7 @@ const description = defineRecipe({
 })
 
 const timestamp = defineRecipe({
-	base: [ji.sm, ...iro.text.muted],
+	base: [size.sm, ...text.muted],
 	orientation: {
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',
@@ -88,7 +91,7 @@ const timestamp = defineRecipe({
 })
 
 export const k = {
-	root: timeline,
+	root,
 	item,
 	marker: {
 		base: [
@@ -115,11 +118,11 @@ export const k = {
 			'after:left-full after:top-1/2 after:-translate-y-1/2',
 			'after:h-0.5 after:w-[100vw]',
 		],
-		palette: markerPalette,
+		palette,
 	},
 	title,
 	description,
 	timestamp,
-}
+} as const
 
-export type TimelineVariants = VariantProps<typeof timeline>
+export type TimelineVariants = VariantProps<typeof root>
