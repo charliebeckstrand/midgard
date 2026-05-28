@@ -64,7 +64,7 @@ Atomic filenames are `<name>.ts`. Archetype filenames are
 | `sun` (寸)       | Named density steps (`sm` / `md` / `lg`) and the per-step token table.                                           |
 | `tsunagi` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime.                            |
 | `ugoki` (動き)   | Motion — CSS transition fragments and Framer Motion enter / exit configs.                                        |
-| `kokkaku` (骨格) | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped.                          |
+| `kokkaku/` (骨格) | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. One file per unit (avatar / badge / button / card / checkbox / form-control / heading / radio / switch / text / textarea). |
 
 ## Archetype sub-folders
 
