@@ -50,7 +50,8 @@ them to `defineApplicator(...)` or `defineRecipe(...)`. It never inlines
 a literal Tailwind class string. If a fragment is needed, it lives in
 kiso under a name; the applicator references it by name.
 
-Enforced by `__tests__/recipes/boundary/katakana-purity-boundary.test.ts`.
+The rule is documented, not test-enforced — readers police it the same
+way they police any other architectural convention in the codebase.
 
 ### kata 型 — form
 
@@ -102,7 +103,6 @@ Pinned by tests under `__tests__/`:
 | `recipes/boundary/recipe-boundary.test.ts` | Barrel is types-only; `package.json` `exports` excludes `./recipes`. |
 | `recipes/boundary/kiso-boundary.test.ts` | kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, providers. |
 | `recipes/boundary/kata-boundary.test.ts` | `defineRecipe` invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`. |
-| `recipes/boundary/katakana-purity-boundary.test.ts` | katakana files contain no literal Tailwind class strings. |
 | `recipes/boundary/spacing-boundary.test.ts` | Raw `calc(--spacing(...))` confined to kasane and an allowlist. |
 | `recipes/boundary/affix-compensation-boundary.test.ts` | Affix padding compensation formula across density steps. |
 | `components/boundary/component-recipe-boundary.test.ts` | Components import recipe values only via `recipes/kata/<name>`. |

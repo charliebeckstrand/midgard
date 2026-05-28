@@ -11,7 +11,7 @@ import { affix } from './affix'
 import { check } from './check'
 import { density } from './density'
 import { frame } from './frame'
-import { input } from './input'
+import { input, inputBase } from './input'
 import { resets } from './resets'
 import { size } from './size'
 import { surface } from './surface'
@@ -20,6 +20,7 @@ export const control = {
 	frame,
 	surface,
 	input,
+	inputBase,
 	density,
 	size,
 	affix,

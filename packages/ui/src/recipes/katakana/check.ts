@@ -27,19 +27,13 @@
  */
 
 import { defineApplicator, defineRecipe } from '../../core/recipe'
-import { hannou, sen } from '../kiso'
+import { hannou } from '../kiso'
 import { control as controlFragments } from '../kiso/control'
 
 const { check: checkFragments } = controlFragments
 
 const standardConfig = {
-	base: [
-		'relative',
-		'inline-flex items-center justify-center',
-		sen.focus.outline,
-		...hannou.cursor,
-		...checkFragments.surface,
-	],
+	base: checkFragments.base,
 	defaults: { color: 'zinc', size: 'md' },
 }
 

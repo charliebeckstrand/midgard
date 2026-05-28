@@ -31,10 +31,10 @@ import {
 } from '../../core/recipe'
 import { control as controlFragments } from '../kiso/control'
 
-const { input, density, size, surface, affix, resets } = controlFragments
+const { inputBase, density, size, surface, affix, resets } = controlFragments
 
 const standardConfig = {
-	base: [...input, 'rounded-lg'],
+	base: inputBase,
 	variant: {
 		default: [],
 		outline: [],

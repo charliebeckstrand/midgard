@@ -262,6 +262,20 @@ const gx = (v: GapStop) => gxStops[v]
 
 const gy = (v: GapStop) => gyStops[v]
 
+/**
+ * Named-radius aliases — pass-through to Tailwind's named radius scale.
+ * Distinct from `r(v)` / `radius(v)`, which take numeric `--spacing(n)`
+ * stops; the named scale lives here so kata and katakana can reach common
+ * corner-rounding by name (`kasane.rounded.lg`) instead of inlining
+ * `'rounded-lg'`.
+ */
+const rounded = {
+	sm: 'rounded-sm',
+	md: 'rounded-md',
+	lg: 'rounded-lg',
+	full: 'rounded-full',
+} as const
+
 export const kasane = {
 	base,
 	inset,
@@ -279,6 +293,7 @@ export const kasane = {
 	ri,
 	ro,
 	radius,
+	rounded,
 	g,
 	gx,
 	gy,
