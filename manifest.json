@@ -25,6 +25,9 @@
 				"build": "next build",
 				"dev": "next dev --port 3000 --turbopack"
 			},
+			"pathAliases": {
+				"@/*": "app/*"
+			},
 			"componentsDir": null,
 			"primitivesDir": null,
 			"hooksDir": null,
@@ -47,6 +50,9 @@
 				"check-types": null,
 				"build": "tsup",
 				"dev": "tsup --watch"
+			},
+			"pathAliases": {
+				"@/*": "src/*"
 			},
 			"componentsDir": null,
 			"primitivesDir": null,
@@ -71,6 +77,9 @@
 				"build": "tsup",
 				"dev": "tsup --watch"
 			},
+			"pathAliases": {
+				"@/*": "src/*"
+			},
 			"componentsDir": null,
 			"primitivesDir": null,
 			"hooksDir": null,
@@ -93,6 +102,9 @@
 				"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
 				"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
 				"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait"
+			},
+			"pathAliases": {
+				"@/*": "src/*"
 			},
 			"componentsDir": "src/components",
 			"primitivesDir": "src/primitives",
@@ -141,41 +153,7 @@
 			"kata": "Internal per-component recipe layer (型 — form) under packages/ui/src/recipes/kata/ — every file exports the primary recipe as `k`. Imported via relative paths, deliberately not in package.json exports.",
 			"Manifest": "Canonical project profile at ./manifest.json produced by /repo:manifest and consumed by every other skill.",
 			"Brief": "Output of /deliberate — a precise problem statement synthesized from ABCD-style answers to dimension gaps."
-		},
-		"mandatorySkills": [
-			{
-				"skill": "/repo:manifest",
-				"trigger": "./manifest.json is missing or invalidated (every other skill stops with this instruction when absent)"
-			},
-			{
-				"skill": "/deliberate",
-				"trigger": "request is a fuzzy idea from which no concrete proposal can be formed"
-			},
-			{
-				"skill": "/orator",
-				"trigger": "prose changed — docs, comments, README, or user-facing copy; invoked first in /postmortem's prose chain and listed in CLAUDE.md § Quality check"
-			},
-			{
-				"skill": "/postmortem",
-				"trigger": "before declaring work done — must return PROCEED, or every chained downstream skill must return PASS"
-			},
-			{
-				"skill": "/ui:component:compose",
-				"trigger": "scaffolding a new UI component in packages/ui — canonical source for [layout-heuristics] and [framework-discipline]"
-			},
-			{
-				"skill": "/tests:compose",
-				"trigger": "writing tests for components, hooks, utilities, or modules"
-			},
-			{
-				"skill": "/typescript:format",
-				"trigger": "after any session that touched .ts / .tsx — invoked first in /postmortem's chain and listed in CLAUDE.md § Quality check as the per-session format gate"
-			},
-			{
-				"skill": "/typescript:review",
-				"trigger": "only via /postmortem (diff mode) or /ui:component:compose & /tests:compose (file mode) — do not invoke directly outside those paths unless explicitly asked"
-			}
-		]
+		}
 	},
 	"notes": [
 		"Both .husky/ and lefthook.yml are present; lefthook is the active tool (root package.json `prepare` script runs `lefthook install`).",
