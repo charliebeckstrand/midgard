@@ -4,8 +4,8 @@ import { panel } from '../kiso/panel'
 export const k = {
 	bg: {
 		none: 'bg-transparent',
-		surface: omote.surface,
-		tint: omote.tint,
+		surface: omote.bg.surface,
+		tint: omote.bg.tint,
 		panel: panel.surface.bg,
 		popover: omote.popover,
 		glass: omote.glass,

@@ -4,9 +4,9 @@ import { iro, ji, narabi } from '../kiso'
 const label = defineRecipe({
 	base: [...iro.text.muted, ji.weight.medium],
 	size: {
-		sm: ji.xs,
-		md: ji.sm,
-		lg: ji.md,
+		sm: ji.size.xs,
+		md: ji.size.sm,
+		lg: ji.size.md,
 	},
 	defaults: { size: 'md' },
 })
@@ -14,15 +14,15 @@ const label = defineRecipe({
 const value = defineRecipe({
 	base: [ji.weight.semibold, 'tracking-tight tabular-nums', ...iro.text.default],
 	size: {
-		sm: ji['2xl'],
-		md: ji['3xl'],
-		lg: ji['4xl'],
+		sm: ji.size['2xl'],
+		md: ji.size['3xl'],
+		lg: ji.size['4xl'],
 	},
 	defaults: { size: 'md' },
 })
 
 const delta = defineRecipe({
-	base: [narabi.inlineRow, ji.sm, 'gap-1', ji.weight.medium, 'tabular-nums'],
+	base: [narabi.inlineRow, ji.size.sm, 'gap-1', ji.weight.medium, 'tabular-nums'],
 	trend: {
 		up: mode('text-green-600', 'dark:text-green-500'),
 		down: mode('text-red-600', 'dark:text-red-500'),
@@ -64,7 +64,7 @@ export const k = defineRecipe(
 	{
 		base: [narabi.col, 'justify-center', 'h-full', 'gap-1'],
 		slots: {
-			description: [ji.sm, ...iro.text.muted],
+			description: [ji.size.sm, ...iro.text.muted],
 		},
 		skeleton,
 	},

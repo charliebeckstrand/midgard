@@ -46,9 +46,9 @@ const pickerGrid = defineRecipe({
 const weekday = defineRecipe({
 	base: [narabi.row, 'justify-center', 'w-full aspect-square', ji.weight.medium, iro.text.muted],
 	size: {
-		sm: ji.xs,
-		md: ji.sm,
-		lg: ji.md,
+		sm: ji.size.xs,
+		md: ji.size.sm,
+		lg: ji.size.md,
 	},
 	defaults: { size: 'md' },
 })

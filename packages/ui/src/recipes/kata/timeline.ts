@@ -61,7 +61,7 @@ const item = defineRecipe({
 })
 
 const title = defineRecipe({
-	base: [ji.weight.semibold, ji.lg, ...iro.text.default],
+	base: [ji.weight.semibold, ji.size.lg, ...iro.text.default],
 	orientation: {
 		vertical: 'col-start-2 row-start-1',
 		horizontal: 'order-1',
@@ -70,7 +70,7 @@ const title = defineRecipe({
 })
 
 const description = defineRecipe({
-	base: [ji.md],
+	base: [ji.size.md],
 	orientation: {
 		vertical: 'col-start-2 row-start-2',
 		horizontal: 'order-2',
@@ -79,7 +79,7 @@ const description = defineRecipe({
 })
 
 const timestamp = defineRecipe({
-	base: [ji.sm, ...iro.text.muted],
+	base: [ji.size.sm, ...iro.text.muted],
 	orientation: {
 		vertical: 'col-start-2 row-start-3 mt-1',
 		horizontal: 'order-3 mt-1',

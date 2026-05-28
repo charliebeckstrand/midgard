@@ -26,8 +26,8 @@ export const item = {
 		...hannou.cursor,
 	],
 	size: {
-		sm: [ji.xs, 'px-2.5 py-1'],
-		md: [ji.sm, 'px-3 py-1.5'],
-		lg: [ji.md, 'px-4 py-2'],
+		sm: [ji.size.xs, 'px-2.5 py-1'],
+		md: [ji.size.sm, 'px-3 py-1.5'],
+		lg: [ji.size.md, 'px-4 py-2'],
 	},
 } as const

@@ -197,7 +197,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// Card size "lg" → CardTitle bumps to ji.xl = 'text-xl'
+		// Card size "lg" → CardTitle bumps to ji.size.xl = 'text-xl'
 		expect(bySlot(container, 'card-title')?.className).toContain('text-xl')
 	})
 
@@ -208,7 +208,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// CardTitle size "sm" → bumps to ji.md = 'text-base'
+		// CardTitle size "sm" → bumps to ji.size.md = 'text-base'
 		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
 	})
 
@@ -221,7 +221,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// sun.sm.text = 'sm' → ji.sm = 'text-sm'
+		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 

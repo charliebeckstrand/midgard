@@ -12,7 +12,7 @@ const button = defineRecipe({
 		'justify-center',
 		'min-w-9',
 		'p-2',
-		ji.sm,
+		ji.size.sm,
 		ji.weight.medium,
 		kasane.rounded.lg,
 		sen.focus.ring,
@@ -26,7 +26,14 @@ const button = defineRecipe({
 })
 
 const gap = defineRecipe({
-	base: [narabi.inlineRow, 'justify-center', 'min-w-9', ji.sm, ...iro.text.muted, 'select-none'],
+	base: [
+		narabi.inlineRow,
+		'justify-center',
+		'min-w-9',
+		ji.size.sm,
+		...iro.text.muted,
+		'select-none',
+	],
 })
 
 export const k = defineRecipe(

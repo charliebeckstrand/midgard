@@ -17,16 +17,16 @@ const itemBase = [
 	narabi.row,
 	'gap-2',
 	'gap-y-0',
-	ji.md,
+	ji.size.md,
 	iro.text.default,
 	sen.focus.inset,
 ]
 
 const itemVariant = {
-	separated: ['p-3', ...omote.surface, sen.border.default, kasane.rounded.lg],
+	separated: ['p-3', ...omote.bg.surface, sen.border.default, kasane.rounded.lg],
 	outline: ['p-3'],
 	plain: ['px-2', 'py-1.5'],
-	solid: ['p-3', ...omote.tint, sen.border.default, kasane.rounded.lg],
+	solid: ['p-3', ...omote.bg.tint, sen.border.default, kasane.rounded.lg],
 } satisfies Record<ListVariant, unknown>
 
 export const k = {
@@ -34,7 +34,7 @@ export const k = {
 	root: (variant: ListVariant = 'separated') => [...rootBase, ...rootVariant[variant]],
 	horizontal: 'flex-row',
 	item: (variant: ListVariant = 'separated') => [...itemBase, ...itemVariant[variant]],
-	itemActive: ['z-10 relative', ...omote.surface, kasane.rounded.md],
+	itemActive: ['z-10 relative', ...omote.bg.surface, kasane.rounded.md],
 	itemLifted: sen.focus.lifted,
 	handle: [
 		narabi.inlineRow,
@@ -50,5 +50,5 @@ export const k = {
 	],
 	content: 'flex flex-col flex-1 min-w-0',
 	label: 'min-w-0 truncate',
-	description: ['min-w-0 truncate', ji.sm, iro.text.muted],
+	description: ['min-w-0 truncate', ji.size.sm, iro.text.muted],
 } as const

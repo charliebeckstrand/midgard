@@ -14,7 +14,7 @@ export const k = {
 		'absolute inset-0',
 		narabi.row,
 		'justify-center',
-		ji.sm,
+		ji.size.sm,
 		iro.text.muted,
 		'pointer-events-none',
 	],

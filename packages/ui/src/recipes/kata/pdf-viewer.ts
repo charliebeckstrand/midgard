@@ -2,7 +2,7 @@ import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen } from '../kiso'
 
 export const k = {
-	base: ['relative', narabi.col, 'overflow-hidden', omote.surface, sen.border.default],
+	base: ['relative', narabi.col, 'overflow-hidden', omote.bg.surface, sen.border.default],
 	toolbar: [
 		'flex flex-nowrap items-center justify-between',
 		'overflow-x-auto',
@@ -13,7 +13,7 @@ export const k = {
 		'shrink-0',
 	],
 	toolbarSection: [narabi.row, 'shrink-0', 'gap-1'],
-	pageStatus: [ji.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
+	pageStatus: [ji.size.sm, iro.text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	body: ['flex flex-1 min-h-0'],
 	sidebar: [
 		narabi.col,
@@ -28,7 +28,7 @@ export const k = {
 		narabi.row,
 		'gap-1',
 		'px-3 py-2',
-		ji.md,
+		ji.size.md,
 		iro.text.muted,
 		ji.weight.semibold,
 		'shrink-0',
@@ -58,10 +58,10 @@ export const k = {
 		'group-data-current/thumb:hover:opacity-100',
 	],
 	thumbnailImage: ['block w-full h-full object-contain'],
-	thumbnailFallback: [narabi.row, 'justify-center', 'h-full w-full', ji.sm, iro.text.muted],
+	thumbnailFallback: [narabi.row, 'justify-center', 'h-full w-full', ji.size.sm, iro.text.muted],
 	thumbnailPlaceholder: ['block w-full aspect-[3/4]', omote.skeleton],
 	thumbnailLabel: [
-		ji.sm,
+		ji.size.sm,
 		iro.text.muted,
 		...mode('group-data-current/thumb:text-zinc-950', 'dark:group-data-current/thumb:text-white'),
 		'tabular-nums select-none',
@@ -77,5 +77,5 @@ export const k = {
 	pageFrame: ['relative shrink-0'],
 	page: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 	pagePlaceholder: ['w-full h-full', omote.skeleton],
-	pageEmpty: [narabi.row, 'justify-center', 'w-full h-full', 'py-2', ji.sm, iro.text.muted],
+	pageEmpty: [narabi.row, 'justify-center', 'w-full h-full', 'py-2', ji.size.sm, iro.text.muted],
 } as const

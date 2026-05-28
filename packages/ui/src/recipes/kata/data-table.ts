@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 export const k = {
 	wrapper: ['relative', narabi.col, 'gap-2'],
 	stickyWrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
-	stickyHead: ['sticky top-0 z-10', omote.surface],
+	stickyHead: ['sticky top-0 z-10', omote.bg.surface],
 	batchBar: [
 		narabi.row,
 		'min-h-12',
@@ -13,9 +13,9 @@ export const k = {
 		sen.border.subtle,
 		kasane.rounded.lg,
 		'border-b',
-		omote.tint,
+		omote.bg.tint,
 	],
-	batchCount: [ji.weight.medium, 'whitespace-nowrap', ji.sm, iro.text.muted],
+	batchCount: [ji.weight.medium, 'whitespace-nowrap', ji.size.sm, iro.text.muted],
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
 	sortButton: [

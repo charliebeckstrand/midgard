@@ -6,7 +6,7 @@ export const k = {
 		narabi.col,
 		'items-center justify-center',
 		'gap-1',
-		ji.md,
+		ji.size.md,
 		iro.text.muted,
 		kasane.rounded.lg,
 		sen.focus.ring,

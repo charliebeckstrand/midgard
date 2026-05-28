@@ -19,9 +19,9 @@ const itemContent = defineRecipe(
 			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
 		],
 		size: {
-			sm: ji.sm,
-			md: ji.md,
-			lg: ji.lg,
+			sm: ji.size.sm,
+			md: ji.size.md,
+			lg: ji.size.lg,
 		},
 		defaults: { size: 'md' },
 	},

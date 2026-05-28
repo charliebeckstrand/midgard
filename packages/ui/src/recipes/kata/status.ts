@@ -5,7 +5,7 @@ export const k = defineRecipe({
 	base: ['inline-block', kasane.rounded.full],
 	variant: {
 		solid: 'bg-current',
-		outline: ['border-2 border-current', ...omote.surface],
+		outline: ['border-2 border-current', ...omote.bg.surface],
 	},
 	status: {
 		inactive: mode('text-zinc-300', 'dark:text-zinc-400'),

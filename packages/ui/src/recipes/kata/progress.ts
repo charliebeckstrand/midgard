@@ -61,10 +61,10 @@ const root = defineRecipe({
 const label = defineRecipe({
 	base: ['absolute', ji.weight.semibold, ...iro.text.default],
 	size: {
-		sm: ji.xs,
-		md: ji.sm,
-		lg: ji.md,
-		xl: ji.lg,
+		sm: ji.size.xs,
+		md: ji.size.sm,
+		lg: ji.size.md,
+		xl: ji.size.lg,
 	},
 	defaults: { size: 'md' },
 })

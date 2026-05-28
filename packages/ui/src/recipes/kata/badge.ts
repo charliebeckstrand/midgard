@@ -9,10 +9,10 @@ export const k = defineRecipe({
 		outline: 'ring-1 ring-inset',
 	},
 	size: {
-		xs: [ji.xs, shaku.icon.xs, kasane.g('0.5'), kasane.py('0.75'), kasane.px('1.5')],
-		sm: [ji.sm, shaku.icon.sm, kasane.g('0.5'), kasane.py('1'), kasane.px('2')],
-		md: [ji.md, shaku.icon.md, kasane.g('0.75'), kasane.py('1.25'), kasane.px('2.5')],
-		lg: [ji.lg, shaku.icon.lg, kasane.g('0.75'), kasane.py('1.5'), kasane.px('3')],
+		xs: [ji.size.xs, shaku.icon.xs, kasane.g('0.5'), kasane.py('0.75'), kasane.px('1.5')],
+		sm: [ji.size.sm, shaku.icon.sm, kasane.g('0.5'), kasane.py('1'), kasane.px('2')],
+		md: [ji.size.md, shaku.icon.md, kasane.g('0.75'), kasane.py('1.25'), kasane.px('2.5')],
+		lg: [ji.size.lg, shaku.icon.lg, kasane.g('0.75'), kasane.py('1.5'), kasane.px('3')],
 	},
 	rounded: {
 		...kasane.rounded,

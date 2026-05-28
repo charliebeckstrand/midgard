@@ -4,9 +4,9 @@ import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
 const item = defineRecipe({
 	base: [...hannou.nav, ...hannou.cursor, 'group relative', narabi.row, 'w-full', 'text-left'],
 	size: {
-		sm: [ji.sm, kasane.g('1.5'), kasane.p('1.5'), kasane.r('1.5'), shaku.icon.sm],
-		md: [ji.md, kasane.g('2'), kasane.p('2'), kasane.r('2'), shaku.icon.md],
-		lg: [ji.lg, kasane.g('2.5'), kasane.p('2.5'), kasane.r('2.5'), shaku.icon.lg],
+		sm: [ji.size.sm, kasane.g('1.5'), kasane.p('1.5'), kasane.r('1.5'), shaku.icon.sm],
+		md: [ji.size.md, kasane.g('2'), kasane.p('2'), kasane.r('2'), shaku.icon.md],
+		lg: [ji.size.lg, kasane.g('2.5'), kasane.p('2.5'), kasane.r('2.5'), shaku.icon.lg],
 	},
 	defaults: { size: 'md' },
 })

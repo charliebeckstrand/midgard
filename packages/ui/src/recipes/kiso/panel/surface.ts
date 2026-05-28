@@ -16,7 +16,7 @@ export const surface = {
 	/** Background fill only. */
 	bg,
 	/** Chrome only — ring + shadow + forced-colour outline, no fill. */
-	chrome: [sen.ring, sen.forced.outline],
+	chrome: [sen.ring.default, sen.forced.outline],
 	/** Fill + chrome, everything a floating panel needs. */
-	base: [sen.ring, sen.forced.outline, ...bg],
+	base: [sen.ring.default, sen.forced.outline, ...bg],
 } as const

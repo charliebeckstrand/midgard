@@ -14,9 +14,9 @@ const base = [
 ]
 
 const size = {
-	sm: ['gap-2 px-2 py-1', ji.sm],
-	md: ['gap-3 px-2.5 py-1.5', ji.md],
-	lg: ['gap-3 px-3 py-2.5', ji.lg],
+	sm: ['gap-2 px-2 py-1', ji.size.sm],
+	md: ['gap-3 px-2.5 py-1.5', ji.size.md],
+	lg: ['gap-3 px-3 py-2.5', ji.size.lg],
 } as const
 
 export const k = {

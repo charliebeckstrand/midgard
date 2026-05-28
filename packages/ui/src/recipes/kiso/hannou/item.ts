@@ -22,7 +22,7 @@ export const item = [
 	kasane.rounded.lg,
 	'outline-hidden',
 	iro.text.default,
-	ji.md,
+	ji.size.md,
 	sen.forced.text,
 	sen.forced.focus,
 	disabled,

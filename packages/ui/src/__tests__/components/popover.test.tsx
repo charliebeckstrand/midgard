@@ -121,7 +121,7 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		// sun.sm.text = 'sm' → ji.sm = 'text-sm'
+		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(buttonInPopover()?.className).toContain('text-sm')
 	})
 

@@ -12,6 +12,6 @@ export const k = {
 	],
 	rule: ['p-2', sen.border.default, kasane.rounded.lg],
 	rowRemove: 'flex-none',
-	separator: [ji.xs, ji.weight.medium, ...iro.text.muted, 'uppercase'],
+	separator: [ji.size.xs, ji.weight.medium, ...iro.text.muted, 'uppercase'],
 	actions: 'flex items-center gap-2',
 } as const

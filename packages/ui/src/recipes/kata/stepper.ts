@@ -20,7 +20,12 @@ const step = defineRecipe({
 })
 
 const title = defineRecipe({
-	base: [ji.sm, ji.weight.medium, ji.leading.none, ...mode('text-zinc-400', 'dark:text-zinc-600')],
+	base: [
+		ji.size.sm,
+		ji.weight.medium,
+		ji.leading.none,
+		...mode('text-zinc-400', 'dark:text-zinc-600'),
+	],
 	orientation: {
 		horizontal: 'mt-2',
 		vertical: '',
@@ -66,7 +71,7 @@ export const k = {
 		],
 		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 	},
-	description: [ji.sm, ...iro.text.muted],
+	description: [ji.size.sm, ...iro.text.muted],
 } as const
 
 export type StepperVariants = VariantProps<typeof root>

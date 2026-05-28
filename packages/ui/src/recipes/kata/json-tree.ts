@@ -17,7 +17,7 @@ const row = [
 	'w-full',
 	'gap-1',
 	'py-0.5',
-	ji.sm,
+	ji.size.sm,
 	kasane.rounded.lg,
 	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-600/30'),
 ]

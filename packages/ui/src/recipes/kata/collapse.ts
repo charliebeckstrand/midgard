@@ -6,7 +6,7 @@ export const k = {
 	trigger: [
 		narabi.inlineRow,
 		'gap-2',
-		ji.md,
+		ji.size.md,
 		iro.text.muted,
 		hannou.text.hover,
 		...mode(

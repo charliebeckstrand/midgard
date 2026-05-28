@@ -9,7 +9,7 @@ const radius = {
 
 const title = defineRecipe({
 	base: ji.weight.semibold,
-	size: { sm: ji.md, md: ji.lg, lg: ji.xl },
+	size: { sm: ji.size.md, md: ji.size.lg, lg: ji.size.xl },
 	defaults: { size: 'md' },
 })
 
@@ -18,5 +18,5 @@ export const k = {
 	radius,
 	header: iro.text.default,
 	title,
-	description: [ji.sm, iro.text.muted],
+	description: [ji.size.sm, iro.text.muted],
 } as const

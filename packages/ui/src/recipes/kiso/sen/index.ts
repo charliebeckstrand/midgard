@@ -10,13 +10,12 @@ import { divider } from './divider'
 import { focus } from './focus'
 import { forced } from './forced'
 import { outline } from './outline'
-import { ring, ringInset } from './ring'
+import { ring } from './ring'
 
 export const sen = {
 	border,
 	outline,
 	ring,
-	ringInset,
 	divider,
 	focus,
 	forced,

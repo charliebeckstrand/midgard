@@ -4,7 +4,7 @@ import { iro, ji, kasane, narabi } from '../kiso'
 const { solid, soft, outline, plain } = iro.palette
 
 export const k = defineRecipe({
-	base: [narabi.row, 'w-fit', 'p-4', 'gap-2', kasane.rounded.lg, ji.md],
+	base: [narabi.row, 'w-fit', 'p-4', 'gap-2', kasane.rounded.lg, ji.size.md],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
@@ -16,7 +16,7 @@ export const k = defineRecipe({
 	}),
 	slots: {
 		icon: 'shrink-0 self-center',
-		title: [ji.lg, ji.leading.tight, ji.weight.semibold],
+		title: [ji.size.lg, ji.leading.tight, ji.weight.semibold],
 		description: [ji.leading.tight, 'col-start-2'],
 		content: [narabi.fill, 'min-w-0', 'gap-3'],
 		body: 'col-start-2',

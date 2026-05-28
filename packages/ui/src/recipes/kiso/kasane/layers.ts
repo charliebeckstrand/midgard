@@ -13,7 +13,7 @@ import { mode } from '../../../core/recipe'
 
 /**
  * Base ring that the layers are applied on top of. The ring uses solid
- * colours (not translucent like `sen.ringInset`) so adjacent rings in a
+ * colours (not translucent like `sen.ring.inset`) so adjacent rings in a
  * group can overlap by 1 px without alpha-stacking into a darker line at
  * the join. Radius is not bundled — composers add `radius(v)` (or `r(v)`
  * for the outer-only case) so corner rounding can track each component's

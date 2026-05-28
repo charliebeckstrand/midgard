@@ -14,7 +14,7 @@ const segment = defineRecipe({
 })
 
 const label = defineRecipe({
-	base: [ji.sm, ji.weight.medium],
+	base: [ji.size.sm, ji.weight.medium],
 	level: {
 		weak: iro.text.error,
 		fair: iro.text.warning,
@@ -31,7 +31,7 @@ export const k = {
 	segment,
 	label,
 	rules: [narabi.col, 'gap-0.5'],
-	rule: [narabi.inlineRow, 'gap-1', ji.sm],
+	rule: [narabi.inlineRow, 'gap-1', ji.size.sm],
 	ruleIcon: 'size-4 shrink-0',
 	ruleIconPass: iro.palette.bare.text.green,
 	ruleIconFail: iro.text.muted,

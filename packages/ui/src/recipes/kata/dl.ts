@@ -2,7 +2,7 @@ import { defineRecipe } from '../../core/recipe'
 import { iro, ji, narabi, sen } from '../kiso'
 
 const root = defineRecipe({
-	base: ji.sm,
+	base: ji.size.sm,
 	orientation: {
 		horizontal: 'grid grid-cols-1 sm:grid-cols-[min(50%,--spacing(56))_auto]',
 		vertical: narabi.col,

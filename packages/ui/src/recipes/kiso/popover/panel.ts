@@ -27,6 +27,6 @@ export const panel = {
 	],
 	surface: omote.popover,
 	glass: omote.glass,
-	ring: sen.ring,
+	ring: sen.ring.default,
 	motion: ugoki.popover,
 } as const

@@ -8,7 +8,7 @@
 import { ji } from '../ji'
 
 export const size = {
-	sm: ji.sm,
-	md: ji.md,
-	lg: ji.lg,
+	sm: ji.size.sm,
+	md: ji.size.md,
+	lg: ji.size.lg,
 } as const

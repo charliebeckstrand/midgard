@@ -1,7 +1,9 @@
 /**
- * Omote (面) — surfaces. Named surface fills and generic chromes that
- * apply across the design system. One file per concern; this barrel
- * assembles the named bundle that every kata reads.
+ * Omote (面) — surfaces. `bg` carries the raw fills (`bg.surface`,
+ * `bg.tint`, `bg.popover`, `bg.skeleton`, `bg.backdrop`); the other
+ * keys carry the composed chromes that wrap a fill with ring / blur /
+ * pulse / etc. One file per concern; this barrel assembles the named
+ * bundle that every kata reads.
  */
 
 import { backdrop } from './backdrop'
@@ -11,17 +13,13 @@ import { content } from './content'
 import { glass } from './glass'
 import { popover } from './popover'
 import { skeleton } from './skeleton'
-import { surface } from './surface'
-import { tint } from './tint'
 
 export const omote = {
 	bg,
-	surface,
 	popover,
 	glass,
 	backdrop,
 	content,
-	tint,
 	skeleton,
 	blur,
 } as const

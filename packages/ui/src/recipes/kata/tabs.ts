@@ -38,9 +38,9 @@ const tab = defineRecipe({
 		vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
 	},
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
 	compound: [
 		{ orientation: 'horizontal', size: 'sm', class: 'px-1 pb-3' },

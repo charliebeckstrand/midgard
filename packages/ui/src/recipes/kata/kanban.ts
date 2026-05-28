@@ -15,10 +15,10 @@ export const k = {
 			kasane.rounded.lg,
 		],
 		over: '',
-		header: [narabi.row, 'gap-2', ji.md, iro.text.default, ji.weight.semibold],
+		header: [narabi.row, 'gap-2', ji.size.md, iro.text.default, ji.weight.semibold],
 		title: [narabi.fill, 'min-w-0 truncate'],
 		body: [narabi.col, narabi.fill, 'gap-1', 'overflow-y-auto'],
-		empty: [narabi.row, 'justify-center', 'min-h-16', ji.sm, iro.text.muted],
+		empty: [narabi.row, 'justify-center', 'min-h-16', ji.size.sm, iro.text.muted],
 	},
 	card: {
 		base: [
@@ -28,7 +28,7 @@ export const k = {
 			'p-2',
 			...mode('bg-white', 'dark:bg-zinc-950'),
 			sen.border.default,
-			ji.sm,
+			ji.size.sm,
 			iro.text.default,
 			kasane.rounded.md,
 			'transition-shadow',

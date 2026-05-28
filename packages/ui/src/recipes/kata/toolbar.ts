@@ -10,7 +10,7 @@ const root = defineRecipe({
 	variant: {
 		plain: '',
 		outline: [...sen.border.default, kasane.rounded.lg, 'p-1'],
-		solid: [...omote.tint, 'border border-transparent', kasane.rounded.lg, 'p-1'],
+		solid: [...omote.bg.tint, 'border border-transparent', kasane.rounded.lg, 'p-1'],
 	},
 	defaults: { orientation: 'horizontal', variant: 'plain' },
 })

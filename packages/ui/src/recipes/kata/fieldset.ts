@@ -11,9 +11,9 @@ const label = defineRecipe({
 		hannou.disabled,
 	],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
 	defaults: { size: 'md' },
 })
@@ -21,9 +21,9 @@ const label = defineRecipe({
 const description = defineRecipe({
 	base: [iro.text.muted, hannou.disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
 	defaults: { size: 'md' },
 })
@@ -31,9 +31,9 @@ const description = defineRecipe({
 const message = defineRecipe({
 	base: [hannou.disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
 	variant: {
 		error: iro.text.error,
@@ -45,9 +45,9 @@ const message = defineRecipe({
 const legend = defineRecipe({
 	base: [ji.weight.semibold, iro.text.default, hannou.disabled],
 	size: {
-		sm: ji.sm,
-		md: ji.md,
-		lg: ji.lg,
+		sm: ji.size.sm,
+		md: ji.size.md,
+		lg: ji.size.lg,
 	},
 	defaults: { size: 'md' },
 })

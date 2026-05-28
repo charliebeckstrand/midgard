@@ -45,7 +45,7 @@ const color = defineColors({
 	},
 })
 
-const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ringInset]
+const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...sen.ring.inset]
 
 const field = defineRecipe({
 	base: [...narabi.toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
