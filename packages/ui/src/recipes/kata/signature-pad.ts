@@ -14,7 +14,7 @@ export const k = {
 		border.default,
 		rounded.lg,
 		focus.ring,
-		disabled,
+		...disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
 	placeholder: [
