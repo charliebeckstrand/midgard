@@ -2,20 +2,23 @@ import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
 import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { solid, soft, outline } = iro.palette
+const { rounded } = kasane.radius
+const { row } = narabi
+const { avatar } = shaku
 
 export const k = defineRecipe(
 	{
 		base: [
 			'inline-grid place-items-center align-middle overflow-hidden',
 			'*:col-start-1 *:row-start-1',
-			kasane.radius.rounded.full,
+			rounded.full,
 		],
 		variant: {
 			solid: 'border border-transparent text-white',
 			soft: 'border border-transparent',
 			outline: 'border',
 		},
-		size: shaku.avatar,
+		size: avatar,
 		palette: palette({
 			solid: [solid.bg, solid.text],
 			soft: [soft.bg, soft.text],
@@ -29,7 +32,7 @@ export const k = defineRecipe(
 		image: 'size-full object-cover',
 		/** Avatar-group container classes. */
 		group: {
-			base: narabi.row,
+			base: row,
 			ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
 			spacing: {
 				sm: '-space-x-1.5',
