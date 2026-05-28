@@ -1,10 +1,11 @@
-import { hannou, iro, ji, omote, sen } from '../kiso'
+import { mode } from '../../core/recipe'
+import { hannou, iro, ji, kasane, omote, sen } from '../kiso'
 
 export const k = {
 	base: [
 		'sticky inset-x-0 bottom-0 z-40',
 		'flex items-stretch justify-around',
-		sen.divider,
+		sen.divider.top,
 		omote.surface,
 	],
 	item: [
@@ -15,7 +16,7 @@ export const k = {
 		ji.sm,
 		iro.text.muted,
 		hannou.text.hover,
-		'font-medium',
+		ji.weight.medium,
 		sen.focus.inset,
 		...hannou.cursor,
 	],
@@ -23,8 +24,7 @@ export const k = {
 	indicator: [
 		'inset-x-4 bottom-auto top-0',
 		'h-0.5',
-		'rounded-full',
-		'bg-zinc-950',
-		'dark:bg-white',
+		...mode('bg-zinc-950', 'dark:bg-white'),
+		kasane.rounded.full,
 	],
-}
+} as const

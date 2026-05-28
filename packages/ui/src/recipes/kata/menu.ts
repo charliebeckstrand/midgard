@@ -19,5 +19,5 @@ export const k = {
 	label: 'truncate',
 	description: [narabi.description, iro.text.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',
-	separator: sen.divider,
+	separator: sen.divider.top,
 }

@@ -1,10 +1,10 @@
 import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, kokkaku, shaku } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
 
 export const k = defineRecipe({
-	base: ['group', 'inline-flex w-fit items-center', 'font-medium'],
+	base: ['group', narabi.inlineRow, 'w-fit', ji.weight.medium],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
@@ -15,12 +15,9 @@ export const k = defineRecipe({
 		lg: [ji.lg, shaku.icon.lg, kasane.g('0.75'), kasane.py('1.5'), kasane.px('3')],
 	},
 	rounded: {
+		...kasane.rounded,
 		none: 'rounded-none',
-		sm: 'rounded-sm',
-		md: 'rounded-md',
-		lg: 'rounded-lg',
 		xl: 'rounded-xl',
-		full: 'rounded-full',
 	},
 	palette: palette({
 		solid: [solid.bg, solid.text],

@@ -1,5 +1,5 @@
 import { defineRecipe, merge, palette, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, sen, shaku, tsunagi, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, tsunagi, ugoki } from '../kiso'
 
 const { solid, soft, outline, plain, bare } = iro.palette
 
@@ -18,8 +18,10 @@ export const k = defineRecipe(
 	{
 		base: [
 			'relative isolate',
-			'inline-flex items-center justify-center',
-			'w-fit shrink-0 font-semibold',
+			narabi.inlineRow,
+			'justify-center',
+			'w-fit shrink-0',
+			ji.weight.semibold,
 			sen.focus.inset,
 			...hannou.disabled,
 			...hannou.cursor,

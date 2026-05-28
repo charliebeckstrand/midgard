@@ -1,5 +1,5 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, sen, ugoki } from '../kiso'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const item = defineRecipe({
 	base: [
@@ -9,7 +9,7 @@ const item = defineRecipe({
 		'has-[[data-slot=accordion-trigger]:focus-visible]:ring-inset',
 	],
 	variant: {
-		separated: ['overflow-hidden', 'rounded-lg', ...sen.border.default],
+		separated: ['overflow-hidden', kasane.rounded.lg, ...sen.border.default],
 		outline: ['first:rounded-t-[inherit]', 'last:rounded-b-[inherit]'],
 		plain: '',
 	},
@@ -18,29 +18,33 @@ const item = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: 'flex flex-col',
+		base: narabi.col,
 		variant: {
 			separated: 'gap-1',
 			outline: [
 				'overflow-hidden',
-				'rounded-lg',
+				kasane.rounded.lg,
 				...sen.border.default,
-				'divide-y divide-zinc-950/10',
-				'dark:divide-white/10',
+				...sen.divider.between,
 			],
-			plain: ['divide-y divide-zinc-950/10', 'dark:divide-white/10'],
+			plain: sen.divider.between,
 		},
 		slots: {
 			trigger: [
-				'w-full flex items-center justify-between',
+				'w-full',
+				narabi.row,
+				'justify-between',
 				'gap-2',
 				'p-4',
 				ji.md,
 				iro.text.muted,
 				hannou.text.hover,
-				'text-left font-medium',
-				'group-data-[open]/accordion-item:text-zinc-950',
-				'dark:group-data-[open]/accordion-item:text-white',
+				'text-left',
+				ji.weight.medium,
+				...mode(
+					'group-data-[open]/accordion-item:text-zinc-950',
+					'dark:group-data-[open]/accordion-item:text-white',
+				),
 				'focus-visible:outline-none',
 				...hannou.disabled,
 				...hannou.cursor,

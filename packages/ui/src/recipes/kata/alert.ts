@@ -1,10 +1,10 @@
 import { defineRecipe, palette, type VariantProps } from '../../core/recipe'
-import { iro, ji } from '../kiso'
+import { iro, ji, kasane, narabi } from '../kiso'
 
 const { solid, soft, outline, plain } = iro.palette
 
 export const k = defineRecipe({
-	base: ['flex w-fit items-center', 'p-4', 'gap-2', ji.md, 'rounded-lg'],
+	base: [narabi.row, 'w-fit', 'p-4', 'gap-2', kasane.rounded.lg, ji.md],
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
@@ -16,11 +16,11 @@ export const k = defineRecipe({
 	}),
 	slots: {
 		icon: 'shrink-0 self-center',
-		title: [ji.lg, 'leading-tight font-semibold'],
-		description: ['leading-tight', 'col-start-2'],
-		content: ['flex-1 min-w-0', 'gap-3'],
+		title: [ji.lg, ji.leading.tight, ji.weight.semibold],
+		description: [ji.leading.tight, 'col-start-2'],
+		content: [narabi.fill, 'min-w-0', 'gap-3'],
 		body: 'col-start-2',
-		actions: ['flex items-center', 'gap-1'],
+		actions: [narabi.row, 'gap-1'],
 		close: 'shrink-0',
 	},
 	defaults: { variant: 'soft', color: 'zinc' },

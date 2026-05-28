@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, sen } from '../kiso'
+import { iro, ji, narabi, sen } from '../kiso'
 
 const { soft } = iro.palette
 
@@ -14,7 +14,7 @@ const base = defineRecipe({
 })
 
 const header = defineRecipe({
-	base: 'flex items-center justify-between',
+	base: [narabi.row, 'justify-between'],
 	size: {
 		sm: 'mb-1',
 		md: 'mb-2',
@@ -24,7 +24,7 @@ const header = defineRecipe({
 })
 
 const footer = defineRecipe({
-	base: ['flex items-center justify-center'],
+	base: [narabi.row, 'justify-center'],
 	size: {
 		sm: 'pb-1 gap-1',
 		md: 'pb-1 gap-2',
@@ -44,7 +44,7 @@ const pickerGrid = defineRecipe({
 })
 
 const weekday = defineRecipe({
-	base: ['flex items-center justify-center', 'w-full aspect-square', 'font-medium', iro.text.muted],
+	base: [narabi.row, 'justify-center', 'w-full aspect-square', ji.weight.medium, iro.text.muted],
 	size: {
 		sm: ji.xs,
 		md: ji.sm,
@@ -60,7 +60,7 @@ export const k = {
 	footer,
 	picker: {
 		grid: pickerGrid,
-		cellCurrent: ['font-semibold', soft.bg.blue, soft.text.blue, soft.hover.blue],
+		cellCurrent: [ji.weight.semibold, soft.bg.blue, soft.text.blue, soft.hover.blue],
 	},
 	weekday,
 	day: {
@@ -70,4 +70,4 @@ export const k = {
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},
-}
+} as const

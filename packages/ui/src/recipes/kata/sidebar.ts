@@ -24,7 +24,7 @@ export const k = {
 	label: ['truncate'],
 	header: ['flex items-center justify-between', 'gap-3', '**:data-[slot=heading]:leading-none'],
 	body: ['overflow-y-auto', 'flex flex-1 flex-col', 'gap-4'],
-	divider: sen.divider,
+	divider: sen.divider.top,
 	footer: ['sticky bottom-0', 'flex flex-col', 'gap-0.5', 'mt-auto'],
 }
 
