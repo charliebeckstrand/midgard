@@ -9,3 +9,6 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - hlidskjalf@0.3.1
+  - hlidskjalf@0.3.2
+  - hlidskjalf@0.3.3
+  - hlidskjalf@0.3.4
