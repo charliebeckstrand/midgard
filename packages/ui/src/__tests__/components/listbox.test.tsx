@@ -157,6 +157,40 @@ describe('Listbox', () => {
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
+	it('suppresses the trigger mousedown default while open so focus stays on the panel', () => {
+		const { container } = renderUI(
+			<Listbox open value="a" displayValue={(v) => v}>
+				<div role="option" tabIndex={-1} aria-selected="true" data-selected>
+					A
+				</div>
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		// A cancelled mousedown keeps focus on the active option, so a press
+		// released off-target leaves the panel navigable by keyboard.
+		const notCancelled = fireEvent.mouseDown(button)
+
+		expect(notCancelled).toBe(false)
+	})
+
+	it('leaves the trigger mousedown default intact while closed', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div role="option" tabIndex={-1} aria-selected="false">
+					A
+				</div>
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		const notCancelled = fireEvent.mouseDown(button)
+
+		expect(notCancelled).toBe(true)
+	})
+
 	it('renders the selected value label via displayValue', () => {
 		renderUI(
 			<Listbox value="alpha" displayValue={(v) => v.toUpperCase()}>
