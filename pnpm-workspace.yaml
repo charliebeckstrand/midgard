@@ -6,3 +6,6 @@ allowBuilds:
   esbuild: false
   lefthook: true
   sharp: false
+
+minimumReleaseAgeExclude:
+  - hlidskjalf@0.3.1
