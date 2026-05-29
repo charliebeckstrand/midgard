@@ -97,7 +97,7 @@ function RegisterForm() {
 				<div className="text-center">
 					<Text>
 						Already have an account?{' '}
-						<Link href="/login" color="current" underline>
+						<Link href="/login" underline>
 							Sign in
 						</Link>
 					</Text>

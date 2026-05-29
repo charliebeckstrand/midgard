@@ -83,7 +83,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					<div className="text-center">
 						<Text>
 							Don't have an account?{' '}
-							<Link href="/register" color="current" underline>
+							<Link href="/register" underline>
 								Create one
 							</Link>
 						</Text>
