@@ -18,6 +18,6 @@
   },
   "packageManager": "pnpm@11.2.2",
   "dependencies": {
-    "hlidskjalf": "0.3.4"
+    "hlidskjalf": "^0.4.0"
   }
 }
