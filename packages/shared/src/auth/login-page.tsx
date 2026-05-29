@@ -1,37 +1,30 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
-import { Field, Fieldset, Label, Message } from 'ui/fieldset'
+import { Field, Label, Message } from 'ui/fieldset'
+import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
+import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
-import { useForm } from './use-form'
-import { email, required } from './use-form-validation'
+import { chain, email, required } from './use-form-validation'
+
+type LoginValues = { email: string; password: string }
 
 function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	const router = useRouter()
 
 	const searchParams = useSearchParams()
 
-	const [submitting, setSubmitting] = useState(false)
-
 	const [serverError, setServerError] = useState('')
 
 	const registered = searchParams.get('registered') === 'true'
 
-	const { register, errors, submit } = useForm({
-		email: { validators: [required(), email()] },
-		password: { validators: [required()] },
-	})
-
-	const handleSubmit = submit(async (values) => {
-		setSubmitting(true)
-
+	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
 			const res = await fetch('/auth/login', {
 				method: 'POST',
@@ -50,60 +43,53 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 			setServerError(data.message || 'Login failed. Please check your credentials and try again.')
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
-		} finally {
-			setSubmitting(false)
 		}
-	})
+	}
 
 	return (
 		<AuthLayout>
-			<form onSubmit={handleSubmit} className="grid gap-8 w-full sm:max-w-sm px-4">
+			<Form<LoginValues>
+				defaultValues={{ email: '', password: '' }}
+				validate={{
+					email: chain(required(), email()),
+					password: chain(required()),
+				}}
+				onSubmit={handleSubmit}
+				className="grid gap-8 w-full sm:max-w-sm p-4"
+			>
 				<Heading className="text-center">Sign in to your account</Heading>
 
-				{serverError && <Text className="text-red-600 dark:text-red-600">{serverError}</Text>}
+				{serverError && <Text variant="error">{serverError}</Text>}
 
-				{registered && (
-					<Text className="text-green-600 dark:text-green-600">
-						Account created successfully. Please sign in.
-					</Text>
-				)}
+				{registered && <Text variant="success">Account created successfully. Please sign in.</Text>}
 
-				<Fieldset disabled={submitting} className="grid gap-8">
-					<Field>
-						<Label>Email</Label>
-						<Input type="email" name="email" autoComplete="email" {...register('email')} />
-						{errors.email && <Message>{errors.email}</Message>}
-					</Field>
+				<Field>
+					<Label>Email</Label>
+					<Input type="email" name="email" autoComplete="email" />
+					<Message name="email" />
+				</Field>
 
-					<Field>
-						<Label>Password</Label>
-						<PasswordInput
-							name="password"
-							autoComplete="current-password"
-							{...register('password')}
-						/>
-						{errors.password && <Message>{errors.password}</Message>}
-					</Field>
+				<Field>
+					<Label>Password</Label>
+					<PasswordInput name="password" autoComplete="current-password" />
+					<Message name="password" />
+				</Field>
 
-					<Button
-						type="submit"
-						className={`w-full ${submitting ? 'cursor-not-allowed pointer-events-none' : ''}`}
-					>
-						Sign in
-					</Button>
-				</Fieldset>
+				<Button type="submit" className="w-full">
+					Sign in
+				</Button>
 
 				{showRegisterLink && (
 					<div className="text-center">
 						<Text>
 							Don't have an account?{' '}
-							<Link href="/register" className="font-medium hover:underline underline-offset-6">
+							<Link href="/register" underline>
 								Create one
 							</Link>
 						</Text>
 					</div>
 				)}
-			</form>
+			</Form>
 		</AuthLayout>
 	)
 }

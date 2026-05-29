@@ -41,7 +41,6 @@ Multiple lockfiles → pick the most recently modified; note the rejected names 
 
 - One-line summaries of declared **principles** (architecture, code-style, dependency rules). Cap at ~10.
 - A **vocabulary glossary**: project-specific terms (folder/recipe/primitive names) defined or repeatedly referenced, with a one-sentence gloss inferred from context.
-- Any **mandatory skill bindings** declared (statements like "always use `/foo` when …").
 
 On conflict between files, the earlier file in the list wins.
 
@@ -74,6 +73,7 @@ Per-package fields:
 | `testRunner` | `vitest` / `jest` / `bun` / `node` (detected from devDeps and/or `scripts.test`); `null` if no test infrastructure |
 | `linter` | `biome` / `eslint`; `null` if absent |
 | `scripts` | always emit all seven keys (`test`, `test:changed`, `test:related`, `lint`, `check-types`, `build`, `dev`). Copy verbatim from `package.json#scripts`; `null` when absent. Prefer `check-types`; fall back to `typecheck` if absent; ignore other aliases. `test:changed` / `test:related` are the scoped-iteration commands consumed by `/typescript:review` and `/tests:compose`. |
+| `pathAliases` | the package's TypeScript path aliases. Read the package's `tsconfig.json` and the configs it `extends`; emit each `compilerOptions.paths` entry as `"<alias>": "<target>"`, collapsing the single-element target array to a string and stripping a leading `./`. A package-level `paths` block overrides an inherited one rather than merging. `null` when no alias resolves in the chain. Consumed by import-writing sessions to skip re-reading tsconfig. |
 | `componentsDir` | first existing: `src/components/`, `src/ui/`, `app/components/`, `lib/components/`, `components/`; else `null` |
 | `primitivesDir` | first existing: `src/primitives/`, `src/atoms/`, `src/core/components/`; else `null` |
 | `hooksDir` | first existing: `src/hooks/`, `src/use/`; else `null` |
@@ -117,6 +117,7 @@ Schema (and a representative full output):
         "build": "tsup",
         "dev": null
       },
+      "pathAliases": { "@/*": "src/*" },
       "componentsDir": "src/components",
       "primitivesDir": "src/primitives",
       "hooksDir": "src/hooks",
@@ -140,6 +141,7 @@ Schema (and a representative full output):
         "build": "next build",
         "dev": "next dev"
       },
+      "pathAliases": { "@/*": "app/*" },
       "componentsDir": "app/components",
       "primitivesDir": null,
       "hooksDir": "app/hooks",
@@ -162,10 +164,7 @@ Schema (and a representative full output):
     ],
     "vocabularyGlossary": {
       "Slot": "named region inside a composite component"
-    },
-    "mandatorySkills": [
-      { "skill": "/ui:component:compose", "trigger": "asked to create a UI component" }
-    ]
+    }
   },
   "notes": [
     "Both pnpm-lock.yaml and package-lock.json present; chose pnpm by mtime."

@@ -21,7 +21,11 @@ export function Demo() {
 			<Alert severity="info" closable>
 				<AlertTitle>Card extends Box.</AlertTitle>
 				<AlertDescription>
-					See the <Link href="#box">Box documentation</Link> for more details and examples.
+					See the{' '}
+					<Link href="#box" underline>
+						Box documentation
+					</Link>{' '}
+					for more details and examples.
 				</AlertDescription>
 			</Alert>
 

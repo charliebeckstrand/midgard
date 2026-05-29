@@ -2,7 +2,7 @@
 
 The design layer of the UI package.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for the three-layer model.
+Three layers, foundation upward:
 
 | Layer                                              | Reach    | What                                                                                                                                          |
 | -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,7 +10,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the three-layer model.
 | [Katakana 片仮名 - Applicators](./katakana/README.md) | Internal | Function-shaped applicators that wrap kiso archetype fragments into ready-to-call recipe surfaces for kata that match an archetype.        |
 | [Kata 型 - Form](./kata/README.md)                 | Internal | Per-unit recipes — the funnel components and primitives both read.                                                                            |
 
-The recipe engine (`defineRecipe`, `palette`, `merge`), the colour axis
+The recipe engine (`defineRecipe`, `definePalette`, `merge`), the colour axis
 (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the
 applicator helpers (`applyRecipe`, `defineApplicator`, `ApplicatorReturn`)
 live in [`core/recipe/`](../core/recipe). They are imported directly by

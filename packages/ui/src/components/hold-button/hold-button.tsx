@@ -80,7 +80,7 @@ export function HoldButton({
 				ref={fillRef}
 				aria-hidden="true"
 				style={{ transform: 'scaleX(0)' }}
-				className="pointer-events-none absolute inset-0 origin-left bg-black/15 dark:bg-white/20"
+				className="pointer-events-none absolute inset-0 origin-left bg-current/20"
 			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>

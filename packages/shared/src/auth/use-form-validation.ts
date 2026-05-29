@@ -22,6 +22,18 @@ export const matches =
 	(value, values) =>
 		value === values[field] ? null : `Must match ${label}`
 
+export function chain<T extends Record<string, unknown>>(...fns: Validator[]) {
+	return (value: string, values: T): string | undefined => {
+		for (const fn of fns) {
+			const err = fn(value, values as Record<string, string>)
+
+			if (err) return err
+		}
+
+		return undefined
+	}
+}
+
 export type FieldConfig = {
 	validators?: Validator[]
 }
