@@ -19,7 +19,7 @@ const item = defineRecipe({
 })
 
 export const k = {
-	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-4'],
+	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
 	item,
 	section: [flex.col, 'gap-0.5'],
 	label: ['truncate'],

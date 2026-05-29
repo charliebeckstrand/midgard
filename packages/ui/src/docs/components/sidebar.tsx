@@ -64,7 +64,7 @@ export function SidebarContent({ route }: { route: string }) {
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={1}>Components</Heading>
+				<Heading level={2}>Components</Heading>
 			</SidebarHeader>
 			<Combobox<string>
 				id={`${id}-search-components`}
