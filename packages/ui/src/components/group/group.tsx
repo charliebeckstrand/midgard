@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'

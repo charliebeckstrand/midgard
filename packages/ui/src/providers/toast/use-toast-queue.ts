@@ -1,3 +1,5 @@
+'use client'
+
 import { type RefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 

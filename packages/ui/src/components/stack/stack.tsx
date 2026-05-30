@@ -1,3 +1,5 @@
+'use client'
+
 import { useDensityNullable } from '../../primitives/density'
 import { FlexBase, type FlexProps } from '../flex'
 

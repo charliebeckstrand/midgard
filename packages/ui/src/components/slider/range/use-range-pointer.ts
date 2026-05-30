@@ -1,3 +1,5 @@
+'use client'
+
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'

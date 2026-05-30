@@ -1,3 +1,5 @@
+'use client'
+
 import { type MouseEvent, type RefObject, useCallback } from 'react'
 
 type UseComboboxTriggerParams = {

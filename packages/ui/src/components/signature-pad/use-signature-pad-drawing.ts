@@ -1,3 +1,5 @@
+'use client'
+
 import {
 	type Dispatch,
 	type PointerEvent as ReactPointerEvent,

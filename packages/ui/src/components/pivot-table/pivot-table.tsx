@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import type { DensityLevel } from '../../providers/density'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'

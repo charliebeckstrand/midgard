@@ -1,3 +1,5 @@
+'use client'
+
 import { type RefObject, useCallback, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
 import { configureStroke, drawSnapshot } from './signature-pad-utilities'

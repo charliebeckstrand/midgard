@@ -1,3 +1,5 @@
+'use client'
+
 import { type ReactNode, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DataTableColumnManagerConfig } from './data-table'
