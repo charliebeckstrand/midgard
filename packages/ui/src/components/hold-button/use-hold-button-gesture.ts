@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef } from 'react'
 import { RESET_DURATION } from './hold-button-constants'
 

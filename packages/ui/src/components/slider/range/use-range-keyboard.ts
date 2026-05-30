@@ -1,3 +1,5 @@
+'use client'
+
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'

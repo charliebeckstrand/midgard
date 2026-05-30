@@ -1,3 +1,5 @@
+'use client'
+
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'

@@ -1,3 +1,5 @@
+'use client'
+
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 
 export type PasswordRule = {

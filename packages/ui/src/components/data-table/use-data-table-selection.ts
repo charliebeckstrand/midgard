@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DataTableSelection } from './data-table'

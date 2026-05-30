@@ -1,3 +1,5 @@
+'use client'
+
 import { type RefObject, useCallback, useRef, useState } from 'react'
 import type {
 	Coord,

@@ -1,3 +1,5 @@
+'use client'
+
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { fileListToArray } from './file-upload-utilities'
 

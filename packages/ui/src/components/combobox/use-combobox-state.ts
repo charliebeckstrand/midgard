@@ -1,3 +1,5 @@
+'use client'
+
 import { type RefObject, useCallback, useDeferredValue, useState } from 'react'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 

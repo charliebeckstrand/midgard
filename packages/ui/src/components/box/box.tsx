@@ -1,3 +1,5 @@
+'use client'
+
 import type { Ref } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'

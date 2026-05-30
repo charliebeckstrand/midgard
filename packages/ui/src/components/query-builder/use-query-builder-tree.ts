@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import type { QueryBuilderActions } from './context'

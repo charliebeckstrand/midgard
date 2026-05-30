@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from '../../core'
 import { DensityScope, useDensity } from '../../primitives/density'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
