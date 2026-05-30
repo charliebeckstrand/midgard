@@ -35,7 +35,7 @@ npm-debug.log*
 
 .claude/launch.json
 
-# Council/debate/deliberate skill outputs
+# Skill outputs
 council-transcript-*.md
 council-report-*.html
 debate-*.md

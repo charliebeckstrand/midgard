@@ -135,9 +135,10 @@ function trimDefaultArgs(
 
 	while (len > 0) {
 		const arg = args[len - 1]
+
 		const param = params[len - 1]
 
-		if (!arg || !param || !param.default) break
+		if (!arg || !param?.default) break
 
 		const defaultText = param.default.getText().trim()
 
