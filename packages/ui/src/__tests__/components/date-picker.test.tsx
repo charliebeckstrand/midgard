@@ -4,9 +4,9 @@ import { DatePicker } from '../../components/date-picker'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 function findDay(day: number) {
-	const buttons = screen.getAllByRole('button')
+	const days = screen.getAllByRole('option')
 
-	return buttons.find((b) => b.textContent?.trim() === String(day))
+	return days.find((b) => b.textContent?.trim() === String(day))
 }
 
 describe('DatePicker', () => {

@@ -21,6 +21,8 @@ type CalendarGridProps = {
 	isDisabled: (date: Date) => boolean
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	onSelect: (date: Date) => void
+	/** Accessible name for the day listbox, e.g. "June 2025". */
+	monthLabel: string
 }
 
 export function CalendarGrid({
@@ -35,6 +37,7 @@ export function CalendarGrid({
 	isDisabled,
 	getDayProps,
 	onSelect,
+	monthLabel,
 }: CalendarGridProps) {
 	return (
 		<div className={k.grid}>
@@ -47,6 +50,7 @@ export function CalendarGrid({
 			<div
 				ref={gridRef}
 				role="listbox"
+				aria-label={monthLabel}
 				onKeyDown={onGridKeyDown}
 				className="col-span-7 grid grid-cols-7"
 			>

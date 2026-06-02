@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, useKanbanContext } from './context'
@@ -29,8 +29,10 @@ export function KanbanColumn({
 
 	const over = interactive && isOver && activeId !== null
 
+	const value = useMemo(() => ({ columnId }), [columnId])
+
 	return (
-		<KanbanColumnContext value={{ columnId }}>
+		<KanbanColumnContext value={value}>
 			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
 				<section
 					ref={setNodeRef}

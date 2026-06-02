@@ -53,15 +53,15 @@ describe('Calendar', () => {
 
 		const user = userEvent.setup()
 
-		const buttons = screen.getAllByRole('button')
+		const days = screen.getAllByRole('option')
 
-		const dayButton = buttons.find((b) => b.textContent === '15')
+		const dayButton = days.find((b) => b.textContent === '15')
 
-		if (dayButton) {
-			await user.click(dayButton)
+		expect(dayButton).toBeDefined()
 
-			expect(onChange).toHaveBeenCalled()
-		}
+		await user.click(dayButton as HTMLElement)
+
+		expect(onChange).toHaveBeenCalled()
 	})
 
 	it('exposes imperative handle via ref', () => {
@@ -107,13 +107,13 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={defaultValue} min={min} max={max} />)
 
-		const buttons = screen.getAllByRole('button')
+		const days = screen.getAllByRole('option')
 
-		const before = buttons.find((b) => b.textContent === '5')
+		const before = days.find((b) => b.textContent === '5')
 
-		const after = buttons.find((b) => b.textContent === '25')
+		const after = days.find((b) => b.textContent === '25')
 
-		const inside = buttons.find((b) => b.textContent === '15')
+		const inside = days.find((b) => b.textContent === '15')
 
 		expect(before).toBeDisabled()
 
@@ -131,9 +131,9 @@ describe('Calendar', () => {
 
 		const user = userEvent.setup()
 
-		const buttons = screen.getAllByRole('button')
+		const days = screen.getAllByRole('option')
 
-		const disabledDay = buttons.find((b) => b.textContent === '5')
+		const disabledDay = days.find((b) => b.textContent === '5')
 
 		if (disabledDay) {
 			await user.click(disabledDay)
@@ -158,7 +158,7 @@ describe('Calendar', () => {
 
 		expect(getDayProps).toHaveBeenCalled()
 
-		const dayButtons = screen.getAllByRole('button')
+		const dayButtons = screen.getAllByRole('option')
 
 		const styled = dayButtons.find((b) => b.className.includes('custom-day'))
 

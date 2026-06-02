@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -57,8 +57,13 @@ export function Collapse({
 
 	const panelId = scope.sub('panel')
 
+	const value = useMemo(
+		() => ({ open, toggle, animate: animateProp, triggerId, panelId }),
+		[open, toggle, animateProp, triggerId, panelId],
+	)
+
 	return (
-		<CollapseContext value={{ open, toggle, animate: animateProp, triggerId, panelId }}>
+		<CollapseContext value={value}>
 			<div data-slot="collapse" data-open={open || undefined} className={cn(k.base, className)}>
 				{trigger !== undefined ? (
 					<>

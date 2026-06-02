@@ -2,6 +2,7 @@
 
 import { Search, X } from 'lucide-react'
 import { type ChangeEvent, useCallback } from 'react'
+import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -25,6 +26,7 @@ export function SearchInput({
 	onChange,
 	onClear,
 	ref,
+	className,
 	...props
 }: SearchInputProps) {
 	const [currentValue = '', setCurrentValue] = useControllable<string>({
@@ -65,10 +67,12 @@ export function SearchInput({
 	return (
 		<Input
 			ref={ref}
+			type="search"
 			value={currentValue}
 			onChange={handleChange}
 			prefix={<Icon icon={<Search />} />}
 			suffix={suffix}
+			className={cn('[&::-webkit-search-cancel-button]:appearance-none', className)}
 			{...props}
 		/>
 	)

@@ -38,11 +38,21 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 		if (!disabled) onSelect(date)
 	}
 
+	const label = date.toLocaleDateString(undefined, {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric',
+	})
+
 	return (
 		<Button
+			role="option"
+			aria-selected={selected}
+			aria-label={label}
+			aria-current={isToday ? 'date' : undefined}
 			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
-			aria-pressed={selected}
 			disabled={disabled}
 			onClick={handleClick}
 			onMouseEnter={onMouseEnter}

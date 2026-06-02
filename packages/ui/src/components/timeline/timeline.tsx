@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type TimelineVariants } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
@@ -20,8 +20,13 @@ export function Timeline({
 	const resolvedOrientation = orientation ?? 'vertical'
 	const resolvedVariant = variant ?? 'solid'
 
+	const value = useMemo(
+		() => ({ orientation: resolvedOrientation, variant: resolvedVariant }),
+		[resolvedOrientation, resolvedVariant],
+	)
+
 	return (
-		<TimelineContext value={{ orientation: resolvedOrientation, variant: resolvedVariant }}>
+		<TimelineContext value={value}>
 			<ol data-slot="timeline" className={cn(k.root({ orientation, variant }), className)}>
 				{children}
 			</ol>

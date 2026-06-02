@@ -24,6 +24,14 @@ export type PopoverContentProps = {
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
+	/**
+	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
+	 * content is exposed as `role="dialog"` — matching the trigger's
+	 * `aria-haspopup="dialog"`. Omit both to leave it an unlabelled generic
+	 * surface and avoid an unnamed-dialog violation.
+	 */
+	'aria-label'?: string
+	'aria-labelledby'?: string
 	children: ReactNode
 }
 
@@ -32,6 +40,8 @@ export function PopoverContent({
 	autoFocus = false,
 	p,
 	size,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
 	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
@@ -64,6 +74,9 @@ export function PopoverContent({
 				{...k.panel.motion}
 				ref={contentRef}
 				tabIndex={autoFocus ? -1 : undefined}
+				role={ariaLabel || ariaLabelledby ? 'dialog' : undefined}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
 				data-density={resolvedSize}
 				className={cn(k.text, glass && k.panel.glass)}

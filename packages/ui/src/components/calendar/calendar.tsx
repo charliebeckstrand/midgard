@@ -203,6 +203,7 @@ export function Calendar({
 					isDisabled={isDisabled}
 					getDayProps={getDayProps}
 					onSelect={handleSelect}
+					monthLabel={monthLabel}
 				/>
 			</div>
 		</Density>

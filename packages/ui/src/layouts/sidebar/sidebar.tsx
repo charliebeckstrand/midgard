@@ -6,6 +6,7 @@ import {
 	type ReactNode,
 	type Ref,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -71,6 +72,10 @@ export function SidebarLayout({
 
 	const { size } = useDensity()
 
+	const offcanvasValue = useMemo(() => ({ close }), [close])
+
+	const layoutValue = useMemo(() => ({ actions, size }), [actions, size])
+
 	return (
 		<Frame className={k.layout()}>
 			{/* Hot zone to peek the floating sidebar */}
@@ -123,7 +128,7 @@ export function SidebarLayout({
 
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onOpenChange={setOpen}>
-				<OffcanvasContext value={{ close }}>
+				<OffcanvasContext value={offcanvasValue}>
 					<div
 						ref={(node) => {
 							if (!node) return
@@ -152,7 +157,7 @@ export function SidebarLayout({
 			</Flex>
 
 			{/* Content */}
-			<SidebarLayoutContext value={{ actions, size }}>
+			<SidebarLayoutContext value={layoutValue}>
 				<Frame direction="col" className={k.contentWrapper({ floating })}>
 					<Frame direction="col" className={k.content({ size, stickyHeader })}>
 						{children}

@@ -32,6 +32,7 @@ export const k = defineRecipe(
 	{
 		base: [
 			'relative isolate',
+			'touch-manipulation',
 			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',

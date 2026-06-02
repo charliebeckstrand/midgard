@@ -8,9 +8,9 @@ function d(year: number, month: number, day: number) {
 }
 
 function findDay(day: number) {
-	const buttons = screen.getAllByRole('button')
+	const days = screen.getAllByRole('option')
 
-	return buttons.find((b) => b.textContent?.trim() === String(day))
+	return days.find((b) => b.textContent?.trim() === String(day))
 }
 
 describe('CalendarRange', () => {
@@ -35,7 +35,7 @@ describe('CalendarRange', () => {
 			<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />,
 		)
 
-		const selected = container.querySelectorAll('[aria-pressed="true"]')
+		const selected = container.querySelectorAll('[aria-selected="true"]')
 
 		expect(selected.length).toBeGreaterThanOrEqual(2)
 	})
@@ -45,7 +45,7 @@ describe('CalendarRange', () => {
 
 		const inside = findDay(7)
 
-		expect(inside).toHaveAttribute('aria-pressed', 'false')
+		expect(inside).toHaveAttribute('aria-selected', 'false')
 
 		expect(inside?.className).toContain('rounded-none')
 	})
@@ -77,7 +77,7 @@ describe('CalendarRange', () => {
 			<CalendarRange rangeStart={d(2024, 3, 5)} hoverDate={d(2024, 3, 8)} />,
 		)
 
-		const selected = container.querySelectorAll('[aria-pressed="true"]')
+		const selected = container.querySelectorAll('[aria-selected="true"]')
 
 		expect(selected.length).toBeGreaterThanOrEqual(1)
 	})

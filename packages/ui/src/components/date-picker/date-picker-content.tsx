@@ -49,6 +49,9 @@ export function DatePickerContent({
 						<FloatingFocusManager context={context} modal>
 							<div
 								ref={setFloating}
+								role="dialog"
+								aria-modal="true"
+								aria-label="Choose date"
 								style={floatingStyles}
 								className={k.content.portal}
 								tabIndex={-1}

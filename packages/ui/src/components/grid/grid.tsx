@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
+import { type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'
 import { GridContext } from './context'
@@ -46,8 +46,10 @@ export function Grid({
 	const cols = resolveCols(columns)
 	const resolvedRows = resolveRows(rows)
 
+	const value = useMemo(() => ({ columns }), [columns])
+
 	return (
-		<GridContext value={{ columns }}>
+		<GridContext value={value}>
 			<div
 				data-slot="grid"
 				className={cn(
