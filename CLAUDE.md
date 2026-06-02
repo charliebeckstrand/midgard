@@ -34,7 +34,7 @@ This file governs conduct, voice, workflow, and version control. For *how* code 
 
 3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related`/`test:changed`); Lefthook runs the full gate pre-commit.
 
-3.5 Repo conventions (CONVENTIONS.md, REFERENCE.md) always win over external guideline skills. Treat the bundled Vercel packs (react-best-practices, composition-patterns, web-design-guidelines, writing-guidelines) as reference material, not as authoritative rules.
+3.5 Repo conventions (CONVENTIONS.md, REFERENCE.md) always win over external guideline skills. Treat the bundled Vercel packs (react-best-practices, next-best-practices, composition-patterns, web-design-guidelines, writing-guidelines) as reference material, not as authoritative rules.
 
 ## 4. Version Control
 
