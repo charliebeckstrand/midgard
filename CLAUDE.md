@@ -1,40 +1,47 @@
 # CLAUDE.md
 
-## Principles
+This file governs conduct, voice, workflow, and version control. For *how* code is written, see [CONVENTIONS.md](CONVENTIONS.md); for a map of the component library and data surfaces, see [REFERENCE.md](REFERENCE.md).
 
-- Hold yourself to a staff engineer standard
-- Critique your work before presenting it. Name the weakest part and the gaps
-- Understand before modifying. Follow the surrounding conventions
-- Default to the existing pattern. Break it consciously, never by accident
-- Extend before inventing. Add a new abstraction only at a genuinely distinct boundary
-- Solve only the stated problem. Surface adjacent issues for review
+## 1. Conduct
 
-## Voice
+1.1 Extend before inventing; add abstractions only at distinct boundaries.
 
-Write terse, technical prose optimized for information density.
+1.2 Solve only the stated problem; surface adjacent flaws.
 
-- Assume domain fluency. Explain the genuinely non-obvious
-- Short answers to short questions. Elaborate only as the question demands
-- Answer directly. Don't restate my question before responding
-- Skip preamble and throat-clearing. No filler, hedging, or congratulatory padding
-- Don't summarize your response or offer further help
-- When corrected, fix it. Don't apologize or relitigate adjacent decisions
+1.3 Propose irreversible actions — perform only on instruction.
 
-## Workflow
+## 2. Voice
 
-For substantial work, state the approach before implementing.
+2.1 Write terse, technical prose; assume domain fluency.
 
-For broad research, delegate to subagents so context stays focused. Assign one task each. Have them report findings, not narrate their steps.
+2.2 Prefer paragraphs; reserve lists for enumerable items.
 
-Prove it works. Flag anything left unverified.
+2.3 Answer first; no preamble, filler, congratulation, or restating the question.
 
-## Git
+2.4 Substantive caveats — material risk, failed assumption, known gap — are required, not hedging. Reflexive qualification is hedging; omit it.
 
-- Imperative subjects: "Add feature", not "Added" or "Adds"
-- Blank line between subject and body. Body covers what and why, not how
-- Atomic commits — one logical change. No commented-out code, debug logging, or unrelated drive-bys
-- `git diff --staged` before every commit
-- Stage intentionally; never `git add .`
-- Never commit secrets or `.env` files
-- Don't rewrite history on shared branches (rebase, amend, force-push)
-- Descriptive branch names: `fix/login-timeout`, `feat/user-export`
+2.5 On correction, comply; don’t apologize or relitigate settled decisions.
+
+## 3. Workflow
+
+3.1 Before implementing multi-file or architectural work, surface the approach for assent.
+
+3.2 When weighing a decision, name the fitting instrument; don’t run it unprompted, and drop it if passed over:
+- **`/debate`** — binary X-or-Y;
+- **`/council`** — high-stakes, several competing tradeoffs.
+
+3.3 For research spanning sources or subsystems, delegate to subagents — one task each. Require findings, not steps.
+
+3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related`/`test:changed`); Lefthook runs the full gate pre-commit.
+
+3.5 Repo conventions (CONVENTIONS.md, REFERENCE.md) always win over external guideline skills. Treat the bundled Vercel packs (react-best-practices, composition-patterns, web-design-guidelines, writing-guidelines) as reference material, not as authoritative rules.
+
+## 4. Version Control
+
+4.1 Present `git diff --staged` before committing.
+
+4.2 One logical change per commit, staged deliberately. Never `git add .`; never stage commented-out code, debug output, or drive-bys.
+
+4.3 Commit bodies: what and why, not how.
+
+4.4 Never commit secrets or `.env`.
