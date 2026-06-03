@@ -18,7 +18,7 @@ import { useCalendarFocus } from './use-calendar-focus'
 type UseCalendarPickerOptions = {
 	year: number
 	month: number
-	today: Date
+	today: Date | null
 	onNavigate: (year: number, month: number) => void
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
@@ -122,7 +122,7 @@ export function useCalendarPicker({
 		key: label,
 		label,
 		selected: i === month && pickerYear === year,
-		current: i === today.getMonth() && pickerYear === today.getFullYear(),
+		current: today != null && i === today.getMonth() && pickerYear === today.getFullYear(),
 		onSelect: () => selectMonth(i),
 	}))
 
@@ -133,7 +133,7 @@ export function useCalendarPicker({
 			key: y,
 			label: y,
 			selected: y === year,
-			current: y === today.getFullYear(),
+			current: today != null && y === today.getFullYear(),
 			onSelect: () => {
 				dispatch({ type: 'selectYear', year: y })
 

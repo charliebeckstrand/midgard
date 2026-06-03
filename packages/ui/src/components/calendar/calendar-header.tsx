@@ -16,7 +16,7 @@ type CalendarHeaderProps = {
 	activeIndex: 0 | 1 | 2 | null
 	year: number
 	month: number
-	today: Date
+	today: Date | null
 	monthLabel: string
 	pickerOpen: boolean
 	onPickerOpenChange: (open: boolean) => void
