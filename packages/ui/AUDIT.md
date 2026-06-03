@@ -121,9 +121,12 @@ The per-component Low detail lives in the slice files under `/tmp/ui-audit/` (wo
 - **Overlay document-listener dedup.** `useDismissable` and `useFloatingUI` each attached their own `document` keydown/pointerdown listener per open instance. Routed them through a shared `subscribeDocumentEvent` that keeps one `document` listener per event type plus a subscriber set (attach on first, detach on last). Semantics unchanged — every subscriber still receives the event (dedup, not top-most-only routing); a switch to stack-based top-most routing would be a separate behavior change. Test asserts one listener for many subscribers. Landed.
 - **Hydration: `calendar` `today` and `time-ago` `now` made client-only.** Both derived a wall-clock value during render, so a server clock straddling a day/unit boundary or timezone offset from the client produced output that mismatched at hydration. Both now seed from a mount effect (null until then) and render no time-dependent highlight/text on the first pass; absolute values (`time-ago`'s `dateTime`/`title`, derived from the input date) stay server-rendered. `calendar` threads `Date | null` through grid/header/picker with guarded comparisons. Landed.
 
+### Attempted and rejected (benchmarked)
+
+- **`json-tree` row `memo()` + `flattenTree` structural sharing.** Built it, then benchmarked the toggle re-render (`json-tree-render.bench.tsx`): it ran **~2.6× slower** (2,492 → 961 hz). The reason is structural: virtualization already bounds rendered rows to the visible window, but giving `flattenTree` stable node identity costs **O(total nodes)** per render (reuse lookups + an `indexFlatNodes` rebuild). For the canonical virtualized case — large data, small window — that pays for thousands of nodes to save a few dozen `memo` skips. Reverted; the benchmark stays as the baseline and a guard against re-attempting it. The audit's original recommendation didn't account for virtualization bounding the row count.
+
 ### Investigated and held
 
-1. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
-2. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
+- **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
 
-These two are the only follow-ups left, and both are large-effort / low-value — the meaningful re-render and hydration wins are all landed.
+That leaves nothing worth doing: every meaningful re-render and hydration win is landed, and the one remaining recommendation (json-tree) was disproven by benchmark.
