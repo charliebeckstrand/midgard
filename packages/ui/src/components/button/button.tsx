@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
+import { Children } from 'react'
 import { cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
 import { useSizeWide } from '../../primitives/density'
@@ -16,6 +17,7 @@ import { Spinner, type SpinnerProps } from '../spinner'
 import { buttonSpring } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
+import { isIconElement } from './button-utilities'
 
 type LoadingOptions = Pick<SpinnerProps, 'color' | 'size' | 'label'>
 
@@ -79,6 +81,11 @@ export function Button({
 		)
 	}
 
+	// Children that are not icons count as a text label; labeled buttons drop to
+	// the matching control height (see `data-[has-label]` in the button recipe),
+	// while icon-only buttons stay square.
+	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
+
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 
 	if (skeleton) {
@@ -111,6 +118,7 @@ export function Button({
 						data-density={resolvedSize}
 						data-has-prefix={!!prefix || undefined}
 						data-has-suffix={!!suffix || undefined}
+						data-has-label={hasLabel || undefined}
 						href={href}
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
@@ -139,6 +147,7 @@ export function Button({
 				data-density={resolvedSize}
 				data-has-prefix={!!prefix || undefined}
 				data-has-suffix={!!suffix || undefined}
+				data-has-label={hasLabel || undefined}
 				type="button"
 				className={classes}
 				{...buttonProps}

@@ -44,6 +44,10 @@ export const k = defineRecipe(
 		variant: {
 			outline: 'ring-1 ring-inset',
 		},
+		// Square padding (`p`) keeps icon-only buttons even-sided. When the
+		// children carry a text label the component sets `data-has-label`, which
+		// overrides `py` to the matching control density step so a labeled button
+		// lines up with same-size Input/Select chrome (e.g. md → 38px).
 		size: {
 			xs: [
 				size.xs,
@@ -51,7 +55,7 @@ export const k = defineRecipe(
 				gap.g('0.5'),
 				padding.p('1.5'),
 				radius.r('1'),
-				// 'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
 			],
 			sm: [
 				size.sm,
@@ -59,7 +63,7 @@ export const k = defineRecipe(
 				gap.g('0.75'),
 				padding.p('2'),
 				radius.r('1.5'),
-				// 'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
+				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
 			],
 			md: [
 				size.md,
@@ -67,7 +71,7 @@ export const k = defineRecipe(
 				gap.g('1'),
 				padding.p('2.5'),
 				radius.r('2'),
-				// 'data-[has-label]:py-[calc(--spacing(2)-1px)]',
+				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
 			],
 			lg: [
 				size.lg,
@@ -75,7 +79,7 @@ export const k = defineRecipe(
 				gap.g('1.25'),
 				padding.p('3'),
 				radius.r('2.5'),
-				// 'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
+				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
 			],
 		},
 		palette: definePalette(

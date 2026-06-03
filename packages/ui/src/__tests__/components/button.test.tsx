@@ -1,7 +1,9 @@
+import { Search } from 'lucide-react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
+import { Icon } from '../../components/icon'
 import { AffixContext } from '../../primitives/affix'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -223,6 +225,33 @@ describe('Button', () => {
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
+		})
+	})
+
+	describe('label detection', () => {
+		// A labeled button carries `data-has-label`, which the recipe reads to
+		// override py so the button matches same-size Input/Select height. An
+		// icon-only button omits the attribute and keeps its square padding.
+		it('marks a text-only button as labeled', () => {
+			const { container } = renderUI(<Button>Save</Button>)
+
+			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label')
+		})
+
+		it('marks a button with an icon prefix and text as labeled', () => {
+			const { container } = renderUI(<Button prefix={<Icon icon={<Search />} />}>Search</Button>)
+
+			expect(bySlot(container, 'button')).toHaveAttribute('data-has-label')
+		})
+
+		it('does not mark an icon-only button as labeled', () => {
+			const { container } = renderUI(
+				<Button>
+					<Icon icon={<Search />} />
+				</Button>,
+			)
+
+			expect(bySlot(container, 'button')).not.toHaveAttribute('data-has-label')
 		})
 	})
 })
