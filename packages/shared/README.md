@@ -1,6 +1,10 @@
 # shared
 
-Cross-app utilities and CSS. Peer-compatible with Next 15–16 and React 18–19.
+Cross-app utilities and CSS.
+
+## 0. Prerequisites
+
+Peer-compatible with Next 15–16 and React 18–19.
 
 ## 1. Exports
 
