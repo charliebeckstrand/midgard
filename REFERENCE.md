@@ -4,7 +4,7 @@ A map of what already exists in this repo. Read it before building. Rules for *h
 
 ## 1. The UI library is the default toolbox
 
-`ui` (`packages/ui`) is an extensive, production-grade component library: **104 components, 19 primitives, 24 hooks**, a layered design-token/recipe system, and a live demo site. It is the first place to look for any piece of interface.
+`packages/ui` is an extensive, production-grade component library: **104 components, 19 primitives, 24 hooks**, a layered design-token/recipe system, and a live demo site. It is the first place to look for any piece of interface.
 
 Rules of engagement:
 
