@@ -5,6 +5,8 @@ import { useMapContext } from './context'
 import { EARTH_RADIUS_M } from './map-geofence-constants'
 import type { GeofenceShape, LngLat } from './types'
 
+const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
+
 export type MapGeofenceProps = {
 	shape: GeofenceShape
 	/** Fill color. Defaults to translucent blue. */
@@ -26,7 +28,7 @@ export function MapGeofence({
 }: MapGeofenceProps) {
 	const { getMap, onReady } = useMapContext()
 
-	const reactId = useId().replace(/[^a-zA-Z0-9_-]/g, '-')
+	const reactId = useId().replace(ID_SANITIZE_RE, '-')
 
 	const sourceId = `map-geofence-src-${reactId}`
 

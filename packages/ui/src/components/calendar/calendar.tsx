@@ -162,9 +162,12 @@ export function Calendar({
 		[setValue],
 	)
 
-	const firstDayColumn = new Date(year, month, 1).getDay() + 1
+	const firstDayColumn = useMemo(() => new Date(year, month, 1).getDay() + 1, [year, month])
 
-	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+	const monthLabel = useMemo(
+		() => viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+		[viewDate],
+	)
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 

@@ -1,9 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+
+// `Intl.RelativeTimeFormat` construction is among the most expensive Intl ops and the
+// default formatter is rebuilt on every refresh tick. Cache one instance per locale.
+const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
+
+function getRelativeTimeFormat(locale: string | undefined) {
+	const key = locale ?? ''
+
+	let formatter = relativeTimeFormatCache.get(key)
+
+	if (formatter === undefined) {
+		formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+
+		relativeTimeFormatCache.set(key, formatter)
+	}
+
+	return formatter
+}
 
 function pickUnit(absMs: number): { unit: Unit; value: number } {
 	if (absMs < MIN) return { unit: 'second', value: absMs / SEC }
@@ -57,7 +75,7 @@ export function useTimeAgoRelativeTime({
 }: UseRelativeTimeOptions): UseRelativeTimeResult {
 	const [now, setNow] = useState(() => new Date())
 
-	const then = date instanceof Date ? date : new Date(date)
+	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])
 
 	const valid = !Number.isNaN(then.getTime())
 
@@ -82,7 +100,7 @@ export function useTimeAgoRelativeTime({
 	if (format) {
 		text = format(diffMs, now, then)
 	} else {
-		const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+		const formatter = getRelativeTimeFormat(locale)
 
 		const { unit, value } = pickUnit(absMs)
 
