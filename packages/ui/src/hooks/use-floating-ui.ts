@@ -24,6 +24,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { subscribeDocumentEvent } from './document-listener'
 
 // Explicit return types: TS can't write a portable `.d.ts` for the inferred
 // return because `useFloating`'s shape references `@floating-ui/react-dom`,
@@ -187,9 +188,7 @@ export function useFloatingUI({
 			onOpenChangeRef.current(false)
 		}
 
-		document.addEventListener('pointerdown', onPointerDown)
-
-		return () => document.removeEventListener('pointerdown', onPointerDown)
+		return subscribeDocumentEvent('pointerdown', onPointerDown)
 	}, [open, refs])
 
 	return { refs, floatingStyles, context, getReferenceProps, getFloatingProps }
