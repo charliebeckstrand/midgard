@@ -2,8 +2,6 @@
 
 The design layer of the UI package.
 
-Three layers, foundation upward:
-
 | Layer                                              | Reach    | What                                                                                                                                          |
 | -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Kiso 基礎 - Foundation](./kiso/README.md)         | Internal | Every named utility-class recipe. Atomic concerns (iro · ji · ma · narabi · omote · hannou · sen · shaku · sun · tsunagi · ugoki · kokkaku · kasane) plus the archetype sub-folders (control · popover · segment · panel · slider). |
