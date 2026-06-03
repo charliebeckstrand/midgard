@@ -1,4 +1,4 @@
-# `@reconex/ui` Performance Audit
+# `ui` Performance Audit
 
 > Audited 2026-06-03 against Vercel's **react-best-practices** and **next-best-practices** skill rule sets.
 > Surface: 104 components, 24 hooks, 19 primitives, 6 providers (~38.8k LOC). React 19 / Next 16, App Router.

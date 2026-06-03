@@ -4,7 +4,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 1. Workspace
 
-1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared code in `packages/*`. The product is `apps/tms` (Next.js 16, App Router, Turbopack); shared packages are `@reconex/ui`, `@reconex/auth`, `@reconex/chat`, `@reconex/config`, `@reconex/env`.
+1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared code in `packages/*`. The product is `apps/tms` (Next.js 16, App Router, Turbopack); shared packages are `ui`, `@reconex/auth`, `@reconex/chat`, `@reconex/config`, `@reconex/env`.
 
 1.2 Run tasks through Turbo from the root (`turbo run build`, `turbo run check-types`) or from within a package. Never hand-edit `dist/` or `.next/`.
 
@@ -22,9 +22,9 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 3. Components
 
-3.1 Compose from `@reconex/ui` before writing UI. It carries 100+ components plus the design-token and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
+3.1 Compose from `ui` before writing UI. It carries 100+ components plus the design-token and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
 
-3.2 App-local components live in `apps/tms/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `@reconex/ui`, not the app.
+3.2 App-local components live in `apps/tms/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `ui`, not the app.
 
 3.3 One directory per unit: `<name>.tsx` (main), `<name>-<part>.tsx` (sub-components, always prefixed), `use-<name>-<hook>.ts` (hooks), `context.ts`, `types.ts`, `index.ts` (barrel — re-exports only). Filenames must stay legible stripped of folder context.
 
@@ -44,7 +44,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 5. Styling
 
-5.1 Tailwind v4 utilities, composed with `cn()` from `@reconex/ui/core` (clsx + tailwind-merge, extended with the named spacing scale `xs/sm/md/lg/xl`). Never concatenate class strings by hand.
+5.1 Tailwind v4 utilities, composed with `cn()` from `ui/core` (clsx + tailwind-merge, extended with the named spacing scale `xs/sm/md/lg/xl`). Never concatenate class strings by hand.
 
 5.2 Visual variants come from a component's recipe, consumed through its props. Don't re-derive a component's look with raw utilities, and don't author Tailwind variants in the app.
 
@@ -74,7 +74,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 9. Imports
 
-9.1 In-app, use the `@/*` alias (`@/components/…`, `@/api/…`) — never deep relative chains. From the library, import per-component entries (`@reconex/ui/button`, `@reconex/ui/dialog`) plus `@reconex/ui/core`, `/hooks`, `/primitives/*`, `/providers/*`, `/types`. There is no root barrel.
+9.1 In-app, use the `@/*` alias (`@/components/…`, `@/api/…`) — never deep relative chains. From the library, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `/hooks`, `/primitives/*`, `/providers/*`, `/types`. There is no root barrel.
 
 9.2 Biome organizes import order — don't hand-sort.
 
@@ -88,7 +88,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 11.1 Vitest is the only runner. App tests live in `apps/tms/src/__tests__/**/*.test.{ts,tsx}` (jsdom, UTC); library tests in `packages/ui/src/__tests__/`, mirroring source.
 
-11.2 Library component tests render through `renderUI()` and query by `data-slot` via `bySlot()`. New `@reconex/ui` components expose stable `data-slot` hooks and a filename-matched export — a boundary test enforces the latter.
+11.2 Library component tests render through `renderUI()` and query by `data-slot` via `bySlot()`. New `ui` components expose stable `data-slot` hooks and a filename-matched export — a boundary test enforces the latter.
 
 11.3 Don't drive third-party async lifecycles (fetch, virtualization, floating-ui, pdfjs) in tests; they flake on CI. Test the synchronous seam — a reducer, a callback, a typed harness — or skip with a stated reason.
 
