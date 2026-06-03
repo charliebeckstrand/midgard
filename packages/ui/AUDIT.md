@@ -116,19 +116,19 @@ The per-component Low detail lives in the slice files under `/tmp/ui-audit/` (wo
 ### Done
 
 - **Combobox/option context** — *not* the context-split + `memo()` originally proposed. On inspection `query`/`deferredQuery` were **dead context fields** (no consumer read them through the context; the render-prop receives the query as arguments), so they were simply removed. That alone stops the per-keystroke option re-render and restores the `useDeferredValue` split. Landed.
+- **`Form` field re-render isolation.** Resolved via `/council` (the change conflicted on its face with CONVENTIONS 6.1). Verdict: `useSyncExternalStore` managing *local* per-`Form` state is a built-in React API, not a "global state library," so it's compliant; controlled inputs (7.1) rule out the uncontrolled-ref alternative. Implemented: the reducer stays the source of truth and its committed state is mirrored into a small per-`Form` store; `useFormField`/`useFormStatus` subscribe to a single slice, so typing re-renders only the changed field (per-field snapshots cache and compare `errors` by content so `validateOn:'change'` array rebuilds don't leak re-renders). Public hook surface unchanged, no dependency added, with a regression test asserting a sibling field doesn't re-render. Landed.
 
 ### Investigated and held — each needs an architectural decision, not a safe fix
 
 Rigorous follow-up showed the audit's subagents over-rated these. The reasons matter:
 
-1. **`Form` field bindings.** `useFormField` → `useFormContext` → `useFormState`, which subscribes to the **whole** state context — so every field re-renders on any keystroke *regardless* of closure stability. Stabilizing the returned closures changes nothing observable. A real fix needs per-field selector/subscription state, which conflicts with the "no global state library" rule (CONVENTIONS 6.1) and warrants an explicit architectural decision.
-2. **`editable-grid` context.** The `useMemo([nav, draft])` is broken (deps are always-new objects), but decomposing it to its members is **neutral**: `commitEdit` — a context member every cell reads — lists `draft` in its deps, so the context value changes on every keystroke anyway. The effective fix is to (a) split the editing `draft` into its own context that only the active cell consumes, and/or (b) ref-stabilize `commitEdit`. Both are non-trivial changes to the most complex component's commit flow; worth doing deliberately, with the cell-render count measured before/after.
-3. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
-4. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
+1. **`editable-grid` context.** The `useMemo([nav, draft])` is broken (deps are always-new objects), but decomposing it to its members is **neutral**: `commitEdit` — a context member every cell reads — lists `draft` in its deps, so the context value changes on every keystroke anyway. The effective fix is to (a) split the editing `draft` into its own context that only the active cell consumes, and/or (b) ref-stabilize `commitEdit`. Both are non-trivial changes to the most complex component's commit flow; worth doing deliberately, with the cell-render count measured before/after.
+2. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
+3. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
 
 ### Still genuinely worth doing (lower risk)
 
-5. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern — matters when several overlays are open at once.
-6. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree. Changes SSR output, hence held from the safe-fix pass.
+4. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern — matters when several overlays are open at once.
+5. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree. Changes SSR output, hence held from the safe-fix pass.
 
-The highest-ceiling item is **#2 (editable-grid draft-context split)** — the only one whose payoff is a large, measurable drop in re-renders on a real hot path.
+The highest-ceiling remaining item is **#1 (editable-grid draft-context split)** — the only one whose payoff is a large, measurable drop in re-renders on a real hot path.
