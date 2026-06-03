@@ -4,7 +4,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 1. Workspace
 
-1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared code in `packages/*`. The product is `apps/admin` (Next.js 16, App Router, Turbopack); shared packages are `ui`, `auth`, and `shared`.
+1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared packages are `ui`, `auth`, and `shared`.
 
 1.2 Run tasks through Turbo from the root (`turbo run build`, `turbo run check-types`) or from within a package. Never hand-edit `dist/` or `.next/`.
 
