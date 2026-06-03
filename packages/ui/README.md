@@ -1,10 +1,15 @@
 # ui
 
-The design system. Headless components, primitives, hooks, providers, and a layered recipe system. React 19, Tailwind v4.
+The design system. Headless components, primitives, hooks, providers, and a layered recipe system.
+
+## 0. Prerequisites
+
+- React 19
+- Tailwind v4
 
 ## 1. Quick start
 
-The library is workspace-internal. Consumers import per-component:
+Consumers import per-component:
 
 ```ts
 import { Button } from 'ui/button';
