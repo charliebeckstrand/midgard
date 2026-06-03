@@ -8,7 +8,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 1.2 Run tasks through Turbo from the root (`turbo run build`, `turbo run check-types`) or from within a package. Never hand-edit `dist/` or `.next/`.
 
-1.3 Reach another workspace only through its public entry, never a deep relative path across package boundaries.
+1.3 Reach another workspace only through its public entry (§9), never across package boundaries by path.
 
 ## 2. Routing
 
@@ -22,7 +22,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 3. Components
 
-3.1 Compose from `ui` before writing UI. It carries 100+ components plus the design-token and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
+3.1 Compose from `ui` before writing UI. It carries the component, design-token, and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
 
 3.2 App-local components live in `apps/admin/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `ui`, not the app.
 
@@ -30,7 +30,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 3.4 Named exports only; no default exports. Every file exports a symbol whose PascalCase / `useCamelCase` form matches its filename.
 
-3.5 The barrel is the public surface and nothing more. Consumers import the directory (`@/components/account-picker`), never its internal files.
+3.5 The barrel is the public surface and nothing more; consumers import the directory, never its internal files (§9).
 
 ## 4. TypeScript
 
@@ -99,7 +99,3 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 12.1 Client-exposed config is prefixed `NEXT_PUBLIC_*`; everything unprefixed is server-only. Keep raw `process.env` reads at the config edge (e.g. `src/api/config.ts`), not sprinkled through features.
 
 12.2 A new variable gets an entry in `.env.example` and a typed declaration in the env config. Secrets never take a `NEXT_PUBLIC_` prefix and never land in git (CLAUDE.md 4.4).
-
----
-
-Version control, commit hygiene, and conduct are governed by [CLAUDE.md](CLAUDE.md) §3–4 and are not restated here.
