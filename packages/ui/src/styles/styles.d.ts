@@ -1,3 +1,3 @@
-// Ambient declaration so TypeScript accepts side-effect imports of the
-// stylesheets shipped by this package (e.g. `import './tsunagi.css'`).
+// Ambient declaration so TypeScript accepts side-effect imports of CSS
+// (e.g. `import './app.css'` in the docs entry).
 declare module '*.css'
