@@ -70,13 +70,7 @@ export function NumberInput({
 	}
 
 	const change = (delta: number) => {
-		if (current === undefined) {
-			setCurrent(round(clamp(0)))
-
-			return
-		}
-
-		setCurrent(round(clamp(current + delta)))
+		setCurrent((prev) => (prev === undefined ? round(clamp(0)) : round(clamp(prev + delta))))
 	}
 
 	const atMin = min !== undefined && current !== undefined && current <= min

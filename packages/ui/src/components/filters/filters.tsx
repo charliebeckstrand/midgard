@@ -87,8 +87,8 @@ export function Filters<T extends FilterValue = FilterValue>({
 	)
 
 	const context: FiltersContextValue = useMemo(
-		() => ({ value: filterValue, setValue, clear: handleClear, onClear, activeCount }),
-		[filterValue, setValue, handleClear, onClear, activeCount],
+		() => ({ value: filterValue, setValue, clear: handleClear, activeCount }),
+		[filterValue, setValue, handleClear, activeCount],
 	)
 
 	return (
