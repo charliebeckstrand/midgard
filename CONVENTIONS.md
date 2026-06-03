@@ -1,6 +1,6 @@
 # CONVENTIONS.md
 
-How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Conduct, voice, and version control live in [CLAUDE.md](CLAUDE.md); the component library and data surfaces are mapped in [REFERENCE.md](REFERENCE.md). Where this doc is silent, match the surrounding file.
+How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Conduct, voice, and version control live in [CLAUDE.md](CLAUDE.md); the component library and data surfaces are mapped in [REFERENCE.md](REFERENCE.md).
 
 ## 1. Workspace
 
