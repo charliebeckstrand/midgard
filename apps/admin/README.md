@@ -1,15 +1,11 @@
 # admin
 
-The Next.js admin app. App Router, Turbopack dev, served on `:3000`.
-
 ## 1. Quick start
 
 ```sh
 pnpm install
 pnpm --filter admin dev
 ```
-
-Open `http://localhost:3000`.
 
 ## 2. Commands
 
