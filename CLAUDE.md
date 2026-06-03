@@ -1,7 +1,5 @@
 # CLAUDE.md
 
-> **Scope:** instructions for AI agents working in this repo.
-
 ## 1. Conduct
 
 1.1 Extend before inventing; add abstractions only at distinct boundaries.
