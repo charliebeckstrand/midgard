@@ -40,7 +40,7 @@ type BoxBaseProps = {
 	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	outline?: BoxOutline
 	/** Overrides the data-slot attribute. Defaults to "box". */
-	dataSlot?: string
+	'data-slot'?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string
 }
@@ -66,7 +66,7 @@ export function Box({
 	radius,
 	bg,
 	outline,
-	dataSlot = 'box',
+	'data-slot': slot = 'box',
 	ref,
 	className,
 	href,
@@ -83,7 +83,7 @@ export function Box({
 		<Polymorphic
 			as="div"
 			ref={ref}
-			dataSlot={dataSlot}
+			data-slot={slot}
 			href={href}
 			className={cn(
 				resolvedPadding !== undefined && paddingMap[resolvedPadding],

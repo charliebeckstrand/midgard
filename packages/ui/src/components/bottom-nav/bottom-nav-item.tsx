@@ -42,7 +42,7 @@ export function BottomNavItem({
 	return (
 		<Polymorphic
 			as="button"
-			dataSlot="bottom-nav-item"
+			data-slot="bottom-nav-item"
 			href={href}
 			data-current={isCurrent || undefined}
 			aria-current={isCurrent ? 'page' : undefined}

@@ -27,7 +27,7 @@ type ButtonBaseProps = ButtonVariants & {
 	loading?: boolean | LoadingOptions
 	prefix?: ReactNode
 	suffix?: ReactNode
-	dataSlot?: string
+	'data-slot'?: string
 	className?: string
 }
 
@@ -54,7 +54,7 @@ export function Button({
 	loading: loadingProp = false,
 	prefix,
 	suffix,
-	dataSlot = 'button',
+	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
 	const loading = !!loadingProp
@@ -71,7 +71,7 @@ export function Button({
 			<ButtonHeadless
 				ref={ref as Ref<HTMLButtonElement> | Ref<HTMLAnchorElement> | undefined}
 				href={href}
-				dataSlot={dataSlot}
+				data-slot={slot}
 				className={className}
 				loading={loading}
 				{...(props as ComponentPropsWithoutRef<'button'>)}
@@ -113,7 +113,7 @@ export function Button({
 				<motion.span {...(spring && buttonSpring)}>
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
-						data-slot={dataSlot}
+						data-slot={slot}
 						data-variant={variant}
 						data-density={resolvedSize}
 						data-has-prefix={!!prefix || undefined}
@@ -142,7 +142,7 @@ export function Button({
 			<motion.button
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
-				data-slot={dataSlot}
+				data-slot={slot}
 				data-variant={variant}
 				data-density={resolvedSize}
 				data-has-prefix={!!prefix || undefined}

@@ -49,7 +49,7 @@ export function Badge({
 		<DensityScope scale={size === 'xs' ? undefined : size}>
 			<Polymorphic
 				as="span"
-				dataSlot="badge"
+				data-slot="badge"
 				data-density={resolvedSize}
 				data-has-prefix={!!prefix || undefined}
 				data-has-suffix={!!suffix || undefined}

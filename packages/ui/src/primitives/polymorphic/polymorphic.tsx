@@ -16,7 +16,7 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	as,
 	href,
 	ref,
-	dataSlot,
+	'data-slot': slot,
 	className,
 	children,
 	...rest
@@ -24,7 +24,7 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	as: Fallback
 	href?: string
 	ref?: Ref<Element>
-	dataSlot: string
+	'data-slot': string
 	className: string
 	children: ReactNode
 } & (
@@ -37,7 +37,7 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 		return (
 			<LinkComponent
 				ref={ref as Ref<HTMLAnchorElement>}
-				data-slot={dataSlot}
+				data-slot={slot}
 				href={href}
 				className={className}
 				{...(rest as Omit<LinkProps, 'href' | 'className'>)}
@@ -52,7 +52,7 @@ export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
 	return (
 		<Element
 			ref={ref}
-			data-slot={dataSlot}
+			data-slot={slot}
 			type={as === 'button' ? 'button' : undefined}
 			className={className}
 			{...(rest as ComponentPropsWithoutRef<Fallback>)}

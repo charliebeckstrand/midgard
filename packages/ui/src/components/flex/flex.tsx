@@ -35,11 +35,11 @@ export type FlexProps = {
 	/** Stretches all children equally. */
 	equal?: boolean
 	className?: string
+	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /** @internal Shared flex implementation used by Flex, Stack, and Frame. */
 export function FlexBase({
-	dataSlot,
 	direction,
 	gap,
 	align,
@@ -52,10 +52,9 @@ export function FlexBase({
 	className,
 	children,
 	...props
-}: FlexProps & { dataSlot?: string }) {
+}: FlexProps) {
 	return (
 		<div
-			data-slot={dataSlot}
 			className={cn(
 				resolveDirection(direction),
 				resolveAlign(align),
@@ -92,7 +91,7 @@ export function Flex({ direction = 'row', align, gap, ...props }: FlexProps) {
 
 	return (
 		<FlexBase
-			dataSlot="flex"
+			data-slot="flex"
 			direction={direction}
 			align={resolvedAlign}
 			gap={resolvedGap}

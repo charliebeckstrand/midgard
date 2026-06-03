@@ -26,7 +26,7 @@ export function PaginationPage({
 			<span className="group relative inline-flex" {...indicator.tapHandlers}>
 				<Polymorphic
 					as="button"
-					dataSlot="pagination-page"
+					data-slot="pagination-page"
 					href={href}
 					aria-current={current ? 'page' : undefined}
 					className={cn(k.pageButton({ current }), 'relative z-1', className)}
