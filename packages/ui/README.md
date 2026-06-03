@@ -1,6 +1,6 @@
 # ui
 
-The design system. Headless components, primitives, hooks, providers, and a layered recipe system.
+The design system: headless components, primitives, hooks, providers, and a layered recipe system.
 
 ## 0. Prerequisites
 
@@ -12,9 +12,8 @@ The design system. Headless components, primitives, hooks, providers, and a laye
 Consumers import per-component:
 
 ```ts
-import { Button } from 'ui/button';
-import { Dialog } from 'ui/dialog';
-import { cn } from 'ui/core';
+import { Button } from 'ui/button'
+import { Dialog } from 'ui/dialog'
 ```
 
 No root barrel; the `exports` map exposes each component path.
