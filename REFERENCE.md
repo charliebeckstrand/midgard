@@ -9,7 +9,7 @@
 | Library | [React](https://react.dev) |
 | Framework | [Next.js](https://nextjs.org/docs/app) |
 | CSS | [Tailwind CSS](https://tailwindcss.com/docs) |
-| Design system | [packages/ui](packages/ui) |
+| Design system | [UI](packages/ui) |
 | Testing | [Vitest](https://vitest.dev) |
 | Build | [Turborepo](https://turborepo.dev/docs) |
 | Formatter / linter | [Biome](https://biomejs.dev) |
