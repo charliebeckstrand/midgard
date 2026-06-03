@@ -38,6 +38,42 @@ describe('Form', () => {
 		expect(screen.getByText('Inside the form')).toBeInTheDocument()
 	})
 
+	it('re-renders only the typed field, not its siblings', () => {
+		const renders = { a: 0, b: 0 }
+
+		function CountingField({ name }: { name: 'a' | 'b' }) {
+			const field = useFormField(name)
+
+			renders[name]++
+
+			return (
+				<input
+					data-slot={`field-${name}`}
+					value={(field?.value as string) ?? ''}
+					onChange={(e) => field?.setValue(e.target.value)}
+				/>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ a: '', b: '' }}>
+				<CountingField name="a" />
+				<CountingField name="b" />
+			</Form>,
+		)
+
+		const bAfterMount = renders.b
+
+		fireEvent.change(bySlot(container, 'field-a') as HTMLInputElement, { target: { value: 'x' } })
+
+		// The edited field re-rendered with its new value...
+		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
+		expect(renders.a).toBeGreaterThan(bAfterMount)
+
+		// ...while the untouched sibling did not re-render at all.
+		expect(renders.b).toBe(bAfterMount)
+	})
+
 	it('applies custom className', () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ name: '' }} className="custom">

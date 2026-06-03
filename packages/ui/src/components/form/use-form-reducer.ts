@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { FormActions, FormStateValue } from './context'
+import type { FormActions, FormStateValue, FormStore } from './context'
 import {
 	type Errors,
 	type FormAction,
@@ -22,6 +22,7 @@ import {
 	type Validators,
 	valuesEqual,
 } from './form-reducer'
+import { useFormStore } from './use-form-store'
 
 /**
  * Optional shape returned from `onSubmit` to surface server-side validation
@@ -86,6 +87,7 @@ type UseFormReducerOptions<T extends Record<string, unknown>> = {
 
 type UseFormReducerResult = {
 	formState: FormStateValue
+	store: FormStore
 	actions: FormActions
 	handleSubmit: (e: SyntheticEvent<HTMLFormElement>) => Promise<void>
 	handleReset: (e: SyntheticEvent<HTMLFormElement>) => void
@@ -296,5 +298,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[getValue, setValue, setErrorsExternal, setTouched, reset],
 	)
 
-	return { formState, actions, handleSubmit, handleReset }
+	const store = useFormStore(formState)
+
+	return { formState, store, actions, handleSubmit, handleReset }
 }

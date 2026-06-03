@@ -51,7 +51,7 @@ export function Form<T extends Record<string, unknown>>({
 	children,
 	...props
 }: FormProps<T>) {
-	const { formState, actions, handleSubmit, handleReset } = useFormReducer({
+	const { formState, store, actions, handleSubmit, handleReset } = useFormReducer({
 		defaultValues,
 		values,
 		validate,
@@ -62,7 +62,7 @@ export function Form<T extends Record<string, unknown>>({
 	})
 
 	return (
-		<FormProvider state={formState} actions={actions}>
+		<FormProvider store={store} actions={actions}>
 			<form
 				data-slot="form"
 				onSubmit={handleSubmit}
