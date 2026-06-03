@@ -8,7 +8,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 1.2 Run tasks through Turbo from the root (`turbo run build`, `turbo run check-types`) or from within a package. Never hand-edit `dist/` or `.next/`.
 
-1.3 Reach another workspace only through its public entry, never a deep relative path across package boundaries.
+1.3 Reach another workspace only through its public entry (§9), never across package boundaries by path.
 
 ## 2. Routing
 
@@ -30,7 +30,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 3.4 Named exports only; no default exports. Every file exports a symbol whose PascalCase / `useCamelCase` form matches its filename.
 
-3.5 The barrel is the public surface and nothing more. Consumers import the directory (`@/components/account-picker`), never its internal files.
+3.5 The barrel is the public surface and nothing more; consumers import the directory, never its internal files (§9).
 
 ## 4. TypeScript
 
