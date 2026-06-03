@@ -8,10 +8,10 @@ A map of what already exists in this repo. Read it before building. Rules for *h
 
 Rules of engagement:
 
-- **Compose from it.** A button, dialog, table, form field, combobox, menu — anything in §3 — comes from `ui`. Do not hand-roll with raw Tailwind what the library already provides.
+- **Compose from it.** Do not hand-roll with raw Tailwind what the library already provides.
 - **Check the inventory first** (§3). With 100+ components the one you need usually exists, sometimes under a name you wouldn't guess — `dl`, `stat`, `segment`, `odometer`, `frame`, `glass`, `time-ago`.
 - **Missing but reusable → recommend composing it.** If a feature needs a component that doesn't exist *and it would serve other features too*, propose it for the library, then scaffold it following §6. Don't bury a reusable widget inside a feature folder.
-- **Missing and genuinely one-off → keep it app-local** (§7), composed from library primitives.
+- **Missing and genuinely one-off → keep it app-local** (§7) and compose from library primitives.
 
 The bar: a feature should read as composition of existing `ui` parts. A bare `<div className="…">` where a component already exists is a smell.
 
