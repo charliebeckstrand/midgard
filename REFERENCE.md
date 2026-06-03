@@ -1,6 +1,6 @@
 # REFERENCE.md
 
-A map of what already exists in this repo. Read it before building — most of the UI and data plumbing you need is already here. Rules for *how* to write code are in [CONVENTIONS.md](CONVENTIONS.md); conduct in [CLAUDE.md](CLAUDE.md).
+A map of what already exists in this repo. Read it before building. Rules for *how* to write code are in [CONVENTIONS.md](CONVENTIONS.md); conduct in [CLAUDE.md](CLAUDE.md).
 
 ## 1. The UI library is the default toolbox
 
