@@ -36,13 +36,11 @@ See [REFERENCE.md](REFERENCE.md).
 
 ## 4. TypeScript
 
-4.1 Beyond [`strict`](https://www.typescriptlang.org/tsconfig#strict), `noUncheckedIndexedAccess` is set. Indexed access is `T | undefined`.
+4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
 
-4.2 No `any` (Biome's `noExplicitAny` enforced). Use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
+4.2 Prefer `type` aliases for props and data shapes; co-locate small ones, extract to `types.ts` once shared or large.
 
-4.3 Prefer `type` aliases for props and data shapes; co-locate small ones, extract to `types.ts` once shared or large.
-
-4.4 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
+4.3 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
 ## 5. Styling
 
@@ -78,32 +76,26 @@ See [REFERENCE.md](REFERENCE.md).
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
-## 10. Formatting & lint
+## 10. Testing
 
-10.1 Biome config lives in `biome.json`.
-
-10.2 The [recommended ruleset](https://biomejs.dev/linter) applies; overrides stay in `biome.json`.
-
-## 11. Testing
-
-11.1 Test locations:
+10.1 Test locations:
 
 | Scope | Location |
 |---|---|
 | App | `apps/<app>/src/__tests__/**/*.test.{ts,tsx}` |
 | Component | `packages/ui/src/__tests__/` |
 
-11.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
+10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
 
-11.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests — they flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness) or skip with a stated reason.
+10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests — they flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness) or skip with a stated reason.
 
-11.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done ([CLAUDE.md](CLAUDE.md) §3.4).
+10.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done ([CLAUDE.md](CLAUDE.md) §3.4).
 
-## 12. Environment
+## 11. Environment
 
-12.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to the config edge (`apps/<app>/src/api/config.ts`), not scattered through features.
+11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to the config edge (`apps/<app>/src/api/config.ts`), not scattered through features.
 
-12.2 New variables get an `.env.example` entry and a typed declaration in the env config.
+11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
 ---
 
