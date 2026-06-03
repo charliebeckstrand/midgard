@@ -71,7 +71,7 @@ export function useMapInstance({
 			if (!e.shiftKey) e.stopImmediatePropagation()
 		}
 
-		container.addEventListener('wheel', wheelHandler, { capture: true })
+		container.addEventListener('wheel', wheelHandler, { capture: true, passive: true })
 
 		loadMapLibre().then(({ Map: MapLibreMapCtor, AttributionControl }) => {
 			if (cancelled || !containerRef.current) return
