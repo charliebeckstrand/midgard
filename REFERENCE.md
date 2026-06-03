@@ -1,6 +1,6 @@
 # REFERENCE.md
 
-> **Scope:** tool index for the repo. Repo-specific conventions live in [CONVENTIONS.md](CONVENTIONS.md).
+> **Scope:** tool index. Repo-specific conventions live in [CONVENTIONS.md](CONVENTIONS.md).
 
 ## 1. Stack
 
