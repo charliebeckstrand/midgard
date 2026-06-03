@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { type PointerEvent, useCallback, useRef, useState } from 'react'
+import { type PointerEvent, useCallback, useMemo, useRef, useState } from 'react'
 import { ReducedMotion } from '../primitives/reduced-motion'
 
 type RippleEntry = {
@@ -41,32 +41,35 @@ export function useRipple({ duration = 0.5 }: UseRippleOptions = {}) {
 		setRipples((prev) => prev.filter((ripple) => ripple.key !== key))
 	}, [])
 
-	const element = (
-		<ReducedMotion>
-			<span
-				aria-hidden
-				className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none"
-			>
-				<AnimatePresence>
-					{ripples.map((ripple) => (
-						<motion.span
-							key={ripple.key}
-							className="absolute bg-current rounded-full"
-							style={{
-								left: ripple.x - ripple.size / 2,
-								top: ripple.y - ripple.size / 2,
-								width: ripple.size,
-								height: ripple.size,
-							}}
-							initial={{ scale: 0, opacity: 0.25 }}
-							animate={{ scale: 1, opacity: 0 }}
-							transition={{ duration }}
-							onAnimationComplete={() => remove(ripple.key)}
-						/>
-					))}
-				</AnimatePresence>
-			</span>
-		</ReducedMotion>
+	const element = useMemo(
+		() => (
+			<ReducedMotion>
+				<span
+					aria-hidden
+					className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none"
+				>
+					<AnimatePresence>
+						{ripples.map((ripple) => (
+							<motion.span
+								key={ripple.key}
+								className="absolute bg-current rounded-full"
+								style={{
+									left: ripple.x - ripple.size / 2,
+									top: ripple.y - ripple.size / 2,
+									width: ripple.size,
+									height: ripple.size,
+								}}
+								initial={{ scale: 0, opacity: 0.25 }}
+								animate={{ scale: 1, opacity: 0 }}
+								transition={{ duration }}
+								onAnimationComplete={() => remove(ripple.key)}
+							/>
+						))}
+					</AnimatePresence>
+				</span>
+			</ReducedMotion>
+		),
+		[ripples, duration, remove],
 	)
 
 	return { onPointerDown, element }
