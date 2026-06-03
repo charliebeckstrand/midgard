@@ -237,8 +237,8 @@ export function Combobox<T>({
 	) : null
 
 	const contextValue = useMemo(
-		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query, deferredQuery }),
-		[value, multiple, select, query, deferredQuery],
+		() => ({ value, multiple, onSelect: select as (v: unknown) => void }),
+		[value, multiple, select],
 	)
 
 	if (skeleton) {
