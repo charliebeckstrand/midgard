@@ -19,8 +19,6 @@ pnpm --filter admin dev
 
 ## 3. Layout
 
-Route groups partition concerns ([CONVENTIONS](../../CONVENTIONS.md) §2.1):
-
 | Path | Role |
 |---|---|
 | `app/(app)/*` | Authenticated product surface. |
