@@ -2,11 +2,9 @@
 
 ## 1. Workspace
 
-1.1 pnpm + Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
+1.1 Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
 
-1.2 The design system lives in `packages/ui` (§3, §9).
-
-1.3 Reach another workspace only through its public entry (§9), never across package boundaries.
+1.2 Reach another workspace only through its public entry, never across package boundaries (§9).
 
 ## 2. Routing
 
@@ -70,7 +68,9 @@ See [REFERENCE.md](REFERENCE.md).
 
 ## 9. Imports
 
-9.1 In-app, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains. From the library, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
+9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains. 
+
+From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
