@@ -218,7 +218,7 @@ export function Combobox<T>({
 
 	const showClear = clearable && hasValue && !resolvedDisabled
 
-	const clearSuffix = (
+	const clearSuffix = showClear ? (
 		<Button
 			variant="bare"
 			className="pointer-events-auto"
@@ -234,7 +234,7 @@ export function Combobox<T>({
 		>
 			<Icon icon={<X />} />
 		</Button>
-	)
+	) : null
 
 	const contextValue = useMemo(
 		() => ({ value, multiple, onSelect: select as (v: unknown) => void, query, deferredQuery }),
@@ -257,7 +257,7 @@ export function Combobox<T>({
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				prefix={prefix}
-				suffix={suffix || (showClear ? clearSuffix : <Icon icon={<ChevronsUpDown />} />)}
+				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
 				suffixProps={
 					suffix || showClear
 						? undefined

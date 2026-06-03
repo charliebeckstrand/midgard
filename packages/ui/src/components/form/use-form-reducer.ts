@@ -3,7 +3,7 @@
 import {
 	type SyntheticEvent,
 	useCallback,
-	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useReducer,
 	useRef,
@@ -199,7 +199,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// Use `reset(nextDefaults)` to also clear touched and errors.
 	const lastSyncedValuesRef = useRef(controlledValues)
 
-	useEffect(() => {
+	// Synchronous DOM-correction sync (not an async side effect): run before paint
+	// so a controlled-value change doesn't flash the stale values for one frame.
+	useLayoutEffect(() => {
 		if (controlledValues === lastSyncedValuesRef.current) return
 
 		const next = controlledValues ?? initialDefaultsRef.current
