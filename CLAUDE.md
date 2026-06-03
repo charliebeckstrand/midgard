@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file governs conduct, voice, workflow, and version control. For *how* code is written, see [CONVENTIONS.md](CONVENTIONS.md); for a map of the component library and data surfaces, see [REFERENCE.md](REFERENCE.md).
+This file governs conduct, voice, workflow, and version control. For *how* code is written, see [CONVENTIONS.md](CONVENTIONS.md). For a map of the component library and data surfaces, see [REFERENCE.md](REFERENCE.md).
 
 ## 1. Conduct
 
