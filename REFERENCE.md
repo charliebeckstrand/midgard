@@ -1,7 +1,5 @@
 # REFERENCE.md
 
-> **Scope:** Repo tool index. Conventions live in [CONVENTIONS.md](CONVENTIONS.md).
-
 ## 1. Stack
 
 | Layer | Tool |
