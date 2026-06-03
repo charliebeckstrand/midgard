@@ -1,0 +1,46 @@
+# admin
+
+The Next.js admin app. App Router, Turbopack dev, served on `:3000`.
+
+## 1. Quick start
+
+```sh
+pnpm install
+pnpm --filter admin dev
+```
+
+Open `http://localhost:3000`.
+
+## 2. Commands
+
+| Goal | Command |
+|---|---|
+| Dev (Turbopack) | `pnpm --filter admin dev` |
+| Build | `pnpm --filter admin build` |
+| Start (production) | `pnpm --filter admin start` |
+| Typecheck | `pnpm --filter admin check-types` |
+| Lint | `pnpm --filter admin lint` |
+
+## 3. Layout
+
+Route groups partition concerns ([CONVENTIONS](../../CONVENTIONS.md) §2.1):
+
+| Path | Role |
+|---|---|
+| `app/(app)/*` | Authenticated product surface. |
+| `app/(auth)/*` | Sign-in. |
+| `app/providers.tsx` | Top-level React Context providers. |
+| `app/api/[...path]/*` | Same-origin proxy to the gateway. |
+| `src/components/<name>/` | App-local components; route-specific UI co-locates with the owning segment. |
+
+## 4. Environment
+
+Variables follow [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) = client, else server-only ([CONVENTIONS](../../CONVENTIONS.md) §12). Add new variables to `.env.example` and to the typed declaration in `src/api/config.ts`.
+
+## 5. Dependencies
+
+Consumes the design system ([`ui`](../../packages/ui/README.md)), shared utilities ([`shared`](../../packages/shared/README.md)), and the auth library ([`auth`](../../packages/auth/README.md)).
+
+---
+
+**See also:** [`../../README.md`](../../README.md), [`../../CONVENTIONS.md`](../../CONVENTIONS.md).

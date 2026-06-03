@@ -1,5 +1,7 @@
 # REFERENCE.md
 
+> **Scope:** inventory of the `ui` package surface — components, hooks, primitives, providers, and the recipe system. Authoring conventions live in [`../../CONVENTIONS.md`](../../CONVENTIONS.md).
+
 ## 1. Component inventory
 
 **Inputs & form fields** — `input` · `textarea` · `select` · `combobox` · `checkbox` · `radio` · `switch` · `slider` · `number-input` · `currency-input` · `credit-card-input` · `phone-input` · `zipcode-input` · `address-input` · `mask-input` · `date-picker` · `calendar` · `file-upload` · `search-input` · `tag-input` · `signature-pad` · `password-input` · `password-confirm` · `password-strength` · `toggle-icon-button`
@@ -36,19 +38,20 @@
 
 **Primitives** (`ui/primitives/<name>`) — `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`
+**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
 
 ## 3. Recipes
 
 Variants are channeled through a layered recipe system in `packages/ui/src/recipes/`:
+
 - **Kiso** (substrate tokens)
 - **Genkei** (archetype fragments)
 - **Katakana** (applicators)
 - **Kata** (per-component recipe)
 
-A component reads one curated surface (`recipes/kata/<name>`), and exposes the result as props.
+A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props.
 
-Cross-layer value imports are forbidden, pinned by boundary tests. Details: [`packages/ui/src/recipes/README.md`](packages/ui/src/recipes/README.md).
+Cross-layer value imports are forbidden, pinned by boundary tests. Details: [`src/recipes/README.md`](src/recipes/README.md).
 
 ## 4. Composing a new component
 
@@ -63,9 +66,7 @@ packages/ui/src/components/<name>/
   Barrel                index.ts (re-exports only)
 ```
 
-Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`).
-
-Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
+Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
 
 ## 5. Commands
 
@@ -75,14 +76,16 @@ Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
 | Typecheck | root | `turbo run check-types` |
 | Lint | root | `biome check .` |
 | Tests (scoped) | `packages/ui` | `pnpm test:related` / `pnpm test:changed` |
-| Dev | `packages/ui` | `pnpm docs` |
+| Dev (docs site) | `packages/ui` | `pnpm docs` |
 
 ## 6. Where to look
 
-- **Components** — `packages/ui/src/components/<name>/*`
-- **Component demos** — `packages/ui/src/docs/demos/*`
-- **Recipe system** — [`packages/ui/src/recipes/README.md`](packages/ui/src/recipes/README.md)
+| Goal | Path |
+|---|---|
+| Components | `packages/ui/src/components/<name>/*` |
+| Component demos | `packages/ui/src/docs/demos/*` |
+| Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |
 
 ---
 
-**See also:** [CLAUDE.md](CLAUDE.md), [CONVENTIONS.md](CONVENTIONS.md).
+**See also:** [README.md](README.md), [`src/recipes/README.md`](src/recipes/README.md).

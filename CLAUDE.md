@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+> **Scope:** instructions for AI coding agents working in this repo. Code conventions live in [CONVENTIONS.md](CONVENTIONS.md); the tool index lives in [REFERENCE.md](REFERENCE.md).
+
 ## 1. Conduct
 
 1.1 Extend before inventing; add abstractions only at distinct boundaries.
@@ -22,15 +24,11 @@
 
 3.1 Before implementing multi-file or architectural work, surface the approach for assent.
 
-3.2 When weighing a decision, name the fitting instrument:
-- **`/debate`**: binary X-or-Y
-- **`/council`**: high-stakes, several competing tradeoffs
+3.2 When weighing a decision, name the fitting instrument: `/debate` for binary X-or-Y, `/council` for high-stakes calls with several competing tradeoffs. Don't run either unprompted.
 
-Don't run either unprompted.
+3.3 For research spanning sources or subsystems, delegate to subagents — one task each.
 
-3.3 For research spanning sources or subsystems, delegate to subagents, one task each.
-
-3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related`/`test:changed`); Lefthook runs the full gate pre-commit.
+3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs the full gate pre-commit.
 
 ## 4. Version Control
 
@@ -38,7 +36,7 @@ Don't run either unprompted.
 
 4.2 One logical change per commit, staged deliberately. Never `git add .`; never stage commented-out code, debug output, or drive-bys.
 
-4.3 Commit bodies: what and why, not how.
+4.3 Commit bodies state the what and why, not the how.
 
 4.4 Never commit secrets or `.env`.
 
