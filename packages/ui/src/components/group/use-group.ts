@@ -10,10 +10,6 @@ import {
 } from 'react'
 import { JoinContext } from '../../primitives/join'
 import type { GroupOrientation, GroupPosition } from '../../recipes'
-// Side-effect import: registers the data-attribute selectors that flatten
-// join radii and overlap borders. Consumers using `useGroup` (directly or
-// via `<Group>`) get the CSS automatically through this import.
-import '../../styles/recipes/tsunagi.css'
 
 function positionAt(index: number, length: number): GroupPosition {
 	if (length === 1) return 'only'

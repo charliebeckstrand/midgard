@@ -13,9 +13,9 @@ export type PlaceholderProps = {
  * Pulsing skeleton shape. Defaults to a line; pass className for other shapes.
  *
  * When rendered inside a `<Group>` (directly or via context propagating through
- * any wrapper), `tsunagi.base` join classes activate via `data-group` attributes
- * read from `JoinContext`, so adjacent placeholders appear as a single
- * continuous shape just like the real controls would.
+ * any wrapper), the `data-group` attributes it stamps from `JoinContext` match
+ * the group's container-scoped `tsunagi` join selectors, so adjacent
+ * placeholders appear as a single continuous shape just like the real controls.
  */
 export function Placeholder({ className, ...props }: PlaceholderProps) {
 	const join = useJoin()

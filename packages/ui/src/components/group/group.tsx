@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import type { GroupOrientation, Step } from '../../recipes'
+import { k } from '../../recipes/kata/group'
 import { useGroup } from './use-group'
 
 type GroupBaseProps = {
@@ -26,9 +27,10 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 /**
  * Group — a wrapper that joins adjacent children visually by stamping
  * `data-group` position attributes (`start` | `middle` | `end` | `only`)
- * onto each child. CSS selectors in `styles/recipes/tsunagi.css` (pulled
- * in as a side-effect import via `useGroup`) drop the inner radii and
- * overlap by 1 px so adjacent borders don't double.
+ * onto each child. The container carries the `tsunagi` join classes
+ * (`recipes/kata/group`), whose descendant selectors drop the inner radii
+ * and overlap by 1 px so adjacent borders don't double — keyed on the
+ * stamped position, so they cost nothing until a child reports one.
  *
  * Provides the Density cascade for its descendants: components that read
  * `useDensity()` (Button, Input, etc.) will default their `size` prop to
@@ -69,7 +71,12 @@ export function Group({
 			href={href}
 			data-density={resolvedSize}
 			data-group-orientation={orientation}
-			className={cn('inline-flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', className)}
+			className={cn(
+				'inline-flex',
+				orientation === 'vertical' ? 'flex-col' : 'flex-row',
+				k.join(orientation),
+				className,
+			)}
 			{...props}
 		>
 			<Density density={resolvedSize} size={resolvedSize}>
