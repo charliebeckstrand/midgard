@@ -42,7 +42,7 @@
 
 ## 3. Recipes
 
-Variants are channeled through a layered recipe system in `packages/ui/src/recipes/`:
+Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
 
 - **Kiso** (substrate tokens)
 - **Genkei** (archetype fragments)
@@ -51,7 +51,7 @@ Variants are channeled through a layered recipe system in `packages/ui/src/recip
 
 A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props.
 
-Cross-layer value imports are forbidden, pinned by boundary tests. Details: [`src/recipes/README.md`](src/recipes/README.md).
+Cross-layer value imports are forbidden, pinned by boundary tests. See [`src/recipes/README.md`](src/recipes/README.md).
 
 ## 4. Composing a new component
 

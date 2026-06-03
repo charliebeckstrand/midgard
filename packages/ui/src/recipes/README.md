@@ -7,10 +7,10 @@
 | Layer | Reach | What |
 |---|---|---|
 | [Kiso 基礎 — Foundation](./kiso/README.md) | Internal | Every named utility-class recipe. Atomic concerns (`iro` · `ji` · `ma` · `narabi` · `omote` · `hannou` · `sen` · `shaku` · `sun` · `tsunagi` · `ugoki` · `kokkaku` · `kasane`) plus archetype sub-folders (`control` · `popover` · `segment` · `panel` · `slider`). |
-| [Katakana 片仮名 — Applicators](./katakana/README.md) | Internal | Function-shaped applicators that wrap kiso archetype fragments into ready-to-call recipe surfaces for kata that match an archetype. |
-| [Kata 型 — Form](./kata/README.md) | Internal | Per-unit recipes — the funnel components and primitives both read. |
+| [Katakana 片仮名 — Applicators](./katakana/README.md) | Internal | Function-shaped applicators that wrap kiso archetype fragments for matching kata. |
+| [Kata 型 — Form](./kata/README.md) | Internal | Per-unit recipes — the funnel for components and primitives. |
 
-The recipe engine (`defineRecipe`, `definePalette`, `merge`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the applicator helpers (`applyRecipe`, `defineApplicator`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). They are imported directly by the kata, katakana, and `layouts/*/variants.ts` files that author recipes — they no longer flow through this folder's barrel.
+The recipe engine (`defineRecipe`, `definePalette`, `merge`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the applicator helpers (`applyRecipe`, `defineApplicator`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `kata`, `katakana`, and `layouts/*/variants.ts` import them directly.
 
 ## 2. Funnels
 

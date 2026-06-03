@@ -1,6 +1,6 @@
 # midgard
 
-A pnpm monorepo: a Next.js admin app (`apps/admin`) backed by a reusable design system (`packages/ui`) and shared auth/chat libraries (`packages/auth`, `packages/shared`). Repo-wide conventions live in [CONVENTIONS.md](CONVENTIONS.md); the tool index is [REFERENCE.md](REFERENCE.md); agent guidance is [CLAUDE.md](CLAUDE.md).
+A pnpm monorepo: a Next.js admin app (`apps/admin`), a design system (`packages/ui`), and shared auth/chat libraries (`packages/auth`, `packages/shared`). Conventions live in [CONVENTIONS.md](CONVENTIONS.md); the tool index is [REFERENCE.md](REFERENCE.md); agent guidance is [CLAUDE.md](CLAUDE.md).
 
 ## 1. Quick start
 
@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-The dev orchestrator (`hlidskjalf`) wires up every workspace. The admin app serves on `http://localhost:3000`.
+The dev orchestrator (`hlidskjalf`) starts every workspace; the admin app serves on `http://localhost:3000`.
 
 ## 2. Commands
 

@@ -12,9 +12,9 @@
 
 ## 2. Routing
 
-2.1 App Router **only** (no Pages Router). Route groups partition concerns: `(app)` authenticated product surface, `(auth)` sign-in. Co-locate route-specific UI, hooks, and data with the owning segment.
+2.1 App Router **only**. Route groups partition concerns: `(app)` authenticated product surface, `(auth)` sign-in. Co-locate route-specific UI, hooks, and data with the owning segment.
 
-2.2 [Server/Client Components and the `'use client'` boundary](https://nextjs.org/docs/app/getting-started/server-and-client-components) work as Next.js documents. Keep `'use client'` on the interactive leaf and push it down the tree — never promote it onto a layout or page that could stay server-rendered.
+2.2 For [Server/Client Components and the `'use client'` boundary](https://nextjs.org/docs/app/getting-started/server-and-client-components), keep `'use client'` on the interactive leaf; never promote it onto a layout or page that could stay server-rendered.
 
 2.3 When a server page hands data to an interactive subtree, split `page.tsx` (server) + `client.tsx` (client); a server layout splits into `layout.tsx` + `layout-client.tsx`. This `*-client.tsx` split is ours, not a Next.js convention.
 
@@ -24,7 +24,7 @@
 
 3.1 Compose from the design system (`ui`); see [REFERENCE.md](REFERENCE.md).
 
-3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature/domain logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
+3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
 
 3.3 One directory per unit: `<name>.tsx`, `<name>-<part>.tsx` (sub-components), `use-<name>-<hook>.ts` (hooks), `context.ts`, `types.ts`, `index.ts` (barrel, re-exports only).
 
@@ -58,7 +58,7 @@
 
 6.3 Client fetches hit the same-origin proxy at `api/[...path]`. They never call the gateway or handle tokens directly.
 
-6.4 Shared client fetches use the data-hook pattern: a module-scoped cache plus a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, re-run on a serialized key, with async `setState` guarded by an `active` flag.
+6.4 Shared client fetches use the data-hook pattern: a module-scoped cache and a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, keyed by a serialized input; `setState` is guarded by an `active` flag.
 
 ## 7. Forms
 
@@ -80,7 +80,7 @@
 
 10.1 Biome config lives in `biome.json`.
 
-10.2 The [recommended ruleset](https://biomejs.dev/linter) is on; project overrides stay in `biome.json`.
+10.2 The [recommended ruleset](https://biomejs.dev/linter) applies; overrides stay in `biome.json`.
 
 ## 11. Testing
 

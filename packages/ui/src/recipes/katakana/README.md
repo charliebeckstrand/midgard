@@ -14,7 +14,7 @@ Every applicator is a function that takes an archetype's standard pieces plus th
 - `segment` — two `defineRecipe` calls (one for the outer chrome, one for each item) wrapped in a bundle alongside the raw indicator fragment.
 - `panel` — caller supplies their own `defineRecipe` results (each kata's panel has different variants); the applicator wraps them in the standard title / description / header / body / actions / close slot bundle.
 
-Three exceptions around one architecture, not separate paradigms. See the file-level JSDoc in [`katakana/index.ts`](./index.ts) for the full narrative.
+Three exceptions, one architecture. See [`katakana/index.ts`](./index.ts) for details.
 
 ## 3. Modules
 

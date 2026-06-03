@@ -12,7 +12,7 @@ import { Dialog } from 'ui/dialog';
 import { cn } from 'ui/core';
 ```
 
-No root barrel; the `exports` map surfaces each component path directly.
+No root barrel; the `exports` map exposes each component path.
 
 ## 2. Commands
 

@@ -26,7 +26,7 @@ Every kata exports exactly one runtime value, `k`. The shape `k` takes depends o
 
 Type exports sit alongside (`type FooVariants = VariantProps<typeof k>` or `VariantProps<typeof k.button>`). Archetype kata may also re-export the applicator's variant type — e.g. `export type { ControlVariants as InputVariants } from '../katakana'`.
 
-When a component reads kiso fragments directly (a skeleton-using file reading `kokkaku.<name>`, a motion-using file reading `ugoki.<thing>`, a popover-content-shape file reading the popover bundle), the kata absorbs those reads through `k` — `k.skeleton`, `k.motion`, `k.content` are the established slot names. The component imports only its kata; the kiso / katakana reach stops at the kata file.
+When a component would read kiso fragments directly (`kokkaku.<name>` for skeletons, `ugoki.<thing>` for motion, the popover bundle for popover content), the kata re-exposes them as `k.skeleton`, `k.motion`, `k.content`. The component imports only its kata; the reach into kiso and katakana stops there.
 
 Filenames are `<name>.ts`, matching the component folder.
 

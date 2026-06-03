@@ -10,7 +10,7 @@ Composition flows downward only. Modules may import siblings — `narabi` reads 
 
 ## 2. Shape
 
-Every module is a sub-folder. One file per concern; `index.ts` assembles the named bundle. The bundle name matches the folder (`iro`, `ji`, `ma`, …) so consumers reach a finished surface by name; the sub-files are the internal organisation that makes each axis easier to author and maintain.
+Every module is a sub-folder. One file per concern; `index.ts` assembles the named bundle. The bundle name matches the folder (`iro`, `ji`, `ma`, …) so consumers reach a finished surface by name; the sub-files are the internal structure of each axis.
 
 The two exceptions are `sun.ts` and `tsunagi.ts` — each carries a single coherent concern small enough that splitting would add files without adding clarity.
 
@@ -93,7 +93,7 @@ Cross-cutting fragments spread from sibling kiso (`...iro.text.default`, `...han
 'read-only:bg-transparent',
 ```
 
-**Separate strings carry meaning.** A string break signals a concern boundary — different property family, different axis, or a deliberate visual grouping. Don't break for the sake of breaking; don't merge unrelated properties to save a line.
+**Separate strings carry meaning.** A string break signals a concern boundary — different property family, different axis, or a deliberate visual grouping. Don't introduce arbitrary breaks; don't merge unrelated properties to save space.
 
 **Mode pairs go through `mode()`.** When both a light class and its `dark:` counterpart need to ship to the Tailwind scanner, use the `mode(light, dark)` helper from `core/recipe` rather than open-coding the pair.
 

@@ -6,7 +6,7 @@ Auth library — config, proxy helpers, and user accessor. Peer-compatible with 
 
 | Path | Purpose |
 |---|---|
-| `auth` | Root surface — re-exports the public auth API. |
+| `auth` | Public API entry point. |
 | `auth/config` | Config schema and accessors. |
 | `auth/proxy` | Gateway proxy handler for same-origin API routes. |
 | `auth/user` | Current-user accessor for Server Components and route handlers. |
