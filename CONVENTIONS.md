@@ -4,7 +4,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 1. Workspace
 
-1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared code in `packages/*`. The product is `apps/tms` (Next.js 16, App Router, Turbopack); shared packages are `ui`, `@reconex/auth`, `@reconex/chat`, `@reconex/config`, `@reconex/env`.
+1.1 pnpm workspace + Turbo monorepo. Apps in `apps/*`, shared code in `packages/*`. The product is `apps/admin` (Next.js 16, App Router, Turbopack); shared packages are `ui`, `auth`, and `shared`.
 
 1.2 Run tasks through Turbo from the root (`turbo run build`, `turbo run check-types`) or from within a package. Never hand-edit `dist/` or `.next/`.
 
@@ -24,7 +24,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 3.1 Compose from `ui` before writing UI. It carries 100+ components plus the design-token and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
 
-3.2 App-local components live in `apps/tms/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `ui`, not the app.
+3.2 App-local components live in `apps/admin/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `ui`, not the app.
 
 3.3 One directory per unit: `<name>.tsx` (main), `<name>-<part>.tsx` (sub-components, always prefixed), `use-<name>-<hook>.ts` (hooks), `context.ts`, `types.ts`, `index.ts` (barrel — re-exports only). Filenames must stay legible stripped of folder context.
 
@@ -52,9 +52,9 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 6. State & data
 
-6.1 No global state library (no Redux, Zustand, or React Query). Cross-cutting state is React Context, provided at `apps/tms/src/app/providers.tsx`; local state stays local.
+6.1 No global state library (no Redux, Zustand, or React Query). Cross-cutting state is React Context, provided at `apps/admin/app/providers.tsx`; local state stays local.
 
-6.2 Server data is fetched in Server Components or `'use server'` modules under `apps/tms/src/api/*`, which attach the bearer token via `getAccessToken()` and target the gateway via `getApiOrigin()`. Secrets never reach the client.
+6.2 Server data is fetched in Server Components or `'use server'` modules under `apps/admin/src/api/*`, which attach the bearer token via `getAccessToken()` and target the gateway via `getApiOrigin()`. Secrets never reach the client.
 
 6.3 Client-side fetches hit the same-origin proxy at `/api/*` (the `app/api/[...path]` route handler forwards to the gateway with auth attached). Client code never calls the gateway or handles tokens directly.
 
@@ -86,7 +86,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 11. Testing
 
-11.1 Vitest is the only runner. App tests live in `apps/tms/src/__tests__/**/*.test.{ts,tsx}` (jsdom, UTC); library tests in `packages/ui/src/__tests__/`, mirroring source.
+11.1 Vitest is the only runner. App tests live in `apps/admin/src/__tests__/**/*.test.{ts,tsx}` (jsdom, UTC); library tests in `packages/ui/src/__tests__/`, mirroring source.
 
 11.2 Library component tests render through `renderUI()` and query by `data-slot` via `bySlot()`. New `ui` components expose stable `data-slot` hooks and a filename-matched export — a boundary test enforces the latter.
 
@@ -98,7 +98,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 12.1 Client-exposed config is prefixed `NEXT_PUBLIC_*`; everything unprefixed is server-only. Keep raw `process.env` reads at the config edge (e.g. `src/api/config.ts`), not sprinkled through features.
 
-12.2 A new variable gets an entry in `.env.example` and a declaration in `@reconex/env`. Secrets never take a `NEXT_PUBLIC_` prefix and never land in git (CLAUDE.md 4.4).
+12.2 A new variable gets an entry in `.env.example` and a typed declaration in the env config. Secrets never take a `NEXT_PUBLIC_` prefix and never land in git (CLAUDE.md 4.4).
 
 ---
 
