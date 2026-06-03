@@ -1,7 +1,5 @@
 # CONVENTIONS.md
 
-> **Scope:** repo-specific decisions only. Toolchain defaults are linked, not restated. Upstream: [Turborepo](https://turborepo.dev/docs), [Next.js](https://nextjs.org/docs/app), [Biome](https://biomejs.dev), [TypeScript](https://www.typescriptlang.org/tsconfig), [Vitest](https://vitest.dev).
-
 ## 1. Workspace
 
 1.1 pnpm + Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
@@ -98,5 +96,7 @@ See [REFERENCE.md](REFERENCE.md).
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
 ---
+
+Toolchain defaults: [Turborepo](https://turborepo.dev/docs), [Next.js](https://nextjs.org/docs/app), [Biome](https://biomejs.dev), [TypeScript](https://www.typescriptlang.org/tsconfig), [Vitest](https://vitest.dev).
 
 **See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md).
