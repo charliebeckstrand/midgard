@@ -111,15 +111,24 @@ Sixty Low findings, almost all **allocation churn** — fallback JSX (`<ChevronR
 
 The per-component Low detail lives in the slice files under `/tmp/ui-audit/` (working notes) and is summarized here rather than reproduced in full — the pattern is uniform and the fix is identical.
 
-## Recommended follow-ups (not auto-applied)
+## Recommended follow-ups
 
-Ranked by ceiling, these are the changes worth a deliberate PR because they touch shared shape or rendered output:
+### Done
 
-1. **Split the combobox/option context** into a stable identity context (`value`, `multiple`, `onSelect`, `selectedSet`) and a separate query context, and `memo()` the `Option`. This is the single largest keystroke-perf win in the library.
-2. **Stabilize `Form`'s field bindings** — have `useFormField`/`useFormText`/`useFormToggle` return `useCallback`-stable handlers (or steer consumers to `useFormState`/`useFormActions`). Affects every form in the app.
-3. **Decompose `editable-grid`'s context deps and `memo()` `EditableGridCell`** — removes the per-cell re-render storm on large grids.
-4. **`memo()` `json-tree` rows and `kanban` cards**, and share the `kanban` `cardIndex` Map with the keyboard hook.
-5. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern.
-6. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree.
+- **Combobox/option context** — *not* the context-split + `memo()` originally proposed. On inspection `query`/`deferredQuery` were **dead context fields** (no consumer read them through the context; the render-prop receives the query as arguments), so they were simply removed. That alone stops the per-keystroke option re-render and restores the `useDeferredValue` split. Landed.
 
-These are tracked here, not implemented, per the "report + safe fixes" scope.
+### Investigated and held — each needs an architectural decision, not a safe fix
+
+Rigorous follow-up showed the audit's subagents over-rated these. The reasons matter:
+
+1. **`Form` field bindings.** `useFormField` → `useFormContext` → `useFormState`, which subscribes to the **whole** state context — so every field re-renders on any keystroke *regardless* of closure stability. Stabilizing the returned closures changes nothing observable. A real fix needs per-field selector/subscription state, which conflicts with the "no global state library" rule (CONVENTIONS 6.1) and warrants an explicit architectural decision.
+2. **`editable-grid` context.** The `useMemo([nav, draft])` is broken (deps are always-new objects), but decomposing it to its members is **neutral**: `commitEdit` — a context member every cell reads — lists `draft` in its deps, so the context value changes on every keystroke anyway. The effective fix is to (a) split the editing `draft` into its own context that only the active cell consumes, and/or (b) ref-stabilize `commitEdit`. Both are non-trivial changes to the most complex component's commit flow; worth doing deliberately, with the cell-render count measured before/after.
+3. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
+4. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
+
+### Still genuinely worth doing (lower risk)
+
+5. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern — matters when several overlays are open at once.
+6. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree. Changes SSR output, hence held from the safe-fix pass.
+
+The highest-ceiling item is **#2 (editable-grid draft-context split)** — the only one whose payoff is a large, measurable drop in re-renders on a real hot path.
