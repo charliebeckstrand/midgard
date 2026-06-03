@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> **Scope:** instructions for AI coding agents working in this repo. Code conventions live in [CONVENTIONS.md](CONVENTIONS.md); the tool index lives in [REFERENCE.md](REFERENCE.md).
+> **Scope:** instructions for AI agents working in this repo.
 
 ## 1. Conduct
 
