@@ -9,7 +9,12 @@ import {
 	type DataTableVirtualize,
 } from '../data-table'
 import type { TableVariants } from '../table'
-import { EditableGridContext, type EditableGridContextValue } from './context'
+import {
+	EditableGridEditContext,
+	type EditableGridEditValue,
+	EditableGridStateContext,
+	type EditableGridStateValue,
+} from './context'
 import { EditableGridStyles } from './editable-grid-styles'
 import type { CellChange, EditableGridColumn } from './types'
 import { useEditableGridAugmentedColumns } from './use-editable-grid-augmented-columns'
@@ -110,52 +115,71 @@ export function EditableGrid<T>({
 		formatCell: rowsApi.formatCell,
 	})
 
-	const context = useMemo<EditableGridContextValue>(
+	// Stable while editing — the cell shells subscribe here, so typing (which only
+	// moves the edit slice below) doesn't re-render every cell.
+	const stateValue = useMemo<EditableGridStateValue>(
 		() => ({
 			active: nav.active,
 			anchor: nav.anchor,
 			extraCells: nav.extraCells,
 			editing: draft.editing,
-			draft: draft.draft,
-			setDraft: draft.setDraft,
 			setActive: nav.moveActiveTo,
 			addCellToSelection: nav.addCellToSelection,
 			beginEdit: draft.beginEdit,
+		}),
+		[
+			nav.active,
+			nav.anchor,
+			nav.extraCells,
+			draft.editing,
+			nav.moveActiveTo,
+			nav.addCellToSelection,
+			draft.beginEdit,
+		],
+	)
+
+	// Changes on every keystroke; read only by the mounted editor.
+	const editValue = useMemo<EditableGridEditValue>(
+		() => ({
+			draft: draft.draft,
+			setDraft: draft.setDraft,
 			commitEdit: draft.commitEdit,
 			cancelEdit: draft.cancelEdit,
 		}),
-		[nav, draft],
+		[draft.draft, draft.setDraft, draft.commitEdit, draft.cancelEdit],
 	)
 
 	return (
-		<EditableGridContext value={context}>
-			<EditableGridStyles />
-			<DataTable
-				columns={augmentedColumns}
-				rows={rows}
-				getKey={getKey}
-				sort={sortConfig}
-				selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
-				rowClassName={rowClassName}
-				stickyHeader={stickyHeader}
-				maxHeight={maxHeight}
-				virtualize={virtualize}
-				density={density}
-				bleed={bleed}
-				grid={grid}
-				striped={striped}
-				className={cn('outline-0', className)}
-				tableProps={{
-					ref: wrapperRef,
-					'data-slot': 'editable-grid',
-					role: 'grid',
-					tabIndex: 0,
-					onKeyDown: onWrapperKeyDown,
-					onPaste: onWrapperPaste,
-					onFocus: onWrapperFocus,
-					onBlur: onWrapperBlur,
-				}}
-			/>
-		</EditableGridContext>
+		<EditableGridStateContext value={stateValue}>
+			<EditableGridEditContext value={editValue}>
+				<EditableGridStyles />
+				<DataTable
+					columns={augmentedColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={sortConfig}
+					selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
+					rowClassName={rowClassName}
+					stickyHeader={stickyHeader}
+					maxHeight={maxHeight}
+					virtualize={virtualize}
+					density={density}
+					bleed={bleed}
+					grid={grid}
+					striped={striped}
+					className={cn('outline-0', className)}
+					tableProps={{
+						ref: wrapperRef,
+						'data-slot': 'editable-grid',
+						role: 'grid',
+						tabIndex: 0,
+						onKeyDown: onWrapperKeyDown,
+						onPaste: onWrapperPaste,
+						onFocus: onWrapperFocus,
+						onBlur: onWrapperBlur,
+					}}
+				/>
+			</EditableGridEditContext>
+		</EditableGridStateContext>
 	)
 }
