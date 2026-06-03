@@ -4,7 +4,7 @@
 
 ## 1. Workspace
 
-1.1 pnpm workspace + Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
+1.1 pnpm + Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
 
 1.2 The design system lives in `packages/ui` (§3, §9).
 
@@ -12,17 +12,19 @@
 
 ## 2. Routing
 
-2.1 App Router **only**. Route groups partition concerns: `(app)` authenticated product surface, `(auth)` sign-in. Co-locate route-specific UI, hooks, and data with the owning segment.
+2.1 App Router **only**.
 
-2.2 For [Server/Client Components and the `'use client'` boundary](https://nextjs.org/docs/app/getting-started/server-and-client-components), keep `'use client'` on the interactive leaf; never promote it onto a layout or page that could stay server-rendered.
+2.2 For [Server/Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components), keep `'use client'` on the interactive leaf; never promote it onto a layout or page that could stay server-rendered.
 
-2.3 When a server page hands data to an interactive subtree, split `page.tsx` (server) + `client.tsx` (client); a server layout splits into `layout.tsx` + `layout-client.tsx`. This `*-client.tsx` split is ours, not a Next.js convention.
+2.3 When a server page hands data to an interactive subtree, split `page.tsx` (server) + `client.tsx` (client).
 
 2.4 [`params` / `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page) — prefer the generated `PageProps` helper for typing.
 
 ## 3. Components
 
-3.1 Compose from the design system (`ui`); see [REFERENCE.md](REFERENCE.md).
+See [REFERENCE.md](REFERENCE.md).
+
+3.1 Compose from the design system (`ui`).
 
 3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
 
