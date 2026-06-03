@@ -105,8 +105,8 @@ describe('Box', () => {
 		expect(bySlot(container, 'box')).toBeInTheDocument()
 	})
 
-	it('renders with a custom dataSlot', () => {
-		const { container } = renderUI(<Box dataSlot="card">content</Box>)
+	it('renders with a custom data-slot', () => {
+		const { container } = renderUI(<Box data-slot="card">content</Box>)
 
 		expect(bySlot(container, 'card')).toBeInTheDocument()
 

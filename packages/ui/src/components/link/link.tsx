@@ -9,5 +9,12 @@ export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
 export function Link({ href, color, underline, className, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()
 
-	return <LinkComponent href={href} className={cn(k({ color, underline }), className)} {...props} />
+	return (
+		<LinkComponent
+			href={href}
+			data-slot="link"
+			className={cn(k({ color, underline }), className)}
+			{...props}
+		/>
+	)
 }

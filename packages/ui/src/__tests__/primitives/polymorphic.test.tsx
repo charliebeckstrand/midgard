@@ -5,7 +5,7 @@ import { bySlot, renderUI, screen } from '../helpers'
 describe('Polymorphic', () => {
 	it('renders the fallback element when no href is given', () => {
 		const { container } = renderUI(
-			<Polymorphic as="span" href={undefined} dataSlot="tag" className="cls">
+			<Polymorphic as="span" href={undefined} data-slot="tag" className="cls">
 				Text
 			</Polymorphic>,
 		)
@@ -19,7 +19,7 @@ describe('Polymorphic', () => {
 
 	it('renders a link when href is provided', () => {
 		const { container } = renderUI(
-			<Polymorphic as="span" href="/path" dataSlot="tag" className="cls">
+			<Polymorphic as="span" href="/path" data-slot="tag" className="cls">
 				Link
 			</Polymorphic>,
 		)
@@ -35,7 +35,7 @@ describe('Polymorphic', () => {
 
 	it('applies data-slot and className', () => {
 		const { container } = renderUI(
-			<Polymorphic as="div" href={undefined} dataSlot="card" className="card-cls">
+			<Polymorphic as="div" href={undefined} data-slot="card" className="card-cls">
 				Content
 			</Polymorphic>,
 		)
@@ -47,7 +47,7 @@ describe('Polymorphic', () => {
 
 	it('sets type="button" when as="button"', () => {
 		const { container } = renderUI(
-			<Polymorphic as="button" href={undefined} dataSlot="action" className="">
+			<Polymorphic as="button" href={undefined} data-slot="action" className="">
 				Click
 			</Polymorphic>,
 		)
@@ -59,7 +59,7 @@ describe('Polymorphic', () => {
 
 	it('does not set type for non-button elements', () => {
 		const { container } = renderUI(
-			<Polymorphic as="span" href={undefined} dataSlot="label" className="">
+			<Polymorphic as="span" href={undefined} data-slot="label" className="">
 				Label
 			</Polymorphic>,
 		)
@@ -71,7 +71,7 @@ describe('Polymorphic', () => {
 
 	it('renders children', () => {
 		renderUI(
-			<Polymorphic as="div" href={undefined} dataSlot="box" className="">
+			<Polymorphic as="div" href={undefined} data-slot="box" className="">
 				Hello World
 			</Polymorphic>,
 		)

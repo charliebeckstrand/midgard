@@ -22,6 +22,12 @@ describe('Link', () => {
 		expect(link).toHaveAttribute('href', '/about')
 	})
 
+	it('exposes a data-slot anchor', () => {
+		renderUI(<Link href="/a">Anchor</Link>)
+
+		expect(screen.getByText('Anchor')).toHaveAttribute('data-slot', 'link')
+	})
+
 	it('omits the underline class by default', () => {
 		renderUI(<Link href="/u">NoUnderline</Link>)
 

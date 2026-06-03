@@ -17,5 +17,5 @@ export function Stack({ direction = 'col', gap, ...props }: StackProps) {
 
 	const resolvedGap = gap ?? density?.density ?? 'md'
 
-	return <FlexBase dataSlot="stack" direction={direction} gap={resolvedGap} {...props} />
+	return <FlexBase data-slot="stack" direction={direction} gap={resolvedGap} {...props} />
 }

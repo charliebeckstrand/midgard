@@ -64,7 +64,7 @@ export function ToastAlert({
 		<motion.div
 			layout
 			style={{
-				...(positionTop ? { paddingBottom: 8 } : { paddingTop: 8 }),
+				...(positionTop ? { paddingBottom: k.gap } : { paddingTop: k.gap }),
 				zIndex,
 			}}
 			exit={t.dismissed ? manualDismiss : autoDismiss}

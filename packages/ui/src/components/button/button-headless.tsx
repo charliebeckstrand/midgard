@@ -9,7 +9,7 @@ import { Link } from '../link'
 type ButtonHeadlessProps = {
 	href?: string
 	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>
-	dataSlot?: string
+	'data-slot'?: string
 	className?: string
 	loading?: boolean
 	children?: ReactNode
@@ -18,7 +18,7 @@ type ButtonHeadlessProps = {
 export function ButtonHeadless({
 	href,
 	ref,
-	dataSlot = 'button',
+	'data-slot': slot = 'button',
 	className,
 	loading = false,
 	children,
@@ -28,7 +28,7 @@ export function ButtonHeadless({
 		return (
 			<Link
 				ref={ref as Ref<HTMLAnchorElement>}
-				data-slot={dataSlot}
+				data-slot={slot}
 				href={href}
 				className={className}
 				{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
@@ -44,7 +44,7 @@ export function ButtonHeadless({
 	return (
 		<button
 			ref={ref as Ref<HTMLButtonElement>}
-			data-slot={dataSlot}
+			data-slot={slot}
 			type="button"
 			className={className}
 			{...bareButtonProps}
