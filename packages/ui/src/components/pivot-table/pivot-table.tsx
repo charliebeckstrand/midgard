@@ -71,7 +71,13 @@ export function PivotTable<T>({
 	const formatValue = format ?? defaultFormat
 
 	return (
-		<Table className={className} density={density} grid={grid} striped={striped}>
+		<Table
+			className={className}
+			density={density}
+			grid={grid}
+			striped={striped}
+			tableProps={{ 'data-slot': 'pivot-table' }}
+		>
 			<TableHead>
 				<TableRow>
 					<TableHeader>{rowHeader}</TableHeader>

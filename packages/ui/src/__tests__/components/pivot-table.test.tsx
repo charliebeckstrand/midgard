@@ -24,6 +24,8 @@ describe('PivotTable', () => {
 
 		expect(bySlot(container, 'table')).toBeInTheDocument()
 
+		expect(bySlot(container, 'pivot-table')).toBeInTheDocument()
+
 		expect(screen.getByRole('columnheader', { name: 'Lane' })).toBeInTheDocument()
 
 		expect(screen.getByRole('columnheader', { name: 'Jan' })).toBeInTheDocument()
