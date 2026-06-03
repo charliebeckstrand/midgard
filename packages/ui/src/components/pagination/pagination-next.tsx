@@ -5,8 +5,10 @@ import { PaginationNavButton } from './pagination-utilities'
 
 export type PaginationNextProps = ButtonProps
 
+const DEFAULT_NEXT_ICON = <Icon icon={<ChevronRight />} />
+
 export function PaginationNext({
-	children = <Icon icon={<ChevronRight />} />,
+	children = DEFAULT_NEXT_ICON,
 	'aria-label': ariaLabel = 'Next page',
 	...props
 }: PaginationNextProps) {

@@ -10,6 +10,14 @@ export type SpinnerProps = SpinnerVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
+// Static SVG — hoisted so it isn't recreated on every Spinner render.
+const SPINNER_SVG = (
+	<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">
+		<circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3" />
+		<path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+	</svg>
+)
+
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
 	const resolvedSize = useSizeWide(size)
 
@@ -19,15 +27,7 @@ export function Spinner({ size, color, label = 'Loading', className, ...props }:
 			className={cn(k({ size: resolvedSize, color }), className)}
 			{...props}
 		>
-			<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">
-				<circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3" />
-				<path
-					d="M12 2a10 10 0 0 1 10 10"
-					stroke="currentColor"
-					strokeWidth="3"
-					strokeLinecap="round"
-				/>
-			</svg>
+			{SPINNER_SVG}
 			<span className="sr-only">{label}</span>
 		</output>
 	)

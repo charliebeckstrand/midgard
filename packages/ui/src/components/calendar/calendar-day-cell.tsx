@@ -1,6 +1,6 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
@@ -34,16 +34,20 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	onMouseEnter,
 	onMouseLeave,
 }: DayCellProps) {
-	const handleClick = () => {
+	const handleClick = useCallback(() => {
 		if (!disabled) onSelect(date)
-	}
+	}, [disabled, onSelect, date])
 
-	const label = date.toLocaleDateString(undefined, {
-		weekday: 'long',
-		day: 'numeric',
-		month: 'long',
-		year: 'numeric',
-	})
+	const label = useMemo(
+		() =>
+			date.toLocaleDateString(undefined, {
+				weekday: 'long',
+				day: 'numeric',
+				month: 'long',
+				year: 'numeric',
+			}),
+		[date],
+	)
 
 	return (
 		<Button

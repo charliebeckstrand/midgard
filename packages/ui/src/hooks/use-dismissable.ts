@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useRef } from 'react'
+import { subscribeDocumentEvent } from './document-listener'
 
 type UseDismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
@@ -39,9 +40,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 				if (e.key === 'Escape') onDismissRef.current()
 			}
 
-			document.addEventListener('keydown', onKeyDown)
-
-			cleanups.push(() => document.removeEventListener('keydown', onKeyDown))
+			cleanups.push(subscribeDocumentEvent('keydown', onKeyDown))
 		}
 
 		if (outsidePointer) {
@@ -51,9 +50,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 				if (el && !el.contains(e.target as Node)) onDismissRef.current()
 			}
 
-			document.addEventListener('pointerdown', onPointerDown)
-
-			cleanups.push(() => document.removeEventListener('pointerdown', onPointerDown))
+			cleanups.push(subscribeDocumentEvent('pointerdown', onPointerDown))
 		}
 
 		return () => {

@@ -83,10 +83,32 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 			return values.reduce((a, b) => a + b, 0)
 		case 'avg':
 			return values.reduce((a, b) => a + b, 0) / values.length
-		case 'min':
-			return Math.min(...values)
-		case 'max':
-			return Math.max(...values)
+		case 'min': {
+			let min = values[0]
+
+			if (min === undefined) return 0
+
+			for (let i = 1; i < values.length; i++) {
+				const v = values[i]
+
+				if (v !== undefined && v < min) min = v
+			}
+
+			return min
+		}
+		case 'max': {
+			let max = values[0]
+
+			if (max === undefined) return 0
+
+			for (let i = 1; i < values.length; i++) {
+				const v = values[i]
+
+				if (v !== undefined && v > max) max = v
+			}
+
+			return max
+		}
 	}
 }
 

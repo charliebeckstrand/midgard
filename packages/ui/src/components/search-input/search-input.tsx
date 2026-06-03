@@ -19,6 +19,8 @@ export type SearchInputProps = Omit<
 	onClear?: () => void
 }
 
+const SEARCH_PREFIX = <Icon icon={<Search />} />
+
 export function SearchInput({
 	value,
 	defaultValue,
@@ -70,7 +72,7 @@ export function SearchInput({
 			type="search"
 			value={currentValue}
 			onChange={handleChange}
-			prefix={<Icon icon={<Search />} />}
+			prefix={SEARCH_PREFIX}
 			suffix={suffix}
 			className={cn('[&::-webkit-search-cancel-button]:appearance-none', className)}
 			{...props}

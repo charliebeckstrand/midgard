@@ -9,7 +9,7 @@ import { useCalendarPicker } from './use-calendar-picker'
 type CalendarPickerProps = {
 	year: number
 	month: number
-	today: Date
+	today: Date | null
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
 	open?: boolean

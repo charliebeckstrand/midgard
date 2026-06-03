@@ -6,6 +6,8 @@ import { Icon } from '../icon'
 
 export type BreadcrumbSeparatorProps = ComponentPropsWithoutRef<'li'>
 
+const DEFAULT_SEPARATOR = <Icon icon={<ChevronRight />} aria-hidden="true" />
+
 export function BreadcrumbSeparator({ children, className, ...props }: BreadcrumbSeparatorProps) {
 	return (
 		<li
@@ -15,7 +17,7 @@ export function BreadcrumbSeparator({ children, className, ...props }: Breadcrum
 			className={cn(k.separator(), className)}
 			{...props}
 		>
-			{children ?? <Icon icon={<ChevronRight />} aria-hidden="true" />}
+			{children ?? DEFAULT_SEPARATOR}
 		</li>
 	)
 }

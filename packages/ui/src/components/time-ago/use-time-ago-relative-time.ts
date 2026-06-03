@@ -1,9 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+
+// `Intl.RelativeTimeFormat` construction is among the most expensive Intl ops and the
+// default formatter is rebuilt on every refresh tick. Cache one instance per locale.
+const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
+
+function getRelativeTimeFormat(locale: string | undefined) {
+	const key = locale ?? ''
+
+	let formatter = relativeTimeFormatCache.get(key)
+
+	if (formatter === undefined) {
+		formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+
+		relativeTimeFormatCache.set(key, formatter)
+	}
+
+	return formatter
+}
 
 function pickUnit(absMs: number): { unit: Unit; value: number } {
 	if (absMs < MIN) return { unit: 'second', value: absMs / SEC }
@@ -55,13 +73,17 @@ export function useTimeAgoRelativeTime({
 	locale,
 	interval = 'auto',
 }: UseRelativeTimeOptions): UseRelativeTimeResult {
-	const [now, setNow] = useState(() => new Date())
+	// Client-only clock: seeding from the server clock would render a relative
+	// string ("3 minutes ago") that mismatches the client during hydration
+	// whenever the two straddle a unit boundary. null until mount → no relative
+	// text on the first (server and client) render.
+	const [now, setNow] = useState<Date | null>(null)
 
-	const then = date instanceof Date ? date : new Date(date)
+	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])
 
 	const valid = !Number.isNaN(then.getTime())
 
-	const diffMs = valid ? then.getTime() - now.getTime() : 0
+	const diffMs = valid && now ? then.getTime() - now.getTime() : 0
 
 	const absMs = Math.abs(diffMs)
 
@@ -70,19 +92,22 @@ export function useTimeAgoRelativeTime({
 	useEffect(() => {
 		if (!valid) return
 
+		// Establish the clock after mount, then keep it ticking.
+		setNow(new Date())
+
 		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
 
 		return () => window.clearInterval(id)
 	}, [adaptiveMs, valid])
 
-	if (!valid) return { then, valid, text: '' }
+	if (!valid || now === null) return { then, valid, text: '' }
 
 	let text: string
 
 	if (format) {
 		text = format(diffMs, now, then)
 	} else {
-		const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+		const formatter = getRelativeTimeFormat(locale)
 
 		const { unit, value } = pickUnit(absMs)
 

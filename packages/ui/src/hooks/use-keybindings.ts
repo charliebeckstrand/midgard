@@ -37,6 +37,16 @@ export function useKeybindings(
 
 	bindingsRef.current = bindings
 
+	// Hold `ignore` in a ref so an inline filter doesn't re-subscribe the global
+	// listener every render. Its presence (not identity) is the only dep that
+	// matters: when omitted we pass `undefined` to preserve tinykeys' default
+	// (skip form fields); when provided we forward a stable ref-reading wrapper.
+	const ignoreRef = useRef(ignore)
+
+	ignoreRef.current = ignore
+
+	const hasIgnore = ignore !== undefined
+
 	const keySignature = useMemo(() => Object.keys(bindings).sort().join('\x00'), [bindings])
 
 	useEffect(() => {
@@ -56,6 +66,10 @@ export function useKeybindings(
 			wrapped[key] = (e) => bindingsRef.current[key]?.(e)
 		}
 
-		return tinykeys(resolvedTarget, wrapped, { event, capture, timeout, ignore })
-	}, [enabled, target, event, capture, timeout, ignore, keySignature])
+		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore
+			? (e) => ignoreRef.current?.(e) ?? false
+			: undefined
+
+		return tinykeys(resolvedTarget, wrapped, { event, capture, timeout, ignore: resolvedIgnore })
+	}, [enabled, target, event, capture, timeout, hasIgnore, keySignature])
 }

@@ -1,6 +1,8 @@
 import { cleanup, render } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { bench, describe } from 'vitest'
 import { JsonTree } from '../components/json-tree'
+import { collectPaths } from '../components/json-tree/json-tree-utilities'
 import { makeJsonTree } from './fixtures'
 
 // JsonTree's render cost is dominated by JsonNode recursion + filterEntries.
@@ -94,4 +96,59 @@ describe('JsonTree · virtualized render', () => {
 
 		cleanup()
 	})
+})
+
+// Re-render cost when a single branch toggles. Controlled `expanded` lets us
+// flip one branch per iteration and measure only the re-render (not the mount).
+const togglePaths = [...collectPaths(medium, undefined, Number.POSITIVE_INFINITY)]
+
+const branchToToggle = togglePaths[Math.floor(togglePaths.length / 2)] ?? togglePaths[0] ?? ''
+
+const allExpanded = new Set(togglePaths)
+
+const oneCollapsed = new Set(togglePaths)
+
+oneCollapsed.delete(branchToToggle)
+
+const noop = () => {}
+
+describe('JsonTree · virtualized · re-render on toggle', () => {
+	let rerender: (ui: ReactElement) => void
+
+	let expanded = false
+
+	bench(
+		'medium (d4×b5) · toggle one branch',
+		() => {
+			expanded = !expanded
+
+			rerender(
+				<JsonTree
+					data={medium}
+					expanded={expanded ? allExpanded : oneCollapsed}
+					onExpandedChange={noop}
+					virtualize
+					maxHeight="2000px"
+				/>,
+			)
+		},
+		{
+			setup() {
+				const api = render(
+					<JsonTree
+						data={medium}
+						expanded={oneCollapsed}
+						onExpandedChange={noop}
+						virtualize
+						maxHeight="2000px"
+					/>,
+				)
+
+				rerender = api.rerender
+			},
+			teardown() {
+				cleanup()
+			},
+		},
+	)
 })

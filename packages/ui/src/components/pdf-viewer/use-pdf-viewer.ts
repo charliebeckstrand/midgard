@@ -46,6 +46,8 @@ export type UsePdfViewerResult = {
 	viewportRef: RefObject<HTMLDivElement | null>
 }
 
+const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
+
 export function usePdfViewer({
 	pages: pagesProp,
 	src,
@@ -54,7 +56,7 @@ export function usePdfViewer({
 	defaultPage = 1,
 	onPageChange,
 	defaultZoom = 1,
-	zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3],
+	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	defaultRotation = 0,
 }: UsePdfViewerOptions): UsePdfViewerResult {
 	const shouldLoadFromSrc = !pagesProp && !!src

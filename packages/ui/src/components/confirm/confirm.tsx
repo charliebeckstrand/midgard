@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
@@ -41,7 +41,7 @@ export function Confirm({
 	size,
 	className,
 }: ConfirmProps) {
-	const close = () => onOpenChange(false)
+	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange} size={size} className={className}>

@@ -15,7 +15,7 @@ type CalendarGridProps = {
 	size: Step
 	days: Date[]
 	firstDayColumn: number
-	today: Date
+	today: Date | null
 	value: Date | null | undefined
 	activeGridDate: Date | null
 	isDisabled: (date: Date) => boolean
@@ -57,7 +57,7 @@ export function CalendarGrid({
 				{days.map((date) => {
 					const disabled = isDisabled(date)
 
-					const isToday = isSameDay(date, today)
+					const isToday = today != null && isSameDay(date, today)
 
 					const isSelected = value != null && isSameDay(date, value)
 

@@ -71,7 +71,7 @@ The authoritative, runnable catalog is the demo site (§11) — each component h
 
 **Primitives** (`ui/primitives/<name>`, 19) — low-level building blocks the components are made from; reach for these only when composing a new component, not in features: `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`ui/providers/<name>`, 6) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`. The app wires the ones it needs in `apps/tms/src/app/providers.tsx`.
+**Providers** (`ui/providers/<name>`, 6) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`. The app wires the ones it needs in `apps/admin/app/providers.tsx`.
 
 ## 5. Design system (recipes)
 
@@ -98,7 +98,7 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 
 ## 7. App vs. library boundary
 
-| | Lives in `ui` | Lives in `apps/tms/src/components/` |
+| | Lives in `ui` | Lives in `apps/admin/src/components/` |
 |---|---|---|
 | Knows the domain (carriers, accounts, loads)? | No | Yes |
 | Fetches app endpoints? | No | Yes |
@@ -109,7 +109,7 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 
 ## 8. App data & API
 
-**Server modules** — `apps/tms/src/api/*`, marked `'use server'`:
+**Server modules** — `apps/admin/src/api/*`, marked `'use server'`:
 
 | Module | Role |
 |---|---|
@@ -118,26 +118,24 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 | `auth.ts` | auth client |
 | `tracking-loads.ts`, `potential-lates.ts`, `chat-history.ts` | feature data access — fetch the gateway with `Authorization: Bearer`, `cache: 'no-store'` |
 
-**Client fetches** hit the same-origin proxy `/api/*`, handled by the catch-all route `apps/tms/src/app/api/[...path]`, which attaches auth and forwards to the gateway. Client code never holds a token.
+**Client fetches** hit the same-origin proxy `/api/*`, handled by the catch-all route `apps/admin/app/api/[...path]`, which attaches auth and forwards to the gateway. Client code never holds a token.
 
 **Shared client data hooks** follow the module-cache + deduped-in-flight-promise pattern (CONVENTIONS 6.4): `use-account-hierarchy.ts`, `use-carriers.ts`. Per-feature hooks (e.g. `use-dashboard-run.ts`) re-run on a serialized filter key.
 
-**Shared app components** — `apps/tms/src/components/`: `account-picker`, `carrier-combobox`, `grid`, `impersonation-panel`. Global providers compose at `app/providers.tsx` (session, reauth, chat list, sidebar mode, density, settings).
+**Shared app components** — `apps/admin/src/components/`: `account-picker`, `carrier-combobox`, `grid`, `impersonation-panel`. Global providers compose at `app/providers.tsx` (session, reauth, chat list, sidebar mode, density, settings).
 
 ## 9. Workspace packages
 
 | Package | Path | What |
 |---|---|---|
 | `ui` | `packages/ui` | The component library — §1 |
-| `@reconex/auth` | `packages/auth` | Authentication utilities |
-| `@reconex/chat` | `packages/chat` | Chat UI and logic |
-| `@reconex/config` | `packages/config` | Shared TypeScript and Tailwind configs |
-| `@reconex/env` | `packages/env` | Environment variable declarations |
-| `tms` (app) | `apps/tms` | The Next.js 16 product |
+| `auth` | `packages/auth` | Authentication — session, proxy, and user helpers (`auth/config`, `auth/proxy`, `auth/user`) |
+| `shared` | `packages/shared` | Cross-cutting shared code — auth helpers, chat UI, fonts, and theme/global CSS (`shared/auth`, `shared/chat`, `shared/theme.css`, `shared/globals.css`) |
+| `tms` (app) | `apps/admin` | The Next.js 16 product |
 
 ## 10. Environment variables
 
-From `apps/tms/.env.example`. `NEXT_PUBLIC_*` is client-exposed; the rest is server-only.
+From `apps/admin/.env.example`. `NEXT_PUBLIC_*` is client-exposed; the rest is server-only.
 
 | Variable | Use |
 |---|---|
@@ -152,11 +150,11 @@ From `apps/tms/.env.example`. `NEXT_PUBLIC_*` is client-exposed; the rest is ser
 
 | Goal | Where | Command |
 |---|---|---|
-| Run the app | `apps/tms` | `pnpm dev` (Next + Turbopack) |
+| Run the app | `apps/admin` | `pnpm dev` (Next + Turbopack) |
 | Build everything | root | `turbo run build` |
 | Typecheck | root | `turbo run check-types` |
 | Format + lint | root | `biome check .` (add `--write` to fix) |
-| App tests | `apps/tms` | `pnpm test` (Vitest) |
+| App tests | `apps/admin` | `pnpm test` (Vitest) |
 | Library tests (scoped) | `packages/ui` | `pnpm test:related` / `pnpm test:changed` |
 | Browse components | `packages/ui` | `pnpm docs` (live demo site) |
 

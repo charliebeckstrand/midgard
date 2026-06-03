@@ -12,6 +12,9 @@ import { Input } from '../input'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
+// Stable filter so the trigger's global key listener isn't re-registered each render.
+const IGNORE_NOTHING = () => false
+
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -76,7 +79,7 @@ export function CommandPalette({
 	}, [triggerShortcut, open, onOpenChange])
 
 	// Fire even inside form fields so the shortcut works from any focused input.
-	useKeybindings(triggerBindings, { ignore: () => false })
+	useKeybindings(triggerBindings, { ignore: IGNORE_NOTHING })
 
 	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
 

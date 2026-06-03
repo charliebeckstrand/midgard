@@ -5,6 +5,10 @@ import { useControllable } from '../../hooks'
 import type { DataTableColumnManagerConfig } from './data-table'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
 
+// Stable empty-set default so an omitted `hidden`/`defaultHidden` doesn't allocate a
+// fresh Set per render and bust referential checks. Read-only internally.
+const EMPTY_SET: Set<string | number> = new Set()
+
 function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	if (a === b) return true
 
@@ -53,15 +57,13 @@ export function useDataTableColumns<T>({
 		onValueChange: (next) => columnManagerConfig?.onOrderChange?.(next ?? []),
 	})
 
-	const [
-		hiddenColumns = columnManagerConfig?.defaultHidden ?? new Set<string | number>(),
-		setHiddenColumns,
-	] = useControllable<Set<string | number>>({
-		value: columnManagerConfig?.hidden,
-		defaultValue: columnManagerConfig?.defaultHidden ?? new Set<string | number>(),
-		onValueChange: (next) =>
-			columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
-	})
+	const [hiddenColumns = columnManagerConfig?.defaultHidden ?? EMPTY_SET, setHiddenColumns] =
+		useControllable<Set<string | number>>({
+			value: columnManagerConfig?.hidden,
+			defaultValue: columnManagerConfig?.defaultHidden ?? EMPTY_SET,
+			onValueChange: (next) =>
+				columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
+		})
 
 	const manageColumns = columnManagerConfig?.enabled ?? false
 

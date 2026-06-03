@@ -144,7 +144,7 @@ export function Listbox<T>({
 
 	const showClear = clearable && hasValue && !resolvedDisabled
 
-	const clearSuffix = (
+	const clearSuffix = showClear ? (
 		<Button
 			variant="bare"
 			className="pointer-events-auto"
@@ -158,7 +158,7 @@ export function Listbox<T>({
 		>
 			<Icon icon={<X />} />
 		</Button>
-	)
+	) : null
 
 	const contextValue = useMemo(
 		() => ({ value, multiple, onSelect: select as (v: unknown) => void, close }),
@@ -188,7 +188,7 @@ export function Listbox<T>({
 					onMouseDown: open ? (event) => event.preventDefault() : undefined,
 				}}
 				prefix={prefix}
-				suffix={suffix || (showClear ? clearSuffix : <Icon icon={<ChevronsUpDown />} />)}
+				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
 			>
 				<ListboxButton
 					id={resolvedId}

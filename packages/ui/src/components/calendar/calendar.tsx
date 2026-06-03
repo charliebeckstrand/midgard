@@ -5,6 +5,7 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
+	useEffect,
 	useImperativeHandle,
 	useMemo,
 	useRef,
@@ -104,7 +105,14 @@ export function Calendar({
 		onValueChange: handleValueChange,
 	})
 
-	const today = useMemo(() => new Date(), [])
+	// Client-only so the server-clock "today" never mismatches the client during
+	// hydration (e.g. across a day boundary or timezone offset). Highlighting
+	// appears after mount; null until then.
+	const [today, setToday] = useState<Date | null>(null)
+
+	useEffect(() => {
+		setToday(new Date())
+	}, [])
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
@@ -162,9 +170,12 @@ export function Calendar({
 		[setValue],
 	)
 
-	const firstDayColumn = new Date(year, month, 1).getDay() + 1
+	const firstDayColumn = useMemo(() => new Date(year, month, 1).getDay() + 1, [year, month])
 
-	const monthLabel = viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+	const monthLabel = useMemo(
+		() => viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+		[viewDate],
+	)
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 

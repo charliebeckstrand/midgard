@@ -1,4 +1,5 @@
 import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { useMemo } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { ToolbarGroup } from '../toolbar'
@@ -11,7 +12,7 @@ type PdfViewerZoomControlsProps = {
 }
 
 export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsProps) {
-	const sortedLevels = [...zoom.levels].sort((a, b) => a - b)
+	const sortedLevels = useMemo(() => [...zoom.levels].sort((a, b) => a - b), [zoom.levels])
 
 	const minZoom = sortedLevels[0] ?? 1
 	const maxZoom = sortedLevels[sortedLevels.length - 1] ?? 1

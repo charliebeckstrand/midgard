@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useRef } from 'react'
+import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useRoving } from '../../hooks'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
@@ -31,7 +31,7 @@ export function Toolbar({
 		orientation,
 	})
 
-	const context: ToolbarContextValue = { orientation }
+	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])
 
 	return (
 		<ToolbarContext value={context}>

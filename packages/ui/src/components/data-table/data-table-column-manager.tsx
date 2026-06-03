@@ -13,6 +13,10 @@ import { Icon } from '../icon'
 import { List, ListItem } from '../list'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
+// Stable empty-set default so an omitted `hidden`/`defaultHidden` doesn't allocate a
+// fresh Set per render and bust referential checks. Read-only internally; toggles copy it.
+const EMPTY_SET: Set<string | number> = new Set()
+
 export type DataTableColumnManagerProps = {
 	columns: DataTableColumnManagerItem[]
 
@@ -54,11 +58,9 @@ export function DataTableColumnManager({
 		onValueChange: (next) => onOrderChange?.(next ?? []),
 	})
 
-	const [hidden = defaultHidden ?? new Set<string | number>(), setHidden] = useControllable<
-		Set<string | number>
-	>({
+	const [hidden = defaultHidden ?? EMPTY_SET, setHidden] = useControllable<Set<string | number>>({
 		value: hiddenProp,
-		defaultValue: defaultHidden ?? new Set<string | number>(),
+		defaultValue: defaultHidden ?? EMPTY_SET,
 		onValueChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
 	})
 
@@ -82,14 +84,16 @@ export function DataTableColumnManager({
 
 	const toggle = useCallback(
 		(id: string | number) => {
-			const next = new Set(hidden)
+			setHidden((prev) => {
+				const next = new Set(prev)
 
-			if (next.has(id)) next.delete(id)
-			else next.add(id)
+				if (next.has(id)) next.delete(id)
+				else next.add(id)
 
-			setHidden(next)
+				return next
+			})
 		},
-		[hidden, setHidden],
+		[setHidden],
 	)
 
 	const getKey = useCallback((item: DataTableColumnManagerItem) => String(item.id), [])

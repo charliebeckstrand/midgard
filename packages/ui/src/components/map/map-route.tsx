@@ -13,6 +13,8 @@ import type { SegmentStatus } from './map-route-utilities'
 import type { RouteData, RouteStop } from './types'
 import { useMapRouteLayers } from './use-map-route-layers'
 
+const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
+
 export type MapRouteProps = {
 	data: RouteData
 	/** Line color for each segment status. Defaults: pending=zinc-400, active=blue-600, done=green-600. */
@@ -34,7 +36,7 @@ export function MapRoute({
 	disableInteraction = false,
 	onSelect,
 }: MapRouteProps) {
-	const reactId = useId().replace(/[^a-zA-Z0-9_-]/g, '-')
+	const reactId = useId().replace(ID_SANITIZE_RE, '-')
 
 	const sourceId = `map-route-src-${reactId}`
 

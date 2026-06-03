@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
-import { useEditableGrid } from './context'
+import { useEditableGridState } from './context'
+import { EditableGridCellEditor } from './editable-grid-cell-editor'
 import type { EditableGridColumn, EditableGridEditor } from './types'
 
 type EditableGridCellContentProps<T> = {
@@ -27,8 +28,7 @@ export function EditableGridCell<T>({
 	column,
 	editor: Editor,
 }: EditableGridCellContentProps<T>) {
-	const { active, anchor, extraCells, editing, draft, setDraft, commitEdit, cancelEdit } =
-		useEditableGrid()
+	const { active, anchor, extraCells, editing } = useEditableGridState()
 
 	// Re-render the flash overlay with a fresh key each time the rendered value
 	// changes so the keyframe animation restarts even on consecutive edits.
@@ -72,19 +72,15 @@ export function EditableGridCell<T>({
 			<span className={cn('truncate', showEditor && 'invisible')}>{formatted || ' '}</span>
 			{flashKey > 0 && <span key={flashKey} aria-hidden className={cn(k.cellFlash)} />}
 			{showEditor && (
-				<div className="absolute inset-0 flex items-stretch">
-					<Editor
-						row={row}
-						column={column}
-						draft={draft}
-						setDraft={setDraft}
-						commit={commitEdit}
-						cancel={cancelEdit}
-						align={align}
-						ariaLabel={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
-						selectAllOnFocus={draft === formatted}
-					/>
-				</div>
+				<EditableGridCellEditor
+					rowIdx={rowIdx}
+					colIdx={colIdx}
+					align={align}
+					formatted={formatted}
+					row={row}
+					column={column}
+					editor={Editor}
+				/>
 			)}
 		</div>
 	)
