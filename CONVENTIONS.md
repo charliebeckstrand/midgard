@@ -99,7 +99,3 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 12.1 Client-exposed config is prefixed `NEXT_PUBLIC_*`; everything unprefixed is server-only. Keep raw `process.env` reads at the config edge (e.g. `src/api/config.ts`), not sprinkled through features.
 
 12.2 A new variable gets an entry in `.env.example` and a typed declaration in the env config. Secrets never take a `NEXT_PUBLIC_` prefix and never land in git (CLAUDE.md 4.4).
-
----
-
-Version control, commit hygiene, and conduct are governed by [CLAUDE.md](CLAUDE.md) §3–4 and are not restated here.
