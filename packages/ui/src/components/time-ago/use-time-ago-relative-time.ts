@@ -73,13 +73,17 @@ export function useTimeAgoRelativeTime({
 	locale,
 	interval = 'auto',
 }: UseRelativeTimeOptions): UseRelativeTimeResult {
-	const [now, setNow] = useState(() => new Date())
+	// Client-only clock: seeding from the server clock would render a relative
+	// string ("3 minutes ago") that mismatches the client during hydration
+	// whenever the two straddle a unit boundary. null until mount → no relative
+	// text on the first (server and client) render.
+	const [now, setNow] = useState<Date | null>(null)
 
 	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])
 
 	const valid = !Number.isNaN(then.getTime())
 
-	const diffMs = valid ? then.getTime() - now.getTime() : 0
+	const diffMs = valid && now ? then.getTime() - now.getTime() : 0
 
 	const absMs = Math.abs(diffMs)
 
@@ -88,12 +92,15 @@ export function useTimeAgoRelativeTime({
 	useEffect(() => {
 		if (!valid) return
 
+		// Establish the clock after mount, then keep it ticking.
+		setNow(new Date())
+
 		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
 
 		return () => window.clearInterval(id)
 	}, [adaptiveMs, valid])
 
-	if (!valid) return { then, valid, text: '' }
+	if (!valid || now === null) return { then, valid, text: '' }
 
 	let text: string
 
