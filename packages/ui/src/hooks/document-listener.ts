@@ -16,6 +16,10 @@ const registries = new Map<string, Registry>()
  * Handlers fire in subscription order and every subscriber still receives the
  * event — this is deduplication, not top-most-only routing, so the existing
  * "all open overlays react" behavior is preserved. Returns an unsubscribe fn.
+ *
+ * Each `handler` must be a distinct function reference (callers pass a fresh
+ * closure per effect run); the same reference subscribed twice would dedupe in
+ * the handler set and detach early on the first unsubscribe.
  */
 export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	type: K,
@@ -38,7 +42,18 @@ export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	if (reg.listener === null) {
 		reg.listener = (event) => {
 			// Snapshot so a handler that unsubscribes mid-dispatch doesn't skip others.
-			for (const h of [...reg.handlers]) h(event)
+			for (const h of [...reg.handlers]) {
+				try {
+					h(event)
+				} catch (error) {
+					// Match native addEventListener semantics: a throw in one listener
+					// must not stop the others. Surface it to the global error handler
+					// out of band rather than aborting the dispatch loop.
+					queueMicrotask(() => {
+						throw error
+					})
+				}
+			}
 		}
 
 		document.addEventListener(type, reg.listener)
