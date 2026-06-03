@@ -22,7 +22,7 @@ How code is written in this repo. Rules are citable (e.g. "CONVENTIONS 3.4"). Co
 
 ## 3. Components
 
-3.1 Compose from `ui` before writing UI. It carries 100+ components plus the design-token and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
+3.1 Compose from `ui` before writing UI. It carries the component, design-token, and recipe system; hand-rolling raw Tailwind for anything the library already covers is a defect. When a needed component is missing but would be reusable, recommend it for the library rather than burying it in a feature. See [REFERENCE.md](REFERENCE.md).
 
 3.2 App-local components live in `apps/admin/src/components/<name>/` and hold feature/domain logic that composes library primitives (e.g. `account-picker`, `carrier-combobox`). Domain-agnostic, reusable presentation belongs in `ui`, not the app.
 
