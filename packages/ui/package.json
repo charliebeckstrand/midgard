@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"license": "MIT",
-	"sideEffects": ["**/*.css"],
+	"sideEffects": false,
 	"files": [
 		"dist",
 		"LICENSE"
@@ -33,7 +33,6 @@
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"
 		},
-		"./styles/*": "./src/styles/*",
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"
