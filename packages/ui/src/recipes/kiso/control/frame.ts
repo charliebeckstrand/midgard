@@ -1,7 +1,7 @@
 /**
  * Control archetype — frame. The outer flex wrapper that hosts the
- * user-input element. Group-join behaviour comes from
- * `styles/recipes/tsunagi.css` — the frame just carries kasane chrome.
+ * user-input element. Group-join behaviour comes from the `tsunagi` classes
+ * on the enclosing `<Group>` container — the frame just carries kasane chrome.
  *
  * Layer: kiso · Archetype: control · Concern: frame
  */
