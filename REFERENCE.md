@@ -131,7 +131,6 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 | `ui` | `packages/ui` | The component library — §1 |
 | `auth` | `packages/auth` | Authentication — session, proxy, and user helpers (`auth/config`, `auth/proxy`, `auth/user`) |
 | `shared` | `packages/shared` | Cross-cutting shared code — auth helpers, chat UI, fonts, and theme/global CSS (`shared/auth`, `shared/chat`, `shared/theme.css`, `shared/globals.css`) |
-| `tms` (app) | `apps/admin` | The Next.js 16 product |
 
 ## 10. Environment variables
 
