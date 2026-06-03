@@ -1,34 +1,27 @@
 # REFERENCE.md
 
-## Library
+> **Scope:** tool index for the repo. Repo-specific conventions live in [CONVENTIONS.md](CONVENTIONS.md).
 
-`React`
+## 1. Stack
 
-## Framework
+| Layer | Tool |
+|---|---|
+| Library | [React](https://react.dev) |
+| Framework | [Next.js](https://nextjs.org/docs/app) |
+| CSS | [Tailwind CSS](https://tailwindcss.com/docs) |
+| Design system | `packages/ui` |
+| Testing | [Vitest](https://vitest.dev) |
+| Build | [Turborepo](https://turborepo.dev/docs) |
+| Formatter / linter | [Biome](https://biomejs.dev) |
+| Pre-commit | [Lefthook](https://lefthook.dev) |
+| Package manager | [pnpm](https://pnpm.io) |
 
-`Next.js`
+## 2. Design system
 
-## CSS Framework
+The design system lives in `packages/ui`. Components are imported by name (`ui/button`, `ui/dialog`); a layered recipe system, pinned by boundary tests, supplies variants.
 
-`Tailwind CSS`
-
-## Design system
-
-`packages/ui`
-
-[REFERENCE.md](packages/ui/REFERENCE.md), [Recipes README.md](packages/ui/src/recipes/README.md)
-
-## Testing
-
-`Vitest`
-
-## Build system
-
-`Turborepo`
-
-## Pre-commit
-
-`Lefthook`
+- Inventory of components, hooks, primitives, and providers — [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
+- Recipe-system architecture — [`packages/ui/src/recipes/README.md`](packages/ui/src/recipes/README.md).
 
 ---
 

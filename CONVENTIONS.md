@@ -1,29 +1,30 @@
 # CONVENTIONS.md
 
 > **Scope:** repo-specific decisions only. Toolchain defaults are linked, not restated. Upstream: [Turborepo](https://turborepo.dev/docs), [Next.js](https://nextjs.org/docs/app), [Biome](https://biomejs.dev), [TypeScript](https://www.typescriptlang.org/tsconfig), [Vitest](https://vitest.dev).
+
 ## 1. Workspace
 
 1.1 pnpm workspace + Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
 
-1.2 Design-system: `packages/ui` (§3, §9).
+1.2 The design system lives in `packages/ui` (§3, §9).
 
-1.2 Reach another workspace only through its public entry (§9), never across package boundaries by path.
+1.3 Reach another workspace only through its public entry (§9), never across package boundaries by path.
 
 ## 2. Routing
 
-2.1 App Router **only** (no Pages Router). Route groups partition concerns: `(app)` authenticated product surface, `(auth)` sign-in. Co-locate route-specific UI, hooks, and data with the owning segment.
+2.1 App Router **only**. Route groups partition concerns: `(app)` authenticated product surface, `(auth)` sign-in. Co-locate route-specific UI, hooks, and data with the owning segment.
 
-2.2 [Server/Client Components and the `'use client'` boundary](https://nextjs.org/docs/app/getting-started/server-and-client-components) work as Next.js documents; keep `'use client'` on the interactive leaf and push it down the tree — never promote it onto a layout or page that could stay server-rendered.
+2.2 For [Server/Client Components and the `'use client'` boundary](https://nextjs.org/docs/app/getting-started/server-and-client-components), keep `'use client'` on the interactive leaf; never promote it onto a layout or page that could stay server-rendered.
 
 2.3 When a server page hands data to an interactive subtree, split `page.tsx` (server) + `client.tsx` (client); a server layout splits into `layout.tsx` + `layout-client.tsx`. This `*-client.tsx` split is ours, not a Next.js convention.
 
-2.4 [`params`/`searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page) — prefer the generated `PageProps` helper for typing.
+2.4 [`params` / `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page) — prefer the generated `PageProps` helper for typing.
 
 ## 3. Components
 
-3.1 Compose from the design system (`ui`).
+3.1 Compose from the design system (`ui`); see [REFERENCE.md](REFERENCE.md).
 
-3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature/domain logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
+3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
 
 3.3 One directory per unit: `<name>.tsx`, `<name>-<part>.tsx` (sub-components), `use-<name>-<hook>.ts` (hooks), `context.ts`, `types.ts`, `index.ts` (barrel, re-exports only).
 
@@ -31,11 +32,9 @@
 
 3.5 The barrel is the public surface. Consumers import the directory, never its internal files (§9).
 
-See [REFERENCE.md](REFERENCE.md)
-
 ## 4. TypeScript
 
-4.1 Beyond [`strict`](https://www.typescriptlang.org/tsconfig#strict) we also set `noUncheckedIndexedAccess`. Indexed access is `T | undefined`.
+4.1 Beyond [`strict`](https://www.typescriptlang.org/tsconfig#strict), `noUncheckedIndexedAccess` is set. Indexed access is `T | undefined`.
 
 4.2 No `any` (Biome's `noExplicitAny` enforced). Use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
 
@@ -57,12 +56,9 @@ See [REFERENCE.md](REFERENCE.md)
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit the same-origin proxy at `api/[...path]`. They never call the gateway or handles tokens directly.
+6.3 Client fetches hit the same-origin proxy at `api/[...path]`. They never call the gateway or handle tokens directly.
 
-6.4 Shared client fetches use the data-hook pattern:
-- module-scoped cache + deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`
-- re-run on a serialized key
-- guard async `setState` with an `active` flag
+6.4 Shared client fetches use the data-hook pattern: a module-scoped cache and a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, keyed by a serialized input; `setState` is guarded by an `active` flag.
 
 ## 7. Forms
 
@@ -70,23 +66,23 @@ See [REFERENCE.md](REFERENCE.md)
 
 ## 8. Naming
 
-8.1 kebab-case files/directories; PascalCase components; `useCamelCase` hooks (`use-*.ts`); PascalCase types (with a contextual suffix: `<Component>Props`, `<Thing>Option`, `<Feature>State`).
+8.1 kebab-case files/directories; PascalCase components; `useCamelCase` hooks (`use-*.ts`); PascalCase types with a contextual suffix (`<Component>Props`, `<Thing>Option`, `<Feature>State`).
 
 8.2 Feature folders mirror their route segment. Co-located helpers carry intent-revealing suffixes: `<feature>-api.ts`, `types.ts`, `constants.ts`, `utilities.ts`.
 
 ## 9. Imports
 
-9.1 In-app, use the `@/*` alias (`@/components/…`, `@/api/…`), never deep relative chains. From the library, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `/hooks`, `/primitives/*`, `/providers/*`, `/types`. No root barrel.
+9.1 In-app, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains. From the library, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
-## 10. Formatting & lint (Biome)
+## 10. Formatting & lint
 
-10.1 Config lives in `biome.json`.
+10.1 Biome config lives in `biome.json`.
 
-10.2 Uses [Biome's recommended ruleset](https://biomejs.dev/linter).
+10.2 The [recommended ruleset](https://biomejs.dev/linter) applies; overrides stay in `biome.json`.
 
-## 11. Testing (Vitest)
+## 11. Testing
 
 11.1 Test locations:
 
@@ -95,15 +91,18 @@ See [REFERENCE.md](REFERENCE.md)
 | App | `apps/<app>/src/__tests__/**/*.test.{ts,tsx}` |
 | Component | `packages/ui/src/__tests__/` |
 
-11.2 Component tests render through the library's test renderer and query by `data-slot`; new components expose stable `data-slot` anchors and a filename-matched export.
+11.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
 
-11.3 **Don't drive third-party async lifecycles (fetch, virtualization, floating-ui, pdfjs) in tests** — they flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness) or skip with a stated reason.
+11.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests — they flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness) or skip with a stated reason.
 
-11.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done (CLAUDE.md 3.4).
+11.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done ([CLAUDE.md](CLAUDE.md) §3.4).
 
 ## 12. Environment
 
-12.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) = client, else server-only. Confine raw `process.env` reads to the config edge (`apps/<app>/src/api/config.ts`), not scattered through features.
-
+12.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to the config edge (`apps/<app>/src/api/config.ts`), not scattered through features.
 
 12.2 New variables get an `.env.example` entry and a typed declaration in the env config.
+
+---
+
+**See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md).
