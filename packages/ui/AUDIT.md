@@ -117,18 +117,14 @@ The per-component Low detail lives in the slice files under `/tmp/ui-audit/` (wo
 
 - **Combobox/option context** — *not* the context-split + `memo()` originally proposed. On inspection `query`/`deferredQuery` were **dead context fields** (no consumer read them through the context; the render-prop receives the query as arguments), so they were simply removed. That alone stops the per-keystroke option re-render and restores the `useDeferredValue` split. Landed.
 - **`Form` field re-render isolation.** Resolved via `/council` (the change conflicted on its face with CONVENTIONS 6.1). Verdict: `useSyncExternalStore` managing *local* per-`Form` state is a built-in React API, not a "global state library," so it's compliant; controlled inputs (7.1) rule out the uncontrolled-ref alternative. Implemented: the reducer stays the source of truth and its committed state is mirrored into a small per-`Form` store; `useFormField`/`useFormStatus` subscribe to a single slice, so typing re-renders only the changed field (per-field snapshots cache and compare `errors` by content so `validateOn:'change'` array rebuilds don't leak re-renders). Public hook surface unchanged, no dependency added, with a regression test asserting a sibling field doesn't re-render. Landed.
+- **`editable-grid` cell re-render isolation.** The context was split: a **state slice** (`active`/`anchor`/`extraCells`/`editing` + the stable nav/begin callbacks) read by every cell shell, and a separate **edit-session slice** (`draft` + `commit`/`cancel`) read only by an extracted `EditableGridCellEditor` that mounts in the active cell. The state slice is memoized on deps that don't change while typing, so its identity is stable per keystroke and React skips every cell shell; only the editor re-renders. `useEditableGrid()` still returns the combined shape for external consumers. Behavior fully covered by the existing 103 tests; the isolation is structural/type-enforced (the cell shell can no longer access `draft`) — empirical per-cell counting wasn't added because the cell is internal to `DataTable` with no test seam. Landed.
 
-### Investigated and held — each needs an architectural decision, not a safe fix
+### Investigated and held
 
-Rigorous follow-up showed the audit's subagents over-rated these. The reasons matter:
-
-1. **`editable-grid` context.** The `useMemo([nav, draft])` is broken (deps are always-new objects), but decomposing it to its members is **neutral**: `commitEdit` — a context member every cell reads — lists `draft` in its deps, so the context value changes on every keystroke anyway. The effective fix is to (a) split the editing `draft` into its own context that only the active cell consumes, and/or (b) ref-stabilize `commitEdit`. Both are non-trivial changes to the most complex component's commit flow; worth doing deliberately, with the cell-render count measured before/after.
-2. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
-3. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
+1. **`json-tree` row `memo()`.** Ineffective as-is: `flattenTree` rebuilds every `FlatNode` object on each expansion change, so a memoized row still receives a new `node` prop and never skips. Needs structural sharing (stable node identity for unchanged subtrees) in the flatten step *first*; then `memo()` pays off.
+2. **`kanban` keyboard `cardIndex`.** Real but low-value — the O(cols×items) scan is per-*keydown* (low-frequency), not per-pointer-move like the drag hook's index that justifies its memoized map.
 
 ### Still genuinely worth doing (lower risk)
 
-4. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern — matters when several overlays are open at once.
-5. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree. Changes SSR output, hence held from the safe-fix pass.
-
-The highest-ceiling remaining item is **#1 (editable-grid draft-context split)** — the only one whose payoff is a large, measurable drop in re-renders on a real hot path.
+3. **Dedup global dismiss/escape/pointerdown listeners** in `use-dismissable`/`use-floating-ui` via the existing `overlay-signal.ts` subscriber pattern — matters when several overlays are open at once.
+4. **`calendar` `today` hydration** — make "today" client-only (effect-set) so SSR and client agree. Changes SSR output, hence held from the safe-fix pass.
