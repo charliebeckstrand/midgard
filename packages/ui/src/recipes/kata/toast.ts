@@ -28,6 +28,8 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
+	/** Inter-toast gap (px), animated to 0 on dismiss so neighbours slide in. */
+	gap: 8,
 }
 
 export type ToastViewportVariants = VariantProps<typeof viewport>

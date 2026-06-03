@@ -12,9 +12,9 @@ import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
 const padding: Record<ControlSize, string> = {
-	sm: 'pr-[4rem]',
-	md: 'pr-[4.5rem]',
-	lg: 'pr-[5rem]',
+	sm: 'pr-16',
+	md: 'pr-18',
+	lg: 'pr-20',
 }
 
 export type NumberInputProps = Omit<
