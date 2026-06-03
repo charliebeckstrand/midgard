@@ -4,16 +4,16 @@ A map of what already exists in this repo. Read it before building — most of t
 
 ## 1. The UI library is the default toolbox
 
-`@reconex/ui` (`packages/ui`) is an extensive, production-grade component library: **104 components, 19 primitives, 24 hooks**, a layered design-token/recipe system, and a live demo site. It is the first place to look for any piece of interface.
+`ui` (`packages/ui`) is an extensive, production-grade component library: **104 components, 19 primitives, 24 hooks**, a layered design-token/recipe system, and a live demo site. It is the first place to look for any piece of interface.
 
 Rules of engagement:
 
-- **Compose from it.** A button, dialog, table, form field, combobox, menu — anything in §3 — comes from `@reconex/ui`. Do not hand-roll with raw Tailwind what the library already provides.
+- **Compose from it.** A button, dialog, table, form field, combobox, menu — anything in §3 — comes from `ui`. Do not hand-roll with raw Tailwind what the library already provides.
 - **Check the inventory first** (§3). With 100+ components the one you need usually exists, sometimes under a name you wouldn't guess — `dl`, `stat`, `segment`, `odometer`, `frame`, `glass`, `time-ago`.
 - **Missing but reusable → recommend composing it.** If a feature needs a component that doesn't exist *and it would serve other features too*, propose it for the library, then scaffold it following §6. Don't bury a reusable widget inside a feature folder.
 - **Missing and genuinely one-off → keep it app-local** (§7), composed from library primitives.
 
-The bar: a feature should read as composition of existing `@reconex/ui` parts. A bare `<div className="…">` where a component already exists is a smell.
+The bar: a feature should read as composition of existing `ui` parts. A bare `<div className="…">` where a component already exists is a smell.
 
 ## 2. Import surface
 
@@ -21,19 +21,19 @@ Components resolve per-directory through the package `exports` map — there is 
 
 | Entry | Path | Example |
 |---|---|---|
-| Component | `@reconex/ui/<name>` | `import { Button } from '@reconex/ui/button'` |
-| Core utilities | `@reconex/ui/core` | `import { cn } from '@reconex/ui/core'` |
-| Hooks | `@reconex/ui/hooks` | `import { useControllable } from '@reconex/ui/hooks'` |
-| Primitive | `@reconex/ui/primitives/<name>` | `import { Panel } from '@reconex/ui/primitives/panel'` |
-| Provider | `@reconex/ui/providers/<name>` | `import { ToastProvider } from '@reconex/ui/providers/toast'` |
-| Layouts | `@reconex/ui/layouts` | |
-| Shared types | `@reconex/ui/types` | |
+| Component | `ui/<name>` | `import { Button } from 'ui/button'` |
+| Core utilities | `ui/core` | `import { cn } from 'ui/core'` |
+| Hooks | `ui/hooks` | `import { useControllable } from 'ui/hooks'` |
+| Primitive | `ui/primitives/<name>` | `import { Panel } from 'ui/primitives/panel'` |
+| Provider | `ui/providers/<name>` | `import { ToastProvider } from 'ui/providers/toast'` |
+| Layouts | `ui/layouts` | |
+| Shared types | `ui/types` | |
 
 Each component's public API is its `index.ts` barrel: named exports (no defaults), a `*Props` type, and a `*Variants` type where it has variants.
 
 ## 3. Component inventory
 
-All 104, grouped. Names are the import path (`@reconex/ui/<name>`).
+All 104, grouped. Names are the import path (`ui/<name>`).
 
 **Inputs & form fields** — `input` · `textarea` · `select` · `combobox` · `checkbox` · `radio` · `switch` · `slider` · `number-input` · `currency-input` · `credit-card-input` · `phone-input` · `zipcode-input` · `address-input` · `mask-input` · `date-picker` · `calendar` · `file-upload` · `search-input` · `tag-input` · `signature-pad` · `password-input` · `password-confirm` · `password-strength` · `toggle-icon-button`
 
@@ -61,7 +61,7 @@ The authoritative, runnable catalog is the demo site (§11) — each component h
 
 ## 4. Hooks, primitives, providers
 
-**Hooks** (`@reconex/ui/hooks`, 24) — reuse these before writing an effect:
+**Hooks** (`ui/hooks`, 24) — reuse these before writing an effect:
 
 - *State* — `useControllable` (controlled/uncontrolled value), `useDeferredToggle`, `useSelectableValueChange`
 - *Floating & overlays* — `useFloatingUI`, `useFloatingPanel`, `useFloatingDisclosure`, `useOffcanvas`, `useDismissable`, `useScrollLock`
@@ -69,9 +69,9 @@ The authoritative, runnable catalog is the demo site (§11) — each component h
 - *Measurement & layout* — `useResizeObserver`, `useMediaQuery`, `useMinWidth`, `useIsTruncated`, `useScrollWithin`, `useIdScope`
 - *Drag & drop* (dnd-kit) — `useSortableItem`, `useSortableList`, `useSortableSensors`
 
-**Primitives** (`@reconex/ui/primitives/<name>`, 19) — low-level building blocks the components are made from; reach for these only when composing a new component, not in features: `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
+**Primitives** (`ui/primitives/<name>`, 19) — low-level building blocks the components are made from; reach for these only when composing a new component, not in features: `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`@reconex/ui/providers/<name>`, 6) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`. The app wires the ones it needs in `apps/tms/src/app/providers.tsx`.
+**Providers** (`ui/providers/<name>`, 6) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`. The app wires the ones it needs in `apps/tms/src/app/providers.tsx`.
 
 ## 5. Design system (recipes)
 
@@ -98,7 +98,7 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 
 ## 7. App vs. library boundary
 
-| | Lives in `@reconex/ui` | Lives in `apps/tms/src/components/` |
+| | Lives in `ui` | Lives in `apps/tms/src/components/` |
 |---|---|---|
 | Knows the domain (carriers, accounts, loads)? | No | Yes |
 | Fetches app endpoints? | No | Yes |
@@ -128,7 +128,7 @@ Conventions enforced by tests (`packages/ui/src/__tests__/.../boundary/`): every
 
 | Package | Path | What |
 |---|---|---|
-| `@reconex/ui` | `packages/ui` | The component library — §1 |
+| `ui` | `packages/ui` | The component library — §1 |
 | `@reconex/auth` | `packages/auth` | Authentication utilities |
 | `@reconex/chat` | `packages/chat` | Chat UI and logic |
 | `@reconex/config` | `packages/config` | Shared TypeScript and Tailwind configs |
