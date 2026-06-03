@@ -35,7 +35,7 @@ Route groups partition concerns ([CONVENTIONS](../../CONVENTIONS.md) §2.1):
 
 ## 4. Environment
 
-Variables follow [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) = client, else server-only ([CONVENTIONS](../../CONVENTIONS.md) §12). Add new variables to `.env.example` and to the typed declaration in `src/api/config.ts`.
+See ([CONVENTIONS](../../CONVENTIONS.md) §12).
 
 ## 5. Dependencies
 
