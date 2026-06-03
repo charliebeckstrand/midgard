@@ -8,7 +8,7 @@
 
 1.2 The design system lives in `packages/ui` (§3, §9).
 
-1.3 Reach another workspace only through its public entry (§9), never across package boundaries by path.
+1.3 Reach another workspace only through its public entry (§9), never across package boundaries.
 
 ## 2. Routing
 
