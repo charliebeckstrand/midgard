@@ -1,6 +1,10 @@
 # auth
 
-Auth library — config, proxy helpers, and user accessor. Peer-compatible with Next 15–16 and React 18–19.
+Auth library: config, proxy helpers, and user accessor.
+
+## 0. Prerequisites
+
+Peer-compatible with Next 15–16 and React 18–19.
 
 ## 1. Exports
 
