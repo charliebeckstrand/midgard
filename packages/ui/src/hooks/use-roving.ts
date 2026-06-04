@@ -120,12 +120,13 @@ type UseRovingOptions = RovingConfig & {
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
 	activationKey?: string | null
 	/**
-	 * Virtual mode: element that owns `aria-activedescendant` (typically the
-	 * focused combobox/input). When set, the active item's `id` is mirrored onto
-	 * it each move so assistive technology announces the active option. Items
-	 * must carry a stable `id` for this to work.
+	 * Virtual mode: a `combobox`/`textbox` element that owns the listbox. When
+	 * provided, the active item is mirrored into ARIA — `aria-selected` is set on
+	 * it (and cleared from the previous one) and the element's
+	 * `aria-activedescendant` is pointed at the active item's `id` — so assistive
+	 * tech can track the keyboard highlight while focus stays on the input.
 	 */
-	ownerRef?: RefObject<HTMLElement | null>
+	activeDescendantRef?: RefObject<HTMLElement | null>
 }
 
 /** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
@@ -139,7 +140,7 @@ export function useRoving(
 		focusOnEmpty = false,
 		scrollIntoView = true,
 		activationKey = 'Enter',
-		ownerRef,
+		activeDescendantRef,
 	}: UseRovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -180,19 +181,22 @@ export function useRoving(
 				return
 			}
 
-			items[currentIndex]?.removeAttribute('data-active')
+			const prev = items[currentIndex]
+			const next = items[nextIndex]
 
-			const nextItem = items[nextIndex]
+			prev?.removeAttribute('data-active')
+			next?.setAttribute('data-active', '')
 
-			nextItem?.setAttribute('data-active', '')
+			if (activeDescendantRef) {
+				prev?.setAttribute('aria-selected', 'false')
+				next?.setAttribute('aria-selected', 'true')
 
-			if (ownerRef && nextItem?.id) {
-				ownerRef.current?.setAttribute('aria-activedescendant', nextItem.id)
+				const controller = activeDescendantRef.current
+
+				if (controller && next?.id) controller.setAttribute('aria-activedescendant', next.id)
 			}
 
-			if (scrollIntoView && nextItem) {
-				scrollWithin(nextItem, { block: 'nearest' })
-			}
+			if (scrollIntoView && next) scrollWithin(next, { block: 'nearest' })
 		},
 		[
 			containerRef,
@@ -203,7 +207,7 @@ export function useRoving(
 			focusOnEmpty,
 			scrollIntoView,
 			activationKey,
-			ownerRef,
+			activeDescendantRef,
 			scrollWithin,
 		],
 	)

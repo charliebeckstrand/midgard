@@ -1,5 +1,6 @@
 'use client'
 
+import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
 import { useEffect, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
@@ -48,6 +49,21 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 		const createdUrls: string[] = []
 		let docBlobUrl: string | null = null
 
+		// Held in the effect scope so cleanup can tear down the pdf.js lifecycle:
+		// an in-flight render task must be cancelled and the document destroyed,
+		// or both leak worker-side memory. `releasePdf` is idempotent (it nulls
+		// what it frees) so the async path and the cleanup can both call it.
+		let doc: PDFDocumentProxy | null = null
+		let renderTask: RenderTask | null = null
+
+		const releasePdf = () => {
+			renderTask?.cancel()
+			renderTask = null
+
+			doc?.destroy()
+			doc = null
+		}
+
 		setPages([])
 		setDocumentUrl(null)
 		setLoading(true)
@@ -74,10 +90,12 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 				setDocumentUrl(docBlobUrl)
 
 				// pdf.js takes ownership of the buffer, so hand over a copy
-				const doc = await pdfjs.getDocument({ data: buffer.slice(0) }).promise
+				doc = await pdfjs.getDocument({ data: buffer.slice(0) }).promise
 
+				// Cleanup may have run while getDocument was in flight — `doc` is
+				// only assigned now, so the cleanup's `releasePdf` saw null. Release here.
 				if (cancelled) {
-					doc.destroy()
+					releasePdf()
 
 					return
 				}
@@ -89,7 +107,11 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 				for (let i = 1; i <= doc.numPages; i++) {
 					const page = await doc.getPage(i)
 
-					if (cancelled) return
+					if (cancelled) {
+						releasePdf()
+
+						return
+					}
 
 					const viewport = page.getViewport({ scale })
 
@@ -102,15 +124,27 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 
 					if (!context) continue
 
-					await page.render({ canvas, canvasContext: context, viewport }).promise
+					renderTask = page.render({ canvas, canvasContext: context, viewport })
 
-					if (cancelled) return
+					await renderTask.promise
+
+					renderTask = null
+
+					if (cancelled) {
+						releasePdf()
+
+						return
+					}
 
 					const blob = await new Promise<Blob | null>((resolve) =>
 						canvas.toBlob(resolve, 'image/png'),
 					)
 
-					if (!blob || cancelled) return
+					if (!blob || cancelled) {
+						releasePdf()
+
+						return
+					}
 
 					const url = URL.createObjectURL(blob)
 
@@ -127,8 +161,14 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 					setPages([...next])
 				}
 
+				// Pages are rasterized to PNG blobs now; the document is no longer
+				// needed, so free it eagerly rather than waiting for unmount.
+				releasePdf()
+
 				if (!cancelled) setLoading(false)
 			} catch (err) {
+				releasePdf()
+
 				if (cancelled) return
 
 				setError(err instanceof Error ? err : new Error(String(err)))
@@ -139,6 +179,8 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 
 		return () => {
 			cancelled = true
+
+			releasePdf()
 
 			for (const url of createdUrls) URL.revokeObjectURL(url)
 

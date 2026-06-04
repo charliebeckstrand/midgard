@@ -46,7 +46,10 @@ export function DatePickerContent({
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
-						<FloatingFocusManager context={context} modal>
+						// `returnFocus={false}`: focus restoration is driven from
+						// `useDatePickerState` so the trigger is only refocused on Escape or
+						// selection — not when the panel is dismissed by an outside press.
+						<FloatingFocusManager context={context} modal returnFocus={false}>
 							<div
 								ref={setFloating}
 								role="dialog"

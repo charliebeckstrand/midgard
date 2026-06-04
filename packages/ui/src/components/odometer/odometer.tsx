@@ -11,8 +11,13 @@ export type OdometerProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
 
+// Cache the formatter — `Number.prototype.toLocaleString` builds a fresh
+// Intl.NumberFormat on every call, which the per-frame animation would
+// otherwise allocate ~60 times a second.
+const integerFormatter = new Intl.NumberFormat()
+
 function defaultFormat(value: number) {
-	return Math.round(value).toLocaleString()
+	return integerFormatter.format(Math.round(value))
 }
 
 export function Odometer({

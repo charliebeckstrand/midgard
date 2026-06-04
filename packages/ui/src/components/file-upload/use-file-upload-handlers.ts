@@ -40,6 +40,11 @@ export function useFileUploadHandlers({ disabled, onFiles }: UseFileHandlersOpti
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			handleFiles(e.target.files)
+
+			// Reset the native input so picking the same file again still fires a
+			// `change` event — otherwise a remove-then-reselect of an identical
+			// file silently no-ops because the input's value is unchanged.
+			e.target.value = ''
 		},
 		[handleFiles],
 	)

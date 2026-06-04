@@ -75,4 +75,35 @@ describe('Textarea', () => {
 
 		expect(screen.getByText('send')).toBeInTheDocument()
 	})
+
+	it('coerces a nullish controlled value to an empty string and stays controlled', async () => {
+		// A wrapper signalling "empty" with value={null} must keep the textarea
+		// controlled rather than silently flipping it to uncontrolled.
+		const { container } = renderUI(<Textarea value={null as never} onChange={() => {}} />)
+
+		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+
+		expect(el.value).toBe('')
+
+		const user = userEvent.setup()
+
+		await user.type(el, 'abc')
+
+		// Controlled with a fixed '' value: keystrokes can't mutate it.
+		expect(el.value).toBe('')
+	})
+
+	it('stays uncontrolled when no value prop is passed', async () => {
+		const { container } = renderUI(<Textarea defaultValue="hi" />)
+
+		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+
+		expect(el.value).toBe('hi')
+
+		const user = userEvent.setup()
+
+		await user.type(el, ' there')
+
+		expect(el.value).toBe('hi there')
+	})
 })

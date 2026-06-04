@@ -120,7 +120,7 @@ describe('FiltersClear', () => {
 		)
 		const user = userEvent.setup()
 		await user.click(screen.getByText('Clear'))
-		expect(onChange).toHaveBeenCalledWith({ name: undefined, status: undefined })
+		expect(onChange).toHaveBeenCalledWith({})
 	})
 
 	it('resets to defaultValue when provided', async () => {

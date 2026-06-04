@@ -1,9 +1,9 @@
 'use client'
 
-import { type ChangeEvent, type Ref, useLayoutEffect, useRef } from 'react'
+import type { ChangeEvent, Ref } from 'react'
 import { countMeaningful, cursorForCount } from '../utilities'
-import { useComposedRef } from './use-composed-ref'
 import { useControllable } from './use-controllable'
+import { usePendingCaret } from './use-pending-caret'
 
 type UseMaskedInputOptions = {
 	value?: string
@@ -43,29 +43,11 @@ export function useMaskedInput({
 		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
 	})
 
-	const inputRef = useRef<HTMLInputElement | null>(null)
-
-	const pendingCursorRef = useRef<number | null>(null)
-
-	const setRef = useComposedRef(inputRef, externalRef)
-
-	useLayoutEffect(() => {
-		const target = pendingCursorRef.current
-
-		if (target === null) return
-
-		pendingCursorRef.current = null
-
-		const el = inputRef.current
-
-		if (el && document.activeElement === el) {
-			el.setSelectionRange(target, target)
-		}
-	})
+	const { ref, setCaret } = usePendingCaret(externalRef)
 
 	return {
 		value: current ?? '',
-		ref: setRef,
+		ref,
 		setValue: (raw: string) => setCurrent(format(raw)),
 		onChange: (e: ChangeEvent<HTMLInputElement>) => {
 			const raw = e.target.value
@@ -76,7 +58,7 @@ export function useMaskedInput({
 
 			const formatted = format(raw)
 
-			pendingCursorRef.current = cursorForCount(formatted, meaningfulBefore, meaningful)
+			setCaret(cursorForCount(formatted, meaningfulBefore, meaningful))
 
 			setCurrent(formatted)
 		},

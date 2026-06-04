@@ -1,7 +1,7 @@
 'use client'
 
-import { useLayoutEffect, useRef, useState } from 'react'
-import { useComposedRef, useControllable } from '../../hooks'
+import { useState } from 'react'
+import { useControllable, usePendingCaret } from '../../hooks'
 import { useLocale } from '../../providers/locale'
 import { Input, type InputProps } from '../input'
 import {
@@ -64,25 +64,7 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
-	const inputRef = useRef<HTMLInputElement | null>(null)
-
-	const pendingCursorRef = useRef<number | null>(null)
-
-	const setRefs = useComposedRef(inputRef, ref)
-
-	useLayoutEffect(() => {
-		const target = pendingCursorRef.current
-
-		if (target === null) return
-
-		pendingCursorRef.current = null
-
-		const el = inputRef.current
-
-		if (el && document.activeElement === el) {
-			el.setSelectionRange(target, target)
-		}
-	})
+	const { ref: setRefs, setCaret } = usePendingCaret(ref)
 
 	return (
 		<Input
@@ -110,7 +92,7 @@ export function CurrencyInput({
 
 				const formatted = formatEditing(raw, resolvedLocale, decimal, maxFractionDigits)
 
-				pendingCursorRef.current = cursorForCount(formatted, meaningfulBefore, decimal)
+				setCaret(cursorForCount(formatted, meaningfulBefore, decimal))
 
 				setEditingText(formatted)
 

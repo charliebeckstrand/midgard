@@ -151,6 +151,40 @@ describe('NumberInput', () => {
 		expect(onChange).toHaveBeenCalledWith(7)
 	})
 
+	it('does not clamp while typing a value whose prefix is below min', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput min={10} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		// With min={10}, clamping per keystroke would snap "1" to "10" and make
+		// "15" impossible to type. The raw digit must survive until blur.
+		await user.type(input, '1')
+
+		expect(onChange).toHaveBeenLastCalledWith(1)
+
+		expect(input.value).toBe('1')
+	})
+
+	it('clamps to min on blur when the committed value is out of range', async () => {
+		const onChange = vi.fn()
+
+		renderUI(<NumberInput min={10} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton') as HTMLInputElement
+
+		await user.type(input, '5')
+
+		await user.tab()
+
+		expect(onChange).toHaveBeenLastCalledWith(10)
+	})
+
 	it('clears the value when the input is emptied', async () => {
 		const onChange = vi.fn()
 

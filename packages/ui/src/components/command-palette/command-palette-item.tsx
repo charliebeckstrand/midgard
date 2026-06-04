@@ -28,11 +28,10 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	const { component: LinkComponent } = useLink()
 
-	const { disabled, className, children, onAction, closeOnAction = true } = props
+	// Stable id so the input's aria-activedescendant can point at the active item.
+	const itemId = useId()
 
-	// Stable id so the combobox input can point aria-activedescendant at the
-	// active option (WCAG 4.1.2). A consumer-supplied id still wins via `rest`.
-	const generatedId = useId()
+	const { disabled, className, children, onAction, closeOnAction = true } = props
 
 	function handleSelect() {
 		if (disabled) return
@@ -56,7 +55,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 		return (
 			<LinkComponent
-				id={generatedId}
+				id={itemId}
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
@@ -82,7 +81,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	return (
 		<button
 			type="button"
-			id={generatedId}
+			id={itemId}
 			role="option"
 			tabIndex={-1}
 			data-slot="command-palette-item"
