@@ -334,6 +334,7 @@ describe('Form', () => {
 
 		function Probe() {
 			const field = useFormField('name')
+
 			const status = useFormStatus()
 
 			actions = useFormActions()

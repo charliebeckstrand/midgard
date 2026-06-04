@@ -329,6 +329,7 @@ describe('QueryBuilderGroup', () => {
 		const onChange = vi.fn()
 
 		const inner = createGroup('and', [createRule(fields[0])])
+
 		const tree = createGroup('and', [inner])
 
 		const { container } = renderUI(

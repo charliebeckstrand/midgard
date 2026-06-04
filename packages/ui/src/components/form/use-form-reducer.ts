@@ -201,6 +201,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			// handler resolving after the reset can't repopulate errors or leave
 			// the form stuck in `submitting`.
 			submitTokenRef.current++
+
 			setSubmitting(false)
 
 			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
