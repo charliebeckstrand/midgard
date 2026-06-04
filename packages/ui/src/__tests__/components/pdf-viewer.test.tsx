@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
+import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
+import { Toolbar } from '../../components/toolbar'
 import { useMinWidth } from '../../hooks'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
@@ -311,5 +313,110 @@ describe('printPdf', () => {
 		expect(iframe.parentNode).toBeNull()
 
 		appendChild.mockRestore()
+	})
+
+	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
+
+		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		expect(win.focus).toHaveBeenCalled()
+
+		expect(win.print).toHaveBeenCalled()
+
+		expect(win.addEventListener).toHaveBeenCalledWith('afterprint', expect.any(Function))
+
+		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
+		expect(iframe.parentNode).not.toBeNull()
+
+		iframe.remove()
+		appendChild.mockRestore()
+	})
+
+	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
+		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		const win = {
+			addEventListener: vi.fn(),
+			focus: vi.fn(),
+			print: vi.fn(() => {
+				throw new Error('print blocked')
+			}),
+		}
+
+		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		expect(open).toHaveBeenCalledWith('/doc.pdf', '_blank', 'noopener,noreferrer')
+
+		expect(iframe.parentNode).toBeNull()
+
+		open.mockRestore()
+		appendChild.mockRestore()
+	})
+})
+
+describe('PdfViewerZoomControls', () => {
+	const levels = [0.5, 1, 2]
+
+	function renderControls(zoomValue: number, zoomLevels: number[], setValue: () => void) {
+		return renderUI(
+			<Toolbar aria-label="PDF tools">
+				<PdfViewerZoomControls
+					zoom={{ value: zoomValue, levels: zoomLevels, setValue }}
+					disabled={false}
+				/>
+			</Toolbar>,
+		)
+	}
+
+	it('steps to the next configured level on zoom in and out', () => {
+		const setValue = vi.fn()
+
+		renderControls(1, levels, setValue)
+
+		fireEvent.click(screen.getByLabelText('Zoom in'))
+
+		expect(setValue).toHaveBeenLastCalledWith(2)
+
+		fireEvent.click(screen.getByLabelText('Zoom out'))
+
+		expect(setValue).toHaveBeenLastCalledWith(0.5)
+	})
+
+	it('resets to a zoom of 1 on fit to page', () => {
+		const setValue = vi.fn()
+
+		renderControls(2, levels, setValue)
+
+		fireEvent.click(screen.getByLabelText('Fit to page'))
+
+		expect(setValue).toHaveBeenLastCalledWith(1)
+	})
+
+	it('falls back to a zoom of 1 and disables every control when no levels are configured', () => {
+		const setValue = vi.fn()
+
+		renderControls(1, [], setValue)
+
+		expect(screen.getByLabelText('Zoom in')).toBeDisabled()
+
+		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
+
+		expect(screen.getByLabelText('Fit to page')).toBeDisabled()
 	})
 })

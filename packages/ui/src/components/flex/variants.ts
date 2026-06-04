@@ -1,16 +1,10 @@
 import type { Ma } from '../../recipes'
+import { k } from '../../recipes/kata/flex'
 import { type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type FlexGap = Ma | 0
 
-const gapMap = {
-	0: 'gap-0',
-	xs: 'gap-1',
-	sm: 'gap-2',
-	md: 'gap-3',
-	lg: 'gap-4',
-	xl: 'gap-6',
-} as const satisfies Record<FlexGap, string>
+const gapMap = k.gap
 
 const directionMap = {
 	row: 'flex-row',

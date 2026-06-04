@@ -9,7 +9,7 @@
  * ends cover edge cases (compact chrome, page-level layout).
  */
 
-import { gap, gapX, gapY } from './gap'
+import { gap } from './gap'
 import { m, mb, ml, mr, mt, mx, my } from './margin'
 import { p, pb, pl, pr, pt, px, py } from './padding'
 import { stops } from './stops'
@@ -33,6 +33,4 @@ export const ma = {
 	mt,
 	mb,
 	gap,
-	gapX,
-	gapY,
 } as const

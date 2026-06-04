@@ -634,4 +634,44 @@ describe('EditableGrid', () => {
 
 		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '8.88' }])
 	})
+
+	it('flashes a cell when its committed value changes', () => {
+		function StatefulGrid() {
+			const [data, setData] = useState(rows)
+
+			return (
+				<EditableGrid
+					columns={columns}
+					rows={data}
+					getKey={(row) => row.id}
+					onValueChange={(changes) => {
+						const change = changes[0] as CellChange
+
+						setData((prev) =>
+							prev.map((row) =>
+								row.id === change.rowKey ? { ...row, rate: Number(change.value) } : row,
+							),
+						)
+					}}
+				/>
+			)
+		}
+
+		const { container } = renderUI(<StatefulGrid />)
+
+		const rateCell = allBySlot(container, 'editable-grid-cell')[1] as HTMLElement
+
+		fireEvent.doubleClick(rateCell)
+
+		const input = bySlot(container, 'editable-grid-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '9.99' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(rateCell.textContent).toContain('9.99')
+
+		// The flash overlay is the cell's only aria-hidden child; it mounts once the value changes.
+		expect(rateCell.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
+	})
 })

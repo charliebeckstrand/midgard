@@ -3,7 +3,8 @@ import {
 	DataTableColumnManager,
 	type DataTableColumnManagerItem,
 } from '../../components/data-table'
-import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { DataTableColumnManagerDialog } from '../../components/data-table/data-table-column-manager-dialog'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const columns: DataTableColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: true },
@@ -50,6 +51,26 @@ describe('DataTableColumnManager', () => {
 		const checkbox = screen.getByRole('checkbox', { name: /Name \(pinned\)/ })
 
 		expect(checkbox).toBeDisabled()
+	})
+
+	it('reorders an orderable column via the keyboard, keeping pinned columns first', () => {
+		const onOrderChange = vi.fn()
+
+		const { container } = renderUI(
+			<DataTableColumnManager columns={columns} onOrderChange={onOrderChange} />,
+		)
+
+		// Items render pinned-list first, then the orderable list: [name, email, role].
+		const email = allBySlot(container, 'list-item')[1] as HTMLElement
+
+		email.focus()
+
+		// Space lifts, ArrowDown moves the lifted item down and commits the reorder.
+		fireEvent.keyDown(email, { key: ' ' })
+
+		fireEvent.keyDown(email, { key: 'ArrowDown' })
+
+		expect(onOrderChange).toHaveBeenCalledWith(['name', 'role', 'email'])
 	})
 
 	it('renders a save-preset button only when onSavePreset is provided', () => {
@@ -196,5 +217,32 @@ describe('DataTableColumnManager', () => {
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
 		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set())
+	})
+})
+
+describe('DataTableColumnManagerDialog', () => {
+	it('opens from the toolbar trigger and closes via the Done button', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<DataTableColumnManagerDialog
+				label="Columns"
+				columns={columns}
+				order={['name', 'email', 'role']}
+				onOrderChange={() => {}}
+				hidden={new Set()}
+				onHiddenChange={() => {}}
+			/>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Columns' }))
+
+		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Done' }))
+
+		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
 	})
 })

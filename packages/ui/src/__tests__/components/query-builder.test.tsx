@@ -171,6 +171,48 @@ describe('QueryBuilder', () => {
 		expect(container.querySelector('input[type="number"]')).toBeInTheDocument()
 	})
 
+	it('writes the edited text value back into the rule', () => {
+		const onChange = vi.fn()
+
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { container } = renderUI(
+			<QueryBuilder fields={fields} defaultValue={tree} onValueChange={onChange} />,
+		)
+
+		const input = container.querySelector('input[type="text"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Ada' } })
+
+		const next = onChange.mock.calls.at(-1)?.[0] as QueryGroupNode
+
+		expect(next.children[0]).toMatchObject({ type: 'rule', value: 'Ada' })
+	})
+
+	it('coerces number rule values and clears them to an empty string', () => {
+		const onChange = vi.fn()
+
+		const tree = createGroup('and', [createRule(fields[1])])
+
+		const { container } = renderUI(
+			<QueryBuilder fields={fields} defaultValue={tree} onValueChange={onChange} />,
+		)
+
+		const input = container.querySelector('input[type="number"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '42' } })
+
+		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroupNode).children[0]).toMatchObject({
+			value: 42,
+		})
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroupNode).children[0]).toMatchObject({
+			value: '',
+		})
+	})
+
 	it('renders a Select for select-typed rule fields', () => {
 		const selectField: QueryField = {
 			name: 'status',

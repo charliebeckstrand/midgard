@@ -67,6 +67,17 @@ describe('resolveGap', () => {
 		expect(resolveGap('md').length).toBe(1)
 	})
 
+	it.each([
+		[0, 'gap-0'],
+		['xs', 'gap-1'],
+		['sm', 'gap-2'],
+		['md', 'gap-3'],
+		['lg', 'gap-4'],
+		['xl', 'gap-6'],
+	] as const)('maps the %s gap step to %s', (value, cls) => {
+		expect(resolveGap(value)).toEqual([cls])
+	})
+
 	it('resolves 0 to gap-0', () => {
 		expect(resolveGap(0)).toEqual(['gap-0'])
 	})

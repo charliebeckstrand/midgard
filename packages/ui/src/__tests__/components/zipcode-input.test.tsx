@@ -94,6 +94,50 @@ describe('ZipcodeInput', () => {
 		expect(input.value).toBe('94103-1234')
 	})
 
+	it('uppercases GB postcodes while preserving an internal space', () => {
+		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a 1aa" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('SW1A 1AA')
+	})
+
+	it('strips invalid characters and collapses whitespace for GB', () => {
+		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a  1aa@@" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('SW1A 1AA')
+	})
+
+	it('caps GB postcodes at eight characters', () => {
+		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="abcdefghijk" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('ABCDEFGH')
+	})
+
+	it('passes international codes through, truncated to twelve characters', () => {
+		const { container } = renderUI(
+			<ZipcodeInput country="international" defaultValue="abc-123 def/456" />,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input.value).toBe('abc-123 def/')
+	})
+
+	it('uses an empty default placeholder for international codes', () => {
+		const { container } = renderUI(<ZipcodeInput country="international" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		expect(input).toHaveAttribute('placeholder', '')
+
+		expect(input).toHaveAttribute('inputmode', 'text')
+	})
+
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<ZipcodeInput disabled />)
 
