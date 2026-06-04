@@ -3,11 +3,8 @@
 import { type ReactNode, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DataTableColumnManagerConfig } from './data-table'
+import { EMPTY_SET } from './data-table-constants'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
-
-// Stable empty-set default so an omitted `hidden`/`defaultHidden` doesn't allocate a
-// fresh Set per render and bust referential checks. Read-only internally.
-const EMPTY_SET: Set<string | number> = new Set()
 
 function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	if (a === b) return true

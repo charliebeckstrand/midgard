@@ -3,6 +3,7 @@
 import {
 	type SyntheticEvent,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -127,6 +128,14 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	onSettledRef.current = onSettled
 
+	// Monotonic token identifying the current submit. A reset, an unmount, or a
+	// newer submit bumps it, so an in-flight handler that resolves afterward can
+	// tell it has been superseded and must not write stale errors / toggles back
+	// onto a cleared or torn-down form.
+	const submitTokenRef = useRef(0)
+
+	useEffect(() => () => void submitTokenRef.current++, [])
+
 	const { values, errors, touched } = state
 
 	// Mirror current values so getValue stays stable across re-renders;
@@ -147,15 +156,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const dirty = useMemo(() => Object.values(dirtyFields).some(Boolean), [dirtyFields])
 
-	const valid = useMemo(() => {
-		const v = validateRef.current
-
-		if (!v) return true
-
-		const errs = runValidators(v, values, {}, validateOn, Object.keys(v))
-
-		return !Object.values(errs).some((issues) => issues !== undefined && issues.length > 0)
-	}, [values, validateOn])
+	// Derived from the live `errors` map so it reflects exactly what the user
+	// sees — including server / external errors set via `setErrors` or an
+	// `onSubmit` `{ fieldErrors }` return, which a fresh validator pass over
+	// `values` can't know about. The reducer keeps `errors` current per
+	// `validateOn`, so re-running every validator here would both double the
+	// work each keystroke and disagree with the displayed errors.
+	const valid = useMemo(
+		() => !Object.values(errors).some((issues) => issues !== undefined && issues.length > 0),
+		[errors],
+	)
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
 
@@ -186,6 +196,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		// context level); `FormHelpers<T>` re-narrows at the consumer via contravariance.
 		(nextDefaults?: Record<string, unknown>) => {
 			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
+
+			// Supersede any in-flight submit and clear its pending state so a slow
+			// handler resolving after the reset can't repopulate errors or leave
+			// the form stuck in `submitting`.
+			submitTokenRef.current++
+
+			setSubmitting(false)
 
 			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
 
@@ -237,6 +254,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			if (!onSubmit) return
 
+			const token = ++submitTokenRef.current
+
 			setSubmitting(true)
 
 			try {
@@ -244,6 +263,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					setErrors: setErrorsExternal,
 					reset,
 				})
+
+				// A reset, unmount, or newer submit ran while we awaited — its
+				// outcome owns the form now; dropping ours avoids stale writes.
+				if (submitTokenRef.current !== token) return
 
 				const fieldErrors = extractFieldErrors(raw)
 
@@ -254,12 +277,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					onSettledRef.current?.({ ok: true, values: valuesRef.current })
 				}
 			} catch (err) {
+				if (submitTokenRef.current !== token) return
+
 				onSettledRef.current?.({
 					ok: false,
 					error: err instanceof Error ? err : new Error(String(err)),
 				})
 			} finally {
-				setSubmitting(false)
+				// Only the latest, un-superseded submit owns the submitting flag;
+				// a reset already cleared it and a newer submit set its own.
+				if (submitTokenRef.current === token) setSubmitting(false)
 			}
 		},
 		[onSubmit, setErrorsExternal, reset, validateOn],

@@ -1,7 +1,8 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type Ref, useCallback, useImperativeHandle, useRef, useState } from 'react'
+import { type Ref, useCallback, useRef, useState } from 'react'
+import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -51,7 +52,7 @@ export function TagInput({
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
+	const setRefs = useComposedRef(inputRef, ref)
 
 	const { tags, atMax, addTag, removeTag } = useTagInput({
 		value,
@@ -109,7 +110,7 @@ export function TagInput({
 
 	return (
 		<Input
-			ref={inputRef}
+			ref={setRefs}
 			id={id}
 			size={size}
 			disabled={disabled || atMax}

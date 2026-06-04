@@ -61,16 +61,9 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 				<Button variant="plain" disabled={disabled} onClick={() => addRule(group.id)}>
 					Add rule
 				</Button>
-				{root && (
-					<Button
-						variant="soft"
-						color="blue"
-						disabled={disabled}
-						onClick={() => addGroup(group.id)}
-					>
-						Add group
-					</Button>
-				)}
+				<Button variant="soft" color="blue" disabled={disabled} onClick={() => addGroup(group.id)}>
+					Add group
+				</Button>
 				{!root && (
 					<Flex justify="end">
 						<Tooltip>
