@@ -1,16 +1,16 @@
 /**
  * Recipes — the design-system layer of the UI package.
  *
- *   kiso/     — every named utility-class recipe in the design system.
- *               Atomic concerns (iro / ji / ma / narabi / omote / hannou /
- *               sen / shaku / sun / tsunagi / ugoki / kokkaku / kasane)
- *               plus archetype sub-folders (control / popover / segment /
- *               panel / slider) for shapes shared by ≥2 kata. Consumed by
+ *   kiso/     — the atomic utility-class concerns of the design system
+ *               (iro / ji / ma / narabi / omote / hannou / sen / shaku /
+ *               sun / tsunagi / ugoki / kokkaku / kasane). Consumed by
  *               katakana and kata.
- *   katakana/ — function-shaped applicators that wrap kiso archetype
- *               fragments into ready-to-call recipe surfaces. Consumed by
- *               kata that match an archetype shape. Wiring only — no
- *               literal Tailwind class strings.
+ *   katakana/ — the archetype layer. One sub-folder per archetype
+ *               (control / popover / segment / panel / slider), each
+ *               owning its shared class-fragment data plus the applicator
+ *               that wraps it. Kata reach a whole archetype through the
+ *               barrel applicator and a subset of fragments through the
+ *               archetype folder.
  *   kata/     — per-component recipes (1:1 with `src/components/<name>/`).
  *               Consumed by components and primitives.
  *

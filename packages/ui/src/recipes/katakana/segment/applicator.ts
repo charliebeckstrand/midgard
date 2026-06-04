@@ -12,8 +12,8 @@
  *   - `indicator` — class fragment for the sliding indicator
  */
 
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { segment as segmentFragments } from '../kiso/segment'
+import { defineRecipe, type VariantProps } from '../../../core/recipe'
+import { segment as segmentFragments } from '.'
 
 const { control: controlFragments, item: itemFragments, indicator } = segmentFragments
 

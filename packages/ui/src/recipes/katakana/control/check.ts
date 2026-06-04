@@ -8,13 +8,13 @@
  * focus outline, cursor states) plus the surface fragment, so the
  * applicator imports one named fragment instead of composing inline.
  *
- * Layer: kiso · Archetype: control · Concern: check
+ * Layer: katakana · Archetype: control · Concern: check
  */
 
 import { mode } from '../../../core/recipe'
-import { hannou } from '../hannou'
-import { narabi } from '../narabi'
-import { sen } from '../sen'
+import { hannou } from '../../kiso/hannou'
+import { narabi } from '../../kiso/narabi'
+import { sen } from '../../kiso/sen'
 
 const { cursor } = hannou
 const { flex } = narabi

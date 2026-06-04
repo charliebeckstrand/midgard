@@ -3,7 +3,7 @@
  * native spinners and switches `<input type="number">` to text appearance
  * so the design-system chrome owns the visible surface end-to-end.
  *
- * Layer: kiso · Archetype: control · Concern: resets
+ * Layer: katakana · Archetype: control · Concern: resets
  */
 
 export const resets = {

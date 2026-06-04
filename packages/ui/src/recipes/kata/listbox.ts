@@ -1,7 +1,7 @@
 import { defineRecipe } from '../../core/recipe'
+import { control } from '../katakana/control'
+import { popover } from '../katakana/popover'
 import { hannou, iro, narabi } from '../kiso'
-import { control } from '../kiso/control'
-import { popover } from '../kiso/popover'
 
 const { cursor } = hannou
 const { text } = iro

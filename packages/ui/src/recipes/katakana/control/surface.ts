@@ -4,12 +4,12 @@
  * for nested-in-overlay contexts. The check-input branch reuses the same
  * shape via `kiso/control/check.ts`.
  *
- * Layer: kiso · Archetype: control · Concern: surface
+ * Layer: katakana · Archetype: control · Concern: surface
  */
 
 import { mode } from '../../../core/recipe'
-import { omote } from '../omote'
-import { sen } from '../sen'
+import { omote } from '../../kiso/omote'
+import { sen } from '../../kiso/sen'
 
 const { glass } = omote
 const { border } = sen

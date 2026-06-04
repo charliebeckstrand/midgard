@@ -16,10 +16,10 @@
  * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
  * this against the live recipes.
  *
- * Layer: kiso · Archetype: control · Concern: affix
+ * Layer: katakana · Archetype: control · Concern: affix
  */
 
-import { kasane } from '../kasane'
+import { kasane } from '../../kiso/kasane'
 
 const { padding } = kasane
 

@@ -15,7 +15,7 @@
  * exceptions sit alongside the helper.
  */
 
-import { panel as panelFragments } from '../kiso/panel'
+import { panel as panelFragments } from '.'
 
 const { layout } = panelFragments
 

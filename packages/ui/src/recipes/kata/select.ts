@@ -1,5 +1,5 @@
+import { control } from '../katakana/control'
 import { hannou, iro } from '../kiso'
-import { control } from '../kiso/control'
 
 const { cursor } = hannou
 const { text } = iro

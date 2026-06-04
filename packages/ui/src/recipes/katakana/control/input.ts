@@ -4,10 +4,10 @@
  * corner. Lives here so the applicator imports a single pre-assembled
  * fragment instead of composing in its file.
  *
- * Layer: kiso · Archetype: control · Concern: input
+ * Layer: katakana · Archetype: control · Concern: input
  */
 
-import { kasane } from '../kasane'
+import { kasane } from '../../kiso/kasane'
 
 import { reset } from './reset'
 

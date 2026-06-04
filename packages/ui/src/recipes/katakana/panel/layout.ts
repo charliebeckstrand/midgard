@@ -9,11 +9,11 @@
  * wrapper for title + description (the only pair where 4 feels loose);
  * everything else stands on its own at 4.
  *
- * Layer: kiso · Archetype: panel · Concern: layout
+ * Layer: katakana · Archetype: panel · Concern: layout
  */
 
-import { iro } from '../iro'
-import { ji } from '../ji'
+import { iro } from '../../kiso/iro'
+import { ji } from '../../kiso/ji'
 
 const { text } = iro
 const { size, weight, leading } = ji

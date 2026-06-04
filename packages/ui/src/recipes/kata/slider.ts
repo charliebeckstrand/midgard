@@ -1,6 +1,6 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { slider } from '../katakana/slider'
 import { hannou } from '../kiso'
-import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
 const { color } = slider

@@ -1,18 +1,34 @@
 /**
- * Katakana 片仮名 — the recipe applicator layer.
+ * Katakana 片仮名 — the archetype layer.
  *
- * Five archetypes are wired: `control` (text-input branch of the Control
- * archetype), `check` (check-input branch, covering checkbox and radio),
- * `popover` (floating-overlay archetype), `segment` (segmented-control
- * archetype shared by Segment and Tabs), and `panel` (panel-bundle
- * archetype shared by Dialog, Drawer, and Sheet).
+ * Each archetype is a sub-folder that owns both its raw class-fragment
+ * data and the applicator that wraps it: `control` (the Control family —
+ * text-input plus the `check` branch covering checkbox and radio),
+ * `popover` (floating overlay), `segment` (segmented control shared by
+ * Segment and Tabs), `panel` (panel bundle shared by Dialog, Drawer, and
+ * Sheet), and `slider` (fragment-only — a shared colour table with no
+ * applicator).
  *
- * **The applicator pattern.** Every entry is a function that takes an
- * archetype's standard pieces plus the kata's per-call configuration and
- * returns the `k` surface the kata exports. `defineApplicator` covers
- * the common case — a single `defineRecipe` call with caller overlays —
- * so `control` and `check` collapse to one-liner declarations. The
- * remaining three hand-roll for their own reason:
+ * **One archetype, one folder.** The folder `index.ts` exports the
+ * fragment bundle under the archetype name; `applicator.ts` exports the
+ * callable applicator(s). Fragments hold Tailwind class strings; the
+ * applicator composes them through the recipe engine. (Folding the
+ * fragments in is why katakana carries literal classes — there is no
+ * longer a separate `kiso/<archetype>` data tier.)
+ *
+ * **Two reaches, one path.** A kata that consumes a whole archetype
+ * imports its applicator from this barrel (`from '../katakana'`). A kata
+ * that needs only a subset of fragments imports them from the archetype
+ * folder (`from '../katakana/<archetype>'`) — control's input / density /
+ * size for combobox / listbox / date-picker / select / switch, panel's
+ * surface / layout for dialog / drawer / sheet / box, slider's colour for
+ * slider / slider-range. Both reaches are honest layering; neither dips
+ * into the other's namespace.
+ *
+ * **The applicator pattern.** `defineApplicator` covers the common case —
+ * a single `defineRecipe` call with caller overlays — so `control` and
+ * `check` collapse to one-liner declarations. The remaining three
+ * hand-roll for their own reason:
  *
  *   - `popover` — no `defineRecipe` calls; returns a bundle of class
  *     fragments anchored by an optional caller `text` override.
@@ -26,34 +42,26 @@
  *
  * Three exceptions around one architecture, not separate paradigms.
  *
- * **Kiso archetypes are the raw-fragment data layer.** Each applicator
- * imports its archetype's fragments from `kiso/<archetype>` — control
- * from `kiso/control`, popover from `kiso/popover`, and so on. The two
- * layers have distinct concerns: kiso archetypes store the shared
- * class-fragment data, katakana wraps it in callable applicator
- * functions. Kata that need a subset of an archetype's fragments —
- * combobox / listbox / date-picker use control's input / density / size
- * without the full chrome — reach `kiso/<archetype>` directly, the same
- * way kata that don't fit any archetype reach `defineRecipe` directly.
- * Both reaches are honest layering.
- *
- * **What the barrel surfaces.** Applicators only. Engine primitives
- * (`defineRecipe`, `defineColors`, `palette`, `VariantProps`, …) stay
- * in `core/recipe`; kata import them from there. A kata that doesn't
- * fit any archetype calls `defineRecipe` directly — routing it through
- * a katakana alias would conflate the applicator layer with the recipe
- * engine.
+ * **What the barrel surfaces.** Applicators and the variant types real
+ * consumers import. Engine primitives (`defineRecipe`, `defineColors`,
+ * `definePalette`, `VariantProps`, …) stay in `core/recipe`; kata import
+ * them from there. A kata that doesn't fit any archetype calls
+ * `defineRecipe` directly — routing it through a katakana alias would
+ * conflate the archetype layer with the recipe engine.
  *
  * Type exports follow real consumer needs, not surface parity. `control`
  * and `segment` expose variant types because consumer components import
  * them. `check`, `popover`, and `panel` don't — checkbox and radio
- * compute their own variants from `VariantProps<typeof k>` (extra
- * axes the applicator doesn't own), and panel's input shape is generic
+ * compute their own variants from `VariantProps<typeof k>` (extra axes
+ * the applicator doesn't own), and panel's input shape is generic
  * per-kata.
  */
 
-export { check } from './check'
-export { type ControlVariants, control } from './control'
-export { panel } from './panel'
-export { popover } from './popover'
-export { type SegmentControlVariants, type SegmentItemVariants, segment } from './segment'
+export { type ControlVariants, check, control } from './control/applicator'
+export { panel } from './panel/applicator'
+export { popover } from './popover/applicator'
+export {
+	type SegmentControlVariants,
+	type SegmentItemVariants,
+	segment,
+} from './segment/applicator'

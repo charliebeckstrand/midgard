@@ -9,9 +9,10 @@
  * `useGlass()` when nested inside a glass overlay (Dialog, Drawer, Sheet),
  * never as an explicit caller-chosen variant.
  *
- * The check-input branch (`checkbox`, `radio`) lives in a sibling
- * `check` applicator; `switch` reads only `check.hidden` and uses
- * `defineRecipe` directly.
+ * The check-input branch (`checkbox`, `radio`) is the sibling `check`
+ * applicator exported below — both branches of the Control family live in
+ * this file. `switch` reads only `check.hidden` and uses `defineRecipe`
+ * directly.
  *
  * Returns a recipe callable as `k({ variant, density, size, …extraAxes })`:
  *   - `k.number` and caller-defined slots are direct strings.
@@ -28,10 +29,12 @@ import {
 	defineApplicator,
 	defineRecipe,
 	type VariantProps,
-} from '../../core/recipe'
-import { control as controlFragments } from '../kiso/control'
+} from '../../../core/recipe'
+import { hannou } from '../../kiso'
+import { control as controlFragments } from '.'
 
-const { input, density, size, surface, affix, resets } = controlFragments
+const { fg } = hannou
+const { input, density, size, surface, affix, resets, check: checkFragments } = controlFragments
 
 const config = {
 	base: input,
@@ -73,3 +76,34 @@ export const control = defineApplicator({ config, extras })
  * prop union — every string axis resolves to `boolean | undefined`.
  */
 export type ControlVariants = VariantProps<ApplicatorReturn<typeof config, typeof extras>>
+
+/**
+ * Check applicator — the check-input branch of the Control family
+ * archetype. Covers `checkbox` and `radio`: kata that wrap a native
+ * `<input type="checkbox" | "radio">` with the `check.surface` chrome and
+ * a kata-specific indicator overlay.
+ *
+ * Returns a recipe callable as `k({ color, size, …extraAxes })`:
+ *   - caller-defined slots are direct strings.
+ *   - `k.input({ … })` is the visually-hidden native input recipe.
+ *   - `k.disabled` is the text class for the surrounding field wrapper.
+ *
+ * Each kata supplies its own pieces — colour palette, size axis, indicator
+ * selectors, and the `--…-checked-{bg,border}` overlay — through
+ * `config.base` and the standard `color` / `size` axes. Kata derive their
+ * own variant type via `VariantProps<typeof k>`, so the applicator exposes
+ * no empty-overlay variant type.
+ */
+const checkConfig = {
+	base: checkFragments.base,
+	defaults: { color: 'zinc', size: 'md' },
+}
+
+const checkExtras = {
+	/** Visually-hidden native `<input>` overlaying the custom check surface. */
+	input: defineRecipe({ base: checkFragments.hidden }),
+	/** Disabled-state text class shared by the surrounding field wrapper. */
+	disabled: fg.disabled,
+}
+
+export const check = defineApplicator({ config: checkConfig, extras: checkExtras })

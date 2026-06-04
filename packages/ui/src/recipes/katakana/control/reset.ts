@@ -5,10 +5,10 @@
  * design tokens. `input.ts` composes this with the kasane corner radius
  * to form the standard text-input base.
  *
- * Layer: kiso · Archetype: control · Concern: input reset
+ * Layer: katakana · Archetype: control · Concern: input reset
  */
 
-import { iro } from '../iro'
+import { iro } from '../../kiso/iro'
 
 const { text } = iro
 
