@@ -1,6 +1,7 @@
 import { defineColors, type VariantProps } from '../../core/recipe'
-import { check } from '../katakana'
+import { katakana } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
+import { control } from '../kiso/control'
 
 const { radius } = kasane
 const { checkbox } = kokkaku
@@ -15,7 +16,8 @@ const color = defineColors({
 	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
 })
 
-export const k = check(
+export const k = katakana.check(
+	control,
 	{
 		base: [
 			'has-checked:*:data-[slot=checkbox-check]:opacity-100',

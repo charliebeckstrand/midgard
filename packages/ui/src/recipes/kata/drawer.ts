@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { panel as panelApplicator } from '../katakana'
+import { katakana } from '../katakana'
 import { iro, kasane, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
@@ -11,7 +11,7 @@ const { focus } = sen
 const { surface, layout } = panel
 
 export const k = {
-	...panelApplicator({
+	...katakana.panel(panel, {
 		panel: defineRecipe({
 			base: [
 				...surface.chrome.flat(),

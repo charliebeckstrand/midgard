@@ -14,3 +14,5 @@ export const segment = {
 	item,
 	indicator,
 } as const
+
+export type Segment = typeof segment

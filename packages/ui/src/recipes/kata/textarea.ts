@@ -1,11 +1,12 @@
 import type { VariantProps } from '../../core/recipe'
-import { control } from '../katakana'
+import { katakana } from '../katakana'
 import { kokkaku, sen } from '../kiso'
+import { control } from '../kiso/control'
 
 const { textarea } = kokkaku
 const { border } = sen
 
-export const k = control({
+export const k = katakana.control(control, {
 	base: ['block', 'min-h-10'],
 	resize: {
 		none: 'resize-none',
