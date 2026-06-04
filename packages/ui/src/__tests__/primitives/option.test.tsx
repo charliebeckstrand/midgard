@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Density } from '../../primitives/density'
 import {
 	BaseOption,
 	createSelectOption,
@@ -147,6 +148,32 @@ describe('BaseOption', () => {
 		)
 
 		expect(container.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument()
+	})
+
+	it('renders the default check icon hidden until the row is selected', () => {
+		const { container } = renderUI(
+			<BaseOption selected={false} onSelect={() => {}}>
+				Option
+			</BaseOption>,
+		)
+
+		const cls = bySlot(container, 'icon')?.getAttribute('class') ?? ''
+
+		expect(cls).toContain('hidden')
+
+		expect(cls).toContain('group-data-selected/option:inline')
+	})
+
+	it('sizes the default check icon to the ambient density', () => {
+		const { container } = renderUI(
+			<Density size="lg">
+				<BaseOption selected={true} onSelect={() => {}}>
+					Option
+				</BaseOption>
+			</Density>,
+		)
+
+		expect(bySlot(container, 'icon')?.getAttribute('class')).toContain('size-6')
 	})
 })
 

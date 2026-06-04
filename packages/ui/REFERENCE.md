@@ -24,7 +24,7 @@
 
 **Domain & specialized** — `map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
 
-**Escape hatches** — `headless` · `option`
+**Escape hatches** — `headless`
 
 ## 2. Hooks, primitives, providers
 
