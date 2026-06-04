@@ -155,6 +155,64 @@ describe('Message', () => {
 		expect(message.textContent).toBe('required')
 	})
 
+	it('lists every field error when bound with the all prop', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+					helpers.setErrors({ name: ['Too short', 'Required'] })
+				}}
+			>
+				<Message name="name" all>
+					fallback
+				</Message>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(message.tagName).toBe('UL')
+
+		expect(message.querySelectorAll('li')).toHaveLength(2)
+
+		expect(message.textContent).toContain('Too short')
+
+		expect(message.textContent).toContain('Required')
+	})
+
+	it('renders a single error as a paragraph even with the all prop', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+					helpers.setErrors({ name: 'Required' })
+				}}
+			>
+				<Message name="name" all>
+					fallback
+				</Message>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(message.tagName).toBe('P')
+
+		expect(message.textContent).toBe('Required')
+	})
+
 	it('renders verbatim children for the success variant inside a form', () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }}>

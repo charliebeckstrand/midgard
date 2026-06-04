@@ -3,6 +3,7 @@ import {
 	DataTableColumnManager,
 	type DataTableColumnManagerItem,
 } from '../../components/data-table'
+import { DataTableColumnManagerDialog } from '../../components/data-table/data-table-column-manager-dialog'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 const columns: DataTableColumnManagerItem[] = [
@@ -196,5 +197,32 @@ describe('DataTableColumnManager', () => {
 		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
 
 		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set())
+	})
+})
+
+describe('DataTableColumnManagerDialog', () => {
+	it('opens from the toolbar trigger and closes via the Done button', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<DataTableColumnManagerDialog
+				label="Columns"
+				columns={columns}
+				order={['name', 'email', 'role']}
+				onOrderChange={() => {}}
+				hidden={new Set()}
+				onHiddenChange={() => {}}
+			/>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Columns' }))
+
+		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Done' }))
+
+		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
 	})
 })
