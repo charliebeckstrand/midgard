@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { AddressProvider } from '../../components/address-input'
+import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, photonProvider } from '../../components/address-input'
 import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
 
@@ -125,6 +125,20 @@ describe('AddressInput', () => {
 		await waitFor(() => {
 			expect(signals[0]?.aborted).toBe(true)
 		})
+	})
+
+	it('renders the selected suggestion label as the input display value', () => {
+		const selected: AddressSuggestion = {
+			id: '1',
+			label: '10 Main St',
+			description: 'Springfield, IL',
+		}
+
+		const { container } = renderUI(<AddressInput value={selected} />)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		expect(input.value).toBe('10 Main St')
 	})
 
 	it('exports a photonProvider', () => {
