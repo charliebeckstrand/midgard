@@ -12,6 +12,7 @@ import {
 	type ControlVariant,
 	useControl,
 } from './context'
+import { useControlA11y } from './use-control-a11y'
 
 export type ControlProps = {
 	id?: string
@@ -58,6 +59,8 @@ export function Control({
 
 	const mergedAutoComplete = autoComplete ?? parent?.autoComplete
 
+	const a11y = useControlA11y(scope.id)
+
 	const value = useMemo<ControlContextValue>(
 		() => ({
 			id: scope.id,
@@ -68,6 +71,11 @@ export function Control({
 			required,
 			size: mergedSize,
 			variant: mergedVariant,
+			describedBy: a11y.describedBy,
+			descriptionId: a11y.descriptionId,
+			messageId: a11y.messageId,
+			registerDescription: a11y.registerDescription,
+			registerMessage: a11y.registerMessage,
 		}),
 		[
 			scope.id,
@@ -78,6 +86,11 @@ export function Control({
 			required,
 			mergedSize,
 			mergedVariant,
+			a11y.describedBy,
+			a11y.descriptionId,
+			a11y.messageId,
+			a11y.registerDescription,
+			a11y.registerMessage,
 		],
 	)
 

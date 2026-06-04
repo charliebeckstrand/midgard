@@ -28,6 +28,7 @@ export function Checkbox({
 	name,
 	checked,
 	onChange,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CheckboxProps) {
 	const binding = useFormToggle(name, { onChange })
@@ -38,7 +39,15 @@ export function Checkbox({
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		size: resolvedSize,
-	} = useControlToggle({ id, disabled, required, size, binding })
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlToggle({
+		id,
+		disabled,
+		required,
+		size,
+		'aria-describedby': ariaDescribedBy,
+		binding,
+	})
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
@@ -79,6 +88,7 @@ export function Checkbox({
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
+				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}
 				{...props}

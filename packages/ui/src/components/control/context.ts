@@ -14,6 +14,15 @@ export type ControlContextValue = {
 	required?: boolean
 	size?: ControlSize
 	variant?: ControlVariant
+	/** Composed `aria-describedby` for fields — registered Description / error Message ids, or undefined when none are rendered. */
+	describedBy?: string
+	/** Id the Description slot renders with. */
+	descriptionId?: string
+	/** Id the error Message slot renders with. */
+	messageId?: string
+	/** Slot registration — Description / error Message call these on mount so `describedBy` only references rendered ids. */
+	registerDescription?: () => () => void
+	registerMessage?: () => () => void
 }
 
 /**

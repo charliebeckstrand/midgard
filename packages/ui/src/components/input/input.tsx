@@ -53,6 +53,7 @@ export function Input(props: InputProps) {
 		onChange,
 		onBlur,
 		ref,
+		'aria-describedby': ariaDescribedBy,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
 		...rest
@@ -76,6 +77,7 @@ export function Input(props: InputProps) {
 		disabled,
 		required,
 		readOnly,
+		'aria-describedby': ariaDescribedBy,
 		binding: valueState.binding,
 	})
 
@@ -99,6 +101,7 @@ export function Input(props: InputProps) {
 			value={valueState.value}
 			onChange={valueState.onChange}
 			onBlur={valueState.onBlur}
+			aria-describedby={sharedAttrs['aria-describedby']}
 			className={cn(
 				!headless && k({ variant: resolvedVariant, density: token.density, size: token.size }),
 				className,

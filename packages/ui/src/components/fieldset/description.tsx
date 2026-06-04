@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -15,10 +15,16 @@ export function Description({ className, id, ...props }: DescriptionProps) {
 
 	const { size } = useDensity()
 
+	// Register so the field's aria-describedby only references this id while
+	// the Description is actually rendered.
+	const registerDescription = control?.registerDescription
+
+	useEffect(() => registerDescription?.(), [registerDescription])
+
 	return (
 		<p
 			data-slot="description"
-			id={id ?? (control ? `${control.id}-description` : undefined)}
+			id={id ?? control?.descriptionId}
 			className={cn(k.description({ size }), className)}
 			{...props}
 		/>

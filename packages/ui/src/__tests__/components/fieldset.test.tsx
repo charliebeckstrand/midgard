@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
+import { Input } from '../../components/input'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
@@ -223,5 +224,78 @@ describe('Message', () => {
 		)
 
 		expect(bySlot(container, 'message')?.textContent).toBe('Looks good')
+	})
+})
+
+describe('Field aria-describedby', () => {
+	it('points the input at a rendered Description', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Email</Label>
+				<Input />
+				<Description>We never share it.</Description>
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+
+		expect(description.id).toBeTruthy()
+
+		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+
+	it('references both the Description and the error Message, description first', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Description>Hint</Description>
+				<Message>Required</Message>
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect((input.getAttribute('aria-describedby') ?? '').split(' ')).toEqual([
+			description.id,
+			message.id,
+		])
+	})
+
+	it('omits aria-describedby when no Description or Message is rendered', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('does not reference a success Message (feedback, not a field description)', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+				<Message variant="success">Looks good</Message>
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('merges a consumer-supplied aria-describedby ahead of the field ids', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input aria-describedby="external" />
+				<Description>Hint</Description>
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+
+		expect(input).toHaveAttribute('aria-describedby', `external ${description.id}`)
 	})
 })
