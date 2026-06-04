@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders with data-slot="control"', () => {
@@ -95,6 +95,62 @@ describe('Combobox', () => {
 
 		expect(bySlot(container, 'combobox-input')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('shows a clear button only when clearable and a value is set', () => {
+		const { container, rerender } = renderUI(
+			<Combobox<string> clearable value="v1" displayValue={(v) => v}>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
+
+		// No value → no clear affordance, falls back to the chevron suffix.
+		rerender(
+			<Combobox<string> clearable displayValue={(v) => v}>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'suffix')).toHaveAttribute('aria-label', 'Open')
+	})
+
+	it('clears a single selection and refocuses the input on clear', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Combobox<string> clearable value="v1" displayValue={(v) => v} onValueChange={onChange}>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		const clear = screen.getByRole('button', { name: 'Clear selection' })
+
+		// mousedown is swallowed so the trigger doesn't steal focus before the click lands.
+		fireEvent.mouseDown(clear)
+
+		fireEvent.click(clear)
+
+		expect(onChange).toHaveBeenCalledWith(undefined)
+
+		expect(document.activeElement).toBe(bySlot(container, 'combobox-input'))
+	})
+
+	it('clears a multiple selection to an empty array', () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<Combobox<string> multiple clearable value={['v1']} onValueChange={onChange}>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenCalledWith([])
 	})
 
 	it('mounts virtualized options inside an open Combobox', () => {
