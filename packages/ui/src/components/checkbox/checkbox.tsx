@@ -1,8 +1,9 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
+import { type ComponentPropsWithRef, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -51,17 +52,13 @@ export function Checkbox({
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
-	const setRef = useCallback(
-		(el: HTMLInputElement | null) => {
-			internalRef.current = el
+	const setRef = useComposedRef(internalRef, ref)
 
-			if (el) el.indeterminate = !!indeterminate
-
-			if (typeof ref === 'function') ref(el)
-			else if (ref) ref.current = el
-		},
-		[indeterminate, ref],
-	)
+	// `indeterminate` is a DOM property with no attribute; sync it before paint.
+	// Keyed on the value so toggling it no longer detaches and reattaches the node.
+	useLayoutEffect(() => {
+		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
+	}, [indeterminate])
 
 	if (useSkeleton()) {
 		return <CheckboxSkeleton className={className} />
