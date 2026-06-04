@@ -9,6 +9,12 @@ export type IconProps = {
 	icon: ReactElement
 	size?: Size | number
 	className?: string
+	/**
+	 * Accessible name for a meaningful icon. When set, the icon is exposed to
+	 * assistive technology as `role="img"` with this label instead of being
+	 * hidden. Omit for decorative icons (the default), which stay `aria-hidden`.
+	 */
+	label?: string
 }
 
 const sizeMap: Record<Size, string> = {
@@ -18,7 +24,7 @@ const sizeMap: Record<Size, string> = {
 	lg: 'size-6',
 }
 
-export function Icon({ icon, size, className }: IconProps) {
+export function Icon({ icon, size, className, label }: IconProps) {
 	// Icon's scale tops out at `lg` — `shaku.icon` doesn't have an `xl` step.
 	// `useSizeWide` can carry `'xl'` (Button broadcasts up to `Ma`), so when
 	// that reaches an Icon with no explicit size, `sizeMap` lookup misses
@@ -31,7 +37,7 @@ export function Icon({ icon, size, className }: IconProps) {
 	const isNumeric = typeof resolvedSize === 'number'
 
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
-		'aria-hidden': 'true',
+		...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' }),
 		'data-slot': 'icon',
 		className: cn('shrink-0', !isNumeric && sizeMap[resolvedSize], className),
 		...(isNumeric && { style: { width: resolvedSize, height: resolvedSize } }),

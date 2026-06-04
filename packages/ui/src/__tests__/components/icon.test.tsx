@@ -21,6 +21,18 @@ describe('Icon', () => {
 		expect(el).toHaveAttribute('aria-hidden', 'true')
 	})
 
+	it('exposes a meaningful icon with role="img" and a label', () => {
+		const { container } = renderUI(<Icon icon={<svg />} label="Search" />)
+
+		const el = bySlot(container, 'icon')
+
+		expect(el).toHaveAttribute('role', 'img')
+
+		expect(el).toHaveAttribute('aria-label', 'Search')
+
+		expect(el).not.toHaveAttribute('aria-hidden')
+	})
+
 	it('applies custom className', () => {
 		const { container } = renderUI(<Icon icon={<svg />} className="custom" />)
 
