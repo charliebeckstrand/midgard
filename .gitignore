@@ -20,8 +20,8 @@ packages/ui/coverage/
 packages/ui/test-results/
 
 # env
-.env
-.env*.local
+.env*
+!.env.example
 
 # debug
 npm-debug.log*
