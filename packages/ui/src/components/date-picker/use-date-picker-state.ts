@@ -1,5 +1,6 @@
 'use client'
 
+import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
@@ -10,6 +11,7 @@ import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { addDays, clampDate, formatDate } from './date-picker-utilities'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import { useDatePickerRefocus } from './use-date-picker-refocus'
 
 export function useDatePickerState({
 	value: valueProp,
@@ -31,6 +33,8 @@ export function useDatePickerState({
 	})
 
 	const [open, setOpen] = useState(false)
+
+	const { captureTrigger, skipNextRefocus } = useDatePickerRefocus(open)
 
 	const [active, setActive] = useState<CalendarActive | null>(null)
 
@@ -84,14 +88,16 @@ export function useDatePickerState({
 	}, [handleSelect])
 
 	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
+		(nextOpen: boolean, _event?: Event, reason?: OpenChangeReason) => {
 			if (nextOpen) {
 				openCalendar()
 			} else {
+				if (reason === 'outside-press') skipNextRefocus()
+
 				closeCalendar()
 			}
 		},
-		[closeCalendar, openCalendar],
+		[closeCalendar, openCalendar, skipNextRefocus],
 	)
 
 	const onFooterActivate = useCallback(
@@ -115,6 +121,17 @@ export function useDatePickerState({
 		role: 'dialog',
 	})
 
+	// FloatingFocusManager runs with `returnFocus={false}`; capture the trigger so
+	// useDatePickerRefocus can restore focus to it on close.
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			captureTrigger(node)
+
+			refs.setReference(node)
+		},
+		[captureTrigger, refs],
+	)
+
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled,
 		open,
@@ -137,7 +154,7 @@ export function useDatePickerState({
 		open,
 		onOpenChange: handleOpenChange,
 		onTriggerKeyDown,
-		setReference: refs.setReference,
+		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
 		getReferenceProps,

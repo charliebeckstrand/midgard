@@ -6,6 +6,7 @@ import {
 	type FloatingRootContext,
 	flip,
 	type Middleware,
+	type OpenChangeReason,
 	offset,
 	type Placement,
 	type ReferenceType,
@@ -82,7 +83,7 @@ function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 export type UseFloatingPanelOptions = {
 	placement: Placement
 	open: boolean
-	onOpenChange: (open: boolean) => void
+	onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
 	/** Offset (px) between reference and floating element. @default 4 */
 	offset?: number
 	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @default false */
@@ -185,7 +186,7 @@ export function useFloatingUI({
 			if (refs.domReference.current?.contains(target)) return
 			if (target instanceof HTMLElement && isScrollbarPress(event, target)) return
 
-			onOpenChangeRef.current(false)
+			onOpenChangeRef.current(false, event, 'outside-press')
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

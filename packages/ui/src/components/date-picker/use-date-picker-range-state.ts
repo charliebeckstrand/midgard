@@ -1,5 +1,6 @@
 'use client'
 
+import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
@@ -11,6 +12,7 @@ import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, clampDate, formatRange } from './date-picker-utilities'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import { useDatePickerRefocus } from './use-date-picker-refocus'
 
 export function useDatePickerRangeState({
 	value: valueProp,
@@ -32,6 +34,8 @@ export function useDatePickerRangeState({
 	})
 
 	const [open, setOpen] = useState(false)
+
+	const { captureTrigger, skipNextRefocus } = useDatePickerRefocus(open)
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
@@ -110,14 +114,16 @@ export function useDatePickerRangeState({
 	)
 
 	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
+		(nextOpen: boolean, _event?: Event, reason?: OpenChangeReason) => {
 			if (!nextOpen) {
+				if (reason === 'outside-press') skipNextRefocus()
+
 				closeCalendar()
 			} else {
 				openCalendar()
 			}
 		},
-		[closeCalendar, openCalendar],
+		[closeCalendar, openCalendar, skipNextRefocus],
 	)
 
 	const showClear = rangeStart === null && value != null
@@ -138,6 +144,17 @@ export function useDatePickerRangeState({
 		offset: 8,
 		role: 'dialog',
 	})
+
+	// FloatingFocusManager runs with `returnFocus={false}`; capture the trigger so
+	// useDatePickerRefocus can restore focus to it on close.
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			captureTrigger(node)
+
+			refs.setReference(node)
+		},
+		[captureTrigger, refs],
+	)
 
 	const setActive = useCallback(
 		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),
@@ -169,7 +186,7 @@ export function useDatePickerRangeState({
 		onOpenChange: handleOpenChange,
 		onTriggerKeyDown,
 		onExitComplete: flushPending,
-		setReference: refs.setReference,
+		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
 		getReferenceProps,
