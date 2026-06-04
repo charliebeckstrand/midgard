@@ -1,6 +1,8 @@
 'use client'
 
-import { type ChangeEvent, type Ref, useCallback, useLayoutEffect, useRef } from 'react'
+import { type ChangeEvent, type Ref, useLayoutEffect, useRef } from 'react'
+import { countMeaningful, cursorForCount } from '../utilities'
+import { useComposedRef } from './use-composed-ref'
 import { useControllable } from './use-controllable'
 
 type UseMaskedInputOptions = {
@@ -19,32 +21,6 @@ type UseMaskedInputOptions = {
 }
 
 const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
-
-function countMeaningful(s: string, end: number, test: (c: string) => boolean) {
-	const limit = Math.min(end, s.length)
-
-	let count = 0
-
-	for (let i = 0; i < limit; i++) if (test(s.charAt(i))) count++
-
-	return count
-}
-
-function cursorForCount(s: string, target: number, test: (c: string) => boolean) {
-	if (target <= 0) return 0
-
-	let count = 0
-
-	for (let i = 0; i < s.length; i++) {
-		if (test(s.charAt(i))) {
-			count++
-
-			if (count === target) return i + 1
-		}
-	}
-
-	return s.length
-}
 
 /**
  * Controlled/uncontrolled string state for masked text inputs. Applies `format`
@@ -71,15 +47,7 @@ export function useMaskedInput({
 
 	const pendingCursorRef = useRef<number | null>(null)
 
-	const setRef = useCallback(
-		(node: HTMLInputElement | null) => {
-			inputRef.current = node
-
-			if (typeof externalRef === 'function') externalRef(node)
-			else if (externalRef) externalRef.current = node
-		},
-		[externalRef],
-	)
+	const setRef = useComposedRef(inputRef, externalRef)
 
 	useLayoutEffect(() => {
 		const target = pendingCursorRef.current

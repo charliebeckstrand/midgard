@@ -1,4 +1,5 @@
 import type { Ma } from '../../recipes'
+import { k } from '../../recipes/kata/split'
 import { alignMap, type FlexAlign } from '../flex/variants'
 
 export { alignMap }
@@ -7,13 +8,7 @@ export type SplitAlign = FlexAlign
 
 export type SplitGap = Ma
 
-export const gapMap = {
-	xs: 'gap-1',
-	sm: 'gap-2',
-	md: 'gap-3',
-	lg: 'gap-4',
-	xl: 'gap-6',
-} as const satisfies Record<SplitGap, string>
+export const gapMap = k.gap
 
 export const ratioTuples = {
 	'1/4': [1, 3],

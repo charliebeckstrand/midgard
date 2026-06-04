@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { sen } from '../kiso'
+import { ma, sen } from '../kiso'
 
 const { border } = sen
 
@@ -12,6 +12,6 @@ const divider = defineRecipe({
 	defaults: { soft: false },
 })
 
-export const k = { divider }
+export const k = { divider, gap: ma.gap }
 
 export type GridDividerVariants = VariantProps<typeof divider>

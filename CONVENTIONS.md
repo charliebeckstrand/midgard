@@ -28,7 +28,9 @@ See [REFERENCE.md](REFERENCE.md).
 
 3.4 Named exports only. Each file's PascalCase / `useCamelCase` export matches its filename.
 
-3.5 The barrel is the public surface. Consumers import the directory, never its internal files (§9).
+3.5 The barrel is the public surface. External consumers (apps, other packages) import the directory, never its internal files (§9).
+
+Within `ui`, a sibling component may reach past the barrel for a foundation's leaf module: its `context.ts`, a `use-*` hook, or a `*-utilities` or `variants` helper. That's how shared cascades like `useControl` and `useGlass` travel without pulling in the component's full surface. What a sibling must never import is another component's main `<name>.tsx`. All of this is enforced by `component-boundary.test.ts`.
 
 ## 4. TypeScript
 
