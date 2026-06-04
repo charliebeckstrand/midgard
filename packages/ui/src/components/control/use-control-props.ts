@@ -12,6 +12,8 @@ export type UseControlPropsOptions = {
 	disabled?: boolean
 	required?: boolean
 	readOnly?: boolean
+	/** Consumer-supplied `aria-describedby`, merged ahead of the field's own ids. */
+	'aria-describedby'?: string
 	/**
 	 * Form binding (from `useFormText` / `useFormToggle`). Its `invalid` flag is
 	 * OR'd with the Control context's `invalid` so an external form error and
@@ -27,6 +29,7 @@ export type UseControlPropsResult = {
 	required: boolean | undefined
 	readOnly: boolean | undefined
 	invalid: boolean | undefined
+	'aria-describedby': string | undefined
 }
 
 /**
@@ -49,6 +52,11 @@ export type UseControlPropsResult = {
 export function useControlProps(input: UseControlPropsOptions = {}): UseControlPropsResult {
 	const control = useControl()
 
+	// Consumer-supplied ids first, then the field's registered description /
+	// error ids. Empty when neither is present, so the attribute is omitted.
+	const describedBy =
+		[input['aria-describedby'], control?.describedBy].filter(Boolean).join(' ') || undefined
+
 	return {
 		id: input.id ?? control?.id,
 		autoComplete: input.autoComplete ?? control?.autoComplete,
@@ -56,5 +64,6 @@ export function useControlProps(input: UseControlPropsOptions = {}): UseControlP
 		required: input.required ?? control?.required,
 		readOnly: input.readOnly ?? control?.readOnly,
 		invalid: control?.invalid || input.binding?.invalid,
+		'aria-describedby': describedBy,
 	}
 }

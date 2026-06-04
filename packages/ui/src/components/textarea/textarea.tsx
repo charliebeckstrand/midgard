@@ -38,6 +38,7 @@ export function Textarea({
 	onBlur,
 	rows = 3,
 	style,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: TextareaProps) {
 	const glass = useGlass()
@@ -54,7 +55,16 @@ export function Textarea({
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		invalid: resolvedInvalid,
-	} = useControlProps({ id, autoComplete, disabled, required, readOnly, binding })
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlProps({
+		id,
+		autoComplete,
+		disabled,
+		required,
+		readOnly,
+		'aria-describedby': ariaDescribedBy,
+		binding,
+	})
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
@@ -77,6 +87,7 @@ export function Textarea({
 		value: binding?.value ?? value,
 		onChange: binding?.onChange ?? onChange,
 		onBlur: binding?.onBlur ?? onBlur,
+		'aria-describedby': resolvedDescribedBy,
 		...invalidAttrs(resolvedInvalid),
 	}
 

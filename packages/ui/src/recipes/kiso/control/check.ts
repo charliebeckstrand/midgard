@@ -46,11 +46,29 @@ const shell = ['relative', flex.inline, 'justify-center', focus.outline, ...curs
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
 const base = [...shell, ...surface]
 
+/**
+ * Checked-state accent colours shared by the checkbox and radio kata: each
+ * injects the foreground mark, fill, and border into `--check-mark` /
+ * `--check-bg` / `--check-border` for one accent. zinc diverges per component
+ * (checkbox a neutral fill, radio a high-contrast one), so each kata defines
+ * its own zinc and spreads these four. Literal class strings so Tailwind can
+ * extract the arbitrary-property utilities statically.
+ */
+const color = {
+	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',
+	amber:
+		'[--check-mark:var(--color-amber-100)] [--check-bg:var(--color-amber-700)] [--check-border:var(--color-amber-600)]/80',
+	green:
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-green-600)] [--check-border:var(--color-green-800)]/90',
+	blue: '[--check-mark:var(--color-white)] [--check-bg:var(--color-blue-600)] [--check-border:var(--color-blue-800)]/90',
+} as const
+
 export const check = {
 	hidden,
 	surface,
 	shell,
 	base,
+	color,
 	/** Disabled-state text class for the surrounding field wrapper. */
 	disabled: fg.disabled,
 } as const

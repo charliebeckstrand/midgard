@@ -1,8 +1,9 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { type ComponentPropsWithRef, type ReactNode, useCallback, useRef } from 'react'
+import { type ComponentPropsWithRef, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -28,6 +29,7 @@ export function Checkbox({
 	name,
 	checked,
 	onChange,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: CheckboxProps) {
 	const binding = useFormToggle(name, { onChange })
@@ -38,28 +40,32 @@ export function Checkbox({
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		size: resolvedSize,
-	} = useControlToggle({ id, disabled, required, size, binding })
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlToggle({
+		id,
+		disabled,
+		required,
+		size,
+		'aria-describedby': ariaDescribedBy,
+		binding,
+	})
 
 	const internalRef = useRef<HTMLInputElement>(null)
 
-	const setRef = useCallback(
-		(el: HTMLInputElement | null) => {
-			internalRef.current = el
+	const setRef = useComposedRef(internalRef, ref)
 
-			if (el) el.indeterminate = !!indeterminate
-
-			if (typeof ref === 'function') ref(el)
-			else if (ref) ref.current = el
-		},
-		[indeterminate, ref],
-	)
+	// `indeterminate` is a DOM property with no attribute; sync it before paint.
+	// Keyed on the value so toggling it no longer detaches and reattaches the node.
+	useLayoutEffect(() => {
+		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
+	}, [indeterminate])
 
 	if (useSkeleton()) {
 		return <CheckboxSkeleton className={className} />
 	}
 
 	const checkClass = cn(
-		'pointer-events-none absolute stroke-(--checkbox-check) opacity-0',
+		'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 		k.checkSize[resolvedSize],
 	)
 
@@ -79,6 +85,7 @@ export function Checkbox({
 				required={resolvedRequired}
 				checked={binding?.checked ?? checked}
 				onChange={binding?.onChange ?? onChange}
+				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}
 				{...props}

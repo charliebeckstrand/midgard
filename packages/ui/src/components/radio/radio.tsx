@@ -11,14 +11,24 @@ export type RadioProps = RadioVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
-export function Radio({ className, color, size, id, disabled, required, ...props }: RadioProps) {
+export function Radio({
+	className,
+	color,
+	size,
+	id,
+	disabled,
+	required,
+	'aria-describedby': ariaDescribedBy,
+	...props
+}: RadioProps) {
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		size: resolvedSize,
-	} = useControlToggle({ id, disabled, required, size })
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlToggle({ id, disabled, required, size, 'aria-describedby': ariaDescribedBy })
 
 	if (useSkeleton()) {
 		return <Placeholder className={cn(k.skeleton.base, className)} />
@@ -36,6 +46,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				id={resolvedId}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
+				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}
 				{...props}
@@ -44,7 +55,7 @@ export function Radio({ className, color, size, id, disabled, required, ...props
 				data-slot="radio-indicator"
 				aria-hidden="true"
 				className={cn(
-					'absolute rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none',
+					'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
 					k.indicatorSize[resolvedSize],
 				)}
 			/>

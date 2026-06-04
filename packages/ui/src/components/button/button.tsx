@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
@@ -86,6 +86,20 @@ export function Button({
 	// while icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
+	// An icon-only button has no text to name it. Surface the missing accessible
+	// name in development; the loading spinner carries its own label, so skip it
+	// while loading. Dev-only — stripped in production.
+	if (process.env.NODE_ENV !== 'production' && !hasLabel && !loading) {
+		const named =
+			props['aria-label'] != null || props['aria-labelledby'] != null || props.title != null
+
+		if (!named) {
+			console.error(
+				'Button: an icon-only button has no accessible name. Pass `aria-label` (or `aria-labelledby` / `title`).',
+			)
+		}
+	}
+
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 
 	if (skeleton) {
@@ -99,13 +113,6 @@ export function Button({
 			{suffix}
 		</AffixContext>
 	)
-
-	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {
-		const consumerHandler = (props as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void })
-			.onPointerDown
-
-		consumerHandler?.(e)
-	}
 
 	if (href !== undefined) {
 		return (
@@ -123,7 +130,6 @@ export function Button({
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
 						{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
-						onPointerDown={handlePointerDown}
 					>
 						<TouchTarget>{content}</TouchTarget>
 					</Link>
@@ -153,7 +159,6 @@ export function Button({
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}
 				aria-busy={loading || undefined}
-				onPointerDown={handlePointerDown}
 			>
 				<TouchTarget>{content}</TouchTarget>
 			</motion.button>

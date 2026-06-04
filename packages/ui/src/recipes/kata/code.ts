@@ -1,11 +1,11 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { ji, kasane, shaku } from '../kiso'
+import { ji, kasane, omote, shaku } from '../kiso'
 
 const { size } = ji
 const { rounded } = kasane
 const { mark } = shaku
 
-const bg = 'bg-[#0d1117]'
+const bg = omote.bg.code
 
 const block = defineRecipe({
 	base: ['relative overflow-hidden', rounded.lg, bg],

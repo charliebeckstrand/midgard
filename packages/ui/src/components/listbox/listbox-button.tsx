@@ -12,6 +12,7 @@ type ListboxButtonProps = {
 	ref: Ref<HTMLButtonElement>
 	open: boolean
 	controlsId: string
+	describedBy?: string
 	disabled?: boolean
 	invalid?: boolean
 	label: ReactNode
@@ -34,6 +35,7 @@ export function ListboxButton({
 	ref,
 	open,
 	controlsId,
+	describedBy,
 	disabled,
 	invalid,
 	label,
@@ -52,6 +54,7 @@ export function ListboxButton({
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				aria-controls={open ? controlsId : undefined}
+				aria-describedby={describedBy}
 				data-slot="listbox-button"
 				disabled={disabled}
 				{...invalidAttrs(invalid)}

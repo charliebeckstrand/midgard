@@ -21,6 +21,7 @@ type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
+	describedBy?: string
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
 	displayValue: string
@@ -39,6 +40,7 @@ export function DatePickerTrigger({
 	open,
 	onOpenChange,
 	triggerId,
+	describedBy,
 	setReference,
 	getReferenceProps,
 	displayValue,
@@ -77,6 +79,7 @@ export function DatePickerTrigger({
 						id={triggerId}
 						aria-haspopup="dialog"
 						aria-expanded={open}
+						aria-describedby={describedBy}
 						data-slot="datepicker-button"
 						disabled={disabled}
 						onClick={() => onOpenChange(!open)}

@@ -6,13 +6,13 @@ import { type ReactNode, useId, useMemo, useRef } from 'react'
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { densityPresets, useDensity } from '../../primitives/density'
+import { SelectTrigger } from '../../primitives/select-trigger'
 import { useSkeleton } from '../../providers/skeleton'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
-import { SelectTrigger } from '../select/select-trigger'
 import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
@@ -195,6 +195,7 @@ export function Listbox<T>({
 					ref={triggerRef}
 					open={open}
 					controlsId={listboxId}
+					describedBy={control?.describedBy}
 					disabled={resolvedDisabled}
 					invalid={control?.invalid}
 					label={label}

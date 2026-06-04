@@ -22,6 +22,7 @@ export function Switch({
 	name,
 	checked,
 	onChange,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: SwitchProps) {
 	const binding = useFormToggle(name, { onChange })
@@ -32,7 +33,15 @@ export function Switch({
 		required: resolvedRequired,
 		invalid: resolvedInvalid,
 		size: resolvedSize,
-	} = useControlToggle({ id, disabled, required, size, binding })
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlToggle({
+		id,
+		disabled,
+		required,
+		size,
+		'aria-describedby': ariaDescribedBy,
+		binding,
+	})
 
 	if (useSkeleton()) {
 		return (
@@ -59,6 +68,7 @@ export function Switch({
 				checked={binding?.checked ?? checked}
 				aria-checked={!!(binding?.checked ?? checked)}
 				onChange={binding?.onChange ?? onChange}
+				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}
 				{...props}

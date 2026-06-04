@@ -2,17 +2,17 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
-import { ControlFrame } from '../../primitives/control'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
-import type { ControlSize } from '../control/context'
+import { AffixContext, affixStepDown } from '../affix'
+import { ControlFrame } from '../control'
 
 type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
 	glass: boolean
-	size: ControlSize
+	size: Step
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode
@@ -26,12 +26,14 @@ type SelectTriggerProps = {
 }
 
 /**
- * Internal trigger chrome shared by Combobox and Listbox: the outer control
- * wrapper, the ControlFrame surface, and the prefix/suffix slot spans. The
- * interactive element (input vs button) and any non-wrapped suffix content
+ * Trigger chrome shared by the select family (Listbox, Combobox): the outer
+ * control wrapper, the ControlFrame surface, and the prefix/suffix slot spans.
+ * The interactive element (input vs button) and any non-wrapped suffix content
  * are supplied by the caller.
  *
- * Not exported from the package barrel — intentionally internal.
+ * A presentational primitive — it owns no state. It lives here rather than in
+ * any one component so Listbox and Combobox can share it without coupling to
+ * Select (Select wraps Listbox; a trigger in Select would close the loop).
  */
 export function SelectTrigger({
 	open,

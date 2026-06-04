@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -38,9 +38,26 @@ export function Message({
 
 	const issues = isFormBoundError ? field.errors : undefined
 
+	// An error message describes the field; register it (before the early
+	// return, so hook order stays stable) so aria-describedby references the id
+	// only while the message is rendered. Success messages are feedback, not a
+	// field description, so they don't register.
+	const rendersError =
+		variant === 'error' && (isFormBoundError ? (issues?.length ?? 0) > 0 : children != null)
+
+	const registerMessage = control?.registerMessage
+
+	useEffect(() => {
+		if (!rendersError) return
+
+		return registerMessage?.()
+	}, [rendersError, registerMessage])
+
 	if (isFormBoundError && (!issues || issues.length === 0)) return null
 
-	const elementId = id ?? (control ? `${control.id}-${variant}` : undefined)
+	const elementId =
+		id ??
+		(variant === 'error' ? control?.messageId : control ? `${control.id}-${variant}` : undefined)
 
 	const className_ = cn(k.message({ size, variant }), className)
 

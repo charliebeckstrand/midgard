@@ -39,17 +39,12 @@ export function Collapse({
 	const [currentOpen, setCurrentOpen] = useControllable<boolean>({
 		value: openProp,
 		defaultValue: defaultOpen,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
 	const open = currentOpen ?? false
 
-	const toggle = useCallback(() => {
-		const next = !open
-
-		setCurrentOpen(next)
-
-		onOpenChange?.(next)
-	}, [open, setCurrentOpen, onOpenChange])
+	const toggle = useCallback(() => setCurrentOpen(!open), [open, setCurrentOpen])
 
 	const scope = useIdScope()
 
