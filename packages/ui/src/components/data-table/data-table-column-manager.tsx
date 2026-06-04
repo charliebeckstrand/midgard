@@ -11,11 +11,8 @@ import { Control } from '../control'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
+import { EMPTY_SET } from './data-table-constants'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
-
-// Stable empty-set default so an omitted `hidden`/`defaultHidden` doesn't allocate a
-// fresh Set per render and bust referential checks. Read-only internally; toggles copy it.
-const EMPTY_SET: Set<string | number> = new Set()
 
 export type DataTableColumnManagerProps = {
 	columns: DataTableColumnManagerItem[]
