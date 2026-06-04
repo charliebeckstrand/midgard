@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useComposedRef, useControllable } from '../../hooks'
 import { useLocale } from '../../providers/locale'
 import { Input, type InputProps } from '../input'
 import {
@@ -68,15 +68,7 @@ export function CurrencyInput({
 
 	const pendingCursorRef = useRef<number | null>(null)
 
-	const setRefs = useCallback(
-		(node: HTMLInputElement | null) => {
-			inputRef.current = node
-
-			if (typeof ref === 'function') ref(node)
-			else if (ref) ref.current = node
-		},
-		[ref],
-	)
+	const setRefs = useComposedRef(inputRef, ref)
 
 	useLayoutEffect(() => {
 		const target = pendingCursorRef.current
