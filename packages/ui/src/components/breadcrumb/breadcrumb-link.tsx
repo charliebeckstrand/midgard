@@ -1,32 +1,35 @@
-import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/breadcrumb'
-import { Link } from '../link'
 
-export type BreadcrumbLinkProps = { current?: boolean } & (
-	| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, 'className'>)
-	| ({ href?: never } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>)
-) & { className?: string }
+export type BreadcrumbLinkProps = {
+	current?: boolean
+	className?: string
+} & PolymorphicProps<'span'>
 
-export function BreadcrumbLink(props: BreadcrumbLinkProps) {
-	const { current = false, className } = props
-
-	const classes = cn(k.link({ current }), className)
-
-	if (props.href !== undefined) {
-		const { current: _current, className: _className, ...rest } = props
-
-		return <Link data-slot="breadcrumb-link" className={classes} {...rest} />
-	}
-
-	const { current: _current, className: _className, ...rest } = props
-
+/**
+ * A breadcrumb crumb: a link when `href` is set, otherwise a `<span>` marked
+ * `aria-current="page"` for the current location. Routes through `Polymorphic`
+ * so href dispatch and the app's registered link component are shared with the
+ * rest of the library; breadcrumb supplies its own `k.link` styling.
+ */
+export function BreadcrumbLink({
+	current = false,
+	className,
+	href,
+	children,
+	...props
+}: BreadcrumbLinkProps) {
 	return (
-		<span
+		<Polymorphic
+			as="span"
+			href={href}
 			data-slot="breadcrumb-link"
-			aria-current={current ? 'page' : undefined}
-			className={classes}
-			{...rest}
-		/>
+			aria-current={current && href === undefined ? 'page' : undefined}
+			className={cn(k.link({ current }), className)}
+			{...props}
+		>
+			{children}
+		</Polymorphic>
 	)
 }

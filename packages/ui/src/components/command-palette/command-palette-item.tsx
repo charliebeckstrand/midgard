@@ -1,9 +1,10 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useLink } from '../../primitives/link'
+import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/command-palette'
-import { Link } from '../link'
 import { useCommandPaletteContext } from './context'
 
 type CommandPaletteItemBaseProps = {
@@ -15,20 +16,17 @@ type CommandPaletteItemBaseProps = {
 	closeOnAction?: boolean
 }
 
+// Href discrimination comes from the shared PolymorphicProps; the render stays
+// custom (sanctioned escape hatch) because an item carries role="option" /
+// roving tabindex and closes the palette on activation — behaviour the generic
+// Polymorphic doesn't cover.
 export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
-	(
-		| ({ href: string } & Omit<
-				ComponentPropsWithoutRef<typeof Link>,
-				keyof CommandPaletteItemBaseProps
-		  >)
-		| ({ href?: never } & Omit<
-				ComponentPropsWithoutRef<'button'>,
-				keyof CommandPaletteItemBaseProps
-		  >)
-	)
+	PolymorphicProps<'button', keyof CommandPaletteItemBaseProps>
 
 export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { close } = useCommandPaletteContext()
+
+	const { component: LinkComponent } = useLink()
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
@@ -53,7 +51,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		} = props
 
 		return (
-			<Link
+			<LinkComponent
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
@@ -63,7 +61,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 				{...rest}
 			>
 				{children}
-			</Link>
+			</LinkComponent>
 		)
 	}
 

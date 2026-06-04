@@ -1,10 +1,11 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { useLink } from '../../primitives/link'
+import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
-import { Link } from '../link'
 import { useMenuActions } from './context'
 
 type MenuItemBaseProps = {
@@ -14,16 +15,18 @@ type MenuItemBaseProps = {
 	onAction?: () => void
 }
 
-export type MenuItemProps = MenuItemBaseProps &
-	(
-		| ({ href: string } & Omit<ComponentPropsWithoutRef<typeof Link>, keyof MenuItemBaseProps>)
-		| ({ href?: never } & Omit<ComponentPropsWithoutRef<'button'>, keyof MenuItemBaseProps>)
-	)
+// Href discrimination comes from the shared PolymorphicProps; the render stays
+// custom (sanctioned escape hatch) because a menu item carries role / roving
+// tabindex / keyboard activation and renders disabled items as a non-anchor
+// span — behaviour the generic Polymorphic doesn't cover.
+export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof MenuItemBaseProps>
 
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 
 	const { size } = useDensity()
+
+	const { component: LinkComponent } = useLink()
 
 	const { disabled, className, children, onAction } = props
 
@@ -63,7 +66,7 @@ export function MenuItem(props: MenuItemProps) {
 		} = props
 
 		return (
-			<Link
+			<LinkComponent
 				role="menuitem"
 				tabIndex={-1}
 				data-slot="menu-item"
@@ -72,7 +75,7 @@ export function MenuItem(props: MenuItemProps) {
 				{...rest}
 			>
 				{children}
-			</Link>
+			</LinkComponent>
 		)
 	}
 
