@@ -16,16 +16,14 @@ const loaders = import.meta.glob<ComponentType>(
 	{ import: 'Demo' },
 )
 
+// Subfolders namespace the id with their folder (`pages/x` → `pages-x`,
+// `providers/x` → `providers-x`) so a provider demo can't collide with a
+// component demo of the same name (e.g. the Link component vs the LinkProvider).
 function pathToId(path: string) {
-	const rel = path.replace(/^\.\/demos\//, '').replace('.tsx', '')
-
-	// `providers/` is an organizational folder only — its demos keep their bare
-	// ids (and thus deep-link hashes and API-reference keys) unchanged. `pages/`
-	// stays namespaced via the `-` join so full-page demos can't collide with
-	// component demos of the same name.
-	if (rel.startsWith('providers/')) return rel.slice('providers/'.length)
-
-	return rel.replace(/\//g, '-')
+	return path
+		.replace(/^\.\/demos\//, '')
+		.replace('.tsx', '')
+		.replace(/\//g, '-')
 }
 
 const loaderById = new Map<string, () => Promise<ComponentType>>()
@@ -109,7 +107,7 @@ export function getComponentApi(id: string): ComponentApi[] | undefined {
 
 export const demos = [...loaderById.keys()]
 	.map((id) => {
-		const label = id.replace(/^pages-/, '')
+		const label = id.replace(/^(?:pages|providers)-/, '')
 
 		const meta = metaById.get(id)
 
