@@ -3,6 +3,7 @@
 import {
 	type SyntheticEvent,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -127,6 +128,14 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	onSettledRef.current = onSettled
 
+	// Monotonic token identifying the current submit. A reset, an unmount, or a
+	// newer submit bumps it, so an in-flight handler that resolves afterward can
+	// tell it has been superseded and must not write stale errors / toggles back
+	// onto a cleared or torn-down form.
+	const submitTokenRef = useRef(0)
+
+	useEffect(() => () => void submitTokenRef.current++, [])
+
 	const { values, errors, touched } = state
 
 	// Mirror current values so getValue stays stable across re-renders;
@@ -188,6 +197,12 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		(nextDefaults?: Record<string, unknown>) => {
 			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
 
+			// Supersede any in-flight submit and clear its pending state so a slow
+			// handler resolving after the reset can't repopulate errors or leave
+			// the form stuck in `submitting`.
+			submitTokenRef.current++
+			setSubmitting(false)
+
 			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
 
 			onReset?.()
@@ -238,6 +253,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			if (!onSubmit) return
 
+			const token = ++submitTokenRef.current
+
 			setSubmitting(true)
 
 			try {
@@ -245,6 +262,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					setErrors: setErrorsExternal,
 					reset,
 				})
+
+				// A reset, unmount, or newer submit ran while we awaited — its
+				// outcome owns the form now; dropping ours avoids stale writes.
+				if (submitTokenRef.current !== token) return
 
 				const fieldErrors = extractFieldErrors(raw)
 
@@ -255,12 +276,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					onSettledRef.current?.({ ok: true, values: valuesRef.current })
 				}
 			} catch (err) {
+				if (submitTokenRef.current !== token) return
+
 				onSettledRef.current?.({
 					ok: false,
 					error: err instanceof Error ? err : new Error(String(err)),
 				})
 			} finally {
-				setSubmitting(false)
+				// Only the latest, un-superseded submit owns the submitting flag;
+				// a reset already cleared it and a newer submit set its own.
+				if (submitTokenRef.current === token) setSubmitting(false)
 			}
 		},
 		[onSubmit, setErrorsExternal, reset, validateOn],

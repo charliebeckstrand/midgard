@@ -318,6 +318,62 @@ describe('Form', () => {
 		expect(fieldset).not.toBeDisabled()
 	})
 
+	it('drops a slow submit that resolves after a reset', async () => {
+		let resolveSubmit: ((result: { fieldErrors: { name: string } }) => void) | undefined
+
+		const onSubmit = vi.fn(
+			() =>
+				new Promise<{ fieldErrors: { name: string } }>((resolve) => {
+					resolveSubmit = resolve
+				}),
+		)
+
+		// Captured during render so the reset can be driven programmatically — a
+		// reset button would sit inside the fieldset that submitting disables.
+		let actions: ReturnType<typeof useFormActions>
+
+		function Probe() {
+			const field = useFormField('name')
+			const status = useFormStatus()
+
+			actions = useFormActions()
+
+			return (
+				<>
+					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
+					<span data-testid="valid">{String(status?.valid)}</span>
+				</>
+			)
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
+				<Probe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		// Reset supersedes the in-flight submit and clears its pending state.
+		await act(async () => {
+			actions?.reset()
+		})
+
+		// The handler resolves only now — its stale fieldErrors must be dropped.
+		await act(async () => {
+			resolveSubmit?.({ fieldErrors: { name: 'taken on the server' } })
+		})
+
+		expect(screen.getByTestId('error').textContent).toBe('')
+		expect(screen.getByTestId('valid').textContent).toBe('true')
+		expect(container.querySelector('fieldset')).not.toBeDisabled()
+	})
+
 	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
 		const onSettled = vi.fn()
 
