@@ -1,6 +1,7 @@
 'use client'
 
 import { animate } from 'motion'
+import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
 type UseAnimatedValueOptions = {
@@ -19,6 +20,10 @@ export function useOdometerAnimatedValue({
 
 	const fromRef = useRef(value)
 
+	// Imperative animate() runs outside any MotionConfig, so honour the OS
+	// preference here directly: snap to the target rather than counting (2.3.3).
+	const reduceMotion = useReducedMotion()
+
 	useEffect(() => {
 		const from = fromRef.current
 
@@ -26,7 +31,7 @@ export function useOdometerAnimatedValue({
 
 		if (from === to) return
 
-		if (duration <= 0) {
+		if (duration <= 0 || reduceMotion) {
 			fromRef.current = to
 
 			setDisplay(to)
@@ -45,7 +50,7 @@ export function useOdometerAnimatedValue({
 		})
 
 		return () => controls.stop()
-	}, [value, duration])
+	}, [value, duration, reduceMotion])
 
 	return display
 }

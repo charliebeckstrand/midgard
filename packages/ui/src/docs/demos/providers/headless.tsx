@@ -1,10 +1,10 @@
-import { Button } from '../../components/button'
-import { Field, Label } from '../../components/fieldset'
-import { Flex } from '../../components/flex'
-import { Headless } from '../../components/headless'
-import { Input } from '../../components/input'
-import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
+import { Button } from '../../../components/button'
+import { Field, Label } from '../../../components/fieldset'
+import { Flex } from '../../../components/flex'
+import { Headless } from '../../../components/headless'
+import { Input } from '../../../components/input'
+import { Stack } from '../../../components/stack'
+import { Example } from '../../components/example'
 
 export const meta = { category: 'Providers' }
 

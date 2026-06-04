@@ -162,4 +162,24 @@ describe('CopyButton', () => {
 			restore()
 		}
 	})
+
+	it('announces success to a live region on copy', async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+
+		const restore = stubClipboard(writeText)
+
+		try {
+			const { container } = renderUI(<CopyButton value="hello" />, { announcer: true })
+
+			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+
+			await waitFor(() => {
+				const region = document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+				expect(region).toHaveTextContent('Copied')
+			})
+		} finally {
+			restore()
+		}
+	})
 })

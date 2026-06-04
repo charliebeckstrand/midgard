@@ -1,5 +1,6 @@
 'use client'
 
+import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { RESET_DURATION } from './hold-button-constants'
 
@@ -23,6 +24,14 @@ export function useHoldButtonGesture({
 	const holdingRef = useRef(false)
 
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// The fill growing over `duration` is essential feedback — it gates an
+	// irreversible action in real time, so it animates regardless (2.3.3
+	// essential exception). The snap-back reset is decorative, so collapse it to
+	// an instant under prefers-reduced-motion.
+	const reduceMotion = useReducedMotion()
+
+	const resetDuration = reduceMotion ? 0 : RESET_DURATION
 
 	const setFill = (target: number, ms: number) => {
 		const fill = fillRef.current
@@ -56,7 +65,7 @@ export function useHoldButtonGesture({
 
 			holdingRef.current = false
 
-			setFill(0, RESET_DURATION)
+			setFill(0, resetDuration)
 
 			onComplete?.()
 		}, duration)
@@ -71,7 +80,7 @@ export function useHoldButtonGesture({
 
 		clearTimer()
 
-		setFill(0, RESET_DURATION)
+		setFill(0, resetDuration)
 
 		onHoldCancel?.()
 	}

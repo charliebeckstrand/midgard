@@ -1,6 +1,10 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
+// LinkContext is defined in the primitive, not locally, on purpose: the
+// `polymorphic` primitive consumes `useLink`, so the context must live at the
+// lowest layer that needs it. A local context here would force a primitive to
+// import from the providers layer. This provider is a thin friendly wrapper.
 import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
 
 type LinkProviderProps = {

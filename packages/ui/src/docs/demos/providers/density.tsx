@@ -1,12 +1,12 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '../../components/button'
-import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
-import { Flex } from '../../components/flex'
-import { Heading } from '../../components/heading'
-import { Icon } from '../../components/icon'
-import { SearchInput } from '../../components/search-input'
-import { Select, SelectLabel, SelectOption } from '../../components/select'
+import { Button } from '../../../components/button'
+import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
+import { Flex } from '../../../components/flex'
+import { Heading } from '../../../components/heading'
+import { Icon } from '../../../components/icon'
+import { SearchInput } from '../../../components/search-input'
+import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import {
 	Sidebar,
 	SidebarBody,
@@ -14,8 +14,8 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarSection,
-} from '../../components/sidebar'
-import { Stack } from '../../components/stack'
+} from '../../../components/sidebar'
+import { Stack } from '../../../components/stack'
 import {
 	Table,
 	TableBody,
@@ -23,12 +23,12 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../components/table'
-import { Text } from '../../components/text'
-import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../layouts'
-import { Density, type DensityLevel } from '../../providers/density'
-import { DensityListbox } from '../components/density-listbox'
-import { Example } from '../components/example'
+} from '../../../components/table'
+import { Text } from '../../../components/text'
+import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
+import { Density, type DensityLevel } from '../../../providers/density'
+import { DensityListbox } from '../../components/density-listbox'
+import { Example } from '../../components/example'
 
 export const meta = { category: 'Providers' }
 

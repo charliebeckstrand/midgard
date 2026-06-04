@@ -1,2 +1,2 @@
 export { useToast } from './context'
-export { ToastProvider } from './toast-provider'
+export { ToastProvider } from './toast'
