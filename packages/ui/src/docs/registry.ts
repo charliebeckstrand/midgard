@@ -11,15 +11,21 @@ type DemoMeta = { name?: string; category?: string }
 
 // Each demo exports a `Demo` component — the glob's `import` option resolves
 // loaders directly to that symbol so we never bind to a default export.
-const loaders = import.meta.glob<ComponentType>(['./demos/*.tsx', './demos/pages/*.tsx'], {
-	import: 'Demo',
-})
+const loaders = import.meta.glob<ComponentType>(
+	['./demos/*.tsx', './demos/pages/*.tsx', './demos/providers/*.tsx'],
+	{ import: 'Demo' },
+)
 
 function pathToId(path: string) {
-	return path
-		.replace(/^\.\/demos\//, '')
-		.replace('.tsx', '')
-		.replace(/\//g, '-')
+	const rel = path.replace(/^\.\/demos\//, '').replace('.tsx', '')
+
+	// `providers/` is an organizational folder only — its demos keep their bare
+	// ids (and thus deep-link hashes and API-reference keys) unchanged. `pages/`
+	// stays namespaced via the `-` join so full-page demos can't collide with
+	// component demos of the same name.
+	if (rel.startsWith('providers/')) return rel.slice('providers/'.length)
+
+	return rel.replace(/\//g, '-')
 }
 
 const loaderById = new Map<string, () => Promise<ComponentType>>()
