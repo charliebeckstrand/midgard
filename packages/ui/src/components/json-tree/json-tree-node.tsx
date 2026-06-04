@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext, useJsonTreeContext } from './context'
@@ -41,9 +41,9 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
 
-	const [localOpen, setLocalOpen] = useState(depth < defaultExpandDepth)
-
-	const open = controlled ? expanded.has(nodePath) : localOpen
+	// User toggles are tracked as an explicit override; `undefined` means follow
+	// the default / search rules computed below.
+	const [userOpen, setUserOpen] = useState<boolean | undefined>(undefined)
 
 	const visibleEntries = useMemo(
 		() => (filter && search ? filterEntries(entries, search, searchIndex) : entries),
@@ -51,6 +51,19 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 	)
 
 	const empty = visibleEntries.length === 0
+
+	// Computed during render rather than synced through an effect: search
+	// visibility wins (force-open branches that contain a match, force-close
+	// filtered-out empties), otherwise honor the user's explicit toggle, falling
+	// back to the depth default. This keeps a cleared search from stomping a
+	// toggle the way the previous effect did.
+	const open = controlled
+		? expanded.has(nodePath)
+		: search && hasMatch && !empty
+			? true
+			: search && filter && empty
+				? false
+				: (userOpen ?? depth < defaultExpandDepth)
 
 	const childContextValue = useMemo(
 		() => ({
@@ -65,20 +78,6 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 		}),
 		[depth, defaultExpandDepth, search, filter, searchIndex, nodePath, expanded, onExpandedChange],
 	)
-
-	useEffect(() => {
-		if (controlled) return
-
-		if (!search) {
-			setLocalOpen(depth < defaultExpandDepth)
-
-			return
-		}
-
-		if (hasMatch && !empty) setLocalOpen(true)
-
-		if (filter && empty) setLocalOpen(false)
-	}, [search, hasMatch, filter, empty, depth, defaultExpandDepth, controlled])
 
 	if (filter && search && !branch && !highlighted) return null
 
@@ -96,7 +95,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 		if (controlled && onExpandedChange) {
 			toggleExpandedSet(expanded, nodePath, onExpandedChange)
 		} else {
-			setLocalOpen((prev) => !prev)
+			setUserOpen(!open)
 		}
 	}
 
