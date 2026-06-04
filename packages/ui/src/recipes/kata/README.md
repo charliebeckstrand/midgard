@@ -8,7 +8,7 @@
 
 A kata reaches the layers below in one of three ways:
 
-- **Through a katakana bridge** (`katakana.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and the standard slot wiring.
+- **Through a katakana bridge** (`bridge.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and the standard slot wiring.
 - **Through `defineRecipe` directly** (`from '../../core/recipe'`) when the kata doesn't fit any archetype (button, alert, card, code, …), composing kiso tokens itself.
 - **Through `kiso/<archetype>` directly** when the kata needs a subset of a semantic bundle without the bridge (combobox / listbox / date-picker use control's input / density / size; dialog / drawer / sheet / box use panel's surface / layout; slider / slider-range share the slider colour table).
 
@@ -20,11 +20,11 @@ When a component and primitive share the same UI surface (e.g. `components/popov
 
 Every kata exports exactly one runtime value, `k`. The shape `k` takes depends on how the kata reaches the recipe layer:
 
-- **Archetype kata** (`k = katakana.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
+- **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
 - **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. Default size resolves from any enclosing Density context.
 - **Object-literal kata** (`k = { … }`) — `k` is a plain object. Used when the component has no top-level variants axis but still needs a curated surface (slot fragments, sub-recipes, motion configs, skeleton data). Recipes for individual slots are inner `defineRecipe(...)` callables: `k.button({ size })`, `k.panel({ surface })`.
 
-Type exports sit alongside (`type FooVariants = VariantProps<typeof k>` or `VariantProps<typeof k.button>`). Archetype kata may also re-export the bridge's variant type — e.g. `export type { ControlVariants as InputVariants } from '../katakana'`.
+Type exports sit alongside, derived from the concrete result — `type FooVariants = VariantProps<typeof k>` (or `VariantProps<typeof k.button>`). Archetype kata derive theirs the same way, since the bridge is generic over the tokens and exposes no standalone variant type — e.g. `export type InputVariants = VariantProps<typeof k>`.
 
 When a component would read kiso tokens directly (`kokkaku.<name>` for skeletons, `ugoki.<thing>` for motion, the popover bundle for popover content), the kata re-exposes them as `k.skeleton`, `k.motion`, `k.content`. The component imports only its kata; the reach into kiso and katakana stops there.
 
@@ -36,11 +36,11 @@ Several kata share archetypes whose tokens live in [`kiso/<archetype>`](../kiso/
 
 | Family  | Members                                                                                                  | Bridge                                                                                                                                 |
 | ------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Control | `input`, `textarea`                                                                                      | `katakana.control(control, …)` — kasane chrome + `default` / `outline` / `glass` surface vocabulary + density + size + affix.         |
-| Check   | `checkbox`, `radio`                                                                                      | `katakana.check(control, …)` — `check.surface` chrome + visually-hidden native input + colour-axis-driven checked overlay.            |
-| Popover | `popover`                                                                                                | `katakana.popover(popover, …)` — trigger / portal positioning + panel slot bundle (base, surface, glass, ring, motion).               |
-| Segment | `segment`, `tabs` (via `k.segment`)                                                                      | `katakana.segment(segment)` — control + item recipes + indicator fragment.                                                            |
-| Panel   | `dialog`, `drawer`, `sheet`                                                                              | `katakana.panel(panel, …)` — wraps caller-supplied `panel` (and optional `backdrop`) recipes with the standard title / description / header / body / actions / close slot bundle. |
+| Control | `input`, `textarea`                                                                                      | `bridge.control(control, …)` — kasane chrome + `default` / `outline` / `glass` surface vocabulary + density + size + affix.         |
+| Check   | `checkbox`, `radio`                                                                                      | `bridge.check(control, …)` — `check.surface` chrome + visually-hidden native input + colour-axis-driven checked overlay.            |
+| Popover | `popover`                                                                                                | `bridge.popover(popover, …)` — trigger / portal positioning + panel slot bundle (base, surface, glass, ring, motion).               |
+| Segment | `segment`, `tabs` (via `k.segment`)                                                                      | `bridge.segment(segment)` — control + item recipes + indicator fragment.                                                            |
+| Panel   | `dialog`, `drawer`, `sheet`                                                                              | `bridge.panel(panel, …)` — wraps caller-supplied `panel` (and optional `backdrop`) recipes with the standard title / description / header / body / actions / close slot bundle. |
 
 Kata that need only a subset of a semantic bundle (combobox / listbox / date-picker / select — control's input / density / size without the full chrome) reach `kiso/<archetype>` directly. See the [katakana](../katakana/README.md) and [kiso](../kiso/README.md) READMEs for the full archetype contracts.
 

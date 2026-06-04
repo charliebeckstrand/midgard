@@ -1,5 +1,5 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { katakana } from '../katakana'
+import { bridge } from '../katakana'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 import { segment } from '../kiso/segment'
 
@@ -74,5 +74,5 @@ export const k = {
 	list,
 	tab,
 	indicator,
-	segment: katakana.segment(segment),
+	segment: bridge.segment(segment),
 } as const

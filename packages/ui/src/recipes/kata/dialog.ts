@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { katakana } from '../katakana'
+import { bridge } from '../katakana'
 import { omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
@@ -8,7 +8,7 @@ const { popover } = ugoki
 const { surface, layout } = panel
 
 export const k = {
-	...katakana.panel(panel, {
+	...bridge.panel(panel, {
 		panel: defineRecipe({
 			base: [
 				...surface.chrome.flat(),

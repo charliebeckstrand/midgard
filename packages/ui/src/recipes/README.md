@@ -18,16 +18,16 @@ Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (st
 
 A kata reaches the layers below in one of three ways:
 
-- **Through a bridge** (`katakana.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and slot wiring.
+- **Through a bridge** (`bridge.<archetype>(tokens, overlay)`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which owns the variant axes and slot wiring.
 - **Through `defineRecipe` directly** (`from '../../core/recipe'`) when the kata doesn't fit any archetype (button, alert, card, code, …), composing kiso tokens itself.
 - **Through `kiso/<archetype>` directly** when the kata needs a *subset* of a semantic bundle without the bridge (combobox / listbox / date-picker use control's input / density / size; dialog / drawer / sheet / box use panel's surface / layout; slider / slider-range share the slider colour table).
 
-The alias problem dissolves because the bridge is namespaced: a kata imports the token bundle under its bare archetype name and the bridge as `katakana.<archetype>`.
+The alias problem dissolves because the bridge is namespaced: a kata imports the token bundle under its bare archetype name and the bridge as `bridge.<archetype>`.
 
 ```ts
 import { control } from '../kiso/control'   // tokens (bare name)
-import { katakana } from '../katakana'        // the bridge layer
-export const k = katakana.control(control, { base: 'block', slots: { … } })
+import { bridge } from '../katakana'        // the bridge layer
+export const k = bridge.control(control, { base: 'block', slots: { … } })
 ```
 
 ## 3. Boundary
@@ -38,7 +38,7 @@ The contract is pinned by:
 
 - `__tests__/recipes/boundary/recipe-boundary.test.ts` — barrel is types-only; `package.json` `exports` never lists `./recipes`.
 - `__tests__/recipes/boundary/kiso-boundary.test.ts` — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
-- `__tests__/recipes/boundary/katakana-purity-boundary.test.ts` — katakana imports no kiso *values* (type-only kiso imports are allowed).
+- `__tests__/recipes/boundary/katakana-purity-boundary.test.ts` — katakana imports nothing from kiso (neither values nor types).
 - `__tests__/recipes/boundary/kata-boundary.test.ts` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
 - `__tests__/components/boundary/component-recipe-boundary.test.ts` — components import values only via `recipes/kata/<name>`.
 - `__tests__/primitives/boundary/primitive-recipe-boundary.test.ts` — primitives import values only via `recipes/kata/<name>`.

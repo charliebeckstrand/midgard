@@ -1,5 +1,5 @@
 import { defineColors, type VariantProps } from '../../core/recipe'
-import { katakana } from '../katakana'
+import { bridge } from '../katakana'
 import { kasane, kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
@@ -16,7 +16,7 @@ const color = defineColors({
 	blue: '[--checkbox-check:var(--color-white)] [--checkbox-checked-bg:var(--color-blue-600)] [--checkbox-checked-border:var(--color-blue-800)]/90',
 })
 
-export const k = katakana.check(
+export const k = bridge.check(
 	control,
 	{
 		base: [

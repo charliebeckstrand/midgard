@@ -9,7 +9,7 @@
  *   katakana/ — the bridge. Pure functions that receive a kiso token
  *               bundle by argument and wire it into a recipe surface,
  *               importing only the recipe engine — never kiso values.
- *               Reached through the namespaced `katakana` object.
+ *               Reached through the namespaced `bridge` object.
  *   kata/     — per-component recipes (1:1 with `src/components/<name>/`).
  *               The only layer that touches kiso; drives the bridge.
  *               Consumed by components and primitives.

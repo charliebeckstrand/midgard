@@ -1,4 +1,4 @@
-import { katakana } from '../katakana'
+import { bridge } from '../katakana'
 import { popover } from '../kiso/popover'
 
-export const k = katakana.popover(popover)
+export const k = bridge.popover(popover)
