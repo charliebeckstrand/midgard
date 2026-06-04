@@ -1,5 +1,7 @@
 # CONVENTIONS.md
 
+> Toolchain defaults: [Turborepo](https://turborepo.dev/docs), [Next.js](https://nextjs.org/docs/app), [Biome](https://biomejs.dev), [TypeScript](https://www.typescriptlang.org/tsconfig), [Vitest](https://vitest.dev).
+
 ## 1. Workspace
 
 1.1 Turborepo, using the [recommended layout](https://turborepo.dev/docs/crafting-your-repository/structuring-a-repository).
@@ -98,7 +100,5 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
 ---
-
-Toolchain defaults: [Turborepo](https://turborepo.dev/docs), [Next.js](https://nextjs.org/docs/app), [Biome](https://biomejs.dev), [TypeScript](https://www.typescriptlang.org/tsconfig), [Vitest](https://vitest.dev).
 
 **See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md).
