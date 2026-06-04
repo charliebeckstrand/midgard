@@ -20,27 +20,32 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	actions?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
-export function Textarea({
-	className,
-	variant,
-	size,
-	resize,
-	autoResize,
-	actions,
-	id,
-	autoComplete,
-	disabled,
-	required,
-	readOnly,
-	name,
-	value,
-	onChange,
-	onBlur,
-	rows = 3,
-	style,
-	'aria-describedby': ariaDescribedBy,
-	...props
-}: TextareaProps) {
+export function Textarea(props: TextareaProps) {
+	// Mirror Input: a wrapper that signals "empty" with value={null}/value={undefined}
+	// must stay controlled, so the presence of the prop is checked before destructuring.
+	const hasValueProp = 'value' in props
+
+	const {
+		className,
+		variant,
+		size,
+		resize,
+		autoResize,
+		actions,
+		id,
+		autoComplete,
+		disabled,
+		required,
+		readOnly,
+		name,
+		value,
+		onChange,
+		onBlur,
+		rows = 3,
+		style,
+		'aria-describedby': ariaDescribedBy,
+		...rest
+	} = props
 	const glass = useGlass()
 	const control = useControl()
 	const binding = useFormText(name, { onChange, onBlur })
@@ -84,7 +89,7 @@ export function Textarea({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
-		value: binding?.value ?? value,
+		value: binding?.value ?? (hasValueProp ? (value ?? '') : value),
 		onChange: binding?.onChange ?? onChange,
 		onBlur: binding?.onBlur ?? onBlur,
 		'aria-describedby': resolvedDescribedBy,
@@ -117,7 +122,7 @@ export function Textarea({
 					hasActions && k.bare,
 					className,
 				)}
-				{...props}
+				{...rest}
 			/>
 			{hasActions && (
 				<div data-slot="textarea-actions" className={cn(k.actions)}>

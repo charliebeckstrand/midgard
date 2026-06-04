@@ -92,7 +92,16 @@ export function NumberInput({
 
 		if (Number.isNaN(n)) return
 
-		setCurrent(clamp(n))
+		// Store the raw value while typing; clamping mid-entry would make any
+		// multi-digit value whose prefix falls outside [min, max] untypeable
+		// (e.g. with min={10}, typing "1" would snap to "10"). Clamp on blur.
+		setCurrent(n)
+	}
+
+	const handleBlur = () => {
+		field?.setTouched()
+
+		setCurrent((prev) => (prev === undefined ? undefined : round(clamp(prev))))
 	}
 
 	return (
@@ -106,7 +115,7 @@ export function NumberInput({
 			size={resolvedSize}
 			value={current ?? ''}
 			onChange={handleChange}
-			onBlur={field ? () => field.setTouched() : undefined}
+			onBlur={handleBlur}
 			min={min}
 			max={max}
 			step={step}

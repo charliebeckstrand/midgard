@@ -119,6 +119,14 @@ type UseRovingOptions = RovingConfig & {
 	scrollIntoView?: boolean
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
 	activationKey?: string | null
+	/**
+	 * Virtual mode: a `combobox`/`textbox` element that owns the listbox. When
+	 * provided, the active item is mirrored into ARIA — `aria-selected` is set on
+	 * it (and cleared from the previous one) and the element's
+	 * `aria-activedescendant` is pointed at the active item's `id` — so assistive
+	 * tech can track the keyboard highlight while focus stays on the input.
+	 */
+	activeDescendantRef?: RefObject<HTMLElement | null>
 }
 
 /** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
@@ -132,6 +140,7 @@ export function useRoving(
 		focusOnEmpty = false,
 		scrollIntoView = true,
 		activationKey = 'Enter',
+		activeDescendantRef,
 	}: UseRovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -172,14 +181,22 @@ export function useRoving(
 				return
 			}
 
-			items[currentIndex]?.removeAttribute('data-active')
-			items[nextIndex]?.setAttribute('data-active', '')
+			const prev = items[currentIndex]
+			const next = items[nextIndex]
 
-			if (scrollIntoView) {
-				const item = items[nextIndex]
+			prev?.removeAttribute('data-active')
+			next?.setAttribute('data-active', '')
 
-				if (item) scrollWithin(item, { block: 'nearest' })
+			if (activeDescendantRef) {
+				prev?.setAttribute('aria-selected', 'false')
+				next?.setAttribute('aria-selected', 'true')
+
+				const controller = activeDescendantRef.current
+
+				if (controller && next?.id) controller.setAttribute('aria-activedescendant', next.id)
 			}
+
+			if (scrollIntoView && next) scrollWithin(next, { block: 'nearest' })
 		},
 		[
 			containerRef,
@@ -190,6 +207,7 @@ export function useRoving(
 			focusOnEmpty,
 			scrollIntoView,
 			activationKey,
+			activeDescendantRef,
 			scrollWithin,
 		],
 	)

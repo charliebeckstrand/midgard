@@ -552,10 +552,13 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 		result.current.onWrapperFocus(makeFocusEvent(wrapper, before))
 	})
 
-	it('onWrapperBlur clears active and anchor when focus leaves the wrapper', () => {
+	it('onWrapperBlur clears active, anchor, and extras when focus leaves the wrapper', () => {
 		const wrapper = document.createElement('table')
 
-		const { api, setActive, setAnchor } = setup({ wrapper })
+		const { api, setActive, setAnchor, setExtraCells } = setup({
+			wrapper,
+			extras: new Set(['1,0']),
+		})
 
 		const external = document.createElement('button')
 
@@ -564,6 +567,9 @@ describe('useEditableGridWrapper: onWrapperFocus and onWrapperBlur', () => {
 		expect(setActive).toHaveBeenCalledWith(null)
 
 		expect(setAnchor).toHaveBeenCalledWith(null)
+
+		// Stale Ctrl-clicked extras must not survive blur to join a later bulk-fill.
+		expect(setExtraCells).toHaveBeenCalledWith(new Set())
 	})
 
 	it('onWrapperBlur is a no-op when focus moves to a child of the wrapper', () => {

@@ -203,6 +203,65 @@ describe('useRoving', () => {
 		container.remove()
 	})
 
+	it('virtual mode: mirrors the active item into aria-selected and aria-activedescendant', () => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items.forEach((el, i) => {
+			el.id = `opt-${i}`
+		})
+
+		const controller = document.createElement('input')
+
+		document.body.appendChild(controller)
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			const adRef = useRef<HTMLElement | null>(controller)
+
+			return useRoving(ref, {
+				itemSelector: '[role="option"]',
+				mode: 'virtual',
+				activeDescendantRef: adRef,
+			})
+		})
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(items[0]?.getAttribute('aria-selected')).toBe('true')
+		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-0')
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(items[0]?.getAttribute('aria-selected')).toBe('false')
+		expect(items[1]?.getAttribute('aria-selected')).toBe('true')
+		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-1')
+
+		container.remove()
+
+		controller.remove()
+	})
+
+	it('virtual mode: leaves ARIA untouched when no activeDescendantRef is given', () => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+		})
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+
+		container.remove()
+	})
+
 	it('virtual mode: activation key is a no-op when nothing is active', () => {
 		const container = makeContainer(3)
 

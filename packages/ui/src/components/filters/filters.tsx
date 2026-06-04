@@ -70,13 +70,10 @@ export function Filters<T extends FilterValue = FilterValue>({
 		if (defaultValue) {
 			setState(defaultValue)
 		} else {
-			setState((prev) => {
-				const cleared = {} as Record<string, undefined>
-
-				for (const key of Object.keys(prev ?? {})) cleared[key] = undefined
-
-				return cleared as T
-			})
+			// Drop the keys entirely rather than mapping each to undefined, matching
+			// setValue's delete semantics; otherwise the payload leaks inactive
+			// `{key: undefined}` entries into whatever the consumer spreads.
+			setState({} as T)
 		}
 		onClear?.()
 	}, [defaultValue, setState, onClear])

@@ -345,8 +345,12 @@ export function useEditableGridWrapper<T>({
 			setActive(null)
 
 			setAnchor(null)
+
+			// Clear Ctrl-clicked extras too, mirroring Escape; otherwise stale
+			// extras survive blur and silently join a later bulk-fill.
+			setExtraCells(new Set())
 		},
-		[wrapperRef, setActive, setAnchor],
+		[wrapperRef, setActive, setAnchor, setExtraCells],
 	)
 
 	return { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur }

@@ -27,6 +27,7 @@ export function useCommandPaletteState({ open, onOpenChange }: UseCommandPalette
 	const onKeyDown = useRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: '[data-slot="command-palette-item"]:not([data-disabled])',
+		activeDescendantRef: inputRef,
 	})
 
 	// Reset query when closed (adjust during render to avoid extra cycle)
