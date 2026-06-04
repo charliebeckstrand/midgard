@@ -86,7 +86,7 @@ export const k = {
 			'overflow-auto',
 			'flex items-safe-center justify-safe-center',
 			'flex-1 min-w-0',
-			'max-h-[min(1280px)]',
+			'max-h-[1280px]',
 			'box-content p-4',
 			...mode('bg-zinc-100', 'dark:bg-zinc-900'),
 		],
