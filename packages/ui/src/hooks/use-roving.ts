@@ -119,6 +119,13 @@ type UseRovingOptions = RovingConfig & {
 	scrollIntoView?: boolean
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
 	activationKey?: string | null
+	/**
+	 * Virtual mode: element that owns `aria-activedescendant` (typically the
+	 * focused combobox/input). When set, the active item's `id` is mirrored onto
+	 * it each move so assistive technology announces the active option. Items
+	 * must carry a stable `id` for this to work.
+	 */
+	ownerRef?: RefObject<HTMLElement | null>
 }
 
 /** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
@@ -132,6 +139,7 @@ export function useRoving(
 		focusOnEmpty = false,
 		scrollIntoView = true,
 		activationKey = 'Enter',
+		ownerRef,
 	}: UseRovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -173,12 +181,17 @@ export function useRoving(
 			}
 
 			items[currentIndex]?.removeAttribute('data-active')
-			items[nextIndex]?.setAttribute('data-active', '')
 
-			if (scrollIntoView) {
-				const item = items[nextIndex]
+			const nextItem = items[nextIndex]
 
-				if (item) scrollWithin(item, { block: 'nearest' })
+			nextItem?.setAttribute('data-active', '')
+
+			if (ownerRef && nextItem?.id) {
+				ownerRef.current?.setAttribute('aria-activedescendant', nextItem.id)
+			}
+
+			if (scrollIntoView && nextItem) {
+				scrollWithin(nextItem, { block: 'nearest' })
 			}
 		},
 		[
@@ -190,6 +203,7 @@ export function useRoving(
 			focusOnEmpty,
 			scrollIntoView,
 			activationKey,
+			ownerRef,
 			scrollWithin,
 		],
 	)

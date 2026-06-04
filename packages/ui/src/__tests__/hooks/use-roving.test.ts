@@ -179,6 +179,40 @@ describe('useRoving', () => {
 		container.remove()
 	})
 
+	it('virtual mode: mirrors the active item id onto the owner aria-activedescendant', () => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items.forEach((item, i) => {
+			item.id = `opt-${i}`
+		})
+
+		const owner = document.createElement('input')
+
+		document.body.appendChild(owner)
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			const ownerRef = useRef<HTMLElement>(owner)
+
+			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual', ownerRef })
+		})
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-1')
+
+		container.remove()
+
+		owner.remove()
+	})
+
 	it('virtual mode: activation key clicks the active item', () => {
 		const container = makeContainer(3)
 

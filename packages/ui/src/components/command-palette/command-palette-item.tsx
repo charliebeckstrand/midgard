@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -30,6 +30,10 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
+	// Stable id so the combobox input can point aria-activedescendant at the
+	// active option (WCAG 4.1.2). A consumer-supplied id still wins via `rest`.
+	const generatedId = useId()
+
 	function handleSelect() {
 		if (disabled) return
 
@@ -52,6 +56,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 		return (
 			<LinkComponent
+				id={generatedId}
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
@@ -77,6 +82,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	return (
 		<button
 			type="button"
+			id={generatedId}
 			role="option"
 			tabIndex={-1}
 			data-slot="command-palette-item"

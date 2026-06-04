@@ -8,7 +8,7 @@ import {
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
 } from '../../components/command-palette'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('CommandPalette', () => {
 	it('renders input when open', () => {
@@ -328,6 +328,52 @@ describe('CommandPalette triggerShortcut', () => {
 		)
 
 		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+})
+
+describe('CommandPalette active option (aria-activedescendant)', () => {
+	it('assigns a stable id to each item', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(bySlot(document.body, 'command-palette-item')?.id).toBeTruthy()
+	})
+
+	it('points the combobox at the active option on ArrowDown', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		const item = bySlot(document.body, 'command-palette-item')
+
+		fireEvent.keyDown(input, { key: 'ArrowDown' })
+
+		expect(input).toHaveAttribute('aria-activedescendant', item?.id)
+	})
+
+	it('clears aria-activedescendant when the query changes', async () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Run</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		fireEvent.keyDown(input, { key: 'ArrowDown' })
+
+		expect(input.getAttribute('aria-activedescendant')).toBeTruthy()
+
+		await userEvent.setup().type(input, 'p')
+
+		expect(input.hasAttribute('aria-activedescendant')).toBe(false)
 	})
 })
 
