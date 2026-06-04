@@ -11,6 +11,10 @@ import { Icon } from '../icon'
 import { Sheet, SheetBody, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 
+// Stable keys for the skeleton tiles shown before the first thumbnail resolves;
+// the length is the placeholder count.
+const PLACEHOLDER_KEYS = Array.from({ length: 6 }, (_, i) => `placeholder-${i}`)
+
 export function PdfViewerThumbnails() {
 	const { pages, safePage, goToPage, loading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
 		usePdfViewerContext()
@@ -45,8 +49,8 @@ export function PdfViewerThumbnails() {
 			className={cn(layout === 'grid' ? k.thumbnails.grid : k.thumbnails.base)}
 		>
 			{loading && thumbnailList.length === 0
-				? ['a', 'b', 'c', 'd', 'e', 'f'].map((key) => (
-						<li key={`placeholder-${key}`}>
+				? PLACEHOLDER_KEYS.map((key) => (
+						<li key={key}>
 							<span
 								aria-hidden="true"
 								data-slot="pdf-viewer-thumbnail-placeholder"
