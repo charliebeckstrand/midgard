@@ -133,7 +133,7 @@ describe('useFloatingUI', () => {
 			dispatchPointerDown(outside)
 
 			expect(onOpenChange).toHaveBeenCalledTimes(1)
-			expect(onOpenChange).toHaveBeenCalledWith(false)
+			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
 
 			outside.remove()
 			cleanup()

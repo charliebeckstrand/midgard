@@ -1,12 +1,32 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker } from '../../components/date-picker'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
+import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 function findDay(day: number) {
 	const days = screen.getAllByRole('option')
 
 	return days.find((b) => b.textContent?.trim() === String(day))
+}
+
+type DatePickerApi = ReturnType<typeof useDatePickerState>
+
+// Drives the close path with an explicit floating-ui reason. A real React ref
+// (unlike a manual `setReference` call) populates the reference node the focus
+// effect reads, and the outside-press listener can't be exercised in jsdom.
+function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | null } }) {
+	const state = useDatePickerState({})
+
+	apiRef.current = state
+
+	return (
+		<div ref={state.setReference}>
+			<button type="button" data-slot="harness-trigger">
+				Trigger
+			</button>
+		</div>
+	)
 }
 
 describe('DatePicker', () => {
@@ -156,6 +176,72 @@ describe('DatePicker', () => {
 		const arg = onChange.mock.calls[0]?.[0] as Date
 
 		expect(arg).toBeInstanceOf(Date)
+	})
+
+	it('refocuses the trigger when closed with Escape', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker />)
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(button)
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		await user.keyboard('{Escape}')
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toHaveFocus()
+	})
+
+	it('refocuses the trigger after selecting a date', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue = new Date(2025, 5, 15)
+
+		const { container } = renderUI(<DatePicker defaultValue={defaultValue} />)
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(button)
+
+		const day = findDay(20)
+
+		if (!day) throw new Error('day 20 button not found')
+
+		await user.click(day)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toHaveFocus()
+	})
+
+	it('refocuses the trigger when closed via Escape (reason-driven)', () => {
+		const apiRef: { current: DatePickerApi | null } = { current: null }
+
+		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
+
+		const trigger = bySlot(container, 'harness-trigger') as HTMLButtonElement
+
+		act(() => apiRef.current?.onOpenChange(true))
+
+		act(() => apiRef.current?.onOpenChange(false, undefined, 'escape-key'))
+
+		expect(trigger).toHaveFocus()
+	})
+
+	it('does not refocus the trigger when dismissed by an outside press', () => {
+		const apiRef: { current: DatePickerApi | null } = { current: null }
+
+		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
+
+		const trigger = bySlot(container, 'harness-trigger') as HTMLButtonElement
+
+		act(() => apiRef.current?.onOpenChange(true))
+
+		act(() => apiRef.current?.onOpenChange(false, undefined, 'outside-press'))
+
+		expect(trigger).not.toHaveFocus()
 	})
 })
 
