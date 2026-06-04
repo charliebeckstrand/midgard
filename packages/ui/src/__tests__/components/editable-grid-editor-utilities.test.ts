@@ -15,6 +15,7 @@ function fire(handler: Handler, key: string, shiftKey = false) {
 describe('editorKeyHandler', () => {
 	it('commits down and prevents default on Enter', () => {
 		const commit = vi.fn(() => true)
+
 		const cancel = vi.fn()
 
 		const preventDefault = fire(editorKeyHandler(commit, cancel), 'Enter')
@@ -28,6 +29,7 @@ describe('editorKeyHandler', () => {
 
 	it('cancels and prevents default on Escape', () => {
 		const commit = vi.fn(() => true)
+
 		const cancel = vi.fn()
 
 		const preventDefault = fire(editorKeyHandler(commit, cancel), 'Escape')
@@ -79,6 +81,7 @@ describe('editorKeyHandler', () => {
 
 	it('ignores other keys', () => {
 		const commit = vi.fn(() => true)
+
 		const cancel = vi.fn()
 
 		const preventDefault = fire(editorKeyHandler(commit, cancel), 'a')

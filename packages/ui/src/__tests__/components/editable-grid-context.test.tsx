@@ -42,16 +42,24 @@ describe('useEditableGrid', () => {
 
 		// State slice.
 		expect(result.current.active).toEqual({ row: 1, col: 2 })
+
 		expect(result.current.anchor).toEqual({ row: 0, col: 0 })
+
 		expect(result.current.extraCells.has('0:1')).toBe(true)
+
 		expect(result.current.editing).toBe(false)
+
 		expect(result.current.setActive).toBe(stateValue.setActive)
+
 		expect(result.current.beginEdit).toBe(stateValue.beginEdit)
 
 		// Edit-session slice.
 		expect(result.current.draft).toBe('hello')
+
 		expect(result.current.setDraft).toBe(editValue.setDraft)
+
 		expect(result.current.commitEdit).toBe(editValue.commitEdit)
+
 		expect(result.current.cancelEdit).toBe(editValue.cancelEdit)
 	})
 })

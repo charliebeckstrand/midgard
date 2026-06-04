@@ -75,6 +75,7 @@ describe('EditableGridTextEditor', () => {
 
 	it('commits on blur and routes keys through the editor contract', () => {
 		const commit = vi.fn(() => true)
+
 		const cancel = vi.fn()
 
 		const { container } = renderUI(<EditableGridTextEditor {...makeProps({ commit, cancel })} />)
