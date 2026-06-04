@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
+import { makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
 const Jan10 = new Date(2025, 0, 10)
@@ -263,6 +264,89 @@ describe('useDatePickerRangeState', () => {
 
 			expect(result.current.calendar.rangeStart).toEqual(Jan10)
 			expect(result.current.calendar.rangeEnd).toEqual(Feb15)
+		})
+	})
+
+	describe('keyboard navigation', () => {
+		it('materializes the grid cursor on the first arrow press after opening', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			// getInitialActiveDate falls back to value[0] when no range is in progress.
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+		})
+
+		it('previews the hovered endpoint as the grid cursor moves during selection', () => {
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.calendar.onValueChange(Jan10))
+
+			// First arrow materializes the cursor on the start date.
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			// Second arrow moves it and, because a range is in progress, drives the hover preview.
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })
+
+			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 0, 11))
+		})
+
+		it('does not emit a hover preview when moving the cursor with no range in progress', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan10, Jan20] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })
+
+			expect(result.current.calendar.hoverDate).toBeNull()
+		})
+
+		it('activates the clear footer button via Shift+ArrowDown then Enter', () => {
+			const onChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({
+					range: true,
+					defaultValue: [Jan1, Jan31],
+					onValueChange: onChange,
+				}),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
+
+			expect(result.current.open).toBe(false)
+
+			act(() => result.current.onExitComplete())
+
+			expect(onChange).toHaveBeenCalledWith(undefined)
+		})
+
+		it('is a no-op when footer keydown fires with no calendar handle mounted', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan1, Jan31] }),
+			)
+
+			expect(() =>
+				act(() => result.current.footer.onKeyDown(makeKeyEvent('ArrowDown'))),
+			).not.toThrow()
 		})
 	})
 })
