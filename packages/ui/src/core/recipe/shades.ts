@@ -16,7 +16,7 @@
 
 import type { Color } from './colors'
 
-export type ShadeSpec = Record<Color, string | readonly [light: string, dark: string]>
+type ShadeSpec = Record<Color, string | readonly [light: string, dark: string]>
 
 export function shades(spec: ShadeSpec): Record<Color, string[]> {
 	const out: Record<string, string[]> = {}

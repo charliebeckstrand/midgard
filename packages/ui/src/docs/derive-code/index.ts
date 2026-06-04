@@ -6,8 +6,6 @@ import { defaultRegistry } from './registry'
 import type { Context } from './types'
 import { renderNodes } from './walk'
 
-export type { ComponentInfo } from './types'
-
 /**
  * Walk a React children tree and produce a simplified code block showing how
  * to use the components on display.

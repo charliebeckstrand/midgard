@@ -8,7 +8,7 @@
 
 import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
 
-export function rng(seed = 1) {
+function rng(seed = 1) {
 	let state = seed >>> 0
 
 	return () => {

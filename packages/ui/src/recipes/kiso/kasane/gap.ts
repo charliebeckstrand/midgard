@@ -44,7 +44,7 @@ const gyStops = {
 	'3': 'gap-y-3',
 } as const
 
-export type GapStop = keyof typeof gStops
+type GapStop = keyof typeof gStops
 
 export const gap = {
 	g: (v: GapStop) => gStops[v],

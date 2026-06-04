@@ -1,6 +1,6 @@
 import type { FlexAlign, FlexDirection, ResponsiveAlign, ResponsiveDirection } from './variants'
 
-export function alignForDirection(dir: FlexDirection): FlexAlign {
+function alignForDirection(dir: FlexDirection): FlexAlign {
 	return dir === 'col' || dir === 'col-reverse' ? 'start' : 'center'
 }
 
