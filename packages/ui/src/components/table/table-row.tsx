@@ -4,7 +4,6 @@ import { k } from '../../recipes/kata/table'
 
 export type TableRowProps = {
 	className?: string
-	href?: string
 } & Omit<ComponentPropsWithoutRef<'tr'>, 'className'>
 
 export function TableRow({ className, children, ...props }: TableRowProps) {
