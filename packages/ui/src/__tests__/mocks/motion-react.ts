@@ -73,4 +73,18 @@ function useMotionValue<T>(initial: T) {
 	}
 }
 
-export default { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
+// Default to "no reduced-motion preference", matching the jsdom matchMedia stub.
+// Tests exercising the reduced path override this per-file via vi.mock.
+function useReducedMotion(): boolean {
+	return false
+}
+
+export default {
+	motion,
+	AnimatePresence,
+	LayoutGroup,
+	MotionConfig,
+	useAnimate,
+	useMotionValue,
+	useReducedMotion,
+}
