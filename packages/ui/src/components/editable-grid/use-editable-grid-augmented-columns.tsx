@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLAttributes, type MouseEvent, useMemo } from 'react'
+import { type HTMLAttributes, type MouseEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import type { DataTableColumn } from '../data-table'
@@ -23,6 +23,20 @@ export function useEditableGridAugmentedColumns<T>({
 	draft: { editing, beginEdit },
 	formatCell,
 }: UseEditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
+	// `cellProps` is a plain function (not a component), so it can't read the
+	// state context the way `EditableGridCell` does. Its onMouseDown guard reads
+	// `active`/`editing` through refs at event time instead of closing over the
+	// values — keeping them out of the memo deps so navigation doesn't rebuild
+	// every column. With the column identities stable, the memoized DataTable
+	// rows hold and only the affected cell shells re-render (via the context).
+	const activeRef = useRef(active)
+
+	activeRef.current = active
+
+	const editingRef = useRef(editing)
+
+	editingRef.current = editing
+
 	return useMemo<DataTableColumn<T>[]>(() => {
 		let editableColIdx = 0
 
@@ -58,14 +72,16 @@ export function useEditableGridAugmentedColumns<T>({
 				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> => {
 					const rowIdx = rowIndexMap.get(row) ?? -1
 
-					const isActive = active?.row === rowIdx && active?.col === colIdx
-
-					const showInput = isActive && editing && !readOnly
-
 					return {
 						role: 'gridcell',
 						'aria-readonly': readOnly || undefined,
 						onMouseDown: (e: MouseEvent<HTMLTableCellElement>) => {
+							const activeNow = activeRef.current
+
+							const isActive = activeNow?.row === rowIdx && activeNow?.col === colIdx
+
+							const showInput = isActive && editingRef.current && !readOnly
+
 							if (showInput) return
 
 							e.preventDefault()
@@ -104,14 +120,5 @@ export function useEditableGridAugmentedColumns<T>({
 				},
 			}
 		})
-	}, [
-		columns,
-		rowIndexMap,
-		formatCell,
-		active,
-		editing,
-		addCellToSelection,
-		moveActiveTo,
-		beginEdit,
-	])
+	}, [columns, rowIndexMap, formatCell, addCellToSelection, moveActiveTo, beginEdit])
 }

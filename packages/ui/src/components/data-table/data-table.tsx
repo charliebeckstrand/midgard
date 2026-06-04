@@ -216,6 +216,8 @@ export function DataTable<T>({
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
 				empty={empty}
+				selection={selection}
+				toggleRow={toggleRow}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
 		</Table>

@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
-import { DataTableRowContext, type DataTableRowContextValue, useDataTable } from './context'
+import { DataTableRowContext, type DataTableRowContextValue } from './context'
 import type { DataTableColumn } from './types'
 
 type DataTableRowProps<T> = {
@@ -14,13 +14,25 @@ type DataTableRowProps<T> = {
 	columns: DataTableColumn<T>[]
 	loading: boolean
 	className: string | undefined
+	/**
+	 * Passed as a prop (rather than read from `selection` in context) so the
+	 * memoized row only re-renders when its own selected state flips — toggling
+	 * one row in a large table no longer re-renders every other row.
+	 */
+	selected: boolean
+	/** Stable reference from the selection hook, safe to pass through `memo`. */
+	toggleRow: (key: string | number) => void
 }
 
-function DataTableRowImpl<T>({ row, rowKey, columns, loading, className }: DataTableRowProps<T>) {
-	const { selection, toggleRow } = useDataTable()
-
-	const selected = selection.has(rowKey)
-
+function DataTableRowImpl<T>({
+	row,
+	rowKey,
+	columns,
+	loading,
+	className,
+	selected,
+	toggleRow,
+}: DataTableRowProps<T>) {
 	const rowContext = useMemo<DataTableRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
 		[row, rowKey, selected, loading],

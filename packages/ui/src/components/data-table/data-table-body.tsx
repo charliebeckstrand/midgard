@@ -13,6 +13,8 @@ type DataTableBodyProps<T> = {
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
 	empty: ReactNode
+	selection: Set<string | number>
+	toggleRow: (key: string | number) => void
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -29,6 +31,8 @@ export function DataTableBody<T>({
 	rowLoading,
 	rowClassName,
 	empty,
+	selection,
+	toggleRow,
 	virtualize,
 }: DataTableBodyProps<T>) {
 	if (loading) return <TableLoading columns={visibleColumns.length} />
@@ -44,6 +48,8 @@ export function DataTableBody<T>({
 				visibleColumns={visibleColumns}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
+				selection={selection}
+				toggleRow={toggleRow}
 				estimateSize={virtualize.estimateSize}
 				overscan={virtualize.overscan}
 			/>
@@ -63,6 +69,8 @@ export function DataTableBody<T>({
 						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
+						selected={selection.has(key)}
+						toggleRow={toggleRow}
 					/>
 				)
 			})}
