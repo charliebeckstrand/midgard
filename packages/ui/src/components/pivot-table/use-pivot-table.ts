@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
 	aggregate,
 	aggregateAll,
@@ -56,14 +56,42 @@ export function usePivotTable<T>(
 
 	const grandTotal = useMemo(() => aggregateAll(groups, aggregation), [groups, aggregation])
 
-	const cellValue = (row: string, column: string): number | undefined => {
-		const values = groups.get(row)?.get(column)
+	// Aggregate every populated `(row × column)` group once per data change rather
+	// than re-reducing each cell on every render. Rendering then becomes O(1) map
+	// lookups, so unrelated re-renders (format/density prop changes, parent
+	// re-renders) no longer re-run the reductions over the full value set.
+	const cells = useMemo(() => {
+		const matrix = new Map<string, Map<string, number>>()
 
-		return values && values.length > 0 ? aggregate(values, aggregation) : undefined
-	}
+		for (const [row, columns] of groups) {
+			const rowCells = new Map<string, number>()
 
-	const rowTotal = (row: string): number | undefined =>
-		aggregateRow(groups, row, columnKeys, aggregation)
+			for (const [col, values] of columns) {
+				if (values.length > 0) rowCells.set(col, aggregate(values, aggregation))
+			}
+
+			matrix.set(row, rowCells)
+		}
+
+		return matrix
+	}, [groups, aggregation])
+
+	const rowTotals = useMemo(() => {
+		const totals = new Map<string, number | undefined>()
+
+		for (const row of rowKeys) {
+			totals.set(row, aggregateRow(groups, row, columnKeys, aggregation))
+		}
+
+		return totals
+	}, [groups, rowKeys, columnKeys, aggregation])
+
+	const cellValue = useCallback(
+		(row: string, column: string): number | undefined => cells.get(row)?.get(column),
+		[cells],
+	)
+
+	const rowTotal = useCallback((row: string): number | undefined => rowTotals.get(row), [rowTotals])
 
 	return { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal }
 }
