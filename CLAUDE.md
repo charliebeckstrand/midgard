@@ -38,7 +38,7 @@
 
 4.4 Never commit secrets or `.env`.
 
-For additional rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
+> For additional rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
 
 ---
 
