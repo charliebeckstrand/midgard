@@ -466,6 +466,36 @@ describe('Form', () => {
 		expect(screen.getByTestId('field-error').textContent).toBe('taken on the server')
 	})
 
+	it('reports valid=false once server fieldErrors are applied, with no client validator', async () => {
+		function ValidProbe() {
+			const status = useFormStatus()
+
+			return <span data-testid="valid">{String(status?.valid)}</span>
+		}
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={() => ({ fieldErrors: { name: 'taken on the server' } })}
+			>
+				<ValidProbe />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		// No client validator: validity must track the live error map, not a
+		// validator pass that can't see server errors.
+		expect(screen.getByTestId('valid').textContent).toBe('true')
+
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+
+		expect(screen.getByTestId('valid').textContent).toBe('false')
+	})
+
 	it('marks an object-valued field clean after restoring its structural value', () => {
 		function DirtyProbe() {
 			const field = useFormField('tags')

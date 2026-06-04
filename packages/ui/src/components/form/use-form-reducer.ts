@@ -147,15 +147,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const dirty = useMemo(() => Object.values(dirtyFields).some(Boolean), [dirtyFields])
 
-	const valid = useMemo(() => {
-		const v = validateRef.current
-
-		if (!v) return true
-
-		const errs = runValidators(v, values, {}, validateOn, Object.keys(v))
-
-		return !Object.values(errs).some((issues) => issues !== undefined && issues.length > 0)
-	}, [values, validateOn])
+	// Derived from the live `errors` map so it reflects exactly what the user
+	// sees — including server / external errors set via `setErrors` or an
+	// `onSubmit` `{ fieldErrors }` return, which a fresh validator pass over
+	// `values` can't know about. The reducer keeps `errors` current per
+	// `validateOn`, so re-running every validator here would both double the
+	// work each keystroke and disagree with the displayed errors.
+	const valid = useMemo(
+		() => !Object.values(errors).some((issues) => issues !== undefined && issues.length > 0),
+		[errors],
+	)
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
 
