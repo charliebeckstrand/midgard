@@ -16,7 +16,7 @@ import { hannou } from '../hannou'
 import { narabi } from '../narabi'
 import { sen } from '../sen'
 
-const { cursor } = hannou
+const { cursor, fg } = hannou
 const { flex } = narabi
 const { focus, forced } = sen
 
@@ -51,4 +51,6 @@ export const check = {
 	surface,
 	shell,
 	base,
+	/** Disabled-state text class for the surrounding field wrapper. */
+	disabled: fg.disabled,
 } as const

@@ -1,59 +1,40 @@
 /**
- * Katakana 片仮名 — the recipe applicator layer.
+ * Katakana 片仮名 — the bridge layer.
  *
- * Five archetypes are wired: `control` (text-input branch of the Control
- * archetype), `check` (check-input branch, covering checkbox and radio),
- * `popover` (floating-overlay archetype), `segment` (segmented-control
- * archetype shared by Segment and Tabs), and `panel` (panel-bundle
- * archetype shared by Dialog, Drawer, and Sheet).
+ * Each archetype is a pure bridge function. It receives a kiso token
+ * bundle from the calling kata and wires it into the recipe surface the
+ * kata exports, importing only the recipe engine (`core/recipe`). A bridge
+ * imports nothing from kiso — not values, not types: it declares the token
+ * shape it needs as its own contract and takes the data by argument. The
+ * "no kiso import" contract is pinned by
+ * `src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts`.
  *
- * **The applicator pattern.** Every entry is a function that takes an
- * archetype's standard pieces plus the kata's per-call configuration and
- * returns the `k` surface the kata exports. `defineApplicator` covers
- * the common case — a single `defineRecipe` call with caller overlays —
- * so `control` and `check` collapse to one-liner declarations. The
- * remaining three hand-roll for their own reason:
+ * Five archetypes, six bridges: `control` and `check` (the Control family —
+ * text-input and check-input branches), `popover` (floating overlay),
+ * `segment` (segmented control shared by Segment and Tabs), and `panel`
+ * (panel bundle shared by Dialog, Drawer, and Sheet). `slider` has no
+ * bridge — it's a pure colour token bundle the slider kata read from kiso
+ * directly.
  *
- *   - `popover` — no `defineRecipe` calls; returns a bundle of class
- *     fragments anchored by an optional caller `text` override.
- *   - `segment` — two `defineRecipe` calls (one for the outer chrome,
- *     one for each item), wrapped in a bundle alongside the raw
- *     indicator fragment.
- *   - `panel` — caller supplies their own `defineRecipe` results (each
- *     kata's panel has different variants); the applicator wraps them
- *     in the standard title / description / header / body / actions /
- *     close slot bundle.
+ * **The bridge is namespaced.** Bridges are reached through the `bridge`
+ * object so a kata can import the token bundle under its bare archetype
+ * name and the bridge as `bridge.<archetype>` without an alias:
  *
- * Three exceptions around one architecture, not separate paradigms.
+ *     import { control } from '../kiso/control'
+ *     import { bridge } from '../katakana'
+ *     export const k = bridge.control(control, { base: 'block', slots: { … } })
  *
- * **Kiso archetypes are the raw-fragment data layer.** Each applicator
- * imports its archetype's fragments from `kiso/<archetype>` — control
- * from `kiso/control`, popover from `kiso/popover`, and so on. The two
- * layers have distinct concerns: kiso archetypes store the shared
- * class-fragment data, katakana wraps it in callable applicator
- * functions. Kata that need a subset of an archetype's fragments —
- * combobox / listbox / date-picker use control's input / density / size
- * without the full chrome — reach `kiso/<archetype>` directly, the same
- * way kata that don't fit any archetype reach `defineRecipe` directly.
- * Both reaches are honest layering.
- *
- * **What the barrel surfaces.** Applicators only. Engine primitives
- * (`defineRecipe`, `defineColors`, `palette`, `VariantProps`, …) stay
- * in `core/recipe`; kata import them from there. A kata that doesn't
- * fit any archetype calls `defineRecipe` directly — routing it through
- * a katakana alias would conflate the applicator layer with the recipe
- * engine.
- *
- * Type exports follow real consumer needs, not surface parity. `control`
- * and `segment` expose variant types because consumer components import
- * them. `check`, `popover`, and `panel` don't — checkbox and radio
- * compute their own variants from `VariantProps<typeof k>` (extra
- * axes the applicator doesn't own), and panel's input shape is generic
- * per-kata.
+ * **What the barrel surfaces.** The `bridge` object, nothing more.
+ * The bridges are generic over the token bundle they receive, so variant
+ * types resolve from the concrete `k` at the kata (`VariantProps<typeof
+ * k>`), not from the bridge. Engine primitives (`defineRecipe`,
+ * `definePalette`, `VariantProps`, …) stay in `core/recipe`; kata import
+ * them from there.
  */
 
-export { check } from './check'
-export { type ControlVariants, control } from './control'
-export { panel } from './panel'
-export { popover } from './popover'
-export { type SegmentControlVariants, type SegmentItemVariants, segment } from './segment'
+import { check, control } from './control'
+import { panel } from './panel'
+import { popover } from './popover'
+import { segment } from './segment'
+
+export const bridge = { control, check, popover, segment, panel }

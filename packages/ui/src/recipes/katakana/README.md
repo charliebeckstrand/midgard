@@ -1,37 +1,51 @@
-# Katakana 片仮名 — Applicators
+# Katakana 片仮名 — Bridge
 
-> **Scope:** function-shaped applicators that wrap an archetype's standard pieces into a ready-to-call surface for kata.
+> **Scope:** the bridge between kiso tokens and kata recipes. Each archetype is a pure function that receives a kiso token bundle and wires it into the recipe surface a kata exports.
 
 ## 1. Boundary
 
-`katakana/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. Kata consume katakana via relative path: `from '../katakana'`. An applicator reads its archetype's fragments from [`kiso/<archetype>`](../kiso/README.md) and composes other kiso atoms; it imports the recipe engine and the applicator helpers (`applyRecipe`, `defineApplicator`, `ApplicatorReturn`) directly from [`core/recipe`](../../core/recipe). Sideways composition between applicators is forbidden — shared concerns promote to a kiso archetype sub-folder (raw fragments) or a kiso atom (substrate). Applicators never reach upward into kata, components, primitives, layouts, hooks, or providers, and they never inline literal Tailwind class strings — every fragment is reached by name through kiso. The contract is pinned by `src/__tests__/recipes/boundary/kata-boundary.test.ts`, `src/__tests__/components/boundary/component-recipe-boundary.test.ts`, and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
+`katakana/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. A bridge imports **only** the recipe engine (`applyRecipe`, `defineRecipe`, `RecipeConfig`) from [`core/recipe`](../../core/recipe). It **imports nothing from kiso** — not values, not types: each bridge declares the token shape it needs as its own contract and receives the token *data* as the first argument. This keeps the bridge free of any dependency on kiso; data location is kiso's job, application is kata's, and the bridge owns only the wiring in between.
+
+The contract is pinned by `src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts` (no kiso imports at all), `src/__tests__/recipes/boundary/kata-boundary.test.ts`, and the component / primitive recipe-boundary tests.
 
 ## 2. Shape
 
-Every applicator is a function that takes an archetype's standard pieces plus the kata's per-call configuration and returns the `k` surface the kata exports. `defineApplicator` in `core/recipe` covers the common case — a single `defineRecipe` call with caller overlays — so `control` and `check` collapse to one-liner declarations. Three archetypes don't fit that shape and hand-roll instead:
+Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. `defineApplicator` no longer fits — the standard config is built per call from the injected tokens, not baked at module load — so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (popover, segment, panel). The recipe-axis bridges pin the step keys in their contract (`Step = 'sm' | 'md' | 'lg'`) so the kata's variant types keep their literal axes; the pass-through bridge stays generic and annotates its return with the token field types:
 
-- `popover` — no `defineRecipe` calls; returns a bundle of class fragments anchored by an optional caller `text` override.
-- `segment` — two `defineRecipe` calls (one for the outer chrome, one for each item) wrapped in a bundle alongside the raw indicator fragment.
-- `panel` — caller supplies their own `defineRecipe` results (each kata's panel has different variants); the applicator wraps them in the standard title / description / header / body / actions / close slot bundle.
+- `control` / `check` — build the standard config / extras from the `control` token contract and forward to `applyRecipe`. The kata derives variants from `VariantProps<typeof k>`.
+- `popover` — no `defineRecipe` calls; returns a bundle of class fragments anchored by an optional caller `text` override, defaulting to the bundle's own `text`. Generic over the bundle so the panel slot's concrete shape (motion config and all) flows through.
+- `segment` — two `defineRecipe` calls (outer chrome + item) wrapped in a bundle alongside the raw `indicator` fragment.
+- `panel` — the kata supplies its own `defineRecipe` results (each panel has different variants); the bridge composes the `panel` bundle's `layout` into the standard title / description / header / body / footer / close slots.
 
-Three exceptions, one architecture. See [`katakana/index.ts`](./index.ts) for details.
+## 3. The namespaced barrel
 
-## 3. Modules
+Bridges are reached through a single `bridge` object so a kata imports the token bundle under its bare archetype name and the bridge as `bridge.<archetype>`, with no alias:
 
-| Module    | Archetype                                                                                                                                        | Kata members                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| `control` | Text-input branch of the Control family — frame + kasane chrome + `default` / `outline` / `glass` surface vocabulary + density + size + affix.   | `input`, `textarea`                                                       |
-| `check`   | Check-input branch of the Control family — `check.surface` chrome + visually-hidden native input + colour-axis-driven checked overlay.            | `checkbox`, `radio`                                                       |
-| `popover` | Floating-overlay archetype — trigger / portal positioning + panel slot bundle (base, surface, glass, ring, motion).                              | `popover` (kata)                                                          |
-| `segment` | Segmented-control archetype — control + item recipes + indicator fragment.                                                                       | `segment`, `tabs` (via `k.segment`)                                       |
-| `panel`   | Panel-bundle archetype — wraps caller-supplied `panel` (and optional `backdrop`) `defineRecipe(...)` results with the standard slot bundle.      | `dialog`, `drawer`, `sheet`                                               |
+```ts
+import { control } from '../kiso/control'   // tokens
+import { bridge } from '../katakana'        // bridge
+export const k = bridge.control(control, { base: 'block', slots: { … } })
+```
 
-## 4. Rules
+The barrel surfaces the `bridge` object only. Variant types resolve at the kata from the concrete result (`VariantProps<typeof k>`), not from the bridge — the bridges are generic over the token bundle and carry no concrete token type to project from.
 
-- **Applicators only.** The barrel surfaces functions and the variant types real consumers import. Engine primitives (`defineRecipe`, `defineColors`, `definePalette`, `VariantProps`, …) stay in `core/recipe` and kata import them from there. A kata that doesn't fit any archetype calls `defineRecipe` directly — routing it through a katakana alias would conflate the applicator layer with the recipe engine.
-- **Type exports follow real consumer needs.** `control` and `segment` expose variant types because consumer components import them. `check`, `popover`, and `panel` don't — checkbox and radio compute their own variants from `VariantProps<typeof k>` (extra axes the applicator doesn't own), and panel's input shape is generic per-kata.
-- **Kiso holds the data; katakana wraps it.** Each applicator imports its archetype's fragments from `kiso/<archetype>`. Don't fork the data into the applicator file — fold any duplication back into kiso.
-- **Subset reaches stay on kiso.** Kata that need a *subset* of an archetype's fragments (combobox / listbox / date-picker use control's input / density / size without the full chrome) reach `kiso/<archetype>` directly. The applicator is for kata that consume the whole archetype.
+## 4. Modules
+
+| Bridge     | Tokens          | Returns                                                                                  | Kata members                                  |
+| ---------- | --------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `control`  | `kiso/control`  | Outer-frame recipe + `inputControl` / `prefix` / `suffix`.                               | `input`, `textarea`                           |
+| `check`    | `kiso/control`  | Check-surface recipe + visually-hidden `input` + `disabled` text.                        | `checkbox`, `radio`                           |
+| `popover`  | `kiso/popover`  | `trigger` / `portal` / `text` / `panel` bundle.                                          | `popover`                                     |
+| `segment`  | `kiso/segment`  | `control` / `item` recipes + `indicator` fragment.                                       | `segment`, `tabs`                             |
+| `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `dialog`, `drawer`, `sheet`                   |
+
+`slider` has no bridge — it's a pure colour bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / select / switch / box) likewise read the bundle from `kiso/<archetype>` without a bridge.
+
+## 5. Rules
+
+- **Never import kiso.** Receive tokens by argument; declare the shape they must satisfy as the bridge's own contract. Any kiso import — value or type — means a token reference leaked into the bridge.
+- **Tokens in, recipe out.** The bridge owns structure (axes, slots, compounds), not data. A class string literal in a bridge belongs in a kiso bundle.
+- **Namespaced access only.** Export bridges through the `bridge` object so kata call sites stay alias-free.
 
 ---
 

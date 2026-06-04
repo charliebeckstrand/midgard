@@ -1,23 +1,28 @@
 /**
- * Panel applicator — slot bundle shared by `dialog`, `drawer`, and
- * `sheet`.
+ * Panel bridge — slot bundle shared by `dialog`, `drawer`, and `sheet`. A
+ * pure bridge: it receives the `panel` token bundle plus the kata's
+ * caller-supplied recipes and stitches them into the standard slot bundle
+ * (title / description / header / body / footer / close), referencing kiso
+ * in neither value nor type.
  *
  * Each kata's panel has its own variant axes (size + surface + side for
  * sheet, surface for drawer, size + surface for dialog), so unlike
- * `control` / `check`, the applicator doesn't own the variants. The
- * kata defines them via its own `defineRecipe` call and hands the result
- * to `panel(...)`, which stitches it into the standard slot bundle
- * (title / description / header / body / footer / close) by composing
- * the panel archetype's `layout` with caller extras.
- *
- * Like `popover` and `segment`, `panel` doesn't fit `defineApplicator`'s
- * shape and hand-rolls — see `katakana/index.ts` for how the three
- * exceptions sit alongside the helper.
+ * `control` / `check` the bridge doesn't own the variants. The kata
+ * defines them via its own `defineRecipe` call and hands the result to
+ * `panel(t, { … })`, which composes the bundle's `layout` with caller
+ * extras.
  */
 
-import { panel as panelFragments } from '../kiso/panel'
-
-const { layout } = panelFragments
+/** The slice of the `panel` token bundle the bridge reads. */
+type PanelTokens = {
+	layout: {
+		title: readonly string[]
+		description: readonly string[]
+		header: string
+		body: readonly string[]
+		footer: readonly string[]
+	}
+}
 
 type Slot = {
 	/** Classes appended after the `panel.layout.*` default for this slot. */
@@ -54,21 +59,16 @@ function toArray(v?: string | string[]): string[] {
 }
 
 /**
- * Build the panel slot bundle.
+ * Build the panel slot bundle from the `panel` tokens and the caller input.
  *
- * `panel` and (optional) `backdrop` are caller-supplied
- * `defineRecipe(...)` results — they carry the kata's variants and stay
- * callable, so consumers keep `VariantProps<typeof result.panel>`
- * inference. The other slots (title, description, header, body, footer,
- * close) are zero-variant class fragments built from the panel archetype's
- * `layout` plus optional caller extras, applied via `cn(...)` at the
- * call site.
- *
- * The function name `panel` collides visually with the field
- * `input.panel`; the JS syntax (parens vs colon) keeps them distinct at
- * call sites.
+ * `panel` and (optional) `backdrop` are caller-supplied `defineRecipe(...)`
+ * results — they carry the kata's variants and stay callable, so consumers
+ * keep `VariantProps<typeof result.panel>` inference. The other slots are
+ * zero-variant class fragments built from the bundle's `layout` plus
+ * optional caller extras.
  */
 export function panel<P, B = undefined>(
+	t: PanelTokens,
 	input: PanelInput<P, B>,
 ): {
 	panel: P
@@ -80,6 +80,8 @@ export function panel<P, B = undefined>(
 	footer: string[]
 	close: string[]
 } {
+	const { layout } = t
+
 	return {
 		panel: input.panel,
 		// `B` defaults to `undefined` when the caller omits backdrop; the

@@ -1,41 +1,50 @@
 /**
- * Popover applicator — floating-overlay archetype shared by `popover`,
- * `combobox`, `listbox`, and `date-picker`. Returns the trigger / portal
- * / text / panel bundle the consumers read.
+ * Popover bridge — floating-overlay archetype shared by `popover`,
+ * `combobox`, `listbox`, and `date-picker`. A pure bridge: it receives the
+ * `popover` token bundle and returns the trigger / portal / text / panel
+ * bundle the consumers read, referencing kiso in neither value nor type.
  *
  * Popover has no variant axis — the bundle is class fragments, not a
- * `defineRecipe(...)` callable — so the applicator hand-rolls instead of
- * routing through `defineApplicator`. It assembles the bundle and lets
- * the kata override the `text` fragment, the only fragment that varies
- * across consumers today.
+ * `defineRecipe(...)` callable. The bridge is generic over the bundle and
+ * annotates its return with the token field types, so the panel slot's
+ * concrete shape (including its motion config) flows through to consumers
+ * without the bridge having to redeclare it. `text` defaults to the
+ * bundle's own `text`, the only fragment a kata overrides today.
  */
 
 import type { ClassValue } from 'clsx'
-import { iro } from '../kiso'
-import { popover as popoverFragments } from '../kiso/popover'
 
-const { text } = iro
-const { trigger, portal, panel } = popoverFragments
+/** The slice of the `popover` token bundle the bridge reads. `panel` is
+ *  opaque to the bridge — it is forwarded untouched, so its concrete type
+ *  rides through the generic rather than being redeclared here. */
+type PopoverTokens = {
+	trigger: ClassValue
+	portal: ClassValue
+	text: ClassValue
+	panel: unknown
+}
 
 type PopoverConfig = {
-	/** Text fragment applied inside the panel. Defaults to `iro.text.default`. */
+	/** Text fragment applied inside the panel. Defaults to the bundle's `text`. */
 	text?: ClassValue
 }
 
 /**
- * Build the kata `k` surface for a popover.
+ * Build the kata `k` surface for a popover from its token bundle.
  *
- * Returns the floating-panel bundle:
  *   - `trigger` — anchor element class
  *   - `portal` — z-stacked portal container
- *   - `text` — body text colour
+ *   - `text` — body text colour (caller override or bundle default)
  *   - `panel` — slot bundle (base, surface, glass, ring, motion)
  */
-export function popover(config: PopoverConfig = {}) {
+export function popover<T extends PopoverTokens>(
+	t: T,
+	config: PopoverConfig = {},
+): { trigger: T['trigger']; portal: T['portal']; text: ClassValue; panel: T['panel'] } {
 	return {
-		trigger,
-		portal,
-		text: config.text ?? text.default,
-		panel,
+		trigger: t.trigger,
+		portal: t.portal,
+		text: config.text ?? t.text,
+		panel: t.panel,
 	}
 }

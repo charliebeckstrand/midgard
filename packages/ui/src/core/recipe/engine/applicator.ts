@@ -1,25 +1,14 @@
 /**
- * Applicator helpers — the types and runtime the katakana layer uses to
- * wrap `defineRecipe` without losing caller-side generic typing.
+ * applyRecipe — the merge helper a katakana bridge calls to fold a kata's
+ * per-call overlay over an archetype's standard config / extras, then hand
+ * the result to `defineRecipe`.
  *
- * An applicator takes an archetype's standard config / extras and folds
- * in a kata's per-call overlays — extra base classes, slots, variant
- * axes, sub-recipes. Spread the caller's generics straight into a
- * `defineRecipe(config, extras)` call and TypeScript loses the key types
- * at the literal-inference step; consumers can't then index into their
- * own slots or axes.
- *
- * `applyRecipe` absorbs the workaround in one place — explicit return
- * type, conditional intersection that folds the empty-overlay case,
- * single cast at the engine boundary. `defineApplicator` bakes an
- * archetype's standard pieces into a ready-to-call applicator; every
- * `defineRecipe`-wrapping katakana entry collapses to a one-liner.
- *
- * Applicator authors derive the empty-overlay prop union via
- * `VariantProps<ApplicatorReturn<typeof standardConfig, typeof
- * standardExtras>>`. `ReturnType<typeof applicator>` widens each generic
- * to its constraint and pollutes the prop union, so reference
- * `ApplicatorReturn` directly.
+ * Spread the caller's generics straight into a `defineRecipe(config,
+ * extras)` call and TypeScript loses the key types at the literal-inference
+ * step; consumers can't then index into their own slots or axes.
+ * `applyRecipe` absorbs the workaround in one place — explicit return type,
+ * conditional intersection that folds the empty-overlay case, single cast
+ * at the engine boundary.
  */
 
 import type { ClassValue } from 'clsx'
@@ -69,18 +58,13 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
 	: Empty
 
 /**
- * The shape `applyRecipe(...)` returns. Applicator authors pin their
- * archetype's empty-overlay variant type against it directly:
- *
- *   export type ControlVariants = VariantProps<
- *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
- *   >
- *
- * `ReturnType<typeof applicator>` widens each generic to its constraint
- * and pollutes the prop union; `ApplicatorReturn` resolves to the
- * empty-overlay shape instead.
+ * The shape `applyRecipe(...)` returns. Merges the standard config / extras
+ * with the caller's overlay / extras and forwards to `Recipe<…>`, folding
+ * the empty-overlay case so a bridge with no overlay doesn't leak a wide
+ * index signature into the prop union. Internal to this module — the bridge
+ * derives its variant types from the concrete `k` at the kata.
  */
-export type ApplicatorReturn<
+type ApplicatorReturn<
 	StandardConfig extends RecipeConfig,
 	StandardExtras extends Record<string, unknown>,
 	Overlay extends ApplicatorOverlay = Empty,
@@ -119,10 +103,6 @@ export type ApplicatorReturn<
  *     still gets a chance to match.
  *   - variant axes (every other top-level key) — shallow merge; caller's
  *     overrides on axis-name conflicts.
- *
- * Prefer `defineApplicator(standard)` for the common `(config, extras)`
- * signature; reach for `applyRecipe` directly only when an applicator
- * needs a non-standard public surface.
  */
 export function applyRecipe<
 	StandardConfig extends RecipeConfig,
@@ -183,40 +163,4 @@ export function applyRecipe<
 		Overlay,
 		CallerExtras
 	>
-}
-
-/**
- * Bake an archetype's standard config / extras into a ready-to-call
- * applicator. The returned function is the public surface a kata imports
- * from `katakana/<archetype>`. Thin wrapper around `applyRecipe` that
- * hides the generic-forwarding boilerplate every `defineRecipe`-wrapping
- * applicator would otherwise repeat.
- *
- * @example
- *   const standardConfig = { … }
- *   const standardExtras = { … }
- *
- *   export const control = defineApplicator({
- *     config: standardConfig,
- *     extras: standardExtras,
- *   })
- *
- *   export type ControlVariants = VariantProps<
- *     ApplicatorReturn<typeof standardConfig, typeof standardExtras>
- *   >
- */
-export function defineApplicator<
-	StandardConfig extends RecipeConfig,
-	StandardExtras extends Record<string, unknown>,
->(standard: {
-	config: StandardConfig
-	extras: StandardExtras
-}): <
-	Overlay extends ApplicatorOverlay = Empty,
-	CallerExtras extends Record<string, unknown> = Empty,
->(
-	config?: Overlay,
-	extras?: CallerExtras,
-) => ApplicatorReturn<StandardConfig, StandardExtras, Overlay, CallerExtras> {
-	return (config, extras) => applyRecipe(standard, config, extras)
 }

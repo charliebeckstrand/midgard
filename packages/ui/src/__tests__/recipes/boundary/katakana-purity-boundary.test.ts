@@ -2,50 +2,48 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// katakana/ is recipe-engine wiring. Every fragment it composes must reach
-// kiso by name — no literal Tailwind class strings live in a katakana file.
-// Detection: scan every single-/double-quoted string literal; flag anything
-// shaped like a Tailwind utility. A utility is either a hyphenated lowercase
-// token (the `bg-white`, `rounded-lg`, `inline-flex`, `flex-1` shape) or one
-// of the bare single-word utilities the library actually uses.
+// katakana/ is the bridge layer. A bridge receives kiso token bundles by
+// argument and wires them into the recipe surface a kata exports; it must
+// not import kiso at all — not even types. Each bridge declares the token
+// shape it needs as its own contract and is generic over the bundle passed
+// in, so the concrete axis keys still flow through to the kata's variant
+// types. Any kiso import — value or type — means a token reference leaked
+// into the bridge instead of being injected by the calling kata.
 
 const katakanaDir = join(__dirname, '../../../recipes/katakana')
 const srcDir = join(__dirname, '../../..')
 
-const TAILWIND_LIKE =
-	/\b(?:[a-z][a-z0-9]*-[a-z0-9]|relative|absolute|fixed|sticky|flex|grid|block|hidden|truncate|isolate)\b/
+// Captures a module specifier. The lazy body stops at the first `from '…'`,
+// so each match spans exactly one import — single- or multi-line, value or
+// type.
+const IMPORT_RE = /import\s+[\s\S]*?from\s+['"]([^'"]+)['"]/g
+
+const KISO_SPECIFIER = /(?:^|\/)kiso(?:\/|$)/
 
 describe('katakana purity boundary', () => {
-	it('katakana files contain no literal Tailwind class strings', () => {
+	it('katakana imports nothing from kiso — not values, not types', () => {
 		const violations: string[] = []
 
 		walk(katakanaDir, (file, content) => {
 			if (!/\.ts$/.test(file)) return
 
-			// Strip comments so JSDoc and inline comments don't trigger the scan.
+			// Strip comments so commented sample imports don't trigger the scan.
 			const stripped = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
 
 			const rel = relative(srcDir, file)
 
-			for (const match of stripped.matchAll(
-				/'([^'\\]*(?:\\.[^'\\]*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"/g,
-			)) {
-				const value = match[1] ?? match[2] ?? ''
+			for (const match of stripped.matchAll(IMPORT_RE)) {
+				const specifier = match[1] ?? ''
 
-				if (!value) continue
-
-				// Module paths and identifier-shaped values are safe.
-				if (value.startsWith('./') || value.startsWith('../')) continue
-
-				if (TAILWIND_LIKE.test(value)) {
-					violations.push(`${rel}: literal ${match[0]}`)
+				if (KISO_SPECIFIER.test(specifier)) {
+					violations.push(`${rel}: imports kiso (${match[0].split('\n')[0]} …)`)
 				}
 			}
 		})
 
 		expect(
 			violations,
-			`katakana files contain literal Tailwind class strings (promote each to a named kiso recipe):\n  ${violations.join('\n  ')}`,
+			`katakana references kiso (declare the token contract in the bridge and inject from the kata instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

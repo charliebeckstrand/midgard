@@ -1,11 +1,12 @@
 import type { VariantProps } from '../../core/recipe'
-import { control } from '../katakana'
+import { bridge } from '../katakana'
 import { kokkaku, sen } from '../kiso'
+import { control } from '../kiso/control'
 
 const { textarea } = kokkaku
 const { border } = sen
 
-export const k = control({
+export const k = bridge.control(control, {
 	base: ['block', 'min-h-10'],
 	resize: {
 		none: 'resize-none',
