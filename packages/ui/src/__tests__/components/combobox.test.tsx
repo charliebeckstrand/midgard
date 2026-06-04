@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
+import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -176,5 +177,49 @@ describe('Combobox', () => {
 		// is that the primitive mounts and the count is bounded.
 		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
 		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
+	})
+})
+
+describe('ComboboxPanel', () => {
+	function renderPanel(onClose: () => void) {
+		return renderUI(
+			<ComboboxPanel
+				id="cb"
+				open
+				editing={false}
+				glass={false}
+				density="md"
+				size="md"
+				floatingStyles={{}}
+				getFloatingProps={() => ({})}
+				optionsRef={null}
+				setFloating={() => {}}
+				scrollToSelected={() => {}}
+				flushPending={() => {}}
+				onClose={onClose}
+			>
+				<div>panel child</div>
+			</ComboboxPanel>,
+		)
+	}
+
+	it('closes on Escape', () => {
+		const onClose = vi.fn()
+
+		renderPanel(onClose)
+
+		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })
+
+		expect(onClose).toHaveBeenCalledTimes(1)
+	})
+
+	it('ignores non-Escape keys', () => {
+		const onClose = vi.fn()
+
+		renderPanel(onClose)
+
+		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'ArrowDown' })
+
+		expect(onClose).not.toHaveBeenCalled()
 	})
 })
