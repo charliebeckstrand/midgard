@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Listbox } from '../../components/listbox'
 import { resolveLabel } from '../../components/listbox/listbox-utilities'
 import { VirtualOptions } from '../../primitives/virtual-options'
@@ -189,6 +189,59 @@ describe('Listbox', () => {
 		const notCancelled = fireEvent.mouseDown(button)
 
 		expect(notCancelled).toBe(true)
+	})
+
+	it('shows a clear button only when clearable and a value is selected', () => {
+		const { container, rerender } = renderUI(
+			<Listbox<string> clearable value="a" displayValue={(v) => v}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
+
+		rerender(
+			<Listbox<string> clearable displayValue={(v) => v}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'suffix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+	})
+
+	it('clears a single selection on clear', () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<Listbox clearable value="a" displayValue={(v) => v} onValueChange={onChange}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const clear = screen.getByRole('button', { name: 'Clear selection' })
+
+		// mousedown is swallowed so the trigger doesn't toggle the listbox open.
+		fireEvent.mouseDown(clear)
+
+		fireEvent.click(clear)
+
+		expect(onChange).toHaveBeenCalledWith(undefined)
+	})
+
+	it('clears a multiple selection to an empty array', () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<Listbox multiple clearable value={['a']} onValueChange={onChange}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenCalledWith([])
 	})
 
 	it('renders the selected value label via displayValue', () => {
