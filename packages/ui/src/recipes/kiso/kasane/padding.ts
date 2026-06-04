@@ -65,7 +65,7 @@ const prStops = {
 	'3.5': 'pr-[calc(--spacing(3.5)-1px)]',
 } as const
 
-export type PadStop = keyof typeof pStops
+type PadStop = keyof typeof pStops
 
 export const padding = {
 	p: (v: PadStop) => pStops[v],

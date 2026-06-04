@@ -51,7 +51,7 @@ const roStops = {
 	'3': 'after:rounded-[--spacing(3)]',
 } as const
 
-export type RadiusStop = keyof typeof rStops
+type RadiusStop = keyof typeof rStops
 
 export const radius = {
 	r: (v: RadiusStop) => rStops[v],
