@@ -6,6 +6,7 @@ import {
 	SidebarLayoutFooter,
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
+import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('SidebarLayout', () => {
@@ -210,6 +211,74 @@ describe('SidebarLayout floating mode', () => {
 		const sidebars = screen.getAllByText('floating-sidebar')
 
 		expect(sidebars.length).toBeGreaterThan(0)
+	})
+
+	it('keeps the sheet open while the pointer moves across the sheet and the right-edge buffer', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		fireEvent.pointerEnter(hotZone)
+
+		const inner = screen.getByText('floating-sidebar').parentElement as HTMLElement
+
+		// Hovering the sheet body itself keeps it open.
+		fireEvent.pointerEnter(inner)
+
+		const buffer = document.body.querySelector('[class*="left-80"]') as HTMLElement
+
+		expect(buffer).toBeInTheDocument()
+
+		// Crossing into the buffer keeps it open; leaving the sheet entirely closes it.
+		fireEvent.pointerEnter(buffer)
+
+		fireEvent.pointerLeave(inner)
+
+		expect(screen.queryByText('floating-sidebar')).not.toBeInTheDocument()
+
+		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
+	})
+
+	it('closes when the pointer leaves the right-edge buffer', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		fireEvent.pointerEnter(hotZone)
+
+		const buffer = document.body.querySelector('[class*="left-80"]') as HTMLElement
+
+		expect(buffer).toBeInTheDocument()
+
+		fireEvent.pointerLeave(buffer)
+
+		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
+	})
+
+	it('scales the mobile navbar padding to the ambient density', () => {
+		const { container: small } = renderUI(
+			<Density size="sm">
+				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
+			</Density>,
+		)
+
+		expect(small.querySelector('[class~="lg:hidden"]')?.className).toContain('p-4')
+
+		const { container: large } = renderUI(
+			<Density size="lg">
+				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
+			</Density>,
+		)
+
+		expect(large.querySelector('[class~="lg:hidden"]')?.className).toContain('p-8')
 	})
 
 	it('resets the floating sheet to closed when floating flips off', () => {
