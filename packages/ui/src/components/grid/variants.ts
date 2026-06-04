@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { Ma } from '../../recipes'
+import { k } from '../../recipes/kata/grid'
 import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
 export type { Responsive }
@@ -80,13 +81,7 @@ const rows: ClassMap = {
 	'2xl': '2xl:grid-rows-[repeat(var(--rows-2xl),minmax(0,1fr))]',
 }
 
-const gapMap = {
-	xs: 'gap-1',
-	sm: 'gap-2',
-	md: 'gap-3',
-	lg: 'gap-4',
-	xl: 'gap-6',
-} as const satisfies Record<GridGap, string>
+const gapMap = k.gap
 
 const span: ClassMap = {
 	initial: 'col-span-(--span)',
