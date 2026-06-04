@@ -195,6 +195,7 @@ export function Listbox<T>({
 					ref={triggerRef}
 					open={open}
 					controlsId={listboxId}
+					describedBy={control?.describedBy}
 					disabled={resolvedDisabled}
 					invalid={control?.invalid}
 					label={label}

@@ -1,8 +1,12 @@
 import { act } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { Combobox } from '../../components/combobox'
+import { DatePicker } from '../../components/date-picker'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
+import { Listbox } from '../../components/listbox'
+import { Select } from '../../components/select'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
@@ -298,4 +302,49 @@ describe('Field aria-describedby', () => {
 
 		expect(input).toHaveAttribute('aria-describedby', `external ${description.id}`)
 	})
+})
+
+describe('Field aria-describedby — composite triggers', () => {
+	const cases: Array<[string, React.ReactNode, string]> = [
+		[
+			'Listbox',
+			<Listbox key="lb">
+				<div>Option</div>
+			</Listbox>,
+			'listbox-button',
+		],
+		[
+			'Combobox',
+			<Combobox key="cb">
+				<div>Option</div>
+			</Combobox>,
+			'combobox-input',
+		],
+		[
+			'Select',
+			<Select key="sel">
+				<div>Option</div>
+			</Select>,
+			'listbox-button',
+		],
+		['DatePicker', <DatePicker key="dp" />, 'datepicker-button'],
+	]
+
+	for (const [name, node, triggerSlot] of cases) {
+		it(`points the ${name} trigger at a rendered Description`, () => {
+			const { container } = renderUI(
+				<Field>
+					{node}
+					<Description>Hint</Description>
+				</Field>,
+			)
+
+			const trigger = bySlot(container, triggerSlot) as HTMLElement
+			const description = bySlot(container, 'description') as HTMLElement
+
+			expect(description.id).toBeTruthy()
+
+			expect(trigger).toHaveAttribute('aria-describedby', description.id)
+		})
+	}
 })

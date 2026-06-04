@@ -163,6 +163,7 @@ export function useDatePickerRangeState({
 
 	return {
 		triggerId: scope.id,
+		describedBy: control?.describedBy,
 		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,
 		onOpenChange: handleOpenChange,

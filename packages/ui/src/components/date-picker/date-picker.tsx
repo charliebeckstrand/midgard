@@ -87,6 +87,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				open={state.open}
 				onOpenChange={state.onOpenChange}
 				triggerId={state.triggerId}
+				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
 				displayValue={state.displayValue}
