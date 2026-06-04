@@ -15,4 +15,6 @@ export const bg = {
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
+	/** Code-block canvas — matches the shiki `github-dark` theme; fixed across colour modes. */
+	code: 'bg-[#0d1117]',
 } as const
