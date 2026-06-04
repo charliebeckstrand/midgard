@@ -4,13 +4,13 @@
 
 ## 1. Boundary
 
-`kata/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers**: every value a component or primitive reads from the design system flows through its kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden — shared concerns promote either to a katakana applicator (function-shaped, for archetype members) or to a kiso archetype sub-folder (raw fragments, for cross-archetype sharing). The contract is pinned by `src/__tests__/recipes/boundary/recipe-boundary.test.ts`, `src/__tests__/components/boundary/component-recipe-boundary.test.ts`, and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
+`kata/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers**: every value a component or primitive reads from the design system flows through its kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden — shared concerns promote to katakana: a full applicator for kata that consume a whole archetype, or a fragment subset reach for kata that need only part of one. The contract is pinned by `src/__tests__/recipes/boundary/recipe-boundary.test.ts`, `src/__tests__/components/boundary/component-recipe-boundary.test.ts`, and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
 
 A kata reaches the layers below in one of three ways:
 
 - **Through a katakana applicator** (`from '../katakana'`) when the kata matches an archetype shape (input, textarea, checkbox, dialog, …). The applicator owns the variant axes and the standard slot wiring.
 - **Through `defineRecipe` directly** (`from '../../core/recipe'`) when the kata doesn't fit any archetype (button, alert, card, code, …).
-- **Through `kiso/<archetype>` directly** when the kata needs a subset of an archetype's fragments without the full chrome (combobox / listbox / date-picker use control's input / density / size; slider / slider-range share the slider colour table).
+- **Through `katakana/<archetype>` directly** when the kata needs a subset of an archetype's fragments without the full chrome (combobox / listbox / date-picker use control's input / density / size; dialog / drawer / sheet / box use panel's surface / layout; slider / slider-range share the slider colour table).
 
 All three reaches compose [`kiso/`](../kiso/README.md) freely for substrate tokens.
 
@@ -42,12 +42,12 @@ Several kata share archetypes that live in [`katakana/`](../katakana/README.md).
 | Segment | `segment`, `tabs` (via `k.segment`)                                                                      | `katakana.segment` — control + item recipes + indicator fragment.                                                                     |
 | Panel   | `dialog`, `drawer`, `sheet`                                                                              | `katakana.panel` — wraps caller-supplied `panel` (and optional `backdrop`) recipes with the standard title / description / header / body / actions / close slot bundle. |
 
-Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / select — control's input / density / size without the full chrome) reach `kiso/<archetype>` directly. See the [katakana](../katakana/README.md) and [kiso](../kiso/README.md) READMEs for the full archetype contracts.
+Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / select — control's input / density / size without the full chrome) reach `katakana/<archetype>` directly. See the [katakana](../katakana/README.md) and [kiso](../kiso/README.md) READMEs for the full archetype contracts.
 
 ## 4. Rules
 
 - **Compose, don't redefine.** A kata that reinvents a recipe already in a katakana applicator or in `kiso/` is a defect — fold it into the existing module.
-- **No sideways imports.** Kata never import from sibling kata. Shared concerns promote to katakana (function-shaped, for archetype members) or to a kiso archetype sub-folder (raw fragments, for cross-archetype sharing). `import { k as <name> }` in a component is a signal the archetype belongs in katakana.
+- **No sideways imports.** Kata never import from sibling kata. Shared concerns promote to katakana — a full applicator for kata that consume a whole archetype, or a fragment subset reach for kata that need only part of one. `import { k as <name> }` in a component is a signal the archetype belongs in katakana.
 - **Variants earn their axis.** Add a variant axis when ≥2 components or call sites need it. Single-use variants stay inline.
 
 ---

@@ -44,9 +44,8 @@
 
 Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
 
-- **Kiso** (substrate tokens)
-- **Genkei** (archetype fragments)
-- **Katakana** (applicators)
+- **Kiso** (atomic substrate tokens)
+- **Katakana** (archetypes — shared fragments plus their applicators)
 - **Kata** (per-component recipe)
 
 A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props.
