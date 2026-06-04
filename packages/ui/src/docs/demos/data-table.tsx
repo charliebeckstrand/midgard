@@ -218,7 +218,7 @@ export function Demo() {
 				<DataTable columns={columns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
-			<Example title="Column Manager">
+			<Example title="Column manager">
 				<ColumnManagerExample />
 			</Example>
 		</>

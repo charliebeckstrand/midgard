@@ -79,7 +79,7 @@ export function Demo() {
 				</Field>
 			</Example>
 
-			<Example title="Readonly">
+			<Example title="Read-only">
 				<Field>
 					<Label>Readonly</Label>
 					<Input readOnly placeholder="Readonly" />

@@ -53,7 +53,7 @@ export function Demo() {
 				</Field>
 			</Example>
 
-			<Example title="Readonly">
+			<Example title="Read-only">
 				<Field>
 					<Label>Readonly</Label>
 					<PasswordInput readOnly defaultValue="hunter2" />

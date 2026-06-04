@@ -1,18 +1,20 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import type { ComponentPropsWithoutRef, ComponentType, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
 
-const DEFAULT_CHECK_ICON = (
-	<Check
-		aria-hidden="true"
-		data-slot="icon"
-		className="size-5 relative hidden self-center text-green-600 group-data-selected/option:inline"
-	/>
-)
+// Mirrors `<Icon>`'s size scale for the Density steps an option row can carry.
+// Kept local so the primitive stays density-aware without importing `<Icon>`
+// from `components/` (which would invert the primitive → component layering).
+const checkIconSize: Record<Step, string> = {
+	sm: 'size-4',
+	md: 'size-5',
+	lg: 'size-6',
+}
 
 type BaseOptionProps = {
 	className?: string
@@ -46,7 +48,16 @@ export function BaseOption({
 
 	const sharedClasses = cn(k.content)
 
-	const checkIcon = icon ?? DEFAULT_CHECK_ICON
+	const checkIcon = icon ?? (
+		<Check
+			aria-hidden="true"
+			data-slot="icon"
+			className={cn(
+				'relative hidden shrink-0 self-center text-green-600 group-data-selected/option:inline',
+				checkIconSize[size],
+			)}
+		/>
+	)
 
 	return (
 		<div
@@ -105,15 +116,12 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /**
  * Factory for select-like option components. Consumers supply the data-slot
- * prefix, the context hook, and optionally a `CheckIcon` component for the
- * selected-state indicator.
+ * prefix and the context hook.
  *
- * `CheckIcon` is the architectural escape hatch: primitives can't import
- * `<Icon>` (or anything else from `components/`), but a select-like option
- * needs a size-aware check icon. Consumers in `components/` instantiate the
- * factory with a `CheckIcon` that internally uses `<Icon>` to read its size
- * cascade. When omitted, the primitive falls back to a static lucide `<Check>`
- * so direct callers still render something sensible.
+ * The selected-state check icon is owned by `BaseOption`, which reads the
+ * ambient Density to size it. Per-option `icon` still overrides it. This keeps
+ * the primitive self-contained — no `<Icon>` import from `components/`, which
+ * would invert the primitive → component layering.
  */
 export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string
@@ -122,7 +130,6 @@ export function createSelectOption<TValue = unknown>(config: {
 		multiple?: boolean
 		onSelect: (value: TValue) => void
 	}
-	CheckIcon?: ComponentType
 }) {
 	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect } = config.useContext()
@@ -132,13 +139,11 @@ export function createSelectOption<TValue = unknown>(config: {
 				? selectedValue.includes(value)
 				: selectedValue === value
 
-		const resolvedIcon = icon ?? (config.CheckIcon ? <config.CheckIcon /> : undefined)
-
 		return (
 			<BaseOption
 				selected={selected}
 				disabled={disabled}
-				icon={resolvedIcon}
+				icon={icon}
 				onSelect={() => onSelect(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
