@@ -7,11 +7,7 @@ import { k } from '../../recipes/kata/toast'
 import { Alert } from '../alert'
 
 function getToastMotion(position: ToastPosition) {
-	if (position.startsWith('bottom')) return k.motion.bottom
-	if (position.startsWith('top')) return k.motion.top
-	if (position.endsWith('right')) return k.motion.right
-
-	return k.motion.left
+	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
 const severityAlertMap: Record<
