@@ -1,2 +1,2 @@
 export { useLink } from '../../primitives/link'
-export { LinkProvider } from './link-provider'
+export { LinkProvider } from './link'
