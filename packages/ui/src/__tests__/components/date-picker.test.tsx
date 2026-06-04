@@ -192,6 +192,7 @@ describe('DatePicker', () => {
 		await user.keyboard('{Escape}')
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+
 		expect(button).toHaveFocus()
 	})
 
@@ -213,6 +214,7 @@ describe('DatePicker', () => {
 		await user.click(day)
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+
 		expect(button).toHaveFocus()
 	})
 
