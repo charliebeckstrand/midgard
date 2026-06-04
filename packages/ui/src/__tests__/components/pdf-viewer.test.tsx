@@ -314,6 +314,60 @@ describe('printPdf', () => {
 
 		appendChild.mockRestore()
 	})
+
+	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
+
+		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		expect(win.focus).toHaveBeenCalled()
+
+		expect(win.print).toHaveBeenCalled()
+
+		expect(win.addEventListener).toHaveBeenCalledWith('afterprint', expect.any(Function))
+
+		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
+		expect(iframe.parentNode).not.toBeNull()
+
+		iframe.remove()
+		appendChild.mockRestore()
+	})
+
+	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
+		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		const win = {
+			addEventListener: vi.fn(),
+			focus: vi.fn(),
+			print: vi.fn(() => {
+				throw new Error('print blocked')
+			}),
+		}
+
+		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		expect(open).toHaveBeenCalledWith('/doc.pdf', '_blank', 'noopener,noreferrer')
+
+		expect(iframe.parentNode).toBeNull()
+
+		open.mockRestore()
+		appendChild.mockRestore()
+	})
 })
 
 describe('PdfViewerZoomControls', () => {
