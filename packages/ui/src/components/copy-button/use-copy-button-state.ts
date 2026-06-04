@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAnnounce } from '../../hooks'
+import { useAnnounce } from '../../providers/announcer'
 
 type UseCopyStateOptions = {
 	value: string

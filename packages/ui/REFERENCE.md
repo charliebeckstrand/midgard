@@ -38,7 +38,7 @@
 
 **Primitives** (`ui/primitives/<name>`) — `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
+**Providers** (`ui/providers/<name>`) — `announcer`, `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
 
 ## 3. Recipes
 
