@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -28,6 +28,9 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	const { component: LinkComponent } = useLink()
 
+	// Stable id so the input's aria-activedescendant can point at the active item.
+	const itemId = useId()
+
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
 	function handleSelect() {
@@ -52,6 +55,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 		return (
 			<LinkComponent
+				id={itemId}
 				role="option"
 				tabIndex={-1}
 				data-slot="command-palette-item"
@@ -77,6 +81,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	return (
 		<button
 			type="button"
+			id={itemId}
 			role="option"
 			tabIndex={-1}
 			data-slot="command-palette-item"
