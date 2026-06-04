@@ -1,2 +1,2 @@
 export { buildApi } from './engine'
-export type { ComponentApi, PassThrough, PropDef } from './types'
+export type { ComponentApi } from './types'

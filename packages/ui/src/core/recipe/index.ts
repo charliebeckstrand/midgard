@@ -1,4 +1,4 @@
-export { type Color, colors } from './colors'
+export type { Color } from './colors'
 export * from './engine'
 export { merge } from './merge'
 export { defineColors, mode } from './mode'
