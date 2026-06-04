@@ -4,7 +4,7 @@ import {
 	type DataTableColumnManagerItem,
 } from '../../components/data-table'
 import { DataTableColumnManagerDialog } from '../../components/data-table/data-table-column-manager-dialog'
-import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const columns: DataTableColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: true },
@@ -51,6 +51,26 @@ describe('DataTableColumnManager', () => {
 		const checkbox = screen.getByRole('checkbox', { name: /Name \(pinned\)/ })
 
 		expect(checkbox).toBeDisabled()
+	})
+
+	it('reorders an orderable column via the keyboard, keeping pinned columns first', () => {
+		const onOrderChange = vi.fn()
+
+		const { container } = renderUI(
+			<DataTableColumnManager columns={columns} onOrderChange={onOrderChange} />,
+		)
+
+		// Items render pinned-list first, then the orderable list: [name, email, role].
+		const email = allBySlot(container, 'list-item')[1] as HTMLElement
+
+		email.focus()
+
+		// Space lifts, ArrowDown moves the lifted item down and commits the reorder.
+		fireEvent.keyDown(email, { key: ' ' })
+
+		fireEvent.keyDown(email, { key: 'ArrowDown' })
+
+		expect(onOrderChange).toHaveBeenCalledWith(['name', 'role', 'email'])
 	})
 
 	it('renders a save-preset button only when onSavePreset is provided', () => {
