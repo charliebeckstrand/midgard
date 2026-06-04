@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, PointerEvent, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
@@ -114,13 +114,6 @@ export function Button({
 		</AffixContext>
 	)
 
-	const handlePointerDown = (e: PointerEvent<HTMLElement>) => {
-		const consumerHandler = (props as { onPointerDown?: (e: PointerEvent<HTMLElement>) => void })
-			.onPointerDown
-
-		consumerHandler?.(e)
-	}
-
 	if (href !== undefined) {
 		return (
 			<ReducedMotion>
@@ -137,7 +130,6 @@ export function Button({
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
 						{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
-						onPointerDown={handlePointerDown}
 					>
 						<TouchTarget>{content}</TouchTarget>
 					</Link>
@@ -167,7 +159,6 @@ export function Button({
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}
 				aria-busy={loading || undefined}
-				onPointerDown={handlePointerDown}
 			>
 				<TouchTarget>{content}</TouchTarget>
 			</motion.button>
