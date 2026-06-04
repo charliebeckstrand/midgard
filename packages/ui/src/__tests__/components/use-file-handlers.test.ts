@@ -85,6 +85,29 @@ describe('useFileUploadHandlers', () => {
 		expect(onFiles).toHaveBeenCalledWith([file])
 	})
 
+	it('handleChange resets the input value so the same file can be reselected', () => {
+		const onFiles = vi.fn()
+
+		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+
+		// A native file input does not fire `change` when the chosen file matches
+		// its current value, so the value must be cleared after each selection.
+		const target = {
+			files: makeFileList([makeFile()]),
+			value: 'C:\\fakepath\\a.txt',
+		} as unknown as HTMLInputElement
+
+		const event = makeChangeEvent<HTMLInputElement>({ target })
+
+		act(() => {
+			result.current.handleChange(event)
+		})
+
+		expect(onFiles).toHaveBeenCalledTimes(1)
+
+		expect(target.value).toBe('')
+	})
+
 	it('handleChange is a no-op when target.files is null', () => {
 		const onFiles = vi.fn()
 
