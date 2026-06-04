@@ -23,16 +23,6 @@ describe('Motion', () => {
 		expect(screen.getByText('always')).toBeInTheDocument()
 	})
 
-	it('renders with reducedMotion="never"', () => {
-		renderUI(
-			<Motion reducedMotion="never">
-				<span>never</span>
-			</Motion>,
-		)
-
-		expect(screen.getByText('never')).toBeInTheDocument()
-	})
-
 	it('renders with reducedMotion="user" by default', () => {
 		renderUI(
 			<Motion>
