@@ -6,7 +6,7 @@
  * different surfaces — so the table lives here rather than forking across
  * kata.
  *
- * Layer: katakana · Archetype: slider · Concern: color
+ * Layer: kiso · Archetype: slider · Concern: color
  */
 
 export const color = {

@@ -2,10 +2,10 @@
  * Control archetype — size axis. Text + icon dimension; padding lives in
  * `density`.
  *
- * Layer: katakana · Archetype: control · Concern: size
+ * Layer: kiso · Archetype: control · Concern: size
  */
 
-import { ji } from '../../kiso/ji'
+import { ji } from '../ji'
 
 export const size = {
 	sm: ji.size.sm,

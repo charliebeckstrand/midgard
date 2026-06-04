@@ -3,11 +3,11 @@
  * user-input element. Group-join behaviour comes from the `tsunagi` classes
  * on the enclosing `<Group>` container — the frame just carries kasane chrome.
  *
- * Layer: katakana · Archetype: control · Concern: frame
+ * Layer: kiso · Archetype: control · Concern: frame
  */
 
-import { kasane } from '../../kiso/kasane'
-import { narabi } from '../../kiso/narabi'
+import { kasane } from '../kasane'
+import { narabi } from '../narabi'
 
 const { layers } = kasane
 const { flex } = narabi

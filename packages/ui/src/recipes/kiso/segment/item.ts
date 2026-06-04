@@ -2,14 +2,14 @@
  * Segment archetype — per-segment item. Layout, focus chrome, disabled
  * and cursor states, sized by the same axis as the outer control.
  *
- * Layer: katakana · Archetype: segment · Concern: item
+ * Layer: kiso · Archetype: segment · Concern: item
  */
 
-import { hannou } from '../../kiso/hannou'
-import { ji } from '../../kiso/ji'
-import { kasane } from '../../kiso/kasane'
-import { narabi } from '../../kiso/narabi'
-import { sen } from '../../kiso/sen'
+import { hannou } from '../hannou'
+import { ji } from '../ji'
+import { kasane } from '../kasane'
+import { narabi } from '../narabi'
+import { sen } from '../sen'
 
 const { cursor, disabled } = hannou
 const { size, weight } = ji

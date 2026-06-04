@@ -2,15 +2,15 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// kiso/ holds the atomic utility-class concerns of the design system (iro,
-// ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki, shaku,
-// kokkaku). Archetype fragments shared by ≥2 kata live one tier up in
-// katakana/<archetype>. kiso sits at the bottom of the recipe stack and must
-// stay there: kiso modules may compose siblings within kiso, but reaching
-// upward into katakana, kata, components, layouts, primitives, hooks, or
-// providers would invert the dependency direction (katakana imports from
-// kiso; the reverse creates a cycle) or pull stateful React context into the
-// recipe substrate.
+// kiso/ holds the design-system tokens — both the primitive atomic concerns
+// (iro, ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
+// shaku, kokkaku) and the semantic archetype bundles (control, popover,
+// segment, panel, slider) composed from them. kiso sits at the bottom of the
+// recipe stack and must stay there: kiso modules may compose siblings within
+// kiso, but reaching upward into katakana, kata, components, layouts,
+// primitives, hooks, or providers would invert the dependency direction
+// (kata reads kiso; the reverse creates a cycle) or pull stateful React
+// context into the recipe substrate.
 //
 // The internal consumers of each kiso module are documented per-module in
 // recipes/kiso/README.md; pinning that richer contract statically would

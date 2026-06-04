@@ -31,7 +31,7 @@ import {
 	type VariantProps,
 } from '../../../core/recipe'
 import { hannou } from '../../kiso'
-import { control as controlFragments } from '.'
+import { control as controlFragments } from '../../kiso/control'
 
 const { fg } = hannou
 const { input, density, size, surface, affix, resets, check: checkFragments } = controlFragments

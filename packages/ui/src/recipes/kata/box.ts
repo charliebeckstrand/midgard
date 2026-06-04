@@ -1,5 +1,5 @@
-import { panel } from '../katakana/panel'
 import { omote, sen } from '../kiso'
+import { panel } from '../kiso/panel'
 
 const { bg, popover, glass } = omote
 const { outline } = sen

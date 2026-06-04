@@ -3,12 +3,12 @@
  * segment items and the sliding indicator. The size axis sets the padding
  * and the gap between items.
  *
- * Layer: katakana · Archetype: segment · Concern: control
+ * Layer: kiso · Archetype: segment · Concern: control
  */
 
-import { kasane } from '../../kiso/kasane'
-import { narabi } from '../../kiso/narabi'
-import { omote } from '../../kiso/omote'
+import { kasane } from '../kasane'
+import { narabi } from '../narabi'
+import { omote } from '../omote'
 
 const { rounded } = kasane
 const { flex } = narabi

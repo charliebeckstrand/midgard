@@ -1,3 +1,3 @@
-import { panel } from '../katakana/panel'
+import { panel } from '../kiso/panel'
 
 export const k = panel.layout

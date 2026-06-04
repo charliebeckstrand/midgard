@@ -1,7 +1,7 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { panel as panelApplicator } from '../katakana'
-import { panel } from '../katakana/panel'
 import { iro, kasane, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
 
 const { text } = iro
 const { rounded } = kasane

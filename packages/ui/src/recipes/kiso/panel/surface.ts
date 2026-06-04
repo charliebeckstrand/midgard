@@ -4,11 +4,11 @@
  * a kata can take the chrome (ring + forced-colour outline) without the
  * fill, or the fill without the chrome.
  *
- * Layer: katakana · Archetype: panel · Concern: surface
+ * Layer: kiso · Archetype: panel · Concern: surface
  */
 
-import { omote } from '../../kiso/omote'
-import { sen } from '../../kiso/sen'
+import { omote } from '../omote'
+import { sen } from '../sen'
 
 const { bg } = omote
 const { ring, forced } = sen

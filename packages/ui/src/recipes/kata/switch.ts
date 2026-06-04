@@ -1,6 +1,6 @@
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { control } from '../katakana/control'
 import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
+import { control } from '../kiso/control'
 
 const { cursor, fg } = hannou
 const { rounded } = kasane

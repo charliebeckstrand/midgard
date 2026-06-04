@@ -10,10 +10,10 @@
  * chrome on the wrapping frame carries the matching radius. Gap = py/2 at
  * every step (rounded to the spacing scale).
  *
- * Layer: katakana · Archetype: control · Concern: density
+ * Layer: kiso · Archetype: control · Concern: density
  */
 
-import { kasane } from '../../kiso/kasane'
+import { kasane } from '../kasane'
 
 const { padding, radius, gap } = kasane
 

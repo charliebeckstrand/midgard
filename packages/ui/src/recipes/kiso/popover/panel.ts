@@ -4,14 +4,14 @@
  * mirror the kata slot layout so consumers can destructure and pass
  * through unchanged.
  *
- * Layer: katakana · Archetype: popover · Concern: panel
+ * Layer: kiso · Archetype: popover · Concern: panel
  */
 
-import { hannou } from '../../kiso/hannou'
-import { kasane } from '../../kiso/kasane'
-import { omote } from '../../kiso/omote'
-import { sen } from '../../kiso/sen'
-import { ugoki } from '../../kiso/ugoki'
+import { hannou } from '../hannou'
+import { kasane } from '../kasane'
+import { omote } from '../omote'
+import { sen } from '../sen'
+import { ugoki } from '../ugoki'
 
 const { cursor } = hannou
 const { rounded } = kasane
