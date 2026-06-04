@@ -12,5 +12,3 @@ export const panel = {
 	surface,
 	layout,
 } as const
-
-export type Panel = typeof panel

@@ -4,24 +4,24 @@ import { describe, expect, it } from 'vitest'
 
 // katakana/ is the bridge layer. A bridge receives kiso token bundles by
 // argument and wires them into the recipe surface a kata exports; it must
-// not import kiso *values*. Type-only imports (`import type { … } from
-// '../kiso/…'`) are allowed — they carry the token shape, erase at compile
-// time, and create no runtime dependency. A value import from kiso means
-// token data leaked into the bridge instead of being injected by the
-// calling kata, collapsing the layer the bridge is meant to keep separate.
+// not import kiso at all — not even types. Each bridge declares the token
+// shape it needs as its own contract and is generic over the bundle passed
+// in, so the concrete axis keys still flow through to the kata's variant
+// types. Any kiso import — value or type — means a token reference leaked
+// into the bridge instead of being injected by the calling kata.
 
 const katakanaDir = join(__dirname, '../../../recipes/katakana')
 const srcDir = join(__dirname, '../../..')
 
-// Captures whether an import statement is `import type` and its module
-// specifier. Lazy body stops at the first `from '…'`, so each match spans
-// exactly one import — single- or multi-line.
-const IMPORT_RE = /import\s+(type\s+)?[\s\S]*?from\s+['"]([^'"]+)['"]/g
+// Captures a module specifier. The lazy body stops at the first `from '…'`,
+// so each match spans exactly one import — single- or multi-line, value or
+// type.
+const IMPORT_RE = /import\s+[\s\S]*?from\s+['"]([^'"]+)['"]/g
 
 const KISO_SPECIFIER = /(?:^|\/)kiso(?:\/|$)/
 
 describe('katakana purity boundary', () => {
-	it('katakana imports no kiso values — only type-only kiso imports are allowed', () => {
+	it('katakana imports nothing from kiso — not values, not types', () => {
 		const violations: string[] = []
 
 		walk(katakanaDir, (file, content) => {
@@ -33,20 +33,17 @@ describe('katakana purity boundary', () => {
 			const rel = relative(srcDir, file)
 
 			for (const match of stripped.matchAll(IMPORT_RE)) {
-				const isTypeOnly = Boolean(match[1])
-				const specifier = match[2] ?? ''
+				const specifier = match[1] ?? ''
 
-				if (!KISO_SPECIFIER.test(specifier)) continue
-
-				if (!isTypeOnly) {
-					violations.push(`${rel}: value import from kiso (${match[0].split('\n')[0]} …)`)
+				if (KISO_SPECIFIER.test(specifier)) {
+					violations.push(`${rel}: imports kiso (${match[0].split('\n')[0]} …)`)
 				}
 			}
 		})
 
 		expect(
 			violations,
-			`katakana value-imports kiso (inject the tokens from the kata instead):\n  ${violations.join('\n  ')}`,
+			`katakana references kiso (declare the token contract in the bridge and inject from the kata instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

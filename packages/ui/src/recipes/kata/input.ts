@@ -1,3 +1,4 @@
+import type { VariantProps } from '../../core/recipe'
 import { katakana } from '../katakana'
 import { iro } from '../kiso'
 import { control } from '../kiso/control'
@@ -11,4 +12,4 @@ export const k = katakana.control(control, {
 	},
 })
 
-export type { ControlVariants as InputVariants } from '../katakana'
+export type InputVariants = VariantProps<typeof k>

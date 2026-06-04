@@ -2,16 +2,27 @@
  * Popover bridge — floating-overlay archetype shared by `popover`,
  * `combobox`, `listbox`, and `date-picker`. A pure bridge: it receives the
  * `popover` token bundle and returns the trigger / portal / text / panel
- * bundle the consumers read, importing nothing from kiso.
+ * bundle the consumers read, referencing kiso in neither value nor type.
  *
  * Popover has no variant axis — the bundle is class fragments, not a
- * `defineRecipe(...)` callable. The bridge assembles the bundle and lets
- * the kata override the `text` fragment, the only fragment that varies
- * across consumers today; it defaults to the bundle's own `text`.
+ * `defineRecipe(...)` callable. The bridge is generic over the bundle and
+ * annotates its return with the token field types, so the panel slot's
+ * concrete shape (including its motion config) flows through to consumers
+ * without the bridge having to redeclare it. `text` defaults to the
+ * bundle's own `text`, the only fragment a kata overrides today.
  */
 
 import type { ClassValue } from 'clsx'
-import type { Popover } from '../kiso/popover'
+
+/** The slice of the `popover` token bundle the bridge reads. `panel` is
+ *  opaque to the bridge — it is forwarded untouched, so its concrete type
+ *  rides through the generic rather than being redeclared here. */
+type PopoverTokens = {
+	trigger: ClassValue
+	portal: ClassValue
+	text: ClassValue
+	panel: unknown
+}
 
 type PopoverConfig = {
 	/** Text fragment applied inside the panel. Defaults to the bundle's `text`. */
@@ -26,7 +37,10 @@ type PopoverConfig = {
  *   - `text` — body text colour (caller override or bundle default)
  *   - `panel` — slot bundle (base, surface, glass, ring, motion)
  */
-export function popover(t: Popover, config: PopoverConfig = {}) {
+export function popover<T extends PopoverTokens>(
+	t: T,
+	config: PopoverConfig = {},
+): { trigger: T['trigger']; portal: T['portal']; text: ClassValue; panel: T['panel'] } {
 	return {
 		trigger: t.trigger,
 		portal: t.portal,

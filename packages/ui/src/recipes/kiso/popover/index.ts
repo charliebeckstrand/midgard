@@ -17,5 +17,3 @@ export const popover = {
 	text: iro.text.default,
 	panel,
 } as const
-
-export type Popover = typeof popover

@@ -2,8 +2,8 @@
  * Control bridge — the Control family archetype (text-input + check
  * branches). A pure bridge: it receives the `control` token bundle from
  * the calling kata and wires it into a recipe surface, importing only the
- * recipe engine. It never imports kiso values — token shapes flow in by
- * type, the data by argument.
+ * recipe engine. It declares the token shape it needs as its own contract
+ * (`ControlTokens`) — katakana references kiso in neither value nor type.
  *
  * `control(t, overlay)` covers `input`, `textarea`, `listbox`, `combobox`,
  * `date-picker`: kata that frame a user-input element with the library's
@@ -23,19 +23,27 @@
  * only `check.hidden` and uses `defineRecipe` directly.
  */
 
-import {
-	type ApplicatorReturn,
-	applyRecipe,
-	defineRecipe,
-	type RecipeConfig,
-	type VariantProps,
-} from '../../core/recipe'
-import type { Control } from '../kiso/control'
+import type { ClassValue } from 'clsx'
+import { applyRecipe, defineRecipe, type RecipeConfig } from '../../core/recipe'
 
 type Empty = Record<never, never>
 
+/** Density / size step keys — mirrors the kiso `sun` step scale. */
+type Step = 'sm' | 'md' | 'lg'
+
+/** The slice of the `control` token bundle the bridges read. */
+type ControlTokens = {
+	input: ClassValue
+	density: Record<Step, ClassValue>
+	size: Record<Step, ClassValue>
+	resets: { number: ClassValue }
+	surface: { default: ClassValue; glass: ClassValue }
+	affix: { prefix: Record<Step, ClassValue>; suffix: Record<Step, ClassValue> }
+	check: { base: ClassValue; hidden: ClassValue; disabled: ClassValue }
+}
+
 /** The standard control config / extras, built from the supplied tokens. */
-function controlStandard(t: Control) {
+function controlStandard(t: ControlTokens) {
 	return {
 		config: {
 			base: t.input,
@@ -66,28 +74,17 @@ function controlStandard(t: Control) {
 	}
 }
 
-type ControlStd = ReturnType<typeof controlStandard>
-
 export function control<
 	Overlay extends RecipeConfig = Empty,
 	Extras extends Record<string, unknown> = Empty,
->(t: Control, overlay?: Overlay, extras?: Extras) {
+>(t: ControlTokens, overlay?: Overlay, extras?: Extras) {
 	return applyRecipe(controlStandard(t), overlay, extras)
 }
-
-/**
- * Prop union of the outer-frame recipe for a kata with no extra axes.
- * Kata that add axes (e.g. `textarea`'s `resize`) derive their own
- * variant type via `VariantProps<typeof k>`.
- */
-export type ControlVariants = VariantProps<
-	ApplicatorReturn<ControlStd['config'], ControlStd['extras']>
->
 
 export function check<
 	Overlay extends RecipeConfig = Empty,
 	Extras extends Record<string, unknown> = Empty,
->(t: Control, overlay?: Overlay, extras?: Extras) {
+>(t: ControlTokens, overlay?: Overlay, extras?: Extras) {
 	return applyRecipe(
 		{
 			config: {

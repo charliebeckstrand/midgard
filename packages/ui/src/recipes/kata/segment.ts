@@ -1,6 +1,8 @@
+import type { VariantProps } from '../../core/recipe'
 import { katakana } from '../katakana'
 import { segment } from '../kiso/segment'
 
 export const k = katakana.segment(segment)
 
-export type { SegmentControlVariants, SegmentItemVariants } from '../katakana'
+export type SegmentControlVariants = VariantProps<typeof k.control>
+export type SegmentItemVariants = VariantProps<typeof k.item>

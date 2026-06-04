@@ -28,5 +28,3 @@ export const control = {
 	resets,
 	check,
 } as const
-
-export type Control = typeof control

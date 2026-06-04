@@ -23,13 +23,12 @@
  *     import { katakana } from '../katakana'
  *     export const k = katakana.control(control, { base: 'block', slots: { … } })
  *
- * **What the barrel surfaces.** The `katakana` bridge object plus the
- * variant types real consumers import. `control` and `segment` expose
- * variant types because consumer components import them; `check`,
- * `popover`, and `panel` don't — checkbox and radio compute their own
- * variants from `VariantProps<typeof k>`, and panel's input shape is
- * generic per-kata. Engine primitives (`defineRecipe`, `definePalette`,
- * `VariantProps`, …) stay in `core/recipe`; kata import them from there.
+ * **What the barrel surfaces.** The `katakana` bridge object, nothing more.
+ * The bridges are generic over the token bundle they receive, so variant
+ * types resolve from the concrete `k` at the kata (`VariantProps<typeof
+ * k>`), not from the bridge. Engine primitives (`defineRecipe`,
+ * `definePalette`, `VariantProps`, …) stay in `core/recipe`; kata import
+ * them from there.
  */
 
 import { check, control } from './control'
@@ -38,6 +37,3 @@ import { popover } from './popover'
 import { segment } from './segment'
 
 export const katakana = { control, check, popover, segment, panel }
-
-export type { ControlVariants } from './control'
-export type { SegmentControlVariants, SegmentItemVariants } from './segment'
