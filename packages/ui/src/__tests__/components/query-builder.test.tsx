@@ -13,7 +13,7 @@ import {
 	removeChild,
 } from '../../components/query-builder'
 import { hasRules } from '../../components/query-builder/query-builder-utilities'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
 // The shared `motion/react` mock leaves `AnimatePresence` as a pass-through, so
 // its `onExitComplete` never fires — the Listbox uses that callback to flush a
@@ -282,7 +282,7 @@ describe('QueryBuilderGroup', () => {
 		expect(next.children[0].type).toBe('group')
 	})
 
-	it('suppresses the "Add group" and "Remove group" controls at the root', () => {
+	it('shows "Add group" but no "Remove group" at the root', () => {
 		renderUI(<QueryBuilder fields={fields} />)
 
 		// Root renders "Add group" but never "Remove group".
@@ -323,6 +323,34 @@ describe('QueryBuilderGroup', () => {
 		renderUI(<QueryBuilder fields={fields} value={tree} />)
 
 		expect(screen.getByRole('button', { name: 'Remove group' })).toBeInTheDocument()
+	})
+
+	it('adds a sub-group from a nested group (arbitrary depth)', () => {
+		const onChange = vi.fn()
+
+		const inner = createGroup('and', [createRule(fields[0])])
+		const tree = createGroup('and', [inner])
+
+		const { container } = renderUI(
+			<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />,
+		)
+
+		const groups = container.querySelectorAll<HTMLElement>('[data-slot="query-group"]')
+
+		// Root plus the one nested group, which now exposes its own "Add group"
+		// — nesting is no longer capped at a single level.
+		expect(groups).toHaveLength(2)
+
+		const nested = groups[1]
+
+		if (!nested) throw new Error('expected a nested query-group')
+
+		fireEvent.click(within(nested).getByRole('button', { name: 'Add group' }))
+
+		const next = onChange.mock.calls.at(-1)?.[0]
+
+		// The inner group gained a child group → depth-2 nesting.
+		expect(next.children[0].children.at(-1).type).toBe('group')
 	})
 })
 
