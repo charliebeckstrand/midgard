@@ -85,7 +85,7 @@ export function Demo() {
 	return (
 		<>
 			<Example
-				title="Dropdown Menu"
+				title="Dropdown menu"
 				actions={
 					<VariantListbox
 						variants={surfaces}
@@ -98,7 +98,7 @@ export function Demo() {
 			</Example>
 
 			<Example
-				title="Context Menu"
+				title="Context menu"
 				actions={
 					<VariantListbox
 						variants={surfaces}

@@ -189,7 +189,7 @@ export function Demo() {
 				<DateExample />
 			</Example>
 
-			<Example title="Render Props">
+			<Example title="Render props">
 				<RenderPropsExample />
 			</Example>
 		</>
