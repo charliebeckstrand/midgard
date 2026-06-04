@@ -7,7 +7,7 @@ import {
 	drawSnapshot,
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
-import { bySlot, makeCanvasContext, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, makeCanvasContext, renderUI, screen } from '../helpers'
 
 describe('SignaturePad', () => {
 	it('renders with data-slot="signature-pad"', () => {
@@ -82,6 +82,31 @@ describe('SignaturePad', () => {
 		expect(typeof ref.current?.toDataURL).toBe('function')
 
 		expect(ref.current?.isEmpty()).toBe(true)
+	})
+
+	it('renders the clear action for a non-empty pad and clears on click', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<SignaturePad value="data:image/png;base64,AAAA" onValueChange={onChange} />,
+		)
+
+		const clearButton = bySlot(container, 'signature-pad-clear') as HTMLElement
+
+		expect(clearButton).toBeInTheDocument()
+
+		// pointerdown is swallowed so it doesn't start a stroke on the canvas underneath.
+		fireEvent.pointerDown(clearButton)
+
+		fireEvent.click(clearButton)
+
+		expect(onChange).toHaveBeenCalledWith(null)
+	})
+
+	it('omits the clear action when readOnly even with a value', () => {
+		const { container } = renderUI(<SignaturePad readOnly value="data:image/png;base64,AAAA" />)
+
+		expect(bySlot(container, 'signature-pad-clear')).not.toBeInTheDocument()
 	})
 
 	it('exposes the aria-label on the canvas', () => {
