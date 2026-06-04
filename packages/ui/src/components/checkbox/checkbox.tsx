@@ -65,7 +65,7 @@ export function Checkbox({
 	}
 
 	const checkClass = cn(
-		'pointer-events-none absolute stroke-(--checkbox-check) opacity-0',
+		'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 		k.checkSize[resolvedSize],
 	)
 

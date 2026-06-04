@@ -55,7 +55,7 @@ export function Radio({
 				data-slot="radio-indicator"
 				aria-hidden="true"
 				className={cn(
-					'absolute rounded-full bg-(--radio-checked-indicator) opacity-0 pointer-events-none',
+					'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
 					k.indicatorSize[resolvedSize],
 				)}
 			/>
