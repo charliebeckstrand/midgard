@@ -14,7 +14,7 @@ export const steps = ['sm', 'md', 'lg'] as const
 
 export type Step = (typeof steps)[number]
 
-export type SunStep = {
+type SunStep = {
 	/** Key into `ji` — bundles font-size + line-height. */
 	text: 'sm' | 'md' | 'lg'
 	/** Key into Box's `radius` prop (and `rounded-{radius}` Tailwind utility). */

@@ -15,5 +15,3 @@ export const ji = {
 	leading,
 	family,
 } as const
-
-export type Ji = keyof typeof size
