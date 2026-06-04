@@ -15,9 +15,13 @@ export function virtualStubsPlugin(): Plugin {
 		name: 'docs-virtual-stubs',
 		resolveId(id) {
 			if (ids.has(id)) return `\0${id}`
+
+			return undefined
 		},
 		load(id) {
 			if (id.startsWith('\0') && ids.has(id.slice(1))) return 'export default {}'
+
+			return undefined
 		},
 	}
 }

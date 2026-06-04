@@ -24,6 +24,8 @@ export function virtualJsonHooks(opts: {
 	return {
 		resolveId(id) {
 			if (id === opts.id) return resolved
+
+			return undefined
 		},
 
 		load(id) {
@@ -32,10 +34,12 @@ export function virtualJsonHooks(opts: {
 
 				return `export default ${cached}`
 			}
+
+			return undefined
 		},
 
 		handleHotUpdate({ file, server }) {
-			if (!opts.shouldInvalidate(file)) return
+			if (!opts.shouldInvalidate(file)) return undefined
 
 			cached = null
 
@@ -46,6 +50,8 @@ export function virtualJsonHooks(opts: {
 
 				return [mod]
 			}
+
+			return undefined
 		},
 	}
 }
