@@ -44,11 +44,11 @@
 
 Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
 
-- **Kiso** (atomic substrate tokens)
-- **Katakana** (archetypes — shared fragments plus their applicators)
-- **Kata** (per-component recipe)
+- **Kiso** (design tokens — primitive atoms plus semantic archetype bundles)
+- **Katakana** (the bridge — wires injected tokens into recipe surfaces; never imports kiso values)
+- **Kata** (per-component recipe; the only layer that touches kiso)
 
-A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props.
+A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props. Kata read kiso tokens and, for archetype shapes, hand them to a katakana bridge (`katakana.<archetype>(tokens, …)`).
 
 Cross-layer value imports are forbidden, pinned by boundary tests. See [`src/recipes/README.md`](src/recipes/README.md).
 
