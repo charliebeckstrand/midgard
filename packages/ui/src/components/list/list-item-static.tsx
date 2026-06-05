@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { noop } from '../../utilities'
 import { ListItemContext } from './context'
 
@@ -9,20 +9,19 @@ type ListItemStaticProps = {
 	children: ReactNode
 }
 
+// Everything except `id` is constant for a static (non-sortable) item, so hoist
+// it once rather than rebuilding the dnd-shaped value on every List re-render.
+const STATIC_CONTEXT = {
+	setNodeRef: noop,
+	setActivatorNodeRef: noop,
+	attributes: {} as never,
+	listeners: undefined,
+	style: {},
+	dragging: false,
+} as const
+
 export function ListItemStatic({ id, children }: ListItemStaticProps) {
-	return (
-		<ListItemContext
-			value={{
-				id,
-				setNodeRef: noop,
-				setActivatorNodeRef: noop,
-				attributes: {} as never,
-				listeners: undefined,
-				style: {},
-				dragging: false,
-			}}
-		>
-			{children}
-		</ListItemContext>
-	)
+	const value = useMemo(() => ({ id, ...STATIC_CONTEXT }), [id])
+
+	return <ListItemContext value={value}>{children}</ListItemContext>
 }
