@@ -48,7 +48,7 @@ function useSlotRegistration() {
  * `aria-labelledby` / `aria-describedby` are only set once the matching slot has
  * registered, so the dialog never references a non-existent id.
  */
-export function usePanelA11yScope() {
+export function usePanelA11yScope(role: 'dialog' | 'alertdialog' = 'dialog') {
 	const scope = useIdScope()
 
 	const titleId = scope.sub('title')
@@ -58,7 +58,7 @@ export function usePanelA11yScope() {
 	const [hasDescription, registerDescription] = useSlotRegistration()
 
 	const panelAriaProps = {
-		role: 'dialog' as const,
+		role,
 		'aria-modal': true,
 		'aria-labelledby': hasTitle ? titleId : undefined,
 		'aria-describedby': hasDescription ? descriptionId : undefined,

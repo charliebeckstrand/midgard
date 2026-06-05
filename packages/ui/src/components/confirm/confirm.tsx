@@ -44,7 +44,13 @@ export function Confirm({
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} size={size} className={className}>
+		<Dialog
+			open={open}
+			onOpenChange={onOpenChange}
+			role="alertdialog"
+			size={size}
+			className={className}
+		>
 			{(title || description) && (
 				<DialogHeader>
 					{title && <DialogTitle>{title}</DialogTitle>}

@@ -22,6 +22,11 @@ export type DialogProps = DialogPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/**
+	 * Dialog role. Use `'alertdialog'` for confirmations and other prompts that
+	 * require a response before proceeding. @default 'dialog'
+	 */
+	role?: 'dialog' | 'alertdialog'
 	/** Element to receive initial focus when the dialog opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
 }
@@ -41,13 +46,14 @@ export function Dialog({
 	glass,
 	className,
 	children,
+	role = 'dialog',
 	initialFocus,
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope()
+	const { panelAriaProps, providerValue } = usePanelA11yScope(role)
 
 	const closeValue = usePanelCloseValue(onOpenChange)
 
