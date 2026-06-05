@@ -13,6 +13,9 @@ export default defineConfig({
 		pool: 'vmThreads',
 		setupFiles: ['./src/__tests__/setup/index.ts', './src/__tests__/setup/module-mocks.ts'],
 		include: ['src/__tests__/a11y/score.ts'],
+		// Scoring every component's demo runs axe hundreds of times; the default
+		// 5s test timeout is far too tight for a one-off benchmark.
+		testTimeout: 180_000,
 		// The printed table is the deliverable, so let it reach stdout directly
 		// rather than being buffered and hidden under the passing test.
 		disableConsoleIntercept: true,

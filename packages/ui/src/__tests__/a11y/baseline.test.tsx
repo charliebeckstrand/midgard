@@ -11,8 +11,8 @@ import { baseline } from './cases'
  * regions, contrast, or touch-target geometry. Rules it can't evaluate in jsdom
  * (color-contrast, target-size, region) are disabled in helpers/axe.ts.
  *
- * The canonical render of each component lives in `cases.tsx`, shared with the
- * weighted score benchmark (`score.ts`).
+ * The canonical render of each component lives in `cases.tsx`. (The weighted
+ * `score.ts` benchmark scores the broader docs-demo corpus separately.)
  */
 
 describe('a11y baseline (axe)', () => {

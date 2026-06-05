@@ -21,10 +21,10 @@ import { Textarea } from '../../components/textarea'
 export type Case = readonly [name: string, element: ReactElement]
 
 /**
- * Canonical, correctly-labelled render of each component — the single source of
- * truth shared by the axe gate (`baseline.test.tsx`) and the weighted score
- * benchmark (`score.ts`). Add new components here as their canonical render is
- * verified clean; both consumers pick them up automatically.
+ * Canonical, correctly-labelled render of each component — the corpus the axe
+ * gate (`baseline.test.tsx`) asserts clean. Add new components here as their
+ * canonical render is verified clean. (The `score.ts` benchmark scores the full
+ * docs-demo corpus instead, so it needs no additions here.)
  */
 export const baseline: readonly Case[] = [
 	['badge', <Badge key="b">New</Badge>],
