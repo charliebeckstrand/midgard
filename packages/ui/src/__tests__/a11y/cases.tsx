@@ -13,6 +13,7 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbo
 import { Field, Label } from '../../components/fieldset'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
+import { Slider } from '../../components/slider'
 import { Spinner } from '../../components/spinner'
 import { Switch, SwitchField } from '../../components/switch'
 import { Text } from '../../components/text'
@@ -53,6 +54,15 @@ export const baseline: readonly Case[] = [
 		<Field key="f">
 			<Label htmlFor="axe-bio">Bio</Label>
 			<Textarea id="axe-bio" />
+		</Field>,
+	],
+	[
+		// No explicit id: the Field generates one, the Label and Slider both read
+		// it from Control context, so the label names the range input.
+		'slider in field',
+		<Field key="f">
+			<Label>Volume</Label>
+			<Slider defaultValue={50} />
 		</Field>,
 	],
 	[
