@@ -157,10 +157,18 @@ export function Demo() {
 													<TableCell className="text-right">{order.amount}</TableCell>
 													<TableCell>
 														<Flex justify="end">
-															<Button color="blue" variant="bare">
+															<Button
+																aria-label={`Edit order ${order.id}`}
+																color="blue"
+																variant="bare"
+															>
 																<Icon icon={<Pencil />} />
 															</Button>
-															<Button color="red" variant="bare">
+															<Button
+																aria-label={`Delete order ${order.id}`}
+																color="red"
+																variant="bare"
+															>
 																<Icon icon={<Trash />} />
 															</Button>
 														</Flex>

@@ -87,13 +87,13 @@ export function Demo() {
 			{!isInput && (
 				<Example title="Vertical">
 					<Group orientation="vertical">
-						<Button variant="outline">
+						<Button aria-label="Heading 1" variant="outline">
 							<Icon icon={<Heading1 />} />
 						</Button>
-						<Button variant="outline">
+						<Button aria-label="Heading 2" variant="outline">
 							<Icon icon={<Heading2 />} />
 						</Button>
-						<Button variant="outline">
+						<Button aria-label="Heading 3" variant="outline">
 							<Icon icon={<Heading3 />} />
 						</Button>
 					</Group>
