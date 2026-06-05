@@ -80,6 +80,15 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 }: DataTableColumnHeaderProps) {
 	return (
 		<TableHeader
+			aria-sort={
+				col.sortable
+					? sorted
+						? direction === 'asc'
+							? 'ascending'
+							: 'descending'
+						: 'none'
+					: undefined
+			}
 			className={cn(stickyHeader && k.sticky.head, col.headerClassName)}
 			style={col.width ? { width: col.width } : undefined}
 		>

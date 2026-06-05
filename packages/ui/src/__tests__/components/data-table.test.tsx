@@ -165,6 +165,28 @@ describe('DataTable', () => {
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
 
+		it('exposes the current sort direction via aria-sort', () => {
+			renderUI(
+				<DataTable
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Sort by Name' }).closest('th')).toHaveAttribute(
+				'aria-sort',
+				'ascending',
+			)
+
+			// An unsorted but sortable column reports "none".
+			expect(screen.getByRole('button', { name: 'Sort by Age' }).closest('th')).toHaveAttribute(
+				'aria-sort',
+				'none',
+			)
+		})
+
 		it('fires onValueChange with asc on first sort click', async () => {
 			const onValueChange = vi.fn()
 
