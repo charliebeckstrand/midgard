@@ -11,7 +11,12 @@ export function JsonTreeBranchClose({ depth, isArray }: JsonTreeBranchCloseProps
 	const paddingLeft = `${depth * INDENT_REM}rem`
 
 	return (
-		<div data-slot="json-close" className={cn(k.row, k.punctuation)} style={{ paddingLeft }}>
+		<div
+			data-slot="json-close"
+			aria-hidden="true"
+			className={cn(k.row, k.punctuation)}
+			style={{ paddingLeft }}
+		>
 			<span className={k.chevronSpacer} aria-hidden="true" />
 			{isArray ? ']' : '}'}
 		</div>

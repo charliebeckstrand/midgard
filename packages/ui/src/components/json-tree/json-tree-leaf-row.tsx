@@ -19,6 +19,7 @@ export function JsonTreeLeafRow({ depth, keyName, value, highlighted }: JsonTree
 			<div className={cn(k.row)} style={{ paddingLeft }}>
 				<div
 					role="treeitem"
+					aria-level={depth + 1}
 					tabIndex={depth === 0 ? 0 : -1}
 					data-slot="json-node"
 					className={cn(k.leaf)}
