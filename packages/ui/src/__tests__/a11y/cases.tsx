@@ -14,6 +14,13 @@ import { Field, Label } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
+import {
+	Pagination,
+	PaginationList,
+	PaginationNext,
+	PaginationPage,
+	PaginationPrevious,
+} from '../../components/pagination'
 import { Slider } from '../../components/slider'
 import { Spinner } from '../../components/spinner'
 import { Switch, SwitchField } from '../../components/switch'
@@ -68,6 +75,18 @@ export const baseline: readonly Case[] = [
 	],
 	['file upload (area)', <FileUpload key="fu" variant="area" />],
 	['file upload (button)', <FileUpload key="fu" variant="button" />],
+	[
+		// Previous/Next sit outside the <ol>, so they must not be list items.
+		'pagination',
+		<Pagination key="p">
+			<PaginationPrevious />
+			<PaginationList>
+				<PaginationPage current>1</PaginationPage>
+				<PaginationPage>2</PaginationPage>
+			</PaginationList>
+			<PaginationNext />
+		</Pagination>,
+	],
 	[
 		'checkbox',
 		<CheckboxGroup key="c">
