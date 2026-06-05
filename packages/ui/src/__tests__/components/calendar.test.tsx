@@ -236,9 +236,21 @@ describe('Calendar month/year picker', () => {
 
 		await user.click(openPicker(/June 2025/))
 
-		await user.click(screen.getByRole('button', { name: 'Mar' }))
+		await user.click(screen.getByRole('option', { name: 'Mar' }))
 
 		expect(screen.getByRole('button', { name: /March 2025/ })).toBeInTheDocument()
+	})
+
+	it('exposes the month picker as a labelled listbox with a selected option', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+
+		expect(screen.getByRole('option', { name: 'Jun', selected: true })).toBeInTheDocument()
 	})
 
 	it('opens the year picker from the month picker and navigates decades', async () => {
@@ -270,11 +282,11 @@ describe('Calendar month/year picker', () => {
 
 		await user.click(screen.getByRole('button', { name: '2025' }))
 
-		await user.click(screen.getByRole('button', { name: '2028' }))
+		await user.click(screen.getByRole('option', { name: '2028' }))
 
 		// Back in month picker with the newly selected year
 		expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Jan' })).toBeInTheDocument()
+		expect(screen.getByRole('option', { name: 'Jan' })).toBeInTheDocument()
 	})
 })
