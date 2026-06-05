@@ -26,6 +26,7 @@ import {
 	SidebarItem,
 	SidebarItemActions,
 	SidebarLabel,
+	SidebarList,
 	SidebarSection,
 	SidebarSpacer,
 } from '../../components/sidebar'
@@ -71,7 +72,7 @@ function DefaultSidebarExample() {
 		<SidebarFrame>
 			<Sidebar>
 				<SidebarBody>
-					<SidebarSection>
+					<SidebarList aria-label="Main">
 						{primary.map(({ value, label, icon }) => (
 							<SidebarItem
 								key={value}
@@ -82,7 +83,7 @@ function DefaultSidebarExample() {
 								<SidebarLabel>{label}</SidebarLabel>
 							</SidebarItem>
 						))}
-					</SidebarSection>
+					</SidebarList>
 				</SidebarBody>
 			</Sidebar>
 		</SidebarFrame>
@@ -99,7 +100,7 @@ function HeaderFooterSidebarExample() {
 					<Heading level={3}>Acme Inc.</Heading>
 				</SidebarHeader>
 				<SidebarBody>
-					<SidebarSection>
+					<SidebarList aria-label="Main">
 						{primary.map(({ value, label, icon }) => (
 							<SidebarItem
 								key={value}
@@ -110,7 +111,7 @@ function HeaderFooterSidebarExample() {
 								<SidebarLabel>{label}</SidebarLabel>
 							</SidebarItem>
 						))}
-					</SidebarSection>
+					</SidebarList>
 				</SidebarBody>
 				<SidebarFooter>
 					<SidebarItem icon={<UserCircle2 />}>
@@ -133,7 +134,7 @@ function SectionedSidebarExample() {
 					<Heading level={3}>Workspace</Heading>
 				</SidebarHeader>
 				<SidebarBody>
-					<SidebarSection>
+					<SidebarList aria-label="Main">
 						{primary.slice(0, 2).map(({ value, label, icon }) => (
 							<SidebarItem
 								key={value}
@@ -144,7 +145,7 @@ function SectionedSidebarExample() {
 								<SidebarLabel>{label}</SidebarLabel>
 							</SidebarItem>
 						))}
-					</SidebarSection>
+					</SidebarList>
 
 					<SidebarDivider />
 
@@ -157,16 +158,18 @@ function SectionedSidebarExample() {
 								<Icon icon={<Plus />} />
 							</Button>
 						</Stack>
-						{projects.map(({ value, label }) => (
-							<SidebarItem
-								key={value}
-								icon={<Folder />}
-								current={active === value}
-								onClick={() => setActive(value)}
-							>
-								<SidebarLabel>{label}</SidebarLabel>
-							</SidebarItem>
-						))}
+						<SidebarList aria-label="Projects">
+							{projects.map(({ value, label }) => (
+								<SidebarItem
+									key={value}
+									icon={<Folder />}
+									current={active === value}
+									onClick={() => setActive(value)}
+								>
+									<SidebarLabel>{label}</SidebarLabel>
+								</SidebarItem>
+							))}
+						</SidebarList>
 					</SidebarSection>
 
 					<SidebarSection>
@@ -174,20 +177,22 @@ function SectionedSidebarExample() {
 							<Text variant="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
-							<Button variant="plain" size="sm" aria-label="New project">
+							<Button variant="plain" size="sm" aria-label="New chat">
 								<Icon icon={<Plus />} />
 							</Button>
 						</Stack>
-						{chats.map(({ value, label }) => (
-							<SidebarItem
-								key={value}
-								icon={<MessageCircle />}
-								current={active === value}
-								onClick={() => setActive(value)}
-							>
-								<SidebarLabel>{label}</SidebarLabel>
-							</SidebarItem>
-						))}
+						<SidebarList aria-label="Chats">
+							{chats.map(({ value, label }) => (
+								<SidebarItem
+									key={value}
+									icon={<MessageCircle />}
+									current={active === value}
+									onClick={() => setActive(value)}
+								>
+									<SidebarLabel>{label}</SidebarLabel>
+								</SidebarItem>
+							))}
+						</SidebarList>
 					</SidebarSection>
 
 					<SidebarSpacer />
@@ -196,12 +201,14 @@ function SectionedSidebarExample() {
 						<Text variant="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
 							Wade Cooper
 						</Text>
-						<SidebarItem icon={<Cog />}>
-							<SidebarLabel>Settings</SidebarLabel>
-						</SidebarItem>
-						<SidebarItem icon={<LogOut />}>
-							<SidebarLabel>Log Out</SidebarLabel>
-						</SidebarItem>
+						<SidebarList aria-label="Account">
+							<SidebarItem icon={<Cog />}>
+								<SidebarLabel>Settings</SidebarLabel>
+							</SidebarItem>
+							<SidebarItem icon={<LogOut />}>
+								<SidebarLabel>Log Out</SidebarLabel>
+							</SidebarItem>
+						</SidebarList>
 					</SidebarSection>
 				</SidebarBody>
 			</Sidebar>
@@ -214,7 +221,7 @@ function ItemActionsSidebarExample() {
 		<SidebarFrame>
 			<Sidebar>
 				<SidebarBody>
-					<SidebarSection>
+					<SidebarList aria-label="Main">
 						<SidebarItem icon={<Search />} preventClose>
 							<SidebarLabel>Search</SidebarLabel>
 							<Spacer />
@@ -233,7 +240,7 @@ function ItemActionsSidebarExample() {
 								</Badge>
 							</SidebarItemActions>
 						</SidebarItem>
-					</SidebarSection>
+					</SidebarList>
 				</SidebarBody>
 			</Sidebar>
 		</SidebarFrame>
@@ -245,7 +252,7 @@ function SuffixSidebarExample() {
 		<SidebarFrame>
 			<Sidebar>
 				<SidebarBody>
-					<SidebarSection>
+					<SidebarList aria-label="Main">
 						<SidebarItem
 							icon={<Inbox />}
 							suffix={
@@ -256,7 +263,7 @@ function SuffixSidebarExample() {
 						>
 							<SidebarLabel>Inbox</SidebarLabel>
 						</SidebarItem>
-					</SidebarSection>
+					</SidebarList>
 				</SidebarBody>
 			</Sidebar>
 		</SidebarFrame>

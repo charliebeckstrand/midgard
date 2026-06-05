@@ -24,6 +24,13 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
+import {
+	Sidebar,
+	SidebarBody,
+	SidebarItem,
+	SidebarLabel,
+	SidebarList,
+} from '../../components/sidebar'
 import { Slider } from '../../components/slider'
 import { Spinner } from '../../components/spinner'
 import { Switch, SwitchField } from '../../components/switch'
@@ -101,6 +108,23 @@ export const baseline: readonly Case[] = [
 				<NavItem href="#about">About</NavItem>
 			</NavList>
 		</Navbar>,
+	],
+	[
+		// Sidebar navigation: items wrapped in a SidebarList <ul> so the set
+		// exposes count/position; the list is named after its heading.
+		'sidebar',
+		<Sidebar key="sb">
+			<SidebarBody>
+				<SidebarList aria-label="Primary">
+					<SidebarItem href="#home" current>
+						<SidebarLabel>Home</SidebarLabel>
+					</SidebarItem>
+					<SidebarItem href="#inbox">
+						<SidebarLabel>Inbox</SidebarLabel>
+					</SidebarItem>
+				</SidebarList>
+			</SidebarBody>
+		</Sidebar>,
 	],
 	[
 		'bottom nav',
