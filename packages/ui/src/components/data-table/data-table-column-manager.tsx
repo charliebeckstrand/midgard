@@ -3,7 +3,6 @@
 import { Pin } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/data-table-column-manager'
 import { Button } from '../button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../checkbox'
@@ -11,8 +10,8 @@ import { Control } from '../control'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
-import { EMPTY_SET } from './data-table-constants'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
+import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
 export type DataTableColumnManagerProps = {
 	columns: DataTableColumnManagerItem[]
@@ -47,27 +46,15 @@ export function DataTableColumnManager({
 	savePresetLabel = 'Save as preset',
 	className,
 }: DataTableColumnManagerProps) {
-	const fallbackOrder = useMemo(() => columns.map((c) => c.id), [columns])
-
-	const [order = fallbackOrder, setOrder] = useControllable<(string | number)[]>({
-		value: orderProp,
-		defaultValue: defaultOrder ?? fallbackOrder,
-		onValueChange: (next) => onOrderChange?.(next ?? []),
+	const { order, setOrder, hidden, setHidden, byId } = useDataTableColumnVisibility({
+		columns,
+		order: orderProp,
+		defaultOrder,
+		onOrderChange,
+		hidden: hiddenProp,
+		defaultHidden,
+		onHiddenChange,
 	})
-
-	const [hidden = defaultHidden ?? EMPTY_SET, setHidden] = useControllable<Set<string | number>>({
-		value: hiddenProp,
-		defaultValue: defaultHidden ?? EMPTY_SET,
-		onValueChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
-	})
-
-	const byId = useMemo(() => {
-		const map = new Map<string | number, DataTableColumnManagerItem>()
-
-		for (const col of columns) map.set(col.id, col)
-
-		return map
-	}, [columns])
 
 	const pinnedColumns = useMemo(() => columns.filter((c) => c.pinned), [columns])
 
