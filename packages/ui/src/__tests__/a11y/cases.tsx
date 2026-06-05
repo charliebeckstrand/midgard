@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Alert } from '../../components/alert'
 import { Badge } from '../../components/badge'
+import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -14,6 +15,8 @@ import { Field, Label } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
+import { NavItem, NavList } from '../../components/nav'
+import { Navbar } from '../../components/navbar'
 import {
 	Pagination,
 	PaginationList,
@@ -86,6 +89,29 @@ export const baseline: readonly Case[] = [
 			</PaginationList>
 			<PaginationNext />
 		</Pagination>,
+	],
+	[
+		// Navigation, not a menu: links with aria-current, no menubar/menuitem.
+		'navbar',
+		<Navbar key="nb">
+			<NavList>
+				<NavItem href="#home" current>
+					Home
+				</NavItem>
+				<NavItem href="#about">About</NavItem>
+			</NavList>
+		</Navbar>,
+	],
+	[
+		'bottom nav',
+		<BottomNav key="bn">
+			<BottomNavItem href="#home" icon={<svg aria-hidden="true" />} current>
+				Home
+			</BottomNavItem>
+			<BottomNavItem href="#search" icon={<svg aria-hidden="true" />}>
+				Search
+			</BottomNavItem>
+		</BottomNav>,
 	],
 	[
 		'checkbox',

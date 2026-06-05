@@ -1,8 +1,7 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
@@ -16,23 +15,17 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	const resolvedOrientation = orientation ?? (inNavbar ? 'horizontal' : 'vertical')
 
-	const ref = useRef<HTMLDivElement>(null)
-
-	const handleKeyDown = useRoving(ref, {
-		itemSelector: '[data-slot="nav-item-inner"]:not(:disabled)',
-		orientation: resolvedOrientation,
-	})
-
+	// A styled flex container for the links inside the enclosing <nav> landmark.
+	// Not a menubar: site navigation is a set of links — each individually
+	// Tab-focusable, the current one marked `aria-current="page"` — not an
+	// application menu. The menu role would mislead assistive tech and impose a
+	// roving keyboard model that navigation links don't use.
 	return (
 		<ActiveIndicatorScope>
 			<div
-				ref={ref}
 				data-slot="nav-list"
 				data-orientation={resolvedOrientation}
-				role="menubar"
-				aria-orientation={resolvedOrientation}
 				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
-				onKeyDown={handleKeyDown}
 				{...props}
 			>
 				{children}
