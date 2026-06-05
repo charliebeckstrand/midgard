@@ -29,6 +29,11 @@ export type DialogProps = DialogPanelVariants & {
 	role?: 'dialog' | 'alertdialog'
 	/** Element to receive initial focus when the dialog opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
+	/**
+	 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command
+	 * palette). Ignored once a `DialogTitle` registers, since it names the dialog.
+	 */
+	'aria-label'?: string
 }
 
 const alignClasses = {
@@ -48,12 +53,17 @@ export function Dialog({
 	children,
 	role = 'dialog',
 	initialFocus,
+	'aria-label': ariaLabel,
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const isDesktop = useMinWidth(640)
 
 	const { panelAriaProps, providerValue } = usePanelA11yScope(role)
+
+	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
+	// the explicit label only when there's no title.
+	const ariaLabelledBy = panelAriaProps['aria-labelledby']
 
 	const closeValue = usePanelCloseValue(onOpenChange)
 
@@ -74,6 +84,7 @@ export function Dialog({
 				<motion.div
 					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
 					{...panelAriaProps}
+					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot="dialog"
 					className={cn(
 						'pointer-events-auto',
