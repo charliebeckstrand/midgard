@@ -193,14 +193,20 @@ describe('KanbanCard', () => {
 		expect(card).not.toHaveAttribute('aria-label')
 	})
 
-	it('marks cards as interactive and exposes the aria-label when onValueChange is supplied', () => {
+	it('marks cards interactive and lets their content name them when onValueChange is supplied', () => {
 		const { container } = renderUI(<Board onValueChange={() => {}} />)
 
 		const card = bySlot(container, 'kanban-card')
 
 		expect(card).not.toHaveAttribute('data-disabled')
 
-		expect(card).toHaveAttribute('aria-label', 'Drag to reorder')
+		// No forced aria-label — the card is named by its content; dnd-kit supplies
+		// the draggable role and its keyboard-instructions description.
+		expect(card).not.toHaveAttribute('aria-label')
+
+		expect(card).toHaveAttribute('role', 'button')
+
+		expect(card).toHaveAttribute('aria-roledescription')
 	})
 
 	it('honors a custom aria-label on an interactive card', () => {
