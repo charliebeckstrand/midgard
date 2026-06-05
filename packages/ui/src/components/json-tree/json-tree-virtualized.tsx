@@ -1,8 +1,8 @@
 'use client'
 
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { type KeyboardEventHandler, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
+import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { JsonTreeNodeRow } from './json-tree-node-row'
@@ -55,21 +55,12 @@ export function JsonTreeVirtualized({
 	const estimateSize = virtualize.estimateSize ?? DEFAULT_ROW_HEIGHT
 	const overscan = virtualize.overscan ?? DEFAULT_OVERSCAN
 
-	const virtualizer = useVirtualizer({
+	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
 		count: flatNodes.length,
 		getScrollElement: () => ref.current,
-		estimateSize: () => estimateSize,
+		estimateSize,
 		overscan,
 	})
-
-	const virtualItems = virtualizer.getVirtualItems()
-	const totalSize = virtualizer.getTotalSize()
-
-	const topSpacer = virtualItems[0]?.start ?? 0
-
-	const lastItem = virtualItems[virtualItems.length - 1]
-
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
 	return (
 		<div

@@ -1,7 +1,7 @@
 'use client'
 
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { type ReactNode, useRef } from 'react'
+import { useVirtualWindow } from '../../hooks'
 
 export type VirtualOptionsProps<T> = {
 	/** Items to render. The current filtered/sorted set, in order. */
@@ -32,22 +32,12 @@ export function VirtualOptions<T>({
 }: VirtualOptionsProps<T>) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const virtualizer = useVirtualizer({
+	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
 		count: items.length,
 		getScrollElement: () => containerRef.current?.closest<HTMLElement>('[role="listbox"]') ?? null,
-		estimateSize: () => estimateSize,
+		estimateSize,
 		overscan,
 	})
-
-	const virtualItems = virtualizer.getVirtualItems()
-
-	const totalSize = virtualizer.getTotalSize()
-
-	const topSpacer = virtualItems[0]?.start ?? 0
-
-	const lastItem = virtualItems[virtualItems.length - 1]
-
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
 	return (
 		<div ref={containerRef} data-slot="virtual-options">
