@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks'
 import {
 	DataTable,
 	type DataTableSelection,
@@ -83,6 +84,11 @@ export function EditableGrid<T>({
 
 	const wrapperRef = useRef<HTMLTableElement>(null)
 
+	// Scope for per-cell ids so `aria-activedescendant` on the single focusable
+	// grid can point screen readers at the active cell without re-rendering the
+	// (intentionally memoized) cell shells.
+	const cells = useIdScope()
+
 	const nav = useEditableGridNavigation<T>({
 		rowsRef: rowsApi.rowsRef,
 		editableColCount: rowsApi.editableCols.length,
@@ -113,6 +119,7 @@ export function EditableGrid<T>({
 		nav,
 		draft,
 		formatCell: rowsApi.formatCell,
+		cellId: cells.sub,
 	})
 
 	// Stable while editing — the cell shells subscribe here, so typing (which only
@@ -173,6 +180,9 @@ export function EditableGrid<T>({
 						'data-slot': 'editable-grid',
 						role: 'grid',
 						'aria-multiselectable': true,
+						'aria-activedescendant': nav.active
+							? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
+							: undefined,
 						tabIndex: 0,
 						onKeyDown: onWrapperKeyDown,
 						onPaste: onWrapperPaste,
