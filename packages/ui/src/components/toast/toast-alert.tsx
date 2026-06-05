@@ -46,6 +46,9 @@ export function ToastAlert({
 
 	const { variant, color } = severityAlertMap[t.severity ?? 'default']
 
+	// Warning/error interrupt (assertive); everything else queues politely.
+	const assertive = t.severity === 'warning' || t.severity === 'error'
+
 	const positionTop = position.startsWith('top')
 
 	const autoDismiss = {
@@ -70,6 +73,7 @@ export function ToastAlert({
 				initial={{ ...motionConfig.initial, opacity: 0 }}
 				animate={motionConfig.animate}
 				transition={motionConfig.transition}
+				role={assertive ? 'alert' : 'status'}
 				onMouseEnter={onPause}
 				onMouseLeave={onResume}
 				onClick={() => onReset(t.id)}

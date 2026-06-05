@@ -35,6 +35,7 @@ export function TimelineItem(props: TimelineItemProps) {
 		<li
 			data-slot="timeline-item"
 			data-current={current || undefined}
+			aria-current={current || undefined}
 			className={cn(k.item({ orientation }), className)}
 		>
 			<TimelineContext value={providerValue}>

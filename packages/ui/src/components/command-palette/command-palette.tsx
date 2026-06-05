@@ -92,6 +92,9 @@ export function CommandPalette({
 			size={size}
 			className={className}
 			initialFocus={inputRef}
+			// The palette has no visible heading; name the dialog directly. The
+			// visible search input only names itself.
+			aria-label="Command palette"
 		>
 			<CommandPaletteContext value={context}>
 				<Flex gap="sm">

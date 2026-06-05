@@ -24,10 +24,17 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
+	// Expose the group nesting to AT. The root is already a labelled <Fieldset>
+	// (query-builder.tsx); nested groups become their own <fieldset> (implicit
+	// role=group) named by aria-label. Tailwind preflight zeroes fieldset
+	// border/margin/padding, so it lays out like the prior div.
+	const Wrapper = root ? 'div' : 'fieldset'
+
 	return (
-		<div
+		<Wrapper
 			data-slot="query-group"
 			data-combinator={group.combinator}
+			aria-label={root ? undefined : 'Condition group'}
 			className={cn(k.group, !root && k.groupNested, className)}
 		>
 			<div className={k.group}>
@@ -86,6 +93,6 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 					</Flex>
 				)}
 			</Flex>
-		</div>
+		</Wrapper>
 	)
 }

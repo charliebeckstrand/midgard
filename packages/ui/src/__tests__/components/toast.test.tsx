@@ -47,7 +47,7 @@ describe('Toast', () => {
 		expect(viewport).toBeInTheDocument()
 	})
 
-	it('sets aria-live on viewport', () => {
+	it('does not force a single politeness on the viewport', () => {
 		renderUI(
 			<ToastProvider>
 				<Toast />
@@ -56,7 +56,9 @@ describe('Toast', () => {
 
 		const viewport = document.querySelector('[data-slot="toast-viewport"]')
 
-		expect(viewport).toHaveAttribute('aria-live', 'polite')
+		// Politeness lives on each toast (status / alert), not the container, so a
+		// wrapping live region can't double-announce or flatten severity.
+		expect(viewport).not.toHaveAttribute('aria-live')
 	})
 })
 
@@ -107,6 +109,27 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		expect(screen.getByText('Saved')).toBeInTheDocument()
+	})
+
+	it('routes severity to a polite or assertive live role', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Saved' })
+			api?.toast({ title: 'Failed', severity: 'error' })
+		})
+
+		// Default toasts queue politely; errors interrupt.
+		expect(screen.getByRole('status')).toHaveTextContent('Saved')
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Failed')
 	})
 
 	it('dismisses a toast when dismiss() is called', () => {

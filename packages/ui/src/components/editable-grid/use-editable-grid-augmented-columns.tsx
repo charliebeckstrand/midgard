@@ -14,6 +14,8 @@ type EditableGridAugmentedColumns<T> = {
 	nav: EditableGridNavigationApi
 	draft: EditableGridDraftApi
 	formatCell: (row: T, col: EditableGridColumn<T>) => string
+	/** Derives a stable per-cell id (matched by the grid's `aria-activedescendant`). */
+	cellId: (suffix: string) => string
 }
 
 export function useEditableGridAugmentedColumns<T>({
@@ -22,6 +24,7 @@ export function useEditableGridAugmentedColumns<T>({
 	nav: { active, addCellToSelection, moveActiveTo },
 	draft: { editing, beginEdit },
 	formatCell,
+	cellId,
 }: EditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
 	// `cellProps` is a plain function (not a component), so it can't read the
 	// state context the way `EditableGridCell` does. Its onMouseDown guard reads
@@ -73,6 +76,9 @@ export function useEditableGridAugmentedColumns<T>({
 					const rowIdx = rowIndexMap.get(row) ?? -1
 
 					return {
+						// Stable id (not selection state, so it stays out of the memo) that
+						// the grid's reactive `aria-activedescendant` resolves to.
+						id: cellId(`cell-${rowIdx}-${colIdx}`),
 						role: 'gridcell',
 						'aria-readonly': readOnly || undefined,
 						onMouseDown: (e: MouseEvent<HTMLTableCellElement>) => {
@@ -120,5 +126,5 @@ export function useEditableGridAugmentedColumns<T>({
 				},
 			}
 		})
-	}, [columns, rowIndexMap, formatCell, addCellToSelection, moveActiveTo, beginEdit])
+	}, [columns, rowIndexMap, formatCell, addCellToSelection, moveActiveTo, beginEdit, cellId])
 }

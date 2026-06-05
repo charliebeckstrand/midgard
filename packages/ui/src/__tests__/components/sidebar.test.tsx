@@ -8,6 +8,7 @@ import {
 	SidebarItem,
 	SidebarItemActions,
 	SidebarLabel,
+	SidebarList,
 	SidebarSection,
 	SidebarSpacer,
 } from '../../components/sidebar'
@@ -345,5 +346,45 @@ describe('SidebarItemActions', () => {
 		)
 
 		expect(screen.getByText('action-child')).toBeInTheDocument()
+	})
+})
+
+describe('SidebarList', () => {
+	it('renders a <ul> and exposes its items as a list', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarBody>
+					<SidebarList aria-label="Primary">
+						<SidebarItem>Home</SidebarItem>
+						<SidebarItem>Inbox</SidebarItem>
+					</SidebarList>
+				</SidebarBody>
+			</Sidebar>,
+		)
+
+		const list = bySlot(container, 'sidebar-list')
+
+		expect(list?.tagName).toBe('UL')
+
+		expect(screen.getByRole('list', { name: 'Primary' })).toBe(list)
+
+		const items = screen.getAllByRole('listitem')
+
+		expect(items).toHaveLength(2)
+
+		// Each item is a real <li> wrapping its link, so AT reports count/position.
+		expect(items[0]).toHaveAttribute('data-slot', 'sidebar-item')
+
+		expect(items[0]?.tagName).toBe('LI')
+	})
+
+	it('keeps standalone items as <span> wrappers', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem>Home</SidebarItem>
+			</Sidebar>,
+		)
+
+		expect(bySlot(container, 'sidebar-item')?.tagName).toBe('SPAN')
 	})
 })

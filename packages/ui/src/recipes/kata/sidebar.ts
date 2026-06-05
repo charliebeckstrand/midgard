@@ -26,6 +26,7 @@ export const k = {
 		affix: ['relative', 'z-10', flex.row, 'shrink-0'],
 	},
 	section: [flex.col, 'gap-0.5'],
+	list: [flex.col, 'gap-0.5'],
 	label: ['truncate'],
 	header: [flex.row, 'justify-between', 'gap-3'],
 	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],

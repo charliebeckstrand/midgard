@@ -39,23 +39,29 @@ export function BottomNavItem({
 		}
 	}
 
+	// The button is the flex child carrying `flex-1`; the wrapping <li> (a valid
+	// child of NavList's <ul>) is itself `flex flex-1` so the button still
+	// distributes evenly across the bar — the list element adds semantics, not
+	// layout.
 	return (
-		<Polymorphic
-			as="button"
-			data-slot="bottom-nav-item"
-			href={href}
-			data-current={isCurrent || undefined}
-			aria-current={isCurrent ? 'page' : undefined}
-			className={cn(k.item, isCurrent && k.current, className)}
-			onClick={handleClick}
-			{...indicator.tapHandlers}
-			{...props}
-		>
-			<TouchTarget>
-				<Icon icon={icon} />
-				<span>{children}</span>
-			</TouchTarget>
-			{isCurrent && <ActiveIndicator ref={indicator.ref} className={cn(k.indicator)} />}
-		</Polymorphic>
+		<li data-slot="bottom-nav-item-wrapper" className="flex flex-1 list-none">
+			<Polymorphic
+				as="button"
+				data-slot="bottom-nav-item"
+				href={href}
+				data-current={isCurrent || undefined}
+				aria-current={isCurrent ? 'page' : undefined}
+				className={cn(k.item, isCurrent && k.current, className)}
+				onClick={handleClick}
+				{...indicator.tapHandlers}
+				{...props}
+			>
+				<TouchTarget>
+					<Icon icon={icon} />
+					<span>{children}</span>
+				</TouchTarget>
+				{isCurrent && <ActiveIndicator ref={indicator.ref} className={cn(k.indicator)} />}
+			</Polymorphic>
+		</li>
 	)
 }

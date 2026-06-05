@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -9,6 +10,7 @@ import { Button } from '../button'
 import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
+import { useInSidebarList } from './context'
 
 export type SidebarItemProps = NavItemProps & {
 	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
@@ -30,6 +32,12 @@ export function SidebarItem({
 }: SidebarItemProps) {
 	const item = useNavItem({ current, size, preventClose, onClick })
 
+	// Inside a SidebarList the wrapper must be an <li> (a valid <ul> child);
+	// standalone it stays a <span> so existing flat usage keeps working.
+	const inList = useInSidebarList()
+
+	const Wrapper = inList ? 'li' : 'span'
+
 	// Affixes render as siblings of the inner button — never nested inside it —
 	// so a slot can host its own interactive element without producing invalid
 	// nested-interactive markup. The row only goes flex when an affix exists,
@@ -37,10 +45,10 @@ export function SidebarItem({
 	const hasAffix = prefix != null || suffix != null
 
 	return (
-		<span
-			ref={item.ref}
+		<Wrapper
+			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			className={cn('group relative', hasAffix && 'flex items-center')}
+			className={cn('group relative list-none', hasAffix && 'flex items-center')}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
@@ -74,6 +82,6 @@ export function SidebarItem({
 				</span>
 			)}
 			{item.current && <ActiveIndicator ref={item.indicator.ref} />}
-		</span>
+		</Wrapper>
 	)
 }

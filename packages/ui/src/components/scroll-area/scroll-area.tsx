@@ -49,9 +49,15 @@ export function ScrollArea({
 			data-slot="scroll-area"
 			className={cn(k.wrapper({ rounded, orientation, size, bare }), className)}
 		>
+			{/* A scrollable region must be keyboard-reachable so it can be scrolled
+			    when its content holds no focusable elements (axe
+			    scrollable-region-focusable). Focusable only while actually scrollable,
+			    so static viewports add no tab stop; consumers can override via props
+			    (e.g. tabIndex={-1} with role="region" + aria-label to name it). */}
 			<div
 				data-slot="scroll-area-viewport"
 				ref={viewportRef}
+				tabIndex={hasVertical || hasHorizontal ? 0 : undefined}
 				className={k.viewport({ orientation, bare })}
 				onScroll={handleScroll}
 				{...props}

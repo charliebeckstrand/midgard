@@ -8,7 +8,7 @@ export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }
 
-export function PasswordConfirmInput({ onChange, ...props }: PasswordConfirmInputProps) {
+export function PasswordConfirmInput({ onChange, invalid, ...props }: PasswordConfirmInputProps) {
 	const { status, setConfirm, setConfirmName, confirmHasFormError } = usePasswordConfirm()
 
 	useEffect(() => {
@@ -21,6 +21,9 @@ export function PasswordConfirmInput({ onChange, ...props }: PasswordConfirmInpu
 		<PasswordInput
 			data-password-confirm-input
 			{...(showWarning ? { 'data-warning': true } : {})}
+			// A mismatch is otherwise signalled only by the visual `data-warning`;
+			// surface it programmatically too. A caller-supplied `invalid` still wins.
+			invalid={invalid ?? (showWarning || undefined)}
 			{...props}
 			onChange={(e) => {
 				setConfirm(e.target.value)

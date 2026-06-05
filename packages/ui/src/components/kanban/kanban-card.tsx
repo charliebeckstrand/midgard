@@ -9,7 +9,12 @@ import { useKanbanColumnContext, useKanbanContext } from './context'
 export type KanbanCardProps = {
 	/** Stable id matching an entry in the parent column's `items`. */
 	cardId: string
-	/** Accessible label announced by screen readers. */
+	/**
+	 * Overrides the card's accessible name. By default the card is named by its
+	 * own content; dnd-kit already announces draggability (`aria-roledescription`)
+	 * and keyboard instructions (`aria-describedby`). Only set this when the
+	 * content doesn't yield a usable name.
+	 */
 	'aria-label'?: string
 	children?: ReactNode
 	className?: string
@@ -17,7 +22,7 @@ export type KanbanCardProps = {
 
 export function KanbanCard({
 	cardId,
-	'aria-label': ariaLabel = 'Drag to reorder',
+	'aria-label': ariaLabel,
 	children,
 	className,
 }: KanbanCardProps) {

@@ -69,7 +69,12 @@ export function SignaturePad({
 			<canvas
 				ref={canvasRef}
 				data-slot="signature-pad-canvas"
-				aria-label={ariaLabel}
+				// A bare <canvas> has no implicit role, so an aria-label alone is
+				// ignored; role="img" makes the name perceivable and reflects that the
+				// pad's value is a rendered signature image. State rides the name.
+				role="img"
+				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
+				aria-disabled={disabled || readOnly || undefined}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
