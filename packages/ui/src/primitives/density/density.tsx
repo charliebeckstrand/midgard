@@ -89,7 +89,7 @@ export { useDensityNullable }
  * cast trusts the caller to handle out-of-range values via recipe
  * `defaultVariants` or graceful fallback.
  */
-export function useSizeWide<T extends Ma = Ma>(explicit?: T): T {
+export function useSize<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()
 	const density = useDensity()
 

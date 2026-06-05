@@ -20,7 +20,7 @@ import type { Ma, Step } from '../../recipes'
  *   can't carry).
  *
  * Read by wider-scale components (Button, Icon, Spinner) through
- * `useSizeWide`; the universal `useDensity` cascade stays `Step`-typed
+ * `useSize`; the universal `useDensity` cascade stays `Step`-typed
  * for everyone else. Returns `null` outside any provider — consumers
  * treat `null` as "fall through to the Density cascade".
  */

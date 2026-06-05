@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useSizeWide } from '../../primitives/density'
+import { useSize } from '../../primitives/density'
 import { k, type SpinnerVariants } from '../../recipes/kata/spinner'
 
 export type SpinnerProps = SpinnerVariants & {
@@ -19,7 +19,7 @@ const SPINNER_SVG = (
 )
 
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
-	const resolvedSize = useSizeWide(size)
+	const resolvedSize = useSize(size)
 
 	return (
 		<output
