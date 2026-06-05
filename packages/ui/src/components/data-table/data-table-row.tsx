@@ -22,6 +22,12 @@ type DataTableRowProps<T> = {
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */
 	toggleRow: (key: string | number) => void
+	/**
+	 * 1-based position in the full row set (header = 1), set only when the body
+	 * is virtualized so assistive tech can report position despite the windowed
+	 * DOM. Omitted otherwise.
+	 */
+	rowIndex?: number
 }
 
 function DataTableRowImpl<T>({
@@ -32,6 +38,7 @@ function DataTableRowImpl<T>({
 	className,
 	selected,
 	toggleRow,
+	rowIndex,
 }: DataTableRowProps<T>) {
 	const rowContext = useMemo<DataTableRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
@@ -42,6 +49,7 @@ function DataTableRowImpl<T>({
 		<DataTableRowContext value={rowContext}>
 			<TableRow
 				data-selected={selected || undefined}
+				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>
 				{columns.map((col) => {

@@ -41,7 +41,8 @@ export function DataTableVirtualizedBody<T>({
 	return (
 		<TableBody>
 			{topSpacer > 0 && (
-				<tr data-slot="data-table-spacer">
+				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
+				<tr data-slot="data-table-spacer" aria-hidden="true">
 					<td
 						colSpan={visibleColumns.length}
 						style={{ height: topSpacer, padding: 0, border: 0 }}
@@ -62,11 +63,14 @@ export function DataTableVirtualizedBody<T>({
 						className={rowClassName?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
+						// Header occupies row 1, so data rows are offset by 2.
+						rowIndex={vr.index + 2}
 					/>
 				)
 			})}
 			{bottomSpacer > 0 && (
-				<tr data-slot="data-table-spacer">
+				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
+				<tr data-slot="data-table-spacer" aria-hidden="true">
 					<td
 						colSpan={visibleColumns.length}
 						style={{ height: bottomSpacer, padding: 0, border: 0 }}

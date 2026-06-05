@@ -15,14 +15,16 @@ import type { DataTableColumn } from './types'
 type DataTableHeadProps<T> = {
 	columns: DataTableColumn<T>[]
 	hasRows: boolean
+	/** When the body is virtualized, the header is row 1 of the full aria-rowcount set. */
+	virtualized?: boolean
 }
 
-export function DataTableHead<T>({ columns, hasRows }: DataTableHeadProps<T>) {
+export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHeadProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useDataTable()
 
 	return (
 		<TableHead>
-			<TableRow>
+			<TableRow aria-rowindex={virtualized ? 1 : undefined}>
 				{columns.map((col) => {
 					if (col.selectable) {
 						return (
