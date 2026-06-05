@@ -1,33 +1,34 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ElementType, JSX, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from 'react'
 import { type LinkProps, useLink } from '../link'
 
 /**
- * An `href`-driven link switch, not consumer-driven polymorphism. Despite the
- * name and the `as` prop, the consumer never chooses the tag: `as` is fixed by
- * the component author (`as="div"` in Box, `as="span"` in Badge, …) and selects
- * only the *non-link* fallback element. The single runtime branch is on `href`:
+ * An `href`-driven link switch with element polymorphism. The sole runtime
+ * branch is on `href`:
  *
  *   - `href` present  → render the app-registered router link (`useLink`)
- *   - `href` absent   → render the fixed `as` element
+ *   - `href` absent   → render the `as` element
  *
- * The payoff is the type-level union below — `href` is gated so a plain element
- * can't accidentally receive it — plus centralized `data-slot` / `className` /
- * `ref` forwarding and router integration. If you want a surface to be optionally
- * clickable-as-a-link, reach for this; it is not a general `as`-polymorphism tool.
+ * `as` selects the *non-link* element and accepts any `ElementType` — an
+ * intrinsic tag (`as="div"`, `as="span"`) or a custom component. It is the
+ * fallback arm only: `href` always wins, so `as="div" href="x"` renders a link,
+ * never a `<div href>`. A navigating non-anchor has no use, so this loses
+ * nothing. If you need a clickable element whose `href` bypasses the router,
+ * reach for a Slot escape hatch — this is not that tool.
+ *
+ * The type-level union below gates `href` so the non-link arm can't receive it,
+ * plus centralized `data-slot` / `className` / `ref` forwarding and router
+ * integration.
  */
 
 /** Props for `Polymorphic` — strips `href` from the fallback arm so it can't be passed accidentally. */
-export type PolymorphicProps<
-	Fallback extends keyof JSX.IntrinsicElements,
-	Omitted extends PropertyKey = never,
-> =
+export type PolymorphicProps<Fallback extends ElementType, Omitted extends PropertyKey = never> =
 	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className' | Omitted>)
 	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
 
-/** Renders the registered link component when `href` is present, the fallback intrinsic element otherwise. */
-export function Polymorphic<Fallback extends keyof JSX.IntrinsicElements>({
+/** Renders the registered link component when `href` is present, the `as` element otherwise. */
+export function Polymorphic<Fallback extends ElementType>({
 	as,
 	href,
 	ref,
