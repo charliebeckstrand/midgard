@@ -44,6 +44,22 @@ describe('Map', () => {
 		expect(bySlot(container, 'map')?.className).toContain('custom')
 	})
 
+	it('names an interactive map as an application region when label is set', () => {
+		const { container } = renderUI(<MapView label="Delivery map" />)
+
+		const el = bySlot(container, 'map')
+
+		expect(el).toHaveAttribute('role', 'application')
+
+		expect(el).toHaveAttribute('aria-label', 'Delivery map')
+	})
+
+	it('names a static map as an image region when label is set', () => {
+		const { container } = renderUI(<MapView label="Coverage area" interactive={false} />)
+
+		expect(bySlot(container, 'map')).toHaveAttribute('role', 'img')
+	})
+
 	it('flags itself ready once the underlying map loads', async () => {
 		const { container } = renderUI(<MapView />)
 
@@ -140,6 +156,20 @@ describe('MapRoute', () => {
 		)
 
 		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(route.stops.length))
+	})
+
+	it('renders each stop marker as a labelled button', async () => {
+		renderUI(
+			<MapView>
+				<MapRoute data={route} />
+			</MapView>,
+		)
+
+		for (const stop of route.stops) {
+			await waitFor(() =>
+				expect(screen.getByRole('button', { name: stop.name })).toBeInTheDocument(),
+			)
+		}
 	})
 
 	it('hides stop markers when showStops is false', async () => {
