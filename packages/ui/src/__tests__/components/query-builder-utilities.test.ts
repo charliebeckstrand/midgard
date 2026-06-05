@@ -164,6 +164,38 @@ describe('mapNode', () => {
 
 		expect(mapNode(tree, 'missing', (n) => n)).toBe(tree)
 	})
+
+	it('preserves sibling references when updating one leaf', () => {
+		const leafA = createRule(textField)
+
+		const inner = createGroup('or', [createRule(numberField)])
+
+		const tree = createGroup('and', [leafA, inner])
+
+		const next = mapNode(tree, leafA.id, (n) => ({ ...n, value: 'updated' }))
+
+		expect(next).not.toBe(tree)
+
+		expect(next.children[1]).toBe(inner)
+
+		expect((next.children[0] as QueryRule).value).toBe('updated')
+	})
+
+	it('updates nested nodes while preserving unrelated subtrees', () => {
+		const leafA = createRule(textField)
+
+		const leafB = createRule(numberField)
+
+		const tree = createGroup('and', [leafA, createGroup('or', [leafB])])
+
+		const next = mapNode(tree, leafB.id, (n) => ({ ...n, value: 42 }))
+
+		expect(next.children[0]).toBe(leafA)
+
+		const inner = next.children[1] as { children: QueryNode[] }
+
+		expect((inner.children[0] as QueryRule).value).toBe(42)
+	})
 })
 
 describe('addChild', () => {
@@ -194,6 +226,26 @@ describe('addChild', () => {
 
 		expect(addChild(tree, 'missing', createRule(textField))).toBe(tree)
 	})
+
+	it('preserves unrelated siblings when inserting into a nested group', () => {
+		const leafA = createRule(textField)
+
+		const inner = createGroup('or', [createRule(numberField)])
+
+		const tree = createGroup('and', [leafA, inner])
+
+		const newRule = createRule(textField)
+
+		const next = addChild(tree, inner.id, newRule)
+
+		expect(next.children[0]).toBe(leafA)
+
+		const innerNext = next.children[1] as { children: QueryNode[] }
+
+		expect(innerNext.children).toHaveLength(2)
+
+		expect(innerNext.children[1]).toBe(newRule)
+	})
 })
 
 describe('removeChild', () => {
@@ -223,5 +275,37 @@ describe('removeChild', () => {
 		const tree = createGroup('and', [createRule(textField)])
 
 		expect(removeChild(tree, 'missing')).toBe(tree)
+	})
+
+	it('preserves untouched siblings when removing a direct child', () => {
+		const leafA = createRule(textField)
+
+		const leafB = createRule(numberField)
+
+		const tree = createGroup('and', [leafA, leafB])
+
+		const next = removeChild(tree, leafA.id)
+
+		expect(next.children).toHaveLength(1)
+
+		expect(next.children).toContain(leafB)
+
+		expect(next.children).not.toContain(leafA)
+	})
+
+	it('preserves unrelated subtrees when removing a nested node', () => {
+		const leafA = createRule(textField)
+
+		const leafB = createRule(numberField)
+
+		const tree = createGroup('and', [leafA, createGroup('or', [leafB])])
+
+		const next = removeChild(tree, leafB.id)
+
+		expect(next.children[0]).toBe(leafA)
+
+		const inner = next.children[1] as { children: QueryNode[] }
+
+		expect(inner.children).toHaveLength(0)
 	})
 })
