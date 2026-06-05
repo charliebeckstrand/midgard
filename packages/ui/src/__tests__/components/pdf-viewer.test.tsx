@@ -341,6 +341,29 @@ describe('printPdf', () => {
 		appendChild.mockRestore()
 	})
 
+	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
+		const appendChild = vi.spyOn(document.body, 'appendChild')
+
+		printPdf('/doc.pdf')
+
+		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
+
+		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
+
+		iframe.dispatchEvent(new Event('load'))
+
+		// afterprint never fires; the print dialog closing returns focus to the window.
+		expect(iframe.parentNode).not.toBeNull()
+
+		window.dispatchEvent(new Event('focus'))
+
+		expect(iframe.parentNode).toBeNull()
+
+		appendChild.mockRestore()
+	})
+
 	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 		const appendChild = vi.spyOn(document.body, 'appendChild')

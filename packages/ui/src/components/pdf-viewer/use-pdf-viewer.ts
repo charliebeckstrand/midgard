@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefObject, SyntheticEvent } from 'react'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useMinWidth } from '../../hooks'
 import type { PdfViewerPage, PdfViewerZoom } from './types'
 import { usePdfViewerDocument } from './use-pdf-viewer-document'
@@ -115,26 +115,57 @@ export function usePdfViewer({
 		hasContent,
 	})
 
-	return {
-		pages,
-		total,
-		activePage,
-		safePage,
-		goToPage,
-		zoom: { value: zoomValue, setValue: setZoomValue, levels: zoomLevels },
-		rotation,
-		rotate,
-		scale,
-		documentSrc,
-		filename,
-		loading,
-		error,
-		isDesktop,
-		thumbsOpen,
-		setThumbsOpen,
-		visible: !!(viewportSize && pageSize),
-		onImageLoad,
-		rootRef,
-		viewportRef,
-	}
+	const zoom = useMemo<PdfViewerZoom>(
+		() => ({ value: zoomValue, setValue: setZoomValue, levels: zoomLevels }),
+		[zoomValue, zoomLevels],
+	)
+
+	const visible = !!(viewportSize && pageSize)
+
+	// Memoize so the value handed to PdfViewerContext keeps a stable identity
+	// across renders that don't touch its fields — the per-page streaming ticks
+	// and zoom/scroll churn would otherwise re-render every consumer.
+	return useMemo<PdfViewerResult>(
+		() => ({
+			pages,
+			total,
+			activePage,
+			safePage,
+			goToPage,
+			zoom,
+			rotation,
+			rotate,
+			scale,
+			documentSrc,
+			filename,
+			loading,
+			error,
+			isDesktop,
+			thumbsOpen,
+			setThumbsOpen,
+			visible,
+			onImageLoad,
+			rootRef,
+			viewportRef,
+		}),
+		[
+			pages,
+			total,
+			activePage,
+			safePage,
+			goToPage,
+			zoom,
+			rotation,
+			rotate,
+			scale,
+			documentSrc,
+			filename,
+			loading,
+			error,
+			isDesktop,
+			thumbsOpen,
+			visible,
+			onImageLoad,
+		],
+	)
 }
