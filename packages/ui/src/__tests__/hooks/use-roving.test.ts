@@ -1,8 +1,72 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { useRoving } from '../../hooks/use-roving'
+import { setVirtualActive, useRoving } from '../../hooks/use-roving'
 import { makeKeyEvent } from '../helpers'
+
+describe('setVirtualActive', () => {
+	function makeItems(count: number) {
+		const items = Array.from({ length: count }, (_, i) => {
+			const el = document.createElement('div')
+
+			el.setAttribute('role', 'option')
+
+			el.id = `opt-${i}`
+
+			return el
+		})
+
+		const owner = document.createElement('input')
+
+		return { items, owner }
+	}
+
+	it('moves data-active and mirrors aria-selected + aria-activedescendant', () => {
+		const { items, owner } = makeItems(3)
+
+		setVirtualActive(items, 0, { current: owner })
+
+		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+
+		expect(items[0]?.getAttribute('aria-selected')).toBe('true')
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
+
+		setVirtualActive(items, 1, { current: owner })
+
+		expect(items[0]?.hasAttribute('data-active')).toBe(false)
+
+		expect(items[0]?.getAttribute('aria-selected')).toBe('false')
+
+		expect(items[1]?.getAttribute('aria-selected')).toBe('true')
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-1')
+	})
+
+	it('clears the active state and aria-activedescendant on a negative index', () => {
+		const { items, owner } = makeItems(3)
+
+		setVirtualActive(items, 1, { current: owner })
+
+		setVirtualActive(items, -1, { current: owner })
+
+		expect(items.some((el) => el.hasAttribute('data-active'))).toBe(false)
+
+		expect(items[1]?.getAttribute('aria-selected')).toBe('false')
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+	})
+
+	it('only toggles data-active when no owner ref is given', () => {
+		const { items } = makeItems(3)
+
+		setVirtualActive(items, 0)
+
+		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+
+		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+	})
+})
 
 function makeContainer(count: number) {
 	const container = document.createElement('div')

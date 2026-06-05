@@ -8,7 +8,22 @@ import {
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
 } from '../../components/command-palette'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+
+const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
+
+// Function children that filter against the deferred query, mirroring real usage.
+function FilteredPalette() {
+	return (
+		<CommandPalette open onOpenChange={() => {}}>
+			{(_query, deferredQuery) =>
+				FILTER_ITEMS.filter((label) =>
+					label.toLowerCase().includes(deferredQuery.toLowerCase()),
+				).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+			}
+		</CommandPalette>
+	)
+}
 
 describe('CommandPalette', () => {
 	it('renders input when open', () => {
@@ -104,25 +119,45 @@ describe('CommandPalette active descendant', () => {
 		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
-	it('clears aria-activedescendant when the query changes', async () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem>Alpha</CommandPaletteItem>
-				<CommandPaletteItem>Beta</CommandPaletteItem>
-			</CommandPalette>,
-		)
+	it('moves the active item to the top result when the filter changes', async () => {
+		renderUI(<FilteredPalette />)
 
-		const input = screen.getByRole('combobox') as HTMLInputElement
+		const user = userEvent.setup()
+
+		// Activate the first option (Alpha), then filter it out.
+		await user.keyboard('{ArrowDown}')
+
+		await user.type(screen.getByRole('combobox'), 'gam')
+
+		await waitFor(() => {
+			const options = screen.getAllByRole('option')
+
+			expect(options).toHaveLength(1)
+
+			expect(options[0]).toHaveTextContent('Gamma')
+
+			expect(options[0]).toHaveAttribute('aria-selected', 'true')
+
+			expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		})
+	})
+
+	it('clears the active item when the filter matches nothing', async () => {
+		renderUI(<FilteredPalette />)
 
 		const user = userEvent.setup()
 
 		await user.keyboard('{ArrowDown}')
 
-		expect(input).toHaveAttribute('aria-activedescendant')
+		expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant')
 
-		await user.type(input, 'a')
+		await user.type(screen.getByRole('combobox'), 'zzz')
 
-		expect(input).not.toHaveAttribute('aria-activedescendant')
+		await waitFor(() => {
+			expect(screen.queryAllByRole('option')).toHaveLength(0)
+
+			expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
+		})
 	})
 })
 
