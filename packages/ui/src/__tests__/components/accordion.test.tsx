@@ -82,6 +82,26 @@ describe('AccordionTrigger', () => {
 
 		expect(screen.getByText('Toggle Me')).toBeInTheDocument()
 	})
+
+	it('fires a consumer onClick alongside the toggle', () => {
+		const onClick = vi.fn()
+
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger onClick={onClick}>Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		fireEvent.click(screen.getByText('Toggle'))
+
+		// The consumer handler must not clobber the panel toggle, and vice versa.
+		expect(onClick).toHaveBeenCalledTimes(1)
+
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
+	})
 })
 
 describe('AccordionPanel', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MapContext } from './context'
@@ -49,8 +49,17 @@ function MapView({
 }: MapProps) {
 	const resolvedStyle = preset ? mapPresets[preset] : (style ?? mapPresets.demo)
 
+	// Resolve `center` from its primitive lng/lat so the reference is stable
+	// across renders. Otherwise the `?? [0, 0]` fallback (and any inline array
+	// the consumer passes) reallocates every render, driving the camera-sync
+	// effect in useMapInstance to fire on every render and fight user pan/zoom.
+	const lng = camera?.center?.[0] ?? 0
+	const lat = camera?.center?.[1] ?? 0
+
+	const center = useMemo<LngLat>(() => [lng, lat], [lng, lat])
+
 	const { containerRef, contextValue, ready } = useMapInstance({
-		center: camera?.center ?? [0, 0],
+		center,
 		zoom: camera?.zoom ?? 2,
 		bearing: camera?.bearing ?? 0,
 		pitch: camera?.pitch ?? 0,

@@ -63,6 +63,7 @@ export function DataTableVirtualizedBody<T>({
 						className={rowClassName?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
+						dataRowIndex={vr.index}
 						// Header occupies row 1, so data rows are offset by 2.
 						rowIndex={vr.index + 2}
 					/>

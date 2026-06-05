@@ -40,6 +40,31 @@ describe('Sidebar', () => {
 
 		expect(el).toHaveAttribute('aria-label', 'Sidebar')
 	})
+
+	it('fires a consumer onKeyDown without losing roving navigation', () => {
+		const onKeyDown = vi.fn()
+
+		const { container } = renderUI(
+			<Sidebar onKeyDown={onKeyDown}>
+				<SidebarItem>Home</SidebarItem>
+				<SidebarItem>Settings</SidebarItem>
+			</Sidebar>,
+		)
+
+		const nav = bySlot(container, 'sidebar') as HTMLElement
+
+		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+
+		items[0]?.focus()
+
+		fireEvent.keyDown(nav, { key: 'ArrowDown' })
+
+		// Roving still advances focus to the next item...
+		expect(items[1]).toHaveFocus()
+
+		// ...and the consumer's handler is chained rather than clobbered.
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
+	})
 })
 
 describe('SidebarHeader', () => {

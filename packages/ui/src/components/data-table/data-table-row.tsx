@@ -28,6 +28,13 @@ type DataTableRowProps<T> = {
 	 * DOM. Omitted otherwise.
 	 */
 	rowIndex?: number
+	/**
+	 * 0-based index into the full `rows` array, surfaced as `data-row-index` so
+	 * keyboard bridges (e.g. EditableGrid) can resolve a `<tr>` to its data row
+	 * without relying on physical DOM position — which diverges from the data
+	 * order once spacer rows and windowing enter the picture under virtualization.
+	 */
+	dataRowIndex: number
 }
 
 function DataTableRowImpl<T>({
@@ -39,6 +46,7 @@ function DataTableRowImpl<T>({
 	selected,
 	toggleRow,
 	rowIndex,
+	dataRowIndex,
 }: DataTableRowProps<T>) {
 	const rowContext = useMemo<DataTableRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
@@ -49,6 +57,7 @@ function DataTableRowImpl<T>({
 		<DataTableRowContext value={rowContext}>
 			<TableRow
 				data-selected={selected || undefined}
+				data-row-index={dataRowIndex}
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>

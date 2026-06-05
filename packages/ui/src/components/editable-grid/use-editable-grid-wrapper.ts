@@ -76,14 +76,23 @@ export function useEditableGridWrapper<T>({
 				let targetRow: number
 
 				if (section.tagName === 'THEAD') {
+					// Select-all checkbox bridges into the first data row.
 					targetRow = 0
 				} else if (section.tagName === 'TBODY') {
-					targetRow = Array.prototype.indexOf.call(section.children, tr)
+					// Resolve by data index, not physical DOM position: under
+					// virtualization the body holds spacer rows plus only the
+					// windowed rows, so child position no longer maps to data order.
+					const attr = tr.getAttribute('data-row-index')
+
+					if (attr === null) return
+
+					targetRow = Number(attr)
 				} else {
 					return
 				}
 
-				if (targetRow < 0 || targetRow >= rowsRef.current.length) return
+				if (!Number.isInteger(targetRow) || targetRow < 0 || targetRow >= rowsRef.current.length)
+					return
 
 				e.preventDefault()
 
@@ -125,7 +134,9 @@ export function useEditableGridWrapper<T>({
 					// so the user can keep tabbing past header / out of the grid
 					// without bouncing back into the cell cursor.
 					if (e.shiftKey && active?.col === 0 && wrapper) {
-						const tr = wrapper.tBodies[0]?.rows[active.row]
+						// Locate the row by data index, not DOM position, so the lookup
+						// holds under virtualization (spacer rows shift physical order).
+						const tr = wrapper.querySelector(`tbody tr[data-row-index="${active.row}"]`)
 
 						const cb = tr?.querySelector<HTMLInputElement>('input[type="checkbox"]')
 
