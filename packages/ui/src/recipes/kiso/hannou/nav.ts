@@ -15,7 +15,7 @@ const { icon } = shaku
 
 export const nav = [
 	icon.md,
-	...mode('group-hover:bg-zinc-950/5', 'dark:group-hover:bg-white/5'),
+	...mode('hover:bg-zinc-950/5', 'dark:hover:bg-white/5'),
 	...mode('text-zinc-950', 'dark:text-white'),
 	focus.inset,
 ]

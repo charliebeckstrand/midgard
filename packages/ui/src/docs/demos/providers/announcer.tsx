@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
 import { Stack } from '../../../components/stack'
@@ -8,35 +9,9 @@ import { Example } from '../../components/example'
 
 export const meta = { category: 'Providers' }
 
-// The announcer is imperative and visually silent, so the rendered preview
-// can't show it directly. Surface the idiomatic usage as the code block and
-// mirror each announcement into a visible log beside the live buttons.
-const USAGE = `import { AnnouncerProvider, useAnnounce } from 'ui/providers/announcer'
-
-// Mount once, at the app root, alongside your other providers.
-function App() {
-	return (
-		<AnnouncerProvider>
-			<Routes />
-		</AnnouncerProvider>
-	)
-}
-
-// Anywhere below it, announce imperatively — for state changes that have no
-// natural focus or DOM home (copied, saved, item removed, results filtered).
-function SaveButton() {
-	const announce = useAnnounce()
-
-	return <Button onClick={() => announce('Changes saved')}>Save</Button>
-}
-
-// Polite by default. Pass { assertive: true } to interrupt for time-sensitive
-// messages such as errors or lost connectivity.
-announce('Connection lost', { assertive: true })`
-
 type Entry = { id: number; label: string }
 
-function Console() {
+function ConsoleExample() {
 	const announce = useAnnounce()
 
 	const [log, setLog] = useState<Entry[]>([])
@@ -52,7 +27,7 @@ function Console() {
 			[
 				{ id: nextId.current, label: `${assertive ? 'assertive' : 'polite'} · ${message}` },
 				...prev,
-			].slice(0, 5),
+			].slice(0, 10),
 		)
 	}
 
@@ -64,11 +39,6 @@ function Console() {
 					Announce (assertive)
 				</Button>
 			</Flex>
-
-			<Text variant="muted">
-				The live region is visually hidden — turn on a screen reader to hear these. The log below
-				mirrors what was sent.
-			</Text>
 
 			<Stack gap="xs" aria-hidden>
 				{log.length === 0 ? (
@@ -83,10 +53,16 @@ function Console() {
 
 export function Demo() {
 	return (
-		<Example code={USAGE}>
-			<AnnouncerProvider>
-				<Console />
-			</AnnouncerProvider>
+		<Example title="AnnouncerProvider">
+			<Stack>
+				<AnnouncerProvider>
+					<Alert severity="info">
+						The announcer is used to communicate important updates to users of assistive
+						technologies like screen readers.
+					</Alert>
+					<ConsoleExample />
+				</AnnouncerProvider>
+			</Stack>
 		</Example>
 	)
 }

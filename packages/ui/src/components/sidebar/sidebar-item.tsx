@@ -40,7 +40,7 @@ export function SidebarItem({
 		<span
 			ref={item.ref}
 			data-slot="sidebar-item"
-			className={cn('group relative', hasAffix && 'flex items-center gap-1')}
+			className={cn('group relative', hasAffix && 'flex items-center')}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (

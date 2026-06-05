@@ -36,9 +36,9 @@ export function Demo() {
 						<SubmitButton variant="soft" color="green">
 							Soft
 						</SubmitButton>
-						<SubmitButton variant="outline">Outline</SubmitButton>
-						<SubmitButton size="sm">Small</SubmitButton>
-						<SubmitButton size="lg">Large</SubmitButton>
+						<SubmitButton variant="outline" color="amber">
+							Outline
+						</SubmitButton>
 					</Flex>
 				</Form>
 			</Example>
@@ -47,10 +47,6 @@ export function Demo() {
 				<Form defaultValues={{}} onSubmit={simulateAsyncSubmission}>
 					<SubmitButton disabled>Submit</SubmitButton>
 				</Form>
-			</Example>
-
-			<Example title="Outside a form">
-				<SubmitButton>Submits the nearest native form</SubmitButton>
 			</Example>
 		</>
 	)

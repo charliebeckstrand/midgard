@@ -1,5 +1,6 @@
 import {
 	ChartBar,
+	ChevronDown,
 	Cog,
 	Folder,
 	Home,
@@ -239,6 +240,29 @@ function ItemActionsSidebarExample() {
 	)
 }
 
+function SuffixSidebarExample() {
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarBody>
+					<SidebarSection>
+						<SidebarItem
+							icon={<Inbox />}
+							suffix={
+								<Button variant="plain">
+									<Icon icon={<ChevronDown />} />
+								</Button>
+							}
+						>
+							<SidebarLabel>Inbox</SidebarLabel>
+						</SidebarItem>
+					</SidebarSection>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
 export function Demo() {
 	return (
 		<>
@@ -256,6 +280,10 @@ export function Demo() {
 
 			<Example title="With item actions">
 				<ItemActionsSidebarExample />
+			</Example>
+
+			<Example title="With suffix slot">
+				<SuffixSidebarExample />
 			</Example>
 		</>
 	)

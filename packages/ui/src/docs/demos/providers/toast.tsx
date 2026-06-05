@@ -7,7 +7,7 @@ import { Example } from '../../components/example'
 
 export const meta = { category: 'Providers' }
 
-function ToastButtonsExample() {
+function SeverityExample() {
 	const { toast } = useToast()
 
 	return (
@@ -58,7 +58,7 @@ function ToastButtonsExample() {
 	)
 }
 
-function PersistToastButtonExample() {
+function PersistExample() {
 	const { toast } = useToast()
 
 	return (
@@ -77,7 +77,7 @@ function PersistToastButtonExample() {
 	)
 }
 
-function ActionToastButtonExample() {
+function ActionsExample() {
 	const { toast, dismiss } = useToast()
 
 	const handleClick = () => {
@@ -114,16 +114,16 @@ export function Demo() {
 	return (
 		<ToastProvider>
 			<Stack gap="xl">
-				<Example title="Types">
-					<ToastButtonsExample />
+				<Example title="Severity">
+					<SeverityExample />
 				</Example>
 
 				<Example title="Persist">
-					<PersistToastButtonExample />
+					<PersistExample />
 				</Example>
 
 				<Example title="With action">
-					<ActionToastButtonExample />
+					<ActionsExample />
 				</Example>
 			</Stack>
 			<Toast />

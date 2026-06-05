@@ -45,6 +45,7 @@ export function CurrencyInput({
 	const ambient = useLocale()
 
 	const resolvedCurrency = currency ?? ambient.currency ?? 'USD'
+
 	const resolvedLocale = locale ?? ambient.locale
 
 	const [num, setNum] = useControllable<number>({
