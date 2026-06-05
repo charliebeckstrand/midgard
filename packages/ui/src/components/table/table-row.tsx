@@ -8,7 +8,7 @@ export type TableRowProps = {
 
 export function TableRow({ className, children, ...props }: TableRowProps) {
 	return (
-		<tr className={cn(k.row, className)} {...props}>
+		<tr data-slot="table-row" className={cn(k.row, className)} {...props}>
 			{children}
 		</tr>
 	)

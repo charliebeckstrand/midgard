@@ -8,7 +8,7 @@ export type TableHeadProps = {
 
 export function TableHead({ className, children, ...props }: TableHeadProps) {
 	return (
-		<thead className={cn(k.head, className)} {...props}>
+		<thead data-slot="table-head" className={cn(k.head, className)} {...props}>
 			{children}
 		</thead>
 	)
