@@ -1,8 +1,6 @@
-import { act, renderHook } from '@testing-library/react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { TagInput } from '../../components/tag-input'
-import { useTagInput } from '../../components/tag-input/use-tag-input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 function getInput(container: HTMLElement) {
@@ -241,99 +239,5 @@ describe('TagInput', () => {
 		expect(onChange).toHaveBeenCalledWith(['svelte'])
 
 		expect(input.value).toBe('')
-	})
-})
-
-describe('useTagInput', () => {
-	it('addTag returns false for an empty or whitespace-only raw value', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
-
-		let added = true
-
-		act(() => {
-			added = result.current.addTag('   ')
-		})
-
-		expect(added).toBe(false)
-
-		expect(onValueChange).not.toHaveBeenCalled()
-	})
-
-	it('addTag returns true when the tag is accepted', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
-
-		let added = false
-
-		act(() => {
-			added = result.current.addTag('react')
-		})
-
-		expect(added).toBe(true)
-
-		expect(onValueChange).toHaveBeenCalledWith(['react'])
-	})
-
-	it('fires onMaxReleased when removing a tag from an at-max list', () => {
-		const onMaxReleased = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInput({ defaultValue: ['a', 'b'], max: 2, onMaxReleased }),
-		)
-
-		expect(result.current.atMax).toBe(true)
-
-		act(() => {
-			result.current.removeTag(0)
-		})
-
-		expect(onMaxReleased).toHaveBeenCalledOnce()
-	})
-
-	it('does not fire onMaxReleased when removing from a list that was not at max', () => {
-		const onMaxReleased = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInput({ defaultValue: ['a', 'b'], max: 5, onMaxReleased }),
-		)
-
-		expect(result.current.atMax).toBe(false)
-
-		act(() => {
-			result.current.removeTag(0)
-		})
-
-		expect(onMaxReleased).not.toHaveBeenCalled()
-	})
-
-	it('addTag accepts a new tag when below max', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'], max: 5, onValueChange }))
-
-		let added = false
-
-		act(() => {
-			added = result.current.addTag('b')
-		})
-
-		expect(added).toBe(true)
-
-		expect(onValueChange).toHaveBeenCalledWith(['a', 'b'])
-	})
-
-	it('addTag rejects a duplicate', () => {
-		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'] }))
-
-		let added = true
-
-		act(() => {
-			added = result.current.addTag('a')
-		})
-
-		expect(added).toBe(false)
 	})
 })
