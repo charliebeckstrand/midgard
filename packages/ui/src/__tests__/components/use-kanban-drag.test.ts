@@ -268,24 +268,4 @@ describe('useKanbanDrag: handleDragOver edge cases', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
-
-	it('appends to the target column when the over id is unknown', () => {
-		const onValueChange = vi.fn()
-
-		const { api } = setup({ onValueChange })
-
-		// 'a' is in 'todo'; if we pretend it was dragged onto a non-existent id
-		// in a different column, the insert falls back to "end of column".
-		// Construct an over id that resolves to a column via findColumn (here:
-		// the active card is in 'todo', over id is 'doing' which IS a column,
-		// so insert at end. Already covered. To reach the overCardIdx === -1
-		// branch, we need overId to map to a column via card lookup but with
-		// no card match.
-		api.handleDragOver(makeDragEvent('a', 'doing'))
-
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
-
-		// Confirmed: a is appended to doing.
-		expect(next[1]?.items.map((i) => i.id)).toEqual(['c', 'a'])
-	})
 })

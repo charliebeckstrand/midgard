@@ -112,4 +112,44 @@ describe('useTagInput', () => {
 
 		expect(onMaxReleased).toHaveBeenCalledOnce()
 	})
+
+	it('does not fire onMaxReleased when removing from a list that was not at max', () => {
+		const onMaxReleased = vi.fn()
+
+		const { result } = renderHook(() =>
+			useTagInput({ defaultValue: ['a', 'b'], max: 5, onMaxReleased }),
+		)
+
+		expect(result.current.atMax).toBe(false)
+
+		act(() => {
+			result.current.removeTag(0)
+		})
+
+		expect(onMaxReleased).not.toHaveBeenCalled()
+	})
+
+	it('calls onValueChange with the next tags when a tag is added', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
+
+		act(() => {
+			result.current.addTag('react')
+		})
+
+		expect(onValueChange).toHaveBeenCalledWith(['react'])
+	})
+
+	it('does not call onValueChange when an add is rejected', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
+
+		act(() => {
+			result.current.addTag('   ')
+		})
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
 })

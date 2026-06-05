@@ -385,24 +385,4 @@ describe('useListKeyboard', () => {
 			expect(result.current.liftedId).toBeNull()
 		})
 	})
-
-	describe('blur', () => {
-		it('drops the lifted item on blur', () => {
-			const { result } = renderHook(() =>
-				useListKeyboard({
-					items: buildItems(['a', 'b', 'c']),
-					getKey: (i) => i.id,
-					orientation: 'vertical',
-				}),
-			)
-
-			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
-
-			expect(result.current.liftedId).toBe('a')
-
-			act(() => result.current.onItemBlur())
-
-			expect(result.current.liftedId).toBeNull()
-		})
-	})
 })

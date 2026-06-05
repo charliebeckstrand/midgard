@@ -139,9 +139,21 @@ describe('filterEntries', () => {
 
 		expect(filterEntries(entries, 'needle')).toEqual(entries)
 	})
+
+	it('uses the supplied search index to decide branch inclusion', () => {
+		const data = { a: 1, b: { deep: 'match' } }
+
+		const index = buildSearchIndex(data, 'match')
+
+		expect(filterEntries(getEntries(data), 'match', index)).toHaveLength(1)
+	})
 })
 
 describe('collectPaths', () => {
+	it('returns an empty set for primitives', () => {
+		expect(collectPaths('x')).toEqual(new Set())
+	})
+
 	it('returns one path per branch node anchored at $', () => {
 		const paths = collectPaths({ a: { b: 1 }, c: 2 })
 
@@ -206,5 +218,53 @@ describe('flattenTree', () => {
 		const leaf = nodes.find((n) => n.type === 'leaf')
 
 		expect(leaf?.highlighted).toBe(true)
+	})
+
+	it('recurses into open nested branches', () => {
+		const tree = { outer: { inner: { leaf: 1 } } }
+
+		const nodes = flattenTree(
+			tree,
+			undefined,
+			new Set(['$', '$.outer', '$.outer.inner']),
+			'',
+			false,
+			new WeakMap(),
+		)
+
+		expect(nodes.map((n) => n.type)).toEqual([
+			'branch-open',
+			'branch-open',
+			'branch-open',
+			'leaf',
+			'branch-close',
+			'branch-close',
+			'branch-close',
+		])
+	})
+
+	it('tracks depth as it descends into nested branches', () => {
+		const tree = { outer: { inner: { leaf: 1 } } }
+
+		const nodes = flattenTree(
+			tree,
+			undefined,
+			new Set(['$', '$.outer', '$.outer.inner']),
+			'',
+			false,
+			new WeakMap(),
+		)
+
+		expect(nodes.find((n) => n.type === 'leaf')?.depth).toBe(3)
+	})
+
+	it('drops leaves that do not match when filter is enabled', () => {
+		const tree = { a: 'yes', b: 'no' }
+
+		const index = buildSearchIndex(tree, 'yes')
+
+		const nodes = flattenTree(tree, undefined, new Set(['$']), 'yes', true, index)
+
+		expect(nodes.filter((n) => n.type === 'leaf')).toHaveLength(1)
 	})
 })

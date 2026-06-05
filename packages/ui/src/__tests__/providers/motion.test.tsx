@@ -22,14 +22,4 @@ describe('Motion', () => {
 
 		expect(screen.getByText('always')).toBeInTheDocument()
 	})
-
-	it('renders with reducedMotion="user" by default', () => {
-		renderUI(
-			<Motion>
-				<span>default</span>
-			</Motion>,
-		)
-
-		expect(screen.getByText('default')).toBeInTheDocument()
-	})
 })

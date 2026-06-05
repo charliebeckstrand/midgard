@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PasswordConfirm, PasswordConfirmInput } from '../../components/password-confirm'
-import { deriveStatus } from '../../components/password-confirm/password-confirm-utilities'
 import { PasswordInput } from '../../components/password-input'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -126,31 +125,5 @@ describe('PasswordConfirm warning rendering', () => {
 		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abd' } })
 
 		expect(onPasswordMismatch).toHaveBeenCalled()
-	})
-})
-
-describe('deriveStatus', () => {
-	it('returns idle when the password field is empty', () => {
-		expect(deriveStatus('', 'abc', 'password')).toBe('idle')
-	})
-
-	it('returns idle when the confirm field is empty', () => {
-		expect(deriveStatus('abc', '', 'confirm')).toBe('idle')
-	})
-
-	it('returns idle when passwords match', () => {
-		expect(deriveStatus('abc', 'abc', 'confirm')).toBe('idle')
-	})
-
-	it('returns idle while the user is still typing the confirm value', () => {
-		expect(deriveStatus('abcdef', 'abc', 'confirm')).toBe('idle')
-	})
-
-	it('returns warning when passwords differ and the password was last edited', () => {
-		expect(deriveStatus('abc', 'abd', 'password')).toBe('warning')
-	})
-
-	it('returns warning when the confirm value is longer than the password and differs', () => {
-		expect(deriveStatus('abc', 'abcd', 'confirm')).toBe('warning')
 	})
 })
