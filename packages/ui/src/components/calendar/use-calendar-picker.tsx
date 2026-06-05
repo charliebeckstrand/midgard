@@ -10,7 +10,6 @@ import {
 	useRef,
 } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
-import { MONTHS } from './calendar-constants'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
@@ -19,6 +18,7 @@ type CalendarPickerOptions = {
 	year: number
 	month: number
 	today: Date | null
+	monthLabels: string[]
 	onNavigate: (year: number, month: number) => void
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
@@ -50,6 +50,7 @@ export function useCalendarPicker({
 	year,
 	month,
 	today,
+	monthLabels,
 	onNavigate,
 	open: openProp,
 	onOpenChange,
@@ -119,7 +120,7 @@ export function useCalendarPicker({
 		[pickerYear, onNavigate, setPickerOpen],
 	)
 
-	const monthCells: CalendarPickerGridCell[] = MONTHS.map((label, i) => ({
+	const monthCells: CalendarPickerGridCell[] = monthLabels.map((label, i) => ({
 		key: label,
 		label,
 		selected: i === month && pickerYear === year,

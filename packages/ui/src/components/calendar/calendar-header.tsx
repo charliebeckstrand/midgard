@@ -18,6 +18,8 @@ type CalendarHeaderProps = {
 	month: number
 	today: Date | null
 	monthLabel: string
+	/** Short month labels for the year/month picker, in the active locale. */
+	monthLabels: string[]
 	pickerOpen: boolean
 	onPickerOpenChange: (open: boolean) => void
 	onPickerNavigate: (year: number, month: number) => void
@@ -34,6 +36,7 @@ export function CalendarHeader({
 	month,
 	today,
 	monthLabel,
+	monthLabels,
 	pickerOpen,
 	onPickerOpenChange,
 	onPickerNavigate,
@@ -61,6 +64,7 @@ export function CalendarHeader({
 				today={today}
 				onNavigate={onPickerNavigate}
 				monthLabel={monthLabel}
+				monthLabels={monthLabels}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
 				triggerClassName={cn(activeIndex === 1 && k.day.active)}

@@ -14,12 +14,20 @@ import {
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
+import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import type { ButtonVariants } from '../button'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
-import { getCalendarDays, isBeforeDay } from './calendar-utilities'
+import {
+	getCalendarDays,
+	getFirstDayColumn,
+	getMonthLabels,
+	getWeekdayLabels,
+	isBeforeDay,
+	resolveLocale,
+} from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
 
@@ -64,6 +72,12 @@ export type CalendarProps = {
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/**
+	 * BCP 47 locale tag driving the first day of the week and the weekday /
+	 * month labels. Resolution order: explicit prop, then enclosing
+	 * `LocaleProvider`, then the runtime default.
+	 */
+	locale?: string
+	/**
 	 * Size step that drives overall width, padding, and the weekday label size.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 * Re-broadcast to descendants via the Density context so the nav buttons and
@@ -85,12 +99,17 @@ export function Calendar({
 	getDayProps,
 	footerRef,
 	ref,
+	locale,
 	size,
 	className,
 }: CalendarProps) {
 	const inherited = useDensity()
 
 	const resolvedSize: Step = size ?? inherited.size
+
+	const ambient = useLocale()
+
+	const localeTag = resolveLocale(locale ?? ambient.locale)
 
 	const handleValueChange = useCallback(
 		(nextValue: Date | undefined) => {
@@ -170,11 +189,18 @@ export function Calendar({
 		[setValue],
 	)
 
-	const firstDayColumn = useMemo(() => new Date(year, month, 1).getDay() + 1, [year, month])
+	const weekdays = useMemo(() => getWeekdayLabels(localeTag), [localeTag])
+
+	const monthLabels = useMemo(() => getMonthLabels(localeTag), [localeTag])
+
+	const firstDayColumn = useMemo(
+		() => getFirstDayColumn(year, month, localeTag),
+		[year, month, localeTag],
+	)
 
 	const monthLabel = useMemo(
-		() => viewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
-		[viewDate],
+		() => viewDate.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' }),
+		[viewDate, localeTag],
 	)
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
@@ -195,6 +221,7 @@ export function Calendar({
 					month={month}
 					today={today}
 					monthLabel={monthLabel}
+					monthLabels={monthLabels}
 					pickerOpen={pickerOpen}
 					onPickerOpenChange={handlePickerOpenChange}
 					onPickerNavigate={navigateTo}
@@ -206,6 +233,7 @@ export function Calendar({
 					gridRef={gridRef}
 					onGridKeyDown={handleGridKeyDown}
 					size={resolvedSize}
+					weekdays={weekdays}
 					days={days}
 					firstDayColumn={firstDayColumn}
 					today={today}

@@ -12,6 +12,7 @@ type CalendarPickerProps = {
 	today: Date | null
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
+	monthLabels: string[]
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	triggerClassName?: string
@@ -23,6 +24,7 @@ export function CalendarPicker({
 	today,
 	onNavigate,
 	monthLabel,
+	monthLabels,
 	open,
 	onOpenChange,
 	triggerClassName,
@@ -37,7 +39,7 @@ export function CalendarPicker({
 		handleHeaderKeyDown,
 		handleGridKeyDown,
 		viewConfig,
-	} = useCalendarPicker({ year, month, today, onNavigate, open, onOpenChange })
+	} = useCalendarPicker({ year, month, today, monthLabels, onNavigate, open, onOpenChange })
 
 	return (
 		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>

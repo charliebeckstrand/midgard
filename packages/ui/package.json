@@ -61,6 +61,7 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@dnd-kit/utilities": "^3.2.2",
 		"@floating-ui/react": "^0.27.19",
+		"@internationalized/date": "^3.10.0",
 		"@tanstack/react-virtual": "^3.13.23",
 		"card-validator": "^10.0.4",
 		"clsx": "^2.0.0",
