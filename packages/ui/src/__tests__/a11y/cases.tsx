@@ -30,10 +30,10 @@ import { Textarea } from '../../components/textarea'
 export type Case = readonly [name: string, element: ReactElement]
 
 /**
- * Canonical, correctly-labelled render of each component — the corpus the axe
- * gate (`baseline.test.tsx`) asserts clean. Add new components here as their
- * canonical render is verified clean. (The `score.ts` benchmark scores the full
- * docs-demo corpus instead, so it needs no additions here.)
+ * Canonical, correctly-wired render of each component — the corpus the
+ * compliance gate (`baseline.test.tsx`) asserts is axe-clean. This is where
+ * "all components are a11y-compliant" is enforced: add every component here in
+ * its canonical, correctly-labelled form as it is verified clean.
  */
 export const baseline: readonly Case[] = [
 	['badge', <Badge key="b">New</Badge>],

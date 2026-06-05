@@ -5,14 +5,13 @@ import { axe, renderUI } from '../helpers'
 import { baseline } from './cases'
 
 /**
- * Automated WCAG smoke test (axe-core). This is a regression guard, not a
- * substitute for a manual sweep: axe catches static role/name/ARIA/label/
- * structure defects but cannot see keyboard behavior, focus management, live
- * regions, contrast, or touch-target geometry. Rules it can't evaluate in jsdom
- * (color-contrast, target-size, region) are disabled in helpers/axe.ts.
- *
- * The canonical render of each component lives in `cases.tsx`. (The weighted
- * `score.ts` benchmark scores the broader docs-demo corpus separately.)
+ * Component a11y compliance gate (axe-core): every component, rendered in its
+ * canonical correctly-wired form (`cases.tsx`), must be axe-clean. This is a
+ * regression guard, not a substitute for a manual sweep — axe catches static
+ * role/name/ARIA/label/structure defects but cannot see keyboard behavior,
+ * focus management, live regions, contrast, or touch-target geometry. Rules it
+ * can't evaluate in jsdom (color-contrast, target-size, region) are disabled in
+ * helpers/axe.ts.
  */
 
 describe('a11y baseline (axe)', () => {
