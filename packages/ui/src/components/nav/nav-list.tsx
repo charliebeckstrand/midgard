@@ -6,7 +6,7 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
 
-export type NavListProps = ComponentPropsWithoutRef<'div'> & {
+export type NavListProps = ComponentPropsWithoutRef<'ul'> & {
 	orientation?: 'vertical' | 'horizontal'
 }
 
@@ -15,21 +15,22 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	const resolvedOrientation = orientation ?? (inNavbar ? 'horizontal' : 'vertical')
 
-	// A styled flex container for the links inside the enclosing <nav> landmark.
-	// Not a menubar: site navigation is a set of links — each individually
-	// Tab-focusable, the current one marked `aria-current="page"` — not an
-	// application menu. The menu role would mislead assistive tech and impose a
-	// roving keyboard model that navigation links don't use.
+	// A real <ul> of links inside the enclosing <nav> landmark — not a menubar:
+	// site navigation is a set of links, each individually Tab-focusable with the
+	// current one marked `aria-current="page"`, not an application menu with a
+	// roving keyboard model. The list element restores the count/position
+	// semantics CSS flex would otherwise strip; Tailwind preflight zeroes its
+	// default margin/padding/marker, so it lays out exactly like the prior div.
 	return (
 		<ActiveIndicatorScope>
-			<div
+			<ul
 				data-slot="nav-list"
 				data-orientation={resolvedOrientation}
 				className={cn(k.list.base, k.list.orientation[resolvedOrientation], className)}
 				{...props}
 			>
 				{children}
-			</div>
+			</ul>
 		</ActiveIndicatorScope>
 	)
 }

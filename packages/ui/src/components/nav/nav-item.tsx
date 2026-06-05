@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -38,10 +39,10 @@ export function NavItem({
 	const hasAffix = prefix != null || suffix != null
 
 	return (
-		<span
-			ref={item.ref}
+		<li
+			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={cn('group relative', hasAffix && 'flex items-center gap-1')}
+			className={cn('group relative list-none', hasAffix && 'flex items-center gap-1')}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
@@ -70,6 +71,6 @@ export function NavItem({
 				</span>
 			)}
 			{item.current && <ActiveIndicator ref={item.indicator.ref} />}
-		</span>
+		</li>
 	)
 }
