@@ -63,10 +63,6 @@ describe('resolveGap', () => {
 		expect(resolveGap(undefined)).toEqual([])
 	})
 
-	it('returns the gap class for a scalar value', () => {
-		expect(resolveGap('md').length).toBe(1)
-	})
-
 	it.each([
 		[0, 'gap-0'],
 		['xs', 'gap-1'],
@@ -76,10 +72,6 @@ describe('resolveGap', () => {
 		['xl', 'gap-6'],
 	] as const)('maps the %s gap step to %s', (value, cls) => {
 		expect(resolveGap(value)).toEqual([cls])
-	})
-
-	it('resolves 0 to gap-0', () => {
-		expect(resolveGap(0)).toEqual(['gap-0'])
 	})
 
 	it('emits breakpoint-prefixed classes for a responsive value', () => {
