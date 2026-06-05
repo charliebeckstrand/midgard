@@ -16,6 +16,7 @@ export type TabProps = {
 	/** Links this tab to its panel via aria-controls. */
 	id?: string
 	stretch?: boolean
+	disabled?: boolean
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
 
@@ -24,6 +25,7 @@ export function Tab({
 	current: currentProp,
 	id,
 	stretch = false,
+	disabled,
 	className,
 	children,
 	onClick,
@@ -65,6 +67,7 @@ export function Tab({
 					aria-selected={current ?? false}
 					aria-controls={id ? `${id}-panel` : undefined}
 					tabIndex={current ? 0 : -1}
+					disabled={disabled}
 					type="button"
 					className={cn(
 						'relative z-1',
