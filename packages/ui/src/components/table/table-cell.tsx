@@ -13,7 +13,7 @@ export function TableCell({ className, children, ...props }: TableCellProps) {
 	const { grid, size } = useTable()
 
 	return (
-		<td className={cn(k.cell({ size, grid }), className)} {...props}>
+		<td data-slot="table-cell" className={cn(k.cell({ size, grid }), className)} {...props}>
 			{children}
 		</td>
 	)

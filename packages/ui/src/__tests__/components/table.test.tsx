@@ -72,7 +72,7 @@ describe('Table', () => {
 })
 
 describe('TableHead', () => {
-	it('renders a thead element', () => {
+	it('renders a thead element with data-slot="table-head"', () => {
 		const { container } = renderUI(
 			<Table>
 				<TableHead>
@@ -88,7 +88,11 @@ describe('TableHead', () => {
 			</Table>,
 		)
 
-		expect(container.querySelector('thead')).toBeInTheDocument()
+		const head = bySlot(container, 'table-head')
+
+		expect(head).toBeInTheDocument()
+
+		expect(head?.tagName).toBe('THEAD')
 	})
 })
 
@@ -280,7 +284,7 @@ describe('Table variants', () => {
 })
 
 describe('TableRow', () => {
-	it('renders a tr element', () => {
+	it('renders a tr element with data-slot="table-row"', () => {
 		const { container } = renderUI(
 			<Table>
 				<TableBody>
@@ -291,6 +295,30 @@ describe('TableRow', () => {
 			</Table>,
 		)
 
-		expect(container.querySelector('tr')).toBeInTheDocument()
+		const row = bySlot(container, 'table-row')
+
+		expect(row).toBeInTheDocument()
+
+		expect(row?.tagName).toBe('TR')
+	})
+})
+
+describe('TableCell', () => {
+	it('renders a td element with data-slot="table-cell"', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const cell = bySlot(container, 'table-cell')
+
+		expect(cell).toBeInTheDocument()
+
+		expect(cell?.tagName).toBe('TD')
 	})
 })
