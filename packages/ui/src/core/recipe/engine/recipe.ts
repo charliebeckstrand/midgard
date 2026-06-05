@@ -26,8 +26,8 @@
 
 import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
-import { extendTailwindMerge } from 'tailwind-merge'
 
+import { twMerge } from '../../tw-merge'
 import { expandPalette } from './palette'
 import type {
 	CompoundRule,
@@ -47,10 +47,6 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 	'defaults',
 	'skeleton',
 ])
-
-const twMerge = extendTailwindMerge({
-	extend: { theme: { spacing: ['xs', 'sm', 'md', 'lg', 'xl'] } },
-})
 
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
 export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
