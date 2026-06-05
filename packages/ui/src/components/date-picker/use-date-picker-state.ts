@@ -26,6 +26,8 @@ export function useDatePickerState({
 
 	const scope = useIdScope({ id: control?.id })
 
+	const resolvedDisabled = disabled || control?.disabled === true
+
 	const [value, setValue] = useControllable({
 		value: valueProp,
 		defaultValue,
@@ -133,7 +135,7 @@ export function useDatePickerState({
 	)
 
 	const onTriggerKeyDown = useDatePickerKeyboard({
-		disabled,
+		disabled: resolvedDisabled,
 		open,
 		active,
 		setActive,
@@ -150,6 +152,8 @@ export function useDatePickerState({
 	return {
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
+		disabled: resolvedDisabled,
+		invalid: control?.invalid,
 		displayValue: value ? formatDate(value) : '',
 		open,
 		onOpenChange: handleOpenChange,

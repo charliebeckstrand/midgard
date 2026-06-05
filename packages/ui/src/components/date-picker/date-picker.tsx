@@ -74,7 +74,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		size = 'md',
 		truncate = true,
 		className,
-		disabled = false,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
 	} = props
@@ -94,7 +93,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
-				disabled={disabled}
+				disabled={state.disabled}
+				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
 				data-group={dataGroup}

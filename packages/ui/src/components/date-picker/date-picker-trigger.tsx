@@ -3,7 +3,7 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, useRef } from 'react'
 
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { k } from '../../recipes/kata/date-picker'
@@ -30,6 +30,7 @@ type DatePickerTriggerProps = {
 	/** When `false`, the trigger grows to fit its content and the truncation Tooltip is skipped. */
 	truncate?: boolean
 	disabled?: boolean
+	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	className?: string
 	'data-group'?: string
@@ -48,6 +49,7 @@ export function DatePickerTrigger({
 	size,
 	truncate = true,
 	disabled = false,
+	invalid = false,
 	onKeyDown,
 	className,
 	'data-group': dataGroup,
@@ -82,6 +84,7 @@ export function DatePickerTrigger({
 						aria-describedby={describedBy}
 						data-slot="datepicker-button"
 						disabled={disabled}
+						{...invalidAttrs(invalid)}
 						onClick={() => onOpenChange(!open)}
 						onKeyDown={onKeyDown}
 						className={cn(k.button({ density: size, size }))}

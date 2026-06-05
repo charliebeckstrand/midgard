@@ -13,7 +13,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		size = 'md',
 		truncate = true,
 		className,
-		disabled = false,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
 	} = props
@@ -33,7 +32,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
-				disabled={disabled}
+				disabled={state.disabled}
+				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
 				data-group={dataGroup}

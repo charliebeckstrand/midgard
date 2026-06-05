@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
@@ -68,6 +69,30 @@ describe('DatePicker', () => {
 		const button = bySlot(container, 'datepicker-button')
 
 		expect(button).toBeDisabled()
+	})
+
+	it('surfaces invalid state from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<DatePicker />
+			</Control>,
+		)
+
+		const button = bySlot(container, 'datepicker-button')
+
+		expect(button).toHaveAttribute('data-invalid')
+
+		expect(button).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('inherits disabled from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<DatePicker />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'datepicker-button')).toBeDisabled()
 	})
 
 	it('displays formatted date when value is set', () => {
@@ -260,6 +285,20 @@ describe('DatePicker range', () => {
 		const button = bySlot(container, 'datepicker-button')
 
 		expect(button).toBeDisabled()
+	})
+
+	it('surfaces invalid state from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<DatePicker range />
+			</Control>,
+		)
+
+		const button = bySlot(container, 'datepicker-button')
+
+		expect(button).toHaveAttribute('data-invalid')
+
+		expect(button).toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('opens the range calendar when the trigger is clicked', async () => {
