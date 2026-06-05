@@ -7,8 +7,8 @@ export {
 export { Control, type ControlProps } from './control'
 export { ControlSkeleton, type ControlSkeletonProps } from './control-skeleton'
 export {
-	type UseControlPropsOptions,
-	type UseControlPropsResult,
+	type ControlPropsOptions,
+	type ControlPropsResult,
 	useControlProps,
 } from './use-control-props'
 export { useControlToggle } from './use-control-toggle'

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-type UsePageScaleOptions = {
+type PageScaleOptions = {
 	viewportSize: { width: number; height: number } | null
 	pageSize: { width: number; height: number } | null
 	/** True when the page is rotated 90° / 270°; swaps width and height in the layout. */
@@ -12,7 +12,7 @@ type UsePageScaleOptions = {
 	hasContent: boolean
 }
 
-export type UsePageScaleResult = {
+export type PageScaleResult = {
 	imageW: number | undefined
 	imageH: number | undefined
 	frameW: number | undefined
@@ -26,7 +26,7 @@ export type UsePageScaleResult = {
  * ratio from the measured viewport, the intrinsic page size, the rotation, and
  * the user zoom.
  */
-export function usePdfViewerPageScale(input: UsePageScaleOptions): UsePageScaleResult {
+export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult {
 	const { viewportSize, pageSize, isTransposed, zoom, hasContent } = input
 
 	return useMemo(() => {

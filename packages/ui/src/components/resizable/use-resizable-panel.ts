@@ -52,7 +52,7 @@ function clampPair(
 	return result
 }
 
-type UsePanelResize = {
+type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
 	direction: ResizableDirection
 	panelConfigs: PanelConfig[]
@@ -64,7 +64,7 @@ export function useResizablePanel({
 	direction,
 	panelConfigs,
 	onSizesChange,
-}: UsePanelResize) {
+}: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
 	const directionRef = useRef(direction)

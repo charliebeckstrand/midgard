@@ -17,13 +17,13 @@ export type PivotTableKeys<T> = {
 	value: keyof T & string
 }
 
-export type UsePivotTableOptions = {
+export type PivotTableOptions = {
 	aggregation?: PivotAggregation
 	rowOrder?: readonly string[]
 	columnOrder?: readonly string[]
 }
 
-export type UsePivotTableResult = {
+export type PivotTableResult = {
 	rowKeys: string[]
 	columnKeys: string[]
 	cellValue: (row: string, column: string) => number | undefined
@@ -35,8 +35,8 @@ export type UsePivotTableResult = {
 export function usePivotTable<T>(
 	rows: readonly T[],
 	keys: PivotTableKeys<T>,
-	{ aggregation = 'sum', rowOrder, columnOrder }: UsePivotTableOptions = {},
-): UsePivotTableResult {
+	{ aggregation = 'sum', rowOrder, columnOrder }: PivotTableOptions = {},
+): PivotTableResult {
 	const rowKeys = useMemo(() => resolveAxis(rows, keys.row, rowOrder), [rows, keys.row, rowOrder])
 
 	const columnKeys = useMemo(

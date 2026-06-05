@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { getCanvasPoint } from './signature-pad-utilities'
 
-type UseSignatureDrawingOptions = {
+type SignatureDrawingOptions = {
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	disabled?: boolean
 	readOnly?: boolean
@@ -35,7 +35,7 @@ export function useSignaturePadDrawing({
 	setEmpty,
 	lastEmittedRef,
 	setCurrent,
-}: UseSignatureDrawingOptions) {
+}: SignatureDrawingOptions) {
 	const drawingRef = useRef(false)
 
 	const lastPointRef = useRef<{ x: number; y: number } | null>(null)

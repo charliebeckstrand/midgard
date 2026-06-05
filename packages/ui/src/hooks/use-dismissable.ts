@@ -3,7 +3,7 @@
 import { type RefObject, useEffect, useRef } from 'react'
 import { subscribeDocumentEvent } from './document-listener'
 
-type UseDismissableOptions<T extends HTMLElement = HTMLDivElement> = {
+type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
 	/** Escape key closes. @default true */
@@ -21,7 +21,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 	escape: escapeEnabled = true,
 	outsidePointer = true,
 	containerRef: externalRef,
-}: UseDismissableOptions<T>): RefObject<T | null> {
+}: DismissableOptions<T>): RefObject<T | null> {
 	const internalRef = useRef<T | null>(null)
 
 	const ref = externalRef ?? internalRef

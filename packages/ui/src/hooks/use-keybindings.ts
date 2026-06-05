@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { type KeybindingFilter, type KeybindingsMap, tinykeys } from 'tinykeys'
 
-type UseKeybindingsOptions = {
+type KeybindingsOptions = {
 	/** Disable without unmounting. @default true */
 	enabled?: boolean
 	/** Listener target. @default window */
@@ -27,10 +27,7 @@ type UseKeybindingsOptions = {
  * Handlers are read fresh on each event, so the bindings map can close over
  * changing state without re-subscribing.
  */
-export function useKeybindings(
-	bindings: KeybindingsMap,
-	options: UseKeybindingsOptions = {},
-): void {
+export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
 	const { enabled = true, target, event, capture, timeout, ignore } = options
 
 	const bindingsRef = useRef(bindings)

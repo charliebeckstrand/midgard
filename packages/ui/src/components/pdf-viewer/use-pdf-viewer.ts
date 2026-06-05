@@ -6,12 +6,12 @@ import { useMinWidth } from '../../hooks'
 import type { PdfViewerPage, PdfViewerZoom } from './types'
 import { usePdfViewerDocument } from './use-pdf-viewer-document'
 import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
-import { type UsePageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
+import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
 import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
-type UsePdfViewerOptions = {
+type PdfViewerOptions = {
 	pages?: PdfViewerPage[]
 	src?: string
 	filename?: string
@@ -23,7 +23,7 @@ type UsePdfViewerOptions = {
 	defaultRotation?: number
 }
 
-export type UsePdfViewerResult = {
+export type PdfViewerResult = {
 	pages: PdfViewerPage[]
 	total: number
 	activePage: PdfViewerPage | undefined
@@ -32,7 +32,7 @@ export type UsePdfViewerResult = {
 	zoom: PdfViewerZoom
 	rotation: number
 	rotate: () => void
-	scale: UsePageScaleResult
+	scale: PageScaleResult
 	documentSrc: string | undefined
 	filename: string | undefined
 	loading: boolean
@@ -58,7 +58,7 @@ export function usePdfViewer({
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	defaultRotation = 0,
-}: UsePdfViewerOptions): UsePdfViewerResult {
+}: PdfViewerOptions): PdfViewerResult {
 	const shouldLoadFromSrc = !pagesProp && !!src
 
 	const {

@@ -13,7 +13,7 @@ import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 import type { Step } from '../../recipes'
 
-type UseTooltipStateOptions = {
+type TooltipStateOptions = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
@@ -29,7 +29,7 @@ export function useTooltipState({
 	enabled = true,
 	size,
 	className,
-}: UseTooltipStateOptions) {
+}: TooltipStateOptions) {
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: 'tooltip',
 		placement,

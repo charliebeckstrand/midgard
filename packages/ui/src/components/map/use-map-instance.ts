@@ -7,7 +7,7 @@ import type { MapContextValue } from './context'
 import { loadMapLibre } from './map-loader'
 import type { LngLat } from './types'
 
-type UseMapInstanceOptions = {
+type MapInstanceOptions = {
 	center: LngLat
 	zoom: number
 	bearing: number
@@ -17,7 +17,7 @@ type UseMapInstanceOptions = {
 	onLoad?: (map: MapLibreMap) => void
 }
 
-type UseMapInstanceResult = {
+type MapInstanceResult = {
 	containerRef: RefObject<HTMLDivElement | null>
 	contextValue: MapContextValue
 	ready: boolean
@@ -37,7 +37,7 @@ export function useMapInstance({
 	style,
 	interactive,
 	onLoad,
-}: UseMapInstanceOptions): UseMapInstanceResult {
+}: MapInstanceOptions): MapInstanceResult {
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	const mapRef = useRef<MapLibreMap | null>(null)

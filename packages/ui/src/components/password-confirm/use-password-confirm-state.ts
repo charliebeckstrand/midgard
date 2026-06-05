@@ -5,7 +5,7 @@ import { deriveStatus } from './password-confirm-utilities'
 
 type LastEdited = 'password' | 'confirm' | null
 
-type UsePasswordConfirmStateOptions = {
+type PasswordConfirmStateOptions = {
 	/**
 	 * Suppresses match/mismatch firing and forces `status` to `'idle'` while set.
 	 * Callers use this to hold the confirm warning back when the password field
@@ -16,7 +16,7 @@ type UsePasswordConfirmStateOptions = {
 	onPasswordMismatch?: () => void
 }
 
-type UsePasswordConfirmStateResult = {
+type PasswordConfirmStateResult = {
 	password: string
 	confirm: string
 	status: 'idle' | 'warning'
@@ -29,7 +29,7 @@ export function usePasswordConfirmState({
 	disabled = false,
 	onPasswordMatch,
 	onPasswordMismatch,
-}: UsePasswordConfirmStateOptions = {}): UsePasswordConfirmStateResult {
+}: PasswordConfirmStateOptions = {}): PasswordConfirmStateResult {
 	const [password, setPassword] = useState('')
 
 	const [confirm, setConfirmState] = useState('')

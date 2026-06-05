@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-type UseCurrencyFormattingOptions = {
+type CurrencyFormattingOptions = {
 	/** ISO 4217 currency code. Defaults to `USD`. */
 	currency?: string
 	/** BCP 47 locale tag. Defaults to the runtime default. */
@@ -11,7 +11,7 @@ type UseCurrencyFormattingOptions = {
 	precision?: number
 }
 
-type UseCurrencyFormattingResult = {
+type CurrencyFormattingResult = {
 	displayFormatter: Intl.NumberFormat
 	symbol: string
 	symbolIsPrefix: boolean
@@ -24,7 +24,7 @@ export function useCurrencyInputFormatting({
 	currency = 'USD',
 	locale,
 	precision,
-}: UseCurrencyFormattingOptions): UseCurrencyFormattingResult {
+}: CurrencyFormattingOptions): CurrencyFormattingResult {
 	const formatter = useMemo(
 		() =>
 			new Intl.NumberFormat(locale, {

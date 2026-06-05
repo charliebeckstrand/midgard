@@ -15,17 +15,16 @@ export function toggleExpandedSet(
 	onChange(next)
 }
 
-type UseJsonTreeExpansion = {
+type JsonTreeExpansion = {
 	initial: () => Set<string>
 	expanded: Set<string> | undefined
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 }
 
-export function useJsonTreeExpansion({
-	initial,
-	expanded,
-	onExpandedChange,
-}: UseJsonTreeExpansion): { expanded: Set<string>; toggle: (path: string) => void } {
+export function useJsonTreeExpansion({ initial, expanded, onExpandedChange }: JsonTreeExpansion): {
+	expanded: Set<string>
+	toggle: (path: string) => void
+} {
 	const controlled = expanded !== undefined
 
 	const [internalExpanded, setInternalExpanded] = useState<Set<string>>(initial)

@@ -69,7 +69,7 @@ function extractFieldErrors(
 	return fieldErrors as Record<string, string | string[] | undefined>
 }
 
-type UseFormReducerOptions<T extends Record<string, unknown>> = {
+type FormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
@@ -86,7 +86,7 @@ type UseFormReducerOptions<T extends Record<string, unknown>> = {
 	onReset?: () => void
 }
 
-type UseFormReducerResult = {
+type FormReducerResult = {
 	formState: FormStateValue
 	store: FormStore
 	actions: FormActions
@@ -102,7 +102,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	onSubmit,
 	onSettled,
 	onReset,
-}: UseFormReducerOptions<T>): UseFormReducerResult {
+}: FormReducerOptions<T>): FormReducerResult {
 	const initialValues = controlledValues ?? defaultValues
 
 	const [state, dispatch] = useReducer(

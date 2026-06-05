@@ -6,13 +6,13 @@ import { useFloatingDisclosure } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 
-type UseMenuStateOptions = {
+type MenuStateOptions = {
 	defaultOpen?: boolean
 	placement?: Placement
 	size?: Step
 }
 
-export function useMenuState({ defaultOpen = false, placement, size }: UseMenuStateOptions) {
+export function useMenuState({ defaultOpen = false, placement, size }: MenuStateOptions) {
 	const inherited = useDensity()
 	const resolvedSize: Step = size ?? inherited.size
 

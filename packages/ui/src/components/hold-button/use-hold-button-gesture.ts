@@ -4,7 +4,7 @@ import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { RESET_DURATION } from './hold-button-constants'
 
-export type UseHoldGestureOptions = {
+export type HoldGestureOptions = {
 	duration: number
 	disabled: boolean | undefined
 	onComplete?: () => void
@@ -18,7 +18,7 @@ export function useHoldButtonGesture({
 	onComplete,
 	onHoldStart,
 	onHoldCancel,
-}: UseHoldGestureOptions) {
+}: HoldGestureOptions) {
 	const fillRef = useRef<HTMLSpanElement>(null)
 
 	const holdingRef = useRef(false)

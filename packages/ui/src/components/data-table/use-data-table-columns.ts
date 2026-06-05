@@ -17,12 +17,12 @@ function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	return true
 }
 
-type UseDataTableColumnsOptions<T> = {
+type DataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
 }
 
-type UseDataTableColumnsResult<T> = {
+type DataTableColumnsResult<T> = {
 	columnOrder: (string | number)[]
 	setColumnOrder: (next: (string | number)[]) => void
 	hiddenColumns: Set<string | number>
@@ -44,7 +44,7 @@ type UseDataTableColumnsResult<T> = {
 export function useDataTableColumns<T>({
 	columns,
 	columnManagerConfig,
-}: UseDataTableColumnsOptions<T>): UseDataTableColumnsResult<T> {
+}: DataTableColumnsOptions<T>): DataTableColumnsResult<T> {
 	const {
 		order: columnOrder,
 		setOrder: setColumnOrder,

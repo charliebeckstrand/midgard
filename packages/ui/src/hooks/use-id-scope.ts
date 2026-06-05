@@ -2,12 +2,12 @@
 
 import { useCallback, useId, useMemo } from 'react'
 
-type UseIdScopeOptions = {
+type IdScopeOptions = {
 	id?: string
 }
 
 /** Stable scoped ID with a helper for deriving related IDs. */
-export function useIdScope(options?: UseIdScopeOptions) {
+export function useIdScope(options?: IdScopeOptions) {
 	const generatedId = useId()
 
 	const id = options?.id ?? generatedId

@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
 
-type UseSortableListOptions<T> = {
+type SortableListOptions<T> = {
 	/** Ordered items. */
 	items: T[]
 	/** Stable key extractor. */
@@ -37,7 +37,7 @@ export function useSortableList<T>({
 	orientation = 'vertical',
 	disabled = false,
 	keyboardSensor = true,
-}: UseSortableListOptions<T>) {
+}: SortableListOptions<T>) {
 	const interactive = !disabled && !!onReorder
 
 	const [activeId, setActiveId] = useState<string | null>(null)

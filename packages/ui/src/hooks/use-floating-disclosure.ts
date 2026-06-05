@@ -10,14 +10,14 @@ import {
 } from '@floating-ui/react'
 import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
 import { useControllable } from './use-controllable'
-import { type UseFloatingPanelOptions, useFloatingPanel } from './use-floating-ui'
+import { type FloatingPanelOptions, useFloatingPanel } from './use-floating-ui'
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
 type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
 
-type UseFloatingDisclosureOptions = Omit<
-	UseFloatingPanelOptions,
+type FloatingDisclosureOptions = Omit<
+	FloatingPanelOptions,
 	'open' | 'onOpenChange' | 'restoreFocusTo'
 > & {
 	open?: boolean
@@ -30,7 +30,7 @@ type UseFloatingDisclosureOptions = Omit<
 
 // Explicit return type: TS can't write a portable `.d.ts` referencing
 // `@floating-ui/react-dom` (TS2742), same constraint as `useFloatingPanel`.
-type UseFloatingDisclosureResult = {
+type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void
 	close: () => void
@@ -57,7 +57,7 @@ export function useFloatingDisclosure({
 	role: roleProp,
 	gate,
 	...panelOptions
-}: UseFloatingDisclosureOptions): UseFloatingDisclosureResult {
+}: FloatingDisclosureOptions): FloatingDisclosureResult {
 	const [open = false, setOpenInner] = useControllable<boolean>({
 		value: openProp,
 		defaultValue: defaultOpen ?? false,

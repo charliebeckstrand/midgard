@@ -6,7 +6,7 @@ export {
 } from './pivot-table'
 export type { PivotAggregation } from './types'
 export {
-	type UsePivotTableOptions,
-	type UsePivotTableResult,
+	type PivotTableOptions,
+	type PivotTableResult,
 	usePivotTable,
 } from './use-pivot-table'

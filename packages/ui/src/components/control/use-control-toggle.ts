@@ -3,16 +3,16 @@
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import {
-	type UseControlPropsOptions,
-	type UseControlPropsResult,
+	type ControlPropsOptions,
+	type ControlPropsResult,
 	useControlProps,
 } from './use-control-props'
 
-type UseControlToggleOptions = UseControlPropsOptions & {
+type ControlToggleOptions = ControlPropsOptions & {
 	size?: Step
 }
 
-type UseControlToggleResult = UseControlPropsResult & {
+type ControlToggleResult = ControlPropsResult & {
 	size: Step
 }
 
@@ -25,7 +25,7 @@ type UseControlToggleResult = UseControlPropsResult & {
 export function useControlToggle({
 	size,
 	...input
-}: UseControlToggleOptions = {}): UseControlToggleResult {
+}: ControlToggleOptions = {}): ControlToggleResult {
 	const props = useControlProps(input)
 
 	const { size: inheritedSize } = useDensity()

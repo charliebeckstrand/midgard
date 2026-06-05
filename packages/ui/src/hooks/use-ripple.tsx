@@ -11,12 +11,12 @@ type RippleEntry = {
 	size: number
 }
 
-type UseRippleOptions = {
+type RippleOptions = {
 	duration?: number
 }
 
 /** Material-style click ripple: returns a pointerdown handler plus the overlay element to render inside a relatively-positioned target. */
-export function useRipple({ duration = 0.5 }: UseRippleOptions = {}) {
+export function useRipple({ duration = 0.5 }: RippleOptions = {}) {
 	const [ripples, setRipples] = useState<RippleEntry[]>([])
 
 	const counter = useRef(0)

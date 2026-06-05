@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
-type UseListboxStateParams<T> = {
+type ListboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
 	open?: boolean
@@ -20,7 +20,7 @@ export function useListboxState<T>({
 	open: openProp,
 	onOpenChange,
 	setValue,
-}: UseListboxStateParams<T>) {
+}: ListboxStateParams<T>) {
 	const [open = false, setOpen] = useControllable<boolean>({
 		value: openProp,
 		defaultValue: false,

@@ -4,7 +4,7 @@ import { type RefObject, useCallback, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
 import { configureStroke, drawSnapshot } from './signature-pad-utilities'
 
-type UseCanvasSizingOptions = {
+type CanvasSizingOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	empty: boolean
@@ -22,7 +22,7 @@ export function useSignaturePadCanvasSizing({
 	empty,
 	strokeColor,
 	strokeWidth,
-}: UseCanvasSizingOptions) {
+}: CanvasSizingOptions) {
 	const sizingRef = useRef({ empty, strokeColor, strokeWidth })
 
 	sizingRef.current = { empty, strokeColor, strokeWidth }

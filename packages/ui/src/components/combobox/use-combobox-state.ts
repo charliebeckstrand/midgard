@@ -4,7 +4,7 @@ import { type RefObject, useCallback, useDeferredValue, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
-type UseComboboxStateParams<T> = {
+type ComboboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
 	selectable: boolean
@@ -30,7 +30,7 @@ export function useComboboxState<T>({
 	onValueChange,
 	setValue,
 	inputRef,
-}: UseComboboxStateParams<T>) {
+}: ComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
 	// Bypass deferral on empty query: select() clears it in multi-select while
