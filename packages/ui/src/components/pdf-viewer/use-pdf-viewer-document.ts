@@ -2,6 +2,7 @@
 
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
 import { useEffect, useState } from 'react'
+import { clamp } from '../../utilities'
 import type { PdfViewerPage } from './types'
 
 async function configureWorker() {
@@ -100,7 +101,7 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 					return
 				}
 
-				const scale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2)
+				const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
 
 				const next: PdfViewerPage[] = []
 

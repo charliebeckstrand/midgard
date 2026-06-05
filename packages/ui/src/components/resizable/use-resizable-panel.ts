@@ -8,6 +8,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { clamp } from '../../utilities'
 import type { PanelConfig, ResizableDirection } from './types'
 
 type DragState = {
@@ -34,13 +35,13 @@ function clampPair(
 	let right = result[rightIdx] ?? 0
 
 	if (lc) {
-		left = Math.max(lc.minSize, Math.min(lc.maxSize, left))
+		left = clamp(left, lc.minSize, lc.maxSize)
 	}
 
 	right = total - left
 
 	if (rc) {
-		right = Math.max(rc.minSize, Math.min(rc.maxSize, right))
+		right = clamp(right, rc.minSize, rc.maxSize)
 	}
 
 	left = total - right

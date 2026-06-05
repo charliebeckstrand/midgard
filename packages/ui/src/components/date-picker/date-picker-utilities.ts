@@ -1,3 +1,5 @@
+import { clamp } from '../../utilities'
+
 export function formatDate(date: Date): string {
 	return date.toLocaleDateString()
 }
@@ -20,7 +22,7 @@ export function clampDate(date: Date, min?: Date, max?: Date): Date {
 	const minValue = min ? startOfDay(min).getTime() : Number.NEGATIVE_INFINITY
 	const maxValue = max ? startOfDay(max).getTime() : Number.POSITIVE_INFINITY
 
-	const clamped = Math.min(Math.max(value, minValue), maxValue)
+	const clamped = clamp(value, minValue, maxValue)
 
 	return new Date(clamped)
 }
