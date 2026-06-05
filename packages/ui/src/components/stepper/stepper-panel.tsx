@@ -9,13 +9,19 @@ export type StepperPanelProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 export function StepperPanel({ value, className, children, ...props }: StepperPanelProps) {
-	const { value: currentValue } = useStepper()
+	const { value: currentValue, baseId } = useStepper()
 
 	if (value !== currentValue) return null
 
 	return (
-		<div data-slot="stepper-panel" className={className} {...props}>
+		<section
+			id={`${baseId}-panel-${value}`}
+			aria-labelledby={`${baseId}-step-${value}`}
+			data-slot="stepper-panel"
+			className={className}
+			{...props}
+		>
 			{children}
-		</div>
+		</section>
 	)
 }

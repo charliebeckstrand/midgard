@@ -152,6 +152,26 @@ describe('StepperPanel', () => {
 
 		expect(screen.queryByText('Hidden')).not.toBeInTheDocument()
 	})
+
+	it('associates the current step with its panel', () => {
+		renderUI(
+			<Stepper value={1} onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperPanels>
+					<StepperPanel value={1}>Panel Content</StepperPanel>
+				</StepperPanels>
+			</Stepper>,
+		)
+
+		const step = screen.getByRole('button')
+		const panel = screen.getByRole('region')
+
+		expect(step.getAttribute('aria-controls')).toBe(panel.id)
+
+		expect(panel.getAttribute('aria-labelledby')).toBe(step.id)
+	})
 })
 
 describe('StepperStep interactive mode', () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, useMemo, useRef } from 'react'
+import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useMinWidth, useRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
@@ -61,6 +61,8 @@ export function Stepper({
 
 	const rowRef = useRef<HTMLDivElement>(null)
 
+	const baseId = useId()
+
 	const handleKeyDown = useRoving(rowRef, {
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
@@ -72,8 +74,9 @@ export function Stepper({
 			onValueChange,
 			orientation: resolvedOrientation,
 			linear,
+			baseId,
 		}),
-		[value, onValueChange, resolvedOrientation, linear],
+		[value, onValueChange, resolvedOrientation, linear, baseId],
 	)
 
 	const row = (
