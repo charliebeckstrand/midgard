@@ -23,9 +23,9 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 				{filters && (
 					<>
 						{/* Filters on desktop */}
-						<Stack role="complementary" aria-label="Filters" className="shrink-0 max-lg:hidden">
-							{filters}
-						</Stack>
+						<aside aria-label="Filters" data-slot="filters" className="shrink-0 max-lg:hidden">
+							<Stack>{filters}</Stack>
+						</aside>
 
 						{/* Filter trigger on mobile */}
 						<Box className="shrink-0 lg:hidden">
@@ -45,9 +45,9 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 					</>
 				)}
 
-				<Box role="main" className="min-w-0 flex-1">
+				<main data-slot="main" className="min-w-0 flex-1">
 					{children}
-				</Box>
+				</main>
 			</Stack>
 		</StackedLayout>
 	)

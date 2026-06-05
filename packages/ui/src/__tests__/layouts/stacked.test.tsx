@@ -48,6 +48,12 @@ describe('StackedLayoutHeader', () => {
 
 		expect(screen.getByText('Header text')).toBeInTheDocument()
 	})
+
+	it('renders a <header> landmark', () => {
+		const { container } = renderUI(<StackedLayoutHeader>content</StackedLayoutHeader>)
+
+		expect(bySlot(container, 'header')?.tagName).toBe('HEADER')
+	})
 })
 
 describe('StackedLayoutBody', () => {
@@ -70,13 +76,19 @@ describe('StackedLayoutBody', () => {
 	})
 
 	it('forwards ref', () => {
-		const ref = createRef<HTMLDivElement>()
+		const ref = createRef<HTMLElement>()
 
 		const { container } = renderUI(<StackedLayoutBody ref={ref}>content</StackedLayoutBody>)
 
-		expect(ref.current).toBeInstanceOf(HTMLDivElement)
+		expect(ref.current).toBeInstanceOf(HTMLElement)
 
 		expect(ref.current).toBe(bySlot(container, 'body'))
+	})
+
+	it('renders a <main> landmark', () => {
+		const { container } = renderUI(<StackedLayoutBody>content</StackedLayoutBody>)
+
+		expect(bySlot(container, 'body')?.tagName).toBe('MAIN')
 	})
 })
 
@@ -103,5 +115,11 @@ describe('StackedLayoutFooter', () => {
 		renderUI(<StackedLayoutFooter>Footer text</StackedLayoutFooter>)
 
 		expect(screen.getByText('Footer text')).toBeInTheDocument()
+	})
+
+	it('renders a <footer> landmark', () => {
+		const { container } = renderUI(<StackedLayoutFooter>content</StackedLayoutFooter>)
+
+		expect(bySlot(container, 'footer')?.tagName).toBe('FOOTER')
 	})
 })
