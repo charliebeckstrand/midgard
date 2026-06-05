@@ -109,6 +109,10 @@ describe('PivotTable', () => {
 
 		const totalRow = totalCells.find((el) => el.getAttribute('scope') === 'row')?.closest('tr')
 
+		// The totals row label is a <th scope="row">; fail loudly if it's missing
+		// rather than silently skipping the assertions below.
+		expect(totalRow).toBeTruthy()
+
 		if (!totalRow) return
 
 		expect(within(totalRow).getByText('19')).toBeInTheDocument()

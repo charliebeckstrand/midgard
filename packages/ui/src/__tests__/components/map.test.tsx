@@ -54,10 +54,11 @@ describe('Map', () => {
 		expect(el).toHaveAttribute('aria-label', 'Delivery map')
 	})
 
-	it('names a static map as an image region when label is set', () => {
+	it('names a static map as a labelled group when label is set', () => {
 		const { container } = renderUI(<MapView label="Coverage area" interactive={false} />)
 
-		expect(bySlot(container, 'map')).toHaveAttribute('role', 'img')
+		// role="group" (not "img") so interactive markers inside stay reachable.
+		expect(bySlot(container, 'map')).toHaveAttribute('role', 'group')
 	})
 
 	it('flags itself ready once the underlying map loads', async () => {

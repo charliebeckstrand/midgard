@@ -91,7 +91,9 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				aria-controls={panelId}
+				// Only the current step's panel is mounted, so reference it only then
+				// to avoid a dangling aria-controls id.
+				aria-controls={state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
 				className={cn(classes, 'cursor-pointer')}

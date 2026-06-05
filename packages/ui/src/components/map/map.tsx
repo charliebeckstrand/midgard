@@ -25,8 +25,10 @@ export type MapProps = {
 	interactive?: boolean
 	/**
 	 * Accessible name for the map region. When set, an interactive map is
-	 * exposed as `role="application"` and a static map as `role="img"`; without
-	 * it the container stays an unlabeled presentational div.
+	 * exposed as `role="application"` and a static map as a labelled
+	 * `role="group"`; without it the container stays an unlabeled
+	 * presentational div. (A static map can still contain interactive markers,
+	 * so `role="img"` — which would hide them — is intentionally not used.)
 	 */
 	label?: string
 	className?: string
@@ -60,7 +62,7 @@ function MapView({
 	// aria-label only attaches to a role that supports it; pair them so an
 	// unlabeled map stays a plain presentational div.
 	const regionProps = label
-		? { role: interactive ? 'application' : 'img', 'aria-label': label }
+		? { role: interactive ? 'application' : 'group', 'aria-label': label }
 		: {}
 
 	return (

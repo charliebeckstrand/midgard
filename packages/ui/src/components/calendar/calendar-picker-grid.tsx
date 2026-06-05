@@ -52,7 +52,7 @@ export function CalendarPickerGrid({
 			<div
 				ref={headerRef}
 				role="toolbar"
-				aria-label={gridLabel}
+				aria-label="Calendar navigation"
 				onKeyDown={onHeaderKeyDown}
 				className={cn(k.header({ size }))}
 			>
@@ -84,7 +84,7 @@ export function CalendarPickerGrid({
 						key={cell.key}
 						role="option"
 						aria-selected={cell.selected}
-						aria-current={cell.current ? 'date' : undefined}
+						aria-current={cell.current ? true : undefined}
 						variant={cell.selected ? 'solid' : 'plain'}
 						data-selected={cell.selected || undefined}
 						block={cellBlock}
