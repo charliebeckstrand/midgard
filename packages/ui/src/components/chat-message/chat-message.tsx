@@ -21,6 +21,10 @@ export function ChatMessage({
 	className,
 	children,
 }: ChatMessageProps) {
+	// Speaker is conveyed visually by bubble side/color only; name it for AT so a
+	// screen reader can attribute each message.
+	const author = (type ?? 'assistant') === 'user' ? 'You said' : 'Assistant said'
+
 	return (
 		<div
 			data-slot="chat-message"
@@ -28,6 +32,9 @@ export function ChatMessage({
 			className={cn(k({ type }), className)}
 		>
 			<div data-slot="chat-message-bubble" className={cn(k.bubble({ type }))}>
+				<span data-slot="chat-message-author" className="sr-only">
+					{author}:{' '}
+				</span>
 				{children}
 				{streaming && <span data-slot="chat-message-cursor" aria-hidden className={cn(k.cursor)} />}
 			</div>
