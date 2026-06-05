@@ -14,6 +14,7 @@ export function PopoverPanel({
 	role = 'listbox',
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
+	typeahead = false,
 	glass = false,
 	multiselectable,
 	onKeyDown: onKeyDownProp,
@@ -24,6 +25,8 @@ export function PopoverPanel({
 	role?: string
 	itemSelector?: string
 	autoFocus?: boolean
+	/** Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys. */
+	typeahead?: boolean
 	/** Apply glass surface chrome instead of the default popover surface. */
 	glass?: boolean
 	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
@@ -32,7 +35,7 @@ export function PopoverPanel({
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(panelRef, { itemSelector, focusOnEmpty: true })
+	const handleKeyDown = useRoving(panelRef, { itemSelector, focusOnEmpty: true, typeahead })
 
 	const scrollWithin = useScrollWithin()
 

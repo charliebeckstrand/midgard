@@ -25,6 +25,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
+					typeahead
 					glass={glass}
 					className={cn(k.content, className)}
 				>
@@ -45,6 +46,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
+					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}
 					onKeyDown={(e) => {
