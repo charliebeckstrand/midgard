@@ -16,6 +16,7 @@ export function PdfViewerViewport() {
 		scale,
 		activePage,
 		safePage,
+		total,
 		rotation,
 		loading,
 		error,
@@ -32,6 +33,13 @@ export function PdfViewerViewport() {
 			className={cn(k.viewport.base)}
 			style={{ aspectRatio }}
 		>
+			{/* Page navigation otherwise swaps the image silently; announce the
+			    position so screen-reader users hear "Page X of Y" on change. */}
+			{total > 0 && (
+				<div data-slot="pdf-viewer-page-status" aria-live="polite" className="sr-only">
+					Page {safePage} of {total}
+				</div>
+			)}
 			{activePage && !loading ? (
 				<div
 					data-slot="pdf-viewer-page-frame"
