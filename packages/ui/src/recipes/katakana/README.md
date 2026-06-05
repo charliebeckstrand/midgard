@@ -6,7 +6,7 @@
 
 `katakana/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. A bridge imports **only** the recipe engine (`applyRecipe`, `defineRecipe`, `RecipeConfig`) from [`core/recipe`](../../core/recipe). It **imports nothing from kiso** — not values, not types: each bridge declares the token shape it needs as its own contract and receives the token *data* as the first argument. This keeps the bridge free of any dependency on kiso; data location is kiso's job, application is kata's, and the bridge owns only the wiring in between.
 
-The contract is pinned by `src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts` (no kiso imports at all), `src/__tests__/recipes/boundary/kata-boundary.test.ts`, and the component / primitive recipe-boundary tests.
+The contract is pinned by `katakana-purity-boundary.test.ts` (no kiso imports at all); the full boundary-test list lives in [`../README.md`](../README.md#3-boundary).
 
 ## 2. Shape
 
@@ -19,13 +19,7 @@ Every bridge is a function `(<tokens>, …) => k` generic only over its per-call
 
 ## 3. The namespaced barrel
 
-Bridges are reached through a single `bridge` object so a kata imports the token bundle under its bare archetype name and the bridge as `bridge.<archetype>`, with no alias:
-
-```ts
-import { control } from '../kiso/control'   // tokens
-import { bridge } from '../katakana'        // bridge
-export const k = bridge.control(control, { base: 'block', slots: { … } })
-```
+Bridges are reached through a single `bridge` object so a kata imports the token bundle under its bare archetype name and the bridge as `bridge.<archetype>`, with no alias (see the call-site example in [`../README.md`](../README.md#2-direction)).
 
 The barrel surfaces the `bridge` object only. Variant types resolve at the kata from the concrete result (`VariantProps<typeof k>`), not from the bridge — the bridges are generic over the token bundle and carry no concrete token type to project from.
 
