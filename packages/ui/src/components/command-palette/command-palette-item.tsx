@@ -41,56 +41,42 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		if (closeOnAction) close()
 	}
 
-	const classes = cn(k.item, className)
+	// Attributes common to both renders. Forwarded props (incl. `href`) are
+	// spread per branch via forwardedProps, which keeps the polymorphic union
+	// narrowed — a single hoisted rest would mix anchor/button members.
+	const optionProps = {
+		id: itemId,
+		role: 'option' as const,
+		tabIndex: -1,
+		'data-slot': 'command-palette-item',
+		'data-disabled': disabled || undefined,
+		className: cn(k.item, className),
+		onClick: handleSelect,
+	}
 
 	if (props.href !== undefined) {
-		const {
-			disabled: _disabled,
-			className: _className,
-			children: _children,
-			onAction: _onAction,
-			closeOnAction: _closeOnAction,
-			...rest
-		} = props
-
 		return (
-			<LinkComponent
-				id={itemId}
-				role="option"
-				tabIndex={-1}
-				data-slot="command-palette-item"
-				data-disabled={disabled || undefined}
-				className={classes}
-				onClick={handleSelect}
-				{...rest}
-			>
+			<LinkComponent {...optionProps} {...forwardedProps(props)}>
 				{children}
 			</LinkComponent>
 		)
 	}
 
-	const {
-		disabled: _disabled,
-		className: _className,
-		children: _children,
-		onAction: _onAction,
-		closeOnAction: _closeOnAction,
-		...rest
-	} = props
-
 	return (
-		<button
-			type="button"
-			id={itemId}
-			role="option"
-			tabIndex={-1}
-			data-slot="command-palette-item"
-			data-disabled={disabled || undefined}
-			className={classes}
-			onClick={handleSelect}
-			{...rest}
-		>
+		<button type="button" {...optionProps} {...forwardedProps(props)}>
 			{children}
 		</button>
 	)
+}
+
+/** Drop the item's own props, leaving the host element's attributes to forward. */
+function forwardedProps<T extends CommandPaletteItemBaseProps>({
+	disabled: _disabled,
+	className: _className,
+	children: _children,
+	onAction: _onAction,
+	closeOnAction: _closeOnAction,
+	...rest
+}: T) {
+	return rest
 }

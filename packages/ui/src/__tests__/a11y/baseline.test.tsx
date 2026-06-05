@@ -23,15 +23,13 @@ import { axe, renderUI } from '../helpers'
 
 /**
  * Automated WCAG smoke test (axe-core). This is a regression guard, not a
- * substitute for the manual sweep in ACCESSIBILITY-AUDIT.md: axe catches static
- * role/name/ARIA/label/structure defects but cannot see keyboard behavior,
- * focus management, live regions, contrast, or touch-target geometry. Rules it
- * can't evaluate in jsdom (color-contrast, target-size, region) are disabled in
- * helpers/axe.ts.
+ * substitute for a manual sweep: axe catches static role/name/ARIA/label/
+ * structure defects but cannot see keyboard behavior, focus management, live
+ * regions, contrast, or touch-target geometry. Rules it can't evaluate in jsdom
+ * (color-contrast, target-size, region) are disabled in helpers/axe.ts.
  *
- * Each component is rendered in its canonical, correctly-labelled form. As the
- * audit findings are remediated, move the corresponding case from "known
- * issues" into the green baseline below.
+ * Each component is rendered in its canonical, correctly-labelled form; add new
+ * components here as their canonical render is verified clean.
  */
 
 type Case = readonly [name: string, element: ReactElement]
