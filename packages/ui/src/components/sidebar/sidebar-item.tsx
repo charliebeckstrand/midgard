@@ -1,3 +1,4 @@
+import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
 import { Icon } from '../icon'
@@ -10,6 +11,7 @@ export type SidebarItemProps = NavItemProps & {
 
 export const SidebarItem = createNavItem({
 	slotPrefix: 'sidebar',
-	variants: k.item,
+	variants: k.item.base,
+	affix: cn(k.item.affix),
 	renderIcon: (icon, size) => <Icon icon={icon} size={size} />,
 })

@@ -30,13 +30,19 @@ export type NavItemProps = {
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
-	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches.
-} & PolymorphicProps<'button', 'color' | 'ref'>
+	/** Rendered before the inner button, outside it so the slot can host its own interactive element (e.g. a drag handle button). */
+	prefix?: ReactNode
+	/** Rendered after the inner button, outside it so the slot can host its own interactive element (e.g. an actions button). */
+	suffix?: ReactNode
+	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
+} & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>
 
 export type NavItemConfig = {
 	slotPrefix: string
 	/** Receives the resolved size so callers can vary classes per step. */
 	variants: (props: { size: Step }) => string
+	/** Classes for the prefix/suffix slot wrappers, rendered outside the inner button. */
+	affix: string
 	/** Wraps the icon prop. Receives the resolved size so the icon can scale with the item. */
 	renderIcon: (icon: ReactElement, size: Step) => ReactNode
 }
@@ -62,6 +68,8 @@ export function createNavItem(config: NavItemConfig) {
 		children,
 		preventClose,
 		spring = false,
+		prefix,
+		suffix,
 		onClick,
 		...props
 	}: NavItemProps & { size?: Step }) {
@@ -90,19 +98,35 @@ export function createNavItem(config: NavItemConfig) {
 			}
 		}
 
+		// Affixes render as siblings of the inner button — never nested inside it —
+		// so a slot can host its own interactive element without producing invalid
+		// nested-interactive markup. The row only goes flex when an affix exists,
+		// leaving the affix-less DOM and layout untouched.
+		const hasAffix = prefix != null || suffix != null
+
 		return (
 			<span
 				ref={itemRef}
 				data-slot={`${config.slotPrefix}-item`}
-				className="group relative"
+				className={cn('group relative', hasAffix && 'flex items-center gap-1')}
 				{...(spring ? indicator.tapHandlers : {})}
 			>
+				{prefix != null && (
+					<span data-slot={`${config.slotPrefix}-item-prefix`} className={config.affix}>
+						{prefix}
+					</span>
+				)}
 				<Headless>
 					<Button
 						data-slot={innerSlot}
 						data-current={current || undefined}
 						aria-current={current ? 'page' : undefined}
-						className={cn(config.variants({ size: resolvedSize }), 'relative z-10', className)}
+						className={cn(
+							config.variants({ size: resolvedSize }),
+							'relative z-10',
+							hasAffix && 'min-w-0 flex-1',
+							className,
+						)}
 						onClick={handleClick}
 						{...props}
 					>
@@ -112,6 +136,11 @@ export function createNavItem(config: NavItemConfig) {
 						</TouchTarget>
 					</Button>
 				</Headless>
+				{suffix != null && (
+					<span data-slot={`${config.slotPrefix}-item-suffix`} className={config.affix}>
+						{suffix}
+					</span>
+				)}
 				{current && <ActiveIndicator ref={indicator.ref} />}
 			</span>
 		)

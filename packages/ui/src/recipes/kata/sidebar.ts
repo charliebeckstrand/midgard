@@ -8,7 +8,7 @@ const { flex } = narabi
 const { divider } = sen
 const { icon } = shaku
 
-const item = defineRecipe({
+const itemBase = defineRecipe({
 	base: [...nav, ...cursor, 'group relative', flex.row, 'w-full', 'text-left'],
 	size: {
 		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
@@ -20,7 +20,11 @@ const item = defineRecipe({
 
 export const k = {
 	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
-	item,
+	item: {
+		base: itemBase,
+		/** Wrapper for a prefix/suffix slot — sits outside the inner button, above the active indicator. */
+		affix: ['relative', 'z-10', flex.row, 'shrink-0'],
+	},
 	section: [flex.col, 'gap-0.5'],
 	label: ['truncate'],
 	header: [flex.row, 'justify-between', 'gap-3'],
@@ -29,4 +33,4 @@ export const k = {
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],
 } as const
 
-export type SidebarItemVariants = VariantProps<typeof item>
+export type SidebarItemVariants = VariantProps<typeof itemBase>
