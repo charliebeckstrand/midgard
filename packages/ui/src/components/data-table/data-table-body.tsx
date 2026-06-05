@@ -71,6 +71,7 @@ export function DataTableBody<T>({
 						className={rowClassName?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
+						dataRowIndex={index}
 					/>
 				)
 			})}
