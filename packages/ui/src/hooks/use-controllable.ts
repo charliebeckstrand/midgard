@@ -7,7 +7,8 @@ type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 type ControllableOptions<T> = {
 	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
-	defaultValue?: T
+	/** Initial value when uncontrolled. Pass a thunk for a lazy initializer, evaluated once on mount (mirrors `useState`). */
+	defaultValue?: T | (() => T)
 	onValueChange?: (value: T | undefined) => void
 }
 
