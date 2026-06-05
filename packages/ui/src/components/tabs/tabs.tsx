@@ -52,7 +52,7 @@ export function Tabs({
 				<div
 					data-slot="tab-group"
 					data-orientation={resolvedOrientation}
-					className={cn(isVertical ? 'flex gap-6' : '', className)}
+					className={cn('flex gap-4', isVertical ? 'flex-row' : 'flex-col', className)}
 					{...props}
 				>
 					{children}

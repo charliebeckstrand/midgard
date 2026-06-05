@@ -6,6 +6,8 @@ import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-ind
 import { useCurrent } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
+import { Button } from '../button'
+import { Headless } from '../headless'
 import { useTabsContext } from './context'
 
 export type TabProps = {
@@ -13,6 +15,7 @@ export type TabProps = {
 	current?: boolean
 	/** Links this tab to its panel via aria-controls. */
 	id?: string
+	stretch?: boolean
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
 
@@ -20,10 +23,10 @@ export function Tab({
 	value,
 	current: currentProp,
 	id,
+	stretch = false,
 	className,
 	children,
 	onClick,
-	...props
 }: TabProps) {
 	const context = useCurrent()
 
@@ -52,26 +55,28 @@ export function Tab({
 	}
 
 	return (
-		<span className="group relative" {...indicator.tapHandlers}>
-			<button
-				data-slot="tab"
-				data-current={current || undefined}
-				role="tab"
-				id={id}
-				aria-selected={current ?? false}
-				aria-controls={id ? `${id}-panel` : undefined}
-				tabIndex={current ? 0 : -1}
-				type="button"
-				className={cn(
-					isSegment ? k.segment.item({ size }) : k.tab({ orientation, size }),
-					'relative z-1',
-					className,
-				)}
-				onClick={handleClick}
-				{...props}
-			>
-				{children}
-			</button>
+		<span className={cn(stretch && 'flex-1', 'group relative')} {...indicator.tapHandlers}>
+			<Headless>
+				<Button
+					data-slot="tab"
+					data-current={current || undefined}
+					role="tab"
+					id={id}
+					aria-selected={current ?? false}
+					aria-controls={id ? `${id}-panel` : undefined}
+					tabIndex={current ? 0 : -1}
+					type="button"
+					className={cn(
+						'relative z-1',
+						isSegment ? k.segment.item({ size }) : k.tab({ orientation, size }),
+						stretch && 'w-full justify-center',
+						className,
+					)}
+					onClick={handleClick}
+				>
+					{children}
+				</Button>
+			</Headless>
 			{current && (
 				<ActiveIndicator
 					ref={indicator.ref}

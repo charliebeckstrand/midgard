@@ -21,9 +21,7 @@ export function Demo() {
 					<TabContents>
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
-								<Text variant="muted" className="py-4">
-									{tab} settings would go here.
-								</Text>
+								<Text variant="muted">{tab} settings would go here.</Text>
 							</TabContent>
 						))}
 					</TabContents>
@@ -41,9 +39,25 @@ export function Demo() {
 					<TabContents className="flex-1">
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
-								<Text variant="muted" className="py-2">
-									{tab} settings would go here.
-								</Text>
+								<Text variant="muted">{tab} settings would go here.</Text>
+							</TabContent>
+						))}
+					</TabContents>
+				</Tabs>
+			</Example>
+			<Example title="Stretch">
+				<Tabs defaultValue="Account">
+					<TabList>
+						{tabs.map((tab) => (
+							<Tab key={tab} value={tab} stretch>
+								{tab}
+							</Tab>
+						))}
+					</TabList>
+					<TabContents>
+						{tabs.map((tab) => (
+							<TabContent key={tab} value={tab}>
+								<Text variant="muted">{tab} settings would go here.</Text>
 							</TabContent>
 						))}
 					</TabContents>
