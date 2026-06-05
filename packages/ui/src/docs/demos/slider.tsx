@@ -21,7 +21,7 @@ function InteractiveExample() {
 			title="Default"
 			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
 		>
-			<Slider value={value} onValueChange={setValue} />
+			<Slider aria-label="Value" value={value} onValueChange={setValue} />
 			<Text className="tabular-nums">{value}</Text>
 		</Example>
 	)
@@ -33,7 +33,15 @@ function StepSliderExample() {
 	return (
 		<>
 			{' '}
-			<Slider min={0} max={1} step={0.1} value={ratio} onValueChange={setRatio} color="red" />
+			<Slider
+				aria-label="Ratio"
+				min={0}
+				max={1}
+				step={0.1}
+				value={ratio}
+				onValueChange={setRatio}
+				color="red"
+			/>
 			<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
 		</>
 	)
@@ -105,7 +113,7 @@ export function Demo() {
 			<Example title="Sizes">
 				{sizes.map((s, i) => (
 					<LabeledRow key={s} label={s}>
-						<Slider size={s} defaultValue={40 + i * 20} className="flex-1" />
+						<Slider aria-label={s} size={s} defaultValue={40 + i * 20} className="flex-1" />
 					</LabeledRow>
 				))}
 			</Example>
@@ -113,7 +121,12 @@ export function Demo() {
 			<Example title="Colors">
 				{colors.map((color, index) => (
 					<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
-						<Slider color={color} defaultValue={40 + index * 10} className="flex-1" />
+						<Slider
+							aria-label={capitalize(color)}
+							color={color}
+							defaultValue={40 + index * 10}
+							className="flex-1"
+						/>
 					</LabeledRow>
 				))}
 			</Example>
@@ -131,7 +144,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Disabled">
-				<Slider disabled defaultValue={50} />
+				<Slider aria-label="Disabled" disabled defaultValue={50} />
 			</Example>
 		</>
 	)

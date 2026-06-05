@@ -14,9 +14,9 @@ const BaseNavItem = createNavItem({
 })
 
 /**
- * Props for `<NavItem>` — the Nav family's `role="menuitem"` variant. Extends
- * the canonical `NavItemProps` with `value` for binding to the surrounding
- * `<Nav>`'s selection state.
+ * Props for `<NavItem>` — a navigation link/button. Extends the canonical
+ * `NavItemProps` with `value` for binding to the surrounding `<Nav>`'s
+ * selection state.
  */
 export type NavMenuItemProps = NavItemProps & { value?: string }
 
@@ -33,5 +33,5 @@ export function NavItem({ value, current, onClick, ...props }: NavMenuItemProps)
 		}
 	}
 
-	return <BaseNavItem role="menuitem" current={isCurrent} onClick={handleClick} {...props} />
+	return <BaseNavItem current={isCurrent} onClick={handleClick} {...props} />
 }

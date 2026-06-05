@@ -156,11 +156,12 @@ describe('SidebarLayoutBody', () => {
 	})
 
 	it('forwards ref', () => {
-		const ref = createRef<HTMLDivElement>()
+		const ref = createRef<HTMLElement>()
 
 		const { container } = renderUI(<SidebarLayoutBody ref={ref}>content</SidebarLayoutBody>)
 
-		expect(ref.current).toBeInstanceOf(HTMLDivElement)
+		// The body is the page's <main> landmark.
+		expect(ref.current?.tagName).toBe('MAIN')
 
 		expect(ref.current).toBe(bySlot(container, 'body'))
 	})

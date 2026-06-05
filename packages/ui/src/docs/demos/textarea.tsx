@@ -30,10 +30,10 @@ function WithActionsExample() {
 				actions={
 					<>
 						<Spacer />
-						<Button variant="plain" size="sm">
+						<Button aria-label="Attach file" variant="plain" size="sm">
 							<Icon icon={<Paperclip />} />
 						</Button>
-						<Button size="sm" color="blue" disabled={!withActionsValue.trim()}>
+						<Button aria-label="Send" size="sm" color="blue" disabled={!withActionsValue.trim()}>
 							<Icon icon={<ArrowUp />} />
 						</Button>
 					</>

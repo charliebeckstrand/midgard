@@ -3,8 +3,10 @@
 import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
+import { useControlProps } from '../control/use-control-props'
 
 type SliderBaseProps = SliderVariants & {
 	value?: number
@@ -32,6 +34,9 @@ export function Slider({
 	color,
 	className,
 	style,
+	id,
+	disabled,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: SliderProps) {
 	const [internal, setInternal] = useControllable<number>({
@@ -46,10 +51,21 @@ export function Slider({
 
 	const percent = pct(current, min, max)
 
+	// Resolve id/disabled/describedby from a wrapping Control or Field, then fall
+	// back to a generated id — the same chain Input uses. A range input has no
+	// text of its own, so this is what lets a sibling <Label htmlFor> (or a
+	// <Field><Label> with no explicit id) name it.
+	const controlProps = useControlProps({ id, disabled, 'aria-describedby': ariaDescribedBy })
+
+	const scope = useIdScope({ id: controlProps.id })
+
 	return (
 		<input
 			type="range"
 			data-slot="slider"
+			id={scope.id}
+			disabled={controlProps.disabled}
+			aria-describedby={controlProps['aria-describedby']}
 			min={min}
 			max={max}
 			step={step}

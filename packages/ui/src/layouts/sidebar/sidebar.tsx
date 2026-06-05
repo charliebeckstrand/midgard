@@ -174,23 +174,23 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	const { actions, size } = useSidebarLayoutContext()
 
 	return (
-		<div data-slot="header" className={cn(k.header({ size }), className)}>
+		<header data-slot="header" className={cn(k.header({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
-		</div>
+		</header>
 	)
 }
 
 type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
-	ref?: Ref<HTMLDivElement>
+	ref?: Ref<HTMLElement>
 }>
 
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
-		<div ref={ref} data-slot="body" className={cn(k.body(), className)}>
+		<main ref={ref} data-slot="body" className={cn(k.body(), className)}>
 			{children}
-		</div>
+		</main>
 	)
 }
 
@@ -198,8 +198,8 @@ type SidebarLayoutFooterProps = PropsWithChildren
 
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (
-		<div data-slot="footer" className={k.footer()}>
+		<footer data-slot="footer" className={k.footer()}>
 			{children}
-		</div>
+		</footer>
 	)
 }

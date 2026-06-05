@@ -153,6 +153,7 @@ export function Demo() {
 									<Spacer />
 									{!conv.active && (
 										<Button
+											aria-label="Delete conversation"
 											color="red"
 											variant="soft"
 											size="sm"
@@ -215,10 +216,16 @@ export function Demo() {
 									<Icon icon={<CircleDashed />} />
 									Data Analyst
 								</Button>
-								<Button variant="plain" size="sm" className="ml-auto">
+								<Button aria-label="Add attachment" variant="plain" size="sm" className="ml-auto">
 									<Icon icon={<Plus />} />
 								</Button>
-								<Button size="sm" color="amber" disabled={!input.trim()} onClick={send}>
+								<Button
+									aria-label="Send"
+									size="sm"
+									color="amber"
+									disabled={!input.trim()}
+									onClick={send}
+								>
 									<Icon icon={<ArrowUp />} />
 								</Button>
 							</>

@@ -90,7 +90,7 @@ export function Demo() {
 			>
 				<Flex wrap gap="sm">
 					{variants.map((variant) => (
-						<Button key={variant} variant={variant} size={iconOnlySize}>
+						<Button key={variant} aria-label="Add" variant={variant} size={iconOnlySize}>
 							<Icon icon={<Plus />} />
 						</Button>
 					))}
