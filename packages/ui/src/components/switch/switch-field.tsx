@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SwitchFieldVariants } from '../../recipes/kata/switch'
 import { ControlContext, type ControlContextValue, useControl } from '../control/context'
+import { useControlA11y } from '../control/use-control-a11y'
 
 export type SwitchFieldProps = SwitchFieldVariants & {
 	className?: string
@@ -21,6 +22,8 @@ export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldP
 
 	const scope = useIdScope({ id: htmlFor })
 
+	const a11y = useControlA11y(scope.id)
+
 	const value = useMemo<ControlContextValue>(
 		() => ({
 			id: scope.id,
@@ -31,8 +34,21 @@ export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldP
 			required: parent?.required,
 			size: parent?.size,
 			variant: parent?.variant,
+			describedBy: a11y.describedBy,
+			descriptionId: a11y.descriptionId,
+			messageId: a11y.messageId,
+			registerDescription: a11y.registerDescription,
+			registerMessage: a11y.registerMessage,
 		}),
-		[scope.id, parent],
+		[
+			scope.id,
+			parent,
+			a11y.describedBy,
+			a11y.descriptionId,
+			a11y.messageId,
+			a11y.registerDescription,
+			a11y.registerMessage,
+		],
 	)
 
 	return (

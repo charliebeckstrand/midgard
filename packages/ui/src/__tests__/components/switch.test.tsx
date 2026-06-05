@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Description } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
@@ -97,5 +98,23 @@ describe('Switch size resolution', () => {
 
 		// switchVariants size="sm" brings *:data-[slot=switch-thumb]:size-3.
 		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-3')
+	})
+})
+
+describe('SwitchField aria-describedby', () => {
+	it('points the switch at a rendered Description', () => {
+		const { container } = renderUI(
+			<SwitchField>
+				<Switch />
+				<Description>Enable dark mode.</Description>
+			</SwitchField>,
+		)
+
+		const input = bySlot(container, 'switch') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+
+		expect(description.id).toBeTruthy()
+
+		expect(input).toHaveAttribute('aria-describedby', description.id)
 	})
 })

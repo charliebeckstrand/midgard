@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { Description } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
@@ -127,5 +128,23 @@ describe('Radio size', () => {
 		const { container } = renderUI(<Radio size="lg" />)
 
 		expect(bySlot(container, 'radio-indicator')?.className).toContain('size-2')
+	})
+})
+
+describe('RadioField aria-describedby', () => {
+	it('points the radio at a rendered Description', () => {
+		const { container } = renderUI(
+			<RadioField>
+				<Radio />
+				<Description>Receive email notifications.</Description>
+			</RadioField>,
+		)
+
+		const input = bySlot(container, 'radio') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+
+		expect(description.id).toBeTruthy()
+
+		expect(input).toHaveAttribute('aria-describedby', description.id)
 	})
 })
