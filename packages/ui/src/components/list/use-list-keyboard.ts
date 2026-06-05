@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
 import type { Orientation } from '../../types'
+import { moveItem } from '../../utilities'
 
 type Options<T> = {
 	items: T[]
@@ -67,7 +68,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 		[items, getKey, focusItem],
 	)
 
-	const moveItem = useCallback(
+	const moveByDirection = useCallback(
 		(id: string, direction: -1 | 1) => {
 			if (!onReorder) return
 
@@ -79,13 +80,9 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			if (newIdx < 0 || newIdx >= items.length) return
 
-			const next = [...items]
+			const next = moveItem(items, idx, newIdx)
 
-			const [item] = next.splice(idx, 1)
-
-			if (item === undefined) return
-
-			next.splice(newIdx, 0, item)
+			if (!next) return
 
 			onReorder(next)
 
@@ -143,18 +140,18 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 				case primaryKey:
 					event.preventDefault()
 
-					moveItem(id, 1)
+					moveByDirection(id, 1)
 
 					break
 				case secondaryKey:
 					event.preventDefault()
 
-					moveItem(id, -1)
+					moveByDirection(id, -1)
 
 					break
 			}
 		},
-		[liftedId, orientation, focusNeighbor, moveItem],
+		[liftedId, orientation, focusNeighbor, moveByDirection],
 	)
 
 	const onItemBlur = useCallback(() => {

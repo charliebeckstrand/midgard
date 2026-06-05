@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
+import { moveItem } from '../../utilities'
 import type { KanbanColumnBase } from './types'
 
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
@@ -124,13 +125,9 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			if (newIdx < 0 || newIdx >= col.items.length) return
 
-			const nextItems = [...col.items]
+			const nextItems = moveItem(col.items, idx, newIdx)
 
-			const [item] = nextItems.splice(idx, 1)
-
-			if (item === undefined) return
-
-			nextItems.splice(newIdx, 0, item)
+			if (!nextItems) return
 
 			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 

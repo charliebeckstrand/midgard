@@ -1,4 +1,5 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export { moveItem } from './move'
 export { noop } from './noop'
 export { pct } from './pct'
