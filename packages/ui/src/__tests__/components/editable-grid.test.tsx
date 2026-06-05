@@ -37,6 +37,8 @@ describe('EditableGrid', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('role', 'grid')
+
+		expect(el).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
 	it('applies custom className', () => {
