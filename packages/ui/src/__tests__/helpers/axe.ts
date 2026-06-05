@@ -5,10 +5,9 @@ import { configureAxe } from 'jest-axe'
  *
  * jsdom has no layout or rendering engine, so any rule that depends on computed
  * geometry or color is unreliable here. `color-contrast` (WCAG 1.4.3 / 1.4.11)
- * and `target-size` (2.5.5) are therefore disabled — both are tracked in
- * ACCESSIBILITY-AUDIT.md and need real-browser verification. Everything axe can
- * evaluate statically (roles, names, ARIA validity, label association, list and
- * landmark structure) stays on.
+ * and `target-size` (2.5.5) are therefore disabled — they need real-browser
+ * verification instead. Everything axe can evaluate statically (roles, names,
+ * ARIA validity, label association, list and landmark structure) stays on.
  *
  * Pair with the `toHaveNoViolations` matcher (registered in setup/index.ts):
  *
