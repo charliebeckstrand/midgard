@@ -38,10 +38,11 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 						<div key={child.id} className="flex flex-col gap-3">
 							{index > 0 && (
 								<Segment
+									size="sm"
 									value={child.combinator ?? 'and'}
 									onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
 								>
-									<SegmentControl size="sm" aria-label="Combinator">
+									<SegmentControl aria-label="Combinator">
 										<SegmentItem value="and">AND</SegmentItem>
 										<SegmentItem value="or">OR</SegmentItem>
 									</SegmentControl>

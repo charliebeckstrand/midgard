@@ -1,5 +1,3 @@
-export type { SegmentControlVariants, SegmentItemVariants } from '../../recipes/kata/segment'
-export { SegmentContext, type SegmentContextValue, useSegmentContext } from './context'
 export { Segment, type SegmentProps } from './segment'
 export { SegmentControl, type SegmentControlProps } from './segment-control'
 export { SegmentItem, type SegmentItemProps } from './segment-item'
