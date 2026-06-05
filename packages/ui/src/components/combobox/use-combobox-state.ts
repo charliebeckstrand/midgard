@@ -8,6 +8,7 @@ type ComboboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
 	selectable: boolean
+	value: T | T[] | undefined
 	closeOnSelect?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
@@ -23,6 +24,7 @@ export function useComboboxState<T>({
 	multiple,
 	nullable,
 	selectable,
+	value,
 	closeOnSelect,
 	open: openProp,
 	onOpenChange,
@@ -67,14 +69,19 @@ export function useComboboxState<T>({
 
 	const shouldClose = closeOnSelect ?? !multiple
 
-	const { toggle, enqueue, flushPending } = useDeferredToggle<T>({ multiple, nullable, setValue })
+	const { toggle, commit, flushPending, selectionValue } = useDeferredToggle<T>({
+		multiple,
+		nullable,
+		value,
+		setValue,
+	})
 
 	const select = useCallback(
 		(newValue: T) => {
 			if (!selectable) {
 				onValueChange?.(newValue)
 			} else if (shouldClose) {
-				enqueue(newValue)
+				commit(newValue)
 			} else {
 				toggle(newValue)
 			}
@@ -89,7 +96,7 @@ export function useComboboxState<T>({
 				inputRef.current?.focus()
 			}
 		},
-		[selectable, shouldClose, toggle, enqueue, onValueChange, close, setQuery, inputRef],
+		[selectable, shouldClose, toggle, commit, onValueChange, close, setQuery, inputRef],
 	)
 
 	return {
@@ -103,5 +110,6 @@ export function useComboboxState<T>({
 		close,
 		select,
 		flushPending,
+		selectionValue,
 	}
 }

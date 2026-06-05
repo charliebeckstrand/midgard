@@ -5,7 +5,12 @@ import { useListboxState } from '../../components/listbox/use-listbox-state'
 describe('useListboxState', () => {
 	it('starts closed', () => {
 		const { result } = renderHook(() =>
-			useListboxState<string>({ multiple: false, nullable: false, setValue: vi.fn() }),
+			useListboxState<string>({
+				multiple: false,
+				nullable: false,
+				value: undefined,
+				setValue: vi.fn(),
+			}),
 		)
 
 		expect(result.current.open).toBe(false)
@@ -13,7 +18,12 @@ describe('useListboxState', () => {
 
 	it('opens via setOpen and closes via close()', () => {
 		const { result } = renderHook(() =>
-			useListboxState<string>({ multiple: false, nullable: false, setValue: vi.fn() }),
+			useListboxState<string>({
+				multiple: false,
+				nullable: false,
+				value: undefined,
+				setValue: vi.fn(),
+			}),
 		)
 
 		act(() => {
@@ -33,7 +43,7 @@ describe('useListboxState', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useListboxState<string>({ multiple: false, nullable: false, setValue }),
+			useListboxState<string>({ multiple: false, nullable: false, value: undefined, setValue }),
 		)
 
 		act(() => {
@@ -51,7 +61,7 @@ describe('useListboxState', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useListboxState<string>({ multiple: true, nullable: false, setValue }),
+			useListboxState<string>({ multiple: true, nullable: false, value: undefined, setValue }),
 		)
 
 		act(() => {
@@ -67,7 +77,12 @@ describe('useListboxState', () => {
 
 	it('returns a stable close handler across renders', () => {
 		const { result, rerender } = renderHook(() =>
-			useListboxState<string>({ multiple: false, nullable: false, setValue: vi.fn() }),
+			useListboxState<string>({
+				multiple: false,
+				nullable: false,
+				value: undefined,
+				setValue: vi.fn(),
+			}),
 		)
 
 		const first = result.current.close

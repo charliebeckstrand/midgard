@@ -16,6 +16,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 			multiple: false,
 			nullable: false,
 			selectable: true,
+			value: undefined,
 			setValue,
 			inputRef,
 			...overrides,

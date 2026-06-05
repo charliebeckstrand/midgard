@@ -7,7 +7,7 @@ describe('useDeferredToggle', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: false, nullable: false, value: undefined, setValue }),
 		)
 
 		act(() => {
@@ -17,104 +17,81 @@ describe('useDeferredToggle', () => {
 		expect(setValue).toHaveBeenCalledOnce()
 	})
 
-	it('does not call setValue when a value is only enqueued', () => {
+	it('writes the value immediately when committed', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: false, nullable: false, value: undefined, setValue }),
 		)
 
 		act(() => {
-			result.current.enqueue('a')
-		})
-
-		expect(setValue).not.toHaveBeenCalled()
-	})
-
-	it('applies the enqueued value when flushPending is called', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
-		)
-
-		act(() => {
-			result.current.enqueue('a')
-		})
-
-		act(() => {
-			result.current.flushPending()
+			result.current.commit('a')
 		})
 
 		expect(setValue).toHaveBeenCalledOnce()
 	})
 
-	it('clears the queue after flushing so repeated flushes are no-ops', () => {
+	it('freezes the menu selection to the prior value until flushed', () => {
+		const setValue = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ value }: { value: string | undefined }) =>
+				useDeferredToggle<string>({ multiple: false, nullable: false, value, setValue }),
+			{ initialProps: { value: 'a' as string | undefined } },
+		)
+
+		act(() => {
+			result.current.commit('b')
+		})
+
+		// The control has moved on (parent re-renders with the new value) but the
+		// menu still paints the prior selection while the panel animates closed.
+		rerender({ value: 'b' })
+
+		expect(result.current.selectionValue).toBe('a')
+
+		act(() => {
+			result.current.flushPending()
+		})
+
+		expect(result.current.selectionValue).toBe('b')
+	})
+
+	it('tracks the live value when nothing has been committed', () => {
+		const setValue = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ value }: { value: string | undefined }) =>
+				useDeferredToggle<string>({ multiple: false, nullable: false, value, setValue }),
+			{ initialProps: { value: 'a' as string | undefined } },
+		)
+
+		expect(result.current.selectionValue).toBe('a')
+
+		rerender({ value: 'b' })
+
+		expect(result.current.selectionValue).toBe('b')
+	})
+
+	it('flushPending is a no-op when nothing has been committed', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
-		)
-
-		act(() => {
-			result.current.enqueue('a')
-		})
-
-		act(() => {
-			result.current.flushPending()
-		})
-
-		act(() => {
-			result.current.flushPending()
-		})
-
-		expect(setValue).toHaveBeenCalledOnce()
-	})
-
-	it('flushPending is a no-op when nothing has been enqueued', () => {
-		const setValue = vi.fn()
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: false, nullable: false, value: 'a', setValue }),
 		)
 
 		act(() => {
 			result.current.flushPending()
 		})
 
-		expect(setValue).not.toHaveBeenCalled()
-	})
-
-	it('overwrites the queue when enqueue is called twice', () => {
-		const setValue = vi.fn(
-			(updater: (prev: string | string[] | undefined) => string | string[] | undefined) =>
-				updater(undefined),
-		)
-
-		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
-		)
-
-		act(() => {
-			result.current.enqueue('a')
-			result.current.enqueue('b')
-		})
-
-		act(() => {
-			result.current.flushPending()
-		})
-
-		expect(setValue).toHaveBeenCalledOnce()
-
-		// The updater applied the enqueued 'b', not 'a'
-		expect(setValue.mock.results[0]?.value).toBe('b')
+		expect(result.current.selectionValue).toBe('a')
 	})
 
 	it('toggle sets the new value in single mode', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: false, nullable: false, value: undefined, setValue }),
 		)
 
 		act(() => {
@@ -130,7 +107,7 @@ describe('useDeferredToggle', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: false, nullable: true, setValue }),
+			useDeferredToggle<string>({ multiple: false, nullable: true, value: 'a', setValue }),
 		)
 
 		act(() => {
@@ -146,7 +123,7 @@ describe('useDeferredToggle', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: true, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: true, nullable: false, value: ['a'], setValue }),
 		)
 
 		act(() => {
@@ -162,7 +139,7 @@ describe('useDeferredToggle', () => {
 		const setValue = vi.fn()
 
 		const { result } = renderHook(() =>
-			useDeferredToggle<string>({ multiple: true, nullable: false, setValue }),
+			useDeferredToggle<string>({ multiple: true, nullable: false, value: ['a', 'b'], setValue }),
 		)
 
 		act(() => {
