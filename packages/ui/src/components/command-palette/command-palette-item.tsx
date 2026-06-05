@@ -50,6 +50,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		tabIndex: -1,
 		'data-slot': 'command-palette-item',
 		'data-disabled': disabled || undefined,
+		'aria-disabled': disabled || undefined,
 		className: cn(k.item, className),
 		onClick: handleSelect,
 	}
