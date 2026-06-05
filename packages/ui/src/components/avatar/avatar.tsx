@@ -15,6 +15,8 @@ export type AvatarProps = AvatarVariants & {
 	alt?: string
 	initials?: string
 	status?: Status
+	/** Accessible text for the status dot. Defaults to the humanized `status`. */
+	statusLabel?: string
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
@@ -26,6 +28,7 @@ export function Avatar({
 	color,
 	size,
 	status,
+	statusLabel,
 	className,
 	...props
 }: AvatarProps) {
@@ -81,6 +84,10 @@ export function Avatar({
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
+				{/* The dot conveys status by color alone; name it for AT. */}
+				<span className="sr-only">
+					{statusLabel ?? status.charAt(0).toUpperCase() + status.slice(1)}
+				</span>
 			</span>
 		</DensityScope>
 	)
