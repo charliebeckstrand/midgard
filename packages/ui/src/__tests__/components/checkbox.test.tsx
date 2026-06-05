@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox"', () => {
@@ -99,6 +99,12 @@ describe('CheckboxGroup', () => {
 		expect(group).toBeInTheDocument()
 
 		expect(group?.tagName).toBe('DIV')
+	})
+
+	it('exposes role="group" and accepts an accessible name', () => {
+		renderUI(<CheckboxGroup aria-label="Notifications">items</CheckboxGroup>)
+
+		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
 	})
 })
 
