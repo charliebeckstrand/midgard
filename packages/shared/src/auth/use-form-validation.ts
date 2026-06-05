@@ -33,33 +33,3 @@ export function chain<T extends Record<string, unknown>>(...fns: Validator[]) {
 		return undefined
 	}
 }
-
-export type FieldConfig = {
-	validators?: Validator[]
-}
-
-export type FormConfig<T extends string> = Record<T, FieldConfig>
-
-export function validate<T extends string>(
-	fields: T[],
-	values: Record<T, string>,
-	config: FormConfig<T>,
-): Partial<Record<T, string>> {
-	const errors: Partial<Record<T, string>> = {}
-
-	for (const field of fields) {
-		const validators = config[field].validators ?? []
-
-		for (const validator of validators) {
-			const error = validator(values[field], values as Record<string, string>)
-
-			if (error) {
-				errors[field] = error
-
-				break
-			}
-		}
-	}
-
-	return errors
-}

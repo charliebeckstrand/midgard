@@ -13,14 +13,5 @@ export default defineConfig({
 	sourcemap: false,
 	splitting: false,
 	banner: { js: "'use client'" },
-	external: [
-		'next',
-		'react',
-		'react-dom',
-		'auth',
-		'ui',
-		'@heroicons/react',
-		'react-textarea-autosize',
-		'eventsource-parser',
-	],
+	external: ['next', 'react', 'react-dom', 'auth', 'ui', '@heroicons/react', 'eventsource-parser'],
 })
