@@ -58,9 +58,13 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
 }
 
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
-	const { value: currentValue, onValueChange, orientation, linear } = useStepper()
+	const { value: currentValue, onValueChange, orientation, linear, baseId } = useStepper()
 
 	const state = computeState(value, currentValue)
+
+	const stepId = `${baseId}-step-${value}`
+
+	const panelId = `${baseId}-panel-${value}`
 
 	const classes = cn(k.step({ orientation }), className)
 
@@ -83,9 +87,13 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		return (
 			<button
 				type="button"
+				id={stepId}
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
+				// Only the current step's panel is mounted, so reference it only then
+				// to avoid a dangling aria-controls id.
+				aria-controls={state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
 				className={cn(classes, 'cursor-pointer')}
@@ -97,6 +105,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	return (
 		<div
+			id={stepId}
 			data-slot="stepper-step"
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}

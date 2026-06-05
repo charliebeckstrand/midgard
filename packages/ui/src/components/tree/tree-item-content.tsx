@@ -89,6 +89,7 @@ export function TreeItemContent({
 		<div
 			role="treeitem"
 			aria-expanded={hasChildren ? open : undefined}
+			aria-current={current || undefined}
 			aria-level={depth + 1}
 			tabIndex={-1}
 			data-slot="tree-item-content"

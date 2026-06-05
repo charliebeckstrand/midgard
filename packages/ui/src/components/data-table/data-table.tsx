@@ -203,9 +203,17 @@ export function DataTable<T>({
 			grid={grid}
 			striped={striped}
 			className={className}
-			tableProps={tableProps}
+			// Virtualization windows the DOM, so advertise the full row count
+			// (header + data rows) and index each row for assistive tech.
+			tableProps={
+				virtualizeEnabled ? { ...tableProps, 'aria-rowcount': rows.length + 1 } : tableProps
+			}
 		>
-			<DataTableHead columns={visibleColumns} hasRows={rows.length > 0} />
+			<DataTableHead
+				columns={visibleColumns}
+				hasRows={rows.length > 0}
+				virtualized={virtualizeEnabled}
+			/>
 
 			<DataTableBody<T>
 				loading={loading}

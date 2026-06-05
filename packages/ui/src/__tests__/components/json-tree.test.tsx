@@ -710,3 +710,28 @@ describe('JsonTreeNodeRow', () => {
 		expect(screen.queryByText('1 item')).not.toBeInTheDocument()
 	})
 })
+
+describe('JsonTree tree semantics', () => {
+	it('sets aria-level on leaf treeitems by depth', () => {
+		const { container } = renderUI(
+			<JsonTree data={{ outer: { inner: 1 } }} defaultExpandDepth={5} />,
+		)
+
+		const leaf = container.querySelector('[role="treeitem"][data-slot="json-node"]')
+
+		// outer (level 1) > inner object (level 2) > leaf "inner: 1" (level 3)
+		expect(leaf).toHaveAttribute('aria-level', '3')
+	})
+
+	it('groups nested treeitems under role="group"', () => {
+		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
+
+		expect(container.querySelector('[data-slot="json-group"]')).toHaveAttribute('role', 'group')
+	})
+
+	it('hides the closing-bracket row from assistive tech', () => {
+		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
+
+		expect(bySlot(container, 'json-close')).toHaveAttribute('aria-hidden', 'true')
+	})
+})

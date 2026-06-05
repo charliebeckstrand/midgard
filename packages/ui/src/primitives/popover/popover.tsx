@@ -15,6 +15,7 @@ export function PopoverPanel({
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
 	glass = false,
+	multiselectable,
 	onKeyDown: onKeyDownProp,
 }: {
 	id?: string
@@ -25,6 +26,8 @@ export function PopoverPanel({
 	autoFocus?: boolean
 	/** Apply glass surface chrome instead of the default popover surface. */
 	glass?: boolean
+	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
+	multiselectable?: boolean
 	onKeyDown?: KeyboardEventHandler
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
@@ -54,6 +57,7 @@ export function PopoverPanel({
 				id={id}
 				data-slot="popover-panel"
 				role={role}
+				aria-multiselectable={multiselectable}
 				tabIndex={-1}
 				{...k.panel.motion}
 				onKeyDown={(event) => {

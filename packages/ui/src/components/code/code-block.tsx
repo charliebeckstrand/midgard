@@ -57,6 +57,9 @@ export function CodeBlock({
 	)
 
 	useEffect(() => {
+		// Inline code renders as a bare <code>, so there's no Shiki block to build.
+		if (inline) return
+
 		const key = cacheKey(code, lang, theme)
 
 		const cached = htmlCache.get(key)
@@ -90,7 +93,15 @@ export function CodeBlock({
 		return () => {
 			cancelled = true
 		}
-	}, [code, lang, theme])
+	}, [code, lang, theme, inline])
+
+	if (inline) {
+		return (
+			<code data-slot="code-block" className={cn(k.codeBlock({ inline }), className)}>
+				{code}
+			</code>
+		)
+	}
 
 	return (
 		<div data-slot="code-block" className={cn(k.codeBlock({ inline }), className)}>

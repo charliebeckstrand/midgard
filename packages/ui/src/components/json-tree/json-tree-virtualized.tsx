@@ -71,7 +71,9 @@ export function JsonTreeVirtualized({
 			style={{ maxHeight, overflow: 'auto' }}
 			onKeyDown={onKeyDown}
 		>
-			{topSpacer > 0 && <div data-slot="json-tree-spacer" style={{ height: topSpacer }} />}
+			{topSpacer > 0 && (
+				<div role="presentation" data-slot="json-tree-spacer" style={{ height: topSpacer }} />
+			)}
 			{virtualItems.map((virtualItem) => {
 				const node = flatNodes[virtualItem.index]
 
@@ -79,7 +81,9 @@ export function JsonTreeVirtualized({
 
 				return <JsonTreeNodeRow key={`${node.type}:${node.path}`} node={node} onToggle={toggle} />
 			})}
-			{bottomSpacer > 0 && <div data-slot="json-tree-spacer" style={{ height: bottomSpacer }} />}
+			{bottomSpacer > 0 && (
+				<div role="presentation" data-slot="json-tree-spacer" style={{ height: bottomSpacer }} />
+			)}
 		</div>
 	)
 }

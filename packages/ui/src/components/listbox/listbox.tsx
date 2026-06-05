@@ -211,6 +211,7 @@ export function Listbox<T>({
 				id={listboxId}
 				open={open}
 				glass={glass}
+				multiple={multiple}
 				density={token.density}
 				size={token.size}
 				floatingStyles={floatingStyles}

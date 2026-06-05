@@ -25,6 +25,7 @@ type CalendarPickerOptions = {
 }
 
 type CalendarPickerViewConfig = {
+	gridLabel: string
 	prevLabel: string
 	nextLabel: string
 	centerLabel: ReactNode
@@ -145,6 +146,7 @@ export function useCalendarPicker({
 	const viewConfig: CalendarPickerViewConfig =
 		view === 'months'
 			? {
+					gridLabel: 'Select month',
 					prevLabel: 'Previous year',
 					nextLabel: 'Next year',
 					centerLabel: pickerYear,
@@ -159,6 +161,7 @@ export function useCalendarPicker({
 					cellBlock: true,
 				}
 			: {
+					gridLabel: 'Select year',
 					prevLabel: 'Previous decade',
 					nextLabel: 'Next decade',
 					centerLabel: (

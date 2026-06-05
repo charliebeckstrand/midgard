@@ -33,6 +33,20 @@ describe('PivotTable', () => {
 		expect(screen.getByRole('columnheader', { name: 'Feb' })).toBeInTheDocument()
 	})
 
+	it('exposes each row-dimension label as a row header', () => {
+		renderUI(
+			<PivotTable
+				rows={data}
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
+				rowHeader="Lane"
+			/>,
+		)
+
+		expect(screen.getByRole('rowheader', { name: 'LAX → DFW' })).toBeInTheDocument()
+
+		expect(screen.getByRole('rowheader', { name: 'ORD → ATL' })).toBeInTheDocument()
+	})
+
 	it('sums values in each cell', () => {
 		renderUI(
 			<PivotTable
@@ -93,7 +107,11 @@ describe('PivotTable', () => {
 
 		const totalCells = screen.getAllByText('Total')
 
-		const totalRow = totalCells.find((el) => el.tagName === 'TD')?.closest('tr')
+		const totalRow = totalCells.find((el) => el.getAttribute('scope') === 'row')?.closest('tr')
+
+		// The totals row label is a <th scope="row">; fail loudly if it's missing
+		// rather than silently skipping the assertions below.
+		expect(totalRow).toBeTruthy()
 
 		if (!totalRow) return
 

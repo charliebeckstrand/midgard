@@ -113,7 +113,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			<ReducedMotion>
 				<AnimatePresence initial={false}>
 					{open && (
-						<motion.div data-slot="json-group" {...k.motion} className={k.group}>
+						<motion.div role="group" data-slot="json-group" {...k.motion} className={k.group}>
 							<JsonTreeContext value={childContextValue}>
 								{visibleEntries.map(([childKey, childValue]) => (
 									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />

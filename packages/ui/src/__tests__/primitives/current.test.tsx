@@ -78,4 +78,28 @@ describe('CurrentContents / CurrentContent', () => {
 		expect(screen.getByText('A')).toBeInTheDocument()
 		expect(screen.getByText('B')).toBeInTheDocument()
 	})
+
+	it('forwards id / role / aria-* in fade mode', () => {
+		renderUI(
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="test" fade>
+					<CurrentContent
+						slotPrefix="test"
+						value="a"
+						id="panel-a"
+						role="tabpanel"
+						aria-labelledby="tab-a"
+					>
+						Content A
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		const panel = screen.getByRole('tabpanel')
+
+		expect(panel).toHaveAttribute('id', 'panel-a')
+
+		expect(panel).toHaveAttribute('aria-labelledby', 'tab-a')
+	})
 })

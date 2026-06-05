@@ -155,6 +155,23 @@ describe('Listbox', () => {
 
 		// Panel renders through a portal once open.
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+		// Single-select listbox is not multiselectable.
+		expect(screen.getByRole('listbox')).not.toHaveAttribute('aria-multiselectable')
+	})
+
+	it('marks a multiple listbox as multiselectable', () => {
+		const { container } = renderUI(
+			<Listbox multiple>
+				<div role="option" tabIndex={-1} aria-selected="false">
+					Option
+				</div>
+			</Listbox>,
+		)
+
+		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+
+		expect(screen.getByRole('listbox')).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
 	it('suppresses the trigger mousedown default while open so focus stays on the panel', () => {

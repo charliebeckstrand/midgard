@@ -53,7 +53,9 @@ export function PdfViewerViewport() {
 					/>
 				</div>
 			) : error ? (
-				<div className={cn(k.viewport.page.empty)}>Failed to load PDF: {error.message}</div>
+				<div role="alert" className={cn(k.viewport.page.empty)}>
+					Failed to load PDF: {error.message}
+				</div>
 			) : loading ? (
 				<output
 					data-slot="pdf-viewer-page-frame"

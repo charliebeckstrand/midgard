@@ -1,5 +1,4 @@
 import type { PropsWithChildren, Ref } from 'react'
-import { Box } from '../components/box'
 import type { ResponsiveGap } from '../components/flex/variants'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
@@ -21,27 +20,22 @@ type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
 	return (
-		<Box role="banner" data-slot="header" className={cn('shrink-0', className)}>
+		<header data-slot="header" className={cn('shrink-0', className)}>
 			{children}
-		</Box>
+		</header>
 	)
 }
 
 type StackedLayoutBodyProps = PropsWithChildren<{
 	className?: string
-	ref?: Ref<HTMLDivElement>
+	ref?: Ref<HTMLElement>
 }>
 
 export function StackedLayoutBody({ ref, children, className }: StackedLayoutBodyProps) {
 	return (
-		<Box
-			ref={ref}
-			role="main"
-			data-slot="body"
-			className={cn('flex-1 min-h-0 overflow-y-auto', className)}
-		>
+		<main ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto', className)}>
 			{children}
-		</Box>
+		</main>
 	)
 }
 
@@ -49,8 +43,8 @@ type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
 	return (
-		<Box role="contentinfo" data-slot="footer" className={cn('shrink-0', className)}>
+		<footer data-slot="footer" className={cn('shrink-0', className)}>
 			{children}
-		</Box>
+		</footer>
 	)
 }

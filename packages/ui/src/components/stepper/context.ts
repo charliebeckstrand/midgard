@@ -12,6 +12,8 @@ type StepperContextValue = {
 	onValueChange?: (value: number) => void
 	orientation: StepperOrientation
 	linear: boolean
+	/** Stable id base used to wire each step button to its panel. */
+	baseId: string
 }
 
 type StepperStepContextValue = {

@@ -1,8 +1,9 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
+import { Description } from '../../components/fieldset'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox"', () => {
@@ -99,6 +100,12 @@ describe('CheckboxGroup', () => {
 
 		expect(group?.tagName).toBe('DIV')
 	})
+
+	it('exposes role="group" and accepts an accessible name', () => {
+		renderUI(<CheckboxGroup aria-label="Notifications">items</CheckboxGroup>)
+
+		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
+	})
 })
 
 describe('CheckboxField', () => {
@@ -161,5 +168,23 @@ describe('Checkbox size', () => {
 
 		// The check is an SVG element; SVGAnimatedString.baseVal is the readable form.
 		expect(bySlot(container, 'checkbox-check')?.getAttribute('class')).toContain('size-4')
+	})
+})
+
+describe('CheckboxField aria-describedby', () => {
+	it('points the checkbox at a rendered Description', () => {
+		const { container } = renderUI(
+			<CheckboxField>
+				<Checkbox />
+				<Description>Subscribe to product updates.</Description>
+			</CheckboxField>,
+		)
+
+		const input = bySlot(container, 'checkbox') as HTMLElement
+		const description = bySlot(container, 'description') as HTMLElement
+
+		expect(description.id).toBeTruthy()
+
+		expect(input).toHaveAttribute('aria-describedby', description.id)
 	})
 })

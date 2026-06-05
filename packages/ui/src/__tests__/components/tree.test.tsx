@@ -396,7 +396,7 @@ describe('TreeItem', () => {
 		expect(child.style.paddingLeft).not.toBe('0.5rem')
 	})
 
-	it('renders a current TreeItem without throwing', () => {
+	it('marks a current TreeItem with aria-current', () => {
 		const { container } = renderUI(
 			<Tree>
 				<TreeItem label="Selected" current />
@@ -406,6 +406,18 @@ describe('TreeItem', () => {
 		const row = bySlot(container, 'tree-item-content') as HTMLElement
 
 		expect(row).toBeInTheDocument()
+
+		expect(row).toHaveAttribute('aria-current', 'true')
+	})
+
+	it('omits aria-current on a non-current TreeItem', () => {
+		const { container } = renderUI(
+			<Tree>
+				<TreeItem label="Plain" />
+			</Tree>,
+		)
+
+		expect(bySlot(container, 'tree-item-content')).not.toHaveAttribute('aria-current')
 	})
 
 	it('passes a custom className through to the row content', () => {

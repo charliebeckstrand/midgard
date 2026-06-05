@@ -9,6 +9,12 @@ describe('Confirm', () => {
 		expect(screen.getByText('Are you sure?')).toBeInTheDocument()
 	})
 
+	it('exposes itself as an alertdialog', () => {
+		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />)
+
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+	})
+
 	it('renders a custom title and description', () => {
 		renderUI(
 			<Confirm

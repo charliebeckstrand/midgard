@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/command-palette'
 import { Alert, type AlertProps } from '../alert'
@@ -14,10 +14,19 @@ export function CommandPaletteGroup({
 	children,
 	...props
 }: CommandPaletteGroupProps) {
+	const titleId = useId()
+
 	return (
-		<div data-slot="command-palette-group" className={cn(k.group, className)} {...props}>
+		// biome-ignore lint/a11y/useSemanticElements: role="group" is the valid listbox-owned grouping; a <fieldset> would be invalid inside role="listbox"
+		<div
+			data-slot="command-palette-group"
+			role="group"
+			aria-labelledby={title ? titleId : undefined}
+			className={cn(k.group, className)}
+			{...props}
+		>
 			{title && (
-				<div data-slot="command-palette-title" className={cn(k.title)}>
+				<div id={titleId} data-slot="command-palette-title" className={cn(k.title)}>
 					{title}
 				</div>
 			)}

@@ -81,8 +81,10 @@ describe('Combobox', () => {
 		const suffix = bySlot(container, 'suffix')
 
 		expect(suffix).toBeInTheDocument()
-		expect(suffix).toHaveAttribute('role', 'button')
-		expect(suffix).toHaveAttribute('aria-label', 'Open')
+		// The chevron is a decorative mouse affordance, not a second button — the
+		// input carries the combobox semantics.
+		expect(suffix).not.toHaveAttribute('role', 'button')
+		expect(suffix).toHaveAttribute('aria-hidden', 'true')
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
@@ -116,7 +118,7 @@ describe('Combobox', () => {
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'suffix')).toHaveAttribute('aria-label', 'Open')
+		expect(bySlot(container, 'suffix')).toHaveAttribute('aria-hidden', 'true')
 	})
 
 	it('clears a single selection and refocuses the input on clear', () => {

@@ -172,6 +172,7 @@ export function EditableGrid<T>({
 						ref: wrapperRef,
 						'data-slot': 'editable-grid',
 						role: 'grid',
+						'aria-multiselectable': true,
 						tabIndex: 0,
 						onKeyDown: onWrapperKeyDown,
 						onPaste: onWrapperPaste,

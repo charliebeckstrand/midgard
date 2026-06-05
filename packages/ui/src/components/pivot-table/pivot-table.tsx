@@ -95,7 +95,9 @@ export function PivotTable<T>({
 
 					return (
 						<TableRow key={rowKey}>
-							<TableCell className="font-medium">{rowKey}</TableCell>
+							<TableHeader scope="row" className="font-medium">
+								{rowKey}
+							</TableHeader>
 							{columnKeys.map((col) => {
 								const value = cellValue(rowKey, col)
 
@@ -115,7 +117,9 @@ export function PivotTable<T>({
 				})}
 				{showColTotals && (
 					<TableRow className="font-semibold">
-						<TableCell className="font-semibold">{totalLabel}</TableCell>
+						<TableHeader scope="row" className="font-semibold">
+							{totalLabel}
+						</TableHeader>
 						{columnKeys.map((col, i) => {
 							const total = colTotals[i]
 

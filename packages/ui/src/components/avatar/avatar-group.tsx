@@ -20,7 +20,9 @@ export function AvatarGroup({ extra, size = 'md', className, children }: AvatarG
 				className={cn(k.group.base, k.group.ring, k.group.spacing[size], className)}
 			>
 				{children}
-				{extra != null && extra > 0 && <Avatar size={size} initials={`+${extra}`} />}
+				{extra != null && extra > 0 && (
+					<Avatar size={size} initials={`+${extra}`} alt={`${extra} more`} />
+				)}
 			</div>
 		</DensityScope>
 	)

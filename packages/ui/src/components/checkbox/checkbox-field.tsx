@@ -1,11 +1,12 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useMemo } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
-import { ControlContext, type ControlContextValue, useControl } from '../control/context'
+import { ControlContext } from '../control/context'
+import { useControlFieldContext } from '../control/use-control-field-context'
 
 export type CheckboxFieldProps = {
 	htmlFor?: string
@@ -17,23 +18,9 @@ export type CheckboxFieldProps = {
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function CheckboxField({ className, htmlFor, ...props }: CheckboxFieldProps) {
-	const parent = useControl()
-
 	const scope = useIdScope({ id: htmlFor })
 
-	const value = useMemo<ControlContextValue>(
-		() => ({
-			id: scope.id,
-			autoComplete: parent?.autoComplete,
-			disabled: parent?.disabled,
-			invalid: parent?.invalid,
-			readOnly: parent?.readOnly,
-			required: parent?.required,
-			size: parent?.size,
-			variant: parent?.variant,
-		}),
-		[scope.id, parent],
-	)
+	const value = useControlFieldContext(scope.id)
 
 	return (
 		<ControlContext value={value}>

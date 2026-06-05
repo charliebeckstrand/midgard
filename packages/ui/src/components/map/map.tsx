@@ -23,6 +23,14 @@ export type MapProps = {
 	preset?: MapPreset
 	style?: string | StyleSpecification
 	interactive?: boolean
+	/**
+	 * Accessible name for the map region. When set, an interactive map is
+	 * exposed as `role="application"` and a static map as a labelled
+	 * `role="group"`; without it the container stays an unlabeled
+	 * presentational div. (A static map can still contain interactive markers,
+	 * so `role="img"` — which would hide them — is intentionally not used.)
+	 */
+	label?: string
 	className?: string
 	children?: ReactNode
 	onLoad?: (map: MapLibreMap) => void
@@ -34,6 +42,7 @@ function MapView({
 	preset,
 	style,
 	interactive = true,
+	label,
 	className,
 	children,
 	onLoad,
@@ -50,11 +59,18 @@ function MapView({
 		onLoad,
 	})
 
+	// aria-label only attaches to a role that supports it; pair them so an
+	// unlabeled map stays a plain presentational div.
+	const regionProps = label
+		? { role: interactive ? 'application' : 'group', 'aria-label': label }
+		: {}
+
 	return (
 		<div
 			ref={containerRef}
 			data-slot="map"
 			data-ready={ready || undefined}
+			{...regionProps}
 			className={cn(k.base, className)}
 		>
 			<MapContext value={contextValue}>{ready ? children : null}</MapContext>

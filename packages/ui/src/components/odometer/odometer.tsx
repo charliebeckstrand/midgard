@@ -26,9 +26,12 @@ export function Odometer({
 	const display = useOdometerAnimatedValue({ value, duration })
 
 	return (
+		// The visible digits tween every frame, so expose the settled target as an
+		// aria-label instead of announcing each intermediate value via a live region.
 		<span
 			data-slot="odometer"
-			aria-live="polite"
+			role="img"
+			aria-label={format(value)}
 			className={cn('tabular-nums', className)}
 			{...props}
 		>

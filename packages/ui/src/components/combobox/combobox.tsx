@@ -263,9 +263,11 @@ export function Combobox<T>({
 					suffix || showClear
 						? undefined
 						: {
-								role: 'button',
-								'aria-label': open ? 'Close' : 'Open',
-								'aria-disabled': resolvedDisabled || undefined,
+								// Decorative toggle affordance: the input owns combobox
+								// semantics (aria-expanded/controls), so the chevron is a
+								// mouse convenience hidden from assistive tech rather than a
+								// second, keyboard-inoperable button.
+								'aria-hidden': true,
 								onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
 							}
 				}

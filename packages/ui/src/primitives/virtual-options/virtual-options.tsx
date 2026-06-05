@@ -40,15 +40,23 @@ export function VirtualOptions<T>({
 	})
 
 	return (
-		<div ref={containerRef} data-slot="virtual-options">
-			{topSpacer > 0 && <div data-slot="virtual-options-spacer" style={{ height: topSpacer }} />}
+		// role="presentation" flattens this wrapper and the spacers out of the
+		// a11y tree so the listbox ancestor owns the option rows directly.
+		<div ref={containerRef} role="presentation" data-slot="virtual-options">
+			{topSpacer > 0 && (
+				<div role="presentation" data-slot="virtual-options-spacer" style={{ height: topSpacer }} />
+			)}
 			{virtualItems.map((virtualItem) => {
 				const item = items[virtualItem.index] as T
 
 				return children(item, virtualItem.index)
 			})}
 			{bottomSpacer > 0 && (
-				<div data-slot="virtual-options-spacer" style={{ height: bottomSpacer }} />
+				<div
+					role="presentation"
+					data-slot="virtual-options-spacer"
+					style={{ height: bottomSpacer }}
+				/>
 			)}
 		</div>
 	)

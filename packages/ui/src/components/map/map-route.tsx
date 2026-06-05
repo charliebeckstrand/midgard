@@ -108,8 +108,9 @@ function StopMarker({ stop, colors }: { stop: RouteStop; colors: Record<SegmentS
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<div
-					aria-hidden="true"
+				<button
+					type="button"
+					aria-label={stop.name}
 					className="size-4.5 rounded-full border-2 shadow hover:scale-110"
 					style={{
 						backgroundColor: base,

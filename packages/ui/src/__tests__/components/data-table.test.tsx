@@ -165,6 +165,28 @@ describe('DataTable', () => {
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
 
+		it('exposes the current sort direction via aria-sort', () => {
+			renderUI(
+				<DataTable
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Sort by Name' }).closest('th')).toHaveAttribute(
+				'aria-sort',
+				'ascending',
+			)
+
+			// An unsorted but sortable column reports "none".
+			expect(screen.getByRole('button', { name: 'Sort by Age' }).closest('th')).toHaveAttribute(
+				'aria-sort',
+				'none',
+			)
+		})
+
 		it('fires onValueChange with asc on first sort click', async () => {
 			const onValueChange = vi.fn()
 
@@ -656,6 +678,38 @@ describe('DataTable', () => {
 			)
 
 			expect(bySlot(container, 'data-table')).toBeInTheDocument()
+		})
+
+		it('reports the full row count and indexes rows despite windowing', () => {
+			const { container } = renderUI(
+				<DataTable
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+				/>,
+			)
+
+			const table = container.querySelector('table')
+
+			// Header (row 1) + 500 data rows.
+			expect(table).toHaveAttribute('aria-rowcount', '501')
+
+			const headerRow = container.querySelector('thead tr')
+
+			// jsdom reports a zero-size viewport, so the window renders no data rows
+			// here; the table-level row count and the header's 1-based index are the
+			// deterministic, AT-visible contract.
+			expect(headerRow).toHaveAttribute('aria-rowindex', '1')
+		})
+
+		it('does not set aria-rowcount on a non-virtualized table', () => {
+			const { container } = renderUI(
+				<DataTable columns={columns} rows={manyRows} getKey={getKey} />,
+			)
+
+			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
 		})
 	})
 })

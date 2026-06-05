@@ -4,5 +4,5 @@ import { ToggleGroup } from '../../primitives/toggle'
 export type CheckboxGroupProps = ComponentPropsWithoutRef<'div'>
 
 export function CheckboxGroup(props: CheckboxGroupProps) {
-	return <ToggleGroup {...props} />
+	return <ToggleGroup role="group" {...props} />
 }

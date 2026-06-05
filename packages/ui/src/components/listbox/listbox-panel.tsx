@@ -13,6 +13,7 @@ type ListboxPanelProps = {
 	id: string
 	open: boolean
 	glass: boolean
+	multiple: boolean
 	density: ControlSize
 	size: ControlSize
 	floatingStyles: CSSProperties
@@ -33,6 +34,7 @@ export function ListboxPanel({
 	id,
 	open,
 	glass,
+	multiple,
 	density,
 	size,
 	floatingStyles,
@@ -52,7 +54,13 @@ export function ListboxPanel({
 						{...getFloatingProps()}
 					>
 						<Density density={density} size={size}>
-							<PopoverPanel id={id} role="listbox" glass={glass} className={cn(k.panel, k.options)}>
+							<PopoverPanel
+								id={id}
+								role="listbox"
+								multiselectable={multiple || undefined}
+								glass={glass}
+								className={cn(k.panel, k.options)}
+							>
 								{children}
 							</PopoverPanel>
 						</Density>

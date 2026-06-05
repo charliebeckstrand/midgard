@@ -7,7 +7,12 @@ export type PaginationGapProps = ComponentPropsWithoutRef<'span'>
 export function PaginationGap({ className, ...props }: PaginationGapProps) {
 	return (
 		<li>
-			<span data-slot="pagination-gap" className={cn(k.gap(), className)} {...props}>
+			<span
+				data-slot="pagination-gap"
+				aria-hidden="true"
+				className={cn(k.gap(), className)}
+				{...props}
+			>
 				&hellip;
 			</span>
 		</li>

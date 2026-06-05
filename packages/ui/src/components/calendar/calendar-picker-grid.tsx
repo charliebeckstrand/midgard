@@ -25,6 +25,7 @@ type CalendarPickerGridProps = {
 	onPrev: () => void
 	onNext: () => void
 	onCenter: () => void
+	gridLabel: string
 	cells: CalendarPickerGridCell[]
 	cellBlock?: boolean
 	size: Step
@@ -41,6 +42,7 @@ export function CalendarPickerGrid({
 	onPrev,
 	onNext,
 	onCenter,
+	gridLabel,
 	cells,
 	cellBlock = false,
 	size,
@@ -50,6 +52,7 @@ export function CalendarPickerGrid({
 			<div
 				ref={headerRef}
 				role="toolbar"
+				aria-label="Calendar navigation"
 				onKeyDown={onHeaderKeyDown}
 				className={cn(k.header({ size }))}
 			>
@@ -72,12 +75,16 @@ export function CalendarPickerGrid({
 			<div
 				ref={gridRef}
 				role="listbox"
+				aria-label={gridLabel}
 				onKeyDown={onGridKeyDown}
 				className={cn(k.picker.grid({ size }))}
 			>
 				{cells.map((cell) => (
 					<Button
 						key={cell.key}
+						role="option"
+						aria-selected={cell.selected}
+						aria-current={cell.current ? true : undefined}
 						variant={cell.selected ? 'solid' : 'plain'}
 						data-selected={cell.selected || undefined}
 						block={cellBlock}

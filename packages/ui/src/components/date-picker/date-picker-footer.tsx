@@ -34,6 +34,7 @@ export function DatePickerFooter({
 		<div
 			ref={footerRef}
 			role="toolbar"
+			aria-label="Date picker actions"
 			data-slot="calendar-footer"
 			onKeyDown={onKeyDown}
 			className={cn(k.footer({ size }))}

@@ -28,7 +28,9 @@ export function TimeAgo({
 }: TimeAgoProps) {
 	const { then, valid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
 
-	if (!valid) return <time data-slot="time-ago" {...props} />
+	// An invalid date has no machine-readable timestamp, so render a plain
+	// <span> rather than an empty <time> with no dateTime.
+	if (!valid) return <span data-slot="time-ago" {...props} />
 
 	const resolvedTitle =
 		title === true ? then.toLocaleString(locale) : title === false ? undefined : title
