@@ -1,7 +1,7 @@
 import cardValidator from 'card-validator'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
-const { number, cvv } = cardValidator
+const { number, cvv, expirationDate } = cardValidator
 
 // Allowlist mapping card-validator's `type` strings to the package's public
 // brand names + labels. Brands outside this list (maestro, elo, mir, hiper,
@@ -95,6 +95,17 @@ export function validateCardCvv(value: string, brand?: CreditCardBrand): CardVal
 	const maxLength = brand === 'amex' ? 4 : 3
 
 	const { isValid, isPotentiallyValid } = cvv(value.replace(/\D/g, ''), maxLength)
+
+	return { isValid, isPotentiallyValid }
+}
+
+/**
+ * Validate an "MM/YY" expiry via card-validator's `expirationDate`, which
+ * enforces the month range and rejects dates already in the past — neither of
+ * which `formatExpiry` checks.
+ */
+export function validateCardExpiry(value: string): CardValidity {
+	const { isValid, isPotentiallyValid } = expirationDate(value)
 
 	return { isValid, isPotentiallyValid }
 }

@@ -2,7 +2,7 @@
 
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
-import { formatExpiry } from './credit-card-input-utilities'
+import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
 export type CreditCardInputExpiryProps = Omit<
 	InputProps,
@@ -12,6 +12,8 @@ export type CreditCardInputExpiryProps = Omit<
 	defaultValue?: string
 	placeholder?: string
 	onValueChange?: (value: string) => void
+	/** Fires on every change with the expiry's month-range + not-in-past verdict. */
+	onValidityChange?: (validity: CardValidity) => void
 }
 
 export function CreditCardInputExpiry({
@@ -19,6 +21,7 @@ export function CreditCardInputExpiry({
 	defaultValue,
 	placeholder,
 	onValueChange,
+	onValidityChange,
 	ref,
 	...props
 }: CreditCardInputExpiryProps) {
@@ -44,12 +47,18 @@ export function CreditCardInputExpiry({
 				// Backspace over the auto-inserted "/" should delete the preceding digit,
 				// otherwise the formatter would re-append "/" and trap the caret.
 				if (masked.value.endsWith('/') && raw === masked.value.slice(0, -1)) {
-					masked.setValue(raw.slice(0, -1))
+					const next = raw.slice(0, -1)
+
+					masked.setValue(next)
+
+					onValidityChange?.(validateCardExpiry(next))
 
 					return
 				}
 
 				masked.onChange(e)
+
+				onValidityChange?.(validateCardExpiry(formatExpiry(raw)))
 			}}
 			{...props}
 		/>

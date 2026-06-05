@@ -215,6 +215,41 @@ describe('CreditCardInputExpiry', () => {
 
 		expect(input.value).toBe('1')
 	})
+
+	it('reports expiry validity to onValidityChange', async () => {
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
+
+		await user.type(input, `12${yy}`)
+
+		expect(input.value).toBe(`12/${yy}`)
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('rejects an out-of-range month through onValidityChange', async () => {
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '1330')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith(expect.objectContaining({ isValid: false }))
+	})
 })
 
 describe('CreditCardInputCvv', () => {

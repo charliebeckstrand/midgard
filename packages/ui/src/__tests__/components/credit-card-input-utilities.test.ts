@@ -5,6 +5,7 @@ import {
 	formatCvv,
 	formatExpiry,
 	validateCardCvv,
+	validateCardExpiry,
 	validateCardNumber,
 } from '../../components/credit-card-input/credit-card-input-utilities'
 
@@ -201,5 +202,34 @@ describe('validateCardCvv', () => {
 
 	it('strips non-digit characters before validating', () => {
 		expect(validateCardCvv('1-2-3', 'visa').isValid).toBe(true)
+	})
+})
+
+describe('validateCardExpiry', () => {
+	it('accepts a near-future month/year', () => {
+		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
+
+		expect(validateCardExpiry(`12/${yy}`)).toEqual({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('rejects a month outside 01–12', () => {
+		expect(validateCardExpiry('13/2030').isValid).toBe(false)
+	})
+
+	it('rejects a date in the past', () => {
+		expect(validateCardExpiry('01/2000')).toEqual({
+			isValid: false,
+			isPotentiallyValid: false,
+		})
+	})
+
+	it('treats a partial expiry as potentially valid', () => {
+		expect(validateCardExpiry('12/')).toEqual({
+			isValid: false,
+			isPotentiallyValid: true,
+		})
 	})
 })
