@@ -3,7 +3,7 @@ import type { ComponentType } from 'react'
 import { createElement } from 'react'
 import { test } from 'vitest'
 import { axe, renderUI } from '../helpers'
-import { IMPACTS, type ScoreBreakdown, scoreViolations, type Violationish } from './scoring'
+import { IMPACTS, type ScoreBreakdown, scoreViolations } from './scoring'
 
 /**
  * A11y benchmark — scores every component's docs demo and prints a weighted
@@ -19,6 +19,14 @@ import { IMPACTS, type ScoreBreakdown, scoreViolations, type Violationish } from
  * widgets, code blocks). Demos that render no preview region (providers, pages)
  * are scored on their full output.
  *
+ * Two env vars turn the summary into a triage tool for locating where a gap
+ * lives — the component's own markup vs the demo's usage of it:
+ *
+ *   A11Y_DETAIL=1   per finding, list each offending node grouped by axe rule
+ *                   and owning `data-slot` (the component that emitted it), with
+ *                   axe's failure summary and an HTML sample.
+ *   A11Y_ONLY=a,b   restrict the whole run to these demo ids for focused triage.
+ *
  * Deliberately makes no assertions: the deliverable is the printed table, so the
  * run always "passes" and the numbers are read off stdout.
  */
@@ -28,25 +36,73 @@ const demos = import.meta.glob<ComponentType>(
 	{ import: 'Demo', eager: true },
 )
 
+const detail = process.env.A11Y_DETAIL === '1' || process.env.A11Y_DETAIL === 'true'
+const only = process.env.A11Y_ONLY?.split(',')
+	.map((id) => id.trim())
+	.filter(Boolean)
+
 /** `../../docs/demos/pages/dashboard.tsx` → `pages/dashboard`. */
 function demoId(path: string): string {
 	return path.replace(/^.*\/demos\//, '').replace(/\.tsx$/, '')
 }
 
-/** axe `Result` carries the rule `id` on top of the fields scoring reads. */
-type RuleViolation = Violationish & { readonly id: string }
+/** The slice of an axe result node this runner reads. */
+type AxeNode = {
+	readonly html: string
+	readonly target: readonly string[]
+	readonly failureSummary?: string
+}
 
-type DemoResult = {
+/** axe `Result`, narrowed to the fields scoring and triage need. */
+type RuleViolation = {
 	readonly id: string
-	readonly breakdown: ScoreBreakdown
-	readonly error?: string
+	readonly impact?: 'critical' | 'serious' | 'moderate' | 'minor' | null
+	readonly nodes: readonly AxeNode[]
+}
+
+/** One offending element, attributed to the component (`data-slot`) that owns it. */
+type NodeDetail = {
+	readonly rule: string
+	readonly owner: string
+	readonly summary: string
+	readonly html: string
 }
 
 function message(error: unknown): string {
 	return (error instanceof Error ? error.message : String(error)).split('\n')[0] ?? ''
 }
 
-async function violationsFor(Demo: ComponentType): Promise<RuleViolation[]> {
+/**
+ * Attribute a node to the nearest enclosing `data-slot` — the component that
+ * rendered it. Resolved against the live DOM (the node is still mounted here);
+ * falls back to the slot on the node's own markup if the selector no longer
+ * matches.
+ */
+function ownerOf(node: AxeNode): string {
+	const selector = node.target.at(-1)
+	const element = selector ? document.querySelector(selector) : null
+	const slot = element?.closest('[data-slot]')?.getAttribute('data-slot')
+
+	if (slot) return slot
+
+	return /data-slot="([^"]+)"/.exec(node.html)?.[1] ?? '?'
+}
+
+function condense(summary: string | undefined): string {
+	if (!summary) return ''
+
+	return summary
+		.split('\n')
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.join(' ')
+		.slice(0, 140)
+}
+
+async function inspect(Demo: ComponentType): Promise<{
+	violations: RuleViolation[]
+	details: NodeDetail[]
+}> {
 	const { container, unmount } = renderUI(createElement(Demo))
 
 	try {
@@ -54,14 +110,26 @@ async function violationsFor(Demo: ComponentType): Promise<RuleViolation[]> {
 		const targets: readonly HTMLElement[] = regions.length ? [...regions] : [container]
 
 		const violations: RuleViolation[] = []
+		const details: NodeDetail[] = []
 
 		for (const target of targets) {
 			const result = await axe(target)
 
-			violations.push(...(result.violations as RuleViolation[]))
+			for (const violation of result.violations as unknown as RuleViolation[]) {
+				violations.push(violation)
+
+				for (const node of violation.nodes) {
+					details.push({
+						rule: violation.id,
+						owner: ownerOf(node),
+						summary: condense(node.failureSummary),
+						html: node.html.slice(0, 100),
+					})
+				}
+			}
 		}
 
-		return violations
+		return { violations, details }
 	} finally {
 		unmount()
 	}
@@ -71,19 +139,30 @@ function bar(width: number): string {
 	return '-'.repeat(width)
 }
 
+type DemoResult = {
+	readonly id: string
+	readonly breakdown: ScoreBreakdown
+	readonly error?: string
+}
+
 test('a11y score', async () => {
 	const results: DemoResult[] = []
-	const everyViolation: RuleViolation[] = []
 	const nodesByRule = new Map<string, number>()
+	const detailsById = new Map<string, NodeDetail[]>()
+	let deductionsAcross = 0
 
 	for (const [path, Demo] of Object.entries(demos)) {
 		const id = demoId(path)
 
-		try {
-			const violations = await violationsFor(Demo)
+		if (only && !only.includes(id)) continue
 
-			everyViolation.push(...violations)
-			results.push({ id, breakdown: scoreViolations(violations) })
+		try {
+			const { violations, details } = await inspect(Demo)
+			const breakdown = scoreViolations(violations)
+
+			results.push({ id, breakdown })
+			detailsById.set(id, details)
+			deductionsAcross += breakdown.deductions
 
 			for (const violation of violations) {
 				nodesByRule.set(violation.id, (nodesByRule.get(violation.id) ?? 0) + violation.nodes.length)
@@ -107,7 +186,6 @@ test('a11y score', async () => {
 	const meanScore = scored.length
 		? Math.round(scored.reduce((sum, result) => sum + result.breakdown.score, 0) / scored.length)
 		: 100
-	const defectLoad = scoreViolations(everyViolation).deductions
 	const idWidth = Math.max(...findings.map((result) => result.id.length), 'component'.length)
 
 	const tallyOf = ({ counts }: ScoreBreakdown) =>
@@ -118,8 +196,9 @@ test('a11y score', async () => {
 	const lines: string[] = [
 		'',
 		'A11y benchmark — all components (weighted axe-core score over demo previews; jsdom)',
+		...(only ? [`  Filtered to: ${only.join(', ')}`] : []),
 		'',
-		`  Overall: ${meanScore}/100   (mean per-component score; ${defectLoad} weighted defect load)`,
+		`  Overall: ${meanScore}/100   (mean per-component score; ${deductionsAcross} weighted defect load)`,
 		`  ${results.length} demos · ${clean} clean · ${findings.length} with findings · ${errored.length} errored`,
 		'',
 	]
@@ -141,6 +220,40 @@ test('a11y score', async () => {
 			),
 		)
 		lines.push('')
+	}
+
+	if (detail) {
+		const reported = scored
+			.filter((result) => (detailsById.get(result.id)?.length ?? 0) > 0)
+			.sort((a, b) => a.breakdown.score - b.breakdown.score)
+
+		if (reported.length > 0) {
+			lines.push('  Detail — offending nodes by rule · owning data-slot:')
+
+			for (const result of reported) {
+				lines.push('', `  ${result.id}  (${result.breakdown.score}/100)`)
+
+				const groups = new Map<string, { count: number; sample: NodeDetail }>()
+
+				for (const node of detailsById.get(result.id) ?? []) {
+					const key = `${node.rule}|${node.owner}`
+					const group = groups.get(key)
+
+					if (group) group.count += 1
+					else groups.set(key, { count: 1, sample: node })
+				}
+
+				for (const { count, sample } of [...groups.values()].sort((a, b) => b.count - a.count)) {
+					lines.push(`    [${sample.rule}] ×${count}  owner=${sample.owner}`)
+
+					if (sample.summary) lines.push(`      ${sample.summary}`)
+
+					lines.push(`      ${sample.html}`)
+				}
+			}
+
+			lines.push('')
+		}
 	}
 
 	if (errored.length > 0) {
