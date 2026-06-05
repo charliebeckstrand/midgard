@@ -12,6 +12,7 @@ export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
 	className,
 	children,
+	onKeyDown,
 	...props
 }: SidebarProps) {
 	const ref = useRef<HTMLElement>(null)
@@ -27,7 +28,10 @@ export function Sidebar({
 				data-slot="sidebar"
 				aria-label={ariaLabel}
 				className={cn(k.base, className)}
-				onKeyDown={handleKeyDown}
+				onKeyDown={(e) => {
+					handleKeyDown(e)
+					onKeyDown?.(e)
+				}}
 				{...props}
 			>
 				{children}

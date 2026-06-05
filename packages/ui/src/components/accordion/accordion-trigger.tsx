@@ -11,7 +11,12 @@ export type AccordionTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'ch
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 }
 
-export function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps) {
+export function AccordionTrigger({
+	className,
+	children,
+	onClick,
+	...props
+}: AccordionTriggerProps) {
 	const { open, toggle, disabled, value } = useAccordionItem()
 
 	return (
@@ -22,7 +27,10 @@ export function AccordionTrigger({ className, children, ...props }: AccordionTri
 			aria-controls={`accordion-panel-${value}`}
 			id={`accordion-trigger-${value}`}
 			disabled={disabled}
-			onClick={toggle}
+			onClick={(e) => {
+				toggle()
+				onClick?.(e)
+			}}
 			className={cn(k.trigger, className)}
 			{...props}
 		>
