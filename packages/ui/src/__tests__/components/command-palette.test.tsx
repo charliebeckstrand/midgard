@@ -172,7 +172,7 @@ describe('CommandPaletteGroup', () => {
 		expect(bySlot(container, 'command-palette-group')).toBeInTheDocument()
 	})
 
-	it('renders the title when provided', () => {
+	it('renders the title when provided and labels the group with it', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup title="Actions">
 				<div>child</div>
@@ -182,6 +182,12 @@ describe('CommandPaletteGroup', () => {
 		const title = bySlot(container, 'command-palette-title')
 
 		expect(title).toHaveTextContent('Actions')
+
+		const group = bySlot(container, 'command-palette-group')
+
+		expect(group).toHaveAttribute('role', 'group')
+
+		expect(group).toHaveAttribute('aria-labelledby', title?.id)
 	})
 
 	it('omits the title slot when no title is provided', () => {
