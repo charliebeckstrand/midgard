@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
+// Segment is a thin preset over <Tabs variant="segment">, so it renders the
+// tab slots (tab-list / tab) and tab ARIA (tablist / tab / aria-selected).
+
 describe('Segment', () => {
-	it('renders with data-slot="segment-control"', () => {
+	it('renders the control as a tablist', () => {
 		const { container } = renderUI(
 			<Segment value="a">
 				<SegmentControl>
@@ -13,10 +16,13 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		expect(bySlot(container, 'segment-control')).toBeInTheDocument()
+		const list = bySlot(container, 'tab-list')
+
+		expect(list).toBeInTheDocument()
+		expect(list).toHaveAttribute('role', 'tablist')
 	})
 
-	it('renders segment items with role="radio"', () => {
+	it('renders segment items with role="tab"', () => {
 		const { container } = renderUI(
 			<Segment value="a">
 				<SegmentControl>
@@ -26,15 +32,15 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'segment-item')
+		const items = allBySlot(container, 'tab')
 
 		expect(items).toHaveLength(2)
 
-		expect(items[0]).toHaveAttribute('role', 'radio')
-		expect(items[1]).toHaveAttribute('role', 'radio')
+		expect(items[0]).toHaveAttribute('role', 'tab')
+		expect(items[1]).toHaveAttribute('role', 'tab')
 	})
 
-	it('marks the selected segment item as aria-checked', () => {
+	it('marks the selected segment item as aria-selected', () => {
 		const { container } = renderUI(
 			<Segment value="b">
 				<SegmentControl>
@@ -44,10 +50,10 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'segment-item')
+		const items = allBySlot(container, 'tab')
 
-		expect(items[0]).toHaveAttribute('aria-checked', 'false')
-		expect(items[1]).toHaveAttribute('aria-checked', 'true')
+		expect(items[0]).toHaveAttribute('aria-selected', 'false')
+		expect(items[1]).toHaveAttribute('aria-selected', 'true')
 	})
 
 	it('calls onValueChange when a segment item is clicked', () => {
@@ -62,7 +68,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		fireEvent.click(allBySlot(container, 'segment-item')[1] as HTMLElement)
+		fireEvent.click(allBySlot(container, 'tab')[1] as HTMLElement)
 
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
@@ -81,7 +87,11 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		fireEvent.click(allBySlot(container, 'segment-item')[1] as HTMLElement)
+		const disabledItem = allBySlot(container, 'tab')[1] as HTMLButtonElement
+
+		expect(disabledItem).toBeDisabled()
+
+		fireEvent.click(disabledItem)
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -96,7 +106,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'segment-item')
+		const items = allBySlot(container, 'tab')
 
 		expect(items[0]).not.toHaveAttribute('data-current')
 		expect(items[1]).toHaveAttribute('data-current', 'true')
@@ -112,7 +122,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'segment-item')
+		const items = allBySlot(container, 'tab')
 
 		expect(items[0]).toHaveAttribute('tabindex', '-1')
 		expect(items[1]).toHaveAttribute('tabindex', '0')
@@ -130,9 +140,9 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		const items = allBySlot(container, 'segment-item')
+		const items = allBySlot(container, 'tab')
 
-		expect(items[0]).toHaveAttribute('aria-checked', 'true')
+		expect(items[0]).toHaveAttribute('aria-selected', 'true')
 
 		fireEvent.click(items[1] as HTMLElement)
 
@@ -160,7 +170,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		expect(bySlot(container, 'segment-control')?.className).toContain('custom')
+		expect(bySlot(container, 'tab-list')?.className).toContain('custom')
 	})
 
 	it('applies custom className to segment item', () => {
@@ -174,22 +184,10 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		expect(bySlot(container, 'segment-item')?.className).toContain('custom')
+		expect(bySlot(container, 'tab')?.className).toContain('custom')
 	})
 
-	it('has role="radiogroup" on the control', () => {
-		const { container } = renderUI(
-			<Segment value="a">
-				<SegmentControl>
-					<SegmentItem value="a">A</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'segment-control')).toHaveAttribute('role', 'radiogroup')
-	})
-
-	it('passes aria-label to the radiogroup control', () => {
+	it('passes aria-label to the control', () => {
 		const { container } = renderUI(
 			<Segment value="a">
 				<SegmentControl aria-label="View mode">
@@ -199,7 +197,7 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		expect(bySlot(container, 'segment-control')).toHaveAttribute('aria-label', 'View mode')
+		expect(bySlot(container, 'tab-list')).toHaveAttribute('aria-label', 'View mode')
 	})
 
 	it('renders with an explicit size variant', () => {

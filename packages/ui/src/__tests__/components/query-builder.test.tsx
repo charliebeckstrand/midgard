@@ -308,7 +308,7 @@ describe('QueryBuilderGroup', () => {
 		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
 
 		// Click the OR option on the segment between the two rules.
-		fireEvent.click(screen.getByRole('radio', { name: 'OR' }))
+		fireEvent.click(screen.getByRole('tab', { name: 'OR' }))
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 

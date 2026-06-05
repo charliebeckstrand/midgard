@@ -1,47 +1,7 @@
-'use client'
+import { TabList, type TabListProps } from '../tabs'
 
-import { type ReactNode, useRef } from 'react'
-import { cn } from '../../core'
-import { useRoving } from '../../hooks'
-import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { k, type SegmentControlVariants } from '../../recipes/kata/segment'
-import { useSegmentContext } from './context'
+export type SegmentControlProps = TabListProps
 
-export type SegmentControlProps = SegmentControlVariants & {
-	'aria-label'?: string
-	className?: string
-	children?: ReactNode
-}
-
-export function SegmentControl({
-	'aria-label': ariaLabel,
-	size: sizeProp,
-	className,
-	children,
-}: SegmentControlProps) {
-	const context = useSegmentContext()
-
-	const size = sizeProp ?? context.size
-
-	const containerRef = useRef<HTMLDivElement>(null)
-
-	const handleKeyDown = useRoving(containerRef, {
-		itemSelector: 'button[data-slot="segment-item"]:not(:disabled)',
-		orientation: 'horizontal',
-	})
-
-	return (
-		<ActiveIndicatorScope>
-			<div
-				ref={containerRef}
-				data-slot="segment-control"
-				role="radiogroup"
-				aria-label={ariaLabel}
-				onKeyDown={handleKeyDown}
-				className={cn(k.control({ size }), className)}
-			>
-				{children}
-			</div>
-		</ActiveIndicatorScope>
-	)
+export function SegmentControl(props: SegmentControlProps) {
+	return <TabList {...props} />
 }
