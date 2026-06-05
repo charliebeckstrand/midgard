@@ -27,14 +27,19 @@ describe('setVirtualActive', () => {
 		setVirtualActive(items, 0, { current: owner })
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+
 		expect(items[0]?.getAttribute('aria-selected')).toBe('true')
+
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
 
 		setVirtualActive(items, 1, { current: owner })
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(false)
+
 		expect(items[0]?.getAttribute('aria-selected')).toBe('false')
+
 		expect(items[1]?.getAttribute('aria-selected')).toBe('true')
+
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-1')
 	})
 
@@ -46,7 +51,9 @@ describe('setVirtualActive', () => {
 		setVirtualActive(items, -1, { current: owner })
 
 		expect(items.some((el) => el.hasAttribute('data-active'))).toBe(false)
+
 		expect(items[1]?.getAttribute('aria-selected')).toBe('false')
+
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
 
@@ -56,6 +63,7 @@ describe('setVirtualActive', () => {
 		setVirtualActive(items, 0)
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+
 		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
 	})
 })
