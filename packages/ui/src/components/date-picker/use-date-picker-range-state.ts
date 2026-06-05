@@ -27,6 +27,8 @@ export function useDatePickerRangeState({
 
 	const scope = useIdScope({ id: control?.id })
 
+	const resolvedDisabled = disabled || control?.disabled === true
+
 	const [value, setValue] = useControllable({
 		value: valueProp,
 		defaultValue,
@@ -164,7 +166,7 @@ export function useDatePickerRangeState({
 	const onHoverDate = useCallback((date: Date | null) => dispatch({ type: 'hover', date }), [])
 
 	const onTriggerKeyDown = useDatePickerKeyboard({
-		disabled,
+		disabled: resolvedDisabled,
 		open,
 		active,
 		setActive,
@@ -181,6 +183,8 @@ export function useDatePickerRangeState({
 	return {
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
+		disabled: resolvedDisabled,
+		invalid: control?.invalid,
 		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,
 		onOpenChange: handleOpenChange,

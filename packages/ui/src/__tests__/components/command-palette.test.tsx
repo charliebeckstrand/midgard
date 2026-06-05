@@ -309,6 +309,18 @@ describe('CommandPaletteItem', () => {
 
 		expect(onAction).not.toHaveBeenCalled()
 	})
+
+	it('exposes aria-disabled on a disabled item', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem disabled onAction={() => {}}>
+					Run
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(screen.getByRole('option')).toHaveAttribute('aria-disabled', 'true')
+	})
 })
 
 describe('CommandPaletteLabel and CommandPaletteDescription', () => {

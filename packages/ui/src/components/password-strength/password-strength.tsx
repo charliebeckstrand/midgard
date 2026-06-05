@@ -76,7 +76,7 @@ export function PasswordStrength({
 				))}
 			</div>
 			{showLabel && (
-				<div aria-live="polite" className={k.label({ level })}>
+				<div aria-live="polite" aria-atomic="true" className={k.label({ level })}>
 					{label}
 				</div>
 			)}

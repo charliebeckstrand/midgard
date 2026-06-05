@@ -14,13 +14,13 @@ export type AccordionTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'ch
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
 	 * heading so panels are reachable via heading navigation. @default 3
 	 */
-	headingLevel?: 1 | 2 | 3 | 4 | 5 | 6
+	level?: 1 | 2 | 3 | 4 | 5 | 6
 }
 
 export function AccordionTrigger({
 	className,
 	children,
-	headingLevel = 3,
+	level = 3,
 	onClick,
 	...props
 }: AccordionTriggerProps) {
@@ -28,7 +28,7 @@ export function AccordionTrigger({
 
 	// Tailwind preflight zeroes heading font/margin, so the wrapper is invisible
 	// chrome that exists only to satisfy the accordion's heading requirement.
-	const Heading = `h${headingLevel}` as const
+	const Heading = `h${level}` as const
 
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
