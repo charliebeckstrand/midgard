@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
-type UseSortableItemOptions = {
+type SortableItemOptions = {
 	/** Stable id matching the enclosing `SortableContext` items array. */
 	id: string
 	/** Disable pointer + keyboard interaction for this item. */
@@ -17,7 +17,7 @@ type UseSortableItemOptions = {
  * the hook's transition value, and a hidden opacity while dragging so the
  * `<DragOverlay>` can own the visual.
  */
-export function useSortableItem({ id, disabled = false }: UseSortableItemOptions) {
+export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 	const {
 		setNodeRef,
 		setActivatorNodeRef,

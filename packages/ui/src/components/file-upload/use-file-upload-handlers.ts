@@ -3,12 +3,12 @@
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { fileListToArray } from './file-upload-utilities'
 
-type UseFileHandlersOptions = {
+type FileHandlersOptions = {
 	disabled?: boolean
 	onFiles?: (files: File[]) => void
 }
 
-export function useFileUploadHandlers({ disabled, onFiles }: UseFileHandlersOptions) {
+export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	// Counter, not boolean — dragleave bubbles when the cursor crosses into a

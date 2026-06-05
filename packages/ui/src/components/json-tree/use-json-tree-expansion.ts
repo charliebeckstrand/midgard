@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
+import { useControllable } from '../../hooks'
 
 export function toggleExpandedSet(
 	expanded: Set<string>,
@@ -15,32 +16,25 @@ export function toggleExpandedSet(
 	onChange(next)
 }
 
-type UseJsonTreeExpansion = {
+type JsonTreeExpansion = {
 	initial: () => Set<string>
 	expanded: Set<string> | undefined
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 }
 
-export function useJsonTreeExpansion({
-	initial,
-	expanded,
-	onExpandedChange,
-}: UseJsonTreeExpansion): { expanded: Set<string>; toggle: (path: string) => void } {
-	const controlled = expanded !== undefined
-
-	const [internalExpanded, setInternalExpanded] = useState<Set<string>>(initial)
-
-	const resolved = controlled ? expanded : internalExpanded
+export function useJsonTreeExpansion({ initial, expanded, onExpandedChange }: JsonTreeExpansion): {
+	expanded: Set<string>
+	toggle: (path: string) => void
+} {
+	const [resolved = new Set<string>(), setExpanded] = useControllable<Set<string>>({
+		value: expanded,
+		defaultValue: initial,
+		onValueChange: (next) => onExpandedChange?.(next ?? new Set()),
+	})
 
 	const toggle = useCallback(
 		(path: string) => {
-			if (controlled && onExpandedChange) {
-				toggleExpandedSet(expanded, path, onExpandedChange)
-
-				return
-			}
-
-			setInternalExpanded((prev) => {
+			setExpanded((prev) => {
 				const next = new Set(prev)
 
 				if (next.has(path)) next.delete(path)
@@ -49,7 +43,7 @@ export function useJsonTreeExpansion({
 				return next
 			})
 		},
-		[controlled, expanded, onExpandedChange],
+		[setExpanded],
 	)
 
 	return { expanded: resolved, toggle }

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 
-type UseDeferredToggleOptions<T> = {
+type DeferredToggleOptions<T> = {
 	/** Multi-select mode — the held value is an array and toggling adds / removes entries. */
 	multiple: boolean
 	/** Single-select mode — toggling the active value clears the selection. Ignored when `multiple` is true. */
@@ -20,11 +20,7 @@ type UseDeferredToggleOptions<T> = {
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly
  * for cases that should update synchronously (e.g. multi-select).
  */
-export function useDeferredToggle<T>({
-	multiple,
-	nullable,
-	setValue,
-}: UseDeferredToggleOptions<T>) {
+export function useDeferredToggle<T>({ multiple, nullable, setValue }: DeferredToggleOptions<T>) {
 	const toggle = useCallback(
 		(newValue: T) => {
 			setValue((prev) => {

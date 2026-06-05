@@ -6,14 +6,14 @@ import type { QueryBuilderActions } from './context'
 import { addChild, createGroup, createRule, mapNode, removeChild } from './query-builder-utilities'
 import type { QueryField, QueryGroup } from './types'
 
-type UseQueryBuilderTreeOptions = {
+type QueryBuilderTreeOptions = {
 	fields: QueryField[]
 	value?: QueryGroup
 	defaultValue?: QueryGroup
 	onValueChange?: (value: QueryGroup) => void
 }
 
-type UseQueryBuilderTreeResult = {
+type QueryBuilderTreeResult = {
 	root: QueryGroup
 	actions: QueryBuilderActions
 }
@@ -23,7 +23,7 @@ export function useQueryBuilderTree({
 	value,
 	defaultValue,
 	onValueChange,
-}: UseQueryBuilderTreeOptions): UseQueryBuilderTreeResult {
+}: QueryBuilderTreeOptions): QueryBuilderTreeResult {
 	const initial = useMemo(() => defaultValue ?? createGroup('and'), [defaultValue])
 
 	const [tree, setTree] = useControllable<QueryGroup>({

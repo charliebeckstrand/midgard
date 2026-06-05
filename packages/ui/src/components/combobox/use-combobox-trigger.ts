@@ -2,14 +2,14 @@
 
 import { type MouseEvent, type RefObject, useCallback } from 'react'
 
-type UseComboboxTriggerParams = {
+type ComboboxTriggerParams = {
 	open: boolean
 	close: () => void
 	setOpen: (open: boolean) => void
 	inputRef: RefObject<HTMLInputElement | null>
 }
 
-export function useComboboxTrigger({ open, close, setOpen, inputRef }: UseComboboxTriggerParams) {
+export function useComboboxTrigger({ open, close, setOpen, inputRef }: ComboboxTriggerParams) {
 	const onMouseDown = useCallback(
 		(e: MouseEvent<HTMLElement>) => {
 			e.preventDefault()

@@ -1,4 +1,6 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export { formatFraction, formatInteger } from './format-number'
+export { moveItem } from './move'
 export { noop } from './noop'
 export { pct } from './pct'

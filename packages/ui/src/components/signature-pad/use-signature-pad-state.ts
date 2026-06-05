@@ -12,7 +12,7 @@ export type SignaturePadHandle = {
 	isEmpty: () => boolean
 }
 
-export type UseSignaturePadStateOptions = {
+export type SignaturePadStateOptions = {
 	value?: string | null
 	defaultValue?: string | null
 	onValueChange?: (value: string | null) => void
@@ -32,7 +32,7 @@ export function useSignaturePadState({
 	strokeColor,
 	strokeWidth,
 	ref,
-}: UseSignaturePadStateOptions) {
+}: SignaturePadStateOptions) {
 	const [current, setCurrent] = useControllable<string | null>({
 		value,
 		defaultValue: defaultValue ?? null,

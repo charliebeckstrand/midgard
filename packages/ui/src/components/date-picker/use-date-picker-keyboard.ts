@@ -6,7 +6,7 @@ export type FooterButton = 'clear' | 'today'
 
 type FooterAction = (kind: FooterButton) => void
 
-type UseDatePickerKeyDownParams = {
+type DatePickerKeyDownParams = {
 	disabled: boolean
 	open: boolean
 	active: CalendarActive | null
@@ -34,7 +34,7 @@ export function useDatePickerKeyboard({
 	calendarRef,
 	footerButtons,
 	onFooterActivate,
-}: UseDatePickerKeyDownParams) {
+}: DatePickerKeyDownParams) {
 	return useCallback(
 		(e: KeyboardEvent<HTMLElement>) => {
 			if (disabled) return

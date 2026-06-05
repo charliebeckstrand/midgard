@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactElement, type ReactNode, useState } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/tree'
 import { useTreeContext } from './context'
 import { TreeItemChildren } from './tree-item-children'
@@ -43,19 +44,13 @@ export function TreeItem({
 }: TreeItemProps) {
 	const { depth } = useTreeContext()
 
-	const [internalOpen, setInternalOpen] = useState(defaultOpen)
-
-	const isControlled = controlledOpen !== undefined
-
-	const open = isControlled ? controlledOpen : internalOpen
+	const [open = false, setOpen] = useControllable<boolean>({
+		value: controlledOpen,
+		defaultValue: defaultOpen,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
 
 	const hasChildren = children != null
-
-	const setOpen = (next: boolean) => {
-		if (!isControlled) setInternalOpen(next)
-
-		onOpenChange?.(next)
-	}
 
 	return (
 		<div data-slot="tree-item" className={cn(depth === 0 && k.item)}>

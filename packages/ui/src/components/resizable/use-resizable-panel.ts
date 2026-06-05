@@ -8,6 +8,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { clamp } from '../../utilities'
 import type { PanelConfig, ResizableDirection } from './types'
 
 type DragState = {
@@ -34,13 +35,13 @@ function clampPair(
 	let right = result[rightIdx] ?? 0
 
 	if (lc) {
-		left = Math.max(lc.minSize, Math.min(lc.maxSize, left))
+		left = clamp(left, lc.minSize, lc.maxSize)
 	}
 
 	right = total - left
 
 	if (rc) {
-		right = Math.max(rc.minSize, Math.min(rc.maxSize, right))
+		right = clamp(right, rc.minSize, rc.maxSize)
 	}
 
 	left = total - right
@@ -51,7 +52,7 @@ function clampPair(
 	return result
 }
 
-type UsePanelResize = {
+type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
 	direction: ResizableDirection
 	panelConfigs: PanelConfig[]
@@ -63,7 +64,7 @@ export function useResizablePanel({
 	direction,
 	panelConfigs,
 	onSizesChange,
-}: UsePanelResize) {
+}: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
 	const directionRef = useRef(direction)

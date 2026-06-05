@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { DensityScope, useSizeWide } from '../../primitives/density'
+import { DensityScope, useSize } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { useSkeleton } from '../../providers/skeleton'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
@@ -39,7 +39,7 @@ export function Badge({
 	suffix,
 	...props
 }: BadgeProps) {
-	const resolvedSize = useSizeWide(size)
+	const resolvedSize = useSize(size)
 
 	if (useSkeleton()) {
 		return <BadgeSkeleton size={size} className={className} />

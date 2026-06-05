@@ -2,6 +2,7 @@
 
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
 import { useEffect, useState } from 'react'
+import { clamp } from '../../utilities'
 import type { PdfViewerPage } from './types'
 
 async function configureWorker() {
@@ -17,7 +18,7 @@ async function configureWorker() {
 	pdfjs.GlobalWorkerOptions.workerSrc = workerUrlModule.default
 }
 
-type UsePdfDocumentResult = {
+type PdfDocumentResult = {
 	pages: PdfViewerPage[]
 	/** Same-origin blob URL for the fetched PDF. Use this for download / print iframes. */
 	documentUrl: string | null
@@ -25,7 +26,7 @@ type UsePdfDocumentResult = {
 	error: Error | null
 }
 
-export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentResult {
+export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult {
 	const [pages, setPages] = useState<PdfViewerPage[]>([])
 
 	const [documentUrl, setDocumentUrl] = useState<string | null>(null)
@@ -100,7 +101,7 @@ export function usePdfViewerDocument(src: string | undefined): UsePdfDocumentRes
 					return
 				}
 
-				const scale = Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2)
+				const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
 
 				const next: PdfViewerPage[] = []
 

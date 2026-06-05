@@ -5,7 +5,7 @@ import { countMeaningful, cursorForCount } from '../utilities'
 import { useControllable } from './use-controllable'
 import { usePendingCaret } from './use-pending-caret'
 
-type UseMaskedInputOptions = {
+type MaskedInputOptions = {
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string) => void
@@ -36,7 +36,7 @@ export function useMaskedInput({
 	format,
 	ref: externalRef,
 	meaningful = defaultMeaningful,
-}: UseMaskedInputOptions) {
+}: MaskedInputOptions) {
 	const [current, setCurrent] = useControllable<string>({
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',

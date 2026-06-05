@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { selectActiveOrSingleOption } from './combobox-utilities'
 
-type UseComboboxInputParams<T> = {
+type ComboboxInputParams<T> = {
 	value: T | T[] | undefined
 	multiple: boolean
 	clearOnEmpty: boolean
@@ -38,7 +38,7 @@ export function useComboboxInput<T>({
 	close,
 	keyboardSettled,
 	rovingKeyDown,
-}: UseComboboxInputParams<T>) {
+}: ComboboxInputParams<T>) {
 	const onChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const next = e.target.value

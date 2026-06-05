@@ -2,13 +2,13 @@ import { act, renderHook } from '@testing-library/react'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	type UseHoldGestureOptions,
+	type HoldGestureOptions,
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
 
-function renderGesture(initial: UseHoldGestureOptions) {
+function renderGesture(initial: HoldGestureOptions) {
 	return renderHook(
-		(props: UseHoldGestureOptions) => {
+		(props: HoldGestureOptions) => {
 			const gesture = useHoldButtonGesture(props)
 
 			const fill = document.createElement('span')

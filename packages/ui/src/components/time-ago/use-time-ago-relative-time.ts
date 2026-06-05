@@ -51,7 +51,7 @@ function adaptiveInterval(absMs: number) {
 	return DAY
 }
 
-type UseRelativeTimeOptions = {
+type RelativeTimeOptions = {
 	date: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
@@ -61,7 +61,7 @@ type UseRelativeTimeOptions = {
 	interval?: number | 'auto'
 }
 
-type UseRelativeTimeResult = {
+type RelativeTimeResult = {
 	then: Date
 	valid: boolean
 	text: string
@@ -72,7 +72,7 @@ export function useTimeAgoRelativeTime({
 	format,
 	locale,
 	interval = 'auto',
-}: UseRelativeTimeOptions): UseRelativeTimeResult {
+}: RelativeTimeOptions): RelativeTimeResult {
 	// Client-only clock: seeding from the server clock would render a relative
 	// string ("3 minutes ago") that mismatches the client during hydration
 	// whenever the two straddle a unit boundary. null until mount → no relative

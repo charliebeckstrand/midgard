@@ -1,10 +1,9 @@
 'use client'
 
 import { type ReactNode, useMemo, useRef } from 'react'
-import { useControllable } from '../../hooks'
 import type { DataTableColumnManagerConfig } from './data-table'
-import { EMPTY_SET } from './data-table-constants'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
+import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
 function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	if (a === b) return true
@@ -18,12 +17,12 @@ function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	return true
 }
 
-type UseDataTableColumnsOptions<T> = {
+type DataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
 }
 
-type UseDataTableColumnsResult<T> = {
+type DataTableColumnsResult<T> = {
 	columnOrder: (string | number)[]
 	setColumnOrder: (next: (string | number)[]) => void
 	hiddenColumns: Set<string | number>
@@ -45,34 +44,26 @@ type UseDataTableColumnsResult<T> = {
 export function useDataTableColumns<T>({
 	columns,
 	columnManagerConfig,
-}: UseDataTableColumnsOptions<T>): UseDataTableColumnsResult<T> {
-	const defaultOrder = useMemo(() => columns.map((c) => c.id), [columns])
-
-	const [columnOrder = defaultOrder, setColumnOrder] = useControllable<(string | number)[]>({
-		value: columnManagerConfig?.order,
-		defaultValue: columnManagerConfig?.defaultOrder ?? defaultOrder,
-		onValueChange: (next) => columnManagerConfig?.onOrderChange?.(next ?? []),
+}: DataTableColumnsOptions<T>): DataTableColumnsResult<T> {
+	const {
+		order: columnOrder,
+		setOrder: setColumnOrder,
+		hidden: hiddenColumns,
+		setHidden: setHiddenColumns,
+		byId: columnById,
+	} = useDataTableColumnVisibility({
+		columns,
+		order: columnManagerConfig?.order,
+		defaultOrder: columnManagerConfig?.defaultOrder,
+		onOrderChange: columnManagerConfig?.onOrderChange,
+		hidden: columnManagerConfig?.hidden,
+		defaultHidden: columnManagerConfig?.defaultHidden,
+		onHiddenChange: columnManagerConfig?.onHiddenChange,
 	})
-
-	const [hiddenColumns = columnManagerConfig?.defaultHidden ?? EMPTY_SET, setHiddenColumns] =
-		useControllable<Set<string | number>>({
-			value: columnManagerConfig?.hidden,
-			defaultValue: columnManagerConfig?.defaultHidden ?? EMPTY_SET,
-			onValueChange: (next) =>
-				columnManagerConfig?.onHiddenChange?.(next ?? new Set<string | number>()),
-		})
 
 	const manageColumns = columnManagerConfig?.enabled ?? false
 
 	const manageColumnsLabel = columnManagerConfig?.label ?? 'Columns'
-
-	const columnById = useMemo(() => {
-		const map = new Map<string | number, DataTableColumn<T>>()
-
-		for (const col of columns) map.set(col.id, col)
-
-		return map
-	}, [columns])
 
 	const visibleColumnsCandidate = useMemo(() => {
 		const ordered: DataTableColumn<T>[] = []

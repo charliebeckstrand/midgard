@@ -4,7 +4,7 @@ import { animate } from 'motion'
 import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-type UseAnimatedValueOptions = {
+type AnimatedValueOptions = {
 	value: number
 	/** Animation duration in ms. Pass `0` to snap. @default 800 */
 	duration?: number
@@ -12,10 +12,7 @@ type UseAnimatedValueOptions = {
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 
-export function useOdometerAnimatedValue({
-	value,
-	duration = 800,
-}: UseAnimatedValueOptions): number {
+export function useOdometerAnimatedValue({ value, duration = 800 }: AnimatedValueOptions): number {
 	const [display, setDisplay] = useState(value)
 
 	const fromRef = useRef(value)

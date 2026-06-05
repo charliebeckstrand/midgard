@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 
-type UsePageRotationResult = {
+type PageRotationResult = {
 	/** Raw rotation in degrees for the active page. May be ≥ 360. */
 	rotation: number
 	/** Rotation reduced to one of `0 | 90 | 180 | 270`. */
@@ -20,7 +20,7 @@ type UsePageRotationResult = {
 export function usePdfViewerPageRotation(
 	page: number,
 	defaultRotation: number,
-): UsePageRotationResult {
+): PageRotationResult {
 	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	const rotation = rotations[page] ?? defaultRotation

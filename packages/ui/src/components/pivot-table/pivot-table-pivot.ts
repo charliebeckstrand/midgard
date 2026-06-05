@@ -1,13 +1,8 @@
+import { formatFraction, formatInteger } from '../../utilities'
 import type { PivotAggregation } from './types'
 
-// Cache formatters — `Number.prototype.toLocaleString` constructs a fresh
-// Intl.NumberFormat on every call, which becomes measurable in a pivot with
-// hundreds of numeric cells.
-const integerFormatter = new Intl.NumberFormat()
-const fractionFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
-
 export function defaultFormat(value: number): string {
-	return Number.isInteger(value) ? integerFormatter.format(value) : fractionFormatter.format(value)
+	return Number.isInteger(value) ? formatInteger(value) : formatFraction(value)
 }
 
 export function resolveAxis<T>(

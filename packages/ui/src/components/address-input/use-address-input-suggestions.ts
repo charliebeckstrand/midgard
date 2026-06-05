@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AddressProvider, AddressSuggestion } from './types'
 
-type UseAddressSuggestionsOptions = {
+type AddressSuggestionsOptions = {
 	enabled: boolean
 	provider: AddressProvider
 	query: string
@@ -17,7 +17,7 @@ export function useAddressInputSuggestions({
 	query,
 	debounceMs,
 	minQueryLength,
-}: UseAddressSuggestionsOptions) {
+}: AddressSuggestionsOptions) {
 	const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
 
 	const [loading, setLoading] = useState(false)

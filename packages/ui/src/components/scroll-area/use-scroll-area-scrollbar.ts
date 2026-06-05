@@ -14,7 +14,7 @@ import type { ScrollbarMode } from './types'
 
 type Orientation = ScrollOrientation
 
-type UseScrollbarOptions = {
+type ScrollbarOptions = {
 	orientation: Orientation
 	scrollbar: ScrollbarMode
 }
@@ -23,7 +23,7 @@ type UseScrollbarOptions = {
  * Custom scrollbar state — thumb geometry, visibility fade, and drag-to-scroll.
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
  */
-export function useScrollAreaScrollbar({ orientation, scrollbar }: UseScrollbarOptions) {
+export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOptions) {
 	const viewportRef = useRef<HTMLDivElement>(null)
 	const verticalTrackRef = useRef<HTMLDivElement>(null)
 	const horizontalTrackRef = useRef<HTMLDivElement>(null)

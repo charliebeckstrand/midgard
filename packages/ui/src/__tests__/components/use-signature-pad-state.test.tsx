@@ -3,7 +3,7 @@ import { createRef, type Ref } from 'react'
 import { afterEach, describe, expect, it, type Mock, vi } from 'vitest'
 import {
 	type SignaturePadHandle,
-	type UseSignaturePadStateOptions,
+	type SignaturePadStateOptions,
 	useSignaturePadState,
 } from '../../components/signature-pad/use-signature-pad-state'
 
@@ -69,7 +69,7 @@ function attachCanvasMocks(
 	})
 }
 
-type HarnessProps = UseSignaturePadStateOptions & {
+type HarnessProps = SignaturePadStateOptions & {
 	captureState?: (state: ReturnType<typeof useSignaturePadState>) => void
 	context: ContextMock | null
 	canvasDataURL?: string

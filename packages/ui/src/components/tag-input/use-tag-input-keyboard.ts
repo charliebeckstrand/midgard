@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent } from 'react'
 
-type UseKeyboardOptions = {
+type KeyboardOptions = {
 	/** Current input value. */
 	inputValue: string
 	/** Attempt to add a tag. Returns true on success. */
@@ -22,7 +22,7 @@ export function useTagInputKeyboard({
 	removeTag,
 	clearInput,
 	tagCount,
-}: UseKeyboardOptions) {
+}: KeyboardOptions) {
 	return (e: KeyboardEvent<HTMLInputElement>) => {
 		if ((e.key === 'Enter' || e.key === ',') && !e.nativeEvent.isComposing) {
 			e.preventDefault()

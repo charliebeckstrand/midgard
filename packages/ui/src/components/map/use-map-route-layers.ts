@@ -15,7 +15,7 @@ type LatestProps = {
 	onSelect?: (route: RouteData) => boolean | undefined
 }
 
-type UseMapRouteLayersArgs = {
+type MapRouteLayersArgs = {
 	sourceId: string
 	layerId: string
 	hitLayerId: string
@@ -35,7 +35,7 @@ export function useMapRouteLayers({
 	width,
 	latestRef,
 	handleSelectRef,
-}: UseMapRouteLayersArgs) {
+}: MapRouteLayersArgs) {
 	const { getMap, onReady } = useMapContext()
 
 	useEffect(() => {

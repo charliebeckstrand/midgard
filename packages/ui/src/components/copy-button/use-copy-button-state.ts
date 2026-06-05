@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAnnounce } from '../../providers/announcer'
 
-type UseCopyStateOptions = {
+type CopyStateOptions = {
 	value: string
 	/** Milliseconds before the "copied" flag resets. @default 2000 */
 	timeout?: number
 	onCopiedChange?: (copied: boolean) => void
 }
 
-type UseCopyStateResult = {
+type CopyStateResult = {
 	copied: boolean
 	copy: () => Promise<void>
 }
@@ -19,7 +19,7 @@ export function useCopyButtonState({
 	value,
 	timeout = 2000,
 	onCopiedChange,
-}: UseCopyStateOptions): UseCopyStateResult {
+}: CopyStateOptions): CopyStateResult {
 	const [copied, setCopied] = useState(false)
 
 	const announce = useAnnounce()

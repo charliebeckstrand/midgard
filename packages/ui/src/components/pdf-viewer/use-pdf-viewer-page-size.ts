@@ -5,7 +5,7 @@ import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
 
-type UsePageSizeResult = {
+type PageSizeResult = {
 	/** Intrinsic page size: caller-supplied dimensions, the measured natural size, or `null` pre-load. */
 	pageSize: Size | null
 	/** Wire to the active page `<img>`'s `onLoad` so the hook can capture the natural size. */
@@ -22,7 +22,7 @@ type UsePageSizeResult = {
 export function usePdfViewerPageSize(
 	activePage: PdfViewerPage | undefined,
 	safePage: number,
-): UsePageSizeResult {
+): PageSizeResult {
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
 	const resetKey = `${activePage?.id ?? ''}:${safePage}`

@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import { useControllable } from '../../hooks'
 
-type UseTagInputOptions = {
+type TagInputOptions = {
 	value?: string[]
 	defaultValue?: string[]
 	onValueChange?: (value: string[] | undefined) => void
@@ -20,7 +20,7 @@ export function useTagInput({
 	max,
 	validate,
 	onMaxReleased,
-}: UseTagInputOptions) {
+}: TagInputOptions) {
 	const [tags = [], setTags] = useControllable<string[]>({
 		value,
 		defaultValue: defaultValue ?? [],

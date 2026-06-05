@@ -34,7 +34,7 @@ export type NavItemProps = {
 	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
 } & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>
 
-type UseNavItemOptions = {
+type NavItemOptions = {
 	current?: boolean
 	/** Binds to the surrounding selection context; when set, click reports it and `current` resolves against it. */
 	value?: string
@@ -52,7 +52,7 @@ type UseNavItemOptions = {
  * Only the wiring lives here; each component owns its own markup so the slot
  * names, classes, and icon sizing stay local and legible.
  */
-export function useNavItem({ current, value, size, preventClose, onClick }: UseNavItemOptions) {
+export function useNavItem({ current, value, size, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	const indicator = useActiveIndicator()

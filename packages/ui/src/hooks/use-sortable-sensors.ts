@@ -3,7 +3,7 @@
 import { KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
-type UseSortableSensorsOptions = {
+type SortableSensorsOptions = {
 	/** Pointer travel distance (px) before a drag activates. @default 3 */
 	activationDistance?: number
 	/** Include dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @default true */
@@ -18,7 +18,7 @@ type UseSortableSensorsOptions = {
 export function useSortableSensors({
 	activationDistance = 3,
 	keyboard = true,
-}: UseSortableSensorsOptions = {}) {
+}: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PointerSensor, {
 		activationConstraint: { distance: activationDistance },
 	})

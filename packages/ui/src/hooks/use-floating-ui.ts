@@ -30,13 +30,13 @@ import { subscribeDocumentEvent } from './document-listener'
 // Explicit return types: TS can't write a portable `.d.ts` for the inferred
 // return because `useFloating`'s shape references `@floating-ui/react-dom`,
 // a transitive dep (TS2742). Kept local — not re-exported from the barrel.
-type UseFloatingPanelResult = {
+type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
 }
 
-type UseFloatingUIResult = UseFloatingPanelResult & {
+type FloatingUIResult = FloatingPanelResult & {
 	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
@@ -80,7 +80,7 @@ function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 	return onVerticalScrollbar || onHorizontalScrollbar
 }
 
-export type UseFloatingPanelOptions = {
+export type FloatingPanelOptions = {
 	placement: Placement
 	open: boolean
 	onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
@@ -110,7 +110,7 @@ export function useFloatingPanel({
 	matchReferenceWidth = false,
 	middleware,
 	restoreFocusTo,
-}: UseFloatingPanelOptions): UseFloatingPanelResult {
+}: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
 		[middleware, offsetPx, matchReferenceWidth],
@@ -135,7 +135,7 @@ export function useFloatingPanel({
 	return { refs, floatingStyles, context }
 }
 
-type UseFloatingUIOptions = UseFloatingPanelOptions & {
+type FloatingUIOptions = FloatingPanelOptions & {
 	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip'
 }
 
@@ -154,7 +154,7 @@ type UseFloatingUIOptions = UseFloatingPanelOptions & {
 export function useFloatingUI({
 	role: roleProp = 'listbox',
 	...rest
-}: UseFloatingUIOptions): UseFloatingUIResult {
+}: FloatingUIOptions): FloatingUIResult {
 	const { refs, floatingStyles, context } = useFloatingPanel(rest)
 
 	const dismiss = useDismiss(context, { outsidePress: false })

@@ -3,7 +3,7 @@
 import { useControllable } from '../../hooks'
 import { clamp } from '../../utilities'
 
-type UsePdfPaginationOptions = {
+type PdfPaginationOptions = {
 	total: number
 	/** Controlled 1-based page. */
 	page?: number
@@ -12,7 +12,7 @@ type UsePdfPaginationOptions = {
 	onPageChange?: (page: number) => void
 }
 
-type UsePdfPaginationResult = {
+type PdfPaginationResult = {
 	/** Current page clamped to `[1, total]`, or `0` when `total === 0`. */
 	safePage: number
 	/** Clamp, round, and commit a page number. No-op when `total === 0`. */
@@ -24,7 +24,7 @@ type UsePdfPaginationResult = {
  * uncontrolled modes, exposing a clamped `safePage` and a `goToPage` setter
  * that rounds and bounds incoming values.
  */
-export function usePdfViewerPagination(input: UsePdfPaginationOptions): UsePdfPaginationResult {
+export function usePdfViewerPagination(input: PdfPaginationOptions): PdfPaginationResult {
 	const { total, page, defaultPage, onPageChange } = input
 
 	const [currentPage = defaultPage, setCurrentPage] = useControllable<number>({

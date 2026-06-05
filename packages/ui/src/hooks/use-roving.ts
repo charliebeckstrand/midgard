@@ -136,7 +136,7 @@ function nextIndexGrid(
 	}
 }
 
-type UseRovingOptions = RovingConfig & {
+type RovingOptions = RovingConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
 	/**
@@ -173,7 +173,7 @@ export function useRoving(
 		scrollIntoView = true,
 		activationKey = 'Enter',
 		activeDescendantRef,
-	}: UseRovingOptions,
+	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
 

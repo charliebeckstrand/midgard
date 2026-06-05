@@ -22,13 +22,13 @@ type PasswordRuleResult = {
 	passed: boolean
 }
 
-type UsePasswordStrengthOptions = {
+type PasswordStrengthOptions = {
 	value: string
 	rules: readonly PasswordRule[]
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 }
 
-type UsePasswordStrengthResult = {
+type PasswordStrengthResult = {
 	results: PasswordRuleResult[]
 	level: StrengthLevel
 	passedCount: number
@@ -48,7 +48,7 @@ export function usePasswordStrength({
 	value,
 	rules,
 	onStrengthChange,
-}: UsePasswordStrengthOptions): UsePasswordStrengthResult {
+}: PasswordStrengthOptions): PasswordStrengthResult {
 	const results = useMemo(
 		() => rules.map((rule) => ({ rule, passed: rule.test(value) })),
 		[rules, value],

@@ -6,9 +6,9 @@ import {
 	isValidElement,
 	type MouseEvent,
 	type ReactElement,
-	useCallback,
 } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useMenuActions, useMenuState } from './context'
 
 export type MenuTriggerProps =
@@ -19,13 +19,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	const { open, getReferenceProps } = useMenuState()
 	const { setOpen, triggerRef, setReference } = useMenuActions()
 
-	const mergeRefs = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node as HTMLButtonElement | null
-			setReference(node)
-		},
-		[triggerRef, setReference],
-	)
+	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference)
 
 	const referenceProps = getReferenceProps()
 

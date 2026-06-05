@@ -3,14 +3,14 @@
 import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { queryItems, setVirtualActive, useRoving } from '../../hooks/use-roving'
 
-type UseCommandPaletteStateOptions = {
+type CommandPaletteStateOptions = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 
-export function useCommandPaletteState({ open, onOpenChange }: UseCommandPaletteStateOptions) {
+export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
 	// Bypass deferral on empty query: the palette resets it on close and on every

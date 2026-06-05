@@ -6,7 +6,7 @@ type FieldBinding = {
 	invalid?: boolean
 }
 
-export type UseControlPropsOptions = {
+export type ControlPropsOptions = {
 	id?: string
 	autoComplete?: string
 	disabled?: boolean
@@ -22,7 +22,7 @@ export type UseControlPropsOptions = {
 	binding?: FieldBinding
 }
 
-export type UseControlPropsResult = {
+export type ControlPropsResult = {
 	id: string | undefined
 	autoComplete: string | undefined
 	disabled: boolean | undefined
@@ -49,7 +49,7 @@ export type UseControlPropsResult = {
  *     id: idProp, disabled: disabledProp, required: requiredProp, binding,
  *   })
  */
-export function useControlProps(input: UseControlPropsOptions = {}): UseControlPropsResult {
+export function useControlProps(input: ControlPropsOptions = {}): ControlPropsResult {
 	const control = useControl()
 
 	// Consumer-supplied ids first, then the field's registered description /

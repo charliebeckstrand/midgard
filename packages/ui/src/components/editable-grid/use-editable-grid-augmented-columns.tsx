@@ -8,7 +8,7 @@ import { EditableGridCell } from './editable-grid-cell'
 import { EditableGridTextEditor } from './editable-grid-text-editor'
 import type { EditableGridColumn, EditableGridDraftApi, EditableGridNavigationApi } from './types'
 
-type UseEditableGridAugmentedColumns<T> = {
+type EditableGridAugmentedColumns<T> = {
 	columns: EditableGridColumn<T>[]
 	rowIndexMap: Map<T, number>
 	nav: EditableGridNavigationApi
@@ -22,7 +22,7 @@ export function useEditableGridAugmentedColumns<T>({
 	nav: { active, addCellToSelection, moveActiveTo },
 	draft: { editing, beginEdit },
 	formatCell,
-}: UseEditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
+}: EditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
 	// `cellProps` is a plain function (not a component), so it can't read the
 	// state context the way `EditableGridCell` does. Its onMouseDown guard reads
 	// `active`/`editing` through refs at event time instead of closing over the

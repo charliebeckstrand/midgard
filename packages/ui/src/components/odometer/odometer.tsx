@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { formatInteger } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
 export type OdometerProps = {
@@ -11,13 +12,8 @@ export type OdometerProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
 
-// Cache the formatter — `Number.prototype.toLocaleString` builds a fresh
-// Intl.NumberFormat on every call, which the per-frame animation would
-// otherwise allocate ~60 times a second.
-const integerFormatter = new Intl.NumberFormat()
-
 function defaultFormat(value: number) {
-	return integerFormatter.format(Math.round(value))
+	return formatInteger(Math.round(value))
 }
 
 export function Odometer({

@@ -3,7 +3,7 @@
 import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 'react'
 import { type FormTextBinding, useFormText } from '../form/use-form-text'
 
-type UseInputValueOptions = {
+type InputValueOptions = {
 	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
 	hasValueProp: boolean
 	name?: string
@@ -12,7 +12,7 @@ type UseInputValueOptions = {
 	onBlur?: FocusEventHandler<HTMLInputElement>
 }
 
-type UseInputValueResult = {
+type InputValueResult = {
 	value: InputHTMLAttributes<HTMLInputElement>['value']
 	onChange: ChangeEventHandler<HTMLInputElement> | undefined
 	onBlur: FocusEventHandler<HTMLInputElement> | undefined
@@ -34,7 +34,7 @@ export function useInputValue({
 	value,
 	onChange,
 	onBlur,
-}: UseInputValueOptions): UseInputValueResult {
+}: InputValueOptions): InputValueResult {
 	const binding = useFormText(name, { onChange, onBlur })
 
 	const bound = !hasValueProp && binding !== undefined

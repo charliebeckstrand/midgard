@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useRef, useState } from 'react'
+import { clamp } from '../../utilities'
 import type { Coord, EditableGridNavigationApi } from './types'
 
 export function cellKey(row: number, col: number): string {
@@ -34,8 +35,8 @@ export function useEditableGridNavigation<T>({
 
 	const clampCoord = useCallback(
 		(row: number, col: number): Coord => ({
-			row: Math.max(0, Math.min(rowsRef.current.length - 1, row)),
-			col: Math.max(0, Math.min(editableColCount - 1, col)),
+			row: clamp(row, 0, rowsRef.current.length - 1),
+			col: clamp(col, 0, editableColCount - 1),
 		}),
 		[editableColCount, rowsRef],
 	)

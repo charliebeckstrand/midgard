@@ -21,6 +21,7 @@ import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useGlass } from '../glass/context'
 import { Icon } from '../icon'
+import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
 import { resolveInputDisplay } from './combobox-utilities'
@@ -141,7 +142,7 @@ export function Combobox<T>({
 	const optionsRef = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useRoving(optionsRef, {
-		itemSelector: '[role="option"]:not([data-disabled])',
+		itemSelector: OPTION_SELECTOR,
 		focusOnEmpty: true,
 	})
 

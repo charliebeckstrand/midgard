@@ -1,7 +1,7 @@
 'use client'
 
-import { useVirtualizer } from '@tanstack/react-virtual'
 import type { RefObject } from 'react'
+import { useVirtualWindow } from '../../hooks'
 import { TableBody } from '../table'
 import { DataTableRow } from './data-table-row'
 import type { DataTableColumn } from './types'
@@ -31,22 +31,12 @@ export function DataTableVirtualizedBody<T>({
 	estimateSize,
 	overscan,
 }: DataTableVirtualizedBodyProps<T>) {
-	const virtualizer = useVirtualizer({
+	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
 		count: rows.length,
 		getScrollElement: () => scrollRef.current,
-		estimateSize: () => estimateSize,
+		estimateSize,
 		overscan,
 	})
-
-	const virtualItems = virtualizer.getVirtualItems()
-
-	const totalSize = virtualizer.getTotalSize()
-
-	const topSpacer = virtualItems[0]?.start ?? 0
-
-	const lastItem = virtualItems[virtualItems.length - 1]
-
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
 	return (
 		<TableBody>

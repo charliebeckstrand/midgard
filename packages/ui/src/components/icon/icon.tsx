@@ -2,7 +2,7 @@
 
 import { cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useSizeWide } from '../../primitives/density'
+import { useSize } from '../../primitives/density'
 import { k } from '../../recipes/kata/icon'
 import type { Size } from '../../types/size'
 
@@ -20,11 +20,11 @@ export type IconProps = {
 
 export function Icon({ icon, size, className, label }: IconProps) {
 	// Icon's scale tops out at `lg` — `k.size` doesn't have an `xl` step.
-	// `useSizeWide` can carry `'xl'` (Button broadcasts up to `Ma`), so when
+	// `useSize` can carry `'xl'` (Button broadcasts up to `Ma`), so when
 	// that reaches an Icon with no explicit size, the `k.size` lookup misses
 	// and the icon falls back to its inherited dimensions. Make the type
 	// narrowing explicit so the missing-key branch reads as intentional.
-	const ambient = useSizeWide() as Size
+	const ambient = useSize() as Size
 
 	const resolvedSize = size ?? ambient
 
