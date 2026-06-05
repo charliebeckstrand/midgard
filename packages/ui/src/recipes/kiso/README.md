@@ -6,7 +6,7 @@
 
 `kiso/` is internal. Its **values** are read only by `kata/` (and `layouts/*/variants.ts`); the katakana bridge receives kiso tokens by argument, importing only their *types*. Components and primitives reach kiso through their owning kata (`recipes/kata/<name>`). Foundational types (`Step`, `SunStep`, `Ma`, `Ji`, `Color`, `GroupOrientation`, `GroupPosition`) flow through the types-only `recipes` barrel so consumers can derive prop unions without threading the type through their funnel.
 
-Composition flows downward only. Within kiso, semantic bundles compose primitive atoms, and atoms may compose sibling atoms (`narabi` reads `iro` · `ji` · `sen` · `shaku`, `hannou` reads the same plus `ugoki`, `omote` reads `iro` · `sen`, `kokkaku` reads `shaku`). Kiso never reaches upward into `katakana/` or `kata/`. The contract is pinned by `src/__tests__/recipes/boundary/kiso-boundary.test.ts`, `src/__tests__/components/boundary/component-recipe-boundary.test.ts`, and `src/__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
+Composition flows downward only. Within kiso, semantic bundles compose primitive atoms, and atoms may compose sibling atoms (`narabi` reads `iro` · `ji` · `sen` · `shaku`, `hannou` reads the same plus `ugoki`, `omote` reads `iro` · `sen`, `kokkaku` reads `shaku`). Kiso never reaches upward into `katakana/` or `kata/`. The contract is pinned by `kiso-boundary.test.ts`; the full boundary-test list lives in [`../README.md`](../README.md#3-boundary).
 
 ## 2. Shape
 
