@@ -61,9 +61,19 @@ export function Message({
 
 	const className_ = cn(k.message({ size, variant }), className)
 
+	// Errors interrupt (assertive) so a validation failure surfacing after submit
+	// is heard even when focus is elsewhere; success feedback queues politely.
+	const role = variant === 'error' ? 'alert' : 'status'
+
 	if (isFormBoundError && issues && all && issues.length > 1) {
 		return (
-			<ul data-slot="message" data-variant={variant} id={elementId} className={className_}>
+			<ul
+				data-slot="message"
+				data-variant={variant}
+				id={elementId}
+				role={role}
+				className={className_}
+			>
 				{issues.map((issue) => (
 					<li key={issue}>{issue}</li>
 				))}
@@ -74,7 +84,14 @@ export function Message({
 	const content = isFormBoundError && issues ? issues[0] : children
 
 	return (
-		<p data-slot="message" data-variant={variant} id={elementId} className={className_} {...props}>
+		<p
+			data-slot="message"
+			data-variant={variant}
+			id={elementId}
+			role={role}
+			className={className_}
+			{...props}
+		>
 			{content}
 		</p>
 	)
