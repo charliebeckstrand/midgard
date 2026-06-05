@@ -226,6 +226,45 @@ describe('SidebarItem', () => {
 
 		expect(screen.getByTestId('sidebar-icon')).toBeInTheDocument()
 	})
+
+	it('renders prefix and suffix slots outside the inner button', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem
+					prefix={<button type="button">drag</button>}
+					suffix={<button type="button">more</button>}
+				>
+					Home
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const prefix = bySlot(container, 'sidebar-item-prefix')
+		const suffix = bySlot(container, 'sidebar-item-suffix')
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		expect(prefix).toBeInTheDocument()
+		expect(suffix).toBeInTheDocument()
+
+		// The slots host their own interactive elements, kept out of the button.
+		expect(prefix?.contains(inner ?? null)).toBe(false)
+		expect(suffix?.contains(inner ?? null)).toBe(false)
+		expect(inner?.querySelector('button')).toBeNull()
+
+		expect(screen.getByRole('button', { name: 'drag' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'more' })).toBeInTheDocument()
+	})
+
+	it('omits the affix slots when no prefix or suffix is provided', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem>Home</SidebarItem>
+			</Sidebar>,
+		)
+
+		expect(bySlot(container, 'sidebar-item-prefix')).toBeNull()
+		expect(bySlot(container, 'sidebar-item-suffix')).toBeNull()
+	})
 })
 
 describe('SidebarItemActions', () => {
