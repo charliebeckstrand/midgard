@@ -1,15 +1,9 @@
 'use client'
 
-import {
-	closestCorners,
-	DndContext,
-	DragOverlay,
-	PointerSensor,
-	useSensor,
-	useSensors,
-} from '@dnd-kit/core'
+import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanContext } from './context'
 import type { KanbanColumnBase } from './types'
@@ -42,7 +36,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onValueChange
 
-	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }))
+	const sensors = useSortableSensors({ keyboard: false })
 
 	const {
 		activeId,
