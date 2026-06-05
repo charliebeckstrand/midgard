@@ -9,7 +9,8 @@ import { createNavItem, type NavItemProps } from './nav-item-utilities'
 
 const BaseNavItem = createNavItem({
 	slotPrefix: 'nav',
-	variants: () => cn(k.item),
+	variants: () => cn(k.item.base),
+	affix: cn(k.item.affix),
 	renderIcon: (icon) => <Icon icon={icon} />,
 })
 

@@ -41,6 +41,8 @@ export type NavItemConfig = {
 	slotPrefix: string
 	/** Receives the resolved size so callers can vary classes per step. */
 	variants: (props: { size: Step }) => string
+	/** Classes for the prefix/suffix slot wrappers, rendered outside the inner button. */
+	affix: string
 	/** Wraps the icon prop. Receives the resolved size so the icon can scale with the item. */
 	renderIcon: (icon: ReactElement, size: Step) => ReactNode
 }
@@ -110,10 +112,7 @@ export function createNavItem(config: NavItemConfig) {
 				{...(spring ? indicator.tapHandlers : {})}
 			>
 				{prefix != null && (
-					<span
-						data-slot={`${config.slotPrefix}-item-prefix`}
-						className="relative z-10 flex shrink-0 items-center"
-					>
+					<span data-slot={`${config.slotPrefix}-item-prefix`} className={config.affix}>
 						{prefix}
 					</span>
 				)}
@@ -138,10 +137,7 @@ export function createNavItem(config: NavItemConfig) {
 					</Button>
 				</Headless>
 				{suffix != null && (
-					<span
-						data-slot={`${config.slotPrefix}-item-suffix`}
-						className="relative z-10 flex shrink-0 items-center"
-					>
+					<span data-slot={`${config.slotPrefix}-item-suffix`} className={config.affix}>
 						{suffix}
 					</span>
 				)}

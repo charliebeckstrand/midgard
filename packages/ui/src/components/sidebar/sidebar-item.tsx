@@ -11,5 +11,6 @@ export type SidebarItemProps = NavItemProps & {
 export const SidebarItem = createNavItem({
 	slotPrefix: 'sidebar',
 	variants: k.item,
+	affix: 'relative z-10 flex shrink-0 items-center',
 	renderIcon: (icon, size) => <Icon icon={icon} size={size} />,
 })
