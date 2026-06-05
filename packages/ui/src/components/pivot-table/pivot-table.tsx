@@ -80,13 +80,17 @@ export function PivotTable<T>({
 		>
 			<TableHead>
 				<TableRow>
-					<TableHeader>{rowHeader}</TableHeader>
+					<TableHeader scope="col">{rowHeader}</TableHeader>
 					{columnKeys.map((col) => (
-						<TableHeader key={col} className="text-right">
+						<TableHeader key={col} scope="col" className="text-right">
 							{col}
 						</TableHeader>
 					))}
-					{showRowTotals && <TableHeader className="text-right">{totalLabel}</TableHeader>}
+					{showRowTotals && (
+						<TableHeader scope="col" className="text-right">
+							{totalLabel}
+						</TableHeader>
+					)}
 				</TableRow>
 			</TableHead>
 			<TableBody>
