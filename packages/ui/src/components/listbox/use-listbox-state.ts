@@ -7,6 +7,7 @@ import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 type ListboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
+	value: T | T[] | undefined
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	setValue: (
@@ -17,6 +18,7 @@ type ListboxStateParams<T> = {
 export function useListboxState<T>({
 	multiple,
 	nullable,
+	value,
 	open: openProp,
 	onOpenChange,
 	setValue,
@@ -31,19 +33,24 @@ export function useListboxState<T>({
 		setOpen(false)
 	}, [setOpen])
 
-	const { toggle, enqueue, flushPending } = useDeferredToggle<T>({ multiple, nullable, setValue })
+	const { toggle, commit, flushPending, selectionValue } = useDeferredToggle<T>({
+		multiple,
+		nullable,
+		value,
+		setValue,
+	})
 
 	const select = useCallback(
 		(newValue: T) => {
 			if (!multiple) {
-				enqueue(newValue)
+				commit(newValue)
 				close()
 			} else {
 				toggle(newValue)
 			}
 		},
-		[multiple, toggle, enqueue, close],
+		[multiple, toggle, commit, close],
 	)
 
-	return { open, setOpen, close, select, flushPending }
+	return { open, setOpen, close, select, flushPending, selectionValue }
 }

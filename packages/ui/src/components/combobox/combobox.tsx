@@ -159,10 +159,12 @@ export function Combobox<T>({
 		close,
 		select,
 		flushPending,
+		selectionValue,
 	} = useComboboxState<T>({
 		multiple,
 		nullable,
 		selectable,
+		value,
 		closeOnSelect,
 		open: openProp,
 		inputRef,
@@ -237,9 +239,12 @@ export function Combobox<T>({
 		</Button>
 	) : null
 
+	// The input display reads the live `value` (updates instantly on select); the
+	// menu reads `selectionValue`, which stays frozen until the panel finishes
+	// closing so the selected row doesn't flicker during the exit animation.
 	const contextValue = useMemo(
-		() => ({ value, multiple, onSelect: select as (v: unknown) => void }),
-		[value, multiple, select],
+		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
+		[selectionValue, multiple, select],
 	)
 
 	if (skeleton) {

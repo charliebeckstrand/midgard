@@ -1,26 +1,34 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useState } from 'react'
 
 type DeferredToggleOptions<T> = {
 	/** Multi-select mode — the held value is an array and toggling adds / removes entries. */
 	multiple: boolean
 	/** Single-select mode — toggling the active value clears the selection. Ignored when `multiple` is true. */
 	nullable: boolean
+	/** Current control value — the menu freezes a snapshot of this while it closes. */
+	value: T | T[] | undefined
 	/** Setter for the underlying value, called with an updater that receives the previous value. */
 	setValue: (updater: (prev: T | T[] | undefined) => T | T[] | undefined) => void
 }
 
 /**
- * Toggle logic for Listbox / Combobox selection, wrapped with a pending-value
- * queue so the toggle can be deferred until a panel finishes its exit
- * animation — keeping the selected item stable while the panel collapses.
+ * Toggle logic for Listbox / Combobox selection. Selecting writes the new value
+ * to the control immediately, but the value the *menu* renders as selected is
+ * frozen to a snapshot taken at selection time until the panel finishes its exit
+ * animation — so the selected row doesn't visibly jump during the ~300ms close.
  *
- * Call `enqueue(value)` to queue a toggle, then wire `flushPending` to
- * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly
- * for cases that should update synchronously (e.g. multi-select).
+ * Read `selectionValue` for the menu's selected state and wire `flushPending` to
+ * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly for
+ * cases that stay open (e.g. multi-select), where the selection should update live.
  */
-export function useDeferredToggle<T>({ multiple, nullable, setValue }: DeferredToggleOptions<T>) {
+export function useDeferredToggle<T>({
+	multiple,
+	nullable,
+	value,
+	setValue,
+}: DeferredToggleOptions<T>) {
 	const toggle = useCallback(
 		(newValue: T) => {
 			setValue((prev) => {
@@ -38,19 +46,24 @@ export function useDeferredToggle<T>({ multiple, nullable, setValue }: DeferredT
 		[multiple, nullable, setValue],
 	)
 
-	const pendingRef = useRef<{ value: T } | null>(null)
+	// Snapshot of the value the menu paints as selected while the panel animates
+	// closed. `null` means "track the live value".
+	const [frozen, setFrozen] = useState<{ value: T | T[] | undefined } | null>(null)
 
-	const enqueue = useCallback((value: T) => {
-		pendingRef.current = { value }
-	}, [])
+	const commit = useCallback(
+		(newValue: T) => {
+			setFrozen({ value })
+
+			toggle(newValue)
+		},
+		[value, toggle],
+	)
 
 	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			toggle(pendingRef.current.value)
+		setFrozen(null)
+	}, [])
 
-			pendingRef.current = null
-		}
-	}, [toggle])
+	const selectionValue = frozen ? frozen.value : value
 
-	return { toggle, enqueue, flushPending }
+	return { toggle, commit, flushPending, selectionValue }
 }
