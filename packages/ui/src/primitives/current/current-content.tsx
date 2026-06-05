@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { type HTMLMotionProps, motion } from 'motion/react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { k } from '../../recipes/kata/current'
 import { useCurrent, useCurrentFade } from './current'
@@ -42,6 +42,10 @@ export function CurrentContent({
 
 	return (
 		<motion.div
+			// Forward caller props (id, role, aria-*) in fade mode too. The cast
+			// only sidesteps motion's redefined animation/drag handler signatures,
+			// which this primitive's consumers never pass.
+			{...(props as HTMLMotionProps<'div'>)}
 			data-slot={`${slotPrefix}-content`}
 			data-current={current || undefined}
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
