@@ -1,4 +1,4 @@
-import { clamp } from '../../utilities'
+import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
 
 export function formatDate(date: Date): string {
 	return date.toLocaleDateString()
@@ -9,20 +9,19 @@ export function formatRange(start: Date, end: Date): string {
 }
 
 export function startOfDay(date: Date): Date {
-	return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+	return fromCalendarDate(toCalendarDate(date))
 }
 
 export function addDays(date: Date, amount: number): Date {
-	return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount)
+	return fromCalendarDate(toCalendarDate(date).add({ days: amount }))
 }
 
 export function clampDate(date: Date, min?: Date, max?: Date): Date {
-	const value = startOfDay(date).getTime()
+	let value = toCalendarDate(date)
 
-	const minValue = min ? startOfDay(min).getTime() : Number.NEGATIVE_INFINITY
-	const maxValue = max ? startOfDay(max).getTime() : Number.POSITIVE_INFINITY
+	if (min && value.compare(toCalendarDate(min)) < 0) value = toCalendarDate(min)
 
-	const clamped = clamp(value, minValue, maxValue)
+	if (max && value.compare(toCalendarDate(max)) > 0) value = toCalendarDate(max)
 
-	return new Date(clamped)
+	return fromCalendarDate(value)
 }

@@ -11,6 +11,7 @@ export {
 	formatCvv,
 	formatExpiry,
 	validateCardCvv,
+	validateCardExpiry,
 	validateCardNumber,
 } from './credit-card-input-utilities'
 export type { CreditCardBrand, CreditCardBrandInfo } from './types'

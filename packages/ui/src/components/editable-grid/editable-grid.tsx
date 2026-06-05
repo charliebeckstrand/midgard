@@ -13,8 +13,10 @@ import type { TableVariants } from '../table'
 import {
 	EditableGridEditContext,
 	type EditableGridEditValue,
+	type EditableGridSnapshot,
 	EditableGridStateContext,
 	type EditableGridStateValue,
+	EditableGridStoreContext,
 } from './context'
 import { EditableGridStyles } from './editable-grid-styles'
 import type { CellChange, EditableGridColumn } from './types'
@@ -24,6 +26,7 @@ import { useEditableGridMutations } from './use-editable-grid-mutations'
 import { useEditableGridNavigation } from './use-editable-grid-navigation'
 import { useEditableGridRows } from './use-editable-grid-rows'
 import { useEditableGridSelection } from './use-editable-grid-selection'
+import { useEditableGridStore } from './use-editable-grid-store'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
 
 export type EditableGridProps<T> = TableVariants & {
@@ -145,6 +148,21 @@ export function EditableGrid<T>({
 		],
 	)
 
+	// Mirrored into the store below so each cell subscribes to just its own
+	// derived slice; moving the active cell then re-renders only the cells that
+	// changed rather than every cell that would consume the context value.
+	const cellSnapshot = useMemo<EditableGridSnapshot>(
+		() => ({
+			active: nav.active,
+			anchor: nav.anchor,
+			extraCells: nav.extraCells,
+			editing: draft.editing,
+		}),
+		[nav.active, nav.anchor, nav.extraCells, draft.editing],
+	)
+
+	const store = useEditableGridStore(cellSnapshot)
+
 	// Changes on every keystroke; read only by the mounted editor.
 	const editValue = useMemo<EditableGridEditValue>(
 		() => ({
@@ -158,39 +176,41 @@ export function EditableGrid<T>({
 
 	return (
 		<EditableGridStateContext value={stateValue}>
-			<EditableGridEditContext value={editValue}>
-				<EditableGridStyles />
-				<DataTable
-					columns={augmentedColumns}
-					rows={rows}
-					getKey={getKey}
-					sort={sortConfig}
-					selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
-					rowClassName={rowClassName}
-					stickyHeader={stickyHeader}
-					maxHeight={maxHeight}
-					virtualize={virtualize}
-					density={density}
-					bleed={bleed}
-					grid={grid}
-					striped={striped}
-					className={cn('outline-0', className)}
-					tableProps={{
-						ref: wrapperRef,
-						'data-slot': 'editable-grid',
-						role: 'grid',
-						'aria-multiselectable': true,
-						'aria-activedescendant': nav.active
-							? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
-							: undefined,
-						tabIndex: 0,
-						onKeyDown: onWrapperKeyDown,
-						onPaste: onWrapperPaste,
-						onFocus: onWrapperFocus,
-						onBlur: onWrapperBlur,
-					}}
-				/>
-			</EditableGridEditContext>
+			<EditableGridStoreContext value={store}>
+				<EditableGridEditContext value={editValue}>
+					<EditableGridStyles />
+					<DataTable
+						columns={augmentedColumns}
+						rows={rows}
+						getKey={getKey}
+						sort={sortConfig}
+						selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
+						rowClassName={rowClassName}
+						stickyHeader={stickyHeader}
+						maxHeight={maxHeight}
+						virtualize={virtualize}
+						density={density}
+						bleed={bleed}
+						grid={grid}
+						striped={striped}
+						className={cn('outline-0', className)}
+						tableProps={{
+							ref: wrapperRef,
+							'data-slot': 'editable-grid',
+							role: 'grid',
+							'aria-multiselectable': true,
+							'aria-activedescendant': nav.active
+								? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
+								: undefined,
+							tabIndex: 0,
+							onKeyDown: onWrapperKeyDown,
+							onPaste: onWrapperPaste,
+							onFocus: onWrapperFocus,
+							onBlur: onWrapperBlur,
+						}}
+					/>
+				</EditableGridEditContext>
+			</EditableGridStoreContext>
 		</EditableGridStateContext>
 	)
 }

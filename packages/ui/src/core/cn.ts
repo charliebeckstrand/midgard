@@ -1,14 +1,6 @@
 import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
-import { extendTailwindMerge } from 'tailwind-merge'
-
-const twMerge = extendTailwindMerge({
-	extend: {
-		theme: {
-			spacing: ['xs', 'sm', 'md', 'lg', 'xl'],
-		},
-	},
-})
+import { twMerge } from './tw-merge'
 
 /**
  * Class composer for the package — `clsx` for conditional input plus

@@ -1,7 +1,8 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ChangeEvent, ComponentPropsWithoutRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
+import { useControllable } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -21,11 +22,28 @@ export function Switch({
 	required,
 	name,
 	checked,
+	defaultChecked,
 	onChange,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: SwitchProps) {
 	const binding = useFormToggle(name, { onChange })
+
+	// Own the checked state so `aria-checked` always reflects reality. A native
+	// `role="switch"` checkbox exposes its state via the DOM `checked` property,
+	// but `aria-checked` is required for the role and a static value would not
+	// track uncontrolled toggles — assistive tech would announce a stale state.
+	const [on, setOn] = useControllable<boolean>({
+		value: binding ? binding.checked : checked,
+		defaultValue: defaultChecked ?? false,
+	})
+
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setOn(e.target.checked)
+
+		if (binding) binding.onChange(e)
+		else onChange?.(e)
+	}
 
 	const {
 		id: resolvedId,
@@ -65,9 +83,9 @@ export function Switch({
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				checked={binding?.checked ?? checked}
-				aria-checked={!!(binding?.checked ?? checked)}
-				onChange={binding?.onChange ?? onChange}
+				checked={on ?? false}
+				aria-checked={on ?? false}
+				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}

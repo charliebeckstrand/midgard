@@ -201,6 +201,22 @@ describe('MenuContent', () => {
 		expect(menu).toBeInTheDocument()
 	})
 
+	it('does not steal focus when rendered as a static menu', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// A static (always-open) menu is page furniture, not a transient
+		// overlay, so it must not grab focus on mount the way a dropdown does.
+		expect(container.querySelector('[role="menu"]')).not.toHaveFocus()
+
+		expect(screen.getByText('Item')).not.toHaveFocus()
+	})
+
 	it('renders portal content when placement is provided and menu is open', () => {
 		renderUI(
 			<Menu placement="bottom-start">

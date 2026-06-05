@@ -21,6 +21,7 @@ export function AccordionTrigger({
 	className,
 	children,
 	headingLevel = 3,
+	onClick,
 	...props
 }: AccordionTriggerProps) {
 	const { open, toggle, disabled, value } = useAccordionItem()
@@ -38,7 +39,10 @@ export function AccordionTrigger({
 				aria-controls={`accordion-panel-${value}`}
 				id={`accordion-trigger-${value}`}
 				disabled={disabled}
-				onClick={toggle}
+				onClick={(e) => {
+					toggle()
+					onClick?.(e)
+				}}
 				className={cn(k.trigger, className)}
 				{...props}
 			>

@@ -58,6 +58,7 @@ export function ListboxPanel({
 								id={id}
 								role="listbox"
 								multiselectable={multiple || undefined}
+								typeahead
 								glass={glass}
 								className={cn(k.panel, k.options)}
 							>

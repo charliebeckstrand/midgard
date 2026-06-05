@@ -1,8 +1,11 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback, useRef } from 'react'
 import type { Orientation } from '../types'
 import { useScrollWithin } from './use-scroll-within'
+
+/** Idle window after which the type-ahead buffer resets. */
+const TYPEAHEAD_TIMEOUT_MS = 500
 
 type RovingConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */
@@ -136,6 +139,59 @@ function nextIndexGrid(
 	}
 }
 
+/** Whether a key event should drive type-ahead — a lone printable character. */
+function isTypeaheadKey(e: KeyboardEvent): boolean {
+	return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
+}
+
+/** Label used to match an item during type-ahead: `aria-label`, else text. */
+function itemLabel(el: HTMLElement): string {
+	return (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().toLowerCase()
+}
+
+/** Mutable buffer backing one roving instance's type-ahead. */
+export type TypeaheadState = { query: string; timer: number }
+
+/**
+ * Extend the type-ahead buffer with `key` and return the index of the next
+ * matching item, or null. Repeated presses of the same character cycle through
+ * items that start with it (search resumes past `currentIndex`); distinct
+ * characters build a prefix matched from `currentIndex` onward. The buffer
+ * self-clears after a short idle window.
+ */
+export function matchTypeahead(
+	state: TypeaheadState,
+	items: HTMLElement[],
+	key: string,
+	currentIndex: number,
+): number | null {
+	if (typeof window !== 'undefined') {
+		window.clearTimeout(state.timer)
+
+		state.timer = window.setTimeout(() => {
+			state.query = ''
+		}, TYPEAHEAD_TIMEOUT_MS)
+	}
+
+	state.query += key.toLowerCase()
+
+	const repeated = [...state.query].every((char) => char === state.query[0])
+
+	const query = repeated ? state.query.slice(0, 1) : state.query
+
+	const start = repeated ? currentIndex + 1 : Math.max(currentIndex, 0)
+
+	for (let offset = 0; offset < items.length; offset++) {
+		const index = (start + offset) % items.length
+
+		const item = items[index]
+
+		if (item && itemLabel(item).startsWith(query)) return index
+	}
+
+	return null
+}
+
 type RovingOptions = RovingConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
@@ -147,6 +203,14 @@ type RovingOptions = RovingConfig & {
 	mode?: 'focus' | 'virtual'
 	/** Focus mode: move to the first / last item even when nothing in the container has focus. */
 	focusOnEmpty?: boolean
+	/**
+	 * Jump to the item whose label starts with recently typed characters
+	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
+	 * not for text inputs that own their own typing. The label is read from each
+	 * item's `aria-label`, falling back to its trimmed `textContent`.
+	 * @default false
+	 */
+	typeahead?: boolean
 	/** Virtual mode: scroll the active item into view after each move. @default true */
 	scrollIntoView?: boolean
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
@@ -170,12 +234,15 @@ export function useRoving(
 		orientation,
 		mode = 'focus',
 		focusOnEmpty = false,
+		typeahead = false,
 		scrollIntoView = true,
 		activationKey = 'Enter',
 		activeDescendantRef,
 	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
+
+	const typeaheadRef = useRef<TypeaheadState>({ query: '', timer: 0 })
 
 	return useCallback(
 		(e: KeyboardEvent) => {
@@ -189,7 +256,21 @@ export function useRoving(
 				? items.findIndex((el) => el.dataset.active !== undefined)
 				: items.indexOf(document.activeElement as HTMLElement)
 
-			if (!isVirtual && currentIndex === -1 && !focusOnEmpty) return
+			const moveTo = (index: number) => {
+				if (!isVirtual) {
+					items[index]?.focus()
+
+					return
+				}
+
+				setVirtualActive(items, index, activeDescendantRef)
+
+				if (scrollIntoView) {
+					const next = items[index]
+
+					if (next) scrollWithin(next, { block: 'nearest' })
+				}
+			}
 
 			if (isVirtual && activationKey && e.key === activationKey) {
 				if (currentIndex === -1) return
@@ -201,25 +282,29 @@ export function useRoving(
 				return
 			}
 
+			// Type-ahead runs ahead of the focus-empty nav guard so a letter can
+			// jump into the list even when nothing is active yet.
+			if (typeahead && isTypeaheadKey(e)) {
+				const index = matchTypeahead(typeaheadRef.current, items, e.key, currentIndex)
+
+				if (index !== null) {
+					e.preventDefault()
+
+					moveTo(index)
+				}
+
+				return
+			}
+
+			if (!isVirtual && currentIndex === -1 && !focusOnEmpty) return
+
 			const nextIndex = nextIndexForKey(e.key, currentIndex, items.length, { cols, orientation })
 
 			if (nextIndex === null) return
 
 			e.preventDefault()
 
-			if (!isVirtual) {
-				items[nextIndex]?.focus()
-
-				return
-			}
-
-			setVirtualActive(items, nextIndex, activeDescendantRef)
-
-			if (scrollIntoView) {
-				const next = items[nextIndex]
-
-				if (next) scrollWithin(next, { block: 'nearest' })
-			}
+			moveTo(nextIndex)
 		},
 		[
 			containerRef,
@@ -228,6 +313,7 @@ export function useRoving(
 			cols,
 			orientation,
 			focusOnEmpty,
+			typeahead,
 			scrollIntoView,
 			activationKey,
 			activeDescendantRef,

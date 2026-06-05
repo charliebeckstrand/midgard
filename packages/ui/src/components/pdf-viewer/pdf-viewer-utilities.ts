@@ -34,6 +34,8 @@ export function printPdf(src: string) {
 
 		cleaned = true
 
+		window.removeEventListener('focus', cleanup)
+
 		iframe.remove()
 	}
 
@@ -48,6 +50,12 @@ export function printPdf(src: string) {
 
 		try {
 			win.addEventListener('afterprint', cleanup)
+
+			// Backstop for browsers that never fire `afterprint` (e.g. older Safari)
+			// or where the user dismisses the dialog: focus returns to the main
+			// window when the print dialog closes, so reclaim the iframe then. The
+			// dialog blocks focus until it closes, so this can't fire prematurely.
+			window.addEventListener('focus', cleanup, { once: true })
 
 			win.focus()
 			win.print()

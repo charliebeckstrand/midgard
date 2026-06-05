@@ -25,6 +25,8 @@ export type CalendarRangeProps = {
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
+	locale?: string
+	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	size?: Step
 	className?: string
 }
@@ -42,6 +44,7 @@ export function CalendarRange({
 	onPickerOpenChange,
 	footerRef,
 	ref,
+	locale,
 	size,
 	className,
 }: CalendarRangeProps) {
@@ -105,6 +108,7 @@ export function CalendarRange({
 			onPickerOpenChange={onPickerOpenChange}
 			getDayProps={getDayProps}
 			footerRef={footerRef}
+			locale={locale}
 			size={size}
 			className={className}
 		/>

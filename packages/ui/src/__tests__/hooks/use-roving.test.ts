@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { setVirtualActive, useRoving } from '../../hooks/use-roving'
+import { matchTypeahead, setVirtualActive, useRoving } from '../../hooks/use-roving'
 import { makeKeyEvent } from '../helpers'
 
 describe('setVirtualActive', () => {
@@ -68,6 +68,65 @@ describe('setVirtualActive', () => {
 	})
 })
 
+describe('matchTypeahead', () => {
+	function makeItems(labels: string[]) {
+		return labels.map((label) => {
+			const el = document.createElement('div')
+
+			el.textContent = label
+
+			return el
+		})
+	}
+
+	it('matches the first item whose label starts with the typed character', () => {
+		const items = makeItems(['Apple', 'Banana', 'Cherry'])
+
+		expect(matchTypeahead({ query: '', timer: 0 }, items, 'b', -1)).toBe(1)
+	})
+
+	it('builds a prefix from distinct characters across calls', () => {
+		const items = makeItems(['Cat', 'Car', 'Dog'])
+
+		const state = { query: '', timer: 0 }
+
+		expect(matchTypeahead(state, items, 'c', -1)).toBe(0)
+
+		expect(matchTypeahead(state, items, 'a', 0)).toBe(0)
+
+		expect(matchTypeahead(state, items, 'r', 0)).toBe(1)
+	})
+
+	it('cycles through items when the same character repeats', () => {
+		const items = makeItems(['Ant', 'Bee', 'Ape', 'Bat'])
+
+		const state = { query: '', timer: 0 }
+
+		expect(matchTypeahead(state, items, 'a', -1)).toBe(0)
+
+		expect(matchTypeahead(state, items, 'a', 0)).toBe(2)
+
+		// Wraps back to the first "a" item past the end.
+		expect(matchTypeahead(state, items, 'a', 2)).toBe(0)
+	})
+
+	it('reads aria-label in preference to text content', () => {
+		const items = makeItems(['ignored'])
+
+		items[0]?.setAttribute('aria-label', 'Zebra')
+
+		expect(matchTypeahead({ query: '', timer: 0 }, items, 'z', -1)).toBe(0)
+
+		expect(matchTypeahead({ query: '', timer: 0 }, items, 'i', -1)).toBeNull()
+	})
+
+	it('returns null when nothing matches', () => {
+		const items = makeItems(['Apple', 'Banana'])
+
+		expect(matchTypeahead({ query: '', timer: 0 }, items, 'z', -1)).toBeNull()
+	})
+})
+
 function makeContainer(count: number) {
 	const container = document.createElement('div')
 
@@ -78,6 +137,25 @@ function makeContainer(count: number) {
 		btn.setAttribute('tabindex', '-1')
 
 		btn.textContent = String(i)
+
+		container.appendChild(btn)
+	}
+
+	document.body.appendChild(container)
+
+	return container
+}
+
+function makeLabeledContainer(labels: string[]) {
+	const container = document.createElement('div')
+
+	for (const label of labels) {
+		const btn = document.createElement('button')
+
+		btn.setAttribute('role', 'option')
+		btn.setAttribute('tabindex', '-1')
+
+		btn.textContent = label
 
 		container.appendChild(btn)
 	}
@@ -336,6 +414,64 @@ describe('useRoving', () => {
 		})
 
 		const event = makeKeyEvent('Enter')
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		container.remove()
+	})
+
+	it('type-ahead: a letter focuses the matching item when enabled', () => {
+		const container = makeLabeledContainer(['Apple', 'Banana', 'Cherry'])
+
+		const items = container.querySelectorAll('button')
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
+		})
+
+		const event = makeKeyEvent('c')
+
+		result.current(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(items[2])
+
+		container.remove()
+	})
+
+	it('type-ahead: printable keys are ignored when disabled', () => {
+		const container = makeLabeledContainer(['Apple', 'Banana'])
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useRoving(ref, { itemSelector: '[role="option"]' })
+		})
+
+		const event = makeKeyEvent('b')
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		container.remove()
+	})
+
+	it('type-ahead: a non-matching letter is consumed without moving focus', () => {
+		const container = makeLabeledContainer(['Apple', 'Banana'])
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
+		})
+
+		const event = makeKeyEvent('z')
 
 		result.current(event)
 

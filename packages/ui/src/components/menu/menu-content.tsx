@@ -25,7 +25,12 @@ export function MenuContent({ className, children }: MenuContentProps) {
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
+					typeahead
 					glass={glass}
+					// A static menu (e.g. an always-open sidebar) is part of the page,
+					// not a transient overlay, so it must not grab focus on mount the
+					// way a dropdown menu does — that would steal focus on page load.
+					autoFocus={false}
 					className={cn(k.content, className)}
 				>
 					{children}
@@ -45,6 +50,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
+					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}
 					onKeyDown={(e) => {
