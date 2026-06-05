@@ -11,6 +11,7 @@ import {
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Field, Label } from '../../components/fieldset'
+import { FileUpload } from '../../components/file-upload'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
 import { Slider } from '../../components/slider'
@@ -65,6 +66,8 @@ export const baseline: readonly Case[] = [
 			<Slider defaultValue={50} />
 		</Field>,
 	],
+	['file upload (area)', <FileUpload key="fu" variant="area" />],
+	['file upload (button)', <FileUpload key="fu" variant="button" />],
 	[
 		'checkbox',
 		<CheckboxGroup key="c">

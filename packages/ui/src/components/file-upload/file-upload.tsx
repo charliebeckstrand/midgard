@@ -63,10 +63,14 @@ export function FileUpload(props: FileUploadProps) {
 		handleDrop,
 	} = useFileUploadHandlers({ disabled, onFiles })
 
-	const hiddenInput = (
+	// The real <input> is visually hidden and triggered programmatically, so it
+	// still needs an accessible name — screen readers can reach it even at
+	// tabIndex -1. Each variant passes a name drawn from its visible trigger.
+	const renderHiddenInput = (ariaLabel: string) => (
 		<input
 			ref={inputRef}
 			type="file"
+			aria-label={ariaLabel}
 			accept={accept}
 			multiple={multiple}
 			disabled={disabled}
@@ -83,7 +87,7 @@ export function FileUpload(props: FileUploadProps) {
 
 		return (
 			<div data-slot="file-upload" className={cn('relative', className)}>
-				{hiddenInput}
+				{renderHiddenInput(placeholder ?? 'Choose a file')}
 				<Input
 					readOnly
 					size={size}
@@ -103,7 +107,7 @@ export function FileUpload(props: FileUploadProps) {
 
 		return (
 			<div data-slot="file-upload" className={cn('inline-flex', className)}>
-				{hiddenInput}
+				{renderHiddenInput(typeof children === 'string' ? children : 'Upload')}
 				<Button
 					size={size}
 					color={color}
@@ -123,6 +127,9 @@ export function FileUpload(props: FileUploadProps) {
 
 	return (
 		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
+			{/* Sibling, not child, of the button: a focusable <input> nested inside
+			    an interactive control is a nested-interactive violation. */}
+			{renderHiddenInput(typeof children === 'string' ? children : 'Upload file')}
 			<button
 				type="button"
 				data-slot="file-upload"
@@ -135,7 +142,6 @@ export function FileUpload(props: FileUploadProps) {
 				onDrop={handleDrop}
 				className={cn(k.dropzone, 'size-full', className)}
 			>
-				{hiddenInput}
 				{children ?? (
 					<>
 						<Icon icon={<Upload />} size="lg" className={k.icon} />
