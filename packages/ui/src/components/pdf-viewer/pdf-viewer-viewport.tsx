@@ -36,7 +36,12 @@ export function PdfViewerViewport() {
 			{/* Page navigation otherwise swaps the image silently; announce the
 			    position so screen-reader users hear "Page X of Y" on change. */}
 			{total > 0 && (
-				<div data-slot="pdf-viewer-page-status" aria-live="polite" className="sr-only">
+				<div
+					data-slot="pdf-viewer-page-status"
+					aria-live="polite"
+					aria-atomic="true"
+					className="sr-only"
+				>
 					Page {safePage} of {total}
 				</div>
 			)}
