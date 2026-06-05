@@ -30,15 +30,7 @@
 
 ## 4. Version Control
 
-4.1 Present `git diff --staged` before committing.
-
-4.2 One logical change per commit, staged deliberately. Never `git add .`; never stage commented-out code, debug output, or drive-bys.
-
-4.3 Commit bodies state the what and why, not the how.
-
-4.4 Never commit secrets or `.env`.
-
-> For additional rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
+For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
 
 ---
 
