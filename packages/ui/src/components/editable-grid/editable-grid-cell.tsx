@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
-import { useEditableGridState } from './context'
+import { useEditableGridCellSlice } from './context'
 import { EditableGridCellEditor } from './editable-grid-cell-editor'
 import type { EditableGridColumn, EditableGridEditor } from './types'
 
@@ -28,7 +28,7 @@ export function EditableGridCell<T>({
 	column,
 	editor: Editor,
 }: EditableGridCellContentProps<T>) {
-	const { active, anchor, extraCells, editing } = useEditableGridState()
+	const { isActive, inRange, showEditor } = useEditableGridCellSlice(rowIdx, colIdx, readOnly)
 
 	// Re-render the flash overlay with a fresh key each time the rendered value
 	// changes so the keyframe animation restarts even on consecutive edits.
@@ -43,20 +43,6 @@ export function EditableGridCell<T>({
 
 		setFlashKey((n) => n + 1)
 	}, [formatted])
-
-	const isActive = active?.row === rowIdx && active?.col === colIdx
-
-	const inRect =
-		!!active &&
-		!!anchor &&
-		rowIdx >= Math.min(anchor.row, active.row) &&
-		rowIdx <= Math.max(anchor.row, active.row) &&
-		colIdx >= Math.min(anchor.col, active.col) &&
-		colIdx <= Math.max(anchor.col, active.col)
-
-	const inRange = !isActive && (inRect || extraCells.has(`${rowIdx},${colIdx}`))
-
-	const showEditor = isActive && editing && !readOnly
 
 	return (
 		<div
