@@ -1,21 +1,21 @@
 import { useState } from 'react'
-import { Avatar } from '../../components/avatar'
-import { Badge } from '../../components/badge'
-import { Button } from '../../components/button'
-import { Card, CardBody, CardHeader } from '../../components/card'
-import { Checkbox } from '../../components/checkbox'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
-import { Flex } from '../../components/flex'
-import { Heading } from '../../components/heading'
-import { Input } from '../../components/input'
-import { Radio } from '../../components/radio'
-import { Switch } from '../../components/switch'
-import { Text } from '../../components/text'
-import { Textarea } from '../../components/textarea'
-import { Skeleton } from '../../providers/skeleton'
-import { Example } from '../components/example'
+import { Avatar } from '../../../components/avatar'
+import { Badge } from '../../../components/badge'
+import { Button } from '../../../components/button'
+import { Card, CardBody, CardHeader } from '../../../components/card'
+import { Checkbox } from '../../../components/checkbox'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import { Flex } from '../../../components/flex'
+import { Heading } from '../../../components/heading'
+import { Input } from '../../../components/input'
+import { Radio } from '../../../components/radio'
+import { Switch } from '../../../components/switch'
+import { Text } from '../../../components/text'
+import { Textarea } from '../../../components/textarea'
+import { Skeleton } from '../../../providers/skeleton'
+import { Example } from '../../components/example'
 
-export const meta = { category: 'Feedback' }
+export const meta = { category: 'Providers' }
 
 const dynamicComponents = [
 	{ name: 'Avatar', render: () => <Avatar size="md" /> },

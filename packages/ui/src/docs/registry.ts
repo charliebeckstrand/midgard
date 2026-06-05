@@ -11,10 +11,14 @@ type DemoMeta = { name?: string; category?: string }
 
 // Each demo exports a `Demo` component — the glob's `import` option resolves
 // loaders directly to that symbol so we never bind to a default export.
-const loaders = import.meta.glob<ComponentType>(['./demos/*.tsx', './demos/pages/*.tsx'], {
-	import: 'Demo',
-})
+const loaders = import.meta.glob<ComponentType>(
+	['./demos/*.tsx', './demos/pages/*.tsx', './demos/providers/*.tsx'],
+	{ import: 'Demo' },
+)
 
+// Subfolders namespace the id with their folder (`pages/x` → `pages-x`,
+// `providers/x` → `providers-x`) so a provider demo can't collide with a
+// component demo of the same name (e.g. the Link component vs the LinkProvider).
 function pathToId(path: string) {
 	return path
 		.replace(/^\.\/demos\//, '')
@@ -103,7 +107,7 @@ export function getComponentApi(id: string): ComponentApi[] | undefined {
 
 export const demos = [...loaderById.keys()]
 	.map((id) => {
-		const label = id.replace(/^pages-/, '')
+		const label = id.replace(/^(?:pages|providers)-/, '')
 
 		const meta = metaById.get(id)
 

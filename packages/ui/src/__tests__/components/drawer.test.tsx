@@ -70,6 +70,30 @@ describe('DrawerTrigger', () => {
 
 		expect(childClick).toHaveBeenCalled()
 	})
+
+	it('marks the trigger as a dialog disclosure', () => {
+		renderUI(
+			<DrawerTrigger open={false}>
+				<button type="button">Open</button>
+			</DrawerTrigger>,
+		)
+
+		const trigger = screen.getByText('Open')
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('reflects the open state via aria-expanded', () => {
+		renderUI(
+			<DrawerTrigger open>
+				<button type="button">Open</button>
+			</DrawerTrigger>,
+		)
+
+		expect(screen.getByText('Open')).toHaveAttribute('aria-expanded', 'true')
+	})
 })
 
 describe('DrawerClose', () => {
