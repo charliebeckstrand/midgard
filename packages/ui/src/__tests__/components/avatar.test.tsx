@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup } from '../../components/avatar'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
 	it('renders a span with data-slot="avatar"', () => {
@@ -95,5 +95,15 @@ describe('AvatarGroup', () => {
 		expect(avatars.length).toBe(2)
 
 		expect(container.textContent).toContain('+3')
+	})
+
+	it('gives the overflow avatar an accessible count label', () => {
+		renderUI(
+			<AvatarGroup extra={3}>
+				<Avatar initials="A" />
+			</AvatarGroup>,
+		)
+
+		expect(screen.getByRole('img', { name: '3 more' })).toBeInTheDocument()
 	})
 })

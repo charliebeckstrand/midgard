@@ -57,10 +57,18 @@ describe('Odometer', () => {
 		})
 	})
 
-	it('sets aria-live on the root element', () => {
-		const { container } = renderUI(<Odometer value={0} />)
+	it('exposes the settled value as an image label, not a live region', () => {
+		const { container } = renderUI(<Odometer value={1234} />)
 
-		expect(bySlot(container, 'odometer')).toHaveAttribute('aria-live', 'polite')
+		const el = bySlot(container, 'odometer')
+
+		// No live region: the per-frame tween must not be announced.
+		expect(el).not.toHaveAttribute('aria-live')
+
+		expect(el).toHaveAttribute('role', 'img')
+
+		// The label reflects the final target, regardless of the animated digits.
+		expect(el).toHaveAttribute('aria-label', '1,234')
 	})
 
 	it('passes through HTML attributes', () => {

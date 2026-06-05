@@ -123,14 +123,15 @@ describe('TimeAgo', () => {
 		expect(el?.className).toContain('custom')
 	})
 
-	it('renders an empty <time> when the date is invalid', () => {
+	it('renders a plain <span> (not an empty <time>) when the date is invalid', () => {
 		const { container } = renderUI(<TimeAgo date="not-a-date" />)
 
 		const el = bySlot(container, 'time-ago')
 
 		expect(el).toBeInTheDocument()
 
-		expect(el?.textContent).toBe('')
+		// No machine-readable timestamp exists, so it must not be a <time>.
+		expect(el?.tagName).toBe('SPAN')
 
 		expect(el).not.toHaveAttribute('dateTime')
 	})
