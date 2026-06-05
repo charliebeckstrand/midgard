@@ -1,4 +1,10 @@
-import { CalendarDate, endOfMonth, isSameDay as isSameCalendarDay } from '@internationalized/date'
+import {
+	CalendarDate,
+	endOfMonth,
+	getDayOfWeek,
+	isSameDay as isSameCalendarDay,
+	startOfWeek,
+} from '@internationalized/date'
 
 /**
  * Convert a native `Date` to a timezone-free `CalendarDate` using its local
@@ -39,4 +45,41 @@ export function getCalendarDays(year: number, month: number): Date[] {
 	}
 
 	return days
+}
+
+/** Coalesce an optional locale to a concrete BCP 47 tag, falling back to the
+ *  runtime default. The lib's locale-aware helpers require a string. */
+export function resolveLocale(locale?: string): string {
+	return locale ?? new Intl.DateTimeFormat().resolvedOptions().locale
+}
+
+/**
+ * 1-based grid column of the 1st of `year`/`month`, honoring the locale's
+ * first day of the week (Sunday in `en-US`, Monday in most of Europe).
+ */
+export function getFirstDayColumn(year: number, month: number, locale: string): number {
+	return getDayOfWeek(new CalendarDate(year, month + 1, 1), locale) + 1
+}
+
+// A fixed reference week (starting Sunday 2021-01-03) makes the label output
+// depend only on the locale, never on the current date — keeping it
+// deterministic across server and client renders.
+const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
+
+/** Short weekday labels ordered by the locale's first day of the week. */
+export function getWeekdayLabels(locale: string): string[] {
+	const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+
+	const start = startOfWeek(WEEKDAY_REFERENCE, locale)
+
+	return Array.from({ length: 7 }, (_, index) =>
+		formatter.format(fromCalendarDate(start.add({ days: index }))),
+	)
+}
+
+/** Short month labels (January–December) for the locale. */
+export function getMonthLabels(locale: string): string[] {
+	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
+
+	return Array.from({ length: 12 }, (_, index) => formatter.format(new Date(2021, index, 1)))
 }

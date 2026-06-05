@@ -5,7 +5,6 @@ import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
-import { WEEKDAYS } from './calendar-constants'
 import { CalendarDayCell } from './calendar-day-cell'
 import { isSameDay } from './calendar-utilities'
 
@@ -13,6 +12,8 @@ type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
 	onGridKeyDown: KeyboardEventHandler<HTMLElement>
 	size: Step
+	/** Short weekday labels, pre-ordered to the active locale's first day. */
+	weekdays: string[]
 	days: Date[]
 	firstDayColumn: number
 	today: Date | null
@@ -29,6 +30,7 @@ export function CalendarGrid({
 	gridRef,
 	onGridKeyDown,
 	size,
+	weekdays,
 	days,
 	firstDayColumn,
 	today,
@@ -41,7 +43,7 @@ export function CalendarGrid({
 }: CalendarGridProps) {
 	return (
 		<div className={k.grid}>
-			{WEEKDAYS.map((day) => (
+			{weekdays.map((day) => (
 				<div key={day} className={cn(k.weekday({ size }))} aria-hidden="true">
 					{day}
 				</div>
