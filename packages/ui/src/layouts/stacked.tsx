@@ -21,7 +21,7 @@ type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
 	return (
-		<Box data-slot="header" className={cn('shrink-0', className)}>
+		<Box role="banner" data-slot="header" className={cn('shrink-0', className)}>
 			{children}
 		</Box>
 	)
@@ -34,7 +34,12 @@ type StackedLayoutBodyProps = PropsWithChildren<{
 
 export function StackedLayoutBody({ ref, children, className }: StackedLayoutBodyProps) {
 	return (
-		<Box ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto', className)}>
+		<Box
+			ref={ref}
+			role="main"
+			data-slot="body"
+			className={cn('flex-1 min-h-0 overflow-y-auto', className)}
+		>
 			{children}
 		</Box>
 	)
@@ -44,7 +49,7 @@ type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
 
 export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
 	return (
-		<Box data-slot="footer" className={cn('shrink-0', className)}>
+		<Box role="contentinfo" data-slot="footer" className={cn('shrink-0', className)}>
 			{children}
 		</Box>
 	)
