@@ -3,6 +3,7 @@
 import { cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { useSizeWide } from '../../primitives/density'
+import { k } from '../../recipes/kata/icon'
 import type { Size } from '../../types/size'
 
 export type IconProps = {
@@ -17,17 +18,10 @@ export type IconProps = {
 	label?: string
 }
 
-const sizeMap: Record<Size, string> = {
-	xs: 'size-3',
-	sm: 'size-4',
-	md: 'size-5',
-	lg: 'size-6',
-}
-
 export function Icon({ icon, size, className, label }: IconProps) {
-	// Icon's scale tops out at `lg` — `shaku.icon` doesn't have an `xl` step.
+	// Icon's scale tops out at `lg` — `k.size` doesn't have an `xl` step.
 	// `useSizeWide` can carry `'xl'` (Button broadcasts up to `Ma`), so when
-	// that reaches an Icon with no explicit size, `sizeMap` lookup misses
+	// that reaches an Icon with no explicit size, the `k.size` lookup misses
 	// and the icon falls back to its inherited dimensions. Make the type
 	// narrowing explicit so the missing-key branch reads as intentional.
 	const ambient = useSizeWide() as Size
@@ -39,7 +33,7 @@ export function Icon({ icon, size, className, label }: IconProps) {
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
 		...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' }),
 		'data-slot': 'icon',
-		className: cn('shrink-0', !isNumeric && sizeMap[resolvedSize], className),
+		className: cn('shrink-0', !isNumeric && k.size[resolvedSize], className),
 		...(isNumeric && { style: { width: resolvedSize, height: resolvedSize } }),
 	})
 }
