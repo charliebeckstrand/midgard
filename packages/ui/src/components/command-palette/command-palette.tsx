@@ -107,14 +107,7 @@ export function CommandPalette({
 						data-slot="command-palette-input"
 						placeholder={placeholder}
 						value={query}
-						onChange={(e) => {
-							// Filtering re-renders the list and unmounts the active item, so the
-							// pointer would dangle at a removed id; drop it until the next arrow
-							// key re-establishes it.
-							e.currentTarget.removeAttribute('aria-activedescendant')
-
-							setQuery(e.target.value)
-						}}
+						onChange={(e) => setQuery(e.target.value)}
 						onKeyDown={onKeyDown}
 					/>
 					<Button variant="plain" aria-label="Close" onClick={close}>

@@ -19,6 +19,38 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 }
 
 /**
+ * Move the virtual-mode active marker to `items[index]`: shifts `data-active`,
+ * and — when `activeDescendantRef` is given — mirrors `aria-selected` onto the
+ * items and `aria-activedescendant` onto the owner. Pass a negative `index`
+ * (or an empty list) to clear the active state. The previously active item is
+ * found by its `data-active` marker, so callers don't track an index.
+ */
+export function setVirtualActive(
+	items: HTMLElement[],
+	index: number,
+	activeDescendantRef?: RefObject<HTMLElement | null>,
+): void {
+	const prev = items.find((el) => el.dataset.active !== undefined)
+
+	const next = index >= 0 ? items[index] : undefined
+
+	prev?.removeAttribute('data-active')
+
+	next?.setAttribute('data-active', '')
+
+	if (activeDescendantRef) {
+		prev?.setAttribute('aria-selected', 'false')
+
+		next?.setAttribute('aria-selected', 'true')
+
+		const controller = activeDescendantRef.current
+
+		if (next?.id) controller?.setAttribute('aria-activedescendant', next.id)
+		else controller?.removeAttribute('aria-activedescendant')
+	}
+}
+
+/**
  * Next roving index for a key press, or null if unhandled.
  * -1 means nothing is active; a forward key lands on the first item, back on the last.
  * Indices wrap at both ends.
@@ -181,22 +213,13 @@ export function useRoving(
 				return
 			}
 
-			const prev = items[currentIndex]
-			const next = items[nextIndex]
+			setVirtualActive(items, nextIndex, activeDescendantRef)
 
-			prev?.removeAttribute('data-active')
-			next?.setAttribute('data-active', '')
+			if (scrollIntoView) {
+				const next = items[nextIndex]
 
-			if (activeDescendantRef) {
-				prev?.setAttribute('aria-selected', 'false')
-				next?.setAttribute('aria-selected', 'true')
-
-				const controller = activeDescendantRef.current
-
-				if (controller && next?.id) controller.setAttribute('aria-activedescendant', next.id)
+				if (next) scrollWithin(next, { block: 'nearest' })
 			}
-
-			if (scrollIntoView && next) scrollWithin(next, { block: 'nearest' })
 		},
 		[
 			containerRef,
