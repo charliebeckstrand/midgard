@@ -95,6 +95,15 @@ export function FileUpload(props: FileUploadProps) {
 					value={label ?? ''}
 					placeholder={placeholder ?? 'Choose a file'}
 					onClick={openPicker}
+					// The field is readOnly and only opens the picker on activation, so
+					// it must respond to keyboard activation like a button would.
+					onKeyDown={(event) => {
+						if (event.key === 'Enter' || event.key === ' ') {
+							event.preventDefault()
+
+							openPicker()
+						}
+					}}
 					className={cn('file:hidden', k.cursor)}
 					suffix={<Icon icon={<Upload />} />}
 				/>
