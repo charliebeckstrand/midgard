@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
+import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseListboxStateParams<T> = {
@@ -20,20 +21,11 @@ export function useListboxState<T>({
 	onOpenChange,
 	setValue,
 }: UseListboxStateParams<T>) {
-	const [internalOpen, setInternalOpen] = useState(false)
-
-	const isOpenControlled = openProp !== undefined
-
-	const open = isOpenControlled ? openProp : internalOpen
-
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (!isOpenControlled) setInternalOpen(next)
-
-			onOpenChange?.(next)
-		},
-		[isOpenControlled, onOpenChange],
-	)
+	const [open = false, setOpen] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
 
 	const close = useCallback(() => {
 		setOpen(false)

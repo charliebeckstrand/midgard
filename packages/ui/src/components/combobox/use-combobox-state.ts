@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useDeferredValue, useState } from 'react'
+import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type UseComboboxStateParams<T> = {
@@ -39,22 +40,13 @@ export function useComboboxState<T>({
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
-	const [internalOpen, setInternalOpen] = useState(false)
+	const [open = false, setOpen] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
 
 	const [editing, setEditing] = useState(false)
-
-	const isOpenControlled = openProp !== undefined
-
-	const open = isOpenControlled ? openProp : internalOpen
-
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (!isOpenControlled) setInternalOpen(next)
-
-			onOpenChange?.(next)
-		},
-		[isOpenControlled, onOpenChange],
-	)
 
 	const setQuery = useCallback(
 		(next: string) => {
