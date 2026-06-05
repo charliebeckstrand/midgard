@@ -30,7 +30,9 @@
 
 ## 4. Version Control
 
-For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
+4.1 For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
+
+4.2 Commit as you go: land each coherent unit of work — a passing test, a self-contained refactor, a working slice of a feature — as its own commit rather than batching unrelated changes into one. A commit need not be the smallest possible diff; it should be the smallest one that stands on its own and leaves the tree green.
 
 ---
 
