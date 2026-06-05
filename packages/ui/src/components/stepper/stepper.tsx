@@ -85,6 +85,7 @@ export function Stepper({
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			role="toolbar"
+			aria-label="Steps"
 			aria-orientation={resolvedOrientation}
 			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
 			className={cn(k.root({ orientation: resolvedOrientation }), className)}

@@ -23,6 +23,8 @@ describe('Stepper', () => {
 		const el = bySlot(container, 'stepper')
 
 		expect(el).toBeInTheDocument()
+
+		expect(screen.getByRole('toolbar', { name: 'Steps' })).toBeInTheDocument()
 	})
 
 	it('applies custom className', () => {

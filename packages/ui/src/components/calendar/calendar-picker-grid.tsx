@@ -52,6 +52,7 @@ export function CalendarPickerGrid({
 			<div
 				ref={headerRef}
 				role="toolbar"
+				aria-label={gridLabel}
 				onKeyDown={onHeaderKeyDown}
 				className={cn(k.header({ size }))}
 			>
