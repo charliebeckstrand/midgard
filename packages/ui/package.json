@@ -52,6 +52,7 @@
 		"test:changed": "vitest run --changed",
 		"test:related": "vitest related --run",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
+		"a11y:score": "vitest run --config vitest.a11y.config.ts",
 		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --write --config-path=../.. ."
