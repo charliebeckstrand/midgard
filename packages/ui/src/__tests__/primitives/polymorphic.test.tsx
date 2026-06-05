@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Polymorphic } from '../../primitives/polymorphic'
 import { bySlot, renderUI, screen } from '../helpers'
@@ -67,6 +68,40 @@ describe('Polymorphic', () => {
 		const el = bySlot(container, 'label')
 
 		expect(el).not.toHaveAttribute('type')
+	})
+
+	it('renders a custom component passed to as', () => {
+		function Card({ children, ...props }: ComponentPropsWithoutRef<'section'>) {
+			return <section {...props}>{children}</section>
+		}
+
+		const { container } = renderUI(
+			<Polymorphic as={Card} href={undefined} data-slot="card" className="cls">
+				Content
+			</Polymorphic>,
+		)
+
+		const el = bySlot(container, 'card')
+
+		expect(el?.tagName).toBe('SECTION')
+	})
+
+	it('renders a link when href is set even if as is a custom component', () => {
+		function Card({ children, ...props }: ComponentPropsWithoutRef<'section'>) {
+			return <section {...props}>{children}</section>
+		}
+
+		const { container } = renderUI(
+			<Polymorphic as={Card} href="/path" data-slot="card" className="cls">
+				Link
+			</Polymorphic>,
+		)
+
+		const el = bySlot(container, 'card')
+
+		expect(el?.tagName).toBe('A')
+
+		expect(el).toHaveAttribute('href', '/path')
 	})
 
 	it('renders children', () => {
