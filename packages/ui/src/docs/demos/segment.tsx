@@ -45,6 +45,8 @@ export function Demo() {
 
 	const [filter, setFilter] = useState('All')
 
+	const filteredItems = filter === 'All' ? items : items.filter((item) => item.status === filter)
+
 	return (
 		<>
 			<Example title="Default">
@@ -57,16 +59,6 @@ export function Demo() {
 					</Segment>
 
 					{view === 'List' ? (
-						// <Stack gap="sm">
-						// 	{items.map((item) => (
-						// 		<Card key={item.name}>
-						// 			<CardBody className="flex items-center justify-between">
-						// 				<CardTitle>{item.name}</CardTitle>
-						// 				<CardDescription>{item.description}</CardDescription>
-						// 			</CardBody>
-						// 		</Card>
-						// 	))}
-						// </Stack>
 						<List items={items} getKey={(item) => item.name} variant="solid" sortable={false}>
 							{(item) => (
 								<ListItem>
@@ -102,21 +94,18 @@ export function Demo() {
 					</Segment>
 
 					<Stack gap="sm">
-						{items
-							.filter((item) => {
-								if (filter === 'All') return true
-								return item.status === filter
-							})
-							.map((item) => (
-								<Card key={item.name}>
-									<CardBody className="flex items-center justify-between py-3">
-										<CardTitle>{item.name}</CardTitle>
-										<Badge color={statusColor[item.status]} size="sm">
-											{item.status}
-										</Badge>
-									</CardBody>
-								</Card>
-							))}
+						<List
+							items={filteredItems}
+							getKey={(item) => item.name}
+							variant="solid"
+							sortable={false}
+						>
+							{(item) => (
+								<ListItem suffix={<Badge color={statusColor[item.status]}>{item.status}</Badge>}>
+									<ListLabel>{item.name}</ListLabel>
+								</ListItem>
+							)}
+						</List>
 					</Stack>
 				</Stack>
 			</Example>

@@ -19,7 +19,7 @@
     "lefthook": "^2.1.4",
     "turbo": "^2.8.14"
   },
-  "packageManager": "pnpm@11.5.1",
+  "packageManager": "pnpm@11.5.2",
   "dependencies": {
     "hlidskjalf": "^0.4.0"
   }

@@ -103,7 +103,7 @@ export function Demo() {
 
 	return (
 		<>
-			<Example title="Glass wrapper">
+			<Example title="Wrapper">
 				<Glass>
 					<Stack>
 						<Field>

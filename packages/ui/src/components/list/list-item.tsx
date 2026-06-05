@@ -9,11 +9,13 @@ import { ListHandle } from './list-handle'
 export type ListItemProps = {
 	/** Content rendered before the main content — replaces the auto-inserted `<ListHandle>` when provided. */
 	prefix?: ReactNode
+	/** Content rendered after the main content. */
+	suffix?: ReactNode
 	children?: ReactNode
 	className?: string
 }
 
-export function ListItem({ prefix, children, className }: ListItemProps) {
+export function ListItem({ prefix, suffix, children, className }: ListItemProps) {
 	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 
 	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
@@ -40,6 +42,7 @@ export function ListItem({ prefix, children, className }: ListItemProps) {
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>
+			{suffix && suffix}
 		</li>
 	)
 }

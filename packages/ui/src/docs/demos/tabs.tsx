@@ -27,8 +27,8 @@ export function Demo() {
 					</TabContents>
 				</Tabs>
 			</Example>
-			<Example title="Vertical">
-				<Tabs defaultValue="Account" orientation="vertical">
+			<Example title="Segment">
+				<Tabs defaultValue="Account" variant="segment">
 					<TabList>
 						{tabs.map((tab) => (
 							<Tab key={tab} value={tab}>
@@ -36,7 +36,7 @@ export function Demo() {
 							</Tab>
 						))}
 					</TabList>
-					<TabContents className="flex-1">
+					<TabContents>
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
 								<Text variant="muted">{tab} settings would go here.</Text>
