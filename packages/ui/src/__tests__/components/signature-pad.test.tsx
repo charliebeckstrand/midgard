@@ -1,6 +1,8 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
+import { Description, Message } from '../../components/fieldset'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import {
 	configureStroke,
@@ -210,5 +212,37 @@ describe('drawSnapshot', () => {
 		;(captured as HTMLImageElement | null)?.onload?.(new Event('load'))
 
 		expect(drawImage).toHaveBeenCalled()
+	})
+})
+
+describe('SignaturePad + Control', () => {
+	it('surfaces invalid state from an enclosing Control onto the canvas', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<SignaturePad />
+			</Control>,
+		)
+
+		const canvas = bySlot(container, 'signature-pad-canvas')
+
+		expect(canvas).toHaveAttribute('aria-invalid', 'true')
+
+		expect(canvas).toHaveAttribute('data-invalid')
+	})
+
+	it('points the canvas aria-describedby at the control description and message', () => {
+		const { container } = renderUI(
+			<Control id="sig" invalid>
+				<Description>Sign above the line</Description>
+				<SignaturePad />
+				<Message>Signature required</Message>
+			</Control>,
+		)
+
+		const describedBy = bySlot(container, 'signature-pad-canvas')?.getAttribute('aria-describedby')
+
+		expect(describedBy).toContain('sig-description')
+
+		expect(describedBy).toContain('sig-error')
 	})
 })

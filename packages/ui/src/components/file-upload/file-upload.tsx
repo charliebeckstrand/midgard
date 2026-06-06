@@ -2,11 +2,11 @@
 
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { formatFileNames } from './file-upload-utilities'
@@ -51,6 +51,12 @@ export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileU
 export function FileUpload(props: FileUploadProps) {
 	const { accept, multiple, disabled, className, children, onFiles } = props
 
+	// The hidden <input type="file"> is the real control in every variant, so a
+	// wrapping <Control>/<Field>'s invalid + required + error-message wiring is
+	// mirrored onto it (the input variant's visible <Input> self-resolves the same
+	// context independently).
+	const control = useControl()
+
 	const {
 		inputRef,
 		dragOver,
@@ -71,12 +77,15 @@ export function FileUpload(props: FileUploadProps) {
 			ref={inputRef}
 			type="file"
 			aria-label={ariaLabel}
+			aria-describedby={control?.describedBy}
 			accept={accept}
 			multiple={multiple}
 			disabled={disabled}
+			required={control?.required}
 			onChange={handleChange}
 			className="sr-only"
 			tabIndex={-1}
+			{...invalidAttrs(control?.invalid)}
 		/>
 	)
 

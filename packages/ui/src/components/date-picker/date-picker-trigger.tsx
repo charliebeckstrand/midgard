@@ -30,6 +30,7 @@ type DatePickerTriggerProps = {
 	/** When `false`, the trigger grows to fit its content and the truncation Tooltip is skipped. */
 	truncate?: boolean
 	disabled?: boolean
+	required?: boolean
 	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	className?: string
@@ -49,6 +50,7 @@ export function DatePickerTrigger({
 	size,
 	truncate = true,
 	disabled = false,
+	required = false,
 	invalid = false,
 	onKeyDown,
 	className,
@@ -82,6 +84,7 @@ export function DatePickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
+						aria-required={required || undefined}
 						data-slot="datepicker-button"
 						disabled={disabled}
 						{...invalidAttrs(invalid)}

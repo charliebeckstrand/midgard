@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
+import { Control } from '../../components/control'
+import { Description, Message } from '../../components/fieldset'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
@@ -263,5 +265,59 @@ describe('ComboboxPanel', () => {
 		expect(empty.tagName).toBe('OUTPUT')
 
 		expect(listbox.contains(empty)).toBe(false)
+	})
+})
+
+describe('Combobox + Control', () => {
+	it('surfaces invalid state from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<Combobox>
+					<ComboboxOption value="a">
+						<ComboboxLabel>A</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(input).toHaveAttribute('data-invalid')
+	})
+
+	it('inherits required from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Combobox>
+					<ComboboxOption value="a">
+						<ComboboxLabel>A</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toBeRequired()
+	})
+
+	it('points aria-describedby at the control description and message', () => {
+		const { container } = renderUI(
+			<Control id="status" invalid>
+				<Description>Choose one</Description>
+				<Combobox>
+					<ComboboxOption value="a">
+						<ComboboxLabel>A</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+				<Message>Required</Message>
+			</Control>,
+		)
+
+		const describedBy = bySlot(container, 'combobox-input')?.getAttribute('aria-describedby')
+
+		expect(describedBy).toContain('status-description')
+
+		expect(describedBy).toContain('status-error')
 	})
 })
