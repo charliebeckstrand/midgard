@@ -48,6 +48,7 @@ const formatters: Record<PhoneInputCountry, (raw: string) => string> = {
 export function PhoneInput({ country = 'US', prefix, ...props }: PhoneInputProps) {
 	return (
 		<MaskInput
+			data-slot="phone-input"
 			type="tel"
 			inputMode="tel"
 			autoComplete="tel"

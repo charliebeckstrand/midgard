@@ -3,10 +3,10 @@ import { SearchInput } from '../../components/search-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('SearchInput', () => {
-	it('renders an input with data-slot="input"', () => {
+	it('renders an input with data-slot="search-input"', () => {
 		const { container } = renderUI(<SearchInput />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'search-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -22,7 +22,7 @@ describe('SearchInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<SearchInput className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'search-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -30,7 +30,7 @@ describe('SearchInput', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<SearchInput placeholder="Search..." />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'search-input')
 
 		expect(input).toHaveAttribute('placeholder', 'Search...')
 	})
@@ -76,7 +76,7 @@ describe('SearchInput', () => {
 
 		const { container } = renderUI(<SearchInput onChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'search-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -88,7 +88,7 @@ describe('SearchInput', () => {
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(<SearchInput />, { skeleton: true })
 
-		expect(bySlot(container, 'input')).not.toBeInTheDocument()
+		expect(bySlot(container, 'search-input')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -97,7 +97,7 @@ describe('SearchInput', () => {
 
 		const { container } = renderUI(<SearchInput defaultValue="abc" onClear={onClear} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'search-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 

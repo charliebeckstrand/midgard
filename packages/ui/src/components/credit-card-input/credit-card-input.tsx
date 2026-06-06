@@ -51,6 +51,7 @@ export function CreditCardInput({
 	return (
 		<Input
 			ref={masked.ref}
+			data-slot="credit-card-input"
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-number"

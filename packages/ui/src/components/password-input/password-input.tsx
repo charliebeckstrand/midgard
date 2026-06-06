@@ -46,6 +46,7 @@ export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
 
 	return (
 		<Input
+			data-slot="password-input"
 			{...props}
 			type={visible ? 'text' : 'password'}
 			suffix={

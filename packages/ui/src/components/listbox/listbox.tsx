@@ -54,6 +54,8 @@ type ListboxBaseProps = {
 	onOpenChange?: (open: boolean) => void
 	'data-group'?: string
 	'data-group-orientation'?: string
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
 	children: ReactNode
 }
 
@@ -99,6 +101,7 @@ export function Listbox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
+	'data-slot': slot,
 	children,
 }: ListboxProps<T>) {
 	const glass = useGlass()
@@ -193,6 +196,7 @@ export function Listbox<T>({
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
+				data-slot={slot}
 				frameProps={{
 					onClick: () => setOpen(!open),
 					// While open, focus lives on the active option in the portalled panel. A

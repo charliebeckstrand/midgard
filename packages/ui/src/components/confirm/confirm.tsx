@@ -47,6 +47,7 @@ export function Confirm({
 		<Dialog
 			open={open}
 			onOpenChange={onOpenChange}
+			data-slot="confirm"
 			role="alertdialog"
 			size={size}
 			className={className}

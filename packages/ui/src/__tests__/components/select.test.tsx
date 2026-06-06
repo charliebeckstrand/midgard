@@ -3,14 +3,14 @@ import { Select } from '../../components/select'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Select', () => {
-	it('renders with data-slot="control"', () => {
+	it('renders with data-slot="select"', () => {
 		const { container } = renderUI(
 			<Select>
 				<div>Option</div>
 			</Select>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'select')
 
 		expect(el).toBeInTheDocument()
 	})
@@ -36,7 +36,7 @@ describe('Select', () => {
 			</Select>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'select')
 
 		expect(el?.className).toContain('custom')
 	})
