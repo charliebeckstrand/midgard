@@ -1,4 +1,11 @@
-export { useRoving } from './a11y'
+export {
+	type A11yRelation,
+	type A11yScope,
+	type A11yScopeOptions,
+	useA11yScope,
+	useAriaIds,
+	useRoving,
+} from './a11y'
 export { useComposedRef } from './use-composed-ref'
 export { useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'
