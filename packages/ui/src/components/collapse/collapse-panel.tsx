@@ -13,16 +13,11 @@ export type CollapsePanelProps = {
 }
 
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
-	const { open, animate, triggerId, panelId } = useCollapseContext()
+	const { open, animate, panelProps } = useCollapseContext()
 
 	if (animate === false) {
 		return open ? (
-			<section
-				id={panelId}
-				aria-labelledby={triggerId}
-				data-slot="collapse-panel"
-				className={cn(k.panel, className)}
-			>
+			<section {...panelProps} data-slot="collapse-panel" className={cn(k.panel, className)}>
 				{children}
 			</section>
 		) : null
@@ -35,8 +30,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 			<AnimatePresence initial={false}>
 				{open && (
 					<motion.section
-						id={panelId}
-						aria-labelledby={triggerId}
+						{...panelProps}
 						data-slot="collapse-panel"
 						{...k.motion[variant]}
 						className={cn(k.panel, className)}

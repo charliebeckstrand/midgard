@@ -10,17 +10,15 @@ export type CollapseTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'chi
 }
 
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
-	const { open, toggle, triggerId, panelId } = useCollapseContext()
+	const { open, toggle, triggerProps } = useCollapseContext()
 
 	const rendered = typeof children === 'function' ? children({ open }) : children
 
 	return (
 		<button
 			type="button"
-			id={triggerId}
 			data-slot="collapse-trigger"
-			aria-expanded={open}
-			aria-controls={panelId}
+			{...triggerProps}
 			onClick={(e) => {
 				toggle()
 				onClick?.(e)

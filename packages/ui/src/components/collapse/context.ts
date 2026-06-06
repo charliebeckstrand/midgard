@@ -8,8 +8,8 @@ type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation
-	triggerId: string
-	panelId: string
+	triggerProps: { id: string; 'aria-controls': string; 'aria-expanded'?: boolean }
+	panelProps: { id: string; 'aria-labelledby': string }
 }
 
 export const [CollapseContext, useCollapseContext] = createContext<CollapseContextValue>('Collapse')
