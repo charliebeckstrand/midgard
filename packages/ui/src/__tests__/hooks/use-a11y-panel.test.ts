@@ -1,0 +1,44 @@
+import { act, renderHook } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { useA11yPanel } from '../../hooks/a11y/use-a11y-panel'
+
+describe('useA11yPanel', () => {
+	it('defaults to a modal dialog role', () => {
+		const { result } = renderHook(() => useA11yPanel())
+
+		expect(result.current.panelAriaProps.role).toBe('dialog')
+
+		expect(result.current.panelAriaProps['aria-modal']).toBe(true)
+	})
+
+	it('honors an explicit role', () => {
+		const { result } = renderHook(() => useA11yPanel('alertdialog'))
+
+		expect(result.current.panelAriaProps.role).toBe('alertdialog')
+	})
+
+	it('omits labelling attributes until slots register', () => {
+		const { result } = renderHook(() => useA11yPanel())
+
+		expect(result.current.panelAriaProps['aria-labelledby']).toBeUndefined()
+
+		expect(result.current.panelAriaProps['aria-describedby']).toBeUndefined()
+	})
+
+	it('points aria-labelledby / aria-describedby at the registered slot ids', () => {
+		const { result } = renderHook(() => useA11yPanel())
+
+		const { titleId, descriptionId, registerTitle, registerDescription } =
+			result.current.providerValue
+
+		act(() => {
+			registerTitle()
+
+			registerDescription()
+		})
+
+		expect(result.current.panelAriaProps['aria-labelledby']).toBe(titleId)
+
+		expect(result.current.panelAriaProps['aria-describedby']).toBe(descriptionId)
+	})
+})

@@ -3,14 +3,9 @@
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
-import { useMinWidth } from '../../hooks'
+import { useA11yPanel, useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import {
-	PanelA11yContext,
-	PanelCloseContext,
-	usePanelA11yScope,
-	usePanelCloseValue,
-} from '../../primitives/panel'
+import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
@@ -67,7 +62,7 @@ export function Dialog({
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope(role)
+	const { panelAriaProps, providerValue } = useA11yPanel(role)
 
 	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
 	// the explicit label only when there's no title.

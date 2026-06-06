@@ -1,7 +1,11 @@
 export {
+	type A11yPanel,
+	type A11yPanelProviderValue,
+	type A11yPanelRole,
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
+	useA11yPanel,
 	useA11yScope,
 	useAriaIds,
 	useRoving,

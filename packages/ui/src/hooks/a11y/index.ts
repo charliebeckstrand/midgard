@@ -1,4 +1,10 @@
 export {
+	type A11yPanel,
+	type A11yPanelProviderValue,
+	type A11yPanelRole,
+	useA11yPanel,
+} from './use-a11y-panel'
+export {
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
