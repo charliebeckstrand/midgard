@@ -2,9 +2,10 @@ import { Button } from '../../../components/button'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
+import { Map as MapView } from '../../../components/map'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { screen } from '../../helpers'
+import { screen, waitFor } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -93,6 +94,19 @@ export const interactive: readonly InteractiveCase[] = [
 			if (trigger) await user.click(trigger as HTMLElement)
 
 			await screen.findByRole('button', { name: 'Today' })
+		},
+	],
+	[
+		// Map (maplibre globally mocked): a labelled role="application" region. No
+		// interaction — just wait for the async load to settle before asserting.
+		'map',
+		<MapView key="imap" label="Delivery map" />,
+		async () => {
+			await waitFor(() => {
+				const el = document.querySelector('[data-slot="map"]')
+
+				if (el?.getAttribute('data-ready') !== 'true') throw new Error('map not ready')
+			})
 		},
 	],
 ]
