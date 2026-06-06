@@ -88,7 +88,7 @@ export function SidebarLayout({
 			)}
 
 			{/* Sidebar on desktop — inline when locked */}
-			{!floating && <div className={cn(k.panel(), panelClassName)}>{sidebar}</div>}
+			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
 
 			{/* Sidebar on desktop — sheet when floating */}
 			{floating && (
