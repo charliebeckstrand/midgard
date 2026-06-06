@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
-import { hsvaToHex, hsvaToRgba } from './color-utilities'
+import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
 type ColorPickerTriggerProps = {
@@ -48,8 +48,7 @@ export function ColorPickerTrigger({
 }: ColorPickerTriggerProps) {
 	const glass = useGlass()
 
-	const rgba = hsvaToRgba(hsva)
-	const swatchColor = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${alpha ? rgba.a : 1})`
+	const swatchColor = hsvaToCss(hsva, alpha)
 	const label = hsvaToHex(hsva, alpha).toUpperCase()
 
 	return (

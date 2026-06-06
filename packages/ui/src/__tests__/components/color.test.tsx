@@ -4,6 +4,7 @@ import {
 	equalHsva,
 	hexToHsva,
 	hexToRgba,
+	hsvaToCss,
 	hsvaToHex,
 	hsvaToRgba,
 	normalizeHex,
@@ -85,6 +86,11 @@ describe('color conversions', () => {
 	it('normalizes hex for swatch comparison', () => {
 		expect(normalizeHex('#ABC')).toBe('#aabbcc')
 		expect(normalizeHex('#GGG')).toBeNull()
+	})
+
+	it('builds a css rgba fill, dropping alpha unless requested', () => {
+		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
+		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('rgba(255, 0, 0, 0.5)')
 	})
 })
 
