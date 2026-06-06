@@ -4,6 +4,12 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useRoving } from '../../hooks'
 
+// Out-of-range day cells render as `<button disabled>`, which can't take focus.
+// Every query here is scoped to focusable buttons so roving skips them: a
+// `.focus()` on a disabled cell is a no-op that freezes the active index and
+// traps arrow-key navigation at the edge of a disabled range (WCAG 2.1.1).
+const FOCUSABLE = 'button:not(:disabled)'
+
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
@@ -13,17 +19,17 @@ type CalendarFocusOptions = {
 }
 
 function firstButton(container: HTMLElement | null): HTMLElement | null {
-	return container?.querySelector<HTMLElement>('button') ?? null
+	return container?.querySelector<HTMLElement>(FOCUSABLE) ?? null
 }
 
 function middleButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>('button') ?? [])
+	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
 	return buttons[Math.floor(buttons.length / 2)] ?? null
 }
 
 function lastButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = container?.querySelectorAll<HTMLElement>('button')
+	const buttons = container?.querySelectorAll<HTMLElement>(FOCUSABLE)
 
 	if (!buttons?.length) return null
 
@@ -31,7 +37,7 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 }
 
 function isTopRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>('button') ?? [])
+	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
@@ -39,7 +45,7 @@ function isTopRow(container: HTMLElement | null, cols: number): boolean {
 }
 
 function isBottomRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>('button') ?? [])
+	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
@@ -56,12 +62,12 @@ export function useCalendarFocus({
 	stopPropagation = false,
 }: CalendarFocusOptions) {
 	const headerRoving = useRoving(headerRef, {
-		itemSelector: 'button',
+		itemSelector: FOCUSABLE,
 		orientation: 'horizontal',
 	})
 
 	const gridRoving = useRoving(gridRef, {
-		itemSelector: 'button',
+		itemSelector: FOCUSABLE,
 		cols,
 	})
 
@@ -131,7 +137,7 @@ export function useCalendarFocus({
 
 			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
 				const buttons = Array.from(
-					(footerRef?.current ?? null)?.querySelectorAll<HTMLElement>('button') ?? [],
+					(footerRef?.current ?? null)?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [],
 				)
 
 				const index = buttons.indexOf(document.activeElement as HTMLElement)
