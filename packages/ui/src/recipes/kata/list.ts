@@ -35,10 +35,13 @@ const item = defineRecipe({
 		plain: '',
 		solid: [...bg.tint, border.default, rounded.lg],
 	},
-	// Row padding tracks the density axis, but the shape differs per variant
+	// Row padding tracks the density axis, but its shape differs per variant
 	// (card-like variants use the uniform ma.p scale; `plain` uses a tighter
 	// px/py ratio), so it's applied through the variant × density compound
-	// rules below rather than this axis — numeric p / px utilities don't merge.
+	// rules below rather than this axis. Putting `p-*` on a shared axis and
+	// overriding `plain` with `px/py` wouldn't merge cleanly: tailwind-merge
+	// (by design) keeps a later `px`/`py` alongside an earlier `p`, so the
+	// shadowed `p-*` would linger and rely on CSS source order to lose.
 	density: { sm: '', md: '', lg: '' },
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],
