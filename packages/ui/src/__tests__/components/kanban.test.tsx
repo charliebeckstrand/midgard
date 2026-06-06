@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Kanban,
 	KanbanCard,
@@ -7,7 +8,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 type Item = { id: string; title: string }
 type Column = { id: string; title: string; items: Item[] }
@@ -26,6 +27,53 @@ function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } =
 			aria-label="Board"
 		>
 			{columns.map((column) => (
+				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
+					<KanbanColumnHeader>
+						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
+					</KanbanColumnHeader>
+					<KanbanColumnBody empty="Empty">
+						{column.items.map((item) => (
+							<KanbanCard key={item.id} cardId={item.id}>
+								{item.title}
+							</KanbanCard>
+						))}
+					</KanbanColumnBody>
+				</KanbanColumn>
+			))}
+		</Kanban>
+	)
+}
+
+// Stateful board with several cards so keyboard reorder and cross-card focus
+// movement re-render against live state.
+const keyboardColumns: Column[] = [
+	{
+		id: 'todo',
+		title: 'Todo',
+		items: [
+			{ id: 'a', title: 'A' },
+			{ id: 'b', title: 'B' },
+			{ id: 'c', title: 'C' },
+		],
+	},
+	{ id: 'done', title: 'Done', items: [{ id: 'd', title: 'D' }] },
+]
+
+function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => void } = {}) {
+	const [cols, setCols] = useState(keyboardColumns)
+
+	return (
+		<Kanban
+			columns={cols}
+			getKey={(item: Item) => item.id}
+			aria-label="Board"
+			onValueChange={(next) => {
+				setCols(next)
+
+				onValueChange?.(next)
+			}}
+		>
+			{cols.map((column) => (
 				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
@@ -283,5 +331,106 @@ describe('KanbanColumnBody', () => {
 
 		// No fallback supplied → no children rendered.
 		expect(body?.children).toHaveLength(0)
+	})
+})
+
+// Keyboard drag-and-drop is the a11y path axe can't exercise: Space lifts a
+// card, then arrows reorder it within and across columns, while un-lifted
+// arrows just move focus. Reorders surface through onValueChange.
+describe('Kanban keyboard reorder', () => {
+	const cardOf = (root: HTMLElement, id: string) =>
+		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+
+	const itemIds = (next: Column[], columnId: string) =>
+		next.find((column) => column.id === columnId)?.items.map((item) => item.id)
+
+	it('moves focus between cards with arrow keys when no card is lifted', () => {
+		const { container } = renderUI(<KeyboardBoard />)
+
+		cardOf(container, 'a').focus()
+
+		fireEvent.keyDown(cardOf(container, 'a'), { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(cardOf(container, 'b'))
+
+		fireEvent.keyDown(cardOf(container, 'b'), { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(cardOf(container, 'd'))
+	})
+
+	it('reorders within the column when a lifted card is moved down', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		expect(card).toHaveAttribute('data-lifted')
+
+		fireEvent.keyDown(card, { key: 'ArrowDown' })
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(itemIds(onValueChange.mock.calls[0]?.[0], 'todo')).toEqual(['b', 'a', 'c'])
+	})
+
+	it('moves a lifted card into the next column with ArrowRight', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		fireEvent.keyDown(card, { key: 'ArrowRight' })
+
+		const next = onValueChange.mock.calls[0]?.[0]
+
+		expect(itemIds(next, 'todo')).toEqual(['b', 'c'])
+
+		expect(itemIds(next, 'done')).toEqual(['d', 'a'])
+	})
+
+	it('drops a lifted card on Escape without reordering', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		expect(card).toHaveAttribute('data-lifted')
+
+		fireEvent.keyDown(card, { key: 'Escape' })
+
+		expect(cardOf(container, 'a')).not.toHaveAttribute('data-lifted')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('ignores arrow keys held with a modifier', () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: 'ArrowDown', shiftKey: true })
+
+		expect(document.activeElement).toBe(card)
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })
