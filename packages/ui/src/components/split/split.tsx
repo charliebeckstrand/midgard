@@ -1,5 +1,8 @@
+'use client'
+
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { useDensityNullable } from '../../primitives/density'
 import {
 	alignMap,
 	gapMap,
@@ -18,7 +21,11 @@ export type SplitProps = {
 	 * (equal split).
 	 */
 	ratio?: SplitRatio
-	/** Gap between the two panes. Defaults to `lg`. */
+	/**
+	 * Gap between the two panes. Resolves through
+	 * `explicit ?? Density.density ?? 'lg'`, so a Split inside a Density
+	 * provider inherits the matching spacing step without further wiring.
+	 */
 	gap?: SplitGap
 	/** Cross-axis alignment. */
 	align?: SplitAlign
@@ -29,13 +36,17 @@ export type SplitProps = {
 export function Split({
 	direction = 'horizontal',
 	ratio = '1/2',
-	gap = 'lg',
+	gap,
 	align,
 	className,
 	style,
 	children,
 	...props
 }: SplitProps) {
+	const density = useDensityNullable()
+
+	const resolvedGap = gap ?? density?.density ?? 'lg'
+
 	const [a, b] = ratioTuples[ratio]
 	const template = `${a}fr ${b}fr`
 
@@ -45,7 +56,7 @@ export function Split({
 	return (
 		<div
 			data-slot="split"
-			className={cn('grid', gapMap[gap], align && alignMap[align], className)}
+			className={cn('grid', gapMap[resolvedGap], align && alignMap[align], className)}
 			style={{ ...ratioStyle, ...style }}
 			{...props}
 		>
