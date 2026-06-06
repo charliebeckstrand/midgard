@@ -17,7 +17,7 @@ import { shades } from '../../../core/recipe'
 export const text = shades({
 	zinc: ['text-zinc-700', 'dark:text-zinc-400'],
 	red: ['text-red-700', 'dark:text-red-400'],
-	amber: ['text-amber-700', 'dark:text-amber-400'],
-	green: ['text-green-700', 'dark:text-green-400'],
+	amber: ['text-amber-800', 'dark:text-amber-400'],
+	green: ['text-green-800', 'dark:text-green-400'],
 	blue: ['text-blue-700', 'dark:text-blue-400'],
 })
