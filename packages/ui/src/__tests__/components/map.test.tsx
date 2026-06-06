@@ -137,7 +137,9 @@ describe('MapMarker', () => {
 		const marker = bySlot(container, 'map-marker') as HTMLElement
 
 		await waitFor(() => expect(marker).toHaveAttribute('role', 'button'))
+
 		expect(marker).toHaveAttribute('tabindex', '0')
+
 		expect(marker).toHaveAttribute('aria-label', 'Open shipment')
 	})
 
@@ -161,6 +163,7 @@ describe('MapMarker', () => {
 		marker.focus()
 
 		await user.keyboard('{Enter}')
+
 		await user.keyboard(' ')
 
 		expect(onClick).toHaveBeenCalledTimes(2)
@@ -178,6 +181,7 @@ describe('MapMarker', () => {
 		const marker = bySlot(container, 'map-marker') as HTMLElement
 
 		expect(marker).not.toHaveAttribute('role')
+
 		expect(marker).not.toHaveAttribute('tabindex')
 	})
 

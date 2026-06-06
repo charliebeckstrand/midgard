@@ -42,20 +42,6 @@ export function MapMarker({
 
 	const interactive = onClick != null
 
-	// An interactive marker rendering only the decorative default pin has no
-	// accessible name. Surface it in development (stripped in production), mirroring
-	// the icon-only Button warning.
-	if (
-		process.env.NODE_ENV !== 'production' &&
-		interactive &&
-		ariaLabel == null &&
-		children == null
-	) {
-		console.error(
-			'MapMarker: an interactive marker (`onClick`) with the default pin has no accessible name. Pass `aria-label` or labelled `children`.',
-		)
-	}
-
 	const markerRef = useRef<MapLibreMarker | null>(null)
 
 	const [element, setElement] = useState<HTMLDivElement | null>(null)

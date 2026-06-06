@@ -43,7 +43,9 @@ describe('ChatPrompt', () => {
 		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
 
 		expect(el).toHaveAttribute('aria-labelledby', 'composer-label')
+
 		expect(el).not.toHaveAttribute('aria-label')
+
 		expect(screen.getByRole('textbox', { name: 'Ask the assistant' })).toBeInTheDocument()
 	})
 
@@ -210,6 +212,7 @@ describe('ChatPrompt', () => {
 		})
 
 		expect(bySlot(container, 'chat-prompt')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
