@@ -7,7 +7,7 @@ import {
 	drawSnapshot,
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
-import { bySlot, fireEvent, makeCanvasContext, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, makeCanvasContext, renderUI, screen, userEvent } from '../helpers'
 
 describe('SignaturePad', () => {
 	it('renders with data-slot="signature-pad"', () => {
@@ -101,6 +101,22 @@ describe('SignaturePad', () => {
 		fireEvent.click(clearButton)
 
 		expect(onChange).toHaveBeenCalledWith(null)
+	})
+
+	it('returns focus to the canvas after clearing', async () => {
+		const { container } = renderUI(<SignaturePad defaultValue="data:image/png;base64,AAAA" />)
+
+		const canvas = bySlot(container, 'signature-pad-canvas') as HTMLElement
+
+		const user = userEvent.setup()
+
+		await user.click(bySlot(container, 'signature-pad-clear') as HTMLElement)
+
+		// The clear button unmounts once the pad is empty; focus must return to the
+		// canvas rather than falling to <body>.
+		expect(bySlot(container, 'signature-pad-clear')).not.toBeInTheDocument()
+
+		expect(canvas).toHaveFocus()
 	})
 
 	it('omits the clear action when readOnly even with a value', () => {
