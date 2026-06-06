@@ -95,6 +95,16 @@ describe('DatePicker', () => {
 		expect(bySlot(container, 'datepicker-button')).toBeDisabled()
 	})
 
+	it('surfaces required state from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control required>
+				<DatePicker />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'datepicker-button')).toHaveAttribute('aria-required', 'true')
+	})
+
 	it('displays formatted date when value is set', () => {
 		const date = new Date(2025, 0, 15)
 

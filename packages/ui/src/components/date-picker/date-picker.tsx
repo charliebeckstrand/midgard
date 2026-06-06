@@ -94,6 +94,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				size={size}
 				truncate={truncate}
 				disabled={state.disabled}
+				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}

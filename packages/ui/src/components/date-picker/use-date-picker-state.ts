@@ -153,6 +153,7 @@ export function useDatePickerState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		required: control?.required,
 		invalid: control?.invalid,
 		displayValue: value ? formatDate(value) : '',
 		open,
