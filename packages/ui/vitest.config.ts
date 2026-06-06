@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import { componentTagsPlugin, virtualStubsPlugin } from './src/docs/plugins'
 import { baseTest } from './vitest.base.config'
 
@@ -10,6 +10,9 @@ export default defineConfig({
 		sequence: { shuffle: true },
 		setupFiles: ['./src/__tests__/setup/index.ts', './src/__tests__/setup/module-mocks.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
+		// The browser suite (vitest.browser.config.ts) verifies layout/colour cases
+		// jsdom can't; it must not run under this jsdom config.
+		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
