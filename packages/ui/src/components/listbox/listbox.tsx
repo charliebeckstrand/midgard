@@ -167,6 +167,10 @@ export function Listbox<T>({
 				event.stopPropagation()
 
 				setValue(multiple ? ([] as T[]) : undefined)
+
+				// The clear button unmounts once the selection is empty; return
+				// focus to the trigger rather than dropping it to <body> (WCAG 2.4.3).
+				triggerRef.current?.focus()
 			}}
 		>
 			<Icon icon={<X />} />

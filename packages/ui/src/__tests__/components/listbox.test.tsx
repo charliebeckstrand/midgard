@@ -258,6 +258,22 @@ describe('Listbox', () => {
 		expect(onChange).toHaveBeenCalledWith(undefined)
 	})
 
+	it('returns focus to the trigger after clearing', () => {
+		renderUI(
+			<Listbox clearable value="a" displayValue={(v) => v}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const trigger = screen.getByRole('combobox')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		// The clear button unmounts with the selection; focus must land on the
+		// trigger, not <body>.
+		expect(trigger).toHaveFocus()
+	})
+
 	it('clears a multiple selection to an empty array', () => {
 		const onChange = vi.fn()
 
