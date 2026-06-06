@@ -59,6 +59,22 @@ describe('SearchInput', () => {
 		expect(onClear).toHaveBeenCalledOnce()
 	})
 
+	it('returns focus to the input after clearing (uncontrolled)', async () => {
+		renderUI(<SearchInput defaultValue="query" />)
+
+		const input = screen.getByRole('searchbox')
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Clear search'))
+
+		// The clear button unmounts once the field is empty; focus must return to
+		// the input rather than falling to <body>.
+		expect(screen.queryByLabelText('Clear search')).not.toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+	})
+
 	it('shows spinner when loading', () => {
 		const { container } = renderUI(<SearchInput loading />)
 
