@@ -3,6 +3,7 @@
 import { type CSSProperties, useRef } from 'react'
 import { cn } from '../../../core'
 import { useControllable } from '../../../hooks/use-controllable'
+import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useRangeKeyboard } from './use-range-keyboard'
@@ -54,6 +55,13 @@ export function RangeSlider({
 
 	const current = range ?? [min, max]
 
+	// Resolve size through the Density cascade for parity with Slider:
+	// explicit prop > ambient Density, landing on the recipe default 'md'
+	// outside any provider.
+	const { size: inheritedSize } = useDensity()
+
+	const resolvedSize = size ?? inheritedSize
+
 	const trackRef = useRef<HTMLDivElement>(null)
 	const loThumbRef = useRef<HTMLButtonElement>(null)
 	const hiThumbRef = useRef<HTMLButtonElement>(null)
@@ -88,7 +96,7 @@ export function RangeSlider({
 		<div
 			data-slot="slider-range"
 			data-disabled={disabled || undefined}
-			className={cn(k.root({ size, color }), className)}
+			className={cn(k.root({ size: resolvedSize, color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -98,7 +106,7 @@ export function RangeSlider({
 			<div
 				ref={trackRef}
 				data-slot="slider-range-track"
-				className={cn(k.track({ size }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.track({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 			>
 				{/* Filled range */}
 				<div
@@ -120,7 +128,7 @@ export function RangeSlider({
 				aria-valuenow={current[0]}
 				aria-label="Range start"
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb({ size }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${lo}%` }}
 				onKeyDown={handleKeyDown(0)}
 			/>
@@ -137,7 +145,7 @@ export function RangeSlider({
 				aria-valuenow={current[1]}
 				aria-label="Range end"
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb({ size }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${hi}%` }}
 				onKeyDown={handleKeyDown(1)}
 			/>
