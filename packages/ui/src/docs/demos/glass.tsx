@@ -24,7 +24,7 @@ import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Other' }
+export const meta = { category: 'Layout' }
 
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
