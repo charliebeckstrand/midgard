@@ -1,4 +1,10 @@
 import type { ReactElement } from 'react'
+import {
+	Accordion,
+	AccordionItem,
+	AccordionPanel,
+	AccordionTrigger,
+} from '../../components/accordion'
 import { Alert } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
@@ -10,11 +16,14 @@ import {
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { Button } from '../../components/button'
+import { Calendar } from '../../components/calendar'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
+import { DataTable, type DataTableColumn } from '../../components/data-table'
 import { Field, Label } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
 import { Heading } from '../../components/heading'
 import { Input } from '../../components/input'
+import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NavItem, NavList } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import {
@@ -24,6 +33,9 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
+import { ProgressBar } from '../../components/progress'
+import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import {
 	Sidebar,
 	SidebarBody,
@@ -33,11 +45,30 @@ import {
 } from '../../components/sidebar'
 import { Slider } from '../../components/slider'
 import { Spinner } from '../../components/spinner'
+import { StatusDot } from '../../components/status'
+import { Stepper, StepperSeparator, StepperStep, StepperTitle } from '../../components/stepper'
 import { Switch, SwitchField } from '../../components/switch'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
+import { TagInput } from '../../components/tag-input'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
+import { ToggleIconButton } from '../../components/toggle-icon-button'
+import { Toolbar, ToolbarSeparator } from '../../components/toolbar'
+import { Tree, TreeItem } from '../../components/tree'
 
 export type Case = readonly [name: string, element: ReactElement]
+
+type Person = { id: number; name: string; email: string }
+
+const dataTableRows: Person[] = [
+	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com' },
+	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com' },
+]
+
+const dataTableColumns: DataTableColumn<Person>[] = [
+	{ id: 'name', title: 'Name', cell: (row) => row.name, sortable: true },
+	{ id: 'email', title: 'Email', cell: (row) => row.email },
+]
 
 /**
  * Canonical, correctly-wired render of each component — the corpus the
@@ -167,4 +198,160 @@ export const baseline: readonly Case[] = [
 			</BreadcrumbList>
 		</Breadcrumb>,
 	],
+	[
+		// Disclosure pattern: each trigger is a button that controls its panel via
+		// aria-expanded/aria-controls; one item open by default.
+		'accordion',
+		<Accordion key="ac" defaultValue="shipping">
+			<AccordionItem value="shipping">
+				<AccordionTrigger>Shipping</AccordionTrigger>
+				<AccordionPanel>Orders ship within one business day.</AccordionPanel>
+			</AccordionItem>
+			<AccordionItem value="returns">
+				<AccordionTrigger>Returns</AccordionTrigger>
+				<AccordionPanel>Unworn items can be returned within 30 days.</AccordionPanel>
+			</AccordionItem>
+		</Accordion>,
+	],
+	[
+		// tablist/tab/tabpanel: the selected tab is named and its panel labelled by
+		// the tab via aria-labelledby.
+		'tabs',
+		<Tabs key="t" defaultValue="account">
+			<TabList>
+				<Tab value="account">Account</Tab>
+				<Tab value="billing">Billing</Tab>
+			</TabList>
+			<TabContents>
+				<TabContent value="account">Account settings.</TabContent>
+				<TabContent value="billing">Billing settings.</TabContent>
+			</TabContents>
+		</Tabs>,
+	],
+	[
+		// Radios share a name to form a single group; each input is named by its
+		// adjacent Label through Control context.
+		'radio',
+		<RadioGroup key="r">
+			<RadioField>
+				<Radio name="plan" value="starter" defaultChecked />
+				<Label>Starter</Label>
+			</RadioField>
+			<RadioField>
+				<Radio name="plan" value="business" />
+				<Label>Business</Label>
+			</RadioField>
+		</RadioGroup>,
+	],
+	[
+		// Single-select segmented control (radiogroup); the group carries an
+		// accessible name and one item is selected.
+		'segment',
+		<Segment key="sg" defaultValue="list" aria-label="View">
+			<SegmentControl>
+				<SegmentItem value="list">List</SegmentItem>
+				<SegmentItem value="grid">Grid</SegmentItem>
+			</SegmentControl>
+		</Segment>,
+	],
+	[
+		// Process steps with separators between them; current step marked via the
+		// active value.
+		'stepper',
+		<Stepper key="st" value={1}>
+			<StepperStep value={0}>
+				<StepperTitle>Account</StepperTitle>
+			</StepperStep>
+			<StepperSeparator />
+			<StepperStep value={1}>
+				<StepperTitle>Profile</StepperTitle>
+			</StepperStep>
+			<StepperSeparator />
+			<StepperStep value={2}>
+				<StepperTitle>Confirm</StepperTitle>
+			</StepperStep>
+		</Stepper>,
+	],
+	[
+		// Status indicator paired with a visible text label so meaning is not
+		// conveyed by the dot alone.
+		'status',
+		<span key="sd">
+			<StatusDot status="active" /> Active
+		</span>,
+	],
+	[
+		// Determinate progressbar named via aria-label (no associated visible
+		// label in this canonical form).
+		'progress',
+		<ProgressBar key="pb" value={60} aria-label="Upload progress" />,
+	],
+	[
+		// Icon-only toggle: aria-pressed reflects state, aria-label supplies the
+		// accessible name the icon cannot.
+		'toggle icon button',
+		<ToggleIconButton
+			key="tib"
+			pressed={false}
+			icon={<svg aria-hidden="true" />}
+			pressedIcon={<svg aria-hidden="true" />}
+			aria-label="Toggle dark mode"
+		/>,
+	],
+	[
+		// role=toolbar with an accessible name; grouped controls named by their
+		// text.
+		'toolbar',
+		<Toolbar key="tb" aria-label="Text formatting">
+			<Button variant="plain">Bold</Button>
+			<Button variant="plain">Italic</Button>
+			<ToolbarSeparator />
+			<Button variant="plain">Underline</Button>
+		</Toolbar>,
+	],
+	[
+		// Tags edited inline; the composite is named by its Field Label through
+		// Control context.
+		'tag input',
+		<Field key="ti">
+			<Label>Tags</Label>
+			<TagInput defaultValue={['React', 'TypeScript']} placeholder="Add a tag" />
+		</Field>,
+	],
+	[
+		// role=tree with nested role=group; each item exposes its label and
+		// expanded state.
+		'tree',
+		<Tree key="tr">
+			<TreeItem label="Documents">
+				<TreeItem label="report.pdf" />
+				<TreeItem label="budget.xlsx" />
+			</TreeItem>
+			<TreeItem label="Photos">
+				<TreeItem label="vacation.jpg" />
+			</TreeItem>
+		</Tree>,
+	],
+	[
+		// Closed listbox: the trigger is a button named by its Field Label; the
+		// option popover only mounts when opened.
+		'listbox in field',
+		<Field key="lb">
+			<Label>Status</Label>
+			<Listbox<string> nullable displayValue={(value: string) => value} placeholder="Select status">
+				<ListboxOption value="active">
+					<ListboxLabel>Active</ListboxLabel>
+				</ListboxOption>
+				<ListboxOption value="paused">
+					<ListboxLabel>Paused</ListboxLabel>
+				</ListboxOption>
+			</Listbox>
+		</Field>,
+	],
+	[
+		// Data grid with a sortable column header (aria-sort) and keyed rows.
+		'data table',
+		<DataTable key="dt" columns={dataTableColumns} rows={dataTableRows} getKey={(row) => row.id} />,
+	],
+	['calendar', <Calendar key="ca" />],
 ]
