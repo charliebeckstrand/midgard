@@ -19,6 +19,7 @@ import { axeGeometry } from './helpers/axe-geometry'
 // (they aren't native disabled controls), so the case is excluded here rather
 // than darkened. Its structure stays covered by the jsdom baseline.
 const GEOMETRY_EXEMPT = new Set(['kanban'])
+
 const geometryBaseline = baseline.filter(([name]) => !GEOMETRY_EXEMPT.has(name))
 
 describe('a11y geometry (axe) — baseline', () => {

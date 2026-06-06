@@ -85,6 +85,7 @@ describe('useVirtualWindow table windowing', () => {
 			const count = dataRows(container).length
 
 			expect(count).toBeGreaterThan(0)
+
 			expect(count).toBeLessThan(100)
 		})
 	})
@@ -96,6 +97,7 @@ describe('useVirtualWindow table windowing', () => {
 
 		// The first page shows the head of the list and not a deep row.
 		expect(container.textContent).toContain('Row 0')
+
 		expect(container.textContent).not.toContain('Row 200')
 
 		const scroller = container.querySelector<HTMLElement>('[data-slot="virtual-table"]')
@@ -108,6 +110,7 @@ describe('useVirtualWindow table windowing', () => {
 		// After scrolling, the window has moved off the head onto deeper rows.
 		await waitFor(() => {
 			expect(container.textContent).toContain('Row 200')
+
 			expect(container.textContent).not.toContain('Row 0')
 		})
 	})
@@ -137,6 +140,7 @@ describe('VirtualOptions windowing', () => {
 			const rendered = container.querySelectorAll('[role="option"]').length
 
 			expect(rendered).toBeGreaterThan(0)
+
 			expect(rendered).toBeLessThan(100)
 		})
 	})
@@ -149,6 +153,7 @@ describe('VirtualOptions windowing', () => {
 		)
 
 		expect(container.textContent).toContain('Item 0')
+
 		expect(container.textContent).not.toContain('Item 400')
 
 		const listbox = container.querySelector<HTMLElement>('[role="listbox"]')
@@ -160,6 +165,7 @@ describe('VirtualOptions windowing', () => {
 
 		await waitFor(() => {
 			expect(container.textContent).toContain('Item 400')
+
 			expect(container.textContent).not.toContain('Item 0')
 		})
 	})
