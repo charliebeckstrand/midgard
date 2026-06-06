@@ -22,9 +22,6 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')
 
-	// One rung below the button so the dots read as an affix, not the label.
-	const dotSize = sizes[Math.max(0, sizes.indexOf(buttonSize) - 1)]
-
 	return (
 		<Tabs defaultValue="spinner">
 			<Stack gap="lg">
@@ -117,15 +114,10 @@ export function Demo() {
 								}
 							>
 								<Flex gap="md">
-									<Button disabled size={buttonSize} prefix={<LoadingDots size={dotSize} />}>
+									<Button disabled size={buttonSize} prefix={<LoadingDots />}>
 										Loading
 									</Button>
-									<Button
-										variant="soft"
-										disabled
-										size={buttonSize}
-										prefix={<LoadingDots size={dotSize} />}
-									>
+									<Button variant="soft" disabled size={buttonSize} prefix={<LoadingDots />}>
 										Saving
 									</Button>
 								</Flex>
