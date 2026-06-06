@@ -137,6 +137,13 @@ export function hsvaToHex(hsva: Hsva, alpha = false): string {
 	return rgbaToHex(hsvaToRgba(hsva), alpha)
 }
 
+/** CSS `rgba()` fill for a swatch or preview chip; drops alpha to `1` unless requested. */
+export function hsvaToCss(hsva: Hsva, alpha = false): string {
+	const { r, g, b, a } = hsvaToRgba(hsva)
+
+	return `rgba(${r}, ${g}, ${b}, ${alpha ? a : 1})`
+}
+
 export function hexToHsva(input: string): Hsva | null {
 	const rgba = hexToRgba(input)
 

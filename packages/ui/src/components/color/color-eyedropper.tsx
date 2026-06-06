@@ -20,7 +20,7 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * nothing where the API is unavailable, so it stays a progressive enhancement.
  */
 export function ColorEyedropper() {
-	const { setHsva, alpha, disabled, size } = useColorPanelContext()
+	const { setHsva, disabled, size } = useColorPanelContext()
 
 	const EyeDropper = getEyeDropper()
 
@@ -32,7 +32,7 @@ export function ColorEyedropper() {
 
 			const parsed = hexToHsva(sRGBHex)
 
-			if (parsed) setHsva(alpha ? parsed : { ...parsed, a: 1 })
+			if (parsed) setHsva(parsed)
 		} catch {
 			// The user dismissed the eyedropper (AbortError) — nothing to commit.
 		}
