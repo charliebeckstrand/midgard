@@ -32,7 +32,8 @@
 
 - *State* — `useControllable` (controlled/uncontrolled value), `useDeferredToggle`, `useSelectableValueChange`
 - *Floating & overlays* — `useFloatingUI`, `useFloatingPanel`, `useFloatingDisclosure`, `useOffcanvas`, `useDismissable`, `useScrollLock`
-- *Interaction* — `useKeybindings`, `useKeyboardSettled`, `useRoving` (roving tabindex), `useHasHover`, `useMaskedInput`
+- *Interaction* — `useKeybindings`, `useKeyboardSettled`, `useHasHover`, `useMaskedInput`
+- *Accessibility* — `useA11yScope` (base), `useA11yPanel`, `useA11yControl`, `useA11yRoving` (roving tabindex), `useA11yFocusReturn`, `useA11yAutoFocus`, `useA11yLiveRegion`, `useAriaIds`
 - *Measurement & layout* — `useResizeObserver`, `useMediaQuery`, `useMinWidth`, `useIsTruncated`, `useScrollWithin`, `useIdScope`
 - *Drag & drop* — `useSortableItem`, `useSortableList`, `useSortableSensors`
 
