@@ -17,7 +17,7 @@ vi.mock('@floating-ui/react', async () => {
 	const FLOATING_ID = 'tooltip-fui-id'
 
 	type Props = Record<string, unknown>
-	type Ctx = { open?: boolean; onOpenChange?: (open: boolean) => void }
+	type Context = { open?: boolean; onOpenChange?: (open: boolean) => void }
 	type Interaction = { reference?: Props; floating?: Props }
 
 	const mergeProps = (list: (Props | undefined)[]): Props => {
@@ -48,7 +48,7 @@ vi.mock('@floating-ui/react', async () => {
 
 	return {
 		...base,
-		useRole: (context: Ctx, props?: { role?: string }) => ({
+		useRole: (context: Context, props?: { role?: string }) => ({
 			reference: { 'aria-describedby': context?.open ? FLOATING_ID : undefined },
 			floating: { id: FLOATING_ID, role: props?.role ?? 'tooltip' },
 		}),
@@ -56,10 +56,10 @@ vi.mock('@floating-ui/react', async () => {
 		// click, so a toggling click would re-close what focus just opened. No
 		// test here exercises click-to-close (dismissal goes through the overlay
 		// signal), so open-only keeps the focus + pointer paths consistent.
-		useFocus: (context: Ctx) => ({
+		useFocus: (context: Context) => ({
 			reference: { onFocus: () => context?.onOpenChange?.(true) },
 		}),
-		useClick: (context: Ctx) => ({
+		useClick: (context: Context) => ({
 			reference: { onClick: () => context?.onOpenChange?.(true) },
 		}),
 		useInteractions: (interactions: Interaction[] = []) => ({
