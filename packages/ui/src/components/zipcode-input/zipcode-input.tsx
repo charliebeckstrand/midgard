@@ -61,6 +61,7 @@ const placeholders: Record<ZipcodeInputCountry, string> = {
 	international: '',
 }
 
+/** Postal-code MaskInput — formats, sets `inputMode`, and supplies a placeholder per `country` (`'US'`, `'CA'`, `'GB'`, `'international'`). */
 export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
 	return (
 		<MaskInput

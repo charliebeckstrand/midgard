@@ -50,6 +50,11 @@ export type ListProps<T> = BaseListProps<T> &
 		  }
 	)
 
+/**
+ * Renders an ordered `items` source through a `children` render function —
+ * with optional drag-and-drop and keyboard reordering when `onReorder` is
+ * supplied. Read-only lists skip per-item sortable registration entirely.
+ */
 export function List<T>({
 	items,
 	getKey,

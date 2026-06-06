@@ -45,6 +45,7 @@ const formatters: Record<PhoneInputCountry, (raw: string) => string> = {
 	international: formatInternational,
 }
 
+/** Phone-number MaskInput — formats per `country` (NANP for `'US'`/`'CA'`, digit-and-`+` for `'international'`) with a leading phone-icon `prefix`. */
 export function PhoneInput({ country = 'US', prefix, ...props }: PhoneInputProps) {
 	return (
 		<MaskInput

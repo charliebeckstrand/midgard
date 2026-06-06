@@ -10,6 +10,7 @@ export type ContainerProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/** Centered max-width page wrapper with responsive horizontal `padding`. */
 export function Container({
 	size = 'md',
 	padding = 'md',

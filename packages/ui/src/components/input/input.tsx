@@ -31,6 +31,11 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	'data-group-orientation'?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
+/**
+ * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner —
+ * resolves variant, size, and invalid state from enclosing Control, Form, Glass,
+ * and Density context, and drops to a bare `<input>` under headless context.
+ */
 export function Input(props: InputProps) {
 	const hasValueProp = 'value' in props
 

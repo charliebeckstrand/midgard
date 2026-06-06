@@ -37,6 +37,7 @@ export type TableProps = TableVariants & {
 	tableProps?: TableElementProps
 }
 
+/** Styled `<table>` shell that shares `grid`, `striped`, and resolved size via context to its rows and cells — `density` resolves through `explicit ?? Density ?? 'snug'`. */
 export function Table({
 	bleed,
 	grid,

@@ -17,6 +17,11 @@ export type CardProps = BoxProps<'radius'> & {
 	size?: Step
 }
 
+/**
+ * Outlined, padded surface built on Box that opens a density cascade for its
+ * children. A nested `data-slot=card-*` section collapses the Card's own
+ * padding to zero.
+ */
 export function Card({
 	size,
 	bg = 'tint',

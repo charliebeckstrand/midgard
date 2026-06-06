@@ -11,6 +11,7 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	meaningful?: (char: string) => boolean
 }
 
+/** Input that reformats its value through `format` as the user types, preserving caret position — controlled or uncontrolled via `value`/`defaultValue`. */
 export function MaskInput({
 	value,
 	defaultValue,

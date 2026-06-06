@@ -23,6 +23,10 @@ export type CheckboxProps = CheckboxVariants & {
 	ref?: Ref<HTMLInputElement>
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
+/**
+ * Labeled checkbox with an `indeterminate` tri-state — binds to enclosing Form
+ * and Control context for `name`, validation, and sizing.
+ */
 export function Checkbox({
 	className,
 	color,

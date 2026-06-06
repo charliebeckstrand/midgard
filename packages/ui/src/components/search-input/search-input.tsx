@@ -22,6 +22,7 @@ export type SearchInputProps = Omit<
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
+/** Search-type Input with a leading search icon — shows a Spinner while `loading` and a clear button once non-empty, returning focus to the field on clear. */
 export function SearchInput({
 	value,
 	defaultValue,

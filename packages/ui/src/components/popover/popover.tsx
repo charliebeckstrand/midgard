@@ -16,6 +16,11 @@ export type PopoverProps = {
 	children: ReactNode
 }
 
+/**
+ * Composition root for a click-triggered floating dialog — supplies
+ * positioning and disclosure state to its trigger and panel via context,
+ * controlled or uncontrolled through `open`/`onOpenChange`.
+ */
 export function Popover({
 	placement = 'bottom',
 	open: openProp,

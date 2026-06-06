@@ -19,6 +19,11 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	size?: TabsSize
 }
 
+/**
+ * Tab-group root holding selection state and `variant`/`orientation`/`size`
+ * context for its list and panels — controlled or uncontrolled via
+ * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
+ */
 export function Tabs({
 	value,
 	defaultValue,

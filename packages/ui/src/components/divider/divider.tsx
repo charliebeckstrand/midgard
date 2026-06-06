@@ -6,6 +6,7 @@ export type DividerProps = DividerVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'hr'>, 'className'>
 
+/** Horizontal or vertical rule — `vertical` orientation carries the `separator` role; `soft` lightens the line. */
 export function Divider({ orientation, soft, className, ...props }: DividerProps) {
 	return (
 		<hr

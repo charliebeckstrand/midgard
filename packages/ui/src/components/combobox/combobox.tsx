@@ -87,6 +87,12 @@ type ComboboxMultipleProps<T> = {
 export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
+/**
+ * Type-ahead select pairing a text input with a floating option panel —
+ * single or `multiple` selection, controlled or uncontrolled `value`, and an
+ * optional `clearable` affordance. Pass `children` as a function to receive the
+ * live and deferred query for client-side filtering.
+ */
 export function Combobox<T>({
 	id,
 	value: valueProp,

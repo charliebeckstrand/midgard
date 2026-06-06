@@ -21,6 +21,7 @@ export type TreeProps = {
 	className?: string
 }
 
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation — keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. */
 export function Tree({ size, indent = false, children, className }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 

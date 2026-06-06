@@ -38,6 +38,11 @@ export type FormProps<T extends Record<string, unknown>> = {
 	'onSubmit' | 'onReset' | 'children' | 'className' | 'values'
 >
 
+/**
+ * Reducer-backed form scope over typed `defaultValues` — tracks dirty, touched,
+ * errors, and submitting state, validates on the `validateOn` trigger, and
+ * disables its `<Fieldset>` while submitting.
+ */
 export function Form<T extends Record<string, unknown>>({
 	defaultValues,
 	values,

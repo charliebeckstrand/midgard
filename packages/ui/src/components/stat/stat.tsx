@@ -6,6 +6,7 @@ export type StatProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/** Layout container for a labeled metric and its value. */
 export function Stat({ className, children, ...props }: StatProps) {
 	return (
 		<div data-slot="stat" className={cn(k(), className)} {...props}>

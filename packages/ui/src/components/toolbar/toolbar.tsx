@@ -16,6 +16,7 @@ export type ToolbarProps = Omit<ToolbarVariants, 'orientation'> & {
 	children?: ReactNode
 }
 
+/** ARIA toolbar grouping related controls with roving-tabindex arrow-key navigation along its `orientation`. */
 export function Toolbar({
 	orientation = 'horizontal',
 	variant,

@@ -29,6 +29,7 @@ export type NumberInputProps = Omit<
 	step?: number
 }
 
+/** Numeric Input with stepper buttons — clamps to `min`/`max` and rounds to `step` precision on blur rather than mid-entry, and binds to an enclosing Form field by `name`. */
 export function NumberInput({
 	value,
 	defaultValue,

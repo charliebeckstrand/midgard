@@ -28,6 +28,7 @@ export type ChatPromptProps = {
 	className?: string
 }
 
+/** Auto-resizing chat composer built on Textarea — submits on Enter (Shift+Enter for newlines) and toggles its send button to a stop control while `streaming`. */
 export function ChatPrompt({
 	value,
 	onValueChange,

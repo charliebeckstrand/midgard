@@ -27,6 +27,12 @@ export type CurrencyInputProps = Omit<
 	precision?: number
 }
 
+/**
+ * Numeric Input that formats its value as localized currency — emits a `number`
+ * via `onValueChange` while displaying grouped digits and the currency symbol.
+ * Resolves `currency` and `locale` from props, then `<LocaleProvider>`, then
+ * runtime defaults.
+ */
 export function CurrencyInput({
 	value,
 	defaultValue,

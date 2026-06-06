@@ -11,6 +11,7 @@ export type RadioProps = RadioVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
+/** Single radio control wrapped in its label — id, disabled, required, and invalid state resolve from the enclosing control group. */
 export function Radio({
 	className,
 	color,

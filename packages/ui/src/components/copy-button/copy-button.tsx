@@ -17,6 +17,7 @@ export type CopyButtonProps = {
 	onCopiedChange?: (copied: boolean) => void
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
+/** Clipboard-copy control built on ToggleIconButton — writes `value`, flips to a check glyph, and reverts after `timeout`. */
 export function CopyButton({
 	value,
 	icon,

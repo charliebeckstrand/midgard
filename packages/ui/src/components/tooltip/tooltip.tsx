@@ -23,6 +23,11 @@ export type TooltipProps = {
 	children: ReactNode
 }
 
+/**
+ * Hover/focus tooltip root — wires up floating state and shares `placement`,
+ * `delay`, and `size` with its `<TooltipTrigger>` and `<TooltipContent>` via
+ * context.
+ */
 export function Tooltip({ children, ...props }: TooltipProps) {
 	const contextValue = useTooltipState(props)
 

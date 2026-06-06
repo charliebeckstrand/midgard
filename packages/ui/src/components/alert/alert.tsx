@@ -84,6 +84,11 @@ export type AlertProps = AlertVariants & {
 	'data-slot'?: string
 }
 
+/**
+ * Dismissible message bar with severity-driven color, icon, and ARIA role —
+ * accepts `title`/`description`/`actions` props or slotted children, and runs
+ * controlled or uncontrolled via `open`/`defaultOpen`.
+ */
 export function Alert({
 	severity,
 	variant,
