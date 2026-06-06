@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { queryItems, setVirtualActive, useRoving } from '../../hooks/a11y/use-roving'
+import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 
 type CommandPaletteStateOptions = {
 	open: boolean
@@ -26,7 +26,7 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	const listRef = useRef<HTMLDivElement>(null)
 
-	const onKeyDown = useRoving(listRef, {
+	const onKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: ITEM_SELECTOR,
 		activeDescendantRef: inputRef,

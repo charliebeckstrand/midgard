@@ -226,7 +226,7 @@ type RovingOptions = RovingConfig & {
 }
 
 /** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
-export function useRoving(
+export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
 	{
 		itemSelector,

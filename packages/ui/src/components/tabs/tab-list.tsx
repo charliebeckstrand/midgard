@@ -2,7 +2,7 @@
 
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
@@ -26,7 +26,7 @@ export function TabList({ className, children, ...props }: TabListProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TAB_SELECTOR,
 		orientation,
 	})

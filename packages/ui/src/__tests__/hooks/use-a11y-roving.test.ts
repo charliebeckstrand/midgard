@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { matchTypeahead, setVirtualActive, useRoving } from '../../hooks/a11y/use-roving'
+import { matchTypeahead, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { makeKeyEvent } from '../helpers'
 
 describe('setVirtualActive', () => {
@@ -165,12 +165,12 @@ function makeLabeledContainer(labels: string[]) {
 	return container
 }
 
-describe('useRoving', () => {
+describe('useA11yRoving', () => {
 	it('returns a function in focus mode', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLDivElement>(null)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		expect(typeof result.current).toBe('function')
@@ -180,7 +180,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLDivElement>(null)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		expect(typeof result.current).toBe('function')
@@ -190,7 +190,7 @@ describe('useRoving', () => {
 		const { result, rerender } = renderHook(() => {
 			const ref = useRef<HTMLDivElement>(null)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		const first = result.current
@@ -208,7 +208,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(empty)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		const event = makeKeyEvent('ArrowDown')
@@ -230,7 +230,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		const event = makeKeyEvent('ArrowDown')
@@ -250,7 +250,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		const event = makeKeyEvent('ArrowDown')
@@ -268,7 +268,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', focusOnEmpty: true })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', focusOnEmpty: true })
 		})
 
 		const event = makeKeyEvent('ArrowDown')
@@ -286,7 +286,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		const event = makeKeyEvent('ArrowDown')
@@ -310,7 +310,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		result.current(makeKeyEvent('ArrowDown'))
@@ -335,7 +335,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		result.current(makeKeyEvent('Enter'))
@@ -363,7 +363,7 @@ describe('useRoving', () => {
 
 			const adRef = useRef<HTMLElement | null>(controller)
 
-			return useRoving(ref, {
+			return useA11yRoving(ref, {
 				itemSelector: '[role="option"]',
 				mode: 'virtual',
 				activeDescendantRef: adRef,
@@ -394,7 +394,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		result.current(makeKeyEvent('ArrowDown'))
@@ -410,7 +410,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', mode: 'virtual' })
 		})
 
 		const event = makeKeyEvent('Enter')
@@ -430,7 +430,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
 		})
 
 		const event = makeKeyEvent('c')
@@ -450,7 +450,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]' })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]' })
 		})
 
 		const event = makeKeyEvent('b')
@@ -468,7 +468,7 @@ describe('useRoving', () => {
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
 
-			return useRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
+			return useA11yRoving(ref, { itemSelector: '[role="option"]', typeahead: true })
 		})
 
 		const event = makeKeyEvent('z')

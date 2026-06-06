@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, useRef } from 'react'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 
@@ -9,7 +9,7 @@ export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 export function Breadcrumb({ className, onKeyDown, ...props }: BreadcrumbProps) {
 	const ref = useRef<HTMLElement>(null)
 
-	const handleRovingKeyDown = useRoving(ref, {
+	const handleRovingKeyDown = useA11yRoving(ref, {
 		itemSelector: 'a[href]',
 		orientation: 'horizontal',
 	})

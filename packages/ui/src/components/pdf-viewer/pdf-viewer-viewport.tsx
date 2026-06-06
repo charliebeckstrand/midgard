@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 
@@ -26,6 +27,8 @@ export function PdfViewerViewport() {
 
 	const { aspectRatio, frameW, frameH, imageW, imageH } = scale
 
+	const pageStatus = useA11yLiveRegion({ srOnly: true })
+
 	return (
 		<div
 			ref={viewportRef}
@@ -36,12 +39,7 @@ export function PdfViewerViewport() {
 			{/* Page navigation otherwise swaps the image silently; announce the
 			    position so screen-reader users hear "Page X of Y" on change. */}
 			{total > 0 && (
-				<div
-					data-slot="pdf-viewer-page-status"
-					aria-live="polite"
-					aria-atomic="true"
-					className="sr-only"
-				>
+				<div data-slot="pdf-viewer-page-status" {...pageStatus}>
 					Page {safePage} of {total}
 				</div>
 			)}

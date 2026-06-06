@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useA11yControl } from '../../hooks'
 import { type ControlContextValue, useControl } from './context'
-import { useControlA11y } from './use-control-a11y'
 
 /**
  * Builds the `ControlContext` value for a single-control field wrapper
@@ -14,7 +14,7 @@ import { useControlA11y } from './use-control-a11y'
 export function useControlFieldContext(id: string): ControlContextValue {
 	const parent = useControl()
 
-	const a11y = useControlA11y(id)
+	const a11y = useA11yControl(id)
 
 	return useMemo<ControlContextValue>(
 		() => ({

@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext } from './context'
 import { JsonTreeNode } from './json-tree-node'
@@ -56,7 +56,7 @@ export function JsonTree({
 
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
 	})

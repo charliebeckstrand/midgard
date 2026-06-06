@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useControllable, useRoving } from '../../hooks'
+import { useA11yRoving, useControllable } from '../../hooks'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
 import { AccordionContext } from './context'
 
@@ -109,7 +109,7 @@ export function Accordion(props: AccordionProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
 	})
 

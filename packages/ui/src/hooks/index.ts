@@ -1,14 +1,23 @@
 export {
+	type A11yControl,
+	type A11yFocusReturn,
+	type A11yLiveLevel,
+	type A11yLiveRegionOptions,
+	type A11yLiveRegionProps,
 	type A11yPanel,
 	type A11yPanelProviderValue,
 	type A11yPanelRole,
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
+	useA11yAutoFocus,
+	useA11yControl,
+	useA11yFocusReturn,
+	useA11yLiveRegion,
 	useA11yPanel,
+	useA11yRoving,
 	useA11yScope,
 	useAriaIds,
-	useRoving,
 } from './a11y'
 export { useComposedRef } from './use-composed-ref'
 export { useControllable } from './use-controllable'

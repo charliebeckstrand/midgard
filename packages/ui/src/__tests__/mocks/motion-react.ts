@@ -36,11 +36,27 @@ function stripMotionProps(props: Record<string, unknown>) {
 	return clean
 }
 
+// Cache one component per tag. Returning a fresh `forwardRef` on every property
+// access makes `motion.div` a new component type each render, so React remounts
+// the subtree every render — which, combined with a child that calls setState on
+// mount (e.g. panel slot registration), spins into an infinite mount loop.
+const components = new Map<string, ReturnType<typeof forwardRef>>()
+
 const handler: ProxyHandler<object> = {
 	get(_, tag: string) {
-		return forwardRef((props: Record<string, unknown>, ref: unknown) =>
-			createElement(tag, { ref, ...stripMotionProps(props) }),
-		)
+		let component = components.get(tag)
+
+		if (!component) {
+			component = forwardRef((props: Record<string, unknown>, ref: unknown) =>
+				createElement(tag, { ref, ...stripMotionProps(props) }),
+			)
+
+			component.displayName = `motion.${tag}`
+
+			components.set(tag, component)
+		}
+
+		return component
 	},
 }
 

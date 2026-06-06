@@ -10,7 +10,12 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { useFloatingUI, useRoving, useScrollWithin, useSelectableValueChange } from '../../hooks'
+import {
+	useA11yRoving,
+	useFloatingUI,
+	useScrollWithin,
+	useSelectableValueChange,
+} from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { densityPresets, useDensity } from '../../primitives/density'
@@ -150,7 +155,7 @@ export function Combobox<T>({
 
 	const optionsRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(optionsRef, {
+	const handleKeyDown = useA11yRoving(optionsRef, {
 		itemSelector: OPTION_SELECTOR,
 		focusOnEmpty: true,
 	})

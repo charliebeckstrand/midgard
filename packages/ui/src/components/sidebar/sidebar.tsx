@@ -2,7 +2,7 @@
 
 import { type ComponentPropsWithoutRef, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 
@@ -18,7 +18,7 @@ export function Sidebar({
 }: SidebarProps) {
 	const ref = useRef<HTMLElement>(null)
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
 	})
 

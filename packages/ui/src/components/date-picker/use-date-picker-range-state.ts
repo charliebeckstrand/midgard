@@ -3,7 +3,7 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
 
-import { useFloatingUI } from '../../hooks'
+import { useA11yFocusReturn, useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
@@ -12,7 +12,6 @@ import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, clampDate, formatRange } from './date-picker-utilities'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
-import { useDatePickerRefocus } from './use-date-picker-refocus'
 
 export function useDatePickerRangeState({
 	value: valueProp,
@@ -37,7 +36,7 @@ export function useDatePickerRangeState({
 
 	const [open, setOpen] = useState(false)
 
-	const { captureTrigger, skipNextRefocus } = useDatePickerRefocus(open)
+	const { captureTrigger, skipNextRefocus } = useA11yFocusReturn(open)
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
@@ -148,7 +147,7 @@ export function useDatePickerRangeState({
 	})
 
 	// FloatingFocusManager runs with `returnFocus={false}`; capture the trigger so
-	// useDatePickerRefocus can restore focus to it on close.
+	// useA11yFocusReturn can restore focus to it on close.
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
 			captureTrigger(node)

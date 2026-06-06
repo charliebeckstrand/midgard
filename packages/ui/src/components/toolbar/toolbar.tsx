@@ -2,7 +2,7 @@
 
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
@@ -27,7 +27,7 @@ export function Toolbar({
 }: ToolbarProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TOOLBAR_ITEM_SELECTOR,
 		orientation,
 	})

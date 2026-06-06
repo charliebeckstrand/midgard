@@ -2,10 +2,10 @@
 
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { cn } from '../../core'
+import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
 import { ControlContext, type ControlContextValue, useControl } from '../control/context'
-import { useControlA11y } from '../control/use-control-a11y'
 
 export type FieldProps = {
 	autoComplete?: string
@@ -19,7 +19,7 @@ export function Field({ autoComplete, className, disabled, htmlFor, ...props }: 
 
 	const scope = useIdScope({ id: htmlFor })
 
-	const a11y = useControlA11y(scope.id)
+	const a11y = useA11yControl(scope.id)
 
 	const value = useMemo<ControlContextValue>(
 		() => ({
