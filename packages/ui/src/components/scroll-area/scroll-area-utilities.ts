@@ -40,5 +40,6 @@ export function findScrollableAncestor(start: HTMLElement | null): HTMLElement |
 
 		current = current.parentElement
 	}
+
 	return null
 }

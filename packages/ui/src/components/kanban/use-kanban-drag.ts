@@ -99,6 +99,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 				return { ...col, items: nextItems }
 			}
+
 			return col
 		}) as C[]
 

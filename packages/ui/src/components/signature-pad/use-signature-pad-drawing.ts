@@ -94,6 +94,7 @@ export function useSignaturePadDrawing({
 		context.stroke()
 
 		lastPointRef.current = point
+
 		if (empty) setEmpty(false)
 	}
 

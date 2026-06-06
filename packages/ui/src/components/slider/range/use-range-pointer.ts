@@ -71,17 +71,20 @@ export function useRangePointer(opts: {
 				if (snapped < current[0]) {
 					draggingRef.current = 0
 					update(0, raw)
+
 					return
 				}
 
 				if (snapped > current[0]) {
 					draggingRef.current = 1
 					update(1, raw)
+
 					return
 				}
 
 				// Pointer landed on the stack — defer until the first move shows direction.
 				pendingStackedRef.current = event.clientX
+
 				return
 			}
 
@@ -98,11 +101,13 @@ export function useRangePointer(opts: {
 				if (pendingStackedRef.current === null) return
 
 				const dx = event.clientX - pendingStackedRef.current
+
 				if (dx === 0) return
 
 				// At the min/max boundary, the matching thumb has nowhere to go.
 				// Keep waiting in case the user reverses direction.
 				const stacked = current[0]
+
 				if (dx < 0 && stacked <= min) return
 				if (dx > 0 && stacked >= max) return
 
