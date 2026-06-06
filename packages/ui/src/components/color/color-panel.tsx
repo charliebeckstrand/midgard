@@ -13,9 +13,9 @@ import { ColorInputs } from './color-inputs'
 import { ColorPanelSkeleton } from './color-panel-skeleton'
 import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
-import { hsvaToRgba } from './color-utilities'
+import { hsvaToCss } from './color-utilities'
 import { ColorPanelContext, type ColorPanelContextValue } from './context'
-import type { Hsva } from './types'
+import type { ColorValueProps, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
@@ -31,21 +31,7 @@ type ColorPanelBaseProps = {
 	className?: string
 }
 
-type ColorPanelHexProps = {
-	format?: 'hex'
-	value?: string
-	defaultValue?: string
-	onValueChange?: (value: string) => void
-}
-
-type ColorPanelHsvaProps = {
-	format: 'hsva'
-	value?: Hsva
-	defaultValue?: Hsva
-	onValueChange?: (value: Hsva) => void
-}
-
-export type ColorPanelProps = ColorPanelBaseProps & (ColorPanelHexProps | ColorPanelHsvaProps)
+export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
  * Inline colour picker — a saturation/brightness field with hue (and optional
@@ -91,9 +77,7 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 		[hsva, setHsva, alpha, disabled, size],
 	)
 
-	const rgba = hsvaToRgba(hsva)
-
-	const previewColor = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${alpha ? rgba.a : 1})`
+	const previewColor = hsvaToCss(hsva, alpha)
 
 	return (
 		<ColorPanelContext value={context}>

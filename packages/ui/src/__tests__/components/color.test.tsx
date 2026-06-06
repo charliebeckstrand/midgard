@@ -4,6 +4,7 @@ import {
 	equalHsva,
 	hexToHsva,
 	hexToRgba,
+	hsvaToCss,
 	hsvaToHex,
 	hsvaToRgba,
 	normalizeHex,
@@ -29,6 +30,7 @@ describe('color conversions', () => {
 			const hsva = hexToHsva(hex)
 
 			expect(hsva).not.toBeNull()
+
 			expect(hsvaToHex(hsva as NonNullable<typeof hsva>)).toBe(hex)
 		}
 	})
@@ -48,9 +50,13 @@ describe('color conversions', () => {
 
 	it('parses shorthand and alpha hex, rejecting junk', () => {
 		expect(hexToRgba('#abc')).toEqual({ r: 170, g: 187, b: 204, a: 1 })
+
 		expect(hexToRgba('ff0000')).toEqual({ r: 255, g: 0, b: 0, a: 1 })
+
 		expect(hexToRgba('#ff000080')?.a).toBeCloseTo(0.502, 2)
+
 		expect(hexToRgba('not-a-color')).toBeNull()
+
 		expect(hexToRgba('#12345')).toBeNull()
 	})
 
@@ -78,13 +84,21 @@ describe('color conversions', () => {
 
 	it('ignores hue when saturation or value collapses it', () => {
 		expect(equalHsva({ h: 0, s: 0, v: 100, a: 1 }, { h: 200, s: 0, v: 100, a: 1 })).toBe(true)
+
 		expect(equalHsva({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 0, v: 0, a: 1 })).toBe(true)
+
 		expect(equalHsva({ h: 0, s: 100, v: 100, a: 1 }, { h: 120, s: 100, v: 100, a: 1 })).toBe(false)
 	})
 
 	it('normalizes hex for swatch comparison', () => {
 		expect(normalizeHex('#ABC')).toBe('#aabbcc')
+
 		expect(normalizeHex('#GGG')).toBeNull()
+	})
+
+	it('builds a css rgba fill, dropping alpha unless requested', () => {
+		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
+		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('rgba(255, 0, 0, 0.5)')
 	})
 })
 
@@ -93,18 +107,34 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
 		expect(bySlot(container, 'color-panel')).toBeInTheDocument()
+
 		expect(bySlot(container, 'color-area')).toBeInTheDocument()
+
 		expect(bySlot(container, 'color-slider')).toHaveAttribute('data-channel', 'hue')
+
 		expect(bySlot(container, 'color-hex-input')).toBeInTheDocument()
+
 		expect(allBySlot(container, 'color-swatch').length).toBeGreaterThan(0)
 	})
 
 	it('adds the alpha slider only when alpha is enabled', () => {
 		const { container: opaque } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+
 		expect(allBySlot(opaque, 'color-slider')).toHaveLength(1)
 
 		const { container: translucent } = renderUI(<ColorPanel alpha defaultValue="#3b82f6" />)
+
 		expect(allBySlot(translucent, 'color-slider')).toHaveLength(2)
+	})
+
+	it('renders three rgb channel inputs, four with alpha', () => {
+		const { container: opaque } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+
+		expect(allBySlot(opaque, 'color-channel-input')).toHaveLength(3)
+
+		const { container: translucent } = renderUI(<ColorPanel alpha defaultValue="#3b82f6" />)
+
+		expect(allBySlot(translucent, 'color-channel-input')).toHaveLength(4)
 	})
 
 	it('hides the swatches when swatches is false', () => {
@@ -117,6 +147,7 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(<ColorPanel />, { skeleton: true })
 
 		expect(bySlot(container, 'color-panel')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
@@ -128,8 +159,11 @@ describe('ColorPicker', () => {
 		const button = bySlot(container, 'color-picker-button')
 
 		expect(button).toBeInTheDocument()
+
 		expect(button).toHaveAttribute('aria-haspopup', 'dialog')
+
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
 	})
 
@@ -137,6 +171,7 @@ describe('ColorPicker', () => {
 		const { container } = renderUI(<ColorPicker />, { skeleton: true })
 
 		expect(bySlot(container, 'color-picker-button')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
