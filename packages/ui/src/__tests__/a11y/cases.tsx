@@ -405,8 +405,8 @@ export const baseline: readonly Case[] = [
 	],
 	[
 		// Closed combobox: role=combobox input named by its Field Label, aria-expanded
-		// false; the option listbox only mounts when opened. (The open listbox is a
-		// known finding — see overlays corpus note.)
+		// false; the option listbox only mounts when opened (open form lives in the
+		// overlays corpus).
 		'combobox in field',
 		<Field key="cb">
 			<Label>Assignee</Label>
@@ -492,6 +492,25 @@ export const overlays: readonly Case[] = [
 			</PopoverTrigger>
 			<PopoverContent>This is a general-purpose floating container.</PopoverContent>
 		</Popover>,
+	],
+	[
+		// Open combobox: input with aria-expanded plus the filtered option listbox.
+		'combobox in field',
+		<Field key="cbo">
+			<Label>Assignee</Label>
+			<Combobox open displayValue={(value: string) => value} placeholder="Select a person">
+				{() => (
+					<>
+						<ComboboxOption value="Wade Cooper">
+							<ComboboxLabel>Wade Cooper</ComboboxLabel>
+						</ComboboxOption>
+						<ComboboxOption value="Arlene McCoy">
+							<ComboboxLabel>Arlene McCoy</ComboboxLabel>
+						</ComboboxOption>
+					</>
+				)}
+			</Combobox>
+		</Field>,
 	],
 	[
 		// Dropdown menu: role=menu with grouped menuitems, opened on mount.

@@ -67,8 +67,7 @@ export function ComboboxPanel({
 						>
 							<Density density={density} size={size}>
 								<PopoverPanel
-									id={id}
-									role="listbox"
+									role="group"
 									autoFocus={false}
 									glass={glass}
 									className={cn('relative', k.options)}
@@ -76,7 +75,13 @@ export function ComboboxPanel({
 										if (e.key === 'Escape') onClose()
 									}}
 								>
-									{children}
+									{/* The listbox owns only options, per aria-required-children. The
+									    empty-state status message is a sibling inside the panel chrome,
+									    so it still announces and still renders on the dropdown surface;
+									    a peer/:empty toggle swaps the two as options come and go. */}
+									<div role="listbox" id={id} className={cn(k.list)}>
+										{children}
+									</div>
 									<output className={cn(k.empty)}>No results</output>
 								</PopoverPanel>
 							</Density>
