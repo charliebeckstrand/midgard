@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { Dialog } from '../../components/dialog'
 import { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 import { PortalProvider } from '../../providers/portal'
 import { renderUI, screen } from '../helpers'
@@ -10,6 +11,10 @@ function PortalProbe({ container }: { container?: PortalContainer }) {
 }
 
 describe('PortalProvider', () => {
+	afterEach(() => {
+		document.getElementById('app-portal')?.remove()
+	})
+
 	it('renders children', () => {
 		renderUI(
 			<PortalProvider container={null}>
@@ -38,6 +43,24 @@ describe('PortalProvider', () => {
 		renderUI(<PortalProbe />)
 
 		expect(screen.getByTestId('resolved')).toHaveTextContent('none')
+	})
+
+	it('mounts a portalled overlay into the provider container', () => {
+		const target = document.createElement('div')
+
+		target.id = 'app-portal'
+
+		document.body.append(target)
+
+		renderUI(
+			<PortalProvider container={target}>
+				<Dialog open onOpenChange={() => {}}>
+					Portalled dialog
+				</Dialog>
+			</PortalProvider>,
+		)
+
+		expect(target.contains(screen.getByRole('dialog'))).toBe(true)
 	})
 
 	it('lets an explicit container override the provider value', () => {

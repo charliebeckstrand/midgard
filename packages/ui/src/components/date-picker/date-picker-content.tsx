@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
+import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../box'
@@ -41,8 +42,10 @@ export function DatePickerContent({
 }: DatePickerContentProps) {
 	const glass = useGlass()
 
+	const root = usePortalContainer()
+
 	return (
-		<FloatingPortal>
+		<FloatingPortal root={root ?? undefined}>
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (

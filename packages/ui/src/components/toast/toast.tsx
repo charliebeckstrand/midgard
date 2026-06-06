@@ -3,6 +3,7 @@
 import { AnimatePresence } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
+import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useToastViewport } from '../../providers/toast/context'
 import type { ToastPosition } from '../../providers/toast/types'
@@ -21,6 +22,8 @@ export type ToastProps = {
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
+
+	const portalContainer = usePortalContainer()
 
 	const isBottom = position.startsWith('bottom')
 
@@ -54,6 +57,6 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 				</div>
 			</div>
 		</ReducedMotion>,
-		document.body,
+		portalContainer ?? document.body,
 	)
 }

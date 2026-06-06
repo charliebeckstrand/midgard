@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
+import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
 
@@ -49,8 +50,10 @@ export function ComboboxPanel({
 	onClose,
 	children,
 }: ComboboxPanelProps) {
+	const root = usePortalContainer()
+
 	return (
-		<FloatingPortal>
+		<FloatingPortal root={root ?? undefined}>
 			<div ref={optionsRef}>
 				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
