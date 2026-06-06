@@ -66,11 +66,11 @@ const RAMP: Record<Color, ColorRamp> = {
 	},
 }
 
-/** Project one role across every color into the flat `Record<Color, string[]>` the engine consumes. */
-function project(role: keyof ColorRamp): Record<Color, string[]> {
+/** Project one role across every color into the `[light, dark]` map the engine consumes. */
+function project(role: keyof ColorRamp): Record<Color, [light: string, dark: string]> {
 	return Object.fromEntries(
 		(Object.entries(RAMP) as [Color, ColorRamp][]).map(([color, rung]) => [color, [...rung[role]]]),
-	) as Record<Color, string[]>
+	) as Record<Color, [light: string, dark: string]>
 }
 
 export const onSurface = project('onSurface')
@@ -78,4 +78,4 @@ export const onTint = project('onTint')
 export const marker = project('marker')
 
 /** Max-emphasis neutral foreground — the `default` intent and the `bare` zinc hover. */
-export const strong = ['text-zinc-950', 'dark:text-white']
+export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']
