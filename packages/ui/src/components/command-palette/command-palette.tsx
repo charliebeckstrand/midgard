@@ -3,7 +3,9 @@
 import { Search, X } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import type { KeybindingsMap } from 'tinykeys'
+import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
+import { k } from '../../recipes/kata/command-palette'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
 import { Flex } from '../flex'
@@ -124,9 +126,16 @@ export function CommandPalette({
 						role="listbox"
 						aria-label={placeholder}
 						data-slot="command-palette-list"
+						className={cn(k.list)}
 					>
 						{rendered}
 					</div>
+					{/* The listbox owns only options (aria-required-children), so the
+					    no-results status is a sibling: a persistent `<output>` whose text
+					    surfaces — and announces — once the listbox filters down to empty. */}
+					<output data-slot="command-palette-no-results" className={cn(k.empty)}>
+						No results
+					</output>
 				</DialogBody>
 			</CommandPaletteContext>
 		</Dialog>

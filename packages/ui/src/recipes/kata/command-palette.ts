@@ -7,6 +7,13 @@ const { flex, description } = narabi
 
 export const k = {
 	group: 'py-1 first:pt-0 last:pb-0',
+	// Inner listbox: collapses when it has no options so the empty-state status
+	// shows in its place. `peer` drives the sibling `empty` slot below.
+	list: ['peer', 'empty:hidden'],
+	// Sibling no-results status: a persistent `<output>` (role=status) hidden
+	// until the listbox peer is `:empty`, so a query that matches nothing is
+	// announced rather than silent.
+	empty: ['hidden peer-empty:block', 'p-2', size.sm, text.muted],
 	title: ['p-2', size.xs, text.muted, weight.medium],
 	item: [
 		'group/option',
