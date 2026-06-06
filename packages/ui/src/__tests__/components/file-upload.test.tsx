@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, makeFileList, renderUI, screen, waitFor } from '../helpers'
 
 describe('FileUpload', () => {
 	it('renders with data-slot="file-upload"', () => {
@@ -121,5 +121,32 @@ describe('FileUpload + Control', () => {
 		expect(describedBy).toContain('doc-description')
 
 		expect(describedBy).toContain('doc-error')
+	})
+})
+
+describe('FileUpload announcements', () => {
+	const politeRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+	function selectFiles(container: HTMLElement, files: File[]) {
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { files: makeFileList(files) } })
+	}
+
+	it('announces a single selected file by name', async () => {
+		const { container } = renderUI(<FileUpload>Upload</FileUpload>, { announcer: true })
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Selected resume.pdf'))
+	})
+
+	it('announces the count and names for a multi-file selection', async () => {
+		const { container } = renderUI(<FileUpload multiple>Upload</FileUpload>, { announcer: true })
+
+		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Selected 2 files: a.png, b.png'))
 	})
 })

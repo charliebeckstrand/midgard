@@ -1,7 +1,8 @@
 'use client'
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
-import { fileListToArray } from './file-upload-utilities'
+import { useAnnounce } from '../../providers/announcer'
+import { fileListToArray, formatFileNames } from './file-upload-utilities'
 
 type FileHandlersOptions = {
 	disabled?: boolean
@@ -18,6 +19,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 
 	const [files, setFiles] = useState<File[]>([])
 
+	const announce = useAnnounce()
+
 	const dragOver = dragDepth > 0
 
 	const openPicker = useCallback(() => {
@@ -33,8 +36,17 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 			setFiles(arr)
 
 			onFiles?.(arr)
+
+			// The selection lands on a visually-hidden input (or no visible text at
+			// all in the area/button variants), so nothing reaches a screen reader on
+			// its own — voice it through the live region (WCAG 4.1.3).
+			if (arr.length > 0) {
+				const names = formatFileNames(arr)
+
+				announce(arr.length === 1 ? `Selected ${names}` : `Selected ${arr.length} files: ${names}`)
+			}
 		},
-		[onFiles],
+		[onFiles, announce],
 	)
 
 	const handleChange = useCallback(
