@@ -2,6 +2,7 @@ import type { Case } from '../types'
 import { contentCases } from './content'
 import { dataDisplayCases } from './data-display'
 import { feedbackCases } from './feedback'
+import { formCases } from './forms'
 import { inputCases } from './inputs'
 import { navigationCases } from './navigation'
 
@@ -14,6 +15,7 @@ import { navigationCases } from './navigation'
 export const baseline: readonly Case[] = [
 	...contentCases,
 	...inputCases,
+	...formCases,
 	...navigationCases,
 	...dataDisplayCases,
 	...feedbackCases,

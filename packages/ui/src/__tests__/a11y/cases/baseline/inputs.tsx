@@ -1,18 +1,43 @@
+import { AddressInput, type AddressProvider } from '../../../../components/address-input'
 import { Calendar } from '../../../../components/calendar'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../../components/checkbox'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../../components/combobox'
+import { CreditCardInput } from '../../../../components/credit-card-input'
+import { CurrencyInput } from '../../../../components/currency-input'
 import { DatePicker } from '../../../../components/date-picker'
 import { Field, Label } from '../../../../components/fieldset'
 import { FileUpload } from '../../../../components/file-upload'
 import { Input } from '../../../../components/input'
+import { MaskInput } from '../../../../components/mask-input'
+import { NumberInput } from '../../../../components/number-input'
+import { PasswordConfirm, PasswordConfirmInput } from '../../../../components/password-confirm'
+import { PasswordInput } from '../../../../components/password-input'
+import { PasswordStrength } from '../../../../components/password-strength'
+import { PhoneInput } from '../../../../components/phone-input'
 import { Radio, RadioField, RadioGroup } from '../../../../components/radio'
+import { SearchInput } from '../../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
+import { SignaturePad } from '../../../../components/signature-pad'
 import { Slider } from '../../../../components/slider'
 import { Switch, SwitchField } from '../../../../components/switch'
 import { TagInput } from '../../../../components/tag-input'
 import { Textarea } from '../../../../components/textarea'
 import { ToggleIconButton } from '../../../../components/toggle-icon-button'
+import { ZipcodeInput } from '../../../../components/zipcode-input'
 import type { Case } from '../types'
+
+// A license-plate mask: uppercase, alphanumeric, grouped 3-4 (mirrors the demo).
+function formatLicensePlate(raw: string) {
+	const clean = raw
+		.toUpperCase()
+		.replace(/[^A-Z0-9]/g, '')
+		.slice(0, 7)
+
+	return clean.length <= 3 ? clean : `${clean.slice(0, 3)}-${clean.slice(3)}`
+}
+
+// Static suggestion provider so the closed AddressInput never hits the network.
+const addressProvider: AddressProvider = async () => []
 
 /** Inputs & form fields, each in its canonical labelled form. */
 export const inputCases: readonly Case[] = [
@@ -133,6 +158,97 @@ export const inputCases: readonly Case[] = [
 					</ComboboxOption>
 				)}
 			</Combobox>
+		</Field>,
+	],
+	[
+		'number input',
+		<Field key="num">
+			<Label>Quantity</Label>
+			<NumberInput defaultValue={1} min={0} max={10} />
+		</Field>,
+	],
+	[
+		'currency input',
+		<Field key="cur">
+			<Label>Amount</Label>
+			<CurrencyInput defaultValue={1234.56} />
+		</Field>,
+	],
+	[
+		'credit card input',
+		<Field key="cc">
+			<Label>Card number</Label>
+			<CreditCardInput placeholder="0000 0000 0000 0000" />
+		</Field>,
+	],
+	[
+		'phone input',
+		<Field key="ph">
+			<Label>Phone</Label>
+			<PhoneInput placeholder="(555) 555-5555" />
+		</Field>,
+	],
+	[
+		'zipcode input',
+		<Field key="zip">
+			<Label>ZIP</Label>
+			<ZipcodeInput country="US" />
+		</Field>,
+	],
+	[
+		'mask input',
+		<Field key="mask">
+			<Label>License plate</Label>
+			<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
+		</Field>,
+	],
+	[
+		'search input',
+		<Field key="search">
+			<Label>Search</Label>
+			<SearchInput placeholder="Search" />
+		</Field>,
+	],
+	[
+		'password input',
+		<Field key="pw">
+			<Label>Password</Label>
+			<PasswordInput placeholder="Enter password" autoComplete="new-password" />
+		</Field>,
+	],
+	[
+		// Two coupled fields under a wrapper that flags mismatch; each input is
+		// named by its own Label.
+		'password confirm',
+		<PasswordConfirm key="pwc" warning="Passwords do not match">
+			<Field>
+				<Label>Password</Label>
+				<PasswordInput placeholder="Enter password" autoComplete="new-password" />
+			</Field>
+			<Field>
+				<Label>Confirm password</Label>
+				<PasswordConfirmInput placeholder="Confirm password" autoComplete="new-password" />
+			</Field>
+		</PasswordConfirm>,
+	],
+	[
+		// Strength meter driven by a value; carries its own atomic live region.
+		'password strength',
+		<PasswordStrength key="pws" value="Sup3rSecret!" />,
+	],
+	[
+		// Canvas capture: role="img" plus an aria-label make the surface
+		// perceivable and reflect its empty/filled state.
+		'signature pad',
+		<SignaturePad key="sig" aria-label="Signature" />,
+	],
+	[
+		// Closed address autocomplete: combobox input named by its Field Label; the
+		// suggestion popover only mounts once a query is typed.
+		'address input',
+		<Field key="addr">
+			<Label>Address</Label>
+			<AddressInput provider={addressProvider} placeholder="Search address" />
 		</Field>,
 	],
 ]
