@@ -272,6 +272,82 @@ describe('DatePicker', () => {
 	})
 })
 
+// Focus stays on the trigger while an aria-activedescendant model drives the
+// grid, so the date picker is operable entirely from the keyboard — opening,
+// moving the highlight, and committing — without the click path the other
+// tests cover.
+describe('DatePicker keyboard', () => {
+	it.each([
+		'{ArrowDown}',
+		'{ArrowUp}',
+		'{Enter}',
+		' ',
+	])('opens the calendar from the closed trigger with %s', async (key) => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker />)
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		button.focus()
+
+		await user.keyboard(key)
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('closes the open calendar with Escape', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker />)
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+
+		await user.keyboard('{Escape}')
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('moves the active day with arrows and commits it with Enter', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		// June 2025; the initial highlight lands on the 15th.
+		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
+
+		const button = screen.getByRole('button')
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
+
+		await user.keyboard('{ArrowDown}') // move one week forward → the 22nd
+
+		await user.keyboard('{Enter}') // commit
+
+		expect(onChange).toHaveBeenCalledTimes(1)
+
+		const committed = onChange.mock.calls[0]?.[0] as Date
+
+		expect(committed.getMonth()).toBe(5)
+
+		expect(committed.getDate()).toBe(22)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
+})
+
 describe('DatePicker range', () => {
 	it('renders trigger with range placeholder', () => {
 		const { container } = renderUI(<DatePicker range placeholder="Pick dates" />)
