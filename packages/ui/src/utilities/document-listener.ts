@@ -1,5 +1,3 @@
-'use client'
-
 type Registry = {
 	handlers: Set<(event: Event) => void>
 	listener: ((event: Event) => void) | null

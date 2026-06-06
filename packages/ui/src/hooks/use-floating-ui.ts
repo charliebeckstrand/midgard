@@ -25,7 +25,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { subscribeDocumentEvent } from './document-listener'
+import { subscribeDocumentEvent } from '../utilities/document-listener'
 
 // Explicit return types: TS can't write a portable `.d.ts` for the inferred
 // return because `useFloating`'s shape references `@floating-ui/react-dom`,
