@@ -9,7 +9,7 @@ import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
 import { serializeColor, toHsva } from './color-utilities'
-import type { Hsva } from './types'
+import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
 type ColorPickerBaseProps = {
@@ -28,21 +28,7 @@ type ColorPickerBaseProps = {
 	'data-group-orientation'?: string
 }
 
-type ColorPickerHexProps = {
-	format?: 'hex'
-	value?: string
-	defaultValue?: string
-	onValueChange?: (value: string) => void
-}
-
-type ColorPickerHsvaProps = {
-	format: 'hsva'
-	value?: Hsva
-	defaultValue?: Hsva
-	onValueChange?: (value: Hsva) => void
-}
-
-export type ColorPickerProps = ColorPickerBaseProps & (ColorPickerHexProps | ColorPickerHsvaProps)
+export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
  * Popover colour picker — a Control-integrated swatch trigger that opens a

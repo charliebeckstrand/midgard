@@ -15,7 +15,7 @@ import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
 import { hsvaToCss } from './color-utilities'
 import { ColorPanelContext, type ColorPanelContextValue } from './context'
-import type { Hsva } from './types'
+import type { ColorValueProps, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
@@ -31,21 +31,7 @@ type ColorPanelBaseProps = {
 	className?: string
 }
 
-type ColorPanelHexProps = {
-	format?: 'hex'
-	value?: string
-	defaultValue?: string
-	onValueChange?: (value: string) => void
-}
-
-type ColorPanelHsvaProps = {
-	format: 'hsva'
-	value?: Hsva
-	defaultValue?: Hsva
-	onValueChange?: (value: Hsva) => void
-}
-
-export type ColorPanelProps = ColorPanelBaseProps & (ColorPanelHexProps | ColorPanelHsvaProps)
+export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
  * Inline colour picker — a saturation/brightness field with hue (and optional
