@@ -52,7 +52,7 @@ export const k = defineRecipe(
 			xs: [
 				size.xs,
 				icon.xs,
-				gap.g('0.5'),
+				gap.g('0.75'),
 				padding.p('1.5'),
 				radius.r('1'),
 				'data-[has-label]:py-[calc(--spacing(1)-1px)]',
@@ -60,7 +60,7 @@ export const k = defineRecipe(
 			sm: [
 				size.sm,
 				icon.sm,
-				gap.g('0.75'),
+				gap.g('1'),
 				padding.p('2'),
 				radius.r('1.5'),
 				'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
@@ -68,7 +68,7 @@ export const k = defineRecipe(
 			md: [
 				size.md,
 				icon.md,
-				gap.g('1'),
+				gap.g('1.25'),
 				padding.p('2.5'),
 				radius.r('2'),
 				'data-[has-label]:py-[calc(--spacing(2)-1px)]',
@@ -76,7 +76,7 @@ export const k = defineRecipe(
 			lg: [
 				size.lg,
 				icon.lg,
-				gap.g('1.25'),
+				gap.g('1.5'),
 				padding.p('3'),
 				radius.r('2.5'),
 				'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
