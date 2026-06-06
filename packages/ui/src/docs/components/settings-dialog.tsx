@@ -37,10 +37,10 @@ type SettingsDialogProps = {
  * panel portalled to `body` lands there and vanishes from the accessibility
  * tree. Scoping the portal into the overlay subtree keeps the options reachable.
  *
- * The fields are gated on `portalRoot` because `FloatingPortal` captures its
- * target node when it first mounts: rendering the listboxes only once the mount
- * node exists ensures their panels portal into the dialog from the start rather
- * than falling back to `body`.
+ * The mount node sits inside `DialogBody` (a plain block, no flex `gap`) so it
+ * doesn't perturb the panel's slot rhythm, and the fields are gated on it:
+ * `FloatingPortal` captures its target when it first mounts, so the listboxes
+ * must not render until the mount node exists.
  */
 export function SettingsDialog({
 	mode,
@@ -57,16 +57,14 @@ export function SettingsDialog({
 			<Button variant="bare" aria-label="Settings" onClick={() => setOpen(true)}>
 				<Icon icon={<Settings2 />} />
 			</Button>
-			<Dialog open={open} size="sm" aria-label="Settings" onOpenChange={setOpen}>
-				{/* Portal target inside the overlay subtree; see the note above. */}
-				<div ref={setPortalRoot} className="contents" />
-				{portalRoot && (
-					<PortalProvider container={portalRoot}>
-						<DialogHeader>
-							<DialogTitle>Settings</DialogTitle>
-						</DialogHeader>
-						<DialogBody>
-							<Stack gap="lg">
+			<Dialog open={open} size="sm" onOpenChange={setOpen}>
+				<DialogHeader>
+					<DialogTitle>Settings</DialogTitle>
+				</DialogHeader>
+				<DialogBody>
+					<Stack gap="lg">
+						{portalRoot && (
+							<PortalProvider container={portalRoot}>
 								<Field>
 									<Label>Appearance</Label>
 									<ThemeListbox
@@ -83,15 +81,17 @@ export function SettingsDialog({
 										onValueChange={onDensityChange}
 									/>
 								</Field>
-							</Stack>
-						</DialogBody>
-						<DialogFooter>
-							<Button variant="plain" onClick={() => setOpen(false)}>
-								Done
-							</Button>
-						</DialogFooter>
-					</PortalProvider>
-				)}
+							</PortalProvider>
+						)}
+					</Stack>
+					{/* Portal target for the listbox panels — see the note above. */}
+					<div ref={setPortalRoot} className="contents" />
+				</DialogBody>
+				<DialogFooter>
+					<Button variant="plain" onClick={() => setOpen(false)}>
+						Done
+					</Button>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)
