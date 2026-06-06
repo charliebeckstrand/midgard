@@ -20,7 +20,7 @@
 
 **Typography** — `heading` · `text` · `icon`
 
-**Feedback** — `spinner` · `progress`
+**Feedback** — `loading` · `progress`
 
 **Domain & specialized** — `map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
 

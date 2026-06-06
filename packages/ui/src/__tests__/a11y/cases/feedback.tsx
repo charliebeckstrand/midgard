@@ -1,13 +1,12 @@
 import { Alert } from '../../../components/alert'
 import { Banner } from '../../../components/banner'
-import { LoadingDots } from '../../../components/loading'
+import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { ProgressBar } from '../../../components/progress'
-import { Spinner } from '../../../components/spinner'
 import type { Case } from './types'
 
-/** Feedback — spinners, progress, and inline alerts and banners. */
+/** Feedback — loading indicators, progress, and inline alerts and banners. */
 export const feedbackCases: readonly Case[] = [
-	['spinner', <Spinner key="s" />],
+	['loading-spinner', <LoadingSpinner key="s" />],
 	['loading-dots', <LoadingDots key="ld" />],
 	[
 		// Determinate progressbar named via aria-label (no associated visible

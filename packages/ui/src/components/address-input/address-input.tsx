@@ -4,7 +4,7 @@ import { MapPin } from 'lucide-react'
 import { type InputHTMLAttributes, useState } from 'react'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
 import { Icon } from '../icon'
-import { Spinner } from '../spinner'
+import { LoadingSpinner } from '../loading'
 import { photonProvider } from './address-input-photon'
 import type { AddressProvider, AddressSuggestion } from './types'
 import { useAddressInputSuggestions } from './use-address-input-suggestions'
@@ -45,7 +45,7 @@ export function AddressInput({
 		minQueryLength,
 	})
 
-	const suffix = loading ? <Spinner /> : <Icon icon={<MapPin />} />
+	const suffix = loading ? <LoadingSpinner /> : <Icon icon={<MapPin />} />
 
 	return (
 		<Combobox<AddressSuggestion>
