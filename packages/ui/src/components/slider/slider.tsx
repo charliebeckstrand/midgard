@@ -4,6 +4,7 @@ import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useDensity } from '../../primitives/density'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
@@ -23,7 +24,7 @@ export type SliderProps = SliderBaseProps &
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 
-/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field and exposing fill position as a `--slider-value` CSS variable. */
+/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
 export function Slider({
 	value,
 	defaultValue,
@@ -63,6 +64,13 @@ export function Slider({
 
 	const scope = useIdScope({ id: controlProps.id })
 
+	// Resolve size through the Density cascade for parity with the toggle
+	// control family (checkbox / radio / switch): explicit prop > ambient
+	// Density. Outside any provider this lands on 'md', the recipe default.
+	const { size: inheritedSize } = useDensity()
+
+	const resolvedSize = size ?? inheritedSize
+
 	return (
 		<input
 			type="range"
@@ -76,7 +84,7 @@ export function Slider({
 			step={step}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
-			className={cn(k({ size, color }), className)}
+			className={cn(k({ size: resolvedSize, color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
 		/>

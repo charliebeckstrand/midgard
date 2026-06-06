@@ -1,6 +1,3 @@
-'use client'
-
-import { createContext } from '../../core'
 import type { Step } from '../../recipes'
 
 export type DensityLevel = 'loose' | 'snug' | 'compact'
@@ -12,22 +9,13 @@ export const densityLevels: { label: string; value: DensityLevel }[] = [
 	{ label: 'Compact', value: 'compact' },
 ]
 
-/** Friendly density level → `Step` carried by the Density primitive. 1:1 mapping. */
+/**
+ * Friendly density level → `Step` carried by the Density primitive, broadcast
+ * by `<DensityProvider>`. 1:1 mapping (`loose` → `lg`, `snug` → `md`,
+ * `compact` → `sm`); `snug` / `md` is the baseline outside any provider.
+ */
 export const densityToSize: Record<DensityLevel, Step> = {
 	loose: 'lg',
 	snug: 'md',
 	compact: 'sm',
 }
-
-/**
- * Friendly ambient density level — provided by `<Density>`. Maps 1:1 to the
- * `Step` cascade carried by the Density primitive (`loose` → `lg`,
- * `snug` → `md`, `compact` → `sm`), which `<Density>` broadcasts alongside
- * this context so every size-aware descendant inherits without further
- * wiring.
- *
- * Defaults to `'snug'` (equivalent to `size: 'md'`) outside any provider.
- */
-export const [DensityContext, useDensity] = createContext<DensityLevel>('Density', {
-	default: 'snug',
-})

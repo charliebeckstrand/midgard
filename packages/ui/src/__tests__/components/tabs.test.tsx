@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Tabs', () => {
@@ -120,13 +120,13 @@ describe('Tab', () => {
 
 	it('inherits size from ambient Density when wrapped in <Tabs>', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Tabs defaultValue="a">
 					<TabList>
 						<Tab value="a">Tab A</Tab>
 					</TabList>
 				</Tabs>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		// Compact density → 'sm' → text-sm + pb-3 from the recipe.
@@ -139,11 +139,11 @@ describe('Tab', () => {
 
 	it('inherits size from ambient Density when used à la carte (TabList + Tab without <Tabs>)', () => {
 		const { container } = renderUI(
-			<Density density="loose">
+			<DensityProvider density="loose">
 				<TabList>
 					<Tab current>Tab A</Tab>
 				</TabList>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		// Loose density → 'lg' → text-lg + pb-5 from the recipe.

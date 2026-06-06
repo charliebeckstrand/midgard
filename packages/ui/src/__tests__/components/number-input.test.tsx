@@ -2,6 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
+import { Density } from '../../primitives/density'
 import { renderUI, screen, userEvent } from '../helpers'
 
 describe('NumberInput', () => {
@@ -235,5 +236,48 @@ describe('NumberInput', () => {
 		await user.type(input, 'e')
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('NumberInput density inheritance', () => {
+	// The underlying <Input> brings a unique text class per size; matching it
+	// confirms the spinbutton inherited the ambient density instead of the
+	// hardcoded 'md' it used to pass through.
+	const textClassFor = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' } as const
+
+	it('inherits size from the Density context when no explicit prop is set', () => {
+		renderUI(
+			<Density scale="lg">
+				<NumberInput />
+			</Density>,
+		)
+
+		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.lg)
+	})
+
+	it('reserves stepper-button padding that tracks the inherited size', () => {
+		renderUI(
+			<Density scale="lg">
+				<NumberInput />
+			</Density>,
+		)
+
+		expect(screen.getByRole('spinbutton').className).toContain('pr-20')
+	})
+
+	it('explicit size prop overrides Density inheritance', () => {
+		renderUI(
+			<Density scale="lg">
+				<NumberInput size="sm" />
+			</Density>,
+		)
+
+		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.sm)
+	})
+
+	it('falls back to "md" outside any density context', () => {
+		renderUI(<NumberInput />)
+
+		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.md)
 	})
 })

@@ -8,12 +8,20 @@ const { divider } = sen
 
 const item = defineRecipe({
 	base: ['group/option', flex.row, 'w-full', ...hannou.item, ...narabi.item],
-	size: {
-		sm: ['gap-2 px-2.5 py-1', size.sm],
-		md: ['gap-3 px-3 py-1.5', size.md],
-		lg: ['gap-3 px-3.5 py-2.5', size.lg],
+	// Padding + gap track the density axis; text tracks the size axis. They
+	// move together under a diagonal Density (the common case) and split when
+	// an ambient `<Density density size>` sets the axes independently.
+	density: {
+		sm: 'gap-2 px-2.5 py-1',
+		md: 'gap-3 px-3 py-1.5',
+		lg: 'gap-3 px-3.5 py-2.5',
 	},
-	defaults: { size: 'md' },
+	size: {
+		sm: size.sm,
+		md: size.md,
+		lg: size.lg,
+	},
+	defaults: { density: 'md', size: 'md' },
 })
 
 export const k = {
