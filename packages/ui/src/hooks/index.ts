@@ -1,6 +1,9 @@
 export {
 	type A11yControl,
 	type A11yFocusReturn,
+	type A11yLiveLevel,
+	type A11yLiveRegionOptions,
+	type A11yLiveRegionProps,
 	type A11yPanel,
 	type A11yPanelProviderValue,
 	type A11yPanelRole,
@@ -10,6 +13,7 @@ export {
 	useA11yAutoFocus,
 	useA11yControl,
 	useA11yFocusReturn,
+	useA11yLiveRegion,
 	useA11yPanel,
 	useA11yRoving,
 	useA11yScope,

@@ -2,6 +2,12 @@ export { useA11yAutoFocus } from './use-a11y-auto-focus'
 export { type A11yControl, useA11yControl } from './use-a11y-control'
 export { type A11yFocusReturn, useA11yFocusReturn } from './use-a11y-focus-return'
 export {
+	type A11yLiveLevel,
+	type A11yLiveRegionOptions,
+	type A11yLiveRegionProps,
+	useA11yLiveRegion,
+} from './use-a11y-live-region'
+export {
 	type A11yPanel,
 	type A11yPanelProviderValue,
 	type A11yPanelRole,

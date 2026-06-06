@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } from 'react'
+import { useA11yLiveRegion } from '../../hooks'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
 import { PasswordConfirmContext } from './context'
@@ -53,12 +54,14 @@ export function PasswordConfirm({
 		[status, setConfirm, confirmHasFormError],
 	)
 
+	const liveWarning = useA11yLiveRegion({ className: 'pt-2' })
+
 	return (
 		<PasswordConfirmContext value={context}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (
-					<div aria-live="polite" aria-atomic="true" className="pt-2">
+					<div {...liveWarning}>
 						<Text color="amber">{warning}</Text>
 					</div>
 				)}

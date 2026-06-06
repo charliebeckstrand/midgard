@@ -2,6 +2,7 @@
 
 import { Check, Dot } from 'lucide-react'
 import { cn } from '../../core'
+import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
 import {
@@ -49,6 +50,8 @@ export function PasswordStrength({
 }: PasswordStrengthProps) {
 	const { results, level } = usePasswordStrength({ value, rules, onStrengthChange })
 
+	const liveLabel = useA11yLiveRegion({ className: k.label({ level }) })
+
 	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
 
 	const label =
@@ -76,11 +79,7 @@ export function PasswordStrength({
 					/>
 				))}
 			</div>
-			{showLabel && (
-				<div aria-live="polite" aria-atomic="true" className={k.label({ level })}>
-					{label}
-				</div>
-			)}
+			{showLabel && <div {...liveLabel}>{label}</div>}
 			{showRules && (
 				<ul className={cn(k.rules)}>
 					{results.map(({ rule, passed }) => (
