@@ -49,6 +49,7 @@ export function AddressInput({
 	return (
 		<Combobox<AddressSuggestion>
 			{...props}
+			data-slot="address-input"
 			value={value}
 			displayValue={(s) => s.label}
 			onValueChange={onValueChange}

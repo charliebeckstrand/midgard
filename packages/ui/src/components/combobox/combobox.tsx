@@ -60,6 +60,8 @@ type ComboboxBaseProps<T> = {
 	onQueryChange?: (query: string) => void
 	'data-group'?: string
 	'data-group-orientation'?: string
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
 	/**
 	 * Items to render inside the panel. Pass a function to receive the live
 	 * query and a deferred copy; filter heavy lists against `deferredQuery` to
@@ -111,6 +113,7 @@ export function Combobox<T>({
 	inputType = 'text',
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
+	'data-slot': slot,
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
@@ -262,6 +265,7 @@ export function Combobox<T>({
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
+				data-slot={slot}
 				prefix={prefix}
 				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
 				suffixProps={
