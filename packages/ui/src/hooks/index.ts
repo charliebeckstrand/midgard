@@ -20,8 +20,8 @@ export {
 	useA11yPanel,
 	useA11yRoving,
 	useA11yScope,
-	useAriaIds,
 } from './a11y'
+export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
 export { useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'

@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { useAriaIds } from '../../hooks/a11y/use-aria-ids'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 
 describe('useAriaIds', () => {
 	it('joins truthy ids with a single space', () => {

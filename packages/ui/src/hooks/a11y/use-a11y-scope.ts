@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useAriaIds } from '../use-aria-ids'
 import { useIdScope } from '../use-id-scope'
-import { useAriaIds } from './use-aria-ids'
 
 /** Which ARIA relation a registered slot's id contributes to. */
 export type A11yRelation = 'labelledby' | 'describedby'
