@@ -11,6 +11,7 @@ import { avatar } from './avatar'
 import { badge } from './badge'
 import { button } from './button'
 import { checkbox } from './checkbox'
+import { colorPanel } from './color-panel'
 import { control } from './control'
 import { heading } from './heading'
 import { radio } from './radio'
@@ -23,6 +24,7 @@ export const kokkaku = {
 	badge,
 	button,
 	checkbox,
+	colorPanel,
 	control,
 	heading,
 	radio,
