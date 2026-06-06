@@ -110,7 +110,7 @@ describe('MapMarker', () => {
 
 		const { container } = renderUI(
 			<MapView>
-				<MapMarker position={[0, 0]} onClick={onClick} />
+				<MapMarker position={[0, 0]} onClick={onClick} aria-label="Open shipment" />
 			</MapView>,
 		)
 
@@ -121,6 +121,64 @@ describe('MapMarker', () => {
 		await user.click(marker)
 
 		expect(onClick).toHaveBeenCalled()
+	})
+
+	it('exposes an interactive marker as a named, focusable button', async () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} onClick={onClick} aria-label="Open shipment" />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const marker = bySlot(container, 'map-marker') as HTMLElement
+
+		await waitFor(() => expect(marker).toHaveAttribute('role', 'button'))
+		expect(marker).toHaveAttribute('tabindex', '0')
+		expect(marker).toHaveAttribute('aria-label', 'Open shipment')
+	})
+
+	it('activates an interactive marker with Enter and Space', async () => {
+		const onClick = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} onClick={onClick} aria-label="Open shipment" />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const marker = bySlot(container, 'map-marker') as HTMLElement
+
+		await waitFor(() => expect(marker).toHaveAttribute('tabindex', '0'))
+
+		marker.focus()
+
+		await user.keyboard('{Enter}')
+		await user.keyboard(' ')
+
+		expect(onClick).toHaveBeenCalledTimes(2)
+	})
+
+	it('does not expose a non-interactive marker as a button', async () => {
+		const { container } = renderUI(
+			<MapView>
+				<MapMarker position={[0, 0]} />
+			</MapView>,
+		)
+
+		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+
+		const marker = bySlot(container, 'map-marker') as HTMLElement
+
+		expect(marker).not.toHaveAttribute('role')
+		expect(marker).not.toHaveAttribute('tabindex')
 	})
 
 	it('renders custom children inside the marker portal', async () => {
