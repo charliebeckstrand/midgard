@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Text } from '../../components/text'
+import { Text, TextSkeleton } from '../../components/text'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Text', () => {
@@ -40,5 +40,25 @@ describe('Text', () => {
 
 		expect(bySlot(container, 'text')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+})
+
+describe('TextSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<TextSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('carries the text skeleton silhouette', () => {
+		const { container } = renderUI(<TextSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-6')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<TextSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })

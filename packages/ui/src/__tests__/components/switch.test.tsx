@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Switch, SwitchField } from '../../components/switch'
+import { Switch, SwitchField, SwitchSkeleton } from '../../components/switch'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -116,5 +116,31 @@ describe('SwitchField aria-describedby', () => {
 		expect(description.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+})
+
+describe('SwitchSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<SwitchSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('defaults to the md silhouette', () => {
+		const { container } = renderUI(<SwitchSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-6')
+	})
+
+	it('tracks the size prop', () => {
+		const { container } = renderUI(<SwitchSkeleton size="lg" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-7')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<SwitchSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })

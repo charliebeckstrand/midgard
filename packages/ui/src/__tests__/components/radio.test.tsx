@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../components/radio'
 import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -146,5 +146,25 @@ describe('RadioField aria-describedby', () => {
 		expect(description.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+})
+
+describe('RadioSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<RadioSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('carries the radio skeleton silhouette', () => {
+		const { container } = renderUI(<RadioSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('size-4.5')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<RadioSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })

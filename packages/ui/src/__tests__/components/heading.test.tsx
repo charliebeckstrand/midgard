@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Heading } from '../../components/heading'
+import { Heading, HeadingSkeleton } from '../../components/heading'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Heading', () => {
@@ -48,5 +48,31 @@ describe('Heading', () => {
 
 		expect(bySlot(container, 'heading')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+})
+
+describe('HeadingSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<HeadingSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('defaults to the level-1 height', () => {
+		const { container } = renderUI(<HeadingSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-8')
+	})
+
+	it('tracks height to the level prop', () => {
+		const { container } = renderUI(<HeadingSkeleton level={3} />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-6')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<HeadingSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })

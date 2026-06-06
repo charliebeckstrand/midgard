@@ -6,7 +6,7 @@ import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
-import { Placeholder } from '../placeholder'
+import { CardSkeleton } from './card-skeleton'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
@@ -30,7 +30,7 @@ export function Card({
 	const token = size ? densityPresets[size] : inherited
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.base, k.skeleton.size[token.size], className)} />
+		return <CardSkeleton size={token.size} className={className} />
 	}
 
 	return (

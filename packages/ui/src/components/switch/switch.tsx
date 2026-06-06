@@ -7,7 +7,7 @@ import { useSkeleton } from '../../providers/skeleton'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
-import { Placeholder } from '../placeholder'
+import { SwitchSkeleton } from './switch-skeleton'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string
@@ -62,11 +62,7 @@ export function Switch({
 	})
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder
-				className={cn(k.skeleton.base, k.skeleton.size[resolvedSize ?? 'md'], className)}
-			/>
-		)
+		return <SwitchSkeleton size={resolvedSize ?? 'md'} className={className} />
 	}
 
 	return (

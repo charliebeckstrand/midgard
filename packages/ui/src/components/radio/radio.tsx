@@ -5,7 +5,7 @@ import { cn, invalidAttrs } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControlToggle } from '../control/use-control-toggle'
-import { Placeholder } from '../placeholder'
+import { RadioSkeleton } from './radio-skeleton'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -31,7 +31,7 @@ export function Radio({
 	} = useControlToggle({ id, disabled, required, size, 'aria-describedby': ariaDescribedBy })
 
 	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.base, className)} />
+		return <RadioSkeleton className={className} />
 	}
 
 	return (

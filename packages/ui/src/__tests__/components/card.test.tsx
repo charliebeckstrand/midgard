@@ -6,6 +6,7 @@ import {
 	CardDescription,
 	CardFooter,
 	CardHeader,
+	CardSkeleton,
 	CardTitle,
 } from '../../components/card'
 import { Density } from '../../providers/density'
@@ -273,5 +274,31 @@ describe('Card size system', () => {
 		const cls = bySlot(container, 'card')?.className ?? ''
 
 		expect(cls).toContain('[&:has(>[data-slot^=card-])]:p-0')
+	})
+})
+
+describe('CardSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<CardSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('defaults to the md silhouette', () => {
+		const { container } = renderUI(<CardSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-32')
+	})
+
+	it('tracks the size prop', () => {
+		const { container } = renderUI(<CardSkeleton size="lg" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('h-40')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<CardSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })

@@ -7,3 +7,4 @@ export {
 	SwitchField,
 	type SwitchFieldProps,
 } from './switch-field'
+export { SwitchSkeleton, type SwitchSkeletonProps } from './switch-skeleton'

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Textarea } from '../../components/textarea'
+import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
@@ -105,5 +105,31 @@ describe('Textarea', () => {
 		await user.type(el, ' there')
 
 		expect(el.value).toBe('hi there')
+	})
+})
+
+describe('TextareaSkeleton', () => {
+	it('renders a placeholder', () => {
+		const { container } = renderUI(<TextareaSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('fills its container width', () => {
+		const { container } = renderUI(<TextareaSkeleton />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('w-full')
+	})
+
+	it('derives its height from the rows prop', () => {
+		const { container } = renderUI(<TextareaSkeleton rows={5} />)
+
+		expect(bySlot(container, 'placeholder')?.getAttribute('style')).toContain('5lh')
+	})
+
+	it('applies custom className', () => {
+		const { container } = renderUI(<TextareaSkeleton className="custom" />)
+
+		expect(bySlot(container, 'placeholder')?.className).toContain('custom')
 	})
 })
