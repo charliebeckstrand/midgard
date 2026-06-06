@@ -2,6 +2,7 @@
 
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
+import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { k } from '../../recipes/kata/stepper'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -62,9 +63,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const state = computeState(value, currentValue)
 
-	const stepId = `${baseId}-step-${value}`
-
-	const panelId = `${baseId}-panel-${value}`
+	// Shares baseId + value with StepperPanel so the two derive matching ids.
+	const { triggerId, panelId } = useA11yDisclosure({ id: baseId, key: value })
 
 	const classes = cn(k.step({ orientation }), className)
 
@@ -87,7 +87,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		return (
 			<button
 				type="button"
-				id={stepId}
+				id={triggerId}
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
@@ -105,7 +105,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	return (
 		<div
-			id={stepId}
+			id={triggerId}
 			data-slot="stepper-step"
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}
