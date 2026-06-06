@@ -8,8 +8,9 @@ import { Flex } from '../flex'
 import { HoldButton } from '../hold-button'
 import { Segment, SegmentControl, SegmentItem } from '../segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { useQueryBuilderActions, useQueryBuilderState } from './context'
+import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryBuilderRule } from './query-builder-rule'
+import { focusKeys } from './query-builder-utilities'
 import type { QueryCombinator, QueryGroup } from './types'
 
 export type QueryBuilderGroupProps = {
@@ -23,6 +24,10 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 	const { disabled } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
+
+	const addRuleRef = useFocusableRef(focusKeys.add(group.id))
+
+	const removeRef = useFocusableRef(focusKeys.node(group.id))
 
 	// Expose the group nesting to AT. The root is already a labelled <Fieldset>
 	// (query-builder.tsx); nested groups become their own <fieldset> (implicit
@@ -66,7 +71,12 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 			</div>
 
 			<Flex gap="sm" className={k.actions}>
-				<Button variant="plain" disabled={disabled} onClick={() => addRule(group.id)}>
+				<Button
+					ref={addRuleRef}
+					variant="plain"
+					disabled={disabled}
+					onClick={() => addRule(group.id)}
+				>
 					Add rule
 				</Button>
 				<Button variant="soft" color="blue" disabled={disabled} onClick={() => addGroup(group.id)}>
@@ -77,6 +87,7 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 						<Tooltip>
 							<TooltipTrigger>
 								<HoldButton
+									ref={removeRef}
 									variant="soft"
 									color="red"
 									aria-label="Remove group"

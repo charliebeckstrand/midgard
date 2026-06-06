@@ -178,3 +178,66 @@ export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 
 	return tree
 }
+
+/**
+ * A place focus can be sent: a node's own control (`node`, e.g. its remove
+ * button) or a group's "add rule" control (`add`).
+ */
+export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId: string }
+
+/**
+ * Ordered focus candidates for the neighbourhood around node `id` — used when
+ * `id` is leaving the tree (removal) and focus must move somewhere sensible
+ * rather than dropping to <body> (WCAG 2.4.3).
+ *
+ * Resolution is deliberately ambiguous: it returns *several* candidates, best
+ * first, and leaves the choice to the caller, which focuses the first that
+ * resolves to a live element. This way a disabled, unmounted, or otherwise
+ * unfocusable target degrades to the next one. The ladder follows the APG
+ * list pattern — previous sibling, then next sibling, then the enclosing
+ * group's add control, then the same for each ancestor on the way to the root.
+ * Empty when `id` isn't found.
+ */
+export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
+	const index = tree.children.findIndex((child) => child.id === id)
+
+	if (index !== -1) {
+		const candidates: FocusTarget[] = []
+
+		const prev = tree.children[index - 1]
+		const next = tree.children[index + 1]
+
+		if (prev) candidates.push({ kind: 'node', id: prev.id })
+
+		if (next) candidates.push({ kind: 'node', id: next.id })
+
+		candidates.push({ kind: 'add', groupId: tree.id })
+
+		return candidates
+	}
+
+	for (const child of tree.children) {
+		if (child.type === 'group') {
+			const inner = findFocusTarget(child, id)
+
+			// Found inside a nested group — fall back to this group's add control
+			// (and, by recursion, its ancestors') once the nested options run out.
+			if (inner.length > 0) return [...inner, { kind: 'add', groupId: tree.id }]
+		}
+	}
+
+	return []
+}
+
+/**
+ * Stable string keys under which focusable controls register themselves, so a
+ * `FocusTarget` can be matched to a live element without touching the DOM.
+ */
+export const focusKeys = {
+	node: (id: string) => `node:${id}`,
+	add: (groupId: string) => `add:${groupId}`,
+}
+
+export function focusKeyOf(target: FocusTarget): string {
+	return target.kind === 'node' ? focusKeys.node(target.id) : focusKeys.add(target.groupId)
+}

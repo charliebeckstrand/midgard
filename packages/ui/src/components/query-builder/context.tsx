@@ -1,8 +1,11 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import { createContext } from '../../core'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
+
+/** Registers (or, with `null`, unregisters) a focusable control under `key`. */
+export type FocusRegister = (key: string, el: HTMLElement | null) => void
 
 export type QueryBuilderStateValue = {
 	fields: QueryField[]
@@ -34,24 +37,43 @@ const [QueryBuilderActionsContext, useQueryBuilderActions] =
 
 const [QueryBuilderRootContext, useQueryBuilderRoot] = createContext<QueryGroup>('QueryBuilderRoot')
 
+// Focus registry: rules/groups register their remove (and add) controls by key
+// so removal can hand focus to a surviving neighbour without querying the DOM.
+const [QueryBuilderFocusContext, useQueryBuilderFocus] =
+	createContext<FocusRegister>('QueryBuilderFocus')
+
 export { useQueryBuilderActions, useQueryBuilderState }
+
+/**
+ * Callback ref that registers the element under `key` for the lifetime it's
+ * mounted. Memoized on `key` so the ref identity is stable across renders.
+ */
+export function useFocusableRef(key: string) {
+	const register = useQueryBuilderFocus()
+
+	return useCallback((el: HTMLElement | null) => register(key, el), [register, key])
+}
 
 /** Internal — the component-level provider wires all three contexts. */
 export function QueryBuilderProvider({
 	state,
 	actions,
 	root,
+	register,
 	children,
 }: {
 	state: QueryBuilderStateValue
 	actions: QueryBuilderActions
 	root: QueryGroup
+	register: FocusRegister
 	children: ReactNode
 }) {
 	return (
 		<QueryBuilderActionsContext value={actions}>
 			<QueryBuilderStateContext value={state}>
-				<QueryBuilderRootContext value={root}>{children}</QueryBuilderRootContext>
+				<QueryBuilderFocusContext value={register}>
+					<QueryBuilderRootContext value={root}>{children}</QueryBuilderRootContext>
+				</QueryBuilderFocusContext>
 			</QueryBuilderStateContext>
 		</QueryBuilderActionsContext>
 	)

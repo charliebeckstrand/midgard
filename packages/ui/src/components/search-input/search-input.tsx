@@ -1,8 +1,9 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { type ChangeEvent, useCallback } from 'react'
+import { type ChangeEvent, useCallback, useRef } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -31,6 +32,10 @@ export function SearchInput({
 	className,
 	...props
 }: SearchInputProps) {
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setRefs = useComposedRef(inputRef, ref)
+
 	const [currentValue = '', setCurrentValue] = useControllable<string>({
 		value,
 		defaultValue: defaultValue ?? '',
@@ -51,6 +56,10 @@ export function SearchInput({
 		setCurrentValue('')
 
 		onClear?.()
+
+		// The clear button unmounts once the field is empty, so move focus back to
+		// the input rather than letting it fall to <body> (WCAG 2.4.3).
+		inputRef.current?.focus()
 	}, [onClear, setCurrentValue])
 
 	const suffix = loading ? (
@@ -68,7 +77,7 @@ export function SearchInput({
 
 	return (
 		<Input
-			ref={ref}
+			ref={setRefs}
 			data-slot="search-input"
 			type="search"
 			value={currentValue}

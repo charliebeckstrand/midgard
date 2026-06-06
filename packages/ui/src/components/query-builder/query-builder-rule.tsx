@@ -9,9 +9,9 @@ import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { ListboxOption } from '../listbox'
 import { Select } from '../select'
-import { useQueryBuilderActions, useQueryBuilderState } from './context'
+import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
-import { getOperators } from './query-builder-utilities'
+import { focusKeys, getOperators } from './query-builder-utilities'
 import type { QueryRule } from './types'
 
 export type QueryBuilderRuleProps = {
@@ -60,6 +60,8 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	)
 
 	const onRemove = useCallback(() => remove(rule.id), [remove, rule.id])
+
+	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
 	const displayField = useCallback(
 		(v: string) => fields.find((f) => f.name === v)?.label ?? '',
@@ -113,6 +115,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 			</Flex>
 
 			<Button
+				ref={removeRef}
 				variant="bare"
 				color="red"
 				aria-label="Remove rule"

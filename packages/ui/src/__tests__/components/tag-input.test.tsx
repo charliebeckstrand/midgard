@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -126,6 +126,33 @@ describe('TagInput', () => {
 		await user.click(removeButtons[0] as Element)
 
 		expect(onChange).toHaveBeenCalledWith(['vue'])
+	})
+
+	it('returns focus to the input after removing a tag via its badge', async () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
+
+		const user = userEvent.setup()
+
+		await user.click(getRemoveButtons(container)[0] as Element)
+
+		// Focus must not strand on the now-detached badge (WCAG 2.4.3).
+		expect(document.activeElement).toBe(getInput(container))
+	})
+
+	it('returns focus to the input when removing the tag that was at max', async () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} max={2} />)
+
+		const input = getInput(container)
+
+		// At max the input is disabled; removing a tag re-enables it and the
+		// onMaxReleased path restores focus once it can hold focus again.
+		expect(input).toBeDisabled()
+
+		const user = userEvent.setup()
+
+		await user.click(getRemoveButtons(container)[0] as Element)
+
+		await waitFor(() => expect(document.activeElement).toBe(getInput(container)))
 	})
 
 	it('removes last tag on Backspace when input is empty', async () => {

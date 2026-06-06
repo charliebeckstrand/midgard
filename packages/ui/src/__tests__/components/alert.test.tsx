@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert, AlertBody, AlertDescription, AlertTitle } from '../../components/alert'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -71,6 +72,34 @@ describe('Alert', () => {
 		fireEvent.click(closeButton)
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('moves focus to returnFocusTo when dismissed', () => {
+		function Harness() {
+			const triggerRef = useRef<HTMLButtonElement>(null)
+
+			return (
+				<>
+					<button ref={triggerRef} type="button">
+						Trigger
+					</button>
+
+					<Alert closable returnFocusTo={triggerRef}>
+						content
+					</Alert>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		// The dismiss button unmounts with the alert; focus lands on the caller's
+		// element rather than falling to <body>.
+		expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveFocus()
 	})
 })
 
