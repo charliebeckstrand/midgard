@@ -1,10 +1,12 @@
 export {
+	type A11yControl,
 	type A11yPanel,
 	type A11yPanelProviderValue,
 	type A11yPanelRole,
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
+	useA11yControl,
 	useA11yPanel,
 	useA11yScope,
 	useAriaIds,

@@ -2,6 +2,7 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
+import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -12,7 +13,6 @@ import {
 	type ControlVariant,
 	useControl,
 } from './context'
-import { useControlA11y } from './use-control-a11y'
 
 export type ControlProps = {
 	id?: string
@@ -59,7 +59,7 @@ export function Control({
 
 	const mergedAutoComplete = autoComplete ?? parent?.autoComplete
 
-	const a11y = useControlA11y(scope.id)
+	const a11y = useA11yControl(scope.id)
 
 	const value = useMemo<ControlContextValue>(
 		() => ({

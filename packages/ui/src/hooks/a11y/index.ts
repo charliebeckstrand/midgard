@@ -1,3 +1,4 @@
+export { type A11yControl, useA11yControl } from './use-a11y-control'
 export {
 	type A11yPanel,
 	type A11yPanelProviderValue,
