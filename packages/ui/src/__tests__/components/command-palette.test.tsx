@@ -215,7 +215,7 @@ describe('CommandPaletteEmpty', () => {
 	it('renders children inside an alert', () => {
 		const { container } = renderUI(<CommandPaletteEmpty>No results</CommandPaletteEmpty>)
 
-		expect(bySlot(container, 'alert')).toBeInTheDocument()
+		expect(bySlot(container, 'command-palette-empty')).toBeInTheDocument()
 
 		expect(screen.getByText('No results')).toBeInTheDocument()
 	})

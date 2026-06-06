@@ -73,6 +73,8 @@ export type AlertProps = AlertVariants & {
 	onOpenChange?: (open: boolean) => void
 	className?: string
 	children?: ReactNode
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
 }
 
 export function Alert({
@@ -90,6 +92,7 @@ export function Alert({
 	onOpenChange,
 	className,
 	children,
+	'data-slot': slot = 'alert',
 }: AlertProps) {
 	const [open = true, setOpen] = useControllable<boolean>({
 		value: openProp,
@@ -109,7 +112,7 @@ export function Alert({
 
 	return (
 		<div
-			data-slot="alert"
+			data-slot={slot}
 			role={role}
 			className={cn(
 				k({ variant, color: resolvedColor }),
