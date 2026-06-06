@@ -1,7 +1,13 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { type ComponentPropsWithRef, type ReactNode, useLayoutEffect, useRef } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type ReactNode,
+	type Ref,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
@@ -14,7 +20,8 @@ export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
 	icon?: ReactNode
 	className?: string
-} & Omit<ComponentPropsWithRef<'input'>, 'className' | 'type' | 'size'>
+	ref?: Ref<HTMLInputElement>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 export function Checkbox({
 	className,

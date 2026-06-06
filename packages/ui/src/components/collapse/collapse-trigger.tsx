@@ -1,11 +1,11 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
-export type CollapseTriggerProps = Omit<ComponentProps<'button'>, 'children'> & {
+export type CollapseTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 }
 
