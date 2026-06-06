@@ -34,10 +34,16 @@ describe('Card', () => {
 		expect(el?.className).toContain('custom')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Card>content</Card>, { skeleton: true })
+	it('passes through to children in skeleton mode', () => {
+		const { container } = renderUI(
+			<Card>
+				<Button>action</Button>
+			</Card>,
+			{ skeleton: true },
+		)
 
-		expect(bySlot(container, 'card')).not.toBeInTheDocument()
+		// The card keeps its frame; the child skeletonizes itself.
+		expect(bySlot(container, 'card')).toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })

@@ -40,11 +40,11 @@ export function Demo() {
 							</Example>
 
 							<Example title="Colors">
-								{colors.map((color) => (
+								{colors.map((color, i) => (
 									<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
 										<ProgressBar
 											color={color}
-											value={75}
+											value={50 + i * 12.5}
 											className="flex-1"
 											aria-label={`${capitalize(color)} progress`}
 										/>
@@ -85,11 +85,11 @@ export function Demo() {
 
 							<Example title="Colors">
 								<Flex gap="lg">
-									{colors.map((color) => (
+									{colors.map((color, i) => (
 										<ProgressGauge
 											key={color}
 											color={color}
-											value={75}
+											value={50 + i * 12.5}
 											aria-label={`${capitalize(color)} progress`}
 										/>
 									))}

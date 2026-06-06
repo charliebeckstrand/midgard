@@ -1,9 +1,8 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, kokkaku, ma, type Step, sun } from '../kiso'
+import { iro, ji, ma, type Step, sun } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
-const { card } = kokkaku
 const { p } = ma
 
 /**
@@ -30,7 +29,6 @@ const title = defineRecipe({
 })
 
 export const k = {
-	skeleton: card,
 	radius,
 	bodyPadding,
 	header: text.default,

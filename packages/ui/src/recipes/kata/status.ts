@@ -1,6 +1,7 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { kasane, omote, ugoki } from '../kiso'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { iro, kasane, omote, ugoki } from '../kiso'
 
+const { marker } = iro
 const { rounded } = kasane
 const { bg } = omote
 const { css } = ugoki
@@ -11,12 +12,15 @@ export const k = defineRecipe({
 		solid: 'bg-current',
 		outline: ['border-2 border-current', ...bg.surface],
 	},
+	// The dot fills with `currentColor` (solid) or shows it as a border
+	// (outline), so the status colour is the foreground: read the shared
+	// `iro.marker` shade so each state clears non-text 3:1 on the page.
 	status: {
-		inactive: mode('text-zinc-300', 'dark:text-zinc-400'),
-		active: 'text-green-500',
-		info: 'text-blue-500',
-		warning: 'text-amber-500',
-		error: 'text-red-500',
+		inactive: marker.zinc,
+		active: marker.green,
+		info: marker.blue,
+		warning: marker.amber,
+		error: marker.red,
 	},
 	pulse: {
 		true: css.pulse,

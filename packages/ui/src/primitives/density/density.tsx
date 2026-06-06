@@ -65,7 +65,7 @@ export { useDensityNullable }
 
 /**
  * Resolve a wider-scale size through the Affix → Density cascade. Used by
- * components whose own size type spans `Ma` (`Button`, `Icon`, `Spinner`,
+ * components whose own size type spans `Ma` (`Button`, `Icon`, `LoadingSpinner`,
  * `ProgressGauge`) — they need to inherit sub-`Step` values when nested
  * inside a control affix slot, and the regular `useDensity` can't carry
  * those.

@@ -25,7 +25,12 @@ const dynamicComponents = [
 		name: 'Card',
 		render: () => (
 			<Card>
-				<CardBody>Body</CardBody>
+				<CardHeader>
+					<Heading level={3}>Title</Heading>
+				</CardHeader>
+				<CardBody>
+					<Text>The quick brown fox jumps over the lazy dog.</Text>
+				</CardBody>
 			</Card>
 		),
 	},

@@ -78,7 +78,7 @@ describe('SearchInput', () => {
 	it('shows spinner when loading', () => {
 		const { container } = renderUI(<SearchInput loading />)
 
-		expect(bySlot(container, 'spinner')).toBeInTheDocument()
+		expect(bySlot(container, 'loading-spinner')).toBeInTheDocument()
 	})
 
 	it('does not show clear button when loading', () => {

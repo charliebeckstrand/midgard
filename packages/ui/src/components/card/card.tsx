@@ -2,11 +2,9 @@
 
 import { cn } from '../../core'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
-import { Placeholder } from '../placeholder'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
@@ -24,7 +22,7 @@ export type CardProps = BoxProps<'radius'> & {
  */
 export function Card({
 	size,
-	bg = 'tint',
+	bg = 'none',
 	outline = true,
 	className,
 	children,
@@ -34,10 +32,8 @@ export function Card({
 
 	const token = size ? densityPresets[size] : inherited
 
-	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.base, k.skeleton.size[token.size], className)} />
-	}
-
+	// No skeleton short-circuit: a Card keeps its frame and lets each child
+	// skeletonize itself through the ambient SkeletonContext.
 	return (
 		<Box
 			data-slot="card"
