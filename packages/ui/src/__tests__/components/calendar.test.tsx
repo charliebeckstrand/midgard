@@ -290,3 +290,120 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('option', { name: 'Jan' })).toBeInTheDocument()
 	})
 })
+
+// Keyboard nav is the half of a11y compliance axe can't see: roving focus
+// through the day grid (WAI-ARIA grid pattern) plus the grid<->header
+// transitions and Enter/Space activation. June 2025 starts on a Sunday, so its
+// days fill a clean 7-column grid and option[i] is day i+1.
+describe('Calendar keyboard navigation', () => {
+	const day = (n: string) =>
+		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
+
+	function renderJune() {
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+	}
+
+	it('moves day focus by one column with ArrowRight / ArrowLeft', async () => {
+		const user = userEvent.setup()
+
+		renderJune()
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(day('11'))
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('moves day focus by one week with ArrowDown / ArrowUp', async () => {
+		const user = userEvent.setup()
+
+		renderJune()
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(day('17'))
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('jumps to the first / last day with Home / End', async () => {
+		const user = userEvent.setup()
+
+		renderJune()
+
+		const options = screen.getAllByRole('option')
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{Home}')
+
+		expect(document.activeElement).toBe(options[0])
+
+		await user.keyboard('{End}')
+
+		expect(document.activeElement).toBe(options[options.length - 1])
+	})
+
+	it('moves focus from the top row up into the month header', async () => {
+		const user = userEvent.setup()
+
+		renderJune()
+
+		act(() => day('1').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+	})
+
+	it('moves focus from the header down into the day grid', async () => {
+		const user = userEvent.setup()
+
+		renderJune()
+
+		act(() => screen.getByLabelText('Previous month').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(day('1'))
+	})
+
+	it('selects the focused day with Enter', async () => {
+		const onChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
+
+		act(() => day('20').focus())
+
+		await user.keyboard('{Enter}')
+
+		expect(onChange).toHaveBeenCalledTimes(1)
+
+		expect((onChange.mock.calls[0]?.[0] as Date).getDate()).toBe(20)
+	})
+
+	it('selects the focused day with Space', async () => {
+		const onChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
+
+		act(() => day('20').focus())
+
+		await user.keyboard(' ')
+
+		expect(onChange).toHaveBeenCalled()
+	})
+})
