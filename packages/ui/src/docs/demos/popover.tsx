@@ -1,11 +1,11 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
-import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -97,7 +97,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Glass">
-				<Glass>
+				<GlassProvider>
 					<Popover>
 						<PopoverTrigger>
 							<Button variant="outline">
@@ -107,7 +107,7 @@ export function Demo() {
 						</PopoverTrigger>
 						<PopoverContent>{popoverContent}</PopoverContent>
 					</Popover>
-				</Glass>
+				</GlassProvider>
 			</Example>
 		</>
 	)

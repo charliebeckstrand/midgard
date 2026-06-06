@@ -5,10 +5,10 @@ import { type ReactNode, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import { useGlass } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
-import { useGlass } from '../glass/context'
 import { usePopoverContext } from './context'
 
 // Surface padding scales with the resolved Density size. Consumers can still

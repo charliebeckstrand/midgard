@@ -10,8 +10,8 @@ import {
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
+import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
-import { useResolvedSurface } from '../glass/context'
 
 export type SheetProps = SheetPanelVariants & {
 	open: boolean

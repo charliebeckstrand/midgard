@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
-import { Glass } from '../../../components/glass'
 import { Icon } from '../../../components/icon'
 import {
 	Sheet,
@@ -16,6 +15,7 @@ import {
 	SheetTitle,
 } from '../../../components/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { GlassProvider } from '../../../providers/glass'
 import type { PropDef } from '../../api-reference/types'
 import { ReferencesPanel } from './references-panel'
 import { TypeBadges } from './type-badges'
@@ -60,7 +60,7 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 					<Icon icon={<ChevronRight />} />
 				</Button>
 			</Flex>
-			<Glass>
+			<GlassProvider>
 				<Sheet open={open} onOpenChange={setOpen}>
 					<SheetHeader>
 						<SheetTitle className="font-mono">{prop.name}</SheetTitle>
@@ -73,7 +73,7 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 						<Button onClick={() => setOpen(false)}>Close</Button>
 					</SheetFooter>
 				</Sheet>
-			</Glass>
+			</GlassProvider>
 		</>
 	)
 }

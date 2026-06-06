@@ -5,9 +5,9 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import { useGlass } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
-import { useGlass } from '../glass/context'
 import { useTooltipContext } from './context'
 
 export type TooltipContentProps = {

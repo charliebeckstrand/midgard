@@ -6,13 +6,13 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
+import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlProps } from '../control/use-control-props'
-import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
 import { LoadingSpinner } from '../loading'
 import { useInputValue } from './use-input-value'
@@ -33,7 +33,7 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 
 /**
  * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner —
- * resolves variant, size, and invalid state from enclosing Control, Form, Glass,
+ * resolves variant, size, and invalid state from enclosing Control, Form, GlassProvider,
  * and Density context, and drops to a bare `<input>` under headless context.
  */
 export function Input(props: InputProps) {

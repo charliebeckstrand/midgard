@@ -11,9 +11,9 @@ import {
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
+import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
-import { useResolvedSurface } from '../glass/context'
 
 export type DrawerProps = DrawerPanelVariants & {
 	open: boolean

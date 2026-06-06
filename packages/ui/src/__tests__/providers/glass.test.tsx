@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Glass } from '../../components/glass'
+import { GlassProvider } from '../../providers/glass'
 import { bySlot, renderUI, screen } from '../helpers'
 
-describe('Glass', () => {
+describe('GlassProvider', () => {
 	it('renders with data-slot="glass"', () => {
-		const { container } = renderUI(<Glass>content</Glass>)
+		const { container } = renderUI(<GlassProvider>content</GlassProvider>)
 
 		const el = bySlot(container, 'glass')
 
@@ -14,13 +14,13 @@ describe('Glass', () => {
 	})
 
 	it('renders children', () => {
-		renderUI(<Glass>Hello</Glass>)
+		renderUI(<GlassProvider>Hello</GlassProvider>)
 
 		expect(screen.getByText('Hello')).toBeInTheDocument()
 	})
 
 	it('applies custom className', () => {
-		const { container } = renderUI(<Glass className="custom">content</Glass>)
+		const { container } = renderUI(<GlassProvider className="custom">content</GlassProvider>)
 
 		const el = bySlot(container, 'glass')
 
