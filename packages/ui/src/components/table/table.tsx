@@ -10,10 +10,10 @@ import { TableContext, type TableContextValue } from './context'
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Resolves through
-	 * `explicit ?? Density ?? 'snug'` — so `<Density density="compact">`,
-	 * or any size-providing surface (Card, Drawer, Popover, Group), tightens
-	 * the table automatically. Internally the resolved value is converted to
-	 * the `Step` shared with every other size-aware component.
+	 * `explicit ?? Density.density ?? 'snug'` — so `<DensityProvider
+	 * density="compact">`, or any density-providing surface (Card, Drawer,
+	 * Popover, Group), tightens the table automatically. The explicit prop is
+	 * converted to the `Step` carried by the universal Density token.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -37,7 +37,7 @@ export type TableProps = TableVariants & {
 	tableProps?: TableElementProps
 }
 
-/** Styled `<table>` shell that shares `grid`, `striped`, and resolved size via context to its rows and cells — `density` resolves through `explicit ?? Density ?? 'snug'`. */
+/** Styled `<table>` shell that shares `grid`, `striped`, and resolved density via context to its rows and cells — `density` resolves through `explicit ?? Density.density ?? 'snug'`. */
 export function Table({
 	bleed,
 	grid,
@@ -49,15 +49,17 @@ export function Table({
 }: TableProps) {
 	const inherited = useDensity()
 
-	const resolvedSize = density ? densityToSize[density] : inherited.size
+	// Cell padding is a density concern, so read the density axis (not size);
+	// the explicit DensityLevel prop still wins.
+	const resolvedDensity = density ? densityToSize[density] : inherited.density
 
 	const context = useMemo<TableContextValue>(
 		() => ({
-			size: resolvedSize,
+			density: resolvedDensity,
 			grid: grid ?? false,
 			striped: striped ?? false,
 		}),
-		[resolvedSize, grid, striped],
+		[resolvedDensity, grid, striped],
 	)
 
 	return (

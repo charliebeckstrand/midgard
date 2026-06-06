@@ -7,6 +7,8 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/table'
+import { Density } from '../../primitives/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Table', () => {
@@ -280,6 +282,50 @@ describe('Table variants', () => {
 		const plainClass = plain.querySelector('tbody td')?.className ?? ''
 
 		expect(griddedClass).not.toBe(plainClass)
+	})
+})
+
+describe('Table density inheritance', () => {
+	// Cell padding tracks the density axis: sm px-1, md px-2, lg px-3.
+	const body = (
+		<TableBody>
+			<TableRow>
+				<TableCell>cell</TableCell>
+			</TableRow>
+		</TableBody>
+	)
+
+	it('defaults to md cell padding outside any provider', () => {
+		const { container } = renderUI(<Table>{body}</Table>)
+
+		expect(container.querySelector('tbody td')?.className).toContain('px-2')
+	})
+
+	it('tightens to sm padding under an explicit compact density prop', () => {
+		const { container } = renderUI(<Table density="compact">{body}</Table>)
+
+		expect(container.querySelector('tbody td')?.className).toContain('px-1')
+	})
+
+	it('inherits a compact DensityProvider', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Table>{body}</Table>
+			</DensityProvider>,
+		)
+
+		expect(container.querySelector('tbody td')?.className).toContain('px-1')
+	})
+
+	it('tracks the density axis, not size, under a two-axis Density', () => {
+		const { container } = renderUI(
+			<Density density="lg" size="sm">
+				<Table>{body}</Table>
+			</Density>,
+		)
+
+		// density=lg drives padding even though size=sm.
+		expect(container.querySelector('tbody td')?.className).toContain('px-3')
 	})
 })
 
