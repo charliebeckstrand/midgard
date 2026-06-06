@@ -51,6 +51,9 @@ export function TimelineMarker({
 					variant={variant}
 					status={status}
 					pulse={pulse}
+					// Name the dot when it carries a semantic status (colour alone is no
+					// alternative); a colour-only marker stays decorative.
+					label={status ? status.charAt(0).toUpperCase() + status.slice(1) : undefined}
 					className="z-10 relative size-full"
 				/>
 			)}

@@ -28,4 +28,26 @@ describe('StatusDot', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('is decorative (no role or name) by default', () => {
+		const { container } = renderUI(<StatusDot status="error" />)
+
+		const el = bySlot(container, 'status-dot')
+
+		// Status by colour alone — a bare dot exposes no role or name, so it relies
+		// on adjacent visible text and must not be the sole signal.
+		expect(el).not.toHaveAttribute('role')
+
+		expect(el).not.toHaveAttribute('aria-label')
+	})
+
+	it('exposes a text alternative as role="img" when given a label', () => {
+		const { container } = renderUI(<StatusDot status="error" label="Error" />)
+
+		const el = bySlot(container, 'status-dot')
+
+		expect(el).toHaveAttribute('role', 'img')
+
+		expect(el).toHaveAccessibleName('Error')
+	})
 })
