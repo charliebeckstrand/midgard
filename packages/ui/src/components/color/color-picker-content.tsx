@@ -7,10 +7,10 @@ import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
 import { Box } from '../box'
 import type { ControlSize } from '../control/context'
-import { useGlass } from '../glass/context'
 
 type ColorPickerContentProps = {
 	open: boolean

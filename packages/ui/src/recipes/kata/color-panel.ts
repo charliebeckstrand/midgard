@@ -15,7 +15,7 @@ const handle = [
 ] as const
 
 const area = defineRecipe({
-	base: ['relative w-full overflow-hidden cursor-crosshair touch-none', rounded.md, focusRing],
+	base: ['relative w-full cursor-crosshair touch-none', focusRing],
 	size: { sm: 'h-32', md: 'h-40', lg: 'h-48' },
 	defaults: { size: 'md' },
 })
@@ -38,7 +38,7 @@ const preview = defineRecipe({
 export const k = defineRecipe(
 	{
 		base: ['flex flex-col select-none'],
-		size: { sm: 'w-56 gap-2', md: 'w-64 gap-3', lg: 'w-72 gap-3' },
+		size: { sm: 'w-72 gap-2', md: 'w-80 gap-4', lg: 'w-88 gap-6' },
 		defaults: { size: 'md' },
 		skeleton: kokkaku.colorPanel,
 	},
@@ -57,7 +57,7 @@ export const k = defineRecipe(
 		/** Alpha / preview chequerboard surfaced behind translucent colour. */
 		checkerboard:
 			'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:12px_12px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
-		controls: 'flex items-center gap-3',
+		controls: 'flex items-center gap-2',
 		sliders: 'flex min-w-0 flex-1 flex-col gap-2',
 		inputs: 'flex flex-col gap-2',
 		field: 'flex min-w-0 flex-col gap-1',

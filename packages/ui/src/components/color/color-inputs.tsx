@@ -1,10 +1,13 @@
 'use client'
 
+import { Copy } from 'lucide-react'
 import { type ChangeEvent, useState } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
+import { CopyButton } from '../copy-button'
+import { Label } from '../fieldset'
 import { Input } from '../input'
 import { hexToHsva, hsvaToHex, hsvaToRgba, rgbaToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
@@ -85,19 +88,21 @@ export function ColorInputs() {
 
 	return (
 		<div data-slot="color-inputs" className={k.inputs}>
-			<div className={k.field}>
-				<label className={k.label} htmlFor={scope.sub('hex')}>
-					Hex
-				</label>
-				<Input
-					{...fieldProps('hex')}
-					data-slot="color-hex-input"
-					prefix="#"
-					spellCheck={false}
-					autoComplete="off"
-					className="font-mono uppercase"
-				/>
-			</div>
+			<Label className="sr-only" htmlFor={scope.sub('hex')}>
+				Hex
+			</Label>
+
+			<Input
+				{...fieldProps('hex')}
+				data-slot="color-hex-input"
+				prefix="#"
+				spellCheck={false}
+				autoComplete="off"
+				className="font-mono uppercase"
+				suffix={
+					<CopyButton value={`#${derived.hex}`} icon={<Copy />} aria-label="Copy hex value" />
+				}
+			/>
 
 			<div className={cn('grid gap-2', alpha ? 'grid-cols-4' : 'grid-cols-3')}>
 				{channels.map((channel) => (

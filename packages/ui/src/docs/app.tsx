@@ -4,7 +4,7 @@ import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } 
 import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { SidebarLayout } from '../layouts'
-import { Density } from '../providers/density'
+import { DensityProvider } from '../providers/density'
 import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
@@ -51,7 +51,7 @@ export function App() {
 	}, [])
 
 	return (
-		<Density density={density}>
+		<DensityProvider density={density}>
 			<SidebarLayout
 				stickyHeader
 				floating={!locked}
@@ -82,6 +82,6 @@ export function App() {
 					)}
 				</div>
 			</SidebarLayout>
-		</Density>
+		</DensityProvider>
 	)
 }

@@ -92,6 +92,7 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 	)
 
 	const rgba = hsvaToRgba(hsva)
+
 	const previewColor = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${alpha ? rgba.a : 1})`
 
 	return (

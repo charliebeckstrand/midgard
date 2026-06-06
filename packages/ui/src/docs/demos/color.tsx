@@ -13,18 +13,8 @@ function PanelExample() {
 	const [color, setColor] = useState('#3b82f6')
 
 	return (
-		<Example title="Panel" actions={<Text className="font-mono">{color}</Text>}>
+		<Example title="Panel">
 			<ColorPanel value={color} onValueChange={setColor} />
-		</Example>
-	)
-}
-
-function PickerExample() {
-	const [color, setColor] = useState('#f97316')
-
-	return (
-		<Example title="Picker" actions={<Text className="font-mono">{color}</Text>}>
-			<ColorPicker value={color} onValueChange={setColor} />
 		</Example>
 	)
 }
@@ -51,16 +41,26 @@ function HsvaExample() {
 	)
 }
 
+function PickerExample() {
+	const [color, setColor] = useState('#f97316')
+
+	return (
+		<Example title="Picker">
+			<ColorPicker value={color} onValueChange={setColor} swatches={false} />
+		</Example>
+	)
+}
+
 export function Demo() {
 	return (
 		<>
 			<PanelExample />
 
-			<PickerExample />
-
 			<AlphaExample />
 
 			<HsvaExample />
+
+			<PickerExample />
 
 			<Example title="Sizes">
 				{sizes.map((size) => (

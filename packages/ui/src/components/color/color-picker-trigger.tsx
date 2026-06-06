@@ -2,10 +2,10 @@
 
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
+import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { useGlass } from '../glass/context'
 import { Headless } from '../headless'
 import { hsvaToHex, hsvaToRgba } from './color-utilities'
 import type { Hsva } from './types'
