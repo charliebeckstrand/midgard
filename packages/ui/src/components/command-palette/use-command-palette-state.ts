@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { queryItems, setVirtualActive, useRoving } from '../../hooks/use-roving'
+import { queryItems, setVirtualActive, useRoving } from '../../hooks/a11y/use-roving'
 
 type CommandPaletteStateOptions = {
 	open: boolean

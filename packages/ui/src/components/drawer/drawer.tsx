@@ -3,14 +3,10 @@
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useA11yPanel } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
-import {
-	PanelA11yContext,
-	PanelCloseContext,
-	usePanelA11yScope,
-	usePanelCloseValue,
-} from '../../primitives/panel'
+import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
@@ -44,7 +40,7 @@ export function Drawer({
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = usePanelA11yScope()
+	const { panelAriaProps, providerValue } = useA11yPanel()
 
 	const inherited = useDensity()
 

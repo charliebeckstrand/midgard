@@ -1,8 +1,7 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useCallback, useEffect, useMemo, useState } from 'react'
+import { type ComponentPropsWithoutRef, useEffect } from 'react'
 import { cn, createContext } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/panel'
 
 const DEFAULT_TITLE = k.title
@@ -29,49 +28,6 @@ type PanelA11yContextValue = {
 export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
 	default: {},
 })
-
-function useSlotRegistration() {
-	const [present, setPresent] = useState(false)
-
-	const register = useCallback(() => {
-		setPresent(true)
-
-		return () => setPresent(false)
-	}, [])
-
-	return [present, register] as const
-}
-
-/**
- * Sets up the a11y scaffolding required by modal panel roots (dialog, drawer, sheet):
- * generates title/description ids, tracks whether Title / Description slots are
- * rendered, and returns ready-to-spread ARIA props and a memoized provider value.
- * `aria-labelledby` / `aria-describedby` are only set once the matching slot has
- * registered, so the dialog never references a non-existent id.
- */
-export function usePanelA11yScope(role: 'dialog' | 'alertdialog' = 'dialog') {
-	const scope = useIdScope()
-
-	const titleId = scope.sub('title')
-	const descriptionId = scope.sub('description')
-
-	const [hasTitle, registerTitle] = useSlotRegistration()
-	const [hasDescription, registerDescription] = useSlotRegistration()
-
-	const panelAriaProps = {
-		role,
-		'aria-modal': true,
-		'aria-labelledby': hasTitle ? titleId : undefined,
-		'aria-describedby': hasDescription ? descriptionId : undefined,
-	}
-
-	const providerValue = useMemo<PanelA11yContextValue>(
-		() => ({ titleId, descriptionId, registerTitle, registerDescription }),
-		[titleId, descriptionId, registerTitle, registerDescription],
-	)
-
-	return { panelAriaProps, providerValue }
-}
 
 /** Creates Title, Description, Header, Body, Footer, and Content slot components for a panel prefix. */
 type PanelSlots = {

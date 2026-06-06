@@ -1,3 +1,15 @@
+export {
+	type A11yPanel,
+	type A11yPanelProviderValue,
+	type A11yPanelRole,
+	type A11yRelation,
+	type A11yScope,
+	type A11yScopeOptions,
+	useA11yPanel,
+	useA11yScope,
+	useAriaIds,
+	useRoving,
+} from './a11y'
 export { useComposedRef } from './use-composed-ref'
 export { useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'
@@ -15,7 +27,6 @@ export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
 export { useResizeObserver } from './use-resize-observer'
-export { useRoving } from './use-roving'
 export { useScrollLock } from './use-scroll-lock'
 export { useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
