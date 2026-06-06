@@ -5,13 +5,13 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGridCellSlice } from './context'
 import { EditableGridCellEditor } from './editable-grid-cell-editor'
-import type { EditableGridColumn, EditableGridEditor } from './types'
+import type { EditableGridAlign, EditableGridColumn, EditableGridEditor } from './types'
 
 type EditableGridCellContentProps<T> = {
 	rowIdx: number
 	colIdx: number
 	readOnly: boolean
-	align: 'left' | 'center' | 'right'
+	align: EditableGridAlign
 	formatted: string
 	row: T
 	column: EditableGridColumn<T>

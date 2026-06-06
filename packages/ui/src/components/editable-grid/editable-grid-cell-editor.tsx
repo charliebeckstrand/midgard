@@ -1,12 +1,12 @@
 'use client'
 
 import { useEditableGridEdit } from './context'
-import type { EditableGridColumn, EditableGridEditor } from './types'
+import type { EditableGridAlign, EditableGridColumn, EditableGridEditor } from './types'
 
 type EditableGridCellEditorProps<T> = {
 	rowIdx: number
 	colIdx: number
-	align: 'left' | 'center' | 'right'
+	align: EditableGridAlign
 	formatted: string
 	row: T
 	column: EditableGridColumn<T>

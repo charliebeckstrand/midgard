@@ -11,6 +11,9 @@ export type CellChange = {
 /** Direction the cursor moves after a successful commit. */
 export type EditableGridCommitAdvance = 'down' | 'right' | 'left' | 'none'
 
+/** Horizontal text alignment for a column's cells and editor. */
+export type EditableGridAlign = 'left' | 'center' | 'right'
+
 /**
  * Props passed to a column's editor slot when it mounts in the active cell.
  * The grid owns the draft buffer, commit guard, and cursor advance; the slot
@@ -27,7 +30,7 @@ export type EditableGridEditorProps<T> = {
 	 */
 	commit: (advance: EditableGridCommitAdvance) => boolean
 	cancel: () => void
-	align: 'left' | 'center' | 'right'
+	align: EditableGridAlign
 	ariaLabel: string
 	/**
 	 * `true` when the edit was opened via Enter / F2 / double-click (draft seeded
@@ -57,7 +60,7 @@ export type EditableGridColumn<T> = {
 	editor?: EditableGridEditor<T>
 	/** Cells in this column can't be edited. Nav still visits them. */
 	readOnly?: boolean
-	align?: 'left' | 'center' | 'right'
+	align?: EditableGridAlign
 	sortable?: boolean
 	selectable?: boolean
 	actions?: (row: T) => ReactNode
