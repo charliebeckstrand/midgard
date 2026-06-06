@@ -102,7 +102,15 @@ export function TagInput({
 						label={t}
 						color={resolvedColor}
 						disabled={disabled}
-						onRemove={() => removeTag(i)}
+						onRemove={() => {
+							removeTag(i)
+
+							// Return focus to the input so removing a tag never strands
+							// focus on the now-detached badge (WCAG 2.4.3). The input node
+							// persists across the re-render, so this is synchronous; the
+							// at-max path additionally re-focuses once enabled (onMaxReleased).
+							inputRef.current?.focus()
+						}}
 					/>
 				))}
 			</Flex>
