@@ -1,9 +1,9 @@
-import { Control } from '../../../../components/control'
-import { Field, Label } from '../../../../components/fieldset'
-import { Form } from '../../../../components/form'
-import { Input } from '../../../../components/input'
-import { SubmitButton } from '../../../../components/submit-button'
-import type { Case } from '../types'
+import { Control } from '../../../components/control'
+import { Field, Label } from '../../../components/fieldset'
+import { Form } from '../../../components/form'
+import { Input } from '../../../components/input'
+import { SubmitButton } from '../../../components/submit-button'
+import type { Case } from './types'
 
 const noop = () => {}
 

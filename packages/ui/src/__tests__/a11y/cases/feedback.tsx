@@ -1,8 +1,8 @@
-import { Alert } from '../../../../components/alert'
-import { Banner } from '../../../../components/banner'
-import { ProgressBar } from '../../../../components/progress'
-import { Spinner } from '../../../../components/spinner'
-import type { Case } from '../types'
+import { Alert } from '../../../components/alert'
+import { Banner } from '../../../components/banner'
+import { ProgressBar } from '../../../components/progress'
+import { Spinner } from '../../../components/spinner'
+import type { Case } from './types'
 
 /** Feedback — spinners, progress, and inline alerts and banners. */
 export const feedbackCases: readonly Case[] = [
