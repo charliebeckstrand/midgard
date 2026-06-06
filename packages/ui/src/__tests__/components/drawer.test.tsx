@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
@@ -171,11 +171,11 @@ describe('Drawer size context', () => {
 
 	it('inherits an ambient Density when no size prop is given', () => {
 		renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Drawer open onOpenChange={() => {}}>
 					content
 				</Drawer>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(drawerPanel()).toHaveAttribute('data-density', 'sm')
@@ -183,11 +183,11 @@ describe('Drawer size context', () => {
 
 	it('explicit size prop wins over an ambient Density', () => {
 		renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Drawer open onOpenChange={() => {}} size="lg">
 					content
 				</Drawer>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(drawerPanel()).toHaveAttribute('data-density', 'lg')

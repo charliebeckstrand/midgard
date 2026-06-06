@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useDensity } from '../../primitives/density'
-import { Density, densityLevels, densityToSize } from '../../providers/density'
+import { DensityProvider, densityLevels, densityToSize } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('densityToSize', () => {
@@ -20,12 +20,12 @@ describe('densityLevels', () => {
 	})
 })
 
-describe('Density provider broadcast', () => {
+describe('DensityProvider broadcast', () => {
 	// The friendly provider lights up the primitive Density token diagonally
 	// (both axes equal) so every size-aware descendant inherits without wiring.
 	it('broadcasts compact as the sm token on both axes', () => {
 		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => <Density density="compact">{children}</Density>,
+			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
 		})
 
 		expect(result.current).toEqual({ density: 'sm', size: 'sm' })
@@ -33,7 +33,7 @@ describe('Density provider broadcast', () => {
 
 	it('broadcasts snug as the md token on both axes', () => {
 		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => <Density density="snug">{children}</Density>,
+			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
 		})
 
 		expect(result.current).toEqual({ density: 'md', size: 'md' })
@@ -41,31 +41,31 @@ describe('Density provider broadcast', () => {
 
 	it('broadcasts loose as the lg token on both axes', () => {
 		const { result } = renderHook(() => useDensity(), {
-			wrapper: ({ children }) => <Density density="loose">{children}</Density>,
+			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
 		})
 
 		expect(result.current).toEqual({ density: 'lg', size: 'lg' })
 	})
 })
 
-describe('Density provider element', () => {
+describe('DensityProvider element', () => {
 	it('stamps the level onto a data-density slot', () => {
-		const { container } = renderUI(<Density density="compact">content</Density>)
+		const { container } = renderUI(<DensityProvider density="compact">content</DensityProvider>)
 
 		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'compact')
 	})
 
 	it('defaults the wrapper to display: contents', () => {
-		const { container } = renderUI(<Density density="snug">content</Density>)
+		const { container } = renderUI(<DensityProvider density="snug">content</DensityProvider>)
 
 		expect(bySlot(container, 'density')?.className).toBe('contents')
 	})
 
 	it('accepts a className override on the wrapper', () => {
 		const { container } = renderUI(
-			<Density density="snug" className="custom">
+			<DensityProvider density="snug" className="custom">
 				content
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'density')?.className).toBe('custom')

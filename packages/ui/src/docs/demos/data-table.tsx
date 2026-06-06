@@ -3,7 +3,7 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
 import { HoldButton } from '../../components/hold-button'
-import { Density, type DensityLevel } from '../../providers/density'
+import { type DensityLevel, DensityProvider } from '../../providers/density'
 import { code } from '../code'
 import { DensityListbox } from '../components/density-listbox'
 import { Example } from '../components/example'
@@ -143,9 +143,9 @@ const RowActionsExample = () => {
 
 function DensityExample({ density }: { density: DensityLevel }) {
 	return (
-		<Density density={density}>
+		<DensityProvider density={density}>
 			<DataTable columns={columns} rows={people} getKey={(row) => row.id} />
-		</Density>
+		</DensityProvider>
 	)
 }
 

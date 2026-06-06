@@ -3,7 +3,7 @@ import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
@@ -234,9 +234,9 @@ describe('RangeSlider density inheritance', () => {
 
 	it('inherits size from an ambient Density when no explicit prop is set', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<RangeSlider />
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'slider-range')?.className).toContain(padClassFor.sm)
@@ -244,9 +244,9 @@ describe('RangeSlider density inheritance', () => {
 
 	it('explicit size prop overrides the ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<RangeSlider size="lg" />
-			</Density>,
+			</DensityProvider>,
 		)
 
 		const el = bySlot(container, 'slider-range') as HTMLElement
@@ -316,9 +316,9 @@ describe('Slider density inheritance', () => {
 
 	it('inherits size from an ambient Density when no explicit prop is set', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Slider />
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'slider')?.className).toContain(padClassFor.sm)
@@ -326,9 +326,9 @@ describe('Slider density inheritance', () => {
 
 	it('explicit size prop overrides the ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Slider size="lg" />
-			</Density>,
+			</DensityProvider>,
 		)
 
 		const el = bySlot(container, 'slider') as HTMLElement

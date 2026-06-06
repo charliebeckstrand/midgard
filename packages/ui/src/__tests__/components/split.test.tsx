@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Split } from '../../components/split'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Split', () => {
@@ -80,9 +80,9 @@ describe('Split', () => {
 describe('Split density inheritance', () => {
 	it('inherits gap from an ambient Density when gap is omitted', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Split>content</Split>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		// compact → sm step → gap-2 via ma.gap.
@@ -91,9 +91,9 @@ describe('Split density inheritance', () => {
 
 	it('explicit gap wins over the ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Split gap="xl">content</Split>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		const el = bySlot(container, 'split') as HTMLElement

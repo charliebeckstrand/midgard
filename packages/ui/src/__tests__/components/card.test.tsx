@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Card', () => {
@@ -227,9 +227,9 @@ describe('Card size system', () => {
 
 	it('inherits an ambient Density when no size prop is given', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Card>content</Card>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'sm')
@@ -237,9 +237,9 @@ describe('Card size system', () => {
 
 	it('explicit size prop wins over an ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Card size="lg">content</Card>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')

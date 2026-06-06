@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Popover', () => {
@@ -127,14 +127,14 @@ describe('PopoverContent size context', () => {
 
 	it('inherits an ambient Density when no size prop is given', () => {
 		renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Popover open>
 					<PopoverTrigger>
 						<button type="button">Open</button>
 					</PopoverTrigger>
 					<PopoverContent>content</PopoverContent>
 				</Popover>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(popoverContent()).toHaveAttribute('data-density', 'sm')
@@ -142,14 +142,14 @@ describe('PopoverContent size context', () => {
 
 	it('explicit size prop wins over an ambient Density', () => {
 		renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Popover open>
 					<PopoverTrigger>
 						<button type="button">Open</button>
 					</PopoverTrigger>
 					<PopoverContent size="lg">content</PopoverContent>
 				</Popover>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(popoverContent()).toHaveAttribute('data-density', 'lg')
