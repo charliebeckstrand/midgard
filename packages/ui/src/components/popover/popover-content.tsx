@@ -26,15 +26,23 @@ export type PopoverContentProps = {
 	size?: Step
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
-	 * content is exposed as `role="dialog"` — matching the trigger's
-	 * `aria-haspopup="dialog"`. Omit both to leave it an unlabelled generic
-	 * surface and avoid an unnamed-dialog violation.
+	 * content is exposed as a **non-modal** `role="dialog"` — matching the
+	 * trigger's `aria-haspopup="dialog"`, but without `aria-modal`, so focus is
+	 * never trapped. Omit both to leave it an unlabelled generic surface and
+	 * avoid an unnamed-dialog violation.
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string
 	children: ReactNode
 }
 
+/**
+ * The floating surface. Non-modal by design: it renders through
+ * `FloatingSurface` (not a focus manager), so Tab is not trapped — it moves
+ * through the panel and out into the page, an outside press dismisses it, and
+ * focus returns to the trigger on close. `autoFocus` moves initial focus into
+ * the panel on open. Use `Dialog` when the content must contain focus.
+ */
 export function PopoverContent({
 	className,
 	autoFocus = false,
