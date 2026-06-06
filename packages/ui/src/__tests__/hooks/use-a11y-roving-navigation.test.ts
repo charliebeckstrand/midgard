@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextIndexForKey, queryItems } from '../../hooks/a11y/use-roving'
+import { nextIndexForKey, queryItems } from '../../hooks/a11y/use-a11y-roving'
 
 describe('nextIndexForKey', () => {
 	it('returns null for empty item count', () => {

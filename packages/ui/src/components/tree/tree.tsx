@@ -2,7 +2,7 @@
 
 import { type FocusEvent, type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import { TreeContext } from './context'
@@ -25,7 +25,7 @@ export type TreeProps = {
 export function Tree({ size, indent = false, children, className }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(ref, {
+	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: ITEM_SELECTOR,
 		orientation: 'vertical',
 		focusOnEmpty: true,

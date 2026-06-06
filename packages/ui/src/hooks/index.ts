@@ -8,9 +8,9 @@ export {
 	type A11yScopeOptions,
 	useA11yControl,
 	useA11yPanel,
+	useA11yRoving,
 	useA11yScope,
 	useAriaIds,
-	useRoving,
 } from './a11y'
 export { useComposedRef } from './use-composed-ref'
 export { useControllable } from './use-controllable'

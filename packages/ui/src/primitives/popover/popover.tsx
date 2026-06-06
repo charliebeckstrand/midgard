@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving, useScrollWithin } from '../../hooks'
+import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
 
@@ -35,7 +35,7 @@ export function PopoverPanel({
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useRoving(panelRef, { itemSelector, focusOnEmpty: true, typeahead })
+	const handleKeyDown = useA11yRoving(panelRef, { itemSelector, focusOnEmpty: true, typeahead })
 
 	const scrollWithin = useScrollWithin()
 

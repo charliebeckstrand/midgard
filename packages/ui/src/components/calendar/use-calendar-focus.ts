@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
-import { useRoving } from '../../hooks'
+import { useA11yRoving } from '../../hooks'
 
 // Out-of-range day cells render as `<button disabled>`, which can't take focus.
 // Every query here is scoped to focusable buttons so roving skips them: a
@@ -61,12 +61,12 @@ export function useCalendarFocus({
 	cols = 7,
 	stopPropagation = false,
 }: CalendarFocusOptions) {
-	const headerRoving = useRoving(headerRef, {
+	const headerRoving = useA11yRoving(headerRef, {
 		itemSelector: FOCUSABLE,
 		orientation: 'horizontal',
 	})
 
-	const gridRoving = useRoving(gridRef, {
+	const gridRoving = useA11yRoving(gridRef, {
 		itemSelector: FOCUSABLE,
 		cols,
 	})

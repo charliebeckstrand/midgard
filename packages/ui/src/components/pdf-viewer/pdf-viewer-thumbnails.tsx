@@ -3,7 +3,7 @@
 import { X } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useRoving, useScrollWithin } from '../../hooks'
+import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Button } from '../button'
 import { Flex } from '../flex'
@@ -23,7 +23,7 @@ export function PdfViewerThumbnails() {
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
-	const handleSidebarKeyDown = useRoving(sidebarRef, {
+	const handleSidebarKeyDown = useA11yRoving(sidebarRef, {
 		itemSelector: '[data-slot="pdf-viewer-thumbnail"]',
 		orientation: 'vertical',
 	})

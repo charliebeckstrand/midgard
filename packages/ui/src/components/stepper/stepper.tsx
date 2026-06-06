@@ -2,7 +2,7 @@
 
 import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useMinWidth, useRoving } from '../../hooks'
+import { useA11yRoving, useMinWidth } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type StepperVariants } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
@@ -63,7 +63,7 @@ export function Stepper({
 
 	const baseId = useId()
 
-	const handleKeyDown = useRoving(rowRef, {
+	const handleKeyDown = useA11yRoving(rowRef, {
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 	})
