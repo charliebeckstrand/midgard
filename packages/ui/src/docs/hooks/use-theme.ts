@@ -1,21 +1,55 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
+export type ThemeMode = 'light' | 'dark' | 'system'
+
+/** Theme options surfaced by the docs settings dialog. */
+export const themeModes: { label: string; value: ThemeMode }[] = [
+	{ label: 'Light', value: 'light' },
+	{ label: 'Dark', value: 'dark' },
+	{ label: 'System', value: 'system' },
+]
+
+const STORAGE_KEY = 'theme'
+
+function readStoredMode(): ThemeMode {
+	const stored = localStorage.getItem(STORAGE_KEY)
+
+	if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+
+	return 'system'
+}
+
+function prefersDark(): boolean {
+	return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+/**
+ * Resolves the docs theme from a `light | dark | system` preference, toggling
+ * the root `.dark` class and persisting the choice. While `system`, it tracks
+ * the OS preference live via `matchMedia`.
+ */
 export function useTheme() {
-	const [dark, setDark] = useState(() => {
-		const stored = localStorage.getItem('theme')
-
-		if (stored) return stored === 'dark'
-
-		return window.matchMedia('(prefers-color-scheme: dark)').matches
-	})
+	const [mode, setMode] = useState<ThemeMode>(readStoredMode)
 
 	useEffect(() => {
-		document.documentElement.classList.toggle('dark', dark)
+		localStorage.setItem(STORAGE_KEY, mode)
 
-		localStorage.setItem('theme', dark ? 'dark' : 'light')
-	}, [dark])
+		const apply = () => {
+			const dark = mode === 'system' ? prefersDark() : mode === 'dark'
 
-	const toggle = useCallback(() => setDark((d) => !d), [])
+			document.documentElement.classList.toggle('dark', dark)
+		}
 
-	return [dark, toggle] as const
+		apply()
+
+		if (mode !== 'system') return
+
+		const media = window.matchMedia('(prefers-color-scheme: dark)')
+
+		media.addEventListener('change', apply)
+
+		return () => media.removeEventListener('change', apply)
+	}, [mode])
+
+	return [mode, setMode] as const
 }

@@ -1,13 +1,14 @@
 'use client'
 
-import { Moon, Sun } from 'lucide-react'
 import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
-import { ToggleIconButton } from '../components/toggle-icon-button'
 import { SidebarLayout } from '../layouts'
+import { Density } from '../providers/density'
+import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
+import { useDensity } from './hooks/use-density'
 import { useHash } from './hooks/use-hash'
 import { useTheme } from './hooks/use-theme'
 import { demos } from './registry'
@@ -20,7 +21,9 @@ export function App() {
 	// fallback during navigation.
 	const deferredRoute = useDeferredValue(route)
 
-	const [dark, toggleDark] = useTheme()
+	const [mode, setMode] = useTheme()
+
+	const [density, setDensity] = useDensity()
 
 	const [locked, setLocked] = useState(true)
 
@@ -48,36 +51,37 @@ export function App() {
 	}, [])
 
 	return (
-		<SidebarLayout
-			stickyHeader
-			floating={!locked}
-			actions={
-				<ToggleIconButton
-					pressed={dark}
-					icon={<Moon />}
-					pressedIcon={<Sun />}
-					aria-label="Toggle theme"
-					onClick={toggleDark}
-				/>
-			}
-			sidebar={<SidebarContent route={route} />}
-		>
-			<div ref={contentRef}>
-				{current ? (
-					<Suspense fallback={null}>
-						<DemoPage
-							key={current.id}
-							demo={current}
-							locked={locked}
-							onToggleLocked={toggleLocked}
-						/>
-					</Suspense>
-				) : (
-					<div className="p-6">
-						<Heading>Select a component</Heading>
-					</div>
-				)}
-			</div>
-		</SidebarLayout>
+		<Density density={density}>
+			<SidebarLayout
+				stickyHeader
+				floating={!locked}
+				actions={
+					<SettingsDialog
+						mode={mode}
+						density={density}
+						onModeChange={setMode}
+						onDensityChange={setDensity}
+					/>
+				}
+				sidebar={<SidebarContent route={route} />}
+			>
+				<div ref={contentRef}>
+					{current ? (
+						<Suspense fallback={null}>
+							<DemoPage
+								key={current.id}
+								demo={current}
+								locked={locked}
+								onToggleLocked={toggleLocked}
+							/>
+						</Suspense>
+					) : (
+						<div className="p-6">
+							<Heading>Select a component</Heading>
+						</div>
+					)}
+				</div>
+			</SidebarLayout>
+		</Density>
 	)
 }
