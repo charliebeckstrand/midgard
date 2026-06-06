@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders with data-slot="control"', () => {
@@ -223,5 +223,45 @@ describe('ComboboxPanel', () => {
 		fireEvent.keyDown(screen.getByRole('listbox'), { key: 'ArrowDown' })
 
 		expect(onClose).not.toHaveBeenCalled()
+	})
+
+	// Regression: a role="listbox" may only own option/group children
+	// (aria-required-children, WCAG 4.1.2), so the "No results" status message
+	// must sit beside the listbox, not inside it. The id stays on the listbox so
+	// the input's aria-controls still resolves to it.
+	it('keeps the listbox owning only options, with the empty message a sibling', () => {
+		renderUI(
+			<ComboboxPanel
+				id="cb"
+				open
+				editing={false}
+				glass={false}
+				density="md"
+				size="md"
+				floatingStyles={{}}
+				getFloatingProps={() => ({})}
+				optionsRef={null}
+				setFloating={() => {}}
+				scrollToSelected={() => {}}
+				flushPending={() => {}}
+				onClose={() => {}}
+			>
+				<div role="option" tabIndex={-1}>
+					Alpha
+				</div>
+			</ComboboxPanel>,
+		)
+
+		const listbox = screen.getByRole('listbox')
+
+		expect(listbox).toHaveAttribute('id', 'cb')
+
+		expect(within(listbox).queryByText('No results')).not.toBeInTheDocument()
+
+		const empty = screen.getByText('No results')
+
+		expect(empty.tagName).toBe('OUTPUT')
+
+		expect(listbox.contains(empty)).toBe(false)
 	})
 })

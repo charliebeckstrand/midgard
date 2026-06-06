@@ -28,6 +28,13 @@ type ListboxBaseProps = {
 	disabled?: boolean
 	className?: string
 	inputId?: string
+	/**
+	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it — the
+	 * combobox trigger's text is its value, not its name, so a bare Listbox
+	 * (e.g. in a toolbar) needs one of these to be reachable.
+	 */
+	'aria-label'?: string
+	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
@@ -92,6 +99,8 @@ export function Listbox<T>({
 	onOpenChange,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	'data-slot': slot,
 	children,
 }: ListboxProps<T>) {
@@ -203,6 +212,8 @@ export function Listbox<T>({
 					ref={triggerRef}
 					open={open}
 					controlsId={listboxId}
+					ariaLabel={ariaLabel}
+					ariaLabelledby={ariaLabelledby}
 					describedBy={control?.describedBy}
 					disabled={resolvedDisabled}
 					invalid={control?.invalid}

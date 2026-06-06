@@ -30,6 +30,18 @@ describe('Listbox', () => {
 		expect(button).toHaveAttribute('role', 'combobox')
 	})
 
+	// A role="combobox" trigger is named by aria-label, not its value text, so a
+	// bare Listbox (no Field/Label) must forward aria-label to the button.
+	it('forwards aria-label to the trigger button', () => {
+		const { container } = renderUI(
+			<Listbox aria-label="Current page">
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toHaveAttribute('aria-label', 'Current page')
+	})
+
 	it('applies custom className', () => {
 		const { container } = renderUI(
 			<Listbox className="custom">
