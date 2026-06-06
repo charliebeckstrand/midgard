@@ -22,7 +22,7 @@ export type CardProps = BoxProps<'radius'> & {
  */
 export function Card({
 	size,
-	bg = 'tint',
+	bg = 'none',
 	outline = true,
 	className,
 	children,
