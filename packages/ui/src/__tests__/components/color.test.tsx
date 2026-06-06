@@ -113,6 +113,14 @@ describe('ColorPanel', () => {
 		expect(allBySlot(translucent, 'color-slider')).toHaveLength(2)
 	})
 
+	it('renders three rgb channel inputs, four with alpha', () => {
+		const { container: opaque } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+		expect(allBySlot(opaque, 'color-channel-input')).toHaveLength(3)
+
+		const { container: translucent } = renderUI(<ColorPanel alpha defaultValue="#3b82f6" />)
+		expect(allBySlot(translucent, 'color-channel-input')).toHaveLength(4)
+	})
+
 	it('hides the swatches when swatches is false', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" swatches={false} />)
 
