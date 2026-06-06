@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode, type RefObject } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
@@ -71,6 +71,13 @@ export type AlertProps = AlertVariants & {
 	open?: boolean
 	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * When the alert is dismissed via its close button, move focus to this
+	 * element instead of letting it fall to the document body (WCAG 2.4.3).
+	 * Opt-in — focus is left untouched when unset. Typically the control that
+	 * surfaced the alert.
+	 */
+	returnFocusTo?: RefObject<HTMLElement | null>
 	className?: string
 	children?: ReactNode
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -90,6 +97,7 @@ export function Alert({
 	defaultOpen = true,
 	open: openProp,
 	onOpenChange,
+	returnFocusTo,
 	className,
 	children,
 	'data-slot': slot = 'alert',
@@ -144,7 +152,13 @@ export function Alert({
 					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
 					aria-label="Dismiss"
 					className={cn(k.close, 'self-center')}
-					onClick={() => setOpen(false)}
+					onClick={() => {
+						setOpen(false)
+
+						// The button unmounts with the alert; hand focus to the caller's
+						// element rather than dropping it to <body> (WCAG 2.4.3).
+						returnFocusTo?.current?.focus()
+					}}
 				>
 					<Icon icon={<X />} />
 				</Button>
