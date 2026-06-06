@@ -159,6 +159,24 @@ describe('CommandPalette active descendant', () => {
 			expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
 		})
 	})
+
+	it('exposes a persistent no-results status region as a listbox sibling', () => {
+		renderUI(<FilteredPalette />)
+
+		const status = bySlot(document.body, 'command-palette-no-results')
+
+		// `<output>` is implicitly role="status" (a polite live region) and stays
+		// mounted regardless of results — a CSS peer-empty toggle reveals it when the
+		// listbox filters to empty, so a no-match query is announced, not silent. It
+		// must live outside the listbox (aria-required-children owns only options).
+		expect(status?.tagName).toBe('OUTPUT')
+
+		expect(status).toHaveTextContent('No results')
+
+		expect(bySlot(document.body, 'command-palette-list')).not.toContainElement(
+			status as HTMLElement,
+		)
+	})
 })
 
 describe('CommandPaletteGroup', () => {

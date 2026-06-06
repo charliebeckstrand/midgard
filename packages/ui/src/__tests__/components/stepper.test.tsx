@@ -8,7 +8,7 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Stepper', () => {
 	it('renders with data-slot="stepper"', () => {
@@ -291,5 +291,47 @@ describe('StepperStep interactive mode', () => {
 		).map((el) => el.getAttribute('data-state'))
 
 		expect(states).toEqual(['completed', 'current', 'upcoming'])
+	})
+})
+
+describe('Stepper keyboard navigation', () => {
+	function renderStepper() {
+		const { container } = renderUI(
+			<Stepper value={1} orientation="horizontal" onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2} disabled>
+					<StepperTitle>Two</StepperTitle>
+				</StepperStep>
+				<StepperStep value={3}>
+					<StepperTitle>Three</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		return Array.from(
+			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
+		)
+	}
+
+	it('moves focus across steps with arrows, skipping the disabled step', async () => {
+		const user = userEvent.setup()
+
+		const steps = renderStepper()
+
+		act(() => steps[0]?.focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(steps[2]).toHaveFocus()
+
+		await user.keyboard('{Home}')
+
+		expect(steps[0]).toHaveFocus()
+
+		await user.keyboard('{End}')
+
+		expect(steps[2]).toHaveFocus()
 	})
 })

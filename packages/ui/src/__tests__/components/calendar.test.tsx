@@ -406,4 +406,37 @@ describe('Calendar keyboard navigation', () => {
 
 		expect(onChange).toHaveBeenCalled()
 	})
+
+	// Disabled (out-of-range) days render as `<button disabled>` and can't take
+	// focus. Roving must skip them rather than `.focus()` a no-op and strand the
+	// user — otherwise arrow navigation traps at the edge of the range (WCAG 2.1.1).
+	function renderMinTenth() {
+		// June 2025 begins on a Sunday; `min` on the 10th disables June 1–9, so the
+		// grid's first focusable day is the 10th.
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
+	}
+
+	it('enters the grid on the first enabled day when leading days are disabled', async () => {
+		const user = userEvent.setup()
+
+		renderMinTenth()
+
+		act(() => screen.getByLabelText('Previous month').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(document.activeElement).toBe(day('10'))
+	})
+
+	it('moves up to the header from the first enabled row instead of stalling on a disabled week', async () => {
+		const user = userEvent.setup()
+
+		renderMinTenth()
+
+		act(() => day('10').focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+	})
 })

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Tabs', () => {
 	it('renders with data-slot="tab-group"', () => {
@@ -363,5 +363,60 @@ describe('TabList variants', () => {
 		)
 
 		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
+	})
+})
+
+describe('Tabs keyboard navigation', () => {
+	const tab = (name: string) => screen.getByRole('tab', { name })
+
+	function renderTabs() {
+		renderUI(
+			<Tabs defaultValue="a">
+				<TabList>
+					<Tab value="a">A</Tab>
+					<Tab value="b" disabled>
+						B
+					</Tab>
+					<Tab value="c">C</Tab>
+				</TabList>
+				<TabPanels>
+					<TabPanel>PA</TabPanel>
+					<TabPanel>PB</TabPanel>
+					<TabPanel>PC</TabPanel>
+				</TabPanels>
+			</Tabs>,
+		)
+	}
+
+	it('moves focus with arrows, skipping the disabled tab', async () => {
+		const user = userEvent.setup()
+
+		renderTabs()
+
+		act(() => tab('A').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(tab('C')).toHaveFocus()
+
+		await user.keyboard('{ArrowLeft}')
+
+		expect(tab('A')).toHaveFocus()
+	})
+
+	it('jumps to the first and last tab with Home / End', async () => {
+		const user = userEvent.setup()
+
+		renderTabs()
+
+		act(() => tab('A').focus())
+
+		await user.keyboard('{End}')
+
+		expect(tab('C')).toHaveFocus()
+
+		await user.keyboard('{Home}')
+
+		expect(tab('A')).toHaveFocus()
 	})
 })

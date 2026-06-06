@@ -268,3 +268,52 @@ describe('TagInput', () => {
 		expect(input.value).toBe('')
 	})
 })
+
+describe('TagInput announcements', () => {
+	const politeRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+	it('announces an added tag', async () => {
+		const { container } = renderUI(<TagInput />, { announcer: true })
+
+		const user = userEvent.setup()
+
+		await user.type(getInput(container), 'react{Enter}')
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Added react'))
+	})
+
+	it('announces a removed tag', async () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />, {
+			announcer: true,
+		})
+
+		const user = userEvent.setup()
+
+		await user.click(getRemoveButtons(container)[0] as Element)
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Removed react'))
+	})
+
+	it('names the reason when a duplicate is rejected', async () => {
+		const { container } = renderUI(<TagInput defaultValue={['react']} />, { announcer: true })
+
+		const user = userEvent.setup()
+
+		await user.type(getInput(container), 'react{Enter}')
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('react is already in the list'))
+	})
+
+	it('names the reason when validation rejects a tag', async () => {
+		const { container } = renderUI(<TagInput validate={(tag) => tag.length >= 2} />, {
+			announcer: true,
+		})
+
+		const user = userEvent.setup()
+
+		await user.type(getInput(container), 'x{Enter}')
+
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('x is not a valid tag'))
+	})
+})

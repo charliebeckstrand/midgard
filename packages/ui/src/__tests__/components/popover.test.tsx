@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Popover', () => {
 	it('renders with data-slot="popover"', () => {
@@ -213,5 +213,50 @@ describe('Popover open/close control', () => {
 		)
 
 		expect(popoverContent()).not.toBeNull()
+	})
+})
+
+describe('Popover non-modal semantics', () => {
+	const content = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
+
+	it('exposes a labelled, non-modal dialog with no aria-modal', () => {
+		renderUI(
+			<Popover open>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Details">Body</PopoverContent>
+			</Popover>,
+		)
+
+		expect(content()).toHaveAttribute('role', 'dialog')
+
+		expect(content()).toHaveAccessibleName('Details')
+
+		// The defining attribute of a *modal* dialog is absent, so the rest of the
+		// page stays in the accessibility tree and focus is not contained.
+		expect(content()).not.toHaveAttribute('aria-modal')
+	})
+
+	it('does not trap focus inside the panel', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Popover open>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent autoFocus aria-label="Details">
+					<Button>Inside</Button>
+				</PopoverContent>
+			</Popover>,
+		)
+
+		// Focus starts on the panel (autoFocus); tabbing past its single control
+		// leaves the panel — a modal focus trap would keep focus inside.
+		await user.tab()
+		await user.tab()
+
+		expect(content()).not.toContainElement(document.activeElement as HTMLElement)
 	})
 })

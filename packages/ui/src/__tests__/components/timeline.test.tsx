@@ -216,6 +216,38 @@ describe('TimelineMarker', () => {
 		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeInTheDocument()
 	})
 
+	it('names the status dot so its colour is not the sole signal', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineMarker status="error" />
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		const dot = bySlot(container, 'status-dot')
+
+		expect(dot).toHaveAttribute('role', 'img')
+
+		expect(dot).toHaveAccessibleName('Error')
+	})
+
+	it('leaves a colour-only marker decorative', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineMarker color="blue" />
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		const dot = bySlot(container, 'status-dot')
+
+		expect(dot).not.toHaveAttribute('role')
+
+		expect(dot).not.toHaveAttribute('aria-label')
+	})
+
 	it('applies lineBefore / lineAfter classes when configured', () => {
 		const { container } = renderUI(
 			<Timeline>
