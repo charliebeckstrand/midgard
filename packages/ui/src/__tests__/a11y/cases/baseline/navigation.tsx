@@ -7,6 +7,7 @@ import {
 	BreadcrumbSeparator,
 } from '../../../../components/breadcrumb'
 import { Button } from '../../../../components/button'
+import { Link } from '../../../../components/link'
 import { NavItem, NavList } from '../../../../components/nav'
 import { Navbar } from '../../../../components/navbar'
 import {
@@ -35,6 +36,12 @@ import type { Case } from '../types'
 
 /** Navigation surfaces — links, tablists, steppers, and toolbars. */
 export const navigationCases: readonly Case[] = [
+	[
+		'link',
+		<Link key="lk" href="#docs">
+			Read the documentation
+		</Link>,
+	],
 	[
 		// Previous/Next sit outside the <ol>, so they must not be list items.
 		'pagination',

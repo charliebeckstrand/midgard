@@ -5,7 +5,9 @@ import { dataDisplayCases } from './data-display'
 import { feedbackCases } from './feedback'
 import { formCases } from './forms'
 import { inputCases } from './inputs'
+import { layoutCases } from './layout'
 import { navigationCases } from './navigation'
+import { specializedCases } from './specialized'
 
 /**
  * Baseline corpus — the canonical, correctly-wired render of each non-overlay
@@ -20,5 +22,7 @@ export const baseline: readonly Case[] = [
 	...navigationCases,
 	...dataDisplayCases,
 	...dataComplexCases,
+	...layoutCases,
 	...feedbackCases,
+	...specializedCases,
 ]
