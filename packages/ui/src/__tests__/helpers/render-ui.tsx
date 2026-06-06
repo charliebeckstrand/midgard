@@ -1,7 +1,7 @@
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
-import { GlassContext } from '../../components/glass/context'
 import { AnnouncerProvider } from '../../providers/announcer'
+import { GlassContext } from '../../providers/glass/context'
 import { SkeletonContext } from '../../providers/skeleton'
 
 type UIContextOptions = {

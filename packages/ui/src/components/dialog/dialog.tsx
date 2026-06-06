@@ -11,8 +11,8 @@ import {
 	usePanelA11yScope,
 	usePanelCloseValue,
 } from '../../primitives/panel'
+import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
-import { useResolvedSurface } from '../glass/context'
 
 export type DialogProps = DialogPanelVariants & {
 	open: boolean

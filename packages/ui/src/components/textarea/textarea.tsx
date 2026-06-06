@@ -4,13 +4,13 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
+import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/use-form-text'
-import { useGlass } from '../glass/context'
 import { Placeholder } from '../placeholder'
 
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
@@ -23,7 +23,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot —
  * resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
- * `<Glass>`, and Density contexts. Stays controlled when a `value` prop is
+ * `<GlassProvider>`, and Density contexts. Stays controlled when a `value` prop is
  * present, even if `null`/`undefined`.
  */
 export function Textarea(props: TextareaProps) {

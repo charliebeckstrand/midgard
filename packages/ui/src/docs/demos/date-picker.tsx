@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DatePicker } from '../../components/date-picker'
-import { Glass } from '../../components/glass'
+import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Forms' }
@@ -25,9 +25,9 @@ export function Demo() {
 			</Example>
 
 			<Example title="Glass">
-				<Glass>
+				<GlassProvider>
 					<DatePicker range value={glassRange} onValueChange={setGlassRange} />
-				</Glass>
+				</GlassProvider>
 			</Example>
 		</>
 	)

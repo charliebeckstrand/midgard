@@ -5,8 +5,8 @@ import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
+import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
-import { useGlass } from '../glass/context'
 import { useMenuActions, useMenuState } from './context'
 
 export type MenuContentProps = {

@@ -5,7 +5,6 @@ import { Container } from '../../../components/container'
 import { Divider } from '../../../components/divider'
 import { Flex } from '../../../components/flex'
 import { Frame } from '../../../components/frame'
-import { Glass } from '../../../components/glass'
 import { Grid } from '../../../components/grid'
 import { Group } from '../../../components/group'
 import { Placeholder } from '../../../components/placeholder'
@@ -13,6 +12,7 @@ import { ScrollArea } from '../../../components/scroll-area'
 import { Spacer } from '../../../components/spacer'
 import { Split } from '../../../components/split'
 import { Stack } from '../../../components/stack'
+import { GlassProvider } from '../../../providers/glass'
 import type { Case } from './types'
 
 /** Layout & surface primitives — structural containers with no interactive role. */
@@ -70,9 +70,9 @@ export const layoutCases: readonly Case[] = [
 	],
 	[
 		'glass',
-		<Glass key="gl">
+		<GlassProvider key="gl">
 			<span>Content</span>
-		</Glass>,
+		</GlassProvider>,
 	],
 	[
 		'aspect ratio',

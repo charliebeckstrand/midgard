@@ -2,7 +2,6 @@ import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
-import { Glass } from '../../components/glass'
 import { Icon } from '../../components/icon'
 import {
 	Menu,
@@ -14,6 +13,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Text } from '../../components/text'
+import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -94,7 +94,7 @@ export function Demo() {
 					/>
 				}
 			>
-				{dropdownSurface === 'glass' ? <Glass>{dropdown}</Glass> : dropdown}
+				{dropdownSurface === 'glass' ? <GlassProvider>{dropdown}</GlassProvider> : dropdown}
 			</Example>
 
 			<Example
@@ -107,7 +107,7 @@ export function Demo() {
 					/>
 				}
 			>
-				{contextSurface === 'glass' ? <Glass>{context}</Glass> : context}
+				{contextSurface === 'glass' ? <GlassProvider>{context}</GlassProvider> : context}
 			</Example>
 		</>
 	)

@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import { Button } from '../../components/button'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
-import { DatePicker } from '../../components/date-picker'
-import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
-import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../components/drawer'
-import { Field, Label } from '../../components/fieldset'
-import { Flex } from '../../components/flex'
-import { Glass } from '../../components/glass'
-import { Input } from '../../components/input'
+import { Button } from '../../../components/button'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import { DatePicker } from '../../../components/date-picker'
+import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../components/dialog'
+import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../../components/drawer'
+import { Field, Label } from '../../../components/fieldset'
+import { Flex } from '../../../components/flex'
+import { Input } from '../../../components/input'
 import {
 	Menu,
 	MenuContent,
@@ -15,16 +14,17 @@ import {
 	MenuLabel,
 	MenuSection,
 	MenuTrigger,
-} from '../../components/menu'
-import { NumberInput } from '../../components/number-input'
-import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
-import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
-import { Textarea } from '../../components/textarea'
-import { Example } from '../components/example'
+} from '../../../components/menu'
+import { NumberInput } from '../../../components/number-input'
+import { Select, SelectLabel, SelectOption } from '../../../components/select'
+import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/sheet'
+import { Stack } from '../../../components/stack'
+import { Text } from '../../../components/text'
+import { Textarea } from '../../../components/textarea'
+import { GlassProvider } from '../../../providers/glass'
+import { Example } from '../../components/example'
 
-export const meta = { category: 'Layout' }
+export const meta = { category: 'Providers' }
 
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
@@ -40,7 +40,7 @@ function DialogExample() {
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogTitle>Glass dialog</DialogTitle>
 				<DialogBody>
-					<Text>This dialog inherits glass mode from the Glass wrapper.</Text>
+					<Text>This dialog inherits glass mode from the GlassProvider wrapper.</Text>
 				</DialogBody>
 				<DialogFooter>
 					<Button variant="plain" onClick={() => setOpen(false)}>
@@ -104,7 +104,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Wrapper">
-				<Glass>
+				<GlassProvider>
 					<Stack>
 						<Field>
 							<Label>Input</Label>
@@ -119,11 +119,11 @@ export function Demo() {
 							<NumberInput defaultValue={1} />
 						</Field>
 					</Stack>
-				</Glass>
+				</GlassProvider>
 			</Example>
 
 			<Example title="Form controls">
-				<Glass>
+				<GlassProvider>
 					<Stack>
 						<Field>
 							<Label>Select</Label>
@@ -159,11 +159,11 @@ export function Demo() {
 							<DatePicker value={date} onValueChange={setDate} />
 						</Field>
 					</Stack>
-				</Glass>
+				</GlassProvider>
 			</Example>
 
 			<Example title="Menus">
-				<Glass>
+				<GlassProvider>
 					<Menu placement="bottom-start">
 						<MenuTrigger>
 							<Button variant="outline">Glass menu</Button>
@@ -182,17 +182,17 @@ export function Demo() {
 							</MenuSection>
 						</MenuContent>
 					</Menu>
-				</Glass>
+				</GlassProvider>
 			</Example>
 
 			<Example title="Overlays">
-				<Glass>
+				<GlassProvider>
 					<Flex gap="md">
 						<DialogExample />
 						<DrawerExample />
 						<SheetExample />
 					</Flex>
-				</Glass>
+				</GlassProvider>
 			</Example>
 		</>
 	)

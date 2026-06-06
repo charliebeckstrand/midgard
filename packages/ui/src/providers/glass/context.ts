@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 
 /**
- * Ambient flag — true inside `<Glass>`. Form fields and Button switch to the
+ * Ambient flag — true inside `<GlassProvider>`. Form fields and Button switch to the
  * glass variant when no explicit variant is set; surface chrome (Popover,
  * Dialog, etc.) takes a `glass` prop and consumers pass `useGlass()` through.
  * Read at the leaf; does not compose into size resolution.
@@ -12,7 +12,7 @@ export const [GlassContext, useGlass] = createContext<boolean>('Glass', { defaul
 
 /**
  * Resolve the `surface` variant for a chrome panel, falling back to `'glass'`
- * when either the `glass` shorthand prop or an enclosing `<Glass>` ambient is
+ * when either the `glass` shorthand prop or an enclosing `<GlassProvider>` ambient is
  * set. Returns `undefined` when no surface should be applied so recipe
  * default variants stay in effect.
  */

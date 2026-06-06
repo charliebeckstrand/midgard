@@ -1,7 +1,7 @@
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
-import { Glass } from '../../components/glass'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
+import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Overlay' }
@@ -54,14 +54,14 @@ export function Demo() {
 			</Example>
 
 			<Example title="Glass">
-				<Glass>
+				<GlassProvider>
 					<Tooltip>
 						<TooltipTrigger>
 							<Button variant="outline">Hover me</Button>
 						</TooltipTrigger>
 						<TooltipContent>This tooltip has a glass surface.</TooltipContent>
 					</Tooltip>
-				</Glass>
+				</GlassProvider>
 			</Example>
 		</>
 	)
