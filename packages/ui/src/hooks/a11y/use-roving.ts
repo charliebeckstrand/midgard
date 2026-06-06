@@ -1,8 +1,8 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
-import type { Orientation } from '../types'
-import { useScrollWithin } from './use-scroll-within'
+import type { Orientation } from '../../types'
+import { useScrollWithin } from '../use-scroll-within'
 
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { matchTypeahead, setVirtualActive, useRoving } from '../../hooks/use-roving'
+import { matchTypeahead, setVirtualActive, useRoving } from '../../hooks/a11y/use-roving'
 import { makeKeyEvent } from '../helpers'
 
 describe('setVirtualActive', () => {
