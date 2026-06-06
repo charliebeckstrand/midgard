@@ -45,7 +45,7 @@ export function useDatePickerState({
 	const footerRef = useRef<HTMLDivElement>(null)
 
 	const getInitialActiveDate = useCallback(
-		() => clampDate(value ?? min ?? new Date(), min, max),
+		() => clampDate(value ?? new Date(), min, max),
 		[value, min, max],
 	)
 
@@ -58,11 +58,13 @@ export function useDatePickerState({
 		[active, getInitialActiveDate, min, max],
 	)
 
+	// Start the highlight on the selected day, or today when nothing is selected,
+	// so the calendar opens focused on the most relevant date rather than blank.
 	const openCalendar = useCallback(() => {
 		setOpen(true)
 
-		setActive(null)
-	}, [])
+		setActive({ zone: 'grid', date: getInitialActiveDate() })
+	}, [getInitialActiveDate])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)

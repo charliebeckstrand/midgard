@@ -338,9 +338,7 @@ describe('DatePicker keyboard', () => {
 
 		button.focus()
 
-		await user.keyboard('{ArrowDown}') // open
-
-		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
+		await user.keyboard('{ArrowDown}') // open — highlight lands on the 15th
 
 		await user.keyboard('{ArrowDown}') // move one week forward → the 22nd
 

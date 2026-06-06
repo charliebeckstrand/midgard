@@ -173,43 +173,84 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 		})
 
-		it('materialises grid focus on the first arrow press after opening', () => {
+		it('materialises grid focus on the selected day as soon as the calendar opens', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
 			act(() => {
 				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
 			})
 
-			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
-			})
+			const active = result.current.calendar.active
 
-			expect(result.current.calendar.active?.zone).toBe('grid')
+			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
+
+			expect(active.date).toEqual(Jan15)
 		})
 	})
 
-	describe('initial active date', () => {
-		it('clamps the initial date to min when no value is set', () => {
-			const { result } = renderHook(() =>
-				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
-			)
+	describe('active on open', () => {
+		it('highlights the selected day when the calendar opens', () => {
+			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
-			// Open and trigger a grid materialisation to expose the initial active date.
-			const fakeKey = (k: string) => makeKeyEvent<HTMLElement>(k)
-
-			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowDown'))
-			})
-
-			act(() => {
-				result.current.onTriggerKeyDown(fakeKey('ArrowRight'))
-			})
+			act(() => result.current.onOpenChange(true))
 
 			const active = result.current.calendar.active
 
 			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
 
-			expect(active.date.getTime()).toBeGreaterThanOrEqual(Jan15.getTime())
+			expect(active.date).toEqual(Jan15)
+		})
+
+		it('highlights the current date when nothing is selected', () => {
+			const { result } = renderHook(() => useDatePickerState({}))
+
+			act(() => result.current.onOpenChange(true))
+
+			const active = result.current.calendar.active
+
+			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
+
+			const today = new Date()
+
+			expect(active.date.getFullYear()).toBe(today.getFullYear())
+			expect(active.date.getMonth()).toBe(today.getMonth())
+			expect(active.date.getDate()).toBe(today.getDate())
+		})
+	})
+
+	describe('initial active date', () => {
+		it('clamps the current-date default up to min when today precedes min', () => {
+			const today = new Date()
+
+			const min = new Date(today.getFullYear() + 1, 0, 1)
+			const max = new Date(today.getFullYear() + 2, 11, 31)
+
+			const { result } = renderHook(() => useDatePickerState({ min, max }))
+
+			act(() => result.current.onOpenChange(true))
+
+			const active = result.current.calendar.active
+
+			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
+
+			expect(active.date).toEqual(min)
+		})
+
+		it('clamps the current-date default down to max when today follows max', () => {
+			const today = new Date()
+
+			const min = new Date(today.getFullYear() - 2, 0, 1)
+			const max = new Date(today.getFullYear() - 1, 11, 31)
+
+			const { result } = renderHook(() => useDatePickerState({ min, max }))
+
+			act(() => result.current.onOpenChange(true))
+
+			const active = result.current.calendar.active
+
+			if (active?.zone !== 'grid') throw new Error('expected grid active zone')
+
+			expect(active.date).toEqual(max)
 		})
 	})
 
