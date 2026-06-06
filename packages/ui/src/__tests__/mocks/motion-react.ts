@@ -40,14 +40,17 @@ function stripMotionProps(props: Record<string, unknown>) {
 // access makes `motion.div` a new component type each render, so React remounts
 // the subtree every render — which, combined with a child that calls setState on
 // mount (e.g. panel slot registration), spins into an infinite mount loop.
-const components = new Map<string, ReturnType<typeof forwardRef>>()
+const components = new Map<
+	string,
+	ReturnType<typeof forwardRef<unknown, Record<string, unknown>>>
+>()
 
 const handler: ProxyHandler<object> = {
 	get(_, tag: string) {
 		let component = components.get(tag)
 
 		if (!component) {
-			component = forwardRef((props: Record<string, unknown>, ref: unknown) =>
+			component = forwardRef<unknown, Record<string, unknown>>((props, ref) =>
 				createElement(tag, { ref, ...stripMotionProps(props) }),
 			)
 
