@@ -11,6 +11,7 @@ export function Banner({ position = 'static', closable = true, className, ...pro
 	return (
 		<Alert
 			block
+			data-slot="banner"
 			closable={closable}
 			className={cn('rounded-none', position === 'sticky' && 'sticky top-0 z-40', className)}
 			{...props}

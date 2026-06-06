@@ -29,5 +29,13 @@ export function MaskInput({
 		ref,
 	})
 
-	return <Input ref={masked.ref} value={masked.value} onChange={masked.onChange} {...props} />
+	return (
+		<Input
+			ref={masked.ref}
+			data-slot="mask-input"
+			value={masked.value}
+			onChange={masked.onChange}
+			{...props}
+		/>
+	)
 }

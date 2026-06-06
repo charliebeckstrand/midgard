@@ -4,10 +4,10 @@ import { ZipcodeInput } from '../../components/zipcode-input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('ZipcodeInput', () => {
-	it('renders an input with data-slot="input"', () => {
+	it('renders an input with data-slot="zipcode-input"', () => {
 		const { container } = renderUI(<ZipcodeInput />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'zipcode-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -17,7 +17,7 @@ describe('ZipcodeInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<ZipcodeInput className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'zipcode-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -33,7 +33,7 @@ describe('ZipcodeInput', () => {
 	it('uses a country-appropriate default placeholder', () => {
 		const { container } = renderUI(<ZipcodeInput country="CA" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'zipcode-input')
 
 		expect(input).toHaveAttribute('placeholder', 'A1A 1A1')
 	})
@@ -41,7 +41,7 @@ describe('ZipcodeInput', () => {
 	it('allows overriding the placeholder', () => {
 		const { container } = renderUI(<ZipcodeInput placeholder="ZIP code" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'zipcode-input')
 
 		expect(input).toHaveAttribute('placeholder', 'ZIP code')
 	})
@@ -51,7 +51,7 @@ describe('ZipcodeInput', () => {
 
 		const { container } = renderUI(<ZipcodeInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -65,7 +65,7 @@ describe('ZipcodeInput', () => {
 	it('strips non-digit characters for US', async () => {
 		const { container } = renderUI(<ZipcodeInput />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -77,7 +77,7 @@ describe('ZipcodeInput', () => {
 	it('uppercases and spaces Canadian postal codes', async () => {
 		const { container } = renderUI(<ZipcodeInput country="CA" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -89,7 +89,7 @@ describe('ZipcodeInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<ZipcodeInput defaultValue="941031234" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input.value).toBe('94103-1234')
 	})
@@ -97,7 +97,7 @@ describe('ZipcodeInput', () => {
 	it('uppercases GB postcodes while preserving an internal space', () => {
 		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a 1aa" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input.value).toBe('SW1A 1AA')
 	})
@@ -105,7 +105,7 @@ describe('ZipcodeInput', () => {
 	it('strips invalid characters and collapses whitespace for GB', () => {
 		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a  1aa@@" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input.value).toBe('SW1A 1AA')
 	})
@@ -113,7 +113,7 @@ describe('ZipcodeInput', () => {
 	it('caps GB postcodes at eight characters', () => {
 		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="abcdefghijk" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input.value).toBe('ABCDEFGH')
 	})
@@ -123,7 +123,7 @@ describe('ZipcodeInput', () => {
 			<ZipcodeInput country="international" defaultValue="abc-123 def/456" />,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input.value).toBe('abc-123 def/')
 	})
@@ -131,7 +131,7 @@ describe('ZipcodeInput', () => {
 	it('uses an empty default placeholder for international codes', () => {
 		const { container } = renderUI(<ZipcodeInput country="international" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
 		expect(input).toHaveAttribute('placeholder', '')
 
@@ -141,7 +141,7 @@ describe('ZipcodeInput', () => {
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<ZipcodeInput disabled />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'zipcode-input')
 
 		expect(input).toBeDisabled()
 	})

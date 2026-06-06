@@ -69,6 +69,7 @@ export function SearchInput({
 	return (
 		<Input
 			ref={ref}
+			data-slot="search-input"
 			type="search"
 			value={currentValue}
 			onChange={handleChange}

@@ -19,7 +19,13 @@ export function SubmitButton({ disabled, children, ...props }: SubmitButtonProps
 	const submitting = status?.submitting ?? false
 
 	return (
-		<Button {...props} type="submit" loading={submitting} disabled={disabled || submitting}>
+		<Button
+			data-slot="submit-button"
+			{...props}
+			type="submit"
+			loading={submitting}
+			disabled={disabled || submitting}
+		>
 			{children}
 		</Button>
 	)

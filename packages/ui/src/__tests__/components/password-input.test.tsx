@@ -6,7 +6,7 @@ describe('PasswordInput', () => {
 	it('renders an input with type password by default', () => {
 		const { container } = renderUI(<PasswordInput />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'password-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -22,7 +22,7 @@ describe('PasswordInput', () => {
 
 		await user.click(toggle)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'password-input')
 
 		expect(input).toHaveAttribute('type', 'text')
 	})
@@ -30,7 +30,7 @@ describe('PasswordInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<PasswordInput className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'password-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -38,7 +38,7 @@ describe('PasswordInput', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<PasswordInput placeholder="Enter password" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'password-input')
 
 		expect(input).toHaveAttribute('placeholder', 'Enter password')
 	})

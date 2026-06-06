@@ -7,7 +7,7 @@ describe('PhoneInput', () => {
 	it('renders an input with type tel', () => {
 		const { container } = renderUI(<PhoneInput />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'phone-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -23,7 +23,7 @@ describe('PhoneInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<PhoneInput className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'phone-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -39,7 +39,7 @@ describe('PhoneInput', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<PhoneInput placeholder="(555) 555-5555" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'phone-input')
 
 		expect(input).toHaveAttribute('placeholder', '(555) 555-5555')
 	})
@@ -49,7 +49,7 @@ describe('PhoneInput', () => {
 
 		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -65,7 +65,7 @@ describe('PhoneInput', () => {
 
 		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -77,7 +77,7 @@ describe('PhoneInput', () => {
 	it('preserves leading + for international country', async () => {
 		const { container } = renderUI(<PhoneInput country="international" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -89,7 +89,7 @@ describe('PhoneInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="5551234567" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
@@ -97,7 +97,7 @@ describe('PhoneInput', () => {
 	it('keeps the caret next to the typed digit when format inserts separators', async () => {
 		const { container } = renderUI(<PhoneInput defaultValue="5556789" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('555-6789')
 
@@ -117,7 +117,7 @@ describe('PhoneInput', () => {
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<PhoneInput disabled />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'phone-input')
 
 		expect(input).toBeDisabled()
 	})
@@ -133,7 +133,7 @@ describe('PhoneInput', () => {
 	it('strips a leading country-code 1 from an 11-digit US number', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="15551234567" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
@@ -141,7 +141,7 @@ describe('PhoneInput', () => {
 	it('preserves a leading + with no digits for international country', async () => {
 		const { container } = renderUI(<PhoneInput country="international" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -155,7 +155,7 @@ describe('PhoneInput', () => {
 			<PhoneInput country="international" defaultValue="14155551234" />,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('14155551234')
 	})
@@ -163,7 +163,7 @@ describe('PhoneInput', () => {
 	it('renders an empty string for an empty US value', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('')
 	})

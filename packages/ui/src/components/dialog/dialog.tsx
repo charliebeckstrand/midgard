@@ -34,6 +34,8 @@ export type DialogProps = DialogPanelVariants & {
 	 * palette). Ignored once a `DialogTitle` registers, since it names the dialog.
 	 */
 	'aria-label'?: string
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
 }
 
 const alignClasses = {
@@ -54,6 +56,7 @@ export function Dialog({
 	role = 'dialog',
 	initialFocus,
 	'aria-label': ariaLabel,
+	'data-slot': slot = 'dialog',
 }: DialogProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
@@ -85,7 +88,7 @@ export function Dialog({
 					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
 					{...panelAriaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
-					data-slot="dialog"
+					data-slot={slot}
 					className={cn(
 						'pointer-events-auto',
 						k.panel({ surface: resolvedSurface, size }),

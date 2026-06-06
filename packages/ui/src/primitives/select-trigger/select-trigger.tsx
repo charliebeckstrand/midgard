@@ -22,6 +22,8 @@ type SelectTriggerProps = {
 	frameProps?: Omit<ComponentPropsWithoutRef<typeof ControlFrame>, 'className' | 'children'>
 	'data-group'?: string
 	'data-group-orientation'?: string
+	/** Root slot identifier. Wrappers override it to stamp their own name. */
+	'data-slot'?: string
 	children: ReactNode
 }
 
@@ -48,16 +50,12 @@ export function SelectTrigger({
 	frameProps,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
+	'data-slot': slot = 'control',
 	children,
 }: SelectTriggerProps) {
 	return (
 		<AffixContext value={affixStepDown(size)}>
-			<div
-				data-slot="control"
-				ref={setReference}
-				className={cn(className)}
-				{...getReferenceProps()}
-			>
+			<div data-slot={slot} ref={setReference} className={cn(className)} {...getReferenceProps()}>
 				<ControlFrame
 					data-open={open || undefined}
 					data-group={dataGroup}
