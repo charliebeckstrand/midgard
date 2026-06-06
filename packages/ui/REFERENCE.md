@@ -20,7 +20,7 @@
 
 **Typography** — `heading` · `text` · `icon`
 
-**Feedback** — `spinner` · `progress`
+**Feedback** — `loading` · `progress`
 
 **Domain & specialized** — `map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
 
@@ -56,12 +56,15 @@ A component reads one curated surface (`recipes/kata/<name>`) and exposes the re
 packages/ui/src/components/<name>/
   Component             <name>.tsx
   Sub-components        <name>-<part>.tsx
+  Slot parts            slots.ts (.tsx only if it exports JSX)
   Hooks                 use-<name>-<hook>.ts
   React context         context.ts (.tsx only if it exports JSX)
   Prop/data types       types.ts
   Recipe config         variants.ts
   Barrel                index.ts (re-exports only)
 ```
+
+When the folder name is plural, the singular stem prefixes its sub-files (`tabs/` → `tab.tsx`, `tab-list.tsx`). A namespace directory that ships only a family of parts has no `<name>.tsx` main — its barrel re-exports the parts directly (`dl`, `progress`, `resizable`, `status`). Both shapes, the bare-file allowlist, and the filename-matches-export rule are pinned by `component-filename-boundary.test.ts`.
 
 Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
 

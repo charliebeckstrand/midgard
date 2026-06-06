@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
+import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
 import type { ControlSize } from '../control/context'
 
@@ -43,8 +44,10 @@ export function ListboxPanel({
 	flushPending,
 	children,
 }: ListboxPanelProps) {
+	const root = usePortalContainer()
+
 	return (
-		<FloatingPortal>
+		<FloatingPortal root={root ?? undefined}>
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
 					<div

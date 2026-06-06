@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type TextVariants } from '../../recipes/kata/text'
-import { Placeholder } from '../placeholder'
+import { TextSkeleton } from './text-skeleton'
 
 export type TextProps = TextVariants & {
 	className?: string
@@ -13,7 +13,7 @@ export type TextProps = TextVariants & {
 /** Paragraph text styled by `variant` and `color` from the text recipe. */
 export function Text({ variant, color, className, ...props }: TextProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.base, className)} />
+		return <TextSkeleton className={className} />
 	}
 
 	return <p data-slot="text" className={cn(k({ variant, color }), className)} {...props} />

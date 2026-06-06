@@ -8,7 +8,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { Spinner } from '../spinner'
+import { LoadingSpinner } from '../loading'
 
 export type SearchInputProps = Omit<
 	InputProps,
@@ -22,7 +22,7 @@ export type SearchInputProps = Omit<
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
-/** Search-type Input with a leading search icon — shows a Spinner while `loading` and a clear button once non-empty, returning focus to the field on clear. */
+/** Search-type Input with a leading search icon — shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. */
 export function SearchInput({
 	value,
 	defaultValue,
@@ -64,7 +64,7 @@ export function SearchInput({
 	}, [onClear, setCurrentValue])
 
 	const suffix = loading ? (
-		<Spinner />
+		<LoadingSpinner />
 	) : currentValue !== '' ? (
 		<Button
 			variant="bare"

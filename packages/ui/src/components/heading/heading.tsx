@@ -4,9 +4,9 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { type HeadingVariants, k } from '../../recipes/kata/heading'
-import { Placeholder } from '../placeholder'
+import { HeadingSkeleton } from './heading-skeleton'
 
-type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 export type HeadingProps = HeadingVariants & {
 	level?: HeadingLevel
@@ -16,7 +16,7 @@ export type HeadingProps = HeadingVariants & {
 /** Semantic heading rendering `h1`–`h6` per `level`, styled by the heading recipe. */
 export function Heading({ level = 1, className, ...props }: HeadingProps) {
 	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.base, k.skeleton.level[level], className)} />
+		return <HeadingSkeleton level={level} className={className} />
 	}
 
 	const Tag = `h${level}` as const
