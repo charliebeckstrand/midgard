@@ -2,16 +2,21 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
+export type A11yFocusReturn = {
+	/** Ref callback for the trigger — captures the node to restore focus to on close. */
+	captureTrigger: (node: HTMLElement | null) => void
+	/** Suppress the next close's focus restore (e.g. an outside press that should follow the pointer). */
+	skipNextRefocus: () => void
+}
+
 /**
- * Manages focus restoration for a floating panel whose `FloatingFocusManager`
- * runs with `returnFocus={false}`. On close it focuses the captured trigger —
- * unless `skipNextRefocus` was called for that close (e.g. an outside press,
- * where focus should follow the pointer rather than snap back).
- *
- * floating-ui's own `domReference` ref is not reliably populated, so the
- * trigger node is captured through `captureTrigger`.
+ * Focus restoration for a floating panel whose focus manager runs with
+ * `returnFocus={false}`. On close it focuses the captured trigger — unless
+ * `skipNextRefocus` was called for that close, where focus should stay put. The
+ * trigger node is captured through `captureTrigger` because floating-ui's
+ * `domReference` ref is not reliably populated.
  */
-export function useDatePickerRefocus(open: boolean) {
+export function useA11yFocusReturn(open: boolean): A11yFocusReturn {
 	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const skip = useRef(false)

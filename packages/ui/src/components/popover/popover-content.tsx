@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
+import { useA11yAutoFocus } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
@@ -64,11 +65,7 @@ export function PopoverContent({
 
 	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
 
-	useEffect(() => {
-		if (open && autoFocus) {
-			contentRef.current?.focus()
-		}
-	}, [open, autoFocus])
+	useA11yAutoFocus(contentRef, open && autoFocus)
 
 	return (
 		<FloatingSurface
