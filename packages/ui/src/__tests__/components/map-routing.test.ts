@@ -34,7 +34,9 @@ let fetchMock: ReturnType<typeof vi.fn>
 
 function nthCall(index: number): [string, RequestInit | undefined] {
 	const call = fetchMock.mock.calls[index]
+
 	if (!call) throw new Error(`expected fetch to have been called at least ${index + 1} time(s)`)
+
 	return call as [string, RequestInit | undefined]
 }
 
@@ -50,6 +52,7 @@ afterEach(() => {
 describe('fetchOsrmRoute', () => {
 	it('returns null without calling fetch when given fewer than 2 waypoints', async () => {
 		expect(await fetchOsrmRoute([])).toBeNull()
+
 		expect(await fetchOsrmRoute([[0, 0]])).toBeNull()
 
 		expect(fetchMock).not.toHaveBeenCalled()
@@ -93,6 +96,7 @@ describe('fetchOsrmRoute', () => {
 
 	it('forwards the AbortSignal to fetch', async () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse(ROUTE_JSON))
+
 		const controller = new AbortController()
 
 		await fetchOsrmRoute(TWO_POINTS, { signal: controller.signal })
@@ -136,7 +140,9 @@ describe('fetchOsrmRoute', () => {
 describe('fetchValhallaRoute', () => {
 	it('returns null without calling fetch when given fewer than 2 waypoints', async () => {
 		expect(await fetchValhallaRoute([])).toBeNull()
+
 		expect(await fetchValhallaRoute([[0, 0]])).toBeNull()
+
 		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
@@ -156,9 +162,13 @@ describe('fetchValhallaRoute', () => {
 		const [url, init] = nthCall(0)
 
 		expect(url).toBe('https://valhalla1.openstreetmap.de/route?format=osrm')
+
 		expect(init?.method).toBe('POST')
+
 		expect(init?.headers).toEqual({ 'Content-Type': 'application/json' })
+
 		expect(init?.signal).toBeUndefined()
+
 		expect(JSON.parse(String(init?.body))).toEqual({
 			locations: [
 				{ lat: 37.78, lon: -122.4 },
@@ -193,6 +203,7 @@ describe('fetchValhallaRoute', () => {
 
 	it('forwards the AbortSignal to fetch', async () => {
 		fetchMock.mockResolvedValueOnce(jsonResponse(ROUTE_JSON))
+
 		const controller = new AbortController()
 
 		await fetchValhallaRoute(TWO_POINTS, { signal: controller.signal })

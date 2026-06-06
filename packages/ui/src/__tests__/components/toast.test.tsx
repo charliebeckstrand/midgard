@@ -314,6 +314,44 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Hoverable')).not.toBeInTheDocument()
 	})
 
+	it('pauses the timer while focus is inside and resumes on focus leave', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Focusable' })
+		})
+
+		const title = screen.getByText('Focusable')
+
+		act(() => {
+			vi.advanceTimersByTime(500)
+		})
+
+		// Keyboard parity with hover: focus inside the toast holds the timer.
+		fireEvent.focusIn(title)
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(screen.getByText('Focusable')).toBeInTheDocument()
+
+		fireEvent.focusOut(title)
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(screen.queryByText('Focusable')).not.toBeInTheDocument()
+	})
+
 	it('renders toasts with the configured position viewport class', () => {
 		renderUI(
 			<ToastProvider>

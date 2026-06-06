@@ -77,6 +77,15 @@ describe('LoadingSpinner', () => {
 		expect(svg).toHaveAttribute('aria-hidden', 'true')
 	})
 
+	it('gates the spin animation behind motion-safe (WCAG 2.3.3)', () => {
+		const { container } = renderUI(<LoadingSpinner />)
+
+		const spinner = bySlot(container, 'loading-spinner')
+
+		// Rests as a static glyph under prefers-reduced-motion rather than spinning.
+		expect(spinner?.className).toContain('motion-safe:animate-spin')
+	})
+
 	it('applies custom className', () => {
 		const { container } = renderUI(<LoadingSpinner className="big" />)
 

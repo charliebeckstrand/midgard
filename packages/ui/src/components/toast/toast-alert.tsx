@@ -76,6 +76,14 @@ export function ToastAlert({
 				role={assertive ? 'alert' : 'status'}
 				onMouseEnter={onPause}
 				onMouseLeave={onResume}
+				// Keyboard parity with hover: pause the auto-dismiss timer while focus is
+				// anywhere inside the toast so a keyboard/SR user reaching its action or
+				// close button isn't timed out mid-interaction (WCAG 2.2.1). onFocus/onBlur
+				// bubble (focusin/focusout); resume only once focus leaves the subtree.
+				onFocus={onPause}
+				onBlur={(e) => {
+					if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onResume()
+				}}
 				onClick={() => onReset(t.id)}
 			>
 				<Alert

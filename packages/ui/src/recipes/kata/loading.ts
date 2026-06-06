@@ -37,9 +37,13 @@ const dot = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-/** Rotating SVG indicator — the classic indeterminate spinner. */
+/**
+ * Rotating SVG indicator — the classic indeterminate spinner. The spin is
+ * `motion-safe:`-gated so it rests as a static glyph under
+ * `prefers-reduced-motion` (WCAG 2.3.3) rather than rotating continuously.
+ */
 const spinner = defineRecipe({
-	base: 'inline-block shrink-0 animate-spin',
+	base: 'inline-block shrink-0 motion-safe:animate-spin',
 	size: {
 		xs: 'size-3',
 		sm: 'size-4',

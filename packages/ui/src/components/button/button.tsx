@@ -68,6 +68,7 @@ export function Button({
 	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
 
 	const headless = useHeadless()
+
 	const skeleton = useSkeleton()
 
 	const resolvedSize = useSize(size)
@@ -91,20 +92,6 @@ export function Button({
 	// the matching control height (see `data-[has-label]` in the button recipe),
 	// while icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
-
-	// An icon-only button has no text to name it. Surface the missing accessible
-	// name in development; the loading spinner carries its own label, so skip it
-	// while loading. Dev-only — stripped in production.
-	if (process.env.NODE_ENV !== 'production' && !hasLabel && !loading) {
-		const named =
-			props['aria-label'] != null || props['aria-labelledby'] != null || props.title != null
-
-		if (!named) {
-			console.error(
-				'Button: an icon-only button has no accessible name. Pass `aria-label` (or `aria-labelledby` / `title`).',
-			)
-		}
-	}
 
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 

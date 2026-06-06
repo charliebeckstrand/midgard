@@ -15,6 +15,40 @@ describe('ChatPrompt', () => {
 		expect(el?.tagName).toBe('TEXTAREA')
 	})
 
+	it('gives the composer a default accessible name', () => {
+		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		expect(screen.getByRole('textbox', { name: 'Message' })).toBeInTheDocument()
+	})
+
+	it('respects an explicit aria-label', () => {
+		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} aria-label="Reply" />)
+
+		expect(screen.getByRole('textbox', { name: 'Reply' })).toBeInTheDocument()
+	})
+
+	it('uses aria-labelledby in place of the default name', () => {
+		const { container } = renderUI(
+			<>
+				<span id="composer-label">Ask the assistant</span>
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					aria-labelledby="composer-label"
+				/>
+			</>,
+		)
+
+		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+
+		expect(el).toHaveAttribute('aria-labelledby', 'composer-label')
+
+		expect(el).not.toHaveAttribute('aria-label')
+
+		expect(screen.getByRole('textbox', { name: 'Ask the assistant' })).toBeInTheDocument()
+	})
+
 	it('fires onValueChange when the user types', async () => {
 		const onValueChange = vi.fn()
 
@@ -178,6 +212,7 @@ describe('ChatPrompt', () => {
 		})
 
 		expect(bySlot(container, 'chat-prompt')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })

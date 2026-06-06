@@ -20,6 +20,12 @@ export type MapMarkerProps = {
 		| 'bottom-left'
 		| 'bottom-right'
 	onClick?: () => void
+	/**
+	 * Accessible name for an interactive marker. The default pin is decorative
+	 * (`aria-hidden`), so a clickable marker with no labelled children needs this
+	 * to be usable by screen readers (WCAG 4.1.2).
+	 */
+	'aria-label'?: string
 	className?: string
 	children?: ReactNode
 }
@@ -28,10 +34,13 @@ export function MapMarker({
 	position,
 	anchor = 'center',
 	onClick,
+	'aria-label': ariaLabel,
 	className,
 	children,
 }: MapMarkerProps) {
 	const { onReady } = useMapContext()
+
+	const interactive = onClick != null
 
 	const markerRef = useRef<MapLibreMarker | null>(null)
 
@@ -93,16 +102,50 @@ export function MapMarker({
 	useEffect(() => {
 		if (!element) return
 
-		const handle = (event: MouseEvent) => {
+		const activate = () => onClickRef.current?.()
+
+		const handleClick = (event: MouseEvent) => {
 			event.stopPropagation()
 
-			onClickRef.current?.()
+			activate()
 		}
 
-		element.addEventListener('click', handle)
+		element.addEventListener('click', handleClick)
 
-		return () => element.removeEventListener('click', handle)
-	}, [element])
+		if (!interactive) return () => element.removeEventListener('click', handleClick)
+
+		// The MapLibre element is a bare <div>, so a mouse-only click listener is
+		// unreachable by keyboard and invisible to AT. Promote it to a real button
+		// with a tab stop and Enter/Space activation (WCAG 2.1.1 / 4.1.2).
+		element.setAttribute('role', 'button')
+
+		element.tabIndex = 0
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key !== 'Enter' && event.key !== ' ') return
+
+			event.preventDefault()
+			event.stopPropagation()
+
+			activate()
+		}
+
+		element.addEventListener('keydown', handleKeyDown)
+
+		return () => {
+			element.removeEventListener('click', handleClick)
+			element.removeEventListener('keydown', handleKeyDown)
+			element.removeAttribute('role')
+			element.removeAttribute('tabindex')
+		}
+	}, [element, interactive])
+
+	useEffect(() => {
+		if (!element) return
+
+		if (interactive && ariaLabel != null) element.setAttribute('aria-label', ariaLabel)
+		else element.removeAttribute('aria-label')
+	}, [element, interactive, ariaLabel])
 
 	if (!element) return null
 
