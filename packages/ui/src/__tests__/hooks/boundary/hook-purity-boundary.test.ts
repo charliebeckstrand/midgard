@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest'
 // Top-level hooks are reusable building blocks consumed by components,
 // primitives, and other hooks. They must not reach upward into components,
 // layouts, providers, or recipe-layer internals (kata / katakana). Importing
-// primitives is allowed — hooks frequently read context exposed through
-// primitive providers (see useRipple → ReducedMotion).
+// primitives is allowed — hooks may read context exposed through primitive
+// providers.
 
 const hooksDir = join(__dirname, '../../../hooks')
 const srcDir = join(__dirname, '../../..')
