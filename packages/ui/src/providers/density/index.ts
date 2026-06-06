@@ -1,8 +1,2 @@
-export {
-	DensityContext,
-	type DensityLevel,
-	densityLevels,
-	densityToSize,
-	useDensity,
-} from './context'
-export { Density } from './density'
+export { type DensityLevel, densityLevels, densityToSize } from './context'
+export { DensityProvider } from './density'

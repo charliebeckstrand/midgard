@@ -4,19 +4,22 @@
  * `muted`) that consumers reach by purpose rather than colour axis.
  * Surfaced through the barrel as `iro.text`.
  *
- * Per-colour text shades (the colour-axis source consumed by palette
- * variants) live next door in `text.ts`.
+ * Each intent projects the ramp's `onSurface` role for its colour — the
+ * foreground shade that clears AA on the page / card surface — so the
+ * semantic bundle and the `bare` palette share one source and can't drift
+ * to different shades for the same colour. `default` is the max-emphasis
+ * neutral foreground.
  *
  * Layer: kiso · Concern: semantic text intent
  */
 
-import { mode } from '../../../core/recipe'
+import { onSurface, strong } from './ramp'
 
 export const intent = {
-	default: mode('text-zinc-950', 'dark:text-white'),
-	primary: mode('text-blue-600', 'dark:text-blue-500'),
-	success: mode('text-green-700', 'dark:text-green-500'),
-	warning: mode('text-amber-600', 'dark:text-amber-500'),
-	error: mode('text-red-600', 'dark:text-red-500'),
-	muted: mode('text-zinc-500', 'dark:text-zinc-400'),
+	default: strong,
+	primary: onSurface.blue,
+	success: onSurface.green,
+	warning: onSurface.amber,
+	error: onSurface.red,
+	muted: onSurface.zinc,
 }

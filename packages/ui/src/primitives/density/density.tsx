@@ -42,18 +42,6 @@ export const densityPresets: Record<Step, DensityToken> = {
 	lg: { density: 'lg', size: 'lg' },
 }
 
-const STEP_DOWN: Record<Step, Step> = { sm: 'sm', md: 'sm', lg: 'md' }
-
-/**
- * Step one rung down, clamping at the smallest value. Used by surfaces that
- * embed a slot rendering one step smaller than the host — `<Input>` affixes,
- * `<SelectTrigger>` chevron. Single function for both axes; they share the
- * `Step` scale.
- */
-export function stepDown(hostSize: Step): Step {
-	return STEP_DOWN[hostSize]
-}
-
 const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,
 })
@@ -77,7 +65,7 @@ export { useDensityNullable }
 
 /**
  * Resolve a wider-scale size through the Affix → Density cascade. Used by
- * components whose own size type spans `Ma` (`Button`, `Icon`, `Spinner`,
+ * components whose own size type spans `Ma` (`Button`, `Icon`, `LoadingSpinner`,
  * `ProgressGauge`) — they need to inherit sub-`Step` values when nested
  * inside a control affix slot, and the regular `useDensity` can't carry
  * those.

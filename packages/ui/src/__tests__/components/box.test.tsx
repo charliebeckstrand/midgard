@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Box', () => {
@@ -115,9 +115,9 @@ describe('Box', () => {
 
 	it('inherits padding from an ambient Density when p is omitted', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Box>content</Box>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		// compact → sm step → p-2 via paddingMap.
@@ -126,9 +126,9 @@ describe('Box', () => {
 
 	it('explicit p prop wins over the ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Box p="lg">content</Box>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		const el = bySlot(container, 'box') as HTMLElement

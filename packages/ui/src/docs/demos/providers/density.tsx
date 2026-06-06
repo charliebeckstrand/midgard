@@ -26,7 +26,7 @@ import {
 } from '../../../components/table'
 import { Text } from '../../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
-import { Density, type DensityLevel } from '../../../providers/density'
+import { type DensityLevel, DensityProvider } from '../../../providers/density'
 import { DensityListbox } from '../../components/density-listbox'
 import { Example } from '../../components/example'
 
@@ -129,7 +129,7 @@ export function Demo() {
 	return (
 		<Example actions={<DensityListbox value={density} onValueChange={setDensity} />}>
 			<Stack gap="md">
-				<Density density={density}>
+				<DensityProvider density={density}>
 					<SidebarLayout sidebar={sidebar}>
 						<SidebarLayoutHeader>
 							<Heading level={1}>Orders</Heading>
@@ -183,7 +183,7 @@ export function Demo() {
 							</Stack>
 						</SidebarLayoutBody>
 					</SidebarLayout>
-				</Density>
+				</DensityProvider>
 			</Stack>
 		</Example>
 	)

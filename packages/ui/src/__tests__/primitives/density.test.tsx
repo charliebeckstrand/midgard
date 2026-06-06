@@ -1,26 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import {
-	Density,
-	DensityScope,
-	densityPresets,
-	stepDown,
-	useDensity,
-} from '../../primitives/density'
-
-describe('stepDown', () => {
-	it('steps md → sm', () => {
-		expect(stepDown('md')).toBe('sm')
-	})
-
-	it('steps lg → md', () => {
-		expect(stepDown('lg')).toBe('md')
-	})
-
-	it('clamps at sm (no underflow)', () => {
-		expect(stepDown('sm')).toBe('sm')
-	})
-})
+import { Density, DensityScope, densityPresets, useDensity } from '../../primitives/density'
 
 describe('useDensity (no ancestor)', () => {
 	it('returns the md preset outside any provider', () => {

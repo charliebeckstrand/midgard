@@ -10,10 +10,10 @@ export type TableCellProps = {
 } & Omit<ComponentPropsWithoutRef<'td'>, 'className'>
 
 export function TableCell({ className, children, ...props }: TableCellProps) {
-	const { grid, size } = useTable()
+	const { grid, density } = useTable()
 
 	return (
-		<td data-slot="table-cell" className={cn(k.cell({ size, grid }), className)} {...props}>
+		<td data-slot="table-cell" className={cn(k.cell({ density, grid }), className)} {...props}>
 			{children}
 		</td>
 	)

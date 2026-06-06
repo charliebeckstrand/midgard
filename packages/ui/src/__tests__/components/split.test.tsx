@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Split } from '../../components/split'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Split', () => {
@@ -73,5 +74,38 @@ describe('Split', () => {
 		const el = bySlot(container, 'split') as HTMLElement
 
 		expect(el.style.background).toBe('red')
+	})
+})
+
+describe('Split density inheritance', () => {
+	it('inherits gap from an ambient Density when gap is omitted', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Split>content</Split>
+			</DensityProvider>,
+		)
+
+		// compact → sm step → gap-2 via ma.gap.
+		expect(bySlot(container, 'split')?.className).toContain('gap-2')
+	})
+
+	it('explicit gap wins over the ambient Density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Split gap="xl">content</Split>
+			</DensityProvider>,
+		)
+
+		const el = bySlot(container, 'split') as HTMLElement
+
+		expect(el.className).toContain('gap-6')
+
+		expect(el.className).not.toContain('gap-2')
+	})
+
+	it('falls back to the lg gap with no explicit prop and no ambient Density', () => {
+		const { container } = renderUI(<Split>content</Split>)
+
+		expect(bySlot(container, 'split')?.className).toContain('gap-4')
 	})
 })

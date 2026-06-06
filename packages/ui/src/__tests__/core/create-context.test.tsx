@@ -33,4 +33,10 @@ describe('createContext', () => {
 
 		expect(() => renderHook(() => useValue())).toThrow('wrap me in <Surrounding>')
 	})
+
+	it('names the context for React DevTools', () => {
+		const [Context] = createContext<string>('Density', { default: '' })
+
+		expect(Context.displayName).toBe('Density')
+	})
 })

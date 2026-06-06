@@ -14,6 +14,9 @@ type MenuStateOptions = {
 
 export function useMenuState({ defaultOpen = false, placement, size }: MenuStateOptions) {
 	const inherited = useDensity()
+	// An explicit `size` prop is a single knob that sets both axes (diagonal);
+	// otherwise each axis inherits independently from the ambient token.
+	const resolvedDensity: Step = size ?? inherited.density
 	const resolvedSize: Step = size ?? inherited.size
 
 	const [point, setPoint] = useState({ x: 0, y: 0 })
@@ -59,9 +62,10 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			density: resolvedDensity,
 			size: resolvedSize,
 		}),
-		[open, floatingStyles, getReferenceProps, getFloatingProps, resolvedSize],
+		[open, floatingStyles, getReferenceProps, getFloatingProps, resolvedDensity, resolvedSize],
 	)
 
 	const actions = useMemo(

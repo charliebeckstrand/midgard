@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from '../../components/card'
-import { Density } from '../../providers/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Card', () => {
@@ -34,10 +34,16 @@ describe('Card', () => {
 		expect(el?.className).toContain('custom')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Card>content</Card>, { skeleton: true })
+	it('passes through to children in skeleton mode', () => {
+		const { container } = renderUI(
+			<Card>
+				<Button>action</Button>
+			</Card>,
+			{ skeleton: true },
+		)
 
-		expect(bySlot(container, 'card')).not.toBeInTheDocument()
+		// The card keeps its frame; the child skeletonizes itself.
+		expect(bySlot(container, 'card')).toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
@@ -227,9 +233,9 @@ describe('Card size system', () => {
 
 	it('inherits an ambient Density when no size prop is given', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Card>content</Card>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'sm')
@@ -237,9 +243,9 @@ describe('Card size system', () => {
 
 	it('explicit size prop wins over an ambient Density', () => {
 		const { container } = renderUI(
-			<Density density="compact">
+			<DensityProvider density="compact">
 				<Card size="lg">content</Card>
-			</Density>,
+			</DensityProvider>,
 		)
 
 		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')

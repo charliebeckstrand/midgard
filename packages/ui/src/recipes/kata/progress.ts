@@ -24,9 +24,9 @@ const color = {
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
 	},
 	amber: {
-		fill: 'fill-amber-500',
-		bg: 'bg-amber-500',
-		stroke: 'stroke-amber-500',
+		fill: mode('fill-amber-600', 'dark:fill-amber-500'),
+		bg: mode('bg-amber-600', 'dark:bg-amber-500'),
+		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
 	},
 	green: {
 		fill: mode('fill-green-600', 'dark:fill-green-500'),

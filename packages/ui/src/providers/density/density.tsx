@@ -1,34 +1,33 @@
 import type { ReactNode } from 'react'
 import { Density as DensityPrimitive } from '../../primitives/density'
-import { DensityContext, type DensityLevel, densityToSize } from './context'
+import { type DensityLevel, densityToSize } from './context'
 
-type DensityProps = {
+type DensityProviderProps = {
 	density: DensityLevel
 	className?: string
 	children: ReactNode
 }
 
 /**
- * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) that
- * sets the ambient density for descendants and broadcasts the matching
- * `Step` value through the universal Density primitive so every size-aware
- * component (Input, Button, Card, …) inherits automatically.
+ * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) and the
+ * app-wide entry point for ambient density. Wrap a region — or the app root —
+ * to set its baseline; it broadcasts the matching `Step` through the universal
+ * Density primitive so every size-aware component (Input, Button, Card, …)
+ * inherits automatically.
  *
  * Reference consumer: `<Input>`. Form fields resolve their size through
  * `useDensity()`, so dropping an `<Input>` (or any `<Field>`-wrapped field)
- * inside `<Density density="compact">` shrinks the field to `'sm'` without
- * touching its props.
+ * inside `<DensityProvider density="compact">` shrinks the field to `'sm'`
+ * without touching its props.
  */
-export function Density({ density, className, children }: DensityProps) {
+export function DensityProvider({ density, className, children }: DensityProviderProps) {
 	const step = densityToSize[density]
 
 	return (
-		<DensityContext value={density}>
-			<DensityPrimitive density={step} size={step}>
-				<span data-slot="density" data-density={density} className={className ?? 'contents'}>
-					{children}
-				</span>
-			</DensityPrimitive>
-		</DensityContext>
+		<DensityPrimitive density={step} size={step}>
+			<span data-slot="density" data-density={density} className={className ?? 'contents'}>
+				{children}
+			</span>
+		</DensityPrimitive>
 	)
 }

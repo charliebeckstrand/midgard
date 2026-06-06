@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { AffixContext, useAffix } from '../../primitives/affix'
+import { AffixContext, affixStepDown, useAffix } from '../../primitives/affix'
 import { Density, densityPresets, useSize } from '../../primitives/density'
 
 describe('useAffix', () => {
@@ -78,5 +78,19 @@ describe('useSize', () => {
 		})
 
 		expect(result.current).toBe('xl')
+	})
+})
+
+describe('affixStepDown', () => {
+	it('steps below the Step floor at sm → xs', () => {
+		expect(affixStepDown('sm')).toBe('xs')
+	})
+
+	it('steps md → sm', () => {
+		expect(affixStepDown('md')).toBe('sm')
+	})
+
+	it('steps lg → md', () => {
+		expect(affixStepDown('lg')).toBe('md')
 	})
 })

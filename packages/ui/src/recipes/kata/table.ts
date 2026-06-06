@@ -4,7 +4,9 @@ import { iro, sen } from '../kiso'
 const { text } = iro
 const { border } = sen
 
-const cellSize = {
+// Cell padding is a pure density concern — text stays at the table's fixed
+// `text-base`, so this axis is keyed by density, not size.
+const cellDensity = {
 	sm: 'px-1 py-1',
 	md: 'px-2 py-2',
 	lg: 'px-3 py-3',
@@ -17,16 +19,16 @@ const grid = {
 
 const cell = defineRecipe({
 	base: [text.default],
-	size: cellSize,
+	density: cellDensity,
 	grid,
-	defaults: { size: 'md', grid: false },
+	defaults: { density: 'md', grid: false },
 })
 
 const header = defineRecipe({
 	base: ['font-bold', text.muted],
-	size: cellSize,
+	density: cellDensity,
 	grid,
-	defaults: { size: 'md', grid: false },
+	defaults: { density: 'md', grid: false },
 })
 
 export const k = {

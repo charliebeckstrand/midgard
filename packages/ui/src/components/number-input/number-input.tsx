@@ -4,6 +4,7 @@ import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -57,7 +58,12 @@ export function NumberInput({
 			: onValueChange,
 	})
 
-	const resolvedSize: ControlSize = size ?? 'md'
+	const inherited = useDensity()
+
+	// Pass `size` through untouched so `<Input>` inherits the full two-axis
+	// density token when it's omitted; resolve locally only to pick the
+	// padding that clears the stepper buttons (which track the size axis).
+	const resolvedSize: ControlSize = size ?? inherited.size
 
 	const precision = step.toString().split('.')[1]?.length ?? 0
 
@@ -113,7 +119,7 @@ export function NumberInput({
 			data-slot="number-input"
 			name={name}
 			disabled={disabled}
-			size={resolvedSize}
+			size={size}
 			value={current ?? ''}
 			onChange={handleChange}
 			onBlur={handleBlur}

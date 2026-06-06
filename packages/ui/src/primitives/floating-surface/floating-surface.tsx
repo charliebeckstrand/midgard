@@ -5,6 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/popover'
+import { usePortalContainer } from '../portal'
 import { ReducedMotion } from '../reduced-motion'
 
 export type FloatingSurfaceProps = {
@@ -35,8 +36,10 @@ export function FloatingSurface({
 	children,
 	...rest
 }: FloatingSurfaceProps) {
+	const root = usePortalContainer()
+
 	return (
-		<FloatingPortal>
+		<FloatingPortal root={root ?? undefined}>
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (

@@ -1,4 +1,4 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji, narabi } from '../kiso'
 
 const { text } = iro
@@ -28,9 +28,9 @@ const value = defineRecipe({
 const delta = defineRecipe({
 	base: [flex.inline, size.sm, 'gap-1', weight.medium, 'tabular-nums'],
 	trend: {
-		up: mode('text-green-600', 'dark:text-green-500'),
-		down: mode('text-red-600', 'dark:text-red-500'),
-		neutral: [...text.muted],
+		up: text.success,
+		down: text.error,
+		neutral: text.muted,
 	},
 	defaults: { trend: 'neutral' },
 })

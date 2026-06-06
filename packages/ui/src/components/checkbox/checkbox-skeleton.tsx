@@ -1,11 +1,8 @@
-import { cn } from '../../core'
+'use client'
+
 import { k } from '../../recipes/kata/checkbox'
-import { Placeholder } from '../placeholder'
+import { createSkeleton, type SkeletonProps } from '../placeholder'
 
-export type CheckboxSkeletonProps = {
-	className?: string
-}
+export type CheckboxSkeletonProps = SkeletonProps
 
-export function CheckboxSkeleton({ className }: CheckboxSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.base, className)} />
-}
+export const CheckboxSkeleton = createSkeleton(k.skeleton, 'CheckboxSkeleton')
