@@ -8,6 +8,7 @@ import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
+import { usePortalContainer } from '../portal'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlaySignal } from './overlay-signal'
 
@@ -43,6 +44,12 @@ export function Overlay({
 	const { refs, context } = useFloating({ open, onOpenChange })
 
 	const scoped = container != null
+
+	// Explicit `container` (scoped overlay) wins; otherwise fall back to the
+	// ambient <PortalProvider>, then document.body. The provider relocates the
+	// portal mount only — modal positioning and scroll lock still key off
+	// `scoped`, so a provider container leaves a normal overlay fixed + locked.
+	const portalContainer = usePortalContainer(container)
 
 	useDismissable({
 		open,
@@ -84,6 +91,6 @@ export function Overlay({
 				)}
 			</AnimatePresence>
 		</ReducedMotion>,
-		container ?? document.body,
+		portalContainer ?? document.body,
 	)
 }
