@@ -36,6 +36,12 @@ export type TagInputProps = {
 	className?: string
 }
 
+/**
+ * Token-entry field rendering its tags as removable badges in the `<Input>`
+ * prefix — controlled or uncontrolled via `value`/`defaultValue`, committing
+ * on Enter, removing with Backspace, and gating additions through `validate`
+ * and `max`.
+ */
 export function TagInput({
 	id,
 	size,

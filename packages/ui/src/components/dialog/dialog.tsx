@@ -43,6 +43,11 @@ const alignClasses = {
 	start: 'sm:items-start',
 } as const
 
+/**
+ * Modal surface rendered in an Overlay with focus trapping and backdrop dismiss —
+ * animates as a bottom sheet on mobile and a centered panel on desktop, and is
+ * named by a registered `<DialogTitle>` or the `aria-label` fallback.
+ */
 export function Dialog({
 	open,
 	onOpenChange,

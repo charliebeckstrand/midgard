@@ -29,6 +29,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 	className?: string
 }
 
+/** Coordinator for a row of filter controls over a `Record` value — shares set/clear and an active-count via context, dropping empty fields from the payload. */
 export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,

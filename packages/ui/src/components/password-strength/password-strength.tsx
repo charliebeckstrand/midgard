@@ -37,6 +37,7 @@ export type PasswordStrengthProps = {
 	className?: string
 }
 
+/** Password strength meter and rule checklist driven by a `value` against a set of `rules` — renders a four-segment `progressbar` and reports the level via `onStrengthChange`. */
 export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,

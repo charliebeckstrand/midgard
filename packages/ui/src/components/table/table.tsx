@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type Ref, type TableHTMLAttributes, useMemo } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, type Ref, useMemo } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
@@ -21,7 +21,7 @@ export type TableVariants = {
 	striped?: boolean
 }
 
-export type TableElementProps = TableHTMLAttributes<HTMLTableElement> & {
+export type TableElementProps = ComponentPropsWithoutRef<'table'> & {
 	ref?: Ref<HTMLTableElement>
 	[key: `data-${string}`]: string | number | boolean | undefined
 }
@@ -37,6 +37,7 @@ export type TableProps = TableVariants & {
 	tableProps?: TableElementProps
 }
 
+/** Styled `<table>` shell that shares `grid`, `striped`, and resolved size via context to its rows and cells — `density` resolves through `explicit ?? Density ?? 'snug'`. */
 export function Table({
 	bleed,
 	grid,

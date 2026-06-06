@@ -16,6 +16,7 @@ function defaultFormat(value: number) {
 	return formatInteger(Math.round(value))
 }
 
+/** Numeric readout that tweens between values over `duration` — announces only the settled target via `aria-label`. */
 export function Odometer({
 	value,
 	duration = 800,

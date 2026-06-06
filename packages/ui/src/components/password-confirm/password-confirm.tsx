@@ -15,6 +15,11 @@ export type PasswordConfirmProps = {
 	onPasswordMismatch?: () => void
 }
 
+/**
+ * Coordinator for a password and its confirmation field — tracks match status
+ * across both inputs and surfaces a `warning` until they agree, suppressed
+ * while the password has a form error.
+ */
 export function PasswordConfirm({
 	onPasswordMatch,
 	onPasswordMismatch,

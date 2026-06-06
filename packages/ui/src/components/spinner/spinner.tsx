@@ -18,6 +18,7 @@ const SPINNER_SVG = (
 	</svg>
 )
 
+/** Indeterminate loading indicator rendered as a live `<output>` — `size` resolves from enclosing Density, with an `sr-only` `label`. */
 export function Spinner({ size, color, label = 'Loading', className, ...props }: SpinnerProps) {
 	const resolvedSize = useSize(size)
 

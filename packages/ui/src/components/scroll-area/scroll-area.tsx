@@ -16,6 +16,12 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 		className?: string
 	} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/**
+ * Scrollable viewport with custom overlay scrollbars and draggable thumbs —
+ * `scrollbar` toggles between `auto` (fade in while scrolling), `visible`, and
+ * `hidden`. The viewport becomes keyboard-focusable only while actually
+ * scrollable.
+ */
 export function ScrollArea({
 	orientation = 'vertical',
 	size,

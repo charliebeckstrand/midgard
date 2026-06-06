@@ -10,6 +10,7 @@ export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	ctrl?: boolean
 }
 
+/** Keyboard-key glyph — optionally prepends the Command (`cmd`) or Control (`ctrl`) modifier symbol. */
 export function Kbd({ cmd, ctrl, size, className, children, ...props }: KbdProps) {
 	return (
 		<kbd data-slot="kbd" className={cn(k({ size }), className)} {...props}>

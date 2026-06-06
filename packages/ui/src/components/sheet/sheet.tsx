@@ -30,6 +30,11 @@ export type SheetProps = SheetPanelVariants & {
 	initialFocus?: RefObject<HTMLElement | null>
 }
 
+/**
+ * Edge-anchored overlay panel sliding in from `side` — controlled via
+ * `open`/`onOpenChange`. Portals to `document.body` by default, or scopes to a
+ * `container` with absolute positioning and no scroll lock.
+ */
 export function Sheet({
 	open,
 	onOpenChange,

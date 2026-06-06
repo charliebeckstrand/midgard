@@ -10,6 +10,7 @@ export type TextProps = TextVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'color'>
 
+/** Paragraph text styled by `variant` and `color` from the text recipe. */
 export function Text({ variant, color, className, ...props }: TextProps) {
 	if (useSkeleton()) {
 		return <Placeholder className={cn(k.skeleton.base, className)} />

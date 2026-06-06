@@ -28,6 +28,11 @@ export type DrawerProps = DrawerPanelVariants & {
 	children: ReactNode
 }
 
+/**
+ * Animated overlay panel anchored to a screen edge — controlled via
+ * `open`/`onOpenChange`. Opens a density cascade sized by `size`, with optional
+ * `glass` surface treatment.
+ */
 export function Drawer({
 	open,
 	onOpenChange,

@@ -22,6 +22,7 @@ export type AddressInputProps = {
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 }
 
+/** Address autocomplete over a pluggable geocoding `provider` — built on Combobox, debounces the query and only fetches once `minQueryLength` is reached. */
 export function AddressInput({
 	value,
 	onValueChange,

@@ -13,6 +13,7 @@ export type HeadingProps = HeadingVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'h1'>, 'className'>
 
+/** Semantic heading rendering `h1`–`h6` per `level`, styled by the heading recipe. */
 export function Heading({ level = 1, className, ...props }: HeadingProps) {
 	if (useSkeleton()) {
 		return <Placeholder className={cn(k.skeleton.base, k.skeleton.level[level], className)} />

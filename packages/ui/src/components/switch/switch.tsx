@@ -13,6 +13,12 @@ export type SwitchProps = SwitchVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
+/**
+ * Toggle control backed by a native `role="switch"` checkbox — controlled via
+ * `checked` or uncontrolled, owning its state so `aria-checked` always tracks
+ * reality. Integrates with enclosing `<Form>` and `<Control>` for binding,
+ * sizing, and validation.
+ */
 export function Switch({
 	className,
 	color,

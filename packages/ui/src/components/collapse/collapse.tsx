@@ -27,6 +27,11 @@ export type CollapseProps = {
 	className?: string
 }
 
+/**
+ * Animated show/hide region for a single panel — controlled via `open` or
+ * uncontrolled via `defaultOpen`. Pass `trigger` for the convenience layout,
+ * or omit it and supply <CollapseTrigger>/<CollapsePanel> for the compound API.
+ */
 export function Collapse({
 	defaultOpen = false,
 	open: openProp,

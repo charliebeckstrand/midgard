@@ -56,6 +56,7 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 	return k.outline[outline]
 }
 
+/** Polymorphic layout primitive for padding, margin, radius, background, and outline tokens — `p` inherits the ambient Density while `px`/`py` stay explicit. */
 export function Box({
 	p,
 	px,

@@ -20,6 +20,7 @@ export type AvatarProps = AvatarVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
+/** User image, initials, or fallback in a sized circle — pair with `status` to overlay a corner StatusDot. */
 export function Avatar({
 	src,
 	alt = '',

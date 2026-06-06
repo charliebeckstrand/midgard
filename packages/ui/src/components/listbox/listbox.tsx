@@ -77,6 +77,12 @@ export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
+/**
+ * Select-style dropdown over arbitrary `<ListboxOption>` values — single or
+ * `multiple` selection, controlled or uncontrolled, with an optional clear
+ * control and a portalled panel. `size` resolves from the prop, then `<Control>`,
+ * then enclosing Density.
+ */
 export function Listbox<T>({
 	value: valueProp,
 	defaultValue,

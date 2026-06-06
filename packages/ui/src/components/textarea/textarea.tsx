@@ -20,6 +20,12 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	actions?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
+/**
+ * Multi-line text control with optional `autoResize` and an `actions` slot —
+ * resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
+ * `<Glass>`, and Density contexts. Stays controlled when a `value` prop is
+ * present, even if `null`/`undefined`.
+ */
 export function Textarea(props: TextareaProps) {
 	// Mirror Input: a wrapper that signals "empty" with value={null}/value={undefined}
 	// must stay controlled, so the presence of the prop is checked before destructuring.

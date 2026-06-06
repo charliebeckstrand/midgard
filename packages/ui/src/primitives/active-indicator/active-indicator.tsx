@@ -81,6 +81,9 @@ export function ActiveIndicator({
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
 				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
+				// `borderRadius` is set inline (not just via `rounded-lg`) so Motion's
+				// layout projection applies inverse-scale correction during the
+				// shared-element transition; a CSS class alone distorts the radius.
 				style={{ borderRadius: 8, ...style }}
 				transition={k.spring}
 			>

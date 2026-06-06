@@ -23,6 +23,7 @@ export type SliderProps = SliderBaseProps &
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 
+/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field and exposing fill position as a `--slider-value` CSS variable. */
 export function Slider({
 	value,
 	defaultValue,

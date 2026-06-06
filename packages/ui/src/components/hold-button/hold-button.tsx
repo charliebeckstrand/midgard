@@ -15,6 +15,11 @@ export type HoldButtonProps = Omit<
 	onHoldCancel?: () => void
 }
 
+/**
+ * Button that fires `onComplete` only after a sustained press of `duration` ms —
+ * a fill overlay animates progress, and releasing early cancels. Responds to
+ * both pointer hold and Space/Enter keydown.
+ */
 export function HoldButton({
 	duration = 1000,
 	onComplete,

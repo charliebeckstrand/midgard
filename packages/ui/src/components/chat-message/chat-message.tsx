@@ -13,6 +13,12 @@ export type ChatMessageProps = ChatMessageVariants & {
 	children?: ReactNode
 }
 
+/**
+ * Conversational message bubble sided and colored by `type` (`user` or
+ * `assistant`) — with an optional `timestamp`, `actions` rail, and a blinking
+ * `streaming` cursor. Speaker is announced to assistive tech via a visually
+ * hidden author label.
+ */
 export function ChatMessage({
 	type,
 	timestamp,

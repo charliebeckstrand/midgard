@@ -9,6 +9,7 @@ export type AspectRatioProps = {
 	children?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
 
+/** Box constraining its content to a fixed aspect ratio — `ratio` accepts a named preset or a raw numeric ratio, with overflow clipped. */
 export function AspectRatio({
 	ratio = 'square',
 	className,

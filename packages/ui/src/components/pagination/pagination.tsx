@@ -8,6 +8,7 @@ import { PAGINATION_ITEM_SELECTOR } from './pagination-constants'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 
+/** Labeled pagination `<nav>` container — wires horizontal roving-tabindex keyboard navigation across its page items. */
 export function Pagination({ className, onKeyDown, ...props }: PaginationProps) {
 	const ref = useRef<HTMLElement>(null)
 

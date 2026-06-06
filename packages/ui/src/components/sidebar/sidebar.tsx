@@ -8,6 +8,7 @@ import { k } from '../../recipes/kata/sidebar'
 
 export type SidebarProps = ComponentPropsWithoutRef<'nav'>
 
+/** Vertical navigation landmark with roving-tabindex keyboard movement across items — establishes an active-indicator scope. */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
 	className,

@@ -19,6 +19,11 @@ export type MenuProps = {
 	children: ReactNode
 }
 
+/**
+ * Composition root for menus — provides open state and actions to its trigger
+ * and items via context. Acts as a floating dropdown or, when not, a
+ * context-menu `application` region driven by right-click.
+ */
 export function Menu({ defaultOpen, placement, size, className, children }: MenuProps) {
 	const { state, actions, handleContextMenu, isDropdown } = useMenuState({
 		defaultOpen,

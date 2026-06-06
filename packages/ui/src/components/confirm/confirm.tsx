@@ -29,6 +29,7 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'size'> & {
 	className?: string
 }
 
+/** Confirmation dialog built on Dialog with `role="alertdialog"` — pairs a cancel and confirm action whose labels, colors, and disabled state are configurable. */
 export function Confirm({
 	open,
 	onOpenChange,

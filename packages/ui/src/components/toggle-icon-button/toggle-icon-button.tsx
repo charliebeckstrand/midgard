@@ -21,6 +21,11 @@ export type ToggleIconButtonProps = ToggleIconButtonLabel & {
 		'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'
 	>
 
+/**
+ * Two-state icon Button reflecting `pressed` via `aria-pressed` — swaps `icon`
+ * for `pressedIcon` and, unless `animate` is false, cross-fades between the two.
+ * Requires `aria-label` or `aria-labelledby`.
+ */
 export function ToggleIconButton({
 	pressed,
 	icon,

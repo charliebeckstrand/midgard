@@ -51,6 +51,11 @@ export type DatePickerBaseProps = {
 
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
+/**
+ * Popover date picker wrapping a Calendar — switches between single and range
+ * selection on the `range` prop, and supports controlled or uncontrolled `value`.
+ * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
+ */
 export function DatePicker(props: DatePickerProps) {
 	const skeleton = useSkeleton()
 	const inherited = useDensity()

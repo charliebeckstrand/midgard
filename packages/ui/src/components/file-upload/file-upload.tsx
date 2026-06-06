@@ -48,6 +48,12 @@ type FileUploadButtonProps = FileUploadSharedProps & {
 
 export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileUploadButtonProps
 
+/**
+ * File picker over a hidden `<input type="file">`, rendered as one of three
+ * `variant`s — a drag-and-drop `area` dropzone, a readonly `input` field, or a
+ * `button`. Mirrors enclosing `<Control>`/`<Field>` invalid and required state
+ * onto the real input.
+ */
 export function FileUpload(props: FileUploadProps) {
 	const { accept, multiple, disabled, className, children, onFiles } = props
 

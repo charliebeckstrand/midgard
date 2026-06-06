@@ -25,6 +25,7 @@ export type SplitProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/** Two-pane grid layout — `direction` chooses rows or columns and `ratio` sizes the first pane against the second. */
 export function Split({
 	direction = 'horizontal',
 	ratio = '1/2',

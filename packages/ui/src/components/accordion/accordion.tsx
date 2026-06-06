@@ -33,6 +33,12 @@ function toArray(value: string | string[] | null | undefined): string[] {
 	return Array.isArray(value) ? value : [value]
 }
 
+/**
+ * Vertically stacked set of collapsible sections — `type='single'` keeps at
+ * most one open (optionally `collapsible` to none); `type='multiple'` allows
+ * any number. Controlled via `value`/`onValueChange` or uncontrolled, with
+ * roving-tabindex keyboard navigation across triggers.
+ */
 export function Accordion(props: AccordionProps) {
 	const { variant, className, children } = props
 
