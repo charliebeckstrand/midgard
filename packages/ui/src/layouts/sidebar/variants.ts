@@ -12,7 +12,13 @@ const layout = defineRecipe({
 })
 
 const panel = defineRecipe({
-	base: ['shrink-0 min-w-0 w-xs', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
+	base: ['shrink-0 min-w-0', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
+	size: {
+		sm: 'w-2xs',
+		md: 'w-xs',
+		lg: 'w-sm',
+	},
+	defaults: { size: 'md' },
 })
 
 const floatingHotZone = defineRecipe({

@@ -84,6 +84,24 @@ describe('SidebarLayout', () => {
 		expect(desktopPanel?.className).toContain('w-xs')
 	})
 
+	it('scales the desktop panel width to the ambient density', () => {
+		const { container: small } = renderUI(
+			<Density size="sm">
+				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
+			</Density>,
+		)
+
+		expect(small.querySelector('.max-lg\\:hidden')?.className).toContain('w-2xs')
+
+		const { container: large } = renderUI(
+			<Density size="lg">
+				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
+			</Density>,
+		)
+
+		expect(large.querySelector('.max-lg\\:hidden')?.className).toContain('w-sm')
+	})
+
 	it('hides the inline desktop panel when floating is true', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>sidebar</div>} floating>
