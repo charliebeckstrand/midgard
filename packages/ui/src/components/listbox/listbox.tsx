@@ -101,7 +101,7 @@ export function Listbox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
-	'data-slot': slot,
+	'data-slot': slot = 'listbox',
 	children,
 }: ListboxProps<T>) {
 	const glass = useGlass()
@@ -146,7 +146,7 @@ export function Listbox<T>({
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
-		restoreFocusTo: triggerRef,
+		returnFocusTo: triggerRef,
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })

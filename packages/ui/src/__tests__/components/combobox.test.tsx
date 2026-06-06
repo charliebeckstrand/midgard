@@ -5,14 +5,14 @@ import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
 describe('Combobox', () => {
-	it('renders with data-slot="control"', () => {
+	it('renders with data-slot="combobox"', () => {
 		const { container } = renderUI(
 			<Combobox>
 				<div>Option</div>
 			</Combobox>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'combobox')
 
 		expect(el).toBeInTheDocument()
 	})
@@ -38,7 +38,7 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'combobox')
 
 		expect(el?.className).toContain('custom')
 	})
