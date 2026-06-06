@@ -58,6 +58,8 @@ const item = defineRecipe({
 	base: 'relative overflow-hidden',
 	orientation: {
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
+		// 6.5px aligns content with the marker's rail center: half the size-3.5
+		// (14px) marker, less half the 0.5 (2px) rail.
 		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
 	},
 	defaults: { orientation: 'vertical' },
@@ -112,6 +114,7 @@ export const k = {
 			'after:h-[100vh] after:w-0.5',
 		],
 		horizontal: [
+			// left-[6.5px] centers the rail on the marker (see `item` above).
 			'absolute top-0 left-[6.5px]',
 			'before:right-full before:top-1/2 before:-translate-y-1/2',
 			'before:h-0.5 before:w-[100vw]',
