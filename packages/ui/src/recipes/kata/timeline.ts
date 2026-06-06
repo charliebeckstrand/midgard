@@ -1,43 +1,43 @@
 import { type Color, defineRecipe, type VariantProps } from '../../core/recipe'
 import { iro, ji } from '../kiso'
 
-const { text } = iro
+const { marker, text } = iro
 const { size, weight } = ji
 
 /**
- * Per-colour marker appearance. `dot` paints the status indicator;
- * `lineBefore` / `lineAfter` paint the inbound / outbound line segments.
- * Each colour's three surfaces sit on one row so a palette tweak is a
- * single-line edit. The `before:` / `after:` prefixes stay verbatim in
- * source — Tailwind's scanner only picks up class literals, so a derived
- * `lineAfter = lineBefore.replace('before:', 'after:')` would silently
- * drop the generated classes.
+ * Per-colour marker appearance. `dot` reads the shared `iro.marker` shade
+ * (600 light / 500 dark) so the indicator clears non-text 3:1 on the page;
+ * `lineBefore` / `lineAfter` paint the inbound / outbound rail at the same
+ * shade (zinc keeps its subtle structural rail). The `before:` / `after:`
+ * prefixes stay verbatim in source — Tailwind's scanner only picks up class
+ * literals, so a derived `lineAfter = lineBefore.replace('before:', 'after:')`
+ * would silently drop the generated classes.
  */
-const palette: Record<Color, { dot: string; lineBefore: string; lineAfter: string }> = {
+const palette: Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }> = {
 	zinc: {
-		dot: 'text-zinc-500 dark:text-zinc-400',
+		dot: marker.zinc,
 		lineBefore: 'before:bg-zinc-200 dark:before:bg-zinc-700',
 		lineAfter: 'after:bg-zinc-200 dark:after:bg-zinc-700',
 	},
 	red: {
-		dot: 'text-red-500 dark:text-red-500',
-		lineBefore: 'before:bg-red-500 dark:before:bg-red-500',
-		lineAfter: 'after:bg-red-500 dark:after:bg-red-500',
+		dot: marker.red,
+		lineBefore: 'before:bg-red-600 dark:before:bg-red-500',
+		lineAfter: 'after:bg-red-600 dark:after:bg-red-500',
 	},
 	amber: {
-		dot: 'text-amber-500 dark:text-amber-500',
-		lineBefore: 'before:bg-amber-500 dark:before:bg-amber-500',
-		lineAfter: 'after:bg-amber-500 dark:after:bg-amber-500',
+		dot: marker.amber,
+		lineBefore: 'before:bg-amber-600 dark:before:bg-amber-500',
+		lineAfter: 'after:bg-amber-600 dark:after:bg-amber-500',
 	},
 	green: {
-		dot: 'text-green-500 dark:text-green-500',
-		lineBefore: 'before:bg-green-500 dark:before:bg-green-500',
-		lineAfter: 'after:bg-green-500 dark:after:bg-green-500',
+		dot: marker.green,
+		lineBefore: 'before:bg-green-600 dark:before:bg-green-500',
+		lineAfter: 'after:bg-green-600 dark:after:bg-green-500',
 	},
 	blue: {
-		dot: 'text-blue-500 dark:text-blue-500',
-		lineBefore: 'before:bg-blue-500 dark:before:bg-blue-500',
-		lineAfter: 'after:bg-blue-500 dark:after:bg-blue-500',
+		dot: marker.blue,
+		lineBefore: 'before:bg-blue-600 dark:before:bg-blue-500',
+		lineAfter: 'after:bg-blue-600 dark:after:bg-blue-500',
 	},
 }
 

@@ -1,20 +1,23 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { narabi } from '../kiso'
+import { iro, narabi } from '../kiso'
 
+const { marker } = iro
 const { flex } = narabi
 
 /**
  * Indicator colour, shared by both loading surfaces. Resolves to a `text-*`
  * class so the dots (`bg-current`) and the spinner SVG (`currentColor`) both
- * inherit it.
+ * inherit it. Chromatic colours read the shared `iro.marker` shade (600 light
+ * / 500 dark) so the indicator clears non-text 3:1 on the page; `current`
+ * inherits the surrounding text colour and `zinc` keeps its stronger neutral.
  */
 const color = {
 	current: 'text-current',
 	zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
-	red: mode('text-red-600', 'dark:text-red-500'),
-	amber: 'text-amber-500',
-	green: mode('text-green-600', 'dark:text-green-500'),
-	blue: mode('text-blue-600', 'dark:text-blue-500'),
+	red: marker.red,
+	amber: marker.amber,
+	green: marker.green,
+	blue: marker.blue,
 }
 
 /**

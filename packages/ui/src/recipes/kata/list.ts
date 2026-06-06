@@ -55,7 +55,7 @@ export const k = {
 		'cursor-grab data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		'touch-none select-none',
 		...mode(
-			'text-zinc-400 not-data-disabled:not-data-readonly:hover:text-zinc-700',
+			'text-zinc-500 not-data-disabled:not-data-readonly:hover:text-zinc-700',
 			'dark:text-zinc-500 dark:not-data-disabled:not-data-readonly:hover:text-zinc-200',
 		),
 		...disabled,
