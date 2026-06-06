@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
@@ -55,6 +55,9 @@ export function Slider({
 	// back to a generated id — the same chain Input uses. A range input has no
 	// text of its own, so this is what lets a sibling <Label htmlFor> (or a
 	// <Field><Label> with no explicit id) name it.
+	// `required` is intentionally not resolved: a range input always has a value,
+	// so the attribute does not apply to it (HTML constraint validation) — only
+	// invalid + describedby carry meaning here.
 	const controlProps = useControlProps({ id, disabled, 'aria-describedby': ariaDescribedBy })
 
 	const scope = useIdScope({ id: controlProps.id })
@@ -66,6 +69,7 @@ export function Slider({
 			id={scope.id}
 			disabled={controlProps.disabled}
 			aria-describedby={controlProps['aria-describedby']}
+			{...invalidAttrs(controlProps.invalid)}
 			min={min}
 			max={max}
 			step={step}

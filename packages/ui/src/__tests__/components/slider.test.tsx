@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
+import { Description, Message } from '../../components/fieldset'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
@@ -236,5 +238,37 @@ describe('snapToStep', () => {
 
 	it('offsets the step grid by min', () => {
 		expect(snapToStep(13, 3, 5)).toBe(13)
+	})
+})
+
+describe('Slider + Control', () => {
+	it('surfaces invalid state from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control invalid>
+				<Slider />
+			</Control>,
+		)
+
+		const el = bySlot(container, 'slider')
+
+		expect(el).toHaveAttribute('aria-invalid', 'true')
+
+		expect(el).toHaveAttribute('data-invalid')
+	})
+
+	it('points aria-describedby at the control description and message', () => {
+		const { container } = renderUI(
+			<Control id="vol" invalid>
+				<Description>Pick a level</Description>
+				<Slider />
+				<Message>Required</Message>
+			</Control>,
+		)
+
+		const describedBy = bySlot(container, 'slider')?.getAttribute('aria-describedby')
+
+		expect(describedBy).toContain('vol-description')
+
+		expect(describedBy).toContain('vol-error')
 	})
 })
