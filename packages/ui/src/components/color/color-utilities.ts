@@ -10,20 +10,35 @@ import type { ColorFormat, Hsva, Rgba } from './types'
 
 const round = (n: number) => Math.round(n)
 
-/** Clamp + round an HSVA into its canonical ranges (`h 0–360`, `s/v 0–100`, `a 0–1`). */
+/** Clamp an HSVA into its canonical ranges (`h 0–360`, `s/v 0–100`, `a 0–1`) at full precision. */
 export function clampHsva({ h, s, v, a }: Hsva): Hsva {
+	return {
+		h: clamp(h, 0, 360),
+		s: clamp(s, 0, 100),
+		v: clamp(v, 0, 100),
+		a: clamp(a, 0, 1),
+	}
+}
+
+/**
+ * Clamp and round an HSVA for output / comparison — integers for `h`/`s`/`v`,
+ * two decimals for `a`. Internally the picker keeps full precision so an RGB or
+ * hex round-trip stays lossless and every byte value is reachable; rounding
+ * happens only at these edges.
+ */
+function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
 		h: round(clamp(h, 0, 360)),
 		s: round(clamp(s, 0, 100)),
 		v: round(clamp(v, 0, 100)),
-		a: clamp(a, 0, 1),
+		a: round(clamp(a, 0, 1) * 100) / 100,
 	}
 }
 
 /** True when two colours render identically — hue is ignored where saturation or value collapse it. */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
-	const ca = clampHsva(a)
-	const cb = clampHsva(b)
+	const ca = roundHsva(a)
+	const cb = roundHsva(b)
 
 	const hueMoot = (c: Hsva) => c.s === 0 || c.v === 0
 
@@ -84,7 +99,9 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 
 	const s = max === 0 ? 0 : d / max
 
-	return { h: round(h), s: round(s * 100), v: round(max * 100), a: clamp(a, 0, 1) }
+	// Full precision — rounding happens at the output edges (roundHsva) so an
+	// RGB round-trip through HSVA doesn't drop reachable byte values.
+	return { h, s: s * 100, v: max * 100, a: clamp(a, 0, 1) }
 }
 
 const toHex2 = (n: number) => clamp(round(n), 0, 255).toString(16).padStart(2, '0')
@@ -143,9 +160,9 @@ export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 /** Project the internal HSVA back onto the consumer's wire format. */
 export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean): string | Hsva {
 	if (format === 'hsva') {
-		const clamped = clampHsva(hsva)
+		const rounded = roundHsva(hsva)
 
-		return alpha ? clamped : { ...clamped, a: 1 }
+		return alpha ? rounded : { ...rounded, a: 1 }
 	}
 
 	return hsvaToHex(hsva, alpha)

@@ -59,17 +59,21 @@ describe('color conversions', () => {
 		expect(hsvaToHex({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('#ff000080')
 	})
 
-	it('keeps rgb stable through an HSVA round-trip within rounding tolerance', () => {
-		// HSVA is stored as integers (clean output, standard for colour pickers),
-		// so an RGB round-trip can drift by at most one level per channel.
+	it('keeps rgb exact through an HSVA round-trip (lossless internal precision)', () => {
 		const rgba = { r: 12, g: 200, b: 90, a: 1 }
 
-		const back = hsvaToRgba(rgbaToHsva(rgba))
+		expect(hsvaToRgba(rgbaToHsva(rgba))).toEqual(rgba)
+	})
 
-		expect(within(back.r, rgba.r)).toBe(true)
-		expect(within(back.g, rgba.g)).toBe(true)
-		expect(within(back.b, rgba.b)).toBe(true)
-		expect(back.a).toBe(1)
+	it('reaches every byte value on a channel — the RGB inputs never snap', () => {
+		// Regression guard: integer-HSV storage used to make some byte values
+		// unreachable (typing 200 would settle on 199). Full-precision HSV makes
+		// every RGB round-trip exact.
+		for (let n = 0; n <= 255; n++) {
+			const base = { r: n, g: 100, b: 200, a: 1 }
+
+			expect(hsvaToRgba(rgbaToHsva(base))).toEqual(base)
+		}
 	})
 
 	it('ignores hue when saturation or value collapses it', () => {

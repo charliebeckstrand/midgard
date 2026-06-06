@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/color-panel'
@@ -9,7 +9,7 @@ import { Input } from '../input'
 import { hexToHsva, hsvaToHex, hsvaToRgba, rgbaToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
 
-type Channel = 'r' | 'g' | 'b'
+type Field = 'hex' | 'r' | 'g' | 'b' | 'a'
 
 /** Hex and per-channel RGB(A) numeric entry, two-way bound to the panel's colour. */
 export function ColorInputs() {
@@ -17,43 +17,71 @@ export function ColorInputs() {
 
 	const scope = useIdScope()
 
-	const canonicalHex = hsvaToHex(hsva, alpha).slice(1)
-
-	// A local draft keeps partially-typed hex (e.g. while deleting) from being
-	// rewritten under the cursor; it re-syncs from the colour only when the field
-	// is not being edited.
-	const [hexDraft, setHexDraft] = useState(canonicalHex)
-	const [editing, setEditing] = useState(false)
-
-	useEffect(() => {
-		if (!editing) setHexDraft(canonicalHex)
-	}, [canonicalHex, editing])
-
-	const onHexChange = (event: ChangeEvent<HTMLInputElement>) => {
-		const next = event.target.value
-
-		setHexDraft(next)
-
-		const parsed = hexToHsva(next)
-
-		if (parsed) setHsva(alpha ? parsed : { ...parsed, a: 1 })
-	}
-
 	const rgba = hsvaToRgba(hsva)
 
-	const onChannel = (channel: Channel) => (event: ChangeEvent<HTMLInputElement>) => {
-		const n = clamp(Math.round(Number(event.target.value) || 0), 0, 255)
-
-		setHsva(rgbaToHsva({ ...rgba, [channel]: n }))
+	// What each field shows at rest, derived from the live colour.
+	const derived: Record<Field, string> = {
+		hex: hsvaToHex(hsva, alpha).slice(1),
+		r: String(rgba.r),
+		g: String(rgba.g),
+		b: String(rgba.b),
+		a: String(Math.round(hsva.a * 100)),
 	}
 
-	const onAlpha = (event: ChangeEvent<HTMLInputElement>) => {
-		const n = clamp(Math.round(Number(event.target.value) || 0), 0, 100)
+	// While a field is focused its raw text lives here so partially-typed input
+	// (an empty field mid-edit, a half-typed hex) isn't overwritten by the
+	// derived value under the cursor. Only one field edits at a time.
+	const [edit, setEdit] = useState<{ field: Field; value: string } | null>(null)
 
-		setHsva((prev) => ({ ...prev, a: n / 100 }))
+	const valueFor = (field: Field) => (edit?.field === field ? edit.value : derived[field])
+
+	const commitChannel = (channel: 'r' | 'g' | 'b', raw: string) => {
+		if (raw.trim() === '') return
+
+		const n = Number(raw)
+
+		if (Number.isNaN(n)) return
+
+		setHsva(rgbaToHsva({ ...rgba, [channel]: clamp(Math.round(n), 0, 255) }))
 	}
 
-	const channels: Channel[] = ['r', 'g', 'b']
+	const commitAlpha = (raw: string) => {
+		if (raw.trim() === '') return
+
+		const n = Number(raw)
+
+		if (Number.isNaN(n)) return
+
+		setHsva((prev) => ({ ...prev, a: clamp(Math.round(n), 0, 100) / 100 }))
+	}
+
+	const onChange = (field: Field) => (event: ChangeEvent<HTMLInputElement>) => {
+		const raw = event.target.value
+
+		setEdit({ field, value: raw })
+
+		if (field === 'hex') {
+			const parsed = hexToHsva(raw)
+
+			if (parsed) setHsva(alpha ? parsed : { ...parsed, a: 1 })
+		} else if (field === 'a') {
+			commitAlpha(raw)
+		} else {
+			commitChannel(field, raw)
+		}
+	}
+
+	const channels: Array<'r' | 'g' | 'b'> = ['r', 'g', 'b']
+
+	const fieldProps = (field: Field) => ({
+		id: scope.sub(field),
+		value: valueFor(field),
+		onChange: onChange(field),
+		onFocus: () => setEdit({ field, value: derived[field] }),
+		onBlur: () => setEdit(null),
+		disabled,
+		size,
+	})
 
 	return (
 		<div data-slot="color-inputs" className={k.inputs}>
@@ -62,18 +90,9 @@ export function ColorInputs() {
 					Hex
 				</label>
 				<Input
-					id={scope.sub('hex')}
+					{...fieldProps('hex')}
 					data-slot="color-hex-input"
-					size={size}
 					prefix="#"
-					value={hexDraft}
-					onChange={onHexChange}
-					onFocus={() => setEditing(true)}
-					onBlur={() => {
-						setEditing(false)
-						setHexDraft(canonicalHex)
-					}}
-					disabled={disabled}
 					spellCheck={false}
 					autoComplete="off"
 					className="font-mono uppercase"
@@ -87,16 +106,13 @@ export function ColorInputs() {
 							{channel}
 						</label>
 						<Input
-							id={scope.sub(channel)}
+							{...fieldProps(channel)}
 							data-slot="color-channel-input"
 							data-channel={channel}
-							size={size}
 							type="number"
+							inputMode="numeric"
 							min={0}
 							max={255}
-							value={Math.round(rgba[channel])}
-							onChange={onChannel(channel)}
-							disabled={disabled}
 							aria-label={`${channel.toUpperCase()} channel`}
 							className="tabular-nums"
 						/>
@@ -109,16 +125,13 @@ export function ColorInputs() {
 							A
 						</label>
 						<Input
-							id={scope.sub('a')}
+							{...fieldProps('a')}
 							data-slot="color-channel-input"
 							data-channel="a"
-							size={size}
 							type="number"
+							inputMode="numeric"
 							min={0}
 							max={100}
-							value={Math.round(hsva.a * 100)}
-							onChange={onAlpha}
-							disabled={disabled}
 							aria-label="Alpha channel"
 							className="tabular-nums"
 						/>
