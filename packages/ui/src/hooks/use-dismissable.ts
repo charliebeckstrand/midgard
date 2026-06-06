@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useRef } from 'react'
-import { subscribeDocumentEvent } from './document-listener'
+import { subscribeDocumentEvent } from '../utilities/document-listener'
 
 type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean

@@ -1,5 +1,6 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export { subscribeDocumentEvent } from './document-listener'
 export { formatFraction, formatInteger } from './format-number'
 export { moveItem } from './move'
 export { noop } from './noop'

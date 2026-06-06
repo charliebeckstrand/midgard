@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { subscribeDocumentEvent } from '../../hooks/document-listener'
+import { subscribeDocumentEvent } from '../../utilities/document-listener'
 
 describe('subscribeDocumentEvent', () => {
 	let addSpy: ReturnType<typeof vi.spyOn>
