@@ -2,8 +2,8 @@ import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody } from '../../components/dialog'
 import { Icon } from '../../components/icon'
-import { axe, renderUI } from '../helpers'
-import { baseline, overlays } from './cases'
+import { axe, renderUI, userEvent } from '../helpers'
+import { baseline, interactive, overlays } from './cases'
 
 /**
  * Component a11y compliance gate (axe-core): every component, rendered in its
@@ -32,6 +32,24 @@ describe('a11y baseline (axe)', () => {
 describe('a11y baseline (axe) — overlays', () => {
 	it.each(overlays)('%s has no axe violations', async (_name, element) => {
 		renderUI(element)
+
+		expect(await axe(document.body)).toHaveNoViolations()
+	})
+})
+
+/**
+ * Interactive gate: overlays with no controlled-open prop (tooltip, the
+ * select/combobox/date-picker popovers) can't be authored open, so each case
+ * carries an `open` step that drives the real interaction before the document
+ * is checked. Same body scope and cleanup as the overlays gate.
+ */
+describe('a11y baseline (axe) — interactive', () => {
+	it.each(interactive)('%s has no axe violations', async (_name, element, open) => {
+		const user = userEvent.setup()
+
+		renderUI(element)
+
+		await open(user)
 
 		expect(await axe(document.body)).toHaveNoViolations()
 	})
