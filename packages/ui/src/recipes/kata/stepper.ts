@@ -27,7 +27,7 @@ const step = defineRecipe({
 })
 
 const title = defineRecipe({
-	base: [size.sm, weight.medium, leading.none, ...mode('text-zinc-400', 'dark:text-zinc-600')],
+	base: [size.sm, weight.medium, leading.none, ...mode('text-zinc-500', 'dark:text-zinc-600')],
 	orientation: {
 		horizontal: 'mt-2',
 		vertical: '',

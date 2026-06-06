@@ -1,0 +1,7 @@
+/* Production utility CSS for the browser suite. Mirrors the docs entry
+   (src/docs/app.css): import Tailwind and scan the package source so every
+   class a component emits is generated, giving the `color-contrast` check the
+   same computed colours the app ships. `@source` is relative to this file —
+   `../../../` resolves to `src/`. */
+@import 'tailwindcss';
+@source '../../../';

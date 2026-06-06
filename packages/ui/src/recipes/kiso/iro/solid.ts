@@ -13,7 +13,7 @@ export const solid = {
 		zinc: 'bg-zinc-600',
 		red: 'bg-red-600',
 		amber: 'bg-amber-500',
-		green: 'bg-green-600',
+		green: 'bg-green-700',
 		blue: 'bg-blue-600',
 	}),
 	text: shades({
@@ -27,7 +27,7 @@ export const solid = {
 		zinc: 'not-disabled:hover:bg-zinc-700',
 		red: 'not-disabled:hover:bg-red-700',
 		amber: 'not-disabled:hover:bg-amber-600',
-		green: 'not-disabled:hover:bg-green-700',
+		green: 'not-disabled:hover:bg-green-800',
 		blue: 'not-disabled:hover:bg-blue-700',
 	}),
 }
