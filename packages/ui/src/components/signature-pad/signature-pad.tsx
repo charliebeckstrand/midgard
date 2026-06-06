@@ -1,9 +1,10 @@
 'use client'
 
 import type { Ref } from 'react'
-import { cn } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
+import { useControl } from '../control/context'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 
 export type { SignaturePadHandle }
@@ -45,6 +46,11 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
+	// A wrapping <Control>/<Field> owns invalid + error-message wiring; mirror it
+	// onto the canvas so its rendered-image value carries the field's validity and
+	// points at the same description/error ids the rest of the control cascade uses.
+	const control = useControl()
+
 	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
 		useSignaturePadState({
 			value,
@@ -74,7 +80,9 @@ export function SignaturePad({
 				// pad's value is a rendered signature image. State rides the name.
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
+				aria-describedby={control?.describedBy}
 				aria-disabled={disabled || readOnly || undefined}
+				{...invalidAttrs(control?.invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}

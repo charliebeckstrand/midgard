@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { Control } from '../../components/control'
+import { Description, Message } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -85,5 +87,39 @@ describe('FileUpload button variant', () => {
 		renderUI(<FileUpload variant="button">Pick</FileUpload>)
 
 		expect(screen.getByRole('button', { name: 'Pick' })).toBeInTheDocument()
+	})
+})
+
+describe('FileUpload + Control', () => {
+	it('surfaces invalid and required state onto the hidden file input', () => {
+		const { container } = renderUI(
+			<Control invalid required>
+				<FileUpload>Upload</FileUpload>
+			</Control>,
+		)
+
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(input).toBeRequired()
+	})
+
+	it('points the hidden file input aria-describedby at the control description and message', () => {
+		const { container } = renderUI(
+			<Control id="doc" invalid>
+				<Description>PDF only</Description>
+				<FileUpload>Upload</FileUpload>
+				<Message>A file is required</Message>
+			</Control>,
+		)
+
+		const describedBy = (
+			container.querySelector('input[type="file"]') as HTMLInputElement
+		).getAttribute('aria-describedby')
+
+		expect(describedBy).toContain('doc-description')
+
+		expect(describedBy).toContain('doc-error')
 	})
 })
