@@ -2,6 +2,7 @@ import { Button } from '../../../components/button'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
+import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Map as MapView } from '../../../components/map'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -74,6 +75,29 @@ export const interactive: readonly InteractiveCase[] = [
 					<SelectLabel>Canada</SelectLabel>
 				</SelectOption>
 			</Select>
+		</Field>,
+		async (user) => {
+			await user.click(screen.getByRole('combobox'))
+
+			await screen.findByRole('listbox')
+		},
+	],
+	[
+		// Listbox: a role="combobox" trigger opens its option listbox popover on
+		// click. The closed baseline case only sees the trigger button (the popover
+		// portals to document.body), so this drives it open to assert the listbox /
+		// option ARIA structure the container-scoped gate can't reach.
+		'listbox',
+		<Field key="ilb">
+			<Label>Status</Label>
+			<Listbox<string> nullable displayValue={(value: string) => value} placeholder="Select status">
+				<ListboxOption value="active">
+					<ListboxLabel>Active</ListboxLabel>
+				</ListboxOption>
+				<ListboxOption value="paused">
+					<ListboxLabel>Paused</ListboxLabel>
+				</ListboxOption>
+			</Listbox>
 		</Field>,
 		async (user) => {
 			await user.click(screen.getByRole('combobox'))
