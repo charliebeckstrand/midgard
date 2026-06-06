@@ -28,7 +28,12 @@ export function QueryBuilder({
 	disabled = false,
 	className,
 }: QueryBuilderProps) {
-	const { root, actions } = useQueryBuilderTree({ fields, value, defaultValue, onValueChange })
+	const { root, actions, register } = useQueryBuilderTree({
+		fields,
+		value,
+		defaultValue,
+		onValueChange,
+	})
 
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
 
@@ -38,7 +43,7 @@ export function QueryBuilder({
 	)
 
 	return (
-		<QueryBuilderProvider state={state} actions={actions} root={root}>
+		<QueryBuilderProvider state={state} actions={actions} root={root} register={register}>
 			<Fieldset data-slot="query-builder" disabled={disabled} className={cn(k.base, className)}>
 				<QueryBuilderGroup group={root} root />
 			</Fieldset>

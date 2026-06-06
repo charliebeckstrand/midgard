@@ -30,7 +30,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 	const root = createGroup()
 
 	return (
-		<QueryBuilderProvider state={stateValue} actions={actionsValue} root={root}>
+		<QueryBuilderProvider state={stateValue} actions={actionsValue} root={root} register={() => {}}>
 			{children}
 		</QueryBuilderProvider>
 	)

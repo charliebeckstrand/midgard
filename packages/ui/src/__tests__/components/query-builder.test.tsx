@@ -465,3 +465,50 @@ describe('QueryBuilderRuleValue', () => {
 		expect(input.value).toBe('')
 	})
 })
+
+// Removing a rule unmounts its remove button; without focus management that
+// drops focus to <body> (WCAG 2.4.3). Focus should follow the APG list pattern:
+// previous sibling, else next, else the group's "Add rule" control.
+describe('QueryBuilder removal focus', () => {
+	const removeButtons = () => screen.getAllByRole('button', { name: 'Remove rule' })
+
+	it('moves focus to the previous rule after removing a middle/last rule', () => {
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[1])])
+
+		renderUI(<QueryBuilder fields={fields} defaultValue={tree} />)
+
+		const [first, second] = removeButtons()
+
+		fireEvent.click(second as HTMLElement)
+
+		expect(removeButtons()).toHaveLength(1)
+
+		expect(document.activeElement).toBe(first)
+	})
+
+	it('moves focus to the next rule after removing the first rule', () => {
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[1])])
+
+		renderUI(<QueryBuilder fields={fields} defaultValue={tree} />)
+
+		const [first, second] = removeButtons()
+
+		fireEvent.click(first as HTMLElement)
+
+		expect(removeButtons()).toHaveLength(1)
+
+		expect(document.activeElement).toBe(second)
+	})
+
+	it("moves focus to the group's Add rule control after removing the only rule", () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		renderUI(<QueryBuilder fields={fields} defaultValue={tree} />)
+
+		fireEvent.click(removeButtons()[0] as HTMLElement)
+
+		expect(screen.queryAllByRole('button', { name: 'Remove rule' })).toHaveLength(0)
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add rule' }))
+	})
+})
