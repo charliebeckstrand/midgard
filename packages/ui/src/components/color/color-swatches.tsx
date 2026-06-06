@@ -12,7 +12,7 @@ type ColorSwatchesProps = {
 
 /** Preset colour chips; the chip matching the current colour reads as pressed. */
 export function ColorSwatches({ swatches }: ColorSwatchesProps) {
-	const { hsva, setHsva, alpha, disabled } = useColorPanelContext()
+	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	return (
 		<div data-slot="color-swatches" className={k.swatches}>
@@ -30,7 +30,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						disabled={disabled}
 						className={cn(k.swatch, active && k.swatchActive)}
 						style={{ backgroundColor: swatch }}
-						onClick={() => parsed && setHsva(alpha ? parsed : { ...parsed, a: 1 })}
+						onClick={() => parsed && setHsva(parsed)}
 					/>
 				)
 			})}
