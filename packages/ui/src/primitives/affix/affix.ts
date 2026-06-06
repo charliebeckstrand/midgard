@@ -19,7 +19,7 @@ import type { Ma, Step } from '../../recipes'
  *   the prospective `'xl'`, which the `Step`-typed Density cascade
  *   can't carry).
  *
- * Read by wider-scale components (Button, Icon, Spinner) through
+ * Read by wider-scale components (Button, Icon, LoadingSpinner) through
  * `useSize`; the universal `useDensity` cascade stays `Step`-typed
  * for everyone else. Returns `null` outside any provider — consumers
  * treat `null` as "fall through to the Density cascade".

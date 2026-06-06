@@ -14,7 +14,7 @@ import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlProps } from '../control/use-control-props'
 import { useGlass } from '../glass/context'
 import { useHeadless } from '../headless/context'
-import { Spinner } from '../spinner'
+import { LoadingSpinner } from '../loading'
 import { useInputValue } from './use-input-value'
 
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
@@ -119,7 +119,7 @@ export function Input(props: InputProps) {
 	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
-	const resolvedSuffix = loading ? <Spinner /> : suffix
+	const resolvedSuffix = loading ? <LoadingSpinner /> : suffix
 
 	const hasAffix = resolvedPrefix !== undefined || resolvedSuffix !== undefined
 
