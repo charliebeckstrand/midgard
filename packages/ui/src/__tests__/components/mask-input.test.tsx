@@ -12,10 +12,10 @@ const formatGroups = (raw: string) => {
 }
 
 describe('MaskInput', () => {
-	it('renders an input with data-slot="input"', () => {
+	it('renders an input with data-slot="mask-input"', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -25,7 +25,7 @@ describe('MaskInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -41,7 +41,7 @@ describe('MaskInput', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} placeholder="123-456" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toHaveAttribute('placeholder', '123-456')
 	})
@@ -51,7 +51,7 @@ describe('MaskInput', () => {
 
 		const { container } = renderUI(<MaskInput format={formatGroups} onValueChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -65,7 +65,7 @@ describe('MaskInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
 		expect(input.value).toBe('123-456')
 	})
@@ -73,7 +73,7 @@ describe('MaskInput', () => {
 	it('reflects controlled value updates', () => {
 		const { container, rerender } = renderUI(<MaskInput format={formatGroups} value="123" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
 		expect(input.value).toBe('123')
 
@@ -85,7 +85,7 @@ describe('MaskInput', () => {
 	it('keeps the caret next to the typed character when format inserts separators', async () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
 		expect(input.value).toBe('123-456')
 
@@ -115,7 +115,7 @@ describe('MaskInput', () => {
 			<MaskInput format={format} meaningful={meaningful} defaultValue="ab" />,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
 		input.focus()
 
@@ -133,7 +133,7 @@ describe('MaskInput', () => {
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} disabled />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toBeDisabled()
 	})

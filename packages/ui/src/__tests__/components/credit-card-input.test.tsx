@@ -14,7 +14,7 @@ describe('CreditCardInput', () => {
 	it('renders an input with type text and numeric inputMode', () => {
 		const { container } = renderUI(<CreditCardInput />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'credit-card-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -32,7 +32,7 @@ describe('CreditCardInput', () => {
 	it('applies custom className', () => {
 		const { container } = renderUI(<CreditCardInput className="custom" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'credit-card-input')
 
 		expect(input?.className).toContain('custom')
 	})
@@ -48,7 +48,7 @@ describe('CreditCardInput', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<CreditCardInput placeholder="1234 1234 1234 1234" />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'credit-card-input')
 
 		expect(input).toHaveAttribute('placeholder', '1234 1234 1234 1234')
 	})
@@ -58,7 +58,7 @@ describe('CreditCardInput', () => {
 
 		const { container } = renderUI(<CreditCardInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -72,7 +72,7 @@ describe('CreditCardInput', () => {
 	it('formats Amex numbers in 4-6-5 groups', async () => {
 		const { container } = renderUI(<CreditCardInput />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -84,7 +84,7 @@ describe('CreditCardInput', () => {
 	it('strips non-digit characters', async () => {
 		const { container } = renderUI(<CreditCardInput />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -96,7 +96,7 @@ describe('CreditCardInput', () => {
 	it('caps length at the max for the detected brand', async () => {
 		const { container } = renderUI(<CreditCardInput />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -110,7 +110,7 @@ describe('CreditCardInput', () => {
 
 		const { container } = renderUI(<CreditCardInput onBrandChange={onBrandChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
@@ -125,7 +125,7 @@ describe('CreditCardInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<CreditCardInput defaultValue="4242424242424242" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		expect(input.value).toBe('4242 4242 4242 4242')
 	})
@@ -133,7 +133,7 @@ describe('CreditCardInput', () => {
 	it('disables the input when disabled', () => {
 		const { container } = renderUI(<CreditCardInput disabled />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'credit-card-input')
 
 		expect(input).toBeDisabled()
 	})

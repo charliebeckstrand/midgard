@@ -70,6 +70,7 @@ export function CurrencyInput({
 	return (
 		<Input
 			ref={setRefs}
+			data-slot="currency-input"
 			type="text"
 			inputMode="decimal"
 			prefix={prefix ?? (symbolIsPrefix ? symbol : undefined)}

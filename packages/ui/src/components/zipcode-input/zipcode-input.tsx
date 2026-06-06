@@ -64,6 +64,7 @@ const placeholders: Record<ZipcodeInputCountry, string> = {
 export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
 	return (
 		<MaskInput
+			data-slot="zipcode-input"
 			type="text"
 			inputMode={inputModes[country]}
 			autoComplete="postal-code"
