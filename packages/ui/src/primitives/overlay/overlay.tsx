@@ -49,7 +49,7 @@ export function Overlay({
 	// ambient <PortalProvider>, then document.body. The provider relocates the
 	// portal mount only — modal positioning and scroll lock still key off
 	// `scoped`, so a provider container leaves a normal overlay fixed + locked.
-	const portalTarget = usePortalContainer(container)
+	const portalContainer = usePortalContainer(container)
 
 	useDismissable({
 		open,
@@ -91,6 +91,6 @@ export function Overlay({
 				)}
 			</AnimatePresence>
 		</ReducedMotion>,
-		portalTarget ?? document.body,
+		portalContainer ?? document.body,
 	)
 }
