@@ -1,8 +1,9 @@
 import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
+import { Dialog, DialogBody } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { axe, renderUI } from '../helpers'
-import { baseline } from './cases'
+import { baseline, overlays } from './cases'
 
 /**
  * Component a11y compliance gate (axe-core): every component, rendered in its
@@ -22,6 +23,20 @@ describe('a11y baseline (axe)', () => {
 	})
 })
 
+/**
+ * Overlay gate: these components portal their content to `document.body`, so the
+ * container-scoped check above would inspect an empty node and pass vacuously.
+ * Render each in its canonical open state (`cases.ts` → `overlays`) and assert
+ * the whole document is clean. Cleanup resets `document.body` between cases.
+ */
+describe('a11y baseline (axe) — overlays', () => {
+	it.each(overlays)('%s has no axe violations', async (_name, element) => {
+		renderUI(element)
+
+		expect(await axe(document.body)).toHaveNoViolations()
+	})
+})
+
 // Proves the gate has teeth: axe must actually surface a real defect, so a
 // passing baseline above means "clean", not "matcher misconfigured". This case
 // is a known finding from the audit (icon-only controls need an accessible
@@ -37,5 +52,22 @@ describe('a11y baseline (axe) — teeth check', () => {
 		const { violations } = await axe(container)
 
 		expect(violations.map((violation) => violation.id)).toContain('button-name')
+	})
+})
+
+// Proves the body-scoped overlay runner has teeth too: an open dialog with no
+// title (and no aria-label) has no accessible name, which axe must surface
+// against document.body (WCAG 4.1.2). Mirrors the container-scoped teeth check.
+describe('a11y baseline (axe) — overlays teeth check', () => {
+	it('detects an open dialog with no accessible name', async () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogBody>No title, so no accessible name.</DialogBody>
+			</Dialog>,
+		)
+
+		const { violations } = await axe(document.body)
+
+		expect(violations.length).toBeGreaterThan(0)
 	})
 })
