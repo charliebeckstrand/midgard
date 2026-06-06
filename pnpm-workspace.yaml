@@ -7,6 +7,9 @@ allowBuilds:
   lefthook: true
   sharp: false
 
+overrides:
+  postcss: 8.5.15
+
 minimumReleaseAgeExclude:
   - hlidskjalf@0.3.1
   - hlidskjalf@0.3.2
