@@ -32,6 +32,7 @@ export function MenuItem(props: MenuItemProps) {
 
 	function handleSelect() {
 		if (disabled) return
+
 		onAction?.()
 		close()
 	}
