@@ -5,7 +5,7 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../components/accordion'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Accordion', () => {
 	it('renders with data-slot="accordion"', () => {
@@ -322,5 +322,44 @@ describe('AccordionTrigger render-prop child', () => {
 		)
 
 		expect(screen.getByText('Closed')).toBeInTheDocument()
+	})
+})
+
+describe('Accordion keyboard navigation', () => {
+	const trigger = (name: string) => screen.getByRole('button', { name })
+
+	function renderAccordion() {
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger>First</AccordionTrigger>
+					<AccordionPanel>A</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b" disabled>
+					<AccordionTrigger>Second</AccordionTrigger>
+					<AccordionPanel>B</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="c">
+					<AccordionTrigger>Third</AccordionTrigger>
+					<AccordionPanel>C</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+	}
+
+	it('moves focus between headers with arrows, skipping the disabled trigger', async () => {
+		const user = userEvent.setup()
+
+		renderAccordion()
+
+		act(() => trigger('First').focus())
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(trigger('Third')).toHaveFocus()
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(trigger('First')).toHaveFocus()
 	})
 })
