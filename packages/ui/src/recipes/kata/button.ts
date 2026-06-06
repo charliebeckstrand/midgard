@@ -96,7 +96,14 @@ export const k = defineRecipe(
 		compound: [
 			{
 				variant: 'bare',
-				class: ['p-0', 'before:content-[""] before:absolute before:-inset-2'],
+				class: [
+					'p-0',
+					'before:content-[""] before:absolute before:-inset-2',
+					// Override base focus.inset: with p-0 the inset ring crowds the icon,
+					// so swap to an outset outline with offset for breathing room.
+					'focus-visible:ring-0',
+					'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+				],
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
