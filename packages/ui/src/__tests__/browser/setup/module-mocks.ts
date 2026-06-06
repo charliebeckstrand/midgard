@@ -1,14 +1,17 @@
 import { vi } from 'vitest'
 
 /**
- * Browser-suite module mocks. Deliberately narrower than the jsdom set
- * (setup/module-mocks.ts): `@floating-ui/react` stays REAL here so popover
- * positioning runs against a real layout — one of the things jsdom can't do.
+ * Browser-suite module mocks. The geometry gate checks colour and hit-target
+ * size, neither of which needs real positioning, so the same heavy lifecycles
+ * the jsdom suite mocks are mocked here too — they only add nondeterminism.
  *
- * `maplibre-gl` stays mocked (WebGL doesn't run reliably headless and the map
- * canvas isn't what these geometry checks target) and `motion/react` stays
- * mocked so components render fully settled — a half-played fade would give the
- * `color-contrast` check a non-deterministic opacity to composite against.
+ * `@floating-ui/react` is mocked so overlay panels render inline and settled:
+ * its real autoUpdate/ref-callback cycle loops under a headless, act-less render
+ * (popover/calendar hit "Maximum update depth exceeded"), and a contrast check
+ * wants the panel's colours, not where it lands. `maplibre-gl` stays mocked
+ * (WebGL is unreliable headless) and `motion/react` stays mocked so a half-played
+ * fade never gives `color-contrast` a transient opacity to composite against.
  */
+vi.mock('@floating-ui/react', async () => (await import('../../mocks/floating-ui')).default)
 vi.mock('maplibre-gl', async () => (await import('../../mocks/maplibre-gl')).default)
 vi.mock('motion/react', async () => (await import('../../mocks/motion-react')).default)
