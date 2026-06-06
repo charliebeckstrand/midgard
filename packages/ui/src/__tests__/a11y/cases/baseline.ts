@@ -1,4 +1,3 @@
-import type { Case } from '../types'
 import { contentCases } from './content'
 import { dataComplexCases } from './data-complex'
 import { dataDisplayCases } from './data-display'
@@ -8,6 +7,7 @@ import { inputCases } from './inputs'
 import { layoutCases } from './layout'
 import { navigationCases } from './navigation'
 import { specializedCases } from './specialized'
+import type { Case } from './types'
 
 /**
  * Baseline corpus — the canonical, correctly-wired render of each non-overlay

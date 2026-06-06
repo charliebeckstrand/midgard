@@ -1,9 +1,9 @@
-import { Button } from '../../../../components/button'
-import { CopyButton } from '../../../../components/copy-button'
-import { Heading } from '../../../../components/heading'
-import { HoldButton } from '../../../../components/hold-button'
-import { Text } from '../../../../components/text'
-import type { Case } from '../types'
+import { Button } from '../../../components/button'
+import { CopyButton } from '../../../components/copy-button'
+import { Heading } from '../../../components/heading'
+import { HoldButton } from '../../../components/hold-button'
+import { Text } from '../../../components/text'
+import type { Case } from './types'
 
 /** Typography atoms and button actions. */
 export const contentCases: readonly Case[] = [

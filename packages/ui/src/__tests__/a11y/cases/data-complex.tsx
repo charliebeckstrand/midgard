@@ -1,8 +1,8 @@
-import { EditableGrid, type EditableGridColumn } from '../../../../components/editable-grid'
-import { Label } from '../../../../components/fieldset'
-import { Filters, FiltersField } from '../../../../components/filters'
-import { Input } from '../../../../components/input'
-import { JsonTree } from '../../../../components/json-tree'
+import { EditableGrid, type EditableGridColumn } from '../../../components/editable-grid'
+import { Label } from '../../../components/fieldset'
+import { Filters, FiltersField } from '../../../components/filters'
+import { Input } from '../../../components/input'
+import { JsonTree } from '../../../components/json-tree'
 import {
 	Kanban,
 	KanbanCard,
@@ -10,10 +10,10 @@ import {
 	KanbanColumnBody,
 	KanbanColumnHeader,
 	KanbanColumnTitle,
-} from '../../../../components/kanban'
-import { PivotTable } from '../../../../components/pivot-table'
-import { QueryBuilder, type QueryField } from '../../../../components/query-builder'
-import type { Case } from '../types'
+} from '../../../components/kanban'
+import { PivotTable } from '../../../components/pivot-table'
+import { QueryBuilder, type QueryField } from '../../../components/query-builder'
+import type { Case } from './types'
 
 const noop = () => {}
 

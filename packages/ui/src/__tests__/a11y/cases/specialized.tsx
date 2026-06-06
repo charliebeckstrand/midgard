@@ -1,9 +1,9 @@
-import { ChatMessage } from '../../../../components/chat-message'
-import { ChatPrompt } from '../../../../components/chat-prompt'
-import { Headless } from '../../../../components/headless'
-import { Input } from '../../../../components/input'
-import { PdfViewer, type PdfViewerPage } from '../../../../components/pdf-viewer'
-import type { Case } from '../types'
+import { ChatMessage } from '../../../components/chat-message'
+import { ChatPrompt } from '../../../components/chat-prompt'
+import { Headless } from '../../../components/headless'
+import { Input } from '../../../components/input'
+import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
+import type { Case } from './types'
 
 const noop = () => {}
 

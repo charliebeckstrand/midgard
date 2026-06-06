@@ -3,23 +3,23 @@ import {
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
-} from '../../../../components/accordion'
-import { Avatar } from '../../../../components/avatar'
-import { Badge } from '../../../../components/badge'
-import { Code } from '../../../../components/code'
-import { Collapse, CollapsePanel, CollapseTrigger } from '../../../../components/collapse'
-import { DataTable, type DataTableColumn } from '../../../../components/data-table'
-import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../../components/dl'
-import { Field, Label } from '../../../../components/fieldset'
-import { Icon } from '../../../../components/icon'
-import { Kbd } from '../../../../components/kbd'
-import { List, ListItem, ListLabel } from '../../../../components/list'
-import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
-import { Odometer } from '../../../../components/odometer'
-import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../../components/resizable'
-import { Segment, SegmentControl, SegmentItem } from '../../../../components/segment'
-import { Stat, StatLabel, StatValue } from '../../../../components/stat'
-import { StatusDot } from '../../../../components/status'
+} from '../../../components/accordion'
+import { Avatar } from '../../../components/avatar'
+import { Badge } from '../../../components/badge'
+import { Code } from '../../../components/code'
+import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
+import { DataTable, type DataTableColumn } from '../../../components/data-table'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
+import { Field, Label } from '../../../components/fieldset'
+import { Icon } from '../../../components/icon'
+import { Kbd } from '../../../components/kbd'
+import { List, ListItem, ListLabel } from '../../../components/list'
+import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
+import { Odometer } from '../../../components/odometer'
+import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
+import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
+import { Stat, StatLabel, StatValue } from '../../../components/stat'
+import { StatusDot } from '../../../components/status'
 import {
 	Table,
 	TableBody,
@@ -27,17 +27,17 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../../../components/table'
-import { TimeAgo } from '../../../../components/time-ago'
+} from '../../../components/table'
+import { TimeAgo } from '../../../components/time-ago'
 import {
 	Timeline,
 	TimelineDescription,
 	TimelineItem,
 	TimelineTimestamp,
 	TimelineTitle,
-} from '../../../../components/timeline'
-import { Tree, TreeItem } from '../../../../components/tree'
-import type { Case } from '../types'
+} from '../../../components/timeline'
+import { Tree, TreeItem } from '../../../components/tree'
+import type { Case } from './types'
 
 type Person = { id: number; name: string; email: string }
 

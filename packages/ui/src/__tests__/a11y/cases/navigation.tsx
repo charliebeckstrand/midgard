@@ -1,38 +1,33 @@
-import { BottomNav, BottomNavItem } from '../../../../components/bottom-nav'
+import { BottomNav, BottomNavItem } from '../../../components/bottom-nav'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
 	BreadcrumbSeparator,
-} from '../../../../components/breadcrumb'
-import { Button } from '../../../../components/button'
-import { Link } from '../../../../components/link'
-import { NavItem, NavList } from '../../../../components/nav'
-import { Navbar } from '../../../../components/navbar'
+} from '../../../components/breadcrumb'
+import { Button } from '../../../components/button'
+import { Link } from '../../../components/link'
+import { NavItem, NavList } from '../../../components/nav'
+import { Navbar } from '../../../components/navbar'
 import {
 	Pagination,
 	PaginationList,
 	PaginationNext,
 	PaginationPage,
 	PaginationPrevious,
-} from '../../../../components/pagination'
+} from '../../../components/pagination'
 import {
 	Sidebar,
 	SidebarBody,
 	SidebarItem,
 	SidebarLabel,
 	SidebarList,
-} from '../../../../components/sidebar'
-import {
-	Stepper,
-	StepperSeparator,
-	StepperStep,
-	StepperTitle,
-} from '../../../../components/stepper'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
-import { Toolbar, ToolbarSeparator } from '../../../../components/toolbar'
-import type { Case } from '../types'
+} from '../../../components/sidebar'
+import { Stepper, StepperSeparator, StepperStep, StepperTitle } from '../../../components/stepper'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Toolbar, ToolbarSeparator } from '../../../components/toolbar'
+import type { Case } from './types'
 
 /** Navigation surfaces — links, tablists, steppers, and toolbars. */
 export const navigationCases: readonly Case[] = [
