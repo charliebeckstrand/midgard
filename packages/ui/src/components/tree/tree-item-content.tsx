@@ -44,6 +44,7 @@ export function TreeItemContent({
 
 		if (hasChildren) {
 			toggle()
+
 			return
 		}
 
@@ -56,6 +57,7 @@ export function TreeItemContent({
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
 		if (e.target !== e.currentTarget) return
+
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault()
 

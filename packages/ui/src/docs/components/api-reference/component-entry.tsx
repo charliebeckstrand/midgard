@@ -19,6 +19,7 @@ function partition(props: readonly PropDef[]): { props: PropDef[]; events: PropD
 
 	for (const p of props) {
 		if (p.type === 'never') continue
+
 		;(EVENT_PROP.test(p.name) ? out.events : out.props).push(p)
 	}
 

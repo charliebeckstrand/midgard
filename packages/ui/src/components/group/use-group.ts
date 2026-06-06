@@ -24,14 +24,17 @@ function positionAt(index: number, length: number): GroupPosition {
 // as a single child.
 function flattenChildren(children: ReactNode): ReactElement[] {
 	const result: ReactElement[] = []
+
 	Children.forEach(children, (child) => {
 		if (!isValidElement(child)) return
+
 		if (child.type === Fragment) {
 			result.push(...flattenChildren((child.props as { children?: ReactNode }).children))
 		} else {
 			result.push(child)
 		}
 	})
+
 	return result
 }
 

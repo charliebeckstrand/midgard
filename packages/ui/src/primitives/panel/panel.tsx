@@ -35,6 +35,7 @@ function useSlotRegistration() {
 
 	const register = useCallback(() => {
 		setPresent(true)
+
 		return () => setPresent(false)
 	}, [])
 

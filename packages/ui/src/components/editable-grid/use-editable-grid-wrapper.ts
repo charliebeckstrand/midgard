@@ -288,6 +288,7 @@ export function useEditableGridWrapper<T>({
 			matrix.forEach((cells, r) => {
 				cells.forEach((raw, c) => {
 					const rowIdx = active.row + r
+
 					const colIdx = active.col + c
 
 					const col = editableCols[colIdx]

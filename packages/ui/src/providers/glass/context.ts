@@ -21,5 +21,6 @@ export function useResolvedSurface<S extends string>(
 	glass: boolean | undefined,
 ): S | 'glass' | undefined {
 	const glassContext = useGlass()
+
 	return surface ?? (glass || glassContext ? 'glass' : undefined)
 }
