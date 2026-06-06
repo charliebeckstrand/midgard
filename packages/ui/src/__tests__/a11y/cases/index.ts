@@ -1,4 +1,5 @@
 export { baseline } from './baseline'
+export { focus } from './focus'
 export { interactive } from './interactive'
 export { overlays } from './overlays'
-export type { Case, InteractiveCase } from './types'
+export type { Case, FocusCase, InteractiveCase } from './types'
