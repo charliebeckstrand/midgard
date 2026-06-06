@@ -78,7 +78,7 @@ export function BaseOption({
 			className={cn(k.base, k.size[size])}
 			{...props}
 		>
-			<span className={cn(className, sharedClasses)}>{children}</span>
+			<span className={cn(sharedClasses, className)}>{children}</span>
 			{checkIcon}
 		</div>
 	)
