@@ -101,6 +101,63 @@ describe('Alert', () => {
 
 		expect(screen.getByRole('button', { name: 'Trigger' })).toHaveFocus()
 	})
+
+	describe('status announcement', () => {
+		const politeRegion = () =>
+			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+		it('announces an info alert through the polite live region when it appears', async () => {
+			const { rerender } = renderUI(
+				<Alert severity="info" open={false}>
+					Saved
+				</Alert>,
+				{ announcer: true },
+			)
+
+			expect(politeRegion()?.textContent).toBe('')
+
+			rerender(
+				<Alert severity="info" open>
+					Saved
+				</Alert>,
+			)
+
+			await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Saved'))
+		})
+
+		it('stays silent for an alert already open on mount', async () => {
+			renderUI(
+				<Alert severity="success" open>
+					Already here
+				</Alert>,
+				{ announcer: true },
+			)
+
+			// Flush the announcer's microtask, then confirm nothing was written.
+			await Promise.resolve()
+
+			expect(politeRegion()?.textContent).toBe('')
+		})
+
+		it('does not route warning/error through the announcer (role="alert" already announces)', async () => {
+			const { rerender } = renderUI(
+				<Alert severity="error" open={false}>
+					Boom
+				</Alert>,
+				{ announcer: true },
+			)
+
+			rerender(
+				<Alert severity="error" open>
+					Boom
+				</Alert>,
+			)
+
+			await Promise.resolve()
+
+			expect(politeRegion()?.textContent).toBe('')
+		})
+	})
 })
 
 describe('AlertTitle', () => {

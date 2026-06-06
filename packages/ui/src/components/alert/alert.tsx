@@ -1,9 +1,18 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
-import { Children, isValidElement, type ReactElement, type ReactNode, type RefObject } from 'react'
+import {
+	Children,
+	isValidElement,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useEffect,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import { useAnnounce } from '../../providers/announcer'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -113,6 +122,31 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
+	const announce = useAnnounce()
+
+	const alertRef = useRef<HTMLDivElement>(null)
+
+	const wasOpen = useRef(open)
+
+	// info/success render a polite `role="status"`; a live region inserted in the
+	// same commit as its text isn't reliably announced. When such an alert first
+	// appears (closed→open after mount), mirror its rendered text through the
+	// persistent announcer region so it reaches screen readers (WCAG 4.1.3).
+	// warning/error use `role="alert"`, which announces on insertion already.
+	const politeSeverity = severity === 'info' || severity === 'success'
+
+	useEffect(() => {
+		const appeared = open && !wasOpen.current
+
+		wasOpen.current = open
+
+		if (!appeared || !politeSeverity) return
+
+		const message = alertRef.current?.textContent?.trim()
+
+		if (message) announce(message)
+	}, [open, politeSeverity, announce])
+
 	if (!open) return null
 
 	const resolvedVariant = variant ?? 'soft'
@@ -125,6 +159,7 @@ export function Alert({
 
 	return (
 		<div
+			ref={alertRef}
 			data-slot={slot}
 			role={role}
 			className={cn(
