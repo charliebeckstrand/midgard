@@ -9,6 +9,7 @@ type MenuStateValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: () => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
+	density: Step
 	size: Step
 }
 

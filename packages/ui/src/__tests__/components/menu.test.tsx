@@ -13,6 +13,8 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { useMenuContext } from '../../components/menu/context'
+import { Density } from '../../primitives/density'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Menu', () => {
@@ -532,5 +534,61 @@ describe('useMenuContext', () => {
 		)
 
 		expect(screen.getByTestId('probe')).toHaveTextContent('open')
+	})
+})
+
+describe('MenuItem density inheritance', () => {
+	// Padding/gap track the density axis (sm px-2.5, md px-3, lg px-3.5); text
+	// tracks the size axis (sm text-sm, md text-base, lg text-lg).
+	it('defaults to md padding and md text outside any provider', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const cls = bySlot(container, 'menu-item')?.className ?? ''
+
+		expect(cls).toContain('py-1.5')
+
+		expect(cls).toContain('text-base')
+	})
+
+	it('inherits a compact DensityProvider on both axes', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem>Item</MenuItem>
+					</MenuContent>
+				</Menu>
+			</DensityProvider>,
+		)
+
+		const cls = bySlot(container, 'menu-item')?.className ?? ''
+
+		expect(cls).toContain('px-2.5')
+
+		expect(cls).toContain('text-sm')
+	})
+
+	it('splits tight padding (density) from large text (size) under a two-axis Density', () => {
+		const { container } = renderUI(
+			<Density density="sm" size="lg">
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem>Item</MenuItem>
+					</MenuContent>
+				</Menu>
+			</Density>,
+		)
+
+		const cls = bySlot(container, 'menu-item')?.className ?? ''
+
+		expect(cls).toContain('px-2.5')
+
+		expect(cls).toContain('text-lg')
 	})
 })

@@ -15,13 +15,13 @@ export type MenuContentProps = {
 }
 
 export function MenuContent({ className, children }: MenuContentProps) {
-	const { open, floatingStyles, getFloatingProps, size } = useMenuState()
+	const { open, floatingStyles, getFloatingProps, density, size } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
 
 	if (isStatic) {
 		return (
-			<Density density={size} size={size}>
+			<Density density={density} size={size}>
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
@@ -46,7 +46,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 		>
-			<Density density={size} size={size}>
+			<Density density={density} size={size}>
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
