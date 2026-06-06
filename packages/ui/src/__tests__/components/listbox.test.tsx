@@ -4,14 +4,14 @@ import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
-	it('renders with data-slot="control"', () => {
+	it('renders with data-slot="listbox"', () => {
 		const { container } = renderUI(
 			<Listbox>
 				<div>Option</div>
 			</Listbox>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'listbox')
 
 		expect(el).toBeInTheDocument()
 	})
@@ -49,7 +49,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		const el = bySlot(container, 'control')
+		const el = bySlot(container, 'listbox')
 
 		expect(el?.className).toContain('custom')
 	})

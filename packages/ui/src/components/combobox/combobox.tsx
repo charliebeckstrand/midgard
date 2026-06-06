@@ -113,7 +113,7 @@ export function Combobox<T>({
 	inputType = 'text',
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
-	'data-slot': slot,
+	'data-slot': slot = 'combobox',
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
