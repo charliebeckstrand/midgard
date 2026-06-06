@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { createRef } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
@@ -71,6 +72,79 @@ describe('Tooltip', () => {
 		act(() => notifyOverlaySignal())
 
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
+	})
+
+	it('clones the reference onto the child element instead of a wrapper', () => {
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button type="button">Hover me</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		const trigger = bySlot(container, 'tooltip-trigger')
+
+		// The trigger IS the button — no intermediate non-focusable <div>.
+		expect(trigger?.tagName).toBe('BUTTON')
+		expect(trigger).toHaveTextContent('Hover me')
+	})
+
+	it('merges the floating ref with a ref already on the child', () => {
+		const ref = createRef<HTMLButtonElement>()
+
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button ref={ref} type="button">
+						Hover me
+					</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'tooltip-trigger'))
+	})
+
+	it("composes the child's own onClick with the tooltip handlers", async () => {
+		const onClick = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button type="button" onClick={onClick}>
+						Hover me
+					</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		await user.click(bySlot(container, 'tooltip-trigger') as HTMLElement)
+
+		expect(onClick).toHaveBeenCalledOnce()
+	})
+
+	it('puts the trigger in the keyboard tab order', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button type="button">Hover me</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		await user.tab()
+
+		// The trigger is the focusable element itself, not an unreachable wrapper.
+		expect(bySlot(container, 'tooltip-trigger')).toHaveFocus()
 	})
 })
 
