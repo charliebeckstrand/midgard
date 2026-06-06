@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { type RefObject, useCallback } from 'react'
 import { useVirtualWindow } from '../../hooks'
 import { TableBody } from '../table'
 import { DataTableRow } from './data-table-row'
@@ -31,9 +31,13 @@ export function DataTableVirtualizedBody<T>({
 	estimateSize,
 	overscan,
 }: DataTableVirtualizedBodyProps<T>) {
+	// Keep the scroll-element getter stable so the virtualizer's option identity
+	// survives parent re-renders; the ref object itself never changes.
+	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
+
 	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
 		count: rows.length,
-		getScrollElement: () => scrollRef.current,
+		getScrollElement,
 		estimateSize,
 		overscan,
 	})

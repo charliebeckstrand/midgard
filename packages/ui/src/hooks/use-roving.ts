@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback, useRef } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { Orientation } from '../types'
 import { useScrollWithin } from './use-scroll-within'
 
@@ -243,6 +243,15 @@ export function useRoving(
 	const scrollWithin = useScrollWithin()
 
 	const typeaheadRef = useRef<TypeaheadState>({ query: '', timer: 0 })
+
+	// `matchTypeahead` schedules a 500 ms buffer-reset timer; clear it on unmount
+	// so a list torn down mid-window doesn't leave a timer firing on a dead state.
+	useEffect(
+		() => () => {
+			if (typeof window !== 'undefined') window.clearTimeout(typeaheadRef.current.timer)
+		},
+		[],
+	)
 
 	return useCallback(
 		(e: KeyboardEvent) => {
