@@ -51,6 +51,7 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
 	const trigger = screen.getByRole('button', { name: label })
 
 	await user.click(trigger)
+
 	await surface()
 
 	return trigger
@@ -147,6 +148,7 @@ export const focus: readonly FocusCase[] = [
 			const trigger = screen.getByRole('combobox')
 
 			await user.click(trigger)
+
 			await screen.findByRole('listbox')
 
 			return trigger

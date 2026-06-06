@@ -32,8 +32,10 @@ describe('a11y focus — overlays capture focus on open', () => {
 
 		// Focus has left the trigger…
 		expect(trigger).not.toHaveFocus()
+
 		// …and landed on a real element inside the surface, not nowhere.
 		expect(document.activeElement).not.toBe(document.body)
+
 		expect(document.activeElement).not.toBeNull()
 	})
 })
@@ -67,6 +69,7 @@ describe('a11y focus — restoration (dropdown family)', () => {
 		)
 
 		await user.click(screen.getByRole('button', { name: 'Options' }))
+
 		await screen.findByRole('menu')
 
 		await user.keyboard('{Escape}')
