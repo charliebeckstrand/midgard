@@ -1,5 +1,10 @@
 export { useA11yAutoFocus } from './use-a11y-auto-focus'
 export { type A11yControl, useA11yControl } from './use-a11y-control'
+export {
+	type A11yDisclosure,
+	type A11yDisclosureOptions,
+	useA11yDisclosure,
+} from './use-a11y-disclosure'
 export { type A11yFocusReturn, useA11yFocusReturn } from './use-a11y-focus-return'
 export {
 	type A11yLiveLevel,

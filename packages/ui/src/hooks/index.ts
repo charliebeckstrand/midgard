@@ -1,5 +1,7 @@
 export {
 	type A11yControl,
+	type A11yDisclosure,
+	type A11yDisclosureOptions,
 	type A11yFocusReturn,
 	type A11yLiveLevel,
 	type A11yLiveRegionOptions,
@@ -12,6 +14,7 @@ export {
 	type A11yScopeOptions,
 	useA11yAutoFocus,
 	useA11yControl,
+	useA11yDisclosure,
 	useA11yFocusReturn,
 	useA11yLiveRegion,
 	useA11yPanel,
