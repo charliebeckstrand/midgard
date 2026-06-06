@@ -18,7 +18,7 @@ type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>)
 
 type FloatingDisclosureOptions = Omit<
 	FloatingPanelOptions,
-	'open' | 'onOpenChange' | 'restoreFocusTo'
+	'open' | 'onOpenChange' | 'returnFocusTo'
 > & {
 	open?: boolean
 	defaultOpen?: boolean
@@ -86,7 +86,7 @@ export function useFloatingDisclosure({
 		...panelOptions,
 		open,
 		onOpenChange: setOpen,
-		restoreFocusTo: triggerRef,
+		returnFocusTo: triggerRef,
 	})
 
 	refsRef.current = refs

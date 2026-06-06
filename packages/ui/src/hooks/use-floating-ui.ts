@@ -90,8 +90,8 @@ export type FloatingPanelOptions = {
 	matchReferenceWidth?: boolean
 	/** Escape hatch — fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
-	/** When the panel transitions from open to closed, restore focus to this element. */
-	restoreFocusTo?: RefObject<HTMLElement | null>
+	/** When the panel transitions from open to closed, return focus to this element. */
+	returnFocusTo?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -109,7 +109,7 @@ export function useFloatingPanel({
 	offset: offsetPx = 4,
 	matchReferenceWidth = false,
 	middleware,
-	restoreFocusTo,
+	returnFocusTo,
 }: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
@@ -127,10 +127,10 @@ export function useFloatingPanel({
 	const prevOpenRef = useRef(open)
 
 	useEffect(() => {
-		if (prevOpenRef.current && !open) restoreFocusTo?.current?.focus()
+		if (prevOpenRef.current && !open) returnFocusTo?.current?.focus()
 
 		prevOpenRef.current = open
-	}, [open, restoreFocusTo])
+	}, [open, returnFocusTo])
 
 	return { refs, floatingStyles, context }
 }

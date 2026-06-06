@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, useCallback } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
@@ -63,6 +63,14 @@ export function SignaturePad({
 			ref,
 		})
 
+	const handleClear = useCallback(() => {
+		clear()
+
+		// The clear button unmounts once the pad is empty, so move focus back to
+		// the canvas rather than letting it fall to <body> (WCAG 2.4.3).
+		canvasRef.current?.focus()
+	}, [clear, canvasRef])
+
 	return (
 		<div
 			ref={containerRef}
@@ -82,6 +90,9 @@ export function SignaturePad({
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
 				aria-disabled={disabled || readOnly || undefined}
+				// Programmatically focusable (not in the tab order) so clearing can
+				// return focus here once the clear button unmounts.
+				tabIndex={-1}
 				{...invalidAttrs(control?.invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
@@ -106,7 +117,7 @@ export function SignaturePad({
 							// Prevent the canvas pointerdown from firing.
 							event.stopPropagation()
 						}}
-						onClick={clear}
+						onClick={handleClear}
 					>
 						Clear
 					</Button>

@@ -20,7 +20,7 @@ describe('useFloatingPanel', () => {
 		})
 	})
 
-	it('restores focus to restoreFocusTo on close', () => {
+	it('returns focus to returnFocusTo on close', () => {
 		const triggerRef = createRef<HTMLElement>()
 
 		const element = document.createElement('button')
@@ -35,7 +35,7 @@ describe('useFloatingPanel', () => {
 					placement: 'bottom-start',
 					open,
 					onOpenChange: () => {},
-					restoreFocusTo: triggerRef,
+					returnFocusTo: triggerRef,
 				}),
 			{ initialProps: { open: true } },
 		)
@@ -62,7 +62,7 @@ describe('useFloatingPanel', () => {
 					placement: 'bottom-start',
 					open,
 					onOpenChange: () => {},
-					restoreFocusTo: triggerRef,
+					returnFocusTo: triggerRef,
 				}),
 			{ initialProps: { open: false } },
 		)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
+import { useCallback } from 'react'
 
 type VirtualWindowOptions = {
 	/** Total number of items in the full (unvirtualized) list. */
@@ -35,10 +36,15 @@ export function useVirtualWindow({
 	estimateSize,
 	overscan,
 }: VirtualWindowOptions): VirtualWindow {
+	// `@tanstack/react-virtual` reads these getters off the options object each
+	// cycle; a fresh closure per render busts its internal option identity, so
+	// keep the size getter referentially stable across renders.
+	const getSize = useCallback(() => estimateSize, [estimateSize])
+
 	const virtualizer = useVirtualizer({
 		count,
 		getScrollElement,
-		estimateSize: () => estimateSize,
+		estimateSize: getSize,
 		overscan,
 	})
 
