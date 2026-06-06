@@ -11,3 +11,4 @@ export {
 	RadioGroup,
 	type RadioGroupProps,
 } from './radio-group'
+export { RadioSkeleton, type RadioSkeletonProps } from './radio-skeleton'
