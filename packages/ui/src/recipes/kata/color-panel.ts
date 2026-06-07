@@ -57,9 +57,13 @@ export const k = defineRecipe(
 		/** Alpha / preview chequerboard surfaced behind translucent colour. */
 		checkerboard:
 			'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:12px_12px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
-		controls: 'flex items-center gap-2',
-		sliders: 'flex min-w-0 flex-1 flex-col gap-2',
-		inputs: 'flex flex-col gap-2',
+		/** Full-width stack for the hue (and optional alpha) tracks. */
+		sliders: 'flex flex-col gap-2',
+		/** Preview swatch + hex field share a row beneath the sliders. */
+		previewRow: 'flex items-center gap-2',
+		/** Eyedropper overlaid on the preview, revealed on hover or focus of the swatch. */
+		eyedropper:
+			'absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100',
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',

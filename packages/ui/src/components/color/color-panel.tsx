@@ -7,9 +7,10 @@ import { useSkeleton } from '../../providers/skeleton'
 import { k } from '../../recipes/kata/color-panel'
 import type { ControlSize } from '../control/context'
 import { ColorArea } from './color-area'
+import { ColorChannelInputs } from './color-channel-inputs'
 import { DEFAULT_SWATCHES } from './color-constants'
 import { ColorEyedropper } from './color-eyedropper'
-import { ColorInputs } from './color-inputs'
+import { ColorHexInput } from './color-hex-input'
 import { ColorPanelSkeleton } from './color-panel-skeleton'
 import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
@@ -84,23 +85,26 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 			<div data-slot="color-panel" className={cn(k({ size }), className)}>
 				<ColorArea />
 
-				<div className={k.controls}>
-					<span
-						data-slot="color-preview"
-						className={cn(k.preview({ size }), alpha && k.checkerboard)}
-					>
-						<span className="block size-full" style={{ backgroundColor: previewColor }} />
-					</span>
-
-					<div className={k.sliders}>
-						<ColorSlider channel="hue" />
-						{alpha && <ColorSlider channel="alpha" />}
-					</div>
-
-					{eyedropper && !disabled && <ColorEyedropper />}
+				<div className={k.sliders}>
+					<ColorSlider channel="hue" />
+					{alpha && <ColorSlider channel="alpha" />}
 				</div>
 
-				<ColorInputs />
+				<div className={k.previewRow}>
+					<span
+						data-slot="color-preview"
+						className={cn('group', k.preview({ size }), alpha && k.checkerboard)}
+					>
+						<span className="block size-full" style={{ backgroundColor: previewColor }} />
+						{eyedropper && !disabled && <ColorEyedropper className={k.eyedropper} />}
+					</span>
+
+					<div className="min-w-0 flex-1">
+						<ColorHexInput />
+					</div>
+				</div>
+
+				<ColorChannelInputs />
 
 				{swatches && swatches.length > 0 && <ColorSwatches swatches={swatches} />}
 			</div>

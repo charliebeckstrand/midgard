@@ -19,7 +19,7 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * Samples a colour from anywhere on screen via the `EyeDropper` API. Renders
  * nothing where the API is unavailable, so it stays a progressive enhancement.
  */
-export function ColorEyedropper() {
+export function ColorEyedropper({ className }: { className?: string }) {
 	const { setHsva, disabled, size } = useColorPanelContext()
 
 	const EyeDropper = getEyeDropper()
@@ -47,7 +47,7 @@ export function ColorEyedropper() {
 			data-slot="color-eyedropper"
 			aria-label="Pick color from screen"
 			onClick={onPick}
-			className="shrink-0"
+			className={className}
 		>
 			<Icon icon={<Pipette />} />
 		</Button>
