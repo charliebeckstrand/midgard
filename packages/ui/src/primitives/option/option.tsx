@@ -24,9 +24,10 @@ type BaseOptionProps = {
 	onSelect: () => void
 	/**
 	 * Mint a stable `id` so a combobox/textbox can point its
-	 * `aria-activedescendant` at this option while it owns DOM focus. Off for
-	 * focus-roving lists (listbox/select), which move real focus to the option
-	 * and need no id.
+	 * `aria-activedescendant` at this option while it owns DOM focus, and stop
+	 * mousedown from pulling focus off that input so a click selects without the
+	 * input losing focus. Off for focus-roving lists (listbox/select), which move
+	 * real focus to the option and need neither.
 	 */
 	activeDescendant?: boolean
 } & Omit<
@@ -35,6 +36,7 @@ type BaseOptionProps = {
 	| 'onSelect'
 	| 'onClick'
 	| 'onKeyDown'
+	| 'onMouseDown'
 	| 'role'
 	| 'aria-selected'
 	| 'aria-disabled'
@@ -82,6 +84,10 @@ export function BaseOption({
 			data-selected={selected || undefined}
 			data-disabled={disabled || undefined}
 			tabIndex={-1}
+			// Active-descendant lists keep DOM focus on the owning input; stop the
+			// mousedown grabbing focus so a click selects without the input losing
+			// focus (and, on single-select close, dropping it to <body>).
+			onMouseDown={activeDescendant ? (event) => event.preventDefault() : undefined}
 			onClick={() => !disabled && onSelect()}
 			onKeyDown={(event) => {
 				if (event.key === 'Enter' || event.key === ' ') {

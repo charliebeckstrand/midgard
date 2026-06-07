@@ -22,7 +22,12 @@ export function resolveInputDisplay<T>({
 	return ''
 }
 
-export function selectActiveOrSingleOption(container: HTMLElement): boolean {
+/**
+ * Enter convenience: when the list has narrowed to a single option, select it
+ * even if nothing is highlighted. The *active* (highlighted) option is selected
+ * by the roving hook's activation key, not here.
+ */
+export function selectSoleOption(container: HTMLElement): boolean {
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)
 
 	if (items.length === 1) {

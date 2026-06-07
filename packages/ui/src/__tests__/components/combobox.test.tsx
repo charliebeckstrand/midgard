@@ -251,6 +251,69 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
+
+	// Clicking an option must not pull focus off the input — otherwise single-select
+	// (which closes on select) would drop focus to <body> when the panel unmounts.
+	it('keeps focus on the input when an option is clicked', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		renderUI(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search" onValueChange={onChange}>
+				<ComboboxOption value="apple">
+					<ComboboxLabel>Apple</ComboboxLabel>
+				</ComboboxOption>
+				<ComboboxOption value="apricot">
+					<ComboboxLabel>Apricot</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		await user.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(onChange).toHaveBeenCalledWith('apple')
+
+		expect(document.activeElement).toBe(input)
+	})
+})
+
+// aria-selected stays the stored value, so a multi-select listbox must declare
+// aria-multiselectable or AT reads several selected options as a single-select.
+describe('Combobox listbox selection semantics', () => {
+	async function openListbox(multiple: boolean) {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Combobox<string> multiple={multiple} placeholder="Search">
+				<ComboboxOption value="apple">
+					<ComboboxLabel>Apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		await user.click(screen.getByRole('combobox'))
+
+		return screen.findByRole('listbox')
+	}
+
+	it('marks the listbox aria-multiselectable when multiple', async () => {
+		const listbox = await openListbox(true)
+
+		expect(listbox).toHaveAttribute('aria-multiselectable', 'true')
+	})
+
+	it('omits aria-multiselectable for single select', async () => {
+		const listbox = await openListbox(false)
+
+		expect(listbox).not.toHaveAttribute('aria-multiselectable')
+	})
 })
 
 describe('ComboboxPanel', () => {
@@ -260,6 +323,7 @@ describe('ComboboxPanel', () => {
 				id="cb"
 				open
 				editing={false}
+				multiple={false}
 				glass={false}
 				density="md"
 				size="md"
@@ -306,6 +370,7 @@ describe('ComboboxPanel', () => {
 				id="cb"
 				open
 				editing={false}
+				multiple={false}
 				glass={false}
 				density="md"
 				size="md"

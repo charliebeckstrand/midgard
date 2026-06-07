@@ -203,6 +203,10 @@ export function Combobox<T>({
 	// matches). Guarded against the initial query so opening the menu leaves the
 	// first arrow key to pick the first option. Mirrors the command-palette
 	// pattern, but with `ariaSelected: false` since options own their selection.
+	//
+	// Under `VirtualOptions` only the windowed rows are in the DOM, so the active
+	// row can't follow the highlight past the rendered window — virtualized lists
+	// lean on type-to-filter to narrow the set rather than arrow-traversing it.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -347,6 +351,7 @@ export function Combobox<T>({
 				id={comboboxId}
 				open={open}
 				editing={editing}
+				multiple={multiple}
 				glass={glass}
 				density={token.density}
 				size={token.size}
