@@ -2,15 +2,18 @@
  * Sen focus — how an element signals keyboard focus. Five named shapes
  * cover the patterns the library uses:
  *
- *   - `ring`      outset accent ring + surface-coloured gap (`ring-offset`).
- *                 The gap clears the element's own fill, so focus stays
- *                 visible even when the fill IS the ring colour — a solid
- *                 button, a selected day, an arbitrary-colour swatch. The
- *                 universal default; reach for it unless a control's box can't
- *                 afford an outset ring.
+ *   - `ring`      outset focus outline + transparent offset gap. A real CSS
+ *                 outline, not a box-shadow ring: it paints as one crisp stroke
+ *                 along the radius, where two stacked ring shadows (accent + a
+ *                 solid offset fill) leave an anti-aliased seam at the corners.
+ *                 The offset gap reveals the surface behind, clearing the
+ *                 element's own fill so focus stays visible even when the fill
+ *                 IS the accent colour — a solid button, a selected day, an
+ *                 arbitrary-colour swatch. The universal default; reach for it
+ *                 unless a control's box can't carry an outset stroke.
  *   - `inset`     inset ring, for controls whose fill is already the surface
  *                 (inputs, in-chrome controls) or whose box can't carry an
- *                 outset ring (bordered, inline)
+ *                 outset stroke (bordered, inline)
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors
  *                 that would otherwise clip it
@@ -24,14 +27,16 @@
 
 export const focus = {
 	ring: [
-		'outline-none',
-		'focus-visible:ring-2 focus-visible:ring-blue-600 dark:focus-visible:ring-blue-500',
-		// Surface-coloured gap between the fill and the ring. Gated to
-		// focus-visible so a resting ring on the same element gets no offset;
-		// the colour tracks the page / panel surface (omote.bg.surface) so the
-		// gap reads as breathing room, not a stroke. The accent brightens one
-		// step in dark mode to hold ≥3:1 against zinc-900.
-		'focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-zinc-900',
+		// A real CSS outline, not a box-shadow ring: it paints as one crisp
+		// stroke that follows the radius, where two stacked ring shadows (the
+		// accent + a solid offset fill) leave an anti-aliased seam at the
+		// corners. outline-offset opens a transparent gap that reveals the
+		// surface behind, so the stroke clears the element's own fill and stays
+		// visible even when the fill IS the accent colour. The accent brightens
+		// one step in dark mode to hold ≥3:1 against zinc-900. Mouse-focus
+		// outlines are suppressed globally (:focus:not(:focus-visible)).
+		'focus-visible:outline-2 focus-visible:outline-offset-2',
+		'focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500',
 	],
 	inset: [
 		'outline-none',
