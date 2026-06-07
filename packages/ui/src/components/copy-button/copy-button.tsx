@@ -27,6 +27,7 @@ export function CopyButton({
 	disabled,
 	onClick,
 	onCopiedChange,
+	'aria-label': ariaLabel,
 	...props
 }: CopyButtonProps) {
 	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
@@ -50,7 +51,10 @@ export function CopyButton({
 			data-slot="copy-button"
 			disabled={copied || disabled}
 			onClick={handleClick}
-			aria-label={copied ? 'Copied' : 'Copy to clipboard'}
+			// The copied state owns the label so the flip to success always reads;
+			// at rest, a caller's own label (e.g. "Copy hex value") wins over the
+			// generic default.
+			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
 			className={cn(k.base, className)}
 		/>
 	)

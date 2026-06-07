@@ -46,6 +46,12 @@ describe('CopyButton', () => {
 		expect(el).toHaveAttribute('aria-label', 'Copy to clipboard')
 	})
 
+	it('lets a caller override the idle label', () => {
+		const { container } = renderUI(<CopyButton value="#6366F1" aria-label="Copy hex value" />)
+
+		expect(container.querySelector('button')).toHaveAttribute('aria-label', 'Copy hex value')
+	})
+
 	it('stays in the idle state when clipboard.writeText rejects', async () => {
 		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
 

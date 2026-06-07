@@ -203,11 +203,15 @@ export function DataTable<T>({
 			grid={grid}
 			striped={striped}
 			className={className}
-			// Virtualization windows the DOM, so advertise the full row count
-			// (header + data rows) and index each row for assistive tech.
-			tableProps={
-				virtualizeEnabled ? { ...tableProps, 'aria-rowcount': rows.length + 1 } : tableProps
-			}
+			// `aria-busy` marks the table as updating while the loading skeleton
+			// stands in for the body, so assistive tech holds its reading until the
+			// rows arrive. Virtualization windows the DOM, so it also advertises the
+			// full row count (header + data rows) and indexes each row.
+			tableProps={{
+				...tableProps,
+				...(loading ? { 'aria-busy': true } : {}),
+				...(virtualizeEnabled ? { 'aria-rowcount': rows.length + 1 } : {}),
+			}}
 		>
 			<DataTableHead
 				columns={visibleColumns}

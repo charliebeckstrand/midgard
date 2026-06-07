@@ -12,14 +12,14 @@ import { axeGeometry } from './helpers/axe-geometry'
  * went geometry-unverified. This suite drives each open and runs the same
  * `color-contrast` / `target-size` pass against the live surface.
  *
- * Select and Listbox are still deferred: their shared open step resolves the
- * trigger via `getByRole('combobox')`, which is ambiguous against a real DOM
- * (the Select trigger structurally exposes two `role="combobox"` nodes). Driving
- * those popovers open needs a browser-specific helper — the remaining follow-up.
+ * Select and Listbox are deferred (`GEOMETRY_DEFERRED`): their shared open step
+ * resolves the trigger via `getByRole('combobox')`, which is ambiguous against a
+ * real DOM (the Select trigger structurally exposes two `role="combobox"` nodes).
+ * Driving those popovers open needs a browser-specific helper.
  */
-const DEFERRED_OPEN = new Set(['select', 'listbox'])
+const GEOMETRY_DEFERRED = new Set(['select', 'listbox'])
 
-const interactiveGeometry = interactive.filter(([name]) => !DEFERRED_OPEN.has(name))
+const interactiveGeometry = interactive.filter(([name]) => !GEOMETRY_DEFERRED.has(name))
 
 describe('a11y geometry (axe) — interactive', () => {
 	it.each(
