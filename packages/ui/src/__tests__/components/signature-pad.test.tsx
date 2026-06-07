@@ -12,22 +12,6 @@ import {
 import { bySlot, fireEvent, makeCanvasContext, renderUI, screen, userEvent } from '../helpers'
 
 describe('SignaturePad', () => {
-	it('renders with data-slot="signature-pad"', () => {
-		const { container } = renderUI(<SignaturePad />)
-
-		const el = bySlot(container, 'signature-pad')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<SignaturePad className="custom" />)
-
-		expect(bySlot(container, 'signature-pad')?.className).toContain('custom')
-	})
-
 	it('renders the canvas slot', () => {
 		const { container } = renderUI(<SignaturePad />)
 

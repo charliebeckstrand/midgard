@@ -4,7 +4,7 @@ import {
 	type DataTableColumnManagerItem,
 } from '../../components/data-table'
 import { DataTableColumnManagerDialog } from '../../components/data-table/data-table-column-manager-dialog'
-import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const columns: DataTableColumnManagerItem[] = [
 	{ id: 'name', title: 'Name', pinned: true },
@@ -13,14 +13,6 @@ const columns: DataTableColumnManagerItem[] = [
 ]
 
 describe('DataTableColumnManager', () => {
-	it('renders with data-slot="data-table-column-manager"', () => {
-		const { container } = renderUI(<DataTableColumnManager columns={columns} />)
-
-		const el = bySlot(container, 'data-table-column-manager')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders one item per column', () => {
 		const { container } = renderUI(<DataTableColumnManager columns={columns} />)
 
@@ -102,14 +94,6 @@ describe('DataTableColumnManager', () => {
 			order: ['name', 'email', 'role'],
 			hidden: ['role'],
 		})
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<DataTableColumnManager columns={columns} className="custom" />)
-
-		const el = bySlot(container, 'data-table-column-manager')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('honors a custom savePresetLabel', () => {

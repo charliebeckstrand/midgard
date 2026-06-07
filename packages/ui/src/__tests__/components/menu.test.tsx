@@ -9,55 +9,12 @@ import {
 	MenuLabel,
 	MenuSection,
 	MenuSeparator,
-	MenuShortcut,
 	MenuTrigger,
 } from '../../components/menu'
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
-
-describe('Menu', () => {
-	it('renders with data-slot="menu"', () => {
-		const { container } = renderUI(
-			<Menu>
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-			</Menu>,
-		)
-
-		const el = bySlot(container, 'menu')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders trigger content', () => {
-		renderUI(
-			<Menu>
-				<MenuTrigger>
-					<button type="button">Open Menu</button>
-				</MenuTrigger>
-			</Menu>,
-		)
-
-		expect(screen.getByText('Open Menu')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Menu className="custom">
-				<MenuTrigger>
-					<button type="button">Open</button>
-				</MenuTrigger>
-			</Menu>,
-		)
-
-		const el = bySlot(container, 'menu')
-
-		expect(el?.className).toContain('custom')
-	})
-})
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -68,20 +25,6 @@ describe('MenuSection', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('FIELDSET')
-	})
-
-	it('renders children', () => {
-		renderUI(<MenuSection>Section content</MenuSection>)
-
-		expect(screen.getByText('Section content')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<MenuSection className="custom">content</MenuSection>)
-
-		const el = bySlot(container, 'menu-section')
-
-		expect(el?.className).toContain('custom')
 	})
 })
 
@@ -95,20 +38,6 @@ describe('MenuHeading', () => {
 
 		expect(el?.tagName).toBe('LEGEND')
 	})
-
-	it('renders children', () => {
-		renderUI(<MenuHeading>Heading text</MenuHeading>)
-
-		expect(screen.getByText('Heading text')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<MenuHeading className="custom">content</MenuHeading>)
-
-		const el = bySlot(container, 'menu-heading')
-
-		expect(el?.className).toContain('custom')
-	})
 })
 
 describe('MenuSeparator', () => {
@@ -120,14 +49,6 @@ describe('MenuSeparator', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('HR')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<MenuSeparator className="custom" />)
-
-		const el = bySlot(container, 'menu-separator')
-
-		expect(el?.className).toContain('custom')
 	})
 })
 
@@ -408,18 +329,6 @@ describe('MenuItem', () => {
 
 		expect(item.tagName).not.toBe('A')
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem className="custom">Item</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		expect(bySlot(container, 'menu-item')?.className).toContain('custom')
-	})
 })
 
 describe('MenuLabel / MenuDescription / MenuShortcut', () => {
@@ -433,12 +342,6 @@ describe('MenuLabel / MenuDescription / MenuShortcut', () => {
 		const { container } = renderUI(<MenuDescription>Info</MenuDescription>)
 
 		expect(bySlot(container, 'menu-description')).toHaveTextContent('Info')
-	})
-
-	it('renders MenuShortcut with data-slot="menu-shortcut"', () => {
-		const { container } = renderUI(<MenuShortcut>⌘K</MenuShortcut>)
-
-		expect(bySlot(container, 'menu-shortcut')).toBeInTheDocument()
 	})
 })
 

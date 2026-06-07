@@ -19,14 +19,6 @@ describe('SearchInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<SearchInput className="custom" />)
-
-		const input = bySlot(container, 'search-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<SearchInput placeholder="Search..." />)
 

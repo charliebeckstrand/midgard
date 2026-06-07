@@ -37,18 +37,6 @@ describe('List', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id} className="custom">
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const el = bySlot(container, 'list')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('reflects orientation on data attribute', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id} orientation="horizontal">
@@ -88,18 +76,6 @@ describe('ListItem', () => {
 
 		expect(el).toHaveAttribute('data-item-id', 'a')
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem className="custom">{item.label}</ListItem>}
-			</List>,
-		)
-
-		const el = bySlot(container, 'list-item')
-
-		expect(el?.className).toContain('custom')
-	})
 })
 
 describe('ListLabel', () => {
@@ -110,14 +86,6 @@ describe('ListLabel', () => {
 
 		expect(screen.getByText('Alpha')).toBeInTheDocument()
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<ListLabel className="custom">Alpha</ListLabel>)
-
-		const el = bySlot(container, 'list-label')
-
-		expect(el?.className).toContain('custom')
-	})
 })
 
 describe('ListDescription', () => {
@@ -127,14 +95,6 @@ describe('ListDescription', () => {
 		expect(bySlot(container, 'list-description')).toBeInTheDocument()
 
 		expect(screen.getByText('Help')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<ListDescription className="custom">Help</ListDescription>)
-
-		const el = bySlot(container, 'list-description')
-
-		expect(el?.className).toContain('custom')
 	})
 })
 

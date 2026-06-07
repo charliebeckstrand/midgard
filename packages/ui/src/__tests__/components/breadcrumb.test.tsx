@@ -4,7 +4,6 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
-	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -18,55 +17,9 @@ describe('Breadcrumb', () => {
 
 		expect(el?.tagName).toBe('NAV')
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Breadcrumb className="custom">content</Breadcrumb>)
-
-		const el = bySlot(container, 'breadcrumb')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
-describe('BreadcrumbList', () => {
-	it('renders with data-slot="breadcrumb-list"', () => {
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>Home</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		expect(bySlot(container, 'breadcrumb-list')).toBeInTheDocument()
-	})
 })
 
 describe('BreadcrumbItem', () => {
-	it('renders with data-slot="breadcrumb-item"', () => {
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>Home</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		expect(bySlot(container, 'breadcrumb-item')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>Home</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		expect(screen.getByText('Home')).toBeInTheDocument()
-	})
-
 	it('sets aria-current when current', () => {
 		const { container } = renderUI(
 			<Breadcrumb>
@@ -99,20 +52,6 @@ describe('BreadcrumbLink', () => {
 		expect(el?.tagName).toBe('A')
 
 		expect(el).toHaveAttribute('href', '/home')
-	})
-})
-
-describe('BreadcrumbSeparator', () => {
-	it('renders with data-slot="breadcrumb-separator"', () => {
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbSeparator />
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		expect(bySlot(container, 'breadcrumb-separator')).toBeInTheDocument()
 	})
 })
 

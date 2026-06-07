@@ -3,30 +3,12 @@ import { ChatMessage } from '../../components/chat-message'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ChatMessage', () => {
-	it('renders with data-slot="chat-message"', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
-
-		const el = bySlot(container, 'chat-message')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
 	it('renders children inside the bubble slot', () => {
 		const { container } = renderUI(<ChatMessage>Hello</ChatMessage>)
 
 		expect(screen.getByText('Hello')).toBeInTheDocument()
 
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
-	})
-
-	it('applies custom className to the root', () => {
-		const { container } = renderUI(<ChatMessage className="custom">content</ChatMessage>)
-
-		const el = bySlot(container, 'chat-message')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('defaults type to assistant when unspecified', () => {

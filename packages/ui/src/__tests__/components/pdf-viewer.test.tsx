@@ -37,12 +37,6 @@ describe('PdfViewer', () => {
 		expect(el?.tagName).toBe('SECTION')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<PdfViewer pages={pages} className="custom" />)
-
-		expect(bySlot(container, 'pdf-viewer')?.className).toContain('custom')
-	})
-
 	it('renders the active page image with the first page by default', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 

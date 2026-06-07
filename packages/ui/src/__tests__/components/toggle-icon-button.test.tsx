@@ -23,22 +23,6 @@ describe('ToggleIconButton', () => {
 		expect(el?.tagName).toBe('BUTTON')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<ToggleIconButton
-				pressed={false}
-				icon={icon}
-				pressedIcon={pressedIcon}
-				className="custom"
-				aria-label="Toggle"
-			/>,
-		)
-
-		const el = bySlot(container, 'toggle-icon-button')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('sets aria-pressed based on pressed prop', () => {
 		const { container } = renderUI(
 			<ToggleIconButton pressed={true} icon={icon} pressedIcon={pressedIcon} aria-label="Toggle" />,

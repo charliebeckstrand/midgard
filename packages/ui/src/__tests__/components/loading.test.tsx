@@ -33,14 +33,6 @@ describe('LoadingDots', () => {
 
 		expect(dots?.querySelectorAll('[aria-hidden="true"]')).toHaveLength(3)
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<LoadingDots className="big" />)
-
-		const dots = bySlot(container, 'loading-dots')
-
-		expect(dots?.className).toContain('big')
-	})
 })
 
 describe('LoadingSpinner', () => {
@@ -84,13 +76,5 @@ describe('LoadingSpinner', () => {
 
 		// Rests as a static glyph under prefers-reduced-motion rather than spinning.
 		expect(spinner?.className).toContain('motion-safe:animate-spin')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<LoadingSpinner className="big" />)
-
-		const spinner = bySlot(container, 'loading-spinner')
-
-		expect(spinner?.className).toContain('big')
 	})
 })

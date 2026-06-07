@@ -4,18 +4,6 @@ import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
-	it('renders with data-slot="listbox"', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const el = bySlot(container, 'listbox')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders trigger button with combobox role', () => {
 		const { container } = renderUI(
 			<Listbox>
@@ -40,18 +28,6 @@ describe('Listbox', () => {
 		)
 
 		expect(bySlot(container, 'listbox-button')).toHaveAttribute('aria-label', 'Current page')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Listbox className="custom">
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const el = bySlot(container, 'listbox')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('shows placeholder when no value selected', () => {

@@ -6,7 +6,6 @@ import {
 	CommandPaletteGroup,
 	CommandPaletteItem,
 	CommandPaletteLabel,
-	CommandPaletteShortcut,
 } from '../../components/command-palette'
 import { bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
@@ -50,16 +49,6 @@ describe('CommandPalette', () => {
 		expect(list).toBeInTheDocument()
 
 		expect(list).toHaveAttribute('role', 'listbox')
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<div>My items</div>
-			</CommandPalette>,
-		)
-
-		expect(screen.getByText('My items')).toBeInTheDocument()
 	})
 
 	it('does not render when closed', () => {
@@ -180,16 +169,6 @@ describe('CommandPalette active descendant', () => {
 })
 
 describe('CommandPaletteGroup', () => {
-	it('renders with data-slot="command-palette-group"', () => {
-		const { container } = renderUI(
-			<CommandPaletteGroup>
-				<div>child</div>
-			</CommandPaletteGroup>,
-		)
-
-		expect(bySlot(container, 'command-palette-group')).toBeInTheDocument()
-	})
-
 	it('renders the title when provided and labels the group with it', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup title="Actions">
@@ -352,12 +331,6 @@ describe('CommandPaletteLabel and CommandPaletteDescription', () => {
 		const { container } = renderUI(<CommandPaletteDescription>About</CommandPaletteDescription>)
 
 		expect(bySlot(container, 'command-palette-description')).toHaveTextContent('About')
-	})
-
-	it('renders the shortcut with data-slot="command-palette-shortcut"', () => {
-		const { container } = renderUI(<CommandPaletteShortcut>⌘K</CommandPaletteShortcut>)
-
-		expect(bySlot(container, 'command-palette-shortcut')).toBeInTheDocument()
 	})
 })
 

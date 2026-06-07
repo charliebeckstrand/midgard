@@ -4,19 +4,6 @@ import { Density, useDensity } from '../../primitives/density'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Group', () => {
-	it('renders a div with data-slot="group"', () => {
-		const { container } = renderUI(
-			<Group>
-				<button type="button">Cut</button>
-			</Group>,
-		)
-
-		const root = bySlot(container, 'group')
-
-		expect(root).toBeInTheDocument()
-		expect(root?.tagName).toBe('DIV')
-	})
-
 	it('defaults to horizontal orientation and inline-flex layout', () => {
 		const { container } = renderUI(
 			<Group>

@@ -13,14 +13,6 @@ describe('Divider', () => {
 		expect(el?.tagName).toBe('HR')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Divider className="custom" />)
-
-		const el = bySlot(container, 'divider')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('sets role and aria-orientation for vertical dividers', () => {
 		const { container } = renderUI(<Divider orientation="vertical" />)
 

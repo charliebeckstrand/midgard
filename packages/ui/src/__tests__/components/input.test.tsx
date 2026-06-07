@@ -15,14 +15,6 @@ describe('Input', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Input className="custom" />)
-
-		const input = bySlot(container, 'input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

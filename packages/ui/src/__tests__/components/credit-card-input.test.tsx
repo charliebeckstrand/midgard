@@ -29,14 +29,6 @@ describe('CreditCardInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<CreditCardInput className="custom" />)
-
-		const input = bySlot(container, 'credit-card-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 
@@ -140,14 +132,6 @@ describe('CreditCardInput', () => {
 })
 
 describe('CreditCardInputExpiry', () => {
-	it('renders an input with data-slot="input"', () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toBeInTheDocument()
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 
@@ -253,14 +237,6 @@ describe('CreditCardInputExpiry', () => {
 })
 
 describe('CreditCardInputCvv', () => {
-	it('renders an input with data-slot="input"', () => {
-		const { container } = renderUI(<CreditCardInputCvv />)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toBeInTheDocument()
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

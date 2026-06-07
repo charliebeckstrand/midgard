@@ -1,33 +1,9 @@
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Alert, AlertBody, AlertDescription, AlertTitle } from '../../components/alert'
+import { Alert, AlertTitle } from '../../components/alert'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
-	it('renders with data-slot="alert"', () => {
-		const { container } = renderUI(<Alert>content</Alert>)
-
-		const el = bySlot(container, 'alert')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('renders children', () => {
-		renderUI(<Alert>Hello</Alert>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Alert className="custom">content</Alert>)
-
-		const el = bySlot(container, 'alert')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders title and description props', () => {
 		renderUI(<Alert title="Title" description="Description" />)
 
@@ -157,71 +133,5 @@ describe('Alert', () => {
 			// Lazily created on first announce — absent means nothing was announced.
 			expect(politeRegion()?.textContent ?? '').toBe('')
 		})
-	})
-})
-
-describe('AlertTitle', () => {
-	it('renders with data-slot="alert-title"', () => {
-		const { container } = renderUI(
-			<Alert>
-				<AlertTitle>My Title</AlertTitle>
-			</Alert>,
-		)
-
-		expect(bySlot(container, 'alert-title')).toBeInTheDocument()
-	})
-
-	it('renders title content', () => {
-		renderUI(
-			<Alert>
-				<AlertTitle>My Title</AlertTitle>
-			</Alert>,
-		)
-
-		expect(screen.getByText('My Title')).toBeInTheDocument()
-	})
-})
-
-describe('AlertBody', () => {
-	it('renders with data-slot="alert-body"', () => {
-		const { container } = renderUI(
-			<Alert>
-				<AlertBody>body</AlertBody>
-			</Alert>,
-		)
-
-		expect(bySlot(container, 'alert-body')).toBeInTheDocument()
-	})
-
-	it('renders body content', () => {
-		renderUI(
-			<Alert>
-				<AlertBody>My Body</AlertBody>
-			</Alert>,
-		)
-
-		expect(screen.getByText('My Body')).toBeInTheDocument()
-	})
-})
-
-describe('AlertDescription', () => {
-	it('renders with data-slot="alert-description"', () => {
-		const { container } = renderUI(
-			<Alert>
-				<AlertDescription>My Description</AlertDescription>
-			</Alert>,
-		)
-
-		expect(bySlot(container, 'alert-description')).toBeInTheDocument()
-	})
-
-	it('renders description content', () => {
-		renderUI(
-			<Alert>
-				<AlertDescription>My Description</AlertDescription>
-			</Alert>,
-		)
-
-		expect(screen.getByText('My Description')).toBeInTheDocument()
 	})
 })

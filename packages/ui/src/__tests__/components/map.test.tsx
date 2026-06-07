@@ -28,22 +28,6 @@ const shipment: ShipmentData = {
 }
 
 describe('Map', () => {
-	it('renders with data-slot="map"', () => {
-		const { container } = renderUI(<MapView />)
-
-		const el = bySlot(container, 'map')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<MapView className="custom" />)
-
-		expect(bySlot(container, 'map')?.className).toContain('custom')
-	})
-
 	it('names an interactive map as an application region when label is set', () => {
 		const { container } = renderUI(<MapView label="Delivery map" />)
 

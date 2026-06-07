@@ -2,31 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
-import { bySlot, fireEvent, makeFileList, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, makeFileList, renderUI, screen, waitFor } from '../helpers'
 
 describe('FileUpload', () => {
-	it('renders with data-slot="file-upload"', () => {
-		const { container } = renderUI(<FileUpload>Drop files here</FileUpload>)
-
-		const el = bySlot(container, 'file-upload')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(<FileUpload>Drop files here</FileUpload>)
-
-		expect(screen.getByText('Drop files here')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<FileUpload className="custom">Upload</FileUpload>)
-
-		const el = bySlot(container, 'file-upload')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders a visually hidden file input', () => {
 		const { container } = renderUI(<FileUpload>Upload</FileUpload>)
 

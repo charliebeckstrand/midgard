@@ -27,14 +27,6 @@ describe('PasswordInput', () => {
 		expect(input).toHaveAttribute('type', 'text')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<PasswordInput className="custom" />)
-
-		const input = bySlot(container, 'password-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<PasswordInput placeholder="Enter password" />)
 

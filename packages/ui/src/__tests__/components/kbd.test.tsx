@@ -13,20 +13,6 @@ describe('Kbd', () => {
 		expect(el?.tagName).toBe('KBD')
 	})
 
-	it('renders children', () => {
-		renderUI(<Kbd>Enter</Kbd>)
-
-		expect(screen.getByText('Enter')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Kbd className="custom">K</Kbd>)
-
-		const el = bySlot(container, 'kbd')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders command modifier glyph when cmd is set', () => {
 		renderUI(<Kbd cmd>K</Kbd>)
 

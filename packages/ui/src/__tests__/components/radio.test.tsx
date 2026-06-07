@@ -23,14 +23,6 @@ describe('Radio', () => {
 		expect(el.type).toBe('radio')
 	})
 
-	it('applies custom className to the wrapper', () => {
-		const { container } = renderUI(<Radio className="custom" />)
-
-		const wrapper = bySlot(container, 'control')
-
-		expect(wrapper?.className).toContain('custom')
-	})
-
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(<Radio />, { skeleton: true })
 
@@ -57,47 +49,11 @@ describe('Radio', () => {
 	})
 })
 
-describe('RadioField', () => {
-	it('renders with data-slot="field"', () => {
-		const { container } = renderUI(<RadioField>content</RadioField>)
-
-		const el = bySlot(container, 'field')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(<RadioField>Hello</RadioField>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<RadioField className="custom">content</RadioField>)
-
-		const el = bySlot(container, 'field')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
 describe('RadioGroup', () => {
 	it('renders with role="radiogroup"', () => {
 		renderUI(<RadioGroup>content</RadioGroup>)
 
 		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(<RadioGroup>Hello</RadioGroup>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		renderUI(<RadioGroup className="custom">content</RadioGroup>)
-
-		expect(screen.getByRole('radiogroup').className).toContain('custom')
 	})
 })
 

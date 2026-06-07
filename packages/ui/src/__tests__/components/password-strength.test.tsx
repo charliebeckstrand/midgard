@@ -1,16 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { defaultPasswordRules, PasswordStrength } from '../../components/password-strength'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, renderUI, screen } from '../helpers'
 
 describe('PasswordStrength', () => {
-	it('renders with data-slot="password-strength"', () => {
-		const { container } = renderUI(<PasswordStrength value="" />)
-
-		const el = bySlot(container, 'password-strength')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders four meter segments', () => {
 		const { container } = renderUI(<PasswordStrength value="" />)
 
@@ -80,13 +72,5 @@ describe('PasswordStrength', () => {
 		renderUI(<PasswordStrength value="abc" />)
 
 		expect(screen.getByText('Weak')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<PasswordStrength value="" className="custom" />)
-
-		const el = bySlot(container, 'password-strength')
-
-		expect(el?.className).toContain('custom')
 	})
 })

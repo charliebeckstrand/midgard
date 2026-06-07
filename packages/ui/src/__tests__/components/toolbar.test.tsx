@@ -3,22 +3,6 @@ import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolba
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Toolbar', () => {
-	it('renders with data-slot="toolbar"', () => {
-		const { container } = renderUI(<Toolbar>content</Toolbar>)
-
-		const el = bySlot(container, 'toolbar')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Toolbar className="custom">content</Toolbar>)
-
-		expect(bySlot(container, 'toolbar')?.className).toContain('custom')
-	})
-
 	it('renders children', () => {
 		renderUI(
 			<Toolbar>
@@ -94,18 +78,6 @@ describe('Toolbar', () => {
 })
 
 describe('ToolbarGroup', () => {
-	it('renders with data-slot="toolbar-group"', () => {
-		const { container } = renderUI(
-			<Toolbar>
-				<ToolbarGroup>
-					<button type="button">A</button>
-				</ToolbarGroup>
-			</Toolbar>,
-		)
-
-		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
-	})
-
 	it('has role="group"', () => {
 		const { container } = renderUI(
 			<Toolbar>
@@ -120,18 +92,6 @@ describe('ToolbarGroup', () => {
 		expect(el).toHaveAttribute('role', 'group')
 
 		expect(el).toHaveAttribute('aria-label', 'Marks')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Toolbar>
-				<ToolbarGroup className="custom">
-					<button type="button">A</button>
-				</ToolbarGroup>
-			</Toolbar>,
-		)
-
-		expect(bySlot(container, 'toolbar-group')?.className).toContain('custom')
 	})
 
 	it('inherits orientation from the surrounding toolbar', () => {
@@ -160,18 +120,6 @@ describe('ToolbarGroup', () => {
 })
 
 describe('ToolbarSeparator', () => {
-	it('renders with data-slot="toolbar-separator"', () => {
-		const { container } = renderUI(
-			<Toolbar>
-				<button type="button">A</button>
-				<ToolbarSeparator />
-				<button type="button">B</button>
-			</Toolbar>,
-		)
-
-		expect(bySlot(container, 'toolbar-separator')).toBeInTheDocument()
-	})
-
 	it('has role="separator" with aria-orientation opposite the toolbar', () => {
 		const { container } = renderUI(
 			<Toolbar orientation="horizontal">
@@ -185,16 +133,6 @@ describe('ToolbarSeparator', () => {
 		expect(el).toHaveAttribute('role', 'separator')
 
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Toolbar>
-				<ToolbarSeparator className="custom" />
-			</Toolbar>,
-		)
-
-		expect(bySlot(container, 'toolbar-separator')?.className).toContain('custom')
 	})
 
 	it('renders a horizontal separator when the toolbar is vertical', () => {

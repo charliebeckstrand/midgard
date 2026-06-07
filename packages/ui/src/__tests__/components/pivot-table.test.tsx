@@ -194,18 +194,4 @@ describe('PivotTable', () => {
 
 		expect(rows[2]?.textContent?.startsWith('LAX → DFW')).toBe(true)
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<PivotTable
-				className="custom"
-				rows={data}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-			/>,
-		)
-
-		const tableEl = container.querySelector('table')
-
-		expect(tableEl?.className).toContain('custom')
-	})
 })

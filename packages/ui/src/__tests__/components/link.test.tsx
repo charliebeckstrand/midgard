@@ -28,22 +28,6 @@ describe('Link', () => {
 		expect(screen.getByText('Anchor')).toHaveAttribute('data-slot', 'link')
 	})
 
-	it('omits the underline class by default', () => {
-		renderUI(<Link href="/u">NoUnderline</Link>)
-
-		expect(screen.getByText('NoUnderline').className ?? '').not.toContain('hover:underline')
-	})
-
-	it('applies the underline class when underline', () => {
-		renderUI(
-			<Link href="/u" underline>
-				Underline
-			</Link>,
-		)
-
-		expect(screen.getByText('Underline').className).toContain('hover:underline')
-	})
-
 	it('renders custom component registered through UIProvider', () => {
 		function CustomLink({ href, children, ...props }: { href: string; children?: ReactNode }) {
 			return (

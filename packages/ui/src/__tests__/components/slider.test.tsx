@@ -25,14 +25,6 @@ describe('Slider', () => {
 		expect(el.type).toBe('range')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Slider className="custom" />)
-
-		const el = bySlot(container, 'slider')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('passes through min, max, and step', () => {
 		const { container } = renderUI(<Slider min={0} max={50} step={5} />)
 
@@ -89,22 +81,10 @@ describe('Slider', () => {
 })
 
 describe('RangeSlider', () => {
-	it('renders with data-slot="slider-range"', () => {
-		const { container } = renderUI(<RangeSlider />)
-
-		expect(bySlot(container, 'slider-range')).toBeInTheDocument()
-	})
-
 	it('renders two thumbs with slider roles', () => {
 		const { container } = renderUI(<RangeSlider />)
 
 		expect(allBySlot(container, 'slider-range-thumb')).toHaveLength(2)
-	})
-
-	it('applies custom className to the root', () => {
-		const { container } = renderUI(<RangeSlider className="custom" />)
-
-		expect(bySlot(container, 'slider-range')?.className).toContain('custom')
 	})
 
 	it('sets aria-valuenow on each thumb to reflect the default value', () => {

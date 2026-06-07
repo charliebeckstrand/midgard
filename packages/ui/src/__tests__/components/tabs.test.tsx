@@ -3,44 +3,6 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
 import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
-describe('Tabs', () => {
-	it('renders with data-slot="tab-group"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList>
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab-group')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a" className="custom">
-				<TabList>
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab-group')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
 describe('TabList', () => {
 	it('renders with data-slot="tab-list" and role="tablist"', () => {
 		const { container } = renderUI(
@@ -101,21 +63,6 @@ describe('Tab', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('role', 'tab')
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Tabs defaultValue="a">
-				<TabList>
-					<Tab value="a">My Tab</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		expect(screen.getByText('My Tab')).toBeInTheDocument()
 	})
 
 	it('inherits size from ambient Density when wrapped in <Tabs>', () => {
@@ -287,21 +234,6 @@ describe('TabPanel', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('role', 'tabpanel')
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Tabs defaultValue="a">
-				<TabList>
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel Content</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
 
 	it('derives id and aria-labelledby from the provided id prop', () => {

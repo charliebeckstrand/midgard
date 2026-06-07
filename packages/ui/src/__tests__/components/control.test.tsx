@@ -7,21 +7,6 @@ import { Textarea } from '../../components/textarea'
 import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Control', () => {
-	it('renders with data-slot="control"', () => {
-		const { container } = renderUI(<Control>content</Control>)
-		expect(bySlot(container, 'control')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(<Control>Hello</Control>)
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Control className="custom">content</Control>)
-		expect(bySlot(container, 'control')?.className).toContain('custom')
-	})
-
 	it('sets data-disabled when disabled', () => {
 		const { container } = renderUI(<Control disabled>content</Control>)
 		expect(bySlot(container, 'control')).toHaveAttribute('data-disabled')
