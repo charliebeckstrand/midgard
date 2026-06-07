@@ -57,6 +57,18 @@ describe('DataTable', () => {
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
 
+	it('marks the table aria-busy while loading and clears it otherwise', () => {
+		const { rerender } = renderUI(
+			<DataTable columns={columns} rows={rows} getKey={getKey} loading />,
+		)
+
+		expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true')
+
+		rerender(<DataTable columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy')
+	})
+
 	it('renders a default empty state when there are no rows', () => {
 		renderUI(<DataTable columns={columns} rows={[]} getKey={getKey} />)
 
