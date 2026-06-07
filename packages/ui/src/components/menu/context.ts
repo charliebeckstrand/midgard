@@ -6,6 +6,8 @@ import type { Step } from '../../recipes'
 
 type MenuStateValue = {
 	open: boolean
+	/** Id of the menu panel; the trigger's `aria-controls` points at it. */
+	menuId: string
 	floatingStyles: CSSProperties
 	getReferenceProps: () => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
