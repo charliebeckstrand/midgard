@@ -4,6 +4,11 @@ import type { Context } from './types'
 
 export const INDENT = '  '
 
+// Stand-in for content that's present but can't be reproduced as code — an
+// unrenderable child subtree, or a prop whose value (a Date, an object) has no
+// clean literal form. Signals "supply a value here" without fabricating one.
+export const PLACEHOLDER = '…'
+
 // Props that never belong in derived code — either structural (children, key,
 // ref) or styling noise (className).
 const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
@@ -54,7 +59,12 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 		return `${key}={[${value.map(formatLiteral).join(', ')}]}`
 	}
 
-	return null
+	// Present but unserializable — a Date, a config object, an array of objects.
+	// The source identifier the author wrote (`min={min}`) is gone by render
+	// time, so we can't reproduce it. Emit a `…` placeholder — the same
+	// affordance the walker uses for unrenderable children — rather than
+	// silently dropping the prop and making the example look unconfigured.
+	return `${key}={${PLACEHOLDER}}`
 }
 
 // ---------------------------------------------------------------------------

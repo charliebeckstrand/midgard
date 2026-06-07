@@ -37,23 +37,19 @@ export const k = defineRecipe(
 			'justify-center',
 			'w-fit shrink-0',
 			weight.semibold,
+			focus.inset,
 			...disabled,
 			...cursor,
 		],
-		// focus.inset rides each variant rather than `base` so it never reaches
-		// `bare`. Its `outline-none` sets `--tw-outline-style: none`, which would
-		// poison bare's outset `focus-visible:outline-*` to `outline-style: none`.
 		variant: {
-			// solid fills paint `ring-blue-600` from `focus.inset` onto a same-token
-			// `bg-blue-600` (and equivalents), so the ring vanishes into the fill.
-			// `ring-current` retints it to the foreground — white on zinc/red/green/
-			// blue, amber-950 on amber — which the contrast suite already proves
-			// clears AA against each fill. tailwind-merge lets it supersede the blue.
-			solid: [focus.inset, 'focus-visible:ring-current'],
-			soft: focus.inset,
-			outline: ['ring-1 ring-inset', focus.inset],
-			plain: focus.inset,
-			ghost: focus.inset,
+			// `focus.inset` (in `base`) paints `ring-blue-600` onto a same-token
+			// `bg-blue-600` fill (and equivalents), so the ring vanishes into the
+			// fill. `ring-current` retints it to the foreground — white on
+			// zinc/red/green/blue, amber-950 on amber — which the contrast suite
+			// already proves clears AA against each fill. tailwind-merge (base →
+			// variant) lets it supersede the blue.
+			solid: 'focus-visible:ring-current',
+			outline: 'ring-1 ring-inset',
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When the
 		// children carry a text label the component sets `data-has-label`, which
@@ -107,14 +103,36 @@ export const k = defineRecipe(
 		compound: [
 			{
 				variant: 'bare',
-				class: [
-					'p-0',
-					'before:content-[""] before:absolute before:-inset-2',
-					// bare alone skips focus.inset (p-0 leaves no room for an inset
-					// ring). With no `outline-none` poisoning `--tw-outline-style`,
-					// this outset outline renders cleanly on focus.
-					'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
-				],
+				class: ['p-0', 'before:content-[""] before:absolute before:-inset-2'],
+			},
+			// Floor the icon-only bare hit box at the WCAG 2.5.8 minimum (24px) as a
+			// real, gate-measurable border-box. The `::before` slop above widens the
+			// pointer area but is invisible to axe's target-size and to the spec's box
+			// metric (see toggle-icon-button.ts), so only a real box satisfies the
+			// gate. A matched negative margin of `(24px − iconbox)/2` per side collapses
+			// the box's margin-box back to the icon's footprint, so the floor grows the
+			// hit box without growing the row it sits in — the overshoot reaches into
+			// the parent's existing padding. Per size: xs/sm/md icons are 12/16/20px;
+			// lg's 24px icon already clears the floor, so it needs no rule. Gated to
+			// `:not([data-has-label])` so inline text-label bare links keep their
+			// natural inline box and lean on WCAG's inline-target exception instead.
+			{
+				variant: 'bare',
+				size: 'xs',
+				class:
+					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-1.5',
+			},
+			{
+				variant: 'bare',
+				size: 'sm',
+				class:
+					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-1',
+			},
+			{
+				variant: 'bare',
+				size: 'md',
+				class:
+					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-0.5',
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },

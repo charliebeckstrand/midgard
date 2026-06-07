@@ -17,7 +17,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Range">
-				<DatePicker range value={range} onValueChange={setRange} />
+				<DatePicker range value={range} onValueChange={setRange} placeholder="Select date range" />
 			</Example>
 
 			<Example title="Disabled">
@@ -26,7 +26,12 @@ export function Demo() {
 
 			<Example title="Glass">
 				<GlassProvider>
-					<DatePicker range value={glassRange} onValueChange={setGlassRange} />
+					<DatePicker
+						range
+						value={glassRange}
+						onValueChange={setGlassRange}
+						placeholder="Select date range"
+					/>
 				</GlassProvider>
 			</Example>
 		</>

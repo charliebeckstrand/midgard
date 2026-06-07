@@ -1,6 +1,7 @@
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { deriveCode } from '../../docs/derive-code'
+import { GlassProvider } from '../../providers/glass'
 
 function tag<P>(name: string, mod: string): FunctionComponent<P> {
 	const Component: FunctionComponent<P> = () => null
@@ -121,6 +122,31 @@ describe('deriveCode child ordering', () => {
 		expect(helloIndex).toBeGreaterThan(iconIndex)
 
 		expect(buttonIndex).toBeGreaterThan(helloIndex)
+	})
+})
+
+describe('deriveCode provider wrappers', () => {
+	const DatePicker = tag<{ range?: boolean; placeholder?: string }>('DatePicker', 'date-picker')
+
+	it('renders a tagged provider wrapper and emits its nested import', () => {
+		// `GlassProvider` is the real export — importing it through the vitest
+		// vite pipeline applies the component-tags transform, so the walker sees
+		// it as a recognized component rather than transparently unwrapping it.
+		const tree = createElement(
+			GlassProvider,
+			null,
+			createElement(DatePicker, { range: true, placeholder: 'Select date range' }),
+		)
+
+		const result = deriveCode(tree)
+
+		expect(result).toContain("import { GlassProvider } from 'ui/providers/glass'")
+
+		expect(result).toContain("import { DatePicker } from 'ui/date-picker'")
+
+		expect(result).toMatch(
+			/<GlassProvider>\n\s+<DatePicker range placeholder="Select date range" \/>\n<\/GlassProvider>/,
+		)
 	})
 })
 

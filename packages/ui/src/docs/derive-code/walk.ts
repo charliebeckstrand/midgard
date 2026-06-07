@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react'
-import { formatProps, INDENT, renderOpenTag } from './format'
+import { formatProps, INDENT, PLACEHOLDER, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
 import { collectChildItems, elementChildren } from './tree'
@@ -175,5 +175,5 @@ function renderChildrenContent(nodes: ReactNode[], context: Context, indent: str
 
 	const rendered = renderNodes(nodes, context, indent)
 
-	return rendered !== '' ? rendered : '…'
+	return rendered !== '' ? rendered : PLACEHOLDER
 }
