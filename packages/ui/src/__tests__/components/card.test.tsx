@@ -218,6 +218,39 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
 	})
 
+	it('CardTitle text size tracks an ambient Density provider', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<CardTitle>Title</CardTitle>
+			</DensityProvider>,
+		)
+
+		// compact → sm step → titleSize drops one rung to ji.size.md = 'text-base'
+		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
+	})
+
+	it('CardTitle weight is derived from its heading level', () => {
+		const { container } = renderUI(
+			<Card>
+				<CardTitle>Title</CardTitle>
+			</Card>,
+		)
+
+		// Default level 3 → Heading semibold; weight is no longer pinned by the card recipe.
+		expect(bySlot(container, 'card-title')?.className).toContain('font-semibold')
+	})
+
+	it('CardTitle weight tracks an overridden heading level', () => {
+		const { container } = renderUI(
+			<Card>
+				<CardTitle level={1}>Title</CardTitle>
+			</Card>,
+		)
+
+		// level 1 → Heading bold, proving the weight follows the level through Heading.
+		expect(bySlot(container, 'card-title')?.className).toContain('font-bold')
+	})
+
 	it('Buttons inside a Card inherit the Card size', () => {
 		const { container } = renderUI(
 			<Card size="sm">

@@ -30,6 +30,21 @@ const base = {
 const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<Step, number>
 
 /**
+ * Font weight per heading level — bold at the top of the scale, easing to
+ * medium. Single-sourced here so heading-like elements that can't render
+ * `<Heading>` (the panel title slot lives in the primitive layer) reuse it
+ * via {@link headingWeight} instead of pinning their own weight token.
+ */
+const levelWeight = {
+	1: weight.bold,
+	2: weight.semibold,
+	3: weight.semibold,
+	4: weight.medium,
+	5: weight.medium,
+	6: weight.medium,
+} as const satisfies Record<Level, string>
+
+/**
  * Resolve the type-scale rung for a heading `level` under a density `step`,
  * clamped to the ladder ends. `md` returns the level's natural rung, so
  * default density reproduces the pre-density sizes exactly; `sm`/`lg` shift
@@ -43,18 +58,31 @@ export function headingScale(level: Level, step: Step): Rung {
 	return ladder[index] ?? base[level]
 }
 
+/**
+ * Density-scaled font size for component titles (Card, Dialog / Sheet /
+ * Drawer). A title sits at the level-4 `lg` rung and shifts ±1 with the
+ * ambient density step, exactly like a `<Heading>`: `md` holds the `text-lg`
+ * baseline, `sm` / `lg` move one rung. Returns the matching `ji.size` class.
+ */
+export function titleSize(step: Step): string {
+	return size[headingScale(4, step)]
+}
+
+/**
+ * Heading font weight for a `level`. For callers that style a heading-like
+ * element without rendering `<Heading>` — the panel title is an `<h2>` built
+ * in the primitive layer, so it pulls its weight from here (level 2) rather
+ * than hardcoding one.
+ */
+export function headingWeight(level: Level): string {
+	return levelWeight[level]
+}
+
 export const k = defineRecipe({
 	base: [...text.default],
 	// `level` drives weight only; the type size is the `scale` rung the
 	// component resolves from level + density via `headingScale`.
-	level: {
-		1: weight.bold,
-		2: weight.semibold,
-		3: weight.semibold,
-		4: weight.medium,
-		5: weight.medium,
-		6: weight.medium,
-	},
+	level: levelWeight,
 	scale: {
 		xs: size.xs,
 		sm: size.sm,

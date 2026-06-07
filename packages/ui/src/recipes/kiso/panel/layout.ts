@@ -16,13 +16,14 @@ import { iro } from '../iro'
 import { ji } from '../ji'
 
 const { text } = iro
-const { size, weight, leading } = ji
+const { size, leading } = ji
 
 export const layout = {
 	base: 'flex flex-col gap-4',
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
-	title: [...text.default, size.lg, weight.semibold, leading.none],
+	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */
+	title: [...text.default, leading.none],
 	description: [...text.muted, size.md, leading.tight],
 	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
