@@ -10,6 +10,8 @@ export type ColorDragHandlers = {
 	onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void
+	onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void
+	onLostPointerCapture: () => void
 }
 
 /**
@@ -64,7 +66,7 @@ export function useColorDrag(
 		[onPosition, positionFromEvent],
 	)
 
-	const onPointerUp = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+	const endDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
 		dragging.current = false
 
 		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -72,5 +74,20 @@ export function useColorDrag(
 		}
 	}, [])
 
-	return { onPointerDown, onPointerMove, onPointerUp }
+	// `lostpointercapture` is the one signal guaranteed to fire whenever capture
+	// ends — a normal release, a `pointercancel` (browser-claimed gesture), or the
+	// node being torn out — so it's the authoritative reset. Without it a cancelled
+	// drag never clears `dragging`, and the handle keeps tracking the pointer until
+	// the next click lands a `pointerup`.
+	const onLostPointerCapture = useCallback(() => {
+		dragging.current = false
+	}, [])
+
+	return {
+		onPointerDown,
+		onPointerMove,
+		onPointerUp: endDrag,
+		onPointerCancel: endDrag,
+		onLostPointerCapture,
+	}
 }

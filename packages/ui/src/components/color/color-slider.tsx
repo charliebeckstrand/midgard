@@ -86,6 +86,8 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}
 			onPointerUp={drag.onPointerUp}
+			onPointerCancel={drag.onPointerCancel}
+			onLostPointerCapture={drag.onLostPointerCapture}
 			onKeyDown={onKeyDown}
 		>
 			{!isHue && (

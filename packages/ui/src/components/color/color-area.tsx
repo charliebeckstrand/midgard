@@ -68,6 +68,8 @@ export function ColorArea() {
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}
 			onPointerUp={drag.onPointerUp}
+			onPointerCancel={drag.onPointerCancel}
+			onLostPointerCapture={drag.onLostPointerCapture}
 			onKeyDown={onKeyDown}
 		>
 			<div aria-hidden="true" className={k.areaSaturation} />
