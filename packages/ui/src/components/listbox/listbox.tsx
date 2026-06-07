@@ -153,6 +153,10 @@ export function Listbox<T>({
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
 		returnFocusTo: triggerRef,
+		// The trigger button (`role="combobox"`) and the panel (`role="listbox"`)
+		// carry their own roles + popup wiring; suppress floating-ui's so the
+		// positioning wrappers don't double-stamp a nested combobox/listbox.
+		role: null,
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })

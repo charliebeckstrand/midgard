@@ -136,7 +136,15 @@ export function useFloatingPanel({
 }
 
 type FloatingUIOptions = FloatingPanelOptions & {
-	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip'
+	/**
+	 * Popup role floating-ui stamps on the floating element, plus the matching
+	 * `aria-haspopup`/`aria-controls`/`aria-expanded` on the reference. Pass
+	 * `null` when the component hand-rolls its own roles on inner elements (the
+	 * trigger button and the panel) so floating-ui doesn't double-stamp the
+	 * positioning wrapper — which otherwise nests a duplicate widget around the
+	 * real one (combobox-in-combobox, listbox-in-listbox). @default 'listbox'
+	 */
+	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
 }
 
 /**
@@ -159,7 +167,10 @@ export function useFloatingUI({
 
 	const dismiss = useDismiss(context, { outsidePress: false })
 
-	const role = useRole(context, { role: roleProp })
+	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
+	// emitting no role/aria props, so a component owning its roles isn't
+	// double-stamped on the positioning wrapper.
+	const role = useRole(context, { role: roleProp ?? 'listbox', enabled: roleProp !== null })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
