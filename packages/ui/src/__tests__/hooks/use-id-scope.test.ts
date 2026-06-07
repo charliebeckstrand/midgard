@@ -21,7 +21,9 @@ describe('useIdScope', () => {
 		const { result } = renderHook(() => useIdScope({ id: 'field' }))
 
 		expect(result.current.sub('description')).toBe('field-description')
+
 		expect(result.current.sub('error')).toBe('field-error')
+
 		expect(result.current.sub('trigger')).toBe('field-trigger')
 	})
 

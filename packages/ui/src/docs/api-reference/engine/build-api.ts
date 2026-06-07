@@ -16,6 +16,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 	if (!fs.existsSync(componentsDir)) return {}
 
 	const project = openProject(srcDir)
+
 	const checker = project.getTypeChecker().compilerObject
 
 	const result: Record<string, ComponentApi[]> = {}
@@ -24,6 +25,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 		if (!dir.isDirectory()) continue
 
 		const indexPath = path.join(componentsDir, dir.name, 'index.ts')
+
 		const indexFile = project.getSourceFile(indexPath)
 
 		if (!indexFile) continue

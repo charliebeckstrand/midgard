@@ -18,7 +18,9 @@ import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
  */
 
 const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+
 const TEXT_AA = 4.5
+
 const NON_TEXT_AA = 3
 
 describe('iro ramp contrast', () => {
@@ -42,12 +44,16 @@ describe('iro ramp contrast', () => {
 		for (const color of COLORS) {
 			it(color, () => {
 				const [light, dark] = onTint[color]
+
 				// The 15% wash the soft palette paints behind this foreground.
 				const wash = iro.palette.soft.bg[color].join(' ')
 
 				expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+
 				expect(contrastOf(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+
 				expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+
 				expect(contrastOf(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
 			})
 		}

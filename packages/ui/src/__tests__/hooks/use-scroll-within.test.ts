@@ -4,12 +4,15 @@ import { useScrollWithin } from '../../hooks/use-scroll-within'
 
 function buildScrollable() {
 	const scroller = document.createElement('div')
+
 	const node = document.createElement('div')
 
 	scroller.appendChild(node)
+
 	document.body.appendChild(scroller)
 
 	Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 100 })
+
 	Object.defineProperty(scroller, 'scrollTop', { configurable: true, value: 0, writable: true })
 
 	scroller.scrollTo = vi.fn()
@@ -55,6 +58,7 @@ describe('useScrollWithin', () => {
 	describe('inside a scrollable ancestor', () => {
 		afterEach(() => {
 			vi.restoreAllMocks()
+
 			document.body.innerHTML = ''
 		})
 

@@ -18,6 +18,7 @@ describe('cn', () => {
 		const result = cn('px-4', 'px-2')
 
 		expect(result).toContain('px-2')
+
 		expect(result).not.toContain('px-4')
 	})
 
@@ -25,8 +26,11 @@ describe('cn', () => {
 		const result = cn(['foo', 'bar'], { baz: true, qux: false })
 
 		expect(result).toContain('foo')
+
 		expect(result).toContain('bar')
+
 		expect(result).toContain('baz')
+
 		expect(result).not.toContain('qux')
 	})
 

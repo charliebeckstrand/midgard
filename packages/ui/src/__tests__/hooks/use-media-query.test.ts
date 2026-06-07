@@ -33,6 +33,7 @@ describe('useMediaQuery', () => {
 
 	it('subscribes to the matchMedia change event', async () => {
 		const addEventListener = vi.fn()
+
 		const removeEventListener = vi.fn()
 
 		stubMatchMedia(() => false, { addEventListener, removeEventListener })

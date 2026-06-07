@@ -68,6 +68,7 @@ describe('palette', () => {
 		})
 
 		expect(recipe({ variant: 'solid' })).toContain('solid-zinc')
+
 		expect(recipe({ variant: 'outline' })).toContain('has-ring')
 	})
 })

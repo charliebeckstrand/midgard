@@ -31,7 +31,9 @@ function partition(props: readonly PropDef[]): { props: PropDef[]; events: PropD
 
 export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 	const { props, events } = partition(entry.props)
+
 	const passThrough = entry.passThrough ?? []
+
 	const hasAny = props.length + events.length > 0
 
 	return (

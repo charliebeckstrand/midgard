@@ -9,6 +9,7 @@ import { act } from '@testing-library/react'
 
 class FakeMap {
 	private handlers = new Map<string, Set<(...args: unknown[]) => void>>()
+
 	private sources = new Map<string, unknown>()
 	private layers = new Map<string, unknown>()
 

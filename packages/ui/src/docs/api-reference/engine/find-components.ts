@@ -22,6 +22,7 @@ export type ComponentDecl = {
  */
 export function readPublicExports(indexFile: SourceFile): string[] {
 	const names: string[] = []
+
 	const seen = new Set<string>()
 
 	for (const decl of indexFile.getExportDeclarations()) {
@@ -37,6 +38,7 @@ export function readPublicExports(indexFile: SourceFile): string[] {
 			if (seen.has(name)) continue
 
 			seen.add(name)
+
 			names.push(name)
 		}
 	}

@@ -46,6 +46,7 @@ describe('extractReferences', () => {
 
 		expect(refs?.Item).toContain('id: string')
 		expect(refs?.Item).toContain('label: string')
+
 		expect(refs?.Item).toMatch(/^\{/)
 	})
 
@@ -68,6 +69,7 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Array<Size>', location, checker)
 
 		expect(refs?.Array).toBeUndefined()
+
 		expect(refs?.Size).toBe(`'sm' | 'md'`)
 	})
 
@@ -83,6 +85,7 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Theme', location, checker)
 
 		expect(refs?.Theme).toContain('color: Color')
+
 		expect(refs?.Color).toBe(`'zinc' | 'red'`)
 	})
 
@@ -97,6 +100,7 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Slot', location, checker)
 
 		expect(refs?.Slot).toBe(`'PageHeader' | 'PageBody'`)
+
 		expect(refs?.PageHeader).toBeUndefined()
 		expect(refs?.PageBody).toBeUndefined()
 	})
@@ -144,9 +148,13 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Options', location, checker)
 
 		expect(refs?.Options).toContain(`color: 'red' | 'blue'`)
+
 		expect(refs?.Options).toContain(`size: 'sm' | 'md'`)
+
 		expect(refs?.Options).toContain('label: string')
+
 		expect(refs?.Options).not.toContain('hidden')
+
 		// `Pick` collapses — no transitive card for `Inner`.
 		expect(refs?.Inner).toBeUndefined()
 	})
@@ -162,6 +170,7 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Config', location, checker)
 
 		expect(refs?.Config).toContain('required: string')
+
 		expect(refs?.Config).toContain('optional?: number')
 	})
 
@@ -177,9 +186,12 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Banner', location, checker)
 
 		expect(refs?.Banner).toContain(`tone: 'info' | 'warn'`)
+
 		// HTML attributes from React/DOM typings should not leak in.
 		expect(refs?.Banner).not.toContain('onClick')
+
 		expect(refs?.Banner).not.toContain('onPointerDown')
+
 		expect(refs?.Banner).not.toContain('aria-')
 	})
 

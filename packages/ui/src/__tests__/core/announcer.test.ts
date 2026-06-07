@@ -33,13 +33,17 @@ describe('announce', () => {
 
 	it('reuses a single region per politeness across calls', async () => {
 		announce('one')
+
 		await flush()
+
 		announce('two')
+
 		await flush()
 
 		expect(
 			document.body.querySelectorAll('[data-slot="live-region"][aria-live="polite"]'),
 		).toHaveLength(1)
+
 		expect(regionBy('polite')).toHaveTextContent('two')
 	})
 

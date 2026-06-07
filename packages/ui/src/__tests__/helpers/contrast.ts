@@ -22,6 +22,7 @@ const require = createRequire(import.meta.url)
 /** `name-shade` → its `oklch(…)` string, lifted from Tailwind's theme. */
 const THEME: Map<string, string> = (() => {
 	const css = readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8')
+
 	const map = new Map<string, string>()
 
 	for (const [, token, value] of css.matchAll(/--color-([a-z]+-\d{2,3}):\s*(oklch\([^;]+\))/g)) {
@@ -46,7 +47,9 @@ function oklchToLinear(value: string): RGB {
 
 	const L = Number(parts[1]) / 100
 	const C = Number(parts[2])
+
 	const h = (Number(parts[3]) * Math.PI) / 180
+
 	const a = C * Math.cos(h)
 	const b = C * Math.sin(h)
 
@@ -101,8 +104,11 @@ export const SURFACE: { light: RGB; dark: RGB } = { light: WHITE, dark: linearOf
 /** Composite a translucent wash class (e.g. `bg-green-600/15`) over a base surface, blending in sRGB like the browser. */
 export function tinted(washClass: string, base: RGB): RGB {
 	const { token, alpha } = tokenOf(washClass)
+
 	const [wr, wg, wb] = linearOf(token).map(encode) as RGB
+
 	const [br, bg, bb] = base.map(encode) as RGB
+
 	const blend = (wash: number, surface: number): number =>
 		decode(alpha * wash + (1 - alpha) * surface)
 
@@ -112,7 +118,9 @@ export function tinted(washClass: string, base: RGB): RGB {
 /** WCAG contrast ratio of a foreground class against a (possibly tinted) surface. */
 export function contrastOf(fgClass: string, surface: RGB): number {
 	const fg = luminance(linearOf(tokenOf(fgClass).token))
+
 	const bg = luminance(surface)
+
 	const [hi, lo] = fg > bg ? [fg, bg] : [bg, fg]
 
 	return (hi + 0.05) / (lo + 0.05)

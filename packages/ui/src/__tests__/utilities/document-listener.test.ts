@@ -56,6 +56,7 @@ describe('subscribeDocumentEvent', () => {
 		document.dispatchEvent(new Event('keydown'))
 
 		expect(onKey).toHaveBeenCalledTimes(1)
+
 		expect(onPointer).not.toHaveBeenCalled()
 
 		unsubKey()
@@ -74,6 +75,7 @@ describe('subscribeDocumentEvent', () => {
 		document.dispatchEvent(new Event('pointerdown'))
 
 		expect(a).not.toHaveBeenCalled()
+
 		expect(b).toHaveBeenCalledTimes(1)
 
 		unsubB()

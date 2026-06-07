@@ -9,8 +9,11 @@ describe('useA11yDisclosure', () => {
 		const { triggerId, panelId, triggerProps, panelProps } = result.current
 
 		expect(triggerProps.id).toBe(triggerId)
+
 		expect(triggerProps['aria-controls']).toBe(panelId)
+
 		expect(panelProps.id).toBe(panelId)
+
 		expect(panelProps['aria-labelledby']).toBe(triggerId)
 	})
 

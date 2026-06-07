@@ -31,8 +31,11 @@ describe('readSnippet', () => {
 
 	it('returns null for non-function inputs', () => {
 		expect(readSnippet(null)).toBeNull()
+
 		expect(readSnippet(undefined)).toBeNull()
+
 		expect(readSnippet('text')).toBeNull()
+
 		expect(readSnippet({ __code: 'never read' })).toBeNull()
 	})
 
@@ -62,7 +65,9 @@ describe('reindent', () => {
 		const lines = reindent(source, '\t').split('\n')
 
 		expect(lines[0]).toBe('function Demo() {')
+
 		expect(lines[1]).toBe('\t\treturn null')
+
 		expect(lines[2]).toBe('\t}')
 	})
 
@@ -74,8 +79,11 @@ describe('reindent', () => {
 		const lines = reindent(source, '').split('\n')
 
 		expect(lines[0]).toBe('{')
+
 		expect(lines[1]).toBe('if (x) {')
+
 		expect(lines[2]).toBe('\treturn 1')
+
 		expect(lines[3]).toBe('}')
 	})
 
@@ -93,11 +101,13 @@ describe('reindent', () => {
 		const lines = reindent(source, '').split('\n')
 
 		expect(lines[0]).toBe('{')
+
 		expect(lines[1]).toBe('')
 
 		// minIndent computed only from the non-empty subsequent lines (both
 		// leading=1) → 1. The empty line is preserved as ''.
 		expect(lines[2]).toBe('return null')
+
 		expect(lines[3]).toBe('}')
 	})
 })
@@ -114,6 +124,7 @@ describe('collectSnippetImports', () => {
 		collectSnippetImports('<Stack><FileUpload /></Stack>', context)
 
 		expect(context.imports.get('stack')).toEqual(new Set(['Stack']))
+
 		expect(context.imports.get('file-upload')).toEqual(new Set(['FileUpload']))
 	})
 
@@ -148,8 +159,11 @@ describe('collectSnippetImports', () => {
 		const reactImports = context.imports.get('react')
 
 		expect(reactImports).toContain('use')
+
 		expect(reactImports).toContain('useActionState')
+
 		expect(reactImports).toContain('useOptimistic')
+
 		expect(reactImports).toContain('useFormStatus')
 	})
 

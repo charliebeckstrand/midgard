@@ -144,8 +144,11 @@ describe('renderOpenTag layout', () => {
 		const result = renderOpenTag('Foo', [longProp, 'b="2"'], '', false)
 
 		expect(result).toContain('\n')
+
 		expect(result.split('\n')).toHaveLength(4) // open + 2 props + closing brace line
+
 		expect(result).toContain('  label=') // INDENT prefix on multi-line form
+
 		expect(result.trimEnd().endsWith('/>')).toBe(true)
 	})
 
@@ -157,6 +160,7 @@ describe('renderOpenTag layout', () => {
 		const lines = result.split('\n')
 
 		expect(lines[0]).toBe('<Foo')
+
 		expect(lines[lines.length - 1]).toBe('\t>')
 	})
 })

@@ -152,6 +152,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		}
 
 		variants.variant = variantAxis
+
 		variants.color = ex.colorScaffold
 
 		compound.push(...ex.compound)

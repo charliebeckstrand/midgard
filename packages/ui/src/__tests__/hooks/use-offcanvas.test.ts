@@ -69,10 +69,12 @@ function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
 
 describe('useOffcanvas — breakpoint listener', () => {
 	const originalGetComputedStyle = window.getComputedStyle
+
 	const originalMatchMedia = window.matchMedia
 
 	afterEach(() => {
 		window.getComputedStyle = originalGetComputedStyle
+
 		window.matchMedia = originalMatchMedia
 	})
 
@@ -89,6 +91,7 @@ describe('useOffcanvas — breakpoint listener', () => {
 		}
 
 		stubBreakpoint('1024px')
+
 		stubMatchMedia(mqlMock)
 
 		const { result } = renderHook(() => useOffcanvas())
@@ -121,6 +124,7 @@ describe('useOffcanvas — breakpoint listener', () => {
 		}
 
 		stubBreakpoint('1024px')
+
 		stubMatchMedia(mqlMock)
 
 		const { result } = renderHook(() => useOffcanvas())
@@ -157,6 +161,7 @@ describe('useOffcanvas — breakpoint listener', () => {
 		}
 
 		stubBreakpoint('1024px')
+
 		stubMatchMedia(mqlMock)
 
 		const { unmount } = renderHook(() => useOffcanvas())

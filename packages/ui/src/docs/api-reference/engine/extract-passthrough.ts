@@ -20,6 +20,7 @@ export function extractPassThrough(
 	checker: ts.TypeChecker,
 ): PassThrough[] {
 	const found: PassThrough[] = []
+
 	const visited = new Set<string>()
 
 	walk(annotation, [], found, visited, checker)

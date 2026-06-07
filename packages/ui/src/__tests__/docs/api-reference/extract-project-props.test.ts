@@ -133,6 +133,7 @@ describe('extractProjectPropNames', () => {
 		)
 
 		expect(names.has('size')).toBe(true)
+
 		expect([...names].some((n) => n.startsWith('aria-'))).toBe(false)
 	})
 

@@ -167,6 +167,7 @@ describe('useIsTruncated', () => {
 				constructor(cb: ResizeObserverCallback) {
 					observerCallback = cb
 				}
+
 				observe() {}
 				unobserve() {}
 				disconnect() {}

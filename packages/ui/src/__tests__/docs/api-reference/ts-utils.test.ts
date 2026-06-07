@@ -86,18 +86,23 @@ describe('isPassThroughTypeName', () => {
 
 	it('recognizes HTMLAttributes variants by suffix', () => {
 		expect(isPassThroughTypeName('HTMLAttributes')).toBe(true)
+
 		expect(isPassThroughTypeName('ButtonHTMLAttributes')).toBe(true)
+
 		expect(isPassThroughTypeName('AnchorHTMLAttributes')).toBe(true)
 	})
 
 	it('rejects unrelated names', () => {
 		expect(isPassThroughTypeName('Foo')).toBe(false)
+
 		expect(isPassThroughTypeName('Props')).toBe(false)
+
 		expect(isPassThroughTypeName('')).toBe(false)
 	})
 
 	it('exposes the canonical pass-through set', () => {
 		expect(STRING_LITERAL_PASS_THROUGHS.has('ComponentPropsWithoutRef')).toBe(true)
+
 		expect(STRING_LITERAL_PASS_THROUGHS.has('PolymorphicProps')).toBe(true)
 	})
 })

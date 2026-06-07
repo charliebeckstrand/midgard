@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 // and primitives both).
 
 const primitivesDir = join(__dirname, '../../../primitives')
+
 const srcDir = join(__dirname, '../../..')
 
 const FORBIDDEN_PATTERNS = [

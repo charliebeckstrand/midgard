@@ -38,14 +38,19 @@ function contextWithTagReader(): Context {
 describe('isPrimitive', () => {
 	it('accepts strings, numbers, and booleans', () => {
 		expect(isPrimitive('hi')).toBe(true)
+
 		expect(isPrimitive(0)).toBe(true)
+
 		expect(isPrimitive(false)).toBe(true)
 	})
 
 	it('rejects null, undefined, objects, and arrays', () => {
 		expect(isPrimitive(null)).toBe(false)
+
 		expect(isPrimitive(undefined)).toBe(false)
+
 		expect(isPrimitive({})).toBe(false)
+
 		expect(isPrimitive([])).toBe(false)
 	})
 })
@@ -57,6 +62,7 @@ describe('isPassThrough', () => {
 
 	it('treats intrinsic HTML elements as pass-through', () => {
 		expect(isPassThrough(createElement('div', null, 'x'))).toBe(true)
+
 		expect(isPassThrough(createElement('span', null, 'x'))).toBe(true)
 	})
 
@@ -121,6 +127,7 @@ describe('collectChildItems element handling', () => {
 		])
 
 		expect(items).toHaveLength(1)
+
 		expect(items[0]?.kind).toBe('element')
 	})
 
@@ -138,6 +145,7 @@ describe('collectChildItems element handling', () => {
 		expect(items.map((i) => i.kind)).toEqual(['text', 'element', 'text'])
 
 		expect((items[0] as { kind: 'text'; value: string }).value).toBe('Before')
+
 		expect((items[2] as { kind: 'text'; value: string }).value).toBe('After')
 	})
 })

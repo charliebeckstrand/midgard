@@ -22,6 +22,7 @@ describe('addImport', () => {
 		const context = emptyContext()
 
 		addImport(context, 'button', 'Button')
+
 		addImport(context, 'button', 'Button')
 
 		expect(context.imports.get('button')?.size).toBe(1)
@@ -31,9 +32,11 @@ describe('addImport', () => {
 		const context = emptyContext()
 
 		addImport(context, 'button', 'Button')
+
 		addImport(context, 'icon', 'Icon')
 
 		expect(context.imports.get('button')).toEqual(new Set(['Button']))
+
 		expect(context.imports.get('icon')).toEqual(new Set(['Icon']))
 	})
 
@@ -41,6 +44,7 @@ describe('addImport', () => {
 		const context = emptyContext()
 
 		addImport(context, 'group', 'Group')
+
 		addImport(context, 'group', 'GroupItem')
 
 		expect(context.imports.get('group')).toEqual(new Set(['Group', 'GroupItem']))
@@ -86,7 +90,9 @@ describe('assemble', () => {
 		const context = emptyContext()
 
 		addImport(context, 'icon', 'Icon')
+
 		addImport(context, 'button', 'Button')
+
 		addImport(context, 'avatar', 'Avatar')
 
 		const lines = assemble(context, '').split('\n')
@@ -102,6 +108,7 @@ describe('assemble', () => {
 		const context = emptyContext()
 
 		addImport(context, 'group', 'GroupItem')
+
 		addImport(context, 'group', 'Group')
 
 		expect(assemble(context, '')).toBe(`import { Group, GroupItem } from 'ui/group'`)

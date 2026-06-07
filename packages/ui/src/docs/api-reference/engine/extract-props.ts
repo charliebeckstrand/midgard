@@ -55,7 +55,9 @@ function collectAllProperties(
 	const visit = (t: ts.Type): void => {
 		for (const sym of t.getProperties()) {
 			const name = sym.getName()
+
 			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
+
 			const existing = seen.get(name)
 
 			if (!existing) {
@@ -162,6 +164,7 @@ function getExternalPackage(symbol: ts.Symbol): string | undefined {
 	if (!decl) return undefined
 
 	const file = decl.getSourceFile().fileName
+
 	const pkg = parsePackageName(file)
 
 	if (!pkg) return undefined
@@ -184,7 +187,9 @@ function parsePackageName(file: string): string | null {
 	if (idx < 0) return null
 
 	const rest = file.slice(idx + '/node_modules/'.length)
+
 	const segments = rest.split('/')
+
 	const first = segments[0]
 
 	if (!first) return null

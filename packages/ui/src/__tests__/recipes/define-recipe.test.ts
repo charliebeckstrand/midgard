@@ -31,6 +31,7 @@ describe('defineRecipe', () => {
 		})
 
 		expect(recipe()).toContain('shared-base')
+
 		expect(recipe({ size: 'sm' })).toContain('shared-base')
 	})
 
@@ -43,6 +44,7 @@ describe('defineRecipe', () => {
 		const out = recipe({ size: 'lg' })
 
 		expect(out).toContain('size-lg-class')
+
 		expect(out).not.toContain('size-sm-class')
 	})
 
@@ -67,6 +69,7 @@ describe('defineRecipe', () => {
 		})
 
 		expect(recipe({ active: true })).toContain('is-active')
+
 		expect(recipe({ active: false })).toContain('is-inactive')
 	})
 
@@ -78,7 +81,9 @@ describe('defineRecipe', () => {
 		})
 
 		expect(recipe({ variant: 'solid', tone: 'warm' })).toContain('solid-warm')
+
 		expect(recipe({ variant: 'solid', tone: 'cool' })).not.toContain('solid-warm')
+
 		expect(recipe({ variant: 'soft', tone: 'warm' })).not.toContain('solid-warm')
 	})
 
@@ -93,7 +98,9 @@ describe('defineRecipe', () => {
 		const out = recipe({ size: 'lg' })
 
 		expect(out).toContain('p-4')
+
 		expect(out).toContain('rounded')
+
 		expect(out).not.toContain('p-2')
 	})
 
@@ -112,6 +119,7 @@ describe('defineRecipe', () => {
 		const out = recipe()
 
 		expect(out).toContain('bg-zinc-50')
+
 		expect(out).not.toContain('bg-zinc-600')
 	})
 
@@ -123,6 +131,7 @@ describe('defineRecipe', () => {
 		})
 
 		expect(recipe.title).toBe('font-semibold text-lg')
+
 		expect(recipe.body).toBe('text-sm')
 	})
 

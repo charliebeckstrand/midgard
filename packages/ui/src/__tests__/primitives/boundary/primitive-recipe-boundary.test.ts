@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 // / `GroupPosition`.
 
 const primitivesDir = join(__dirname, '../../../primitives')
+
 const srcDir = join(__dirname, '../../..')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
@@ -43,6 +44,7 @@ describe('primitive recipe-import boundary', () => {
 
 				if (isBarrel) {
 					violations.push(`${rel}: value import from recipes barrel — ${match[0]}`)
+
 					continue
 				}
 

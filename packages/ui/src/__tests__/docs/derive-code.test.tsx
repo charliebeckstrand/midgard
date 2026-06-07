@@ -12,8 +12,11 @@ function tag<P>(name: string, mod: string): FunctionComponent<P> {
 
 describe('deriveCode iteration vs authored siblings', () => {
 	const Group = tag<{ size?: string; children?: unknown }>('Group', 'group')
+
 	const Button = tag<{ variant?: string; children?: unknown }>('Button', 'button')
+
 	const Listbox = tag<{ children?: unknown }>('Listbox', 'listbox')
+
 	const ListboxOption = tag<{ value: string; children?: unknown }>('ListboxOption', 'listbox')
 
 	it('keeps authored sibling repetition intact (no dedup without keys)', () => {
@@ -67,7 +70,9 @@ describe('deriveCode iteration vs authored siblings', () => {
 
 describe('deriveCode child ordering', () => {
 	const Card = tag<{ children?: unknown }>('Card', 'card')
+
 	const Icon = tag<{ name?: string }>('Icon', 'icon')
+
 	const Button = tag<{ variant?: string; children?: unknown }>('Button', 'button')
 
 	it('coalesces adjacent text leaves so inline interpolation stays on one line', () => {
@@ -88,6 +93,7 @@ describe('deriveCode child ordering', () => {
 		const result = deriveCode(['Heading text', createElement(Button, null, 'Click')])
 
 		expect(result).toContain('Heading text')
+
 		expect(result).toContain('<Button>Click</Button>')
 	})
 
@@ -105,11 +111,15 @@ describe('deriveCode child ordering', () => {
 		const body = (result ?? '').split('\n\n').slice(1).join('\n')
 
 		const iconIndex = body.indexOf('<Icon')
+
 		const helloIndex = body.indexOf('Hello')
+
 		const buttonIndex = body.indexOf('<Button')
 
 		expect(iconIndex).toBeGreaterThanOrEqual(0)
+
 		expect(helloIndex).toBeGreaterThan(iconIndex)
+
 		expect(buttonIndex).toBeGreaterThan(helloIndex)
 	})
 })
@@ -159,6 +169,7 @@ describe('deriveCode + __code', () => {
 
 		// UI component imports scanned from the JSX.
 		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)
+
 		expect(result).toMatch(/import \{.*FileUpload.*\} from 'ui\/file-upload'/)
 
 		// React hook imports scanned from the body.
@@ -186,8 +197,11 @@ describe('deriveCode + __code', () => {
 		const result = deriveCode(createElement(FormDemo))
 
 		expect(result).toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+
 		expect(result).toMatch(/import \{[^}]*useActionState[^}]*\} from 'react'/)
+
 		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
+
 		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react'/)
 	})
 
@@ -212,6 +226,7 @@ describe('deriveCode + __code', () => {
 		const result = deriveCode(createElement(MethodDemo))
 
 		expect(result).not.toBeNull()
+
 		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
 	})
 })

@@ -3,7 +3,9 @@ export function splitUnion(type: string): string[] {
 	const parts: string[] = []
 
 	let depth = 0
+
 	let inString: string | null = null
+
 	let current = ''
 
 	for (let i = 0; i < type.length; i++) {

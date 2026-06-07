@@ -126,6 +126,7 @@ export function applyRecipe<
 	} = overlay
 
 	const standardBase = standard.config.base
+
 	const baseArray: ClassValue[] =
 		standardBase === undefined
 			? []

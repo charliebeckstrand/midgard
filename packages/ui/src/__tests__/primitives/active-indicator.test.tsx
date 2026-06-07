@@ -40,10 +40,13 @@ describe('useActiveIndicator', () => {
 		const { result } = renderHook(() => useActiveIndicator())
 
 		expect(result.current).toHaveProperty('ref')
+
 		expect(result.current).toHaveProperty('tapHandlers')
 
 		expect(result.current.tapHandlers).toHaveProperty('onPointerDown')
+
 		expect(result.current.tapHandlers).toHaveProperty('onPointerUp')
+
 		expect(result.current.tapHandlers).toHaveProperty('onPointerLeave')
 	})
 })

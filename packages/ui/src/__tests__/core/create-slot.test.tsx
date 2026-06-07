@@ -11,6 +11,7 @@ describe('createSlot', () => {
 		const el = bySlot(container, 'card-body')
 
 		expect(el).toBeInTheDocument()
+
 		expect(el?.tagName).toBe('DIV')
 	})
 
@@ -32,7 +33,9 @@ describe('createSlot', () => {
 		const el = bySlot(container, 'card-body')
 
 		expect(el?.className).toContain('p-4')
+
 		expect(el?.className).toContain('rounded-md')
+
 		expect(el?.className).toContain('bg-red')
 	})
 
@@ -44,6 +47,7 @@ describe('createSlot', () => {
 		const el = bySlot(container, 'card-body')
 
 		expect(el?.className).toContain('p-8')
+
 		expect(el?.className).not.toContain('p-4')
 	})
 
@@ -67,7 +71,9 @@ describe('createSlot', () => {
 		const el = bySlot(container, 'card-body')
 
 		expect(el).toHaveAttribute('id', 'my-body')
+
 		expect(el).toHaveAttribute('aria-label', 'region')
+
 		expect(el).toHaveAttribute('data-testid', 'x')
 	})
 

@@ -17,8 +17,11 @@ describe('collectHelpers preamble inclusion', () => {
 		const [helper] = collectHelpers(source)
 
 		expect(helper?.name).toBe('BasicExample')
+
 		expect(helper?.code.startsWith('type BasicFilters = {')).toBe(true)
+
 		expect(helper?.code).toContain('function BasicExample()')
+
 		expect(helper?.code.indexOf('type BasicFilters')).toBeLessThan(
 			helper?.code.indexOf('function BasicExample()') ?? -1,
 		)
@@ -74,12 +77,15 @@ describe('collectHelpers preamble inclusion', () => {
 		const helpers = collectHelpers(source)
 
 		const basic = helpers.find((h) => h.name === 'BasicExample')
+
 		const date = helpers.find((h) => h.name === 'DateExample')
 
 		expect(basic?.code).toContain('type BasicFilters')
+
 		expect(basic?.code).not.toContain('type DateFilters')
 
 		expect(date?.code).toContain('type DateFilters')
+
 		expect(date?.code).not.toContain('type BasicFilters')
 	})
 
@@ -97,9 +103,11 @@ describe('collectHelpers preamble inclusion', () => {
 		const [helper] = collectHelpers(source)
 
 		const aIndex = helper?.code.indexOf('type A') ?? -1
+
 		const bIndex = helper?.code.indexOf('type B') ?? -1
 
 		expect(aIndex).toBeGreaterThanOrEqual(0)
+
 		expect(bIndex).toBeGreaterThan(aIndex)
 	})
 
@@ -119,6 +127,7 @@ describe('collectHelpers preamble inclusion', () => {
 		const basic = helpers.find((h) => h.name === 'BasicExample')
 
 		expect(basic?.code.startsWith('function BasicExample')).toBe(true)
+
 		expect(basic?.code).not.toContain('function FilterOutput')
 	})
 
@@ -134,6 +143,7 @@ describe('collectHelpers preamble inclusion', () => {
 		const [helper] = collectHelpers(source)
 
 		expect(helper?.code.startsWith('function Plain')).toBe(true)
+
 		expect(helper?.code).not.toContain('type Unused')
 	})
 })

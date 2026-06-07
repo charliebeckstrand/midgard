@@ -21,6 +21,7 @@ export function extractProjectPropNames(
 	checker: ts.TypeChecker,
 ): Set<string> {
 	const names = new Set<string>()
+
 	const visited = new Set<ts.Node>()
 
 	walk(annotation, names, visited, checker)

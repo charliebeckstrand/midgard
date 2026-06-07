@@ -18,6 +18,7 @@ function installResizeObserverStub() {
 		observe = vi.fn()
 		unobserve = vi.fn()
 		disconnect = vi.fn()
+
 		callback: ResizeObserverCallback
 
 		constructor(cb: ResizeObserverCallback) {

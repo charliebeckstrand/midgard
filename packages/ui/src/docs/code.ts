@@ -13,7 +13,7 @@ export function code(strings: TemplateStringsArray, ...values: (string | string[
 		if (i < values.length) {
 			const val = values[i]
 
-			const joined = Array.isArray(val) ? val.join('\n') : val
+			const joined = Array.isArray(val) ? val.join('\n') : (val ?? '')
 
 			// Find the indentation at the interpolation point
 			// (everything after the last newline in result so far)

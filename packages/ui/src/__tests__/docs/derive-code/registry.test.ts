@@ -22,6 +22,7 @@ describe('defaultRegistry.byType', () => {
 
 	it('returns undefined for null / undefined', () => {
 		expect(defaultRegistry.byType.get(null)).toBeUndefined()
+
 		expect(defaultRegistry.byType.get(undefined)).toBeUndefined()
 	})
 
@@ -45,6 +46,7 @@ describe('defaultRegistry.byName', () => {
 		const info = defaultRegistry.byName.get('Button')
 
 		expect(info?.name).toBe('Button')
+
 		expect(info?.module).toBe('button')
 	})
 })

@@ -40,7 +40,7 @@ export function LabeledColumn({ label, children }: { label: ReactNode; children:
 }
 
 const labelWidthClass = {
-	sm: 'w-6',
+	sm: 'w-8',
 	md: 'w-10',
 	lg: 'w-12',
 } as const

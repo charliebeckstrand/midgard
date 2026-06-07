@@ -31,7 +31,9 @@ describe('shades', () => {
 		})
 
 		expect(out.zinc).toEqual(['text-zinc-700', 'dark:text-zinc-400'])
+
 		expect(out.red).toEqual(['text-red-700', 'dark:text-red-300'])
+
 		expect(out.amber).toEqual(['text-amber-700'])
 	})
 

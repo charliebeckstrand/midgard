@@ -93,10 +93,13 @@ describe('useFloatingUI', () => {
 			const onOpenChange = vi.fn()
 
 			const reference = document.createElement('button')
+
 			const floating = document.createElement('div')
+
 			const floatingChild = document.createElement('span')
 
 			floating.appendChild(floatingChild)
+
 			document.body.append(reference, floating)
 
 			const { result, unmount } = renderHook(() =>
@@ -104,6 +107,7 @@ describe('useFloatingUI', () => {
 			)
 
 			result.current.refs.domReference.current = reference
+
 			result.current.refs.floating.current = floating
 
 			return {
@@ -133,9 +137,11 @@ describe('useFloatingUI', () => {
 			dispatchPointerDown(outside)
 
 			expect(onOpenChange).toHaveBeenCalledTimes(1)
+
 			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
 
 			outside.remove()
+
 			cleanup()
 		})
 
@@ -182,6 +188,7 @@ describe('useFloatingUI', () => {
 			const event = new PointerEvent('pointerdown', { bubbles: true })
 
 			Object.defineProperty(event, 'offsetX', { value: 110, configurable: true })
+
 			Object.defineProperty(event, 'offsetY', { value: 50, configurable: true })
 
 			scroller.dispatchEvent(event)
@@ -189,7 +196,9 @@ describe('useFloatingUI', () => {
 			expect(onOpenChange).not.toHaveBeenCalled()
 
 			vi.restoreAllMocks()
+
 			scroller.remove()
+
 			cleanup()
 		})
 
@@ -212,6 +221,7 @@ describe('useFloatingUI', () => {
 			const onOpenChange = vi.fn()
 
 			const reference = document.createElement('button')
+
 			const floating = document.createElement('div')
 
 			document.body.append(reference, floating)
@@ -221,6 +231,7 @@ describe('useFloatingUI', () => {
 			)
 
 			result.current.refs.domReference.current = reference
+
 			result.current.refs.floating.current = floating
 
 			unmount()
@@ -234,7 +245,9 @@ describe('useFloatingUI', () => {
 			expect(onOpenChange).not.toHaveBeenCalled()
 
 			outside.remove()
+
 			reference.remove()
+
 			floating.remove()
 		})
 	})

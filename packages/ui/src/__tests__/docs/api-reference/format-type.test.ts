@@ -65,6 +65,7 @@ describe('formatType — string-literal quoting', () => {
 		const out = formatType(type, checker, location)
 
 		expect(out).toContain(`'sm'`)
+
 		expect(out).toContain(`'md'`)
 
 		expect(out).not.toContain(`"sm"`)
@@ -88,6 +89,7 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 		const out = formatPropType(type, checker, location)
 
 		expect(out).toContain(`'sm'`)
+
 		expect(out).toContain(`'md'`)
 
 		expect(out).not.toContain('undefined')
@@ -121,6 +123,7 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 		const out = formatPropType(type, checker, location)
 
 		expect(out).toContain('string')
+
 		expect(out).toContain('number')
 	})
 })

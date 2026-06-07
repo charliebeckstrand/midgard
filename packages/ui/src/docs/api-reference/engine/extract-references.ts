@@ -142,6 +142,7 @@ function resolveAliasDefinition(
 			if (shape) return { text: dedent(shape), declaration: decl }
 
 			const params = typeParameterList(decl.typeParameters)
+
 			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
 
 			return { text: dedent(body), declaration: decl }
@@ -212,7 +213,9 @@ function formatApparentShape(
 
 	const lines = properties.map(({ name, sym }) => {
 		const propType = checker.getTypeOfSymbolAtLocation(sym, decl)
+
 		const optional = !!(sym.flags & ts.SymbolFlags.Optional)
+
 		const formatted = formatPropType(propType, checker, decl)
 
 		return `\t${name}${optional ? '?' : ''}: ${formatted}`
@@ -241,8 +244,11 @@ function formatInterface(decl: ts.InterfaceDeclaration): string {
 		decl.heritageClauses?.flatMap((clause) => clause.types.map((t) => t.getText())) ?? []
 
 	const fullText = decl.getText()
+
 	const braceStart = fullText.indexOf('{')
+
 	const body = braceStart >= 0 ? fullText.slice(braceStart) : '{}'
+
 	const heritagePart = heritage.length > 0 ? `extends ${heritage.join(', ')} ` : ''
 
 	return `${params ? `${params} ` : ''}${heritagePart}${body}`
@@ -272,6 +278,7 @@ function dedent(text: string): string {
 		if (!line || line.trim().length === 0) continue
 
 		const match = line.match(/^[ \t]*/)
+
 		const indent = match ? match[0].length : 0
 
 		if (indent < minIndent) minIndent = indent

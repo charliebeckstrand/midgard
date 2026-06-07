@@ -68,6 +68,7 @@ describe('useA11yScope', () => {
 		const { result, rerender } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
 
 		const firstIds = result.current.ids
+
 		const firstRegister = result.current.register
 
 		rerender()

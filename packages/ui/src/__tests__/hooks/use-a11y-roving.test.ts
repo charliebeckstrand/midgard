@@ -134,6 +134,7 @@ function makeContainer(count: number) {
 		const btn = document.createElement('button')
 
 		btn.setAttribute('role', 'option')
+
 		btn.setAttribute('tabindex', '-1')
 
 		btn.textContent = String(i)
@@ -153,6 +154,7 @@ function makeLabeledContainer(labels: string[]) {
 		const btn = document.createElement('button')
 
 		btn.setAttribute('role', 'option')
+
 		btn.setAttribute('tabindex', '-1')
 
 		btn.textContent = label
@@ -316,6 +318,7 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(false)
+
 		expect(items[1]?.hasAttribute('data-active')).toBe(true)
 
 		container.remove()
@@ -373,12 +376,15 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(items[0]?.getAttribute('aria-selected')).toBe('true')
+
 		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-0')
 
 		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(items[0]?.getAttribute('aria-selected')).toBe('false')
+
 		expect(items[1]?.getAttribute('aria-selected')).toBe('true')
+
 		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-1')
 
 		container.remove()

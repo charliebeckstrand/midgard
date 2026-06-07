@@ -9,19 +9,16 @@ let politeRegion: HTMLElement | null = null
 
 let assertiveRegion: HTMLElement | null = null
 
-// Inline rather than relying on a `sr-only` utility class, so the announcer
-// works regardless of the host app's CSS.
-const VISUALLY_HIDDEN =
-	'position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap'
-
 function createRegion(assertive: boolean): HTMLElement {
 	const el = document.createElement('div')
 
 	el.setAttribute('role', assertive ? 'alert' : 'status')
 	el.setAttribute('aria-live', assertive ? 'assertive' : 'polite')
+
 	el.setAttribute('aria-atomic', 'true')
 	el.setAttribute('data-slot', 'live-region')
-	el.style.cssText = VISUALLY_HIDDEN
+
+	el.className = 'sr-only'
 
 	document.body.appendChild(el)
 
