@@ -96,10 +96,22 @@ describe('formatProps value handling', () => {
 		expect(result).toEqual([`tags={["it's", "fine"]}`])
 	})
 
-	it('drops arrays containing non-primitive values', () => {
+	it('placeholders a Date-valued prop (no recoverable source literal)', () => {
+		const result = formatProps({ min: new Date('2026-06-07T00:00:00Z') }, emptyContext())
+
+		expect(result).toEqual(['min={…}'])
+	})
+
+	it('placeholders a plain-object-valued prop', () => {
+		const result = formatProps({ config: { a: 1 } }, emptyContext())
+
+		expect(result).toEqual(['config={…}'])
+	})
+
+	it('placeholders arrays containing non-primitive values', () => {
 		const result = formatProps({ items: [{ id: 1 }] }, emptyContext())
 
-		expect(result).toEqual([])
+		expect(result).toEqual(['items={…}'])
 	})
 
 	it('renders an element-valued prop using the registry tag', () => {
