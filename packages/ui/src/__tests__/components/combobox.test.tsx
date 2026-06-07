@@ -90,6 +90,50 @@ describe('Combobox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
+	it('toggles the panel and shows a pointer cursor on the default chevron', async () => {
+		const { container } = renderUI(
+			<Combobox<string> displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const suffix = bySlot(container, 'suffix')
+
+		// The chevron is a mouse convenience, so it reads as clickable.
+		expect(suffix?.className).toContain('cursor-pointer')
+
+		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// mousedown (not click) carries the toggle so focus never leaves the input.
+		fireEvent.mouseDown(icon)
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+
+		fireEvent.mouseDown(icon)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('leaves the default chevron inert when disabled', () => {
+		const { container } = renderUI(
+			<Combobox<string> disabled displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(
 			<Combobox>
