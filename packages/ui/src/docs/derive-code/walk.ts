@@ -82,7 +82,9 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 		lines.push(line)
 	}
 
-	const isIteration = elements.length >= 2 && elements.every(hasExplicitKey)
+	// Length is >= 2 here (the single-element case returned early above), so the
+	// keyed check alone decides iteration-collapse.
+	const isIteration = elements.every(hasExplicitKey)
 
 	if (!isIteration) return lines
 

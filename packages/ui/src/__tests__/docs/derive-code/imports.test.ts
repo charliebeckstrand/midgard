@@ -1,17 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { addImport, assemble } from '../../../docs/derive-code/imports'
-import type { Context } from '../../../docs/derive-code/types'
-
-function emptyContext(): Context {
-	return {
-		registry: { byType: { get: () => undefined }, byName: new Map() },
-		imports: new Map(),
-	}
-}
+import { makeContext } from './helpers'
 
 describe('addImport', () => {
 	it('records a single name under its module', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'button', 'Button')
 
@@ -19,7 +12,7 @@ describe('addImport', () => {
 	})
 
 	it('dedupes repeated names within a module', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'button', 'Button')
 
@@ -29,7 +22,7 @@ describe('addImport', () => {
 	})
 
 	it('keeps names from different modules separate', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'button', 'Button')
 
@@ -41,7 +34,7 @@ describe('addImport', () => {
 	})
 
 	it('accumulates multiple names for the same module', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'group', 'Group')
 
@@ -53,7 +46,7 @@ describe('addImport', () => {
 
 describe('assemble', () => {
 	it('emits imports + a blank line + jsx', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'button', 'Button')
 
@@ -63,7 +56,7 @@ describe('assemble', () => {
 	})
 
 	it('returns just the imports when jsx is empty', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'button', 'Button')
 
@@ -71,7 +64,7 @@ describe('assemble', () => {
 	})
 
 	it("uses a bare 'react' specifier for react imports", () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'react', 'useState')
 
@@ -79,7 +72,7 @@ describe('assemble', () => {
 	})
 
 	it("prefixes non-react modules with 'ui/'", () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'file-upload', 'FileUpload')
 
@@ -87,7 +80,7 @@ describe('assemble', () => {
 	})
 
 	it('sorts modules alphabetically across the emitted lines', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'icon', 'Icon')
 
@@ -105,7 +98,7 @@ describe('assemble', () => {
 	})
 
 	it('sorts names alphabetically within a single import statement', () => {
-		const context = emptyContext()
+		const context = makeContext()
 
 		addImport(context, 'group', 'GroupItem')
 
