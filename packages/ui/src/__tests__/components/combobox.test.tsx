@@ -118,20 +118,30 @@ describe('Combobox', () => {
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
-	it('leaves the default chevron inert when disabled', () => {
+	it('leaves the default chevron inert and not-allowed when disabled', () => {
 		const { container } = renderUI(
 			<Combobox<string> disabled displayValue={(v) => v}>
 				<ComboboxOption value="a">A</ComboboxOption>
 			</Combobox>,
 		)
 
-		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+		const suffix = bySlot(container, 'suffix')
+
+		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
 
 		if (!icon) throw new Error('default chevron icon not found')
 
 		fireEvent.mouseDown(icon)
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// The disabled input is a sibling, so the cursor flips via the frame group.
+		expect(suffix?.className).toContain('group-has-[:disabled]/control:cursor-not-allowed')
+
+		const frame = bySlot(container, 'control-frame')
+
+		expect(frame?.contains(suffix ?? null)).toBe(true)
+		expect(frame?.querySelector(':disabled')).toBe(bySlot(container, 'combobox-input'))
 	})
 
 	it('renders a placeholder in skeleton mode', () => {
