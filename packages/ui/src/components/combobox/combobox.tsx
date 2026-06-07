@@ -232,6 +232,10 @@ export function Combobox<T>({
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
+		// The input (`role="combobox"`) and the panel's inner `role="listbox"`
+		// carry their own roles + popup wiring; suppress floating-ui's so the
+		// positioning wrappers don't double-stamp a nested combobox/listbox.
+		role: null,
 	})
 
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
