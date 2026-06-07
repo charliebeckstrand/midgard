@@ -56,7 +56,7 @@ export function Example({
 				{resolvedCode && (
 					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
-							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:ring-inset">
+							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:-outline-offset-2">
 								{({ open }: { open: boolean }) => (open ? 'Hide code' : 'Show code')}
 							</CollapseTrigger>
 						</div>

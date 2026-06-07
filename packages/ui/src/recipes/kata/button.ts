@@ -37,12 +37,21 @@ export const k = defineRecipe(
 			'justify-center',
 			'w-fit shrink-0',
 			weight.semibold,
-			focus.inset,
 			...disabled,
 			...cursor,
 		],
+		// Focus treatment per variant. Filled and transparent variants take the
+		// universal offset ring; the bordered `outline` and inline `bare`
+		// variants keep an inset ring — an outset gap would either fight the
+		// outline's own inset border (they share Tailwind's ring-inset channel)
+		// or overflow an inline bare control.
 		variant: {
-			outline: 'ring-1 ring-inset',
+			solid: focus.ring,
+			soft: focus.ring,
+			plain: focus.ring,
+			ghost: focus.ring,
+			outline: ['ring-1 ring-inset', ...focus.inset],
+			bare: focus.inset,
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When the
 		// children carry a text label the component sets `data-has-label`, which

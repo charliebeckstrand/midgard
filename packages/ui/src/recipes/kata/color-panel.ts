@@ -1,10 +1,8 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { kasane, kokkaku } from '../kiso'
+import { kasane, kokkaku, sen } from '../kiso'
 
 const { rounded } = kasane
-
-// Shared focus treatment for the keyboard-operable area and track surfaces.
-const focusRing = 'outline-none focus-visible:ring-2 focus-visible:ring-blue-600'
+const { focus } = sen
 
 // Draggable circular handle, centred on its inline-positioned coordinate.
 const handle = [
@@ -15,13 +13,13 @@ const handle = [
 ] as const
 
 const area = defineRecipe({
-	base: ['relative w-full cursor-crosshair touch-none', focusRing],
+	base: ['relative w-full cursor-crosshair touch-none', ...focus.ring],
 	size: { sm: 'h-32', md: 'h-40', lg: 'h-48' },
 	defaults: { size: 'md' },
 })
 
 const track = defineRecipe({
-	base: ['relative w-full cursor-pointer touch-none', rounded.full, focusRing],
+	base: ['relative w-full cursor-pointer touch-none', rounded.full, ...focus.ring],
 	size: { sm: 'h-3', md: 'h-3.5', lg: 'h-4' },
 	defaults: { size: 'md' },
 })
@@ -62,8 +60,11 @@ export const k = defineRecipe(
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
-		swatch:
-			'aspect-square w-full cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-600 hover:scale-110 transition-all',
+		swatch: [
+			'aspect-square w-full cursor-pointer rounded-md',
+			'hover:scale-110 transition-all',
+			...focus.ring,
+		],
 	},
 )
 

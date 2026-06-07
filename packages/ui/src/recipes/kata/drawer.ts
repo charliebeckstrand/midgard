@@ -40,7 +40,7 @@ export const k = {
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
 		close: {
-			base: ['absolute right-4 top-4', 'p-1', ...text.muted, focus.inset, rounded.md],
+			base: ['absolute right-4 top-4', 'p-1', ...text.muted, ...focus.inset, rounded.md],
 		},
 	}),
 	motion: ugoki.panel.bottom,
