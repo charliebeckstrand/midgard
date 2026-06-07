@@ -2,10 +2,8 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { k, type SwitchFieldVariants } from '../../recipes/kata/switch'
-import { ControlContext } from '../control/context'
-import { useControlFieldContext } from '../control/use-control-field-context'
+import { ControlField } from '../control/control-field'
 
 export type SwitchFieldProps = SwitchFieldVariants & {
 	className?: string
@@ -18,13 +16,9 @@ export type SwitchFieldProps = SwitchFieldVariants & {
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldProps) {
-	const scope = useIdScope({ id: htmlFor })
-
-	const value = useControlFieldContext(scope.id)
-
 	return (
-		<ControlContext value={value}>
+		<ControlField htmlFor={htmlFor}>
 			<div data-slot="field" className={cn(k.field({ size }), k.disabled, className)} {...props} />
-		</ControlContext>
+		</ControlField>
 	)
 }
