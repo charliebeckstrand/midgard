@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
@@ -22,6 +22,13 @@ type BaseOptionProps = {
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
+	/**
+	 * Mint a stable `id` so a combobox/textbox can point its
+	 * `aria-activedescendant` at this option while it owns DOM focus. Off for
+	 * focus-roving lists (listbox/select), which move real focus to the option
+	 * and need no id.
+	 */
+	activeDescendant?: boolean
 } & Omit<
 	ComponentPropsWithoutRef<'div'>,
 	| 'className'
@@ -42,9 +49,16 @@ export function BaseOption({
 	selected,
 	disabled,
 	onSelect,
+	activeDescendant = false,
+	id,
 	...props
 }: BaseOptionProps) {
 	const { size } = useDensity()
+
+	const autoId = useId()
+
+	// Only mint an id for active-descendant lists; an explicit id always wins.
+	const optionId = id ?? (activeDescendant ? autoId : undefined)
 
 	const sharedClasses = cn(k.content)
 
@@ -61,6 +75,7 @@ export function BaseOption({
 
 	return (
 		<div
+			id={optionId}
 			role="option"
 			aria-selected={selected}
 			aria-disabled={disabled || undefined}
@@ -125,6 +140,11 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
  */
 export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string
+	/**
+	 * Pass for active-descendant lists (combobox) so each option gets a stable
+	 * `id` the owning input can reference. Omit for focus-roving lists.
+	 */
+	activeDescendant?: boolean
 	useContext: () => {
 		value: TValue | TValue[] | undefined
 		multiple?: boolean
@@ -147,6 +167,7 @@ export function createSelectOption<TValue = unknown>(config: {
 				onSelect={() => onSelect(value)}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
+				activeDescendant={config.activeDescendant}
 			>
 				{children}
 			</BaseOption>

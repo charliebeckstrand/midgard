@@ -4,7 +4,7 @@ import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders with data-slot="combobox"', () => {
@@ -181,6 +181,75 @@ describe('Combobox', () => {
 		// is that the primitive mounts and the count is bounded.
 		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
 		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
+	})
+})
+
+// APG editable-combobox contract: DOM focus stays on the input while arrow keys
+// move a *virtual* highlight, surfaced to assistive tech via the input's
+// aria-activedescendant pointing at the active option's id — not by pulling
+// focus onto the option.
+describe('Combobox active-descendant keyboard model', () => {
+	function renderTwoOptions() {
+		return renderUI(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				<ComboboxOption value="apple">
+					<ComboboxLabel>Apple</ComboboxLabel>
+				</ComboboxOption>
+				<ComboboxOption value="apricot">
+					<ComboboxLabel>Apricot</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+	}
+
+	it('keeps focus on the input and tracks the highlight via aria-activedescendant', async () => {
+		const user = userEvent.setup()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		// Nothing is highlighted until the user navigates.
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		await user.keyboard('{ArrowDown}')
+
+		// Focus never leaves the input.
+		expect(document.activeElement).toBe(input)
+
+		const activeId = input.getAttribute('aria-activedescendant')
+
+		expect(activeId).toBeTruthy()
+
+		const active = activeId ? document.getElementById(activeId) : null
+
+		expect(active).toHaveAttribute('role', 'option')
+
+		expect(active).toHaveAttribute('data-active')
+	})
+
+	it('clears aria-activedescendant when the menu closes', async () => {
+		const user = userEvent.setup()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		await user.keyboard('{Escape}')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
 })
 

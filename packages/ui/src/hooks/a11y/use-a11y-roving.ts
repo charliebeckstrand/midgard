@@ -23,15 +23,21 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 
 /**
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`,
- * and — when `activeDescendantRef` is given — mirrors `aria-selected` onto the
- * items and `aria-activedescendant` onto the owner. Pass a negative `index`
- * (or an empty list) to clear the active state. The previously active item is
- * found by its `data-active` marker, so callers don't track an index.
+ * and — when `activeDescendantRef` is given — points `aria-activedescendant` on
+ * the owner at the active item. By default it also mirrors `aria-selected` onto
+ * the items so the highlight doubles as selection (the right model when there is
+ * no persistent choice, e.g. a command palette); pass `ariaSelected: false` when
+ * the items already carry their own `aria-selected` for a stored value (e.g. a
+ * combobox), so the highlight stays a pure focus cue and doesn't clobber it.
+ * Pass a negative `index` (or an empty list) to clear the active state. The
+ * previously active item is found by its `data-active` marker, so callers don't
+ * track an index.
  */
 export function setVirtualActive(
 	items: HTMLElement[],
 	index: number,
 	activeDescendantRef?: RefObject<HTMLElement | null>,
+	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
 ): void {
 	const prev = items.find((el) => el.dataset.active !== undefined)
 
@@ -42,9 +48,11 @@ export function setVirtualActive(
 	next?.setAttribute('data-active', '')
 
 	if (activeDescendantRef) {
-		prev?.setAttribute('aria-selected', 'false')
+		if (ariaSelected) {
+			prev?.setAttribute('aria-selected', 'false')
 
-		next?.setAttribute('aria-selected', 'true')
+			next?.setAttribute('aria-selected', 'true')
+		}
 
 		const controller = activeDescendantRef.current
 
@@ -213,6 +221,14 @@ type RovingOptions = RovingConfig & {
 	typeahead?: boolean
 	/** Virtual mode: scroll the active item into view after each move. @default true */
 	scrollIntoView?: boolean
+	/**
+	 * Virtual mode: mirror the highlight onto each item's `aria-selected`. Leave
+	 * on when the highlight *is* the selection (command palette); turn off when
+	 * the items own `aria-selected` for a stored value (combobox), so moving the
+	 * highlight only repoints `aria-activedescendant`.
+	 * @default true
+	 */
+	manageAriaSelected?: boolean
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
 	activationKey?: string | null
 	/**
@@ -238,6 +254,7 @@ export function useA11yRoving(
 		scrollIntoView = true,
 		activationKey = 'Enter',
 		activeDescendantRef,
+		manageAriaSelected = true,
 	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -272,7 +289,7 @@ export function useA11yRoving(
 					return
 				}
 
-				setVirtualActive(items, index, activeDescendantRef)
+				setVirtualActive(items, index, activeDescendantRef, { ariaSelected: manageAriaSelected })
 
 				if (scrollIntoView) {
 					const next = items[index]
@@ -327,6 +344,7 @@ export function useA11yRoving(
 			activationKey,
 			activeDescendantRef,
 			scrollWithin,
+			manageAriaSelected,
 		],
 	)
 }
