@@ -41,7 +41,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 	return (
 		<Button
 			type="button"
-			variant="soft"
+			variant="bare"
 			size={size}
 			disabled={disabled}
 			data-slot="color-eyedropper"

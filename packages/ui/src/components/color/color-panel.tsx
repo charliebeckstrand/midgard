@@ -90,18 +90,19 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 					{alpha && <ColorSlider channel="alpha" />}
 				</div>
 
-				<div className={k.previewRow}>
+				<div className={cn(k.previewRow)}>
 					<span
 						data-slot="color-preview"
 						className={cn('group', k.preview({ size }), alpha && k.checkerboard)}
 					>
 						<span className="block size-full" style={{ backgroundColor: previewColor }} />
-						{eyedropper && !disabled && <ColorEyedropper className={k.eyedropper} />}
 					</span>
 
 					<div className="min-w-0 flex-1">
 						<ColorHexInput />
 					</div>
+
+					{eyedropper && !disabled && <ColorEyedropper />}
 				</div>
 
 				<ColorChannelInputs />

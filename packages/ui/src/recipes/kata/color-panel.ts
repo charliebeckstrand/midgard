@@ -27,10 +27,7 @@ const track = defineRecipe({
 })
 
 const preview = defineRecipe({
-	base: [
-		'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
-		rounded.md,
-	],
+	base: ['relative shrink-0 overflow-hidden', rounded.md],
 	size: { sm: 'size-8', md: 'size-9', lg: 'size-10' },
 	defaults: { size: 'md' },
 })
@@ -62,8 +59,6 @@ export const k = defineRecipe(
 		/** Preview swatch + hex field share a row beneath the sliders. */
 		previewRow: 'flex items-center gap-2',
 		/** Eyedropper overlaid on the preview, revealed on hover or focus of the swatch. */
-		eyedropper:
-			'absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100',
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
