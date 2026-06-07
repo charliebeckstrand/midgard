@@ -13,7 +13,7 @@ export type AccordionPanelProps = {
 }
 
 export function AccordionPanel({ className, children }: AccordionPanelProps) {
-	const { open, value } = useAccordionItem()
+	const { open, panelProps } = useAccordionItem()
 
 	return (
 		<ReducedMotion>
@@ -21,9 +21,8 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 				{open && (
 					<motion.div
 						data-slot="accordion-panel"
-						id={`accordion-panel-${value}`}
+						{...panelProps}
 						role="region"
-						aria-labelledby={`accordion-trigger-${value}`}
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: 'auto', opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}

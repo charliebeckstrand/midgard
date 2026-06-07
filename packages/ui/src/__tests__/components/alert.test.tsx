@@ -111,10 +111,10 @@ describe('Alert', () => {
 				<Alert severity="info" open={false}>
 					Saved
 				</Alert>,
-				{ announcer: true },
 			)
 
-			expect(politeRegion()?.textContent).toBe('')
+			// Lazily created on first announce — absent means nothing was announced.
+			expect(politeRegion()?.textContent ?? '').toBe('')
 
 			rerender(
 				<Alert severity="info" open>
@@ -130,13 +130,13 @@ describe('Alert', () => {
 				<Alert severity="success" open>
 					Already here
 				</Alert>,
-				{ announcer: true },
 			)
 
 			// Flush the announcer's microtask, then confirm nothing was written.
 			await Promise.resolve()
 
-			expect(politeRegion()?.textContent).toBe('')
+			// Lazily created on first announce — absent means nothing was announced.
+			expect(politeRegion()?.textContent ?? '').toBe('')
 		})
 
 		it('does not route warning/error through the announcer (role="alert" already announces)', async () => {
@@ -144,7 +144,6 @@ describe('Alert', () => {
 				<Alert severity="error" open={false}>
 					Boom
 				</Alert>,
-				{ announcer: true },
 			)
 
 			rerender(
@@ -155,7 +154,8 @@ describe('Alert', () => {
 
 			await Promise.resolve()
 
-			expect(politeRegion()?.textContent).toBe('')
+			// Lazily created on first announce — absent means nothing was announced.
+			expect(politeRegion()?.textContent ?? '').toBe('')
 		})
 	})
 })

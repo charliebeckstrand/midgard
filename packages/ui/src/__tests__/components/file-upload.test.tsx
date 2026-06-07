@@ -135,7 +135,7 @@ describe('FileUpload announcements', () => {
 	}
 
 	it('announces a single selected file by name', async () => {
-		const { container } = renderUI(<FileUpload>Upload</FileUpload>, { announcer: true })
+		const { container } = renderUI(<FileUpload>Upload</FileUpload>)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -143,7 +143,7 @@ describe('FileUpload announcements', () => {
 	})
 
 	it('announces the count and names for a multi-file selection', async () => {
-		const { container } = renderUI(<FileUpload multiple>Upload</FileUpload>, { announcer: true })
+		const { container } = renderUI(<FileUpload multiple>Upload</FileUpload>)
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 

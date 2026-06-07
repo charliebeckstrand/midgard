@@ -1,7 +1,7 @@
 'use client'
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
-import { useAnnounce } from '../../providers/announcer'
+import { announce } from '../../core'
 import { fileListToArray, formatFileNames } from './file-upload-utilities'
 
 type FileHandlersOptions = {
@@ -18,8 +18,6 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 	const [dragDepth, setDragDepth] = useState(0)
 
 	const [files, setFiles] = useState<File[]>([])
-
-	const announce = useAnnounce()
 
 	const dragOver = dragDepth > 0
 
@@ -46,7 +44,7 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 				announce(arr.length === 1 ? `Selected ${names}` : `Selected ${arr.length} files: ${names}`)
 			}
 		},
-		[onFiles, announce],
+		[onFiles],
 	)
 
 	const handleChange = useCallback(

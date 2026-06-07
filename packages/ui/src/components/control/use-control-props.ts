@@ -1,5 +1,6 @@
 'use client'
 
+import { useAriaIds } from '../../hooks'
 import { useControl } from './context'
 
 type FieldBinding = {
@@ -53,9 +54,9 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 	const control = useControl()
 
 	// Consumer-supplied ids first, then the field's registered description /
-	// error ids. Empty when neither is present, so the attribute is omitted.
-	const describedBy =
-		[input['aria-describedby'], control?.describedBy].filter(Boolean).join(' ') || undefined
+	// error ids. Omitted when neither is present, so the attribute never
+	// references nothing.
+	const describedBy = useAriaIds(input['aria-describedby'], control?.describedBy)
 
 	return {
 		id: input.id ?? control?.id,

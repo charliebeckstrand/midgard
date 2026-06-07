@@ -33,13 +33,15 @@
 - *State* — `useControllable` (controlled/uncontrolled value), `useDeferredToggle`, `useSelectableValueChange`
 - *Floating & overlays* — `useFloatingUI`, `useFloatingPanel`, `useFloatingDisclosure`, `useOffcanvas`, `useDismissable`, `useScrollLock`
 - *Interaction* — `useKeybindings`, `useKeyboardSettled`, `useHasHover`, `useMaskedInput`
-- *Accessibility* — `useA11yScope` (base), `useA11yPanel`, `useA11yControl`, `useA11yRoving` (roving tabindex), `useA11yFocusReturn`, `useA11yAutoFocus`, `useA11yLiveRegion`, `useAriaIds`
+- *Accessibility* — `useA11yScope` (base), `useA11yPanel`, `useA11yControl`, `useA11yDisclosure` (trigger/panel pairing), `useA11yRoving` (roving tabindex), `useA11yFocusReturn`, `useA11yAutoFocus`, `useA11yLiveRegion`, `useA11yAnnouncements` (declarative live narration), `useAriaIds`
 - *Measurement & layout* — `useResizeObserver`, `useMediaQuery`, `useMinWidth`, `useIsTruncated`, `useScrollWithin`, `useIdScope`
 - *Drag & drop* — `useSortableItem`, `useSortableList`, `useSortableSensors`
 
 **Primitives** (`ui/primitives/<name>`) — `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`ui/providers/<name>`) — `announcer`, `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
+**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
+
+The screen-reader announcer needs no provider: import the imperative `announce` from `ui/core` for one-off messages, or `useA11yAnnouncements` (hooks) to narrate a changing value. Its live region is created on `document.body` on first use.
 
 ## 3. Recipes
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback } from 'react'
+import { announce } from '../../core'
 import { useControllable } from '../../hooks'
-import { useAnnounce } from '../../providers/announcer'
 
 type TagInputOptions = {
 	value?: string[]
@@ -29,8 +29,6 @@ export function useTagInput({
 	})
 
 	const atMax = max !== undefined && tags.length >= max
-
-	const announce = useAnnounce()
 
 	// Adding/removing a tag and rejected additions are pure DOM churn with no
 	// focus change, so a screen reader is told nothing. Voice each outcome
@@ -66,7 +64,7 @@ export function useTagInput({
 
 			return true
 		},
-		[tags, setTags, max, validate, announce],
+		[tags, setTags, max, validate],
 	)
 
 	const removeTag = useCallback(
@@ -79,7 +77,7 @@ export function useTagInput({
 
 			if (atMax) onMaxReleased?.()
 		},
-		[tags, setTags, atMax, onMaxReleased, announce],
+		[tags, setTags, atMax, onMaxReleased],
 	)
 
 	return { tags, atMax, addTag, removeTag }

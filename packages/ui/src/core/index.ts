@@ -1,3 +1,4 @@
+export { type AnnounceOptions, announce } from './announcer'
 export { cn } from './cn'
 export { createContext } from './create-context'
 export { createSlot } from './create-slot'

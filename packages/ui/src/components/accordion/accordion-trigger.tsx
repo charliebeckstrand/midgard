@@ -24,7 +24,7 @@ export function AccordionTrigger({
 	onClick,
 	...props
 }: AccordionTriggerProps) {
-	const { open, toggle, disabled, value } = useAccordionItem()
+	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
 	// Tailwind preflight zeroes heading font/margin, so the wrapper is invisible
 	// chrome that exists only to satisfy the accordion's heading requirement.
@@ -35,9 +35,7 @@ export function AccordionTrigger({
 			<button
 				type="button"
 				data-slot="accordion-trigger"
-				aria-expanded={open}
-				aria-controls={`accordion-panel-${value}`}
-				id={`accordion-trigger-${value}`}
+				{...triggerProps}
 				disabled={disabled}
 				onClick={(e) => {
 					toggle()

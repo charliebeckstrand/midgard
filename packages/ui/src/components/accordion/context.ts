@@ -16,6 +16,8 @@ type AccordionItemContextValue = {
 	open: boolean
 	toggle: () => void
 	disabled: boolean
+	triggerProps: { id: string; 'aria-controls': string; 'aria-expanded'?: boolean }
+	panelProps: { id: string; 'aria-labelledby': string }
 }
 
 export const [AccordionItemContext, useAccordionItem] =

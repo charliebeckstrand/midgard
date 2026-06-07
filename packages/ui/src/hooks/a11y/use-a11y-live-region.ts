@@ -26,8 +26,8 @@ export type A11yLiveRegionProps = {
 /**
  * Props for a live region the consumer fills with children — a status/alert
  * landmark with matching `aria-live` / `aria-atomic`, optionally visually
- * hidden. For imperative, no-visible-home announcements use the global
- * `useAnnounce` / `AnnouncerProvider` instead.
+ * hidden. For imperative, no-visible-home announcements use `announce` /
+ * `useA11yAnnouncements` instead.
  */
 export function useA11yLiveRegion({
 	level = 'polite',

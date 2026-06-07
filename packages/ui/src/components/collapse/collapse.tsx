@@ -2,8 +2,8 @@
 
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core/cn'
+import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/collapse'
 import { CollapsePanel } from './collapse-panel'
 import { CollapseTrigger } from './collapse-trigger'
@@ -51,15 +51,11 @@ export function Collapse({
 
 	const toggle = useCallback(() => setCurrentOpen(!open), [open, setCurrentOpen])
 
-	const scope = useIdScope()
-
-	const triggerId = scope.sub('trigger')
-
-	const panelId = scope.sub('panel')
+	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
 	const value = useMemo(
-		() => ({ open, toggle, animate: animateProp, triggerId, panelId }),
-		[open, toggle, animateProp, triggerId, panelId],
+		() => ({ open, toggle, animate: animateProp, triggerProps, panelProps }),
+		[open, toggle, animateProp, triggerProps, panelProps],
 	)
 
 	return (
