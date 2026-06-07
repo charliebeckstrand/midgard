@@ -8,7 +8,7 @@ import {
 	type RefObject,
 	useCallback,
 } from 'react'
-import { selectActiveOrSingleOption } from './combobox-utilities'
+import { selectSoleOption } from './combobox-utilities'
 
 type ComboboxInputParams<T> = {
 	value: T | T[] | undefined
@@ -82,7 +82,7 @@ export function useComboboxInput<T>({
 			if (e.key === 'Enter') {
 				const container = optionsRef.current
 
-				if (container && selectActiveOrSingleOption(container)) {
+				if (container && selectSoleOption(container)) {
 					e.preventDefault()
 
 					return

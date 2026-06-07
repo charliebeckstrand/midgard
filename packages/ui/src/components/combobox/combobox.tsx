@@ -6,6 +6,7 @@ import {
 	type InputHTMLAttributes,
 	type ReactNode,
 	useCallback,
+	useEffect,
 	useId,
 	useMemo,
 	useRef,
@@ -16,6 +17,7 @@ import {
 	useScrollWithin,
 	useSelectableValueChange,
 } from '../../hooks'
+import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
 import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { densityPresets, useDensity } from '../../primitives/density'
@@ -155,9 +157,16 @@ export function Combobox<T>({
 
 	const optionsRef = useRef<HTMLDivElement>(null)
 
+	// Editable combobox (APG): DOM focus stays on the input and the highlight is
+	// tracked virtually — arrow keys move `data-active` and repoint the input's
+	// `aria-activedescendant` rather than pulling focus onto an option.
+	// `aria-selected` stays owned by each option (the stored value), so the
+	// highlight is a pure focus cue and doesn't clobber selection in multi-select.
 	const handleKeyDown = useA11yRoving(optionsRef, {
+		mode: 'virtual',
 		itemSelector: OPTION_SELECTOR,
-		focusOnEmpty: true,
+		activeDescendantRef: inputRef,
+		manageAriaSelected: false,
 	})
 
 	const keyboardSettled = useKeyboardSettled()
@@ -187,6 +196,36 @@ export function Combobox<T>({
 		onValueChange: onValueChange as ((value: T) => void) | undefined,
 		setValue,
 	})
+
+	// Keep the virtual highlight anchored to a real option so the input's
+	// `aria-activedescendant` never dangles: clear it while the menu is closed,
+	// and on each filter change jump it to the top match (or clear it when nothing
+	// matches). Guarded against the initial query so opening the menu leaves the
+	// first arrow key to pick the first option. Mirrors the command-palette
+	// pattern, but with `ariaSelected: false` since options own their selection.
+	//
+	// Under `VirtualOptions` only the windowed rows are in the DOM, so the active
+	// row can't follow the highlight past the rendered window — virtualized lists
+	// lean on type-to-filter to narrow the set rather than arrow-traversing it.
+	const lastQueryRef = useRef(deferredQuery)
+
+	useEffect(() => {
+		if (!open) {
+			setVirtualActive([], -1, inputRef, { ariaSelected: false })
+
+			lastQueryRef.current = deferredQuery
+
+			return
+		}
+
+		if (lastQueryRef.current === deferredQuery) return
+
+		lastQueryRef.current = deferredQuery
+
+		const items = queryItems(optionsRef.current, OPTION_SELECTOR)
+
+		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
+	}, [open, deferredQuery])
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
@@ -312,6 +351,7 @@ export function Combobox<T>({
 				id={comboboxId}
 				open={open}
 				editing={editing}
+				multiple={multiple}
 				glass={glass}
 				density={token.density}
 				size={token.size}

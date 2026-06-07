@@ -14,6 +14,7 @@ type ComboboxPanelProps = {
 	id: string
 	open: boolean
 	editing: boolean
+	multiple: boolean
 	glass: boolean
 	density: ControlSize
 	size: ControlSize
@@ -38,6 +39,7 @@ export function ComboboxPanel({
 	id,
 	open,
 	editing,
+	multiple,
 	glass,
 	density,
 	size,
@@ -82,7 +84,12 @@ export function ComboboxPanel({
 									    empty-state status message is a sibling inside the panel chrome,
 									    so it still announces and still renders on the dropdown surface;
 									    a peer/:empty toggle swaps the two as options come and go. */}
-									<div role="listbox" id={id} className={cn(k.list)}>
+									<div
+										role="listbox"
+										id={id}
+										aria-multiselectable={multiple || undefined}
+										className={cn(k.list)}
+									>
 										{children}
 									</div>
 									<output className={cn(k.empty)}>No results</output>

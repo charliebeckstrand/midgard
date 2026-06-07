@@ -1,9 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import {
-	resolveInputDisplay,
-	selectActiveOrSingleOption,
-} from '../../components/combobox/combobox-utilities'
+import { resolveInputDisplay, selectSoleOption } from '../../components/combobox/combobox-utilities'
 import { useComboboxTrigger } from '../../components/combobox/use-combobox-trigger'
 
 describe('resolveInputDisplay', () => {
@@ -67,7 +64,7 @@ describe('resolveInputDisplay', () => {
 	})
 })
 
-describe('selectActiveOrSingleOption', () => {
+describe('selectSoleOption', () => {
 	it('clicks and returns true when exactly one option is present', () => {
 		const container = document.createElement('div')
 
@@ -81,7 +78,7 @@ describe('selectActiveOrSingleOption', () => {
 
 		container.appendChild(option)
 
-		expect(selectActiveOrSingleOption(container)).toBe(true)
+		expect(selectSoleOption(container)).toBe(true)
 
 		expect(clicked).toHaveBeenCalled()
 	})
@@ -101,13 +98,13 @@ describe('selectActiveOrSingleOption', () => {
 
 		container.appendChild(b)
 
-		expect(selectActiveOrSingleOption(container)).toBe(false)
+		expect(selectSoleOption(container)).toBe(false)
 	})
 
 	it('returns false when there are no options', () => {
 		const container = document.createElement('div')
 
-		expect(selectActiveOrSingleOption(container)).toBe(false)
+		expect(selectSoleOption(container)).toBe(false)
 	})
 })
 

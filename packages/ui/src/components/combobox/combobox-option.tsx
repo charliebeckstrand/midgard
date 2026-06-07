@@ -12,6 +12,7 @@ export type ComboboxDescriptionProps = OptionDescriptionProps
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'combobox',
+	activeDescendant: true,
 	useContext: useComboboxContext,
 })
 
