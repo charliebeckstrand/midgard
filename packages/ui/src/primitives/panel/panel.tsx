@@ -2,7 +2,9 @@
 
 import { type ComponentPropsWithoutRef, useEffect } from 'react'
 import { cn, createContext } from '../../core'
+import { headingWeight, titleSize } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
+import { useDensity } from '../density'
 
 const DEFAULT_TITLE = k.title
 const DEFAULT_DESCRIPTION = k.description
@@ -49,6 +51,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()
+		const { size } = useDensity()
 
 		useEffect(() => registerTitle?.(), [registerTitle])
 
@@ -56,7 +59,10 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 			<h2
 				id={id ?? titleId}
 				data-slot={`${slotPrefix}-title`}
-				className={cn(titleClass, className)}
+				// An `<h2>`: weight (level 2) and the density-scaled size both come
+				// from the heading scale, so panel titles stay single-sourced with
+				// `<Heading>` without the primitive importing the component.
+				className={cn(titleClass, headingWeight(2), titleSize(size), className)}
 				{...props}
 			/>
 		)

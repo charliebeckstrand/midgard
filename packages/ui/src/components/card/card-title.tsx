@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
-import { k } from '../../recipes/kata/card'
+import { titleSize } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 export type CardTitleProps = {
 	className?: string
@@ -16,13 +16,13 @@ export type CardTitleProps = {
 export function CardTitle({ className, size, level = 3, children, ...props }: CardTitleProps) {
 	const inherited = useDensity()
 
-	const resolvedSize: Step = size ?? inherited.size
+	const step: Step = size ?? inherited.size
 
 	return (
 		<Heading
 			level={level}
 			data-slot="card-title"
-			className={cn(k.title({ size: resolvedSize }), className)}
+			className={cn(titleSize(step), className)}
 			{...props}
 		>
 			{children}

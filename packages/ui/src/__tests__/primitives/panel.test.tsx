@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
@@ -84,6 +85,38 @@ describe('createPanel', () => {
 		const el = bySlot(container, 'dialog-title')
 
 		expect(el).toHaveAttribute('id', 'my-title')
+	})
+
+	it('Title holds the text-lg baseline at neutral density', () => {
+		const { container } = renderUI(<Title>Title</Title>)
+
+		expect(bySlot(container, 'dialog-title')?.className).toContain('text-lg')
+	})
+
+	it('Title shifts down one rung under compact density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Title>Title</Title>
+			</DensityProvider>,
+		)
+
+		expect(bySlot(container, 'dialog-title')?.className).toContain('text-base')
+	})
+
+	it('Title shifts up one rung under loose density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="loose">
+				<Title>Title</Title>
+			</DensityProvider>,
+		)
+
+		expect(bySlot(container, 'dialog-title')?.className).toContain('text-xl')
+	})
+
+	it('Title weight is sourced from the heading scale (h2 → semibold)', () => {
+		const { container } = renderUI(<Title>Title</Title>)
+
+		expect(bySlot(container, 'dialog-title')?.className).toContain('font-semibold')
 	})
 })
 
