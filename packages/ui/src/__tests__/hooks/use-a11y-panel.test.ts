@@ -28,8 +28,7 @@ describe('useA11yPanel', () => {
 	it('points aria-labelledby / aria-describedby at the registered slot ids', () => {
 		const { result } = renderHook(() => useA11yPanel())
 
-		const { titleId, descriptionId, registerTitle, registerDescription } =
-			result.current.providerValue
+		const { titleId, descriptionId, registerTitle, registerDescription } = result.current.a11y
 
 		act(() => {
 			registerTitle()

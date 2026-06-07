@@ -45,7 +45,7 @@ export function Sheet({
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = useA11yPanel()
+	const { panelAriaProps, a11y } = useA11yPanel()
 
 	return (
 		<Overlay
@@ -62,7 +62,7 @@ export function Sheet({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
 			>
-				<PanelProviders onOpenChange={onOpenChange} a11y={providerValue}>
+				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
 					{children}
 				</PanelProviders>
 			</motion.div>

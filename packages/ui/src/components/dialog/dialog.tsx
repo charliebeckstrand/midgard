@@ -62,7 +62,7 @@ export function Dialog({
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, providerValue } = useA11yPanel(role)
+	const { panelAriaProps, a11y } = useA11yPanel(role)
 
 	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
 	// the explicit label only when there's no title.
@@ -93,7 +93,7 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelProviders onOpenChange={onOpenChange} a11y={providerValue}>
+					<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
 						{children}
 					</PanelProviders>
 				</motion.div>

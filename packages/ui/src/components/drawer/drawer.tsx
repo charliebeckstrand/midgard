@@ -40,7 +40,7 @@ export function Drawer({
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = useA11yPanel()
+	const { panelAriaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
 
@@ -60,7 +60,7 @@ export function Drawer({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
-				<PanelProviders onOpenChange={onOpenChange} a11y={providerValue}>
+				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
 					<Density density={resolvedSize} size={resolvedSize}>
 						{children}
 					</Density>
