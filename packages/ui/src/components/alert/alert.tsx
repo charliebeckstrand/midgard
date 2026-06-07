@@ -185,7 +185,7 @@ export function Alert({
 
 			{closable && (
 				<Button
-					variant="plain"
+					variant="bare"
 					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
 					aria-label="Dismiss"
 					className={cn(k.close, 'self-center')}
