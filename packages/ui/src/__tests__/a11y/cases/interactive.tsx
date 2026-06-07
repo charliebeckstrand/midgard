@@ -1,4 +1,5 @@
 import { Button } from '../../../components/button'
+import { ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
@@ -118,6 +119,25 @@ export const interactive: readonly InteractiveCase[] = [
 			if (trigger) await user.click(trigger as HTMLElement)
 
 			await screen.findByRole('button', { name: 'Today' })
+		},
+	],
+	[
+		// Colour picker: a Control-integrated swatch trigger opens its picker dialog
+		// (role="dialog", aria-label="Choose color") on click. The closed trigger
+		// portals nothing, so the panel's 2D saturation/brightness slider, hue/alpha
+		// sliders, swatches, and hex/channel inputs only mount on open — drive it
+		// open to assert that whole surface's role/name/ARIA structure.
+		'color picker',
+		<Field key="icp">
+			<Label>Brand color</Label>
+			<ColorPicker alpha defaultValue="#6366F1" />
+		</Field>,
+		async (user) => {
+			const trigger = document.querySelector('[data-slot="color-picker-button"]')
+
+			if (trigger) await user.click(trigger as HTMLElement)
+
+			await screen.findByRole('dialog')
 		},
 	],
 	[
