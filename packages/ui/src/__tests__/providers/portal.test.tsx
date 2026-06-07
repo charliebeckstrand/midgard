@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import { type PortalContainer, usePortalContainer } from '../../primitives/portal'
-import { PortalProvider } from '../../providers/portal'
+import { UIProvider } from '../../providers/ui'
 import { renderUI, screen } from '../helpers'
 
 function PortalProbe({ container }: { container?: PortalContainer }) {
@@ -10,16 +10,16 @@ function PortalProbe({ container }: { container?: PortalContainer }) {
 	return <span data-testid="resolved">{resolved?.id ?? 'none'}</span>
 }
 
-describe('PortalProvider', () => {
+describe('UIProvider portalContainer', () => {
 	afterEach(() => {
 		document.getElementById('app-portal')?.remove()
 	})
 
 	it('renders children', () => {
 		renderUI(
-			<PortalProvider container={null}>
+			<UIProvider portalContainer={null}>
 				<span>content</span>
-			</PortalProvider>,
+			</UIProvider>,
 		)
 
 		expect(screen.getByText('content')).toBeInTheDocument()
@@ -31,9 +31,9 @@ describe('PortalProvider', () => {
 		target.id = 'portal-root'
 
 		renderUI(
-			<PortalProvider container={target}>
+			<UIProvider portalContainer={target}>
 				<PortalProbe />
-			</PortalProvider>,
+			</UIProvider>,
 		)
 
 		expect(screen.getByTestId('resolved')).toHaveTextContent('portal-root')
@@ -53,11 +53,11 @@ describe('PortalProvider', () => {
 		document.body.append(target)
 
 		renderUI(
-			<PortalProvider container={target}>
+			<UIProvider portalContainer={target}>
 				<Dialog open onOpenChange={() => {}}>
 					Portalled dialog
 				</Dialog>
-			</PortalProvider>,
+			</UIProvider>,
 		)
 
 		expect(target.contains(screen.getByRole('dialog'))).toBe(true)
@@ -73,9 +73,9 @@ describe('PortalProvider', () => {
 		local.id = 'local-root'
 
 		renderUI(
-			<PortalProvider container={provided}>
+			<UIProvider portalContainer={provided}>
 				<PortalProbe container={local} />
-			</PortalProvider>,
+			</UIProvider>,
 		)
 
 		expect(screen.getByTestId('resolved')).toHaveTextContent('local-root')

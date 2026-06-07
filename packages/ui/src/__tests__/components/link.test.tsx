@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Link } from '../../components/link'
-import { LinkProvider, useLink } from '../../providers/link'
+import { UIProvider, useLink } from '../../providers/ui'
 import { renderUI, screen } from '../helpers'
 
 describe('Link', () => {
@@ -44,7 +44,7 @@ describe('Link', () => {
 		expect(screen.getByText('Underline').className).toContain('hover:underline')
 	})
 
-	it('renders custom component from LinkProvider', () => {
+	it('renders custom component registered through UIProvider', () => {
 		function CustomLink({ href, children, ...props }: { href: string; children?: ReactNode }) {
 			return (
 				<span data-href={href} {...props}>
@@ -54,9 +54,9 @@ describe('Link', () => {
 		}
 
 		renderUI(
-			<LinkProvider component={CustomLink}>
+			<UIProvider link={CustomLink}>
 				<Link href="/custom">Custom</Link>
-			</LinkProvider>,
+			</UIProvider>,
 		)
 
 		const el = screen.getByText('Custom')

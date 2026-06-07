@@ -11,8 +11,8 @@ export type PortalContainer = HTMLElement | null
 /**
  * Portal container context — the default node library portals (overlays,
  * floating surfaces, dropdown panels, toasts) render into. The user-facing
- * `<PortalProvider>` lives in `providers/portal`; primitives and components
- * consume `usePortalContainer` here without depending on it.
+ * `<UIProvider>` (which registers it) lives in `providers/ui`; primitives and
+ * components consume `usePortalContainer` here without depending on it.
  *
  * Defaults to `null` outside any provider, leaving each portal to fall back to
  * its own default.
@@ -23,7 +23,7 @@ export const [PortalContext, usePortalContext] = createContext<PortalContainer>(
 
 /**
  * Resolves the effective portal container for a single call site: an explicit
- * per-call `container` wins, then the ambient `<PortalProvider>` value, then
+ * per-call `container` wins, then the ambient `<UIProvider>` value, then
  * `null` (the caller's own fallback). Lets a component honour an app-wide
  * default while still allowing a local override.
  */

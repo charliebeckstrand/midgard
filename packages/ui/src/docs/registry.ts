@@ -18,7 +18,7 @@ const loaders = import.meta.glob<ComponentType>(
 
 // Subfolders namespace the id with their folder (`pages/x` → `pages-x`,
 // `providers/x` → `providers-x`) so a provider demo can't collide with a
-// component demo of the same name (e.g. the Link component vs the LinkProvider).
+// component demo of the same name (e.g. the Link component vs a provider demo).
 function pathToId(path: string) {
 	return path
 		.replace(/^\.\/demos\//, '')
