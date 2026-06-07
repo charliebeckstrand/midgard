@@ -1,7 +1,7 @@
 'use client'
 
 import { type Placement, useClientPoint, useInteractions } from '@floating-ui/react'
-import { type MouseEvent, useCallback, useMemo, useState } from 'react'
+import { type MouseEvent, useCallback, useId, useMemo, useState } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
@@ -25,10 +25,16 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 
 	const isStatic = defaultOpen && !isDropdown
 
+	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
+	// their own roles + popup wiring; suppress floating-ui's role so the
+	// positioning wrapper isn't double-stamped. `menuId` lets the trigger's
+	// `aria-controls` point at the real menu panel rather than that wrapper.
+	const menuId = useId()
+
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
 			defaultOpen,
-			role: 'menu',
+			role: null,
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
 		})
@@ -59,13 +65,22 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 	const state = useMemo(
 		() => ({
 			open,
+			menuId,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
 			density: resolvedDensity,
 			size: resolvedSize,
 		}),
-		[open, floatingStyles, getReferenceProps, getFloatingProps, resolvedDensity, resolvedSize],
+		[
+			open,
+			menuId,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+			resolvedDensity,
+			resolvedSize,
+		],
 	)
 
 	const actions = useMemo(

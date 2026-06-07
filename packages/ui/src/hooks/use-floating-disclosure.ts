@@ -23,7 +23,13 @@ type FloatingDisclosureOptions = Omit<
 	open?: boolean
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
-	role: FloatingDisclosureRole
+	/**
+	 * Popup role floating-ui stamps on the floating element plus the reference's
+	 * `aria-haspopup`/`aria-controls`/`aria-expanded`. Pass `null` when the
+	 * component hand-rolls those on inner elements, so floating-ui doesn't
+	 * double-stamp the positioning wrapper with a duplicate role.
+	 */
+	role: FloatingDisclosureRole | null
 	/** Vetoes an open-state transition when it returns `false`. */
 	gate?: FloatingDisclosureGate
 }
@@ -93,7 +99,10 @@ export function useFloatingDisclosure({
 
 	const dismiss = useDismiss(context)
 
-	const role = useRole(context, { role: roleProp })
+	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
+	// emitting no role/aria props, so a component owning its roles isn't
+	// double-stamped on the positioning wrapper.
+	const role = useRole(context, { role: roleProp ?? 'menu', enabled: roleProp !== null })
 
 	return { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role }
 }

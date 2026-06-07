@@ -16,7 +16,7 @@ export type MenuTriggerProps =
 	| ComponentPropsWithoutRef<'button'>
 
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
-	const { open, getReferenceProps } = useMenuState()
+	const { open, menuId, getReferenceProps } = useMenuState()
 	const { setOpen, triggerRef, setReference } = useMenuActions()
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference)
@@ -29,6 +29,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			ref: mergeRefs,
 			'aria-haspopup': 'menu',
 			'aria-expanded': open,
+			'aria-controls': open ? menuId : undefined,
 			'data-slot': 'menu-trigger',
 			...referenceProps,
 			onClick: (e: MouseEvent) => {
@@ -48,6 +49,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			type="button"
 			aria-haspopup="menu"
 			aria-expanded={open}
+			aria-controls={open ? menuId : undefined}
 			data-slot="menu-trigger"
 			onClick={() => setOpen(!open)}
 			className={cn(className)}

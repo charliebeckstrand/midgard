@@ -46,6 +46,7 @@ describe('a11y focus trap (real browser) — modal overlay', () => {
 		renderUI(<TrappedDialog />)
 
 		const dialog = await screen.findByRole('dialog')
+
 		const first = screen.getByRole('button', { name: 'First' })
 		const last = screen.getByRole('button', { name: 'Last' })
 
@@ -57,6 +58,7 @@ describe('a11y focus trap (real browser) — modal overlay', () => {
 		// Opening the modal moves keyboard focus off the document body and into the
 		// surface, never onto the sibling left behind it.
 		await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
+
 		expect(outside).not.toHaveFocus()
 
 		// Real Tab keystrokes (Playwright-driven) so floating-ui's focus guards
@@ -66,16 +68,24 @@ describe('a11y focus trap (real browser) — modal overlay', () => {
 		// Forward Tab from the last focusable wraps back to the first instead of
 		// escaping to the outside button.
 		last.focus()
+
 		await userEvent.keyboard('{Tab}')
+
 		await waitFor(() => expect(first).toHaveFocus())
+
 		expect(dialog.contains(document.activeElement)).toBe(true)
+
 		expect(outside).not.toHaveFocus()
 
 		// Backward Tab from the first focusable wraps to the last — still trapped.
 		first.focus()
+
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
 		await waitFor(() => expect(last).toHaveFocus())
+
 		expect(dialog.contains(document.activeElement)).toBe(true)
+
 		expect(outside).not.toHaveFocus()
 	})
 })

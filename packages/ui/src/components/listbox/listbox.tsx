@@ -147,12 +147,16 @@ export function Listbox<T>({
 		setValue,
 	})
 
-	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
+	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
 		returnFocusTo: triggerRef,
+		// The trigger button (`role="combobox"`) and the panel (`role="listbox"`)
+		// carry their own roles + popup wiring; suppress floating-ui's so the
+		// positioning wrappers don't double-stamp a nested combobox/listbox.
+		role: null,
 	})
 
 	const label = resolveLabel({ value, displayValue, multiple })
@@ -244,6 +248,7 @@ export function Listbox<T>({
 				density={token.density}
 				size={token.size}
 				floatingStyles={floatingStyles}
+				context={context}
 				getFloatingProps={getFloatingProps}
 				setFloating={refs.setFloating}
 				flushPending={flushPending}
