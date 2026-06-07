@@ -63,8 +63,7 @@ export const k = defineRecipe(
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
 		swatch:
-			'aspect-square w-full cursor-pointer rounded-md outline-none ring-1 ring-inset ring-black/10 dark:ring-white/15 focus-visible:ring-2 focus-visible:ring-blue-600',
-		swatchActive: 'ring-2 ring-blue-600 dark:ring-blue-500',
+			'aspect-square w-full cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-blue-600 hover:scale-110 transition-all',
 	},
 )
 

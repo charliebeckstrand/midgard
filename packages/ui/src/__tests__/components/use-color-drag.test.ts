@@ -15,8 +15,11 @@ function makeNode() {
 	node.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 100 })
 
 	node.focus = vi.fn()
+
 	node.setPointerCapture = vi.fn()
+
 	node.releasePointerCapture = vi.fn()
+
 	node.hasPointerCapture = vi.fn(() => true)
 
 	return node
@@ -43,7 +46,9 @@ describe('useColorDrag', () => {
 		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
 
 		expect(node.focus).toHaveBeenCalled()
+
 		expect(node.setPointerCapture).toHaveBeenCalledWith(1)
+
 		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
 	})
 
@@ -51,12 +56,15 @@ describe('useColorDrag', () => {
 		const { api, node, onPosition } = setup()
 
 		api.onPointerMove(makeEvent(node, { clientX: 50, clientY: 25 }))
+
 		expect(onPosition).not.toHaveBeenCalled()
 
 		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
+
 		onPosition.mockClear()
 
 		api.onPointerMove(makeEvent(node, { clientX: 50, clientY: 25 }))
+
 		expect(onPosition).toHaveBeenCalledWith({ x: 0.25, y: 0.25 })
 	})
 
@@ -64,10 +72,13 @@ describe('useColorDrag', () => {
 		const { api, node, onPosition } = setup(true)
 
 		const event = makeEvent(node, { clientX: 100, clientY: 50 })
+
 		api.onPointerDown(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
+
 		expect(node.setPointerCapture).not.toHaveBeenCalled()
+
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
@@ -77,6 +88,7 @@ describe('useColorDrag', () => {
 		api.onPointerDown(makeEvent(node, { button: 2, clientX: 100, clientY: 50 }))
 
 		expect(node.setPointerCapture).not.toHaveBeenCalled()
+
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
@@ -84,10 +96,13 @@ describe('useColorDrag', () => {
 		const { api, node, onPosition } = setup()
 
 		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
+
 		api.onPointerUp(makeEvent(node))
+
 		onPosition.mockClear()
 
 		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
+
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
@@ -95,10 +110,13 @@ describe('useColorDrag', () => {
 		const { api, node, onPosition } = setup()
 
 		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
+
 		api.onPointerCancel(makeEvent(node))
+
 		onPosition.mockClear()
 
 		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
+
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
@@ -109,10 +127,13 @@ describe('useColorDrag', () => {
 		const { api, node, onPosition } = setup()
 
 		api.onPointerDown(makeEvent(node, { clientX: 0, clientY: 0 }))
+
 		api.onLostPointerCapture()
+
 		onPosition.mockClear()
 
 		api.onPointerMove(makeEvent(node, { clientX: 100, clientY: 50 }))
+
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 })

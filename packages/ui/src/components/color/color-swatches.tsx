@@ -18,6 +18,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 		<div data-slot="color-swatches" className={k.swatches}>
 			{swatches.map((swatch) => {
 				const parsed = hexToHsva(swatch)
+
 				const active = parsed ? equalHsva(parsed, hsva) : false
 
 				return (
@@ -28,7 +29,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						aria-label={swatch}
 						aria-pressed={active}
 						disabled={disabled}
-						className={cn(k.swatch, active && k.swatchActive)}
+						className={cn(k.swatch)}
 						style={{ backgroundColor: swatch }}
 						onClick={() => parsed && setHsva(parsed)}
 					/>
