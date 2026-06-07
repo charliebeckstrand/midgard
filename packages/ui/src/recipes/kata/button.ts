@@ -37,18 +37,12 @@ export const k = defineRecipe(
 			'justify-center',
 			'w-fit shrink-0',
 			weight.semibold,
+			focus.inset,
 			...disabled,
 			...cursor,
 		],
-		// focus.inset rides each variant rather than `base` so it never reaches
-		// `bare`. Its `outline-none` sets `--tw-outline-style: none`, which would
-		// poison bare's outset `focus-visible:outline-*` to `outline-style: none`.
 		variant: {
-			solid: focus.inset,
-			soft: focus.inset,
-			outline: ['ring-1 ring-inset', focus.inset],
-			plain: focus.inset,
-			ghost: focus.inset,
+			outline: 'ring-1 ring-inset',
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When the
 		// children carry a text label the component sets `data-has-label`, which
@@ -102,13 +96,7 @@ export const k = defineRecipe(
 		compound: [
 			{
 				variant: 'bare',
-				class: [
-					'p-0',
-					// bare alone skips focus.inset (p-0 leaves no room for an inset
-					// ring). With no `outline-none` poisoning `--tw-outline-style`,
-					// this outset outline renders cleanly on focus.
-					'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
-				],
+				class: 'p-0',
 			},
 			// Floor the icon-only bare hit box at the WCAG 2.5.8 minimum (24px) as a
 			// real, gate-measurable border-box. Absolutely-positioned hit expanders

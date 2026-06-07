@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode } from 'react'
-import { formatProps, INDENT, renderOpenTag } from './format'
+import { formatProps, INDENT, PLACEHOLDER, renderOpenTag } from './format'
 import { addImport } from './imports'
 import { collectSnippetImports, readSnippet, reindent } from './snippet'
 import { collectChildItems, elementChildren } from './tree'
@@ -82,7 +82,9 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 		lines.push(line)
 	}
 
-	const isIteration = elements.length >= 2 && elements.every(hasExplicitKey)
+	// Length is >= 2 here (the single-element case returned early above), so the
+	// keyed check alone decides iteration-collapse.
+	const isIteration = elements.every(hasExplicitKey)
 
 	if (!isIteration) return lines
 
@@ -175,5 +177,5 @@ function renderChildrenContent(nodes: ReactNode[], context: Context, indent: str
 
 	const rendered = renderNodes(nodes, context, indent)
 
-	return rendered !== '' ? rendered : '…'
+	return rendered !== '' ? rendered : PLACEHOLDER
 }

@@ -32,6 +32,7 @@ describe('bare button target-size floor', () => {
 		)
 
 		const button = getByRole('button')
+
 		const wrap = button.closest('[data-slot="wrap"]') as HTMLElement
 
 		const box = button.getBoundingClientRect()
@@ -43,6 +44,7 @@ describe('bare button target-size floor', () => {
 		// ...while the negative margin collapses its margin-box back to the 20px
 		// md icon, so the wrapper — and any row it sits in — never grows.
 		const wrapBox = wrap.getBoundingClientRect()
+
 		expect(wrapBox.width).toBeLessThan(24)
 		expect(wrapBox.height).toBeLessThan(24)
 	})
@@ -57,6 +59,7 @@ describe('bare button target-size floor', () => {
 		)
 
 		const button = getByRole('button')
+
 		const wrap = button.closest('[data-slot="wrap"]') as HTMLElement
 
 		// `:not([data-has-label])` excludes the floor, so there is no negative-margin

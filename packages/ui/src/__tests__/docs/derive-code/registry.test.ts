@@ -49,4 +49,14 @@ describe('defaultRegistry.byName', () => {
 
 		expect(info?.module).toBe('button')
 	})
+
+	it('resolves a provider name to its nested `providers/*` module', () => {
+		// Providers carry the full nested specifier so derived imports read
+		// `ui/providers/glass`, matching the package's `./providers/*` export.
+		const info = defaultRegistry.byName.get('GlassProvider')
+
+		expect(info?.name).toBe('GlassProvider')
+
+		expect(info?.module).toBe('providers/glass')
+	})
 })

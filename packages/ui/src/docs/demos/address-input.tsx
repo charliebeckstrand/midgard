@@ -61,15 +61,17 @@ function DefaultExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Field>
-			<Label>Address</Label>
-			<AddressInput value={address} onValueChange={setAddress} />
+		<>
+			<Field>
+				<Label>Address</Label>
+				<AddressInput value={address} onValueChange={setAddress} />
+			</Field>
 			{address?.latitude != null ? (
 				<Text>
 					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
 				</Text>
 			) : null}
-		</Field>
+		</>
 	)
 }
 
@@ -77,26 +79,28 @@ function WithInitialOptionsExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Field>
-			<Label>Address</Label>
-			<AddressInput
-				value={address}
-				onValueChange={setAddress}
-				minQueryLength={0}
-				provider={async (query) => {
-					const q = query.toLowerCase()
+		<>
+			<Field>
+				<Label>Address</Label>
+				<AddressInput
+					value={address}
+					onValueChange={setAddress}
+					minQueryLength={0}
+					provider={async (query) => {
+						const q = query.toLowerCase()
 
-					return places.filter(
-						(p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
-					)
-				}}
-			/>
+						return places.filter(
+							(p) => p.label.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+						)
+					}}
+				/>
+			</Field>
 			{address?.latitude != null ? (
 				<Text>
 					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
 				</Text>
 			) : null}
-		</Field>
+		</>
 	)
 }
 
@@ -104,21 +108,23 @@ function CustomProviderExample() {
 	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
 
 	return (
-		<Field>
-			<Label>Address</Label>
-			<AddressInput
-				value={address}
-				onValueChange={setAddress}
-				provider={mockGooglePlaces}
-				minQueryLength={1}
-				placeholder="Try 'amph' or 'baker'"
-			/>
+		<>
+			<Field>
+				<Label>Address</Label>
+				<AddressInput
+					value={address}
+					onValueChange={setAddress}
+					provider={mockGooglePlaces}
+					minQueryLength={1}
+					placeholder="Try 'amph' or 'baker'"
+				/>
+			</Field>
 			{address?.latitude != null ? (
 				<Text>
 					{address.latitude.toFixed(4)}, {address.longitude?.toFixed(4)}
 				</Text>
 			) : null}
-		</Field>
+		</>
 	)
 }
 

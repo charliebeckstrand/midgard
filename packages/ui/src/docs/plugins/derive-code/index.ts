@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { Plugin } from 'vite'
-import { collectHelpers } from './collect-utilities'
+import { collectHelpers } from './collect-helpers'
 
 /**
  * Vite plugin that extracts each demo helper component's full source at

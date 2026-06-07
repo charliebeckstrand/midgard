@@ -1,70 +1,47 @@
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { formatProps, renderOpenTag } from '../../../docs/derive-code/format'
-import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
-
-function tag<P>(name: string, mod: string): FunctionComponent<P> {
-	const Component: FunctionComponent<P> = () => null
-
-	Object.assign(Component, { __name: name, __module: mod, displayName: name })
-
-	return Component
-}
-
-function readTag(type: unknown): ComponentInfo | undefined {
-	const tag = type as { __name?: unknown; __module?: unknown }
-
-	if (typeof tag?.__name !== 'string' || typeof tag?.__module !== 'string') return undefined
-
-	return { name: tag.__name, module: tag.__module }
-}
-
-function emptyContext(): Context {
-	return {
-		registry: { byType: { get: readTag }, byName: new Map() },
-		imports: new Map(),
-	}
-}
+import { makeContext, tag } from './helpers'
 
 describe('formatProps value handling', () => {
 	it('drops undefined / null / false', () => {
-		const result = formatProps({ a: undefined, b: null, c: false }, emptyContext())
+		const result = formatProps({ a: undefined, b: null, c: false }, makeContext())
 
 		expect(result).toEqual([])
 	})
 
 	it('emits bare key for `true`', () => {
-		const result = formatProps({ disabled: true }, emptyContext())
+		const result = formatProps({ disabled: true }, makeContext())
 
 		expect(result).toEqual(['disabled'])
 	})
 
 	it('quotes plain strings with double quotes', () => {
-		const result = formatProps({ name: 'alice' }, emptyContext())
+		const result = formatProps({ name: 'alice' }, makeContext())
 
 		expect(result).toEqual(['name="alice"'])
 	})
 
 	it('falls back to JSON-in-braces when a string contains a double quote', () => {
-		const result = formatProps({ name: 'a"b' }, emptyContext())
+		const result = formatProps({ name: 'a"b' }, makeContext())
 
 		expect(result).toEqual(['name={"a\\"b"}'])
 	})
 
 	it('falls back to JSON-in-braces when a string contains a newline', () => {
-		const result = formatProps({ text: 'line\nbreak' }, emptyContext())
+		const result = formatProps({ text: 'line\nbreak' }, makeContext())
 
 		expect(result).toEqual(['text={"line\\nbreak"}'])
 	})
 
 	it('wraps numbers in braces', () => {
-		const result = formatProps({ count: 7 }, emptyContext())
+		const result = formatProps({ count: 7 }, makeContext())
 
 		expect(result).toEqual(['count={7}'])
 	})
 
 	it('drops function-valued props (event handlers, callbacks)', () => {
-		const result = formatProps({ onClick: () => {} }, emptyContext())
+		const result = formatProps({ onClick: () => {} }, makeContext())
 
 		expect(result).toEqual([])
 	})
@@ -78,34 +55,46 @@ describe('formatProps value handling', () => {
 				ref: { current: null },
 				kept: 'yes',
 			},
-			emptyContext(),
+			makeContext(),
 		)
 
 		expect(result).toEqual(['kept="yes"'])
 	})
 
 	it('formats an array of primitives as a JSON array literal', () => {
-		const result = formatProps({ tags: ['a', 'b'] }, emptyContext())
+		const result = formatProps({ tags: ['a', 'b'] }, makeContext())
 
 		expect(result).toEqual(['tags={["a", "b"]}'])
 	})
 
 	it('escapes embedded quotes inside an array of strings', () => {
-		const result = formatProps({ tags: [`it's`, 'fine'] }, emptyContext())
+		const result = formatProps({ tags: [`it's`, 'fine'] }, makeContext())
 
 		expect(result).toEqual([`tags={["it's", "fine"]}`])
 	})
 
-	it('drops arrays containing non-primitive values', () => {
-		const result = formatProps({ items: [{ id: 1 }] }, emptyContext())
+	it('placeholders a Date-valued prop (no recoverable source literal)', () => {
+		const result = formatProps({ min: new Date('2026-06-07T00:00:00Z') }, makeContext())
 
-		expect(result).toEqual([])
+		expect(result).toEqual(['min={…}'])
+	})
+
+	it('placeholders a plain-object-valued prop', () => {
+		const result = formatProps({ config: { a: 1 } }, makeContext())
+
+		expect(result).toEqual(['config={…}'])
+	})
+
+	it('placeholders arrays containing non-primitive values', () => {
+		const result = formatProps({ items: [{ id: 1 }] }, makeContext())
+
+		expect(result).toEqual(['items={…}'])
 	})
 
 	it('renders an element-valued prop using the registry tag', () => {
 		const Icon = tag<{ name?: string }>('Icon', 'icon')
 
-		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, emptyContext())
+		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, makeContext())
 
 		expect(result).toEqual(['icon={<Icon name="star" />}'])
 	})
@@ -113,13 +102,13 @@ describe('formatProps value handling', () => {
 	it('drops element-valued props whose type is unregistered and non-intrinsic', () => {
 		const Unknown = (() => null) as FunctionComponent
 
-		const result = formatProps({ icon: createElement(Unknown) }, emptyContext())
+		const result = formatProps({ icon: createElement(Unknown) }, makeContext())
 
 		expect(result).toEqual([])
 	})
 
 	it('renders an intrinsic element-valued prop using its tag name', () => {
-		const result = formatProps({ icon: createElement('div') }, emptyContext())
+		const result = formatProps({ icon: createElement('div') }, makeContext())
 
 		expect(result).toEqual(['icon={<div />}'])
 	})
