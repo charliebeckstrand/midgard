@@ -104,7 +104,6 @@ export const k = defineRecipe(
 				variant: 'bare',
 				class: [
 					'p-0',
-					'before:content-[""] before:absolute before:-inset-2',
 					// bare alone skips focus.inset (p-0 leaves no room for an inset
 					// ring). With no `outline-none` poisoning `--tw-outline-style`,
 					// this outset outline renders cleanly on focus.
@@ -112,16 +111,18 @@ export const k = defineRecipe(
 				],
 			},
 			// Floor the icon-only bare hit box at the WCAG 2.5.8 minimum (24px) as a
-			// real, gate-measurable border-box. The `::before` slop above widens the
-			// pointer area but is invisible to axe's target-size and to the spec's box
-			// metric (see toggle-icon-button.ts), so only a real box satisfies the
-			// gate. A matched negative margin of `(24px − iconbox)/2` per side collapses
-			// the box's margin-box back to the icon's footprint, so the floor grows the
-			// hit box without growing the row it sits in — the overshoot reaches into
-			// the parent's existing padding. Per size: xs/sm/md icons are 12/16/20px;
-			// lg's 24px icon already clears the floor, so it needs no rule. Gated to
-			// `:not([data-has-label])` so inline text-label bare links keep their
-			// natural inline box and lean on WCAG's inline-target exception instead.
+			// real, gate-measurable border-box. Absolutely-positioned hit expanders
+			// (the TouchTarget sibling, a `::before` overlay) widen the pointer area but
+			// are invisible to axe's target-size and to the spec's box metric (see
+			// toggle-icon-button.ts), so only a real box satisfies the gate — which is
+			// why this box, not slop, carries compliance. A matched negative margin of
+			// `(24px − iconbox)/2` per side collapses the box's margin-box back to the
+			// icon's footprint, so the floor grows the hit box without growing the row
+			// it sits in — the overshoot reaches into the parent's existing padding. Per
+			// size: xs/sm/md icons are 12/16/20px; lg's 24px icon already clears the
+			// floor, so it needs no rule. Gated to `:not([data-has-label])` so inline
+			// text-label bare links keep their natural inline box and lean on WCAG's
+			// inline-target exception instead.
 			{
 				variant: 'bare',
 				size: 'xs',
