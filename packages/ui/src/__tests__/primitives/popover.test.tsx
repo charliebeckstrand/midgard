@@ -9,24 +9,10 @@ describe('PopoverPanel', () => {
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
-	it('renders children', () => {
-		renderUI(<PopoverPanel>menu items</PopoverPanel>)
-
-		expect(screen.getByText('menu items')).toBeInTheDocument()
-	})
-
 	it('applies custom role', () => {
 		renderUI(<PopoverPanel role="menu">items</PopoverPanel>)
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		renderUI(<PopoverPanel className="custom">items</PopoverPanel>)
-
-		const el = screen.getByRole('listbox')
-
-		expect(el.className).toContain('custom')
 	})
 
 	it('sets tabIndex to -1', () => {

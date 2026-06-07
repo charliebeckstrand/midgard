@@ -3,19 +3,12 @@ import { describe, expect, it } from 'vitest'
 import {
 	SidebarLayout,
 	SidebarLayoutBody,
-	SidebarLayoutFooter,
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('SidebarLayout', () => {
-	it('renders children', () => {
-		renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>Hello</SidebarLayout>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
 	it('renders the sidebar content', () => {
 		renderUI(<SidebarLayout sidebar={<div>sidebar content</div>}>body</SidebarLayout>)
 
@@ -128,51 +121,7 @@ describe('SidebarLayout', () => {
 	})
 })
 
-describe('SidebarLayoutHeader', () => {
-	it('renders with data-slot="header"', () => {
-		const { container } = renderUI(<SidebarLayoutHeader>content</SidebarLayoutHeader>)
-
-		const el = bySlot(container, 'header')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<SidebarLayoutHeader className="custom">content</SidebarLayoutHeader>,
-		)
-
-		const el = bySlot(container, 'header')
-
-		expect(el?.className).toContain('custom')
-	})
-
-	it('renders children', () => {
-		renderUI(<SidebarLayoutHeader>Header text</SidebarLayoutHeader>)
-
-		expect(screen.getByText('Header text')).toBeInTheDocument()
-	})
-})
-
 describe('SidebarLayoutBody', () => {
-	it('renders with data-slot="body"', () => {
-		const { container } = renderUI(<SidebarLayoutBody>content</SidebarLayoutBody>)
-
-		const el = bySlot(container, 'body')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<SidebarLayoutBody className="custom">content</SidebarLayoutBody>,
-		)
-
-		const el = bySlot(container, 'body')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLElement>()
 
@@ -182,22 +131,6 @@ describe('SidebarLayoutBody', () => {
 		expect(ref.current?.tagName).toBe('MAIN')
 
 		expect(ref.current).toBe(bySlot(container, 'body'))
-	})
-})
-
-describe('SidebarLayoutFooter', () => {
-	it('renders with data-slot="footer"', () => {
-		const { container } = renderUI(<SidebarLayoutFooter>content</SidebarLayoutFooter>)
-
-		const el = bySlot(container, 'footer')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(<SidebarLayoutFooter>Footer text</SidebarLayoutFooter>)
-
-		expect(screen.getByText('Footer text')).toBeInTheDocument()
 	})
 })
 

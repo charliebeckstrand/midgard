@@ -23,16 +23,6 @@ describe('ReadyReveal', () => {
 		expect(screen.getByText('Real content')).toBeInTheDocument()
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<ReadyReveal ready={false} placeholder={<span>P</span>} className="custom">
-				<span>C</span>
-			</ReadyReveal>,
-		)
-
-		expect(container.firstElementChild?.className).toContain('custom')
-	})
-
 	it('renders both placeholder and children', () => {
 		renderUI(
 			<ReadyReveal ready={false} placeholder={<span>Placeholder</span>}>

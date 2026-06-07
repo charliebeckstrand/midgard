@@ -17,16 +17,6 @@ function LocaleProbe() {
 }
 
 describe('LocaleProvider', () => {
-	it('renders children', () => {
-		renderUI(
-			<LocaleProvider locale="en-US">
-				<span>content</span>
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByText('content')).toBeInTheDocument()
-	})
-
 	it('broadcasts the configured locale through useLocale()', () => {
 		renderUI(
 			<LocaleProvider

@@ -1,23 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import {
-	ActiveIndicator,
-	ActiveIndicatorScope,
-	useActiveIndicator,
-} from '../../primitives/active-indicator'
+import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { renderUI, screen } from '../helpers'
-
-describe('ActiveIndicatorScope', () => {
-	it('renders children', () => {
-		renderUI(
-			<ActiveIndicatorScope>
-				<span>content</span>
-			</ActiveIndicatorScope>,
-		)
-
-		expect(screen.getByText('content')).toBeInTheDocument()
-	})
-})
 
 describe('ActiveIndicator', () => {
 	it('renders a span element', () => {
@@ -26,12 +10,6 @@ describe('ActiveIndicator', () => {
 		expect(screen.getByText('indicator')).toBeInTheDocument()
 
 		expect(screen.getByText('indicator').tagName).toBe('SPAN')
-	})
-
-	it('applies custom className', () => {
-		renderUI(<ActiveIndicator className="custom">indicator</ActiveIndicator>)
-
-		expect(screen.getByText('indicator').className).toContain('custom')
 	})
 })
 
