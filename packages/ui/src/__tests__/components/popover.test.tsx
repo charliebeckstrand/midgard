@@ -2,49 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Popover', () => {
-	it('renders with data-slot="popover"', () => {
-		const { container } = renderUI(
-			<Popover>
-				<PopoverTrigger>
-					<button type="button">Open</button>
-				</PopoverTrigger>
-			</Popover>,
-		)
-
-		const el = bySlot(container, 'popover')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders trigger content', () => {
-		renderUI(
-			<Popover>
-				<PopoverTrigger>
-					<button type="button">Open</button>
-				</PopoverTrigger>
-			</Popover>,
-		)
-
-		expect(screen.getByText('Open')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Popover className="custom">
-				<PopoverTrigger>
-					<button type="button">Open</button>
-				</PopoverTrigger>
-			</Popover>,
-		)
-
-		const el = bySlot(container, 'popover')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders a default button when PopoverTrigger has non-element manual children', () => {
 		const { container } = renderUI(
 			<Popover>

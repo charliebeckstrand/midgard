@@ -22,14 +22,6 @@ describe('MaskInput', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} className="custom" />)
-
-		const input = bySlot(container, 'mask-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

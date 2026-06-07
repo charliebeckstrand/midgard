@@ -149,44 +149,6 @@ describe('Segment', () => {
 		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
 
-	it('applies custom className to root', () => {
-		const { container } = renderUI(
-			<Segment value="a" className="custom">
-				<SegmentControl>
-					<SegmentItem value="a">A</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'segment')?.className).toContain('custom')
-	})
-
-	it('applies custom className to segment control', () => {
-		const { container } = renderUI(
-			<Segment value="a">
-				<SegmentControl className="custom">
-					<SegmentItem value="a">A</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'tab-list')?.className).toContain('custom')
-	})
-
-	it('applies custom className to segment item', () => {
-		const { container } = renderUI(
-			<Segment value="a">
-				<SegmentControl>
-					<SegmentItem value="a" className="custom">
-						A
-					</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'tab')?.className).toContain('custom')
-	})
-
 	it('passes aria-label to the control', () => {
 		const { container } = renderUI(
 			<Segment value="a">

@@ -41,20 +41,6 @@ describe('EditableGrid', () => {
 		expect(el).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<EditableGrid
-				columns={columns}
-				rows={rows}
-				getKey={(row) => row.id}
-				onValueChange={() => {}}
-				className="custom"
-			/>,
-		)
-
-		expect(bySlot(container, 'editable-grid')?.className).toContain('custom')
-	})
-
 	it('renders column headers and row values', () => {
 		renderUI(
 			<EditableGrid

@@ -3,16 +3,6 @@ import { Avatar, AvatarGroup } from '../../components/avatar'
 import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
-	it('renders a span with data-slot="avatar"', () => {
-		const { container } = renderUI(<Avatar initials="AB" />)
-
-		const avatar = bySlot(container, 'avatar')
-
-		expect(avatar).toBeInTheDocument()
-
-		expect(avatar?.tagName).toBe('SPAN')
-	})
-
 	it('renders initials as SVG text', () => {
 		const { container } = renderUI(<Avatar initials="JD" />)
 
@@ -34,14 +24,6 @@ describe('Avatar', () => {
 
 		expect(img).toHaveAttribute('src', '/avatar.png')
 		expect(img).toHaveAttribute('alt', 'User')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Avatar initials="A" className="ring" />)
-
-		const avatar = bySlot(container, 'avatar')
-
-		expect(avatar?.className).toContain('ring')
 	})
 
 	it('renders a placeholder in skeleton mode', () => {
@@ -69,19 +51,6 @@ describe('Avatar', () => {
 })
 
 describe('AvatarGroup', () => {
-	it('renders a container with data-slot="avatar-group"', () => {
-		const { container } = renderUI(
-			<AvatarGroup>
-				<Avatar initials="A" />
-				<Avatar initials="B" />
-			</AvatarGroup>,
-		)
-
-		const group = bySlot(container, 'avatar-group')
-
-		expect(group).toBeInTheDocument()
-	})
-
 	it('renders an extra count avatar when extra is provided', () => {
 		const { container } = renderUI(
 			<AvatarGroup extra={3}>

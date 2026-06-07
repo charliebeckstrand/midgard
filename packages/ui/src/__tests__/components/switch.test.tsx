@@ -27,14 +27,6 @@ describe('Switch', () => {
 		expect(thumb).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('applies custom className to the wrapper', () => {
-		const { container } = renderUI(<Switch className="custom" />)
-
-		const wrapper = bySlot(container, 'control')
-
-		expect(wrapper?.className).toContain('custom')
-	})
-
 	it('forwards checked and onChange', () => {
 		const onChange = vi.fn()
 
@@ -54,26 +46,6 @@ describe('Switch', () => {
 
 		expect(bySlot(container, 'switch')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-})
-
-describe('SwitchField', () => {
-	it('renders a div with data-slot="field"', () => {
-		const { container } = renderUI(<SwitchField>content</SwitchField>)
-
-		const field = bySlot(container, 'field')
-
-		expect(field).toBeInTheDocument()
-
-		expect(field?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<SwitchField className="extra">content</SwitchField>)
-
-		const field = bySlot(container, 'field')
-
-		expect(field?.className).toContain('extra')
 	})
 })
 

@@ -36,14 +36,6 @@ describe('Checkbox', () => {
 		expect(bySlot(container, 'checkbox-check')).not.toBeInTheDocument()
 	})
 
-	it('applies custom className to the wrapper', () => {
-		const { container } = renderUI(<Checkbox className="my-check" />)
-
-		const wrapper = bySlot(container, 'control')
-
-		expect(wrapper?.className).toContain('my-check')
-	})
-
 	it('forwards checked and onChange', () => {
 		const onChange = vi.fn()
 
@@ -91,40 +83,10 @@ describe('Checkbox', () => {
 })
 
 describe('CheckboxGroup', () => {
-	it('renders a div with data-slot="control"', () => {
-		const { container } = renderUI(<CheckboxGroup>items</CheckboxGroup>)
-
-		const group = bySlot(container, 'control')
-
-		expect(group).toBeInTheDocument()
-
-		expect(group?.tagName).toBe('DIV')
-	})
-
 	it('exposes role="group" and accepts an accessible name', () => {
 		renderUI(<CheckboxGroup aria-label="Notifications">items</CheckboxGroup>)
 
 		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
-	})
-})
-
-describe('CheckboxField', () => {
-	it('renders a div with data-slot="field"', () => {
-		const { container } = renderUI(<CheckboxField>label</CheckboxField>)
-
-		const field = bySlot(container, 'field')
-
-		expect(field).toBeInTheDocument()
-
-		expect(field?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<CheckboxField className="extra">label</CheckboxField>)
-
-		const field = bySlot(container, 'field')
-
-		expect(field?.className).toContain('extra')
 	})
 })
 

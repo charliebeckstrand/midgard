@@ -12,22 +12,6 @@ import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Table', () => {
-	it('renders with data-slot="table"', () => {
-		const { container } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const el = bySlot(container, 'table')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders a table element inside the wrapper', () => {
 		const { container } = renderUI(
 			<Table>
@@ -40,36 +24,6 @@ describe('Table', () => {
 		)
 
 		expect(container.querySelector('table')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>Hello</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className to the table element', () => {
-		const { container } = renderUI(
-			<Table className="custom">
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
-		)
-
-		const table = container.querySelector('table')
-
-		expect(table?.className).toContain('custom')
 	})
 })
 

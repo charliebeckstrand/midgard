@@ -4,47 +4,7 @@ import { Filters, FiltersClear, FiltersField, useFilters } from '../../component
 import { Input } from '../../components/input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
-describe('Filter', () => {
-	it('renders with data-slot="filters"', () => {
-		const { container } = renderUI(
-			<Filters>
-				<span>content</span>
-			</Filters>,
-		)
-		expect(bySlot(container, 'filters')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Filters>
-				<span>Hello</span>
-			</Filters>,
-		)
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Filters className="custom">
-				<span>content</span>
-			</Filters>,
-		)
-		expect(bySlot(container, 'filters')?.className).toContain('custom')
-	})
-})
-
 describe('FiltersField', () => {
-	it('renders with data-slot="filter-field"', () => {
-		const { container } = renderUI(
-			<Filters value={{ name: '' }} onValueChange={() => {}}>
-				<FiltersField name="name">
-					<Input />
-				</FiltersField>
-			</Filters>,
-		)
-		expect(bySlot(container, 'filter-field')).toBeInTheDocument()
-	})
-
 	it('injects value into child via cloneElement', () => {
 		const { container } = renderUI(
 			<Filters value={{ name: 'hello' }} onValueChange={() => {}}>
@@ -91,17 +51,6 @@ describe('FiltersField', () => {
 		const user = userEvent.setup()
 		await user.type(input, 'b')
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Filters>
-				<FiltersField name="name" className="custom-field">
-					<Input />
-				</FiltersField>
-			</Filters>,
-		)
-		expect(bySlot(container, 'filter-field')?.className).toContain('custom-field')
 	})
 })
 

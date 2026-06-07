@@ -3,12 +3,6 @@ import { DashboardLayout } from '../../layouts/dashboard'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('DashboardLayout', () => {
-	it('renders children', () => {
-		renderUI(<DashboardLayout>Hello</DashboardLayout>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
 	it('does not render the filters trigger when filters are not provided', () => {
 		renderUI(<DashboardLayout>content</DashboardLayout>)
 

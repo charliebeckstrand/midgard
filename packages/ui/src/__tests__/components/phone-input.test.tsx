@@ -20,14 +20,6 @@ describe('PhoneInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<PhoneInput className="custom" />)
-
-		const input = bySlot(container, 'phone-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

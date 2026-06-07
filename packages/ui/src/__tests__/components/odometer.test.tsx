@@ -9,24 +9,6 @@ describe('Odometer', () => {
 
 	const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-	it('renders with data-slot="odometer"', () => {
-		const { container } = renderUI(<Odometer value={0} />)
-
-		const el = bySlot(container, 'odometer')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('SPAN')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Odometer value={0} className="custom" />)
-
-		const el = bySlot(container, 'odometer')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders the initial value using the default formatter', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
 

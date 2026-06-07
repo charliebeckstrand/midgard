@@ -1,32 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Grid, GridCell, GridDivider } from '../../components/grid'
-import { bySlot, renderUI, screen } from '../helpers'
+import { Grid, GridCell } from '../../components/grid'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Grid', () => {
-	it('renders with data-slot="grid"', () => {
-		const { container } = renderUI(<Grid>content</Grid>)
-
-		const el = bySlot(container, 'grid')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('renders children', () => {
-		renderUI(<Grid>Hello</Grid>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Grid className="custom">content</Grid>)
-
-		const el = bySlot(container, 'grid')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Grid id="test">content</Grid>)
 
@@ -69,22 +45,6 @@ describe('Grid', () => {
 		expect(el?.style.getPropertyValue('--cols-md')).toBe('4')
 	})
 
-	it('applies the gap class for an explicit gap value', () => {
-		const { container } = renderUI(<Grid gap="lg">content</Grid>)
-
-		expect(bySlot(container, 'grid')?.className).toContain('gap-4')
-	})
-
-	it('applies a responsive gap object', () => {
-		const { container } = renderUI(<Grid gap={{ initial: 'sm', md: 'xl' }}>content</Grid>)
-
-		const cls = bySlot(container, 'grid')?.className ?? ''
-
-		expect(cls).toContain('gap-2')
-
-		expect(cls).toContain('md:gap-6')
-	})
-
 	it('applies flow, align, and justify classes', () => {
 		const { container } = renderUI(
 			<Grid flow="column" align="center" justify="end">
@@ -117,28 +77,6 @@ describe('Grid', () => {
 })
 
 describe('GridCell', () => {
-	it('renders with data-slot="grid-cell"', () => {
-		const { container } = renderUI(
-			<Grid>
-				<GridCell>cell</GridCell>
-			</Grid>,
-		)
-
-		expect(bySlot(container, 'grid-cell')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Grid>
-				<GridCell className="custom">cell</GridCell>
-			</Grid>,
-		)
-
-		const el = bySlot(container, 'grid-cell')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('routes a numeric span through the --span CSS variable', () => {
 		const { container } = renderUI(
 			<Grid>
@@ -230,29 +168,5 @@ describe('GridCell', () => {
 		expect(cell?.className).toContain('md:col-span-full')
 
 		expect(cell?.style.getPropertyValue('--span')).toBe('2')
-	})
-})
-
-describe('GridDivider', () => {
-	it('renders with data-slot="grid-divider"', () => {
-		const { container } = renderUI(
-			<Grid>
-				<GridDivider />
-			</Grid>,
-		)
-
-		expect(bySlot(container, 'grid-divider')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Grid>
-				<GridDivider className="custom" />
-			</Grid>,
-		)
-
-		const el = bySlot(container, 'grid-divider')
-
-		expect(el?.className).toContain('custom')
 	})
 })

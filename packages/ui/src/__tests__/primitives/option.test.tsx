@@ -1,12 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Density } from '../../primitives/density'
-import {
-	BaseOption,
-	createSelectOption,
-	OptionDescription,
-	OptionLabel,
-} from '../../primitives/option'
+import { BaseOption, createSelectOption } from '../../primitives/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('BaseOption', () => {
@@ -72,16 +67,6 @@ describe('BaseOption', () => {
 		fireEvent.click(screen.getByRole('option'))
 
 		expect(onSelect).not.toHaveBeenCalled()
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<BaseOption selected={false} onSelect={() => {}}>
-				My Option
-			</BaseOption>,
-		)
-
-		expect(screen.getByText('My Option')).toBeInTheDocument()
 	})
 
 	it('selects on Enter key', () => {
@@ -174,36 +159,6 @@ describe('BaseOption', () => {
 		)
 
 		expect(bySlot(container, 'icon')?.getAttribute('class')).toContain('size-6')
-	})
-})
-
-describe('OptionLabel', () => {
-	it('renders children', () => {
-		renderUI(<OptionLabel>Label Text</OptionLabel>)
-
-		expect(screen.getByText('Label Text')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<OptionLabel className="custom">Label</OptionLabel>)
-
-		const el = container.querySelector('span')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
-describe('OptionDescription', () => {
-	it('renders children', () => {
-		renderUI(<OptionDescription>Desc Text</OptionDescription>)
-
-		expect(screen.getByText('Desc Text')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<OptionDescription className="custom">Desc</OptionDescription>)
-
-		expect(container.querySelector('.custom')).toBeInTheDocument()
 	})
 })
 

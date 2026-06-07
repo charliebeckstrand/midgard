@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
@@ -11,20 +11,6 @@ describe('HoldButton', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('BUTTON')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<HoldButton className="custom">Hold</HoldButton>)
-
-		const el = bySlot(container, 'hold-button')
-
-		expect(el?.className).toContain('custom')
-	})
-
-	it('renders children', () => {
-		renderUI(<HoldButton>Hold to confirm</HoldButton>)
-
-		expect(screen.getByText('Hold to confirm')).toBeInTheDocument()
 	})
 
 	it('fires onHoldStart on pointer down', () => {

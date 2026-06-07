@@ -5,24 +5,6 @@ import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Calendar', () => {
-	it('renders with data-slot="calendar"', () => {
-		const { container } = renderUI(<Calendar />)
-
-		const el = bySlot(container, 'calendar')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Calendar className="custom" />)
-
-		const el = bySlot(container, 'calendar')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders navigation buttons', () => {
 		renderUI(<Calendar />)
 

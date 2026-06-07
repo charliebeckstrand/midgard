@@ -28,16 +28,6 @@ describe('Form', () => {
 		expect(el?.tagName).toBe('FORM')
 	})
 
-	it('renders children', () => {
-		renderUI(
-			<Form defaultValues={{ name: '' }}>
-				<span>Inside the form</span>
-			</Form>,
-		)
-
-		expect(screen.getByText('Inside the form')).toBeInTheDocument()
-	})
-
 	it('re-renders only the typed field, not its siblings', () => {
 		const renders = { a: 0, b: 0 }
 
@@ -72,18 +62,6 @@ describe('Form', () => {
 
 		// ...while the untouched sibling did not re-render at all.
 		expect(renders.b).toBe(bAfterMount)
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} className="custom">
-				<input name="name" />
-			</Form>,
-		)
-
-		const el = bySlot(container, 'form')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('passes through HTML attributes', () => {

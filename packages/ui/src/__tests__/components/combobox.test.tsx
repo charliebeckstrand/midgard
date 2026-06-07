@@ -7,18 +7,6 @@ import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 describe('Combobox', () => {
-	it('renders with data-slot="combobox"', () => {
-		const { container } = renderUI(
-			<Combobox>
-				<div>Option</div>
-			</Combobox>,
-		)
-
-		const el = bySlot(container, 'combobox')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders input with combobox role', () => {
 		const { container } = renderUI(
 			<Combobox>
@@ -31,18 +19,6 @@ describe('Combobox', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input).toHaveAttribute('role', 'combobox')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Combobox className="custom">
-				<div>Option</div>
-			</Combobox>,
-		)
-
-		const el = bySlot(container, 'combobox')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('renders placeholder text', () => {

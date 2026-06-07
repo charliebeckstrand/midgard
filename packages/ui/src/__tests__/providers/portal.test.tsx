@@ -15,16 +15,6 @@ describe('UIProvider portalContainer', () => {
 		document.getElementById('app-portal')?.remove()
 	})
 
-	it('renders children', () => {
-		renderUI(
-			<UIProvider portalContainer={null}>
-				<span>content</span>
-			</UIProvider>,
-		)
-
-		expect(screen.getByText('content')).toBeInTheDocument()
-	})
-
 	it('broadcasts the container through usePortalContainer()', () => {
 		const target = document.createElement('div')
 

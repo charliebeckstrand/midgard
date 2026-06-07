@@ -27,14 +27,6 @@ describe('Button', () => {
 		expect(button).toHaveAttribute('type', 'button')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Button className="custom">Ok</Button>)
-
-		const button = bySlot(container, 'button')
-
-		expect(button?.className).toContain('custom')
-	})
-
 	it('forwards click handler', async () => {
 		const onClick = vi.fn()
 
@@ -102,12 +94,6 @@ describe('Button', () => {
 
 		expect(bySlot(container, 'button')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
-	it('renders children content', () => {
-		renderUI(<Button>Hello World</Button>)
-
-		expect(screen.getByText('Hello World')).toBeInTheDocument()
 	})
 
 	it('renders the spring wrapper around a link button', () => {

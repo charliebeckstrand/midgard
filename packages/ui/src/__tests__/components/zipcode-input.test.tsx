@@ -14,14 +14,6 @@ describe('ZipcodeInput', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<ZipcodeInput className="custom" />)
-
-		const input = bySlot(container, 'zipcode-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

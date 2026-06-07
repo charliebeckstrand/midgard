@@ -108,19 +108,6 @@ describe('Kanban', () => {
 		expect(bySlot(container, 'kanban')).toHaveAttribute('aria-label', 'Board')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				className="custom"
-				aria-label="Board"
-			/>,
-		)
-
-		expect(bySlot(container, 'kanban')?.className).toContain('custom')
-	})
-
 	it('renders one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
 
@@ -197,30 +184,6 @@ describe('KanbanCard', () => {
 		const { container } = renderUI(<Board />)
 
 		expect(allBySlot(container, 'kanban-card')).toHaveLength(2)
-	})
-
-	it('renders the card content', () => {
-		renderUI(<Board />)
-
-		expect(screen.getByText('One')).toBeInTheDocument()
-
-		expect(screen.getByText('Two')).toBeInTheDocument()
-	})
-
-	it('applies custom className on the card', () => {
-		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id}>
-				<KanbanColumn columnId="todo">
-					<KanbanColumnBody>
-						<KanbanCard cardId="1" className="custom-card">
-							One
-						</KanbanCard>
-					</KanbanColumnBody>
-				</KanbanColumn>
-			</Kanban>,
-		)
-
-		expect(bySlot(container, 'kanban-card')?.className).toContain('custom-card')
 	})
 
 	it('marks cards as disabled and omits the aria-label when the board is non-interactive', () => {

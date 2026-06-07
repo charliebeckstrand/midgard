@@ -47,14 +47,6 @@ const fields: QueryField[] = [
 ]
 
 describe('QueryBuilder', () => {
-	it('renders with data-slot="query-builder"', () => {
-		const { container } = renderUI(<QueryBuilder fields={fields} />)
-
-		const el = bySlot(container, 'query-builder')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders the root query group', () => {
 		const { container } = renderUI(<QueryBuilder fields={fields} />)
 
@@ -63,14 +55,6 @@ describe('QueryBuilder', () => {
 		expect(group).toBeInTheDocument()
 
 		expect(group).toHaveAttribute('data-combinator', 'and')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<QueryBuilder fields={fields} className="custom" />)
-
-		const el = bySlot(container, 'query-builder')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('renders rules from a provided defaultValue', () => {

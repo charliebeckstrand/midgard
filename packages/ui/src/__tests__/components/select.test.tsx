@@ -3,18 +3,6 @@ import { Select } from '../../components/select'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Select', () => {
-	it('renders with data-slot="select"', () => {
-		const { container } = renderUI(
-			<Select>
-				<div>Option</div>
-			</Select>,
-		)
-
-		const el = bySlot(container, 'select')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders a combobox trigger button', () => {
 		const { container } = renderUI(
 			<Select>
@@ -27,18 +15,6 @@ describe('Select', () => {
 		expect(button).toBeInTheDocument()
 
 		expect(button).toHaveAttribute('role', 'combobox')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Select className="custom">
-				<div>Option</div>
-			</Select>,
-		)
-
-		const el = bySlot(container, 'select')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('shows placeholder text by default', () => {

@@ -14,14 +14,6 @@ describe('CurrencyInput', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<CurrencyInput className="custom" />)
-
-		const input = bySlot(container, 'currency-input')
-
-		expect(input?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

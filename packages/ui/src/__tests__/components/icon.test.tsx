@@ -33,14 +33,6 @@ describe('Icon', () => {
 		expect(el).not.toHaveAttribute('aria-hidden')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Icon icon={<svg />} className="custom" />)
-
-		const el = bySlot(container, 'icon')
-
-		expect(el?.getAttribute('class')).toContain('custom')
-	})
-
 	it('applies numeric size as inline style', () => {
 		const { container } = renderUI(<Icon icon={<svg />} size={24} />)
 

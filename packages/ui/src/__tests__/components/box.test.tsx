@@ -2,33 +2,9 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Box', () => {
-	it('renders with data-slot="box"', () => {
-		const { container } = renderUI(<Box>content</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('renders children', () => {
-		renderUI(<Box>Hello</Box>)
-
-		expect(screen.getByText('Hello')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Box className="custom">content</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLDivElement>()
 

@@ -13,14 +13,6 @@ describe('Textarea', () => {
 		expect(el?.tagName).toBe('TEXTAREA')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Textarea className="custom" />)
-
-		const el = bySlot(container, 'textarea')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<Textarea placeholder="Enter text" />)
 

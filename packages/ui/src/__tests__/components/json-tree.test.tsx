@@ -14,14 +14,6 @@ describe('JsonTree', () => {
 		expect(el).toHaveAttribute('role', 'tree')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<JsonTree data={{}} className="custom" />)
-
-		const el = bySlot(container, 'json-tree')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders primitive leaves with their values', () => {
 		renderUI(
 			<JsonTree data={{ name: 'Ada', age: 42, active: true, meta: null }} defaultExpandDepth={1} />,

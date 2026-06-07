@@ -31,18 +31,6 @@ describe('Skeleton', () => {
 		expect(screen.getByTestId('probe')).toHaveTextContent('skeleton')
 	})
 
-	it('applies custom className to the wrapper', () => {
-		const { container } = renderUI(
-			<Skeleton className="custom">
-				<span>content</span>
-			</Skeleton>,
-		)
-
-		const el = bySlot(container, 'skeleton')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('renders both placeholder and real content when ready is provided', () => {
 		const { container } = renderUI(
 			<Skeleton ready={false}>

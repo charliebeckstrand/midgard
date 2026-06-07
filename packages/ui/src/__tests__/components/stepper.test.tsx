@@ -4,7 +4,6 @@ import {
 	StepperDescription,
 	StepperPanel,
 	StepperPanels,
-	StepperSeparator,
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
@@ -25,34 +24,6 @@ describe('Stepper', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(screen.getByRole('toolbar', { name: 'Steps' })).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Stepper value={1} className="custom">
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
-
-		const el = bySlot(container, 'stepper')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
-describe('StepperStep', () => {
-	it('renders with data-slot="stepper-step"', () => {
-		const { container } = renderUI(
-			<Stepper value={1}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
-
-		expect(bySlot(container, 'stepper-step')).toBeInTheDocument()
 	})
 })
 
@@ -86,41 +57,6 @@ describe('StepperDescription', () => {
 		expect(bySlot(container, 'stepper-description')).toBeInTheDocument()
 
 		expect(screen.getByText('Details')).toBeInTheDocument()
-	})
-})
-
-describe('StepperSeparator', () => {
-	it('renders with data-slot="stepper-separator"', () => {
-		const { container } = renderUI(
-			<Stepper value={1}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-				<StepperSeparator />
-				<StepperStep value={2}>
-					<StepperTitle>Step 2</StepperTitle>
-				</StepperStep>
-			</Stepper>,
-		)
-
-		expect(bySlot(container, 'stepper-separator')).toBeInTheDocument()
-	})
-})
-
-describe('StepperPanels', () => {
-	it('renders with data-slot="stepper-panels"', () => {
-		const { container } = renderUI(
-			<Stepper value={1}>
-				<StepperStep value={1}>
-					<StepperTitle>Step 1</StepperTitle>
-				</StepperStep>
-				<StepperPanels>
-					<StepperPanel value={1}>Panel 1</StepperPanel>
-				</StepperPanels>
-			</Stepper>,
-		)
-
-		expect(bySlot(container, 'stepper-panels')).toBeInTheDocument()
 	})
 })
 

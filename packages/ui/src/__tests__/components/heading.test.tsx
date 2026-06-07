@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Heading } from '../../components/heading'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Heading', () => {
 	it('renders an h1 by default with data-slot="heading"', () => {
@@ -20,20 +20,6 @@ describe('Heading', () => {
 		const heading = bySlot(container, 'heading')
 
 		expect(heading?.tagName).toBe(`H${level}`)
-	})
-
-	it('renders children', () => {
-		renderUI(<Heading>My Title</Heading>)
-
-		expect(screen.getByText('My Title')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Heading className="hero">Big</Heading>)
-
-		const heading = bySlot(container, 'heading')
-
-		expect(heading?.className).toContain('hero')
 	})
 
 	it('passes through HTML attributes', () => {

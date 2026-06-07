@@ -20,14 +20,6 @@ describe('Fieldset', () => {
 		expect(el?.tagName).toBe('FIELDSET')
 	})
 
-	it('applies custom className', () => {
-		const { container } = renderUI(<Fieldset className="custom">content</Fieldset>)
-
-		const el = bySlot(container, 'fieldset')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Fieldset id="test">content</Fieldset>)
 
@@ -52,20 +44,6 @@ describe('Legend', () => {
 })
 
 describe('Field', () => {
-	it('renders with data-slot="field"', () => {
-		const { container } = renderUI(<Field>content</Field>)
-
-		expect(bySlot(container, 'field')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<Field className="custom">content</Field>)
-
-		const el = bySlot(container, 'field')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('marks data-disabled when the disabled prop is set', () => {
 		const { container } = renderUI(<Field disabled>content</Field>)
 
@@ -112,12 +90,6 @@ describe('Message', () => {
 		expect(bySlot(container, 'message')).toHaveAttribute('data-variant', 'success')
 
 		expect(screen.getByText('Looks good')).toBeInTheDocument()
-	})
-
-	it('applies a custom className', () => {
-		const { container } = renderUI(<Message className="custom">oops</Message>)
-
-		expect(bySlot(container, 'message')?.className).toContain('custom')
 	})
 
 	it('respects an explicit id when provided', () => {

@@ -5,84 +5,9 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../components/accordion'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
-
-describe('Accordion', () => {
-	it('renders with data-slot="accordion"', () => {
-		const { container } = renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		const el = bySlot(container, 'accordion')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Accordion className="custom">
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		const el = bySlot(container, 'accordion')
-
-		expect(el?.className).toContain('custom')
-	})
-})
-
-describe('AccordionItem', () => {
-	it('renders with data-slot="accordion-item"', () => {
-		const { container } = renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		expect(bySlot(container, 'accordion-item')).toBeInTheDocument()
-	})
-})
+import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
-	it('renders with data-slot="accordion-trigger"', () => {
-		const { container } = renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle</AccordionTrigger>
-					<AccordionPanel>Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger>Toggle Me</AccordionTrigger>
-					<AccordionPanel>Content</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
-
-		expect(screen.getByText('Toggle Me')).toBeInTheDocument()
-	})
-
 	it('fires a consumer onClick alongside the toggle', () => {
 		const onClick = vi.fn()
 

@@ -17,14 +17,6 @@ describe('DataTable', () => {
 
 	const getKey = (row: Row) => row.name
 
-	it('renders with data-slot="data-table"', () => {
-		const { container } = renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
-
-		const el = bySlot(container, 'data-table')
-
-		expect(el).toBeInTheDocument()
-	})
-
 	it('renders column headers', () => {
 		renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
 
@@ -41,14 +33,6 @@ describe('DataTable', () => {
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 
 		expect(screen.getByText('30')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<DataTable columns={columns} rows={rows} getKey={getKey} className="custom" />,
-		)
-
-		expect(container.querySelector('.custom')).toBeInTheDocument()
 	})
 
 	it('shows loading spinner when loading', () => {

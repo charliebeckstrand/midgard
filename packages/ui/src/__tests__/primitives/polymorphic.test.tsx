@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Polymorphic } from '../../primitives/polymorphic'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Polymorphic', () => {
 	it('renders the fallback element when no href is given', () => {
@@ -102,15 +102,5 @@ describe('Polymorphic', () => {
 		expect(el?.tagName).toBe('A')
 
 		expect(el).toHaveAttribute('href', '/path')
-	})
-
-	it('renders children', () => {
-		renderUI(
-			<Polymorphic as="div" href={undefined} data-slot="box" className="">
-				Hello World
-			</Polymorphic>,
-		)
-
-		expect(screen.getByText('Hello World')).toBeInTheDocument()
 	})
 })

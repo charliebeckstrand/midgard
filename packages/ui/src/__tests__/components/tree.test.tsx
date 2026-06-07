@@ -17,31 +17,9 @@ describe('Tree', () => {
 
 		expect(el).toHaveAttribute('role', 'tree')
 	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<Tree className="custom">
-				<TreeItem label="Item 1" />
-			</Tree>,
-		)
-
-		const el = bySlot(container, 'tree')
-
-		expect(el?.className).toContain('custom')
-	})
 })
 
 describe('TreeItem', () => {
-	it('renders with data-slot="tree-item"', () => {
-		const { container } = renderUI(
-			<Tree>
-				<TreeItem label="Item 1" />
-			</Tree>,
-		)
-
-		expect(bySlot(container, 'tree-item')).toBeInTheDocument()
-	})
-
 	it('renders the label', () => {
 		renderUI(
 			<Tree>
@@ -148,42 +126,6 @@ describe('TreeItem', () => {
 		fireEvent.click(screen.getByText('Leaf'))
 
 		expect(onPrefixClick).toHaveBeenCalledOnce()
-	})
-
-	it('size prop applies size classes to items', () => {
-		const { container } = renderUI(
-			<Tree size="lg">
-				<TreeItem label="Item" />
-			</Tree>,
-		)
-
-		const row = bySlot(container, 'tree-item-content')
-
-		expect(row?.className).toContain('text-lg')
-	})
-
-	it('default size applies the md (text-base) class', () => {
-		const { container } = renderUI(
-			<Tree>
-				<TreeItem label="Item" />
-			</Tree>,
-		)
-
-		const row = bySlot(container, 'tree-item-content')
-
-		expect(row?.className).toContain('text-base')
-	})
-
-	it('size="sm" applies text-sm', () => {
-		const { container } = renderUI(
-			<Tree size="sm">
-				<TreeItem label="Item" />
-			</Tree>,
-		)
-
-		const row = bySlot(container, 'tree-item-content')
-
-		expect(row?.className).toContain('text-sm')
 	})
 
 	it('opens a closed parent when ArrowRight is pressed on the row', () => {

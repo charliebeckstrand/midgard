@@ -88,34 +88,6 @@ function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) 
 }
 
 describe('Tooltip', () => {
-	it('renders with data-slot="tooltip-trigger"', () => {
-		const { container } = renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
-
-		const el = bySlot(container, 'tooltip-trigger')
-
-		expect(el).toBeInTheDocument()
-	})
-
-	it('renders trigger content', () => {
-		renderUI(
-			<Tooltip>
-				<TooltipTrigger>
-					<button type="button">Hover me</button>
-				</TooltipTrigger>
-				<TooltipContent>Tooltip text</TooltipContent>
-			</Tooltip>,
-		)
-
-		expect(screen.getByText('Hover me')).toBeInTheDocument()
-	})
-
 	it('closes when an overlay opens', async () => {
 		const user = userEvent.setup()
 

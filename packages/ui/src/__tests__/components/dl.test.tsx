@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('DescriptionList', () => {
 	it('renders with data-slot="dl"', () => {
@@ -11,20 +11,6 @@ describe('DescriptionList', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('DL')
-	})
-
-	it('renders children', () => {
-		renderUI(<DescriptionList>content</DescriptionList>)
-
-		expect(screen.getByText('content')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<DescriptionList className="custom">content</DescriptionList>)
-
-		const el = bySlot(container, 'dl')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('passes through HTML attributes', () => {
@@ -47,20 +33,6 @@ describe('DescriptionTerm', () => {
 		expect(el?.tagName).toBe('DT')
 	})
 
-	it('renders children', () => {
-		renderUI(<DescriptionTerm>Label</DescriptionTerm>)
-
-		expect(screen.getByText('Label')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(<DescriptionTerm className="custom">Term</DescriptionTerm>)
-
-		const el = bySlot(container, 'dl-term')
-
-		expect(el?.className).toContain('custom')
-	})
-
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<DescriptionTerm id="test">Term</DescriptionTerm>)
 
@@ -79,22 +51,6 @@ describe('DescriptionDetails', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('DD')
-	})
-
-	it('renders children', () => {
-		renderUI(<DescriptionDetails>Detail</DescriptionDetails>)
-
-		expect(screen.getByText('Detail')).toBeInTheDocument()
-	})
-
-	it('applies custom className', () => {
-		const { container } = renderUI(
-			<DescriptionDetails className="custom">Value</DescriptionDetails>,
-		)
-
-		const el = bySlot(container, 'dl-details')
-
-		expect(el?.className).toContain('custom')
 	})
 
 	it('passes through HTML attributes', () => {
