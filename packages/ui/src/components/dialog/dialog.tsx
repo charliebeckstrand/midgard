@@ -5,7 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
+import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
@@ -68,8 +68,6 @@ export function Dialog({
 	// the explicit label only when there's no title.
 	const ariaLabelledBy = panelAriaProps['aria-labelledby']
 
-	const closeValue = usePanelCloseValue(onOpenChange)
-
 	return (
 		<Overlay
 			open={open}
@@ -95,9 +93,9 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelCloseContext value={closeValue}>
-						<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
-					</PanelCloseContext>
+					<PanelProviders onOpenChange={onOpenChange} a11y={providerValue}>
+						{children}
+					</PanelProviders>
 				</motion.div>
 			</div>
 		</Overlay>

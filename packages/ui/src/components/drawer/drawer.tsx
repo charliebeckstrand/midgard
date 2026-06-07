@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
+import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
@@ -46,8 +46,6 @@ export function Drawer({
 
 	const resolvedSize = size ?? inherited.size
 
-	const closeValue = usePanelCloseValue(onOpenChange)
-
 	return (
 		<Overlay
 			open={open}
@@ -62,13 +60,11 @@ export function Drawer({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
-				<PanelCloseContext value={closeValue}>
-					<PanelA11yContext value={providerValue}>
-						<Density density={resolvedSize} size={resolvedSize}>
-							{children}
-						</Density>
-					</PanelA11yContext>
-				</PanelCloseContext>
+				<PanelProviders onOpenChange={onOpenChange} a11y={providerValue}>
+					<Density density={resolvedSize} size={resolvedSize}>
+						{children}
+					</Density>
+				</PanelProviders>
 			</motion.div>
 		</Overlay>
 	)
