@@ -44,7 +44,12 @@ export const k = defineRecipe(
 		// `bare`. Its `outline-none` sets `--tw-outline-style: none`, which would
 		// poison bare's outset `focus-visible:outline-*` to `outline-style: none`.
 		variant: {
-			solid: focus.inset,
+			// solid fills paint `ring-blue-600` from `focus.inset` onto a same-token
+			// `bg-blue-600` (and equivalents), so the ring vanishes into the fill.
+			// `ring-current` retints it to the foreground — white on zinc/red/green/
+			// blue, amber-950 on amber — which the contrast suite already proves
+			// clears AA against each fill. tailwind-merge lets it supersede the blue.
+			solid: [focus.inset, 'focus-visible:ring-current'],
 			soft: focus.inset,
 			outline: ['ring-1 ring-inset', focus.inset],
 			plain: focus.inset,
