@@ -90,6 +90,60 @@ describe('Combobox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
+	it('toggles the panel and shows a pointer cursor on the default chevron', async () => {
+		const { container } = renderUI(
+			<Combobox<string> displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const suffix = bySlot(container, 'suffix')
+
+		// The chevron is a mouse convenience, so it reads as clickable.
+		expect(suffix?.className).toContain('cursor-pointer')
+
+		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// mousedown (not click) carries the toggle so focus never leaves the input.
+		fireEvent.mouseDown(icon)
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+
+		fireEvent.mouseDown(icon)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('leaves the default chevron inert and not-allowed when disabled', () => {
+		const { container } = renderUI(
+			<Combobox<string> disabled displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const suffix = bySlot(container, 'suffix')
+
+		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// The disabled input is a sibling, so the cursor flips via the frame group.
+		expect(suffix?.className).toContain('group-has-[:disabled]/control:cursor-not-allowed')
+
+		const frame = bySlot(container, 'control-frame')
+
+		expect(frame?.contains(suffix ?? null)).toBe(true)
+		expect(frame?.querySelector(':disabled')).toBe(bySlot(container, 'combobox-input'))
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(
 			<Combobox>
