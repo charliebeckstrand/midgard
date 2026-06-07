@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { collectSnippetImports, readSnippet, reindent } from '../../../docs/derive-code/snippet'
-import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
-
-function contextWithRegistry(byName: Map<string, ComponentInfo>): Context {
-	return {
-		registry: { byType: { get: () => undefined }, byName },
-		imports: new Map(),
-	}
-}
+import { makeContext } from './helpers'
 
 describe('readSnippet', () => {
 	it('returns the `__code` string attached to a function', () => {
@@ -114,12 +107,12 @@ describe('reindent', () => {
 
 describe('collectSnippetImports', () => {
 	it('collects UI component imports from JSX opening tags via the registry', () => {
-		const context = contextWithRegistry(
-			new Map([
+		const context = makeContext({
+			byName: new Map([
 				['Stack', { name: 'Stack', module: 'stack' }],
 				['FileUpload', { name: 'FileUpload', module: 'file-upload' }],
 			]),
-		)
+		})
 
 		collectSnippetImports('<Stack><FileUpload /></Stack>', context)
 
@@ -129,7 +122,7 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('ignores PascalCase tags that the registry does not recognize', () => {
-		const context = contextWithRegistry(new Map())
+		const context = makeContext({ byName: new Map() })
 
 		collectSnippetImports('<UnknownThing />', context)
 
@@ -137,7 +130,7 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('collects React hooks via bare identifier use', () => {
-		const context = contextWithRegistry(new Map())
+		const context = makeContext({ byName: new Map() })
 
 		collectSnippetImports('const [v, setV] = useState(0)', context)
 
@@ -145,7 +138,7 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('collects React 19 hooks (use, useActionState, useOptimistic, useFormStatus)', () => {
-		const context = contextWithRegistry(new Map())
+		const context = makeContext({ byName: new Map() })
 
 		const body = [
 			'const data = use(promise)',
@@ -168,7 +161,7 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('does not mistake method calls for React hooks (lookbehind on `.`)', () => {
-		const context = contextWithRegistry(new Map())
+		const context = makeContext({ byName: new Map() })
 
 		collectSnippetImports('router.use(plugin)', context)
 
@@ -176,7 +169,7 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('does not import non-React hook-shaped identifiers (e.g. useFoo)', () => {
-		const context = contextWithRegistry(new Map())
+		const context = makeContext({ byName: new Map() })
 
 		collectSnippetImports('const v = useFoo()', context)
 
@@ -184,7 +177,9 @@ describe('collectSnippetImports', () => {
 	})
 
 	it('dedupes repeated matches into a single import entry', () => {
-		const context = contextWithRegistry(new Map([['Stack', { name: 'Stack', module: 'stack' }]]))
+		const context = makeContext({
+			byName: new Map([['Stack', { name: 'Stack', module: 'stack' }]]),
+		})
 
 		collectSnippetImports('<Stack><Stack /></Stack>', context)
 

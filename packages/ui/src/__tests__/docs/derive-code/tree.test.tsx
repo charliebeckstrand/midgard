@@ -7,33 +7,7 @@ import {
 	isPassThrough,
 	isPrimitive,
 } from '../../../docs/derive-code/tree'
-import type { ComponentInfo, Context } from '../../../docs/derive-code/types'
-
-function tag<P>(name: string, mod: string): FunctionComponent<P> {
-	const Component: FunctionComponent<P> = () => null
-
-	Object.assign(Component, { __name: name, __module: mod, displayName: name })
-
-	return Component
-}
-
-function contextWithTagReader(): Context {
-	return {
-		registry: {
-			byType: {
-				get: (type) => {
-					const t = type as { __name?: string; __module?: string }
-
-					if (typeof t?.__name !== 'string' || typeof t?.__module !== 'string') return undefined
-
-					return { name: t.__name, module: t.__module } as ComponentInfo
-				},
-			},
-			byName: new Map(),
-		},
-		imports: new Map(),
-	}
-}
+import { makeContext, tag } from './helpers'
 
 describe('isPrimitive', () => {
 	it('accepts strings, numbers, and booleans', () => {
@@ -154,13 +128,13 @@ describe('getElementName', () => {
 	it('returns the registry name for a recognized component', () => {
 		const Button = tag('Button', 'button')
 
-		const context = contextWithTagReader()
+		const context = makeContext()
 
 		expect(getElementName(createElement(Button), context)).toBe('Button')
 	})
 
 	it('returns the tag name for an intrinsic element', () => {
-		const context = contextWithTagReader()
+		const context = makeContext()
 
 		expect(getElementName(createElement('div'), context)).toBe('div')
 	})
@@ -168,7 +142,7 @@ describe('getElementName', () => {
 	it('returns null for an unrecognized non-intrinsic component', () => {
 		const Unknown = (() => null) as FunctionComponent
 
-		const context = contextWithTagReader()
+		const context = makeContext()
 
 		expect(getElementName(createElement(Unknown), context)).toBeNull()
 	})

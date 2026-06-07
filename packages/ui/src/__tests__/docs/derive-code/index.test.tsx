@@ -1,15 +1,8 @@
-import { createElement, type FunctionComponent } from 'react'
+import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { deriveCode } from '../../docs/derive-code'
-import { GlassProvider } from '../../providers/glass'
-
-function tag<P>(name: string, mod: string): FunctionComponent<P> {
-	const Component: FunctionComponent<P> = () => null
-
-	Object.assign(Component, { __name: name, __module: mod, displayName: name })
-
-	return Component
-}
+import { deriveCode } from '../../../docs/derive-code'
+import { GlassProvider } from '../../../providers/glass'
+import { tag } from './helpers'
 
 describe('deriveCode iteration vs authored siblings', () => {
 	const Group = tag<{ size?: string; children?: unknown }>('Group', 'group')
