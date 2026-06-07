@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAnnounce } from '../../providers/announcer'
+import { announce } from '../../core'
 
 type CopyStateOptions = {
 	value: string
@@ -21,8 +21,6 @@ export function useCopyButtonState({
 	onCopiedChange,
 }: CopyStateOptions): CopyStateResult {
 	const [copied, setCopied] = useState(false)
-
-	const announce = useAnnounce()
 
 	const onCopiedChangeRef = useRef(onCopiedChange)
 
@@ -45,7 +43,7 @@ export function useCopyButtonState({
 			// Clipboard write failed (denied permission, insecure context, missing
 			// API). Don't flip into the success state — the button must not lie.
 		}
-	}, [value, announce])
+	}, [value])
 
 	useEffect(() => {
 		if (!copied) return

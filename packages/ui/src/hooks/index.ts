@@ -1,4 +1,5 @@
 export {
+	type A11yAnnouncementsOptions,
 	type A11yControl,
 	type A11yDisclosure,
 	type A11yDisclosureOptions,
@@ -12,6 +13,7 @@ export {
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
+	useA11yAnnouncements,
 	useA11yAutoFocus,
 	useA11yControl,
 	useA11yDisclosure,

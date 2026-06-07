@@ -274,7 +274,7 @@ describe('TagInput announcements', () => {
 		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
 
 	it('announces an added tag', async () => {
-		const { container } = renderUI(<TagInput />, { announcer: true })
+		const { container } = renderUI(<TagInput />)
 
 		const user = userEvent.setup()
 
@@ -284,9 +284,7 @@ describe('TagInput announcements', () => {
 	})
 
 	it('announces a removed tag', async () => {
-		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />, {
-			announcer: true,
-		})
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
 		const user = userEvent.setup()
 
@@ -296,7 +294,7 @@ describe('TagInput announcements', () => {
 	})
 
 	it('names the reason when a duplicate is rejected', async () => {
-		const { container } = renderUI(<TagInput defaultValue={['react']} />, { announcer: true })
+		const { container } = renderUI(<TagInput defaultValue={['react']} />)
 
 		const user = userEvent.setup()
 
@@ -306,9 +304,7 @@ describe('TagInput announcements', () => {
 	})
 
 	it('names the reason when validation rejects a tag', async () => {
-		const { container } = renderUI(<TagInput validate={(tag) => tag.length >= 2} />, {
-			announcer: true,
-		})
+		const { container } = renderUI(<TagInput validate={(tag) => tag.length >= 2} />)
 
 		const user = userEvent.setup()
 

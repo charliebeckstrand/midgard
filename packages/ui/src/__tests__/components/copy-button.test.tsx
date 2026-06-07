@@ -169,7 +169,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" />, { announcer: true })
+			const { container } = renderUI(<CopyButton value="hello" />)
 
 			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
 

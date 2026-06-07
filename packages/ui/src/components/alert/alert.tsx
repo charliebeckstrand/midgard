@@ -10,9 +10,8 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { announce, cn } from '../../core'
 import { useControllable } from '../../hooks'
-import { useAnnounce } from '../../providers/announcer'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -122,8 +121,6 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
-	const announce = useAnnounce()
-
 	const alertRef = useRef<HTMLDivElement>(null)
 
 	const wasOpen = useRef(open)
@@ -145,7 +142,7 @@ export function Alert({
 		const message = alertRef.current?.textContent?.trim()
 
 		if (message) announce(message)
-	}, [open, politeSeverity, announce])
+	}, [open, politeSeverity])
 
 	if (!open) return null
 

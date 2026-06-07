@@ -1,3 +1,7 @@
+export {
+	type A11yAnnouncementsOptions,
+	useA11yAnnouncements,
+} from './use-a11y-announcements'
 export { useA11yAutoFocus } from './use-a11y-auto-focus'
 export { type A11yControl, useA11yControl } from './use-a11y-control'
 export {
