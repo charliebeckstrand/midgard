@@ -30,32 +30,42 @@ const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
  */
 type Preamble = { names: string[]; code: string; index: number }
 
+/**
+ * The PascalCase name of a JSX-returning arrow / function-expression
+ * declarator (`const Demo = () => <X />`), or null when `decl` isn't one.
+ *
+ * The JSX test runs against the initializer's own source, not the surrounding
+ * statement: a multi-declarator `const A = () => <X />, B = somethingElse`
+ * would otherwise flag B because the JSX return lives anywhere in the shared
+ * statement text. This single predicate drives both helper collection and the
+ * preamble exclusion, so the two stay in lockstep.
+ */
+function jsxHelperName(
+	decl: ts.VariableDeclaration,
+	sf: ts.SourceFile,
+	source: string,
+): string | null {
+	if (!ts.isIdentifier(decl.name)) return null
+
+	if (!/^[A-Z]/.test(decl.name.text)) return null
+
+	const init = decl.initializer
+
+	if (!init) return null
+
+	if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) return null
+
+	if (!JSX_RETURN.test(source.slice(init.getStart(sf), init.getEnd()))) return null
+
+	return decl.name.text
+}
+
 function isJsxReturningVariableStatement(
 	stmt: ts.VariableStatement,
 	sf: ts.SourceFile,
 	source: string,
 ): boolean {
-	for (const decl of stmt.declarationList.declarations) {
-		if (!ts.isIdentifier(decl.name)) continue
-
-		if (!/^[A-Z]/.test(decl.name.text)) continue
-
-		const init = decl.initializer
-
-		if (!init) continue
-
-		if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) continue
-
-		// Test the initializer's source, not the surrounding statement. A
-		// multi-declarator `const A = () => <X />, B = somethingElse` otherwise
-		// flagged both declarators because the JSX return lived anywhere in the
-		// shared statement source.
-		const initText = source.slice(init.getStart(sf), init.getEnd())
-
-		if (JSX_RETURN.test(initText)) return true
-	}
-
-	return false
+	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf, source) !== null)
 }
 
 function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
@@ -171,21 +181,13 @@ export function collectHelpers(source: string): Helper[] {
 
 		if (ts.isVariableStatement(stmt)) {
 			for (const decl of stmt.declarationList.declarations) {
-				if (!ts.isIdentifier(decl.name)) continue
+				const name = jsxHelperName(decl, sf, source)
 
-				if (!/^[A-Z]/.test(decl.name.text)) continue
-
-				const init = decl.initializer
-
-				if (!init) continue
-
-				if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) continue
+				if (!name) continue
 
 				const code = source.slice(stmt.getStart(sf), stmt.getEnd())
 
-				if (!JSX_RETURN.test(code)) continue
-
-				helpers.push({ name: decl.name.text, code: prependReferencedPreamble(code, preambles) })
+				helpers.push({ name, code: prependReferencedPreamble(code, preambles) })
 			}
 		}
 	}
