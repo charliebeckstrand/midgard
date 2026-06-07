@@ -147,7 +147,7 @@ export function Listbox<T>({
 		setValue,
 	})
 
-	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
+	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: setOpen,
@@ -244,6 +244,7 @@ export function Listbox<T>({
 				density={token.density}
 				size={token.size}
 				floatingStyles={floatingStyles}
+				context={context}
 				getFloatingProps={getFloatingProps}
 				setFloating={refs.setFloating}
 				flushPending={flushPending}

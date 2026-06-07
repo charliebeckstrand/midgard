@@ -1,8 +1,8 @@
 'use client'
 
-import { FloatingPortal } from '@floating-ui/react'
+import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import type { CSSProperties, ReactNode } from 'react'
+import { type CSSProperties, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
@@ -18,6 +18,7 @@ type ListboxPanelProps = {
 	density: ControlSize
 	size: ControlSize
 	floatingStyles: CSSProperties
+	context: FloatingRootContext
 	getFloatingProps: () => Record<string, unknown>
 	setFloating: (node: HTMLElement | null) => void
 	flushPending: () => void
@@ -39,6 +40,7 @@ export function ListboxPanel({
 	density,
 	size,
 	floatingStyles,
+	context,
 	getFloatingProps,
 	setFloating,
 	flushPending,
@@ -46,29 +48,56 @@ export function ListboxPanel({
 }: ListboxPanelProps) {
 	const root = usePortalContainer()
 
+	// The element `FloatingFocusManager` lands focus on when the panel opens:
+	// the selected option (so arrow-keys resume from the current value), else the
+	// listbox itself. Populated in the floating node's ref callback — which fires
+	// after the option children have committed — so the manager reads it before
+	// running its initial-focus effect.
+	const initialFocusRef = useRef<HTMLElement | null>(null)
+
 	return (
 		<FloatingPortal root={root ?? undefined}>
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
-					<div
-						ref={setFloating}
-						style={floatingStyles}
-						className={k.portal}
-						{...getFloatingProps()}
+					// Non-modal: focus moves into the panel on open and is contained, so
+					// Tab leaves the surface through the focus guards and `closeOnFocusOut`
+					// dismisses it (a select closes on Tab; it doesn't trap like a dialog).
+					// Return-focus stays with `useFloatingUI`'s `returnFocusTo`, hence
+					// `returnFocus={false}` here.
+					<FloatingFocusManager
+						context={context}
+						modal={false}
+						initialFocus={initialFocusRef}
+						returnFocus={false}
 					>
-						<Density density={density} size={size}>
-							<PopoverPanel
-								id={id}
-								role="listbox"
-								multiselectable={multiple || undefined}
-								typeahead
-								glass={glass}
-								className={cn(k.panel, k.options)}
-							>
-								{children}
-							</PopoverPanel>
-						</Density>
-					</div>
+						<div
+							ref={(node) => {
+								setFloating(node)
+
+								initialFocusRef.current =
+									node?.querySelector<HTMLElement>('[role="option"][data-selected]') ??
+									node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
+									node
+							}}
+							style={floatingStyles}
+							className={k.portal}
+							tabIndex={-1}
+							{...getFloatingProps()}
+						>
+							<Density density={density} size={size}>
+								<PopoverPanel
+									id={id}
+									role="listbox"
+									multiselectable={multiple || undefined}
+									typeahead
+									glass={glass}
+									className={cn(k.panel, k.options)}
+								>
+									{children}
+								</PopoverPanel>
+							</Density>
+						</div>
+					</FloatingFocusManager>
 				)}
 			</AnimatePresence>
 		</FloatingPortal>
