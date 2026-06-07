@@ -83,7 +83,6 @@ function FormExample() {
 			<Button
 				variant={ready ? 'soft' : 'outline'}
 				color={ready ? 'red' : undefined}
-				size="sm"
 				onClick={() => setReady(!ready)}
 			>
 				{ready ? 'Reset' : 'Simulate load'}
@@ -116,7 +115,6 @@ function ProfileCardExample() {
 			<Button
 				variant={ready ? 'soft' : 'outline'}
 				color={ready ? 'red' : undefined}
-				size="sm"
 				onClick={() => setReady(!ready)}
 			>
 				{ready ? 'Reset' : 'Simulate load'}
