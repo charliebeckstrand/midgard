@@ -46,9 +46,12 @@ export const k = defineRecipe(
 			// `bg-blue-600` fill (and equivalents), so the ring vanishes into the
 			// fill. `ring-current` retints it to the foreground — white on
 			// zinc/red/green/blue, amber-950 on amber — which the contrast suite
-			// already proves clears AA against each fill. tailwind-merge (base →
-			// variant) lets it supersede the blue.
-			solid: 'focus-visible:ring-current',
+			// already proves clears AA against each fill (tailwind-merge, base →
+			// variant, lets it supersede the blue). The inset offset width then
+			// floats that ring a step inside the fill (colour comes from the
+			// per-colour `solid.ringOffset` on the palette) so it reads as a focus
+			// halo, not a flush border, without ever leaving the box.
+			solid: ['focus-visible:ring-current', 'focus-visible:ring-offset-2'],
 			outline: 'ring-1 ring-inset',
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When the
@@ -91,7 +94,12 @@ export const k = defineRecipe(
 		},
 		palette: definePalette(
 			{
-				solid: [palette.solid.bg, palette.solid.text, palette.solid.hover],
+				solid: [
+					palette.solid.bg,
+					palette.solid.text,
+					palette.solid.hover,
+					palette.solid.ringOffset,
+				],
 				soft: [palette.soft.bg, palette.soft.text, palette.soft.hover],
 				outline: [palette.outline.ring, palette.outline.text, palette.outline.hover],
 				plain: [palette.plain.text, palette.plain.hover],
