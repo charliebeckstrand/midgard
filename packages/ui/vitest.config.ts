@@ -10,9 +10,14 @@ export default defineConfig({
 		sequence: { shuffle: true },
 		setupFiles: ['./src/__tests__/setup/index.ts', './src/__tests__/setup/module-mocks.ts'],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
-		// The browser suite (vitest.browser.config.ts) verifies layout/colour cases
-		// jsdom can't; it must not run under this jsdom config.
-		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**'],
+		// The browser suites verify behaviour jsdom can't — layout/colour geometry
+		// (vitest.browser.config.ts) and real-floating-engine focus trapping
+		// (vitest.browser-real.config.ts) — so neither may run under this jsdom config.
+		exclude: [
+			...configDefaults.exclude,
+			'src/__tests__/browser/**',
+			'src/__tests__/browser-real/**',
+		],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
