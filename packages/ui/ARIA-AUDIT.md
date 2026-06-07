@@ -15,7 +15,7 @@ The findings cluster into a handful of **systemic patterns** rather than scatter
 ### Headline issues
 
 1. **floating-ui `useRole` double-stamps the popup role** on `listbox`, `select`, `combobox`, and `menu` — the outer positioned wrapper gets `role="listbox"`/`"menu"` while an inner element renders the same role, producing nested duplicate widgets, and `getReferenceProps()` makes the trigger wrapper a *second* `combobox`. (Critical)
-2. **`Combobox`'s editable input moves DOM focus onto options** with no `aria-activedescendant`, breaking the APG editable-combobox contract. (Critical)
+2. ~~**`Combobox`'s editable input moves DOM focus onto options** with no `aria-activedescendant`, breaking the APG editable-combobox contract. (Critical)~~ **✅ RESOLVED** (PR #532, `a8c07ff`).
 3. **Roles ship without a required accessible name** across many group/composite components (tablist, toolbar, radiogroup, checkbox-group, slider, drawer, sheet, kanban). (High)
 4. **Placeholder used as the only label** on `QueryBuilder` selects/inputs, credit-card expiry/CVV, and address-input. (High)
 5. **State conveyed by color/CSS only** — `Stepper` completed/upcoming steps and `EditableGrid` range selection are invisible to AT. (High, WCAG 1.4.1)
@@ -44,7 +44,7 @@ The findings cluster into a handful of **systemic patterns** rather than scatter
 |---|---|---|---|
 | listbox / select | `primitives/select-trigger/select-trigger.tsx:58` | `getReferenceProps()` (role `listbox`→`combobox`) lands on the wrapper `<div>` around the real `role="combobox"` button → **two nested comboboxes**; AT can't tell which is the widget. | Route reference props to the inner control or disable floating-ui's role wiring. |
 | listbox / select | `listbox/listbox-panel.tsx:57` | `getFloatingProps()` puts `role="listbox"`+id on the outer positioned div while `PopoverPanel` (`:60`) renders another `role="listbox"` → nested listboxes, `aria-required-children` violation. | Suppress floating-ui's popup role; keep one `role="listbox"`. |
-| combobox | `combobox/combobox.tsx:158` + `use-combobox-input.ts:92` | Editable `role="combobox"` input, but arrow keys move DOM focus **onto** options (roving `mode:'focus'`) and `aria-activedescendant` is never set — breaks the APG editable-combobox contract. | Switch to virtual roving with `activeDescendantRef: inputRef` (the pattern `CommandPalette` already uses). |
+| combobox | `combobox/combobox.tsx:158` + `use-combobox-input.ts:92` | ~~Editable `role="combobox"` input, but arrow keys move DOM focus **onto** options (roving `mode:'focus'`) and `aria-activedescendant` is never set — breaks the APG editable-combobox contract.~~ **✅ RESOLVED (PR #532, `a8c07ff`)** — switched to virtual roving with `activeDescendantRef: inputRef`; highlight tracked via `data-active` + `aria-activedescendant` while `aria-selected` stays the stored value. | ~~Switch to virtual roving with `activeDescendantRef: inputRef` (the pattern `CommandPalette` already uses).~~ Done. |
 | combobox | `primitives/select-trigger/select-trigger.tsx:58` + `combobox-panel.tsx:69` | Same nested-`combobox` and nested-`listbox` role double-up as listbox. | See pattern A. |
 
 ## High
