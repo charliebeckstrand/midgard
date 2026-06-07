@@ -23,17 +23,22 @@ describe('Listbox ARIA roles (real browser)', () => {
 		)
 
 		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
 		await userEvent.click(trigger)
+
 		await waitFor(() => expect(screen.getAllByRole('listbox')).toHaveLength(1))
 
 		// The trigger is the only combobox — the positioning wrapper no longer
 		// shadows it.
 		expect(screen.getAllByRole('combobox')).toHaveLength(1)
+
 		expect(trigger.tagName).toBe('BUTTON')
 
 		// And its `aria-controls` resolves to that single listbox panel.
 		const listbox = screen.getByRole('listbox')
+
 		expect(trigger.getAttribute('aria-controls')).toBe(listbox.id)
+
 		expect(listbox.id).toBeTruthy()
 	})
 })

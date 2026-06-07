@@ -21,7 +21,9 @@ const panelSel = '[data-slot="popover-panel"]'
 const findPanel = () =>
 	waitFor(() => {
 		const el = document.querySelector<HTMLElement>(panelSel)
+
 		if (!el) throw new Error('panel not mounted')
+
 		return el
 	})
 
@@ -37,9 +39,11 @@ describe('Listbox focus (real browser)', () => {
 		)
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
 		const panel = await findPanel()
 
 		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
 		expect(document.activeElement?.getAttribute('data-selected')).toBe('true')
 	})
 
@@ -58,12 +62,15 @@ describe('Listbox focus (real browser)', () => {
 		)
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
 		const panel = await findPanel()
+
 		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
 
 		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(isOpen()).toBe(false))
+
 		expect(document.activeElement).not.toBe(document.body)
 	})
 
@@ -76,12 +83,15 @@ describe('Listbox focus (real browser)', () => {
 		)
 
 		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
 		await userEvent.click(trigger)
+
 		await findPanel()
 
 		await userEvent.keyboard('{Escape}')
 
 		await waitFor(() => expect(isOpen()).toBe(false))
+
 		await waitFor(() => expect(trigger).toHaveFocus())
 	})
 
@@ -94,12 +104,15 @@ describe('Listbox focus (real browser)', () => {
 		)
 
 		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
 		await userEvent.click(trigger)
+
 		await findPanel()
 
 		await userEvent.click(screen.getByRole('option', { name: 'A' }))
 
 		await waitFor(() => expect(isOpen()).toBe(false))
+
 		await waitFor(() => expect(trigger).toHaveFocus())
 	})
 })

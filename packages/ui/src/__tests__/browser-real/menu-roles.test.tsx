@@ -28,7 +28,9 @@ describe('Menu ARIA roles (real browser)', () => {
 		)
 
 		const trigger = screen.getByRole('button', { name: 'Open' })
+
 		await userEvent.click(trigger)
+
 		await waitFor(() => expect(screen.getAllByRole('menu')).toHaveLength(1))
 
 		const menu = screen.getByRole('menu')
@@ -36,7 +38,9 @@ describe('Menu ARIA roles (real browser)', () => {
 		// The trigger's aria-controls resolves to that single menu panel — not the
 		// positioning wrapper.
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
 		expect(trigger.getAttribute('aria-controls')).toBe(menu.id)
+
 		expect(menu.id).toBeTruthy()
 	})
 })

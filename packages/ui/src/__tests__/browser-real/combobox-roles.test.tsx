@@ -25,17 +25,22 @@ describe('Combobox ARIA roles (real browser)', () => {
 		)
 
 		const input = screen.getByRole('combobox')
+
 		await userEvent.click(input)
+
 		await waitFor(() => expect(screen.getAllByRole('listbox')).toHaveLength(1))
 
 		// The input is the only combobox — the SelectTrigger wrapper no longer
 		// shadows it.
 		expect(screen.getAllByRole('combobox')).toHaveLength(1)
+
 		expect(input.tagName).toBe('INPUT')
 
 		// And its `aria-controls` resolves to that single listbox.
 		const listbox = screen.getByRole('listbox')
+
 		expect(input.getAttribute('aria-controls')).toBe(listbox.id)
+
 		expect(listbox.id).toBeTruthy()
 	})
 })
