@@ -14,7 +14,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import type { DensityLevel } from '../../providers/density'
-import { PortalProvider } from '../../providers/portal'
+import { UIProvider } from '../../providers/ui'
 import type { ThemeMode } from '../hooks/use-theme'
 import { DensityListbox } from './density-listbox'
 import { ThemeListbox } from './theme-listbox'
@@ -32,7 +32,7 @@ type SettingsDialogProps = {
  * persist through the `useTheme` / `useDensity` hooks that own the state.
  *
  * The listbox panels are portalled into a node *inside* the dialog (via
- * `PortalProvider`) rather than `document.body`. A modal `Dialog` runs
+ * `UIProvider`'s `portalContainer`) rather than `document.body`. A modal `Dialog` runs
  * floating-ui's `markOthers`, which `aria-hidden`s every body sibling — so a
  * panel portalled to `body` lands there and vanishes from the accessibility
  * tree. Scoping the portal into the overlay subtree keeps the options reachable.
@@ -64,7 +64,7 @@ export function SettingsDialog({
 				<DialogBody>
 					<Stack gap="lg">
 						{portalRoot && (
-							<PortalProvider container={portalRoot}>
+							<UIProvider portalContainer={portalRoot}>
 								<Field>
 									<Label>Appearance</Label>
 									<ThemeListbox
@@ -81,7 +81,7 @@ export function SettingsDialog({
 										onValueChange={onDensityChange}
 									/>
 								</Field>
-							</PortalProvider>
+							</UIProvider>
 						)}
 					</Stack>
 					{/* Portal target for the listbox panels — see the note above. */}
