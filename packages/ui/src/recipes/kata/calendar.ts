@@ -74,7 +74,7 @@ export const k = {
 	day: {
 		base: 'w-full ring-inset',
 		active: [...focus.ring],
-		activeSelected: 'bg-blue-600',
+		activeSelected: ['bg-blue-600', ...focus.ring],
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},

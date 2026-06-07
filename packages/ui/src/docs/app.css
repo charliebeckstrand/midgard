@@ -10,7 +10,7 @@
 }
 
 /* Suppress browser default focus ring on mouse click.
-   Keyboard focus-visible indicators are handled by sen.focus.{ring,inset,offset}. */
+   Keyboard focus-visible indicators are handled by sen.focus.{ring,inset,outline}. */
 :focus:not(:focus-visible) {
 	outline: none !important;
 }
