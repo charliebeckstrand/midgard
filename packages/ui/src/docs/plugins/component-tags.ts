@@ -49,45 +49,66 @@ function moduleNameFor(filePath: string, srcDir: string): string | null {
 
 	if (rel[0] === 'components' && rel[2] === 'index.ts') return rel[1] ?? null
 
+	// Providers (e.g. `<GlassProvider>`) are wrappers a demo composes around the
+	// component being shown. Tagging them lets the walker render the wrapper —
+	// and its import — instead of transparently unwrapping it. Their public
+	// specifier nests (`ui/providers/glass`), so carry the full `providers/<name>`.
+	if (rel[0] === 'providers' && rel[2] === 'index.ts') return rel[1] ? `providers/${rel[1]}` : null
+
 	if (rel[0] === 'layouts' && rel[1] === 'index.ts') return 'layouts'
 
 	return null
 }
 
 /**
- * Walk every public `components/*\/index.ts` and `layouts/index.ts` at build
- * time and collect `{ name → module }` for every PascalCase value re-export.
+ * Record every PascalCase value re-export of a single index file under
+ * `moduleName`. Missing files are skipped so callers needn't pre-check.
+ */
+function collectIndexNames(
+	result: Record<string, string>,
+	indexPath: string,
+	moduleName: string,
+): void {
+	if (!fs.existsSync(indexPath)) return
+
+	for (const re of parseReExports(fs.readFileSync(indexPath, 'utf-8'), indexPath)) {
+		if (re.isType || !isPascalCase(re.exportedName)) continue
+
+		result[re.exportedName] = moduleName
+	}
+}
+
+/**
+ * Scan a directory of `<name>/index.ts` modules (components, providers),
+ * deriving each module's name from its directory via `moduleFor`.
+ */
+function collectDirNames(
+	result: Record<string, string>,
+	dir: string,
+	moduleFor: (name: string) => string,
+): void {
+	if (!fs.existsSync(dir)) return
+
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		if (!entry.isDirectory()) continue
+
+		collectIndexNames(result, path.join(dir, entry.name, 'index.ts'), moduleFor(entry.name))
+	}
+}
+
+/**
+ * Walk every public `components/*\/index.ts`, `providers/*\/index.ts`, and
+ * `layouts/index.ts` at build time and collect `{ name → module }` for every
+ * PascalCase value re-export.
  */
 function buildNameMap(srcDir: string): Record<string, string> {
 	const result: Record<string, string> = {}
 
-	const componentsDir = path.join(srcDir, 'components')
+	collectDirNames(result, path.join(srcDir, 'components'), (name) => name)
 
-	if (fs.existsSync(componentsDir)) {
-		for (const entry of fs.readdirSync(componentsDir, { withFileTypes: true })) {
-			if (!entry.isDirectory()) continue
+	collectDirNames(result, path.join(srcDir, 'providers'), (name) => `providers/${name}`)
 
-			const indexPath = path.join(componentsDir, entry.name, 'index.ts')
-
-			if (!fs.existsSync(indexPath)) continue
-
-			for (const re of parseReExports(fs.readFileSync(indexPath, 'utf-8'), indexPath)) {
-				if (re.isType || !isPascalCase(re.exportedName)) continue
-
-				result[re.exportedName] = entry.name
-			}
-		}
-	}
-
-	const layoutsIndex = path.join(srcDir, 'layouts', 'index.ts')
-
-	if (fs.existsSync(layoutsIndex)) {
-		for (const re of parseReExports(fs.readFileSync(layoutsIndex, 'utf-8'), layoutsIndex)) {
-			if (re.isType || !isPascalCase(re.exportedName)) continue
-
-			result[re.exportedName] = 'layouts'
-		}
-	}
+	collectIndexNames(result, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
 
 	return result
 }
