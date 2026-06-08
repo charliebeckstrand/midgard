@@ -28,6 +28,11 @@ export function useToastTimer(
 	}, [start])
 
 	const pause = useCallback(() => {
+		// Hover and focus both pause (onMouseEnter + onFocus). Without this guard a
+		// second pause subtracts elapsed-since-start again, collapsing the
+		// remaining time to ~0 and auto-dismissing the toast mid-interaction.
+		if (pausedRef.current) return
+
 		pausedRef.current = true
 
 		const elapsed = Date.now() - startRef.current
