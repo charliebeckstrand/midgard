@@ -97,7 +97,7 @@ export const dataDisplayCases: readonly Case[] = [
 		// role=tree with nested role=group; each item exposes its label and
 		// expanded state.
 		'tree',
-		<Tree key="tr">
+		<Tree key="tr" aria-label="File tree">
 			<TreeItem label="Documents">
 				<TreeItem label="report.pdf" />
 				<TreeItem label="budget.xlsx" />

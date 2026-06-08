@@ -251,7 +251,9 @@ export function DataTable<T>({
 				)}
 
 				{batchActions && (
-					<Toolbar>{someSelected && batchActions({ selection, setSelection })}</Toolbar>
+					<Toolbar aria-label="Batch actions">
+						{someSelected && batchActions({ selection, setSelection })}
+					</Toolbar>
 				)}
 
 				{needsScrollWrapper ? (

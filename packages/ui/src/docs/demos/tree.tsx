@@ -8,7 +8,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<Tree>
+				<Tree aria-label="Files">
 					<TreeItem label="Documents" icon={<Folder />}>
 						<TreeItem label="report.pdf" icon={<File />} />
 						<TreeItem label="budget.xlsx" icon={<File />} />
@@ -20,7 +20,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Nested">
-				<Tree>
+				<Tree aria-label="Project files">
 					<TreeItem label="src" icon={<Folder />}>
 						<TreeItem label="components" icon={<Folder />}>
 							<TreeItem label="Button.tsx" icon={<File />} />
@@ -35,7 +35,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Rich content">
-				<Tree>
+				<Tree aria-label="Media library">
 					<TreeItem label="Media" icon={<Folder />}>
 						<TreeItem label="Images" icon={<Image />}>
 							<TreeItem label="photo-001.png" icon={<Image />} />
@@ -52,7 +52,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Without icons">
-				<Tree>
+				<Tree aria-label="Animal taxonomy">
 					<TreeItem label="Animals">
 						<TreeItem label="Mammals">
 							<TreeItem label="Dog" />

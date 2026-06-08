@@ -5,7 +5,7 @@ import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 describe('Toolbar', () => {
 	it('renders children', () => {
 		renderUI(
-			<Toolbar>
+			<Toolbar aria-label="Editor">
 				<button type="button">Action</button>
 			</Toolbar>,
 		)
@@ -14,19 +14,23 @@ describe('Toolbar', () => {
 	})
 
 	it('has role="toolbar"', () => {
-		const { container } = renderUI(<Toolbar>content</Toolbar>)
+		const { container } = renderUI(<Toolbar aria-label="Editor">content</Toolbar>)
 
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('role', 'toolbar')
 	})
 
 	it('defaults to horizontal aria-orientation', () => {
-		const { container } = renderUI(<Toolbar>content</Toolbar>)
+		const { container } = renderUI(<Toolbar aria-label="Editor">content</Toolbar>)
 
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('aria-orientation', 'horizontal')
 	})
 
 	it('reflects the orientation prop on aria-orientation', () => {
-		const { container } = renderUI(<Toolbar orientation="vertical">content</Toolbar>)
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor" orientation="vertical">
+				content
+			</Toolbar>,
+		)
 
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('aria-orientation', 'vertical')
 	})
@@ -39,7 +43,7 @@ describe('Toolbar', () => {
 
 	it('moves focus to the next item on ArrowRight', () => {
 		const { container } = renderUI(
-			<Toolbar>
+			<Toolbar aria-label="Editor">
 				<button type="button">A</button>
 				<button type="button">B</button>
 			</Toolbar>,
@@ -58,7 +62,7 @@ describe('Toolbar', () => {
 
 	it('skips disabled items during keyboard navigation', () => {
 		const { container } = renderUI(
-			<Toolbar>
+			<Toolbar aria-label="Editor">
 				<button type="button">A</button>
 				<button type="button" disabled>
 					B
@@ -78,7 +82,7 @@ describe('Toolbar', () => {
 
 	it('is a single Tab stop — only the resting item is tabbable, and the stop follows arrows', () => {
 		const { container } = renderUI(
-			<Toolbar>
+			<Toolbar aria-label="Editor">
 				<button type="button">A</button>
 				<button type="button">B</button>
 				<button type="button">C</button>
@@ -102,7 +106,7 @@ describe('Toolbar', () => {
 describe('ToolbarGroup', () => {
 	it('has role="group"', () => {
 		const { container } = renderUI(
-			<Toolbar>
+			<Toolbar aria-label="Editor">
 				<ToolbarGroup aria-label="Marks">
 					<button type="button">A</button>
 				</ToolbarGroup>
@@ -118,7 +122,7 @@ describe('ToolbarGroup', () => {
 
 	it('inherits orientation from the surrounding toolbar', () => {
 		const { container } = renderUI(
-			<Toolbar orientation="vertical">
+			<Toolbar aria-label="Editor" orientation="vertical">
 				<ToolbarGroup>
 					<button type="button">A</button>
 				</ToolbarGroup>
@@ -130,7 +134,7 @@ describe('ToolbarGroup', () => {
 
 	it('honors an explicit orientation prop over the toolbar context', () => {
 		const { container } = renderUI(
-			<Toolbar orientation="horizontal">
+			<Toolbar aria-label="Editor" orientation="horizontal">
 				<ToolbarGroup orientation="vertical">
 					<button type="button">A</button>
 				</ToolbarGroup>
@@ -144,7 +148,7 @@ describe('ToolbarGroup', () => {
 describe('ToolbarSeparator', () => {
 	it('has role="separator" with aria-orientation opposite the toolbar', () => {
 		const { container } = renderUI(
-			<Toolbar orientation="horizontal">
+			<Toolbar aria-label="Editor" orientation="horizontal">
 				<button type="button">A</button>
 				<ToolbarSeparator />
 			</Toolbar>,
@@ -159,7 +163,7 @@ describe('ToolbarSeparator', () => {
 
 	it('renders a horizontal separator when the toolbar is vertical', () => {
 		const { container } = renderUI(
-			<Toolbar orientation="vertical">
+			<Toolbar aria-label="Editor" orientation="vertical">
 				<button type="button">A</button>
 				<ToolbarSeparator />
 				<button type="button">B</button>
