@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import type { AriaProps } from '../../types'
 import { type A11yRelation, useA11yScope } from './use-a11y-scope'
 
 const PANEL_SLOTS = {
@@ -19,12 +20,7 @@ export type A11yPanelProviderValue = {
 
 export type A11yPanel = {
 	/** Spread onto the panel root — role, `aria-modal`, and the labelling refs. */
-	panelAriaProps: {
-		role: A11yPanelRole
-		'aria-modal': true
-		'aria-labelledby'?: string
-		'aria-describedby'?: string
-	}
+	ariaProps: AriaProps
 	/** Feed into `PanelProviders` so Title / Description slots register and adopt their ids. */
 	a11y: A11yPanelProviderValue
 }
@@ -38,8 +34,8 @@ export type A11yPanel = {
 export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 	const scope = useA11yScope({ slots: PANEL_SLOTS })
 
-	const panelAriaProps = useMemo(
-		() => ({ role, 'aria-modal': true as const, ...scope.aria }),
+	const ariaProps = useMemo<AriaProps>(
+		() => ({ role, 'aria-modal': true, ...scope.aria }),
 		[role, scope.aria],
 	)
 
@@ -53,5 +49,5 @@ export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 		[scope.ids.title, scope.ids.description, scope.register.title, scope.register.description],
 	)
 
-	return { panelAriaProps, a11y }
+	return { ariaProps, a11y }
 }

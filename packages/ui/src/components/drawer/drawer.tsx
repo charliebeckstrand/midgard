@@ -46,7 +46,7 @@ export function Drawer({
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, a11y } = useA11yPanel()
+	const { ariaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
 
@@ -60,8 +60,8 @@ export function Drawer({
 		>
 			<motion.div
 				{...k.motion}
-				{...panelAriaProps}
-				aria-label={panelAriaProps['aria-labelledby'] ? undefined : ariaLabel}
+				{...ariaProps}
+				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-size={resolvedSize}
 				onClick={(e) => e.stopPropagation()}

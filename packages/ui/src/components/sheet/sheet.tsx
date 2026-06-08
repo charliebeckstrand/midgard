@@ -51,7 +51,7 @@ export function Sheet({
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, a11y } = useA11yPanel()
+	const { ariaProps, a11y } = useA11yPanel()
 
 	return (
 		<Overlay
@@ -63,8 +63,8 @@ export function Sheet({
 		>
 			<motion.div
 				{...k.motion[side]}
-				{...panelAriaProps}
-				aria-label={panelAriaProps['aria-labelledby'] ? undefined : ariaLabel}
+				{...ariaProps}
+				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
