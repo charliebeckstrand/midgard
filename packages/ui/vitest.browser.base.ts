@@ -1,6 +1,6 @@
 import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
-import { componentTagsPlugin, virtualStubsPlugin } from './src/docs/plugins'
+import { docsPlugin } from './src/docs/plugins'
 
 /**
  * Shared Vitest browser-mode setup, factored so the two browser configs can't
@@ -12,7 +12,7 @@ import { componentTagsPlugin, virtualStubsPlugin } from './src/docs/plugins'
  * docs plugins, and the dependency pre-bundle below — only their setup files and
  * test globs differ.
  */
-export const browserPlugins = [componentTagsPlugin(), virtualStubsPlugin(), tailwindcss()]
+export const browserPlugins = [...docsPlugin({ vitest: true }), tailwindcss()]
 
 // Pre-bundle the component dependency set so the optimizer doesn't discover them
 // lazily and reload the page mid-run (which drops the in-flight test import). The

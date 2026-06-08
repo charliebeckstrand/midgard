@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { collectSnippetImports, readSnippet, reindent } from '../../../docs/derive-code/snippet'
+import { collectSnippetImports, readSnippet, reindent } from '../../../docs/derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('readSnippet', () => {

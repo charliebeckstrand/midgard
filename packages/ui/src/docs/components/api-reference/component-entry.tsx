@@ -1,9 +1,11 @@
 'use client'
 
+import { Fragment } from 'react'
+import { Code } from '../../../components/code'
+import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Text } from '../../../components/text'
-import type { ComponentApi, PropDef } from '../../api-reference/types'
-import { PassThroughNote } from './pass-through'
+import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
 import { PropsTable } from './props-table'
 
 /** React-style event handlers — `onClick`, `onChange`, … */
@@ -57,5 +59,23 @@ function Section({ title, rows }: { title: string; rows: PropDef[] }) {
 			<Heading level={3}>{title}</Heading>
 			<PropsTable rows={rows} />
 		</div>
+	)
+}
+
+/** Footer line that names the inherited DOM elements below the props table. */
+function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
+	if (entries.length === 0) return null
+
+	return (
+		<Flex align="center" gap="sm" className="text-sm text-zinc-600 dark:text-zinc-400" wrap>
+			<span>Also accepts all</span>
+			{entries.map((pt, i) => (
+				<Fragment key={pt.element}>
+					<Code className="font-mono dark:text-white">{`<${pt.element}>`}</Code>
+					{i < entries.length - 1 && <span>,</span>}
+				</Fragment>
+			))}
+			<span>HTML attributes.</span>
+		</Flex>
 	)
 }

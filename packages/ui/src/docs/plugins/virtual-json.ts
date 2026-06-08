@@ -1,57 +1,79 @@
-import type { Plugin } from 'vite'
+import type { ModuleNode, Plugin } from 'vite'
 
 type Hooks = Required<Pick<Plugin, 'resolveId' | 'load' | 'handleHotUpdate'>>
 
 /**
- * Build the resolveId / load / handleHotUpdate hooks for a virtual module
- * whose body is `export default <JSON>`.
- *
- * Each docs plugin computes a different payload but follows the same plumbing:
- * give it a stable virtual id, a generator that runs at first read, and a
- * predicate that tells HMR which file changes invalidate the cache. Spread the
- * returned hooks into your Plugin alongside `name` and any other hooks
- * (e.g. `componentTagsPlugin` adds a `transform` for component tagging).
+ * One virtual JSON module: a stable id, a generator run at first read, and a
+ * predicate telling HMR which file changes invalidate its cache.
  */
-export function virtualJsonHooks(opts: {
+export type VirtualJsonSpec = {
 	id: string
 	generate: () => unknown
 	shouldInvalidate: (file: string) => boolean
-}): Hooks {
-	const resolved = `\0${opts.id}`
+}
 
-	let cached: string | null = null
+type Entry = { spec: VirtualJsonSpec; resolved: string; cached: string | null }
+
+/**
+ * Build the resolveId / load / handleHotUpdate hooks for one or more virtual
+ * modules whose body is `export default <JSON>`.
+ *
+ * Each spec gets its own `\0`-prefixed resolved id and its own lazily-filled
+ * cache; `load` generates on first read, and `handleHotUpdate` clears only the
+ * caches whose `shouldInvalidate` matches the changed file (returning just the
+ * modules it invalidated). Spread the returned hooks into a Plugin alongside
+ * `name` and any other hooks. A single docs plugin can serve every docs virtual
+ * module through one call.
+ */
+export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
+	const entries: Entry[] = specs.map((spec) => ({ spec, resolved: `\0${spec.id}`, cached: null }))
+
+	const byId = new Map(entries.map((e) => [e.spec.id, e]))
+
+	const byResolved = new Map(entries.map((e) => [e.resolved, e]))
 
 	return {
 		resolveId(id) {
-			if (id === opts.id) return resolved
-
-			return undefined
+			return byId.get(id)?.resolved
 		},
 
 		load(id) {
-			if (id === resolved) {
-				cached ??= JSON.stringify(opts.generate())
+			const entry = byResolved.get(id)
 
-				return `export default ${cached}`
-			}
+			if (!entry) return undefined
 
-			return undefined
+			entry.cached ??= JSON.stringify(entry.spec.generate())
+
+			return `export default ${entry.cached}`
 		},
 
 		handleHotUpdate({ file, server }) {
-			if (!opts.shouldInvalidate(file)) return undefined
+			const invalidated: ModuleNode[] = []
 
-			cached = null
+			for (const entry of entries) {
+				if (!entry.spec.shouldInvalidate(file)) continue
 
-			const mod = server.moduleGraph.getModuleById(resolved)
+				entry.cached = null
 
-			if (mod) {
-				server.moduleGraph.invalidateModule(mod)
+				const mod = server.moduleGraph.getModuleById(entry.resolved)
 
-				return [mod]
+				if (mod) {
+					server.moduleGraph.invalidateModule(mod)
+
+					invalidated.push(mod)
+				}
 			}
 
-			return undefined
+			return invalidated.length > 0 ? invalidated : undefined
 		},
 	}
+}
+
+/**
+ * Single-module convenience wrapper over {@link virtualJsonModules}. Each docs
+ * plugin that owns exactly one virtual module uses this signature; the behaviour
+ * is identical to passing a one-element array.
+ */
+export function virtualJsonHooks(opts: VirtualJsonSpec): Hooks {
+	return virtualJsonModules([opts])
 }

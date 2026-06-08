@@ -6,7 +6,7 @@ import {
 	getElementName,
 	isPassThrough,
 	isPrimitive,
-} from '../../../docs/derive-code/tree'
+} from '../../../docs/derive-code/internals'
 import { makeContext, tag } from './helpers'
 
 describe('isPrimitive', () => {

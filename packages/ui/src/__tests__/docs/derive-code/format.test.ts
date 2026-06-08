@@ -1,6 +1,6 @@
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
-import { formatProps, renderOpenTag } from '../../../docs/derive-code/format'
+import { formatProps, renderOpenTag } from '../../../docs/derive-code/internals'
 import { makeContext, tag } from './helpers'
 
 describe('formatProps value handling', () => {
