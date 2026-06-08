@@ -6,16 +6,15 @@ import { cn } from '../../core'
 import { useSize } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
+import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
 import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
 
-// A progressbar role needs an accessible name; require one of these at the type
-// level so consumers can't ship an unlabeled gauge.
-type ProgressGaugeLabel = { 'aria-label': string } | { 'aria-labelledby': string }
-
-export type ProgressGaugeProps = ProgressGaugeLabel &
+// A progressbar role needs an accessible name; AccessibleName requires one at
+// the type level so consumers can't ship an unlabeled gauge.
+export type ProgressGaugeProps = AccessibleName &
 	ProgressGaugeVariants & {
 		value?: number
 		max?: number
