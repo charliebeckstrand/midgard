@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; label: string }
 
@@ -197,6 +197,46 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(first, { key: 'ArrowDown', shiftKey: true })
 
 		expect(document.activeElement).toBe(first)
+	})
+
+	// Live-region assertions are split per action: the dependent keydowns fire
+	// synchronously (each fireEvent is act-flushed) so the lifted state can't be
+	// lost to an `await` yielding mid-sequence; only the final message is awaited.
+	const liveRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
+
+	const firstItem = (container: HTMLElement) => {
+		const el = allBySlot(container, 'list-item')[0] as HTMLElement
+
+		el.focus()
+
+		return el
+	}
+
+	it('announces the item name and position on lift', async () => {
+		const first = firstItem(renderList().container)
+
+		fireEvent.keyDown(first, { key: ' ' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Picked up Alpha, position 1 of 3'))
+	})
+
+	it('announces the new position on a move', async () => {
+		const first = firstItem(renderList().container)
+
+		fireEvent.keyDown(first, { key: ' ' })
+		fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Alpha moved to position 2 of 3'))
+	})
+
+	it('announces the drop', async () => {
+		const first = firstItem(renderList().container)
+
+		fireEvent.keyDown(first, { key: ' ' })
+		fireEvent.keyDown(first, { key: 'Enter' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Dropped Alpha, position 1 of 3'))
 	})
 })
 

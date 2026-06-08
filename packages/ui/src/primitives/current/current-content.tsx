@@ -1,7 +1,7 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { k } from '../../recipes/kata/current'
 import { useCurrent, useCurrentFade } from './current'
 
@@ -10,6 +10,8 @@ export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
 	value?: string
+	/** Ref to the rendered element (forwarded in both fade and non-fade modes). */
+	ref?: Ref<HTMLDivElement>
 }
 
 /**
@@ -22,6 +24,7 @@ export function CurrentContent({
 	value,
 	className,
 	children,
+	ref,
 	...props
 }: CurrentContentProps) {
 	const context = useCurrent()
@@ -34,7 +37,7 @@ export function CurrentContent({
 		if (!current) return null
 
 		return (
-			<div data-slot={`${slotPrefix}-content`} className={className} {...props}>
+			<div ref={ref} data-slot={`${slotPrefix}-content`} className={className} {...props}>
 				{children}
 			</div>
 		)
@@ -42,6 +45,7 @@ export function CurrentContent({
 
 	return (
 		<motion.div
+			ref={ref}
 			// Forward caller props (id, role, aria-*) in fade mode too. The cast
 			// only sidesteps motion's redefined animation/drag handler signatures,
 			// which this primitive's consumers never pass.

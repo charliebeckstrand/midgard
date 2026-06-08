@@ -471,6 +471,34 @@ describe('EditableGrid', () => {
 		expect(cells[3]).toHaveAttribute('data-active')
 	})
 
+	it('exposes the selected range on the gridcells via aria-selected', () => {
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const cells = allBySlot(container, 'editable-grid-cell')
+
+		// role="gridcell" lives on the owning <td>; aria-selected must too.
+		const gridcell = (i: number) => cells[i]?.closest('[role="gridcell"]')
+
+		fireEvent.mouseDown(cells[1] as HTMLElement)
+
+		fireEvent.mouseDown(cells[3] as HTMLElement, { shiftKey: true })
+
+		// Both ends of the range report selected, so the extension is visible to AT.
+		expect(gridcell(1)).toHaveAttribute('aria-selected', 'true')
+
+		expect(gridcell(3)).toHaveAttribute('aria-selected', 'true')
+
+		// A cell outside the range stays selectable-but-not-selected.
+		expect(gridcell(0)).toHaveAttribute('aria-selected', 'false')
+	})
+
 	it('adds an extra cell to the selection on meta+click', () => {
 		const { container } = renderUI(
 			<EditableGrid

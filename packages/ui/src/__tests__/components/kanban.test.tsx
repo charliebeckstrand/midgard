@@ -8,7 +8,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; title: string }
 type Column = { id: string; title: string; items: Item[] }
@@ -395,6 +395,63 @@ describe('Kanban keyboard reorder', () => {
 		expect(document.activeElement).toBe(card)
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('Kanban keyboard announcements', () => {
+	const cardOf = (root: HTMLElement, id: string) =>
+		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+
+	const liveRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
+
+	// Dependent keydowns fire synchronously (each fireEvent is act-flushed) so the
+	// lifted state can't be lost to an `await` yielding mid-sequence; only the
+	// final message is awaited.
+	const liftedCard = (container: HTMLElement) => {
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		return card
+	}
+
+	it('announces the card name, column, and position on lift', async () => {
+		liftedCard(renderUI(<KeyboardBoard />).container)
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Picked up A, position 1 of 3 in Todo'),
+		)
+	})
+
+	it('announces the new position on a within-column move', async () => {
+		const card = liftedCard(renderUI(<KeyboardBoard />).container)
+
+		fireEvent.keyDown(card, { key: 'ArrowDown' })
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('A moved to position 2 of 3 in Todo'),
+		)
+	})
+
+	it('announces a cross-column move with the target column name', async () => {
+		const card = liftedCard(renderUI(<KeyboardBoard />).container)
+
+		fireEvent.keyDown(card, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('A moved to Done, position 2 of 2'))
+	})
+
+	it('announces the drop', async () => {
+		const card = liftedCard(renderUI(<KeyboardBoard />).container)
+
+		fireEvent.keyDown(card, { key: 'Enter' })
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Dropped A, position 1 of 3 in Todo'),
+		)
 	})
 })
 

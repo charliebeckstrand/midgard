@@ -1,7 +1,16 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/tabs'
+import {
+	Tab,
+	TabContent,
+	TabContents,
+	TabList,
+	TabPanel,
+	TabPanels,
+	Tabs,
+} from '../../components/tabs'
 import { DensityProvider } from '../../providers/density'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
 	it('renders with data-slot="tab-list" and role="tablist"', () => {
@@ -253,6 +262,61 @@ describe('TabPanel', () => {
 		expect(panel).toHaveAttribute('id', 't1-panel')
 
 		expect(panel).toHaveAttribute('aria-labelledby', 't1')
+	})
+})
+
+describe('TabContent (idiomatic)', () => {
+	function renderContents(panelChildren?: Record<string, ReactNode>) {
+		return renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a">{panelChildren?.a ?? 'Panel A'}</TabContent>
+					<TabContent value="b">{panelChildren?.b ?? 'Panel B'}</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+	}
+
+	it('auto-wires each panel as a tabpanel reciprocally linked to its tab', () => {
+		renderContents()
+
+		const tab = screen.getByRole('tab', { name: 'A' })
+
+		const panelId = tab.getAttribute('aria-controls')
+
+		expect(panelId).toBeTruthy()
+
+		const panel = document.getElementById(panelId as string)
+
+		expect(panel).toHaveAttribute('role', 'tabpanel')
+
+		// The panel points back at the tab, so the pairing round-trips without the
+		// consumer hand-threading ids.
+		expect(panel).toHaveAttribute('aria-labelledby', tab.id)
+	})
+
+	it('makes a content-only panel keyboard-reachable (tabIndex 0)', async () => {
+		renderContents()
+
+		const tab = screen.getByRole('tab', { name: 'A' })
+
+		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+
+		await waitFor(() => expect(panel).toHaveAttribute('tabindex', '0'))
+	})
+
+	it('omits the panel tabIndex when it has its own focusable content', async () => {
+		renderContents({ a: <button type="button">Inside</button> })
+
+		const tab = screen.getByRole('tab', { name: 'A' })
+
+		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+
+		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
 	})
 })
 

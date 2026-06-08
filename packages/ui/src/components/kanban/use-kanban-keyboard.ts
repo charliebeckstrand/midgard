@@ -1,8 +1,19 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
+import { accessibleName, announce } from '../../core'
 import { moveItem } from '../../utilities'
 import type { KanbanColumnBase } from './types'
+
+const cardName = (cardId: string) =>
+	accessibleName(
+		document.querySelector(`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`),
+	)
+
+const columnName = (columnId: string) =>
+	accessibleName(
+		document.querySelector(`[data-slot="kanban-column"][data-column-id="${CSS.escape(columnId)}"]`),
+	)
 
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -34,6 +45,22 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	const findColumnByCardId = useCallback(
 		(id: string) => columns.find((c) => c.items.some((i) => getKey(i) === id)),
 		[columns, getKey],
+	)
+
+	// Card's current 1-based position within its column, for announcements.
+	const locate = useCallback(
+		(cardId: string) => {
+			const col = findColumnByCardId(cardId)
+
+			if (!col) return null
+
+			const index = col.items.findIndex((i) => getKey(i) === cardId)
+
+			return index === -1
+				? null
+				: { columnId: col.id, position: index + 1, count: col.items.length }
+		},
+		[findColumnByCardId, getKey],
 	)
 
 	const focusCard = useCallback((cardId: string) => {
@@ -131,6 +158,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 
+			announce(
+				`${cardName(cardId)} moved to position ${newIdx + 1} of ${col.items.length} in ${columnName(col.id)}.`,
+				{ assertive: true },
+			)
+
 			refocusCard(cardId)
 		},
 		[columns, getKey, onValueChange, findColumnByCardId, refocusCard],
@@ -172,6 +204,14 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			onValueChange(next)
 
+			// Appended to the end of the target column.
+			const position = targetCol.items.length + 1
+
+			announce(
+				`${cardName(cardId)} moved to ${columnName(targetCol.id)}, position ${position} of ${position}.`,
+				{ assertive: true },
+			)
+
 			refocusCard(cardId)
 		},
 		[columns, getKey, onValueChange, findColumnByCardId, refocusCard],
@@ -184,7 +224,22 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 			if (event.key === ' ') {
 				event.preventDefault()
 
-				setLiftedCardId((prev) => (prev === cardId ? null : cardId))
+				const lifting = liftedCardId !== cardId
+
+				setLiftedCardId(lifting ? cardId : null)
+
+				const loc = locate(cardId)
+
+				const where = loc
+					? `, position ${loc.position} of ${loc.count} in ${columnName(loc.columnId)}`
+					: ''
+
+				announce(
+					lifting
+						? `Picked up ${cardName(cardId)}${where}. Use arrow keys to move, Enter to drop.`
+						: `Dropped ${cardName(cardId)}${where}.`,
+					{ assertive: true },
+				)
 
 				return
 			}
@@ -207,12 +262,21 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			switch (event.key) {
 				case 'Escape':
-				case 'Enter':
+				case 'Enter': {
 					event.preventDefault()
 
 					setLiftedCardId(null)
 
+					const loc = locate(cardId)
+
+					const where = loc
+						? `, position ${loc.position} of ${loc.count} in ${columnName(loc.columnId)}`
+						: ''
+
+					announce(`Dropped ${cardName(cardId)}${where}.`, { assertive: true })
+
 					break
+				}
 				case 'ArrowUp':
 					event.preventDefault()
 
@@ -239,7 +303,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 					break
 			}
 		},
-		[liftedCardId, moveWithinColumn, moveToColumn, focusNeighbor],
+		[liftedCardId, moveWithinColumn, moveToColumn, focusNeighbor, locate],
 	)
 
 	const onCardBlur = useCallback(() => {

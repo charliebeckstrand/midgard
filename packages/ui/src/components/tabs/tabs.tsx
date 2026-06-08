@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useMemo } from 'react'
+import { type ComponentPropsWithoutRef, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
@@ -44,9 +44,11 @@ export function Tabs({
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation
 
+	const baseId = useId()
+
 	const tabsContext = useMemo(
-		() => ({ variant, orientation: resolvedOrientation, size: resolvedSize }),
-		[variant, resolvedOrientation, resolvedSize],
+		() => ({ variant, orientation: resolvedOrientation, size: resolvedSize, baseId }),
+		[variant, resolvedOrientation, resolvedSize, baseId],
 	)
 
 	const isVertical = resolvedOrientation === 'vertical'
