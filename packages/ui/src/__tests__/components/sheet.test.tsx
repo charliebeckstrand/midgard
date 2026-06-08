@@ -36,6 +36,16 @@ describe('Sheet', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
+
+	it('names a title-less sheet via the aria-label escape hatch', () => {
+		renderUI(
+			<Sheet open onOpenChange={() => {}} aria-label="Navigation">
+				content
+			</Sheet>,
+		)
+
+		expect(screen.getByRole('dialog')).toHaveAccessibleName('Navigation')
+	})
 })
 
 describe('SheetTrigger', () => {

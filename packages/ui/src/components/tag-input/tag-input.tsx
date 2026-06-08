@@ -101,7 +101,7 @@ export function TagInput({
 
 	const badges =
 		tags.length > 0 ? (
-			<Flex data-slot="tags" gap="xs" wrap>
+			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap>
 				{tags.map((t, i) => (
 					<TagInputBadge
 						key={t}

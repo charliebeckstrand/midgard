@@ -97,6 +97,26 @@ describe('RangeSlider', () => {
 		expect(hi).toHaveAttribute('aria-valuenow', '75')
 	})
 
+	it('names the thumbs generically by default', () => {
+		const { container } = renderUI(<RangeSlider />)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-label', 'Range start')
+
+		expect(hi).toHaveAttribute('aria-label', 'Range end')
+	})
+
+	it('accepts per-thumb labels', () => {
+		const { container } = renderUI(<RangeSlider labels={['Min price', 'Max price']} />)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-label', 'Min price')
+
+		expect(hi).toHaveAttribute('aria-label', 'Max price')
+	})
+
 	it('moves the low thumb right when ArrowRight is pressed', () => {
 		const onChange = vi.fn()
 

@@ -28,6 +28,32 @@ describe('Link', () => {
 		expect(screen.getByText('Anchor')).toHaveAttribute('data-slot', 'link')
 	})
 
+	it('defaults a safe rel when opening a new tab', () => {
+		renderUI(
+			<Link href="/x" target="_blank">
+				New tab
+			</Link>,
+		)
+
+		expect(screen.getByText('New tab')).toHaveAttribute('rel', 'noopener noreferrer')
+	})
+
+	it('respects an explicit rel over the new-tab default', () => {
+		renderUI(
+			<Link href="/x" target="_blank" rel="external">
+				Explicit
+			</Link>,
+		)
+
+		expect(screen.getByText('Explicit')).toHaveAttribute('rel', 'external')
+	})
+
+	it('leaves rel unset for same-tab links', () => {
+		renderUI(<Link href="/y">Same tab</Link>)
+
+		expect(screen.getByText('Same tab')).not.toHaveAttribute('rel')
+	})
+
 	it('renders custom component registered through UIProvider', () => {
 		function CustomLink({ href, children, ...props }: { href: string; children?: ReactNode }) {
 			return (

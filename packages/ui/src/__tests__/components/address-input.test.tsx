@@ -35,6 +35,18 @@ describe('AddressInput', () => {
 		expect(input).toHaveAttribute('placeholder', 'Where to?')
 	})
 
+	it('names the input from the placeholder by default', () => {
+		const { container } = renderUI(<AddressInput />)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-label', 'Enter an address')
+	})
+
+	it('accepts an explicit aria-label over the placeholder', () => {
+		const { container } = renderUI(<AddressInput aria-label="Shipping address" placeholder="…" />)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-label', 'Shipping address')
+	})
+
 	it('defaults autoComplete to "off"', () => {
 		const { container } = renderUI(<AddressInput />)
 

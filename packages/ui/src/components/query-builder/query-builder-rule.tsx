@@ -81,6 +81,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 					displayValue={displayField}
 					onValueChange={onFieldChange}
 					placeholder="Field"
+					aria-label="Field"
 					className="w-full"
 				>
 					{fields.map((f) => (
@@ -95,6 +96,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 					displayValue={displayOperator}
 					onValueChange={onOperatorChange}
 					placeholder="Operator"
+					aria-label="Operator"
 					className="w-full"
 				>
 					{operators.map((op) => (

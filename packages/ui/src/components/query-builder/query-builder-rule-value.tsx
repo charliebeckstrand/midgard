@@ -19,6 +19,8 @@ export function QueryBuilderRuleValue({
 	onValueChange,
 	className,
 }: QueryBuilderRuleValueProps) {
+	const label = `${field.label} value`
+
 	if (field.type === 'select') {
 		return (
 			<Select
@@ -26,6 +28,7 @@ export function QueryBuilderRuleValue({
 				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
 				onValueChange={(v: string | undefined) => onValueChange(v ?? '')}
 				placeholder="Value"
+				aria-label={label}
 				className={className}
 			>
 				{field.options?.map((o) => (
@@ -43,6 +46,7 @@ export function QueryBuilderRuleValue({
 				type="number"
 				value={value == null ? '' : String(value)}
 				placeholder="Value"
+				aria-label={label}
 				onChange={(e) => {
 					const next = e.target.value
 					onValueChange(next === '' ? '' : Number(next))
@@ -68,6 +72,7 @@ export function QueryBuilderRuleValue({
 			type="text"
 			value={(value as string | undefined) ?? ''}
 			placeholder="Value"
+			aria-label={label}
 			onChange={(e) => onValueChange(e.target.value)}
 		/>
 	)

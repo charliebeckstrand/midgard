@@ -38,6 +38,16 @@ describe('Drawer', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
+
+	it('names a title-less drawer via the aria-label escape hatch', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Filters">
+				content
+			</Drawer>,
+		)
+
+		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
+	})
 })
 
 describe('DrawerTrigger', () => {

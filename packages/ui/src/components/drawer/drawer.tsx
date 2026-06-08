@@ -22,6 +22,11 @@ export type DrawerProps = DrawerPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/**
+	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
+	 * `DrawerTitle` registers, since it names the drawer.
+	 */
+	'aria-label'?: string
 }
 
 /**
@@ -37,6 +42,7 @@ export function Drawer({
 	glass,
 	className,
 	children,
+	'aria-label': ariaLabel,
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
@@ -55,6 +61,7 @@ export function Drawer({
 			<motion.div
 				{...k.motion}
 				{...panelAriaProps}
+				aria-label={panelAriaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-size={resolvedSize}
 				onClick={(e) => e.stopPropagation()}

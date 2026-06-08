@@ -25,6 +25,7 @@ type ComboboxInputProps = {
 	ref: Ref<HTMLInputElement>
 	type?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	'aria-label'?: string
 	open: boolean
 	controlsId: string
 	disabled?: boolean
@@ -47,6 +48,7 @@ export function ComboboxInput({
 	ref,
 	type = 'text',
 	autoComplete,
+	'aria-label': ariaLabel,
 	open,
 	controlsId,
 	disabled,
@@ -67,6 +69,7 @@ export function ComboboxInput({
 				aria-expanded={open}
 				aria-controls={open ? controlsId : undefined}
 				aria-autocomplete="list"
+				aria-label={ariaLabel}
 				data-slot="combobox-input"
 				autoComplete={autoComplete}
 				disabled={disabled}
