@@ -304,16 +304,25 @@ export function useA11yRoving(
 
 			if (!items.length) return
 
+			// The control that holds focus is, by definition, the resting stop. A
+			// native control that just mounted or became enabled arrives at
+			// `tabIndex=0`, so the count below can't tell it apart from the deliberate
+			// stop — anchoring to the focused item keeps a freshly-enabled sibling
+			// (e.g. a re-enabled zoom button in a toolbar) from stealing the stop out
+			// from under the user mid-interaction.
+			const focused = items.find((it) => it === document.activeElement)
+
 			const tabbable = items.filter((it) => it.tabIndex === 0)
 
 			// A single existing stop means the user has already roved — preserve it.
 			// Otherwise (fresh mount, where every native control is tabbable) seat the
 			// stop on the active item, falling back to the first.
 			const active =
-				tabbable.length === 1
+				focused ??
+				(tabbable.length === 1
 					? tabbable[0]
 					: ((activeSelector ? items.find((it) => it.matches(activeSelector)) : undefined) ??
-						items[0])
+						items[0]))
 
 			for (const it of items) {
 				const desired = it === active ? 0 : -1
