@@ -40,15 +40,28 @@ export const k = defineRecipe(
 			...cursor,
 		],
 		// Focus treatment per variant. Filled and transparent variants use the
-		// universal offset ring; `outline` and `bare` use an inset ring, sharing
-		// Tailwind's ring-inset channel with the outline's own border.
+		// universal offset ring; `outline` uses an inset ring, sharing Tailwind's
+		// ring-inset channel with its own border.
+		//
+		// `bare` carries no padding, so a ring on its own box would hug the
+		// glyphs. Instead it paints the offset ring on an `::after` phantom box,
+		// inflated by the per-size compound rules below to the footprint this
+		// control would occupy *with* `plain`'s padding. The pseudo is out of
+		// flow and `pointer-events-none`, so the indicator reads identically to
+		// `plain` without reserving any layout space — surrounding content never
+		// shifts.
 		variant: {
 			solid: focus.ring,
 			soft: focus.ring,
 			plain: focus.ring,
 			ghost: focus.ring,
 			outline: ['ring-1 ring-inset', ...focus.inset],
-			bare: focus.inset,
+			bare: [
+				'outline-none',
+				'after:absolute after:pointer-events-none',
+				'focus-visible:after:outline-2 focus-visible:after:outline-offset-2',
+				'focus-visible:after:outline-blue-600 dark:focus-visible:after:outline-blue-500',
+			],
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
 		// is present the component sets `data-has-label`, which overrides `py` to
@@ -103,6 +116,53 @@ export const k = defineRecipe(
 			{
 				variant: 'bare',
 				class: 'p-0',
+			},
+			// Phantom focus-ring geometry. Inflate the `::after` box to the
+			// footprint `plain` would occupy at this size — square `p` on
+			// icon-only buttons, and the reduced `data-has-label` `py` (mirroring
+			// `plain`'s label override) on labelled ones — carrying `plain`'s
+			// radius. Negative inset grows the pseudo outward only; the outline's
+			// `outline-offset-2` then lands the stroke exactly where `focus.ring`
+			// puts `plain`'s.
+			{
+				variant: 'bare',
+				size: 'xs',
+				class: [
+					'after:inset-x-[calc((--spacing(1.5)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-[calc((--spacing(1)-1px)*-1)]',
+					'after:rounded-[--spacing(1)]',
+				],
+			},
+			{
+				variant: 'bare',
+				size: 'sm',
+				class: [
+					'after:inset-x-[calc((--spacing(2)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(2)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
+					'after:rounded-[--spacing(1.5)]',
+				],
+			},
+			{
+				variant: 'bare',
+				size: 'md',
+				class: [
+					'after:inset-x-[calc((--spacing(2.5)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(2.5)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-[calc((--spacing(2)-1px)*-1)]',
+					'after:rounded-[--spacing(2)]',
+				],
+			},
+			{
+				variant: 'bare',
+				size: 'lg',
+				class: [
+					'after:inset-x-[calc((--spacing(3)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(3)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-[calc((--spacing(2.5)-1px)*-1)]',
+					'after:rounded-[--spacing(2.5)]',
+				],
 			},
 			// Floors the icon-only bare hit box at the WCAG 2.5.8 minimum (24×24px)
 			// as a real border-box. A matched negative margin of `(24px − iconbox)/2`
