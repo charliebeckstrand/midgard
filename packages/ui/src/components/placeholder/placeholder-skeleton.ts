@@ -4,10 +4,8 @@ import { cn } from '../../core'
 import { useSize } from '../../primitives/density'
 import { Placeholder } from './placeholder'
 
-// The size domain is whatever the Density cascade can resolve, derived from
-// useSize rather than importing kiso's Ma directly (the component Ma
-// import boundary forbids that). Call sites pin S to their kata's
-// VariantProps['size'].
+// Resolved through the Density cascade via `useSize`. Call sites pin `S` to
+// their kata's `VariantProps['size']`.
 type ResolvableSize = NonNullable<Parameters<typeof useSize>[0]>
 
 type BaseSkeletonRecipe = {

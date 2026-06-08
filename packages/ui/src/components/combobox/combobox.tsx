@@ -163,11 +163,10 @@ export function Combobox<T>({
 
 	const optionsRef = useRef<HTMLDivElement>(null)
 
-	// Editable combobox (APG): DOM focus stays on the input and the highlight is
-	// tracked virtually — arrow keys move `data-active` and repoint the input's
-	// `aria-activedescendant` rather than pulling focus onto an option.
-	// `aria-selected` stays owned by each option (the stored value), so the
-	// highlight is a pure focus cue and doesn't clobber selection in multi-select.
+	// Editable combobox (APG): DOM focus stays on the input; the highlight is
+	// tracked virtually. Arrow keys move `data-active` and repoint the input's
+	// `aria-activedescendant`. `aria-selected` is owned by each option (the
+	// stored value), keeping the highlight as a pure focus cue.
 	const handleKeyDown = useA11yRoving(optionsRef, {
 		mode: 'virtual',
 		itemSelector: OPTION_SELECTOR,
@@ -203,16 +202,14 @@ export function Combobox<T>({
 		setValue,
 	})
 
-	// Keep the virtual highlight anchored to a real option so the input's
-	// `aria-activedescendant` never dangles: clear it while the menu is closed,
-	// and on each filter change jump it to the top match (or clear it when nothing
-	// matches). Guarded against the initial query so opening the menu leaves the
-	// first arrow key to pick the first option. Mirrors the command-palette
-	// pattern, but with `ariaSelected: false` since options own their selection.
+	// Keeps the virtual highlight anchored to a real option: clears
+	// `aria-activedescendant` while the menu is closed, and on each filter
+	// change jumps it to the top match (or clears it when nothing matches).
+	// Skips the initial query so the first arrow key picks the first option.
+	// Uses `ariaSelected: false` since options own their selection state.
 	//
-	// Under `VirtualOptions` only the windowed rows are in the DOM, so the active
-	// row can't follow the highlight past the rendered window — virtualized lists
-	// lean on type-to-filter to narrow the set rather than arrow-traversing it.
+	// Under `VirtualOptions` only windowed rows are in the DOM, so the active
+	// row is limited to the rendered window.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -238,9 +235,8 @@ export function Combobox<T>({
 		open,
 		onOpenChange: setOpen,
 		matchReferenceWidth: true,
-		// The input (`role="combobox"`) and the panel's inner `role="listbox"`
-		// carry their own roles + popup wiring; suppress floating-ui's so the
-		// positioning wrappers don't double-stamp a nested combobox/listbox.
+		// The input and panel carry their own roles + popup wiring; `role: null`
+		// suppresses floating-ui's wrapper roles.
 		role: null,
 	})
 
@@ -302,9 +298,8 @@ export function Combobox<T>({
 		</Button>
 	) : null
 
-	// The input display reads the live `value` (updates instantly on select); the
-	// menu reads `selectionValue`, which stays frozen until the panel finishes
-	// closing so the selected row doesn't flicker during the exit animation.
+	// The input display reads the live `value`; the menu reads `selectionValue`,
+	// which stays frozen until the panel finishes closing.
 	const contextValue = useMemo(
 		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
 		[selectionValue, multiple, select],
@@ -332,10 +327,8 @@ export function Combobox<T>({
 					suffix || showClear
 						? undefined
 						: {
-								// Decorative toggle affordance: the input owns combobox
-								// semantics (aria-expanded/controls), so the chevron is a
-								// mouse convenience hidden from assistive tech rather than a
-								// second, keyboard-inoperable button.
+								// Decorative mouse-only affordance; hidden from assistive
+								// tech since the input carries combobox semantics.
 								'aria-hidden': true,
 								onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
 							}

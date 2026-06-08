@@ -40,8 +40,8 @@ export function VirtualOptions<T>({
 	})
 
 	return (
-		// role="presentation" flattens this wrapper and the spacers out of the
-		// a11y tree so the listbox ancestor owns the option rows directly.
+		// role="presentation" flattens this wrapper and the spacers out of
+		// the a11y tree; the listbox ancestor owns the option rows directly.
 		<div ref={containerRef} role="presentation" data-slot="virtual-options">
 			{topSpacer > 0 && (
 				<div role="presentation" data-slot="virtual-options-spacer" style={{ height: topSpacer }} />

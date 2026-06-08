@@ -1,13 +1,11 @@
 /**
  * Panel archetype — slot layout. Shared by dialog, sheet, and drawer.
  *
- * Slot gaps come from `gap-4` on `base`, not per-slot `mt-*` — so slots
- * compose in any order without each one paying for its own first-child
- * reset. `gap` (vs `space-y`) survives `display: contents` wrappers like
- * Form/Fieldset, keeping the flex-shrink chain to the body's overflow
- * intact when one wraps content. `header` is the optional tight-gap
- * wrapper for title + description (the only pair where 4 feels loose);
- * everything else stands on its own at 4.
+ * Slot gaps come from `gap-4` on `base`, not per-slot `mt-*`, so slots
+ * compose in any order. `gap` (vs `space-y`) survives `display: contents`
+ * wrappers like Form/Fieldset, keeping the flex-shrink chain to the
+ * body's overflow intact. `header` is the optional tight-gap wrapper for
+ * title + description; everything else stands on its own at 4.
  *
  * Layer: kiso · Archetype: panel · Concern: layout
  */
@@ -25,7 +23,7 @@ export const layout = {
 	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */
 	title: [...text.default, leading.none],
 	description: [...text.muted, size.md, leading.tight],
-	/** Optional wrapper around body + footer — lets a Form (or other) wrap both without breaking the panel's slot rhythm. */
+	/** Optional wrapper around body + footer — a Form or similar can wrap both while preserving the panel's slot rhythm. */
 	content: 'flex flex-col min-h-0 space-y-4',
 	body: [...text.muted, 'min-h-0 overflow-y-auto'],
 	footer: ['flex items-center justify-end gap-2'],

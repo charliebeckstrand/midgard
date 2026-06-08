@@ -6,14 +6,13 @@ import { collectHelpers } from './collect-helpers'
  * Vite plugin that extracts each demo helper component's full source at
  * build time and attaches it as a `__code` static property on the component.
  *
- * The docs code-derivation walker reads `__code` at render time so that
- * `<Example><MyHelperDemo /></Example>` produces a snippet showing the
- * helper's hooks, state setup, and JSX — not just a `<MyHelperDemo />` tag,
- * and without invoking the component at derive-time (which would trigger
- * React's rules-of-hooks warning when hooks run inside `useMemo`).
+ * The docs code-derivation walker reads `__code` at render time, producing a
+ * snippet showing the helper's hooks, state setup, and JSX rather than an
+ * opaque `<MyHelperDemo />` tag. The snippet is read statically — the
+ * component is not invoked at derive-time.
  *
- * Scope is limited to `demos/*.tsx` so the transform has no reach into
- * library components or unrelated docs modules.
+ * Scope is limited to `demos/*.tsx`; library components and unrelated docs
+ * modules are not transformed.
  */
 export function deriveCodePlugin(): Plugin {
 	let demosDir = ''

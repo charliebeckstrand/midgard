@@ -31,8 +31,7 @@ export function DataTableVirtualizedBody<T>({
 	estimateSize,
 	overscan,
 }: DataTableVirtualizedBodyProps<T>) {
-	// Keep the scroll-element getter stable so the virtualizer's option identity
-	// survives parent re-renders; the ref object itself never changes.
+	// Stable getter for the scroll element — the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
 	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({

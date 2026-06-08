@@ -16,9 +16,8 @@ export type ColorPanelContextValue = {
 }
 
 /**
- * Shares the live colour and its setter from `<ColorPanel>` down to the area,
- * sliders, inputs, swatches, and eyedropper — they each read and write the same
- * HSVA without the panel threading props through every part.
+ * Provides the live colour and its setter from `<ColorPanel>` to the area,
+ * sliders, inputs, swatches, and eyedropper.
  */
 export const [ColorPanelContext, useColorPanelContext] =
 	createContext<ColorPanelContextValue>('ColorPanel')

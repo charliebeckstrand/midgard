@@ -30,13 +30,13 @@ export function useEditableGridDraft<T>({
 
 	const [draft, setDraft] = useState('')
 
-	// Guards the commit-on-blur that fires when the input unmounts after an
-	// explicit Enter / Tab / Escape commit. Ensures a single commit per session.
+	// Prevents the commit-on-blur from firing again after an explicit Enter /
+	// Tab / Escape commit; ensures a single commit per edit session.
 	const sessionClosedRef = useRef(false)
 
-	// The cell's formatted display value when editing began. Used to skip no-op
-	// commits so a lossy format→parse round-trip (e.g. "$2.35" → NaN) never
-	// overwrites an unchanged cell.
+	// The cell's formatted display value when editing began. No-op commits are
+	// skipped when this matches the draft, so a lossy format→parse round-trip
+	// (e.g. "$2.35" → NaN) does not overwrite an unchanged cell.
 	const originalFormattedRef = useRef('')
 
 	const beginEdit = useCallback(

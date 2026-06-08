@@ -22,7 +22,7 @@ export function useCurrentContentsHeight(
 			if (entry) setHeight(entry.contentRect.height)
 		})
 
-		// Observe the in-flow child (active content)
+		// Observe the active child (`data-current`).
 		const observe = () => {
 			resizeObserver.disconnect()
 
@@ -39,8 +39,7 @@ export function useCurrentContentsHeight(
 
 		const mutationObserver = new MutationObserver(observe)
 
-		// Watch only the dedicated data-current attribute — not `style`,
-		// which would fire on every framer-motion animation frame.
+		// Watch only the `data-current` attribute, not `style`.
 		mutationObserver.observe(element, {
 			childList: true,
 			subtree: true,

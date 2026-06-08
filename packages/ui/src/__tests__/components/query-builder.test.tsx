@@ -10,12 +10,10 @@ import {
 } from '../../components/query-builder'
 import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
-// The shared `motion/react` mock leaves `AnimatePresence` as a pass-through, so
-// its `onExitComplete` never fires — the Listbox uses that callback to flush a
-// deferred select. Override locally so single-select option clicks commit
-// immediately, letting us exercise the QueryBuilderRule's field/operator
-// onChange handlers. Fire onExitComplete from an effect so flushPending's
-// setState lands in the commit phase, not during AnimatePresence's render.
+// Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
+// never fires `onExitComplete`, blocking the Listbox's deferred-select flush.
+// This override makes single-select commits immediate. `onExitComplete` is fired
+// from an effect so `flushPending`'s setState lands in the commit phase.
 vi.mock('motion/react', async () => {
 	const actual =
 		await vi.importActual<typeof import('../mocks/motion-react')>('../mocks/motion-react')
@@ -133,12 +131,8 @@ describe('QueryBuilder', () => {
 		expect(inputs.length).toBeGreaterThan(0)
 	})
 
-	// Field- and operator-selector interaction tests (click listbox trigger →
-	// click option → assert onChange payload) consistently flaked on Azure CI
-	// under Linux Node 20 with the same shape as the other Azure-only failures:
-	// the click handler never propagated, onChange was never called. Local
-	// repro was impossible. Removed pending a rewrite that drives the
-	// selectors through a unit-level seam instead of the floating-ui mock.
+	// Field- and operator-selector interaction tests are omitted pending a rewrite
+	// that drives selectors through a unit-level seam instead of the floating-ui mock.
 
 	it('names the field and operator selectors', () => {
 		const tree = createGroup('and', [createRule(fields[0])])
@@ -331,8 +325,7 @@ describe('QueryBuilderGroup', () => {
 
 		const groups = container.querySelectorAll<HTMLElement>('[data-slot="query-group"]')
 
-		// Root plus the one nested group, which now exposes its own "Add group"
-		// — nesting is no longer capped at a single level.
+		// Root plus the one nested group; each group renders its own "Add group" button.
 		expect(groups).toHaveLength(2)
 
 		const nested = groups[1]

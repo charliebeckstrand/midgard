@@ -12,7 +12,7 @@ export type StepperPanelProps = {
 export function StepperPanel({ value, className, children, ...props }: StepperPanelProps) {
 	const { value: currentValue, baseId } = useStepper()
 
-	// Mirrors StepperStep's pairing so the mounted panel adopts its step's ids.
+	// Derives the same ids as the matching StepperStep via the shared baseId + value.
 	const { panelProps } = useA11yDisclosure({ id: baseId, key: value })
 
 	if (value !== currentValue) return null

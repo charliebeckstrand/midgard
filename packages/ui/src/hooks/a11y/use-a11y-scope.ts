@@ -83,7 +83,7 @@ export function useA11yScope<Slot extends string = never>(
 		return { labelledby, describedby }
 	}, [present, ids, slots])
 
-	// Composed at the top level — `useAriaIds` is a hook, so it can't run inside
+	// Composed at the top level — `useAriaIds` is a hook and cannot run inside
 	// the bucketing loop above.
 	const labelledby = useAriaIds(...buckets.labelledby)
 	const describedby = useAriaIds(...buckets.describedby)

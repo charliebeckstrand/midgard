@@ -2,13 +2,12 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// Primitives reach the recipe layer through their owning kata, the same
-// funnel components use. Value imports from `recipes` (the types-only
-// barrel), `recipes/katakana/*`, or `recipes/kiso/*` would bypass the kata
-// curation and pull applicator or substrate fragments into the primitive
-// layer directly. Type-only imports from the barrel are fine — primitives
-// derive prop unions from `Step` / `Ma` / `Color` / `Ji` / `GroupOrientation`
-// / `GroupPosition`.
+// Primitives access the recipe layer only through `recipes/kata/<name>`.
+// Value imports from `recipes` (the barrel), `recipes/katakana/*`, or
+// `recipes/kiso/*` bypass the kata curation and pull applicator or substrate
+// fragments directly into the primitive layer. Type-only imports from the
+// barrel are permitted — primitives derive prop unions from `Step`, `Ma`,
+// `Color`, `Ji`, `GroupOrientation`, and `GroupPosition`.
 
 const primitivesDir = join(__dirname, '../../../primitives')
 
@@ -31,7 +30,7 @@ describe('primitive recipe-import boundary', () => {
 
 				if (!path.includes('/recipes')) continue
 
-				// `recipes/kata/...` is the sanctioned funnel for primitives.
+				// `recipes/kata/...` is the sanctioned import path for primitives.
 				if (/\/recipes\/kata\/[^'"]+$/.test(path)) continue
 
 				const isTypeOnly = /\bimport\s+type\b/.test(head) || isAllTypeNamed(match[0])

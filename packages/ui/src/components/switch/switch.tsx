@@ -15,8 +15,8 @@ export type SwitchProps = SwitchVariants & {
 
 /**
  * Toggle control backed by a native `role="switch"` checkbox — controlled via
- * `checked` or uncontrolled, owning its state so `aria-checked` always tracks
- * reality. Integrates with enclosing `<Form>` and `<Control>` for binding,
+ * `checked` or uncontrolled. Owns its checked state so `aria-checked` stays in
+ * sync. Integrates with enclosing `<Form>` and `<Control>` for binding,
  * sizing, and validation.
  */
 export function Switch({
@@ -35,10 +35,8 @@ export function Switch({
 }: SwitchProps) {
 	const binding = useFormToggle(name, { onChange })
 
-	// Own the checked state so `aria-checked` always reflects reality. A native
-	// `role="switch"` checkbox exposes its state via the DOM `checked` property,
-	// but `aria-checked` is required for the role and a static value would not
-	// track uncontrolled toggles — assistive tech would announce a stale state.
+	// `aria-checked` is required by `role="switch"` and must track the live value.
+	// Owning the state here keeps it in sync for both controlled and uncontrolled usage.
 	const [on, setOn] = useControllable<boolean>({
 		value: binding ? binding.checked : checked,
 		defaultValue: defaultChecked ?? false,

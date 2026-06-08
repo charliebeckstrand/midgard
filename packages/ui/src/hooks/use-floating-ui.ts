@@ -27,9 +27,9 @@ import {
 } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 
-// Explicit return types: TS can't write a portable `.d.ts` for the inferred
-// return because `useFloating`'s shape references `@floating-ui/react-dom`,
-// a transitive dep (TS2742). Kept local — not re-exported from the barrel.
+// Explicit return types: `useFloating`'s shape references `@floating-ui/react-dom`,
+// a transitive dep that TS can't express in a portable `.d.ts` (TS2742).
+// Kept local — not re-exported from the barrel.
 type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
@@ -151,13 +151,9 @@ type FloatingUIOptions = FloatingPanelOptions & {
  * Floating panel with built-in dismiss and role interactions — the common
  * pattern for listbox, combobox, dropdown menu, and date picker surfaces.
  *
- * Outside-press is handled by a custom document-level pointerdown listener
- * rather than floating-ui's `useDismiss` outside-press. floating-ui's variant
- * treats clicks inside a sibling portal as "third-party injected" when a
- * parent modal (`FloatingFocusManager modal`) has marked outside content
- * inert — which suppresses dismissal for any floating element nested inside
- * a `Sheet`/`Dialog`. The custom listener checks the press target against
- * the floating panel + reference directly, with no false positive.
+ * Outside-press uses a custom document-level pointerdown listener that checks
+ * the press target directly against the floating panel and reference, with no
+ * false positives from sibling portals inside a `Sheet`/`Dialog`.
  */
 export function useFloatingUI({
 	role: roleProp = 'listbox',
@@ -168,7 +164,7 @@ export function useFloatingUI({
 	const dismiss = useDismiss(context, { outsidePress: false })
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
-	// emitting no role/aria props, so a component owning its roles isn't
+	// emitting no role/aria props — a component owning its roles is not
 	// double-stamped on the positioning wrapper.
 	const role = useRole(context, { role: roleProp ?? 'listbox', enabled: roleProp !== null })
 

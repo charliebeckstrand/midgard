@@ -8,8 +8,8 @@ export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 
 /**
  * Labeled pagination `<nav>` container. Page controls are ordinary,
- * individually Tab-focusable links/buttons — pagination is navigation, not a
- * composite widget, so it carries no roving keyboard model (matching `Nav`).
+ * individually Tab-focusable links/buttons — no roving keyboard model
+ * (matching `Nav`).
  */
 export function Pagination({ className, ...props }: PaginationProps) {
 	return (

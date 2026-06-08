@@ -64,8 +64,7 @@ export function Dialog({
 
 	const { ariaProps, a11y } = useA11yPanel(role)
 
-	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
-	// the explicit label only when there's no title.
+	// aria-label is suppressed when aria-labelledby is present (registered DialogTitle takes precedence).
 	const ariaLabelledBy = ariaProps['aria-labelledby']
 
 	return (

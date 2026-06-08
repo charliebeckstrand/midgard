@@ -15,8 +15,8 @@ export function Description({ className, id, ...props }: DescriptionProps) {
 
 	const { size } = useDensity()
 
-	// Register so the field's aria-describedby only references this id while
-	// the Description is actually rendered.
+	// Registers while mounted so the field's aria-describedby only references
+	// this id while the Description is rendered.
 	const registerDescription = control?.registerDescription
 
 	useEffect(() => registerDescription?.(), [registerDescription])

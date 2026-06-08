@@ -68,9 +68,8 @@ export function ActiveIndicator({
 
 	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
 
-	// Unique per instance, stable per render — gates willUpdate so external
-	// reflow doesn't animate the indicator, while still differing from the
-	// previous instance so Motion's promote() runs the shared-element transition.
+	// Unique per instance, stable per render — gates `layoutDependency` so
+	// external reflow doesn't animate the indicator.
 	const instanceId = useId()
 
 	return (
@@ -81,9 +80,8 @@ export function ActiveIndicator({
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
 				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
-				// `borderRadius` is set inline (not just via `rounded-lg`) so Motion's
-				// layout projection applies inverse-scale correction during the
-				// shared-element transition; a CSS class alone distorts the radius.
+				// `borderRadius` is set inline so Motion's layout projection applies
+				// inverse-scale correction during the shared-element transition.
 				style={{ borderRadius: 8, ...style }}
 				transition={k.spring}
 			>

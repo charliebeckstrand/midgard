@@ -38,7 +38,7 @@ export const navigationCases: readonly Case[] = [
 		</Link>,
 	],
 	[
-		// Previous/Next sit outside the <ol>, so they must not be list items.
+		// Previous/Next sit outside the <ol> — must not be list items.
 		'pagination',
 		<Pagination key="p">
 			<PaginationPrevious />
@@ -62,8 +62,8 @@ export const navigationCases: readonly Case[] = [
 		</Navbar>,
 	],
 	[
-		// Sidebar navigation: items wrapped in a SidebarList <ul> so the set
-		// exposes count/position; the list is named after its heading.
+		// Sidebar navigation: items wrapped in a SidebarList <ul> that exposes
+		// count/position; the list is named after its heading.
 		'sidebar',
 		<Sidebar key="sb">
 			<SidebarBody>

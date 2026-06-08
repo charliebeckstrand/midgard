@@ -60,7 +60,7 @@ const listTasks = [
 export const dataDisplayCases: readonly Case[] = [
 	['badge', <Badge key="b">New</Badge>],
 	[
-		// Status indicator paired with a visible text label so meaning is not
+		// Status indicator paired with a visible text label; meaning is not
 		// conveyed by the dot alone.
 		'status',
 		<span key="sd">

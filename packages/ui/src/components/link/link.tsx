@@ -10,8 +10,8 @@ export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
 export function Link({ href, color, underline, className, target, rel, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()
 
-	// Opening a new tab without `rel` exposes the opener to reverse tabnabbing;
-	// default the safe rel unless the caller sets their own.
+	// Defaults `rel="noopener noreferrer"` for `target="_blank"` links unless
+	// the caller supplies their own `rel`.
 	const resolvedRel = rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)
 
 	return (

@@ -12,9 +12,8 @@ export const k = defineRecipe({
 		solid: 'bg-current',
 		outline: ['border-2 border-current', ...bg.surface],
 	},
-	// The dot fills with `currentColor` (solid) or shows it as a border
-	// (outline), so the status colour is the foreground: read the shared
-	// `iro.marker` shade so each state clears non-text 3:1 on the page.
+	// The dot fills with `currentColor` (solid) or shows it as a border (outline).
+	// Uses the `iro.marker` shade so each state clears non-text 3:1 on the page.
 	status: {
 		inactive: marker.zinc,
 		active: marker.green,

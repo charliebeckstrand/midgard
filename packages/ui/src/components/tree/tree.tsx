@@ -41,9 +41,8 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 		[resolvedSize, indent],
 	)
 
-	// Make the first treeitem tabbable on mount and keep it that way as the
-	// rendered set changes (open/close, search, expand-all). Subsequent focus
-	// shifts are handled by the focus capture below.
+	// Keeps the first treeitem tabbable as the rendered set changes (open/close,
+	// search, expand-all). Subsequent focus shifts are handled by the focus capture below.
 	useEffect(() => {
 		const container = ref.current
 

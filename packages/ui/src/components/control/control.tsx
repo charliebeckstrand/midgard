@@ -72,8 +72,7 @@ export function Control({
 			size: mergedSize,
 			variant: mergedVariant,
 			// The a11y bundle (label / description / error ids + registrars +
-			// composed labelledBy/describedBy) is spread wholesale, so a new slot
-			// only touches `useA11yControl` — not each context builder.
+			// composed labelledBy/describedBy) is spread wholesale.
 			...a11y,
 		}),
 		[

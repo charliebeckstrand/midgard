@@ -7,11 +7,8 @@ import {
 	useSignaturePadState,
 } from '../../components/signature-pad/use-signature-pad-state'
 
-// The hook only reads a handful of CanvasRenderingContext2D members. Typing the
-// mock as a free-standing shape (rather than CanvasRenderingContext2D itself)
-// avoids satisfying ~60 unused properties; the per-method overrides on the
-// canvas element are attached via `Object.defineProperty`, which doesn't
-// type-check the property value — no casts needed at the seam.
+// Minimal mock shape for the CanvasRenderingContext2D members the hook reads.
+// Per-method overrides are attached via `Object.defineProperty` (no casts needed).
 type ContextMock = {
 	clearRect: Mock
 	scale: Mock
@@ -315,9 +312,9 @@ describe('useSignaturePadState', () => {
 	})
 
 	it('does not repaint when a controlled value matches lastEmittedRef', () => {
-		// Re-rendering with the same controlled value should not trigger an
-		// additional clearRect, because the effect dependency [current] is
-		// referentially stable. This guards the early-return path.
+		// Re-rendering with the same controlled value triggers no additional
+		// clearRect. Guards the early-return path (effect dependency [current] is
+		// referentially stable).
 		const { context, rerender, captured } = renderHarness({
 			value: 'data:,stable',
 			strokeColor: '#000',

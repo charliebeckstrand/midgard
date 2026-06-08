@@ -50,7 +50,7 @@ export const k = defineRecipe({
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
 	],
 	size: {
-		// Vertical padding extends the native hit area without changing the visible thumb size.
+		// Vertical padding extends the native hit area beyond the visible thumb.
 		sm: [
 			'py-3',
 			'[&::-webkit-slider-runnable-track]:h-1',

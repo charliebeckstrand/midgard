@@ -20,8 +20,8 @@ export function useFormStore(formState: FormStateValue): FormStore {
 	} | null>(null)
 
 	if (internalRef.current === null) {
-		// Seed with the first committed state so SSR, hydration, and the initial
-		// client render all read the same snapshot.
+		// Seed both `state` and `server` from the first committed state so SSR,
+		// hydration, and the initial client render share the same snapshot.
 		internalRef.current = { state: formState, server: formState, listeners: new Set() }
 	}
 

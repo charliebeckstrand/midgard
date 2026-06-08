@@ -7,14 +7,12 @@ describe('mode', () => {
 	})
 
 	it('concatenates light and dark in light-first order when both are provided', () => {
-		// Order matters at the Tailwind level: `dark:` variants need to land
-		// after their base so the cascade picks the right rule.
+		// Light-first order: `dark:` variants land after their base for correct cascade.
 		expect(mode('text-zinc-900', 'dark:text-white')).toEqual(['text-zinc-900', 'dark:text-white'])
 	})
 
 	it('flattens one level of nesting in either argument', () => {
-		// `iro` builds light/dark bundles by composing sub-arrays; `mode` must
-		// flatten so the engine sees a uniform `string[]`.
+		// Normalises `iro`'s composed sub-arrays into a uniform `string[]`.
 		expect(
 			mode(['bg-white', ['hover:bg-zinc-50']], ['dark:bg-black', ['dark:hover:bg-zinc-900']]),
 		).toEqual(['bg-white', 'hover:bg-zinc-50', 'dark:bg-black', 'dark:hover:bg-zinc-900'])
@@ -46,8 +44,7 @@ describe('defineColors', () => {
 	})
 
 	it('handles a mix of plain and pair entries in the same call', () => {
-		// Kata-local colour maps routinely mix static tokens (one class for
-		// both modes) with adaptive ones; both shapes have to coexist.
+		// Plain (single-class) and adaptive (light/dark pair) entries coexist.
 		expect(
 			defineColors({
 				static: 'text-blue-600',

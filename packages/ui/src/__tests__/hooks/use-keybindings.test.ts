@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useKeybindings } from '../../hooks/use-keybindings'
 
-// tinykeys rejects events that lack `code`, so always populate it.
+// tinykeys requires a `code` property; always populate it.
 function pressShiftA(target: EventTarget = window) {
 	target.dispatchEvent(
 		new KeyboardEvent('keydown', { key: 'A', code: 'KeyA', shiftKey: true, bubbles: true }),

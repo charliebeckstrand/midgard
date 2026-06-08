@@ -21,8 +21,8 @@ describe('densityLevels', () => {
 })
 
 describe('DensityProvider broadcast', () => {
-	// The friendly provider lights up the primitive Density token diagonally
-	// (both axes equal) so every size-aware descendant inherits without wiring.
+	// Sets both Density axes to the same token; size-aware descendants inherit
+	// without additional wiring.
 	it('broadcasts compact as the sm token on both axes', () => {
 		const { result } = renderHook(() => useDensity(), {
 			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,

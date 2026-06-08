@@ -291,7 +291,7 @@ describe('useDatePickerRangeState', () => {
 			// First arrow materializes the cursor on the start date.
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
-			// Second arrow moves it and, because a range is in progress, drives the hover preview.
+			// Second arrow moves the cursor and drives the hover preview (range in progress).
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
 
 			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })

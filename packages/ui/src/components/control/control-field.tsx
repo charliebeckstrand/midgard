@@ -14,10 +14,9 @@ export type ControlFieldProps = {
 /**
  * Field-scoping envelope shared by the single-control field wrappers
  * (`CheckboxField` / `RadioField` / `SwitchField`). Generates a scoped id and
- * broadcasts it through `ControlContext` so the wrapped control and its Label
- * auto-wire without the consumer touching `id` / `htmlFor`. Each field renders
- * its own slot element as the child; this owns only the id + context wiring so
- * a new field can't silently drop the `aria-describedby` plumbing.
+ * broadcasts it through `ControlContext`; the wrapped control and its Label
+ * auto-wire without the consumer setting `id` / `htmlFor`. This owns only the
+ * id + context wiring; each field renders its own slot element as the child.
  */
 export function ControlField({ htmlFor, children }: ControlFieldProps) {
 	const scope = useIdScope({ id: htmlFor })

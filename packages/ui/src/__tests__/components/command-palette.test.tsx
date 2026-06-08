@@ -154,10 +154,10 @@ describe('CommandPalette active descendant', () => {
 
 		const status = bySlot(document.body, 'command-palette-no-results')
 
-		// `<output>` is implicitly role="status" (a polite live region) and stays
+		// `<output>` is implicitly role="status" (a polite live region); stays
 		// mounted regardless of results — a CSS peer-empty toggle reveals it when the
-		// listbox filters to empty, so a no-match query is announced, not silent. It
-		// must live outside the listbox (aria-required-children owns only options).
+		// listbox filters to empty. Sits outside the listbox (aria-required-children
+		// owns only options).
 		expect(status?.tagName).toBe('OUTPUT')
 
 		expect(status).toHaveTextContent('No results')

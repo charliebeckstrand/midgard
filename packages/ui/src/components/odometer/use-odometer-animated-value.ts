@@ -17,8 +17,8 @@ export function useOdometerAnimatedValue({ value, duration = 800 }: AnimatedValu
 
 	const fromRef = useRef(value)
 
-	// Imperative animate() runs outside any MotionConfig, so honour the OS
-	// preference here directly: snap to the target rather than counting (2.3.3).
+	// `animate()` runs outside any MotionConfig; the OS preference is read
+	// directly here and snaps to the target value when reduced motion is on (WCAG 2.3.3).
 	const reduceMotion = useReducedMotion()
 
 	useEffect(() => {

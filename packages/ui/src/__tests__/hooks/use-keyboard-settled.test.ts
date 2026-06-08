@@ -100,7 +100,7 @@ describe('useKeyboardSettled', () => {
 
 		expect(callback).not.toHaveBeenCalled()
 
-		// Simulate keyboard appearing, then six stable frames to trigger the 5-frame threshold.
+		// Keyboard appears, then six stable frames satisfy the 5-frame threshold.
 		vv.height = Math.floor(window.innerHeight * 0.5)
 
 		for (let i = 0; i < 6; i++) (rafCb as FrameRequestCallback | null)?.(0)

@@ -49,7 +49,7 @@ export function Table({
 }: TableProps) {
 	const inherited = useDensity()
 
-	// Cell padding is a density concern, so read the density axis (not size);
+	// Reads the density `space` axis (not `size`) for cell padding;
 	// the explicit DensityLevel prop still wins.
 	const resolvedDensity = density ? densityToSize[density] : inherited.space
 

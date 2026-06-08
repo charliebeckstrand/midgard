@@ -15,9 +15,8 @@ type DataTableRowProps<T> = {
 	loading: boolean
 	className: string | undefined
 	/**
-	 * Passed as a prop (rather than read from `selection` in context) so the
-	 * memoized row only re-renders when its own selected state flips — toggling
-	 * one row in a large table no longer re-renders every other row.
+	 * This row's selected state. Passed as a prop, not read from context, so
+	 * `memo` re-renders only this row when its selection flips.
 	 */
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */

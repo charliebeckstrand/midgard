@@ -34,8 +34,8 @@ type FloatingDisclosureOptions = Omit<
 	gate?: FloatingDisclosureGate
 }
 
-// Explicit return type: TS can't write a portable `.d.ts` referencing
-// `@floating-ui/react-dom` (TS2742), same constraint as `useFloatingPanel`.
+// Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
+// can't express in a portable `.d.ts` (TS2742); same constraint as `useFloatingPanel`.
 type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void
@@ -100,7 +100,7 @@ export function useFloatingDisclosure({
 	const dismiss = useDismiss(context)
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
-	// emitting no role/aria props, so a component owning its roles isn't
+	// emitting no role/aria props — a component owning its roles is not
 	// double-stamped on the positioning wrapper.
 	const role = useRole(context, { role: roleProp ?? 'menu', enabled: roleProp !== null })
 

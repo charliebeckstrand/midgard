@@ -132,10 +132,9 @@ describe('extractReferences', () => {
 	})
 
 	it('renders an object alias as its apparent shape, collapsing Pick/Omit composition', () => {
-		// The in-memory program doesn't load TypeScript's stdlib, so `Pick` is
-		// undefined by default — shadow it inline. The fixture mirrors `Pick`'s
-		// definition exactly. `BUILTIN_TYPES` already filters the name from the
-		// references queue, so no card is emitted for `Pick` itself.
+		// The in-memory program omits TypeScript's stdlib; `Pick` is shadowed
+		// inline with its exact definition. `BUILTIN_TYPES` filters `Pick` from
+		// the references queue, so no card is emitted for it.
 		const { location, checker } = callableLocation({
 			'index.ts': [
 				`type Pick<T, K extends keyof T> = { [P in K]: T[P] }`,
@@ -155,7 +154,7 @@ describe('extractReferences', () => {
 
 		expect(refs?.Options).not.toContain('hidden')
 
-		// `Pick` collapses — no transitive card for `Inner`.
+		// `Pick` collapses: no transitive card for `Inner`.
 		expect(refs?.Inner).toBeUndefined()
 	})
 
@@ -187,7 +186,7 @@ describe('extractReferences', () => {
 
 		expect(refs?.Banner).toContain(`tone: 'info' | 'warn'`)
 
-		// HTML attributes from React/DOM typings should not leak in.
+		// HTML attributes from React/DOM typings are excluded.
 		expect(refs?.Banner).not.toContain('onClick')
 
 		expect(refs?.Banner).not.toContain('onPointerDown')

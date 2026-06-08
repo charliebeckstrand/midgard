@@ -7,25 +7,22 @@ import { control } from '../../../recipes/kiso/control'
 
 // Affix `data-slot` compensation invariant.
 //
-// Affix padding equals `input.px` so a text affix's *content* sits the
-// same distance from chrome as input-text does in an affix-less control.
-//
-// When the slot hosts an element with its own outer chrome — a non-bare
-// Button or a Badge, matched on `data-slot` — the affix padding shrinks
-// to a constant `1.5` spacing-units at every density step, pulling the
-// chip's *content* 0.5 units inside the text-equidistance line so its
-// chrome reads with breathing room from the slot edge. The single
-// constant works because `affixStepDown` moves the slot's child one
-// notch down per host density step and both scales grow 0.5 per notch —
-// the per-step deltas cancel, leaving only the 0.5 inset:
+// A plain-text affix aligns its content with the input text: padding equals
+// `input.px`. When the slot hosts an element with its own outer chrome — a
+// non-bare Button or a Badge, matched on `data-slot` — the affix padding
+// shrinks to a constant `1.5` spacing-units at every density step, pulling
+// the chip's *content* 0.5 units inside the text-equidistance line. The
+// constant holds across density steps: `affixStepDown` moves the child one
+// notch down per host step, and both scales grow 0.5 per notch — the
+// per-step deltas cancel, leaving only the 0.5 inset:
 //
 //   affix.pl(has-chip) = input.px − child.p[affixStepDown(step)] + 0.5 = 1.5
 //
 // The test parses live recipe values rather than the literal `1.5` — if
 // any of (input.px, button.p, affixStepDown, or the 0.5 inset) drifts,
 // the assertion fails with the calculated delta and points at the source.
-// Button's `p` stands in for any chip's `p` because Button and Badge
-// share the same per-step horizontal padding scale (kasane.p).
+// Button's `p` stands in for any chip's `p`; Button and Badge share the
+// same per-step horizontal padding scale (kasane.p).
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 

@@ -3,10 +3,8 @@ import { kasane } from '../../recipes/kiso/kasane'
 
 const { gap, radius } = kasane
 
-// These helpers form the kasane spacing/radius API "for symmetry" (see the
-// kasane index doc): some axes (gx/gy, ri/ro) have no internal consumer yet, so
-// pin their class-string contract directly. Expected values are derived from
-// the stop so a typo in a stop's literal class would fail.
+// Pins the class-string contract for kasane spacing/radius helpers; expected
+// values are derived from the stop — a typo in a literal class fails here.
 
 describe('kasane.gap', () => {
 	const stops = ['0.25', '0.5', '0.75', '1', '1.25', '1.5', '2', '2.5', '3'] as const

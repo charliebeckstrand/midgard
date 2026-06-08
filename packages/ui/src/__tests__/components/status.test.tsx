@@ -16,8 +16,7 @@ describe('StatusDot', () => {
 
 		const el = bySlot(container, 'status-dot')
 
-		// Status by colour alone — a bare dot exposes no role or name, so it relies
-		// on adjacent visible text and must not be the sole signal.
+		// Status conveyed by colour alone — a bare dot exposes no role or name.
 		expect(el).not.toHaveAttribute('role')
 
 		expect(el).not.toHaveAttribute('aria-label')

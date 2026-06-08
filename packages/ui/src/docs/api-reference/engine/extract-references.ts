@@ -34,23 +34,22 @@ const BUILTIN_TYPES = new Set([
 ])
 
 /**
- * Recipe-engine plumbing — `Recipe`, `RecipeBase`, `ResolvedConfig`,
- * `VariantProps`, … — has nothing to do with the prop the user is
- * inspecting. Treat the engine directory the same as `node_modules`.
+ * Recipe-engine internals — `Recipe`, `RecipeBase`, `ResolvedConfig`,
+ * `VariantProps`, … — treated the same as `node_modules`: excluded from
+ * reference cards.
  */
 const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
 
 /**
- * Resolve every named-type reference in a rendered prop type to its display
- * form, so the docs panel can show each alias' definition. Recurses through
- * references discovered inside each definition.
+ * Resolves every named-type reference in a rendered prop type to its display
+ * form for the docs panel. Recurses through references discovered inside each
+ * definition.
  *
  * Object-shaped aliases render as an apparent-property body — the shape the
- * caller would actually pass — instead of the alias's raw source text, so
- * `Pick<…>` / `Omit<…>` / intersection compositions collapse to one card.
- * Intersection arms declared in `node_modules` or the recipe engine drop out
- * before properties are enumerated, so HTML pass-throughs don't flood the
- * panel (the API Reference's pass-through section already covers them).
+ * caller would actually pass — so `Pick<…>` / `Omit<…>` / intersection
+ * compositions collapse to one card. Intersection arms from `node_modules` or
+ * the recipe engine are dropped before properties are enumerated, keeping HTML
+ * pass-throughs out of the panel (the pass-through section covers them).
  *
  * Scope is project source only — `node_modules`, React/DOM typings, recipe
  * engine internals, and built-in utility types (`Array`, `Pick`, …) are
@@ -63,10 +62,10 @@ export function extractReferences(
 ): Record<string, string> | undefined {
 	const refs: Record<string, string> = {}
 
-	// Each entry carries the resolution scope: top-level names resolve from
+	// Each entry carries its resolution scope: top-level names resolve from
 	// the component's call-site; recursively discovered names resolve from
-	// their defining site, so transitively referenced types don't need to
-	// be re-imported into the original module.
+	// their defining site, so transitively referenced types resolve without
+	// being imported into the original module.
 	const queue: { name: string; from: ts.Node }[] = collectTypeNames(formattedType).map((name) => ({
 		name,
 		from: location,
@@ -124,7 +123,7 @@ function resolveAliasDefinition(
 	checker: ts.TypeChecker,
 ): { text: string; declaration: ts.Node } | null {
 	// Include `Alias` so `import { type Foo } from '…'` is visible — type-only
-	// imports bind as alias symbols, not direct type symbols.
+	// imports bind as alias symbols rather than direct type symbols.
 	const symbols = checker.getSymbolsInScope(location, ts.SymbolFlags.Type | ts.SymbolFlags.Alias)
 
 	const symbol = symbols.find((s) => s.getName() === name)
@@ -161,9 +160,9 @@ function resolveAliasDefinition(
 }
 
 /**
- * Declarations under `node_modules` or the recipe engine are treated as
- * opaque — neither resolves to a reference card, and properties contributed
- * by them are filtered out of apparent-shape bodies.
+ * Declarations under `node_modules` or the recipe engine are opaque — neither
+ * resolves to a reference card, and properties from them are filtered out of
+ * apparent-shape bodies.
  */
 function isExternalDeclaration(decl: ts.Declaration): boolean {
 	const file = decl.getSourceFile().fileName
@@ -172,25 +171,23 @@ function isExternalDeclaration(decl: ts.Declaration): boolean {
 }
 
 /**
- * Render an object-shaped alias as its resolved apparent shape rather than
- * the alias' source text. Property symbols whose declarations are all
- * external are dropped — that's how `Omit<HTMLAttributes<…>, …> & { … }`
- * collapses to just the project arm without enumerating every HTML attr.
+ * Renders an object-shaped alias as its resolved apparent shape. Property
+ * symbols whose every declaration is external are dropped, so
+ * `Omit<HTMLAttributes<…>, …> & { … }` collapses to the project arm without
+ * enumerating every HTML attr.
  *
- * Returns `null` for primitives, literal unions, and function types so the
- * caller falls back to source text — those declarations are already concise
- * as written.
+ * Returns `null` for primitives, literal unions, and function types; the
+ * caller falls back to source text for those, which is already concise.
  */
 function formatApparentShape(
 	symbol: ts.Symbol,
 	decl: ts.TypeAliasDeclaration | ts.InterfaceDeclaration,
 	checker: ts.TypeChecker,
 ): string | null {
-	// Evaluate the type expression at the declaration site so mapped-type
-	// wrappers (`Pick`, `Omit`, …) materialize their resolved properties.
-	// `getDeclaredTypeOfSymbol` returns the type as written, which for a
-	// `type X = Pick<…, …>` keeps Pick as an opaque TypeReference whose
-	// `getProperties()` is empty until apparent-type resolution.
+	// Evaluate the type expression at the declaration site: mapped-type
+	// wrappers (`Pick`, `Omit`, …) materialize their resolved properties this
+	// way. `getDeclaredTypeOfSymbol` returns the type as written, keeping
+	// `Pick<…, …>` as an opaque TypeReference with an empty `getProperties()`.
 	const declaredType = ts.isTypeAliasDeclaration(decl)
 		? checker.getTypeFromTypeNode(decl.type)
 		: checker.getDeclaredTypeOfSymbol(symbol)
@@ -225,9 +222,9 @@ function formatApparentShape(
 }
 
 /**
- * A property whose every declaration site sits in `node_modules` or the
- * recipe engine — i.e. it came in through an external intersection arm and
- * is not a prop the project's surface API accepts.
+ * Returns true when every declaration site of the symbol is in `node_modules`
+ * or the recipe engine — contributed by an external intersection arm, not part
+ * of the project's surface API.
  */
 function isExternalPropertySymbol(symbol: ts.Symbol): boolean {
 	const declarations = symbol.getDeclarations() ?? []
@@ -261,8 +258,8 @@ function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | u
 }
 
 /**
- * Strip common leading indentation from a multi-line fragment so the body
- * anchors at column 0 regardless of where the declaration sat in source
+ * Strips common leading indentation from a multi-line fragment, anchoring the
+ * body at column 0 regardless of where the declaration appears in source
  * (top level, inside a namespace, …).
  */
 function dedent(text: string): string {

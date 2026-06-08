@@ -122,10 +122,8 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
-	// A controlled `open` with no `onOpenChange` can't notify the parent, so the
-	// close button's `setOpen(false)` would be a no-op, leaving it inert. Fall
-	// back to local dismissal in that case so the button still works. With a
-	// handler present the parent owns visibility and this stays untouched.
+	// When `open` is controlled but `onOpenChange` is absent, `setOpen(false)` is
+	// a no-op. Track dismissal locally so the close button still works.
 	const controlledWithoutHandler = openProp !== undefined && onOpenChange === undefined
 
 	const [locallyDismissed, setLocallyDismissed] = useState(false)
@@ -134,11 +132,10 @@ export function Alert({
 
 	const wasOpen = useRef(open)
 
-	// info/success render a polite `role="status"`; a live region inserted in the
-	// same commit as its text isn't reliably announced. When such an alert first
-	// appears (closed→open after mount), mirror its rendered text through the
-	// persistent announcer region so it reaches screen readers (WCAG 4.1.3).
-	// warning/error use `role="alert"`, which announces on insertion already.
+	// `role="status"` (info/success) is not reliably announced when the live
+	// region and its text are inserted together. On closed→open, mirrors rendered
+	// text through the persistent announcer so screen readers receive it (WCAG
+	// 4.1.3). `role="alert"` (warning/error) announces on insertion without this.
 	const politeSeverity = severity === 'info' || severity === 'success'
 
 	useEffect(() => {
@@ -203,8 +200,7 @@ export function Alert({
 
 						if (controlledWithoutHandler) setLocallyDismissed(true)
 
-						// The button unmounts with the alert; hand focus to the caller's
-						// element rather than dropping it to <body> (WCAG 2.4.3).
+						// Moves focus to the caller's element rather than <body> (WCAG 2.4.3).
 						returnFocusTo?.current?.focus()
 					}}
 				>

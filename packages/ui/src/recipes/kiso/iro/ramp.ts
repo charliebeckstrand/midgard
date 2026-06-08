@@ -4,26 +4,22 @@
  * One row per palette color, each naming the *role* shades that color plays
  * as a foreground, light value first and the `dark:`-prefixed value second.
  * Tailwind's scanner only sees full class literals, so both are written out;
- * nothing is composed at runtime. Authoring color-major — every shade decision
- * for a color in one place — is what keeps the palette variants (and the kata
- * that read them) from drifting apart: a contrast retune is one edit on this
- * row, not one edit per consuming file.
+ * nothing is composed at runtime. Authored color-major — every shade decision
+ * for a color in one place.
  *
  * Roles:
  *   - `onSurface` — foreground on the page / card surface (white · zinc-900).
  *     The semantic intent bundle and the muted `bare` text read this; it
  *     clears AA (4.5:1) on its own surface.
  *   - `onTint` — foreground for the translucent 15% soft fill, one step
- *     stronger so it clears AA on the tint too; `plain` / `soft` / `outline`
- *     read this (it stays AA on a plain surface as well).
+ *     stronger than `onSurface`; `plain` / `soft` / `outline` read this.
  *   - `marker` — chromatic dot / glyph (status, spinner, timeline) painted on
  *     the page surface. Graphical, so the floor is the lower non-text 3:1
  *     (1.4.11); the mid shade darkens for light mode and brightens for dark.
  *
  * The `__tests__/recipes/contrast.test.ts` guard derives the contrast of every
  * rung from Tailwind's own theme and asserts it clears the floor on its
- * declared surface in both modes — so a regression fails CI rather than
- * waiting on a real-browser axe pass.
+ * declared surface in both modes.
  *
  * Layer: kiso · Concern: color ramp
  */

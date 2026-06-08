@@ -16,7 +16,7 @@ function mockLayout({ containerWidth, textWidth, paddingLeft = 0, paddingRight =
 	const originalGetComputedStyle = window.getComputedStyle
 
 	Element.prototype.getBoundingClientRect = function () {
-		// The measurer is the only span the hook appends inside the container.
+		// The measurer span is the only SPAN the hook appends inside the container.
 		const width = this.tagName === 'SPAN' ? textWidth : containerWidth
 
 		return {
@@ -118,8 +118,7 @@ describe('useIsTruncated', () => {
 		})
 
 		it('accounts for horizontal padding when computing content width', () => {
-			// Container is 200px wide with 30px padding on each side → 140px content box.
-			// Text is 150px → should be truncated.
+			// 200px container, 30px padding each side → 140px content box; 150px text → truncated.
 			restore = mockLayout({
 				containerWidth: 200,
 				textWidth: 150,
@@ -145,8 +144,7 @@ describe('useIsTruncated', () => {
 		})
 
 		it('handles subpixel widths without rounding artifacts', () => {
-			// Real browsers return floats from getBoundingClientRect.
-			// Text is 100.4px wide, content box is 100.6px → not truncated.
+			// getBoundingClientRect returns floats; 100.4px text in a 100.6px box → not truncated.
 			restore = mockLayout({ containerWidth: 100.6, textWidth: 100.4 })
 
 			const results: boolean[] = []
@@ -187,7 +185,7 @@ describe('useIsTruncated', () => {
 
 			expect(results.at(-1)).toBe(false)
 
-			// Simulate the container shrinking below the text width.
+			// Shrink the container below the text width.
 			restoreLayout()
 
 			restoreLayout = mockLayout({ containerWidth: 50, textWidth: 100 })

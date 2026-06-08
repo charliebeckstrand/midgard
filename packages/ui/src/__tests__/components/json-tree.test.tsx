@@ -247,9 +247,8 @@ describe('JsonTree', () => {
 				<JsonTree data={data} virtualize maxHeight="400px" defaultExpandDepth={1} />,
 			)
 
-			// jsdom reports zero viewport, so react-virtual renders 0 items plus
-			// any initial overscan. The assertion is that the row count is
-			// bounded — real-browser windowing is covered by the benchmarks.
+			// jsdom reports zero viewport; react-virtual renders 0 items plus
+			// any initial overscan. Row count is bounded by the node count.
 			const rows = container.querySelectorAll('[data-slot="json-node"], [data-slot="json-close"]')
 
 			expect(rows.length).toBeLessThanOrEqual(101) // 100 leaves + 1 close

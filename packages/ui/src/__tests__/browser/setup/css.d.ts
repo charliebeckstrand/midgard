@@ -1,5 +1,4 @@
-// The browser setup imports a Tailwind entry for its side effect (Vite injects
-// the compiled stylesheet). Unlike the docs tree, the test tree is covered by
-// the package tsconfig, so it needs the same `*.css` module shim `vite/client`
-// would otherwise provide.
+// `*.css` module shim: the browser setup imports a Tailwind entry for its side
+// effect (Vite injects the compiled stylesheet), and the package tsconfig
+// doesn't include `vite/client` to provide this shim automatically.
 declare module '*.css'

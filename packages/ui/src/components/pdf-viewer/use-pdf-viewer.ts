@@ -70,9 +70,9 @@ export function usePdfViewer({
 
 	const pages = pagesProp ?? loadedPages
 
-	// Prefer the same-origin blob URL from the hook so download/print stay in-page.
-	// Falling back to the original `src` works for same-origin docs but will navigate
-	// to the browser's PDF viewer for cross-origin docs.
+	// Prefer the same-origin blob URL from the hook for download/print.
+	// Falls back to `src` for same-origin docs; cross-origin docs open in
+	// the browser's PDF viewer.
 	const documentSrc = documentUrl ?? src
 
 	const total = pages.length
@@ -98,13 +98,12 @@ export function usePdfViewer({
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
 
-	// `isTransposed` invalidates the viewport measurement so it re-runs synchronously
-	// on rotation flip, before paint — instead of waiting a frame for ResizeObserver.
+	// Pass `isTransposed` as the invalidation key so the viewport re-measures
+	// synchronously on rotation flip, before paint.
 	const viewportSize = usePdfViewerViewportSize(viewportRef, isTransposed)
 
-	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the pre-load
-	// fallback — close to most documents and stable while the first page resolves.
-	// Leave it unset when there's nothing to display so the viewer can collapse.
+	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the
+	// pre-load fallback. Unset when there is no content to display.
 	const hasContent = !!src || total > 0
 
 	const scale = usePdfViewerPageScale({
@@ -122,9 +121,8 @@ export function usePdfViewer({
 
 	const visible = !!(viewportSize && pageSize)
 
-	// Memoize so the value handed to PdfViewerContext keeps a stable identity
-	// across renders that don't touch its fields — the per-page streaming ticks
-	// and zoom/scroll churn would otherwise re-render every consumer.
+	// Memoized so PdfViewerContext value identity is stable across renders that
+	// don't touch its fields.
 	return useMemo<PdfViewerResult>(
 		() => ({
 			pages,

@@ -30,11 +30,10 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
  * wrapping `<div>`, so keyboard focus reaches the trigger and the description is
  * announced against the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
  *
- * Mirrors `PopoverTrigger`, with two deliberate differences: the child's own ref
- * is merged (not overwritten) since triggers like the date-picker's truncation
- * span pass one, and the non-element fallback stays a plain `<div>` — tooltip
- * triggers are frequently nested inside other interactive content (e.g. the
- * date-picker button), where a focusable `<button>` fallback would be invalid.
+ * The child's own ref is merged (not overwritten) to support triggers that pass
+ * one. The non-element fallback renders a plain `<div>` — tooltip triggers are
+ * frequently nested inside other interactive content, where a `<button>` fallback
+ * would produce invalid nested-interactive markup.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const { setReference, getReferenceProps, enabled, className } = useTooltipContext()
@@ -62,9 +61,8 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 		return cloneElement(child, {
 			...(getReferenceProps(child.props as Record<string, unknown>) as HTMLAttributes<HTMLElement>),
 			ref: mergeRefs,
-			// Let a child that declares its own slot keep it (e.g. TimeAgo's
-			// `time-ago`), mirroring the className merge below; only the
-			// slotless case falls back to the generic trigger marker.
+			// Preserves a child's own `data-slot` (e.g. `time-ago`); falls back to
+			// the generic trigger marker only when the child has none.
 			'data-slot': child.props['data-slot'] ?? 'tooltip-trigger',
 			className: cn(triggerClassName, child.props.className),
 		})

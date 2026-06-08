@@ -17,8 +17,8 @@ export type ControlPropsOptions = {
 	'aria-describedby'?: string
 	/**
 	 * Form binding (from `useFormText` / `useFormToggle`). Its `invalid` flag is
-	 * OR'd with the Control context's `invalid` so an external form error and
-	 * an ambient `<Field invalid>` both surface.
+	 * OR'd with the Control context's `invalid`; an external form error and an
+	 * ambient `<Field invalid>` both surface.
 	 */
 	binding?: FieldBinding
 }
@@ -54,8 +54,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 	const control = useControl()
 
 	// Consumer-supplied ids first, then the field's registered description /
-	// error ids. Omitted when neither is present, so the attribute never
-	// references nothing.
+	// error ids. Omitted when neither is present.
 	const describedBy = useAriaIds(input['aria-describedby'], control?.describedBy)
 
 	return {

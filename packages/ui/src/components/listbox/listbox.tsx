@@ -154,8 +154,8 @@ export function Listbox<T>({
 		matchReferenceWidth: true,
 		returnFocusTo: triggerRef,
 		// The trigger button (`role="combobox"`) and the panel (`role="listbox"`)
-		// carry their own roles + popup wiring; suppress floating-ui's so the
-		// positioning wrappers don't double-stamp a nested combobox/listbox.
+		// carry their own roles + popup wiring. Setting `role: null` prevents
+		// floating-ui's positioning wrappers from stamping a duplicate role.
 		role: null,
 	})
 
@@ -178,8 +178,8 @@ export function Listbox<T>({
 
 				setValue(multiple ? ([] as T[]) : undefined)
 
-				// The clear button unmounts once the selection is empty; return
-				// focus to the trigger rather than dropping it to <body> (WCAG 2.4.3).
+				// The clear button unmounts once the selection is empty; focus
+				// returns to the trigger instead of falling to <body> (WCAG 2.4.3).
 				triggerRef.current?.focus()
 			}}
 		>
@@ -189,7 +189,7 @@ export function Listbox<T>({
 
 	// The trigger label reads the live `value` (updates instantly on select); the
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
-	// closing so the selected row doesn't flicker during the exit animation.
+	// closing, keeping the selected row stable during the exit animation.
 	const contextValue = useMemo(
 		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void, close }),
 		[selectionValue, multiple, select, close],

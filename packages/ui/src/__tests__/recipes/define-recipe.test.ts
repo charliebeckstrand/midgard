@@ -13,9 +13,8 @@ describe('defineRecipe', () => {
 	})
 
 	it('preserves defaults when the caller passes the prop as undefined', () => {
-		// Components destructure props they don't pass — leaving them `undefined`.
-		// Spreading `{ variant: undefined }` onto defaults would clobber the
-		// default; this guards against that regression.
+		// Guards the `{ variant: undefined }` path: spreading undefined must not
+		// clobber the default.
 		const recipe = defineRecipe({
 			variant: { solid: 'solid-base' },
 			defaults: { variant: 'solid' },
@@ -49,8 +48,7 @@ describe('defineRecipe', () => {
 	})
 
 	it('drops unknown axis values silently', () => {
-		// Catching string typos with a thrown error would force every kata to
-		// declare an exhaustive axis upfront. Skipping is documented behaviour.
+		// Skipping unknown axis values (rather than throwing) is documented behaviour.
 		const recipe = defineRecipe({
 			size: { sm: 'size-sm', lg: 'size-lg' },
 			defaults: { size: 'sm' },
@@ -60,9 +58,8 @@ describe('defineRecipe', () => {
 	})
 
 	it('coerces a boolean prop value to its string axis key', () => {
-		// `AxisValue` widens an axis keyed on `'true'`/`'false'` to `boolean`,
-		// so consumers pass a bool. The engine routes that through `String()`
-		// before the axis lookup.
+		// `AxisValue` widens `'true'`/`'false'` axes to `boolean`; the engine
+		// coerces via `String()` before the axis lookup.
 		const recipe = defineRecipe({
 			active: { true: 'is-active', false: 'is-inactive' },
 			defaults: { active: false },
@@ -88,8 +85,8 @@ describe('defineRecipe', () => {
 	})
 
 	it('resolves Tailwind conflicts between base and variant classes', () => {
-		// `tailwind-merge` runs over the concatenated output, so the variant's
-		// `p-4` wins over base `p-2` and callers don't end up with both.
+		// `tailwind-merge` runs over the concatenated output; the variant's `p-4`
+		// wins over base `p-2`.
 		const recipe = defineRecipe({
 			base: 'p-2 rounded',
 			size: { lg: 'p-4' },
@@ -105,9 +102,8 @@ describe('defineRecipe', () => {
 	})
 
 	it('user compound rules win over palette compounds on the same (variant × colour)', () => {
-		// `recipe.ts` pushes palette compounds first, then user `compound`, so
-		// `tailwind-merge` resolves user rules last. Pinned so a kata that
-		// needs to override a palette cell never gets silently outranked.
+		// Palette compounds are pushed first, user `compound` last; `tailwind-merge`
+		// resolves user rules as the winner.
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: { zinc: ['bg-zinc-600'], red: [], amber: [], green: [], blue: [] },
@@ -124,8 +120,7 @@ describe('defineRecipe', () => {
 	})
 
 	it('pre-merges slot classes and exposes them as properties on the recipe', () => {
-		// Slots are looked up by name (`recipe.title`), not via the call
-		// signature, so they're computed once at definition time.
+		// Slots are computed once at definition time, looked up by name (`recipe.title`).
 		const recipe = defineRecipe({
 			slots: { title: ['font-semibold', 'text-lg'], body: 'text-sm' },
 		})
@@ -136,8 +131,8 @@ describe('defineRecipe', () => {
 	})
 
 	it('keeps the default colour active when only variant is overridden', () => {
-		// Reproduces the button-docs regression: iterating variants without
-		// passing color must still match the (variant × default-color) compound.
+		// Guards the (variant × default-color) compound: omitting `color` must
+		// still resolve the default.
 		const classes = button({ variant: 'soft' })
 
 		// The (soft × zinc) compound from button.ts emits bg-zinc-600/15.

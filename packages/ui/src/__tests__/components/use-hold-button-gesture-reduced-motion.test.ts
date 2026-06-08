@@ -6,9 +6,8 @@ import {
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
 
-// Force the reduced-motion branch deterministically — the real motion hook
-// caches a module-level media query that this shuffled suite can't reliably
-// flip. Reuse the global jsdom-safe mock and override only useReducedMotion.
+// Forces the reduced-motion branch deterministically by overriding
+// `useReducedMotion` on the global jsdom-safe mock.
 vi.mock('motion/react', async () => ({
 	...(await import('../mocks/motion-react')).default,
 	useReducedMotion: () => true,

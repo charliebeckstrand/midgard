@@ -113,9 +113,8 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 	const store = useFormStoreContext()
 	const actions = useFormActions()
 
-	// Cache the last slice so an unchanged field keeps a stable snapshot even
-	// when an unrelated field's keystroke rebuilds its error array (validateOn
-	// 'change' re-runs every validator) — compared by content, not identity.
+	// Caches the last slice by content so an unchanged field returns a stable
+	// snapshot reference across snapshots, not just identity.
 	const cacheRef = useRef<FieldSlice | null>(null)
 
 	const select = useCallback(

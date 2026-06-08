@@ -46,9 +46,8 @@ export function CurrentContent({
 	return (
 		<motion.div
 			ref={ref}
-			// Forward caller props (id, role, aria-*) in fade mode too. The cast
-			// only sidesteps motion's redefined animation/drag handler signatures,
-			// which this primitive's consumers never pass.
+			// Forward caller props (id, role, aria-*) in fade mode; the cast
+			// sidesteps motion's redefined animation/drag handler signatures.
 			{...(props as HTMLMotionProps<'div'>)}
 			data-slot={`${slotPrefix}-content`}
 			data-current={current || undefined}

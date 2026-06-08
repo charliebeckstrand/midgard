@@ -2,8 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useOdometerAnimatedValue } from '../../components/odometer/use-odometer-animated-value'
 
-// Steady-state contract only. The RAF interpolation path is exercised through
-// odometer.test.tsx, where the integration handles timing under jsdom.
+// Steady-state contract only. The RAF interpolation path is exercised through odometer.test.tsx.
 
 describe('useOdometerAnimatedValue', () => {
 	it('returns the initial value on first render', () => {

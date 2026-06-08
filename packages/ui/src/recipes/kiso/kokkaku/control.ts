@@ -2,11 +2,9 @@
  * Kokkaku skeleton — control. Shared by every `<ControlFrame>`
  * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker).
  *
- * `full` is the standalone-skeleton default — outside a `<Group>`, the
- * placeholder fills its parent (matching `ControlFrame`'s `w-full`
- * ancestry). `group` is the in-group default: a placeholder has no
- * intrinsic content to size from, so it grows (sibling placeholders
- * share the row) with a size-aware floor. Override via `className`
+ * `full` is the standalone-skeleton default — fills its parent. `group`
+ * is the in-group default: grows to share the row with sibling
+ * placeholders, with a size-aware minimum width. Override via `className`
  * (e.g. `w-44 flex-none`) to pin a fixed slot.
  *
  * Layer: kiso · Concern: skeleton form · Unit: control

@@ -5,9 +5,8 @@ import { useControllable } from '../../hooks'
 import type { DataTableSelection } from '../data-table'
 import type { EditableGridSelectionApi } from './types'
 
-// Stable empty-selection sentinel: a fresh Set per render breaks referential
-// equality for `selectionRef` and any downstream memo/effect that reads it.
-// Treated as read-only — all updates go through `setSelection(new Set(...))`.
+// Stable empty-selection sentinel. Treated as read-only — all updates go through
+// `setSelection(new Set(...))`.
 const EMPTY_SELECTION = new Set<string | number>()
 
 export function useEditableGridSelection(config: DataTableSelection | undefined) {

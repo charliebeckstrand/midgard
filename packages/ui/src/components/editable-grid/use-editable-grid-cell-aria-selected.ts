@@ -3,16 +3,14 @@
 import { type RefObject, useEffect } from 'react'
 
 /**
- * Reflects a cell's live selection onto its owning `role="gridcell"` ancestor's
- * `aria-selected`, so range / multi-select reaches assistive tech.
+ * Writes `aria-selected` on the owning `role="gridcell"` ancestor to expose
+ * range and multi-select state to assistive tech.
  *
  * The gridcell is the `<td>` (DataTable applies the role through `cellProps`,
- * which is intentionally kept non-reactive so navigation doesn't rebuild every
- * column), while the live selection state only reaches the reactive cell
- * content. This hook bridges that seam: `ref` points at the content node and
- * the attribute is written imperatively on its `<td>`. React leaves it
- * untouched — `aria-selected` isn't part of the `<td>`'s rendered props, so the
- * reconciler never patches it.
+ * which is non-reactive), while live selection state only reaches the reactive
+ * cell content. `ref` points at the content node; the attribute is written
+ * imperatively on its `<td>`, which React leaves untouched — `aria-selected`
+ * is not part of the `<td>`'s rendered props.
  */
 export function useEditableGridCellAriaSelected(
 	ref: RefObject<HTMLElement | null>,

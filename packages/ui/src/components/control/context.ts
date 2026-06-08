@@ -24,7 +24,7 @@ export type ControlContextValue = {
 	descriptionId?: string
 	/** Id the error Message slot renders with. */
 	messageId?: string
-	/** Slot registration — Label / Description / error Message call these on mount so `labelledBy` / `describedBy` only reference rendered ids. */
+	/** Slot registration — Label / Description / error Message call these on mount; `labelledBy` / `describedBy` only reference ids of rendered slots. */
 	registerLabel?: () => () => void
 	registerDescription?: () => () => void
 	registerMessage?: () => () => void
@@ -35,7 +35,7 @@ export type ControlContextValue = {
  * Carries id, autoComplete, disabled, invalid, readOnly, required, size,
  * variant — every prop a nested form field can inherit. Special: it's also
  * the data bridge between `<Field>` (label, help, errors, validation) and
- * the underlying form field, so it carries more than just size.
+ * the underlying form field — it carries more than just size.
  *
  * Resolution lives at the field's call site: shared form-field props go
  * through `useControlProps`; size is resolved separately through the

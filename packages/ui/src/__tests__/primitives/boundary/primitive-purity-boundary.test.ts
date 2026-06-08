@@ -3,11 +3,10 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Primitives are foundational React/HTML abstractions consumed by components.
-// They must not reach back upward into components or layouts — that would
-// invert the dependency direction and pull component context into the
-// primitive layer. They DO reach `recipes/kata/` (the recipe funnel),
-// since kata is the curated recipe surface for every UI unit (components
-// and primitives both).
+// They must not import from components or layouts — doing so inverts the
+// dependency direction. Imports from `recipes/kata/` (the recipe funnel) are
+// permitted; kata is the curated recipe surface for both components and
+// primitives.
 
 const primitivesDir = join(__dirname, '../../../primitives')
 

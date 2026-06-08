@@ -10,8 +10,7 @@ import { clamp, pct } from '../../utilities'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 
-// A progressbar role needs an accessible name; AccessibleName requires one at
-// the type level so consumers can't ship an unlabeled progress indicator.
+// `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressBarProps = AccessibleName & {
 	value?: number
 	max?: number

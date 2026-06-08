@@ -14,7 +14,7 @@ import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
-// Calendar icon is one step smaller than the trigger size (matches Input / SelectTrigger).
+// Calendar icon is one step smaller than the trigger size.
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 type DatePickerTriggerProps = {

@@ -122,9 +122,9 @@ describe('deriveCode provider wrappers', () => {
 	const DatePicker = tag<{ range?: boolean; placeholder?: string }>('DatePicker', 'date-picker')
 
 	it('renders a tagged provider wrapper and emits its nested import', () => {
-		// `GlassProvider` is the real export — importing it through the vitest
-		// vite pipeline applies the component-tags transform, so the walker sees
-		// it as a recognized component rather than transparently unwrapping it.
+		// `GlassProvider` is the real export; the vitest vite pipeline applies
+		// the component-tags transform, so the walker recognizes it as a
+		// component rather than transparently unwrapping it.
 		const tree = createElement(
 			GlassProvider,
 			null,
@@ -180,18 +180,18 @@ describe('deriveCode + __code', () => {
 
 		expect(result).not.toBeNull()
 
-		// Whole function body preserved verbatim (at column 0 for the outer <Example>).
+		// Function body is preserved verbatim at column 0.
 		expect(result).toContain(
 			'function AreaDemo() {\n\tconst [files, setFiles] = useState<File[]>([])',
 		)
 		expect(result).toContain('<FileUpload accept="image/*" onFiles={setFiles} />')
 
-		// UI component imports scanned from the JSX.
+		// UI component imports inferred from JSX.
 		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)
 
 		expect(result).toMatch(/import \{.*FileUpload.*\} from 'ui\/file-upload'/)
 
-		// React hook imports scanned from the body.
+		// React hook imports inferred from the body.
 		expect(result).toMatch(/import \{.*useState.*\} from 'react'/)
 	})
 
@@ -225,9 +225,8 @@ describe('deriveCode + __code', () => {
 	})
 
 	it('does not mistake method calls for React hooks', () => {
-		// `<Stack />` is a real recognized component, so `deriveCode` returns a
-		// non-null code block — needed to assert "the block contains no React
-		// `use` import" via toMatch.
+		// `<Stack />` is a real recognized component; `deriveCode` returns a
+		// non-null code block, enabling the `toMatch` assertion below.
 		const MethodDemo = Object.assign(
 			function MethodDemo() {
 				return null

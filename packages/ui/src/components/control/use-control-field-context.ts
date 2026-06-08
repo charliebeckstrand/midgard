@@ -8,8 +8,7 @@ import { type ControlContextValue, useControl } from './context'
  * Builds the `ControlContext` value for a single-control field wrapper
  * (`CheckboxField` / `RadioField` / `SwitchField`): inherits the parent control
  * cascade and spreads the `useA11yControl` bundle (label / description / error
- * slots) off the field id. Centralizing it keeps a new field from silently
- * dropping the a11y wiring — the shape is identical across the three.
+ * slots) off the field id. The shape is identical across all three field types.
  */
 export function useControlFieldContext(id: string): ControlContextValue {
 	const parent = useControl()

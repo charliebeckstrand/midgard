@@ -108,7 +108,7 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		) as HTMLElement
 
-		// Glass backdrop uses a backdrop-blur token; base uses a plain bg.
+		// Glass backdrop: backdrop-blur token; base backdrop: plain bg.
 		expect(backdrop.className).toMatch(/backdrop-blur|bg-/)
 	})
 
@@ -145,7 +145,7 @@ describe('Overlay', () => {
 
 		expect(overlay.className).toContain('absolute')
 
-		// Scoped overlays skip the body scroll lock.
+		// Scoped overlays do not apply the body scroll lock.
 		expect(document.body.style.overflow).toBe('')
 
 		document.body.removeChild(host)

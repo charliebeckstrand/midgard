@@ -4,10 +4,10 @@ import { ts } from 'ts-morph'
 const PROJECT_ROOT = '/project'
 
 /**
- * Lib and other on-disk `.d.ts` files are parsed once per worker and reused
- * across every `createInMemoryProgram` call. Parsing `lib.es2022.d.ts` is by
- * far the most expensive step of building a tiny in-memory Program; caching
- * the SourceFile (immutable, safe to share) is what makes the suite cheap.
+ * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
+ * across every `createInMemoryProgram` call. Parsing `lib.es2022.d.ts` is the
+ * dominant cost of building an in-memory Program; caching the immutable
+ * SourceFile keeps the suite fast.
  */
 const diskSourceFileCache = new Map<string, ts.SourceFile>()
 
@@ -31,15 +31,15 @@ function readDiskSourceFile(
 }
 
 /**
- * Build a TS Program covering a tiny in-memory project plus the standard
- * library. Sources are placed under `/project/<name>.ts` and the resulting
- * Program's TypeChecker can resolve both the in-memory files and `lib.*.d.ts`
- * via the real filesystem (so `React.ReactNode`, `HTMLAttributes`, etc. all
- * resolve as expected without bundling type definitions into the test).
+ * Builds a TS Program covering a tiny in-memory project plus the standard
+ * library. Sources are placed under `/project/<name>.ts`; the TypeChecker
+ * resolves both the in-memory files and `lib.*.d.ts` via the real filesystem
+ * (`React.ReactNode`, `HTMLAttributes`, etc. resolve without bundling type
+ * definitions into the test).
  *
- * Each in-memory file's text is also returned under `sources`, alongside the
- * full SourceFile, so tests can pluck out specific nodes (e.g. "the first
- * type alias in `props.ts`") without re-parsing.
+ * Returns each in-memory file's SourceFile under `sourceFiles` so tests can
+ * pluck specific nodes (e.g. "the first type alias in `props.ts`") without
+ * re-parsing.
  */
 export function createInMemoryProgram(files: Record<string, string>): {
 	program: ts.Program

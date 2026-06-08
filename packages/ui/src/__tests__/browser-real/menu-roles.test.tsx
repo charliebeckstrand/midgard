@@ -5,13 +5,13 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Menu ARIA roles (real floating engine). floating-ui's `useRole` stamped
- * `role="menu"` on the positioning wrapper while `PopoverPanel` renders the
- * real `role="menu"`, nesting two menus, and the trigger's `aria-controls`
- * (supplied only by `useRole`) pointed at that wrapper rather than the
- * menuitem container (ARIA-AUDIT pattern A). jsdom mocks `useRole` away, so
- * this guards the single-menu tree against the live engine: `role: null` on
- * `useFloatingDisclosure` plus a hand-rolled `aria-controls` → the panel id.
+ * Menu ARIA roles (real floating engine). Guards the single-menu tree against
+ * the live engine: floating-ui's `useRole` would stamp `role="menu"` on the
+ * positioning wrapper while `PopoverPanel` renders the real `role="menu"`,
+ * nesting two menus, and the trigger's `aria-controls` would point at the
+ * wrapper rather than the menuitem container (ARIA-AUDIT pattern A). jsdom
+ * mocks `useRole` away; `role: null` on `useFloatingDisclosure` plus a
+ * hand-rolled `aria-controls` → panel id is the fix guarded here.
  */
 describe('Menu ARIA roles (real browser)', () => {
 	it('exposes exactly one menu whose id the trigger controls', async () => {
@@ -35,7 +35,7 @@ describe('Menu ARIA roles (real browser)', () => {
 
 		const menu = screen.getByRole('menu')
 
-		// The trigger's aria-controls resolves to that single menu panel — not the
+		// The trigger's `aria-controls` resolves to that single menu panel, not the
 		// positioning wrapper.
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 

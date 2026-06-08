@@ -138,7 +138,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
-		// Clean up any prior drag — defensive; pointerup normally clears it.
+		// Cleans up any prior drag (defensive — pointerup normally handles this).
 		dragCleanupRef.current?.()
 
 		const onMove = (ev: PointerEvent) => {
@@ -165,8 +165,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		dragCleanupRef.current = cleanup
 	}
 
-	// If the component unmounts mid-drag (modal closes, route change, etc.)
-	// pointerup never fires, so the global listeners would otherwise leak.
+	// Cleans up global listeners when the component unmounts mid-drag
+	// (e.g. modal close or route change), when pointerup never fires.
 	useEffect(() => () => dragCleanupRef.current?.(), [])
 
 	return {

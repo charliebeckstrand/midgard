@@ -14,9 +14,8 @@ describe('merge', () => {
 	})
 
 	it('keeps the colour-key order of the first record', () => {
-		// Kata code reads bundles like `merge(soft.bg, soft.text, soft.hover)`
-		// and feeds them straight into a palette matrix; downstream iteration
-		// has to land on `iro.colors`-order keys, which the first record sets.
+		// Key order follows the first record; downstream palette iteration lands
+		// on `iro.colors`-order keys.
 		const out = merge({ zinc: ['z'], red: ['r'], blue: ['b'] }, { zinc: [], red: [], blue: [] })
 
 		expect(Object.keys(out)).toEqual(['zinc', 'red', 'blue'])

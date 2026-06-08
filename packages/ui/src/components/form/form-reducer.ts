@@ -77,9 +77,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 /**
  * Equality for the `dirty` derivation. Reference first, then structural over
- * `Date`, plain arrays, and plain objects. Falls back to reference equality
- * for `File`, `Map`, `Set`, and class instances, where structural comparison
- * would be wrong or expensive.
+ * `Date`, plain arrays, and plain objects; reference equality for `File`,
+ * `Map`, `Set`, and class instances.
  */
 export function valuesEqual(a: unknown, b: unknown): boolean {
 	if (Object.is(a, b)) return true

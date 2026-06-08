@@ -8,7 +8,7 @@ import { type RefObject, useEffect } from 'react'
  *
  * `callback` is captured in the effect's dependency array. Pass a stable
  * reference (e.g. `useCallback`) and read mutable values through a ref
- * inside the callback — otherwise the observer re-subscribes on every
+ * inside the callback; a fresh reference re-subscribes the observer each
  * render and re-fires its initial callback.
  */
 export function useResizeObserver(ref: RefObject<Element | null>, callback: () => void): void {

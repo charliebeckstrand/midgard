@@ -1,14 +1,9 @@
 /**
  * applyRecipe — the merge helper a katakana bridge calls to fold a kata's
  * per-call overlay over an archetype's standard config / extras, then hand
- * the result to `defineRecipe`.
- *
- * Spread the caller's generics straight into a `defineRecipe(config,
- * extras)` call and TypeScript loses the key types at the literal-inference
- * step; consumers can't then index into their own slots or axes.
- * `applyRecipe` absorbs the workaround in one place — explicit return type,
- * conditional intersection that folds the empty-overlay case, single cast
- * at the engine boundary.
+ * the result to `defineRecipe`. Preserves key-type inference via an explicit
+ * return type, conditional intersection, and a single cast at the engine
+ * boundary.
  */
 
 import type { ClassValue } from 'clsx'
@@ -19,18 +14,16 @@ import type { Recipe, RecipeConfig, ReservedField } from './types'
 /**
  * Empty — the empty mapped type. `keyof Empty = never`, which `Merge`
  * folds against when the caller declares no overlay. Spelled
- * `Record<never, never>` rather than `{}` because biome bans the latter;
- * biome's other suggestions (`object`, `unknown`, `Record<keyof any,
- * never>`) all widen or carry an index signature that poisons the
- * engine's `AxesOf` and slot mapped types — every string axis would then
- * resolve to `boolean | undefined` in consumer prop unions.
+ * `Record<never, never>` rather than `{}` (`object`, `unknown`, and
+ * `Record<keyof any, never>` all widen or carry an index signature that
+ * poisons the engine's `AxesOf` and slot mapped types, resolving every
+ * string axis to `boolean | undefined` in consumer prop unions).
  */
 type Empty = Record<never, never>
 
 /**
- * Conditional intersection. Folds to `Base` when `Add` has no keys, so a
- * generic with the `Empty` default doesn't leak a wide index signature
- * into the result type.
+ * Conditional intersection. Folds to `Base` when `Add` has no keys,
+ * keeping a wide index signature out of the result type.
  */
 type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
@@ -42,8 +35,8 @@ type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
  * applicator's separate `extras` argument, mirroring
  * `defineRecipe(config, extras)` end-to-end; `skeleton` rides the
  * overlay itself and reaches `Recipe<…>` via the targeted exclusion in
- * `ApplicatorReturn`. `ApplicatorReturn` extracts slots and axes from
- * the inferred `Overlay` via `Omit` and `extends-infer`.
+ * `ApplicatorReturn`, which extracts slots and axes from the inferred
+ * `Overlay` via `Omit` and `extends-infer`.
  */
 type ApplicatorOverlay = RecipeConfig
 
@@ -60,9 +53,9 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
 /**
  * The shape `applyRecipe(...)` returns. Merges the standard config / extras
  * with the caller's overlay / extras and forwards to `Recipe<…>`, folding
- * the empty-overlay case so a bridge with no overlay doesn't leak a wide
- * index signature into the prop union. Internal to this module — the bridge
- * derives its variant types from the concrete `k` at the kata.
+ * the empty-overlay case via `Merge` to keep a wide index signature out of
+ * the prop union. Internal to this module — the bridge derives its variant
+ * types from the concrete `k` at the kata.
  */
 type ApplicatorReturn<
 	StandardConfig extends RecipeConfig,

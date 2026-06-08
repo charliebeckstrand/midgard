@@ -57,10 +57,9 @@ export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileU
 export function FileUpload(props: FileUploadProps) {
 	const { accept, multiple, disabled, className, children, onFiles } = props
 
-	// The hidden <input type="file"> is the real control in every variant, so a
-	// wrapping <Control>/<Field>'s invalid + required + error-message wiring is
-	// mirrored onto it (the input variant's visible <Input> self-resolves the same
-	// context independently).
+	// Mirrors Control/Field invalid + required + error-message wiring onto the
+	// hidden `<input type="file">` — the real control in every variant. The
+	// input variant's visible `<Input>` self-resolves the same context.
 	const control = useControl()
 
 	const {
@@ -75,9 +74,9 @@ export function FileUpload(props: FileUploadProps) {
 		handleDrop,
 	} = useFileUploadHandlers({ disabled, onFiles })
 
-	// The real <input> is visually hidden and triggered programmatically, so it
-	// still needs an accessible name — screen readers can reach it even at
-	// tabIndex -1. Each variant passes a name drawn from its visible trigger.
+	// The visually-hidden `<input>` still needs an accessible name; screen
+	// readers can reach it even at `tabIndex -1`. Each variant passes a name
+	// drawn from its visible trigger.
 	const renderHiddenInput = (ariaLabel: string) => (
 		<input
 			ref={inputRef}
@@ -110,8 +109,8 @@ export function FileUpload(props: FileUploadProps) {
 					value={label ?? ''}
 					placeholder={placeholder ?? 'Choose a file'}
 					onClick={openPicker}
-					// The field is readOnly and only opens the picker on activation, so
-					// it must respond to keyboard activation like a button would.
+					// The readOnly field opens the picker on activation; responds to
+					// keyboard activation like a button.
 					onKeyDown={(event) => {
 						if (event.key === 'Enter' || event.key === ' ') {
 							event.preventDefault()
@@ -151,8 +150,8 @@ export function FileUpload(props: FileUploadProps) {
 
 	return (
 		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
-			{/* Sibling, not child, of the button: a focusable <input> nested inside
-			    an interactive control is a nested-interactive violation. */}
+			{/* Sibling of the button, not nested inside it — a focusable `<input>`
+			    inside an interactive control produces nested-interactive markup. */}
 			{renderHiddenInput(typeof children === 'string' ? children : 'Upload file')}
 			<button
 				type="button"

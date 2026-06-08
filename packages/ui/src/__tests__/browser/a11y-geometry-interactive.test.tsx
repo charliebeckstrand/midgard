@@ -4,13 +4,8 @@ import { renderUI, userEvent } from '../helpers'
 import { axeGeometry } from './helpers/axe-geometry'
 
 /**
- * Open-state geometry gate (real browser). The geometry baseline
- * (a11y-geometry.test.tsx) checks contrast and target-size over the closed
- * `baseline` + `overlays` corpora; the `interactive` corpus — overlays that only
- * mount on a real interaction — was left as a follow-up, so every open popover
- * surface (filtered combobox options, the calendar day grid, the tooltip panel)
- * went geometry-unverified. This suite drives each open and runs the same
- * `color-contrast` / `target-size` pass against the live surface.
+ * Open-state geometry gate (real browser). Drives each `interactive` corpus
+ * case open and runs `color-contrast` / `target-size` against the live surface.
  *
  * Select and Listbox are deferred (`GEOMETRY_DEFERRED`): their shared open step
  * resolves the trigger via `getByRole('combobox')`, which is ambiguous against a

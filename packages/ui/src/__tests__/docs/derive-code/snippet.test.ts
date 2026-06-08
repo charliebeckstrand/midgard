@@ -50,9 +50,8 @@ describe('reindent', () => {
 	})
 
 	it('keeps line 1 as authored and prefixes targetIndent onto subsequent lines (no dedent path)', () => {
-		// Closing `}` at col 0 — typical function source. minIndent = 0,
-		// so subsequent lines get targetIndent prefixed onto their original
-		// whitespace.
+		// Closing `}` at col 0 — minIndent = 0; targetIndent is prefixed onto
+		// each subsequent line's original whitespace.
 		const source = ['function Demo() {', '\treturn null', '}'].join('\n')
 
 		const lines = reindent(source, '\t').split('\n')
@@ -65,8 +64,8 @@ describe('reindent', () => {
 	})
 
 	it('dedents subsequent lines by the shared minimum indent before applying targetIndent', () => {
-		// All non-line-0 lines start with at least one tab — minIndent = 1,
-		// so the leading tab is stripped before targetIndent is applied.
+		// All non-line-0 lines start with at least one tab — minIndent = 1;
+		// the leading tab is stripped before targetIndent is applied.
 		const source = ['{', '\tif (x) {', '\t\treturn 1', '\t}'].join('\n')
 
 		const lines = reindent(source, '').split('\n')
@@ -97,7 +96,7 @@ describe('reindent', () => {
 
 		expect(lines[1]).toBe('')
 
-		// minIndent computed only from the non-empty subsequent lines (both
+		// minIndent is computed from non-empty subsequent lines only (both
 		// leading=1) → 1. The empty line is preserved as ''.
 		expect(lines[2]).toBe('return null')
 

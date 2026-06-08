@@ -25,8 +25,7 @@ export function Sidebar({
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
-		// Own the roving tabindex so the nav is a single Tab stop rather than one
-		// stop per item; seat the resting stop on the current page.
+		// Nav is a single Tab stop; the resting position is the current-page item.
 		manageTabIndex: true,
 		activeSelector: '[aria-current="page"]',
 	})

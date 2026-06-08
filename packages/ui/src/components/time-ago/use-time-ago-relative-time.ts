@@ -5,8 +5,7 @@ import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 
-// `Intl.RelativeTimeFormat` construction is among the most expensive Intl ops and the
-// default formatter is rebuilt on every refresh tick. Cache one instance per locale.
+// `Intl.RelativeTimeFormat` construction is expensive. One instance is cached per locale.
 const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
 
 function getRelativeTimeFormat(locale: string | undefined) {
@@ -73,10 +72,8 @@ export function useTimeAgoRelativeTime({
 	locale,
 	interval = 'auto',
 }: RelativeTimeOptions): RelativeTimeResult {
-	// Client-only clock: seeding from the server clock would render a relative
-	// string ("3 minutes ago") that mismatches the client during hydration
-	// whenever the two straddle a unit boundary. null until mount → no relative
-	// text on the first (server and client) render.
+	// Client-only clock: null until mount, so the first render (server and client)
+	// produces no relative text, avoiding hydration mismatches at unit boundaries.
 	const [now, setNow] = useState<Date | null>(null)
 
 	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])
@@ -92,7 +89,7 @@ export function useTimeAgoRelativeTime({
 	useEffect(() => {
 		if (!valid) return
 
-		// Establish the clock after mount, then keep it ticking.
+		// Establishes the clock after mount, then refreshes on the computed interval.
 		setNow(new Date())
 
 		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)

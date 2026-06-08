@@ -15,10 +15,9 @@ type MenuItemBaseProps = {
 	onAction?: () => void
 }
 
-// Href discrimination comes from the shared PolymorphicProps; the render stays
-// custom (sanctioned escape hatch) because a menu item carries role / roving
-// tabindex / keyboard activation and renders disabled items as a non-anchor
-// span — behaviour the generic Polymorphic doesn't cover.
+// Href discrimination comes from the shared PolymorphicProps. Rendered custom:
+// carries role, roving tabindex, and keyboard activation; renders disabled
+// items as a non-anchor `<span>`.
 export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof MenuItemBaseProps>
 
 export function MenuItem(props: MenuItemProps) {
@@ -40,9 +39,9 @@ export function MenuItem(props: MenuItemProps) {
 	const classes = cn('group/option', k.item({ density: space, size }), className)
 
 	if (props.href !== undefined) {
-		// Anchors with href stay navigable via middle-click, Cmd-click, and "Open
-		// in new tab" — none fire onClick. Render disabled items without an
-		// anchor so those paths don't exist.
+		// Anchors with `href` are navigable via middle-click, Cmd-click, and
+		// "Open in new tab", none of which fire `onClick`. Disabled items render
+		// as a `<span>` with no `href` so those paths are unavailable.
 		if (disabled) {
 			return (
 				<span

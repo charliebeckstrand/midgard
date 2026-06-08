@@ -68,8 +68,8 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 		defaultValue: props.defaultValue,
 		format: props.format ?? 'hex',
 		alpha,
-		// The format discriminant keeps callers' value/onValueChange paired; the
-		// hook works in HSVA, so the handler widens to both wire shapes here.
+		// The format discriminant keeps callers' value/onValueChange paired; the handler
+		// is widened to both wire shapes because the hook works in HSVA internally.
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
 

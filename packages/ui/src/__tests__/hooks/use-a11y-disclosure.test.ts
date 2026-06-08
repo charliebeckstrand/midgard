@@ -41,7 +41,7 @@ describe('useA11yDisclosure', () => {
 		expect(trigger.result.current.triggerId).toBe('flow-trigger-2')
 		expect(panel.result.current.panelId).toBe('flow-panel-2')
 
-		// The separately rendered halves agree on the cross-reference.
+		// Both halves agree on the cross-reference.
 		expect(panel.result.current.panelProps['aria-labelledby']).toBe(
 			trigger.result.current.triggerProps.id,
 		)

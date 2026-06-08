@@ -23,8 +23,8 @@ import type { FocusCase } from './types'
 
 /**
  * Stateful trigger harness for the command palette: it takes `open`/`onOpenChange`
- * but ships no built-in trigger, so the gate needs a real button to open it from
- * and to measure focus leaving. `render` receives the live open state and setter.
+ * but ships no built-in trigger. Provides a real button and wires the live open
+ * state and setter into `render`.
  */
 function Disclosure({
 	label,
@@ -45,8 +45,7 @@ function Disclosure({
 	)
 }
 
-/** Clicks the named trigger, waits for `surface` to mount, and returns the
- * trigger so the gate can assert focus has left it for the surface. */
+/** Clicks the named trigger, waits for `surface` to mount, and returns the trigger. */
 const openFrom = (label: string, surface: () => Promise<unknown>) => async (user: UserEvent) => {
 	const trigger = screen.getByRole('button', { name: label })
 
@@ -59,16 +58,15 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
 
 /**
  * Focus corpus — dismissable surfaces that move keyboard focus programmatically
- * (an explicit `.focus()` call) when they open, so the entry is observable in
- * jsdom: the command palette's search input, an `autoFocus` popover, and the
- * dropdown panels (menu, select's listbox). The gate (`focus.test.tsx`) asserts
- * focus leaves the trigger for the surface — the focus behaviour axe can't see.
+ * (an explicit `.focus()` call) on open, observable in jsdom: the command
+ * palette's search input, an `autoFocus` popover, and the dropdown panels
+ * (menu, select's listbox). The gate (`focus.test.tsx`) asserts focus leaves the
+ * trigger for the surface.
  *
- * The modal Overlay family (dialog/drawer/sheet/confirm) is intentionally absent:
- * its trap finds the first tabbable via floating-ui's layout-dependent `tabbable`
- * pass, which jsdom can't evaluate (no geometry), so its focus entry — like the
- * disabled color-contrast and target-size rules — needs a real-browser layer.
- * Combobox is excluded too: that pattern keeps focus on the input by design.
+ * The modal Overlay family (dialog/drawer/sheet/confirm) is excluded: its trap
+ * finds the first tabbable via floating-ui's layout-dependent `tabbable` pass,
+ * which jsdom can't evaluate (no geometry) — covered in the real-browser suite.
+ * Combobox is excluded: that pattern keeps focus on the input.
  */
 export const focus: readonly FocusCase[] = [
 	[
