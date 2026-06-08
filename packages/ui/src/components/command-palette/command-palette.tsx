@@ -89,7 +89,7 @@ export function CommandPalette({
 		<Dialog
 			open={open}
 			onOpenChange={onOpenChange}
-			align="start"
+			placement="top"
 			dismissOnBackdrop={dismissOnBackdrop}
 			size={size}
 			className={className}
