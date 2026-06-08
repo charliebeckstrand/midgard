@@ -21,7 +21,7 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 
 	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
 
-	const { density } = useDensity()
+	const { space } = useDensity()
 
 	const lifted = liftedId === id
 
@@ -41,7 +41,7 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 			data-item-id={id}
 			data-active={dragging || undefined}
 			data-lifted={lifted || undefined}
-			className={cn(k.item({ variant, density, active: dragging, lifted }), className)}
+			className={cn(k.item({ variant, density: space, active: dragging, lifted }), className)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<div className={k.content}>{children}</div>

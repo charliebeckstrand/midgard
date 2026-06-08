@@ -108,7 +108,7 @@ export function Input(props: InputProps) {
 			onBlur={valueState.onBlur}
 			aria-describedby={sharedAttrs['aria-describedby']}
 			className={cn(
-				!headless && k({ variant: resolvedVariant, density: token.density, size: token.size }),
+				!headless && k({ variant: resolvedVariant, density: token.space, size: token.size }),
 				className,
 			)}
 			{...invalidAttrs(resolvedInvalid)}
@@ -141,7 +141,7 @@ export function Input(props: InputProps) {
 					)}
 				>
 					{resolvedPrefix && (
-						<span className={cn('peer/prefix', k.affix, k.prefix[token.density])}>
+						<span className={cn('peer/prefix', k.affix, k.prefix[token.space])}>
 							{resolvedPrefix}
 						</span>
 					)}
@@ -149,7 +149,7 @@ export function Input(props: InputProps) {
 					{inputEl}
 
 					{resolvedSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.density])}>
+						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.space])}>
 							{resolvedSuffix}
 						</span>
 					)}

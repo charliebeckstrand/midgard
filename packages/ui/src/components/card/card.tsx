@@ -38,7 +38,7 @@ export function Card({
 		<Box
 			data-slot="card"
 			data-density={token.size}
-			p={token.density}
+			p={token.space}
 			bg={bg}
 			outline={outline}
 			radius={k.radius[token.size]}

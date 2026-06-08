@@ -70,7 +70,7 @@ export function DatePickerContent({
 									className={cn('z-50', k.content.text, glass && k.content.glass)}
 									onMouseDown={(e) => e.preventDefault()}
 								>
-									<Density density={size} size={size}>
+									<Density scale={size}>
 										<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
 											{children}
 										</Box>

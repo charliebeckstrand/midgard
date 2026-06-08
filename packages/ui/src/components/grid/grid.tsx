@@ -46,7 +46,7 @@ export function Grid({
 }: GridProps) {
 	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? density?.density ?? 'md'
+	const resolvedGap = gap ?? density?.space ?? 'md'
 
 	const cols = resolveCols(columns)
 	const resolvedRows = resolveRows(rows)

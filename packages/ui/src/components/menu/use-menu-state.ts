@@ -16,7 +16,7 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 	const inherited = useDensity()
 	// An explicit `size` prop is a single knob that sets both axes (diagonal);
 	// otherwise each axis inherits independently from the ambient token.
-	const resolvedDensity: Step = size ?? inherited.density
+	const resolvedDensity: Step = size ?? inherited.space
 	const resolvedSize: Step = size ?? inherited.size
 
 	const [point, setPoint] = useState({ x: 0, y: 0 })

@@ -86,7 +86,7 @@ export function PopoverContent({
 				data-density={resolvedSize}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
-				<Density density={resolvedSize} size={resolvedSize}>
+				<Density scale={resolvedSize}>
 					<Box
 						p={resolvedPadding}
 						bg={glass ? 'none' : 'popover'}

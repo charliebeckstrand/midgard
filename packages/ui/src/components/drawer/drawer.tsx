@@ -61,9 +61,7 @@ export function Drawer({
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
 				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
-					<Density density={resolvedSize} size={resolvedSize}>
-						{children}
-					</Density>
+					<Density scale={resolvedSize}>{children}</Density>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

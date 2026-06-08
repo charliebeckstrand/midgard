@@ -15,9 +15,9 @@ const padding: Record<Step, string> = {
 }
 
 export function CardHeader({ className, ...props }: CardHeaderProps) {
-	const { density } = useDensity()
+	const { space } = useDensity()
 
 	return (
-		<div data-slot="card-header" className={cn(padding[density], k.header, className)} {...props} />
+		<div data-slot="card-header" className={cn(padding[space], k.header, className)} {...props} />
 	)
 }

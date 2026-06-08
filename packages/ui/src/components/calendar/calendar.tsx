@@ -206,7 +206,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Density density={resolvedSize} size={resolvedSize}>
+		<Density scale={resolvedSize}>
 			<div
 				data-slot="calendar"
 				data-density={resolvedSize}

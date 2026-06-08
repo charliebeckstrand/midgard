@@ -13,7 +13,7 @@ export type StatLabelProps = {
 
 /**
  * `size` resolves from the enclosing Density context, so a `<StatLabel>`
- * inside `<Density density="compact">` shrinks alongside its `<StatValue>`.
+ * inside `<DensityProvider density="compact">` shrinks alongside its `<StatValue>`.
  */
 export function StatLabel({ className, children, ...props }: StatLabelProps) {
 	const { size } = useDensity()

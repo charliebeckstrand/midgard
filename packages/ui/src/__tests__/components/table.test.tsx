@@ -273,7 +273,7 @@ describe('Table density inheritance', () => {
 
 	it('tracks the density axis, not size, under a two-axis Density', () => {
 		const { container } = renderUI(
-			<Density density="lg" size="sm">
+			<Density space="lg" size="sm">
 				<Table>{body}</Table>
 			</Density>,
 		)

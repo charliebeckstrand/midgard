@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/card'
 export type CardBodyProps = SlotProps<'div'>
 
 export function CardBody({ className, ...props }: CardBodyProps) {
-	const { density } = useDensity()
+	const { space } = useDensity()
 
-	return <div data-slot="card-body" className={cn(k.bodyPadding[density], className)} {...props} />
+	return <div data-slot="card-body" className={cn(k.bodyPadding[space], className)} {...props} />
 }

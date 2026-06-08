@@ -23,7 +23,7 @@ export type SplitProps = {
 	ratio?: SplitRatio
 	/**
 	 * Gap between the two panes. Resolves through
-	 * `explicit ?? Density.density ?? 'lg'`, so a Split inside a Density
+	 * `explicit ?? Density.space ?? 'lg'`, so a Split inside a Density
 	 * provider inherits the matching spacing step without further wiring.
 	 */
 	gap?: SplitGap
@@ -45,7 +45,7 @@ export function Split({
 }: SplitProps) {
 	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? density?.density ?? 'lg'
+	const resolvedGap = gap ?? density?.space ?? 'lg'
 
 	const [a, b] = ratioTuples[ratio]
 	const template = `${a}fr ${b}fr`

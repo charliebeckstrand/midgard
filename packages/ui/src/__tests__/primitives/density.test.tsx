@@ -16,22 +16,22 @@ describe('Density component', () => {
 			wrapper: ({ children }) => <Density scale="lg">{children}</Density>,
 		})
 
-		expect(result.current).toEqual({ density: 'lg', size: 'lg' })
+		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
 	})
 
-	it('density="sm" overrides only the density axis (size inherits)', () => {
+	it('space="sm" overrides only the space axis (size inherits)', () => {
 		const { result } = renderHook(() => useDensity(), {
 			wrapper: ({ children }) => (
 				<Density scale="lg">
-					<Density density="sm">{children}</Density>
+					<Density space="sm">{children}</Density>
 				</Density>
 			),
 		})
 
-		expect(result.current).toEqual({ density: 'sm', size: 'lg' })
+		expect(result.current).toEqual({ space: 'sm', size: 'lg' })
 	})
 
-	it('size="lg" overrides only the size axis (density inherits)', () => {
+	it('size="lg" overrides only the size axis (space inherits)', () => {
 		const { result } = renderHook(() => useDensity(), {
 			wrapper: ({ children }) => (
 				<Density scale="sm">
@@ -40,7 +40,7 @@ describe('Density component', () => {
 			),
 		})
 
-		expect(result.current).toEqual({ density: 'sm', size: 'lg' })
+		expect(result.current).toEqual({ space: 'sm', size: 'lg' })
 	})
 
 	it('explicit axes win over scale shorthand at the same site', () => {
@@ -52,7 +52,7 @@ describe('Density component', () => {
 			),
 		})
 
-		expect(result.current).toEqual({ density: 'lg', size: 'sm' })
+		expect(result.current).toEqual({ space: 'lg', size: 'sm' })
 	})
 
 	it('inner Density without scale inherits both axes from parent', () => {
@@ -64,21 +64,21 @@ describe('Density component', () => {
 			),
 		})
 
-		expect(result.current).toEqual({ density: 'lg', size: 'lg' })
+		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
 	})
 
 	it('nested per-axis overrides compose innermost-wins per axis', () => {
 		const { result } = renderHook(() => useDensity(), {
 			wrapper: ({ children }) => (
-				<Density density="lg">
+				<Density space="lg">
 					<Density size="sm">
-						<Density density="md">{children}</Density>
+						<Density space="md">{children}</Density>
 					</Density>
 				</Density>
 			),
 		})
 
-		expect(result.current).toEqual({ density: 'md', size: 'sm' })
+		expect(result.current).toEqual({ space: 'md', size: 'sm' })
 	})
 })
 
@@ -88,7 +88,7 @@ describe('DensityScope', () => {
 			wrapper: ({ children }) => <DensityScope scale="lg">{children}</DensityScope>,
 		})
 
-		expect(result.current).toEqual({ density: 'lg', size: 'lg' })
+		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
 	})
 
 	it('is a no-op when scale is undefined (no provider written)', () => {

@@ -235,7 +235,7 @@ export function Listbox<T>({
 					placeholder={placeholder}
 					truncate={truncate}
 					tabularNums={tabularNums}
-					density={token.density}
+					density={token.space}
 					size={token.size}
 				/>
 			</SelectTrigger>
@@ -245,7 +245,7 @@ export function Listbox<T>({
 				open={open}
 				glass={glass}
 				multiple={multiple}
-				density={token.density}
+				density={token.space}
 				size={token.size}
 				floatingStyles={floatingStyles}
 				context={context}

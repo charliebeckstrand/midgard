@@ -79,9 +79,7 @@ export function Group({
 			)}
 			{...props}
 		>
-			<Density density={resolvedSize} size={resolvedSize}>
-				{stamped}
-			</Density>
+			<Density scale={resolvedSize}>{stamped}</Density>
 		</Polymorphic>
 	)
 }

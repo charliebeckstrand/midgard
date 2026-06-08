@@ -345,7 +345,7 @@ export function Combobox<T>({
 					disabled={resolvedDisabled}
 					value={inputDisplay}
 					placeholder={placeholder}
-					density={token.density}
+					density={token.space}
 					size={token.size}
 					handlers={inputHandlers}
 				/>
@@ -357,7 +357,7 @@ export function Combobox<T>({
 				editing={editing}
 				multiple={multiple}
 				glass={glass}
-				density={token.density}
+				density={token.space}
 				size={token.size}
 				floatingStyles={floatingStyles}
 				getFloatingProps={getFloatingProps}
