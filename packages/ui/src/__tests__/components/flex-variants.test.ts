@@ -17,10 +17,14 @@ describe('resolveDirection', () => {
 		expect(result.length).toBe(1)
 	})
 
-	it('emits a class per breakpoint for a responsive value', () => {
+	it('emits mobile-first breakpoint-prefixed classes for a responsive value', () => {
+		// Regression: direction must be mobile-first (min-width `md:`) to match
+		// gap/justify/Grid, not desktop-first `max-md:`.
 		const result = resolveDirection({ initial: 'row', md: 'col' })
 
-		expect(result.length).toBe(2)
+		expect(result).toEqual(['flex-row', 'md:flex-col'])
+
+		expect(result.some((c) => c.startsWith('max-'))).toBe(false)
 	})
 })
 
@@ -33,10 +37,12 @@ describe('resolveAlign', () => {
 		expect(resolveAlign('center').length).toBe(1)
 	})
 
-	it('emits breakpoint-prefixed classes for a responsive value', () => {
+	it('emits mobile-first breakpoint-prefixed classes for a responsive value', () => {
 		const result = resolveAlign({ initial: 'start', sm: 'center' })
 
-		expect(result.length).toBe(2)
+		expect(result).toEqual(['items-start', 'sm:items-center'])
+
+		expect(result.some((c) => c.startsWith('max-'))).toBe(false)
 	})
 })
 

@@ -41,6 +41,12 @@ describe('Icon', () => {
 		expect(el).toHaveStyle({ width: '24px', height: '24px' })
 	})
 
+	it('preserves the className on the cloned icon element', () => {
+		const { container } = renderUI(<Icon icon={<svg className="text-red-500" />} />)
+
+		expect(bySlot(container, 'icon')?.getAttribute('class')).toContain('text-red-500')
+	})
+
 	it('does not shrink inside a flex container', () => {
 		const { container } = renderUI(<Icon icon={<svg />} />)
 

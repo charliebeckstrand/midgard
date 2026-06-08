@@ -88,6 +88,11 @@ export function Textarea(props: TextareaProps) {
 		)
 	}
 
+	// Mirror Input's useInputValue: a wrapper that passes an explicit `value`
+	// takes ownership of the controlled state, so the Form binding must not
+	// override it (it still surfaces name + invalid via useControlProps above).
+	const bound = !hasValueProp && binding !== undefined
+
 	const controlProps = {
 		id: resolvedId,
 		name,
@@ -95,9 +100,9 @@ export function Textarea(props: TextareaProps) {
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
-		value: binding?.value ?? (hasValueProp ? (value ?? '') : value),
-		onChange: binding?.onChange ?? onChange,
-		onBlur: binding?.onBlur ?? onBlur,
+		value: bound ? binding.value : hasValueProp ? (value ?? '') : value,
+		onChange: bound ? binding.onChange : onChange,
+		onBlur: bound ? binding.onBlur : onBlur,
 		'aria-describedby': resolvedDescribedBy,
 		...invalidAttrs(resolvedInvalid),
 	}

@@ -71,6 +71,11 @@ export function useSignaturePadDrawing({
 		context.fillStyle = strokeColor
 
 		context.fill()
+
+		// A tap (pointerdown→up with no move) still draws this dot, so flip
+		// `empty` here rather than only in the move handler — otherwise the pad
+		// stays "empty" (placeholder shown, Clear hidden, dot lost on resize).
+		if (empty) setEmpty(false)
 	}
 
 	const handlePointerMove = (event: ReactPointerEvent) => {

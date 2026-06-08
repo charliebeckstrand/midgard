@@ -9,6 +9,7 @@ import {
 	type RefObject,
 	useEffect,
 	useRef,
+	useState,
 } from 'react'
 import { announce, cn } from '../../core'
 import { useControllable } from '../../hooks'
@@ -121,6 +122,14 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
+	// A controlled `open` with no `onOpenChange` can't notify the parent, so the
+	// close button's `setOpen(false)` would be a no-op, leaving it inert. Fall
+	// back to local dismissal in that case so the button still works. With a
+	// handler present the parent owns visibility and this stays untouched.
+	const controlledWithoutHandler = openProp !== undefined && onOpenChange === undefined
+
+	const [locallyDismissed, setLocallyDismissed] = useState(false)
+
 	const alertRef = useRef<HTMLDivElement>(null)
 
 	const wasOpen = useRef(open)
@@ -144,7 +153,7 @@ export function Alert({
 		if (message) announce(message)
 	}, [open, politeSeverity])
 
-	if (!open) return null
+	if (!open || (controlledWithoutHandler && locallyDismissed)) return null
 
 	const resolvedVariant = variant ?? 'soft'
 
@@ -191,6 +200,8 @@ export function Alert({
 					className={cn(k.close, 'self-center')}
 					onClick={() => {
 						setOpen(false)
+
+						if (controlledWithoutHandler) setLocallyDismissed(true)
 
 						// The button unmounts with the alert; hand focus to the caller's
 						// element rather than dropping it to <body> (WCAG 2.4.3).

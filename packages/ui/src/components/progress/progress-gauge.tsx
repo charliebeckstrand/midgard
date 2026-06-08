@@ -50,7 +50,7 @@ export function ProgressGauge({
 		<div
 			data-slot="progress-gauge"
 			role="progressbar"
-			aria-valuenow={value}
+			aria-valuenow={clamp(value, 0, max)}
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}

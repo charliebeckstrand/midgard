@@ -50,4 +50,35 @@ describe('useScrollLock', () => {
 
 		expect(document.body.style.overflow).toBe('')
 	})
+
+	it('compensates for the scrollbar width and restores it on release', () => {
+		// Simulate a page with a 15px vertical scrollbar (jsdom has no layout).
+		const docEl = document.documentElement
+
+		const patch = (key: 'scrollHeight' | 'clientHeight' | 'clientWidth', value: number) =>
+			Object.defineProperty(docEl, key, { configurable: true, value })
+
+		patch('scrollHeight', 2000)
+		patch('clientHeight', 1000)
+		patch('clientWidth', 1000)
+
+		const innerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')
+
+		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1015 })
+
+		const { unmount } = renderHook(() => useScrollLock(true))
+
+		expect(document.body.style.paddingRight).toBe('15px')
+
+		unmount()
+
+		expect(document.body.style.paddingRight).toBe('')
+
+		// Restore the patched globals.
+		for (const key of ['scrollHeight', 'clientHeight', 'clientWidth'] as const) {
+			patch(key, 0)
+		}
+
+		if (innerWidth) Object.defineProperty(window, 'innerWidth', innerWidth)
+	})
 })

@@ -50,6 +50,20 @@ describe('Alert', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('dismisses locally when controlled open has no onOpenChange', () => {
+		// With a controlled `open` and no handler, setOpen can't notify the parent,
+		// so the close button falls back to local dismissal rather than going inert.
+		renderUI(
+			<Alert open closable>
+				content
+			</Alert>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(screen.queryByText('content')).not.toBeInTheDocument()
+	})
+
 	it('moves focus to returnFocusTo when dismissed', () => {
 		function Harness() {
 			const triggerRef = useRef<HTMLButtonElement>(null)

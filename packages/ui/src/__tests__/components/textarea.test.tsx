@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { Textarea } from '../../components/textarea'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -83,6 +84,21 @@ describe('Textarea', () => {
 
 		// Controlled with a fixed '' value: keystrokes can't mutate it.
 		expect(el.value).toBe('')
+	})
+
+	it('keeps an explicit controlled value over a Form binding of the same name', () => {
+		// Regression: an explicit `value` must win over the enclosing Form's store,
+		// matching Input. Otherwise a controlled Textarea inside a Form tracking the
+		// same field silently shows the store value and desyncs from the consumer.
+		const { container } = renderUI(
+			<Form defaultValues={{ bio: 'stored' }}>
+				<Textarea name="bio" value="explicit" onChange={() => {}} />
+			</Form>,
+		)
+
+		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+
+		expect(el.value).toBe('explicit')
 	})
 
 	it('stays uncontrolled when no value prop is passed', async () => {

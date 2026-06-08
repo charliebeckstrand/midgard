@@ -193,6 +193,14 @@ describe('validateCardCvv', () => {
 		})
 	})
 
+	it('accepts both 3- and 4-digit CVVs when the brand is unknown', () => {
+		// The input permits up to 4 digits before a brand is detected, so neither
+		// length should hard-fail as invalid.
+		expect(validateCardCvv('123', undefined).isValid).toBe(true)
+
+		expect(validateCardCvv('1234', undefined).isValid).toBe(true)
+	})
+
 	it('treats a 2-digit input as potentially valid', () => {
 		expect(validateCardCvv('12', 'visa')).toEqual({
 			isValid: false,
