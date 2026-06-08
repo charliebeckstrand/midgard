@@ -34,32 +34,14 @@ export const k = defineRecipe(
 			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',
+			'min-w-6 min-h-6',
 			weight.semibold,
 			...disabled,
 			...cursor,
+			focus.ring,
 		],
-		// Focus treatment per variant. Filled and transparent variants use the
-		// universal offset ring; `outline` uses an inset ring, sharing Tailwind's
-		// ring-inset channel with its own border.
-		//
-		// `bare` strips horizontal padding (and all of it when icon-only), so a
-		// ring on its own box would hug the glyphs. Instead it paints the offset ring on an `::after` phantom box,
-		// inflated by the per-size compound rules below to the footprint this
-		// control would occupy *with* `plain`'s padding. The pseudo is out of
-		// flow and `pointer-events-none`, so the indicator reads identically to
-		// `plain` without reserving any layout space — surrounding content never
-		// shifts.
 		variant: {
-			solid: focus.ring,
-			soft: focus.ring,
-			plain: focus.ring,
-			outline: ['ring-1 ring-inset', focus.ring],
-			bare: [
-				'outline-none',
-				'after:absolute after:pointer-events-none',
-				'focus-visible:after:outline-2 focus-visible:after:outline-offset-2',
-				'focus-visible:after:outline-blue-600 dark:focus-visible:after:outline-blue-500',
-			],
+			outline: 'ring-1 ring-inset',
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
 		// is present the component sets `data-has-label`, which overrides `py` to
@@ -112,55 +94,23 @@ export const k = defineRecipe(
 		compound: [
 			{
 				variant: 'bare',
-				// Zero padding, then keep the phantom ring's vertical inset at 0 when
-				// labelled: the size's `data-has-label` `py` override outlives `p-0`,
-				// so a labelled bare button already carries `plain`'s vertical
-				// padding. This is constant across sizes; the per-size x/y insets and
-				// radius live below.
-				class: ['p-0', 'data-[has-label]:after:inset-y-0'],
-			},
-			// Per-size phantom focus-ring geometry. Inflate the `::after` box to the
-			// footprint `plain` would occupy at this size, carrying `plain`'s radius.
-			// Horizontal `p` is added in every state; vertical `p` is added here for
-			// the fully-unpadded icon-only case and zeroed back out when labelled by
-			// the variant-wide rule above. Negative inset grows the pseudo outward
-			// only; the outline's `outline-offset-2` then lands the stroke exactly
-			// where `focus.ring` puts `plain`'s.
-			{
-				variant: 'bare',
 				size: 'xs',
-				class: [
-					'after:inset-y-[calc((--spacing(0.5)-1px)*-1)]',
-					'after:inset-x-[calc((--spacing(0.5)-1px)*-1)]',
-					'after:rounded-[--spacing(0.5)]',
-				],
+				class: ['-m-1.5'],
 			},
 			{
 				variant: 'bare',
 				size: 'sm',
-				class: [
-					'after:inset-x-[calc((--spacing(1)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(1)-1px)*-1)]',
-					'after:rounded-[--spacing(1)]',
-				],
+				class: ['-m-2'],
 			},
 			{
 				variant: 'bare',
 				size: 'md',
-				class: [
-					'after:inset-x-[calc((--spacing(1.5)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
-					'after:rounded-[--spacing(1.5)]',
-				],
+				class: ['-m-2.5'],
 			},
 			{
 				variant: 'bare',
 				size: 'lg',
-				class: [
-					'after:inset-x-[calc((--spacing(2)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(2)-1px)*-1)]',
-					'after:rounded-[--spacing(2)]',
-				],
+				class: ['-m-3'],
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
