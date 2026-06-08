@@ -90,6 +90,52 @@ describe('useResizablePanel', () => {
 		})
 	})
 
+	describe('panel set changes', () => {
+		it('re-derives sizes when a panel is added', () => {
+			const { result, rerender } = renderHook(
+				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
+					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
+				{ initialProps: { panelConfigs: equalPanels } },
+			)
+
+			expect(result.current.sizes).toEqual([50, 50])
+
+			rerender({
+				panelConfigs: [
+					{ defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ defaultSize: 1, minSize: 0, maxSize: 100 },
+				],
+			})
+
+			// Stale [50, 50] would leave the third panel un-normalized; resync
+			// re-normalizes across the new set.
+			expect(result.current.sizes).toHaveLength(3)
+
+			for (const s of result.current.sizes) expect(s).toBeCloseTo(33.333, 2)
+		})
+
+		it('re-derives sizes when a panel is removed', () => {
+			const { result, rerender } = renderHook(
+				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
+					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
+				{
+					initialProps: {
+						panelConfigs: [
+							{ defaultSize: 1, minSize: 0, maxSize: 100 },
+							{ defaultSize: 1, minSize: 0, maxSize: 100 },
+							{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						] as PanelConfig[],
+					},
+				},
+			)
+
+			rerender({ panelConfigs: equalPanels })
+
+			expect(result.current.sizes).toEqual([50, 50])
+		})
+	})
+
 	describe('resize (keyboard-style nudge)', () => {
 		it('shifts size from the right panel to the left panel', () => {
 			const onSizesChange = vi.fn()
