@@ -53,7 +53,7 @@ export function PopoverContent({
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
-	const { open, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
+	const { open, panelId, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
 		usePopoverContext()
 
 	const contentRef = useRef<HTMLDivElement | null>(null)
@@ -78,6 +78,7 @@ export function PopoverContent({
 			<motion.div
 				{...k.panel.motion}
 				ref={contentRef}
+				id={panelId}
 				tabIndex={autoFocus ? -1 : undefined}
 				role={ariaLabel || ariaLabelledby ? 'dialog' : undefined}
 				aria-label={ariaLabel}

@@ -21,7 +21,7 @@ export type PopoverTriggerProps = {
 }
 
 export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
-	const { open, triggerRef, setReference, getReferenceProps } = usePopoverContext()
+	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
 	// Return a cleanup from the ref callback so React 19 won't call it with
 	// null on unmount. That avoids `setReference(null)` firing a state update
@@ -83,6 +83,7 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			ref: mergeRefs,
 			'aria-haspopup': 'dialog',
 			'aria-expanded': open,
+			'aria-controls': open ? panelId : undefined,
 			'data-slot': 'popover-trigger',
 			className: cn(k.trigger, child.props.className, className),
 		})
@@ -97,6 +98,7 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			type="button"
 			aria-haspopup="dialog"
 			aria-expanded={open}
+			aria-controls={open ? panelId : undefined}
 			data-slot="popover-trigger"
 			className={cn(k.trigger, className)}
 		>

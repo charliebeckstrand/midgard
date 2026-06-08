@@ -1,7 +1,7 @@
 'use client'
 
 import { type Placement, useClick, useInteractions } from '@floating-ui/react'
-import { type ReactNode, useEffect, useMemo } from 'react'
+import { type ReactNode, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
@@ -32,11 +32,19 @@ export function Popover({
 	className,
 	children,
 }: PopoverProps) {
+	// The trigger (`aria-haspopup="dialog"`) and the labelled panel
+	// (`role="dialog"`) carry their own roles + popup wiring; suppress
+	// floating-ui's role so its `useRole` doesn't stamp a second, unnamed
+	// `role="dialog"` (plus id) onto the positioning wrapper — which would nest a
+	// duplicate dialog around the panel and leave the wrapper itself unnamed.
+	// `panelId` lets the trigger's `aria-controls` point at the real panel.
+	const panelId = useId()
+
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
 			open: openProp,
 			onOpenChange,
-			role: 'dialog',
+			role: null,
 			placement,
 			offset: 8,
 		})
@@ -52,6 +60,7 @@ export function Popover({
 	const contextValue = useMemo(
 		() => ({
 			open,
+			panelId,
 			setOpen,
 			close,
 			triggerRef,
@@ -64,6 +73,7 @@ export function Popover({
 		}),
 		[
 			open,
+			panelId,
 			setOpen,
 			close,
 			triggerRef,
