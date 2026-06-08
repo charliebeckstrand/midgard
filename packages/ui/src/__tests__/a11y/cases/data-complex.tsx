@@ -123,7 +123,7 @@ export const dataComplexCases: readonly Case[] = [
 		// Filter bar: FiltersField owns the control context, so Label names the
 		// Input directly (no Field wrapper) and the value binds through the slot.
 		'filters',
-		<Filters key="fl" defaultValue={{ search: undefined }}>
+		<Filters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>
 			<FiltersField name="search">
 				<Label>Search</Label>
 				<Input placeholder="Search" />

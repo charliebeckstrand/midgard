@@ -36,6 +36,8 @@ export type PivotTableProps<T> = {
 	grid?: boolean
 	striped?: boolean
 	className?: string
+	/** Accessible name for the table — a caption-equivalent for a dense pivot. Optional, since a native `<table>` is valid unnamed. */
+	'aria-label'?: string
 }
 
 /** Two-axis aggregation table — groups rows by `(row × column)` keys and aggregates a value field into each cell. */
@@ -54,6 +56,7 @@ export function PivotTable<T>({
 	grid,
 	striped,
 	className,
+	'aria-label': ariaLabel,
 }: PivotTableProps<T>) {
 	const { rowKeys, columnKeys, cellValue, rowTotal, colTotals, grandTotal } = usePivotTable(
 		rows,
@@ -76,7 +79,7 @@ export function PivotTable<T>({
 			density={density}
 			grid={grid}
 			striped={striped}
-			tableProps={{ 'data-slot': 'pivot-table' }}
+			tableProps={{ 'data-slot': 'pivot-table', 'aria-label': ariaLabel }}
 		>
 			<TableHead>
 				<TableRow>
