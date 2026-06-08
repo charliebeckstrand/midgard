@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('Toolbar', () => {
 	it('renders children', () => {
@@ -101,6 +102,46 @@ describe('Toolbar', () => {
 
 		// The roving stop moves with focus so re-Tabbing returns to the last item.
 		expect(buttons.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
+	})
+
+	it('keeps the resting Tab stop on the focused control when a disabled sibling re-enables', async () => {
+		// Regression: a control that becomes enabled arrives at the native
+		// `tabIndex=0`, indistinguishable by count from the deliberate stop. With
+		// focus on another control, the resting stop holds on the focused one
+		// rather than jumping to the new arrival.
+		function Harness() {
+			const [enabled, setEnabled] = useState(false)
+
+			return (
+				<Toolbar aria-label="Editor">
+					<button type="button" disabled={!enabled}>
+						A
+					</button>
+					<button type="button" onClick={() => setEnabled(true)}>
+						B
+					</button>
+					<button type="button">C</button>
+				</Toolbar>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const b = screen.getByRole('button', { name: 'B' })
+
+		// Activate B (focus stays on it); its handler re-enables A.
+		await userEvent.click(b)
+
+		const a = screen.getByRole('button', { name: 'A' })
+
+		const c = screen.getByRole('button', { name: 'C' })
+
+		// The freshly-enabled A stays demoted; the resting stop holds on focused B.
+		await waitFor(() => expect(b.tabIndex).toBe(0))
+
+		expect(a.tabIndex).toBe(-1)
+
+		expect(c.tabIndex).toBe(-1)
 	})
 
 	it('keeps a custom [tabindex] item in the roving query after demotion', () => {
