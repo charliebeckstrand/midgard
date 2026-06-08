@@ -140,6 +140,20 @@ describe('QueryBuilder', () => {
 	// repro was impossible. Removed pending a rewrite that drives the
 	// selectors through a unit-level seam instead of the floating-ui mock.
 
+	it('names the field and operator selectors', () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		const labels = Array.from(container.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
+			el.getAttribute('aria-label'),
+		)
+
+		expect(labels).toContain('Field')
+
+		expect(labels).toContain('Operator')
+	})
+
 	it('renders a number input for number-typed rule fields', () => {
 		const numberRule = createRule(fields[1])
 
@@ -347,6 +361,8 @@ describe('QueryBuilderRuleValue', () => {
 		const input = container.querySelector('input') as HTMLInputElement
 
 		expect(input).toHaveAttribute('type', 'text')
+
+		expect(input).toHaveAttribute('aria-label', 'Name value')
 
 		expect(input.value).toBe('hi')
 
