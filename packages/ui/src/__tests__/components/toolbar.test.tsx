@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
+import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Toolbar', () => {
@@ -100,6 +101,35 @@ describe('Toolbar', () => {
 
 		// The roving stop moves with focus so re-Tabbing returns to the last item.
 		expect(buttons.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
+	})
+
+	it('keeps a custom [tabindex] item in the roving query after demotion', () => {
+		// Regression: roving demotes non-resting items to tabindex="-1". Matching
+		// only [tabindex="0"] dropped a demoted custom item from the query,
+		// orphaning it and making it unreachable by arrow keys.
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor">
+				<button type="button">A</button>
+				{/* biome-ignore lint/a11y/noNoninteractiveTabindex: a bare-tabindex custom focusable is exactly the roving-managed case under test */}
+				<div tabIndex={0} data-testid="custom">
+					Custom
+				</div>
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		const custom = screen.getByTestId('custom')
+
+		// Roving has demoted the non-resting custom item.
+		expect(custom).toHaveAttribute('tabindex', '-1')
+
+		// It must still be matched by the toolbar item selector so arrow-key
+		// navigation can land on it.
+		const matched = Array.from(
+			(bySlot(container, 'toolbar') as HTMLElement).querySelectorAll(TOOLBAR_ITEM_SELECTOR),
+		)
+
+		expect(matched).toContain(custom)
 	})
 })
 
