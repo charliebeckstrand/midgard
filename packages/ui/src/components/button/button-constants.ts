@@ -20,7 +20,7 @@ function cancelActivation(e: MouseEvent<HTMLAnchorElement>) {
  * cancelled, mirroring the disabled `<button>` branch. Shared by the standard
  * and headless renderers so the two can't drift.
  */
-export const loadingLinkProps = {
+export const loadingProps = {
 	'aria-disabled': true,
 	'data-disabled': true,
 	'aria-busy': true,

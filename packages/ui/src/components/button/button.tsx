@@ -14,7 +14,7 @@ import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
 import { LoadingSpinner, type LoadingSpinnerProps } from '../loading'
-import { buttonSpring, loadingLinkProps } from './button-constants'
+import { buttonSpring, loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
 import { isIconElement } from './button-utilities'
@@ -122,7 +122,7 @@ export function Button({
 						href={href}
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-						{...(loading && loadingLinkProps)}
+						{...(loading && loadingProps)}
 					>
 						<TouchTarget>{content}</TouchTarget>
 					</Link>

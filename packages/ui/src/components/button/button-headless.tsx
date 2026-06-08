@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from '../link'
-import { loadingLinkProps } from './button-constants'
+import { loadingProps } from './button-constants'
 
 // Type intentionally loose at the call boundary — the public discriminated
 // shape lives on `ButtonProps`; this internal helper accepts the parent's
@@ -33,7 +33,7 @@ export function ButtonHeadless({
 				href={href}
 				className={className}
 				{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-				{...(loading && loadingLinkProps)}
+				{...(loading && loadingProps)}
 			>
 				{children}
 			</Link>
