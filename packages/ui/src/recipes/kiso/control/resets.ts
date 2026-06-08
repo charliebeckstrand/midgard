@@ -1,7 +1,6 @@
 /**
  * Control archetype — element-specific resets. The `number` reset hides
- * native spinners and switches `<input type="number">` to text appearance
- * so the design-system chrome owns the visible surface end-to-end.
+ * native spinners and switches `<input type="number">` to text appearance.
  *
  * Layer: kiso · Archetype: control · Concern: resets
  */

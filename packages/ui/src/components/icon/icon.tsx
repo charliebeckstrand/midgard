@@ -20,11 +20,10 @@ export type IconProps = {
 
 /** Sizing and accessibility wrapper that clones a Lucide-style `icon` element — `size` resolves from the prop or ambient Density, and a `label` exposes it as `role="img"` instead of hiding it. */
 export function Icon({ icon, size, className, label }: IconProps) {
-	// Icon's scale tops out at `lg` — `k.size` doesn't have an `xl` step.
-	// `useSize` can carry `'xl'` (Button broadcasts up to `Ma`), so when
-	// that reaches an Icon with no explicit size, the `k.size` lookup misses
-	// and the icon falls back to its inherited dimensions. Make the type
-	// narrowing explicit so the missing-key branch reads as intentional.
+	// `k.size` tops out at `lg` — no `xl` step. `useSize` can carry `'xl'`
+	// (Button broadcasts up to `Ma`); when that reaches an Icon with no explicit
+	// size, the `k.size` lookup misses and the icon falls back to its inherited
+	// dimensions. The type narrowing makes the missing-key branch explicit.
 	const ambient = useSize() as Size
 
 	const resolvedSize = size ?? ambient

@@ -30,10 +30,8 @@ export function useTagInput({
 
 	const atMax = max !== undefined && tags.length >= max
 
-	// Adding/removing a tag and rejected additions are pure DOM churn with no
-	// focus change, so a screen reader is told nothing. Voice each outcome
-	// through the live region (WCAG 4.1.3); rejections also name the reason so a
-	// silently-dropped entry isn't mistaken for success (3.3.1).
+	// Each outcome — addition, duplicate, limit, rejection — is announced via
+	// the live region (WCAG 4.1.3, 3.3.1). Rejections include the reason.
 	const addTag = useCallback(
 		(raw: string): boolean => {
 			const tag = raw.trim()

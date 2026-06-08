@@ -76,8 +76,7 @@ export function Box({
 }: BoxProps) {
 	const density = useDensityNullable()
 
-	// Only `p` inherits — `px` / `py` stay explicit so margin-style overrides
-	// don't get masked by an ambient default.
+	// Only `p` inherits from ambient Density — `px` / `py` stay explicit.
 	const resolvedPadding = p ?? density?.space
 
 	return (

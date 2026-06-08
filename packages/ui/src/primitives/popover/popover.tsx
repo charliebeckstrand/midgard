@@ -67,8 +67,7 @@ export function PopoverPanel({
 				role={role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
-				// aria-multiselectable is only valid on listbox (and a few grid-like
-				// roles) — drop it for any other role a consumer sets.
+				// aria-multiselectable: only set on `listbox` (and a few grid-like roles).
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}
 				tabIndex={-1}
 				{...k.panel.motion}

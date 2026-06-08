@@ -1,18 +1,15 @@
 /**
  * Control archetype — affix slot padding.
  *
- * Affix padding equals `density.px` so a text affix's *content* sits the
- * same distance from chrome as input-text does in an affix-less control.
- * When the slot hosts an element with its own outer chrome — a non-bare
- * `<Button>` or a `<Badge>`, matched on `data-slot` — the affix padding
- * shrinks to a constant `1.5` spacing-units at every density step,
- * pulling the chip's *content* 0.5 units inside the text-equidistance
- * line so its chrome reads with breathing room from the slot edge. The
- * single constant works at every density step because `affixStepDown`
- * (`primitives/affix/affix.ts`) moves the slot's child one notch down
- * per density step, and both `density.px` and the stepped-down child
- * padding grow 0.5 per notch — the per-step deltas cancel, leaving only
- * the 0.5 inset. The boundary test at
+ * Affix padding equals `density.px`, aligning a text affix's content with
+ * the input text in an affix-less control. When the slot hosts an element
+ * with its own outer chrome — a non-bare `<Button>` or a `<Badge>`,
+ * matched on `data-slot` — the affix padding shrinks to a constant `1.5`
+ * spacing-units at every density step. `affixStepDown`
+ * (`primitives/affix/affix.ts`) reduces the slot's child one notch per
+ * density step; both `density.px` and the stepped-down child padding grow
+ * 0.5 per notch, so the per-step deltas cancel and the constant holds at
+ * every step. The boundary test at
  * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
  * this against the live recipes.
  *

@@ -32,9 +32,8 @@ function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerPr
  *     reference props alongside any user-supplied onClick.
  *
  * Everything else (positioning, hover, focus, dismiss, role, portals) is a
- * noop or identity passthrough. Mocking globally keeps the module graph
- * consistent across the vmThreads pool — per-file mocks for the same module
- * can resolve inconsistently when `sequence.shuffle` reorders worker loading.
+ * noop or identity passthrough. Applied globally for module-graph consistency
+ * across the vmThreads pool.
  */
 const floatingUIMock = {
 	autoUpdate: noop,

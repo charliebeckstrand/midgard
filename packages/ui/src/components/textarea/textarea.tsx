@@ -27,8 +27,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * present, even if `null`/`undefined`.
  */
 export function Textarea(props: TextareaProps) {
-	// Mirror Input: a wrapper that signals "empty" with value={null}/value={undefined}
-	// must stay controlled, so the presence of the prop is checked before destructuring.
+	// A wrapper that passes value={null} or value={undefined} must stay controlled;
+	// check for the prop's presence before destructuring.
 	const hasValueProp = 'value' in props
 
 	const {
@@ -88,9 +88,9 @@ export function Textarea(props: TextareaProps) {
 		)
 	}
 
-	// Mirror Input's useInputValue: a wrapper that passes an explicit `value`
-	// takes ownership of the controlled state, so the Form binding must not
-	// override it (it still surfaces name + invalid via useControlProps above).
+	// An explicit `value` prop takes ownership of the controlled state;
+	// the Form binding surfaces name + invalid via useControlProps but does
+	// not override the value or change handlers.
 	const bound = !hasValueProp && binding !== undefined
 
 	const controlProps = {

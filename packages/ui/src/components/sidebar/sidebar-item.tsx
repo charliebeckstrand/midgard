@@ -32,16 +32,14 @@ export function SidebarItem({
 }: SidebarItemProps) {
 	const item = useNavItem({ current, size, preventClose, onClick })
 
-	// Inside a SidebarList the wrapper must be an <li> (a valid <ul> child);
-	// standalone it stays a <span> so existing flat usage keeps working.
+	// Inside a SidebarList the wrapper is an <li>; standalone it is a <span>.
 	const inList = useInSidebarList()
 
 	const Wrapper = inList ? 'li' : 'span'
 
-	// Affixes render as siblings of the inner button — never nested inside it —
-	// so a slot can host its own interactive element without producing invalid
-	// nested-interactive markup. The row only goes flex when an affix exists,
-	// leaving the affix-less DOM and layout untouched.
+	// Affixes render as siblings of the inner button, not nested inside it, so
+	// a slot can host its own interactive element. The row goes flex only when
+	// an affix is present.
 	const hasAffix = prefix != null || suffix != null
 
 	return (

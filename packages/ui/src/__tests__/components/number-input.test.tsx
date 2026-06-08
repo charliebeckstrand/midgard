@@ -230,9 +230,8 @@ describe('NumberInput', () => {
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
-		// `userEvent.type` writes one character at a time; typing 'e' is the only
-		// keystroke jsdom accepts on a type="number" input that doesn't yield a
-		// parseable number, hitting the Number.isNaN guard.
+		// `userEvent.type` writes one character at a time; 'e' is the only
+		// keystroke jsdom accepts on a type="number" input that yields NaN.
 		await user.type(input, 'e')
 
 		expect(onChange).not.toHaveBeenCalled()
@@ -241,8 +240,7 @@ describe('NumberInput', () => {
 
 describe('NumberInput density inheritance', () => {
 	// The underlying <Input> brings a unique text class per size; matching it
-	// confirms the spinbutton inherited the ambient density instead of the
-	// hardcoded 'md' it used to pass through.
+	// confirms the spinbutton inherits the ambient density rather than a hardcoded default.
 	const textClassFor = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' } as const
 
 	it('inherits size from the Density context when no explicit prop is set', () => {

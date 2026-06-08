@@ -32,12 +32,11 @@ export function Popover({
 	className,
 	children,
 }: PopoverProps) {
-	// The trigger (`aria-haspopup="dialog"`) and the labelled panel
-	// (`role="dialog"`) carry their own roles + popup wiring; suppress
-	// floating-ui's role so its `useRole` doesn't stamp a second, unnamed
-	// `role="dialog"` (plus id) onto the positioning wrapper — which would nest a
-	// duplicate dialog around the panel and leave the wrapper itself unnamed.
-	// `panelId` lets the trigger's `aria-controls` point at the real panel.
+	// The trigger (`aria-haspopup="dialog"`) and the panel (`role="dialog"`)
+	// carry their own roles; `role: null` suppresses floating-ui's `useRole` so
+	// it doesn't stamp a second, unnamed `role="dialog"` onto the positioning
+	// wrapper. `panelId` lets the trigger's `aria-controls` point at the real
+	// panel.
 	const panelId = useId()
 
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =

@@ -3,8 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // `kata/`, `katakana/`, and `kiso/` are internal-only — see the header in
-// src/recipes/index.ts for the full contract. This test pins the four
-// boundaries that keep them internal:
+// src/recipes/index.ts for the full contract. This test pins four boundaries:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
 //   2. The recipes barrel never re-exports anything from kata/, katakana/,
@@ -39,13 +38,13 @@ describe('recipes internal-boundary contract', () => {
 	it('src/recipes/index.ts is types-only — no value exports', () => {
 		const source = readFileSync(join(uiRoot, 'src/recipes/index.ts'), 'utf8')
 
-		// Strip block comments so the JSDoc header (which may contain code-like
-		// snippets) doesn't trigger the value-export scan.
+		// Strip block comments (the JSDoc header may contain code-like snippets)
+		// before scanning for value exports.
 		const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '')
 
-		// Every `export` must carry the `type` keyword: either `export type {…}`
-		// or `export { type X, type Y } …`. A bare `export {…}` or `export *`
-		// would leak runtime values through the barrel.
+		// Every `export` must carry the `type` keyword (`export type {…}` or
+		// `export { type X, type Y }`); bare `export {…}` or `export *` leaks
+		// runtime values through the barrel.
 		const violations: string[] = []
 
 		for (const line of stripped.split('\n')) {
@@ -96,10 +95,8 @@ describe('recipes internal-boundary contract', () => {
 			walk(root, (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
-				// Match `from 'ui/recipes...` or `from "ui/recipes...` — the package
-				// is consumed as `ui` per its name field, so this catches the only
-				// reachable import path. Relative imports across packages aren't
-				// possible under the workspace's module-resolution setup.
+				// Matches `from 'ui/recipes...'` / `from "ui/recipes..."` — the only
+				// reachable import path under the workspace's module-resolution setup.
 				if (/from\s+['"]ui\/recipes(?:\/|['"])/.test(content)) {
 					offenders.push(file.slice(workspaceRoot.length + 1))
 				}

@@ -13,8 +13,7 @@ type JsonNodeRowProps = {
 /**
  * Flat, non-recursive renderer for a single row in the virtualized JsonTree.
  * Shares visual slots (`json-node`, `json-node-toggle`, `json-close`) and
- * classes with the recursive JsonTreeNode so styling, tests, and recipe lookups
- * stay aligned.
+ * classes with the recursive `JsonTreeNode`.
  */
 export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
 	if (node.type === 'leaf') {

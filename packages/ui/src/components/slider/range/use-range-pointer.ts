@@ -21,8 +21,8 @@ export function useRangePointer(opts: {
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
 	const draggingRef = useRef<ThumbIndex | null>(null)
-	// When pointer goes down on stacked thumbs, defer thumb selection until the
-	// first move reveals direction. Stores the clientX of pointerdown.
+	// Stores the clientX of pointerdown on stacked thumbs until the first
+	// move reveals direction, then resolves which thumb to drag.
 	const pendingStackedRef = useRef<number | null>(null)
 
 	const valueFromPointer = useCallback(
@@ -48,7 +48,7 @@ export function useRangePointer(opts: {
 
 			const d1 = Math.abs(raw - current[1])
 
-			// Prefer the higher thumb when equidistant so the lower handle isn't trapped
+			// Prefers the higher thumb when equidistant.
 			return d0 < d1 ? 0 : 1
 		},
 		[valueFromPointer, current],
@@ -104,8 +104,8 @@ export function useRangePointer(opts: {
 
 				if (dx === 0) return
 
-				// At the min/max boundary, the matching thumb has nowhere to go.
-				// Keep waiting in case the user reverses direction.
+				// At the min/max boundary the matching thumb has nowhere to go;
+				// keep waiting for a direction reversal.
 				const stacked = current[0]
 
 				if (dx < 0 && stacked <= min) return
@@ -118,10 +118,9 @@ export function useRangePointer(opts: {
 			const raw = valueFromPointer(event.clientX)
 			const dragging = draggingRef.current
 
-			// Always pass the index that was active when this move began. useRangeUpdate
-			// rewrites that slot then re-sorts when overlap='swap', which preserves the
-			// non-dragged thumb's value. After the update, point draggingRef at the new
-			// slot of the value we just wrote so subsequent moves track the same finger.
+			// Passes the index active when this move began. After `useRangeUpdate`
+			// re-sorts on swap, `draggingRef` follows to the new slot of the written
+			// value so subsequent moves continue tracking the same pointer.
 			if (overlap === 'swap') {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 

@@ -5,10 +5,9 @@ import { Toast } from '../../components/toast'
 import { ToastProvider, useToast } from '../../providers/toast'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 
-// The shared motion mock strips `initial`, hiding the enter animation from the
-// DOM. Surface the vertical enter offset as `data-initial-y` (delegating the
-// usual motion-prop stripping to the base mock) so the position → slide-direction
-// mapping in ToastAlert is observable and regression-guarded.
+// Overrides the shared motion mock to surface the vertical enter offset as
+// `data-initial-y` (delegating motion-prop stripping to the base mock),
+// making the position → slide-direction mapping in ToastAlert observable.
 vi.mock('motion/react', async () => {
 	const base = (await import('../mocks/motion-react')).default
 

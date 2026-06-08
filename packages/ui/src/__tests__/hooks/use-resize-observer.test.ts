@@ -28,9 +28,9 @@ function installResizeObserverStub() {
 		}
 	}
 
-	// `lib.dom`'s `ResizeObserver` is a constructor signature with overloads
-	// and `ResizeObserverOptions` that `vi.fn()`-shaped methods don't match
-	// structurally; the stub satisfies the runtime contract the hook uses.
+	// `lib.dom`'s `ResizeObserver` has overloaded constructor signatures that
+	// `vi.fn()`-shaped methods don't satisfy structurally; the cast narrows to
+	// the runtime contract the hook actually uses.
 	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
 
 	return {
@@ -133,7 +133,7 @@ describe('useResizeObserver', () => {
 		rerender({ unrelated: 1 })
 		rerender({ unrelated: 2 })
 
-		// Stable callback + stable ref → effect's deps unchanged → no re-subscribe.
+		// Stable callback + stable ref: effect deps unchanged, no re-subscribe.
 		expect(stub.instances).toHaveLength(1)
 
 		expect(callback).toHaveBeenCalledTimes(1)

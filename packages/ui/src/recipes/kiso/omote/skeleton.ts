@@ -1,6 +1,6 @@
 /**
- * Omote skeleton — loading skeleton background. Pulses on a neutral tone
- * so placeholders read as inactive against any surface.
+ * Omote skeleton — loading skeleton background. Pulses on a neutral tone,
+ * reading as inactive against any surface.
  *
  * Layer: kiso · Concern: skeleton fill
  */

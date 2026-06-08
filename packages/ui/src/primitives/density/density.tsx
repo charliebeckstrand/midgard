@@ -18,13 +18,12 @@ import { useAffix } from '../affix'
  * without touching font size; `<Density size="lg">` bumps text and icon
  * without re-padding. Cascade is per-axis innermost-wins.
  *
- * `size` is deliberately the same word every component uses for its own
- * `size` prop — the ambient axis is the default a `<Button>` / `<Input>`
- * picks up, so one vocabulary runs from provider to leaf.
+ * `size` matches the `size` prop every component exposes — the ambient axis
+ * is the default a `<Button>` / `<Input>` picks up.
  *
- * Internal names are intentionally positional (`sm | md | lg`) so the public
- * API can carry friendlier labels (e.g. `compact / cozy / comfortable`)
- * without a refactor — translation lives at the prop surface, not the token.
+ * Internal names are positional (`sm | md | lg`); friendlier public labels
+ * (e.g. `compact / cozy / comfortable`) translate at the prop surface, not
+ * the token.
  */
 type DensityToken = {
 	space: Step
@@ -54,10 +53,9 @@ const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | n
  * Read the active density. Returns the diagonal `md` preset when no provider
  * is in the tree.
  *
- * Use {@link useDensityNullable} when you need to distinguish "no ancestor"
- * from `md` — layout primitives (Box, Flex, Stack, Grid) whose `p` / `gap`
- * treat `undefined` as "no style applied" want the nullable read so they
- * don't accidentally inherit the default.
+ * Use {@link useDensityNullable} to distinguish "no ancestor" from `md` —
+ * layout primitives (Box, Flex, Stack, Grid) whose `p` / `gap` treat
+ * `undefined` as "no style applied" need the nullable read.
  */
 export function useDensity(): DensityToken {
 	const density = useDensityNullable()
@@ -68,18 +66,15 @@ export function useDensity(): DensityToken {
 export { useDensityNullable }
 
 /**
- * Resolve a wider-scale size through the Affix → Density cascade. Used by
+ * Resolves a wider-scale size through the Affix → Density cascade. Used by
  * components whose own size type spans `Ma` (`Button`, `Icon`, `LoadingSpinner`,
- * `ProgressGauge`) — they need to inherit sub-`Step` values when nested
- * inside a control affix slot, and the regular `useDensity` can't carry
- * those.
+ * `ProgressGauge`), which can inherit sub-`Step` values from a control affix
+ * slot.
  *
  * Resolution order: `explicit ?? Affix ?? Density.size`.
  *
- * Generic on the caller's size type. Most callers' types are narrower than
- * `Ma` (Icon tops out at `lg`; Button's recipe currently lacks `xl`); the
- * cast trusts the caller to handle out-of-range values via recipe
- * `defaultVariants` or graceful fallback.
+ * Generic on the caller's size type; the cast trusts the caller to handle
+ * out-of-range values via recipe `defaultVariants` or graceful fallback.
  */
 export function useSize<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()

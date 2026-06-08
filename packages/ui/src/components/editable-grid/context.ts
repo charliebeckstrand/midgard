@@ -23,11 +23,9 @@ export type EditableGridContextValue = {
 // Internal split. The state slice changes on navigation/selection/edit-toggle
 // (not per keystroke) and backs the public `useEditableGrid` view plus the store
 // below. The edit-session slice (draft + commit/cancel) changes on every
-// keystroke and is read only by the mounted editor — so typing re-renders just
-// the active cell's editor, not every cell in the grid. Cells themselves don't
-// consume this context; they subscribe to `EditableGridStoreContext` for their
-// own derived slice (see `useEditableGridCellSlice`), so moving the active cell
-// re-renders only the cells whose state flipped rather than every visible cell.
+// keystroke and is read only by the mounted editor. Cells subscribe to
+// `EditableGridStoreContext` for their own derived slice (see
+// `useEditableGridCellSlice`), re-rendering only when their slice flips.
 export type EditableGridStateValue = Pick<
 	EditableGridContextValue,
 	'active' | 'anchor' | 'extraCells' | 'editing' | 'setActive' | 'addCellToSelection' | 'beginEdit'

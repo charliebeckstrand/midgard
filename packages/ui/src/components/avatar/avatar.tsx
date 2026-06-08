@@ -85,7 +85,7 @@ export function Avatar({
 			<span data-slot="avatar-with-status" className={cn('relative inline-flex', className)}>
 				{avatarEl}
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
-				{/* The dot conveys status by color alone; name it for AT. */}
+				{/* Status is conveyed by color alone; the sr-only span names it for assistive technology. */}
 				<span className="sr-only">
 					{statusLabel ?? status.charAt(0).toUpperCase() + status.slice(1)}
 				</span>

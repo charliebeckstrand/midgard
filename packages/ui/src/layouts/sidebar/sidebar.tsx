@@ -60,8 +60,7 @@ export function SidebarLayout({
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
-	// Resets the floating sheet to closed when `floating` flips off, so a later
-	// re-enable doesn't restore a stale-open state from a previous mount cycle.
+	// Resets the floating sheet to closed when `floating` flips off.
 	useEffect(() => {
 		if (!floating) setFloatingOpen(false)
 	}, [floating])

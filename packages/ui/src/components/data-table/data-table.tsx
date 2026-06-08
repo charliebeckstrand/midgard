@@ -204,9 +204,8 @@ export function DataTable<T>({
 			striped={striped}
 			className={className}
 			// `aria-busy` marks the table as updating while the loading skeleton
-			// stands in for the body, so assistive tech holds its reading until the
-			// rows arrive. Virtualization windows the DOM, so it also advertises the
-			// full row count (header + data rows) and indexes each row.
+			// stands in for the body. Virtualization windows the DOM, so
+			// `aria-rowcount` advertises the full row count (header + data rows).
 			tableProps={{
 				...tableProps,
 				...(loading ? { 'aria-busy': true } : {}),

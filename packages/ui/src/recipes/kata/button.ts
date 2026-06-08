@@ -11,8 +11,7 @@ const { focus } = sen
 const { icon } = shaku
 const { spring } = ugoki
 
-// Synthetic colour entry: lets a button skip the palette and inherit
-// its parent's text colour, with a hover wash on non-disabled elements.
+// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
 const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
 
 const solid = {
@@ -40,11 +39,9 @@ export const k = defineRecipe(
 			...disabled,
 			...cursor,
 		],
-		// Focus treatment per variant. Filled and transparent variants take the
-		// universal offset ring; the bordered `outline` and inline `bare`
-		// variants keep an inset ring — an outset gap would either fight the
-		// outline's own inset border (they share Tailwind's ring-inset channel)
-		// or overflow an inline bare control.
+		// Focus treatment per variant. Filled and transparent variants use the
+		// universal offset ring; `outline` and `bare` use an inset ring, sharing
+		// Tailwind's ring-inset channel with the outline's own border.
 		variant: {
 			solid: focus.ring,
 			soft: focus.ring,
@@ -53,10 +50,10 @@ export const k = defineRecipe(
 			outline: ['ring-1 ring-inset', ...focus.inset],
 			bare: focus.inset,
 		},
-		// Square padding (`p`) keeps icon-only buttons even-sided. When the
-		// children carry a text label the component sets `data-has-label`, which
-		// overrides `py` to the matching control density step so a labeled button
-		// lines up with same-size Input/Select chrome (e.g. md → 38px).
+		// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
+		// is present the component sets `data-has-label`, which overrides `py` to
+		// the matching control density step — aligning a labeled button with
+		// same-size Input/Select chrome (e.g. md → 38px).
 		size: {
 			xs: [
 				size.xs,
@@ -107,18 +104,12 @@ export const k = defineRecipe(
 				variant: 'bare',
 				class: 'p-0',
 			},
-			// Floor the icon-only bare hit box at the WCAG 2.5.8 minimum (24px) as a
-			// real, gate-measurable border-box. Absolutely-positioned hit expanders
-			// (the TouchTarget sibling, a `::before` overlay) widen the pointer area but
-			// are invisible to axe's target-size and to the spec's box metric (see
-			// toggle-icon-button.ts), so only a real box satisfies the gate — which is
-			// why this box, not slop, carries compliance. A matched negative margin of
-			// `(24px − iconbox)/2` per side collapses the box's margin-box back to the
-			// icon's footprint, so the floor grows the hit box without growing the row
-			// it sits in — the overshoot reaches into the parent's existing padding. Per
-			// size: xs/sm/md icons are 12/16/20px; lg's 24px icon already clears the
-			// floor, so it needs no rule. Gated to `:not([data-has-label])` so inline
-			// text-label bare links keep their natural inline box and lean on WCAG's
+			// Floors the icon-only bare hit box at the WCAG 2.5.8 minimum (24×24px)
+			// as a real border-box. A matched negative margin of `(24px − iconbox)/2`
+			// collapses the margin-box back to the icon's footprint, so the floor
+			// grows the hit area without growing the row. xs/sm/md icons are
+			// 12/16/20px; lg's 24px icon already meets the floor. Gated to
+			// `:not([data-has-label])` so inline bare links use WCAG's
 			// inline-target exception instead.
 			{
 				variant: 'bare',

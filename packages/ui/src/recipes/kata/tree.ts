@@ -49,7 +49,7 @@ const chevron = defineRecipe({
 export const k = {
 	base: [
 		flex.col,
-		// Trim outer vertical padding on the edge rows so the tree sits flush with its container.
+		// Trims outer vertical padding on edge rows, flushing the tree with its container.
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
 	],

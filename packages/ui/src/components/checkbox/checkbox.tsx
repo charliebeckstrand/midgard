@@ -66,7 +66,7 @@ export function Checkbox({
 	const setRef = useComposedRef(internalRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
-	// Keyed on the value so toggling it no longer detaches and reattaches the node.
+	// Keyed on the value so the node is reused across toggles.
 	useLayoutEffect(() => {
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])

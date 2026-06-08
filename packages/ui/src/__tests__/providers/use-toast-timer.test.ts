@@ -40,9 +40,9 @@ describe('useToastTimer', () => {
 	})
 
 	it('does not collapse the remaining time when paused twice (hover + focus)', () => {
-		// Regression: hover and focus both call pause(); without the already-paused
-		// guard the second pause subtracts elapsed-since-start again, driving the
-		// remaining time to ~0 and auto-dismissing the toast mid-interaction.
+		// Guards the already-paused path: a second pause() call must not subtract
+		// elapsed time again, which would collapse remaining time to ~0 and
+		// auto-dismiss the toast mid-interaction.
 		const { result, start } = setup(1000)
 
 		act(() => result.current.startTimer())

@@ -1,8 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Stub the pdfjs-dist worker URL import — the production code calls this for
-// its side effect of setting `GlobalWorkerOptions.workerSrc`.
+// Stubs the pdfjs-dist worker URL import (sets `GlobalWorkerOptions.workerSrc` as a side effect).
 vi.mock('pdfjs-dist/build/pdf.worker.min.mjs?url', () => ({ default: 'worker.js' }))
 
 const getDocumentMock = vi.fn()
@@ -24,10 +23,8 @@ const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
 beforeEach(() => {
 	getDocumentMock.mockReset()
 
-	// Pre-set workerSrc so the production code's configureWorker() skips the
-	// `?url` dynamic import, which can't be reliably intercepted by vi.mock
-	// in every CI/runtime combination. The hook's behavior is independent of
-	// the worker URL value once workerSrc is non-empty.
+	// Pre-sets workerSrc; configureWorker() skips the `?url` dynamic import
+	// (unreliably intercepted by vi.mock) when workerSrc is already non-empty.
 	globalWorkerOptions.workerSrc = 'mock-worker'
 
 	globalThis.URL.createObjectURL = vi.fn(() => 'blob:mock')
@@ -45,12 +42,9 @@ afterEach(() => {
 	globalThis.URL.revokeObjectURL = originalRevokeObjectURL
 })
 
-// The async paths through this hook — fetch-error, fetch-throw, and successful
-// pdfjs render — were exercised by three tests that consistently hung on Azure
-// CI under Linux Node 20 (state never propagating through the multi-await
-// chain of dynamic import + fetch + pdfjs render). Local repro was impossible.
-// Those tests have been removed pending a rewrite that doesn't depend on the
-// real async lifecycle. The synchronous paths below remain covered.
+// The async paths (fetch-error, fetch-throw, successful pdfjs render) are omitted
+// pending a rewrite that doesn't depend on the real async lifecycle.
+// Synchronous paths below remain covered.
 
 describe('usePdfViewerDocument', () => {
 	it('returns the empty initial state when no src is provided', () => {

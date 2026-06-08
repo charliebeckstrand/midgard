@@ -5,18 +5,15 @@ import { Dialog, DialogBody, DialogTitle } from '../../components/dialog'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Modal focus-trap gate (real floating engine). The jsdom focus suite
- * (a11y/focus.test.tsx) covers overlay focus-capture and dropdown restoration
- * but explicitly defers the modal Overlay family's trap as real-browser-only:
- * jsdom resolves tabbability to zero-size, so floating-ui's focus guards never
- * engage, and the main browser suite mocks `@floating-ui/react` away entirely.
- * This config keeps the engine real (vitest.browser-real.config.ts), so the trap
- * a keyboard or screen-reader user depends on — focus can't escape an open modal
- * (WCAG 2.4.3 / 2.1.2) — is finally asserted against live behaviour.
+ * Modal focus-trap gate (real floating engine). Asserts the trap a keyboard or
+ * screen-reader user depends on: focus can't escape an open modal (WCAG 2.4.3 /
+ * 2.1.2). jsdom resolves tabbability to zero-size; floating-ui's focus guards
+ * never engage there, and the main browser suite mocks `@floating-ui/react` away.
+ * This config keeps the engine real (vitest.browser-real.config.ts).
  *
  * Dialog stands in for the family: drawer, sheet, confirm, and the command
  * palette all route through the same `Overlay` primitive and its
- * `<FloatingFocusManager modal>`, so trapping is wired once and shared.
+ * `<FloatingFocusManager modal>` — trapping is wired once and shared.
  */
 
 const noop = () => {}
@@ -50,23 +47,19 @@ describe('a11y focus trap (real browser) — modal overlay', () => {
 		const first = screen.getByRole('button', { name: 'First' })
 		const last = screen.getByRole('button', { name: 'Last' })
 
-		// `modal` hides the rest of the document from assistive tech, so the sibling
-		// is only reachable with `hidden: true` — that it left the a11y tree at all
-		// is the first half of the isolation a screen-reader user depends on.
+		// `modal` hides the rest of the document from assistive tech; `hidden: true`
+		// reaches the sibling outside the a11y tree.
 		const outside = screen.getByRole('button', { name: 'Outside', hidden: true })
 
-		// Opening the modal moves keyboard focus off the document body and into the
-		// surface, never onto the sibling left behind it.
+		// Opening the modal moves keyboard focus into the surface, not the sibling.
 		await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
 
 		expect(outside).not.toHaveFocus()
 
-		// Real Tab keystrokes (Playwright-driven) so floating-ui's focus guards
-		// engage exactly as they would for a user; the testing-library simulation
-		// strands focus on a guard sentinel instead.
+		// Real Tab keystrokes (Playwright-driven): floating-ui's focus guards
+		// engage; testing-library simulation strands focus on a guard sentinel.
 		//
-		// Forward Tab from the last focusable wraps back to the first instead of
-		// escaping to the outside button.
+		// Forward Tab from the last focusable wraps back to the first.
 		last.focus()
 
 		await userEvent.keyboard('{Tab}')
@@ -77,7 +70,7 @@ describe('a11y focus trap (real browser) — modal overlay', () => {
 
 		expect(outside).not.toHaveFocus()
 
-		// Backward Tab from the first focusable wraps to the last — still trapped.
+		// Backward Tab from the first focusable wraps to the last.
 		first.focus()
 
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')

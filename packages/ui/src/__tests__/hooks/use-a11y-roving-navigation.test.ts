@@ -87,12 +87,12 @@ describe('nextIndexForKey', () => {
 	})
 
 	it('grid ArrowDown from bottom row wraps to the matching column on the first row', () => {
-		// idx 4 is row 1, col 1 → ArrowDown should wrap to col 1 on row 0 (idx 1).
+		// idx 4: row 1, col 1 → wraps to col 1 on row 0 (idx 1).
 		expect(nextIndexForKey('ArrowDown', 4, 6, { cols: 3 })).toBe(1)
 	})
 
 	it('grid ArrowUp from top row wraps to the matching column on the last row', () => {
-		// idx 1 is row 0, col 1 → ArrowUp should wrap to col 1 on row 1 (idx 4).
+		// idx 1: row 0, col 1 → wraps to col 1 on row 1 (idx 4).
 		expect(nextIndexForKey('ArrowUp', 1, 6, { cols: 3 })).toBe(4)
 	})
 

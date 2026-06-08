@@ -1,12 +1,10 @@
 import type { Plugin } from 'vite'
 
 /**
- * Stub the docs-only virtual modules for vitest. Vite's dep scanner crawls
+ * Stubs the docs-only virtual modules for vitest. Vite's dep scanner crawls
  * `src/docs/registry.ts` at startup and warns when `virtual:api-reference` /
- * `virtual:demo-metas` can't be resolved; the real plugins only run during
- * the docs build, and `buildApi` walks a TS program over the whole package
- * — wasted work for tests that never touch the registry. Empty defaults
- * keep the scan quiet without paying that cost.
+ * `virtual:demo-metas` can't be resolved. The real plugins run only during the
+ * docs build; this plugin satisfies the resolver with empty defaults.
  */
 export function virtualStubsPlugin(): Plugin {
 	const ids = new Set(['virtual:api-reference', 'virtual:demo-metas'])

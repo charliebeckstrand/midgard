@@ -52,7 +52,7 @@ describe('useScrollLock', () => {
 	})
 
 	it('compensates for the scrollbar width and restores it on release', () => {
-		// Simulate a page with a 15px vertical scrollbar (jsdom has no layout).
+		// Patch dimensions to simulate a 15px vertical scrollbar (jsdom has no layout).
 		const docEl = document.documentElement
 
 		const patch = (key: 'scrollHeight' | 'clientHeight' | 'clientWidth', value: number) =>
@@ -74,7 +74,7 @@ describe('useScrollLock', () => {
 
 		expect(document.body.style.paddingRight).toBe('')
 
-		// Restore the patched globals.
+		// Reset the patched globals.
 		for (const key of ['scrollHeight', 'clientHeight', 'clientWidth'] as const) {
 			patch(key, 0)
 		}

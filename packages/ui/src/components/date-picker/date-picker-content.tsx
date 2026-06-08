@@ -21,9 +21,9 @@ type DatePickerContentProps = {
 	context: FloatingRootContext
 	/**
 	 * Resolved size from `<DatePicker>`. Re-broadcast via `<Density>` because
-	 * the FloatingPortal teleports out of the density chain — without this,
-	 * `<Calendar>` and `<DatePickerFooter>` inside would fall back to `'md'`
-	 * even when the trigger renders at `sm` / `lg`.
+	 * the `FloatingPortal` teleports outside the density chain; without this,
+	 * `<Calendar>` and `<DatePickerFooter>` fall back to `'md'` regardless of
+	 * the trigger's size.
 	 */
 	size: ControlSize
 	onExitComplete?: () => void
@@ -49,9 +49,9 @@ export function DatePickerContent({
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
-						// `returnFocus={false}`: focus restoration is driven from
-						// `useDatePickerState` so the trigger is only refocused on Escape or
-						// selection — not when the panel is dismissed by an outside press.
+						// `returnFocus={false}`: focus restoration is driven by
+						// `useDatePickerState`, which refocuses the trigger on Escape or
+						// selection but not on an outside-press dismiss.
 						<FloatingFocusManager context={context} modal returnFocus={false}>
 							<div
 								ref={setFloating}

@@ -10,13 +10,10 @@ import type { Context } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Render a list of React children as a JSX snippet. Pass-through wrappers
+ * Renders a list of React children as a JSX snippet. Pass-through wrappers
  * are flattened, text leaves keep their position relative to surrounding
- * elements, and consecutive iterated siblings collapse to a single
- * representative when the run is 3+ identical renders.
- *
- * Authored siblings (e.g. three buttons inside a `<Group>` to demonstrate
- * border joining) are kept intact — their multiplicity is the demo.
+ * elements, and consecutive iterated siblings (3+ identical renders) collapse
+ * to a single representative. Authored siblings without keys are kept intact.
  */
 export function renderNodes(nodes: ReactNode[], context: Context, indent: string): string {
 	const items = collectChildItems(nodes)
@@ -51,9 +48,9 @@ export function renderNodes(nodes: ReactNode[], context: Context, indent: string
 }
 
 /**
- * Render a run of consecutive elements. Iteration-collapse (3+ identical
- * renders → one) only applies to keyed batches, so authored siblings without
- * keys pass through untouched.
+ * Renders a run of consecutive elements. Iteration-collapse (3+ identical
+ * renders → one) applies only to keyed batches; unkeyed siblings pass through
+ * untouched.
  */
 function renderElementBatch(elements: ReactElement[], context: Context, indent: string): string[] {
 	if (elements.length === 1) {
@@ -82,8 +79,8 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 		lines.push(line)
 	}
 
-	// Length is >= 2 here (the single-element case returned early above), so the
-	// keyed check alone decides iteration-collapse.
+	// Length is >= 2 here (single-element case returned early), so the keyed
+	// check alone decides iteration-collapse.
 	const isIteration = elements.every(hasExplicitKey)
 
 	if (!isIteration) return lines
@@ -123,8 +120,8 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 	const info = context.registry.byType.get(element.type)
 
 	if (!info) {
-		// Unknown component (e.g. a locally-defined demo wrapper). Walk its
-		// children for whatever recognizable components they contain.
+		// Unknown component (e.g. a locally-defined demo wrapper) — walk its
+		// children for recognizable components.
 		const children = elementChildren(element)
 
 		if (children.length > 0) {
@@ -132,8 +129,7 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		}
 
 		// Self-closing helper with a build-time snippet attached by the
-		// derive-code Vite plugin. Use the raw JSX verbatim so users see
-		// the actual composition rather than an opaque `<HelperDemo />`.
+		// derive-code Vite plugin — use the raw JSX verbatim.
 		const snippet = readSnippet(element.type)
 
 		if (snippet !== null) {
@@ -155,10 +151,8 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 
 	if (childrenStr === '') return open
 
-	// Inline short text children (e.g. <Card>Left</Card>) rather than
-	// breaking them across multiple lines. `childrenStr` always carries its
-	// indent prefix; strip it here since the value sits between tags on a
-	// single line.
+	// Short text children render inline. `childrenStr` carries its indent
+	// prefix; strip it since the value sits between tags on a single line.
 	if (!childrenStr.includes('\n') && !childrenStr.includes('<')) {
 		return `${open}${childrenStr.trimStart()}</${info.name}>`
 	}
@@ -167,10 +161,9 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 }
 
 /**
- * Render the children of a recognized component. Defers to `renderNodes`
- * for the actual walk, then substitutes a `…` placeholder when children
- * exist but nothing was renderable — so the parent shows as `<Foo>…</Foo>`
- * instead of misleadingly collapsing to `<Foo />`.
+ * Renders the children of a recognized component via `renderNodes`, then
+ * substitutes a `…` placeholder when children exist but nothing was renderable
+ * — keeping the parent as `<Foo>…</Foo>` rather than collapsing it to `<Foo />`.
  */
 function renderChildrenContent(nodes: ReactNode[], context: Context, indent: string): string {
 	if (nodes.length === 0) return ''

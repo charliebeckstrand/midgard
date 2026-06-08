@@ -26,8 +26,8 @@ export function AccordionTrigger({
 }: AccordionTriggerProps) {
 	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
-	// Tailwind preflight zeroes heading font/margin, so the wrapper is invisible
-	// chrome that exists only to satisfy the accordion's heading requirement.
+	// Tailwind preflight zeroes heading font and margin; the wrapper is invisible
+	// chrome that satisfies the WAI-ARIA accordion heading requirement.
 	const Heading = `h${level}` as const
 
 	return (

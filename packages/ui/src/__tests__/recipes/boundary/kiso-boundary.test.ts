@@ -6,16 +6,13 @@ import { describe, expect, it } from 'vitest'
 // (iro, ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
 // shaku, kokkaku) and the semantic archetype bundles (control, popover,
 // segment, panel, slider) composed from them. kiso sits at the bottom of the
-// recipe stack and must stay there: kiso modules may compose siblings within
-// kiso, but reaching upward into katakana, kata, components, layouts,
-// primitives, hooks, or providers would invert the dependency direction
-// (kata reads kiso; the reverse creates a cycle) or pull stateful React
-// context into the recipe substrate.
+// recipe stack: kiso modules may compose siblings within kiso, but importing
+// from katakana, kata, components, layouts, primitives, hooks, or providers
+// inverts the dependency direction or pulls stateful React context into the
+// recipe substrate.
 //
-// The internal consumers of each kiso module are documented per-module in
-// recipes/kiso/README.md; pinning that richer contract statically would
-// duplicate the README. This test pins the half that is mechanical: kiso has
-// no upward dependencies.
+// This test pins the mechanical half of the contract: kiso has no upward
+// dependencies. Per-module consumer documentation lives in recipes/kiso/README.md.
 
 const kisoDir = join(__dirname, '../../../recipes/kiso')
 const srcDir = join(__dirname, '../../..')

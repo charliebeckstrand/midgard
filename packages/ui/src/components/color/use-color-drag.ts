@@ -74,11 +74,9 @@ export function useColorDrag(
 		}
 	}, [])
 
-	// `lostpointercapture` is the one signal guaranteed to fire whenever capture
-	// ends — a normal release, a `pointercancel` (browser-claimed gesture), or the
-	// node being torn out — so it's the authoritative reset. Without it a cancelled
-	// drag never clears `dragging`, and the handle keeps tracking the pointer until
-	// the next click lands a `pointerup`.
+	// `lostpointercapture` fires on every capture end — normal release,
+	// `pointercancel` (browser-claimed gesture), or node removal — and is the
+	// authoritative reset for `dragging`.
 	const onLostPointerCapture = useCallback(() => {
 		dragging.current = false
 	}, [])

@@ -1,9 +1,8 @@
 /**
  * Ma stops — the raw `--spacing` numerals shared by every spacing axis.
- * Lives separately so `padding`, `margin`, `gap` can compose finished
- * utilities by indexing into the same label set, and so consumers that
- * need arbitrary-value construction can reach the bare token without
- * pulling in a finished class string.
+ * `padding`, `margin`, and `gap` compose finished utilities by indexing
+ * into this label set. Consumers that need bare tokens for arbitrary-value
+ * construction reach this directly.
  *
  * Layer: kiso · Concern: spacing scale
  */

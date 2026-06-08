@@ -9,8 +9,8 @@ type ListItemStaticProps = {
 	children: ReactNode
 }
 
-// Everything except `id` is constant for a static (non-sortable) item, so hoist
-// it once rather than rebuilding the dnd-shaped value on every List re-render.
+// Everything except `id` is constant for a static (non-sortable) item; the
+// dnd-shaped value is hoisted once outside the component as a module constant.
 const STATIC_CONTEXT = {
 	setNodeRef: noop,
 	setActivatorNodeRef: noop,

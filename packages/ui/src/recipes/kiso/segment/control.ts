@@ -17,9 +17,8 @@ const { bg } = omote
 const { size } = ji
 
 export const control = {
-	// `self-start` keeps the control hugging its content: it renders inside the
-	// `flex flex-col` tab-group, whose default `align-items: stretch` would
-	// otherwise pull this inline-flex box to full width along the cross axis.
+	// `self-start` keeps the control hugging its content width inside the
+	// `flex flex-col` tab-group, overriding `align-items: stretch` on the cross axis.
 	base: [flex.inline, 'self-start', ...bg.tint, rounded.lg],
 	size: {
 		sm: ['p-1 gap-1', size.sm],

@@ -37,8 +37,8 @@ export function Tab({
 
 	const indicator = useActiveIndicator()
 
-	// When wrapped in <Tabs>, the parent has already resolved Density into tabsContext.size.
-	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
+	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
+	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
 	const inherited = useDensity()
 
 	const size = tabsContext?.size ?? inherited.size
@@ -49,10 +49,10 @@ export function Tab({
 
 	const current = currentProp ?? (value !== undefined && context?.value === value)
 
-	// Derive a matched tab/panel id pair from the Tabs base id + value so the
-	// idiomatic <TabContent value> auto-wires, unless the consumer pinned an
-	// explicit id for manual <TabPanel id> linkage. Segments map onto tab roles
-	// but have no panels, so they never auto-wire `aria-controls`.
+	// Derives a matched tab/panel id pair from the Tabs base id + value for
+	// idiomatic <TabContent value> auto-wiring. An explicit `id` prop overrides
+	// this for manual <TabPanel id> linkage. Segments have no panels and never
+	// auto-wire `aria-controls`.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
 	const auto =
@@ -79,9 +79,9 @@ export function Tab({
 					role="tab"
 					id={tabId}
 					aria-selected={current ?? false}
-					// Explicit-id panels are always mounted, so reference them always;
-					// auto panels can unmount when inactive, so only the current tab points
-					// at its panel — never a dangling id.
+					// Explicit-id panels are always mounted, so `aria-controls` is always
+					// set. Auto panels can unmount when inactive; only the current tab
+					// references its panel — inactive tabs omit `aria-controls`.
 					aria-controls={id !== undefined || current ? controlsId : undefined}
 					tabIndex={current ? 0 : -1}
 					disabled={disabled}

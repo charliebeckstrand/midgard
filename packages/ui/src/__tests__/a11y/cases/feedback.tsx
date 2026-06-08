@@ -19,8 +19,7 @@ export const feedbackCases: readonly Case[] = [
 		<Alert key="a" severity="success" title="Saved" description="Your changes are live." />,
 	],
 	[
-		// Page-level banner (Alert-based); closable, so it carries a named dismiss
-		// control.
+		// Page-level banner (Alert-based); closable, with a named dismiss control.
 		'banner',
 		<Banner
 			key="bn"

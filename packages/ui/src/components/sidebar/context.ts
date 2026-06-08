@@ -3,8 +3,8 @@
 import { createContext } from '../../core'
 
 /**
- * True when items render inside a `SidebarList`, so each `SidebarItem` becomes
- * an `<li>` (a valid child of the list's `<ul>`) instead of a bare `<span>`.
+ * True when items render inside a `SidebarList`. Each `SidebarItem` renders as
+ * an `<li>` inside a list, or a `<span>` when standalone.
  */
 export const [SidebarListContext, useInSidebarList] = createContext<boolean>('SidebarList', {
 	default: false,

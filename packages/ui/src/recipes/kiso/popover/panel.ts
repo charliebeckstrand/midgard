@@ -1,8 +1,7 @@
 /**
  * Popover archetype — panel slot bundle. Composes the floating panel's
  * base layout, surface, glass treatment, ring, and motion. Property names
- * mirror the kata slot layout so consumers can destructure and pass
- * through unchanged.
+ * mirror the kata slot layout for direct destructuring pass-through.
  *
  * Layer: kiso · Archetype: popover · Concern: panel
  */

@@ -6,14 +6,11 @@ import { ListboxOption } from '../../components/listbox/listbox-option'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Listbox focus containment (real floating engine). jsdom mocks
- * `@floating-ui/react` away, so `FloatingFocusManager`'s guards and
- * `closeOnFocusOut` never engage there — the behaviour this suite guards is
- * invisible under jsdom. With the engine real, opening the listbox must pull
- * focus into the panel and keep it contained: Tab dismisses the surface (a
- * select closes on Tab rather than trapping like a dialog) instead of walking
- * the page with the panel left open behind it, and Escape / selection hand
- * focus back to the trigger.
+ * Listbox focus containment (real floating engine). Asserts that opening the
+ * listbox pulls focus into the panel and keeps it contained: Tab dismisses the
+ * surface (a select closes on Tab rather than trapping like a dialog) and
+ * Escape / selection return focus to the trigger. `FloatingFocusManager`'s
+ * guards and `closeOnFocusOut` don't engage under jsdom (mocked).
  */
 
 const panelSel = '[data-slot="popover-panel"]'
@@ -47,9 +44,7 @@ describe('Listbox focus (real browser)', () => {
 		expect(document.activeElement?.getAttribute('data-selected')).toBe('true')
 	})
 
-	// The reported bug: Tab left the panel open and walked focus onto other page
-	// elements. With containment, Tab dismisses the listbox and never strands
-	// focus on <body>.
+	// Guards the invariant: Tab dismisses the listbox and does not strand focus on `<body>`.
 	it('dismisses the listbox on Tab instead of leaving it open', async () => {
 		renderUI(
 			<>

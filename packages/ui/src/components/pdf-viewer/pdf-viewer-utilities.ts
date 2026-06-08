@@ -52,16 +52,15 @@ export function printPdf(src: string) {
 			win.addEventListener('afterprint', cleanup)
 
 			// Backstop for browsers that never fire `afterprint` (e.g. older Safari)
-			// or where the user dismisses the dialog: focus returns to the main
-			// window when the print dialog closes, so reclaim the iframe then. The
-			// dialog blocks focus until it closes, so this can't fire prematurely.
+			// or where the user dismisses the dialog: reclaims the iframe when
+			// focus returns to the main window after the print dialog closes.
 			window.addEventListener('focus', cleanup, { once: true })
 
 			win.focus()
 			win.print()
 		} catch {
 			// Same-origin blob URL should not throw; if it does (e.g. pages + remote src),
-			// fall back to opening the PDF in a new tab so the user can print manually.
+			// falls back to opening the PDF in a new tab for manual printing.
 			window.open(src, '_blank', 'noopener,noreferrer')
 
 			cleanup()

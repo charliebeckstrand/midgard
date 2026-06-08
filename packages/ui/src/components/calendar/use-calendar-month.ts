@@ -12,8 +12,7 @@ type CalendarMonthOptions = {
  * Owns the calendar's `viewDate` (the month/year currently rendered) and the
  * rules that re-anchor it when `value` or the `active` grid date moves to a
  * different month. The re-anchor happens during render via prev-ref tracking
- * — not in a `useEffect` — to avoid an extra render cycle when the prop
- * change should already have switched the visible month.
+ * rather than in a `useEffect`, avoiding an extra render cycle.
  */
 export function useCalendarMonth({ value, defaultValue, activeGridDate }: CalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {

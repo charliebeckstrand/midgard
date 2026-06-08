@@ -80,8 +80,8 @@ export type CalendarProps = {
 	/**
 	 * Size step that drives overall width, padding, and the weekday label size.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
-	 * Re-broadcast to descendants via the Density context so the nav buttons and
-	 * day cells inherit consistently.
+	 * Re-broadcast to descendants via the Density context; nav buttons and day
+	 * cells inherit the resolved size consistently.
 	 */
 	size?: Step
 	className?: string
@@ -124,9 +124,8 @@ export function Calendar({
 		onValueChange: handleValueChange,
 	})
 
-	// Client-only so the server-clock "today" never mismatches the client during
-	// hydration (e.g. across a day boundary or timezone offset). Highlighting
-	// appears after mount; null until then.
+	// Populated after mount only, avoiding a server/client mismatch on "today"
+	// (e.g. across a day boundary or timezone offset). Null until then.
 	const [today, setToday] = useState<Date | null>(null)
 
 	useEffect(() => {

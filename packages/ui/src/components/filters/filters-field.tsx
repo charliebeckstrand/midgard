@@ -30,9 +30,9 @@ function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
 }
 
-// Children that take a DOM ChangeEvent on `onChange`; everything else gets the
-// value-shaped `onValueChange`. The same dispatcher handles both at runtime,
-// only the prop name differs.
+// Children that receive a DOM ChangeEvent on `onChange`; everything else
+// receives the value-shaped `onValueChange`. The same dispatcher handles both
+// at runtime — only the prop name differs.
 const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Input,
 	SearchInput,
@@ -46,8 +46,8 @@ function expectsEventCallback(child: ReactElement): boolean {
 	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// Children that expose an `onClear` callback for in-control reset affordances
-// (e.g. SearchInput's X button). Wired to clear the filter slot.
+// Children that expose an `onClear` callback (e.g. SearchInput's X button) —
+// wired to clear the filter slot.
 const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
 
 function expectsClearCallback(child: ReactElement): boolean {
@@ -101,8 +101,8 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		)
 	}
 
-	// Clone the first non-decoration child as the control; pass through
-	// Label/Description/Message siblings untouched. null (not undefined)
+	// Clones the first non-decoration child as the control; passes
+	// Label/Description/Message siblings through untouched. null (not undefined)
 	// signals "explicit empty" to components that distinguish controlled state.
 	let controlCloned = false
 

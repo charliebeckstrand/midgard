@@ -64,11 +64,11 @@ export function ListboxPanel({
 		<FloatingPortal root={root ?? undefined}>
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
-					// Non-modal: focus moves into the panel on open and is contained, so
+					// Non-modal: focus moves into the panel on open and is contained.
 					// Tab leaves the surface through the focus guards and `closeOnFocusOut`
 					// dismisses it (a select closes on Tab; it doesn't trap like a dialog).
-					// Return-focus stays with `useFloatingUI`'s `returnFocusTo`, hence
-					// `returnFocus={false}` here.
+					// Return-focus is managed by `useFloatingUI`'s `returnFocusTo`;
+					// `returnFocus={false}` suppresses the manager's own return-focus.
 					<FloatingFocusManager
 						context={context}
 						modal={false}

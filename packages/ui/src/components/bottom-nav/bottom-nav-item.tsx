@@ -39,10 +39,8 @@ export function BottomNavItem({
 		}
 	}
 
-	// The button is the flex child carrying `flex-1`; the wrapping <li> (a valid
-	// child of NavList's <ul>) is itself `flex flex-1` so the button still
-	// distributes evenly across the bar — the list element adds semantics, not
-	// layout.
+	// The `<li>` is `flex flex-1`; the button inside also carries `flex-1`,
+	// distributing both evenly across the bar. The list element adds list semantics.
 	return (
 		<li data-slot="bottom-nav-item-wrapper" className="flex flex-1 list-none">
 			<Polymorphic

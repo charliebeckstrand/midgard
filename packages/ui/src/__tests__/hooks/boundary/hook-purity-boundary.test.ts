@@ -3,10 +3,9 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Top-level hooks are reusable building blocks consumed by components,
-// primitives, and other hooks. They must not reach upward into components,
-// layouts, providers, or recipe-layer internals (kata / katakana). Importing
-// primitives is allowed — hooks may read context exposed through primitive
-// providers.
+// primitives, and other hooks. They must not import from components, layouts,
+// providers, or recipe-layer internals (kata / katakana). Importing from
+// primitives is allowed — hooks may read context from primitive providers.
 
 const hooksDir = join(__dirname, '../../../hooks')
 const srcDir = join(__dirname, '../../..')

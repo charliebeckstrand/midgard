@@ -65,7 +65,6 @@ describe('SidebarLayout', () => {
 
 		fireEvent.click(trigger)
 
-		// Sidebar content appears twice after opening (desktop + mobile mount).
 		expect(screen.getAllByText('drawer-sidebar').length).toBeGreaterThanOrEqual(1)
 	})
 
@@ -127,7 +126,6 @@ describe('SidebarLayoutBody', () => {
 
 		const { container } = renderUI(<SidebarLayoutBody ref={ref}>content</SidebarLayoutBody>)
 
-		// The body is the page's <main> landmark.
 		expect(ref.current?.tagName).toBe('MAIN')
 
 		expect(ref.current).toBe(bySlot(container, 'body'))

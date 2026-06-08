@@ -27,11 +27,10 @@ function* walk(dir: string): Generator<string> {
 }
 
 describe('createContext boundary', () => {
-	// Every component / primitive / layout context goes through the local
-	// `core/createContext` helper, which supports both required (throws on
-	// missing provider) and optional (returns a default) modes. Importing
-	// `createContext` directly from React anywhere else means a context is
-	// being hand-rolled outside the convention.
+	// All component / primitive / layout contexts must go through the local
+	// `core/createContext` helper, which supports required (throws on missing
+	// provider) and optional (returns a default) modes. A direct import of
+	// `createContext` from React elsewhere bypasses the convention.
 	it('createContext from react is imported only in core/create-context.ts', () => {
 		const violations: string[] = []
 
@@ -42,7 +41,7 @@ describe('createContext boundary', () => {
 
 			if (!REACT_CREATE_CONTEXT.test(source)) continue
 
-			/** Only `core/create-context.ts` is allowed to import `createContext` from React. */
+			/** `core/create-context.ts` is the only permitted importer of `createContext` from React. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

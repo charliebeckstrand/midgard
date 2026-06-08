@@ -36,8 +36,8 @@ function walk(
 	checker: ts.TypeChecker,
 ): void {
 	// Key by node + omitted context: the same alias reached through different
-	// `Omit<…>` wrappers must re-walk so each visit's omitted keys land on
-	// their own pass-through entry.
+	// `Omit<…>` wrappers produces separate pass-through entries, each carrying
+	// its own omitted-key set.
 	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end} ${omitted.join('|')}`
 
 	if (visited.has(key)) return
@@ -69,7 +69,7 @@ function walk(
 		return
 	}
 
-	// Pick narrows to a slice — claiming pass-through for it would mislead.
+	// Pick narrows to a slice — not a full pass-through.
 	if (name === 'Pick') return
 
 	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)

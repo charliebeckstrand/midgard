@@ -10,7 +10,7 @@ export type LoadingSpinnerProps = LoadingSpinnerVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
-// Static SVG — hoisted so it isn't recreated on every LoadingSpinner render.
+// Static SVG hoisted as a module-level constant.
 const SPINNER_SVG = (
 	<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">
 		<circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3" />

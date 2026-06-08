@@ -35,13 +35,11 @@ const item = defineRecipe({
 		plain: '',
 		solid: [...bg.tint, border.default, rounded.lg],
 	},
-	// Row padding tracks the density axis, but its shape differs per variant
-	// (card-like variants use the uniform ma.p scale; `plain` uses a tighter
-	// px/py ratio), so it's applied through the variant × density compound
-	// rules below rather than this axis. Putting `p-*` on a shared axis and
-	// overriding `plain` with `px/py` wouldn't merge cleanly: tailwind-merge
-	// (by design) keeps a later `px`/`py` alongside an earlier `p`, so the
-	// shadowed `p-*` would linger and rely on CSS source order to lose.
+	// Row padding is applied via the variant × density compound rules below.
+	// Card-like variants use the uniform `ma.p` scale; `plain` uses a tighter
+	// px/py ratio. Padding utilities live on this compound axis, not the density
+	// axis, because tailwind-merge keeps a later `px`/`py` alongside an earlier
+	// `p` — the compound rules avoid that conflict.
 	density: { sm: '', md: '', lg: '' },
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],
@@ -52,7 +50,7 @@ const item = defineRecipe({
 		false: '',
 	},
 	compound: [
-		// Card-like variants share the uniform ma.p scale.
+		// Card-like variants: uniform ma.p scale.
 		{ variant: 'separated', density: 'sm', class: p.sm },
 		{ variant: 'separated', density: 'md', class: p.md },
 		{ variant: 'separated', density: 'lg', class: p.lg },
@@ -62,7 +60,7 @@ const item = defineRecipe({
 		{ variant: 'solid', density: 'sm', class: p.sm },
 		{ variant: 'solid', density: 'md', class: p.md },
 		{ variant: 'solid', density: 'lg', class: p.lg },
-		// `plain` keeps a tighter px/py ratio per step.
+		// `plain`: tighter px/py ratio per step.
 		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
 		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
 		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },

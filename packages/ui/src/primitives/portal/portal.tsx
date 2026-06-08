@@ -24,8 +24,7 @@ export const [PortalContext, usePortalContext] = createContext<PortalContainer>(
 /**
  * Resolves the effective portal container for a single call site: an explicit
  * per-call `container` wins, then the ambient `<UIProvider>` value, then
- * `null` (the caller's own fallback). Lets a component honour an app-wide
- * default while still allowing a local override.
+ * `null` (the caller's own fallback).
  */
 export function usePortalContainer(container?: PortalContainer): PortalContainer {
 	const ambient = usePortalContext()

@@ -1,7 +1,7 @@
 /**
  * Narabi field — slot adjacency rules for `<Field>` stacks. Sibling-
- * selector margins keep label / description / control / alert slots
- * evenly spaced without each slot paying for its own first-child reset.
+ * selector margins space label / description / control / alert slots
+ * evenly via a single rule per transition pair.
  *
  * Layer: kiso · Concern: field adjacency
  */

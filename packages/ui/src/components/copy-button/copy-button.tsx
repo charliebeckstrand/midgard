@@ -51,9 +51,8 @@ export function CopyButton({
 			data-slot="copy-button"
 			disabled={copied || disabled}
 			onClick={handleClick}
-			// The copied state owns the label so the flip to success always reads;
-			// at rest, a caller's own label (e.g. "Copy hex value") wins over the
-			// generic default.
+			// In the copied state, the label is always "Copied"; at rest, the caller's
+			// label wins over the generic default.
 			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
 			className={cn(k.base, className)}
 		/>

@@ -27,8 +27,8 @@ export function ChatMessage({
 	className,
 	children,
 }: ChatMessageProps) {
-	// Speaker is conveyed visually by bubble side/color only; name it for AT so a
-	// screen reader can attribute each message.
+	// Speaker is conveyed visually by bubble side/color only; a visually hidden
+	// author label names it for assistive technology.
 	const author = (type ?? 'assistant') === 'user' ? 'You said' : 'Assistant said'
 
 	return (

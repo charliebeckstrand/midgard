@@ -82,7 +82,7 @@ export function useDatePickerKeyboard({
 				e.key === 'ArrowUp' ||
 				e.key === 'ArrowDown'
 
-			// First arrow press after open: materialize on the grid.
+			// First arrow press after open: sets active focus to the grid.
 			if (isArrow && active === null) {
 				e.preventDefault()
 

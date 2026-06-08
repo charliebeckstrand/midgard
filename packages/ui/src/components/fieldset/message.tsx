@@ -38,10 +38,9 @@ export function Message({
 
 	const issues = isFormBoundError ? field.errors : undefined
 
-	// An error message describes the field; register it (before the early
-	// return, so hook order stays stable) so aria-describedby references the id
-	// only while the message is rendered. Success messages are feedback, not a
-	// field description, so they don't register.
+	// Error messages register so aria-describedby references the id only while
+	// the message is rendered. Registered before the early return to keep hook
+	// order stable. Success messages are not field descriptions and don't register.
 	const rendersError =
 		variant === 'error' && (isFormBoundError ? (issues?.length ?? 0) > 0 : children != null)
 
@@ -61,8 +60,7 @@ export function Message({
 
 	const className_ = cn(k.message({ size, variant }), className)
 
-	// Errors interrupt (assertive) so a validation failure surfacing after submit
-	// is heard even when focus is elsewhere; success feedback queues politely.
+	// Errors use `role="alert"` (assertive); success feedback uses `role="status"` (polite).
 	const role = variant === 'error' ? 'alert' : 'status'
 
 	if (isFormBoundError && issues && all && issues.length > 1) {

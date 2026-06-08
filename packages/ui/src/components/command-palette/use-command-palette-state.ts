@@ -13,9 +13,8 @@ const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
-	// Bypass deferral on empty query: the palette resets it on close and on every
-	// open, so the deferred copy would otherwise paint one stale frame of the
-	// prior filter.
+	// Bypasses deferral on empty query: the deferred copy would otherwise paint
+	// one stale frame of the prior filter when the palette resets on open/close.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
@@ -32,12 +31,10 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 		activeDescendantRef: inputRef,
 	})
 
-	// When the filter changes, move the keyboard highlight to the top result so
-	// data-active / aria-selected / the input's aria-activedescendant always
-	// point at a real option instead of dangling on one the filter removed (or
-	// clear them when nothing matches). Guarded against the initial value so
-	// opening the palette still leaves the first arrow key to pick the first
-	// item; arrow keys take over from there.
+	// On each filter change, moves the keyboard highlight to the top result so
+	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
+	// option (or are cleared when nothing matches). Skipped on the initial value
+	// so the first arrow key picks the first item on open.
 	const lastDeferredRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -50,7 +47,7 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef)
 	}, [deferredQuery])
 
-	// Reset query when closed (adjust during render to avoid extra cycle)
+	// Resets query when closed; done during render, not in an effect.
 	const prevOpenRef = useRef(open)
 
 	if (open !== prevOpenRef.current) {

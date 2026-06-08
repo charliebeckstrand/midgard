@@ -12,9 +12,8 @@ type FileHandlersOptions = {
 export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	// Counter, not boolean — dragleave bubbles when the cursor crosses into a
-	// child element of the dropzone, so a single boolean would flicker false on
-	// every child boundary. Track enter/leave depth and treat depth > 0 as over.
+	// Counter rather than boolean: `dragleave` bubbles on every child boundary
+	// crossing. Depth > 0 means the pointer is over the dropzone.
 	const [dragDepth, setDragDepth] = useState(0)
 
 	const [files, setFiles] = useState<File[]>([])
@@ -35,9 +34,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 
 			onFiles?.(arr)
 
-			// The selection lands on a visually-hidden input (or no visible text at
-			// all in the area/button variants), so nothing reaches a screen reader on
-			// its own — voice it through the live region (WCAG 4.1.3).
+			// The selection lands on a visually-hidden input with no audible
+			// feedback; announces through the live region (WCAG 4.1.3).
 			if (arr.length > 0) {
 				const names = formatFileNames(arr)
 
@@ -51,9 +49,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		(e: ChangeEvent<HTMLInputElement>) => {
 			handleFiles(e.target.files)
 
-			// Reset the native input so picking the same file again still fires a
-			// `change` event — otherwise a remove-then-reselect of an identical
-			// file silently no-ops because the input's value is unchanged.
+			// Resets the native input value so re-selecting the same file fires a
+			// `change` event; the event is suppressed when the value is unchanged.
 			e.target.value = ''
 		},
 		[handleFiles],
@@ -67,8 +64,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		setDragDepth((d) => d + 1)
 	}, [])
 
-	// dragover must preventDefault for the browser to permit a drop, but doesn't
-	// change state — dragenter/dragleave own the counter.
+	// `dragover` calls `preventDefault` to permit a drop; state is not changed
+	// here — `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback((e: DragEvent) => {
 		e.preventDefault()
 

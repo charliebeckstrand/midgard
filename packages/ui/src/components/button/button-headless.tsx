@@ -4,9 +4,9 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
 
-// Type intentionally loose at the call boundary — the public discriminated
-// shape lives on `ButtonProps`; this internal helper accepts the parent's
-// post-destructure rest and casts to the right element type at the spread.
+// Loose type at the call boundary — the public discriminated union lives on
+// `ButtonProps`; this internal helper accepts the post-destructure rest and
+// casts to the target element type at each spread.
 type ButtonHeadlessProps = {
 	href?: string
 	ref?: Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>

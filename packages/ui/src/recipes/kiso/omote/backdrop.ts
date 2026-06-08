@@ -1,9 +1,7 @@
 /**
  * Omote backdrop — modal / sheet overlay fills. Two intensities: `base`
  * is the default modal scrim; `glass` is denser for use behind a glass
- * panel that would otherwise read transparent against the page. The
- * raw colour pairs live here (not in `bg.ts`) because nothing else
- * composes them.
+ * panel. The raw colour pairs live here, not in `bg.ts`.
  *
  * Layer: kiso · Concern: backdrop fill
  */

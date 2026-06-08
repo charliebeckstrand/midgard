@@ -53,20 +53,19 @@ export function Slider({
 
 	const percent = pct(current, min, max)
 
-	// Resolve id/disabled/describedby from a wrapping Control or Field, then fall
+	// Resolves id/disabled/describedby from a wrapping Control or Field, falling
 	// back to a generated id — the same chain Input uses. A range input has no
-	// text of its own, so this is what lets a sibling <Label htmlFor> (or a
-	// <Field><Label> with no explicit id) name it.
-	// `required` is intentionally not resolved: a range input always has a value,
-	// so the attribute does not apply to it (HTML constraint validation) — only
-	// invalid + describedby carry meaning here.
+	// text of its own; this lets a sibling <Label htmlFor> (or a <Field><Label>
+	// with no explicit id) name it.
+	// `required` is not resolved: a range input always has a value, so the
+	// attribute does not apply (HTML constraint validation) — only invalid +
+	// describedby carry meaning here.
 	const controlProps = useControlProps({ id, disabled, 'aria-describedby': ariaDescribedBy })
 
 	const scope = useIdScope({ id: controlProps.id })
 
-	// Resolve size through the Density cascade for parity with the toggle
-	// control family (checkbox / radio / switch): explicit prop > ambient
-	// Density. Outside any provider this lands on 'md', the recipe default.
+	// Resolves size through the Density cascade: explicit prop > ambient Density.
+	// Outside any provider falls back to `'md'`, the recipe default.
 	const { size: inheritedSize } = useDensity()
 
 	const resolvedSize = size ?? inheritedSize

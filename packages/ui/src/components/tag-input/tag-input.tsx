@@ -111,10 +111,8 @@ export function TagInput({
 						onRemove={() => {
 							removeTag(i)
 
-							// Return focus to the input so removing a tag never strands
-							// focus on the now-detached badge (WCAG 2.4.3). The input node
-							// persists across the re-render, so this is synchronous; the
-							// at-max path additionally re-focuses once enabled (onMaxReleased).
+							// Returns focus to the input after badge removal (WCAG 2.4.3).
+							// The at-max path re-focuses once the input is re-enabled via onMaxReleased.
 							inputRef.current?.focus()
 						}}
 					/>

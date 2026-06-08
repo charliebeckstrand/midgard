@@ -30,9 +30,9 @@ export type A11yControl = {
  * Field a11y scaffolding — `useA11yScope` specialized for a labelled control.
  * Derives the Label / Description / error-Message ids from the control id,
  * tracks whether each slot is actually rendered, and composes `aria-describedby`
- * / `aria-labelledby` from only the registered ids — so a field never references
- * an id that isn't in the DOM. Ids preserve the legacy shape (`${id}-label`,
- * `${id}-description`, `${id}-error`).
+ * / `aria-labelledby` from only the registered ids — a field never references
+ * an id absent from the DOM. Id shape: `${id}-label`, `${id}-description`,
+ * `${id}-error`.
  */
 export function useA11yControl(id: string): A11yControl {
 	const scope = useA11yScope({ id, slots: CONTROL_SLOTS })

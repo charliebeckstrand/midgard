@@ -75,9 +75,8 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		disabled,
 	})
 
-	// The picker owns the colour; the inline panel is driven as a controlled
-	// child. The format union is rebuilt at runtime, so the prop bag is asserted
-	// back into shape.
+	// The picker owns the colour; the inline panel is driven as a controlled child.
+	// The format union is rebuilt at runtime and the prop bag is asserted into shape.
 	const panelProps = {
 		format,
 		value: serializeColor(state.hsva, format, alpha),

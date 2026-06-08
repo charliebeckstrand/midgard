@@ -5,13 +5,11 @@ const { marker, text } = iro
 const { size, weight } = ji
 
 /**
- * Per-colour marker appearance. `dot` reads the shared `iro.marker` shade
- * (600 light / 500 dark) so the indicator clears non-text 3:1 on the page;
- * `lineBefore` / `lineAfter` paint the inbound / outbound rail at the same
- * shade (zinc keeps its subtle structural rail). The `before:` / `after:`
- * prefixes stay verbatim in source — Tailwind's scanner only picks up class
- * literals, so a derived `lineAfter = lineBefore.replace('before:', 'after:')`
- * would silently drop the generated classes.
+ * Per-colour marker appearance. `dot` uses the `iro.marker` shade (600 light /
+ * 500 dark), clearing non-text 3:1 on the page; `lineBefore` / `lineAfter`
+ * paint the inbound / outbound rail at the same shade (zinc uses a subtle
+ * structural rail). The `before:` / `after:` prefixes are verbatim class
+ * literals — Tailwind's scanner requires literal strings for class discovery.
  */
 const palette: Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }> = {
 	zinc: {
@@ -58,8 +56,7 @@ const item = defineRecipe({
 	base: 'relative overflow-hidden',
 	orientation: {
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
-		// 6.5px aligns content with the marker's rail center: half the size-3.5
-		// (14px) marker, less half the 0.5 (2px) rail.
+		// 6.5px centers content on the rail: half the 14px marker minus half the 2px rail.
 		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
 	},
 	defaults: { orientation: 'vertical' },
@@ -98,8 +95,8 @@ export const k = {
 	marker: {
 		base: [
 			'z-10 relative inline-flex size-3.5 items-center justify-center',
-			// Line segments anchor to the marker and are clipped to the item
-			// via overflow-hidden, so adjacent items meet at the shared edge.
+			// Line segments anchor to the marker and are clipped to the item via
+			// overflow-hidden; adjacent items meet at the shared edge.
 			'before:content-[""] before:absolute',
 			'after:content-[""] after:absolute',
 			// First item has no inbound line; last item has no outbound line.
@@ -114,7 +111,7 @@ export const k = {
 			'after:h-[100vh] after:w-0.5',
 		],
 		horizontal: [
-			// left-[6.5px] centers the rail on the marker (see `item` above).
+			// left-[6.5px] centers the rail on the marker.
 			'absolute top-0 left-[6.5px]',
 			'before:right-full before:top-1/2 before:-translate-y-1/2',
 			'before:h-0.5 before:w-[100vw]',

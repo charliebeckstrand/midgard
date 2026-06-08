@@ -23,7 +23,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const referenceProps = getReferenceProps()
 
-	// If the child is a React element, clone it and merge props
 	if (isValidElement(children)) {
 		return cloneElement(children as ReactElement<Record<string, unknown>>, {
 			ref: mergeRefs,
@@ -42,7 +41,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		})
 	}
 
-	// Fallback: render a plain button
 	return (
 		<button
 			ref={mergeRefs}
@@ -54,8 +52,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			className={cn(className)}
 			{...referenceProps}
 			{...props}
-			// After the spreads so a consumer-supplied onClick can't clobber the
-			// toggle; compose both, mirroring the element branch above.
+			// Placed after the spreads so the toggle is composed with any
+			// consumer-supplied onClick rather than replaced by it.
 			onClick={(e: MouseEvent<HTMLButtonElement>) => {
 				;(props as ComponentPropsWithoutRef<'button'>).onClick?.(e)
 				setOpen(!open)

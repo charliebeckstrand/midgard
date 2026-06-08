@@ -56,10 +56,8 @@ export function usePivotTable<T>(
 
 	const grandTotal = useMemo(() => aggregateAll(groups, aggregation), [groups, aggregation])
 
-	// Aggregate every populated `(row × column)` group once per data change rather
-	// than re-reducing each cell on every render. Rendering then becomes O(1) map
-	// lookups, so unrelated re-renders (format/density prop changes, parent
-	// re-renders) no longer re-run the reductions over the full value set.
+	// Aggregates every `(row × column)` group once per data change; rendering
+	// performs O(1) map lookups rather than re-reducing on every render.
 	const cells = useMemo(() => {
 		const matrix = new Map<string, Map<string, number>>()
 

@@ -1,8 +1,7 @@
 /**
  * Hannou disabled — dormant state. Dims the element and animates the
  * opacity transition. `cursor-not-allowed` lives separately in
- * `cursor.ts` so consumers can pick state without picking pointer
- * feedback.
+ * `cursor.ts`; compose both or either independently.
  *
  * Layer: kiso · Concern: disabled state
  */

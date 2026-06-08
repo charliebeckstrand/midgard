@@ -114,9 +114,8 @@ export function MapMarker({
 
 		if (!interactive) return () => element.removeEventListener('click', handleClick)
 
-		// The MapLibre element is a bare <div>, so a mouse-only click listener is
-		// unreachable by keyboard and invisible to AT. Promote it to a real button
-		// with a tab stop and Enter/Space activation (WCAG 2.1.1 / 4.1.2).
+		// Promote the element to a button with a tab stop and Enter/Space
+		// activation (WCAG 2.1.1 / 4.1.2).
 		element.setAttribute('role', 'button')
 
 		element.tabIndex = 0
