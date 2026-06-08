@@ -25,6 +25,12 @@ export type RangeSliderProps = {
 	 * follows the moving value to the other thumb button. Defaults to `true`.
 	 */
 	allowCross?: boolean
+	/**
+	 * Accessible names for the `[start, end]` thumbs. Override the generic
+	 * defaults so each range announces what it bounds (e.g. `['Min price', 'Max
+	 * price']`). Defaults to `['Range start', 'Range end']`.
+	 */
+	labels?: [string, string]
 	className?: string
 	style?: CSSProperties
 }
@@ -40,6 +46,7 @@ export function RangeSlider({
 	color,
 	disabled = false,
 	allowCross = true,
+	labels = ['Range start', 'Range end'],
 	className,
 	style,
 }: RangeSliderProps) {
@@ -126,7 +133,7 @@ export function RangeSlider({
 				aria-valuemin={min}
 				aria-valuemax={current[1]}
 				aria-valuenow={current[0]}
-				aria-label="Range start"
+				aria-label={labels[0]}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${lo}%` }}
@@ -143,7 +150,7 @@ export function RangeSlider({
 				aria-valuemin={current[0]}
 				aria-valuemax={max}
 				aria-valuenow={current[1]}
-				aria-label="Range end"
+				aria-label={labels[1]}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${hi}%` }}
