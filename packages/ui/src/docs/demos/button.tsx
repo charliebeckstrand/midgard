@@ -9,7 +9,7 @@ import { VariantListbox } from '../components/variant-listbox'
 
 export const meta = { category: 'Forms' }
 
-const variants = ['solid', 'soft', 'outline', 'plain', 'bare', 'ghost'] as const
+const variants = ['solid', 'soft', 'outline', 'plain', 'bare'] as const
 
 type Variant = (typeof variants)[number]
 

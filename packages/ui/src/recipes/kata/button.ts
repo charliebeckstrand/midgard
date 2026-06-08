@@ -25,7 +25,6 @@ const outline = {
 }
 const plain = { ...merge(palette.plain.text, palette.plain.hover), inherit }
 const bare = { ...merge(palette.bare.text, palette.bare.hover), inherit }
-const ghost = { ...palette.plain.text, inherit }
 
 export const k = defineRecipe(
 	{
@@ -54,8 +53,7 @@ export const k = defineRecipe(
 			solid: focus.ring,
 			soft: focus.ring,
 			plain: focus.ring,
-			ghost: focus.ring,
-			outline: ['ring-1 ring-inset', ...focus.inset],
+			outline: ['ring-1 ring-inset', focus.ring],
 			bare: [
 				'outline-none',
 				'after:absolute after:pointer-events-none',
@@ -108,7 +106,6 @@ export const k = defineRecipe(
 				outline: [palette.outline.ring, palette.outline.text, palette.outline.hover],
 				plain: [palette.plain.text, palette.plain.hover],
 				bare: [palette.bare.text, palette.bare.hover],
-				ghost: palette.plain.text,
 			},
 			{ inherit },
 		),
@@ -133,62 +130,37 @@ export const k = defineRecipe(
 				variant: 'bare',
 				size: 'xs',
 				class: [
-					'after:inset-x-[calc((--spacing(1.5)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
-					'after:rounded-[--spacing(1)]',
+					'after:inset-y-[calc((--spacing(0.5)-1px)*-1)]',
+					'after:inset-x-[calc((--spacing(0.5)-1px)*-1)]',
+					'after:rounded-[--spacing(0.5)]',
 				],
 			},
 			{
 				variant: 'bare',
 				size: 'sm',
 				class: [
-					'after:inset-x-[calc((--spacing(2)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(2)-1px)*-1)]',
-					'after:rounded-[--spacing(1.5)]',
+					'after:inset-x-[calc((--spacing(1)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(1)-1px)*-1)]',
+					'after:rounded-[--spacing(1)]',
 				],
 			},
 			{
 				variant: 'bare',
 				size: 'md',
 				class: [
-					'after:inset-x-[calc((--spacing(2.5)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(2.5)-1px)*-1)]',
-					'after:rounded-[--spacing(2)]',
+					'after:inset-x-[calc((--spacing(1.5)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
+					'after:rounded-[--spacing(1.5)]',
 				],
 			},
 			{
 				variant: 'bare',
 				size: 'lg',
 				class: [
-					'after:inset-x-[calc((--spacing(3)-1px)*-1)]',
-					'after:inset-y-[calc((--spacing(3)-1px)*-1)]',
-					'after:rounded-[--spacing(2.5)]',
+					'after:inset-x-[calc((--spacing(2)-1px)*-1)]',
+					'after:inset-y-[calc((--spacing(2)-1px)*-1)]',
+					'after:rounded-[--spacing(2)]',
 				],
-			},
-			// Floors the icon-only bare hit box at the WCAG 2.5.8 minimum (24×24px)
-			// as a real border-box. A matched negative margin of `(24px − iconbox)/2`
-			// collapses the margin-box back to the icon's footprint, so the floor
-			// grows the hit area without growing the row. xs/sm/md icons are
-			// 12/16/20px; lg's 24px icon already meets the floor. Gated to
-			// `:not([data-has-label])` so inline bare links use WCAG's
-			// inline-target exception instead.
-			{
-				variant: 'bare',
-				size: 'xs',
-				class:
-					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-1.5',
-			},
-			{
-				variant: 'bare',
-				size: 'sm',
-				class:
-					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-1',
-			},
-			{
-				variant: 'bare',
-				size: 'md',
-				class:
-					'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6 not-data-[has-label]:-m-0.5',
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
@@ -200,7 +172,6 @@ export const k = defineRecipe(
 		outline,
 		plain,
 		bare,
-		ghost,
 		motion: spring,
 	},
 )
