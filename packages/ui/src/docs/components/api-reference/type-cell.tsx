@@ -4,7 +4,9 @@ import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
+import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
+import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
 	Sheet,
@@ -14,11 +16,97 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from '../../../components/sheet'
+import { Stack } from '../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { GlassProvider } from '../../../providers/glass'
 import type { PropDef } from '../../api-reference/types'
-import { ReferencesPanel } from './references-panel'
-import { TypeBadges } from './type-badges'
+
+/** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */
+function splitUnion(type: string): string[] {
+	const parts: string[] = []
+
+	let depth = 0
+
+	let inString: string | null = null
+
+	let current = ''
+
+	for (let i = 0; i < type.length; i++) {
+		const ch = type[i]
+
+		if (inString) {
+			current += ch
+
+			if (ch === inString && type[i - 1] !== '\\') inString = null
+
+			continue
+		}
+
+		if (ch === "'" || ch === '"' || ch === '`') {
+			inString = ch
+			current += ch
+
+			continue
+		}
+
+		if (ch === '{' || ch === '[' || ch === '(' || ch === '<') depth++
+		else if (ch === '}' || ch === ']' || ch === ')') depth--
+		else if (ch === '>' && type[i - 1] !== '=') depth--
+
+		if (ch === '|' && depth === 0) {
+			if (current.trim()) parts.push(current.trim())
+
+			current = ''
+
+			continue
+		}
+
+		current += ch
+	}
+
+	if (current.trim()) parts.push(current.trim())
+
+	return parts
+}
+
+/** Strip the enclosing single quotes from a string-literal fragment. */
+function unquote(part: string): string {
+	return part.replace(/^'|'$/g, '')
+}
+
+/** One badge per top-level union arm — `'sm' | 'md'` renders as two badges. */
+function TypeBadges({ type }: { type: string }) {
+	return (
+		<Flex gap="sm" align="center" wrap>
+			{splitUnion(type).map((part) => (
+				<Badge key={part}>{unquote(part)}</Badge>
+			))}
+		</Flex>
+	)
+}
+
+/**
+ * Each entry is titled by the type name it resolves, so the reader can tell
+ * which alias they're looking at without inferring it from context. Multi-line
+ * definitions render as `<CodeBlock>`; single-line definitions reuse the
+ * props-table badges for consistency.
+ */
+function ReferencesPanel({ references }: { references: Record<string, string> }) {
+	const entries = Object.entries(references)
+
+	if (entries.length === 0) return null
+
+	return (
+		<Stack gap="lg">
+			{entries.map(([name, def]) => (
+				<Stack key={name} gap="sm">
+					<Heading level={5}>{name}</Heading>
+					{def.includes('\n') ? <CodeBlock code={def} /> : <TypeBadges type={def} />}
+				</Stack>
+			))}
+		</Stack>
+	)
+}
 
 /**
  * Type-column cell. Picks one of three modes:
