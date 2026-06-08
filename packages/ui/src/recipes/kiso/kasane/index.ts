@@ -9,10 +9,9 @@
  *     padding class with 1 px subtracted to land inside the outer ring.
  *   - `radius` — ring-compensated corner radii (r / ri / ro / all).
  *   - `rounded` — pass-through to Tailwind's named radius scale
- *     (none / sm / md / lg / xl / full); kept at the top so the kata
- *     read like the Tailwind class itself (`rounded.lg` → `rounded-lg`).
- *   - `gap` — pass-through gap helpers (g / gx / gy) that live here for
- *     symmetry; gap doesn't intersect the outer ring so no compensation.
+ *     (none / sm / md / lg / xl / full); `rounded.lg` → `rounded-lg`.
+ *   - `gap` — pass-through gap helpers (g / gx / gy); gap doesn't
+ *     intersect the outer ring so no compensation.
  */
 
 import { gap } from './gap'

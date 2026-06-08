@@ -87,9 +87,8 @@ export function EditableGrid<T>({
 
 	const wrapperRef = useRef<HTMLTableElement>(null)
 
-	// Scope for per-cell ids so `aria-activedescendant` on the single focusable
-	// grid can point screen readers at the active cell without re-rendering the
-	// (intentionally memoized) cell shells.
+	// Stable per-cell id scope: `aria-activedescendant` on the grid resolves to
+	// the active cell's id without touching the memoized cell shells.
 	const cells = useIdScope()
 
 	const nav = useEditableGridNavigation<T>({
@@ -125,8 +124,8 @@ export function EditableGrid<T>({
 		cellId: cells.sub,
 	})
 
-	// Stable while editing — the cell shells subscribe here, so typing (which only
-	// moves the edit slice below) doesn't re-render every cell.
+	// Stable while editing — the cell shells subscribe here; typing only moves the
+	// edit slice below, leaving cell shells untouched.
 	const stateValue = useMemo<EditableGridStateValue>(
 		() => ({
 			active: nav.active,
@@ -148,9 +147,8 @@ export function EditableGrid<T>({
 		],
 	)
 
-	// Mirrored into the store below so each cell subscribes to just its own
-	// derived slice; moving the active cell then re-renders only the cells that
-	// changed rather than every cell that would consume the context value.
+	// Mirrored into the store below so each cell subscribes to its own derived
+	// slice; only cells whose slice actually changed re-render on navigation.
 	const cellSnapshot = useMemo<EditableGridSnapshot>(
 		() => ({
 			active: nav.active,
@@ -163,7 +161,7 @@ export function EditableGrid<T>({
 
 	const store = useEditableGridStore(cellSnapshot)
 
-	// Changes on every keystroke; read only by the mounted editor.
+	// Updated on every keystroke; consumed only by the mounted editor.
 	const editValue = useMemo<EditableGridEditValue>(
 		() => ({
 			draft: draft.draft,

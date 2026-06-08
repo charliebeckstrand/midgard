@@ -40,9 +40,8 @@ export type ResponsiveGap = Responsive<FlexGap>
 export type ResponsiveJustify = Responsive<FlexJustify>
 
 // Mobile-first (min-width) maps spelled out as literals so Tailwind's scanner
-// can source each class — it can't see classes built by string interpolation.
-// Direction and align are the only props used with responsive objects, so only
-// they need the full maps; gap/justify interpolate (never used responsively).
+// can source each class — it cannot see classes built by string interpolation.
+// Only direction and align are used responsively; gap and justify interpolate.
 const responsiveDirectionMap: Record<Breakpoint, Record<FlexDirection, string>> = {
 	initial: directionMap,
 	sm: {

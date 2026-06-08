@@ -21,10 +21,9 @@ export function readSnippet(type: unknown): string | null {
 }
 
 /**
- * Dedent a raw snippet (extracted straight from source by the Vite plugin)
- * and re-indent subsequent lines to match the current walker depth. Line 1
- * is returned as-is — the caller always prefixes the first line with its
- * own indent, matching the convention used by `renderElement`.
+ * Dedents a raw snippet and re-indents subsequent lines to `targetIndent`.
+ * Line 1 is returned as-is — the caller prefixes it with its own indent,
+ * matching the convention used by `renderElement`.
  */
 export function reindent(code: string, targetIndent: string): string {
 	const lines = code.split('\n')
@@ -50,11 +49,10 @@ function leadingSpace(line: string): number {
 	return line.length - line.trimStart().length
 }
 
-// Curated alternation — we don't want to import every `useFoo`-looking custom
-// hook the snippet might reference, only React's own. Keep this list in sync
-// with the React `use*` export surface; missing entries cause snippets to emit
-// unresolved identifiers. The `(?<!\.)` lookbehind keeps method calls
-// (`router.use(...)`, `app.useState(...)`) from masquerading as React hooks.
+// Curated alternation matching React's own hooks. The `(?<!\.)` lookbehind
+// excludes method calls (`router.use(...)`, `app.useState(...)`) from matching
+// as React hooks. Keep in sync with the React `use*` export surface; missing
+// entries produce unresolved identifiers in the emitted snippet.
 const HOOK_RE =
 	/(?<!\.)\b(use|useActionState|useCallback|useContext|useDebugValue|useDeferredValue|useEffect|useFormStatus|useHostTransitionStatus|useId|useImperativeHandle|useInsertionEffect|useLayoutEffect|useMemo|useOptimistic|useReducer|useRef|useState|useSyncExternalStore|useTransition)\b/g
 

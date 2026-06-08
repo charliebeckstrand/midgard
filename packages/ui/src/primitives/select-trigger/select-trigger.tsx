@@ -33,9 +33,7 @@ type SelectTriggerProps = {
  * The interactive element (input vs button) and any non-wrapped suffix content
  * are supplied by the caller.
  *
- * A presentational primitive — it owns no state. It lives here rather than in
- * any one component so Listbox and Combobox can share it without coupling to
- * Select (Select wraps Listbox; a trigger in Select would close the loop).
+ * A presentational primitive — it owns no state.
  */
 export function SelectTrigger({
 	open,

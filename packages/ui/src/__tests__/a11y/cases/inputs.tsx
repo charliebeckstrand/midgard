@@ -36,7 +36,7 @@ function formatLicensePlate(raw: string) {
 	return clean.length <= 3 ? clean : `${clean.slice(0, 3)}-${clean.slice(3)}`
 }
 
-// Static suggestion provider so the closed AddressInput never hits the network.
+// Static suggestion provider: the closed AddressInput never hits the network.
 const addressProvider: AddressProvider = async () => []
 
 /** Inputs & form fields, each in its canonical labelled form. */
@@ -56,8 +56,8 @@ export const inputCases: readonly Case[] = [
 		</Field>,
 	],
 	[
-		// No explicit id: the Field generates one, the Label and Slider both read
-		// it from Control context, so the label names the range input.
+		// No explicit id: the Field generates one and both Label and Slider read
+		// it from Control context — the label names the range input.
 		'slider in field',
 		<Field key="f">
 			<Label>Volume</Label>

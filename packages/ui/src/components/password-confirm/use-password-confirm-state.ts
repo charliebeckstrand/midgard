@@ -8,8 +8,7 @@ type LastEdited = 'password' | 'confirm' | null
 type PasswordConfirmStateOptions = {
 	/**
 	 * Suppresses match/mismatch firing and forces `status` to `'idle'` while set.
-	 * Callers use this to hold the confirm warning back when the password field
-	 * itself has a higher-priority validation error.
+	 * Typically passed when the password field itself has a higher-priority validation error.
 	 */
 	disabled?: boolean
 	onPasswordMatch?: () => void

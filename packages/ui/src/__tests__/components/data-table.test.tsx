@@ -655,8 +655,7 @@ describe('DataTable', () => {
 				/>,
 			)
 
-			// jsdom reports zero viewport size, so react-virtual renders roughly
-			// `overscan` rows. The point is that it's far fewer than 500.
+			// jsdom reports zero viewport size; react-virtual renders roughly `overscan` rows.
 			const rendered = container.querySelectorAll('tbody tr:not([data-slot="data-table-spacer"])')
 
 			expect(rendered.length).toBeLessThan(manyRows.length)
@@ -694,9 +693,8 @@ describe('DataTable', () => {
 
 			const headerRow = container.querySelector('thead tr')
 
-			// jsdom reports a zero-size viewport, so the window renders no data rows
-			// here; the table-level row count and the header's 1-based index are the
-			// deterministic, AT-visible contract.
+			// jsdom reports a zero-size viewport; the window renders no data rows.
+			// Asserts the table-level row count and the header's 1-based aria-rowindex.
 			expect(headerRow).toHaveAttribute('aria-rowindex', '1')
 		})
 

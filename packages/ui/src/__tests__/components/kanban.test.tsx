@@ -297,9 +297,9 @@ describe('KanbanColumnBody', () => {
 	})
 })
 
-// Keyboard drag-and-drop is the a11y path axe can't exercise: Space lifts a
-// card, then arrows reorder it within and across columns, while un-lifted
-// arrows just move focus. Reorders surface through onValueChange.
+// Keyboard drag-and-drop: Space lifts a card, then arrows reorder it within
+// and across columns, while un-lifted arrows just move focus.
+// Reorders surface through onValueChange.
 describe('Kanban keyboard reorder', () => {
 	const cardOf = (root: HTMLElement, id: string) =>
 		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
@@ -469,8 +469,7 @@ describe('KanbanColumn naming', () => {
 			</Kanban>,
 		)
 
-		// The section's aria-labelledby resolves to the rendered title, so it is a
-		// named region.
+		// The section's aria-labelledby resolves to the rendered title.
 		expect(screen.getByRole('region', { name: 'Todo' })).toBeInTheDocument()
 
 		expect(screen.getByRole('region', { name: 'Done' })).toBeInTheDocument()

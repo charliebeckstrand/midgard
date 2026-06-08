@@ -16,8 +16,7 @@ import { mode } from '../../../core/recipe'
  * colours (not translucent like `sen.ring.inset`) so adjacent rings in a
  * group can overlap by 1 px without alpha-stacking into a darker line at
  * the join. Radius is not bundled — composers add `radius(v)` (or `r(v)`
- * for the outer-only case) so corner rounding can track each component's
- * density step rather than living as a fixed token.
+ * for the outer-only case) per component density step.
  */
 const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 
@@ -37,9 +36,8 @@ const hover = mode(
 
 /** `::after` 2 px focus ring — blue when no validation state is active. */
 const focus = [
-	// Lift the focused element above its attached-group siblings so the join
-	// doesn't overpaint the joined-side focus ring with the neighbour's resting
-	// ring. `relative` already in `control.frame` provides the stacking context.
+	// Lifts the focused element above its attached-group siblings via z-index;
+	// stacking context comes from `relative` in `control.frame`.
 	'focus-within:z-10',
 	'data-open:z-10',
 	'focus-within:after:ring-2',

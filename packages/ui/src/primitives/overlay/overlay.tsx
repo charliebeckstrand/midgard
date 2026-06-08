@@ -45,10 +45,9 @@ export function Overlay({
 
 	const scoped = container != null
 
-	// Explicit `container` (scoped overlay) wins; otherwise fall back to the
+	// Explicit `container` (scoped overlay) wins; otherwise falls back to the
 	// ambient <UIProvider>, then document.body. The provider relocates the
-	// portal mount only — modal positioning and scroll lock still key off
-	// `scoped`, so a provider container leaves a normal overlay fixed + locked.
+	// portal mount only — modal positioning and scroll lock key off `scoped`.
 	const portalContainer = usePortalContainer(container)
 
 	useDismissable({

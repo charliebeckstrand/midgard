@@ -16,9 +16,8 @@ export function Label({ className, htmlFor, id, ...props }: LabelProps) {
 
 	const { size } = useDensity()
 
-	// Register so the field's `labelledBy` only references this id while the Label
-	// is actually rendered — letting a portalled popup (a listbox) name itself
-	// from the Label without a dangling reference.
+	// Registers while mounted so the field's `labelledBy` only references this id
+	// while the Label is rendered, keeping the reference live and accurate.
 	const registerLabel = control?.registerLabel
 
 	useEffect(() => registerLabel?.(), [registerLabel])

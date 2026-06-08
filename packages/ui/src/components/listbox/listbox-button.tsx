@@ -26,8 +26,8 @@ type ListboxButtonProps = {
 }
 
 /**
- * Internal — the listbox trigger button wrapped in <Headless> so the
- * surrounding <SelectTrigger> chrome owns its appearance. Carries combobox
+ * Internal — the listbox trigger button wrapped in <Headless>, deferring
+ * appearance to the surrounding <SelectTrigger> chrome. Carries combobox
  * role + popup wiring and the truncated/placeholdered label slot.
  *
  * Not exported from the package barrel — intentionally internal.

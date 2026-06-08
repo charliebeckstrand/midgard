@@ -58,9 +58,7 @@ export function createContext<T>(name: string, options?: Options<T>): [ReactCont
 		hasDefault ? (options as DefaultOption<T>).default : (MISSING as unknown as T),
 	)
 
-	// Name the context so it shows as `<${name}>` in React DevTools rather
-	// than an anonymous provider — the only way to tell same-shaped contexts
-	// apart (e.g. the Density token vs the friendly Density level).
+	// Names the context so it shows as `<${name}>` in React DevTools.
 	Context.displayName = name
 
 	function useContextValue(): T {

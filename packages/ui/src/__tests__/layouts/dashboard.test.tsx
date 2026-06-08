@@ -26,7 +26,6 @@ describe('DashboardLayout', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
 
-		// The Drawer title renders once the offcanvas opens.
 		expect(screen.getByText('Filters', { selector: 'h2,h3,[role="heading"]' })).toBeInTheDocument()
 	})
 })

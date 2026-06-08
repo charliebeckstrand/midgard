@@ -20,8 +20,8 @@ type Options<T> = {
 /**
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
- * Pairs with a disabled dnd-kit keyboard sensor so the original stays visible
- * — mirrors the behavior of `useKanbanKeyboard`.
+ * Pairs with a disabled dnd-kit keyboard sensor, keeping the original item
+ * visible during a keyboard move — mirrors the behavior of `useKanbanKeyboard`.
  */
 export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Options<T>) {
 	const [liftedId, setLiftedId] = useState<string | null>(null)

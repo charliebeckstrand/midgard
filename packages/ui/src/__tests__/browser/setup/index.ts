@@ -5,9 +5,9 @@ import { afterEach, expect } from 'vitest'
 import './tailwind.css'
 
 /**
- * Browser-suite setup. Unlike the jsdom setup (setup/index.ts) there are no
- * matchMedia / ResizeObserver stubs — the real engine provides them. We only
- * register the axe and jest-dom matchers and tear down the DOM between cases.
+ * Browser-suite setup. Registers the axe and jest-dom matchers and tears down
+ * the DOM between cases. No `matchMedia` / `ResizeObserver` stubs — the real
+ * engine provides them.
  */
 expect.extend(toHaveNoViolations)
 

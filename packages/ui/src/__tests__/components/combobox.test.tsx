@@ -85,7 +85,7 @@ describe('Combobox', () => {
 
 		const suffix = bySlot(container, 'suffix')
 
-		// The chevron is a mouse convenience, so it reads as clickable.
+		// The chevron is a mouse-convenience affordance; cursor-pointer signals it.
 		expect(suffix?.className).toContain('cursor-pointer')
 
 		const icon = suffix?.querySelector<HTMLElement>('[data-slot="icon"]')
@@ -251,9 +251,8 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		// Combobox renders its panel through FloatingPortal, so query document.
-		// jsdom has no layout, so react-virtual renders 0 items — the assertion
-		// is that the primitive mounts and the count is bounded.
+		// Panel is in FloatingPortal — query document. jsdom has no layout;
+		// react-virtual renders 0 items, so the count is bounded by options.length.
 		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
 		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
 	})
@@ -359,8 +358,8 @@ describe('Combobox active-descendant keyboard model', () => {
 	})
 })
 
-// aria-selected stays the stored value, so a multi-select listbox must declare
-// aria-multiselectable or AT reads several selected options as a single-select.
+// aria-selected stays the stored value; a multi-select listbox must declare
+// aria-multiselectable for AT to interpret multiple selected options correctly.
 describe('Combobox listbox selection semantics', () => {
 	async function openListbox(multiple: boolean) {
 		const user = userEvent.setup()
@@ -435,10 +434,9 @@ describe('ComboboxPanel', () => {
 		expect(onClose).not.toHaveBeenCalled()
 	})
 
-	// Regression: a role="listbox" may only own option/group children
-	// (aria-required-children, WCAG 4.1.2), so the "No results" status message
-	// must sit beside the listbox, not inside it. The id stays on the listbox so
-	// the input's aria-controls still resolves to it.
+	// role="listbox" may only own option/group children (aria-required-children,
+	// WCAG 4.1.2); the "No results" status message sits beside the listbox, not
+	// inside it. The id stays on the listbox so aria-controls resolves correctly.
 	it('keeps the listbox owning only options, with the empty message a sibling', () => {
 		renderUI(
 			<ComboboxPanel

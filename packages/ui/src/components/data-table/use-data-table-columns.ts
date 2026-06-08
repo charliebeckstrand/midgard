@@ -100,10 +100,7 @@ export function useDataTableColumns<T>({
 		return ordered
 	}, [columns, columnById, columnOrder, hiddenColumns])
 
-	// Reuse the previous array reference when contents are element-wise identical
-	// so `React.memo`'d row components skip rendering on no-op upstream churn —
-	// e.g. consumer rebuilds the `columns` prop with stable column objects, or a
-	// column-order change that doesn't affect the visible slice.
+	// Reuse the previous array reference when contents are element-wise identical.
 	const visibleColumnsRef = useRef(visibleColumnsCandidate)
 
 	const visibleColumns = sameElements(visibleColumnsRef.current, visibleColumnsCandidate)

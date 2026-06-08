@@ -4,8 +4,8 @@ import type { ComponentRegistry, Context } from '../../../docs/derive-code/types
 
 /**
  * A stand-in component carrying the `__name` / `__module` decoration the
- * `component-tags` Vite plugin attaches to real exports at build time, so the
- * registry's tag reader recognizes it.
+ * `component-tags` Vite plugin attaches to real exports at build time.
+ * The registry's tag reader recognizes it identically to a real export.
  */
 export function tag<P>(name: string, module: string): FunctionComponent<P> {
 	const Component: FunctionComponent<P> = () => null
@@ -16,9 +16,9 @@ export function tag<P>(name: string, module: string): FunctionComponent<P> {
 }
 
 /**
- * Build a fresh `Context` with an empty import accumulator. `byType` defaults
- * to the production tag reader (`defaultRegistry.byType`) so `tag()` components
- * resolve; pass `byName` to resolve snippet tag names.
+ * Builds a fresh `Context` with an empty import accumulator. `byType` defaults
+ * to the production tag reader (`defaultRegistry.byType`), resolving `tag()`
+ * components; pass `byName` to resolve snippet tag names.
  */
 export function makeContext(registry?: Partial<ComponentRegistry>): Context {
 	return {

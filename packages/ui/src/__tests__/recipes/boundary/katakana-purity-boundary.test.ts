@@ -6,16 +6,15 @@ import { describe, expect, it } from 'vitest'
 // argument and wires them into the recipe surface a kata exports; it must
 // not import kiso at all — not even types. Each bridge declares the token
 // shape it needs as its own contract and is generic over the bundle passed
-// in, so the concrete axis keys still flow through to the kata's variant
-// types. Any kiso import — value or type — means a token reference leaked
-// into the bridge instead of being injected by the calling kata.
+// in; concrete axis keys flow through to the kata's variant types.
+// A kiso import — value or type — means a token reference is hardcoded in
+// the bridge rather than injected by the calling kata.
 
 const katakanaDir = join(__dirname, '../../../recipes/katakana')
 const srcDir = join(__dirname, '../../..')
 
-// Captures a module specifier. The lazy body stops at the first `from '…'`,
-// so each match spans exactly one import — single- or multi-line, value or
-// type.
+// Captures one module specifier per match — lazy body stops at the first
+// `from '…'`, spanning single- or multi-line, value or type imports.
 const IMPORT_RE = /import\s+[\s\S]*?from\s+['"]([^'"]+)['"]/g
 
 const KISO_SPECIFIER = /(?:^|\/)kiso(?:\/|$)/
@@ -27,7 +26,7 @@ describe('katakana purity boundary', () => {
 		walk(katakanaDir, (file, content) => {
 			if (!/\.ts$/.test(file)) return
 
-			// Strip comments so commented sample imports don't trigger the scan.
+			// Strip comments before scanning; commented-out imports don't trigger the check.
 			const stripped = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
 
 			const rel = relative(srcDir, file)

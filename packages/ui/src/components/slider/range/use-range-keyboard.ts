@@ -38,9 +38,8 @@ export function useRangeKeyboard(opts: {
 
 			const raw = action(index)
 
-			// In swap mode, if this key would cross the other thumb the value's
-			// index flips. Move focus to the button that now holds the moving value
-			// so subsequent keys keep acting on the same conceptual thumb.
+			// In swap mode, a cross-thumb key flips the value's index; focus
+			// follows to the button that now holds the moving value.
 			if (overlap === 'swap') {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 

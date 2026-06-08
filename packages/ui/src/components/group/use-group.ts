@@ -19,9 +19,8 @@ function positionAt(index: number, length: number): GroupPosition {
 	return 'middle'
 }
 
-// Recurse into fragments so callers can wrap branches in `<>` without
-// breaking position stamping. `Children.toArray` would treat a fragment
-// as a single child.
+// Recurse into fragments, flattening them into the position-stamping pass.
+// `Children.toArray` treats a fragment as a single opaque child.
 function flattenChildren(children: ReactNode): ReactElement[] {
 	const result: ReactElement[] = []
 
@@ -39,21 +38,20 @@ function flattenChildren(children: ReactNode): ReactElement[] {
 }
 
 /**
- * Stamp `data-group={start|middle|end|only}` and
+ * Stamps `data-group={start|middle|end|only}` and
  * `data-group-orientation={horizontal|vertical}` onto each child of a
- * group, and broadcast the same position via `JoinContext` so descendants
+ * group, and broadcasts the same position via `JoinContext`. Descendants
  * that swap their render path (e.g. a leaf control rendering `<Placeholder>`
- * in skeleton mode) can still pick up the correct end-cap radii without
- * each control having to forward `data-group` itself.
+ * in skeleton mode) read position from context without each control
+ * forwarding `data-group` itself.
  *
  * Use this hook directly when a group component owns additional concerns
  * (keyboard navigation, focus management) and renders its own container.
  * For declarative use, prefer `<Group>`.
  */
 export function useGroup(children: ReactNode, orientation: GroupOrientation): ReactNode {
-	// Memoizing the cloned children stabilizes element identity across parent
-	// re-renders so React's reconciliation doesn't reset descendant state
-	// (focus, transient hover/active classes, etc.) every render.
+	// Memoized: stable element identity across parent re-renders preserves
+	// descendant state (focus, transient hover/active classes, etc.).
 	return useMemo(() => {
 		const arr = flattenChildren(children)
 

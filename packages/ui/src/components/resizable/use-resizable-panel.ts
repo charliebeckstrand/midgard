@@ -88,11 +88,9 @@ export function useResizablePanel({
 
 	sizesRef.current = sizes
 
-	// Re-derive sizes when panels are added/removed so the array stays aligned
-	// with the current panel set. Without this a newly added panel renders with
-	// its raw (un-normalized) defaultSize and handle drag operates on a stale
-	// array, mismatching handleIndex against the new layout. Adjusting state
-	// during render (vs. an effect) avoids a frame of misaligned layout.
+	// Re-derives sizes when panels are added/removed, keeping the sizes array
+	// aligned with the current panel set. State is adjusted during render, not
+	// in an effect, to avoid a frame of misaligned layout.
 	const prevCountRef = useRef(panelConfigs.length)
 
 	if (prevCountRef.current !== panelConfigs.length) {

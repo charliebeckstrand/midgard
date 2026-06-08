@@ -14,10 +14,10 @@ export const k = defineRecipe(
 		size,
 		slots: {
 			options: 'max-h-60',
-			// Inner listbox: spaces its options and collapses when empty so the empty
-			// state shows in its place. `peer` drives the sibling `empty` slot below.
+			// Inner listbox: spaces its options and collapses when empty. `peer`
+			// drives the sibling `empty` slot below.
 			list: ['peer', 'space-y-0.5', 'empty:hidden'],
-			// Sibling empty-state message: hidden until the listbox peer is `:empty`.
+			// Sibling empty-state message: shown when the listbox peer is `:empty`.
 			empty: ['hidden peer-empty:block', 'p-2', ji.size.md, text.muted],
 		},
 		defaults: { density: 'md', size: 'md' },

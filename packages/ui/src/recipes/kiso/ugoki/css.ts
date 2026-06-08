@@ -2,9 +2,8 @@
  * Ugoki css — Tailwind transition / animation fragments for state
  * changes that don't warrant Framer Motion.
  *
- * All fragments are `motion-safe:`-gated so they no-op under
- * `prefers-reduced-motion: reduce` (WCAG 2.3.3), matching how the
- * `<ReducedMotion>` primitive treats Framer Motion subtrees.
+ * All fragments are `motion-safe:`-gated, honoring `prefers-reduced-motion:
+ * reduce` (WCAG 2.3.3).
  *
  * Layer: kiso · Concern: CSS transitions
  */

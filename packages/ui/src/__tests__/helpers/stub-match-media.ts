@@ -5,14 +5,12 @@ type StubMatchMediaOverrides = Partial<
 >
 
 /**
- * Stub `window.matchMedia` so a hook that reads it during render or as a
- * module-level effect resolves against a deterministic predicate. Hand the
- * returned spy back if a test needs to assert against the call list; pair
- * with `vi.unstubAllGlobals()` in `afterEach`.
+ * Stubs `window.matchMedia` with a deterministic predicate. Returns the spy
+ * for call-list assertions; pair with `vi.unstubAllGlobals()` in `afterEach`.
  *
- * Pass `overrides` to share an `addEventListener` / `removeEventListener`
- * spy across every MQL the hook constructs — the subscribe-and-cleanup
- * shape that `useMediaQuery` and friends rely on.
+ * Pass `overrides` to share an `addEventListener` / `removeEventListener` spy
+ * across every MQL the hook constructs — covering the subscribe-and-cleanup
+ * shape used by `useMediaQuery` and similar hooks.
  */
 export function stubMatchMedia(
 	matches: (query: string) => boolean,

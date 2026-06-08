@@ -27,8 +27,7 @@ const tab = defineRecipe({
 		weight.medium,
 		text.muted,
 		fg.current,
-		// Tab-specific intermediate hover — between muted and default, only on
-		// non-current siblings.
+		// Tab-specific intermediate hover on non-current siblings.
 		...mode(
 			'not-data-current:not-disabled:hover:text-zinc-700',
 			'dark:not-data-current:not-disabled:hover:text-zinc-200',

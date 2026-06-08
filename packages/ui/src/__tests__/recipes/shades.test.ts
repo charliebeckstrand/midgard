@@ -3,7 +3,7 @@ import { shades } from '../../core/recipe'
 
 describe('shades', () => {
 	it('wraps a plain string entry in a single-element array', () => {
-		// Static tokens (one class for both modes) skip the tuple form.
+		// Plain string: single class shared across both modes.
 		const out = shades({
 			zinc: 'text-zinc-700',
 			red: 'text-red-700',
@@ -38,8 +38,7 @@ describe('shades', () => {
 	})
 
 	it('copies the tuple rather than aliasing it on the output', () => {
-		// `shades` spreads the tuple, so a downstream caller mutating the
-		// output array can't leak into the source spec.
+		// Spreads the tuple; mutations to the output array don't affect the source spec.
 		const tuple = ['text-zinc-700', 'dark:text-zinc-400'] as const
 
 		const out = shades({

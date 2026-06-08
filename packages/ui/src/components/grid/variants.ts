@@ -7,15 +7,14 @@ export type { Responsive }
 
 export type GridGap = Ma
 
-// For grid props that accept a numeric value (`columns`, `rows`, `span`,
-// `rowSpan`, `start`, `rowStart`), we route the runtime value through a CSS
-// custom property and apply a *static* Tailwind utility that reads it.
+// Numeric grid props (`columns`, `rows`, `span`, `rowSpan`, `start`,
+// `rowStart`) are threaded through CSS custom properties read by static
+// Tailwind utilities.
 //
-// Each breakpoint owns a distinct variable (`--cols`, `--cols-sm`, …) so we
-// only emit the override class when the user provides a value at that
-// breakpoint — Tailwind's mobile-first cascade handles "no override"
-// automatically. The result: a fixed set of literal class strings that the
-// JIT scanner sees, and arbitrary numeric values at runtime — no safelist.
+// Each breakpoint owns a distinct variable (`--cols`, `--cols-sm`, …); only
+// the breakpoints with a user-provided value emit an override class. The
+// result: a fixed set of literal class strings the JIT scanner can index,
+// with arbitrary numeric values at runtime — no safelist needed.
 
 type ClassMap = Record<Breakpoint, string>
 

@@ -32,8 +32,8 @@ export function TimeAgo({
 }: TimeAgoProps) {
 	const { then, valid, text } = useTimeAgoRelativeTime({ date, format, locale, interval })
 
-	// An invalid date has no machine-readable timestamp, so render a plain
-	// <span> rather than an empty <time> with no dateTime.
+	// An invalid date has no machine-readable timestamp; renders a plain <span>
+	// rather than an empty <time> with no dateTime.
 	if (!valid) return <span data-slot="time-ago" className={className} {...props} />
 
 	const time = (

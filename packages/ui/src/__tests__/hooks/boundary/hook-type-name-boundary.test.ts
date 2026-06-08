@@ -2,12 +2,10 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// A hook's option / param / result types describe its surface; they must not
-// carry a `Use` prefix, which reads like a hook name but labels a type —
-// `useTagInput`'s options are `TagInputOptions`, not `UseTagInputOptions`. The
-// lowercase hook functions are unaffected; this matches only `type` /
-// `interface` declarations whose name begins with `Use` + an uppercase letter
-// (so `User`, `Usage`, etc. are fine).
+// A hook's option / param / result types must not carry a `Use` prefix.
+// `Use` reads like a hook name but labels a type — e.g. `TagInputOptions`, not
+// `UseTagInputOptions`. Matches only `type` / `interface` declarations whose
+// name begins with `Use` + an uppercase letter (`User`, `Usage`, etc. are fine).
 
 const srcDir = join(__dirname, '../../..')
 

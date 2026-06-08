@@ -27,8 +27,8 @@ export function AccordionItem({
 		if (!disabled) accordion.toggle(value)
 	}, [disabled, accordion, value])
 
-	// A generated scope per item namespaces the trigger/panel ids, so two
-	// accordions sharing an item value no longer collide on a global id.
+	// A generated scope per item namespaces the trigger/panel ids, preventing
+	// collisions when two accordions share the same item value.
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
 	const context = useMemo(

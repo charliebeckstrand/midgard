@@ -27,9 +27,9 @@ export type NavItemProps = {
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
-	/** Rendered before the inner button, outside it so the slot can host its own interactive element (e.g. a drag handle button). */
+	/** Rendered before the inner button, outside it — the slot can host its own interactive element (e.g. a drag handle button). */
 	prefix?: ReactNode
-	/** Rendered after the inner button, outside it so the slot can host its own interactive element (e.g. an actions button). */
+	/** Rendered after the inner button, outside it — the slot can host its own interactive element (e.g. an actions button). */
 	suffix?: ReactNode
 	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
 } & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>
@@ -49,8 +49,8 @@ type NavItemOptions = {
  * into view, resolves the size against Density, and composes the click handler
  * (user `onClick` + selection change + offcanvas close).
  *
- * Only the wiring lives here; each component owns its own markup so the slot
- * names, classes, and icon sizing stay local and legible.
+ * Only the wiring lives here; each consuming component owns its own markup,
+ * slot names, classes, and icon sizing.
  */
 export function useNavItem({ current, value, size, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)

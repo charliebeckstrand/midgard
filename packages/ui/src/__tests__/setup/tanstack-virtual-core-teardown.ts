@@ -1,8 +1,8 @@
 /**
- * Suppress @tanstack/virtual-core teardown noise.
+ * Suppresses @tanstack/virtual-core teardown noise.
  *
- * Its debounced timer fires after jsdom teardown, causing a "window is not
- * defined" ReferenceError. We only swallow that specific error so real
+ * The debounced timer fires after jsdom teardown, producing a "window is not
+ * defined" ReferenceError. Only that specific message is swallowed; all other
  * unhandled errors still fail the suite.
  */
 

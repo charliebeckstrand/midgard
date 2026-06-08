@@ -50,7 +50,6 @@ describe('useControllable', () => {
 			result.current[1]('new-value')
 		})
 
-		// Value stays controlled
 		expect(result.current[0]).toBe('locked')
 	})
 

@@ -26,9 +26,9 @@ const byName = new Map<string, ComponentInfo>(
 
 /**
  * Default (and only) registry. `byType` reads tags lazily off each element's
- * type, so components load with the demos that use them. `byName` is the
- * build-time module map used to resolve JSX tag names found in raw `__code`
- * snippets back to their import paths.
+ * type, loading components alongside the demos that use them. `byName` is the
+ * build-time module map resolving JSX tag names in raw `__code` snippets to
+ * their import paths.
  */
 export const defaultRegistry: ComponentRegistry = {
 	byType: { get: readTag },

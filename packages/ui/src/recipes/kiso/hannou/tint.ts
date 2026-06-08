@@ -1,8 +1,8 @@
 /**
  * Hannou tint — mode-neutral hover/focus background wash on the active
- * surface. Light at 5% zinc, dark at 5% white. Guarded so disabled
- * descendants don't accidentally light up. Consumed by the menu/option
- * item chrome (`hannou.item`) and any kata that wants the same wash.
+ * surface. Light at 5% zinc, dark at 5% white. Guarded against disabled
+ * and `data-disabled` descendants. Consumed by the menu/option item
+ * chrome (`hannou.item`) and any kata that wants the same wash.
  *
  * Layer: kiso · Concern: hover/focus tint
  */

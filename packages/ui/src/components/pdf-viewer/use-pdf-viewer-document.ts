@@ -50,10 +50,9 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 		const createdUrls: string[] = []
 		let docBlobUrl: string | null = null
 
-		// Held in the effect scope so cleanup can tear down the pdf.js lifecycle:
-		// an in-flight render task must be cancelled and the document destroyed,
-		// or both leak worker-side memory. `releasePdf` is idempotent (it nulls
-		// what it frees) so the async path and the cleanup can both call it.
+		// Tracks the in-flight render task and document so cleanup can cancel and
+		// destroy them. `releasePdf` is idempotent (it nulls what it frees) so
+		// the async path and the cleanup can both call it.
 		let doc: PDFDocumentProxy | null = null
 		let renderTask: RenderTask | null = null
 
@@ -93,8 +92,8 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 				// pdf.js takes ownership of the buffer, so hand over a copy
 				doc = await pdfjs.getDocument({ data: buffer.slice(0) }).promise
 
-				// Cleanup may have run while getDocument was in flight — `doc` is
-				// only assigned now, so the cleanup's `releasePdf` saw null. Release here.
+				// `doc` is assigned after `getDocument` resolves; release here if
+				// cleanup already ran.
 				if (cancelled) {
 					releasePdf()
 
@@ -162,8 +161,7 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 					setPages([...next])
 				}
 
-				// Pages are rasterized to PNG blobs now; the document is no longer
-				// needed, so free it eagerly rather than waiting for unmount.
+				// Pages are fully rasterized; free the document eagerly.
 				releasePdf()
 
 				if (!cancelled) setLoading(false)

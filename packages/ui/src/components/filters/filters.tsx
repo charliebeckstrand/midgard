@@ -73,9 +73,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 		if (defaultValue) {
 			setState(defaultValue)
 		} else {
-			// Drop the keys entirely rather than mapping each to undefined, matching
-			// setValue's delete semantics; otherwise the payload leaks inactive
-			// `{key: undefined}` entries into whatever the consumer spreads.
+			// Drop keys entirely, matching setValue's delete semantics.
 			setState({} as T)
 		}
 		onClear?.()

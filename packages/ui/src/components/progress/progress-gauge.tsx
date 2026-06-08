@@ -12,8 +12,7 @@ import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
 
-// A progressbar role needs an accessible name; AccessibleName requires one at
-// the type level so consumers can't ship an unlabeled gauge.
+// `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressGaugeProps = AccessibleName &
 	ProgressGaugeVariants & {
 		value?: number

@@ -53,9 +53,8 @@ export function ChatPrompt({
 }: ChatPromptProps) {
 	const canSubmit = !disabled && value.trim().length > 0
 
-	// Placeholder text is not an accessible name; ensure the composer always
-	// carries one. An explicit label/labelledby wins; otherwise fall back to a
-	// generic name rather than leaving the field unnamed.
+	// Ensures the composer always has an accessible name (WCAG 3.3.2 / 4.1.2).
+	// aria-labelledby wins over aria-label; falls back to 'Message'.
 	const labelProps = ariaLabelledBy
 		? { 'aria-labelledby': ariaLabelledBy }
 		: { 'aria-label': ariaLabel ?? 'Message' }

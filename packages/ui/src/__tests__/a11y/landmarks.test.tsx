@@ -23,11 +23,11 @@ import {
 import { axePage, renderUI } from '../helpers'
 
 /**
- * Page/layout landmark compliance. Unlike the component gate, this renders whole
- * layouts and runs axe at document scope (`axePage` enables `region` and the
- * landmark rules) so the structural concerns that only exist at the page level —
- * a single <main>, content contained in landmarks, uniquely-labelled landmarks —
- * are actually exercised. Each page is rendered in its canonical, complete form.
+ * Page/layout landmark compliance. Renders whole layouts and runs axe at
+ * document scope (`axePage` enables `region` and the landmark rules), exercising
+ * the structural concerns that only exist at the page level: a single `<main>`,
+ * content contained in landmarks, uniquely-labelled landmarks. Each page is
+ * rendered in its canonical, complete form.
  */
 
 const sidebar = (

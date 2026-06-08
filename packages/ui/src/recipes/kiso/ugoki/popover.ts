@@ -1,7 +1,6 @@
 /**
- * Ugoki popover — popover panel fade. Opacity-only transition; the
- * panel doesn't scale or shift because the positioning library
- * (floating-ui) handles anchor alignment frame-by-frame.
+ * Ugoki popover — popover panel fade. Opacity-only transition; scale and
+ * position are held at identity (floating-ui manages anchor alignment).
  *
  * Layer: kiso · Concern: popover motion
  */

@@ -9,12 +9,12 @@ import {
 /**
  * Names from project-authored arms of a props-type annotation — anything not
  * supplied by a recognized HTML/React pass-through. Determines which props
- * to list in the table vs. surface only through the pass-through note.
+ * appear in the table vs. the pass-through note.
  *
- * AST-walked rather than read from `symbol.getDeclarations()`: TS merges
- * intersection properties into a single symbol whose declarations often
- * point only at `@types/react` (e.g. `color` on `<input>`), erasing the
- * project arm that narrowed the type.
+ * AST-walked rather than read from `symbol.getDeclarations()` because TS merges
+ * intersection properties into a single symbol whose declarations often point
+ * only at `@types/react` (e.g. `color` on `<input>`), erasing the project arm
+ * that narrowed the type.
  */
 export function extractProjectPropNames(
 	annotation: ts.TypeNode,
@@ -67,7 +67,7 @@ function walk(
 	const refName = typeRefName(node.typeName)
 
 	// Pass-throughs surface via the pass-through note, not the table.
-	// `PolymorphicProps` is the exception — its `href` discriminator
+	// `PolymorphicProps` adds `href` explicitly — its `href` discriminator
 	// switches the element to `<a>` and counts as a project-authored prop.
 	if (isPassThroughTypeName(refName)) {
 		if (refName === 'PolymorphicProps') names.add('href')
@@ -91,9 +91,9 @@ function walk(
 		return
 	}
 
-	// Extract<T, U> / Exclude<T, U> — recurse into T. U is the narrowing
-	// predicate (structural, not a prop source), and skipping the recursion
-	// would fan T out into every HTML attr — `aria-*`, `on*`, …
+	// Extract<T, U> / Exclude<T, U> — recurse into T only. U is a narrowing
+	// predicate, not a prop source; recursing it fans T out into every HTML
+	// attr — `aria-*`, `on*`, …
 	if (refName === 'Extract' || refName === 'Exclude') {
 		const inner = node.typeArguments?.[0]
 
@@ -104,10 +104,10 @@ function walk(
 
 	// Project alias (`CheckboxVariants`, `ButtonBaseProps`, …) — inspect the RHS:
 	//   • Splittable (intersection / union / parens / literal) — recurse so
-	//     pass-through arms still get honored.
-	//   • Single TypeReference — if it's a pass-through, drop the whole branch
-	//     (`type FooProps = ComponentPropsWithoutRef<'div'>`); if it's another
-	//     project alias (`BottomNavProps = NavProps`), follow the chain.
+	//     pass-through arms are still detected.
+	//   • Single TypeReference — drop the branch if it's a pass-through
+	//     (`type FooProps = ComponentPropsWithoutRef<'div'>`); follow the chain
+	//     if it's another project alias (`BottomNavProps = NavProps`).
 	//   • Anything else (mapped / conditional / fn) — fall through to the
 	//     resolved-type properties below.
 	const aliasTarget = resolveTypeAliasTarget(node.typeName, checker)
@@ -136,10 +136,10 @@ function walk(
 }
 
 /**
- * Whether an alias' RHS can be recursed into structurally — keeping
- * pass-through arms visible. Single references and mapped / conditional
- * types are excluded: recursing those loses the caller's type-argument
- * bindings (the RHS uses its own parameters).
+ * Whether an alias' RHS can be recursed into structurally, keeping
+ * pass-through arms visible. Single references and mapped / conditional types
+ * are not splittable: their RHS uses its own type-parameter bindings, not the
+ * caller's.
  */
 function isSplittable(node: ts.TypeNode): boolean {
 	return (

@@ -28,8 +28,8 @@ export function useControllable<T>({
 
 	valueRef.current = currentValue
 
-	// Tracked in a ref so the stable (empty-dep) setter reads the live value
-	// rather than the controlled-ness captured on first render.
+	// Tracked in a ref; the stable (empty-dep) setter always reads the live
+	// controlled-ness rather than the value captured on first render.
 	const isControlledRef = useRef(isControlled)
 
 	isControlledRef.current = isControlled
@@ -44,9 +44,9 @@ export function useControllable<T>({
 				? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
 				: next
 
-		// Only own state when uncontrolled. Writing internal state while
-		// controlled is a wasted render and leaves a stale value behind that
-		// surfaces as a jump if the consumer later drops the `value` prop.
+		// Write internal state only when uncontrolled; a controlled component
+		// ignores it, and a stale value there would surface as a jump if
+		// the consumer later drops the `value` prop.
 		if (!isControlledRef.current) setInternalValue(resolved)
 
 		onValueChangeRef.current?.(resolved)

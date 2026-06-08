@@ -36,8 +36,7 @@ export function PdfViewerViewport() {
 			className={cn(k.viewport.base)}
 			style={{ aspectRatio }}
 		>
-			{/* Page navigation otherwise swaps the image silently; announce the
-			    position so screen-reader users hear "Page X of Y" on change. */}
+			{/* Live region announces "Page X of Y" on page navigation. */}
 			{total > 0 && (
 				<div data-slot="pdf-viewer-page-status" {...pageStatus}>
 					Page {safePage} of {total}

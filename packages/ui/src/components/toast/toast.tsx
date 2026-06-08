@@ -31,10 +31,8 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 
 	return createPortal(
 		<ReducedMotion>
-			{/* Not itself a live region — each toast carries its own role (status /
-			    alert) so severity maps to politeness, instead of a wrapping live
-			    region announcing every toast politely (and double-announcing the
-			    assertive ones). */}
+			{/* Not itself a live region — each toast carries its own `role` (status /
+			    alert) mapping severity to politeness directly. */}
 			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>
 				<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>
 					<AnimatePresence onExitComplete={handleExitComplete}>

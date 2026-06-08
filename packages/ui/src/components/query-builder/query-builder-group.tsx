@@ -29,10 +29,9 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 
 	const removeRef = useFocusableRef(focusKeys.node(group.id))
 
-	// Expose the group nesting to AT. The root is already a labelled <Fieldset>
-	// (query-builder.tsx); nested groups become their own <fieldset> (implicit
-	// role=group) named by aria-label. Tailwind preflight zeroes fieldset
-	// border/margin/padding, so it lays out like the prior div.
+	// The root renders as a plain <div>; nested groups render as <fieldset>
+	// (implicit role=group) named by aria-label, exposing nesting to AT.
+	// Tailwind preflight zeroes fieldset border/margin/padding.
 	const Wrapper = root ? 'div' : 'fieldset'
 
 	return (

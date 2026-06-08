@@ -37,8 +37,8 @@ export function useVirtualWindow({
 	overscan,
 }: VirtualWindowOptions): VirtualWindow {
 	// `@tanstack/react-virtual` reads these getters off the options object each
-	// cycle; a fresh closure per render busts its internal option identity, so
-	// keep the size getter referentially stable across renders.
+	// cycle; a fresh closure per render busts its internal option identity.
+	// The size getter is kept referentially stable across renders.
 	const getSize = useCallback(() => estimateSize, [estimateSize])
 
 	const virtualizer = useVirtualizer({

@@ -12,8 +12,7 @@ import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
 import { usePopoverContext } from './context'
 
-// Surface padding scales with the resolved Density size. Consumers can still
-// override per-instance via the `p` prop.
+// Surface padding scales with the resolved Density size; overridable per-instance via `p`.
 const paddingForSize: Record<Step, BoxPadding> = { sm: 'md', md: 'lg', lg: 'xl' }
 
 export type PopoverContentProps = {
@@ -27,10 +26,9 @@ export type PopoverContentProps = {
 	size?: Step
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
-	 * content is exposed as a **non-modal** `role="dialog"` — matching the
-	 * trigger's `aria-haspopup="dialog"`, but without `aria-modal`, so focus is
-	 * never trapped. Omit both to leave it an unlabelled generic surface and
-	 * avoid an unnamed-dialog violation.
+	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`,
+	 * so focus is not trapped. Omit both to render it as an unlabelled generic
+	 * surface.
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string

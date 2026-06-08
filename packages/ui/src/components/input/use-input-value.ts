@@ -23,10 +23,9 @@ type InputValueResult = {
 /**
  * Resolves Input's value / onChange / onBlur against the Form binding cascade.
  *
- * Wrappers take ownership of value/onChange by passing them explicitly. The
- * binding still surfaces (name + invalid) but does not override the wrapper's
- * controlled state. When a wrapper signals "empty" with `value={null}` or
- * `value={undefined}`, coerce to `''` so the native input stays controlled.
+ * When value/onChange are passed explicitly, the binding supplies name and invalid
+ * state but does not override them. `value={null}` or `value={undefined}` is
+ * coerced to `''` to keep the native input controlled.
  */
 export function useInputValue({
 	hasValueProp,

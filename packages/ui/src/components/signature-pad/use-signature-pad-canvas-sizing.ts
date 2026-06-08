@@ -27,9 +27,8 @@ export function useSignaturePadCanvasSizing({
 
 	sizingRef.current = { empty, strokeColor, strokeWidth }
 
-	// Mutable props (`empty`, `strokeColor`, `strokeWidth`) flow through
-	// `sizingRef` so `resize`'s identity stays stable — otherwise
-	// `useResizeObserver` would re-subscribe on every stroke-style change.
+	// Mutable props flow through `sizingRef` so `resize` has a stable identity;
+	// `useResizeObserver` re-subscribes only when its callback reference changes.
 	const resize = useCallback(() => {
 		const container = containerRef.current
 

@@ -46,9 +46,9 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
-	// A wrapping <Control>/<Field> owns invalid + error-message wiring; mirror it
-	// onto the canvas so its rendered-image value carries the field's validity and
-	// points at the same description/error ids the rest of the control cascade uses.
+	// Mirrors Control/Field invalid + error-message wiring onto the canvas so its
+	// rendered-image value carries the field's validity and shares the same
+	// description/error ids as the rest of the control cascade.
 	const control = useControl()
 
 	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
@@ -66,8 +66,7 @@ export function SignaturePad({
 	const handleClear = useCallback(() => {
 		clear()
 
-		// The clear button unmounts once the pad is empty, so move focus back to
-		// the canvas rather than letting it fall to <body> (WCAG 2.4.3).
+		// Moves focus to the canvas once the clear button unmounts (WCAG 2.4.3).
 		canvasRef.current?.focus()
 	}, [clear, canvasRef])
 
@@ -83,15 +82,14 @@ export function SignaturePad({
 			<canvas
 				ref={canvasRef}
 				data-slot="signature-pad-canvas"
-				// A bare <canvas> has no implicit role, so an aria-label alone is
-				// ignored; role="img" makes the name perceivable and reflects that the
-				// pad's value is a rendered signature image. State rides the name.
+				// `role="img"` makes the `aria-label` perceivable; a bare `<canvas>`
+				// has no implicit role. State (empty/disabled) rides the name.
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
 				aria-disabled={disabled || readOnly || undefined}
-				// Programmatically focusable (not in the tab order) so clearing can
-				// return focus here once the clear button unmounts.
+				// Programmatically focusable (not in the tab order) for focus
+				// restoration when the clear button unmounts.
 				tabIndex={-1}
 				{...invalidAttrs(control?.invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
@@ -114,7 +112,6 @@ export function SignaturePad({
 						data-slot="signature-pad-clear"
 						aria-label="Clear signature"
 						onPointerDown={(event) => {
-							// Prevent the canvas pointerdown from firing.
 							event.stopPropagation()
 						}}
 						onClick={handleClear}

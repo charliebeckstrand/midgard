@@ -22,9 +22,8 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 
 /**
  * Clamp and round an HSVA for output / comparison — integers for `h`/`s`/`v`,
- * two decimals for `a`. Internally the picker keeps full precision so an RGB or
- * hex round-trip stays lossless and every byte value is reachable; rounding
- * happens only at these edges.
+ * two decimals for `a`. Full precision is kept internally; rounding happens only
+ * at these edges so every byte value remains reachable through an RGB or hex round-trip.
  */
 function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
@@ -99,8 +98,7 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 
 	const s = max === 0 ? 0 : d / max
 
-	// Full precision — rounding happens at the output edges (roundHsva) so an
-	// RGB round-trip through HSVA doesn't drop reachable byte values.
+	// Full precision; rounding is deferred to the output edges (roundHsva).
 	return { h, s: s * 100, v: max * 100, a: clamp(a, 0, 1) }
 }
 

@@ -6,9 +6,8 @@ import type { Context } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Fragment and intrinsic HTML elements are transparent — they're used for
- * styling or grouping in the demo but aren't part of the API surface we want
- * to document.
+ * Fragment and intrinsic HTML elements are transparent — styling/grouping
+ * wrappers that are not part of the documented API surface.
  */
 export function isPassThrough(element: ReactElement): boolean {
 	return element.type === Fragment || typeof element.type === 'string'

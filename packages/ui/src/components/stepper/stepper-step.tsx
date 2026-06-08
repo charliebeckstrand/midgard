@@ -68,8 +68,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const classes = cn(k.step({ orientation }), className)
 
-	// Vertical mode: split into [indicator, content-column] so the recipe
-	// can align the title baseline with the indicator center.
+	// Vertical mode: splits into [indicator, content-column] for the recipe to
+	// align the title baseline with the indicator center.
 	const layoutChildren = useMemo(() => {
 		const withIndicator = ensureStepperIndicator(children)
 
@@ -80,7 +80,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const inner = <StepperStepContext value={providerValue}>{layoutChildren}</StepperStepContext>
 
-	// Interactive when onValueChange is set. Linear mode disables upcoming steps.
+	// Renders as a <button> when onValueChange is set. Linear mode disables upcoming steps.
 	if (onValueChange !== undefined) {
 		const isDisabled = disabled === true || (linear && state === 'upcoming')
 
@@ -91,8 +91,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				// Only the current step's panel is mounted, so reference it only then
-				// to avoid a dangling aria-controls id.
+				// Only the current step's panel is mounted; aria-controls is set only then
+				// to avoid referencing an unmounted panel id.
 				aria-controls={state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}

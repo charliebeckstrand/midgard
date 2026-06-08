@@ -62,9 +62,8 @@ export function RangeSlider({
 
 	const current = range ?? [min, max]
 
-	// Resolve size through the Density cascade for parity with Slider:
-	// explicit prop > ambient Density, landing on the recipe default 'md'
-	// outside any provider.
+	// Resolves size through the Density cascade: explicit prop > ambient Density,
+	// falling back to `'md'` outside any provider.
 	const { size: inheritedSize } = useDensity()
 
 	const resolvedSize = size ?? inheritedSize

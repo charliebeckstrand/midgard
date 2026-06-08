@@ -16,11 +16,10 @@ export type InteractiveCase = readonly [
 
 /**
  * A dismissable surface that moves keyboard focus into itself when it opens.
- * `open` drives the real interaction and returns the trigger focus left; the
- * gate asserts focus moved off that trigger into the surface — the focus
- * behaviour axe can't see. Scoped to surfaces that focus programmatically (an
- * explicit `.focus()`), the only kind jsdom can observe; the modal Overlay
- * family's layout-dependent trap is real-browser-only (see `focus.test.tsx`).
+ * `open` drives the real interaction and returns the trigger focus left. Scoped
+ * to surfaces that focus programmatically (an explicit `.focus()`); the modal
+ * Overlay family's layout-dependent trap is real-browser-only (see
+ * `focus.test.tsx`).
  */
 export type FocusCase = readonly [
 	name: string,

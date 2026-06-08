@@ -1,8 +1,7 @@
 /**
  * Narabi description — truncated description layout with a spacer
- * pseudo-element for overflow. The leading `before:w-2` lets the text
- * shrink past the parent edge before truncating, so the ellipsis lands
- * inside the visible row rather than at the chrome boundary.
+ * pseudo-element for overflow. The leading `before:w-2` shrinks before
+ * the text truncates, landing the ellipsis inside the visible row.
  *
  * Layer: kiso · Concern: truncated description layout
  */

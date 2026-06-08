@@ -7,10 +7,8 @@ export function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-// Locale separators are stable per session but vary by locale (e.g. '.' vs ','),
-// so the editing regexes are cached by separator rather than hoisted to a constant.
-// All cached regexes are global and used only with String.replace, which resets
-// lastIndex after each call — safe to share across invocations.
+// Editing regexes are cached by separator: separators vary by locale, and global
+// regexes are shared safely because String.replace resets lastIndex after each call.
 const separatorReCache = new Map<string, RegExp>()
 
 function separatorRe(separator: string) {

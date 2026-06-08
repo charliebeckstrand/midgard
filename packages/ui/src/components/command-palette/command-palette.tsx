@@ -14,7 +14,7 @@ import { Input } from '../input'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
-// Stable filter so the trigger's global key listener isn't re-registered each render.
+// Stable filter; passed to `useKeybindings` to fire even inside form fields.
 const IGNORE_NOTHING = () => false
 
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
@@ -80,7 +80,6 @@ export function CommandPalette({
 		return Object.fromEntries(keys.map((key) => [key, toggle]))
 	}, [triggerShortcut, open, onOpenChange])
 
-	// Fire even inside form fields so the shortcut works from any focused input.
 	useKeybindings(triggerBindings, { ignore: IGNORE_NOTHING })
 
 	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
@@ -94,8 +93,7 @@ export function CommandPalette({
 			size={size}
 			className={className}
 			initialFocus={inputRef}
-			// The palette has no visible heading; name the dialog directly. The
-			// visible search input only names itself.
+			// Names the dialog directly; the palette has no visible heading.
 			aria-label="Command palette"
 		>
 			<CommandPaletteContext value={context}>
@@ -130,9 +128,9 @@ export function CommandPalette({
 					>
 						{rendered}
 					</div>
-					{/* The listbox owns only options (aria-required-children), so the
-					    no-results status is a sibling: a persistent `<output>` whose text
-					    surfaces — and announces — once the listbox filters down to empty. */}
+					{/* The listbox owns only options (`aria-required-children`). The
+					    no-results status is a sibling `<output>` that announces when the
+					    listbox filters down to empty. */}
 					<output data-slot="command-palette-no-results" className={cn(k.empty)}>
 						No results
 					</output>

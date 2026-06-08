@@ -8,9 +8,9 @@ const { divider } = sen
 
 const item = defineRecipe({
 	base: ['group/option', flex.row, 'w-full', ...hannou.item, ...narabi.item],
-	// Padding + gap track the density axis; text tracks the size axis. They
-	// move together under a diagonal Density (the common case) and split when
-	// an ambient `<Density density size>` sets the axes independently.
+	// Padding and gap track the density axis; text tracks the size axis.
+	// They move together under a diagonal `<Density>` and split when the axes
+	// are set independently.
 	density: {
 		sm: 'gap-2 px-2.5 py-1',
 		md: 'gap-3 px-3 py-1.5',

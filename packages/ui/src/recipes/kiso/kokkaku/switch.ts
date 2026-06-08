@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton — switch. Pill silhouette across three switch size
- * steps. Exported as `switchRecipe` because `switch` is a reserved
- * keyword in JS; surfaced through the bundle as `switch:`.
+ * steps. Exported as `switchRecipe` (`switch` is a reserved JS keyword);
+ * surfaced through the bundle as `switch:`.
  *
  * Layer: kiso · Concern: skeleton form · Unit: switch
  */

@@ -11,14 +11,11 @@
  *   - `palette` expands at creation time into an implicit `color` axis
  *     plus compound rules. See `palette.ts`.
  *   - `skeleton` is reserved at the config root and attaches to the
- *     recipe as `k.skeleton` with its caller-inferred type. Lives with
- *     the other reserved fields because the payload describes the
- *     recipe, not a callable sibling.
+ *     recipe as `k.skeleton` with its caller-inferred type.
  *   - `extras` (optional second argument) attaches arbitrary kata-shaped
  *     siblings to the recipe — `motion`, sub-recipes, fragment maps.
  *     The returned recipe stays callable as `k({...})` and gains the
- *     extras as direct properties (`k.motion`). Keeps every kata's
- *     public surface to a single binding.
+ *     extras as direct properties (`k.motion`).
  *
  * The kata exports the recipe as `k`; callers use `k(...)` for the variant
  * call and `k.title` for slot classes — one binding per kata.
@@ -66,9 +63,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	}
 
 	function recipe(props?: ComputedProps<C>): string {
-		// Merge defaults with non-undefined props only. Spreading raw props would
-		// let `color: undefined` (a destructured-but-unset prop on the consumer)
-		// clobber the default and skip compound rules that match on it.
+		// Merges defaults with props, skipping undefined/null values.
 		const values: Record<string, string | undefined> = {}
 
 		for (const [key, value] of Object.entries(resolved.defaults)) {
@@ -78,8 +73,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 		if (props) {
 			for (const [key, value] of Object.entries(props as Record<string, unknown>)) {
 				if (value === undefined || value === null) continue
-				// Coerce booleans and numbers so callers can pass `soft: false` or
-				// `level: 1` against axes keyed by `'true'`/`'false'` or `'1'`/`'2'`.
+				// Coerces booleans and numbers to strings for axis lookup.
 				values[key] = String(value)
 			}
 		}
@@ -107,9 +101,8 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// The slot properties, `.config`, and any caller-supplied extras are
-	// attached at runtime; the type system can't see them. Assert the final
-	// shape.
+	// Assert the final shape — slot properties, `.config`, and extras are
+	// attached at runtime and invisible to the type system.
 	return recipe as Recipe<C> & X
 }
 
@@ -143,8 +136,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 	if (config.palette) {
 		const ex = expandPalette(config.palette)
 
-		// Union palette-matrix keys into the `variant` axis so palette-only
-		// variants don't need a separate entry in the variant scaffold.
+		// Unions palette-matrix keys into the `variant` axis as empty entries.
 		const variantAxis = variants.variant ?? {}
 
 		for (const variantValue of Object.keys(config.palette.matrix)) {
@@ -158,7 +150,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		compound.push(...ex.compound)
 	}
 
-	// User compounds run after palette compounds so they override.
+	// User compounds follow palette compounds; later rules take precedence.
 	compound.push(...(config.compound ?? []))
 
 	return {

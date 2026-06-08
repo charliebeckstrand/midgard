@@ -121,8 +121,7 @@ describe('useSignaturePadDrawing', () => {
 	})
 
 	it('flips empty on a tap (pointerdown with no move)', () => {
-		// Regression: a tap draws a dot but used to leave `empty` true, so the
-		// placeholder stayed, Clear stayed hidden, and the dot was lost on resize.
+		// Regression guard: a tap (pointerdown with no move) must flip `empty` to false.
 		const { result, setEmpty } = setup({ empty: true })
 
 		act(() => {

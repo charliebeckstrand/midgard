@@ -72,9 +72,9 @@ export function useSignaturePadDrawing({
 
 		context.fill()
 
-		// A tap (pointerdown→up with no move) still draws this dot, so flip
-		// `empty` here rather than only in the move handler — otherwise the pad
-		// stays "empty" (placeholder shown, Clear hidden, dot lost on resize).
+		// A tap (pointerdown→up with no move) draws this dot; flipping `empty`
+		// here (not only in the move handler) keeps the placeholder hidden and
+		// the dot preserved on resize.
 		if (empty) setEmpty(false)
 	}
 

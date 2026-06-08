@@ -41,8 +41,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
 
-	// User toggles are tracked as an explicit override; `undefined` means follow
-	// the default / search rules computed below.
+	// Explicit user toggle; `undefined` defers to the default/search rules below.
 	const [userOpen, setUserOpen] = useState<boolean | undefined>(undefined)
 
 	const visibleEntries = useMemo(
@@ -52,11 +51,9 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const empty = visibleEntries.length === 0
 
-	// Computed during render rather than synced through an effect: search
-	// visibility wins (force-open branches that contain a match, force-close
-	// filtered-out empties), otherwise honor the user's explicit toggle, falling
-	// back to the depth default. This keeps a cleared search from stomping a
-	// toggle the way the previous effect did.
+	// Computed during render: search visibility wins (force-open branches
+	// containing a match, force-close filtered-out empties), then the user's
+	// explicit toggle, then the depth default.
 	const open = controlled
 		? expanded.has(nodePath)
 		: search && hasMatch && !empty

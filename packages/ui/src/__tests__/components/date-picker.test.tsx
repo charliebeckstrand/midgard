@@ -13,9 +13,8 @@ function findDay(day: number) {
 
 type DatePickerApi = ReturnType<typeof useDatePickerState>
 
-// Drives the close path with an explicit floating-ui reason. A real React ref
-// (unlike a manual `setReference` call) populates the reference node the focus
-// effect reads, and the outside-press listener can't be exercised in jsdom.
+// Drives the close path with an explicit floating-ui reason via a real React ref,
+// which populates the reference node the focus effect reads.
 function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | null } }) {
 	const state = useDatePickerState({})
 
@@ -267,9 +266,7 @@ describe('DatePicker', () => {
 })
 
 // Focus stays on the trigger while an aria-activedescendant model drives the
-// grid, so the date picker is operable entirely from the keyboard — opening,
-// moving the highlight, and committing — without the click path the other
-// tests cover.
+// grid. Covers the keyboard path: opening, moving the highlight, and committing.
 describe('DatePicker keyboard', () => {
 	it.each([
 		'{ArrowDown}',

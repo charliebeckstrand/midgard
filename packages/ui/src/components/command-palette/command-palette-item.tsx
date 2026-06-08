@@ -16,10 +16,8 @@ type CommandPaletteItemBaseProps = {
 	closeOnAction?: boolean
 }
 
-// Href discrimination comes from the shared PolymorphicProps; the render stays
-// custom (sanctioned escape hatch) because an item carries role="option" /
-// roving tabindex and closes the palette on activation — behaviour the generic
-// Polymorphic doesn't cover.
+// Href discrimination comes from the shared PolymorphicProps. Rendered custom:
+// carries `role="option"`, roving tabindex, and palette-close on activation.
 export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
 	PolymorphicProps<'button', keyof CommandPaletteItemBaseProps>
 
@@ -41,9 +39,8 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		if (closeOnAction) close()
 	}
 
-	// Attributes common to both renders. Forwarded props (incl. `href`) are
-	// spread per branch via forwardedProps, which keeps the polymorphic union
-	// narrowed — a single hoisted rest would mix anchor/button members.
+	// Attributes shared by both render branches; host-element props are spread
+	// per branch via `forwardedProps` to keep the polymorphic union narrowed.
 	const optionProps = {
 		id: itemId,
 		role: 'option' as const,

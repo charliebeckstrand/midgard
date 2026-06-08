@@ -23,10 +23,10 @@ export type PopoverTriggerProps = {
 export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
 	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
-	// Return a cleanup from the ref callback so React 19 won't call it with
-	// null on unmount. That avoids `setReference(null)` firing a state update
-	// during deletion effects, which can otherwise cascade into a "Maximum
-	// update depth" error when ancestor state is still in flux.
+	// Returns a cleanup from the ref callback so React 19 does not call it with
+	// null on unmount. This prevents `setReference(null)` from firing a state
+	// update during deletion effects, which can cascade into a "Maximum update
+	// depth" error when ancestor state is still in flux.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			triggerRef.current = node as HTMLButtonElement | null

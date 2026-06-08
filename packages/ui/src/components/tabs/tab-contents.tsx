@@ -16,8 +16,9 @@ export function TabContents(props: TabContentsProps) {
 /**
  * Idiomatic tab panel — renders when its `value` matches the active tab. Inside
  * `<Tabs>` it auto-wires `role="tabpanel"`, the matching `aria-labelledby` →
- * tab, and `tabIndex={0}` (so a panel with no focusable child stays
- * keyboard-reachable), pairing with its `Tab` through the Tabs base id + value.
+ * tab, and a computed `tabIndex` (`0` when the panel has no focusable child,
+ * keeping it keyboard-reachable per APG), pairing with its `Tab` via the Tabs
+ * base id + value.
  */
 export function TabContent({ value, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
@@ -28,7 +29,7 @@ export function TabContent({ value, ...props }: TabContentProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	// Focusable only when the panel has no focusable child (APG), which keeps it
+	// `0` only when the panel has no focusable child (APG), keeping it
 	// keyboard-reachable without a redundant tab stop.
 	const tabIndex = useTabPanelTabIndex(ref)
 

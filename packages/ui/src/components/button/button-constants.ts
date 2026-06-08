@@ -6,9 +6,8 @@ export const buttonSpring = {
 	transition: k.motion,
 } as const
 
-// `aria-disabled` alone doesn't gate a link, so a loading anchor cancels its own
-// activation: block navigation (next/link bails on `defaultPrevented`) and
-// swallow the event so the consumer's `onClick` can't fire.
+// A loading anchor blocks navigation (`defaultPrevented` stops next/link) and
+// swallows the event so the consumer's `onClick` does not fire.
 function cancelActivation(e: MouseEvent<HTMLAnchorElement>) {
 	e.preventDefault()
 

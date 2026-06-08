@@ -47,7 +47,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		[columns, getKey],
 	)
 
-	// Card's current 1-based position within its column, for announcements.
+	// Returns the card's 1-based position within its column, used for announcements.
 	const locate = useCallback(
 		(cardId: string) => {
 			const col = findColumnByCardId(cardId)
@@ -204,7 +204,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			onValueChange(next)
 
-			// Appended to the end of the target column.
+			// Card is appended to the end of the target column.
 			const position = targetCol.items.length + 1
 
 			announce(
@@ -307,7 +307,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	)
 
 	const onCardBlur = useCallback(() => {
-		// Skip blur events caused by cross-column refocusing.
+		// Blur events during cross-column refocusing do not clear lifted state.
 		if (movingRef.current) return
 
 		setLiftedCardId(null)

@@ -1,8 +1,8 @@
 /**
  * `maplibre-gl` mock applied globally via `setup/module-mocks.ts`.
  *
- * jsdom has no WebGL, so swap the MapLibre runtime for a minimal fake that
- * records calls and fires 'load' on the next microtask.
+ * Replaces the MapLibre runtime (WebGL, absent in jsdom) with a minimal fake
+ * that records calls and fires 'load' on the next microtask.
  */
 
 import { act } from '@testing-library/react'
@@ -18,8 +18,8 @@ class FakeMap {
 	constructor(opts: { container: HTMLElement }) {
 		this.container = opts.container
 
-		// The 'load' handler in useMapInstance calls setReady(true); wrap the
-		// emission so the resulting React state update flushes inside act().
+		// Wraps the 'load' emission in act() so the React state update triggered
+		// by useMapInstance's handler flushes synchronously in tests.
 		queueMicrotask(() => {
 			act(() => {
 				this.emit('load')

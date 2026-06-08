@@ -36,10 +36,8 @@ const delta = defineRecipe({
 })
 
 /**
- * Skeleton placeholder dimensions for each Stat slot. Heights are tuned to the
- * text line-height of the live element so wrapping a `<Stat>` in `<Skeleton>`
- * doesn't shift layout. Widths are sensible defaults — caller can override via
- * `className`.
+ * Skeleton placeholder dimensions for each Stat slot. Heights match the text
+ * line-height of the live element. Widths are defaults — override via `className`.
  */
 const skeleton = {
 	value: defineRecipe({

@@ -208,9 +208,8 @@ describe('Popover non-modal semantics', () => {
 			</Popover>,
 		)
 
-		// floating-ui's `useRole` is suppressed (`role: null`), so only the panel
-		// itself is `role="dialog"` — the positioning wrapper is not a second,
-		// unnamed dialog around it.
+		// floating-ui's `useRole` is suppressed (`role: null`); only the panel
+		// itself carries `role="dialog"`, not the positioning wrapper.
 		expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1)
 
 		const panel = content()

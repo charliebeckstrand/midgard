@@ -41,11 +41,9 @@ export type PanelProvidersProps = {
 }
 
 /**
- * Wraps a panel surface's children in the context envelope every overlay
- * (Dialog / Drawer / Sheet) shares: the Close context (so `PanelClose` and
- * slot dismiss resolve) over the A11y context (so Title / Description register
- * and adopt their ids). Owning the nesting here keeps the three roots in
- * lockstep — the close-outside-a11y order can't drift between them.
+ * Wraps a panel surface's children in the shared context envelope: the Close
+ * context (so `PanelClose` and slot dismiss resolve) nested over the A11y
+ * context (so Title / Description register and adopt their ids).
  */
 export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersProps) {
 	const closeValue = usePanelCloseValue(onOpenChange)
@@ -85,9 +83,8 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 			<h2
 				id={id ?? titleId}
 				data-slot={`${slotPrefix}-title`}
-				// An `<h2>`: weight (level 2) and the density-scaled size both come
-				// from the heading scale, so panel titles stay single-sourced with
-				// `<Heading>` without the primitive importing the component.
+				// An `<h2>`: weight (level 2) and density-scaled size both drawn
+				// from the heading scale via `headingWeight` and `titleSize`.
 				className={cn(titleClass, headingWeight(2), titleSize(size), className)}
 				{...props}
 			/>

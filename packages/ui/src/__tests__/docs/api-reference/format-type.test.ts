@@ -14,7 +14,7 @@ function typeOfPropValue(sources: Record<string, string>): {
 
 	if (!sf) throw new Error('index.ts not found')
 
-	// Locate `const value: T = …` and return the type of `value`.
+	// Finds `const value: T = …` and returns the type of `value`.
 	for (const stmt of sf.statements) {
 		if (!ts.isVariableStatement(stmt)) continue
 
@@ -96,9 +96,7 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 	})
 
 	it('preserves a named interface across the optional-stripping path', () => {
-		// `ReactNode | undefined` is the documented case in the source — its
-		// alias survives. Use a project-local interface here so the test stays
-		// independent of @types/react.
+		// Uses a project-local interface — independent of @types/react.
 		const { type, checker, location } = typeOfPropValue({
 			'index.ts': [
 				`interface Theme { color: string }`,
