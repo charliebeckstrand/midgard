@@ -56,7 +56,7 @@ export function Drawer({
 				{...k.motion}
 				{...panelAriaProps}
 				data-slot="drawer"
-				data-density={resolvedSize}
+				data-size={resolvedSize}
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>

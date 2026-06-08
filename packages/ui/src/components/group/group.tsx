@@ -69,7 +69,7 @@ export function Group({
 			ref={ref}
 			data-slot={slot}
 			href={href}
-			data-density={resolvedSize}
+			data-size={resolvedSize}
 			data-group-orientation={orientation}
 			className={cn(
 				'inline-flex',

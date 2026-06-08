@@ -115,7 +115,7 @@ export function Button({
 						ref={ref as Ref<HTMLAnchorElement>}
 						data-slot={slot}
 						data-variant={variant}
-						data-density={resolvedSize}
+						data-size={resolvedSize}
 						data-has-prefix={!!prefix || undefined}
 						data-has-suffix={!!suffix || undefined}
 						data-has-label={hasLabel || undefined}
@@ -143,7 +143,7 @@ export function Button({
 				ref={ref as Ref<HTMLButtonElement>}
 				data-slot={slot}
 				data-variant={variant}
-				data-density={resolvedSize}
+				data-size={resolvedSize}
 				data-has-prefix={!!prefix || undefined}
 				data-has-suffix={!!suffix || undefined}
 				data-has-label={hasLabel || undefined}

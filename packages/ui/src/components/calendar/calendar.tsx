@@ -209,7 +209,7 @@ export function Calendar({
 		<Density scale={resolvedSize}>
 			<div
 				data-slot="calendar"
-				data-density={resolvedSize}
+				data-size={resolvedSize}
 				className={cn(k.base({ size: resolvedSize }), className)}
 			>
 				<CalendarHeader

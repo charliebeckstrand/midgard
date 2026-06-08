@@ -83,7 +83,7 @@ export function PopoverContent({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
-				data-density={resolvedSize}
+				data-size={resolvedSize}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Density scale={resolvedSize}>

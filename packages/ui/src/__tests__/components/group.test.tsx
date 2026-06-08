@@ -107,14 +107,14 @@ describe('Group', () => {
 		}
 	})
 
-	it('applies the explicit size prop to data-density', () => {
+	it('applies the explicit size prop to data-size', () => {
 		const { container } = renderUI(
 			<Group size="lg">
 				<button type="button">A</button>
 			</Group>,
 		)
 
-		expect(bySlot(container, 'group')).toHaveAttribute('data-density', 'lg')
+		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('inherits size from an enclosing Density context when size is omitted', () => {
@@ -126,7 +126,7 @@ describe('Group', () => {
 			</Density>,
 		)
 
-		expect(bySlot(container, 'group')).toHaveAttribute('data-density', 'sm')
+		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'sm')
 	})
 
 	it('explicit size overrides Density inheritance', () => {
@@ -138,7 +138,7 @@ describe('Group', () => {
 			</Density>,
 		)
 
-		expect(bySlot(container, 'group')).toHaveAttribute('data-density', 'lg')
+		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('falls back to "md" outside any Density context and without explicit size', () => {
@@ -148,7 +148,7 @@ describe('Group', () => {
 			</Group>,
 		)
 
-		expect(bySlot(container, 'group')).toHaveAttribute('data-density', 'md')
+		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'md')
 	})
 
 	it('provides a Density context to descendants', () => {

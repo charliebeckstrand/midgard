@@ -138,24 +138,24 @@ describe('Drawer size context', () => {
 	const drawerPanel = () => document.querySelector<HTMLElement>('[data-slot="drawer"]')
 	const buttonInDrawer = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
-	it('defaults to size="md" and exposes data-density on the panel', () => {
+	it('defaults to size="md" and exposes data-size on the panel', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
 				content
 			</Drawer>,
 		)
 
-		expect(drawerPanel()).toHaveAttribute('data-density', 'md')
+		expect(drawerPanel()).toHaveAttribute('data-size', 'md')
 	})
 
-	it('reflects an explicit size prop on data-density', () => {
+	it('reflects an explicit size prop on data-size', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} size="lg">
 				content
 			</Drawer>,
 		)
 
-		expect(drawerPanel()).toHaveAttribute('data-density', 'lg')
+		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('descendant Buttons inherit the Drawer size', () => {
@@ -178,7 +178,7 @@ describe('Drawer size context', () => {
 			</DensityProvider>,
 		)
 
-		expect(drawerPanel()).toHaveAttribute('data-density', 'sm')
+		expect(drawerPanel()).toHaveAttribute('data-size', 'sm')
 	})
 
 	it('explicit size prop wins over an ambient Density', () => {
@@ -190,6 +190,6 @@ describe('Drawer size context', () => {
 			</DensityProvider>,
 		)
 
-		expect(drawerPanel()).toHaveAttribute('data-density', 'lg')
+		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
 	})
 })
