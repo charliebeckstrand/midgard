@@ -62,6 +62,19 @@ export function setVirtualActive(
 }
 
 /**
+ * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
+ * other item `-1`. Writes only on divergence so a MutationObserver watching
+ * `tabindex` doesn't feed back on these edits. Pass `undefined` to demote all.
+ */
+export function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
+	for (const it of items) {
+		const desired = it === active ? 0 : -1
+
+		if (it.tabIndex !== desired) it.tabIndex = desired
+	}
+}
+
+/**
  * Next roving index for a key press, or null if unhandled.
  * -1 means nothing is active; a forward key lands on the first item, back on the last.
  * Indices wrap at both ends.
@@ -290,8 +303,9 @@ export function useA11yRoving(
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
-	// (items added/removed, disabled toggled, current item moved). Writes only on
-	// divergence so the observer doesn't feed back on its own tabindex edits.
+	// (items added/removed, disabled toggled, current item moved) and carrying the
+	// stop to any item that takes focus. Writes only on divergence so the observer
+	// doesn't feed back on its own tabindex edits.
 	useEffect(() => {
 		if (mode !== 'focus' || !manageTabIndex) return
 
@@ -324,14 +338,24 @@ export function useA11yRoving(
 					: ((activeSelector ? items.find((it) => it.matches(activeSelector)) : undefined) ??
 						items[0]))
 
-			for (const it of items) {
-				const desired = it === active ? 0 : -1
-
-				if (it.tabIndex !== desired) it.tabIndex = desired
-			}
+			seatTabStop(items, active)
 		}
 
 		normalize()
+
+		// Carry the resting stop to whatever item takes focus — a click or
+		// programmatic focus, not just arrow roving (`moveTo` seats those itself).
+		// `focusin` bubbles where `focus` doesn't, so one container listener catches
+		// focus landing on any item; the stop then survives Tab away and back.
+		const onFocusIn = (e: FocusEvent) => {
+			const items = queryItems(el, itemSelector)
+
+			const target = items.find((it) => it === e.target)
+
+			if (target) seatTabStop(items, target)
+		}
+
+		el.addEventListener('focusin', onFocusIn)
 
 		const observer = new MutationObserver(normalize)
 
@@ -342,7 +366,11 @@ export function useA11yRoving(
 			attributeFilter: ['tabindex', 'disabled', 'aria-current'],
 		})
 
-		return () => observer.disconnect()
+		return () => {
+			el.removeEventListener('focusin', onFocusIn)
+
+			observer.disconnect()
+		}
 	}, [containerRef, itemSelector, mode, manageTabIndex, activeSelector])
 
 	return useCallback(
@@ -364,14 +392,10 @@ export function useA11yRoving(
 					if (!next) return
 
 					// Carry the resting stop to the newly focused item so leaving and
-					// re-Tabbing into the widget returns here.
-					if (manageTabIndex) {
-						for (const it of items) {
-							const desired = it === next ? 0 : -1
-
-							if (it.tabIndex !== desired) it.tabIndex = desired
-						}
-					}
+					// re-Tabbing into the widget returns here. `focusin` would seat it
+					// once `focus()` lands, but doing it first keeps the arrow path
+					// synchronous and independent of the event firing.
+					if (manageTabIndex) seatTabStop(items, next)
 
 					next.focus()
 

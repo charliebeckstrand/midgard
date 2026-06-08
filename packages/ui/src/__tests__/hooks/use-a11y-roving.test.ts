@@ -567,6 +567,28 @@ describe('useA11yRoving — manageTabIndex', () => {
 		container.remove()
 	})
 
+	it('carries the resting stop to a focused item without an arrow key (click / programmatic)', () => {
+		const container = makeButtons(3)
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
+		})
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		expect(tabIndices(container)).toEqual([0, -1, -1])
+
+		// Focus landing on a control by any route (a click, programmatic focus) —
+		// not just arrow roving — makes it the resting stop, so Tab returns there.
+		items[2]?.focus()
+
+		expect(tabIndices(container)).toEqual([-1, -1, 0])
+
+		container.remove()
+	})
+
 	it('leaves tabindex untouched when manageTabIndex is off (default)', () => {
 		const container = makeButtons(3)
 
