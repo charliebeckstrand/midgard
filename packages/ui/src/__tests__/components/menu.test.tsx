@@ -107,6 +107,28 @@ describe('MenuTrigger', () => {
 
 		expect(onClick).toHaveBeenCalled()
 	})
+
+	it('toggles open and still calls a consumer onClick on the fallback button', () => {
+		// Regression: on the plain-button fallback a consumer onClick must not
+		// clobber the open toggle.
+		const onClick = vi.fn()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger onClick={onClick}>Open</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.click(trigger)
+
+		expect(onClick).toHaveBeenCalled()
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
 })
 
 describe('MenuContent', () => {

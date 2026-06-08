@@ -51,10 +51,15 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			aria-expanded={open}
 			aria-controls={open ? menuId : undefined}
 			data-slot="menu-trigger"
-			onClick={() => setOpen(!open)}
 			className={cn(className)}
 			{...referenceProps}
 			{...props}
+			// After the spreads so a consumer-supplied onClick can't clobber the
+			// toggle; compose both, mirroring the element branch above.
+			onClick={(e: MouseEvent<HTMLButtonElement>) => {
+				;(props as ComponentPropsWithoutRef<'button'>).onClick?.(e)
+				setOpen(!open)
+			}}
 		>
 			{children}
 		</button>
