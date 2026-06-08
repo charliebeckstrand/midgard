@@ -44,8 +44,8 @@ export function CreditCardInputExpiry({
 			onChange={(e) => {
 				const raw = e.target.value
 
-				// Backspace over the auto-inserted "/" should delete the preceding digit,
-				// otherwise the formatter would re-append "/" and trap the caret.
+				// Backspace over the auto-inserted "/" deletes the preceding digit;
+				// without this the formatter re-appends "/" and traps the caret.
 				if (masked.value.endsWith('/') && raw === masked.value.slice(0, -1)) {
 					const next = raw.slice(0, -1)
 

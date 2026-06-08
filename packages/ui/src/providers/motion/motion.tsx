@@ -26,9 +26,9 @@ type MotionProps = {
  *
  * Scope is intentionally narrow: this only configures framer `motion.*`. The
  * library's CSS transitions (`motion-safe:` utilities) and imperative
- * animations (odometer, hold-button) read the OS preference directly and are
- * unaffected by this provider — so motion handling stays consistent at the
- * default, and the override can only ever *reduce* motion, never add it.
+ * animations (odometer, hold-button) read the OS preference directly,
+ * unaffected by this provider. The override can only ever *reduce* motion,
+ * never add it.
  */
 export function Motion({ reducedMotion = 'user', children }: MotionProps) {
 	return <MotionConfig reducedMotion={reducedMotion}>{children}</MotionConfig>

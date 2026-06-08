@@ -10,11 +10,9 @@ import { useMapRouteLayers } from '../../components/map/use-map-route-layers'
 
 type Handler = (...args: unknown[]) => void
 
-// Only the MapLibreMap members `useMapRouteLayers` actually calls. Typing the
-// fake to this subset means we can cast it to MapLibreMap with a single `as` —
-// the bidirectional-overlap rule holds because MapLibreMap is assignable to
-// the `Pick`. The hook never reaches for anything outside this surface, so the
-// runtime stays sound.
+// Only the MapLibreMap members `useMapRouteLayers` actually calls. Typed as a
+// `Pick` and cast to MapLibreMap via the bidirectional-overlap rule (MapLibreMap
+// is assignable to the `Pick`).
 type RouteLayerMapApi = Pick<
 	MapLibreMap,
 	| 'on'
@@ -60,10 +58,8 @@ function makeFakeMap(): FakeMap {
 	const canvasStyle = { cursor: '' }
 
 	// `vi.fn()` without an inferred impl produces `Mock<Procedure>` — the
-	// universal-donor function shape `(...args: any[]) => any`. That assigns
-	// cleanly to MapLibre's overloaded method types via the `api as MapLibreMap`
-	// cast below, where contextually typing impls (`vi.fn(impl)`) would narrow
-	// the mock's return to `void` and conflict with MapLibre's chainable `this`.
+	// universal-donor shape `(...args: any[]) => any` — which assigns cleanly
+	// to MapLibre's overloaded method types via the `api as MapLibreMap` cast.
 	const onSpy = vi.fn()
 
 	onSpy.mockImplementation((event: string, layer: string, handler: Handler) => {

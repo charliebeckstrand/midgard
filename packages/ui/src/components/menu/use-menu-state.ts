@@ -14,8 +14,8 @@ type MenuStateOptions = {
 
 export function useMenuState({ defaultOpen = false, placement, size }: MenuStateOptions) {
 	const inherited = useDensity()
-	// An explicit `size` prop is a single knob that sets both axes (diagonal);
-	// otherwise each axis inherits independently from the ambient token.
+	// An explicit `size` prop sets both density axes uniformly; otherwise each
+	// axis inherits independently from the ambient Density token.
 	const resolvedDensity: Step = size ?? inherited.space
 	const resolvedSize: Step = size ?? inherited.size
 
@@ -26,9 +26,9 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 	const isStatic = defaultOpen && !isDropdown
 
 	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
-	// their own roles + popup wiring; suppress floating-ui's role so the
-	// positioning wrapper isn't double-stamped. `menuId` lets the trigger's
-	// `aria-controls` point at the real menu panel rather than that wrapper.
+	// their own roles; `role: null` suppresses floating-ui's `useRole` so the
+	// positioning wrapper is not double-stamped. `menuId` lets the trigger's
+	// `aria-controls` point at the real menu panel.
 	const menuId = useId()
 
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =

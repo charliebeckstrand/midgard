@@ -6,27 +6,22 @@
  * `data-group` (`start` | `middle` | `end` | `only`) and
  * `data-group-orientation` (`horizontal` | `vertical`) onto each child;
  * `<Group>` carries the matching orientation bundle on its container, and
- * the descendant selectors it compiles to apply only once a child reports a
- * position.
+ * the descendant selectors apply only once a child reports a position.
  *
- * Authored as container classes rather than `data-[group=…]:` utilities on
- * every control so the joins cost nothing when an element isn't grouped — a
- * control would otherwise carry ~20 dormant utilities in its class string.
- * The cost lands on the single group container instead, and the lone
- * stylesheet this used to need is gone.
+ * Authored as container classes on the group; the cost lands on the single
+ * container, so an ungrouped element carries no join utilities.
  *
- * Keyed on both orientation and position so the reach stays depth-tolerant
- * yet nest-safe. Depth-tolerant: the bordered element is `ControlFrame`,
- * nested below a control wrapper in Select / DatePicker, so a direct-child
- * combinator wouldn't reach it. Nest-safe: the orientation match keeps an
- * inner vertical group clear of an outer horizontal one, and same-orientation
- * nesting reapplies the identical position-keyed declarations, so it stays
- * idempotent rather than fighting on the cascade.
+ * Keyed on both orientation and position for depth-tolerance and nest-safety.
+ * Depth-tolerant: the bordered element is `ControlFrame`, nested below a
+ * control wrapper in Select / DatePicker — a direct-child combinator wouldn't
+ * reach it. Nest-safe: the orientation match keeps an inner vertical group
+ * clear of an outer horizontal one, and same-orientation nesting reapplies
+ * identical position-keyed declarations, staying idempotent on the cascade.
  *
  * `::before` / `::after` mirror the outer radius drop so kasane consumers
- * don't show rounded inset-fill or focus-overlay corners while the outer
- * element is flat. Borders overlap by 1 px (`-ms-px` / `-mt-px`) so adjacent
- * rings don't double.
+ * don't show rounded inset-fill or focus-overlay corners on a flat side.
+ * Borders overlap by 1 px (`-ms-px` / `-mt-px`) so adjacent rings don't
+ * double.
  *
  * Horizontal uses logical end / start radii (`rounded-e-none` /
  * `rounded-s-none`) so RTL mirrors automatically. Vertical uses physical

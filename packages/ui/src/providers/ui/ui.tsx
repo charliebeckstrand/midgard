@@ -1,11 +1,10 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-// LinkContext / PortalContext are defined in the primitives, not locally, on
-// purpose: the `polymorphic` primitive consumes `useLink` and the `overlay` /
-// `floating-surface` primitives consume `usePortalContainer`, so each context
-// must live at the lowest layer that needs it. A local context here would force
-// a primitive to import from the providers layer. This provider is a thin
+// LinkContext / PortalContext are defined in the primitives layer, not locally:
+// the `polymorphic` primitive consumes `useLink` and the `overlay` /
+// `floating-surface` primitives consume `usePortalContainer`, keeping each
+// context at the lowest layer that needs it. This provider is a thin
 // friendly wrapper that fans out to both.
 import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
 import { type PortalContainer, PortalContext } from '../../primitives/portal'

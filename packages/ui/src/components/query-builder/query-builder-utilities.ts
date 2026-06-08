@@ -93,9 +93,8 @@ export function hasRules(group: QueryGroup): boolean {
 /**
  * Apply a transform to the node matching `id`, walking recursively.
  *
- * Returns the same `tree` reference when `id` is not found — this keeps
- * unrelated subtrees referentially equal so memoized descendants can skip
- * re-renders.
+ * Returns the same `tree` reference when `id` is not found, keeping
+ * unrelated subtrees referentially equal for memoized descendants.
  */
 export function mapNode(
 	tree: QueryGroup,
@@ -230,8 +229,8 @@ export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 }
 
 /**
- * Stable string keys under which focusable controls register themselves, so a
- * `FocusTarget` can be matched to a live element without touching the DOM.
+ * Stable string keys under which focusable controls register themselves,
+ * matching a `FocusTarget` to a live element without touching the DOM.
  */
 export const focusKeys = {
 	node: (id: string) => `node:${id}`,

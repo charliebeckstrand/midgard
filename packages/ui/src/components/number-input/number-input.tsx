@@ -60,9 +60,8 @@ export function NumberInput({
 
 	const inherited = useDensity()
 
-	// Pass `size` through untouched so `<Input>` inherits the full two-axis
-	// density token when it's omitted; resolve locally only to pick the
-	// padding that clears the stepper buttons (which track the size axis).
+	// `size` passes through untouched to `<Input>` for the full density token;
+	// resolved locally only to pick the padding that clears the stepper buttons.
 	const resolvedSize: ControlSize = size ?? inherited.size
 
 	const precision = step.toString().split('.')[1]?.length ?? 0
@@ -99,9 +98,7 @@ export function NumberInput({
 
 		if (Number.isNaN(n)) return
 
-		// Store the raw value while typing; clamping mid-entry would make any
-		// multi-digit value whose prefix falls outside [min, max] untypeable
-		// (e.g. with min={10}, typing "1" would snap to "10"). Clamp on blur.
+		// Stores the raw value while typing; clamps on blur instead.
 		setCurrent(n)
 	}
 

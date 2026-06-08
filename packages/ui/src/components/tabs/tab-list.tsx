@@ -10,8 +10,7 @@ import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
-// A tablist needs a name (multiple tablists are otherwise indistinguishable);
-// require one rather than letting an unnamed tablist ship.
+// Require an accessible name: multiple tablists are otherwise indistinguishable.
 export type TabListProps = AccessibleName &
 	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
 
@@ -22,8 +21,8 @@ export function TabList({ className, children, ...props }: TabListProps) {
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
-	// When wrapped in <Tabs>, the parent has already resolved Density into tabsContext.size.
-	// When used à la carte (just <TabList>+<Tab>), fall back to reading Density here.
+	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
+	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
 	const inherited = useDensity()
 
 	const size = tabsContext?.size ?? inherited.size

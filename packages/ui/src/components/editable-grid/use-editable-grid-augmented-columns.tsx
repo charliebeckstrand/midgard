@@ -26,12 +26,10 @@ export function useEditableGridAugmentedColumns<T>({
 	formatCell,
 	cellId,
 }: EditableGridAugmentedColumns<T>): DataTableColumn<T>[] {
-	// `cellProps` is a plain function (not a component), so it can't read the
-	// state context the way `EditableGridCell` does. Its onMouseDown guard reads
-	// `active`/`editing` through refs at event time instead of closing over the
-	// values — keeping them out of the memo deps so navigation doesn't rebuild
-	// every column. With the column identities stable, the memoized DataTable
-	// rows hold and only the affected cell shells re-render (via the context).
+	// `cellProps` is a plain function, not a component; it reads `active` and
+	// `editing` through refs at event time rather than closing over state values,
+	// keeping them out of the memo deps. Stable column identities let memoized
+	// DataTable rows hold; only the affected cell shells re-render via context.
 	const activeRef = useRef(active)
 
 	activeRef.current = active
@@ -76,8 +74,8 @@ export function useEditableGridAugmentedColumns<T>({
 					const rowIdx = rowIndexMap.get(row) ?? -1
 
 					return {
-						// Stable id (not selection state, so it stays out of the memo) that
-						// the grid's reactive `aria-activedescendant` resolves to.
+						// Stable per-cell id that `aria-activedescendant` resolves to;
+						// derived from position, not selection state, so it stays out of the memo.
 						id: cellId(`cell-${rowIdx}-${colIdx}`),
 						role: 'gridcell',
 						'aria-readonly': readOnly || undefined,

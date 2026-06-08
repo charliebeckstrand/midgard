@@ -1,9 +1,8 @@
 /**
  * Omote bg — the colour pairs (`light`/`dark`) every surface concern
- * composes with its chrome. Lives separately so surface / popover /
- * tint / skeleton share one source of truth. Backdrop fills live with
- * the backdrop chrome in `backdrop.ts` — no other surface composes
- * them.
+ * composes with its chrome. One source of truth for surface / popover /
+ * tint / skeleton fills. Backdrop fills live with the backdrop chrome
+ * in `backdrop.ts`.
  *
  * Layer: kiso · Concern: surface fills
  */

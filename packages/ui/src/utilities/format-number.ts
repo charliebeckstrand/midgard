@@ -1,7 +1,6 @@
-// Cached Intl.NumberFormat instances. `Number.prototype.toLocaleString` and
-// `new Intl.NumberFormat()` allocate a fresh formatter on every call, which
-// becomes measurable in per-frame animations (Odometer) and grids with many
-// numeric cells (PivotTable). Sharing module-level instances avoids that.
+// Module-level cached `Intl.NumberFormat` instances. Fresh allocation per call
+// is measurable in per-frame animations (Odometer) and numeric-cell-heavy
+// grids (PivotTable).
 const integerFormatter = new Intl.NumberFormat()
 const fractionFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
 

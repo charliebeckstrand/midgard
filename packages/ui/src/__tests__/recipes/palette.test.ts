@@ -13,8 +13,7 @@ describe('palette', () => {
 	})
 
 	it('merges overlays left-to-right so a later overlay wins on key collision', () => {
-		// Each overlay carries the full key set per the signature; later
-		// `Object.assign` passes overwrite earlier values on the same key.
+		// Later `Object.assign` passes overwrite earlier values on the same key.
 		const config = definePalette(
 			{ solid: { zinc: [], red: [], amber: [], green: [], blue: [] } },
 			{ inherit: 'first-inherit', mute: 'first-mute' },
@@ -37,9 +36,7 @@ describe('palette', () => {
 	})
 
 	it('merges per-colour entries when the matrix value is an array of records', () => {
-		// `iro.palette` slots are authored as separate records (`bg`, `text`,
-		// `hover`); a kata that wants the bundle passes them as an array and
-		// the engine concatenates per colour.
+		// Array of records (e.g. `bg`, `text`, `hover` slots) are concatenated per colour.
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: [
@@ -57,8 +54,7 @@ describe('palette', () => {
 	})
 
 	it('unions matrix variants into the explicit `variant:` axis', () => {
-		// A palette-only variant doesn't need a duplicate entry under
-		// `variant:` — the engine adds it so the compound rules fire.
+		// The engine adds palette-only variants to the `variant:` axis; compound rules fire.
 		const recipe = defineRecipe({
 			variant: { outline: 'has-ring' },
 			palette: definePalette({

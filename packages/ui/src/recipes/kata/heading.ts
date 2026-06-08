@@ -16,7 +16,7 @@ const ladder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl'] as const
 
 type Rung = (typeof ladder)[number]
 
-/** Natural rung per level at neutral (`md`) density — the pre-density baseline. */
+/** Natural rung per level at neutral (`md`) density. */
 const base = {
 	1: '3xl',
 	2: '2xl',
@@ -31,9 +31,8 @@ const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<Step, number>
 
 /**
  * Font weight per heading level — bold at the top of the scale, easing to
- * medium. Single-sourced here so heading-like elements that can't render
- * `<Heading>` (the panel title slot lives in the primitive layer) reuse it
- * via {@link headingWeight} instead of pinning their own weight token.
+ * medium. Heading-like elements that don't render `<Heading>` (e.g. the panel
+ * title slot) pull their weight via {@link headingWeight}.
  */
 const levelWeight = {
 	1: weight.bold,
@@ -46,33 +45,30 @@ const levelWeight = {
 
 /**
  * Resolve the type-scale rung for a heading `level` under a density `step`,
- * clamped to the ladder ends. `md` returns the level's natural rung, so
- * default density reproduces the pre-density sizes exactly; `sm`/`lg` shift
- * every level one rung together, preserving the level hierarchy.
+ * clamped to the ladder ends. `md` returns the level's natural rung;
+ * `sm`/`lg` shift every level one rung, preserving the level hierarchy.
  */
 export function headingScale(level: Level, step: Step): Rung {
 	const index = Math.min(ladder.length - 1, Math.max(0, ladder.indexOf(base[level]) + shift[step]))
 
-	// Clamped above, so the lookup is always in bounds; the fallback to the
-	// level's natural rung only satisfies `noUncheckedIndexedAccess`.
+	// Clamped above, so the lookup is always in bounds; the fallback satisfies
+	// `noUncheckedIndexedAccess`.
 	return ladder[index] ?? base[level]
 }
 
 /**
  * Density-scaled font size for component titles (Card, Dialog / Sheet /
- * Drawer). A title sits at the level-4 `lg` rung and shifts ±1 with the
- * ambient density step, exactly like a `<Heading>`: `md` holds the `text-lg`
- * baseline, `sm` / `lg` move one rung. Returns the matching `ji.size` class.
+ * Drawer). Resolves the level-4 `lg` rung shifted ±1 by the ambient density
+ * step — `md` returns `text-lg`, `sm`/`lg` move one rung. Returns the
+ * matching `ji.size` class.
  */
 export function titleSize(step: Step): string {
 	return size[headingScale(4, step)]
 }
 
 /**
- * Heading font weight for a `level`. For callers that style a heading-like
- * element without rendering `<Heading>` — the panel title is an `<h2>` built
- * in the primitive layer, so it pulls its weight from here (level 2) rather
- * than hardcoding one.
+ * Heading font weight for a `level`. Used by heading-like elements that don't
+ * render `<Heading>` directly — e.g. the panel title (`<h2>`, level 2).
  */
 export function headingWeight(level: Level): string {
 	return levelWeight[level]
@@ -80,8 +76,8 @@ export function headingWeight(level: Level): string {
 
 export const k = defineRecipe({
 	base: [...text.default],
-	// `level` drives weight only; the type size is the `scale` rung the
-	// component resolves from level + density via `headingScale`.
+	// `level` drives weight only; the type size is the `scale` rung resolved
+	// from level + density via `headingScale`.
 	level: levelWeight,
 	scale: {
 		xs: size.xs,

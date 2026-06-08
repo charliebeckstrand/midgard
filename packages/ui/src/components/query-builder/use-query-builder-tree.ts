@@ -44,18 +44,17 @@ export function useQueryBuilderTree({
 
 	const root = tree ?? initial
 
-	// `remove` is kept referentially stable (so the actions context doesn't
-	// churn on every edit), so it can't close over the live tree — mirror the
-	// latest root into a ref the handler reads when computing where focus
-	// should land after a node disappears.
+	// `remove` is referentially stable, so it cannot close over the live tree.
+	// The latest root is mirrored into a ref that the handler reads when
+	// computing where focus should land after a node disappears.
 	const treeRef = useRef(root)
 
 	treeRef.current = root
 
 	// Focus registry: each remove/add control registers its element by key. A
-	// removal stashes its ordered focus candidates; the effect runs once the
-	// tree has re-rendered (the removed node now unregistered) and moves focus
-	// to the first surviving candidate, so it never falls to <body> (WCAG 2.4.3).
+	// removal stashes ordered focus candidates; the effect runs once the tree
+	// has re-rendered (the removed node now unregistered) and moves focus to
+	// the first surviving candidate, keeping focus off <body> (WCAG 2.4.3).
 	const focusables = useRef(new Map<string, HTMLElement>())
 
 	const register = useCallback<FocusRegister>((key, el) => {
@@ -63,11 +62,10 @@ export function useQueryBuilderTree({
 		else focusables.current.delete(key)
 	}, [])
 
-	// Each removal sets a fresh candidate array, so the effect runs only after a
-	// removal commits (the removed node now unregistered) — never on unrelated
-	// re-renders. It deliberately leaves `pendingFocus` set: clearing it would
-	// trigger an extra render that remounts the just-focused control and drops
-	// focus back to <body>.
+	// Each removal sets a fresh candidate array. The effect therefore runs only
+	// after a removal commits (the removed node now unregistered), never on
+	// unrelated re-renders. `pendingFocus` is deliberately left set: clearing
+	// it triggers an extra render that remounts the just-focused control.
 	const [pendingFocus, setPendingFocus] = useState<FocusTarget[] | null>(null)
 
 	useEffect(() => {
@@ -120,7 +118,7 @@ export function useQueryBuilderTree({
 
 	const remove = useCallback(
 		(id: string) => {
-			// Resolve focus candidates from the pre-removal tree; the effect above
+			// Resolve focus candidates from the pre-removal tree; the effect
 			// moves focus once the node has unmounted.
 			const targets = findFocusTarget(treeRef.current, id)
 

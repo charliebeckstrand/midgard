@@ -6,20 +6,18 @@ import { renderUI } from '../helpers'
 
 /**
  * Bare-button target-size floor (real browser). The bare variant carries no
- * padding, so an icon-only bare button's border-box is just the icon — below
- * the WCAG 2.5.8 24px minimum the geometry gate (a11y-geometry.test.tsx)
- * enforces. The recipe floors that box to 24px and pulls the overshoot back
- * with a matched negative margin so the floor never grows the row it sits in.
+ * padding: an icon-only bare button's border-box is just the icon — below the
+ * WCAG 2.5.8 24px minimum. The recipe floors that box to 24px and pulls the
+ * overshoot back with a matched negative margin; the floor never grows the row
+ * it sits in.
  *
- * The corpus gate clears the tag-input's bare X through axe's spacing
- * exception, so it can't see this floor regress — a no-op floor would still
- * pass there. This measures the box directly. jsdom has no layout (the box is
- * zero), so it can only run in a real engine with the compiled utilities loaded.
+ * The corpus gate clears the tag-input's bare X through axe's spacing exception
+ * and can't detect a no-op floor; this measures the box directly. jsdom has no
+ * layout (box is zero); this runs only in a real engine with compiled utilities
+ * loaded.
  *
- * The floor carries compliance instead of the variant's former `::before`
- * pointer slop, which is now removed: on coarse pointers TouchTarget owns the
- * hit area (44px), and on fine pointers the slop only bled invisibly past the
- * box. The last case pins that the fine-pointer hit area is now exactly the box.
+ * On coarse pointers TouchTarget owns the hit area (44px); on fine pointers the
+ * hit area is the border-box. The last case pins that invariant.
  */
 describe('bare button target-size floor', () => {
 	it('floors an icon-only bare box to 24px without growing its footprint', () => {
@@ -37,12 +35,12 @@ describe('bare button target-size floor', () => {
 
 		const box = button.getBoundingClientRect()
 
-		// The hit box clears the 24px minimum...
+		// Hit box clears the 24px minimum...
 		expect(box.width).toBeGreaterThanOrEqual(24)
 		expect(box.height).toBeGreaterThanOrEqual(24)
 
-		// ...while the negative margin collapses its margin-box back to the 20px
-		// md icon, so the wrapper — and any row it sits in — never grows.
+		// ...while the negative margin collapses the margin-box back to the 20px
+		// md icon — the wrapper never grows.
 		const wrapBox = wrap.getBoundingClientRect()
 
 		expect(wrapBox.width).toBeLessThan(24)
@@ -62,16 +60,14 @@ describe('bare button target-size floor', () => {
 
 		const wrap = button.closest('[data-slot="wrap"]') as HTMLElement
 
-		// `:not([data-has-label])` excludes the floor, so there is no negative-margin
-		// pull: the button's margin-box equals its border-box and the wrapper tracks
-		// the button exactly. (An unconditional floor would shrink the wrapper below.)
+		// `:not([data-has-label])` excludes the floor: no negative-margin pull;
+		// the button's margin-box equals its border-box and the wrapper tracks it exactly.
 		expect(wrap.getBoundingClientRect().height).toBe(button.getBoundingClientRect().height)
 	})
 
 	it('confines the icon-only mouse hit area to the box (no pseudo bleed)', () => {
-		// The removed `::before` slop only ever widened the fine-pointer area
-		// (TouchTarget, the 44px coarse expander, is `pointer-fine:hidden`). Assert
-		// this engine reports a fine pointer so the box is the whole hit story here.
+		// TouchTarget (the 44px coarse expander) is `pointer-fine:hidden`; with a
+		// fine pointer the border-box is the complete hit area.
 		expect(window.matchMedia('(pointer: fine)').matches).toBe(true)
 
 		const { getByRole } = renderUI(
@@ -89,8 +85,8 @@ describe('bare button target-size floor', () => {
 		const inside = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
 		expect(button.contains(inside)).toBe(true)
 
-		// ...while a point 4px past the edge — well inside the old 8px `-inset-2`
-		// slop — now misses the button, hitting the surrounding padding instead.
+		// ...while a point 4px past the right edge misses the button, hitting the
+		// surrounding padding instead.
 		const outside = document.elementFromPoint(box.right + 4, box.top + box.height / 2)
 		expect(outside).not.toBeNull()
 		expect(button.contains(outside)).toBe(false)

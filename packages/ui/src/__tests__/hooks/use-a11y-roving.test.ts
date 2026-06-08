@@ -488,8 +488,8 @@ describe('useA11yRoving', () => {
 })
 
 describe('useA11yRoving — manageTabIndex', () => {
-	// Native <button>s start tabbable (tabIndex 0); the hook should collapse them
-	// to a single resting stop.
+	// Native <button>s start tabbable (tabIndex 0); the hook collapses them to
+	// a single resting stop.
 	function makeButtons(count: number, currentIndex?: number) {
 		const container = document.createElement('div')
 
@@ -580,8 +580,8 @@ describe('useA11yRoving — manageTabIndex', () => {
 
 		expect(tabIndices(container)).toEqual([0, -1, -1])
 
-		// Focus landing on a control by any route (a click, programmatic focus) —
-		// not just arrow roving — makes it the resting stop, so Tab returns there.
+		// Focus landing on a control by any route — a click, programmatic focus —
+		// makes it the resting stop.
 		items[2]?.focus()
 
 		expect(tabIndices(container)).toEqual([-1, -1, 0])

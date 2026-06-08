@@ -49,8 +49,7 @@ export function useMapInstance({
 	const [ready, setReady] = useState(false)
 
 	// Keep a ref of the props the mount-effect needs so the effect itself can
-	// run once (the MapLibre instance is expensive to recreate) while still
-	// reading the latest values.
+	// run once while still reading the latest values.
 	const mountPropsRef = useRef({ center, zoom, bearing, pitch, style, interactive, onLoad })
 
 	mountPropsRef.current = { center, zoom, bearing, pitch, style, interactive, onLoad }
@@ -145,9 +144,7 @@ export function useMapInstance({
 		map.setStyle(style)
 	}, [style, ready])
 
-	// MapLibre measures the container at construction and won't reflow when the
-	// container resizes (responsive layout, sidebar collapse, etc.) without a
-	// nudge — so the canvas would stay at its initial size and clip or stretch.
+	// Calls `map.resize()` when the container dimensions change.
 	const resize = useCallback(() => {
 		const map = mapRef.current
 

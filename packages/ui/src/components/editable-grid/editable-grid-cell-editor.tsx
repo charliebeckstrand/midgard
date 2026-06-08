@@ -14,9 +14,9 @@ type EditableGridCellEditorProps<T> = {
 }
 
 /**
- * The active cell's in-place editor. Split out of `EditableGridCell` so that it
- * — and only it — subscribes to the per-keystroke edit-session slice, leaving
- * the surrounding cell shells untouched while the user types.
+ * The active cell's in-place editor. Only this component subscribes to the
+ * per-keystroke edit-session slice; surrounding cell shells are left untouched
+ * while the user types.
  */
 export function EditableGridCellEditor<T>({
 	rowIdx,

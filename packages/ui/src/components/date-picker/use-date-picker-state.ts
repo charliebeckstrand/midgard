@@ -122,8 +122,8 @@ export function useDatePickerState({
 		role: 'dialog',
 	})
 
-	// FloatingFocusManager runs with `returnFocus={false}`; capture the trigger so
-	// useA11yFocusReturn can restore focus to it on close.
+	// Captures the trigger for `useA11yFocusReturn`; `FloatingFocusManager`
+	// runs with `returnFocus={false}` so manual restoration is required.
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
 			captureTrigger(node)

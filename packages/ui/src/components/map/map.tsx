@@ -26,9 +26,8 @@ export type MapProps = {
 	/**
 	 * Accessible name for the map region. When set, an interactive map is
 	 * exposed as `role="application"` and a static map as a labelled
-	 * `role="group"`; without it the container stays an unlabeled
-	 * presentational div. (A static map can still contain interactive markers,
-	 * so `role="img"` — which would hide them — is intentionally not used.)
+	 * `role="group"` (not `role="img"`, which would hide interactive children);
+	 * without it the container stays an unlabeled presentational div.
 	 */
 	label?: string
 	className?: string
@@ -49,10 +48,8 @@ function MapView({
 }: MapProps) {
 	const resolvedStyle = preset ? mapPresets[preset] : (style ?? mapPresets.demo)
 
-	// Resolve `center` from its primitive lng/lat so the reference is stable
-	// across renders. Otherwise the `?? [0, 0]` fallback (and any inline array
-	// the consumer passes) reallocates every render, driving the camera-sync
-	// effect in useMapInstance to fire on every render and fight user pan/zoom.
+	// Resolve `center` from its primitive lng/lat components for a stable
+	// reference across renders.
 	const lng = camera?.center?.[0] ?? 0
 	const lat = camera?.center?.[1] ?? 0
 

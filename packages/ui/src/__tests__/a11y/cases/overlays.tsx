@@ -41,8 +41,8 @@ function ToastCase() {
 }
 
 /**
- * Overlay corpus — components whose content is portalled to `document.body`, so
- * the gate (`baseline.test.tsx`) must render them open and assert against the
+ * Overlay corpus — components whose content is portalled to `document.body`.
+ * The gate (`baseline.test.tsx`) renders them open and asserts against the
  * document, not the render container. Each case is authored in its canonical
  * open state via a controlled `open`/`defaultOpen` prop.
  */

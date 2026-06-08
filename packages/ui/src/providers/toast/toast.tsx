@@ -126,8 +126,8 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[toast, dismiss],
 	)
 
-	// Viewport value changes every render (toasts array is recomputed) — only
-	// the viewport consumes it, so re-rendering with each push is intentional.
+	// Viewport value recomputes every render (toasts array) — only the viewport
+	// consumes it, and re-rendering on each push is the intended behavior.
 	const viewportValue: ToastViewportContextValue = {
 		toasts: [...toastsRef.current].reverse(),
 		dismiss,

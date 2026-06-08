@@ -1,8 +1,6 @@
 /**
- * Control archetype — input element. The standard text-input base for
- * the applicator: the bare element `reset` plus the kasane rounded
- * corner. Lives here so the applicator imports a single pre-assembled
- * fragment instead of composing in its file.
+ * Control archetype — input element. Pre-assembled text-input base:
+ * the bare element `reset` plus the kasane rounded corner.
  *
  * Layer: kiso · Archetype: control · Concern: input
  */

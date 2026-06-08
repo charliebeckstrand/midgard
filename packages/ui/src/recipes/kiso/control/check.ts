@@ -1,12 +1,12 @@
 /**
  * Control archetype — check-input branch. `hidden` overlays a native input
- * on top of the custom surface so keyboard, focus, and form semantics work
- * while the design system owns the visible chrome. `surface` paints the
- * visible box / circle with the standard hover and disabled treatment.
+ * on top of the custom surface, keeping keyboard, focus, and form semantics
+ * on the native element. `surface` paints the visible box / circle with the
+ * standard hover and disabled treatment.
  *
  * `base` pre-assembles the layout shell (position, inline-flex centering,
- * focus outline, cursor states) plus the surface fragment, so the
- * applicator imports one named fragment instead of composing inline.
+ * focus outline, cursor states) plus the surface fragment as a single
+ * importable fragment.
  *
  * Layer: kiso · Archetype: control · Concern: check
  */
@@ -50,9 +50,9 @@ const base = [...shell, ...surface]
  * Checked-state accent colours shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
  * `--check-bg` / `--check-border` for one accent. zinc diverges per component
- * (checkbox a neutral fill, radio a high-contrast one), so each kata defines
- * its own zinc and spreads these four. Literal class strings so Tailwind can
- * extract the arbitrary-property utilities statically.
+ * (checkbox uses a neutral fill, radio a high-contrast one), so each kata
+ * defines its own zinc and spreads these four. Literal class strings for
+ * static extraction by Tailwind's scanner.
  */
 const color = {
 	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',

@@ -33,8 +33,7 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }
 
-// jsdom has no canvas backend and prints a "Not implemented" jsdomError every
-// time getContext is called. PdfViewer and SignaturePad already null-check the
-// returned context, so returning null directly is behaviourally identical —
-// minus the noise.
+// jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
+// on every call. Returns null instead — components null-check the context, so
+// the behaviour is identical without the noise.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']

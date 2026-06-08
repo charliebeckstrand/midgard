@@ -129,9 +129,9 @@ export function List<T>({
 			{items.map((item, index) => {
 				const id = effectiveGetKey(item)
 
-				// Skip the sortable-item registration entirely for read-only lists —
-				// `useSortableItem` does non-trivial per-item work (ref wiring, dnd
-				// context reads) even when `disabled: true`.
+				// Read-only lists use `ListItemStatic`, skipping sortable-item
+				// registration. `useSortableItem` does non-trivial per-item work
+				// (ref wiring, dnd context reads) even when `disabled: true`.
 				return interactive ? (
 					<ListItemSortable key={id} id={id}>
 						{children(item, index)}

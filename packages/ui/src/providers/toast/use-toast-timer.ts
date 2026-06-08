@@ -28,9 +28,9 @@ export function useToastTimer(
 	}, [start])
 
 	const pause = useCallback(() => {
-		// Hover and focus both pause (onMouseEnter + onFocus). Without this guard a
-		// second pause subtracts elapsed-since-start again, collapsing the
-		// remaining time to ~0 and auto-dismissing the toast mid-interaction.
+		// Hover and focus both pause (onMouseEnter + onFocus); a second call
+		// without this guard would subtract elapsed-since-start again, collapsing
+		// remaining time to ~0.
 		if (pausedRef.current) return
 
 		pausedRef.current = true
@@ -56,9 +56,8 @@ export function useToastTimer(
 		[duration],
 	)
 
-	// Restore the full duration and restart the timer — unless the viewport
-	// is paused (mouse still hovered), in which case `resume()` will pick up
-	// the new remaining when the user moves away.
+	// Restores the full duration and restarts the timer. Skipped while paused;
+	// `resume()` picks up the new remaining when the pointer leaves.
 	const reset = useCallback(
 		(ms?: number) => {
 			remainingRef.current = ms ?? duration

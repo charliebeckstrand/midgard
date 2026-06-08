@@ -10,16 +10,11 @@ import { type LinkProps, useLink } from '../link'
  *   - `href` present  → render the app-registered router link (`useLink`)
  *   - `href` absent   → render the `as` element
  *
- * `as` selects the *non-link* element and accepts any `ElementType` — an
- * intrinsic tag (`as="div"`, `as="span"`) or a custom component. It is the
- * fallback arm only: `href` always wins, so `as="div" href="x"` renders a link,
- * never a `<div href>`. A navigating non-anchor has no use, so this loses
- * nothing. If you need a clickable element whose `href` bypasses the router,
- * reach for a Slot escape hatch — this is not that tool.
- *
- * The type-level union below gates `href` so the non-link arm can't receive it,
- * plus centralized `data-slot` / `className` / `ref` forwarding and router
- * integration.
+ * `as` selects the *non-link* fallback element — an intrinsic tag
+ * (`as="div"`, `as="span"`) or a custom component — and is ignored when
+ * `href` is present. The type-level union below gates `href` so the
+ * non-link arm can't receive it, with centralized `data-slot` /
+ * `className` / `ref` forwarding and router integration.
  */
 
 /** Props for `Polymorphic` — strips `href` from the fallback arm so it can't be passed accidentally. */
@@ -63,10 +58,9 @@ export function Polymorphic<Fallback extends ElementType>({
 		)
 	}
 
-	// `as as ElementType` is load-bearing: spreading `{...rest}` onto a variable
-	// typed as a union of string tags collapses its props to the `never`
-	// intersection of every branch. Widening to `ElementType` escapes that. The
-	// cast is unrelated to the generic and stays regardless of how `as` is typed.
+	// `as as ElementType` widens a union of string tags to `ElementType`,
+	// preventing `{...rest}` from collapsing to the `never` intersection of
+	// every branch. Unrelated to the generic.
 	const Element = as as ElementType
 
 	return (

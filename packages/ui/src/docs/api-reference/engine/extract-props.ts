@@ -37,13 +37,10 @@ export function extractProps(
 }
 
 /**
- * `propsType.getProperties()` on a union returns only the intersection of arm
- * properties, dropping discriminated members. Walk arms separately so each
- * arm-only prop surfaces with its own symbol, and so a prop that appears in
- * multiple arms with distinct types collects every contributing arm-type.
- *
- * Intersections are already merged by `getProperties()`, but their arms may
- * themselves contain unions — recurse to split nested unions too.
+ * Collects props from every union and intersection arm individually. Walking
+ * arms separately surfaces arm-only discriminated members and collects every
+ * contributing type for props that appear in multiple arms with distinct types.
+ * Nested unions within intersection arms are split by recursion.
  */
 function collectAllProperties(
 	type: ts.Type,
@@ -127,10 +124,10 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 }
 
 /**
- * Targeted override: when the prop's declaration is a mapped type, return
- * its source text instead of letting the formatter expand it into noise
- * like `{ [K in keyof T]?: Validator<T, K> | undefined }`. Type references
- * and primitives still flow through the formatter for alias resolution.
+ * Returns the source text for mapped-type prop declarations, bypassing the
+ * formatter that would expand them into verbose noise like
+ * `{ [K in keyof T]?: Validator<T, K> | undefined }`. Type references and
+ * primitives still flow through the formatter for alias resolution.
  */
 function inlineSourceType(symbol: ts.Symbol): string | null {
 	const decl = symbol.getDeclarations()?.[0]
@@ -145,9 +142,9 @@ function inlineSourceType(symbol: ts.Symbol): string | null {
 }
 
 /**
- * A "real" prop has at least one declaration in project source — symbols
- * declared only in `node_modules` (HTML attrs, React typings, library mapped
- * types) are pass-through, not authored props.
+ * Returns true when the symbol has at least one declaration in project source.
+ * Symbols declared only in `node_modules` (HTML attrs, React typings, library
+ * mapped types) are pass-through, not authored props.
  */
 function hasProjectDeclaration(symbol: ts.Symbol): boolean {
 	const declarations = symbol.getDeclarations() ?? []
@@ -169,7 +166,7 @@ function getExternalPackage(symbol: ts.Symbol): string | undefined {
 
 	if (!pkg) return undefined
 
-	// TS lib + React typings are background context, not "external" in the docs sense.
+	// TS lib + React typings are not "external" in the docs sense.
 	if (pkg === 'typescript' || pkg === '@types/react' || pkg === '@types/react-dom') {
 		return undefined
 	}
@@ -178,8 +175,9 @@ function getExternalPackage(symbol: ts.Symbol): string | undefined {
 }
 
 /**
- * Take the segment after the last `/node_modules/`, which covers plain
- * layouts and pnpm's `.pnpm/<pkg>@<ver>/node_modules/<pkg>/...` nesting.
+ * Extracts the package name from the segment after the last `/node_modules/`,
+ * covering both plain layouts and pnpm's
+ * `.pnpm/<pkg>@<ver>/node_modules/<pkg>/...` nesting.
  */
 function parsePackageName(file: string): string | null {
 	const idx = file.lastIndexOf('/node_modules/')

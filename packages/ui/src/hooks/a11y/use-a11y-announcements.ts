@@ -26,8 +26,7 @@ export function useA11yAnnouncements(
 	message: string | null | undefined,
 	{ assertive = false, enabled = true }: A11yAnnouncementsOptions = {},
 ): void {
-	// Baseline at the first message so the initial render stays silent; only
-	// later changes announce.
+	// Baselined at the first message; only subsequent changes announce.
 	const previous = useRef(message)
 
 	useEffect(() => {

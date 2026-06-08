@@ -4,8 +4,8 @@ import { vi } from 'vitest'
 /**
  * `motion/react` mock applied globally via `setup/module-mocks.ts`.
  *
- * Replaces every animated wrapper with a plain HTML element so tests run in
- * jsdom without needing a full animation runtime.
+ * Replaces every animated wrapper with a plain HTML element (no animation
+ * runtime required in jsdom).
  */
 
 const MOTION_PROPS = new Set([
@@ -36,10 +36,10 @@ function stripMotionProps(props: Record<string, unknown>) {
 	return clean
 }
 
-// Cache one component per tag. Returning a fresh `forwardRef` on every property
-// access makes `motion.div` a new component type each render, so React remounts
-// the subtree every render — which, combined with a child that calls setState on
-// mount (e.g. panel slot registration), spins into an infinite mount loop.
+// Cache one component per tag. A fresh `forwardRef` on every property access
+// makes `motion.div` a new component type each render; React remounts the
+// subtree every render, spinning into an infinite mount loop when a child calls
+// setState on mount (e.g. panel slot registration).
 const components = new Map<
 	string,
 	ReturnType<typeof forwardRef<unknown, Record<string, unknown>>>
@@ -92,7 +92,7 @@ function useMotionValue<T>(initial: T) {
 	}
 }
 
-// Default to "no reduced-motion preference", matching the jsdom matchMedia stub.
+// Returns false (no reduced-motion preference), matching the jsdom matchMedia stub.
 // Tests exercising the reduced path override this per-file via vi.mock.
 function useReducedMotion(): boolean {
 	return false

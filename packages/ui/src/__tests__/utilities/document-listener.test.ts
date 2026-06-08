@@ -23,7 +23,6 @@ describe('subscribeDocumentEvent', () => {
 
 		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown')).toHaveLength(1)
 
-		// Every subscriber still receives the event.
 		document.dispatchEvent(new Event('pointerdown'))
 
 		expect(a).toHaveBeenCalledTimes(1)
@@ -82,7 +81,7 @@ describe('subscribeDocumentEvent', () => {
 	})
 
 	it('keeps invoking other handlers when one throws (native listener isolation)', () => {
-		// Stub queueMicrotask so the re-thrown error is captured, not executed.
+		// Stubs queueMicrotask so the re-thrown error is captured rather than propagated.
 		const microtask = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation(() => {})
 
 		const boom = new Error('boom')
@@ -100,10 +99,9 @@ describe('subscribeDocumentEvent', () => {
 
 		expect(a).toHaveBeenCalledTimes(1)
 
-		// The throw in `a` must not prevent `b` from running...
 		expect(b).toHaveBeenCalledTimes(1)
 
-		// ...and the error is surfaced out of band rather than swallowed.
+		// The error is surfaced out of band via queueMicrotask rather than swallowed.
 		expect(microtask).toHaveBeenCalledTimes(1)
 
 		unsubA()

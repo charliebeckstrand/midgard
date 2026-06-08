@@ -25,9 +25,9 @@ export type QueryBuilderActions = {
 export type QueryBuilderContextValue = QueryBuilderStateValue &
 	QueryBuilderActions & { root: QueryGroup }
 
-// Config (state) is stable across tree edits; actions are stable; the tree
-// lives in its own narrow context so rule/group consumers that only depend
-// on configuration skip re-renders when a sibling rule is edited.
+// Config (state) and actions are stable across tree edits. The tree lives in
+// its own narrow context; rule/group consumers that read only configuration
+// are unaffected by sibling rule edits.
 
 const [QueryBuilderStateContext, useQueryBuilderState] =
 	createContext<QueryBuilderStateValue>('QueryBuilderState')
@@ -37,8 +37,8 @@ const [QueryBuilderActionsContext, useQueryBuilderActions] =
 
 const [QueryBuilderRootContext, useQueryBuilderRoot] = createContext<QueryGroup>('QueryBuilderRoot')
 
-// Focus registry: rules/groups register their remove (and add) controls by key
-// so removal can hand focus to a surviving neighbour without querying the DOM.
+// Focus registry: rules/groups register their remove (and add) controls by key;
+// removal uses the registry to move focus to a surviving neighbour.
 const [QueryBuilderFocusContext, useQueryBuilderFocus] =
 	createContext<FocusRegister>('QueryBuilderFocus')
 

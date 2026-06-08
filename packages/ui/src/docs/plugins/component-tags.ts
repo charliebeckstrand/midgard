@@ -166,8 +166,7 @@ function findSrcDir(root: string): string {
  *     for the snippet-import pass (which sees a tag's text name, not its
  *     React reference).
  *
- * Together this replaces the old eager `import.meta.glob` registry — components
- * load as their demos import them, not all upfront.
+ * Components load alongside the demos that import them, not all upfront.
  */
 export function componentTagsPlugin(): Plugin {
 	let srcDir = ''

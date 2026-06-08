@@ -107,8 +107,7 @@ describe('CreditCardInput', () => {
 		const user = userEvent.setup()
 
 		// Two-digit prefix unambiguously narrows to Visa within the supported
-		// brand list. card-validator (correctly) holds off on identifying Visa
-		// from a single '4' because other brands also begin with 4.
+		// brand list; a single '4' is insufficient (multiple brands share that prefix).
 		await user.type(input, '42')
 
 		expect(onBrandChange).toHaveBeenLastCalledWith('visa')

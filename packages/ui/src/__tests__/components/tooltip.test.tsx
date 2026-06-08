@@ -5,12 +5,9 @@ import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
-// The global floating-ui mock stubs useRole/useFocus to {} and only forwards
-// onClick through getReferenceProps, so the tooltip's role/focus/aria wiring is
-// invisible to the jsdom suite. Override it locally with a mock that models the
-// pieces this file exercises: useRole's tooltip aria-describedby + panel id/role,
-// useFocus opening on focus, and getReferenceProps/getFloatingProps merging every
-// reference/floating prop (composing handlers) rather than only onClick.
+// Overrides the global floating-ui mock locally to model the pieces exercised
+// here: useRole's tooltip aria-describedby + panel id/role, useFocus opening on
+// focus, and getReferenceProps/getFloatingProps merging all props (composing handlers).
 vi.mock('@floating-ui/react', async () => {
 	const base = (await import('../mocks/floating-ui')).default
 

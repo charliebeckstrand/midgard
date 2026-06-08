@@ -273,10 +273,9 @@ describe('Calendar month/year picker', () => {
 	})
 })
 
-// Keyboard nav is the half of a11y compliance axe can't see: roving focus
-// through the day grid (WAI-ARIA grid pattern) plus the grid<->header
-// transitions and Enter/Space activation. June 2025 starts on a Sunday, so its
-// days fill a clean 7-column grid and option[i] is day i+1.
+// Keyboard nav: roving focus through the day grid (WAI-ARIA grid pattern),
+// grid<->header transitions, and Enter/Space activation. June 2025 starts on a
+// Sunday; its days fill a clean 7-column grid and option[i] is day i+1.
 describe('Calendar keyboard navigation', () => {
 	const day = (n: string) =>
 		screen.getAllByRole('option').find((option) => option.textContent === n) as HTMLElement
@@ -390,8 +389,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
-	// focus. Roving must skip them rather than `.focus()` a no-op and strand the
-	// user — otherwise arrow navigation traps at the edge of the range (WCAG 2.1.1).
+	// focus. Roving skips them; arrow navigation must not trap at range edges (WCAG 2.1.1).
 	function renderMinTenth() {
 		// June 2025 begins on a Sunday; `min` on the 10th disables June 1–9, so the
 		// grid's first focusable day is the 10th.

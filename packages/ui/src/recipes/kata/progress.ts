@@ -7,10 +7,9 @@ const { rounded } = kasane
 const { flex } = narabi
 
 /**
- * Per-colour fill / bg / stroke classes shared between bar + gauge. The
+ * Per-colour fill / bg / stroke classes shared between bar and gauge. The
  * gauge reads all three (`fill` on the indicator circle, `stroke` on the
- * track, `bg` on the central label); `bar.fill` indexes into the
- * `bg` slice for its colour axis.
+ * track, `bg` on the central label); `bar.fill` uses the `bg` slice.
  */
 const color = {
 	zinc: {

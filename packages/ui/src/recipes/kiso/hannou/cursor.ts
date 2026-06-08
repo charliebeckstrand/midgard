@@ -1,9 +1,8 @@
 /**
- * Hannou cursor — pointer feedback that tracks disabled state. The bare
- * `cursor-pointer` sits at one-class specificity. Disabled variants
- * below override it on the element or its descendants; parent overrides
- * like `has-disabled:**:cursor-not-allowed` win for sibling-label
- * patterns.
+ * Hannou cursor — pointer feedback that tracks disabled state. Disabled
+ * variants override `cursor-pointer` on the element or its descendants;
+ * parent overrides like `has-disabled:**:cursor-not-allowed` apply for
+ * sibling-label patterns.
  *
  * Layer: kiso · Concern: pointer feedback
  */

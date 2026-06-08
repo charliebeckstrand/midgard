@@ -5,9 +5,8 @@ const { size } = ji
 const { p } = ma
 
 /**
- * Density-keyed body padding, funnelled from `ma.p` (the single source of
- * truth) so `<CardBody>` tracks the ambient density axis: sm → p-2, md → p-3,
- * lg → p-4. Header / footer compose their own padding; this is the body slot.
+ * Density-keyed body padding from `ma.p`: sm → p-2, md → p-3, lg → p-4.
+ * Header / footer compose their own padding; this is the body slot.
  */
 const bodyPadding = {
 	sm: p.sm,

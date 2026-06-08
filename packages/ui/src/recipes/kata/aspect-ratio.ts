@@ -1,6 +1,5 @@
-// Aspect ratios are a structural scale with no kiso token equivalent; the preset
-// classes live here so the recipe layer owns them. Numeric ratios are applied
-// inline via `style` by the component.
+// Preset aspect-ratio classes owned by the recipe layer. Numeric ratios are
+// applied inline via `style` by the component.
 export const k = {
 	ratio: {
 		square: 'aspect-square',

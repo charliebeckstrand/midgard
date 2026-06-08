@@ -35,9 +35,7 @@ export function useComboboxState<T>({
 }: ComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
-	// Bypass deferral on empty query: select() clears it in multi-select while
-	// the panel stays open, so the deferred copy would otherwise paint one stale
-	// frame of the prior filter.
+	// Bypass deferral on empty query so the filter clears immediately.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal

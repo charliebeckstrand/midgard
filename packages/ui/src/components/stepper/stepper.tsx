@@ -50,7 +50,7 @@ export function Stepper({
 }: StepperProps) {
 	const isDesktop = useMinWidth(640)
 
-	// Default to vertical on mobile to avoid horizontal overflow.
+	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
 	const resolvedOrientation: StepperOrientation =
 		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
 
@@ -66,9 +66,8 @@ export function Stepper({
 	const handleKeyDown = useA11yRoving(rowRef, {
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
-		// The step row is a single Tab stop (role="toolbar"); arrows move across
-		// steps and the resting stop sits on the current step. Only the interactive
-		// branch renders <button>s, so this is a no-op for a display-only stepper.
+		// Step row is a single Tab stop (role="toolbar"); arrows move across steps,
+		// resting on the current step. A no-op for display-only steppers (no buttons).
 		manageTabIndex: true,
 		activeSelector: '[aria-current="step"]',
 	})

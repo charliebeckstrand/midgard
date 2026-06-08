@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 // Spacing boundary.
 //
 // `ma` is a TypeScript label set that maps semantic sizes (xs/sm/md/lg/xl)
-// to Tailwind numeric spacing tokens. Two rules keep the abstraction honest:
+// to Tailwind numeric spacing tokens. Two rules:
 //
 //   1. No file may use the `p-{ma}`, `m-{ma}`, `gap-{ma}` shape. Compose
 //      Tailwind natives directly (`p-3`, `gap-2`) from `ma`'s values via
@@ -13,14 +13,13 @@ import { describe, expect, it } from 'vitest'
 //
 //   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding) lives
 //      only in `recipes/kiso/kasane.ts` — consumers reach it through
-//      `kasane.p / px / py / pl / pr`. Inline literals are forbidden so the
-//      formula has a single source of truth.
+//      `kasane.p / px / py / pl / pr`.
 //
 // Both rules carry an ALLOWLIST of files exempt from the check. The first
-// list is empty — every legacy-utility consumer has migrated. The second
-// retains entries whose remaining `calc(--spacing(…))` literals carry
-// Tailwind variant prefixes (`data-*`, `has-*`, `autofill:*`); variants
-// must appear in source and so can't move behind the kasane helpers.
+// list is empty (regression guard). The second retains entries whose
+// remaining `calc(--spacing(…))` literals carry Tailwind variant prefixes
+// (`data-*`, `has-*`, `autofill:*`); variants must appear in source and
+// can't move behind the kasane helpers.
 
 const srcDir = join(__dirname, '../../..')
 
@@ -39,15 +38,13 @@ const RENAMED_UTILITY =
 
 const RAW_CALC = /calc\(--spacing\(/
 
-/** Empty — every file has migrated. The rule is now a regression guard. */
+/** Empty — regression guard. */
 const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
 
 /**
  * Files still spelling `calc(--spacing(v)-1px)` inline — variant-prefixed
- * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) stay inline
- * because Tailwind variants must appear in source, not at runtime. The
- * bare cases in these files have already migrated to `kasane.p / px / py /
- * pl / pr`.
+ * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) must appear
+ * in source; Tailwind variants can't move behind the kasane helpers.
  */
 const RAW_CALC_ALLOWLIST = new Set(['recipes/kiso/control/affix.ts', 'recipes/kata/button.ts'])
 

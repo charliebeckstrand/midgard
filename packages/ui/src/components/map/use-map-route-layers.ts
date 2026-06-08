@@ -109,8 +109,7 @@ export function useMapRouteLayers({
 					map.off('mouseleave', hitLayerId, handlers.leave)
 				}
 
-				// Reset the cursor in case we unmount while hovered — handleLeave
-				// would have done this, but it won't fire after the listener is off.
+				// Reset the cursor in case the component unmounts while hovered.
 				map.getCanvas().style.cursor = ''
 
 				if (map.getLayer(hitLayerId)) map.removeLayer(hitLayerId)

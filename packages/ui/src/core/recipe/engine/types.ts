@@ -34,11 +34,9 @@ type RecipeBase = {
 	/**
 	 * Skeleton payload — a `kokkaku.<name>` config the consumer reads as
 	 * `k.skeleton.base` / `k.skeleton.size[…]`. Attached to the recipe at
-	 * creation time and exposed with its inferred type preserved. Sits at
-	 * the config root because skeleton is a recipe property, not a sibling
-	 * shape — kata that need genuinely callable siblings (sub-recipes,
-	 * motion bundles, fragment maps) still pass them via the `extras`
-	 * second argument.
+	 * creation time and exposed with its inferred type preserved. Callable
+	 * siblings (sub-recipes, motion bundles, fragment maps) pass through
+	 * the `extras` second argument instead.
 	 */
 	skeleton?: unknown
 }

@@ -44,8 +44,8 @@ describe('useDeferredToggle', () => {
 			result.current.commit('b')
 		})
 
-		// The control has moved on (parent re-renders with the new value) but the
-		// menu still paints the prior selection while the panel animates closed.
+		// Parent re-renders with the new value; the menu still reflects the prior
+		// selection until flushed.
 		rerender({ value: 'b' })
 
 		expect(result.current.selectionValue).toBe('a')

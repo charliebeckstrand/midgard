@@ -4,9 +4,8 @@ import type { Context } from './types'
 
 export const INDENT = '  '
 
-// Stand-in for content that's present but can't be reproduced as code — an
-// unrenderable child subtree, or a prop whose value (a Date, an object) has no
-// clean literal form. Signals "supply a value here" without fabricating one.
+// Stand-in for content that's present but has no clean literal form — an
+// unrenderable child subtree, or a prop value like a Date or config object.
 export const PLACEHOLDER = '…'
 
 // Props that never belong in derived code — either structural (children, key,
@@ -60,10 +59,8 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 	}
 
 	// Present but unserializable — a Date, a config object, an array of objects.
-	// The source identifier the author wrote (`min={min}`) is gone by render
-	// time, so we can't reproduce it. Emit a `…` placeholder — the same
-	// affordance the walker uses for unrenderable children — rather than
-	// silently dropping the prop and making the example look unconfigured.
+	// The source identifier (`min={min}`) is unavailable at render time.
+	// Emit a `…` placeholder rather than silently dropping the prop.
 	return `${key}={${PLACEHOLDER}}`
 }
 
@@ -71,8 +68,8 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 // Literal formatting
 // ---------------------------------------------------------------------------
 
-// Prefer double-quoted JSX attributes; fall back to braces + JSON when the
-// value contains characters that would need escaping.
+// Double-quoted JSX attribute; falls back to braces + JSON when the value
+// contains characters requiring escaping.
 function jsxString(value: string): string {
 	if (!value.includes('"') && !value.includes('\n')) return `"${value}"`
 
@@ -81,8 +78,8 @@ function jsxString(value: string): string {
 
 function formatLiteral(value: string | number | boolean): string {
 	// `JSON.stringify` escapes embedded quotes, backslashes, and control
-	// characters; a bare `'${value}'` template emits invalid JS when the
-	// string itself contains a single quote.
+	// characters; a bare template literal emits invalid JS for strings
+	// containing single quotes.
 	if (typeof value === 'string') return JSON.stringify(value)
 
 	return String(value)

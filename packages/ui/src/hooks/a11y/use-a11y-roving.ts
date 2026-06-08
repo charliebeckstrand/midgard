@@ -25,13 +25,12 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`,
  * and — when `activeDescendantRef` is given — points `aria-activedescendant` on
  * the owner at the active item. By default it also mirrors `aria-selected` onto
- * the items so the highlight doubles as selection (the right model when there is
- * no persistent choice, e.g. a command palette); pass `ariaSelected: false` when
- * the items already carry their own `aria-selected` for a stored value (e.g. a
- * combobox), so the highlight stays a pure focus cue and doesn't clobber it.
+ * the items — highlight doubles as selection (command palette model); pass
+ * `ariaSelected: false` when items carry their own `aria-selected` for a stored
+ * value (e.g. a combobox), keeping the highlight a pure focus cue.
  * Pass a negative `index` (or an empty list) to clear the active state. The
- * previously active item is found by its `data-active` marker, so callers don't
- * track an index.
+ * prior active item is found by its `data-active` marker; callers don't track
+ * an index.
  */
 export function setVirtualActive(
 	items: HTMLElement[],
@@ -63,10 +62,11 @@ export function setVirtualActive(
 
 /**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
- * other item `-1`. Writes only on divergence so a MutationObserver watching
- * `tabindex` doesn't feed back on these edits. Pass `undefined` to demote all.
+ * other item `-1`. Writes only on divergence to avoid a MutationObserver
+ * watching `tabindex` feeding back on these edits. Pass `undefined` to demote
+ * all.
  */
-export function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
+function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
 	for (const it of items) {
 		const desired = it === active ? 0 : -1
 
@@ -292,8 +292,7 @@ export function useA11yRoving(
 
 	const typeaheadRef = useRef<TypeaheadState>({ query: '', timer: 0 })
 
-	// `matchTypeahead` schedules a 500 ms buffer-reset timer; clear it on unmount
-	// so a list torn down mid-window doesn't leave a timer firing on a dead state.
+	// `matchTypeahead` schedules a 500 ms buffer-reset timer; clear it on unmount.
 	useEffect(
 		() => () => {
 			if (typeof window !== 'undefined') window.clearTimeout(typeaheadRef.current.timer)
@@ -304,8 +303,8 @@ export function useA11yRoving(
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
 	// (items added/removed, disabled toggled, current item moved) and carrying the
-	// stop to any item that takes focus. Writes only on divergence so the observer
-	// doesn't feed back on its own tabindex edits.
+	// stop to whatever item takes focus. Writes only on divergence to avoid the
+	// observer feeding back on its own tabindex edits.
 	useEffect(() => {
 		if (mode !== 'focus' || !manageTabIndex) return
 
@@ -318,19 +317,16 @@ export function useA11yRoving(
 
 			if (!items.length) return
 
-			// The control that holds focus is, by definition, the resting stop. A
-			// native control that just mounted or became enabled arrives at
-			// `tabIndex=0`, so the count below can't tell it apart from the deliberate
-			// stop — anchoring to the focused item keeps a freshly-enabled sibling
-			// (e.g. a re-enabled zoom button in a toolbar) from stealing the stop out
-			// from under the user mid-interaction.
+			// The focused item is the resting stop, matched ahead of the count below:
+			// a freshly mounted or re-enabled native control arrives at `tabIndex=0`,
+			// indistinguishable by count from the deliberate stop.
 			const focused = items.find((it) => it === document.activeElement)
 
 			const tabbable = items.filter((it) => it.tabIndex === 0)
 
 			// A single existing stop means the user has already roved — preserve it.
-			// Otherwise (fresh mount, where every native control is tabbable) seat the
-			// stop on the active item, falling back to the first.
+			// Otherwise, seat the stop on the active item (per `activeSelector`),
+			// falling back to the first.
 			const active =
 				focused ??
 				(tabbable.length === 1
@@ -343,10 +339,9 @@ export function useA11yRoving(
 
 		normalize()
 
-		// Carry the resting stop to whatever item takes focus — a click or
-		// programmatic focus, not just arrow roving (`moveTo` seats those itself).
-		// `focusin` bubbles where `focus` doesn't, so one container listener catches
-		// focus landing on any item; the stop then survives Tab away and back.
+		// Carry the resting stop to any item that takes focus by click or script;
+		// arrow roving already seats it in `moveTo`. `focusin` bubbles where `focus`
+		// doesn't; one container listener covers every item.
 		const onFocusIn = (e: FocusEvent) => {
 			const items = queryItems(el, itemSelector)
 
@@ -391,10 +386,8 @@ export function useA11yRoving(
 
 					if (!next) return
 
-					// Carry the resting stop to the newly focused item so leaving and
-					// re-Tabbing into the widget returns here. `focusin` would seat it
-					// once `focus()` lands, but doing it first keeps the arrow path
-					// synchronous and independent of the event firing.
+					// Carry the resting stop to the newly focused item; leaving and
+					// re-Tabbing into the widget returns to this item.
 					if (manageTabIndex) seatTabStop(items, next)
 
 					next.focus()
@@ -421,7 +414,7 @@ export function useA11yRoving(
 				return
 			}
 
-			// Type-ahead runs ahead of the focus-empty nav guard so a letter can
+			// Type-ahead runs ahead of the focus-empty nav guard; a letter can
 			// jump into the list even when nothing is active yet.
 			if (typeahead && isTypeaheadKey(e)) {
 				const index = matchTypeahead(typeaheadRef.current, items, e.key, currentIndex)

@@ -110,14 +110,13 @@ function namedTypeShortName(
 }
 
 /**
- * Drop trailing arguments that match their parameter's declared default —
- * what's left is what the source actually wrote. Returns `null` to signal
- * "give up; let TS render the full thing" (mismatched arity, missing
- * defaults mid-list, …).
+ * Drops trailing arguments that match their parameter's declared default,
+ * returning the minimal arg list. Returns `null` on mismatched arity or
+ * missing defaults mid-list — caller falls back to TS's full rendering.
  *
- * A default may reference an earlier type parameter (`type Foo<T, U = T>`).
- * Resolve those against the supplied arg at the earlier position, otherwise
- * they collapse to the bare unbound parameter and the comparison fails.
+ * Defaults that reference an earlier type parameter (`type Foo<T, U = T>`)
+ * are resolved against the supplied arg at that earlier position; without
+ * this, they collapse to a bare unbound parameter and the comparison fails.
  */
 function trimDefaultArgs(
 	args: readonly ts.Type[] | undefined,
@@ -209,11 +208,9 @@ function formatFunctionType(
 }
 
 /**
- * For a generic type parameter, prefer its default, then its constraint —
- * a bare `T` means nothing outside its generic context, but the default
- * or constraint is what callers actually pass. Returns null when the type
- * isn't a parameter, or when neither default nor constraint exists (in
- * which case showing `T` is the most honest output).
+ * For a generic type parameter, return its default or (falling back) its
+ * constraint. Returns null when the type isn't a parameter, or when neither
+ * default nor constraint exists (leaving the bare `T` as output).
  */
 function typeParameterFallback(
 	type: ts.Type,

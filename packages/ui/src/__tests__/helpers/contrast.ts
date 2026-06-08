@@ -1,15 +1,14 @@
 /**
- * WCAG contrast for the colour ramp guard.
+ * WCAG contrast helpers for the colour ramp guard.
  *
- * Reads Tailwind's own `theme.css` at test time and converts each `oklch(…)`
- * token to a relative luminance, so the guard can never disagree with the
- * shade the browser actually paints — there is no hand-copied hex table to
- * drift. Translucent washes (the 15% soft fill) are composited in sRGB space,
- * the way a browser (and axe) flattens a semi-transparent layer, then the
- * contrast ratio is taken in the usual linear-luminance space.
+ * Reads Tailwind's `theme.css` at test time and converts each `oklch(…)` token
+ * to a relative luminance. Translucent washes (the 15% soft fill) are
+ * composited in sRGB space, mirroring how a browser (and axe) flattens a
+ * semi-transparent layer; the contrast ratio is then computed in
+ * linear-luminance space (WCAG 1.4.3).
  *
- * Validated against the value the merge cited: `text-green-600` on white is
- * 3.21:1 (see `contrast.test.ts`).
+ * Calibration: `text-green-600` on white resolves to 3.21:1 (see
+ * `contrast.test.ts`).
  */
 
 import { readFileSync } from 'node:fs'

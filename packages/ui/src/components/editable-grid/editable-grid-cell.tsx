@@ -31,8 +31,8 @@ export function EditableGridCell<T>({
 }: EditableGridCellContentProps<T>) {
 	const { isActive, inRange, showEditor } = useEditableGridCellSlice(rowIdx, colIdx, readOnly)
 
-	// Re-render the flash overlay with a fresh key each time the rendered value
-	// changes so the keyframe animation restarts even on consecutive edits.
+	// Bumps `flashKey` each time the rendered value changes, restarting the
+	// keyframe animation on the flash overlay for consecutive edits.
 	const prevFormattedRef = useRef(formatted)
 
 	const [flashKey, setFlashKey] = useState(0)

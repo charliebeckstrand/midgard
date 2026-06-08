@@ -28,7 +28,7 @@ export function KanbanCard({
 }: KanbanCardProps) {
 	const { interactive, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } = useKanbanContext()
 
-	// Surface referenced for narrowing — column scope is maintained for future use.
+	// Surfaces the column context for use within this card.
 	useKanbanColumnContext()
 
 	const { setNodeRef, attributes, listeners, style, dragging } = useSortableItem({

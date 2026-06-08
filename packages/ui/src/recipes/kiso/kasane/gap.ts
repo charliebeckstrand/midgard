@@ -1,6 +1,6 @@
 /**
- * Kasane gap — gap helpers. Unlike padding, gap is not ring-compensated
- * (gap doesn't intersect the outer ring), so the helpers pass through to
+ * Kasane gap — gap helpers. Gap is not ring-compensated (unlike padding,
+ * it doesn't intersect the outer ring), so the helpers pass through to
  * Tailwind's native `gap-v` / `gap-x-v` / `gap-y-v` without subtracting
  * 1 px. The design rule applied across density-keyed kata is
  * `gap = py / 2` (rounded to the spacing scale).

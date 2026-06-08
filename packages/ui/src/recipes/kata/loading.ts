@@ -6,10 +6,10 @@ const { flex } = narabi
 
 /**
  * Indicator colour, shared by both loading surfaces. Resolves to a `text-*`
- * class so the dots (`bg-current`) and the spinner SVG (`currentColor`) both
- * inherit it. Chromatic colours read the shared `iro.marker` shade (600 light
- * / 500 dark) so the indicator clears non-text 3:1 on the page; `current`
- * inherits the surrounding text colour and `zinc` keeps its stronger neutral.
+ * class; dots (`bg-current`) and the spinner SVG (`currentColor`) both inherit
+ * it. Chromatic colours use the `iro.marker` shade (600 light / 500 dark),
+ * which clears non-text 3:1 on the page. `current` inherits the surrounding
+ * text colour; `zinc` uses its stronger neutral.
  */
 const color = {
 	current: 'text-current',
@@ -21,9 +21,9 @@ const color = {
 }
 
 /**
- * A single ellipsis dot. Diameter rides the shared `size` axis; the breathing
- * pulse is `motion-safe:`-gated so it rests as a steady dot under
- * `prefers-reduced-motion` (WCAG 2.3.3) rather than freezing mid-fade.
+ * A single ellipsis dot. Diameter tracks the shared `size` axis; the pulse
+ * animation is `motion-safe:`-gated, resting as a steady dot under
+ * `prefers-reduced-motion` (WCAG 2.3.3).
  */
 const dot = defineRecipe({
 	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse'],
@@ -38,9 +38,9 @@ const dot = defineRecipe({
 })
 
 /**
- * Rotating SVG indicator — the classic indeterminate spinner. The spin is
- * `motion-safe:`-gated so it rests as a static glyph under
- * `prefers-reduced-motion` (WCAG 2.3.3) rather than rotating continuously.
+ * Rotating SVG indicator — indeterminate spinner. The spin is
+ * `motion-safe:`-gated, resting as a static glyph under
+ * `prefers-reduced-motion` (WCAG 2.3.3).
  */
 const spinner = defineRecipe({
 	base: 'inline-block shrink-0 motion-safe:animate-spin',

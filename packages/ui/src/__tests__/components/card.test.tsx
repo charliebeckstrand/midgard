@@ -101,7 +101,7 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// Default level 3 → Heading semibold; weight is no longer pinned by the card recipe.
+		// Default level 3 → Heading semibold; weight comes from the Heading, not the card recipe.
 		expect(bySlot(container, 'card-title')?.className).toContain('font-semibold')
 	})
 

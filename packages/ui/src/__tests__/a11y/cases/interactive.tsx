@@ -13,11 +13,10 @@ import type { InteractiveCase } from './types'
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
 
 /**
- * Interactive corpus — overlays with no controlled-open prop, so the gate must
- * drive them open through a real interaction (`open`) before asserting against
- * `document.body`. Covers the surfaces the `overlays` corpus can't author
- * statically: hover/focus tooltips and the listbox/calendar popovers that only
- * open on click or typing.
+ * Interactive corpus — overlays with no controlled-open prop. Each case carries
+ * an `open` step that drives the real interaction before asserting against
+ * `document.body`. Covers hover/focus tooltips and the listbox/calendar popovers
+ * that only open on click or typing.
  */
 export const interactive: readonly InteractiveCase[] = [
 	[
@@ -85,9 +84,8 @@ export const interactive: readonly InteractiveCase[] = [
 	],
 	[
 		// Listbox: a role="combobox" trigger opens its option listbox popover on
-		// click. The closed baseline case only sees the trigger button (the popover
-		// portals to document.body), so this drives it open to assert the listbox /
-		// option ARIA structure the container-scoped gate can't reach.
+		// click. The popover portals to document.body; this case drives it open to
+		// reach the listbox / option ARIA structure.
 		'listbox',
 		<Field key="ilb">
 			<Label>Status</Label>
@@ -123,10 +121,9 @@ export const interactive: readonly InteractiveCase[] = [
 	],
 	[
 		// Colour picker: a Control-integrated swatch trigger opens its picker dialog
-		// (role="dialog", aria-label="Choose color") on click. The closed trigger
-		// portals nothing, so the panel's 2D saturation/brightness slider, hue/alpha
-		// sliders, swatches, and hex/channel inputs only mount on open — drive it
-		// open to assert that whole surface's role/name/ARIA structure.
+		// (role="dialog", aria-label="Choose color") on click. The panel's 2D
+		// saturation/brightness slider, hue/alpha sliders, swatches, and hex/channel
+		// inputs only mount on open; this case drives it open to assert that surface.
 		'color picker',
 		<Field key="icp">
 			<Label>Brand color</Label>
@@ -141,8 +138,8 @@ export const interactive: readonly InteractiveCase[] = [
 		},
 	],
 	[
-		// Map (maplibre globally mocked): a labelled role="application" region. No
-		// interaction — just wait for the async load to settle before asserting.
+		// Map (maplibre globally mocked): a labelled role="application" region;
+		// waits for the async load to settle before asserting.
 		'map',
 		<MapView key="imap" label="Delivery map" />,
 		async () => {

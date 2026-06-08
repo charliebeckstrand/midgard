@@ -11,9 +11,8 @@ const registries = new Map<string, Registry>()
  * registering its own; the listener attaches on the first subscriber and
  * detaches on the last.
  *
- * Handlers fire in subscription order and every subscriber still receives the
- * event — this is deduplication, not top-most-only routing, so the existing
- * "all open overlays react" behavior is preserved. Returns an unsubscribe fn.
+ * Handlers fire in subscription order and every subscriber receives the
+ * event — deduplication, not top-most-only routing. Returns an unsubscribe fn.
  *
  * Each `handler` must be a distinct function reference (callers pass a fresh
  * closure per effect run); the same reference subscribed twice would dedupe in

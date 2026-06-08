@@ -14,9 +14,8 @@ type UIRenderOptions = UIContextOptions & Omit<RenderOptions, 'wrapper'>
  * Custom render that wraps the component in commonly needed context providers.
  *
  * Pass `skeleton: true` to simulate skeleton mode and `glass: true` for glass
- * mode — matching how components resolve these flags in production. The
- * announcer needs no setup: `announce` / `useA11yAnnouncements` create their
- * live region on demand.
+ * mode. The announcer's live region is created on demand by `announce` /
+ * `useA11yAnnouncements` and requires no setup here.
  */
 export function renderUI(ui: ReactElement, options: UIRenderOptions = {}): RenderResult {
 	const { skeleton, glass, ...renderOptions } = options

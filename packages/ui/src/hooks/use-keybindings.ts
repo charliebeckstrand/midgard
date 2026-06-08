@@ -34,10 +34,8 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 
 	bindingsRef.current = bindings
 
-	// Hold `ignore` in a ref so an inline filter doesn't re-subscribe the global
-	// listener every render. Its presence (not identity) is the only dep that
-	// matters: when omitted we pass `undefined` to preserve tinykeys' default
-	// (skip form fields); when provided we forward a stable ref-reading wrapper.
+	// `ignore` is held in a ref; a stable ref-reading wrapper is forwarded when
+	// provided, and `undefined` when omitted — presence is the only dep, not identity.
 	const ignoreRef = useRef(ignore)
 
 	ignoreRef.current = ignore

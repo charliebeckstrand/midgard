@@ -32,8 +32,8 @@ export function Card({
 
 	const token = size ? densityPresets[size] : inherited
 
-	// No skeleton short-circuit: a Card keeps its frame and lets each child
-	// skeletonize itself through the ambient SkeletonContext.
+	// No skeleton short-circuit: a Card keeps its frame while each child
+	// skeletonizes through the ambient SkeletonContext.
 	return (
 		<Box
 			data-slot="card"

@@ -7,8 +7,8 @@ import type { Case } from './types'
 
 const noop = () => {}
 
-// Pre-rendered image pages bypass the pdf.js (`src`) path entirely, so this case
-// stays synchronous and never touches a canvas or worker.
+// Pre-rendered image pages: bypass the pdf.js (`src`) path; synchronous, no
+// canvas or worker.
 const pdfPages: PdfViewerPage[] = [
 	{ id: 'p1', src: 'page-1.png', label: 'Page 1' },
 	{ id: 'p2', src: 'page-2.png', label: 'Page 2' },

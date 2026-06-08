@@ -5,10 +5,8 @@
  * Surfaced through the barrel as `iro.text`.
  *
  * Each intent projects the ramp's `onSurface` role for its colour — the
- * foreground shade that clears AA on the page / card surface — so the
- * semantic bundle and the `bare` palette share one source and can't drift
- * to different shades for the same colour. `default` is the max-emphasis
- * neutral foreground.
+ * foreground shade that clears AA on the page / card surface. `default` is
+ * the max-emphasis neutral foreground.
  *
  * Layer: kiso · Concern: semantic text intent
  */

@@ -88,9 +88,8 @@ export function Button({
 		)
 	}
 
-	// Children that are not icons count as a text label; labeled buttons drop to
-	// the matching control height (see `data-[has-label]` in the button recipe),
-	// while icon-only buttons stay square.
+	// Non-icon children count as a text label; labeled buttons use control height
+	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)

@@ -25,10 +25,9 @@ export function useHoldButtonGesture({
 
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	// The fill growing over `duration` is essential feedback — it gates an
-	// irreversible action in real time, so it animates regardless (2.3.3
-	// essential exception). The snap-back reset is decorative, so collapse it to
-	// an instant under prefers-reduced-motion.
+	// The fill animates unconditionally — it gates an irreversible action in
+	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
+	// decorative and collapses to an instant under prefers-reduced-motion.
 	const reduceMotion = useReducedMotion()
 
 	const resetDuration = reduceMotion ? 0 : RESET_DURATION
@@ -92,10 +91,8 @@ export function useHoldButtonGesture({
 		[],
 	)
 
-	// If the button is disabled mid-hold, the pending timer would still fire
-	// and call onComplete on a button the consumer just turned off. Call cancel
-	// via a ref so the effect doesn't need to depend on onHoldCancel (which
-	// would re-run the effect on every prop change).
+	// Cancels any in-progress hold when `disabled` changes. `cancel` is read
+	// from a ref so the effect depends only on `disabled`, not on `onHoldCancel`.
 	const cancelRef = useRef(cancel)
 
 	cancelRef.current = cancel

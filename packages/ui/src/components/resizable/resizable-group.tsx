@@ -50,7 +50,7 @@ export function ResizableGroup({
 		onSizesChange,
 	})
 
-	// Wrap each panel/handle in an index provider so they can read their position from context.
+	// Wraps each panel/handle in an index provider so its position is available via context.
 	const wrapped = useMemo(() => {
 		let panelIdx = 0
 		let handleIdx = 0

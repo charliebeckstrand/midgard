@@ -1,7 +1,5 @@
 /**
- * Ugoki tooltip — tooltip fade with subtle scale. Faster than the
- * popover fade because tooltips appear and disappear in rapid sequence
- * during hover-and-move interactions.
+ * Ugoki tooltip — tooltip fade with subtle scale, tuned for rapid show/hide.
  *
  * Layer: kiso · Concern: tooltip motion
  */

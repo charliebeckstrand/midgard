@@ -1,15 +1,8 @@
 /**
  * Iro bare — colour at the muted text shade with a darken-on-hover.
- * Used for the lightest-weight interactive text (e.g. inline link in
- * body copy). Distinct from `plain` in that the bare text starts at the
- * muted shade and emphasises on hover.
- *
- * Resting text projects the ramp's `onSurface` role (the AA-clean
- * foreground for the page surface, shared with the semantic intent
- * bundle). Hover emphasises one step further, to the ramp's `onTint`
- * chromatic shade (and the max-emphasis neutral for zinc) — written out
- * with the `not-disabled:hover:` state prefix, which Tailwind's scanner
- * needs as a full literal.
+ * Renders at the ramp's `onSurface` role at rest and steps to `onTint`
+ * (the max-emphasis neutral for zinc) on hover, written as full literals
+ * for Tailwind's scanner.
  *
  * Layer: kiso · Concern: bare palette
  */

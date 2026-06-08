@@ -12,7 +12,7 @@ expect.extend(toHaveNoViolations)
 afterEach(() => {
 	cleanup()
 
-	// The announcer's live region lives on document.body, outside React's tree,
-	// so cleanup() won't remove it — reset it so messages don't leak between tests.
+	// The announcer's live region lives on document.body, outside React's tree;
+	// cleanup() won't remove it. Resets it to prevent message leakage between tests.
 	__resetAnnouncer()
 })

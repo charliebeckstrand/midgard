@@ -23,22 +23,21 @@ function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boo
 const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
 
 /**
- * A top-level declaration that a helper may reference but which isn't itself
- * a JSX-returning helper — type aliases, interfaces, and plain consts. The
- * `names` are the identifiers the statement introduces; `code` is the full
- * statement source so it can be prepended verbatim when referenced.
+ * A top-level declaration a helper may reference but which isn't itself a
+ * JSX-returning helper — type aliases, interfaces, and plain consts. `names`
+ * lists the identifiers introduced; `code` is the full statement source for
+ * verbatim prepending.
  */
 type Preamble = { names: string[]; code: string; index: number }
 
 /**
- * The PascalCase name of a JSX-returning arrow / function-expression
+ * Returns the PascalCase name of a JSX-returning arrow / function-expression
  * declarator (`const Demo = () => <X />`), or null when `decl` isn't one.
  *
  * The JSX test runs against the initializer's own source, not the surrounding
- * statement: a multi-declarator `const A = () => <X />, B = somethingElse`
- * would otherwise flag B because the JSX return lives anywhere in the shared
- * statement text. This single predicate drives both helper collection and the
- * preamble exclusion, so the two stay in lockstep.
+ * statement: in `const A = () => <X />, B = somethingElse`, testing the full
+ * statement text would flag B. This predicate drives both helper collection
+ * and the preamble exclusion, keeping them in lockstep.
  */
 function jsxHelperName(
 	decl: ts.VariableDeclaration,
@@ -92,8 +91,7 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 			const code = source.slice(index, stmt.getEnd())
 
 			// Skip statements that are themselves JSX-returning helpers — those
-			// are collected by `collectHelpers` and would otherwise be pulled in
-			// twice (once as preamble, once as helper).
+			// are collected by `collectHelpers` and must not also appear as preamble.
 			if (isJsxReturningVariableStatement(stmt, sf, source)) continue
 
 			const names: string[] = []
@@ -112,14 +110,13 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 }
 
 /**
- * Prepend every preamble whose declared names appear (as whole-word matches)
- * in the helper's source. Matches are emitted in source order so the helper's
- * snippet reads top-to-bottom the way the author wrote it.
+ * Prepends every preamble whose declared names appear (as whole-word matches)
+ * in the helper's source. Matched preambles are emitted in source order.
  *
  * This is a name scan, not a true reference graph — a preamble whose name
  * coincidentally appears inside a string literal or comment in the helper
- * will be pulled in. The false-positive cost (an extra type alias in the
- * code block) is small compared to the cost of a non-compilable snippet.
+ * will be included. A false positive (an extra type alias in the code block)
+ * is preferable to a non-compilable snippet.
  */
 function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): string {
 	const matched: Preamble[] = []
@@ -144,14 +141,13 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
 }
 
 /**
- * Find every PascalCase top-level function/const that returns JSX. The default
- * export (the demo page itself) is skipped — it's rendered as the route body,
- * not inside `<Example>`, so a snippet for it is dead weight.
+ * Finds every PascalCase top-level function/const that returns JSX. The default
+ * export (the demo page itself) is skipped — it renders as the route body,
+ * not inside `<Example>`.
  *
  * Each helper's source is prepended with any sibling type alias, interface, or
- * `const` declaration it references by name, so the emitted snippet is
- * self-contained — copy-paste ready without dangling references to definitions
- * outside the helper body.
+ * `const` declaration it references by name, producing a self-contained snippet
+ * with no dangling references outside the helper body.
  */
 export function collectHelpers(source: string): Helper[] {
 	const sf = ts.createSourceFile(

@@ -57,9 +57,9 @@ export function SearchInput({
 		const input = inputRef.current
 
 		// Drive the clear through a native input event so it flows through
-		// `handleChange` like any edit. `setCurrentValue('')` alone is a no-op
-		// while controlled, which previously left the field stuck showing the old
-		// text and never fired `onChange`/`onClear` for controlled consumers.
+		// `handleChange` like any edit — `setCurrentValue('')` alone is a no-op
+		// while controlled, so this dispatches the change to both controlled
+		// and uncontrolled consumers.
 		if (input) {
 			const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
 
@@ -68,8 +68,7 @@ export function SearchInput({
 			input.dispatchEvent(new Event('input', { bubbles: true }))
 		}
 
-		// The clear button unmounts once the field is empty, so move focus back to
-		// the input rather than letting it fall to <body> (WCAG 2.4.3).
+		// Returns focus to the input when the clear button unmounts (WCAG 2.4.3).
 		input?.focus()
 	}, [])
 

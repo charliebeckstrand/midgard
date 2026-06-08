@@ -27,9 +27,8 @@ export function MenuContent({ className, children }: MenuContentProps) {
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					typeahead
 					glass={glass}
-					// A static menu (e.g. an always-open sidebar) is part of the page,
-					// not a transient overlay, so it must not grab focus on mount the
-					// way a dropdown menu does — that would steal focus on page load.
+					// A static menu is part of the page, not a transient overlay;
+					// `autoFocus={false}` keeps it from grabbing focus on mount.
 					autoFocus={false}
 					className={cn(k.content, className)}
 				>

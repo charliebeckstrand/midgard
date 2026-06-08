@@ -1,6 +1,5 @@
-// Container's max-width and horizontal padding apply only from `lg` up, so the
-// values are bespoke `lg:`-prefixed literals rather than the unprefixed `ma.px`
-// spacing scale — kept here so the recipe layer, not the component, owns them.
+// Container max-width and horizontal padding apply from `lg` up via bespoke
+// `lg:`-prefixed literals. Owned by the recipe layer, not the component.
 export const k = {
 	size: {
 		sm: 'lg:max-w-4xl',

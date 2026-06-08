@@ -8,8 +8,7 @@ import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
 
 // Mirrors `<Icon>`'s size scale for the Density steps an option row can carry.
-// Kept local so the primitive stays density-aware without importing `<Icon>`
-// from `components/` (which would invert the primitive → component layering).
+// Local to this primitive; does not import `<Icon>` from `components/`.
 const checkIconSize: Record<Step, string> = {
 	sm: 'size-4',
 	md: 'size-5',
@@ -23,11 +22,10 @@ type BaseOptionProps = {
 	disabled?: boolean
 	onSelect: () => void
 	/**
-	 * Mint a stable `id` so a combobox/textbox can point its
-	 * `aria-activedescendant` at this option while it owns DOM focus, and stop
-	 * mousedown from pulling focus off that input so a click selects without the
-	 * input losing focus. Off for focus-roving lists (listbox/select), which move
-	 * real focus to the option and need neither.
+	 * Stamps a stable `id` so a combobox/textbox can point its
+	 * `aria-activedescendant` at this option while it owns DOM focus, and
+	 * prevents mousedown from pulling focus off that input. Off for
+	 * focus-roving lists (listbox/select), which move real focus to the option.
 	 */
 	activeDescendant?: boolean
 } & Omit<
@@ -84,9 +82,8 @@ export function BaseOption({
 			data-selected={selected || undefined}
 			data-disabled={disabled || undefined}
 			tabIndex={-1}
-			// Active-descendant lists keep DOM focus on the owning input; stop the
-			// mousedown grabbing focus so a click selects without the input losing
-			// focus (and, on single-select close, dropping it to <body>).
+			// Active-descendant lists keep DOM focus on the owning input;
+			// `preventDefault` stops mousedown from transferring focus.
 			onMouseDown={activeDescendant ? (event) => event.preventDefault() : undefined}
 			onClick={() => !disabled && onSelect()}
 			onKeyDown={(event) => {
@@ -140,9 +137,7 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
  * prefix and the context hook.
  *
  * The selected-state check icon is owned by `BaseOption`, which reads the
- * ambient Density to size it. Per-option `icon` still overrides it. This keeps
- * the primitive self-contained — no `<Icon>` import from `components/`, which
- * would invert the primitive → component layering.
+ * ambient Density to size it. Per-option `icon` overrides it.
  */
 export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string

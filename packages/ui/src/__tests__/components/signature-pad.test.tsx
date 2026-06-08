@@ -116,8 +116,8 @@ describe('SignaturePad', () => {
 
 		const canvas = bySlot(container, 'signature-pad-canvas')
 
-		// role="img" so the aria-label is honored — a bare <canvas> has no implicit
-		// role, so the name would otherwise be ignored by assistive tech.
+		// role="img" on canvas: a bare <canvas> has no implicit role, so aria-label
+		// requires an explicit role to be honored by assistive tech.
 		expect(canvas).toHaveAttribute('role', 'img')
 
 		expect(canvas).toHaveAttribute('aria-label', 'Customer signature, empty')

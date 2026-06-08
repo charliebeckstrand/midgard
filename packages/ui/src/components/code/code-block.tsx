@@ -57,7 +57,7 @@ export function CodeBlock({
 	)
 
 	useEffect(() => {
-		// Inline code renders as a bare <code>, so there's no Shiki block to build.
+		// Inline code renders as a bare <code> — no Shiki tokenization needed.
 		if (inline) return
 
 		const key = cacheKey(code, lang, theme)

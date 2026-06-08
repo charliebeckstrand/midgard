@@ -106,10 +106,9 @@ describe('Toolbar', () => {
 
 	it('keeps the resting Tab stop on the focused control when a disabled sibling re-enables', async () => {
 		// Regression: a control that becomes enabled arrives at the native
-		// `tabIndex=0`, indistinguishable by count from the deliberate resting stop.
-		// The heuristic mustn't hand the stop to it while focus sits on another
-		// control — a live hazard in toolbars whose controls enable/disable as state
-		// changes (e.g. a zoom button re-enabling once the zoom leaves its bound).
+		// `tabIndex=0`, indistinguishable by count from the deliberate stop. With
+		// focus on another control, the resting stop holds on the focused one
+		// rather than jumping to the new arrival.
 		function Harness() {
 			const [enabled, setEnabled] = useState(false)
 
@@ -137,7 +136,7 @@ describe('Toolbar', () => {
 
 		const c = screen.getByRole('button', { name: 'C' })
 
-		// The freshly-enabled A must not seize the stop — it stays on focused B.
+		// The freshly-enabled A stays demoted; the resting stop holds on focused B.
 		await waitFor(() => expect(b.tabIndex).toBe(0))
 
 		expect(a.tabIndex).toBe(-1)

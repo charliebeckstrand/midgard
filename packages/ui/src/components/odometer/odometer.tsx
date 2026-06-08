@@ -27,8 +27,8 @@ export function Odometer({
 	const display = useOdometerAnimatedValue({ value, duration })
 
 	return (
-		// The visible digits tween every frame, so expose the settled target as an
-		// aria-label instead of announcing each intermediate value via a live region.
+		// Exposes the settled target as `aria-label` rather than a live region,
+		// avoiding announcement of each intermediate tween value.
 		<span
 			data-slot="odometer"
 			role="img"
