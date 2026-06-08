@@ -44,7 +44,7 @@ function isPascalCase(name: string): boolean {
 	return /^[A-Z]/.test(name)
 }
 
-function moduleNameFor(filePath: string, srcDir: string): string | null {
+export function moduleNameFor(filePath: string, srcDir: string): string | null {
 	const rel = path.relative(srcDir, filePath).split(path.sep)
 
 	if (rel[0] === 'components' && rel[2] === 'index.ts') return rel[1] ?? null
