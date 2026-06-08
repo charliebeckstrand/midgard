@@ -11,6 +11,7 @@ import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, clampDate, formatRange } from './date-picker-utilities'
+import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 export function useDatePickerRangeState({
@@ -29,7 +30,7 @@ export function useDatePickerRangeState({
 	const resolvedDisabled = disabled || control?.disabled === true
 
 	const [value, setValue] = useControllable({
-		value: valueProp,
+		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
 	})

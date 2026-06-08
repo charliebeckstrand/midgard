@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Control } from '../../components/control'
@@ -27,6 +28,15 @@ function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | nul
 			</button>
 		</div>
 	)
+}
+
+// Controlled usage: the parent holds `Date | undefined` and clears by passing
+// `value={undefined}` back. Guards against the field flipping to uncontrolled on
+// clear and resurfacing the stale value (the "click Clear twice" regression).
+function ControlledDatePicker() {
+	const [date, setDate] = useState<Date | undefined>(undefined)
+
+	return <DatePicker value={date} onValueChange={setDate} />
 }
 
 describe('DatePicker', () => {
@@ -176,6 +186,30 @@ describe('DatePicker', () => {
 		await user.click(screen.getByLabelText('Clear selection'))
 
 		expect(onChange).toHaveBeenCalledWith(undefined)
+	})
+
+	it('clears a controlled value with a single click', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<ControlledDatePicker />)
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(button)
+
+		const day = findDay(20)
+
+		if (!day) throw new Error('day 20 button not found')
+
+		await user.click(day)
+
+		expect(button).not.toHaveTextContent('Select a date')
+
+		await user.click(button)
+
+		await user.click(screen.getByLabelText('Clear selection'))
+
+		expect(button).toHaveTextContent('Select a date')
 	})
 
 	it('selects today via the footer Today button', async () => {
