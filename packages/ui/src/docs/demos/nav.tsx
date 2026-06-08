@@ -6,7 +6,7 @@ import { Example } from '../components/example'
 export const meta = { category: 'Navigation' }
 
 export function Demo() {
-	const [current, setCurrent] = useState('account')
+	const [current, setCurrent] = useState<string | undefined>('account')
 
 	return (
 		<>
@@ -19,7 +19,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Value model with content">
-				<NavContext value={{ value: current, onChange: setCurrent }}>
+				<NavContext value={{ value: current, onValueChange: setCurrent }}>
 					<NavList orientation="horizontal">
 						<NavItem value="account">Account</NavItem>
 						<NavItem value="notifications">Notifications</NavItem>

@@ -49,6 +49,7 @@ export function ColorPickerTrigger({
 	const glass = useGlass()
 
 	const swatchColor = hsvaToCss(hsva, alpha)
+
 	const label = hsvaToHex(hsva, alpha).toUpperCase()
 
 	return (

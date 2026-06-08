@@ -2,6 +2,7 @@ import { Upload } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
+import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
@@ -16,10 +17,12 @@ function AreaExample() {
 
 	return (
 		<Sizer>
-			<FileUpload accept="image/*" onFiles={setFiles} />
-			{files.length > 0 && (
-				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-			)}
+			<Stack>
+				<FileUpload accept="image/*" onFiles={setFiles} />
+				{files.length > 0 && (
+					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+				)}
+			</Stack>
 		</Sizer>
 	)
 }
@@ -29,14 +32,16 @@ function CustomContentExample() {
 
 	return (
 		<Sizer>
-			<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
-				<Icon icon={<Upload />} size="lg" />
-				<Text>Upload documents</Text>
-				<Text variant="muted">PDF, DOC up to 10MB</Text>
-			</FileUpload>
-			{files.length > 0 && (
-				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-			)}
+			<Stack>
+				<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
+					<Icon icon={<Upload />} size="lg" />
+					<Text>Upload documents</Text>
+					<Text variant="muted">PDF, DOC up to 10MB</Text>
+				</FileUpload>
+				{files.length > 0 && (
+					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+				)}
+			</Stack>
 		</Sizer>
 	)
 }
@@ -46,10 +51,12 @@ function InputExample() {
 
 	return (
 		<Sizer>
-			<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
-			{files.length > 0 && (
-				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-			)}
+			<Stack>
+				<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
+				{files.length > 0 && (
+					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+				)}
+			</Stack>
 		</Sizer>
 	)
 }
@@ -59,10 +66,12 @@ function ButtonExample() {
 
 	return (
 		<Sizer>
-			<FileUpload variant="button" onFiles={setFiles} />
-			{files.length > 0 && (
-				<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-			)}
+			<Stack>
+				<FileUpload variant="button" onFiles={setFiles} />
+				{files.length > 0 && (
+					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+				)}
+			</Stack>
 		</Sizer>
 	)
 }
