@@ -39,8 +39,8 @@ export function useA11yControl(id: string): A11yControl {
 
 	return useMemo<A11yControl>(
 		() => ({
-			describedBy: scope.aria['aria-describedby'],
-			labelledBy: scope.aria['aria-labelledby'],
+			describedBy: scope.ariaProps['aria-describedby'],
+			labelledBy: scope.ariaProps['aria-labelledby'],
 			labelId: scope.ids.label,
 			descriptionId: scope.ids.description,
 			messageId: scope.ids.error,
@@ -49,8 +49,8 @@ export function useA11yControl(id: string): A11yControl {
 			registerMessage: scope.register.error,
 		}),
 		[
-			scope.aria['aria-describedby'],
-			scope.aria['aria-labelledby'],
+			scope.ariaProps['aria-describedby'],
+			scope.ariaProps['aria-labelledby'],
 			scope.ids.label,
 			scope.ids.description,
 			scope.ids.error,

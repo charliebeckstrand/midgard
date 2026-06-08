@@ -28,8 +28,8 @@ export type A11yScope<Slot extends string = never> = {
 	ids: Record<Slot, string>
 	/** Per-slot mount registrar — call inside an effect; the cleanup deregisters. */
 	register: Record<Slot, () => () => void>
-	/** `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
-	aria: AriaProps
+	/** Spreadable bag — `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
+	ariaProps: AriaProps
 }
 
 /**
@@ -88,13 +88,13 @@ export function useA11yScope<Slot extends string = never>(
 	const labelledby = useAriaIds(...buckets.labelledby)
 	const describedby = useAriaIds(...buckets.describedby)
 
-	const aria = useMemo(
+	const ariaProps = useMemo(
 		() => ({ 'aria-labelledby': labelledby, 'aria-describedby': describedby }),
 		[labelledby, describedby],
 	)
 
 	return useMemo(
-		() => ({ id: scope.id, sub: scope.sub, ids, register, aria }),
-		[scope.id, scope.sub, ids, register, aria],
+		() => ({ id: scope.id, sub: scope.sub, ids, register, ariaProps }),
+		[scope.id, scope.sub, ids, register, ariaProps],
 	)
 }

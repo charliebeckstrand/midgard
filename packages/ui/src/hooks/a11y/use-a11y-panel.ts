@@ -35,8 +35,8 @@ export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 	const scope = useA11yScope({ slots: PANEL_SLOTS })
 
 	const ariaProps = useMemo<AriaProps>(
-		() => ({ role, 'aria-modal': true, ...scope.aria }),
-		[role, scope.aria],
+		() => ({ role, 'aria-modal': true, ...scope.ariaProps }),
+		[role, scope.ariaProps],
 	)
 
 	const a11y = useMemo<A11yPanelProviderValue>(
