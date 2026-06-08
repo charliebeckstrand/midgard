@@ -46,32 +46,36 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 		textBuffer = []
 	}
 
+	// Text leaves accumulate into a run; an element ends the run and is appended.
+	const addText = (value: string) => {
+		if (value !== '') textBuffer.push(value)
+	}
+
+	const addElement = (element: ReactElement) => {
+		flushText()
+
+		items.push({ kind: 'element', value: element })
+	}
+
+	const add = (item: ChildItem) => {
+		if (item.kind === 'text') addText(item.value)
+		else addElement(item.value)
+	}
+
 	for (const n of nodes) {
-		if (typeof n === 'string') {
-			const trimmed = n.trim()
+		if (typeof n === 'string' || typeof n === 'number') {
+			addText(String(n).trim())
 
-			if (trimmed !== '') textBuffer.push(trimmed)
-		} else if (typeof n === 'number') {
-			textBuffer.push(String(n))
-		} else if (isValidElement(n)) {
-			if (isPassThrough(n)) {
-				// Walk the wrapper's children; merge their text leaves into the
-				// current buffer so `<span>Hi</span> there` coalesces.
-				for (const nested of collectChildItems(elementChildren(n))) {
-					if (nested.kind === 'text') {
-						textBuffer.push(nested.value)
-					} else {
-						flushText()
-
-						items.push(nested)
-					}
-				}
-			} else {
-				flushText()
-
-				items.push({ kind: 'element', value: n })
-			}
+			continue
 		}
+
+		if (!isValidElement(n)) continue
+
+		// Pass-through wrappers (Fragment, intrinsic tags) flatten: recurse and
+		// merge their text leaves into the current run so `<span>Hi</span> there`
+		// coalesces.
+		if (isPassThrough(n)) collectChildItems(elementChildren(n)).forEach(add)
+		else addElement(n)
 	}
 
 	flushText()
