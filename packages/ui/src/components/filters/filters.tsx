@@ -102,15 +102,15 @@ export function Filters<T extends FilterValue = FilterValue>({
 			>
 				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
 				<Flex
-					direction={{ initial: 'row', sm: 'col' }}
+					direction={{ initial: 'col', sm: 'row' }}
 					gap="sm"
-					align={{ initial: 'end', md: 'start' }}
+					align={{ initial: 'start', md: 'end' }}
 					full
 				>
 					<Flex
-						direction={{ initial: 'row', sm: 'col' }}
+						direction={{ initial: 'col', sm: 'row' }}
 						gap="sm"
-						align={{ initial: 'end', md: 'start' }}
+						align={{ initial: 'start', md: 'end' }}
 						equal={equal}
 						full
 						flex="auto"

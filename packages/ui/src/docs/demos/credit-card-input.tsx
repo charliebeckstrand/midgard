@@ -53,8 +53,8 @@ function ComposedExample() {
 				<Flex
 					gap="sm"
 					direction={{
-						initial: 'row',
-						sm: 'col',
+						initial: 'col',
+						sm: 'row',
 					}}
 				>
 					<Field className="w-full">

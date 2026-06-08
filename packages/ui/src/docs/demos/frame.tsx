@@ -36,7 +36,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Responsive direction">
-				<Frame gap="sm" direction={{ initial: 'row', lg: 'col' }}>
+				<Frame gap="sm" direction={{ initial: 'col', lg: 'row' }}>
 					<Card className="shrink-0 w-64">Sidebar</Card>
 					<Card className="flex-1">Content</Card>
 				</Frame>
