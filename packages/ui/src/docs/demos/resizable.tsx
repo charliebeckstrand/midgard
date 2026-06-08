@@ -25,7 +25,7 @@ export function Demo() {
 
 			<Example title="Vertical">
 				<div className="h-64">
-					<ResizableGroup direction="vertical">
+					<ResizableGroup orientation="vertical">
 						<ResizablePanel defaultSize={60} minSize={20}>
 							<Pane />
 						</ResizablePanel>

@@ -12,16 +12,16 @@ describe('Split', () => {
 		expect(el).toHaveAttribute('id', 'test')
 	})
 
-	it('uses grid-template-columns for horizontal direction', () => {
-		const { container } = renderUI(<Split direction="horizontal">a</Split>)
+	it('uses grid-template-columns for horizontal orientation', () => {
+		const { container } = renderUI(<Split orientation="horizontal">a</Split>)
 
 		const el = bySlot(container, 'split') as HTMLElement
 
 		expect(el.style.gridTemplateColumns).toBeTruthy()
 	})
 
-	it('uses grid-template-rows for vertical direction', () => {
-		const { container } = renderUI(<Split direction="vertical">a</Split>)
+	it('uses grid-template-rows for vertical orientation', () => {
+		const { container } = renderUI(<Split orientation="vertical">a</Split>)
 
 		const el = bySlot(container, 'split') as HTMLElement
 

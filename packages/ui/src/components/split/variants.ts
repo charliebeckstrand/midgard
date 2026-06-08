@@ -1,5 +1,6 @@
 import type { Ma } from '../../recipes'
 import { k } from '../../recipes/kata/split'
+import type { Orientation } from '../../types'
 import { alignMap, type FlexAlign } from '../flex/variants'
 
 export { alignMap }
@@ -19,4 +20,4 @@ export const ratioTuples = {
 } as const
 
 export type SplitRatio = keyof typeof ratioTuples
-export type SplitDirection = 'horizontal' | 'vertical'
+export type SplitOrientation = Orientation

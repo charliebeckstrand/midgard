@@ -26,7 +26,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Vertical">
-				<Split direction="vertical" ratio="1/4" className="h-72">
+				<Split orientation="vertical" ratio="1/4" className="h-72">
 					<Card>Header (1/4)</Card>
 					<Card>Body (3/4)</Card>
 				</Split>

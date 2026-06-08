@@ -1,2 +1,2 @@
 export { Split, type SplitProps } from './split'
-export type { SplitDirection, SplitGap, SplitRatio } from './variants'
+export type { SplitGap, SplitOrientation, SplitRatio } from './variants'

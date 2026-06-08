@@ -9,7 +9,7 @@ import {
 	useState,
 } from 'react'
 import { clamp } from '../../utilities'
-import type { PanelConfig, ResizableDirection } from './types'
+import type { PanelConfig, ResizableOrientation } from './types'
 
 type DragState = {
 	handleIndex: number
@@ -54,22 +54,22 @@ function clampPair(
 
 type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
-	direction: ResizableDirection
+	orientation: ResizableOrientation
 	panelConfigs: PanelConfig[]
 	onSizesChange?: (sizes: number[]) => void
 }
 
 export function useResizablePanel({
 	groupRef,
-	direction,
+	orientation,
 	panelConfigs,
 	onSizesChange,
 }: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
-	const directionRef = useRef(direction)
+	const orientationRef = useRef(orientation)
 
-	directionRef.current = direction
+	orientationRef.current = orientation
 
 	const constraintsRef = useRef(panelConfigs)
 
@@ -124,11 +124,11 @@ export function useResizablePanel({
 
 			e.preventDefault()
 
-			const dir = directionRef.current
+			const orient = orientationRef.current
 
 			const rect = group.getBoundingClientRect()
 
-			const totalSize = dir === 'horizontal' ? rect.width : rect.height
+			const totalSize = orient === 'horizontal' ? rect.width : rect.height
 
 			// Subtract handle widths for accurate deltas.
 			let handleWidth = 0
@@ -136,14 +136,14 @@ export function useResizablePanel({
 			group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]').forEach((h) => {
 				const hr = h.getBoundingClientRect()
 
-				handleWidth += dir === 'horizontal' ? hr.width : hr.height
+				handleWidth += orient === 'horizontal' ? hr.width : hr.height
 			})
 
 			const availableSize = totalSize - handleWidth
 
 			if (availableSize <= 0) return
 
-			const startPos = dir === 'horizontal' ? e.clientX : e.clientY
+			const startPos = orient === 'horizontal' ? e.clientX : e.clientY
 
 			dragRef.current = {
 				handleIndex,
@@ -159,9 +159,9 @@ export function useResizablePanel({
 
 				if (!drag) return
 
-				const currentDir = directionRef.current
+				const currentOrient = orientationRef.current
 
-				const currentPos = currentDir === 'horizontal' ? event.clientX : event.clientY
+				const currentPos = currentOrient === 'horizontal' ? event.clientX : event.clientY
 
 				const deltaPercent = ((currentPos - drag.startPos) / drag.availableSize) * 100
 

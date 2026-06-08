@@ -6,18 +6,18 @@ import { k } from '../../recipes/kata/resizable'
 import { ResizableContext, ResizableIndexContext } from './context'
 import { ResizableHandle } from './resizable-handle'
 import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
-import type { PanelConfig, ResizableDirection } from './types'
+import type { PanelConfig, ResizableOrientation } from './types'
 import { useResizablePanel } from './use-resizable-panel'
 
 export type ResizableGroupProps = {
-	direction?: ResizableDirection
+	orientation?: ResizableOrientation
 	onSizesChange?: (sizes: number[]) => void
 	className?: string
 	children?: ReactNode
 }
 
 export function ResizableGroup({
-	direction = 'horizontal',
+	orientation = 'horizontal',
 	onSizesChange,
 	className,
 	children,
@@ -45,7 +45,7 @@ export function ResizableGroup({
 
 	const { sizes, dragging, startDrag, resize } = useResizablePanel({
 		groupRef,
-		direction,
+		orientation,
 		panelConfigs,
 		onSizesChange,
 	})
@@ -75,8 +75,8 @@ export function ResizableGroup({
 	}, [children])
 
 	const contextValue = useMemo(
-		() => ({ direction, dragging, sizes, panelConfigs, startDrag, resize }),
-		[direction, dragging, sizes, panelConfigs, startDrag, resize],
+		() => ({ orientation, dragging, sizes, panelConfigs, startDrag, resize }),
+		[orientation, dragging, sizes, panelConfigs, startDrag, resize],
 	)
 
 	return (
@@ -84,8 +84,8 @@ export function ResizableGroup({
 			<div
 				ref={groupRef}
 				data-slot="resizable-group"
-				data-direction={direction}
-				className={cn(k.group, direction === 'horizontal' ? 'flex-row' : 'flex-col', className)}
+				data-orientation={orientation}
+				className={cn(k.group, orientation === 'horizontal' ? 'flex-row' : 'flex-col', className)}
 			>
 				{wrapped}
 			</div>
