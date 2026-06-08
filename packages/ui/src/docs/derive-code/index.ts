@@ -1,11 +1,20 @@
 'use client'
 
 import { Children, type ReactElement, type ReactNode } from 'react'
-import { formatProps, INDENT, PLACEHOLDER, renderOpenTag } from './format'
-import { addImport, assemble } from './imports'
+import {
+	addImport,
+	assemble,
+	collectChildItems,
+	collectSnippetImports,
+	elementChildren,
+	formatProps,
+	INDENT,
+	PLACEHOLDER,
+	readSnippet,
+	reindent,
+	renderOpenTag,
+} from './internals'
 import { defaultRegistry } from './registry'
-import { collectSnippetImports, readSnippet, reindent } from './snippet'
-import { collectChildItems, elementChildren } from './tree'
 import type { Context } from './types'
 
 /**

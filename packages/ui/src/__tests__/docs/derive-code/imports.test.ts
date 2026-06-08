@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addImport, assemble } from '../../../docs/derive-code/imports'
+import { addImport, assemble } from '../../../docs/derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('addImport', () => {
