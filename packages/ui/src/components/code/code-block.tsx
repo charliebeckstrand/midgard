@@ -37,7 +37,6 @@ export type CodeBlockProps = {
 	code: string
 	lang?: BundledLanguage
 	theme?: BundledTheme
-	inline?: boolean
 	copy?: boolean
 	className?: string
 }
@@ -46,7 +45,6 @@ export function CodeBlock({
 	code: rawCode,
 	lang = 'tsx',
 	theme = 'github-dark-default',
-	inline,
 	copy = true,
 	className,
 }: CodeBlockProps) {
@@ -57,9 +55,6 @@ export function CodeBlock({
 	)
 
 	useEffect(() => {
-		// Inline code renders as a bare <code> — no Shiki tokenization needed.
-		if (inline) return
-
 		const key = cacheKey(code, lang, theme)
 
 		const cached = htmlCache.get(key)
@@ -93,34 +88,23 @@ export function CodeBlock({
 		return () => {
 			cancelled = true
 		}
-	}, [code, lang, theme, inline])
-
-	if (inline) {
-		return (
-			<code data-slot="code-block" className={cn(k.codeBlock({ inline }), className)}>
-				{code}
-			</code>
-		)
-	}
+	}, [code, lang, theme])
 
 	return (
-		<div data-slot="code-block" className={cn(k.codeBlock({ inline }), className)}>
-			{copy && (
-				<div className={cn(k.block.copyButtonWrapper)}>
-					<CopyButton value={code} className={cn(k.block.copyButton)} size="sm" />
-				</div>
-			)}
-			{html ? (
-				<div
-					className={cn(k.block.content, copy && k.block.contentCopy)}
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
-					dangerouslySetInnerHTML={{ __html: html }}
-				/>
-			) : (
-				<pre className={cn(k.block.fallback, copy && k.block.fallbackCopy)} tabIndex={-1}>
-					<code>{code}</code>
-				</pre>
-			)}
+		<div data-slot="code-block" className={cn(k.wrapper, className)}>
+			<div className={cn(k.block.content)}>
+				{html ? (
+					<div
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
+						dangerouslySetInnerHTML={{ __html: html }}
+					/>
+				) : (
+					<pre className={cn(k.block.fallback)} tabIndex={-1}>
+						<code>{code}</code>
+					</pre>
+				)}
+			</div>
+			{copy && <CopyButton value={code} size="sm" className={cn(k.copy)} />}
 		</div>
 	)
 }

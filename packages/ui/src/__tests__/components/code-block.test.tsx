@@ -19,18 +19,6 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
-	it('renders inline code as a <code> element with no <pre> block', () => {
-		const { container } = renderUI(<CodeBlock inline code="npm i" />)
-
-		const el = bySlot(container, 'code-block')
-
-		expect(el?.tagName).toBe('CODE')
-
-		expect(el).toHaveTextContent('npm i')
-
-		expect(container.querySelector('pre')).not.toBeInTheDocument()
-	})
-
 	it('applies custom className', async () => {
 		const { container } = renderUI(<CodeBlock code="x" className="custom" />)
 

@@ -25,14 +25,7 @@ export function Demo() {
 				</Text>
 			</Example>
 
-			<Example
-				title="Code block"
-				code={code`
-					import { CodeBlock } from 'ui/code'
-
-					<CodeBlock code={source} />
-				`}
-			>
+			<Example title="Code block">
 				<CodeBlock
 					code={code`
 						import { Button } from 'ui/button'
@@ -44,8 +37,8 @@ export function Demo() {
 				/>
 			</Example>
 
-			<Example title="Block with language">
-				<CodeBlock inline lang="bash" code="pnpm add ui" />
+			<Example title="With language">
+				<CodeBlock lang="bash" code="pnpm add ui" />
 			</Example>
 		</>
 	)

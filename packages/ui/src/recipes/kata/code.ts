@@ -7,15 +7,6 @@ const { mark } = shaku
 
 const bg = omote.bg.code
 
-const block = defineRecipe({
-	base: ['relative overflow-hidden', rounded.lg, bg],
-	inline: {
-		true: 'w-fit max-w-full',
-		false: '',
-	},
-	defaults: { inline: false },
-})
-
 export const k = defineRecipe(
 	{
 		base: [...mark.base],
@@ -23,18 +14,17 @@ export const k = defineRecipe(
 		defaults: { size: 'md' },
 	},
 	{
-		codeBlock: block,
+		wrapper: ['overflow-hidden flex items-start gap-4 p-4', rounded.lg, bg],
 		/** Block-specific slot classes; consumed by `CodeBlock`. */
 		block: {
-			content: '[&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:text-sm',
-			contentCopy: '[&_pre]:pr-14',
-			fallback: ['overflow-x-auto', 'p-4', size.sm, 'text-zinc-400'],
-			fallbackCopy: 'pr-14',
-			copyButton: ['text-zinc-400 hover:not-disabled:text-white', 'p-2.5 m-2'],
-			copyButtonWrapper: ['absolute top-0 right-0 z-10', bg],
+			content: ['min-w-0 flex-1 overflow-x-auto', size.sm],
+			fallback: 'text-zinc-400',
 		},
+		// Sits in the flex row, not absolutely positioned: `items-start` lands it on
+		// the first code line, so a single-line block reads as vertically centred.
+		copy: ['text-zinc-400', 'hover:not-disabled:text-white'],
 	},
 )
 
 export type CodeVariants = VariantProps<typeof k>
-export type CodeBlockVariants = VariantProps<typeof block>
+export type CodeBlockVariants = VariantProps<typeof k>
