@@ -45,7 +45,7 @@ function parseMeta(project: Project, fileName: string, source: string): DemoMeta
 	return meta
 }
 
-function generate(demosDir: string): Record<string, DemoMeta> {
+export function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 	if (!fs.existsSync(demosDir)) return {}
 
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
@@ -84,7 +84,7 @@ export function demoMetasPlugin(): Plugin {
 
 		...virtualJsonHooks({
 			id: 'virtual:demo-metas',
-			generate: () => generate(demosDir),
+			generate: () => generateDemoMetas(demosDir),
 			shouldInvalidate: (file) => file.startsWith(demosDir) && file.endsWith('.tsx'),
 		}),
 	}

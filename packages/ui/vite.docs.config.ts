@@ -2,12 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
-import {
-	apiReferencePlugin,
-	componentTagsPlugin,
-	demoMetasPlugin,
-	deriveCodePlugin,
-} from './src/docs/plugins'
+import { docsPlugin } from './src/docs/plugins'
 
 const analyze = process.env.ANALYZE === '1'
 
@@ -15,12 +10,9 @@ export default defineConfig({
 	base: '/',
 	root: 'src/docs',
 	plugins: [
-		deriveCodePlugin(),
-		componentTagsPlugin(),
+		docsPlugin(),
 		react(),
 		tailwindcss(),
-		apiReferencePlugin(),
-		demoMetasPlugin(),
 		analyze &&
 			visualizer({
 				// Filenames are resolved against the process cwd, not the Vite root,

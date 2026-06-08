@@ -11,7 +11,7 @@ type ReExport = { source: string; localName: string; exportedName: string; isTyp
  * Other top-level forms (default exports, plain `export const`) aren't used
  * by component/layout indexes and are ignored.
  */
-function parseReExports(source: string, fileName: string): ReExport[] {
+export function parseReExports(source: string, fileName: string): ReExport[] {
 	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 
 	const result: ReExport[] = []
@@ -101,7 +101,7 @@ function collectDirNames(
  * `layouts/index.ts` at build time and collect `{ name → module }` for every
  * PascalCase value re-export.
  */
-function buildNameMap(srcDir: string): Record<string, string> {
+export function buildNameMap(srcDir: string): Record<string, string> {
 	const result: Record<string, string> = {}
 
 	collectDirNames(result, path.join(srcDir, 'components'), (name) => name)
@@ -118,7 +118,7 @@ function buildNameMap(srcDir: string): Record<string, string> {
  * value export in an index file. Imports each name locally so it's bound
  * inside the module, then tags the resolved value if it's an object/function.
  */
-function buildTagSuffix(reExports: ReExport[], moduleName: string): string {
+export function buildTagSuffix(reExports: ReExport[], moduleName: string): string {
 	const value = reExports.filter((re) => !re.isType && isPascalCase(re.exportedName))
 
 	if (value.length === 0) return ''
@@ -145,7 +145,7 @@ function buildTagSuffix(reExports: ReExport[], moduleName: string): string {
  * Docs build runs with `root = src/docs` (so `..` is `src`); vitest runs
  * with `root = packages/ui` (so `src` is one level down). Try both.
  */
-function findSrcDir(root: string): string {
+export function findSrcDir(root: string): string {
 	const candidates = [path.resolve(root, '..'), path.join(root, 'src')]
 
 	const dir = candidates.find((c) => fs.existsSync(path.join(c, 'components')))
