@@ -34,7 +34,12 @@ export function Icon({ icon, size, className, label }: IconProps) {
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
 		...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' }),
 		'data-slot': 'icon',
-		className: cn('shrink-0', !isNumeric && k.size[resolvedSize], className),
+		className: cn(
+			'shrink-0',
+			!isNumeric && k.size[resolvedSize],
+			(icon.props as { className?: string }).className,
+			className,
+		),
 		...(isNumeric && { style: { width: resolvedSize, height: resolvedSize } }),
 	})
 }
