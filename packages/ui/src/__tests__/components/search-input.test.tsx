@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { SearchInput } from '../../components/search-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
@@ -49,6 +50,29 @@ describe('SearchInput', () => {
 		await user.click(screen.getByLabelText('Clear search'))
 
 		expect(onClear).toHaveBeenCalledOnce()
+	})
+
+	it('clears a controlled field when the clear button is clicked', async () => {
+		// Regression: clearing must notify the parent through onChange, otherwise a
+		// controlled field stays stuck showing the old value (setCurrentValue is a
+		// no-op while controlled).
+		function Controlled() {
+			const [value, setValue] = useState('query')
+
+			return <SearchInput value={value} onChange={(e) => setValue(e.target.value)} />
+		}
+
+		renderUI(<Controlled />)
+
+		const input = screen.getByRole('searchbox') as HTMLInputElement
+
+		expect(input.value).toBe('query')
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Clear search'))
+
+		expect(input.value).toBe('')
 	})
 
 	it('returns focus to the input after clearing (uncontrolled)', async () => {
