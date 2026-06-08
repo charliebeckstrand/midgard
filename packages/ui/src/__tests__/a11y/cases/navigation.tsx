@@ -108,7 +108,7 @@ export const navigationCases: readonly Case[] = [
 		// the tab via aria-labelledby.
 		'tabs',
 		<Tabs key="t" defaultValue="account">
-			<TabList>
+			<TabList aria-label="Sections">
 				<Tab value="account">Account</Tab>
 				<Tab value="billing">Billing</Tab>
 			</TabList>

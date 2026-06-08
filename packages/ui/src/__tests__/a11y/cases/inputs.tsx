@@ -86,7 +86,7 @@ export const inputCases: readonly Case[] = [
 		// Radios share a name to form a single group; each input is named by its
 		// adjacent Label through Control context.
 		'radio',
-		<RadioGroup key="r">
+		<RadioGroup key="r" aria-label="Plan">
 			<RadioField>
 				<Radio name="plan" value="starter" defaultChecked />
 				<Label>Starter</Label>

@@ -87,7 +87,7 @@ export const dataDisplayCases: readonly Case[] = [
 		// accessible name and one item is selected.
 		'segment',
 		<Segment key="sg" defaultValue="list" aria-label="View">
-			<SegmentControl>
+			<SegmentControl aria-label="View">
 				<SegmentItem value="list">List</SegmentItem>
 				<SegmentItem value="grid">Grid</SegmentItem>
 			</SegmentControl>

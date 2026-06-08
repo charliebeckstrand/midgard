@@ -23,7 +23,7 @@ export function Demo() {
 	return (
 		<Tabs defaultValue="bar">
 			<Stack gap="lg">
-				<TabList>
+				<TabList aria-label="Progress style">
 					<Tab value="bar">Bar</Tab>
 					<Tab value="gauge">Gauge</Tab>
 				</TabList>

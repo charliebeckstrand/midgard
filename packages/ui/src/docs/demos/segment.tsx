@@ -52,7 +52,7 @@ export function Demo() {
 			<Example title="Default">
 				<Stack gap="lg">
 					<Segment value={view} onValueChange={(v) => setView(v ?? 'List')}>
-						<SegmentControl>
+						<SegmentControl aria-label="View">
 							<SegmentItem value="List">List</SegmentItem>
 							<SegmentItem value="Card">Card</SegmentItem>
 						</SegmentControl>
@@ -86,7 +86,7 @@ export function Demo() {
 			<Example title="Filter">
 				<Stack gap="lg">
 					<Segment value={filter} onValueChange={(v) => setFilter(v ?? 'All')}>
-						<SegmentControl>
+						<SegmentControl aria-label="Filter">
 							<SegmentItem value="All">All</SegmentItem>
 							<SegmentItem value="Active">Active</SegmentItem>
 							<SegmentItem value="Archived">Archived</SegmentItem>
@@ -118,7 +118,7 @@ export function Demo() {
 						size={s}
 						onValueChange={(v) => setSizeValues((prev) => ({ ...prev, [s]: (v ?? 'md') as Size }))}
 					>
-						<SegmentControl>
+						<SegmentControl aria-label="Size">
 							<SegmentItem value="sm">Small</SegmentItem>
 							<SegmentItem value="md">Medium</SegmentItem>
 							<SegmentItem value="lg">Large</SegmentItem>
@@ -129,7 +129,7 @@ export function Demo() {
 
 			<Example title="With disabled segment">
 				<Segment defaultValue="List">
-					<SegmentControl>
+					<SegmentControl aria-label="View">
 						<SegmentItem value="List">List</SegmentItem>
 						<SegmentItem value="Grid">Grid</SegmentItem>
 						<SegmentItem value="Map" disabled>
