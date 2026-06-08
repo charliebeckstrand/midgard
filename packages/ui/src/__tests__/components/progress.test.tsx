@@ -25,6 +25,12 @@ describe('ProgressBar', () => {
 		expect(el).not.toHaveAttribute('aria-valuenow')
 	})
 
+	it('clamps aria-valuenow to max when value exceeds it', () => {
+		const { container } = renderUI(<ProgressBar value={150} max={100} aria-label="Progress" />)
+
+		expect(bySlot(container, 'progress-bar')).toHaveAttribute('aria-valuenow', '100')
+	})
+
 	it('supports the size and color variants', () => {
 		const { container } = renderUI(
 			<ProgressBar value={50} size="sm" color="green" aria-label="Progress" />,
@@ -58,6 +64,12 @@ describe('ProgressGauge', () => {
 		expect(el).toHaveAttribute('aria-valuenow', '75')
 
 		expect(el).toHaveAttribute('aria-valuemax', '100')
+	})
+
+	it('clamps aria-valuenow to max when value exceeds it', () => {
+		const { container } = renderUI(<ProgressGauge value={150} max={100} aria-label="Progress" />)
+
+		expect(bySlot(container, 'progress-gauge')).toHaveAttribute('aria-valuenow', '100')
 	})
 
 	it('renders a numeric label when label is true', () => {

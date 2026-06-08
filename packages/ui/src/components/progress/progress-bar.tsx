@@ -36,7 +36,7 @@ export function ProgressBar({
 		<div
 			data-slot="progress-bar"
 			role="progressbar"
-			aria-valuenow={determinate ? value : undefined}
+			aria-valuenow={determinate ? clamp(value, 0, max) : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
