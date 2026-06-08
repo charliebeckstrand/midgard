@@ -92,7 +92,9 @@ export function validateCardNumber(value: string): CardValidity {
 }
 
 export function validateCardCvv(value: string, brand?: CreditCardBrand): CardValidity {
-	const maxLength = brand === 'amex' ? 4 : 3
+	// With no brand yet, the input permits up to 4 digits (resolveCvvLength), so
+	// accept both lengths here instead of hard-failing a 4-digit CVV as invalid.
+	const maxLength = brand === 'amex' ? 4 : brand === undefined ? [3, 4] : 3
 
 	const { isValid, isPotentiallyValid } = cvv(value.replace(/\D/g, ''), maxLength)
 
