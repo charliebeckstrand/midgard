@@ -95,22 +95,22 @@ export const k = defineRecipe(
 			{
 				variant: 'bare',
 				size: 'xs',
-				class: ['-m-1.5'],
+				class: ['-m-1.5 data-[has-label]:-my-[calc(--spacing(1)-1px)]'],
 			},
 			{
 				variant: 'bare',
 				size: 'sm',
-				class: ['-m-2'],
+				class: ['-m-2 data-[has-label]:-my-[calc(--spacing(1.5)-1px)]'],
 			},
 			{
 				variant: 'bare',
 				size: 'md',
-				class: ['-m-2.5'],
+				class: ['-m-2.5 data-[has-label]:-my-[calc(--spacing(2)-1px)]'],
 			},
 			{
 				variant: 'bare',
 				size: 'lg',
-				class: ['-m-3'],
+				class: ['-m-3 data-[has-label]:-my-[calc(--spacing(2.5)-1px)]'],
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
