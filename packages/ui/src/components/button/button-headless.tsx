@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, MouseEvent, ReactNode, Ref } from 'react'
 import { Link } from '../link'
 
 // Type intentionally loose at the call boundary — the public discriminated
@@ -32,7 +32,19 @@ export function ButtonHeadless({
 				href={href}
 				className={className}
 				{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-				{...(loading && { 'aria-disabled': true, 'data-disabled': true, 'aria-busy': true })}
+				{...(loading && {
+					'aria-disabled': true,
+					'data-disabled': true,
+					'aria-busy': true,
+					// `aria-disabled` alone doesn't gate an anchor — keep it out of the tab
+					// order and cancel activation so a loading link can't navigate or fire
+					// its `onClick` (mirrors the disabled `<button>` branch).
+					tabIndex: -1,
+					onClick: (e: MouseEvent<HTMLAnchorElement>) => {
+						e.preventDefault()
+						e.stopPropagation()
+					},
+				})}
 			>
 				{children}
 			</Link>

@@ -89,6 +89,33 @@ describe('Button', () => {
 		expect(button).toHaveAttribute('aria-busy', 'true')
 	})
 
+	it('gates a loading link: no navigation, no onClick, out of the tab order', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<Button href="/about" loading onClick={onClick}>
+				About
+			</Button>,
+		)
+
+		const link = bySlot(container, 'button') as HTMLAnchorElement
+
+		expect(link).toHaveAttribute('aria-disabled', 'true')
+
+		expect(link).toHaveAttribute('aria-busy', 'true')
+
+		// Removed from the tab order, mirroring the disabled <button> branch.
+		expect(link).toHaveAttribute('tabindex', '-1')
+
+		// Activation is cancelled — the default navigation is prevented and the
+		// consumer's handler never fires.
+		const notCancelled = fireEvent.click(link)
+
+		expect(notCancelled).toBe(false)
+
+		expect(onClick).not.toHaveBeenCalled()
+	})
+
 	it('renders a placeholder in skeleton mode', () => {
 		const { container } = renderUI(<Button>Save</Button>, { skeleton: true })
 
