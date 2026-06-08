@@ -6,6 +6,7 @@ import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGridCellSlice } from './context'
 import { EditableGridCellEditor } from './editable-grid-cell-editor'
 import type { EditableGridAlign, EditableGridColumn, EditableGridEditor } from './types'
+import { useEditableGridCellAriaSelected } from './use-editable-grid-cell-aria-selected'
 
 type EditableGridCellContentProps<T> = {
 	rowIdx: number
@@ -44,8 +45,15 @@ export function EditableGridCell<T>({
 		setFlashKey((n) => n + 1)
 	}, [formatted])
 
+	const cellRef = useRef<HTMLDivElement>(null)
+
+	// `aria-selected` belongs on the owning `role="gridcell"` <td>, not this
+	// inner content div — reflect the live selection onto it.
+	useEditableGridCellAriaSelected(cellRef, isActive || inRange)
+
 	return (
 		<div
+			ref={cellRef}
 			data-slot="editable-grid-cell"
 			data-active={isActive || undefined}
 			data-in-range={inRange || undefined}
