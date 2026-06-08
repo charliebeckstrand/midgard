@@ -3,20 +3,29 @@ import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
 import { Toolbar } from '../../components/toolbar'
-import { useMinWidth } from '../../hooks'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
-
-vi.mock('../../hooks', async (importOriginal) => {
-	const actual = await importOriginal<typeof import('../../hooks')>()
-
-	return { ...actual, useMinWidth: vi.fn(() => true) }
-})
+import {
+	act,
+	allBySlot,
+	bySlot,
+	fireEvent,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 beforeEach(() => {
-	vi.mocked(useMinWidth).mockReturnValue(true)
+	// Default to desktop so the thumbnail sidebar renders. Driving isDesktop via
+	// matchMedia (the real useMinWidth path) instead of a per-file vi.mock of the
+	// shared `../../hooks` barrel avoids poisoning the vmThreads module cache for
+	// files that import the barrel unmocked (e.g. a11y/baseline.test.tsx renders
+	// the real PdfViewer). See src/__tests__/setup/module-mocks.ts.
+	stubMatchMedia((query) => query === '(min-width: 1024px)')
 })
 
 afterEach(() => {
+	vi.unstubAllGlobals()
 	vi.restoreAllMocks()
 })
 
@@ -174,7 +183,7 @@ describe('PdfViewer', () => {
 	})
 
 	it('opens the mobile thumbnails sheet when toggled', async () => {
-		vi.mocked(useMinWidth).mockReturnValue(false)
+		stubMatchMedia(() => false)
 
 		renderUI(<PdfViewer pages={pages} />)
 

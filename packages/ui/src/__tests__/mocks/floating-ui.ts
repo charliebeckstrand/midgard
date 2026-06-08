@@ -6,12 +6,23 @@ const identity = <T>(x: T) => x
 
 type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
 
-type MockInteraction = { reference?: { onClick?: (e: unknown) => void } }
+type MockProps = Record<string, unknown>
+
+type MockInteraction = { reference?: MockProps; floating?: MockProps }
+
+type MockEnabled = { enabled?: boolean }
+
+type MockRoleOptions = MockEnabled & { role?: string }
 
 type MockFocusManagerProps = {
 	children: ReactNode
 	initialFocus?: RefObject<HTMLElement | null>
 }
+
+// Stable id stamped on the floating element by `useRole`, mirrored onto the
+// reference's `aria-describedby` while open — enough to assert the tooltip's
+// description relationship without a real floating engine.
+const FLOATING_ID = 'floating-ui-mock-id'
 
 function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerProps) {
 	useEffect(() => {
@@ -22,18 +33,61 @@ function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerPr
 }
 
 /**
+ * Composes a list of prop bags into one: function-valued keys under the same
+ * name are chained (earlier first), other defined values are copied (later
+ * wins), and `undefined` values are skipped. Generalizes the previous
+ * onClick-only composition so reference/floating handlers and aria attributes
+ * from every interaction merge consistently.
+ */
+function mergeProps(list: (MockProps | undefined)[]): MockProps {
+	const out: MockProps = {}
+
+	for (const props of list) {
+		if (!props) continue
+
+		for (const [key, value] of Object.entries(props)) {
+			if (typeof value === 'function') {
+				const prev = out[key] as ((...args: unknown[]) => void) | undefined
+				const next = value as (...args: unknown[]) => void
+
+				out[key] = prev
+					? (...args: unknown[]) => {
+							prev(...args)
+							next(...args)
+						}
+					: next
+			} else if (value !== undefined) {
+				out[key] = value
+			}
+		}
+	}
+
+	return out
+}
+
+/**
  * `@floating-ui/react` mock applied globally via `setup/module-mocks.ts`.
  *
  * Provides just enough behavior for tests:
  *   - `useFloating` exposes `open` and `onOpenChange` on `context` so consumers
- *     of `useClick` can wire click-to-toggle.
- *   - `useClick` returns an onClick that flips open via `onOpenChange`.
- *   - `useInteractions` merges interaction-supplied onClick handlers into the
- *     reference props alongside any user-supplied onClick.
+ *     of `useClick`/`useFocus` can wire open-on-interaction.
+ *   - `useClick` / `useFocus` return reference handlers that *open* the panel
+ *     (open-only, not toggle): `userEvent.click` fires focus then click, so a
+ *     toggling click would re-close what focus just opened. Dismissal in these
+ *     components flows through other paths (overlay signal, outside-press), so
+ *     open-only keeps the focus + pointer paths consistent.
+ *   - `useRole` is additive but gated on `enabled`: it emits the tooltip
+ *     `aria-describedby` (reference, while open) + panel `id`/`role` (floating)
+ *     ONLY when `enabled !== false`. Every consumer that passes `role: null`
+ *     calls `useRole` with `enabled: false`, so it stays a noop for them and
+ *     they keep hand-rolling their own roles — the positioning wrapper is not
+ *     stamped with a duplicate role.
+ *   - `useInteractions` merges interaction reference/floating prop bags (and
+ *     any user-supplied props) via `mergeProps`, chaining handlers.
  *
- * Everything else (positioning, hover, focus, dismiss, role, portals) is a
- * noop or identity passthrough. Applied globally for module-graph consistency
- * across the vmThreads pool.
+ * Everything else (positioning, hover, dismiss, portals) is a noop or identity
+ * passthrough. Applied globally for module-graph consistency across the
+ * vmThreads pool.
  */
 const floatingUIMock = {
 	autoUpdate: noop,
@@ -44,14 +98,16 @@ const floatingUIMock = {
 	shift: () => ({}),
 	size: () => ({}),
 	safePolygon: () => () => {},
-	useClick: (context: MockContext): MockInteraction => ({
-		reference: {
-			onClick: () => context?.onOpenChange?.(!context?.open),
-		},
-	}),
+	useClick: (context: MockContext, options?: MockEnabled): MockInteraction =>
+		options?.enabled === false
+			? {}
+			: { reference: { onClick: () => context?.onOpenChange?.(true) } },
 	useClientPoint: (): MockInteraction => ({}),
 	useDismiss: (): MockInteraction => ({}),
-	useFocus: (): MockInteraction => ({}),
+	useFocus: (context: MockContext, options?: MockEnabled): MockInteraction =>
+		options?.enabled === false
+			? {}
+			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
 	useHover: (): MockInteraction => ({}),
 	useFloating: (opts: MockContext) => ({
 		refs: {
@@ -72,28 +128,19 @@ const floatingUIMock = {
 		update: noop,
 	}),
 	useInteractions: (interactions: MockInteraction[] = []) => ({
-		getReferenceProps: (userProps: Record<string, unknown> = {}) => {
-			const merged: Record<string, unknown> = { ...userProps }
-
-			for (const interaction of interactions) {
-				const onClick = interaction?.reference?.onClick
-
-				if (typeof onClick === 'function') {
-					const existing = merged.onClick as ((e: unknown) => void) | undefined
-
-					merged.onClick = (e: unknown) => {
-						existing?.(e)
-						onClick(e)
-					}
-				}
-			}
-
-			return merged
-		},
-		getFloatingProps: identity,
+		getReferenceProps: (userProps: MockProps = {}) =>
+			mergeProps([userProps, ...interactions.map((i) => i?.reference)]),
+		getFloatingProps: (userProps: MockProps = {}) =>
+			mergeProps([userProps, ...interactions.map((i) => i?.floating)]),
 		getItemProps: identity,
 	}),
-	useRole: (): MockInteraction => ({}),
+	useRole: (context: MockContext, options?: MockRoleOptions): MockInteraction =>
+		options?.enabled === false
+			? {}
+			: {
+					reference: { 'aria-describedby': context?.open ? FLOATING_ID : undefined },
+					floating: { id: FLOATING_ID, role: options?.role ?? 'tooltip' },
+				},
 }
 
 export default floatingUIMock

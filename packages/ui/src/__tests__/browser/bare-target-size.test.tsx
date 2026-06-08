@@ -79,16 +79,20 @@ describe('bare button target-size floor', () => {
 		)
 
 		const button = getByRole('button')
+
 		const box = button.getBoundingClientRect()
 
 		// A point at the box centre lands on the button (its icon bubbles to it)...
 		const inside = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+
 		expect(button.contains(inside)).toBe(true)
 
 		// ...while a point 4px past the right edge misses the button, hitting the
 		// surrounding padding instead.
 		const outside = document.elementFromPoint(box.right + 4, box.top + box.height / 2)
+
 		expect(outside).not.toBeNull()
+
 		expect(button.contains(outside)).toBe(false)
 	})
 })

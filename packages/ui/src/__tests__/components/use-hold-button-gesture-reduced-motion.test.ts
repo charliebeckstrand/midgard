@@ -1,17 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { useEffect } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
-
-// Forces the reduced-motion branch deterministically by overriding
-// `useReducedMotion` on the global jsdom-safe mock.
-vi.mock('motion/react', async () => ({
-	...(await import('../mocks/motion-react')).default,
-	useReducedMotion: () => true,
-}))
+import { stubMatchMedia } from '../helpers'
 
 function renderGesture(initial: HoldGestureOptions) {
 	return renderHook(
@@ -35,6 +29,17 @@ function renderGesture(initial: HoldGestureOptions) {
 }
 
 describe('useHoldButtonGesture under prefers-reduced-motion', () => {
+	// Forces the reduced-motion branch via the shared mock's matchMedia read,
+	// not a per-file `vi.mock('motion/react')` (which races the global mock under
+	// the shared vmThreads module cache).
+	beforeEach(() => {
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
 	it('still animates the progress fill over the full duration (essential feedback)', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 

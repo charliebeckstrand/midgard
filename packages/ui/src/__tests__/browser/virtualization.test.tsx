@@ -98,6 +98,7 @@ describe('useVirtualWindow table windowing', () => {
 		if (!scroller) throw new Error('scroll container not found')
 
 		scroller.scrollTop = 200 * ROW_HEIGHT
+
 		scroller.dispatchEvent(new Event('scroll'))
 
 		// After scrolling, the window has advanced to deeper rows.
@@ -154,6 +155,7 @@ describe('VirtualOptions windowing', () => {
 		if (!listbox) throw new Error('listbox not found')
 
 		listbox.scrollTop = 12_800
+
 		listbox.dispatchEvent(new Event('scroll'))
 
 		await waitFor(() => {

@@ -1,37 +1,9 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toast } from '../../components/toast'
 import { ToastProvider, useToast } from '../../providers/toast'
 import { act, fireEvent, renderUI, screen } from '../helpers'
-
-// Overrides the shared motion mock to surface the vertical enter offset as
-// `data-initial-y` (delegating motion-prop stripping to the base mock),
-// making the position → slide-direction mapping in ToastAlert observable.
-vi.mock('motion/react', async () => {
-	const base = (await import('../mocks/motion-react')).default
-
-	const { createElement, forwardRef } = await import('react')
-
-	const motion = new Proxy(
-		{},
-		{
-			get(_, tag: string) {
-				const Base = (base.motion as Record<string, ElementType>)[tag] as ElementType
-
-				return forwardRef((props: { initial?: { y?: unknown } }, ref: unknown) => {
-					const y = props.initial?.y
-
-					const extra = y !== undefined ? { 'data-initial-y': String(y) } : {}
-
-					return createElement(Base, { ...props, ...extra, ref })
-				})
-			},
-		},
-	)
-
-	return { ...base, motion }
-})
 
 describe('Toast', () => {
 	it('renders a toast viewport in the document', () => {

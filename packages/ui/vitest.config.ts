@@ -8,7 +8,11 @@ export default defineConfig({
 		...baseTest,
 		pool: 'vmThreads',
 		sequence: { shuffle: true },
-		setupFiles: ['./src/__tests__/setup/index.ts', './src/__tests__/setup/module-mocks.ts'],
+		setupFiles: [
+			'./src/__tests__/setup/index.ts',
+			'./src/__tests__/setup/module-mocks.ts',
+			'./src/__tests__/setup/restore-prototype-focus.ts',
+		],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		// The browser suites verify behaviour jsdom can't — layout/colour geometry
 		// (vitest.browser.config.ts) and real-floating-engine focus trapping

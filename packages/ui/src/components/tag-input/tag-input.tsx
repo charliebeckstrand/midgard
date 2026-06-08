@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type Ref, useCallback, useRef, useState } from 'react'
+import { type Ref, useCallback, useEffect, useRef, useState } from 'react'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { Button } from '../button'
@@ -60,6 +60,10 @@ export function TagInput({
 
 	const setRefs = useComposedRef(inputRef, ref)
 
+	// Set when a removal releases the at-max state; consumed by the effect below
+	// once the re-enabling render has committed.
+	const refocusOnMaxRelease = useRef(false)
+
 	const { tags, atMax, addTag, removeTag } = useTagInput({
 		value,
 		defaultValue,
@@ -67,9 +71,22 @@ export function TagInput({
 		max,
 		validate,
 		onMaxReleased: () => {
-			requestAnimationFrame(() => inputRef.current?.focus())
+			refocusOnMaxRelease.current = true
 		},
 	})
+
+	// Return focus to the input once it can hold focus again (WCAG 2.4.3). At max
+	// the input is disabled, so it only re-enables on the releasing render;
+	// focusing from this effect — after commit — rather than a synchronous frame in
+	// onMaxReleased avoids racing the commit, which under load could focus the
+	// still-disabled input and silently drop the focus.
+	useEffect(() => {
+		if (refocusOnMaxRelease.current && !atMax) {
+			refocusOnMaxRelease.current = false
+
+			inputRef.current?.focus()
+		}
+	}, [atMax])
 
 	const [inputValue, setInputValue] = useState('')
 
@@ -111,8 +128,9 @@ export function TagInput({
 						onRemove={() => {
 							removeTag(i)
 
-							// Returns focus to the input after badge removal (WCAG 2.4.3).
-							// The at-max path re-focuses once the input is re-enabled via onMaxReleased.
+							// Returns focus to the input after badge removal (WCAG 2.4.3). At max
+							// the input is still disabled here, so this no-ops; the effect above
+							// re-focuses once the releasing render commits.
 							inputRef.current?.focus()
 						}}
 					/>

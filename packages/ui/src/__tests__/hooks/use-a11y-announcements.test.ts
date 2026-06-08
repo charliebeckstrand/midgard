@@ -1,23 +1,28 @@
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../core', async (importOriginal) => ({
-	...(await importOriginal<typeof import('../../core')>()),
-	announce: vi.fn(),
-}))
-
-import { announce } from '../../core'
+import * as core from '../../core'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 
-const announceMock = vi.mocked(announce)
-
+// vmThreads shares one module cache + VM context across files, so a per-file
+// vi.mock('../../core') loses the race whenever another suite imports the real
+// barrel first. Spying the live namespace binding the hook reads through is
+// order-independent: it patches the shared singleton module object in place.
 describe('useA11yAnnouncements', () => {
-	beforeEach(() => announceMock.mockClear())
+	let announce: ReturnType<typeof vi.spyOn>
+
+	beforeEach(() => {
+		announce = vi.spyOn(core, 'announce')
+	})
+
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
 
 	it('stays silent on the initial message', () => {
 		renderHook(({ m }) => useA11yAnnouncements(m), { initialProps: { m: '5 results' } })
 
-		expect(announceMock).not.toHaveBeenCalled()
+		expect(announce).not.toHaveBeenCalled()
 	})
 
 	it('announces when the message changes', () => {
@@ -27,7 +32,7 @@ describe('useA11yAnnouncements', () => {
 
 		rerender({ m: '3 results' })
 
-		expect(announceMock).toHaveBeenCalledWith('3 results', { assertive: false })
+		expect(announce).toHaveBeenCalledWith('3 results', { assertive: false })
 	})
 
 	it('skips consecutive duplicate messages', () => {
@@ -38,7 +43,7 @@ describe('useA11yAnnouncements', () => {
 		rerender({ m: 'b' })
 		rerender({ m: 'b' })
 
-		expect(announceMock).toHaveBeenCalledTimes(1)
+		expect(announce).toHaveBeenCalledTimes(1)
 	})
 
 	it('ignores empty messages', () => {
@@ -48,7 +53,7 @@ describe('useA11yAnnouncements', () => {
 
 		rerender({ m: null })
 
-		expect(announceMock).not.toHaveBeenCalled()
+		expect(announce).not.toHaveBeenCalled()
 	})
 
 	it('forwards the assertive option', () => {
@@ -58,7 +63,7 @@ describe('useA11yAnnouncements', () => {
 
 		rerender({ m: 'b' })
 
-		expect(announceMock).toHaveBeenCalledWith('b', { assertive: true })
+		expect(announce).toHaveBeenCalledWith('b', { assertive: true })
 	})
 
 	it('does not announce while disabled', () => {
@@ -68,6 +73,6 @@ describe('useA11yAnnouncements', () => {
 
 		rerender({ m: 'b', e: false })
 
-		expect(announceMock).not.toHaveBeenCalled()
+		expect(announce).not.toHaveBeenCalled()
 	})
 })

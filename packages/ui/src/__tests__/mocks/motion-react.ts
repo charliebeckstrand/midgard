@@ -33,6 +33,13 @@ function stripMotionProps(props: Record<string, unknown>) {
 		if (!MOTION_PROPS.has(k)) clean[k] = v
 	}
 
+	// Surface the vertical enter offset so position → slide-direction mapping is
+	// observable (e.g. ToastAlert). Harmless elsewhere: only emitted when an
+	// `initial.y` is present, and nothing asserts its absence.
+	const initial = props.initial as { y?: unknown } | undefined
+
+	if (initial?.y !== undefined) clean['data-initial-y'] = String(initial.y)
+
 	return clean
 }
 
@@ -92,10 +99,15 @@ function useMotionValue<T>(initial: T) {
 	}
 }
 
-// Returns false (no reduced-motion preference), matching the jsdom matchMedia stub.
-// Tests exercising the reduced path override this per-file via vi.mock.
+// Reads the reduced-motion preference from `window.matchMedia`, mirroring the
+// real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
+// the reduced path with `stubMatchMedia` + `vi.unstubAllGlobals()` in afterEach
+// — no per-file `vi.mock` (which races the global mock under the shared
+// vmThreads module cache) and no module-level state to leak between files.
 function useReducedMotion(): boolean {
-	return false
+	return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+		? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+		: false
 }
 
 export default {
