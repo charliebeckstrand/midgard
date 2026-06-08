@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, MouseEvent, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
@@ -14,7 +14,7 @@ import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
 import { LoadingSpinner, type LoadingSpinnerProps } from '../loading'
-import { buttonSpring } from './button-constants'
+import { buttonSpring, loadingLinkProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { ButtonSkeleton } from './button-skeleton'
 import { isIconElement } from './button-utilities'
@@ -122,19 +122,7 @@ export function Button({
 						href={href}
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-						{...(loading && {
-							'aria-disabled': true,
-							'data-disabled': true,
-							'aria-busy': true,
-							// `aria-disabled` alone doesn't gate an anchor — keep it out of the
-							// tab order and cancel activation so a loading link can't navigate or
-							// fire its `onClick` (mirrors the disabled `<button>` branch).
-							tabIndex: -1,
-							onClick: (e: MouseEvent<HTMLAnchorElement>) => {
-								e.preventDefault()
-								e.stopPropagation()
-							},
-						})}
+						{...(loading && loadingLinkProps)}
 					>
 						<TouchTarget>{content}</TouchTarget>
 					</Link>
