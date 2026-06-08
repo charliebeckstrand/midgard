@@ -238,7 +238,9 @@ describe('TagInput', () => {
 		const list = bySlot(container, 'tags') as HTMLElement
 
 		expect(list).toHaveAttribute('role', 'list')
+
 		expect(list).toHaveAttribute('aria-label', 'Tags')
+
 		expect(list.querySelectorAll('[role="listitem"]')).toHaveLength(2)
 	})
 
