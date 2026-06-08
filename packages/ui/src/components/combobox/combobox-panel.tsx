@@ -18,6 +18,8 @@ type ComboboxPanelProps = {
 	glass: boolean
 	density: ControlSize
 	size: ControlSize
+	/** Accessible name for the listbox, threaded from the combobox input's name. */
+	ariaLabel?: string
 	floatingStyles: CSSProperties
 	getFloatingProps: () => Record<string, unknown>
 	optionsRef: Ref<HTMLDivElement>
@@ -43,6 +45,7 @@ export function ComboboxPanel({
 	glass,
 	density,
 	size,
+	ariaLabel,
 	floatingStyles,
 	getFloatingProps,
 	optionsRef,
@@ -87,6 +90,7 @@ export function ComboboxPanel({
 									<div
 										role="listbox"
 										id={id}
+										aria-label={ariaLabel}
 										aria-multiselectable={multiple || undefined}
 										className={cn(k.list)}
 									>

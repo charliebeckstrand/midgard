@@ -28,3 +28,6 @@ export type KanbanColumnContextValue = {
 
 export const [KanbanColumnContext, useKanbanColumnContext] =
 	createContext<KanbanColumnContextValue>('KanbanColumn')
+
+/** Id the column's title renders with, so the column `<section>` can name itself via `aria-labelledby`. */
+export const kanbanColumnTitleId = (columnId: string) => `kanban-column-title-${columnId}`

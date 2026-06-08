@@ -17,6 +17,8 @@ export function PopoverPanel({
 	typeahead = false,
 	glass = false,
 	multiselectable,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
 	onKeyDown: onKeyDownProp,
 }: {
 	id?: string
@@ -31,6 +33,9 @@ export function PopoverPanel({
 	glass?: boolean
 	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
 	multiselectable?: boolean
+	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
+	'aria-label'?: string
+	'aria-labelledby'?: string
 	onKeyDown?: KeyboardEventHandler
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
@@ -60,6 +65,8 @@ export function PopoverPanel({
 				id={id}
 				data-slot="popover-panel"
 				role={role}
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
 				// aria-multiselectable is only valid on listbox (and a few grid-like
 				// roles) — drop it for any other role a consumer sets.
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}

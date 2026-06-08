@@ -147,6 +147,20 @@ describe('Listbox', () => {
 		expect(screen.getByRole('listbox')).not.toHaveAttribute('aria-multiselectable')
 	})
 
+	it('threads the trigger name onto the open listbox', () => {
+		const { container } = renderUI(
+			<Listbox aria-label="Current page">
+				<div role="option" tabIndex={-1} aria-selected="false">
+					Option
+				</div>
+			</Listbox>,
+		)
+
+		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+
+		expect(screen.getByRole('listbox', { name: 'Current page' })).toBeInTheDocument()
+	})
+
 	it('marks a multiple listbox as multiselectable', () => {
 		const { container } = renderUI(
 			<Listbox multiple>

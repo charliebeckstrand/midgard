@@ -104,6 +104,22 @@ describe('Combobox', () => {
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
+	it('threads the input name onto the open listbox', async () => {
+		const { container } = renderUI(
+			<Combobox<string> aria-label="City" displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		expect(await screen.findByRole('listbox', { name: 'City' })).toBeInTheDocument()
+	})
+
 	it('leaves the default chevron inert and not-allowed when disabled', () => {
 		const { container } = renderUI(
 			<Combobox<string> disabled displayValue={(v) => v}>

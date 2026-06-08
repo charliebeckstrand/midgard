@@ -247,6 +247,8 @@ export function Listbox<T>({
 				multiple={multiple}
 				density={token.space}
 				size={token.size}
+				ariaLabel={ariaLabel}
+				ariaLabelledby={ariaLabelledby}
 				floatingStyles={floatingStyles}
 				context={context}
 				getFloatingProps={getFloatingProps}

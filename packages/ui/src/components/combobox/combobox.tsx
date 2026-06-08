@@ -366,6 +366,7 @@ export function Combobox<T>({
 				glass={glass}
 				density={token.space}
 				size={token.size}
+				ariaLabel={ariaLabel}
 				floatingStyles={floatingStyles}
 				getFloatingProps={getFloatingProps}
 				optionsRef={optionsRef}
