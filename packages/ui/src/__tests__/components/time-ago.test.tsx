@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
-import { act, bySlot, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 const SEC = 1000
 const MIN = 60 * SEC
@@ -61,24 +61,39 @@ describe('TimeAgo', () => {
 		expect(bySlot(container, 'time-ago')?.textContent).toBe('2 days ago')
 	})
 
-	it('exposes the absolute time as title by default', () => {
+	it('renders no tooltip by default', () => {
+		const { container } = renderUI(<TimeAgo date={new Date()} locale="en-US" />)
+
+		// Clicking a plain <time> wires no tooltip, so nothing opens.
+		act(() => {
+			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
+		})
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
+	})
+
+	it('omits the tooltip when absolute={false}', () => {
+		const { container } = renderUI(<TimeAgo date={new Date()} absolute={false} />)
+
+		act(() => {
+			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
+		})
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
+	})
+
+	it('reveals the absolute time in a tooltip when absolute', () => {
 		const date = new Date('2026-04-29T11:30:00Z')
 
-		const { container } = renderUI(<TimeAgo date={date} locale="en-US" />)
+		const { container } = renderUI(<TimeAgo date={date} locale="en-US" absolute />)
 
-		expect(bySlot(container, 'time-ago')).toHaveAttribute('title', date.toLocaleString('en-US'))
-	})
+		// The <time> keeps its slot and doubles as the trigger; the absolute
+		// time only mounts once the tooltip opens.
+		act(() => {
+			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
+		})
 
-	it('omits title when title={false}', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} title={false} />)
-
-		expect(bySlot(container, 'time-ago')).not.toHaveAttribute('title')
-	})
-
-	it('uses a string title when provided', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} title="custom" />)
-
-		expect(bySlot(container, 'time-ago')).toHaveAttribute('title', 'custom')
+		expect(bySlot(container, 'tooltip-content')?.textContent).toBe(date.toLocaleString('en-US'))
 	})
 
 	it('applies a custom format function', () => {

@@ -2,7 +2,6 @@ import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { TimeAgo } from '../../components/time-ago'
-import { code } from '../code'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
@@ -12,121 +11,97 @@ const MIN = 60 * SEC
 const HOUR = 60 * MIN
 const DAY = 24 * HOUR
 
-export function Demo() {
-	const now = Date.now()
+const now = Date.now()
 
+function RecentExample() {
+	return <TimeAgo date={new Date(now - 30 * SEC)} />
+}
+
+function PastExample() {
+	return (
+		<Stack gap="xs">
+			<TimeAgo date={new Date(now - 5 * MIN)} />
+			<TimeAgo date={new Date(now - 2 * HOUR)} />
+			<TimeAgo date={new Date(now - 3 * DAY)} />
+			<TimeAgo date={new Date(now - 30 * DAY)} />
+			<TimeAgo date={new Date(now - 365 * DAY)} />
+		</Stack>
+	)
+}
+
+function FutureExample() {
+	return (
+		<Stack gap="xs">
+			<TimeAgo date={new Date(now + 10 * MIN)} />
+			<TimeAgo date={new Date(now + 4 * HOUR)} />
+			<TimeAgo date={new Date(now + 7 * DAY)} />
+		</Stack>
+	)
+}
+
+function CustomFormatExample() {
+	return (
+		<TimeAgo
+			date={new Date(now - 90 * SEC)}
+			format={(ms) => `${Math.round(Math.abs(ms) / SEC)}s ago`}
+		/>
+	)
+}
+
+function WithAbsoluteTimeExample() {
+	return <TimeAgo date={new Date(now - 5 * MIN)} absolute />
+}
+
+function CustomLocaleExample() {
+	return (
+		<Stack gap="xs">
+			<Flex gap="sm">
+				<Text variant="muted" className="font-mono">
+					fr-FR
+				</Text>
+				<TimeAgo date={new Date(now - 5 * MIN)} locale="fr-FR" />
+			</Flex>
+			<Flex gap="sm">
+				<Text variant="muted" className="font-mono">
+					it-IT
+				</Text>
+				<TimeAgo date={new Date(now - 5 * MIN)} locale="it-IT" />
+			</Flex>
+			<Flex gap="sm">
+				<Text variant="muted" className="font-mono">
+					en-US
+				</Text>
+				<TimeAgo date={new Date(now - 5 * MIN)} locale="en-US" />
+			</Flex>
+		</Stack>
+	)
+}
+
+export function Demo() {
 	return (
 		<>
-			<Example
-				title="Recent"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-
-					<TimeAgo date={new Date(Date.now() - 30 * 1000)} />
-				`}
-			>
-				<TimeAgo date={new Date(now - 30 * SEC)} />
+			<Example title="Recent">
+				<RecentExample />
 			</Example>
 
-			<Example
-				title="Past"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-
-					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() - 2 * 60 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000)} />
-				`}
-			>
-				<Stack gap="xs">
-					<TimeAgo date={new Date(now - 5 * MIN)} />
-					<TimeAgo date={new Date(now - 2 * HOUR)} />
-					<TimeAgo date={new Date(now - 3 * DAY)} />
-					<TimeAgo date={new Date(now - 30 * DAY)} />
-					<TimeAgo date={new Date(now - 365 * DAY)} />
-				</Stack>
+			<Example title="Past">
+				<PastExample />
 			</Example>
 
-			<Example
-				title="Future"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-
-					<TimeAgo date={new Date(Date.now() + 10 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() + 4 * 60 * 60 * 1000)} />
-					<TimeAgo date={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)} />
-				`}
-			>
-				<Stack gap="xs">
-					<TimeAgo date={new Date(now + 10 * MIN)} />
-					<TimeAgo date={new Date(now + 4 * HOUR)} />
-					<TimeAgo date={new Date(now + 7 * DAY)} />
-				</Stack>
+			<Example title="Future">
+				<FutureExample />
 			</Example>
 
-			<Example
-				title="Custom format"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-					
-					const SEC = 1000
-
-					<TimeAgo
-						date={new Date(Date.now() - 90 * SEC)}
-						format={(ms) => \`\${Math.round(Math.abs(ms) / SEC)}s ago\`}
-					/>
-				`}
-			>
-				<TimeAgo
-					date={new Date(now - 90 * SEC)}
-					format={(ms) => `${Math.round(Math.abs(ms) / SEC)}s ago`}
-				/>
+			<Example title="Custom format">
+				<CustomFormatExample />
 			</Example>
 
-			<Example
-				title="Without title"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-
-					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} title={false} />
-				`}
-			>
-				<TimeAgo date={new Date(now - 5 * MIN)} title={false} />
+			<Example title="With absolute time">
+				<WithAbsoluteTimeExample />
 			</Example>
 
-			<Example
-				title="Custom locale"
-				code={code`
-					import { TimeAgo } from 'ui/time-ago'
-
-					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} locale="fr-FR" />
-					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} locale="it-IT" />
-					<TimeAgo date={new Date(Date.now() - 5 * 60 * 1000)} locale="en-US" />
-				`}
-			>
-				<Stack gap="xs">
-					<Flex gap="sm">
-						<Text variant="muted" className="font-mono">
-							fr-FR
-						</Text>
-						<TimeAgo date={new Date(now - 5 * MIN)} locale="fr-FR" />
-					</Flex>
-					<Flex gap="sm">
-						<Text variant="muted" className="font-mono">
-							it-IT
-						</Text>
-						<TimeAgo date={new Date(now - 5 * MIN)} locale="it-IT" />
-					</Flex>
-					<Flex gap="sm">
-						<Text variant="muted" className="font-mono">
-							en-US
-						</Text>
-						<TimeAgo date={new Date(now - 5 * MIN)} locale="en-US" />
-					</Flex>
-				</Stack>
+			<Example title="Custom locale">
+				<CustomLocaleExample />
 			</Example>
 		</>
 	)
