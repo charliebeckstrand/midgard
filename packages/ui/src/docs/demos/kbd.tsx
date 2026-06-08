@@ -14,9 +14,9 @@ export function Demo() {
 
 			<Example title="Modifier glyphs">
 				<Flex gap="md">
-					<Kbd cmd>K</Kbd>
-					<Kbd ctrl>K</Kbd>
-					<Kbd ctrl cmd>
+					<Kbd command>K</Kbd>
+					<Kbd control>K</Kbd>
+					<Kbd control command>
 						K
 					</Kbd>
 				</Flex>
@@ -24,14 +24,14 @@ export function Demo() {
 
 			<Example title="Inside a button">
 				<Flex wrap gap="md">
-					<Button suffix={<Kbd cmd>O</Kbd>}>Open</Button>
-					<Button variant="soft" color="blue" suffix={<Kbd cmd>S</Kbd>}>
+					<Button suffix={<Kbd command>O</Kbd>}>Open</Button>
+					<Button variant="soft" color="blue" suffix={<Kbd command>S</Kbd>}>
 						Save
 					</Button>
-					<Button variant="outline" color="green" suffix={<Kbd cmd>R</Kbd>}>
+					<Button variant="outline" color="green" suffix={<Kbd command>R</Kbd>}>
 						Run
 					</Button>
-					<Button variant="plain" color="red" suffix={<Kbd cmd>D</Kbd>}>
+					<Button variant="plain" color="red" suffix={<Kbd command>D</Kbd>}>
 						Delete
 					</Button>
 				</Flex>

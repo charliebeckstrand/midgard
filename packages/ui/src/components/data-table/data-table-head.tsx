@@ -50,7 +50,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 					return (
 						<DataTableColumnHeader
 							key={col.id}
-							col={col}
+							column={col}
 							sorted={sorted}
 							direction={sorted ? sort?.direction : undefined}
 							stickyHeader={stickyHeader}
@@ -64,7 +64,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 }
 
 type DataTableColumnHeaderProps = {
-	col: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
+	column: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean
@@ -72,7 +72,7 @@ type DataTableColumnHeaderProps = {
 }
 
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
-	col,
+	column,
 	sorted,
 	direction,
 	stickyHeader,
@@ -81,7 +81,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	return (
 		<TableHeader
 			aria-sort={
-				col.sortable
+				column.sortable
 					? sorted
 						? direction === 'asc'
 							? 'ascending'
@@ -89,18 +89,18 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 						: 'none'
 					: undefined
 			}
-			className={cn(stickyHeader && k.sticky.head, col.headerClassName)}
-			style={col.width ? { width: col.width } : undefined}
+			className={cn(stickyHeader && k.sticky.head, column.headerClassName)}
+			style={column.width ? { width: column.width } : undefined}
 		>
-			{col.sortable ? (
+			{column.sortable ? (
 				<Headless>
 					<Button
 						type="button"
 						className={cn(k.sortButton)}
-						onClick={() => toggleSort(col.id)}
-						aria-label={`Sort by ${typeof col.title === 'string' ? col.title : col.id}`}
+						onClick={() => toggleSort(column.id)}
+						aria-label={`Sort by ${typeof column.title === 'string' ? column.title : column.id}`}
 					>
-						{col.title}
+						{column.title}
 						{sorted && direction === 'asc' ? (
 							<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
 						) : sorted && direction === 'desc' ? (
@@ -109,7 +109,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 					</Button>
 				</Headless>
 			) : (
-				col.title
+				column.title
 			)}
 		</TableHeader>
 	)

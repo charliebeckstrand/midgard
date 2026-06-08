@@ -12,14 +12,14 @@ export type ResizableHandleProps = {
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { className } = props
 
-	const { direction, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
+	const { orientation, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
 	const panelSize = Math.round(sizes[handleIndex] ?? 0)
 	const panelMinSize = Math.round(panelConfigs[handleIndex]?.minSize ?? 0)
 	const panelMaxSize = Math.round(panelConfigs[handleIndex]?.maxSize ?? 100)
 
-	const isHorizontal = direction === 'horizontal'
+	const isHorizontal = orientation === 'horizontal'
 
 	const isDragging = dragging === handleIndex
 
@@ -56,7 +56,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			data-slot="resizable-handle"
 			data-dragging={isDragging || undefined}
 			role="separator"
-			aria-orientation={direction}
+			aria-orientation={orientation}
 			aria-label="Resize"
 			aria-valuenow={panelSize}
 			aria-valuemin={panelMinSize}

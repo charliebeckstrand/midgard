@@ -50,7 +50,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -62,7 +62,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 30, minSize: 0, maxSize: 100 },
 						{ defaultSize: 70, minSize: 0, maxSize: 100 },
@@ -77,7 +77,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 1, minSize: 0, maxSize: 100 },
 						{ defaultSize: 2, minSize: 0, maxSize: 100 },
@@ -97,7 +97,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 					onSizesChange,
 				}),
@@ -113,7 +113,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 1, minSize: 0, maxSize: 80 },
 						{ defaultSize: 1, minSize: 20, maxSize: 100 },
@@ -131,7 +131,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 1, minSize: 20, maxSize: 100 },
 						{ defaultSize: 1, minSize: 0, maxSize: 100 },
@@ -149,7 +149,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -167,7 +167,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 					onSizesChange,
 				}),
@@ -183,7 +183,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 1, minSize: 0, maxSize: 100 },
 						{ defaultSize: 1, minSize: 0, maxSize: 100 },
@@ -207,7 +207,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -219,7 +219,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -237,7 +237,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -255,7 +255,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -289,7 +289,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 					onSizesChange,
 				}),
@@ -308,13 +308,13 @@ describe('useResizablePanel', () => {
 			expect(onSizesChange).toHaveBeenLastCalledWith([60, 40])
 		})
 
-		it('uses clientY when direction is vertical', () => {
+		it('uses clientY when orientation is vertical', () => {
 			const group = makeGroup({ width: 100, height: 1000 })
 
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'vertical',
+					orientation: 'vertical',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -336,7 +336,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -362,7 +362,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: [
 						{ defaultSize: 0, minSize: 0, maxSize: 100 },
 						{ defaultSize: 0, minSize: 0, maxSize: 100 },
@@ -380,7 +380,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -398,7 +398,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'vertical',
+					orientation: 'vertical',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -414,7 +414,7 @@ describe('useResizablePanel', () => {
 			renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(null),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -428,7 +428,7 @@ describe('useResizablePanel', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 				}),
 			)
@@ -456,7 +456,7 @@ describe('useResizablePanel', () => {
 			const { result, unmount } = renderHook(() =>
 				useResizablePanel({
 					groupRef: makeRef(group),
-					direction: 'horizontal',
+					orientation: 'horizontal',
 					panelConfigs: equalPanels,
 					onSizesChange,
 				}),

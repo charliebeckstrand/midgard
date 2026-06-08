@@ -38,17 +38,17 @@ describe('Dialog', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
-	it('renders with align="start"', () => {
+	it('renders with placement="top"', () => {
 		renderUI(
-			<Dialog open align="start" onOpenChange={() => {}}>
-				Start-aligned
+			<Dialog open placement="top" onOpenChange={() => {}}>
+				Top-placed
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Start-aligned')).toBeInTheDocument()
+		expect(screen.getByText('Top-placed')).toBeInTheDocument()
 	})
 
-	it('renders with align="center" (default)', () => {
+	it('renders with placement="center" (default)', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
 				Center

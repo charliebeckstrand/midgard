@@ -8,14 +8,14 @@ import {
 	gapMap,
 	ratioTuples,
 	type SplitAlign,
-	type SplitDirection,
 	type SplitGap,
+	type SplitOrientation,
 	type SplitRatio,
 } from './variants'
 
 export type SplitProps = {
-	/** Split direction. Defaults to `horizontal` (two columns). */
-	direction?: SplitDirection
+	/** Split orientation. Defaults to `horizontal` (two columns). */
+	orientation?: SplitOrientation
 	/**
 	 * Ratio of the first pane to the second pane. Defaults to `1/2`
 	 * (equal split).
@@ -32,9 +32,9 @@ export type SplitProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** Two-pane grid layout — `direction` chooses rows or columns and `ratio` sizes the first pane against the second. */
+/** Two-pane grid layout — `orientation` chooses rows or columns and `ratio` sizes the first pane against the second. */
 export function Split({
-	direction = 'horizontal',
+	orientation = 'horizontal',
 	ratio = '1/2',
 	gap,
 	align,
@@ -51,7 +51,9 @@ export function Split({
 	const template = `${a}fr ${b}fr`
 
 	const ratioStyle =
-		direction === 'horizontal' ? { gridTemplateColumns: template } : { gridTemplateRows: template }
+		orientation === 'horizontal'
+			? { gridTemplateColumns: template }
+			: { gridTemplateRows: template }
 
 	return (
 		<div

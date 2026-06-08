@@ -12,7 +12,7 @@ import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 export type DialogProps = DialogPanelVariants & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	align?: 'center' | 'start'
+	placement?: 'center' | 'top'
 	dismissOnBackdrop?: boolean
 	glass?: boolean
 	className?: string
@@ -33,9 +33,9 @@ export type DialogProps = DialogPanelVariants & {
 	'data-slot'?: string
 }
 
-const alignClasses = {
+const placementClasses = {
 	center: 'sm:items-center',
-	start: 'sm:items-start',
+	top: 'sm:items-start',
 } as const
 
 /**
@@ -46,7 +46,7 @@ const alignClasses = {
 export function Dialog({
 	open,
 	onOpenChange,
-	align = 'center',
+	placement = 'center',
 	dismissOnBackdrop = true,
 	surface,
 	size,
@@ -79,7 +79,7 @@ export function Dialog({
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					alignClasses[align],
+					placementClasses[placement],
 				)}
 			>
 				<motion.div

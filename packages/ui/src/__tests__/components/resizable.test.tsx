@@ -27,16 +27,16 @@ describe('Resizable', () => {
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('tabindex', '0')
 	})
 
-	it('sets direction data attribute', () => {
+	it('sets orientation data attribute', () => {
 		const { container } = renderUI(
-			<ResizableGroup direction="vertical">
+			<ResizableGroup orientation="vertical">
 				<ResizablePanel>A</ResizablePanel>
 				<ResizableHandle />
 				<ResizablePanel>B</ResizablePanel>
 			</ResizableGroup>,
 		)
 
-		expect(bySlot(container, 'resizable-group')).toHaveAttribute('data-direction', 'vertical')
+		expect(bySlot(container, 'resizable-group')).toHaveAttribute('data-orientation', 'vertical')
 	})
 
 	it('panels have flex style based on default sizes', () => {
@@ -199,7 +199,7 @@ describe('Resizable: keyboard', () => {
 		const onSizesChange = vi.fn()
 
 		const { container } = renderUI(
-			<ResizableGroup direction="vertical" onSizesChange={onSizesChange}>
+			<ResizableGroup orientation="vertical" onSizesChange={onSizesChange}>
 				<ResizablePanel defaultSize={50}>A</ResizablePanel>
 				<ResizableHandle />
 				<ResizablePanel defaultSize={50}>B</ResizablePanel>
@@ -213,7 +213,7 @@ describe('Resizable: keyboard', () => {
 		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([55, 45])
 	})
 
-	it('ignores arrow keys that do not match the direction', () => {
+	it('ignores arrow keys that do not match the orientation', () => {
 		const onSizesChange = vi.fn()
 
 		const { container } = renderUI(
