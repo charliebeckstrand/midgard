@@ -24,7 +24,7 @@ export function DensityProvider({ density, className, children }: DensityProvide
 	const step = densityToSize[density]
 
 	return (
-		<DensityPrimitive density={step} size={step}>
+		<DensityPrimitive scale={step}>
 			<span data-slot="density" data-density={density} className={className ?? 'contents'}>
 				{children}
 			</span>

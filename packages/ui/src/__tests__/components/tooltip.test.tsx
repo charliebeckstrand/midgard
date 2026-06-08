@@ -281,7 +281,7 @@ describe('TooltipContent', () => {
 		expect(panel.style.pointerEvents).toBe('none')
 	})
 
-	it('resolves the explicit size prop into the data-density attribute', () => {
+	it('resolves the explicit size prop into the data-size attribute', () => {
 		const { container } = renderUI(
 			<TooltipContext value={makeContext({ open: true })}>
 				<TooltipContent size="lg">Big</TooltipContent>
@@ -290,6 +290,6 @@ describe('TooltipContent', () => {
 
 		const panel = bySlot(container, 'tooltip-content') as HTMLElement
 
-		expect(panel).toHaveAttribute('data-density', 'lg')
+		expect(panel).toHaveAttribute('data-size', 'lg')
 	})
 })

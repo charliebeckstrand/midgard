@@ -24,7 +24,7 @@ export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 
-	const { density, size } = useDensity()
+	const { space, size } = useDensity()
 
 	const { component: LinkComponent } = useLink()
 
@@ -37,7 +37,7 @@ export function MenuItem(props: MenuItemProps) {
 		close()
 	}
 
-	const classes = cn('group/option', k.item({ density, size }), className)
+	const classes = cn('group/option', k.item({ density: space, size }), className)
 
 	if (props.href !== undefined) {
 		// Anchors with href stay navigable via middle-click, Cmd-click, and "Open

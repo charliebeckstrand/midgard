@@ -69,7 +69,7 @@ export function Group({
 			ref={ref}
 			data-slot={slot}
 			href={href}
-			data-density={resolvedSize}
+			data-size={resolvedSize}
 			data-group-orientation={orientation}
 			className={cn(
 				'inline-flex',
@@ -79,9 +79,7 @@ export function Group({
 			)}
 			{...props}
 		>
-			<Density density={resolvedSize} size={resolvedSize}>
-				{stamped}
-			</Density>
+			<Density scale={resolvedSize}>{stamped}</Density>
 		</Polymorphic>
 	)
 }

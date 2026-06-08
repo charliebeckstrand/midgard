@@ -251,7 +251,7 @@ describe('ListItem density inheritance', () => {
 
 	it('tracks the density axis under a two-axis Density (size does not affect padding)', () => {
 		const cls = firstItemClass(
-			<Density density="lg" size="sm">
+			<Density space="lg" size="sm">
 				{list()}
 			</Density>,
 		)

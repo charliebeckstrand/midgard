@@ -78,14 +78,14 @@ export function FlexBase({
 /**
  * Horizontal flex container. Use Flex for rows, Stack for columns.
  *
- * `gap` resolves through `explicit ?? Density.density` — a Flex inside a
+ * `gap` resolves through `explicit ?? Density.space` — a Flex inside a
  * Density-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
  * matching spacing step. Outside any provider, `gap` stays unset.
  */
 export function Flex({ direction = 'row', align, gap, ...props }: FlexProps) {
 	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? density?.density
+	const resolvedGap = gap ?? density?.space
 
 	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 

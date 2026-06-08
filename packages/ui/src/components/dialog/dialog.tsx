@@ -5,7 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
+import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
@@ -62,13 +62,11 @@ export function Dialog({
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, providerValue } = useA11yPanel(role)
+	const { panelAriaProps, a11y } = useA11yPanel(role)
 
 	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
 	// the explicit label only when there's no title.
 	const ariaLabelledBy = panelAriaProps['aria-labelledby']
-
-	const closeValue = usePanelCloseValue(onOpenChange)
 
 	return (
 		<Overlay
@@ -95,9 +93,9 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelCloseContext value={closeValue}>
-						<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
-					</PanelCloseContext>
+					<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
+						{children}
+					</PanelProviders>
 				</motion.div>
 			</div>
 		</Overlay>

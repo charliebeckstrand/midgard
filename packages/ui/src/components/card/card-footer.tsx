@@ -20,12 +20,12 @@ const gap: Record<Step, string> = {
 }
 
 export function CardFooter({ className, ...props }: CardFooterProps) {
-	const { density } = useDensity()
+	const { space } = useDensity()
 
 	return (
 		<div
 			data-slot="card-footer"
-			className={cn(padding[density], 'flex items-center', gap[density], className)}
+			className={cn(padding[space], 'flex items-center', gap[space], className)}
 			{...props}
 		/>
 	)

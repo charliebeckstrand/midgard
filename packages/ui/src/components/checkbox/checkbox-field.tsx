@@ -2,11 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useIdScope } from '../../hooks/use-id-scope'
 import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
-import { ControlContext } from '../control/context'
-import { useControlFieldContext } from '../control/use-control-field-context'
+import { ControlField } from '../control/control-field'
 
 export type CheckboxFieldProps = {
 	htmlFor?: string
@@ -18,13 +16,9 @@ export type CheckboxFieldProps = {
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function CheckboxField({ className, htmlFor, ...props }: CheckboxFieldProps) {
-	const scope = useIdScope({ id: htmlFor })
-
-	const value = useControlFieldContext(scope.id)
-
 	return (
-		<ControlContext value={value}>
+		<ControlField htmlFor={htmlFor}>
 			<ToggleField className={cn(k.disabled, className)} {...props} />
-		</ControlContext>
+		</ControlField>
 	)
 }

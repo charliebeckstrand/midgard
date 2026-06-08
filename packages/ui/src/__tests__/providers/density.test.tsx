@@ -28,7 +28,7 @@ describe('DensityProvider broadcast', () => {
 			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ density: 'sm', size: 'sm' })
+		expect(result.current).toEqual({ space: 'sm', size: 'sm' })
 	})
 
 	it('broadcasts snug as the md token on both axes', () => {
@@ -36,7 +36,7 @@ describe('DensityProvider broadcast', () => {
 			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ density: 'md', size: 'md' })
+		expect(result.current).toEqual({ space: 'md', size: 'md' })
 	})
 
 	it('broadcasts loose as the lg token on both axes', () => {
@@ -44,7 +44,7 @@ describe('DensityProvider broadcast', () => {
 			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ density: 'lg', size: 'lg' })
+		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
 	})
 })
 

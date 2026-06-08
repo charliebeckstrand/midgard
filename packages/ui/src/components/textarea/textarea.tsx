@@ -120,7 +120,7 @@ export function Textarea(props: TextareaProps) {
 				className={cn(
 					k({
 						variant: resolvedVariant,
-						density: token.density,
+						density: token.space,
 						size: token.size,
 						resize: hasActions ? 'none' : resize,
 						autoResize,

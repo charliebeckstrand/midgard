@@ -25,8 +25,8 @@ export type A11yPanel = {
 		'aria-labelledby'?: string
 		'aria-describedby'?: string
 	}
-	/** Feed into the panel's a11y context so Title / Description slots register and adopt their ids. */
-	providerValue: A11yPanelProviderValue
+	/** Feed into `PanelProviders` so Title / Description slots register and adopt their ids. */
+	a11y: A11yPanelProviderValue
 }
 
 /**
@@ -43,7 +43,7 @@ export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 		[role, scope.aria],
 	)
 
-	const providerValue = useMemo<A11yPanelProviderValue>(
+	const a11y = useMemo<A11yPanelProviderValue>(
 		() => ({
 			titleId: scope.ids.title,
 			descriptionId: scope.ids.description,
@@ -53,5 +53,5 @@ export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 		[scope.ids.title, scope.ids.description, scope.register.title, scope.register.description],
 	)
 
-	return { panelAriaProps, providerValue }
+	return { panelAriaProps, a11y }
 }

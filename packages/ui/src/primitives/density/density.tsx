@@ -11,35 +11,39 @@ import { useAffix } from '../affix'
  *
  * Two axes, both keyed on {@link Step}:
  *
- * - `density` controls padding + gap (the breathing-room dimension)
- * - `size`    controls text + icon  (the visual-heft dimension)
+ * - `space` controls padding + gap  (the breathing-room dimension)
+ * - `size`  controls text + icon    (the visual-heft dimension)
  *
- * The axes inherit independently. `<Density density="sm">` shrinks spacing
+ * The axes inherit independently. `<Density space="sm">` shrinks spacing
  * without touching font size; `<Density size="lg">` bumps text and icon
  * without re-padding. Cascade is per-axis innermost-wins.
+ *
+ * `size` is deliberately the same word every component uses for its own
+ * `size` prop — the ambient axis is the default a `<Button>` / `<Input>`
+ * picks up, so one vocabulary runs from provider to leaf.
  *
  * Internal names are intentionally positional (`sm | md | lg`) so the public
  * API can carry friendlier labels (e.g. `compact / cozy / comfortable`)
  * without a refactor — translation lives at the prop surface, not the token.
  */
 type DensityToken = {
-	density: Step
+	space: Step
 	size: Step
 }
 
 /**
- * Caller surface for `<Density>`. Set any axis explicitly; omit to inherit
- * from the surrounding context. The `scale` shorthand replaces the inherited
- * baseline with a preset (both axes), then explicit per-axis overrides still
- * win.
+ * Caller surface for `<Density>`. Set either axis explicitly; omit to inherit
+ * from the surrounding context. The `scale` shorthand sets both axes to one
+ * preset (use it instead of passing `space` and `size` the same value), then
+ * explicit per-axis overrides still win.
  */
 type DensityInput = Partial<DensityToken> & { scale?: Step }
 
-/** Diagonal preset table — `scale="md"` resolves to `{ density: 'md', size: 'md' }`. */
+/** Diagonal preset table — `scale="md"` resolves to `{ space: 'md', size: 'md' }`. */
 export const densityPresets: Record<Step, DensityToken> = {
-	sm: { density: 'sm', size: 'sm' },
-	md: { density: 'md', size: 'md' },
-	lg: { density: 'lg', size: 'lg' },
+	sm: { space: 'sm', size: 'sm' },
+	md: { space: 'md', size: 'md' },
+	lg: { space: 'lg', size: 'lg' },
 }
 
 const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | null>('Density', {
@@ -88,20 +92,20 @@ export type DensityProps = DensityInput & { children: ReactNode }
 
 /**
  * Broadcasts a density token to descendants. Each axis cascades independently
- * — `<Density size="lg">` overrides `size` while inheriting `density` from
+ * — `<Density size="lg">` overrides `size` while inheriting `space` from
  * the surrounding context.
  */
-export function Density({ children, scale, density: densityProp, size: sizeProp }: DensityProps) {
+export function Density({ children, scale, space: spaceProp, size: sizeProp }: DensityProps) {
 	const parent = useDensity()
 
 	const token = useMemo<DensityToken>(() => {
 		const base = scale ? densityPresets[scale] : parent
 
 		return {
-			density: densityProp ?? base.density,
+			space: spaceProp ?? base.space,
 			size: sizeProp ?? base.size,
 		}
-	}, [scale, densityProp, sizeProp, parent])
+	}, [scale, spaceProp, sizeProp, parent])
 
 	return <DensityTokenContext value={token}>{children}</DensityTokenContext>
 }

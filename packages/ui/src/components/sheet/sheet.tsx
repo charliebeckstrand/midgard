@@ -5,7 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { Overlay } from '../../primitives/overlay'
-import { PanelA11yContext, PanelCloseContext, usePanelCloseValue } from '../../primitives/panel'
+import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
@@ -45,9 +45,7 @@ export function Sheet({
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { panelAriaProps, providerValue } = useA11yPanel()
-
-	const closeValue = usePanelCloseValue(onOpenChange)
+	const { panelAriaProps, a11y } = useA11yPanel()
 
 	return (
 		<Overlay
@@ -64,9 +62,9 @@ export function Sheet({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
 			>
-				<PanelCloseContext value={closeValue}>
-					<PanelA11yContext value={providerValue}>{children}</PanelA11yContext>
-				</PanelCloseContext>
+				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
+					{children}
+				</PanelProviders>
 			</motion.div>
 		</Overlay>
 	)

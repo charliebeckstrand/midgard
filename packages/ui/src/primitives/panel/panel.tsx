@@ -1,10 +1,11 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
 import { cn, createContext } from '../../core'
 import { headingWeight, titleSize } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
 import { useDensity } from '../density'
+import { PanelCloseContext, usePanelCloseValue } from './panel-close-context'
 
 const DEFAULT_TITLE = k.title
 const DEFAULT_DESCRIPTION = k.description
@@ -30,6 +31,31 @@ type PanelA11yContextValue = {
 export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
 	default: {},
 })
+
+export type PanelProvidersProps = {
+	/** The panel root's `onOpenChange`; powers the Close context. */
+	onOpenChange: (open: boolean) => void
+	/** A11y ids/registration from `useA11yPanel`, broadcast to the slot children. */
+	a11y: PanelA11yContextValue
+	children: ReactNode
+}
+
+/**
+ * Wraps a panel surface's children in the context envelope every overlay
+ * (Dialog / Drawer / Sheet) shares: the Close context (so `PanelClose` and
+ * slot dismiss resolve) over the A11y context (so Title / Description register
+ * and adopt their ids). Owning the nesting here keeps the three roots in
+ * lockstep — the close-outside-a11y order can't drift between them.
+ */
+export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersProps) {
+	const closeValue = usePanelCloseValue(onOpenChange)
+
+	return (
+		<PanelCloseContext value={closeValue}>
+			<PanelA11yContext value={a11y}>{children}</PanelA11yContext>
+		</PanelCloseContext>
+	)
+}
 
 /** Creates Title, Description, Header, Body, Footer, and Content slot components for a panel prefix. */
 type PanelSlots = {

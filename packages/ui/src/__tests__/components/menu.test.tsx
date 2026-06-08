@@ -479,7 +479,7 @@ describe('MenuItem density inheritance', () => {
 
 	it('splits tight padding (density) from large text (size) under a two-axis Density', () => {
 		const { container } = renderUI(
-			<Density density="sm" size="lg">
+			<Density space="sm" size="lg">
 				<Menu defaultOpen>
 					<MenuContent>
 						<MenuItem>Item</MenuItem>

@@ -20,16 +20,16 @@ describe('Card', () => {
 })
 
 describe('Card size system', () => {
-	it('defaults to md and exposes data-density for descendants', () => {
+	it('defaults to md and exposes data-size for descendants', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'md')
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'md')
 	})
 
-	it('reflects an explicit size prop on data-density', () => {
+	it('reflects an explicit size prop on data-size', () => {
 		const { container } = renderUI(<Card size="lg">content</Card>)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('renders an inner-radius class matching the resolved size', () => {
@@ -136,7 +136,7 @@ describe('Card size system', () => {
 			</DensityProvider>,
 		)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'sm')
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'sm')
 	})
 
 	it('explicit size prop wins over an ambient Density', () => {
@@ -146,7 +146,7 @@ describe('Card size system', () => {
 			</DensityProvider>,
 		)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('inherits the resolved size from an outer Card when no size prop is given', () => {
@@ -160,7 +160,7 @@ describe('Card size system', () => {
 
 		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
 		// inner card is the second match
-		expect(cards[1]).toHaveAttribute('data-density', 'sm')
+		expect(cards[1]).toHaveAttribute('data-size', 'sm')
 	})
 
 	// Card always carries a static `p-{density}` so callers can compose with

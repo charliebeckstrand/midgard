@@ -84,7 +84,7 @@ export function ListboxPanel({
 							tabIndex={-1}
 							{...getFloatingProps()}
 						>
-							<Density density={density} size={size}>
+							<Density space={density} size={size}>
 								<PopoverPanel
 									id={id}
 									role="listbox"

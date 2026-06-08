@@ -78,7 +78,7 @@ export function Box({
 
 	// Only `p` inherits — `px` / `py` stay explicit so margin-style overrides
 	// don't get masked by an ambient default.
-	const resolvedPadding = p ?? density?.density
+	const resolvedPadding = p ?? density?.space
 
 	return (
 		<Polymorphic

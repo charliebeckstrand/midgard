@@ -21,7 +21,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 
 	if (isStatic) {
 		return (
-			<Density density={density} size={size}>
+			<Density space={density} size={size}>
 				<PopoverPanel
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
@@ -46,7 +46,7 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 		>
-			<Density density={density} size={size}>
+			<Density space={density} size={size}>
 				<PopoverPanel
 					id={menuId}
 					role="menu"

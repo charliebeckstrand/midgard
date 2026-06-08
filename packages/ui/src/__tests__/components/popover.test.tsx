@@ -43,7 +43,7 @@ describe('PopoverContent size context', () => {
 	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
 	const buttonInPopover = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
-	it('defaults to size="md" and exposes data-density on the content', () => {
+	it('defaults to size="md" and exposes data-size on the content', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>
@@ -53,10 +53,10 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-density', 'md')
+		expect(popoverContent()).toHaveAttribute('data-size', 'md')
 	})
 
-	it('reflects an explicit size prop on data-density', () => {
+	it('reflects an explicit size prop on data-size', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>
@@ -66,7 +66,7 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-density', 'lg')
+		expect(popoverContent()).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('descendant Buttons inherit the PopoverContent size', () => {
@@ -97,7 +97,7 @@ describe('PopoverContent size context', () => {
 			</DensityProvider>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-density', 'sm')
+		expect(popoverContent()).toHaveAttribute('data-size', 'sm')
 	})
 
 	it('explicit size prop wins over an ambient Density', () => {
@@ -112,7 +112,7 @@ describe('PopoverContent size context', () => {
 			</DensityProvider>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('data-density', 'lg')
+		expect(popoverContent()).toHaveAttribute('data-size', 'lg')
 	})
 })
 

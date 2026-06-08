@@ -70,7 +70,7 @@ export function ComboboxPanel({
 							className={cn('group/combobox', k.portal)}
 							{...getFloatingProps()}
 						>
-							<Density density={density} size={size}>
+							<Density space={density} size={size}>
 								<PopoverPanel
 									role="group"
 									autoFocus={false}
