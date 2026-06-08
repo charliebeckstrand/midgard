@@ -33,6 +33,16 @@ describe('Combobox', () => {
 		expect(input).toHaveAttribute('placeholder', 'Type here')
 	})
 
+	it('names the input via aria-label', () => {
+		const { container } = renderUI(
+			<Combobox aria-label="City">
+				<div>Option</div>
+			</Combobox>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-label', 'City')
+	})
+
 	it('renders icon slot', () => {
 		const { container } = renderUI(
 			<Combobox>

@@ -20,6 +20,8 @@ export type AddressInputProps = {
 	minQueryLength?: number
 	className?: string
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	/** Accessible name for the field. Defaults to the placeholder. */
+	'aria-label'?: string
 }
 
 /** Address autocomplete over a pluggable geocoding `provider` — built on Combobox, debounces the query and only fetches once `minQueryLength` is reached. */
@@ -31,6 +33,7 @@ export function AddressInput({
 	minQueryLength = 3,
 	placeholder = 'Enter an address',
 	autoComplete = 'off',
+	'aria-label': ariaLabel,
 	...props
 }: AddressInputProps) {
 	const [query, setQuery] = useState('')
@@ -55,6 +58,7 @@ export function AddressInput({
 			displayValue={(s) => s.label}
 			onValueChange={onValueChange}
 			placeholder={placeholder}
+			aria-label={ariaLabel ?? placeholder}
 			autoComplete={autoComplete}
 			clearOnEmpty
 			suffix={suffix}

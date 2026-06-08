@@ -49,6 +49,11 @@ type ComboboxBaseProps<T> = {
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	/**
+	 * Accessible name for the input. Required when no `<Field>`/`<Label>` wraps
+	 * the combobox, since the placeholder is not a programmatic name.
+	 */
+	'aria-label'?: string
 	/** Fires onValueChange without storing the value. */
 	selectable?: boolean
 	/** Clicking the selected option clears it. */
@@ -124,6 +129,7 @@ export function Combobox<T>({
 	className,
 	autoComplete = 'off',
 	inputType = 'text',
+	'aria-label': ariaLabel,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'combobox',
@@ -340,6 +346,7 @@ export function Combobox<T>({
 					ref={inputRef}
 					type={inputType}
 					autoComplete={autoComplete}
+					aria-label={ariaLabel}
 					open={open}
 					controlsId={comboboxId}
 					disabled={resolvedDisabled}
