@@ -228,6 +228,36 @@ describe('Listbox', () => {
 		expect(notCancelled).toBe(true)
 	})
 
+	// Regression: the default chevron sits in the suffix slot beside the trigger,
+	// not inside it, so a bare mousedown blurred the focused trigger (focus only
+	// returned on the click that followed). Cancelling the suffix mousedown keeps
+	// focus on the trigger.
+	it('cancels mousedown on the default chevron so the trigger keeps focus', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const notCancelled = fireEvent.mouseDown(bySlot(container, 'suffix') as HTMLElement)
+
+		expect(notCancelled).toBe(false)
+	})
+
+	// A caller-supplied suffix owns its own pointer behaviour; the focus guard is
+	// scoped to the default chevron and must not swallow a custom suffix's events.
+	it('leaves mousedown intact on a custom suffix', () => {
+		const { container } = renderUI(
+			<Listbox suffix={<span data-testid="suffix">USD</span>}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		const notCancelled = fireEvent.mouseDown(bySlot(container, 'suffix') as HTMLElement)
+
+		expect(notCancelled).toBe(true)
+	})
+
 	it('shows a clear button only when clearable and a value is selected', () => {
 		const { container, rerender } = renderUI(
 			<Listbox<string> clearable value="a" displayValue={(v) => v}>
