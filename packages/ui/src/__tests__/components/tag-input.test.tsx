@@ -232,6 +232,16 @@ describe('TagInput', () => {
 		expect(bySlot(container, 'tags')).toBeInTheDocument()
 	})
 
+	it('exposes the tags as an enumerable list', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
+
+		const list = bySlot(container, 'tags') as HTMLElement
+
+		expect(list).toHaveAttribute('role', 'list')
+		expect(list).toHaveAttribute('aria-label', 'Tags')
+		expect(list.querySelectorAll('[role="listitem"]')).toHaveLength(2)
+	})
+
 	it('has aria-label on the input derived from placeholder', () => {
 		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
 

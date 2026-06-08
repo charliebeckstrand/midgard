@@ -16,6 +16,7 @@ type TagInputBadgeProps = {
 export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadgeProps) {
 	return (
 		<Badge
+			role="listitem"
 			variant="outline"
 			rounded="full"
 			color={color}
