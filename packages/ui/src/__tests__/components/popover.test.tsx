@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
@@ -35,6 +36,24 @@ describe('Popover', () => {
 		const trigger = bySlot(container, 'popover-trigger')
 
 		expect(trigger).toHaveAttribute('data-testid', 'manual-child')
+	})
+
+	it('merges the floating ref with a ref already on the child', () => {
+		const ref = createRef<HTMLButtonElement>()
+
+		const { container } = renderUI(
+			<Popover>
+				<PopoverTrigger>
+					<button ref={ref} type="button">
+						Open
+					</button>
+				</PopoverTrigger>
+			</Popover>,
+		)
+
+		// The consumer's ref still receives the node — it is composed with the
+		// floating reference, not clobbered by it.
+		expect(ref.current).toBe(bySlot(container, 'popover-trigger'))
 	})
 })
 

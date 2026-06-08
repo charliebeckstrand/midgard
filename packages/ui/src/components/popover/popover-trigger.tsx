@@ -6,6 +6,7 @@ import {
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	type Ref,
 	type RefAttributes,
 	type SyntheticEvent,
 	useCallback,
@@ -20,8 +21,25 @@ export type PopoverTriggerProps = {
 	manual?: boolean
 }
 
+function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
+	if (typeof ref === 'function') ref(node)
+	else if (ref != null) (ref as { current: T | null }).current = node
+}
+
 export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
 	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
+
+	const child = isValidElement(children)
+		? (children as ReactElement<
+				HTMLAttributes<HTMLElement> &
+					RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
+			>)
+		: null
+
+	// The child's own ref is merged (not overwritten) to support triggers that
+	// pass one (React 19 ref-as-prop), so a consumer's `ref` still receives the
+	// node instead of being clobbered by the floating reference.
+	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
 	// Returns a cleanup from the ref callback so React 19 does not call it with
 	// null on unmount. This prevents `setReference(null)` from firing a state
@@ -32,12 +50,14 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			triggerRef.current = node as HTMLButtonElement | null
 
 			setReference(node)
+			assignRef(childRef, node)
 
 			return () => {
 				triggerRef.current = null
+				assignRef(childRef, null)
 			}
 		},
-		[triggerRef, setReference],
+		[triggerRef, setReference, childRef],
 	)
 
 	const shouldIgnore = useCallback((e: SyntheticEvent<HTMLElement>): boolean => {
@@ -69,11 +89,7 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 		[getReferenceProps, shouldIgnore],
 	)
 
-	if (isValidElement(children)) {
-		const child = children as ReactElement<
-			HTMLAttributes<HTMLElement> &
-				RefAttributes<HTMLElement> & { [key: `data-${string}`]: string | undefined }
-		>
+	if (child) {
 		const referenceProps = manual
 			? child.props
 			: wrapReferenceProps(child.props as Record<string, unknown>)
