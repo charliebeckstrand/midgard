@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { moduleNameFor } from '../../../docs/plugins/component-tags'
+import { moduleNameFor } from '../../../docs/plugins/docs'
 
 // src/__tests__/docs/plugins -> src
 const SRC_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
@@ -14,7 +14,7 @@ const DOCS_COMPONENTS = path.join(SRC_DIR, 'docs', 'components')
  * snippets purely by their NOT being tagged with __module/__name at build time
  * (INV-UNWRAP-UNKNOWN). There is no allow/deny list — the only thing keeping a
  * docs-internal control (VariantListbox, LabeledRow, ...) out of every code
- * block is that componentTagsPlugin's `moduleNameFor` declines to name it.
+ * block is that the docs plugin's `moduleNameFor` declines to name it.
  *
  * That guarantee was implicit and untested: tag one of these by accident, or
  * relocate a real component under src/docs/, and code blocks silently break

@@ -1,6 +1,1 @@
-export { apiReferencePlugin } from './api-reference'
-export { componentTagsPlugin } from './component-tags'
-export { demoMetasPlugin } from './demo-metas'
-export { deriveCodePlugin } from './derive-code'
 export { docsPlugin } from './docs'
-export { virtualStubsPlugin } from './virtual-stubs'
