@@ -16,11 +16,16 @@ export type ControlContextValue = {
 	variant?: ControlVariant
 	/** Composed `aria-describedby` for fields — registered Description / error Message ids, or undefined when none are rendered. */
 	describedBy?: string
+	/** Composed `aria-labelledby` — the Label's id once it registers. Lets a portalled popup (a listbox) name itself from the field's Label. */
+	labelledBy?: string
+	/** Id the Label slot renders with. */
+	labelId?: string
 	/** Id the Description slot renders with. */
 	descriptionId?: string
 	/** Id the error Message slot renders with. */
 	messageId?: string
-	/** Slot registration — Description / error Message call these on mount so `describedBy` only references rendered ids. */
+	/** Slot registration — Label / Description / error Message call these on mount so `labelledBy` / `describedBy` only reference rendered ids. */
+	registerLabel?: () => () => void
 	registerDescription?: () => () => void
 	registerMessage?: () => () => void
 }

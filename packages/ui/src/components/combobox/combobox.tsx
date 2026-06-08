@@ -367,6 +367,9 @@ export function Combobox<T>({
 				density={token.space}
 				size={token.size}
 				ariaLabel={ariaLabel}
+				// Name the listbox from the input's name: an explicit aria-label wins,
+				// else the field's Label (via Control).
+				ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
 				floatingStyles={floatingStyles}
 				getFloatingProps={getFloatingProps}
 				optionsRef={optionsRef}

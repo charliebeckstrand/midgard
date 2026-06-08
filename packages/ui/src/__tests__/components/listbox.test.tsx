@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Field, Label } from '../../components/fieldset'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -159,6 +160,24 @@ describe('Listbox', () => {
 		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
 
 		expect(screen.getByRole('listbox', { name: 'Current page' })).toBeInTheDocument()
+	})
+
+	it('names the listbox from a wrapping Field Label (no explicit aria-label)', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Country</Label>
+				<Listbox>
+					<div role="option" tabIndex={-1} aria-selected="false">
+						Option
+					</div>
+				</Listbox>
+			</Field>,
+		)
+
+		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+
+		// The popup's aria-labelledby resolves to the registered Label id.
+		expect(screen.getByRole('listbox', { name: 'Country' })).toBeInTheDocument()
 	})
 
 	it('marks a multiple listbox as multiselectable', () => {
