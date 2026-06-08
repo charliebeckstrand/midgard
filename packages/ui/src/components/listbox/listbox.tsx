@@ -220,6 +220,17 @@ export function Listbox<T>({
 				}}
 				prefix={prefix}
 				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
+				suffixProps={
+					suffix || showClear || resolvedDisabled
+						? undefined
+						: {
+								// The default chevron is a sibling of the trigger, not part of
+								// it; a bare mousedown blurs the focused trigger (focus only
+								// returns on the click that follows). preventDefault keeps focus
+								// on the trigger — the frame's onClick still toggles the menu.
+								onMouseDown: (event) => event.preventDefault(),
+							}
+				}
 			>
 				<ListboxButton
 					id={resolvedId}
