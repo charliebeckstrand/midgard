@@ -11,7 +11,7 @@ export function Demo() {
 		<>
 			<Example title="Default">
 				<Tabs defaultValue="Account">
-					<TabList>
+					<TabList aria-label="Settings">
 						{tabs.map((tab) => (
 							<Tab key={tab} value={tab}>
 								{tab}
@@ -29,7 +29,7 @@ export function Demo() {
 			</Example>
 			<Example title="Segment">
 				<Tabs defaultValue="Account" variant="segment">
-					<TabList>
+					<TabList aria-label="Settings">
 						{tabs.map((tab) => (
 							<Tab key={tab} value={tab}>
 								{tab}
@@ -47,7 +47,7 @@ export function Demo() {
 			</Example>
 			<Example title="Stretch">
 				<Tabs defaultValue="Account">
-					<TabList>
+					<TabList aria-label="Settings">
 						{tabs.map((tab) => (
 							<Tab key={tab} value={tab} stretch>
 								{tab}

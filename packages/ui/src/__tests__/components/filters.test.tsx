@@ -4,10 +4,24 @@ import { Filters, FiltersClear, FiltersField, useFilters } from '../../component
 import { Input } from '../../components/input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
+describe('Filters group', () => {
+	it('exposes the bar as a named role="group"', () => {
+		renderUI(
+			<Filters aria-label="Order filters">
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(screen.getByRole('group', { name: 'Order filters' })).toBeInTheDocument()
+	})
+})
+
 describe('FiltersField', () => {
 	it('injects value into child via cloneElement', () => {
 		const { container } = renderUI(
-			<Filters value={{ name: 'hello' }} onValueChange={() => {}}>
+			<Filters aria-label="Filters" value={{ name: 'hello' }} onValueChange={() => {}}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -20,7 +34,7 @@ describe('FiltersField', () => {
 	it('calls onChange when input changes (auto-binding)', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filters value={{ name: '' }} onValueChange={onChange}>
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -35,7 +49,7 @@ describe('FiltersField', () => {
 	it('supports render prop children', async () => {
 		const onChange = vi.fn()
 		const { container } = renderUI(
-			<Filters value={{ name: '' }} onValueChange={onChange}>
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
 					{({ value, onValueChange: fieldOnValueChange }) => (
 						<input
@@ -58,7 +72,11 @@ describe('FiltersClear', () => {
 	it('clears all filter values when clicked', async () => {
 		const onChange = vi.fn()
 		renderUI(
-			<Filters value={{ name: 'hello', status: 'active' }} onValueChange={onChange}>
+			<Filters
+				aria-label="Filters"
+				value={{ name: 'hello', status: 'active' }}
+				onValueChange={onChange}
+			>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -77,6 +95,7 @@ describe('FiltersClear', () => {
 		const defaults = { name: '', status: 'all' }
 		renderUI(
 			<Filters
+				aria-label="Filters"
 				value={{ name: 'hello', status: 'active' }}
 				defaultValue={defaults}
 				onValueChange={onChange}
@@ -100,7 +119,7 @@ describe('FiltersClear', () => {
 		const childClick = vi.fn()
 
 		renderUI(
-			<Filters value={{ name: 'hello' }} onValueChange={onChange}>
+			<Filters aria-label="Filters" value={{ name: 'hello' }} onValueChange={onChange}>
 				<FiltersClear>
 					<Button onClick={childClick}>Clear</Button>
 				</FiltersClear>
@@ -118,7 +137,7 @@ describe('FiltersClear', () => {
 
 	it('merges the FiltersClear className into the child element', () => {
 		renderUI(
-			<Filters value={{ name: 'hello' }}>
+			<Filters aria-label="Filters" value={{ name: 'hello' }}>
 				<FiltersClear className="from-wrapper">
 					<Button>Clear</Button>
 				</FiltersClear>
@@ -139,7 +158,7 @@ describe('useFilters', () => {
 
 	it('reports activeCount correctly', () => {
 		const { container } = renderUI(
-			<Filters value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
+			<Filters aria-label="Filters" value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
 				<ActiveCount />
 			</Filters>,
 		)
@@ -149,7 +168,7 @@ describe('useFilters', () => {
 
 	it('reports 0 when all values are empty', () => {
 		const { container } = renderUI(
-			<Filters value={{ a: '', b: undefined, c: null }}>
+			<Filters aria-label="Filters" value={{ a: '', b: undefined, c: null }}>
 				<ActiveCount />
 			</Filters>,
 		)
@@ -165,7 +184,7 @@ describe('Filter (uncontrolled)', () => {
 		}
 
 		const { container } = renderUI(
-			<Filters defaultValue={{ name: '' }}>
+			<Filters aria-label="Filters" defaultValue={{ name: '' }}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>
@@ -182,7 +201,7 @@ describe('Filter (uncontrolled)', () => {
 describe('Filters extras', () => {
 	it('renders the prefix slot when provided', () => {
 		const { container } = renderUI(
-			<Filters prefix={<span>prefix node</span>}>
+			<Filters aria-label="Filters" prefix={<span>prefix node</span>}>
 				<span>child</span>
 			</Filters>,
 		)
@@ -196,7 +215,7 @@ describe('Filters extras', () => {
 
 	it('renders the suffix slot when provided', () => {
 		const { container } = renderUI(
-			<Filters suffix={<span>suffix node</span>}>
+			<Filters aria-label="Filters" suffix={<span>suffix node</span>}>
 				<span>child</span>
 			</Filters>,
 		)
@@ -210,7 +229,7 @@ describe('Filters extras', () => {
 
 	it('omits the prefix and suffix slots when not provided', () => {
 		const { container } = renderUI(
-			<Filters>
+			<Filters aria-label="Filters">
 				<span>child</span>
 			</Filters>,
 		)
@@ -224,7 +243,7 @@ describe('Filters extras', () => {
 		const onClear = vi.fn()
 
 		renderUI(
-			<Filters value={{ name: 'hello' }} onClear={onClear}>
+			<Filters aria-label="Filters" value={{ name: 'hello' }} onClear={onClear}>
 				<FiltersClear>
 					<Button>Clear</Button>
 				</FiltersClear>
@@ -240,7 +259,7 @@ describe('Filters extras', () => {
 
 	it('renders the equal layout variant without error', () => {
 		const { container } = renderUI(
-			<Filters equal>
+			<Filters aria-label="Filters" equal>
 				<FiltersField name="a">
 					<Input />
 				</FiltersField>
@@ -257,7 +276,7 @@ describe('Filters extras', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<Filters defaultValue={{ name: 'hello' }} onValueChange={onChange}>
+			<Filters aria-label="Filters" defaultValue={{ name: 'hello' }} onValueChange={onChange}>
 				<FiltersField name="name">
 					<Input />
 				</FiltersField>

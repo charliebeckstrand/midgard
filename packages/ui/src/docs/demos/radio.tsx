@@ -11,7 +11,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<RadioGroup>
+				<RadioGroup aria-label="Plan">
 					{plans.map((plan) => (
 						<RadioField key={plan}>
 							<Radio name="plan" value={plan} defaultChecked={plan === 'Starter'} />
@@ -22,7 +22,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Colors">
-				<RadioGroup>
+				<RadioGroup aria-label="Color">
 					{colors.map((color) => (
 						<RadioField key={color}>
 							<Radio name="color" value={color} color={color} defaultChecked={color === 'blue'} />
@@ -33,7 +33,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Disabled">
-				<RadioGroup>
+				<RadioGroup aria-label="Options">
 					<RadioField>
 						<Radio name="option" value="enabled" defaultChecked />
 						<Label>Enabled option</Label>

@@ -25,19 +25,19 @@ function buildTreeNodes(depth: number, branching: number, open: boolean): ReactN
 
 describe('Tree · render (all open)', () => {
 	bench('100 nodes (d3×b5, open)', () => {
-		render(<Tree>{buildTreeNodes(3, 5, true)}</Tree>)
+		render(<Tree aria-label="Files">{buildTreeNodes(3, 5, true)}</Tree>)
 
 		cleanup()
 	})
 
 	bench('~1k nodes (d4×b5, open)', () => {
-		render(<Tree>{buildTreeNodes(4, 5, true)}</Tree>)
+		render(<Tree aria-label="Files">{buildTreeNodes(4, 5, true)}</Tree>)
 
 		cleanup()
 	})
 
 	bench('~5k nodes (d5×b5, open)', () => {
-		render(<Tree>{buildTreeNodes(5, 5, true)}</Tree>)
+		render(<Tree aria-label="Files">{buildTreeNodes(5, 5, true)}</Tree>)
 
 		cleanup()
 	})
@@ -45,7 +45,7 @@ describe('Tree · render (all open)', () => {
 
 describe('Tree · render (all collapsed)', () => {
 	bench('~5k nodes (d5×b5, collapsed) — only top level rendered', () => {
-		render(<Tree>{buildTreeNodes(5, 5, false)}</Tree>)
+		render(<Tree aria-label="Files">{buildTreeNodes(5, 5, false)}</Tree>)
 
 		cleanup()
 	})

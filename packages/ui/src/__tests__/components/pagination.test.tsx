@@ -100,8 +100,8 @@ describe('PaginationNext', () => {
 	})
 })
 
-describe('Pagination keyboard handling', () => {
-	it('forwards onKeyDown before roving navigation', () => {
+describe('Pagination keyboard model', () => {
+	it('forwards onKeyDown to the consumer', () => {
 		const onKeyDown = vi.fn()
 
 		renderUI(
@@ -119,24 +119,24 @@ describe('Pagination keyboard handling', () => {
 		expect(onKeyDown).toHaveBeenCalledOnce()
 	})
 
-	it('skips roving navigation when the caller calls preventDefault', () => {
+	it('keeps each page link individually Tab-focusable and does not rove on arrows', () => {
 		renderUI(
-			<Pagination
-				onKeyDown={(e) => {
-					e.preventDefault()
-				}}
-			>
+			<Pagination>
 				<PaginationList>
-					<PaginationPage>1</PaginationPage>
-					<PaginationPage>2</PaginationPage>
+					<PaginationPage href="/page/1">1</PaginationPage>
+					<PaginationPage href="/page/2">2</PaginationPage>
 				</PaginationList>
 			</Pagination>,
 		)
 
-		const nav = screen.getByRole('navigation')
+		const links = screen.getAllByRole('link')
 
-		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+		for (const link of links) expect(link.tabIndex).toBe(0)
 
-		expect(nav).toBeInTheDocument()
+		links[0]?.focus()
+
+		fireEvent.keyDown(screen.getByRole('navigation'), { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(links[0])
 	})
 })

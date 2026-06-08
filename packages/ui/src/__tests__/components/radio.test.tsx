@@ -50,10 +50,12 @@ describe('Radio', () => {
 })
 
 describe('RadioGroup', () => {
-	it('renders with role="radiogroup"', () => {
-		renderUI(<RadioGroup>content</RadioGroup>)
+	it('renders with role="radiogroup" and forwards the required name', () => {
+		renderUI(<RadioGroup aria-label="Plan">content</RadioGroup>)
 
 		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
+
+		expect(screen.getByRole('radiogroup')).toHaveAccessibleName('Plan')
 	})
 })
 

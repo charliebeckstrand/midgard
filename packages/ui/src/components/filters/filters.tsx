@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
+import type { AccessibleName } from '../../types'
 import { Flex } from '../flex'
 import { FiltersContext, type FiltersContextValue } from './context'
 
@@ -16,7 +17,7 @@ function isActive(v: unknown): boolean {
 	return true
 }
 
-export type FiltersProps<T extends FilterValue = FilterValue> = {
+export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName & {
 	value?: T
 	defaultValue?: T
 	onValueChange?: (value: T) => void
@@ -29,7 +30,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = {
 	className?: string
 }
 
-/** Coordinator for a row of filter controls over a `Record` value — shares set/clear and an active-count via context, dropping empty fields from the payload. */
+/** Coordinator for a row of filter controls over a `Record` value — shares set/clear and an active-count via context, dropping empty fields from the payload. The bar is a named `role="group"`, so require `aria-label`/`aria-labelledby`. */
 export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,
@@ -41,6 +42,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	equal,
 	children,
 	className,
+	...labelProps
 }: FiltersProps<T>) {
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
@@ -91,7 +93,13 @@ export function Filters<T extends FilterValue = FilterValue>({
 
 	return (
 		<FiltersContext value={context}>
-			<div data-slot="filters" className={cn('flex flex-col gap-4', className)}>
+			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and min-content layout quirks on this flex bar; a named role="group" is the right grouping for a row of filter controls */}
+			<div
+				data-slot="filters"
+				role="group"
+				className={cn('flex flex-col gap-4', className)}
+				{...labelProps}
+			>
 				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
 				<Flex
 					direction={{ initial: 'row', sm: 'col' }}

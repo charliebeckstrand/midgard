@@ -33,6 +33,19 @@ describe('PivotTable', () => {
 		expect(screen.getByRole('columnheader', { name: 'Feb' })).toBeInTheDocument()
 	})
 
+	it('names the table from the optional aria-label', () => {
+		renderUI(
+			<PivotTable
+				rows={data}
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
+				rowHeader="Lane"
+				aria-label="Loads by lane and month"
+			/>,
+		)
+
+		expect(screen.getByRole('table', { name: 'Loads by lane and month' })).toBeInTheDocument()
+	})
+
 	it('exposes each row-dimension label as a row header', () => {
 		renderUI(
 			<PivotTable

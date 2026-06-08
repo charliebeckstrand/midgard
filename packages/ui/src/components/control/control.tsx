@@ -71,11 +71,10 @@ export function Control({
 			required,
 			size: mergedSize,
 			variant: mergedVariant,
-			describedBy: a11y.describedBy,
-			descriptionId: a11y.descriptionId,
-			messageId: a11y.messageId,
-			registerDescription: a11y.registerDescription,
-			registerMessage: a11y.registerMessage,
+			// The a11y bundle (label / description / error ids + registrars +
+			// composed labelledBy/describedBy) is spread wholesale, so a new slot
+			// only touches `useA11yControl` — not each context builder.
+			...a11y,
 		}),
 		[
 			scope.id,
@@ -86,11 +85,7 @@ export function Control({
 			required,
 			mergedSize,
 			mergedVariant,
-			a11y.describedBy,
-			a11y.descriptionId,
-			a11y.messageId,
-			a11y.registerDescription,
-			a11y.registerMessage,
+			a11y,
 		],
 	)
 

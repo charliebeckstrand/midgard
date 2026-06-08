@@ -247,6 +247,10 @@ export function Listbox<T>({
 				multiple={multiple}
 				density={token.space}
 				size={token.size}
+				ariaLabel={ariaLabel}
+				// Name the listbox from the trigger's name: an explicit aria-label
+				// wins, else aria-labelledby, else the field's Label (via Control).
+				ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 				floatingStyles={floatingStyles}
 				context={context}
 				getFloatingProps={getFloatingProps}

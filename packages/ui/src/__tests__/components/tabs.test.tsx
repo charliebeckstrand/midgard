@@ -7,7 +7,7 @@ describe('TabList', () => {
 	it('renders with data-slot="tab-list" and role="tablist"', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
 				<TabPanels>
@@ -26,7 +26,7 @@ describe('TabList', () => {
 	it('reflects vertical orientation on tab-group and tab-list', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a" orientation="vertical">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
 				<TabPanels>
@@ -49,7 +49,7 @@ describe('Tab', () => {
 	it('renders with data-slot="tab" and role="tab"', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
 				<TabPanels>
@@ -69,7 +69,7 @@ describe('Tab', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Tabs defaultValue="a">
-					<TabList>
+					<TabList aria-label="Tabs">
 						<Tab value="a">Tab A</Tab>
 					</TabList>
 				</Tabs>
@@ -87,7 +87,7 @@ describe('Tab', () => {
 	it('inherits size from ambient Density when used à la carte (TabList + Tab without <Tabs>)', () => {
 		const { container } = renderUI(
 			<DensityProvider density="loose">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab current>Tab A</Tab>
 				</TabList>
 			</DensityProvider>,
@@ -103,7 +103,7 @@ describe('Tab', () => {
 
 	it('falls back to md when neither <Tabs> nor Density is present', () => {
 		const { container } = renderUI(
-			<TabList>
+			<TabList aria-label="Tabs">
 				<Tab current>Tab A</Tab>
 			</TabList>,
 		)
@@ -118,7 +118,7 @@ describe('Tab', () => {
 	it('explicit current prop wins over the Tabs context value', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 					<Tab value="b" current>
 						B forced
@@ -142,7 +142,7 @@ describe('Tab', () => {
 
 		const { container } = renderUI(
 			<Tabs defaultValue="a" onValueChange={onValueChange}>
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 					<Tab value="b">B</Tab>
 				</TabList>
@@ -162,7 +162,7 @@ describe('Tab', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			<TabList>
+			<TabList aria-label="Tabs">
 				<Tab onClick={onClick}>Standalone</Tab>
 			</TabList>,
 		)
@@ -176,7 +176,7 @@ describe('Tab', () => {
 
 	it('wires aria-controls when a Tab id is provided', () => {
 		const { container } = renderUI(
-			<TabList>
+			<TabList aria-label="Tabs">
 				<Tab id="settings">Settings</Tab>
 			</TabList>,
 		)
@@ -191,7 +191,7 @@ describe('Tab', () => {
 	it('renders the segment variant on Tab when wrapped in <Tabs variant="segment">', () => {
 		const { container } = renderUI(
 			<Tabs variant="segment" defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 				</TabList>
 			</Tabs>,
@@ -207,7 +207,7 @@ describe('Tab', () => {
 
 	it('applies a custom className on Tab', () => {
 		const { container } = renderUI(
-			<TabList>
+			<TabList aria-label="Tabs">
 				<Tab className="my-tab">A</Tab>
 			</TabList>,
 		)
@@ -220,7 +220,7 @@ describe('TabPanel', () => {
 	it('renders with data-slot="tab-panel" and role="tabpanel"', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
 				<TabPanels>
@@ -239,7 +239,7 @@ describe('TabPanel', () => {
 	it('derives id and aria-labelledby from the provided id prop', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
 				<TabPanels>
@@ -260,7 +260,7 @@ describe('TabList variants', () => {
 	it('renders TabList with vertical orientation from Tabs', () => {
 		const { container } = renderUI(
 			<Tabs orientation="vertical" defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 				</TabList>
 			</Tabs>,
@@ -271,7 +271,7 @@ describe('TabList variants', () => {
 
 	it('renders TabList without a Tabs wrapper', () => {
 		const { container } = renderUI(
-			<TabList>
+			<TabList aria-label="Tabs">
 				<button type="button" role="tab">
 					Standalone
 				</button>
@@ -288,7 +288,7 @@ describe('TabList variants', () => {
 	it('renders TabList with segment variant from Tabs', () => {
 		const { container } = renderUI(
 			<Tabs variant="segment" defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 				</TabList>
 			</Tabs>,
@@ -304,7 +304,7 @@ describe('Tabs keyboard navigation', () => {
 	function renderTabs() {
 		renderUI(
 			<Tabs defaultValue="a">
-				<TabList>
+				<TabList aria-label="Tabs">
 					<Tab value="a">A</Tab>
 					<Tab value="b" disabled>
 						B

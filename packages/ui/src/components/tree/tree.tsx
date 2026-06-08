@@ -5,11 +5,12 @@ import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k, type TreeSize } from '../../recipes/kata/tree'
+import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
 import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
-export type TreeProps = {
+export type TreeProps = AccessibleName & {
 	/**
 	 * Controls icon size and text size for all items.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
@@ -21,8 +22,8 @@ export type TreeProps = {
 	className?: string
 }
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation — keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. */
-export function Tree({ size, indent = false, children, className }: TreeProps) {
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation — keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby` so the tree is never unnamed. */
+export function Tree({ size, indent = false, children, className, ...labelProps }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const handleKeyDown = useA11yRoving(ref, {
@@ -76,6 +77,7 @@ export function Tree({ size, indent = false, children, className }: TreeProps) {
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}
 				onFocus={handleFocus}
+				{...labelProps}
 			>
 				{children}
 			</div>

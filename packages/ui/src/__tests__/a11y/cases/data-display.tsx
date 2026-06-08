@@ -87,7 +87,7 @@ export const dataDisplayCases: readonly Case[] = [
 		// accessible name and one item is selected.
 		'segment',
 		<Segment key="sg" defaultValue="list" aria-label="View">
-			<SegmentControl>
+			<SegmentControl aria-label="View">
 				<SegmentItem value="list">List</SegmentItem>
 				<SegmentItem value="grid">Grid</SegmentItem>
 			</SegmentControl>
@@ -97,7 +97,7 @@ export const dataDisplayCases: readonly Case[] = [
 		// role=tree with nested role=group; each item exposes its label and
 		// expanded state.
 		'tree',
-		<Tree key="tr">
+		<Tree key="tr" aria-label="File tree">
 			<TreeItem label="Documents">
 				<TreeItem label="report.pdf" />
 				<TreeItem label="budget.xlsx" />

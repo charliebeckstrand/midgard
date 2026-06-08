@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
+import { kanbanColumnTitleId, useKanbanColumnContext } from './context'
 
 export type KanbanColumnHeaderProps = {
 	children?: ReactNode
@@ -21,8 +22,14 @@ export type KanbanColumnTitleProps = {
 }
 
 export function KanbanColumnTitle({ children, className }: KanbanColumnTitleProps) {
+	const { columnId } = useKanbanColumnContext()
+
 	return (
-		<span data-slot="kanban-column-title" className={cn(k.column.title, className)}>
+		<span
+			id={kanbanColumnTitleId(columnId)}
+			data-slot="kanban-column-title"
+			className={cn(k.column.title, className)}
+		>
 			{children}
 		</span>
 	)

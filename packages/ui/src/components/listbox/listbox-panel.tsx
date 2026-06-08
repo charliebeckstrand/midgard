@@ -17,6 +17,9 @@ type ListboxPanelProps = {
 	multiple: boolean
 	density: ControlSize
 	size: ControlSize
+	/** Accessible name for the listbox, threaded from the trigger's name. */
+	ariaLabel?: string
+	ariaLabelledby?: string
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
 	getFloatingProps: () => Record<string, unknown>
@@ -39,6 +42,8 @@ export function ListboxPanel({
 	multiple,
 	density,
 	size,
+	ariaLabel,
+	ariaLabelledby,
 	floatingStyles,
 	context,
 	getFloatingProps,
@@ -88,6 +93,8 @@ export function ListboxPanel({
 								<PopoverPanel
 									id={id}
 									role="listbox"
+									aria-label={ariaLabel}
+									aria-labelledby={ariaLabelledby}
 									multiselectable={multiple || undefined}
 									typeahead
 									glass={glass}

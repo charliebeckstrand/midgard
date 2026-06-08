@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
-import { Description, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
@@ -102,6 +102,41 @@ describe('Combobox', () => {
 		fireEvent.mouseDown(icon)
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('threads the input name onto the open listbox', async () => {
+		const { container } = renderUI(
+			<Combobox<string> aria-label="City" displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		expect(await screen.findByRole('listbox', { name: 'City' })).toBeInTheDocument()
+	})
+
+	it('names the listbox from a wrapping Field Label (no explicit aria-label)', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>City</Label>
+				<Combobox<string> displayValue={(v) => v}>
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Field>,
+		)
+
+		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		expect(await screen.findByRole('listbox', { name: 'City' })).toBeInTheDocument()
 	})
 
 	it('leaves the default chevron inert and not-allowed when disabled', () => {

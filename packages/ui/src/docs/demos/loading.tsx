@@ -25,7 +25,7 @@ export function Demo() {
 	return (
 		<Tabs defaultValue="spinner">
 			<Stack gap="lg">
-				<TabList>
+				<TabList aria-label="Loader style">
 					<Tab value="spinner">Spinner</Tab>
 					<Tab value="dots">Dots</Tab>
 				</TabList>

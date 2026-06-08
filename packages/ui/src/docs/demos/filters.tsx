@@ -62,6 +62,7 @@ function BasicExample() {
 
 	return (
 		<Filters
+			aria-label="Filters"
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}
@@ -107,6 +108,7 @@ function DateExample() {
 
 	return (
 		<Filters
+			aria-label="Filters"
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}
@@ -156,6 +158,7 @@ function RenderPropsExample() {
 
 	return (
 		<Filters
+			aria-label="Filters"
 			value={filters}
 			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
 			clear={<FiltersClearButton />}

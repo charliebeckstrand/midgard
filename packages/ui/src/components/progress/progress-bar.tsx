@@ -5,15 +5,14 @@ import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
+import type { AccessibleName } from '../../types'
 import { clamp, pct } from '../../utilities'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 
-// A progressbar role needs an accessible name; require one of these at the type
-// level so consumers can't ship an unlabeled progress indicator.
-type ProgressBarLabel = { 'aria-label': string } | { 'aria-labelledby': string }
-
-export type ProgressBarProps = ProgressBarLabel & {
+// A progressbar role needs an accessible name; AccessibleName requires one at
+// the type level so consumers can't ship an unlabeled progress indicator.
+export type ProgressBarProps = AccessibleName & {
 	value?: number
 	max?: number
 	size?: Step

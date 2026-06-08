@@ -232,6 +232,22 @@ type RovingOptions = RovingConfig & {
 	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
 	activationKey?: string | null
 	/**
+	 * Focus mode: own the roving `tabIndex` so the widget is a single Tab stop.
+	 * Seats `tabIndex=0` on the resting item (see `activeSelector`, else the first
+	 * item) and `-1` on the rest, keeps that invariant as the subtree mutates, and
+	 * moves the `0` with focus on each arrow press. Leave off for widgets whose
+	 * items already drive their own `tabIndex` (e.g. `Tab`'s `tabIndex={current?0:-1}`)
+	 * or that must stay individually Tab-focusable (plain site-nav links).
+	 * @default false
+	 */
+	manageTabIndex?: boolean
+	/**
+	 * Focus mode + `manageTabIndex`: selector for the item that holds the resting
+	 * `tabIndex=0` on mount (e.g. `[aria-current="page"]`). Falls back to the first
+	 * item when it matches nothing, and is ignored once the user has roved.
+	 */
+	activeSelector?: string
+	/**
 	 * Virtual mode: a `combobox`/`textbox` element that owns the listbox. When
 	 * provided, the active item is mirrored into ARIA — `aria-selected` is set on
 	 * it (and cleared from the previous one) and the element's
@@ -255,6 +271,8 @@ export function useA11yRoving(
 		activationKey = 'Enter',
 		activeDescendantRef,
 		manageAriaSelected = true,
+		manageTabIndex = false,
+		activeSelector,
 	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -270,6 +288,54 @@ export function useA11yRoving(
 		[],
 	)
 
+	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
+	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
+	// (items added/removed, disabled toggled, current item moved). Writes only on
+	// divergence so the observer doesn't feed back on its own tabindex edits.
+	useEffect(() => {
+		if (mode !== 'focus' || !manageTabIndex) return
+
+		const el = containerRef.current
+
+		if (!el) return
+
+		const normalize = () => {
+			const items = queryItems(el, itemSelector)
+
+			if (!items.length) return
+
+			const tabbable = items.filter((it) => it.tabIndex === 0)
+
+			// A single existing stop means the user has already roved — preserve it.
+			// Otherwise (fresh mount, where every native control is tabbable) seat the
+			// stop on the active item, falling back to the first.
+			const active =
+				tabbable.length === 1
+					? tabbable[0]
+					: ((activeSelector ? items.find((it) => it.matches(activeSelector)) : undefined) ??
+						items[0])
+
+			for (const it of items) {
+				const desired = it === active ? 0 : -1
+
+				if (it.tabIndex !== desired) it.tabIndex = desired
+			}
+		}
+
+		normalize()
+
+		const observer = new MutationObserver(normalize)
+
+		observer.observe(el, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['tabindex', 'disabled', 'aria-current'],
+		})
+
+		return () => observer.disconnect()
+	}, [containerRef, itemSelector, mode, manageTabIndex, activeSelector])
+
 	return useCallback(
 		(e: KeyboardEvent) => {
 			const items = queryItems(containerRef.current, itemSelector)
@@ -284,7 +350,21 @@ export function useA11yRoving(
 
 			const moveTo = (index: number) => {
 				if (!isVirtual) {
-					items[index]?.focus()
+					const next = items[index]
+
+					if (!next) return
+
+					// Carry the resting stop to the newly focused item so leaving and
+					// re-Tabbing into the widget returns here.
+					if (manageTabIndex) {
+						for (const it of items) {
+							const desired = it === next ? 0 : -1
+
+							if (it.tabIndex !== desired) it.tabIndex = desired
+						}
+					}
+
+					next.focus()
 
 					return
 				}
@@ -345,6 +425,7 @@ export function useA11yRoving(
 			activeDescendantRef,
 			scrollWithin,
 			manageAriaSelected,
+			manageTabIndex,
 		],
 	)
 }

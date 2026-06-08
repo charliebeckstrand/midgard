@@ -7,9 +7,9 @@ import { type ControlContextValue, useControl } from './context'
 /**
  * Builds the `ControlContext` value for a single-control field wrapper
  * (`CheckboxField` / `RadioField` / `SwitchField`): inherits the parent control
- * cascade and wires the Description / error Message a11y slots off the field id.
- * Centralizing it keeps a new field from silently dropping the
- * `aria-describedby` wiring — the shape is identical across the three.
+ * cascade and spreads the `useA11yControl` bundle (label / description / error
+ * slots) off the field id. Centralizing it keeps a new field from silently
+ * dropping the a11y wiring — the shape is identical across the three.
  */
 export function useControlFieldContext(id: string): ControlContextValue {
 	const parent = useControl()
@@ -26,20 +26,8 @@ export function useControlFieldContext(id: string): ControlContextValue {
 			required: parent?.required,
 			size: parent?.size,
 			variant: parent?.variant,
-			describedBy: a11y.describedBy,
-			descriptionId: a11y.descriptionId,
-			messageId: a11y.messageId,
-			registerDescription: a11y.registerDescription,
-			registerMessage: a11y.registerMessage,
+			...a11y,
 		}),
-		[
-			id,
-			parent,
-			a11y.describedBy,
-			a11y.descriptionId,
-			a11y.messageId,
-			a11y.registerDescription,
-			a11y.registerMessage,
-		],
+		[id, parent, a11y],
 	)
 }

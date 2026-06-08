@@ -198,6 +198,33 @@ describe('Popover non-modal semantics', () => {
 		expect(content()).not.toHaveAttribute('aria-modal')
 	})
 
+	it('exposes a single dialog wired to the trigger, with no role on the positioning wrapper', () => {
+		const { container } = renderUI(
+			<Popover open>
+				<PopoverTrigger>
+					<Button>Open</Button>
+				</PopoverTrigger>
+				<PopoverContent aria-label="Details">Body</PopoverContent>
+			</Popover>,
+		)
+
+		// floating-ui's `useRole` is suppressed (`role: null`), so only the panel
+		// itself is `role="dialog"` — the positioning wrapper is not a second,
+		// unnamed dialog around it.
+		expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1)
+
+		const panel = content()
+
+		expect(panel?.parentElement).not.toHaveAttribute('role')
+
+		// The trigger's `aria-controls` resolves to the real panel id.
+		const trigger = bySlot(container, 'popover-trigger')
+
+		expect(panel?.id).toBeTruthy()
+
+		expect(trigger).toHaveAttribute('aria-controls', panel?.id)
+	})
+
 	it('does not trap focus inside the panel', async () => {
 		const user = userEvent.setup()
 

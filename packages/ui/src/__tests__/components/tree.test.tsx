@@ -6,7 +6,7 @@ import { bySlot, renderUI, screen } from '../helpers'
 describe('Tree', () => {
 	it('renders with data-slot="tree" and role="tree"', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Item 1" />
 			</Tree>,
 		)
@@ -17,12 +17,22 @@ describe('Tree', () => {
 
 		expect(el).toHaveAttribute('role', 'tree')
 	})
+
+	it('forwards the required accessible name onto the tree', () => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="Item 1" />
+			</Tree>,
+		)
+
+		expect(screen.getByRole('tree')).toHaveAccessibleName('Files')
+	})
 })
 
 describe('TreeItem', () => {
 	it('renders the label', () => {
 		renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Documents" />
 			</Tree>,
 		)
@@ -32,7 +42,7 @@ describe('TreeItem', () => {
 
 	it('renders nested tree items when open', () => {
 		renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" defaultOpen>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -46,7 +56,7 @@ describe('TreeItem', () => {
 
 	it('renders prefix and suffix slots', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem
 					label="Item"
 					prefix={<span data-testid="pre">P</span>}
@@ -65,7 +75,7 @@ describe('TreeItem', () => {
 		const onPrefixClick = vi.fn()
 
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem
 					label="Parent"
 					prefix={
@@ -91,7 +101,7 @@ describe('TreeItem', () => {
 
 	it('toggles when clicking outside the prefix slot', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" prefix={<span>pre</span>}>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -111,7 +121,7 @@ describe('TreeItem', () => {
 		const onPrefixClick = vi.fn()
 
 		renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem
 					label="Leaf"
 					prefix={
@@ -130,7 +140,7 @@ describe('TreeItem', () => {
 
 	it('opens a closed parent when ArrowRight is pressed on the row', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent">
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -148,7 +158,7 @@ describe('TreeItem', () => {
 
 	it('closes an open parent when ArrowLeft is pressed on the row', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" defaultOpen>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -166,7 +176,7 @@ describe('TreeItem', () => {
 
 	it('toggles a parent on Enter', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent">
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -182,7 +192,7 @@ describe('TreeItem', () => {
 
 	it('toggles a parent on Space', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent">
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -200,7 +210,7 @@ describe('TreeItem', () => {
 		const onPrefixClick = vi.fn()
 
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem
 					label="Leaf"
 					prefix={
@@ -221,7 +231,7 @@ describe('TreeItem', () => {
 
 	it('ignores key events that bubble from descendants', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent">
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -240,7 +250,7 @@ describe('TreeItem', () => {
 
 	it('ArrowRight on an already-open branch does not collapse it', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" defaultOpen>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -256,7 +266,7 @@ describe('TreeItem', () => {
 
 	it('ArrowLeft on an already-closed branch does not open it', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent">
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -272,7 +282,7 @@ describe('TreeItem', () => {
 
 	it('moves the roving tabIndex onto the focused tree-item', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="One" />
 				<TreeItem label="Two" />
 				<TreeItem label="Three" />
@@ -300,7 +310,7 @@ describe('TreeItem', () => {
 
 	it('ignores focus events that bubble from outside any tree-item', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="One" />
 			</Tree>,
 		)
@@ -322,7 +332,7 @@ describe('TreeItem', () => {
 
 	it('applies indent padding to nested items when the Tree opts in', () => {
 		const { container } = renderUI(
-			<Tree indent>
+			<Tree aria-label="Files" indent>
 				<TreeItem label="Parent" defaultOpen>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -340,7 +350,7 @@ describe('TreeItem', () => {
 
 	it('marks a current TreeItem with aria-current', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Selected" current />
 			</Tree>,
 		)
@@ -354,7 +364,7 @@ describe('TreeItem', () => {
 
 	it('omits aria-current on a non-current TreeItem', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Plain" />
 			</Tree>,
 		)
@@ -364,7 +374,7 @@ describe('TreeItem', () => {
 
 	it('passes a custom className through to the row content', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Styled" className="my-row" />
 			</Tree>,
 		)
@@ -376,7 +386,7 @@ describe('TreeItem', () => {
 
 	it('honours controlled open=true and ignores defaultOpen', () => {
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" open defaultOpen={false}>
 					<TreeItem label="Child" />
 				</TreeItem>
@@ -392,7 +402,7 @@ describe('TreeItem', () => {
 		const onOpenChange = vi.fn()
 
 		const { container } = renderUI(
-			<Tree>
+			<Tree aria-label="Files">
 				<TreeItem label="Parent" open={false} onOpenChange={onOpenChange}>
 					<TreeItem label="Child" />
 				</TreeItem>

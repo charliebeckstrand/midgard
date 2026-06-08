@@ -62,11 +62,11 @@ export function Dialog({
 
 	const isDesktop = useMinWidth(640)
 
-	const { panelAriaProps, a11y } = useA11yPanel(role)
+	const { ariaProps, a11y } = useA11yPanel(role)
 
 	// A registered DialogTitle (aria-labelledby) names the dialog; fall back to
 	// the explicit label only when there's no title.
-	const ariaLabelledBy = panelAriaProps['aria-labelledby']
+	const ariaLabelledBy = ariaProps['aria-labelledby']
 
 	return (
 		<Overlay
@@ -84,7 +84,7 @@ export function Dialog({
 			>
 				<motion.div
 					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
-					{...panelAriaProps}
+					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot={slot}
 					className={cn(

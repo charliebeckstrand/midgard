@@ -397,3 +397,25 @@ describe('Kanban keyboard reorder', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })
+
+describe('KanbanColumn naming', () => {
+	it('names the column section from its title when no aria-label is given', () => {
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				{columns.map((column) => (
+					<KanbanColumn key={column.id} columnId={column.id}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+					</KanbanColumn>
+				))}
+			</Kanban>,
+		)
+
+		// The section's aria-labelledby resolves to the rendered title, so it is a
+		// named region.
+		expect(screen.getByRole('region', { name: 'Todo' })).toBeInTheDocument()
+
+		expect(screen.getByRole('region', { name: 'Done' })).toBeInTheDocument()
+	})
+})

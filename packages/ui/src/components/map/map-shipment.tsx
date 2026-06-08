@@ -42,7 +42,7 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 				<DialogBody>
 					{hasChat ? (
 						<Tabs defaultValue="info">
-							<TabList>
+							<TabList aria-label="Shipment details">
 								<Tab value="info">Info</Tab>
 								<Tab value="chat">Chat</Tab>
 							</TabList>

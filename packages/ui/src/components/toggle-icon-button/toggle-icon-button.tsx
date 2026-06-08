@@ -1,15 +1,13 @@
 import type { ComponentPropsWithoutRef, ReactElement } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toggle-icon-button'
-import type { Size } from '../../types'
+import type { AccessibleName, Size } from '../../types'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-// Icon-only by design — require one of these so the button always has an
-// accessible name.
-type ToggleIconButtonLabel = { 'aria-label': string } | { 'aria-labelledby': string }
-
-export type ToggleIconButtonProps = ToggleIconButtonLabel & {
+// Icon-only by design — AccessibleName requires one of aria-label /
+// aria-labelledby so the button always has an accessible name.
+export type ToggleIconButtonProps = AccessibleName & {
 	pressed: boolean
 	icon: ReactElement
 	pressedIcon?: ReactElement

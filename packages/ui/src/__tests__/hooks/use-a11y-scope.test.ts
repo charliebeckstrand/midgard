@@ -23,9 +23,9 @@ describe('useA11yScope', () => {
 	it('omits aria attributes until a slot registers', () => {
 		const { result } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
 
-		expect(result.current.aria['aria-labelledby']).toBeUndefined()
+		expect(result.current.ariaProps['aria-labelledby']).toBeUndefined()
 
-		expect(result.current.aria['aria-describedby']).toBeUndefined()
+		expect(result.current.ariaProps['aria-describedby']).toBeUndefined()
 	})
 
 	it('composes each attribute from only its registered slots', () => {
@@ -35,15 +35,15 @@ describe('useA11yScope', () => {
 			result.current.register.title()
 		})
 
-		expect(result.current.aria['aria-labelledby']).toBe('x-title')
+		expect(result.current.ariaProps['aria-labelledby']).toBe('x-title')
 
-		expect(result.current.aria['aria-describedby']).toBeUndefined()
+		expect(result.current.ariaProps['aria-describedby']).toBeUndefined()
 
 		act(() => {
 			result.current.register.description()
 		})
 
-		expect(result.current.aria['aria-describedby']).toBe('x-description')
+		expect(result.current.ariaProps['aria-describedby']).toBe('x-description')
 	})
 
 	it('deregisters a slot when its cleanup runs', () => {
@@ -55,13 +55,13 @@ describe('useA11yScope', () => {
 			cleanup = result.current.register.title()
 		})
 
-		expect(result.current.aria['aria-labelledby']).toBe('x-title')
+		expect(result.current.ariaProps['aria-labelledby']).toBe('x-title')
 
 		act(() => {
 			cleanup()
 		})
 
-		expect(result.current.aria['aria-labelledby']).toBeUndefined()
+		expect(result.current.ariaProps['aria-labelledby']).toBeUndefined()
 	})
 
 	it('keeps ids and register referentially stable across re-renders', () => {

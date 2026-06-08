@@ -9,7 +9,7 @@ describe('Segment', () => {
 	it('renders the control as a tablist', () => {
 		const { container } = renderUI(
 			<Segment value="a">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -25,7 +25,7 @@ describe('Segment', () => {
 	it('renders segment items with role="tab"', () => {
 		const { container } = renderUI(
 			<Segment value="a">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -43,7 +43,7 @@ describe('Segment', () => {
 	it('marks the selected segment item as aria-selected', () => {
 		const { container } = renderUI(
 			<Segment value="b">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -61,7 +61,7 @@ describe('Segment', () => {
 
 		const { container } = renderUI(
 			<Segment value="a" onValueChange={onValueChange}>
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -78,7 +78,7 @@ describe('Segment', () => {
 
 		const { container } = renderUI(
 			<Segment value="a" onValueChange={onValueChange}>
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b" disabled>
 						B
@@ -99,7 +99,7 @@ describe('Segment', () => {
 	it('sets data-current on the selected item', () => {
 		const { container } = renderUI(
 			<Segment value="b">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -115,7 +115,7 @@ describe('Segment', () => {
 	it('sets tabIndex=0 on the current item and -1 on others', () => {
 		const { container } = renderUI(
 			<Segment value="b">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -133,7 +133,7 @@ describe('Segment', () => {
 
 		const { container } = renderUI(
 			<Segment defaultValue="a" onValueChange={onValueChange}>
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b">B</SegmentItem>
 				</SegmentControl>
@@ -165,7 +165,7 @@ describe('Segment', () => {
 	it('renders with an explicit size variant', () => {
 		const { container } = renderUI(
 			<Segment value="a" size="sm">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 				</SegmentControl>
 			</Segment>,
@@ -177,7 +177,7 @@ describe('Segment', () => {
 	it('renders with size="lg"', () => {
 		const { container } = renderUI(
 			<Segment value="a" size="lg">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 				</SegmentControl>
 			</Segment>,
@@ -195,7 +195,7 @@ describe('Segment keyboard navigation', () => {
 
 		renderUI(
 			<Segment value="a">
-				<SegmentControl>
+				<SegmentControl aria-label="View">
 					<SegmentItem value="a">A</SegmentItem>
 					<SegmentItem value="b" disabled>
 						B

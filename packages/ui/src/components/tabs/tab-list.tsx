@@ -6,10 +6,14 @@ import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
+import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
-export type TabListProps = ComponentPropsWithoutRef<'div'>
+// A tablist needs a name (multiple tablists are otherwise indistinguishable);
+// require one rather than letting an unnamed tablist ship.
+export type TabListProps = AccessibleName &
+	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
 
 export function TabList({ className, children, ...props }: TabListProps) {
 	const tabsContext = useTabsContext()
