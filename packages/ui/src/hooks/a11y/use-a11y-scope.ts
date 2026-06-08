@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import type { AriaProps } from '../../types'
 import { useAriaIds } from '../use-aria-ids'
 import { useIdScope } from '../use-id-scope'
 
@@ -28,7 +29,7 @@ export type A11yScope<Slot extends string = never> = {
 	/** Per-slot mount registrar — call inside an effect; the cleanup deregisters. */
 	register: Record<Slot, () => () => void>
 	/** `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
-	aria: { 'aria-labelledby'?: string; 'aria-describedby'?: string }
+	aria: AriaProps
 }
 
 /**

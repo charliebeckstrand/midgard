@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
+import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 
 type CollapseAnimation = boolean | 'fade' | 'slide'
 
@@ -8,8 +9,8 @@ type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation
-	triggerProps: { id: string; 'aria-controls': string; 'aria-expanded'?: boolean }
-	panelProps: { id: string; 'aria-labelledby': string }
+	triggerProps: A11yDisclosure['triggerProps']
+	panelProps: A11yDisclosure['panelProps']
 }
 
 export const [CollapseContext, useCollapseContext] = createContext<CollapseContextValue>('Collapse')

@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
+import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { AccordionVariants } from '../../recipes/kata/accordion'
 
 type AccordionContextValue = {
@@ -16,8 +17,8 @@ type AccordionItemContextValue = {
 	open: boolean
 	toggle: () => void
 	disabled: boolean
-	triggerProps: { id: string; 'aria-controls': string; 'aria-expanded'?: boolean }
-	panelProps: { id: string; 'aria-labelledby': string }
+	triggerProps: A11yDisclosure['triggerProps']
+	panelProps: A11yDisclosure['panelProps']
 }
 
 export const [AccordionItemContext, useAccordionItem] =

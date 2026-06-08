@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import type { AriaProps } from '../../types'
 import { useIdScope } from '../use-id-scope'
 
 export type A11yDisclosureOptions = {
@@ -25,13 +26,12 @@ export type A11yDisclosure = {
 	/** Id the panel renders with — the trigger's `aria-controls` target. */
 	panelId: string
 	/** Spread onto the trigger: `id`, `aria-controls`, and `aria-expanded` when supplied. */
-	triggerProps: {
+	triggerProps: AriaProps & {
 		id: string
 		'aria-controls': string
-		'aria-expanded'?: boolean
 	}
 	/** Spread onto the panel: `id` and `aria-labelledby`. */
-	panelProps: {
+	panelProps: AriaProps & {
 		id: string
 		'aria-labelledby': string
 	}
