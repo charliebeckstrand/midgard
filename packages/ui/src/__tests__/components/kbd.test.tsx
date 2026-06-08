@@ -13,14 +13,14 @@ describe('Kbd', () => {
 		expect(el?.tagName).toBe('KBD')
 	})
 
-	it('renders command modifier glyph when cmd is set', () => {
-		renderUI(<Kbd cmd>K</Kbd>)
+	it('renders command modifier glyph when command is set', () => {
+		renderUI(<Kbd command>K</Kbd>)
 
 		expect(screen.getByText('⌘')).toBeInTheDocument()
 	})
 
-	it('renders control modifier glyph when ctrl is set', () => {
-		renderUI(<Kbd ctrl>K</Kbd>)
+	it('renders control modifier glyph when control is set', () => {
+		renderUI(<Kbd control>K</Kbd>)
 
 		expect(screen.getByText('⌃')).toBeInTheDocument()
 	})

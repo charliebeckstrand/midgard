@@ -13,10 +13,10 @@ type PageScaleOptions = {
 }
 
 export type PageScaleResult = {
-	imageW: number | undefined
-	imageH: number | undefined
-	frameW: number | undefined
-	frameH: number | undefined
+	imageWidth: number | undefined
+	imageHeight: number | undefined
+	frameWidth: number | undefined
+	frameHeight: number | undefined
 	/** CSS `aspect-ratio` for the viewport. `8.5 / 11` (US Letter) is the pre-load fallback. */
 	aspectRatio: string | undefined
 }
@@ -43,11 +43,11 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 
 		const scale = fitScale * zoom
 
-		const imageW = pageSize ? pageSize.width * scale : undefined
-		const imageH = pageSize ? pageSize.height * scale : undefined
+		const imageWidth = pageSize ? pageSize.width * scale : undefined
+		const imageHeight = pageSize ? pageSize.height * scale : undefined
 
-		const frameW = isTransposed ? imageH : imageW
-		const frameH = isTransposed ? imageW : imageH
+		const frameWidth = isTransposed ? imageHeight : imageWidth
+		const frameHeight = isTransposed ? imageWidth : imageHeight
 
 		const aspectRatio = !hasContent
 			? undefined
@@ -57,6 +57,6 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 					: `${pageSize.width} / ${pageSize.height}`
 				: '8.5 / 11'
 
-		return { imageW, imageH, frameW, frameH, aspectRatio }
+		return { imageWidth, imageHeight, frameWidth, frameHeight, aspectRatio }
 	}, [viewportSize, pageSize, isTransposed, zoom, hasContent])
 }

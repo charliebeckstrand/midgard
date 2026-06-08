@@ -25,7 +25,7 @@ export function PdfViewerViewport() {
 		onImageLoad,
 	} = usePdfViewerContext()
 
-	const { aspectRatio, frameW, frameH, imageW, imageH } = scale
+	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight } = scale
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
@@ -47,7 +47,7 @@ export function PdfViewerViewport() {
 				<div
 					data-slot="pdf-viewer-page-frame"
 					className={cn(k.viewport.page.frame)}
-					style={{ width: frameW, height: frameH }}
+					style={{ width: frameWidth, height: frameHeight }}
 				>
 					<img
 						key={activePage.id ?? safePage}
@@ -55,8 +55,8 @@ export function PdfViewerViewport() {
 						alt={activePage.label ?? `Page ${safePage}`}
 						className={cn(k.viewport.page.base)}
 						style={{
-							width: imageW,
-							height: imageH,
+							width: imageWidth,
+							height: imageHeight,
 							transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
 							visibility: visible ? 'visible' : 'hidden',
 						}}

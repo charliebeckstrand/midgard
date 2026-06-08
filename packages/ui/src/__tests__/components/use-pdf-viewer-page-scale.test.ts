@@ -17,9 +17,9 @@ describe('usePdfViewerPageScale', () => {
 			}),
 		)
 
-		expect(result.current.imageW).toBeUndefined()
+		expect(result.current.imageWidth).toBeUndefined()
 
-		expect(result.current.imageH).toBeUndefined()
+		expect(result.current.imageHeight).toBeUndefined()
 	})
 
 	it('falls back to 8.5 / 11 aspect when content is present but page is unknown', () => {
@@ -62,9 +62,9 @@ describe('usePdfViewerPageScale', () => {
 			}),
 		)
 
-		expect(result.current.imageW).toBe(300)
+		expect(result.current.imageWidth).toBe(300)
 
-		expect(result.current.imageH).toBe(600)
+		expect(result.current.imageHeight).toBe(600)
 	})
 
 	it('applies zoom on top of fitScale', () => {
@@ -78,9 +78,9 @@ describe('usePdfViewerPageScale', () => {
 			}),
 		)
 
-		expect(result.current.imageW).toBe(600)
+		expect(result.current.imageWidth).toBe(600)
 
-		expect(result.current.imageH).toBe(1200)
+		expect(result.current.imageHeight).toBe(1200)
 	})
 
 	it('swaps frame width and height when transposed', () => {
@@ -94,10 +94,10 @@ describe('usePdfViewerPageScale', () => {
 			}),
 		)
 
-		// frameW takes the image height; aspectRatio swaps too
-		expect(result.current.frameW).toBe(result.current.imageH)
+		// frameWidth takes the image height; aspectRatio swaps too
+		expect(result.current.frameWidth).toBe(result.current.imageHeight)
 
-		expect(result.current.frameH).toBe(result.current.imageW)
+		expect(result.current.frameHeight).toBe(result.current.imageWidth)
 
 		expect(result.current.aspectRatio).toBe(`${page.height} / ${page.width}`)
 	})
