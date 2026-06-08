@@ -53,6 +53,24 @@ describe('Sidebar', () => {
 		// ...and the consumer's handler is chained rather than clobbered.
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
 	})
+
+	it('is a single Tab stop seated on the current page', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem>Home</SidebarItem>
+				<SidebarItem current>Settings</SidebarItem>
+				<SidebarItem>Help</SidebarItem>
+			</Sidebar>,
+		)
+
+		const items = Array.from(
+			container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]'),
+		)
+
+		// The nav is one Tab stop, resting on the current page rather than one
+		// stop per item.
+		expect(items.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
+	})
 })
 
 describe('SidebarHeader', () => {

@@ -1,30 +1,14 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
-import { useA11yRoving } from '../../hooks'
+import type { ComponentPropsWithoutRef } from 'react'
 
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 
-/** Navigation landmark for a trail of links — arrow keys rove focus horizontally across the anchors. */
-export function Breadcrumb({ className, onKeyDown, ...props }: BreadcrumbProps) {
-	const ref = useRef<HTMLElement>(null)
-
-	const handleRovingKeyDown = useA11yRoving(ref, {
-		itemSelector: 'a[href]',
-		orientation: 'horizontal',
-	})
-
-	return (
-		<nav
-			ref={ref}
-			data-slot="breadcrumb"
-			aria-label="Breadcrumb"
-			onKeyDown={(e) => {
-				onKeyDown?.(e)
-				if (!e.defaultPrevented) handleRovingKeyDown(e)
-			}}
-			className={className}
-			{...props}
-		/>
-	)
+/**
+ * Navigation landmark for a trail of links. Each crumb is an ordinary,
+ * individually Tab-focusable link — site navigation is a set of links, not a
+ * composite widget, so it carries no roving keyboard model (matching `Nav`).
+ */
+export function Breadcrumb({ className, ...props }: BreadcrumbProps) {
+	return <nav data-slot="breadcrumb" aria-label="Breadcrumb" className={className} {...props} />
 }

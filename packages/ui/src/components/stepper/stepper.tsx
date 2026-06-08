@@ -66,6 +66,11 @@ export function Stepper({
 	const handleKeyDown = useA11yRoving(rowRef, {
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
+		// The step row is a single Tab stop (role="toolbar"); arrows move across
+		// steps and the resting stop sits on the current step. Only the interactive
+		// branch renders <button>s, so this is a no-op for a display-only stepper.
+		manageTabIndex: true,
+		activeSelector: '[aria-current="step"]',
 	})
 
 	const contextValue = useMemo(

@@ -55,8 +55,8 @@ describe('BreadcrumbLink', () => {
 	})
 })
 
-describe('Breadcrumb keyboard handling', () => {
-	it('forwards onKeyDown before roving navigation', () => {
+describe('Breadcrumb keyboard model', () => {
+	it('forwards onKeyDown to the consumer', () => {
 		const onKeyDown = vi.fn()
 
 		renderUI(
@@ -76,13 +76,9 @@ describe('Breadcrumb keyboard handling', () => {
 		expect(onKeyDown).toHaveBeenCalledOnce()
 	})
 
-	it('skips roving navigation when the caller calls preventDefault', () => {
+	it('keeps each crumb individually Tab-focusable and does not rove on arrows', () => {
 		renderUI(
-			<Breadcrumb
-				onKeyDown={(e) => {
-					e.preventDefault()
-				}}
-			>
+			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
 						<BreadcrumbLink href="/a">A</BreadcrumbLink>
@@ -94,11 +90,17 @@ describe('Breadcrumb keyboard handling', () => {
 			</Breadcrumb>,
 		)
 
-		const nav = screen.getByRole('navigation', { name: 'Breadcrumb' })
+		const links = screen.getAllByRole('link')
 
-		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+		// Navigation links are ordinary Tab stops, not a roving widget.
+		for (const link of links) expect(link.tabIndex).toBe(0)
 
-		expect(nav).toBeInTheDocument()
+		links[0]?.focus()
+
+		fireEvent.keyDown(screen.getByRole('navigation', { name: 'Breadcrumb' }), { key: 'ArrowRight' })
+
+		// Arrow keys must not hijack focus between crumbs.
+		expect(document.activeElement).toBe(links[0])
 	})
 })
 

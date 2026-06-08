@@ -8,7 +8,12 @@ import { k } from '../../recipes/kata/sidebar'
 
 export type SidebarProps = ComponentPropsWithoutRef<'nav'>
 
-/** Vertical navigation landmark with roving-tabindex keyboard movement across items — establishes an active-indicator scope. */
+/**
+ * Vertical navigation landmark with a true roving-tabindex keyboard model: the
+ * item list is a single Tab stop, Up/Down arrows move focus between items, and
+ * the resting stop sits on the current page (`aria-current="page"`), falling
+ * back to the first item. Establishes an active-indicator scope.
+ */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
 	className,
@@ -20,6 +25,10 @@ export function Sidebar({
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
+		// Own the roving tabindex so the nav is a single Tab stop rather than one
+		// stop per item; seat the resting stop on the current page.
+		manageTabIndex: true,
+		activeSelector: '[aria-current="page"]',
 	})
 
 	return (

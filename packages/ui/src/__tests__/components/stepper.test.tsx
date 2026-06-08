@@ -270,4 +270,27 @@ describe('Stepper keyboard navigation', () => {
 
 		expect(steps[2]).toHaveFocus()
 	})
+
+	it('makes the step row a single Tab stop seated on the current step', () => {
+		const { container } = renderUI(
+			<Stepper value={3} onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Two</StepperTitle>
+				</StepperStep>
+				<StepperStep value={3}>
+					<StepperTitle>Three</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const steps = Array.from(
+			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
+		)
+
+		// value=3 → the third step is current and holds the only tab stop.
+		expect(steps.map((s) => s.tabIndex)).toEqual([-1, -1, 0])
+	})
 })

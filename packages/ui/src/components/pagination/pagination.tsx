@@ -1,33 +1,18 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/pagination'
-import { PAGINATION_ITEM_SELECTOR } from './pagination-constants'
 
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 
-/** Labeled pagination `<nav>` container — wires horizontal roving-tabindex keyboard navigation across its page items. */
-export function Pagination({ className, onKeyDown, ...props }: PaginationProps) {
-	const ref = useRef<HTMLElement>(null)
-
-	const handleRovingKeyDown = useA11yRoving(ref, {
-		itemSelector: PAGINATION_ITEM_SELECTOR,
-		orientation: 'horizontal',
-	})
-
+/**
+ * Labeled pagination `<nav>` container. Page controls are ordinary,
+ * individually Tab-focusable links/buttons — pagination is navigation, not a
+ * composite widget, so it carries no roving keyboard model (matching `Nav`).
+ */
+export function Pagination({ className, ...props }: PaginationProps) {
 	return (
-		<nav
-			ref={ref}
-			data-slot="pagination"
-			aria-label="Pagination"
-			onKeyDown={(e) => {
-				onKeyDown?.(e)
-				if (!e.defaultPrevented) handleRovingKeyDown(e)
-			}}
-			className={cn(k(), className)}
-			{...props}
-		/>
+		<nav data-slot="pagination" aria-label="Pagination" className={cn(k(), className)} {...props} />
 	)
 }

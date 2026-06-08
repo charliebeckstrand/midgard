@@ -486,3 +486,98 @@ describe('useA11yRoving', () => {
 		container.remove()
 	})
 })
+
+describe('useA11yRoving — manageTabIndex', () => {
+	// Native <button>s start tabbable (tabIndex 0); the hook should collapse them
+	// to a single resting stop.
+	function makeButtons(count: number, currentIndex?: number) {
+		const container = document.createElement('div')
+
+		for (let i = 0; i < count; i++) {
+			const btn = document.createElement('button')
+
+			btn.setAttribute('data-slot', 'item')
+
+			if (i === currentIndex) btn.setAttribute('aria-current', 'page')
+
+			btn.textContent = String(i)
+
+			container.appendChild(btn)
+		}
+
+		document.body.appendChild(container)
+
+		return container
+	}
+
+	const tabIndices = (container: HTMLElement) =>
+		Array.from(container.querySelectorAll('button')).map((b) => b.tabIndex)
+
+	it('collapses a row of tabbable items to a single resting stop on the first item', () => {
+		const container = makeButtons(3)
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
+		})
+
+		expect(tabIndices(container)).toEqual([0, -1, -1])
+
+		container.remove()
+	})
+
+	it('seats the resting stop on the activeSelector match', () => {
+		const container = makeButtons(3, 2)
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, {
+				itemSelector: '[data-slot="item"]',
+				manageTabIndex: true,
+				activeSelector: '[aria-current="page"]',
+			})
+		})
+
+		expect(tabIndices(container)).toEqual([-1, -1, 0])
+
+		container.remove()
+	})
+
+	it('carries the resting stop to the focused item on arrow', () => {
+		const container = makeButtons(3)
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
+		})
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items[0]?.focus()
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(document.activeElement).toBe(items[1])
+
+		expect(tabIndices(container)).toEqual([-1, 0, -1])
+
+		container.remove()
+	})
+
+	it('leaves tabindex untouched when manageTabIndex is off (default)', () => {
+		const container = makeButtons(3)
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]' })
+		})
+
+		expect(tabIndices(container)).toEqual([0, 0, 0])
+
+		container.remove()
+	})
+})

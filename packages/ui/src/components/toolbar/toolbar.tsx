@@ -30,6 +30,9 @@ export function Toolbar({
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TOOLBAR_ITEM_SELECTOR,
 		orientation,
+		// A toolbar is a single Tab stop: arrows move between controls, Tab enters
+		// and leaves the group as a whole. The resting stop is the first control.
+		manageTabIndex: true,
 	})
 
 	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])

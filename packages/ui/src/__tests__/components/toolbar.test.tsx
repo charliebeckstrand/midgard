@@ -75,6 +75,28 @@ describe('Toolbar', () => {
 
 		expect(document.activeElement).toBe(buttons[2])
 	})
+
+	it('is a single Tab stop — only the resting item is tabbable, and the stop follows arrows', () => {
+		const { container } = renderUI(
+			<Toolbar>
+				<button type="button">A</button>
+				<button type="button">B</button>
+				<button type="button">C</button>
+			</Toolbar>,
+		)
+
+		const buttons = Array.from(container.querySelectorAll('button'))
+
+		// At rest exactly one control is in the tab order (the first).
+		expect(buttons.map((b) => b.tabIndex)).toEqual([0, -1, -1])
+
+		buttons[0]?.focus()
+
+		fireEvent.keyDown(bySlot(container, 'toolbar') as HTMLElement, { key: 'ArrowRight' })
+
+		// The roving stop moves with focus so re-Tabbing returns to the last item.
+		expect(buttons.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
+	})
 })
 
 describe('ToolbarGroup', () => {
