@@ -62,7 +62,10 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 		return cloneElement(child, {
 			...(getReferenceProps(child.props as Record<string, unknown>) as HTMLAttributes<HTMLElement>),
 			ref: mergeRefs,
-			'data-slot': 'tooltip-trigger',
+			// Let a child that declares its own slot keep it (e.g. TimeAgo's
+			// `time-ago`), mirroring the className merge below; only the
+			// slotless case falls back to the generic trigger marker.
+			'data-slot': child.props['data-slot'] ?? 'tooltip-trigger',
 			className: cn(triggerClassName, child.props.className),
 		})
 	}

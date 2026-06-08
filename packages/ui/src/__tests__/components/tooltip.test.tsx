@@ -130,6 +130,24 @@ describe('Tooltip', () => {
 		expect(trigger).toHaveTextContent('Hover me')
 	})
 
+	it("preserves the child's own data-slot instead of overwriting it", () => {
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<button type="button" data-slot="custom-trigger">
+						Hover me
+					</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		// A child that declares its own slot keeps it; only slotless children
+		// fall back to the generic `tooltip-trigger` marker.
+		expect(bySlot(container, 'custom-trigger')).toBeInTheDocument()
+		expect(bySlot(container, 'tooltip-trigger')).not.toBeInTheDocument()
+	})
+
 	it('merges the floating ref with a ref already on the child', () => {
 		const ref = createRef<HTMLButtonElement>()
 
