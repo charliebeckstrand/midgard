@@ -43,8 +43,8 @@ export const k = defineRecipe(
 		// universal offset ring; `outline` uses an inset ring, sharing Tailwind's
 		// ring-inset channel with its own border.
 		//
-		// `bare` carries no padding, so a ring on its own box would hug the
-		// glyphs. Instead it paints the offset ring on an `::after` phantom box,
+		// `bare` strips horizontal padding (and all of it when icon-only), so a
+		// ring on its own box would hug the glyphs. Instead it paints the offset ring on an `::after` phantom box,
 		// inflated by the per-size compound rules below to the footprint this
 		// control would occupy *with* `plain`'s padding. The pseudo is out of
 		// flow and `pointer-events-none`, so the indicator reads identically to
@@ -118,19 +118,21 @@ export const k = defineRecipe(
 				class: 'p-0',
 			},
 			// Phantom focus-ring geometry. Inflate the `::after` box to the
-			// footprint `plain` would occupy at this size — square `p` on
-			// icon-only buttons, and the reduced `data-has-label` `py` (mirroring
-			// `plain`'s label override) on labelled ones — carrying `plain`'s
-			// radius. Negative inset grows the pseudo outward only; the outline's
-			// `outline-offset-2` then lands the stroke exactly where `focus.ring`
-			// puts `plain`'s.
+			// footprint `plain` would occupy at this size, carrying `plain`'s
+			// radius. Horizontal `p` is added in every state — `p-0` zeroes
+			// bare's x-padding outright. Vertical `p` is added only icon-only:
+			// the size's `data-has-label` `py` override outlives `p-0`, so a
+			// labelled bare button already carries `plain`'s exact vertical
+			// padding, and `inset-y-0` leaves that axis untouched. Negative inset
+			// grows the pseudo outward only; the outline's `outline-offset-2` then
+			// lands the stroke exactly where `focus.ring` puts `plain`'s.
 			{
 				variant: 'bare',
 				size: 'xs',
 				class: [
 					'after:inset-x-[calc((--spacing(1.5)-1px)*-1)]',
 					'after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
-					'data-[has-label]:after:inset-y-[calc((--spacing(1)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-0',
 					'after:rounded-[--spacing(1)]',
 				],
 			},
@@ -140,7 +142,7 @@ export const k = defineRecipe(
 				class: [
 					'after:inset-x-[calc((--spacing(2)-1px)*-1)]',
 					'after:inset-y-[calc((--spacing(2)-1px)*-1)]',
-					'data-[has-label]:after:inset-y-[calc((--spacing(1.5)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-0',
 					'after:rounded-[--spacing(1.5)]',
 				],
 			},
@@ -150,7 +152,7 @@ export const k = defineRecipe(
 				class: [
 					'after:inset-x-[calc((--spacing(2.5)-1px)*-1)]',
 					'after:inset-y-[calc((--spacing(2.5)-1px)*-1)]',
-					'data-[has-label]:after:inset-y-[calc((--spacing(2)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-0',
 					'after:rounded-[--spacing(2)]',
 				],
 			},
@@ -160,7 +162,7 @@ export const k = defineRecipe(
 				class: [
 					'after:inset-x-[calc((--spacing(3)-1px)*-1)]',
 					'after:inset-y-[calc((--spacing(3)-1px)*-1)]',
-					'data-[has-label]:after:inset-y-[calc((--spacing(2.5)-1px)*-1)]',
+					'data-[has-label]:after:inset-y-0',
 					'after:rounded-[--spacing(2.5)]',
 				],
 			},
