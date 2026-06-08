@@ -24,6 +24,11 @@ export type SheetProps = SheetPanelVariants & {
 	container?: HTMLElement | null
 	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
+	/**
+	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
+	 * `SheetTitle` registers, since it names the sheet.
+	 */
+	'aria-label'?: string
 }
 
 /**
@@ -42,6 +47,7 @@ export function Sheet({
 	children,
 	container,
 	initialFocus,
+	'aria-label': ariaLabel,
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
@@ -58,6 +64,7 @@ export function Sheet({
 			<motion.div
 				{...k.motion[side]}
 				{...panelAriaProps}
+				aria-label={panelAriaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
