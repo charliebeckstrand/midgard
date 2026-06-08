@@ -120,6 +120,28 @@ describe('useSignaturePadDrawing', () => {
 		expect(context.fill).toHaveBeenCalled()
 	})
 
+	it('flips empty on a tap (pointerdown with no move)', () => {
+		// Regression: a tap draws a dot but used to leave `empty` true, so the
+		// placeholder stayed, Clear stayed hidden, and the dot was lost on resize.
+		const { result, setEmpty } = setup({ empty: true })
+
+		act(() => {
+			result.current.handlePointerDown(pointerEvent())
+		})
+
+		expect(setEmpty).toHaveBeenCalledWith(false)
+	})
+
+	it('does not flip empty on pointerdown when the pad is already non-empty', () => {
+		const { result, setEmpty } = setup({ empty: false })
+
+		act(() => {
+			result.current.handlePointerDown(pointerEvent())
+		})
+
+		expect(setEmpty).not.toHaveBeenCalled()
+	})
+
 	it('captures the pointer on the target', () => {
 		const { result } = setup()
 
