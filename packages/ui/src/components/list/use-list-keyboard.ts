@@ -1,8 +1,14 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
+import { accessibleName, announce } from '../../core'
 import type { Orientation } from '../../types'
 import { moveItem } from '../../utilities'
+
+const itemName = (id: string) =>
+	accessibleName(
+		document.querySelector(`[data-slot="list-item"][data-item-id="${CSS.escape(id)}"]`),
+	)
 
 type Options<T> = {
 	items: T[]
@@ -86,9 +92,23 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			onReorder(next)
 
+			announce(`${itemName(id)} moved to position ${newIdx + 1} of ${items.length}.`, {
+				assertive: true,
+			})
+
 			refocusItem(id)
 		},
 		[items, getKey, onReorder, refocusItem],
+	)
+
+	// Card's current 1-based position, for announcements.
+	const locate = useCallback(
+		(id: string) => {
+			const index = items.findIndex((i) => getKey(i) === id)
+
+			return index === -1 ? null : { position: index + 1, count: items.length }
+		},
+		[items, getKey],
 	)
 
 	const onItemKeyDown = useCallback(
@@ -101,7 +121,20 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 			if (event.key === ' ') {
 				event.preventDefault()
 
-				setLiftedId((prev) => (prev === id ? null : id))
+				const lifting = liftedId !== id
+
+				setLiftedId(lifting ? id : null)
+
+				const loc = locate(id)
+
+				const where = loc ? `, position ${loc.position} of ${loc.count}` : ''
+
+				announce(
+					lifting
+						? `Picked up ${itemName(id)}${where}. Use arrow keys to move, Enter to drop.`
+						: `Dropped ${itemName(id)}${where}.`,
+					{ assertive: true },
+				)
 
 				return
 			}
@@ -131,12 +164,20 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			switch (event.key) {
 				case 'Escape':
-				case 'Enter':
+				case 'Enter': {
 					event.preventDefault()
 
 					setLiftedId(null)
 
+					const loc = locate(id)
+
+					announce(
+						`Dropped ${itemName(id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
+						{ assertive: true },
+					)
+
 					break
+				}
 				case primaryKey:
 					event.preventDefault()
 
@@ -151,7 +192,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 					break
 			}
 		},
-		[liftedId, orientation, focusNeighbor, moveByDirection],
+		[liftedId, orientation, focusNeighbor, moveByDirection, locate],
 	)
 
 	const onItemBlur = useCallback(() => {

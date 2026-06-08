@@ -8,7 +8,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; title: string }
 type Column = { id: string; title: string; items: Item[] }
@@ -395,6 +395,54 @@ describe('Kanban keyboard reorder', () => {
 		expect(document.activeElement).toBe(card)
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('Kanban keyboard announcements', () => {
+	const cardOf = (root: HTMLElement, id: string) =>
+		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+
+	const liveRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
+
+	it('announces lift, move, and drop with card and column names', async () => {
+		const { container } = renderUI(<KeyboardBoard />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Picked up A, position 1 of 3 in Todo'),
+		)
+
+		fireEvent.keyDown(card, { key: 'ArrowDown' })
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('A moved to position 2 of 3 in Todo'),
+		)
+
+		fireEvent.keyDown(cardOf(container, 'a'), { key: 'Enter' })
+
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Dropped A, position 2 of 3 in Todo'),
+		)
+	})
+
+	it('announces a cross-column move with the target column name', async () => {
+		const { container } = renderUI(<KeyboardBoard />)
+
+		const card = cardOf(container, 'a')
+
+		card.focus()
+
+		fireEvent.keyDown(card, { key: ' ' })
+
+		fireEvent.keyDown(card, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('A moved to Done, position 2 of 2'))
 	})
 })
 

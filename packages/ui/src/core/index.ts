@@ -1,3 +1,4 @@
+export { accessibleName } from './accessible-name'
 export { type AnnounceOptions, announce } from './announcer'
 export { cn } from './cn'
 export { createContext } from './create-context'

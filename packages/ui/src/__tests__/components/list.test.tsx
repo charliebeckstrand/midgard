@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; label: string }
 
@@ -197,6 +197,29 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(first, { key: 'ArrowDown', shiftKey: true })
 
 		expect(document.activeElement).toBe(first)
+	})
+
+	it('announces lift, move, and drop with the item name and position', async () => {
+		const liveRegion = () =>
+			document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
+
+		const { container } = renderList()
+
+		const first = allBySlot(container, 'list-item')[0] as HTMLElement
+
+		first.focus()
+
+		fireEvent.keyDown(first, { key: ' ' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Picked up Alpha, position 1 of 3'))
+
+		fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Alpha moved to position 2 of 3'))
+
+		fireEvent.keyDown(first, { key: 'Enter' })
+
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Dropped Alpha, position 1 of 3'))
 	})
 })
 
