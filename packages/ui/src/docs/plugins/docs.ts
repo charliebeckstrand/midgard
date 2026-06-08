@@ -76,14 +76,14 @@ function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 // Component tagging — `virtual:component-modules` + the index-barrel transform
 // ---------------------------------------------------------------------------
 
-type ReExport = { source: string; localName: string; exportedName: string; isType: boolean }
+export type ReExport = { source: string; localName: string; exportedName: string; isType: boolean }
 
 /**
  * Parse `export { A, type B, C } from '...'` statements out of an index file.
  * Other top-level forms (default exports, plain `export const`) aren't used
  * by component/layout indexes and are ignored.
  */
-function parseReExports(source: string, fileName: string): ReExport[] {
+export function parseReExports(source: string, fileName: string): ReExport[] {
 	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
 
 	const result: ReExport[] = []
@@ -191,31 +191,72 @@ function buildNameMap(srcDir: string): Record<string, string> {
 	return result
 }
 
+/** Re-emit a non-tagged specifier, preserving any `type` modifier and alias. */
+function keepSpecifier(re: ReExport): string {
+	const named =
+		re.localName === re.exportedName ? re.exportedName : `${re.localName} as ${re.exportedName}`
+
+	return re.isType ? `type ${named}` : named
+}
+
 /**
- * Build the suffix that attaches `__module` / `__name` to every PascalCase
- * value export in an index file. Imports each name locally so it's bound
- * inside the module, then tags the resolved value if it's an object/function.
+ * Rewrite a public index barrel so every PascalCase value export carries the
+ * `__module` / `__name` decoration the runtime walker reads. Returns `null` when
+ * nothing is taggable, leaving the module untouched.
+ *
+ * The tag can't be an appended top-level statement: the library declares
+ * `sideEffects: false`, so the production build's DCE drops any standalone side
+ * effect in a barrel and the decoration silently vanishes (dev, which never
+ * tree-shakes, is unaffected). Instead each tagged name is re-bound as
+ * `export const Name = __ct_tag(<src>, 'Name')`, so the `Object.assign` rides
+ * inside the initializer of a *consumed* export and survives as reachable code.
+ * Type and non-PascalCase specifiers (hooks, context helpers) pass through
+ * unchanged. Barrels are pure named re-exports — the only shape `moduleNameFor`
+ * matches — so regenerating from `reExports` is faithful.
  */
-function buildTagSuffix(reExports: ReExport[], moduleName: string): string {
-	const value = reExports.filter((re) => !re.isType && isPascalCase(re.exportedName))
+export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): string | null {
+	const tagged = reExports.filter((re) => !re.isType && isPascalCase(re.exportedName))
 
-	if (value.length === 0) return ''
+	if (tagged.length === 0) return null
 
-	const imports = value
-		.map((re, i) => `import { ${re.localName} as __ct_${i} } from ${JSON.stringify(re.source)}`)
-		.join('\n')
+	const lines: string[] = []
 
-	const tag =
+	// Pass-through specifiers (types, non-PascalCase values), grouped by source.
+	const keepBySource = new Map<string, string[]>()
+
+	for (const re of reExports) {
+		if (!re.isType && isPascalCase(re.exportedName)) continue
+
+		const specs = keepBySource.get(re.source) ?? []
+
+		specs.push(keepSpecifier(re))
+
+		keepBySource.set(re.source, specs)
+	}
+
+	for (const [source, specs] of keepBySource) {
+		lines.push(`export { ${specs.join(', ')} } from ${JSON.stringify(source)}`)
+	}
+
+	// Tagged exports: import the source binding, decorate it, re-export the
+	// decorated reference. `__ct_tag` returns its argument so the decoration is
+	// load-bearing for the exported value rather than a droppable side effect.
+	lines.push(
 		`const __ct_tag = (v, n) => {` +
-		` if (v != null && (typeof v === 'function' || typeof v === 'object') && !('__module' in v))` +
-		` try { Object.assign(v, { __module: ${JSON.stringify(moduleName)}, __name: n }) } catch {}` +
-		` }`
+			` if (v != null && (typeof v === 'function' || typeof v === 'object') && !('__module' in v))` +
+			` try { Object.assign(v, { __module: ${JSON.stringify(moduleName)}, __name: n }) } catch {}` +
+			` return v }`,
+	)
 
-	const calls = value
-		.map((re, i) => `__ct_tag(__ct_${i}, ${JSON.stringify(re.exportedName)})`)
-		.join('\n')
+	tagged.forEach((re, i) => {
+		lines.push(`import { ${re.localName} as __ct_${i} } from ${JSON.stringify(re.source)}`)
 
-	return `\n${imports}\n${tag}\n${calls}\n`
+		lines.push(
+			`export const ${re.exportedName} = __ct_tag(__ct_${i}, ${JSON.stringify(re.exportedName)})`,
+		)
+	})
+
+	return `${lines.join('\n')}\n`
 }
 
 /**
@@ -304,11 +345,11 @@ export function docsPlugin({ vitest = false }: { vitest?: boolean } = {}): Plugi
 
 			if (!moduleName) return
 
-			const suffix = buildTagSuffix(parseReExports(code, cleanId), moduleName)
+			const tagged = buildTaggedBarrel(parseReExports(code, cleanId), moduleName)
 
-			if (!suffix) return
+			if (!tagged) return
 
-			return { code: code + suffix, map: null }
+			return { code: tagged, map: null }
 		},
 	}
 
