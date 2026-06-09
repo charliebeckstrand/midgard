@@ -89,6 +89,11 @@ export function useComboboxInput<T>({
 				}
 			}
 
+			// Home/End belong to the editable textbox — let them move the caret
+			// rather than routing to roving, which would preventDefault the caret
+			// jump and snap to the first/last option instead.
+			if (e.key === 'Home' || e.key === 'End') return
+
 			rovingKeyDown(e)
 		},
 		[close, optionsRef, rovingKeyDown],
