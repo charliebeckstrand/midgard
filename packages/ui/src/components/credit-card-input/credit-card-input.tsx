@@ -2,9 +2,9 @@
 
 import { CreditCard } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
-import { useMaskedInput } from '../../hooks'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { useMaskInput } from '../mask-input/use-mask-input'
 import {
 	type CardValidity,
 	formatCardNumber,
@@ -36,10 +36,13 @@ export function CreditCardInput({
 	onValidityChange,
 	prefix,
 	suffix,
+	name,
+	onBlur,
 	ref,
 	...props
 }: CreditCardInputProps) {
-	const masked = useMaskedInput({
+	const masked = useMaskInput({
+		name,
 		value,
 		defaultValue,
 		onChange: onValueChange,
@@ -59,7 +62,13 @@ export function CreditCardInput({
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
 			suffix={suffix ?? (brand ? brand.label : undefined)}
+			name={name}
 			value={masked.value}
+			onBlur={(e) => {
+				masked.onBlur()
+
+				onBlur?.(e)
+			}}
 			onChange={(e) => {
 				masked.onChange(e)
 

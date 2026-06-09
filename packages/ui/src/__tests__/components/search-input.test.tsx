@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -132,5 +133,29 @@ describe('SearchInput', () => {
 		await user.clear(input)
 
 		expect(onClear).toHaveBeenCalled()
+	})
+
+	it('binds to a Form field by name', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ q: '' }} onSubmit={onSubmit}>
+				<SearchInput name="q" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const input = bySlot(container, 'search-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, 'midgard')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ q: 'midgard' }),
+			expect.anything(),
+		)
 	})
 })

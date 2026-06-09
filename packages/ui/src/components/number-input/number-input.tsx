@@ -3,13 +3,12 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import { cn } from '../../core'
-import { useControllable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { useFormField } from '../form/context'
+import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
@@ -46,18 +45,11 @@ export function NumberInput({
 	ref,
 	...props
 }: NumberInputProps) {
-	const field = useFormField(name)
-
-	const [current, setCurrent] = useControllable<number>({
-		value: field ? (field.value as number) : value,
-		defaultValue,
-		onValueChange: field
-			? (v) => {
-					field.setValue(v)
-					onValueChange?.(v)
-				}
-			: onValueChange,
-	})
+	const {
+		value: current,
+		setValue: setCurrent,
+		setTouched,
+	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
 
 	const inherited = useDensity()
 
@@ -102,7 +94,7 @@ export function NumberInput({
 	}
 
 	const handleBlur = () => {
-		field?.setTouched()
+		setTouched()
 
 		setCurrent((prev) => (prev === undefined ? undefined : round(clampValue(prev))))
 	}

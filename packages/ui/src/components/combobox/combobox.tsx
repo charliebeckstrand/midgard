@@ -18,7 +18,6 @@ import {
 	useSelectableValueChange,
 } from '../../hooks'
 import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
-import { useControllable } from '../../hooks/use-controllable'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
@@ -27,6 +26,7 @@ import { useSkeleton } from '../../providers/skeleton'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { ControlSkeleton } from '../control/control-skeleton'
+import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
@@ -39,6 +39,8 @@ import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = {
 	id?: string
+	/** Binds the selected value to an enclosing Form field. */
+	name?: string
 	placeholder?: string
 	displayValue?: (value: T) => string
 	placement?: Placement
@@ -107,6 +109,7 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
  */
 export function Combobox<T>({
 	id,
+	name,
 	value: valueProp,
 	defaultValue,
 	displayValue,
@@ -151,7 +154,7 @@ export function Combobox<T>({
 		multiple,
 	)
 
-	const [value, setValue] = useControllable<T | T[]>({
+	const { value, setValue, setTouched } = useFormValue<T | T[]>(name, {
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
 		onValueChange: handleValueChange,
@@ -253,6 +256,7 @@ export function Combobox<T>({
 		setQuery,
 		setOpen,
 		close,
+		onTouched: setTouched,
 		keyboardSettled,
 		rovingKeyDown: handleKeyDown,
 	})

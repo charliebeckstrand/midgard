@@ -1,15 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useControllable, usePendingCaret } from '../../hooks'
+import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
+import { useFormValue } from '../form/use-form-value'
 import { Input, type InputProps } from '../input'
-import {
-	countMeaningful,
-	cursorForCount,
-	formatEditing,
-	parseEditing,
-} from './currency-input-utilities'
+import { formatEditing, isMeaningful, parseEditing } from './currency-input-utilities'
 import { useCurrencyInputFormatting } from './use-currency-input-formatting'
 
 export type CurrencyInputProps = Omit<
@@ -29,9 +25,9 @@ export type CurrencyInputProps = Omit<
 
 /**
  * Numeric Input that formats its value as localized currency — emits a `number`
- * via `onValueChange` while displaying grouped digits and the currency symbol.
- * Resolves `currency` and `locale` from props, then `<LocaleProvider>`, then
- * runtime defaults.
+ * via `onValueChange` while displaying grouped digits and the currency symbol,
+ * and binds to an enclosing Form field by `name`. Resolves `currency` and
+ * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
  */
 export function CurrencyInput({
 	value,
@@ -45,6 +41,7 @@ export function CurrencyInput({
 	onFocus,
 	onBlur,
 	onKeyDown,
+	name,
 	ref,
 	...props
 }: CurrencyInputProps) {
@@ -54,11 +51,11 @@ export function CurrencyInput({
 
 	const resolvedLocale = locale ?? ambient.locale
 
-	const [num, setNum] = useControllable<number>({
-		value,
-		defaultValue,
-		onValueChange,
-	})
+	const {
+		value: num,
+		setValue: setNum,
+		setTouched,
+	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
 
 	const { displayFormatter, symbol, symbolIsPrefix, group, decimal, maxFractionDigits } =
 		useCurrencyInputFormatting({
@@ -71,7 +68,11 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
-	const { ref: setRefs, setCaret } = usePendingCaret(ref)
+	const { ref: setRefs, reformat } = useFormattedInput({
+		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
+		meaningful: (c) => isMeaningful(c, decimal),
+		ref,
+	})
 
 	return (
 		<Input
@@ -82,6 +83,7 @@ export function CurrencyInput({
 			prefix={prefix ?? (symbolIsPrefix ? symbol : undefined)}
 			suffix={suffix ?? (symbolIsPrefix ? undefined : symbol)}
 			className="tabular-nums"
+			name={name}
 			value={text}
 			onFocus={onFocus}
 			onKeyDown={(e) => {
@@ -92,15 +94,7 @@ export function CurrencyInput({
 				}
 			}}
 			onChange={(e) => {
-				const raw = e.target.value
-
-				const cursor = e.target.selectionStart ?? raw.length
-
-				const meaningfulBefore = countMeaningful(raw, cursor, decimal)
-
-				const formatted = formatEditing(raw, resolvedLocale, decimal, maxFractionDigits)
-
-				setCaret(cursorForCount(formatted, meaningfulBefore, decimal))
+				const formatted = reformat(e)
 
 				setEditingText(formatted)
 
@@ -114,6 +108,8 @@ export function CurrencyInput({
 
 					setEditingText(null)
 				}
+
+				setTouched()
 
 				onBlur?.(e)
 			}}
