@@ -68,19 +68,11 @@ export function CreditCardInputCvv({
 		ref,
 	})
 
-	// Refs to the unstable masked accessors / validity callback so the
-	// re-truncation effect can depend only on the brand-derived length and brand.
-	const valueRef = useRef(masked.value)
+	// Latest unstable accessors / callback, read by the effect below so it can
+	// depend only on the brand-derived length and brand.
+	const latestRef = useRef({ value: masked.value, setValue: masked.setValue, onValidityChange })
 
-	valueRef.current = masked.value
-
-	const setValueRef = useRef(masked.setValue)
-
-	setValueRef.current = masked.setValue
-
-	const onValidityChangeRef = useRef(onValidityChange)
-
-	onValidityChangeRef.current = onValidityChange
+	latestRef.current = { value: masked.value, setValue: masked.setValue, onValidityChange }
 
 	const mountedRef = useRef(false)
 
@@ -95,11 +87,13 @@ export function CreditCardInputCvv({
 		// A brand change can shrink the CVV length (Amex 4 → Visa 3): re-truncate
 		// the stored value so it isn't displayed over the new maxLength, and
 		// re-report validity (which also branches on brand) so it doesn't go stale.
-		const truncated = formatCvv(valueRef.current, maxLength)
+		const { value, setValue, onValidityChange: onValidity } = latestRef.current
 
-		if (truncated !== valueRef.current) setValueRef.current(truncated)
+		const truncated = formatCvv(value, maxLength)
 
-		onValidityChangeRef.current?.(validateCardCvv(truncated, resolvedBrand))
+		if (truncated !== value) setValue(truncated)
+
+		onValidity?.(validateCardCvv(truncated, resolvedBrand))
 	}, [maxLength, resolvedBrand])
 
 	return (
