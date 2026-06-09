@@ -22,19 +22,28 @@ function getRelativeTimeFormat(locale: string | undefined) {
 	return formatter
 }
 
+// Each unit's rollover is the rounded magnitude at which it becomes the next
+// unit up. Bucketing on the *rounded* value (not the raw lower edge) keeps a
+// value that rounds up from announcing "60 seconds"/"24 hours"/"7 days" ago.
+const UNIT_STEPS: readonly { unit: Unit; ms: number; rollover: number }[] = [
+	{ unit: 'second', ms: SEC, rollover: 60 },
+	{ unit: 'minute', ms: MIN, rollover: 60 },
+	{ unit: 'hour', ms: HOUR, rollover: 24 },
+	{ unit: 'day', ms: DAY, rollover: 7 },
+	{ unit: 'week', ms: WEEK, rollover: Math.round(MONTH / WEEK) },
+	{ unit: 'month', ms: MONTH, rollover: 12 },
+	{ unit: 'year', ms: YEAR, rollover: Number.POSITIVE_INFINITY },
+]
+
 function pickUnit(absMs: number): { unit: Unit; value: number } {
-	if (absMs < MIN) return { unit: 'second', value: absMs / SEC }
+	for (const { unit, ms, rollover } of UNIT_STEPS) {
+		const value = absMs / ms
 
-	if (absMs < HOUR) return { unit: 'minute', value: absMs / MIN }
+		if (Math.round(value) < rollover) return { unit, value }
+	}
 
-	if (absMs < DAY) return { unit: 'hour', value: absMs / HOUR }
-
-	if (absMs < WEEK) return { unit: 'day', value: absMs / DAY }
-
-	if (absMs < MONTH) return { unit: 'week', value: absMs / WEEK }
-
-	if (absMs < YEAR) return { unit: 'month', value: absMs / MONTH }
-
+	// Unreachable: the year step's rollover is Infinity, so the loop always
+	// returns. Kept as an explicit fallback for the type checker.
 	return { unit: 'year', value: absMs / YEAR }
 }
 
@@ -49,6 +58,10 @@ function adaptiveInterval(absMs: number) {
 
 	return DAY
 }
+
+// Floor for an explicit numeric interval: `setInterval(fn, 0)` otherwise fires
+// continuously, and relative text never needs sub-quarter-second refresh.
+const MIN_REFRESH_MS = 250
 
 type RelativeTimeOptions = {
 	date: Date | string | number
@@ -84,7 +97,8 @@ export function useTimeAgoRelativeTime({
 
 	const absMs = Math.abs(diffMs)
 
-	const adaptiveMs = interval === 'auto' ? adaptiveInterval(absMs) : interval
+	const adaptiveMs =
+		interval === 'auto' ? adaptiveInterval(absMs) : Math.max(interval, MIN_REFRESH_MS)
 
 	useEffect(() => {
 		if (!valid) return
