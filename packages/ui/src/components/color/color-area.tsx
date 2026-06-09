@@ -42,6 +42,21 @@ export function ColorArea() {
 			case 'ArrowDown':
 				v -= step
 				break
+			// APG slider pattern on a 2D area: Home/End pin the x axis
+			// (saturation) to its min/max; Page keys take the large step on the
+			// y axis (brightness).
+			case 'Home':
+				s = 0
+				break
+			case 'End':
+				s = 100
+				break
+			case 'PageUp':
+				v += 10
+				break
+			case 'PageDown':
+				v -= 10
+				break
 			default:
 				return
 		}

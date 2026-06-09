@@ -33,6 +33,9 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 
 		const step = isHue ? (event.shiftKey ? 10 : 1) : event.shiftKey ? 0.1 : 0.01
 
+		// APG slider pattern: Page keys take the large step regardless of Shift.
+		const pageStep = isHue ? 10 : 0.1
+
 		let next = value
 
 		switch (event.key) {
@@ -43,6 +46,12 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			case 'ArrowRight':
 			case 'ArrowUp':
 				next = value + step
+				break
+			case 'PageDown':
+				next = value - pageStep
+				break
+			case 'PageUp':
+				next = value + pageStep
 				break
 			case 'Home':
 				next = 0

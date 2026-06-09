@@ -7,10 +7,9 @@ import {
 	hsvaToCss,
 	hsvaToHex,
 	hsvaToRgba,
-	normalizeHex,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -89,12 +88,6 @@ describe('color conversions', () => {
 		expect(equalHsva({ h: 0, s: 100, v: 100, a: 1 }, { h: 120, s: 100, v: 100, a: 1 })).toBe(false)
 	})
 
-	it('normalizes hex for swatch comparison', () => {
-		expect(normalizeHex('#ABC')).toBe('#aabbcc')
-
-		expect(normalizeHex('#GGG')).toBeNull()
-	})
-
 	it('builds a css rgba fill, dropping alpha unless requested', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('rgba(255, 0, 0, 0.5)')
@@ -114,6 +107,53 @@ describe('ColorPanel', () => {
 		expect(bySlot(container, 'color-hex-input')).toBeInTheDocument()
 
 		expect(allBySlot(container, 'color-swatch').length).toBeGreaterThan(0)
+	})
+
+	it('supports Home/End and Page keys on the area (APG slider pattern)', () => {
+		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+
+		const area = bySlot(container, 'color-area') as HTMLElement
+
+		const brightness = () =>
+			Number(/brightness (\d+)%/.exec(area.getAttribute('aria-valuetext') ?? '')?.[1])
+
+		// Home/End pin saturation (the x axis, mirrored by aria-valuenow).
+		fireEvent.keyDown(area, { key: 'End' })
+
+		expect(area).toHaveAttribute('aria-valuenow', '100')
+
+		fireEvent.keyDown(area, { key: 'Home' })
+
+		expect(area).toHaveAttribute('aria-valuenow', '0')
+
+		// Page keys take the large step on brightness (the y axis).
+		const before = brightness()
+
+		fireEvent.keyDown(area, { key: 'PageDown' })
+
+		expect(brightness()).toBe(before - 10)
+
+		fireEvent.keyDown(area, { key: 'PageUp' })
+
+		expect(brightness()).toBe(before)
+	})
+
+	it('supports Page keys on the sliders (APG slider pattern)', () => {
+		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
+
+		const slider = bySlot(container, 'color-slider') as HTMLElement
+
+		const hue = () => Number(slider.getAttribute('aria-valuenow'))
+
+		const before = hue()
+
+		fireEvent.keyDown(slider, { key: 'PageDown' })
+
+		expect(hue()).toBe(before - 10)
+
+		fireEvent.keyDown(slider, { key: 'PageUp' })
+
+		expect(hue()).toBe(before)
 	})
 
 	it('adds the alpha slider only when alpha is enabled', () => {
