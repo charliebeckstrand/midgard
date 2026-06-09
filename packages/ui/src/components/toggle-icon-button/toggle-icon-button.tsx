@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactElement } from 'react'
+import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName, Size } from '../../types'
@@ -14,6 +14,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	animate?: boolean
 	size?: Size
 	className?: string
+	ref?: Ref<HTMLButtonElement>
 } & Omit<
 		ComponentPropsWithoutRef<'button'>,
 		'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'
