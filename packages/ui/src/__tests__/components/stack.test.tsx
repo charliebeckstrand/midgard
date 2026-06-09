@@ -10,4 +10,10 @@ describe('Stack', () => {
 
 		expect(el).toHaveAttribute('id', 'test')
 	})
+
+	it('stretches children across the inline axis by default so blocks span full width', () => {
+		const { container } = renderUI(<Stack>content</Stack>)
+
+		expect(bySlot(container, 'stack')).toHaveClass('items-stretch')
+	})
 })

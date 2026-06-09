@@ -1,4 +1,5 @@
 import cardValidator from 'card-validator'
+import { digitsOnly } from '../../utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
 const { number, cvv, expirationDate } = cardValidator
@@ -42,7 +43,7 @@ export function formatCardNumber(raw: string): {
 	digits: string
 	brand: CreditCardBrandInfo | undefined
 } {
-	const allDigits = raw.replace(/\D/g, '')
+	const allDigits = digitsOnly(raw)
 
 	const brand = detectCardBrand(allDigits)
 
@@ -64,7 +65,7 @@ export function formatCardNumber(raw: string): {
 }
 
 export function formatExpiry(raw: string): string {
-	const d = raw.replace(/\D/g, '').slice(0, 4)
+	const d = digitsOnly(raw).slice(0, 4)
 
 	if (d.length < 2) return d
 
@@ -76,7 +77,7 @@ export function formatExpiry(raw: string): string {
 }
 
 export function formatCvv(raw: string, maxLength: number): string {
-	return raw.replace(/\D/g, '').slice(0, maxLength)
+	return digitsOnly(raw).slice(0, maxLength)
 }
 
 export type CardValidity = {
@@ -85,7 +86,7 @@ export type CardValidity = {
 }
 
 export function validateCardNumber(value: string): CardValidity {
-	const { isValid, isPotentiallyValid } = number(value.replace(/\D/g, ''))
+	const { isValid, isPotentiallyValid } = number(digitsOnly(value))
 
 	return { isValid, isPotentiallyValid }
 }
@@ -95,7 +96,7 @@ export function validateCardCvv(value: string, brand?: CreditCardBrand): CardVal
 	// 4-digit max that resolveCvvLength allows before the brand is known).
 	const maxLength = brand === 'amex' ? 4 : brand === undefined ? [3, 4] : 3
 
-	const { isValid, isPotentiallyValid } = cvv(value.replace(/\D/g, ''), maxLength)
+	const { isValid, isPotentiallyValid } = cvv(digitsOnly(value), maxLength)
 
 	return { isValid, isPotentiallyValid }
 }

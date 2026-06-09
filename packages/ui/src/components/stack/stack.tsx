@@ -18,8 +18,8 @@ export function Stack({ direction = 'col', align, gap, ...props }: StackProps) {
 
 	const resolvedGap = gap ?? density?.space ?? 'md'
 
-	// Match Flex: a column stack aligns children to the start so auto-width
-	// children keep their intrinsic width instead of stretching (items-stretch).
+	// Match Flex: a column stack stretches children across the inline axis so
+	// stacked blocks span full width. Pass `align` to opt out (e.g. 'start').
 	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 
 	return (

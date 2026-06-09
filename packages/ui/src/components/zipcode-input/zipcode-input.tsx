@@ -1,5 +1,6 @@
 'use client'
 
+import { digitsOnly } from '../../utilities'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
 export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
@@ -12,7 +13,7 @@ export type ZipcodeInputProps = Omit<
 }
 
 function formatUS(raw: string) {
-	const d = raw.replace(/\D/g, '').slice(0, 9)
+	const d = digitsOnly(raw).slice(0, 9)
 
 	if (d.length <= 5) return d
 
