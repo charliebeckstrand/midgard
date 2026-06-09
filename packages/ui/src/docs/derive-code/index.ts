@@ -168,7 +168,7 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		}
 
 		// Self-closing helper with a build-time snippet attached by the
-		// derive-code Vite plugin — use the raw JSX verbatim.
+		// docs plugin's `pre` transform — use the raw JSX verbatim.
 		const snippet = readSnippet(element.type)
 
 		if (snippet !== null) {

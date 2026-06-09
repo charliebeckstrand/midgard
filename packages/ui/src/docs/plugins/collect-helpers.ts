@@ -6,10 +6,12 @@ function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boo
 	if (!modifiers) return false
 
 	let hasExport = false
+
 	let hasDefault = false
 
 	for (const mod of modifiers) {
 		if (mod.kind === ts.SyntaxKind.ExportKeyword) hasExport = true
+
 		if (mod.kind === ts.SyntaxKind.DefaultKeyword) hasDefault = true
 	}
 
@@ -120,6 +122,7 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
  */
 function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): string {
 	const matched: Preamble[] = []
+
 	const seen = new Set<number>()
 
 	for (const preamble of preambles) {
@@ -130,6 +133,7 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
 		if (!referenced) continue
 
 		matched.push(preamble)
+
 		seen.add(preamble.index)
 	}
 

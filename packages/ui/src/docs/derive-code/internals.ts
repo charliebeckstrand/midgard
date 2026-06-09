@@ -254,7 +254,7 @@ export function assemble(context: Context, jsx: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Components decorated by the derive-code Vite plugin carry their original
+ * Components decorated by the docs plugin's `pre` transform carry their original
  * source as `__code`. Reading it lets the walker show the helper's full body
  * instead of an opaque `<HelperDemo />` tag.
  */
