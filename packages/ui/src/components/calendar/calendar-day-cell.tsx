@@ -15,6 +15,8 @@ type DayCellProps = {
 	color?: ButtonVariants['color']
 	className?: string
 	gridColumnStart?: number
+	/** Resolved BCP 47 tag so the day's accessible name matches the visible grid. */
+	localeTag: string
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
@@ -30,6 +32,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	color,
 	className,
 	gridColumnStart,
+	localeTag,
 	onSelect,
 	onMouseEnter,
 	onMouseLeave,
@@ -40,13 +43,13 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 
 	const label = useMemo(
 		() =>
-			date.toLocaleDateString(undefined, {
+			date.toLocaleDateString(localeTag, {
 				weekday: 'long',
 				day: 'numeric',
 				month: 'long',
 				year: 'numeric',
 			}),
-		[date],
+		[date, localeTag],
 	)
 
 	return (

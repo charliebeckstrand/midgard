@@ -1,6 +1,7 @@
 'use client'
 
 import { Children, cloneElement, isValidElement, type MouseEvent, type ReactNode } from 'react'
+import { cn } from '../../core'
 import { Button } from '../button'
 import { useFilters } from './context'
 
@@ -23,9 +24,7 @@ export function FiltersClear({ children, className }: FiltersClearProps) {
 
 				handleClear()
 			},
-			className: className
-				? `${(child.props.className as string) ?? ''} ${className}`.trim()
-				: child.props.className,
+			className: className ? cn(child.props.className as string, className) : child.props.className,
 		})
 	}
 

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
@@ -18,6 +18,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	variant?: 'default' | 'outline'
 	className?: string
 	actions?: ReactNode
+	ref?: Ref<HTMLTextAreaElement>
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
 /**
@@ -49,6 +50,7 @@ export function Textarea(props: TextareaProps) {
 		onBlur,
 		rows = 3,
 		style,
+		ref,
 		'aria-describedby': ariaDescribedBy,
 		...rest
 	} = props
@@ -114,6 +116,7 @@ export function Textarea(props: TextareaProps) {
 		>
 			<textarea
 				data-slot="textarea"
+				ref={ref}
 				{...controlProps}
 				rows={rows}
 				style={hasActionsStyle}
