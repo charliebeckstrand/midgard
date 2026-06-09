@@ -27,6 +27,26 @@ describe('BottomNav', () => {
 		expect(screen.getByText('Home')).toBeInTheDocument()
 		expect(screen.getByText('Search')).toBeInTheDocument()
 	})
+
+	it('names the nav landmark with an overridable default label', () => {
+		renderUI(
+			<BottomNav>
+				<BottomNavItem icon={TestIcon}>Home</BottomNavItem>
+			</BottomNav>,
+		)
+
+		expect(screen.getByRole('navigation', { name: 'Bottom' })).toBeInTheDocument()
+	})
+
+	it('applies className to the nav element it is typed for', () => {
+		const { container } = renderUI(
+			<BottomNav className="custom">
+				<BottomNavItem icon={TestIcon}>Home</BottomNavItem>
+			</BottomNav>,
+		)
+
+		expect(bySlot(container, 'nav')).toHaveClass('custom')
+	})
 })
 
 describe('BottomNavItem', () => {
