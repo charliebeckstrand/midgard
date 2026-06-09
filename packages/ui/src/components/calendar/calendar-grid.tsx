@@ -24,6 +24,8 @@ type CalendarGridProps = {
 	onSelect: (date: Date) => void
 	/** Accessible name for the day listbox, e.g. "June 2025". */
 	monthLabel: string
+	/** Resolved BCP 47 tag, threaded to each cell's accessible day name. */
+	localeTag: string
 }
 
 export function CalendarGrid({
@@ -40,6 +42,7 @@ export function CalendarGrid({
 	getDayProps,
 	onSelect,
 	monthLabel,
+	localeTag,
 }: CalendarGridProps) {
 	return (
 		<div className={k.grid}>
@@ -89,6 +92,7 @@ export function CalendarGrid({
 							color={dayProps?.color}
 							className={dayProps?.className}
 							gridColumnStart={gridColumnStart}
+							localeTag={localeTag}
 							onSelect={onSelect}
 							onMouseEnter={dayProps?.onMouseEnter}
 							onMouseLeave={dayProps?.onMouseLeave}

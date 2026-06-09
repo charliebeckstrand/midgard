@@ -18,13 +18,7 @@ export function Timeline({
 	className,
 	children,
 }: TimelineProps) {
-	const resolvedOrientation = orientation ?? 'vertical'
-	const resolvedVariant = variant ?? 'solid'
-
-	const value = useMemo(
-		() => ({ orientation: resolvedOrientation, variant: resolvedVariant }),
-		[resolvedOrientation, resolvedVariant],
-	)
+	const value = useMemo(() => ({ orientation, variant }), [orientation, variant])
 
 	return (
 		<TimelineContext value={value}>

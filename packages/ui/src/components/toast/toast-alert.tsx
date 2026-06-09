@@ -4,15 +4,17 @@ import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
-import { Alert } from '../alert'
+import { Alert, type AlertVariants } from '../alert'
 
 function getToastMotion(position: ToastPosition) {
 	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
+// Derive the variant/color unions from the Alert recipe so a palette change
+// there propagates here instead of silently drifting.
 const severityAlertMap: Record<
 	NonNullable<ToastSeverity>,
-	{ variant: 'solid' | 'soft'; color: 'blue' | 'zinc' | 'green' | 'amber' | 'red' }
+	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
 > = {
 	default: { variant: 'solid', color: 'blue' },
 	secondary: { variant: 'solid', color: 'zinc' },

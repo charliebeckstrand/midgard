@@ -1,3 +1,5 @@
+'use client'
+
 import { digitsOnly } from '../../utilities'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 

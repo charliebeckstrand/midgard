@@ -37,6 +37,7 @@ export function StatusDot({
 	return (
 		<span
 			data-slot="status-dot"
+			data-size={resolvedSize}
 			className={cn(k({ variant, status, size: resolvedSize, pulse }), className)}
 			{...labelProps}
 			{...props}

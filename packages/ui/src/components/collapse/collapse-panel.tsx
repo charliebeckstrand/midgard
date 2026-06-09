@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn } from '../../core/cn'
+import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'

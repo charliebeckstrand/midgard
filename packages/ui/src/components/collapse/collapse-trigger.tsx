@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { cn } from '../../core/cn'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
@@ -17,6 +17,9 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 	return (
 		<button
 			type="button"
+			// Consumer props first so they can't clobber the a11y id wiring
+			// (aria-expanded/aria-controls), context-driven toggle, or data-slot below.
+			{...props}
 			data-slot="collapse-trigger"
 			{...triggerProps}
 			onClick={(e) => {
@@ -24,7 +27,6 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 				onClick?.(e)
 			}}
 			className={cn(k.trigger, className)}
-			{...props}
 		>
 			{rendered}
 		</button>

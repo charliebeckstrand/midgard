@@ -1,3 +1,5 @@
+'use client'
+
 import { Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { digitsOnly } from '../../utilities'

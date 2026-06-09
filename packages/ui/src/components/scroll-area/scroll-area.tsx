@@ -43,7 +43,7 @@ export function ScrollArea({
 		hasHorizontal,
 		handleScroll,
 		startDrag,
-	} = useScrollAreaScrollbar({ orientation: orientation ?? 'vertical', scrollbar })
+	} = useScrollAreaScrollbar({ orientation, scrollbar })
 
 	const showScrollbar = scrollbar !== 'hidden'
 

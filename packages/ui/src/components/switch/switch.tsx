@@ -1,8 +1,8 @@
 'use client'
 
-import { type ChangeEvent, type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ChangeEvent, type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useControllable } from '../../hooks'
+import { useComposedRef, useControllable } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -11,6 +11,7 @@ import { SwitchSkeleton } from './switch-skeleton'
 
 export type SwitchProps = SwitchVariants & {
 	className?: string
+	ref?: Ref<HTMLInputElement>
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 /**
@@ -30,6 +31,7 @@ export function Switch({
 	checked,
 	defaultChecked,
 	onChange,
+	ref,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: SwitchProps) {
@@ -48,6 +50,8 @@ export function Switch({
 	const isControlled = binding != null || checked !== undefined
 
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setRef = useComposedRef(inputRef, ref)
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setOn(e.target.checked)
@@ -103,7 +107,7 @@ export function Switch({
 				type="checkbox"
 				role="switch"
 				data-slot="switch"
-				ref={inputRef}
+				ref={setRef}
 				id={resolvedId}
 				name={name}
 				disabled={resolvedDisabled}

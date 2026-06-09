@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
+import type { ComponentPropsWithoutRef, CSSProperties, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -16,6 +16,7 @@ type SliderBaseProps = SliderVariants & {
 	min?: number
 	max?: number
 	step?: number
+	ref?: Ref<HTMLInputElement>
 }
 
 export type SliderProps = SliderBaseProps &
@@ -38,6 +39,7 @@ export function Slider({
 	style,
 	id,
 	disabled,
+	ref,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: SliderProps) {
@@ -74,6 +76,7 @@ export function Slider({
 		<input
 			type="range"
 			data-slot="slider"
+			ref={ref}
 			id={scope.id}
 			disabled={controlProps.disabled}
 			aria-describedby={controlProps['aria-describedby']}
