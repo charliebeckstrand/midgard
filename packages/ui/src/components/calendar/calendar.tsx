@@ -11,7 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { announce, cn } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
@@ -201,6 +201,19 @@ export function Calendar({
 		() => viewDate.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' }),
 		[viewDate, localeTag],
 	)
+
+	// Month navigation (header chevrons, picker, arrowing across a boundary)
+	// re-renders the grid silently; mirror the new view through the announcer
+	// so screen readers hear where they landed (WCAG 4.1.3). Skips mount.
+	const announcedMonthLabel = useRef(monthLabel)
+
+	useEffect(() => {
+		if (announcedMonthLabel.current === monthLabel) return
+
+		announcedMonthLabel.current = monthLabel
+
+		announce(monthLabel)
+	}, [monthLabel])
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
