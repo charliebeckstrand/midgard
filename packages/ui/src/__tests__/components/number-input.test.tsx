@@ -1,8 +1,9 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
 import { Density } from '../../primitives/density'
-import { itForwardsRef, renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, userEvent } from '../helpers'
 
 describe('NumberInput', () => {
 	it('renders an input with type number alongside decrease and increase buttons', () => {
@@ -19,7 +20,13 @@ describe('NumberInput', () => {
 		expect(screen.getByLabelText('Increase')).toBeInTheDocument()
 	})
 
-	itForwardsRef<HTMLInputElement>((ref) => <NumberInput ref={ref} />)
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<NumberInput ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
 
 	it('calls onValueChange when increase button is clicked', async () => {
 		const onChange = vi.fn()

@@ -2,13 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Density } from '../../primitives/density'
-import { bySlot, expectSlot, itRendersSkeletonPlaceholder, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
 	it('renders with data-slot="radio"', () => {
 		const { container } = renderUI(<Radio />)
 
-		expectSlot(container, 'radio', 'input')
+		const el = bySlot(container, 'radio')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('INPUT')
 	})
 
 	it('renders as a radio input', () => {
@@ -19,7 +23,12 @@ describe('Radio', () => {
 		expect(el.type).toBe('radio')
 	})
 
-	itRendersSkeletonPlaceholder(<Radio />, 'radio')
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(<Radio />, { skeleton: true })
+
+		expect(bySlot(container, 'radio')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Radio name="choice" value="a" />)

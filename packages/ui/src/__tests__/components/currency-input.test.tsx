@@ -1,15 +1,26 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
-import { bySlot, expectSlot, itForwardsRef, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('CurrencyInput', () => {
 	it('renders an input with data-slot="currency-input"', () => {
 		const { container } = renderUI(<CurrencyInput />)
 
-		expectSlot(container, 'currency-input', 'input')
+		const input = bySlot(container, 'currency-input')
+
+		expect(input).toBeInTheDocument()
+
+		expect(input?.tagName).toBe('INPUT')
 	})
 
-	itForwardsRef<HTMLInputElement>((ref) => <CurrencyInput ref={ref} />, 'currency-input')
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<CurrencyInput ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
 
 	it('uses inputMode="decimal"', () => {
 		const { container } = renderUI(<CurrencyInput />)

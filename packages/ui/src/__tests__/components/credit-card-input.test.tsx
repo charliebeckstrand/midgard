@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	CreditCardInput,
@@ -7,7 +8,7 @@ import {
 	formatCardNumber,
 	formatExpiry,
 } from '../../components/credit-card-input'
-import { bySlot, itForwardsRef, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('CreditCardInput', () => {
 	it('renders an input with type text, numeric inputMode, and a credit card icon prefix', () => {
@@ -24,7 +25,13 @@ describe('CreditCardInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	itForwardsRef<HTMLInputElement>((ref) => <CreditCardInput ref={ref} />, 'credit-card-input')
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<CreditCardInput ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
 
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<CreditCardInput placeholder="1234 1234 1234 1234" />)
@@ -120,7 +127,13 @@ describe('CreditCardInput', () => {
 })
 
 describe('CreditCardInputExpiry', () => {
-	itForwardsRef<HTMLInputElement>((ref) => <CreditCardInputExpiry ref={ref} />, 'input')
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<CreditCardInputExpiry ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
 
 	it('uses MM/YY as the default placeholder', () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
@@ -219,7 +232,13 @@ describe('CreditCardInputExpiry', () => {
 })
 
 describe('CreditCardInputCvv', () => {
-	itForwardsRef<HTMLInputElement>((ref) => <CreditCardInputCvv ref={ref} />, 'input')
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(<CreditCardInputCvv ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
 
 	it('caps input at 3 digits for non-Amex brands', async () => {
 		const { container } = renderUI(<CreditCardInputCvv brand="visa" />)

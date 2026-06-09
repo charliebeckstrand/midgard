@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup } from '../../components/avatar'
-import { allBySlot, bySlot, itRendersSkeletonPlaceholder, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
 	it('renders initials as SVG text', () => {
@@ -26,7 +26,12 @@ describe('Avatar', () => {
 		expect(img).toHaveAttribute('alt', 'User')
 	})
 
-	itRendersSkeletonPlaceholder(<Avatar initials="AB" />, 'avatar')
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(<Avatar initials="AB" />, { skeleton: true })
+
+		expect(bySlot(container, 'avatar')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 
 	it('wraps the avatar with a status dot when status is provided', () => {
 		const { container } = renderUI(<Avatar initials="AB" status="active" />)

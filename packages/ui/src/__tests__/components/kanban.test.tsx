@@ -8,15 +8,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
-import {
-	allBySlot,
-	bySlot,
-	expectLiveRegionText,
-	expectSlot,
-	fireEvent,
-	renderUI,
-	screen,
-} from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; title: string }
 type Column = { id: string; title: string; items: Item[] }
@@ -103,7 +95,11 @@ describe('Kanban', () => {
 	it('renders a labelled data-slot="kanban" root with one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
 
-		expectSlot(container, 'kanban', 'section')
+		const el = bySlot(container, 'kanban')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('SECTION')
 
 		expect(bySlot(container, 'kanban')).toHaveAttribute('aria-label', 'Board')
 
@@ -390,6 +386,9 @@ describe('Kanban keyboard announcements', () => {
 	const cardOf = (root: HTMLElement, id: string) =>
 		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
 
+	const liveRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
+
 	// Dependent keydowns fire synchronously (each fireEvent is act-flushed) so the
 	// lifted state can't be lost to an `await` yielding mid-sequence; only the
 	// final message is awaited.
@@ -406,7 +405,9 @@ describe('Kanban keyboard announcements', () => {
 	it('announces the card name, column, and position on lift', async () => {
 		liftedCard(renderUI(<KeyboardBoard />).container)
 
-		await expectLiveRegionText('Picked up A, position 1 of 3 in Todo', 'assertive')
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Picked up A, position 1 of 3 in Todo'),
+		)
 	})
 
 	it('announces the new position on a within-column move', async () => {
@@ -414,7 +415,9 @@ describe('Kanban keyboard announcements', () => {
 
 		fireEvent.keyDown(card, { key: 'ArrowDown' })
 
-		await expectLiveRegionText('A moved to position 2 of 3 in Todo', 'assertive')
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('A moved to position 2 of 3 in Todo'),
+		)
 	})
 
 	it('announces a cross-column move with the target column name', async () => {
@@ -422,7 +425,7 @@ describe('Kanban keyboard announcements', () => {
 
 		fireEvent.keyDown(card, { key: 'ArrowRight' })
 
-		await expectLiveRegionText('A moved to Done, position 2 of 2', 'assertive')
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('A moved to Done, position 2 of 2'))
 	})
 
 	it('announces the drop', async () => {
@@ -430,7 +433,9 @@ describe('Kanban keyboard announcements', () => {
 
 		fireEvent.keyDown(card, { key: 'Enter' })
 
-		await expectLiveRegionText('Dropped A, position 1 of 3 in Todo', 'assertive')
+		await waitFor(() =>
+			expect(liveRegion()).toHaveTextContent('Dropped A, position 1 of 3 in Todo'),
+		)
 	})
 })
 

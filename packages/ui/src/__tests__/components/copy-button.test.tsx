@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
-import { expectLiveRegionText, fireEvent, renderUI } from '../helpers'
+import { fireEvent, renderUI } from '../helpers'
 
 function stubClipboard(writeText: (value: string) => Promise<void>) {
 	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
@@ -171,7 +171,11 @@ describe('CopyButton', () => {
 
 			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
 
-			await expectLiveRegionText('Copied')
+			await waitFor(() => {
+				const region = document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+				expect(region).toHaveTextContent('Copied')
+			})
 		} finally {
 			restore()
 		}

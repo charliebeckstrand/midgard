@@ -1,23 +1,29 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Input } from '../../components/input'
-import {
-	bySlot,
-	describeDensityContract,
-	expectSlot,
-	itForwardsRef,
-	itRendersSkeletonPlaceholder,
-	renderUI,
-	userEvent,
-} from '../helpers'
+import { Density } from '../../primitives/density'
+import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
 		const { container } = renderUI(<Input />)
 
-		expectSlot(container, 'input', 'input')
+		const input = bySlot(container, 'input')
+
+		expect(input).toBeInTheDocument()
+
+		expect(input?.tagName).toBe('INPUT')
 	})
 
-	itForwardsRef<HTMLInputElement>((ref) => <Input ref={ref} />, 'input')
+	it('forwards ref', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		const { container } = renderUI(<Input ref={ref} />)
+
+		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+
+		expect(ref.current).toBe(bySlot(container, 'input'))
+	})
 
 	it('sets the type attribute', () => {
 		const { container } = renderUI(<Input type="email" />)
@@ -61,13 +67,46 @@ describe('Input', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	itRendersSkeletonPlaceholder(<Input />, 'input')
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(<Input />, { skeleton: true })
+
+		expect(bySlot(container, 'input')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 })
 
-describeDensityContract('Input size resolution', {
-	render: (size) => <Input size={size} />,
-	slot: 'input',
+describe('Input size resolution', () => {
 	// Each size variant brings a unique text class via ji; matching it
 	// confirms which size the kata actually rendered.
-	classFor: { sm: 'text-sm', md: 'text-base', lg: 'text-lg' },
+	const textClassFor = {
+		sm: 'text-sm',
+		md: 'text-base',
+		lg: 'text-lg',
+	} as const
+
+	it('inherits size from the Density context when no explicit prop is set', () => {
+		const { container } = renderUI(
+			<Density scale="lg">
+				<Input />
+			</Density>,
+		)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.lg)
+	})
+
+	it('explicit size prop overrides Density inheritance', () => {
+		const { container } = renderUI(
+			<Density scale="lg">
+				<Input size="sm" />
+			</Density>,
+		)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.sm)
+	})
+
+	it('falls back to "md" outside any size context', () => {
+		const { container } = renderUI(<Input />)
+
+		expect(bySlot(container, 'input')?.className).toContain(textClassFor.md)
+	})
 })

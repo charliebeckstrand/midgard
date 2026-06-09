@@ -9,21 +9,17 @@ import {
 	drawSnapshot,
 	getCanvasPoint,
 } from '../../components/signature-pad/signature-pad-utilities'
-import {
-	bySlot,
-	expectSlot,
-	fireEvent,
-	makeCanvasContext,
-	renderUI,
-	screen,
-	userEvent,
-} from '../helpers'
+import { bySlot, fireEvent, makeCanvasContext, renderUI, screen, userEvent } from '../helpers'
 
 describe('SignaturePad', () => {
 	it('renders the canvas slot', () => {
 		const { container } = renderUI(<SignaturePad />)
 
-		expectSlot(container, 'signature-pad-canvas', 'canvas')
+		const canvas = bySlot(container, 'signature-pad-canvas')
+
+		expect(canvas).toBeInTheDocument()
+
+		expect(canvas?.tagName).toBe('CANVAS')
 	})
 
 	it('renders the placeholder when empty', () => {

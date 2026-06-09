@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
-import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
 	it('renders with data-slot="nav"', () => {
@@ -11,7 +11,11 @@ describe('Nav', () => {
 			</Nav>,
 		)
 
-		expectSlot(container, 'nav', 'nav')
+		const el = bySlot(container, 'nav')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('NAV')
 	})
 
 	it('passes through HTML attributes', () => {

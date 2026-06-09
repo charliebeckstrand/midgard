@@ -9,7 +9,7 @@ import {
 } from '../../components/table'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, expectSlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Table', () => {
 	it('renders a table element inside the wrapper', () => {
@@ -44,7 +44,11 @@ describe('TableHead', () => {
 			</Table>,
 		)
 
-		expectSlot(container, 'table-head', 'thead')
+		const head = bySlot(container, 'table-head')
+
+		expect(head).toBeInTheDocument()
+
+		expect(head?.tagName).toBe('THEAD')
 	})
 })
 
@@ -65,7 +69,11 @@ describe('TableHeader', () => {
 			</Table>,
 		)
 
-		const header = expectSlot(container, 'table-header', 'th')
+		const header = bySlot(container, 'table-header')
+
+		expect(header).toBeInTheDocument()
+
+		expect(header?.tagName).toBe('TH')
 
 		expect(header).toHaveAttribute('scope', 'col')
 
@@ -85,7 +93,11 @@ describe('TableBody', () => {
 			</Table>,
 		)
 
-		expectSlot(container, 'table-body', 'tbody')
+		const body = bySlot(container, 'table-body')
+
+		expect(body).toBeInTheDocument()
+
+		expect(body?.tagName).toBe('TBODY')
 	})
 
 	it('inherits striped classes from the enclosing Table when striped is set', () => {
@@ -269,7 +281,11 @@ describe('TableRow', () => {
 			</Table>,
 		)
 
-		expectSlot(container, 'table-row', 'tr')
+		const row = bySlot(container, 'table-row')
+
+		expect(row).toBeInTheDocument()
+
+		expect(row?.tagName).toBe('TR')
 	})
 })
 
@@ -285,6 +301,10 @@ describe('TableCell', () => {
 			</Table>,
 		)
 
-		expectSlot(container, 'table-cell', 'td')
+		const cell = bySlot(container, 'table-cell')
+
+		expect(cell).toBeInTheDocument()
+
+		expect(cell?.tagName).toBe('TD')
 	})
 })

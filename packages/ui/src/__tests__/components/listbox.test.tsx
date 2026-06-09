@@ -2,14 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import {
-	bySlot,
-	expectSlot,
-	fireEvent,
-	itRendersSkeletonPlaceholder,
-	renderUI,
-	screen,
-} from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Listbox', () => {
 	it('renders trigger button with combobox role', () => {
@@ -72,7 +65,7 @@ describe('Listbox', () => {
 
 		const prefix = bySlot(container, 'prefix')
 		const suffix = bySlot(container, 'suffix')
-		const button = expectSlot(container, 'listbox-button', 'button')
+		const button = bySlot(container, 'listbox-button')
 
 		expect(prefix).toBeInTheDocument()
 		expect(prefix?.querySelector('[data-testid="prefix"]')).toBeInTheDocument()
@@ -80,6 +73,8 @@ describe('Listbox', () => {
 		expect(suffix).toBeInTheDocument()
 		expect(suffix?.querySelector('[data-testid="suffix"]')).toBeInTheDocument()
 
+		expect(button).toBeInTheDocument()
+		expect(button?.tagName).toBe('BUTTON')
 		expect(button).toHaveAttribute('role', 'combobox')
 		expect(button).not.toBeDisabled()
 	})
@@ -117,12 +112,17 @@ describe('Listbox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	itRendersSkeletonPlaceholder(
-		<Listbox>
-			<div>Option</div>
-		</Listbox>,
-		'listbox-button',
-	)
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(
+			<Listbox>
+				<div>Option</div>
+			</Listbox>,
+			{ skeleton: true },
+		)
+
+		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 
 	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
 		const { container } = renderUI(
@@ -325,6 +325,18 @@ describe('Listbox', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
 
 		expect(onChange).toHaveBeenCalledWith([])
+	})
+
+	// Covers the explicit-size branch of the density resolution in listbox.tsx
+	// (size prop selects a densityPreset over the inherited token).
+	it('resolves an explicit size override', () => {
+		const { container } = renderUI(
+			<Listbox size="lg">
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
 	})
 
 	it('renders the selected value label via displayValue', () => {

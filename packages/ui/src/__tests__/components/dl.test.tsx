@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
-import { bySlot, expectSlot, renderUI } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('DescriptionList', () => {
 	it('renders with data-slot="dl"', () => {
 		const { container } = renderUI(<DescriptionList>content</DescriptionList>)
 
-		expectSlot(container, 'dl', 'dl')
+		const el = bySlot(container, 'dl')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DL')
 	})
 
 	it('passes through HTML attributes', () => {
@@ -22,7 +26,11 @@ describe('DescriptionTerm', () => {
 	it('renders with data-slot="dl-term"', () => {
 		const { container } = renderUI(<DescriptionTerm>Term</DescriptionTerm>)
 
-		expectSlot(container, 'dl-term', 'dt')
+		const el = bySlot(container, 'dl-term')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DT')
 	})
 
 	it('passes through HTML attributes', () => {
@@ -38,7 +46,11 @@ describe('DescriptionDetails', () => {
 	it('renders with data-slot="dl-details"', () => {
 		const { container } = renderUI(<DescriptionDetails>Value</DescriptionDetails>)
 
-		expectSlot(container, 'dl-details', 'dd')
+		const el = bySlot(container, 'dl-details')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('DD')
 	})
 
 	it('passes through HTML attributes', () => {

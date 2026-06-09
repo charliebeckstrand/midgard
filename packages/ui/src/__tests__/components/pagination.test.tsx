@@ -6,7 +6,7 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
-import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Pagination', () => {
 	it('renders with data-slot="pagination"', () => {
@@ -18,7 +18,11 @@ describe('Pagination', () => {
 			</Pagination>,
 		)
 
-		expectSlot(container, 'pagination', 'nav')
+		const el = bySlot(container, 'pagination')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('NAV')
 	})
 })
 

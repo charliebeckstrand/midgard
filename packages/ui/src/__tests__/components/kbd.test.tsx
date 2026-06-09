@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { Kbd } from '../../components/kbd'
-import { bySlot, expectSlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Kbd', () => {
 	it('renders with data-slot="kbd"', () => {
 		const { container } = renderUI(<Kbd>K</Kbd>)
 
-		expectSlot(container, 'kbd', 'kbd')
+		const el = bySlot(container, 'kbd')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('KBD')
 	})
 
 	it('renders command modifier glyph when command is set', () => {

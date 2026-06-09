@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
-import { act, bySlot, expectSlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 const SEC = 1000
 const MIN = 60 * SEC
@@ -22,7 +22,11 @@ describe('TimeAgo', () => {
 	it('renders a <time> element with data-slot="time-ago"', () => {
 		const { container } = renderUI(<TimeAgo date={new Date()} />)
 
-		expectSlot(container, 'time-ago', 'time')
+		const el = bySlot(container, 'time-ago')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('TIME')
 	})
 
 	it('sets the dateTime attribute to the ISO string', () => {
@@ -137,8 +141,12 @@ describe('TimeAgo', () => {
 	it('renders a plain <span> (not an empty <time>) when the date is invalid', () => {
 		const { container } = renderUI(<TimeAgo date="not-a-date" />)
 
+		const el = bySlot(container, 'time-ago')
+
+		expect(el).toBeInTheDocument()
+
 		// No machine-readable timestamp exists, so it must not be a <time>.
-		const el = expectSlot(container, 'time-ago', 'span')
+		expect(el?.tagName).toBe('SPAN')
 
 		expect(el).not.toHaveAttribute('dateTime')
 	})

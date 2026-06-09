@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { bySlot, expectSlot, fireEvent, renderUI, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -16,7 +16,11 @@ describe('ToggleIconButton', () => {
 			/>,
 		)
 
-		expectSlot(container, 'toggle-icon-button', 'button')
+		const el = bySlot(container, 'toggle-icon-button')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('BUTTON')
 	})
 
 	it('sets aria-pressed based on pressed prop', () => {

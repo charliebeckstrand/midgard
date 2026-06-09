@@ -3,7 +3,8 @@ import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
-import { allBySlot, bySlot, describeDensityContract, fireEvent, renderUI } from '../helpers'
+import { DensityProvider } from '../../providers/density'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
 	it('renders as a range input with data-slot="slider"', () => {
@@ -213,11 +214,39 @@ describe('RangeSlider', () => {
 	})
 })
 
-describeDensityContract('RangeSlider density inheritance', {
-	render: (size) => <RangeSlider size={size} />,
-	slot: 'slider-range',
+describe('RangeSlider density inheritance', () => {
 	// The root size variant brings a unique py-* hit-area class.
-	classFor: { sm: 'py-3', md: 'py-4', lg: 'py-5' },
+	const padClassFor = { sm: 'py-3', md: 'py-4', lg: 'py-5' } as const
+
+	it('inherits size from an ambient Density when no explicit prop is set', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<RangeSlider />
+			</DensityProvider>,
+		)
+
+		expect(bySlot(container, 'slider-range')?.className).toContain(padClassFor.sm)
+	})
+
+	it('explicit size prop overrides the ambient Density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<RangeSlider size="lg" />
+			</DensityProvider>,
+		)
+
+		const el = bySlot(container, 'slider-range') as HTMLElement
+
+		expect(el.className).toContain(padClassFor.lg)
+
+		expect(el.className).not.toContain(padClassFor.sm)
+	})
+
+	it('falls back to "md" outside any density context', () => {
+		const { container } = renderUI(<RangeSlider />)
+
+		expect(bySlot(container, 'slider-range')?.className).toContain(padClassFor.md)
+	})
 })
 
 describe('snapToStep', () => {
@@ -266,10 +295,38 @@ describe('Slider + Control', () => {
 	})
 })
 
-describeDensityContract('Slider density inheritance', {
-	render: (size) => <Slider size={size} />,
-	slot: 'slider',
+describe('Slider density inheritance', () => {
 	// Each size variant brings a unique py-* hit-area class; matching it
 	// confirms which size the recipe actually rendered.
-	classFor: { sm: 'py-3', md: 'py-4', lg: 'py-5' },
+	const padClassFor = { sm: 'py-3', md: 'py-4', lg: 'py-5' } as const
+
+	it('inherits size from an ambient Density when no explicit prop is set', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Slider />
+			</DensityProvider>,
+		)
+
+		expect(bySlot(container, 'slider')?.className).toContain(padClassFor.sm)
+	})
+
+	it('explicit size prop overrides the ambient Density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Slider size="lg" />
+			</DensityProvider>,
+		)
+
+		const el = bySlot(container, 'slider') as HTMLElement
+
+		expect(el.className).toContain(padClassFor.lg)
+
+		expect(el.className).not.toContain(padClassFor.sm)
+	})
+
+	it('falls back to "md" outside any density context', () => {
+		const { container } = renderUI(<Slider />)
+
+		expect(bySlot(container, 'slider')?.className).toContain(padClassFor.md)
+	})
 })

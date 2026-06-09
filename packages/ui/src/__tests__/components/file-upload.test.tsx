@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
-import { expectLiveRegionText, fireEvent, makeFileList, renderUI, screen } from '../helpers'
+import { fireEvent, makeFileList, renderUI, screen, waitFor } from '../helpers'
 
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
@@ -103,6 +103,9 @@ describe('FileUpload + Control', () => {
 })
 
 describe('FileUpload announcements', () => {
+	const politeRegion = () =>
+		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
 	function selectFiles(container: HTMLElement, files: File[]) {
 		const input = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -114,7 +117,7 @@ describe('FileUpload announcements', () => {
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		await expectLiveRegionText('Selected resume.pdf')
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Selected resume.pdf'))
 	})
 
 	it('announces the count and names for a multi-file selection', async () => {
@@ -122,6 +125,6 @@ describe('FileUpload announcements', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		await expectLiveRegionText('Selected 2 files: a.png, b.png')
+		await waitFor(() => expect(politeRegion()).toHaveTextContent('Selected 2 files: a.png, b.png'))
 	})
 })

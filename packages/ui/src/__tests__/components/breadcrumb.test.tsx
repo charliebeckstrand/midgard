@@ -5,13 +5,17 @@ import {
 	BreadcrumbLink,
 	BreadcrumbList,
 } from '../../components/breadcrumb'
-import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
 	it('renders with data-slot="breadcrumb"', () => {
 		const { container } = renderUI(<Breadcrumb>content</Breadcrumb>)
 
-		expectSlot(container, 'breadcrumb', 'nav')
+		const el = bySlot(container, 'breadcrumb')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('NAV')
 	})
 })
 

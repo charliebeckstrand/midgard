@@ -4,15 +4,7 @@ import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import {
-	bySlot,
-	fireEvent,
-	itRendersSkeletonPlaceholder,
-	renderUI,
-	screen,
-	userEvent,
-	within,
-} from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -173,12 +165,17 @@ describe('Combobox', () => {
 		expect(frame?.querySelector(':disabled')).toBe(bySlot(container, 'combobox-input'))
 	})
 
-	itRendersSkeletonPlaceholder(
-		<Combobox>
-			<div>Option</div>
-		</Combobox>,
-		'combobox-input',
-	)
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(
+			<Combobox>
+				<div>Option</div>
+			</Combobox>,
+			{ skeleton: true },
+		)
+
+		expect(bySlot(container, 'combobox-input')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 
 	it('shows a clear button only when clearable and a value is set', () => {
 		const { container, rerender } = renderUI(

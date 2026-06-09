@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Text } from '../../components/text'
-import { bySlot, itRendersSkeletonPlaceholder, renderUI } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Text', () => {
 	it('passes through HTML attributes', () => {
@@ -11,5 +11,10 @@ describe('Text', () => {
 		expect(text).toHaveAttribute('id', 'intro')
 	})
 
-	itRendersSkeletonPlaceholder(<Text>Hello</Text>, 'text')
+	it('renders a placeholder in skeleton mode', () => {
+		const { container } = renderUI(<Text>Hello</Text>, { skeleton: true })
+
+		expect(bySlot(container, 'text')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 })
