@@ -1,6 +1,7 @@
 'use client'
 
 import { useMaskedInput } from '../../hooks'
+import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
@@ -23,8 +24,11 @@ export function CreditCardInputExpiry({
 	onValueChange,
 	onValidityChange,
 	ref,
+	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputExpiryProps) {
+	const control = useControl()
+
 	const masked = useMaskedInput({
 		value,
 		defaultValue,
@@ -39,6 +43,11 @@ export function CreditCardInputExpiry({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-exp"
+			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2) —
+			// default an aria-label, yielding to a registered Field <Label>
+			// (aria-labelledby outranks aria-label in the accname computation,
+			// so the default never shadows a real label).
+			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Expiration date')}
 			placeholder={placeholder ?? 'MM/YY'}
 			value={masked.value}
 			onChange={(e) => {

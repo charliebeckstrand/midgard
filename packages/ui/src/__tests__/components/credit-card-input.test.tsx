@@ -8,7 +8,8 @@ import {
 	formatCardNumber,
 	formatExpiry,
 } from '../../components/credit-card-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { Field, Label } from '../../components/fieldset'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CreditCardInput', () => {
 	it('renders an input with type text and numeric inputMode', () => {
@@ -147,6 +148,23 @@ describe('CreditCardInputExpiry', () => {
 		expect(input).toHaveAttribute('placeholder', 'MM/YY')
 	})
 
+	it('carries a default accessible name (placeholder is not a name)', () => {
+		renderUI(<CreditCardInputExpiry />)
+
+		expect(screen.getByRole('textbox', { name: 'Expiration date' })).toBeInTheDocument()
+	})
+
+	it('yields the default name to a Field label', () => {
+		renderUI(
+			<Field>
+				<Label>Card expiry</Label>
+				<CreditCardInputExpiry />
+			</Field>,
+		)
+
+		expect(screen.getByRole('textbox', { name: 'Card expiry' })).toBeInTheDocument()
+	})
+
 	it('inserts a slash after the month digits', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
@@ -242,6 +260,12 @@ describe('CreditCardInputCvv', () => {
 		renderUI(<CreditCardInputCvv ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+	})
+
+	it('carries a default accessible name (placeholder is not a name)', () => {
+		renderUI(<CreditCardInputCvv />)
+
+		expect(screen.getByRole('textbox', { name: 'Security code' })).toBeInTheDocument()
 	})
 
 	it('caps input at 3 digits for non-Amex brands', async () => {
