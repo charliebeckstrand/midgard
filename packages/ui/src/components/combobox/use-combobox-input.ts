@@ -21,6 +21,8 @@ type ComboboxInputParams<T> = {
 	setQuery: (query: string) => void
 	setOpen: (open: boolean) => void
 	close: () => void
+	/** Fires when focus leaves the combobox entirely; binds Form touched state. */
+	onTouched?: () => void
 	keyboardSettled: (cb: () => void) => void
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
 }
@@ -36,6 +38,7 @@ export function useComboboxInput<T>({
 	setQuery,
 	setOpen,
 	close,
+	onTouched,
 	keyboardSettled,
 	rovingKeyDown,
 }: ComboboxInputParams<T>) {
@@ -66,9 +69,11 @@ export function useComboboxInput<T>({
 
 			if (floating?.contains(e.relatedTarget as Node)) return
 
+			onTouched?.()
+
 			close()
 		},
-		[close, floatingRef],
+		[close, floatingRef, onTouched],
 	)
 
 	const onKeyDown = useCallback(

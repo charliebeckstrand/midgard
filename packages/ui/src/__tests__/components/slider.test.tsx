@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
+import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Slider', () => {
 	it('renders with data-slot="slider"', () => {
@@ -342,5 +343,31 @@ describe('Slider density inheritance', () => {
 		const { container } = renderUI(<Slider />)
 
 		expect(bySlot(container, 'slider')?.className).toContain(padClassFor.md)
+	})
+
+	it('binds to a Form field by name', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ volume: 30 }} onSubmit={onSubmit}>
+				<Slider name="volume" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const slider = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(slider.value).toBe('30')
+
+		fireEvent.change(slider, { target: { value: '60' } })
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ volume: 60 }),
+			expect.anything(),
+		)
 	})
 })

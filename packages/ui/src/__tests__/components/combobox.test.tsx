@@ -3,6 +3,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
+import { Form } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
@@ -355,6 +356,36 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(onChange).toHaveBeenCalledWith('apple')
 
 		expect(document.activeElement).toBe(input)
+	})
+
+	it('binds the selected value to a Form field by name', async () => {
+		const user = userEvent.setup()
+
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ fruit: undefined }} onSubmit={onSubmit}>
+				<Combobox<string> name="fruit" displayValue={(v) => v} placeholder="Search">
+					<ComboboxOption value="apple">
+						<ComboboxLabel>Apple</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await user.click(screen.getByRole('combobox'))
+
+		await screen.findByRole('listbox')
+
+		await user.click(screen.getByRole('option', { name: 'Apple' }))
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ fruit: 'apple' }),
+			expect.anything(),
+		)
 	})
 })
 
