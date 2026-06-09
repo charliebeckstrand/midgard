@@ -5,7 +5,7 @@ import { Density } from '../../primitives/density'
 import { itForwardsRef, renderUI, screen, userEvent } from '../helpers'
 
 describe('NumberInput', () => {
-	it('renders an input with type number', () => {
+	it('renders an input with type number alongside decrease and increase buttons', () => {
 		renderUI(<NumberInput />)
 
 		const input = screen.getByRole('spinbutton')
@@ -13,10 +13,6 @@ describe('NumberInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input).toHaveAttribute('type', 'number')
-	})
-
-	it('renders decrease and increase buttons', () => {
-		renderUI(<NumberInput />)
 
 		expect(screen.getByLabelText('Decrease')).toBeInTheDocument()
 

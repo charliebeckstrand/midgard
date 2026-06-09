@@ -5,20 +5,16 @@ import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constant
 import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('Toolbar', () => {
-	it('renders children', () => {
-		renderUI(
+	it('renders children with role="toolbar"', () => {
+		const { container } = renderUI(
 			<Toolbar aria-label="Editor">
 				<button type="button">Action</button>
 			</Toolbar>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument()
-	})
-
-	it('has role="toolbar"', () => {
-		const { container } = renderUI(<Toolbar aria-label="Editor">content</Toolbar>)
-
 		expect(bySlot(container, 'toolbar')).toHaveAttribute('role', 'toolbar')
+
+		expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument()
 	})
 
 	it('defaults to horizontal aria-orientation', () => {

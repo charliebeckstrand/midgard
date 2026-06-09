@@ -5,25 +5,17 @@ import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Calendar', () => {
-	it('renders navigation buttons', () => {
-		renderUI(<Calendar />)
+	it('renders navigation buttons, weekday labels, and day buttons in a listbox', () => {
+		const { container } = renderUI(<Calendar />)
 
 		expect(screen.getByLabelText('Previous month')).toBeInTheDocument()
 
 		expect(screen.getByLabelText('Next month')).toBeInTheDocument()
-	})
-
-	it('renders weekday labels', () => {
-		const { container } = renderUI(<Calendar />)
 
 		const el = bySlot(container, 'calendar')
 
 		expect(el?.textContent).toContain('Su')
 		expect(el?.textContent).toContain('Mo')
-	})
-
-	it('renders day buttons in a listbox', () => {
-		renderUI(<Calendar />)
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})

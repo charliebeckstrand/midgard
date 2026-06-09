@@ -3,14 +3,10 @@ import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { bySlot, expectSlot, renderUI, screen } from '../helpers'
 
 describe('LoadingDots', () => {
-	it('renders an output with data-slot="loading-dots"', () => {
+	it('renders an output with data-slot="loading-dots" and a default sr-only label of "Loading"', () => {
 		const { container } = renderUI(<LoadingDots />)
 
 		expectSlot(container, 'loading-dots', 'output')
-	})
-
-	it('has a default sr-only label of "Loading"', () => {
-		renderUI(<LoadingDots />)
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')
@@ -32,14 +28,10 @@ describe('LoadingDots', () => {
 })
 
 describe('LoadingSpinner', () => {
-	it('renders an output with data-slot="loading-spinner"', () => {
+	it('renders an output with data-slot="loading-spinner" and a default sr-only label of "Loading"', () => {
 		const { container } = renderUI(<LoadingSpinner />)
 
 		expectSlot(container, 'loading-spinner', 'output')
-	})
-
-	it('has a default sr-only label of "Loading"', () => {
-		renderUI(<LoadingSpinner />)
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')

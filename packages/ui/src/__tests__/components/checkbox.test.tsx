@@ -13,16 +13,12 @@ import {
 } from '../helpers'
 
 describe('Checkbox', () => {
-	it('renders a checkbox input with data-slot="checkbox"', () => {
+	it('renders a checkbox input with data-slot="checkbox" and a check icon', () => {
 		const { container } = renderUI(<Checkbox />)
 
 		const input = expectSlot(container, 'checkbox', 'input')
 
 		expect(input).toHaveAttribute('type', 'checkbox')
-	})
-
-	it('renders a check icon', () => {
-		const { container } = renderUI(<Checkbox />)
 
 		const check = bySlot(container, 'checkbox-check')
 

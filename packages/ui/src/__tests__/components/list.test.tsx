@@ -21,7 +21,7 @@ const items: Item[] = [
 ]
 
 describe('List', () => {
-	it('renders with data-slot="list"', () => {
+	it('renders a data-slot="list" ul with one list item per input', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id}>
 				{(item) => <ListItem>{item.label}</ListItem>}
@@ -29,14 +29,6 @@ describe('List', () => {
 		)
 
 		expectSlot(container, 'list', 'ul')
-	})
-
-	it('renders one list item per input', () => {
-		const { container } = renderUI(
-			<List items={items} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
 
 		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
 	})
@@ -55,7 +47,7 @@ describe('List', () => {
 })
 
 describe('ListItem', () => {
-	it('renders with data-slot="list-item"', () => {
+	it('renders a data-slot="list-item" li exposing the stable item id via data-item-id', () => {
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => <ListItem>{item.label}</ListItem>}
@@ -63,18 +55,8 @@ describe('ListItem', () => {
 		)
 
 		expectSlot(container, 'list-item', 'li')
-	})
 
-	it('exposes the stable item id via data-item-id', () => {
-		const { container } = renderUI(
-			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
-
-		const el = bySlot(container, 'list-item')
-
-		expect(el).toHaveAttribute('data-item-id', 'a')
+		expect(bySlot(container, 'list-item')).toHaveAttribute('data-item-id', 'a')
 	})
 })
 

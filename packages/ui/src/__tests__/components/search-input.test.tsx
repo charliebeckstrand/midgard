@@ -11,14 +11,10 @@ import {
 } from '../helpers'
 
 describe('SearchInput', () => {
-	it('renders an input with data-slot="search-input"', () => {
+	it('renders an input with data-slot="search-input" and a search icon prefix', () => {
 		const { container } = renderUI(<SearchInput />)
 
 		expectSlot(container, 'search-input', 'input')
-	})
-
-	it('renders a search icon prefix', () => {
-		const { container } = renderUI(<SearchInput />)
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})

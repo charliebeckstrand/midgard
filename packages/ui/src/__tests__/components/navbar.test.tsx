@@ -3,18 +3,12 @@ import { Navbar } from '../../components/navbar'
 import { bySlot, expectSlot, renderUI } from '../helpers'
 
 describe('Navbar', () => {
-	it('renders with data-slot="navbar"', () => {
+	it('renders with data-slot="navbar" and a default aria-label', () => {
 		const { container } = renderUI(<Navbar>content</Navbar>)
 
 		expectSlot(container, 'navbar', 'nav')
-	})
 
-	it('has default aria-label', () => {
-		const { container } = renderUI(<Navbar>content</Navbar>)
-
-		const el = bySlot(container, 'navbar')
-
-		expect(el).toHaveAttribute('aria-label', 'Main')
+		expect(bySlot(container, 'navbar')).toHaveAttribute('aria-label', 'Main')
 	})
 
 	it('passes through HTML attributes', () => {

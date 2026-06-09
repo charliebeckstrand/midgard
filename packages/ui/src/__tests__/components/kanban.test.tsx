@@ -100,20 +100,12 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 }
 
 describe('Kanban', () => {
-	it('renders with data-slot="kanban"', () => {
+	it('renders a labelled data-slot="kanban" root with one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
 
 		expectSlot(container, 'kanban', 'section')
-	})
-
-	it('exposes the aria-label on the root', () => {
-		const { container } = renderUI(<Board />)
 
 		expect(bySlot(container, 'kanban')).toHaveAttribute('aria-label', 'Board')
-	})
-
-	it('renders one KanbanColumn per column', () => {
-		const { container } = renderUI(<Board />)
 
 		expect(allBySlot(container, 'kanban-column')).toHaveLength(2)
 	})
@@ -130,7 +122,7 @@ describe('KanbanColumn', () => {
 		expect(column).toHaveAttribute('data-column-id', 'todo')
 	})
 
-	it('renders column header, title, and body slots', () => {
+	it('renders column header, title, and body slots with the title text', () => {
 		const { container } = renderUI(<Board />)
 
 		expect(bySlot(container, 'kanban-column-header')).toBeInTheDocument()
@@ -138,10 +130,6 @@ describe('KanbanColumn', () => {
 		expect(bySlot(container, 'kanban-column-title')).toBeInTheDocument()
 
 		expect(bySlot(container, 'kanban-column-body')).toBeInTheDocument()
-	})
-
-	it('renders the column title text', () => {
-		renderUI(<Board />)
 
 		expect(screen.getByText('Todo')).toBeInTheDocument()
 
@@ -174,7 +162,7 @@ describe('KanbanColumn', () => {
 })
 
 describe('KanbanCard', () => {
-	it('renders with data-slot="kanban-card" and exposes the card id', () => {
+	it('renders one data-slot="kanban-card" per item across all columns, exposing the card id', () => {
 		const { container } = renderUI(<Board />)
 
 		const card = bySlot(container, 'kanban-card')
@@ -182,10 +170,6 @@ describe('KanbanCard', () => {
 		expect(card).toBeInTheDocument()
 
 		expect(card).toHaveAttribute('data-card-id', '1')
-	})
-
-	it('renders one card per item across all columns', () => {
-		const { container } = renderUI(<Board />)
 
 		expect(allBySlot(container, 'kanban-card')).toHaveLength(2)
 	})

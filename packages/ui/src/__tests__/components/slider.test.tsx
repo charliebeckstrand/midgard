@@ -6,20 +6,12 @@ import { snapToStep } from '../../components/slider/range/range-utilities'
 import { allBySlot, bySlot, describeDensityContract, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
-	it('renders with data-slot="slider"', () => {
-		const { container } = renderUI(<Slider />)
-
-		const el = bySlot(container, 'slider')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('INPUT')
-	})
-
-	it('renders as a range input', () => {
+	it('renders as a range input with data-slot="slider"', () => {
 		const { container } = renderUI(<Slider />)
 
 		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(el).toBeInTheDocument()
 
 		expect(el.type).toBe('range')
 	})
