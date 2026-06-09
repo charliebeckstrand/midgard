@@ -1,6 +1,6 @@
 # ui
 
-The design system: headless components, primitives, hooks, providers, and a layered recipe system.
+Headless components, primitives, hooks, providers, and a layered recipe system.
 
 ## 0. Prerequisites
 
