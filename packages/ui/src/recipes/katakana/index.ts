@@ -24,12 +24,14 @@
  *     import { bridge } from '../katakana'
  *     export const k = bridge.control(control, { base: 'block', slots: { … } })
  *
- * **What the barrel surfaces.** The `bridge` object, nothing more.
- * The bridges are generic over the token bundle they receive, so variant
- * types resolve from the concrete `k` at the kata (`VariantProps<typeof
- * k>`), not from the bridge. Engine primitives (`defineRecipe`,
- * `definePalette`, `VariantProps`, …) stay in `core/recipe`; kata import
- * them from there.
+ * **What the barrel surfaces.** The `bridge` object of archetype wirings,
+ * plus `basePalette` — a shared palette wiring (not an archetype) that
+ * bundles an injected `iro.palette` into the solid / soft / outline / plain
+ * matrix the chromatic surface kata share. The bridges are generic over the
+ * token bundle they receive, so variant types resolve from the concrete `k`
+ * at the kata (`VariantProps<typeof k>`), not from the bridge. Engine
+ * primitives (`defineRecipe`, `definePalette`, `VariantProps`, …) stay in
+ * `core/recipe`; kata import them from there.
  */
 
 import { check, control } from './control'
@@ -38,3 +40,5 @@ import { popover } from './popover'
 import { segment } from './segment'
 
 export const bridge = { control, check, popover, segment, panel }
+
+export { basePalette } from './palette'
