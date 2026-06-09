@@ -11,7 +11,15 @@ import {
 	useFormText,
 	useFormToggle,
 } from '../../components/form'
-import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	fireEvent,
+	makeChangeEvent,
+	makeFocusEvent,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
@@ -21,11 +29,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const el = bySlot(container, 'form')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('FORM')
+		expectSlot(container, 'form', 'form')
 	})
 
 	it('re-renders only the typed field, not its siblings', () => {

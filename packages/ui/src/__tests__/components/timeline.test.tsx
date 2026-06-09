@@ -6,7 +6,7 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../components/timeline'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, expectSlot, renderUI } from '../helpers'
 
 describe('Timeline', () => {
 	it('renders with data-slot="timeline"', () => {
@@ -18,11 +18,7 @@ describe('Timeline', () => {
 			</Timeline>,
 		)
 
-		const el = bySlot(container, 'timeline')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('OL')
+		expectSlot(container, 'timeline', 'ol')
 	})
 })
 
@@ -36,11 +32,7 @@ describe('TimelineTimestamp', () => {
 			</Timeline>,
 		)
 
-		const el = bySlot(container, 'timeline-timestamp')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('TIME')
+		const el = expectSlot(container, 'timeline-timestamp', 'time')
 
 		expect(el).toHaveAttribute('datetime', '2024-01-01')
 	})

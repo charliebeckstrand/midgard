@@ -8,17 +8,13 @@ import {
 	SidebarList,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar"', () => {
 		const { container } = renderUI(<Sidebar>content</Sidebar>)
 
-		const el = bySlot(container, 'sidebar')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('NAV')
+		expectSlot(container, 'sidebar', 'nav')
 	})
 
 	it('has default aria-label', () => {

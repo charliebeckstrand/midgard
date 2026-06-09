@@ -7,6 +7,7 @@ import {
 	act,
 	allBySlot,
 	bySlot,
+	expectSlot,
 	fireEvent,
 	renderUI,
 	screen,
@@ -39,11 +40,7 @@ describe('PdfViewer', () => {
 	it('renders with data-slot="pdf-viewer"', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		const el = bySlot(container, 'pdf-viewer')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('SECTION')
+		expectSlot(container, 'pdf-viewer', 'section')
 	})
 
 	it('renders the active page image with the first page by default', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CodeBlock } from '../../components/code/code-block'
-import { bySlot, renderUI, screen, waitFor } from '../helpers'
+import { bySlot, expectSlot, renderUI, screen, waitFor } from '../helpers'
 
 vi.mock('shiki', () => ({
 	codeToHtml: vi.fn(async (code: string) => `<pre class="shiki"><code>${code}</code></pre>`),
@@ -10,11 +10,7 @@ describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
 		const { container } = renderUI(<CodeBlock code="const x = 1" />)
 
-		const el = bySlot(container, 'code-block')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
+		expectSlot(container, 'code-block', 'div')
 
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})

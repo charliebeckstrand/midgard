@@ -1,18 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../components/chat-prompt'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
-
-function noop() {}
+import {
+	bySlot,
+	expectSlot,
+	itRendersSkeletonPlaceholder,
+	noop,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('ChatPrompt', () => {
 	it('renders a textarea marked with data-slot="chat-prompt"', () => {
 		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
 
-		const el = bySlot(container, 'chat-prompt')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('TEXTAREA')
+		expectSlot(container, 'chat-prompt', 'textarea')
 	})
 
 	it('gives the composer a default accessible name', () => {
@@ -206,13 +208,8 @@ describe('ChatPrompt', () => {
 		expect(screen.getByRole('button', { name: 'Attach' })).toBeInTheDocument()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />, {
-			skeleton: true,
-		})
-
-		expect(bySlot(container, 'chat-prompt')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(
+		<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />,
+		'chat-prompt',
+	)
 })

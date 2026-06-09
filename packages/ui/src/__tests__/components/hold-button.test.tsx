@@ -1,16 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import {
+	act,
+	bySlot,
+	expectSlot,
+	fireEvent,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+} from '../helpers'
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
 		const { container } = renderUI(<HoldButton>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('BUTTON')
+		expectSlot(container, 'hold-button', 'button')
 	})
 
 	it('fires onHoldStart on pointer down', () => {
@@ -202,12 +205,7 @@ describe('HoldButton', () => {
 		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<HoldButton>Hold</HoldButton>, { skeleton: true })
-
-		expect(bySlot(container, 'hold-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<HoldButton>Hold</HoldButton>, 'hold-button')
 
 	describe('hold completion', () => {
 		beforeEach(() => {

@@ -1,19 +1,22 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	fireEvent,
+	itForwardsRef,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox"', () => {
 		const { container } = renderUI(<Checkbox />)
 
-		const input = bySlot(container, 'checkbox')
-
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
+		const input = expectSlot(container, 'checkbox', 'input')
 
 		expect(input).toHaveAttribute('type', 'checkbox')
 	})
@@ -50,20 +53,9 @@ describe('Checkbox', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Checkbox />, { skeleton: true })
+	itRendersSkeletonPlaceholder(<Checkbox />, 'checkbox')
 
-		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
-	it('forwards a createRef to the input element', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<Checkbox ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
+	itForwardsRef<HTMLInputElement>((ref) => <Checkbox ref={ref} />, 'checkbox')
 
 	it('forwards a callback ref to the input element', () => {
 		const refFn = vi.fn()

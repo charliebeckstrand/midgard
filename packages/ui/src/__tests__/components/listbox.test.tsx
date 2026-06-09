@@ -2,7 +2,14 @@ import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	fireEvent,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('Listbox', () => {
 	it('renders trigger button with combobox role', () => {
@@ -65,7 +72,7 @@ describe('Listbox', () => {
 
 		const prefix = bySlot(container, 'prefix')
 		const suffix = bySlot(container, 'suffix')
-		const button = bySlot(container, 'listbox-button')
+		const button = expectSlot(container, 'listbox-button', 'button')
 
 		expect(prefix).toBeInTheDocument()
 		expect(prefix?.querySelector('[data-testid="prefix"]')).toBeInTheDocument()
@@ -73,8 +80,6 @@ describe('Listbox', () => {
 		expect(suffix).toBeInTheDocument()
 		expect(suffix?.querySelector('[data-testid="suffix"]')).toBeInTheDocument()
 
-		expect(button).toBeInTheDocument()
-		expect(button?.tagName).toBe('BUTTON')
 		expect(button).toHaveAttribute('role', 'combobox')
 		expect(button).not.toBeDisabled()
 	})
@@ -112,17 +117,12 @@ describe('Listbox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-			{ skeleton: true },
-		)
-
-		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(
+		<Listbox>
+			<div>Option</div>
+		</Listbox>,
+		'listbox-button',
+	)
 
 	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
 		const { container } = renderUI(

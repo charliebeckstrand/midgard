@@ -1,7 +1,6 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { MaskInput } from '../../components/mask-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, expectSlot, itForwardsRef, renderUI, userEvent } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -15,20 +14,10 @@ describe('MaskInput', () => {
 	it('renders an input with data-slot="mask-input"', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} />)
 
-		const input = bySlot(container, 'mask-input')
-
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
+		expectSlot(container, 'mask-input', 'input')
 	})
 
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<MaskInput format={formatGroups} ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
+	itForwardsRef<HTMLInputElement>((ref) => <MaskInput format={formatGroups} ref={ref} />)
 
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} placeholder="123-456" />)

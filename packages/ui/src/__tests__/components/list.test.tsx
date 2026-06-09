@@ -2,7 +2,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectLiveRegionText,
+	expectSlot,
+	fireEvent,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type Item = { id: string; label: string }
 
@@ -20,11 +28,7 @@ describe('List', () => {
 			</List>,
 		)
 
-		const el = bySlot(container, 'list')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('UL')
+		expectSlot(container, 'list', 'ul')
 	})
 
 	it('renders one list item per input', () => {
@@ -58,11 +62,7 @@ describe('ListItem', () => {
 			</List>,
 		)
 
-		const el = bySlot(container, 'list-item')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('LI')
+		expectSlot(container, 'list-item', 'li')
 	})
 
 	it('exposes the stable item id via data-item-id', () => {
@@ -202,9 +202,6 @@ describe('List keyboard reordering', () => {
 	// Live-region assertions are split per action: the dependent keydowns fire
 	// synchronously (each fireEvent is act-flushed) so the lifted state can't be
 	// lost to an `await` yielding mid-sequence; only the final message is awaited.
-	const liveRegion = () =>
-		document.body.querySelector('[data-slot="live-region"][aria-live="assertive"]')
-
 	const firstItem = (container: HTMLElement) => {
 		const el = allBySlot(container, 'list-item')[0] as HTMLElement
 
@@ -218,7 +215,7 @@ describe('List keyboard reordering', () => {
 
 		fireEvent.keyDown(first, { key: ' ' })
 
-		await waitFor(() => expect(liveRegion()).toHaveTextContent('Picked up Alpha, position 1 of 3'))
+		await expectLiveRegionText('Picked up Alpha, position 1 of 3', 'assertive')
 	})
 
 	it('announces the new position on a move', async () => {
@@ -227,7 +224,7 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(first, { key: ' ' })
 		fireEvent.keyDown(first, { key: 'ArrowDown' })
 
-		await waitFor(() => expect(liveRegion()).toHaveTextContent('Alpha moved to position 2 of 3'))
+		await expectLiveRegionText('Alpha moved to position 2 of 3', 'assertive')
 	})
 
 	it('announces the drop', async () => {
@@ -236,7 +233,7 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(first, { key: ' ' })
 		fireEvent.keyDown(first, { key: 'Enter' })
 
-		await waitFor(() => expect(liveRegion()).toHaveTextContent('Dropped Alpha, position 1 of 3'))
+		await expectLiveRegionText('Dropped Alpha, position 1 of 3', 'assertive')
 	})
 })
 

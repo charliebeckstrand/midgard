@@ -6,17 +6,21 @@ import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { AffixContext } from '../../primitives/affix'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	fireEvent,
+	itForwardsRef,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('Button', () => {
 	it('renders a button element with data-slot', () => {
 		const { container } = renderUI(<Button>Click me</Button>)
 
-		const button = bySlot(container, 'button')
-
-		expect(button).toBeInTheDocument()
-
-		expect(button?.tagName).toBe('BUTTON')
+		expectSlot(container, 'button', 'button')
 	})
 
 	it('defaults to type="button"', () => {
@@ -42,22 +46,12 @@ describe('Button', () => {
 	it('renders as a link when href is provided', () => {
 		const { container } = renderUI(<Button href="/about">About</Button>)
 
-		const link = bySlot(container, 'button')
-
-		expect(link).toBeInTheDocument()
-
-		expect(link?.tagName).toBe('A')
+		const link = expectSlot(container, 'button', 'a')
 
 		expect(link).toHaveAttribute('href', '/about')
 	})
 
-	it('forwards ref to the button element', () => {
-		const ref = createRef<HTMLButtonElement>()
-
-		renderUI(<Button ref={ref}>Click</Button>)
-
-		expect(ref.current).toBeInstanceOf(HTMLButtonElement)
-	})
+	itForwardsRef<HTMLButtonElement>((ref) => <Button ref={ref}>Click</Button>, 'button')
 
 	it('forwards ref to the anchor element when href is provided', () => {
 		const ref = createRef<HTMLAnchorElement>()
@@ -116,12 +110,7 @@ describe('Button', () => {
 		expect(onClick).not.toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Button>Save</Button>, { skeleton: true })
-
-		expect(bySlot(container, 'button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<Button>Save</Button>, 'button')
 
 	it('renders the spring wrapper around a link button', () => {
 		const { container } = renderUI(

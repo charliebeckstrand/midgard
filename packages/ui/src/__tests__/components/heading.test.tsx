@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { Heading } from '../../components/heading'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, expectSlot, itRendersSkeletonPlaceholder, renderUI } from '../helpers'
 
 describe('Heading', () => {
 	it('renders an h1 by default with data-slot="heading"', () => {
 		const { container } = renderUI(<Heading>Title</Heading>)
 
-		const heading = bySlot(container, 'heading')
-
-		expect(heading).toBeInTheDocument()
-
-		expect(heading?.tagName).toBe('H1')
+		expectSlot(container, 'heading', 'h1')
 	})
 
 	it.each([1, 2, 3, 4, 5, 6] as const)('renders an h%i when level=%i', (level) => {
@@ -30,12 +26,7 @@ describe('Heading', () => {
 		expect(heading).toHaveAttribute('id', 'main-title')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Heading>Title</Heading>, { skeleton: true })
-
-		expect(bySlot(container, 'heading')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<Heading>Title</Heading>, 'heading')
 
 	describe('density', () => {
 		it('renders each level at its natural size under neutral (md) density', () => {

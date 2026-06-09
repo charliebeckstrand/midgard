@@ -10,7 +10,7 @@ import {
 	normalizeHex,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, itRendersSkeletonPlaceholder, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -142,13 +142,7 @@ describe('ColorPanel', () => {
 		expect(allBySlot(container, 'color-swatch')).toHaveLength(0)
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<ColorPanel />, { skeleton: true })
-
-		expect(bySlot(container, 'color-panel')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<ColorPanel />, 'color-panel')
 })
 
 describe('ColorPicker', () => {

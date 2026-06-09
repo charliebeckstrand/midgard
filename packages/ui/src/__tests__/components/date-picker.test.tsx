@@ -4,7 +4,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
-import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	act,
+	bySlot,
+	expectSlot,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 function findDay(day: number) {
 	const days = screen.getAllByRole('option')
@@ -43,11 +51,7 @@ describe('DatePicker', () => {
 	it('renders trigger button', () => {
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button')
-
-		expect(button).toBeInTheDocument()
-
-		expect(button?.tagName).toBe('BUTTON')
+		expectSlot(container, 'datepicker-button', 'button')
 	})
 
 	it('shows placeholder text', () => {
@@ -106,12 +110,7 @@ describe('DatePicker', () => {
 		expect(container.textContent).toContain('1/15/2025')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<DatePicker />, { skeleton: true })
-
-		expect(bySlot(container, 'datepicker-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<DatePicker />, 'datepicker-button')
 
 	it('opens the calendar content when the trigger is clicked', async () => {
 		const user = userEvent.setup()

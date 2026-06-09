@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, expectSlot, renderUI, screen } from '../helpers'
 
 describe('LoadingDots', () => {
 	it('renders an output with data-slot="loading-dots"', () => {
 		const { container } = renderUI(<LoadingDots />)
 
-		const dots = bySlot(container, 'loading-dots')
-
-		expect(dots).toBeInTheDocument()
-
-		expect(dots?.tagName).toBe('OUTPUT')
+		expectSlot(container, 'loading-dots', 'output')
 	})
 
 	it('has a default sr-only label of "Loading"', () => {
@@ -39,11 +35,7 @@ describe('LoadingSpinner', () => {
 	it('renders an output with data-slot="loading-spinner"', () => {
 		const { container } = renderUI(<LoadingSpinner />)
 
-		const spinner = bySlot(container, 'loading-spinner')
-
-		expect(spinner).toBeInTheDocument()
-
-		expect(spinner?.tagName).toBe('OUTPUT')
+		expectSlot(container, 'loading-spinner', 'output')
 	})
 
 	it('has a default sr-only label of "Loading"', () => {

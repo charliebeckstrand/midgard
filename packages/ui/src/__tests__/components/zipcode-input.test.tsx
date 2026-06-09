@@ -1,26 +1,15 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ZipcodeInput } from '../../components/zipcode-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, expectSlot, itForwardsRef, renderUI, userEvent } from '../helpers'
 
 describe('ZipcodeInput', () => {
 	it('renders an input with data-slot="zipcode-input"', () => {
 		const { container } = renderUI(<ZipcodeInput />)
 
-		const input = bySlot(container, 'zipcode-input')
-
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
+		expectSlot(container, 'zipcode-input', 'input')
 	})
 
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<ZipcodeInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
+	itForwardsRef<HTMLInputElement>((ref) => <ZipcodeInput ref={ref} />)
 
 	it('uses a country-appropriate default placeholder', () => {
 		const { container } = renderUI(<ZipcodeInput country="CA" />)

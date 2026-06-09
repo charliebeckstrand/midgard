@@ -1,7 +1,6 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { PhoneInput } from '../../components/phone-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, itForwardsRef, renderUI, userEvent } from '../helpers'
 
 describe('PhoneInput', () => {
 	it('renders an input with type tel', () => {
@@ -20,13 +19,7 @@ describe('PhoneInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<PhoneInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
+	itForwardsRef<HTMLInputElement>((ref) => <PhoneInput ref={ref} />)
 
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<PhoneInput placeholder="(555) 555-5555" />)

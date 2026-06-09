@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Navbar } from '../../components/navbar'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, expectSlot, renderUI } from '../helpers'
 
 describe('Navbar', () => {
 	it('renders with data-slot="navbar"', () => {
 		const { container } = renderUI(<Navbar>content</Navbar>)
 
-		const el = bySlot(container, 'navbar')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('NAV')
+		expectSlot(container, 'navbar', 'nav')
 	})
 
 	it('has default aria-label', () => {

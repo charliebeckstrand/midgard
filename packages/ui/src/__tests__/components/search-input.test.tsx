@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { SearchInput } from '../../components/search-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('SearchInput', () => {
 	it('renders an input with data-slot="search-input"', () => {
 		const { container } = renderUI(<SearchInput />)
 
-		const input = bySlot(container, 'search-input')
-
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
+		expectSlot(container, 'search-input', 'input')
 	})
 
 	it('renders a search icon prefix', () => {
@@ -117,12 +120,7 @@ describe('SearchInput', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<SearchInput />, { skeleton: true })
-
-		expect(bySlot(container, 'search-input')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<SearchInput />, 'search-input')
 
 	it('fires onClear when typing reduces the input to empty', async () => {
 		const onClear = vi.fn()

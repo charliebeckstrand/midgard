@@ -1,17 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Textarea } from '../../components/textarea'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	bySlot,
+	expectSlot,
+	itRendersSkeletonPlaceholder,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
 		const { container } = renderUI(<Textarea />)
 
-		const el = bySlot(container, 'textarea')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('TEXTAREA')
+		expectSlot(container, 'textarea', 'textarea')
 	})
 
 	it('passes through placeholder', () => {
@@ -36,12 +39,7 @@ describe('Textarea', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Textarea />, { skeleton: true })
-
-		expect(bySlot(container, 'textarea')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<Textarea />, 'textarea')
 
 	it('picks up the glass variant from a glass context', () => {
 		const { container } = renderUI(<Textarea />, { glass: true })

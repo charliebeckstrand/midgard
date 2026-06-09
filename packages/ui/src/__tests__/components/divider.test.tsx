@@ -1,16 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Divider } from '../../components/divider'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, expectSlot, renderUI } from '../helpers'
 
 describe('Divider', () => {
 	it('renders with data-slot="divider"', () => {
 		const { container } = renderUI(<Divider />)
 
-		const el = bySlot(container, 'divider')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('HR')
+		expectSlot(container, 'divider', 'hr')
 	})
 
 	it('sets role and aria-orientation for vertical dividers', () => {

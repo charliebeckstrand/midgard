@@ -1,7 +1,14 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
+import {
+	bySlot,
+	expectLiveRegionText,
+	expectSlot,
+	itForwardsRef,
+	renderUI,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -19,20 +26,10 @@ describe('TagInput', () => {
 	it('renders an input', () => {
 		const { container } = renderUI(<TagInput />)
 
-		const input = getInput(container)
-
-		expect(input).toBeInTheDocument()
-		expect(input.tagName).toBe('INPUT')
+		expectSlot(container, 'input', 'input')
 	})
 
-	it('forwards ref to the input', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		const { container } = renderUI(<TagInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-		expect(ref.current).toBe(getInput(container))
-	})
+	itForwardsRef<HTMLInputElement>((ref) => <TagInput ref={ref} />, 'input')
 
 	it('shows placeholder when there are no tags', () => {
 		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
@@ -366,9 +363,6 @@ describe('TagInput', () => {
 })
 
 describe('TagInput announcements', () => {
-	const politeRegion = () =>
-		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 	it('announces an added tag', async () => {
 		const { container } = renderUI(<TagInput />)
 
@@ -376,7 +370,7 @@ describe('TagInput announcements', () => {
 
 		await user.type(getInput(container), 'react{Enter}')
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('Added react'))
+		await expectLiveRegionText('Added react')
 	})
 
 	it('announces a removed tag', async () => {
@@ -386,7 +380,7 @@ describe('TagInput announcements', () => {
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('Removed react'))
+		await expectLiveRegionText('Removed react')
 	})
 
 	it('names the reason when a duplicate is rejected', async () => {
@@ -396,7 +390,7 @@ describe('TagInput announcements', () => {
 
 		await user.type(getInput(container), 'react{Enter}')
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('react is already in the list'))
+		await expectLiveRegionText('react is already in the list')
 	})
 
 	it('names the reason when validation rejects a tag', async () => {
@@ -406,6 +400,6 @@ describe('TagInput announcements', () => {
 
 		await user.type(getInput(container), 'x{Enter}')
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('x is not a valid tag'))
+		await expectLiveRegionText('x is not a valid tag')
 	})
 })

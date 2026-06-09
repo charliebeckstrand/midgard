@@ -14,17 +14,13 @@ import {
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
 		const { container } = renderUI(<MenuSection>content</MenuSection>)
 
-		const el = bySlot(container, 'menu-section')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('FIELDSET')
+		expectSlot(container, 'menu-section', 'fieldset')
 	})
 })
 
@@ -32,11 +28,7 @@ describe('MenuHeading', () => {
 	it('renders with data-slot="menu-heading"', () => {
 		const { container } = renderUI(<MenuHeading>Heading</MenuHeading>)
 
-		const el = bySlot(container, 'menu-heading')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('LEGEND')
+		expectSlot(container, 'menu-heading', 'legend')
 	})
 })
 
@@ -44,11 +36,7 @@ describe('MenuSeparator', () => {
 	it('renders with data-slot="menu-separator"', () => {
 		const { container } = renderUI(<MenuSeparator />)
 
-		const el = bySlot(container, 'menu-separator')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('HR')
+		expectSlot(container, 'menu-separator', 'hr')
 	})
 })
 

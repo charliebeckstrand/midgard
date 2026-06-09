@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+
+import { collectPatternViolations } from '../../helpers/walk-source'
 
 // Top-level hooks are reusable building blocks consumed by components,
 // primitives, and other hooks. They must not import from components, layouts,
@@ -20,18 +21,10 @@ const FORBIDDEN_PATTERNS = [
 
 describe('hook purity boundary', () => {
 	it('top-level hooks do not import from components, layouts, providers, or recipe-layer internals', () => {
-		const violations: string[] = []
-
-		walk(hooksDir, (file, content) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
-
-			const rel = relative(srcDir, file)
-
-			for (const { label, regex } of FORBIDDEN_PATTERNS) {
-				for (const match of content.matchAll(regex)) {
-					violations.push(`${rel} → ${label} (${match[0]})`)
-				}
-			}
+		const violations = collectPatternViolations({
+			dir: hooksDir,
+			srcDir,
+			patterns: FORBIDDEN_PATTERNS,
 		})
 
 		expect(
@@ -40,17 +33,3 @@ describe('hook purity boundary', () => {
 		).toEqual([])
 	})
 })
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.')) continue
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
-}

@@ -7,17 +7,13 @@ import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
 import { Select } from '../../components/select'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, expectSlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
 	it('renders with data-slot="fieldset"', () => {
 		const { container } = renderUI(<Fieldset>content</Fieldset>)
 
-		const el = bySlot(container, 'fieldset')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('FIELDSET')
+		expectSlot(container, 'fieldset', 'fieldset')
 	})
 
 	it('passes through HTML attributes', () => {
