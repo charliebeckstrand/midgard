@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
@@ -21,7 +21,7 @@ export const k = defineRecipe({
 		lg: [size.lg, icon.lg, gap.g('0.75'), padding.py('1.5'), padding.px('3')],
 	},
 	rounded,
-	palette: basePalette(palette),
+	palette: definePalette({ ...basePalette(palette), plain: palette.plain.text }),
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 	skeleton: badge,
 })

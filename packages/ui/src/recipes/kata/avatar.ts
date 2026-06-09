@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, kasane, kokkaku, narabi, shaku } from '../kiso'
 
@@ -20,7 +20,7 @@ export const k = defineRecipe(
 			outline: 'border',
 		},
 		size: avatar,
-		palette: basePalette(palette, { plain: false }),
+		palette: definePalette(basePalette(palette)),
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
 		skeleton: kokkaku.avatar,
 	},

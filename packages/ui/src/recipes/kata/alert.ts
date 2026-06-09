@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, narabi } from '../kiso'
 
@@ -12,7 +12,7 @@ export const k = defineRecipe({
 	variant: {
 		outline: 'ring-1 ring-inset',
 	},
-	palette: basePalette(palette),
+	palette: definePalette({ ...basePalette(palette), plain: palette.plain.text }),
 	slots: {
 		icon: 'shrink-0 self-center',
 		title: [size.lg, leading.tight, weight.semibold],
