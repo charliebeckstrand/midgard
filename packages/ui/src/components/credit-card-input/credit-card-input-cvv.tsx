@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
@@ -66,6 +67,40 @@ export function CreditCardInputCvv({
 		format: (raw) => formatCvv(raw, maxLength),
 		ref,
 	})
+
+	// Refs to the unstable masked accessors / validity callback so the
+	// re-truncation effect can depend only on the brand-derived length and brand.
+	const valueRef = useRef(masked.value)
+
+	valueRef.current = masked.value
+
+	const setValueRef = useRef(masked.setValue)
+
+	setValueRef.current = masked.setValue
+
+	const onValidityChangeRef = useRef(onValidityChange)
+
+	onValidityChangeRef.current = onValidityChange
+
+	const mountedRef = useRef(false)
+
+	useEffect(() => {
+		// Skip the mount run; only react to a later brand change.
+		if (!mountedRef.current) {
+			mountedRef.current = true
+
+			return
+		}
+
+		// A brand change can shrink the CVV length (Amex 4 → Visa 3): re-truncate
+		// the stored value so it isn't displayed over the new maxLength, and
+		// re-report validity (which also branches on brand) so it doesn't go stale.
+		const truncated = formatCvv(valueRef.current, maxLength)
+
+		if (truncated !== valueRef.current) setValueRef.current(truncated)
+
+		onValidityChangeRef.current?.(validateCardCvv(truncated, resolvedBrand))
+	}, [maxLength, resolvedBrand])
 
 	return (
 		<Input
