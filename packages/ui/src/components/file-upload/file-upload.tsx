@@ -86,7 +86,11 @@ export function FileUpload(props: FileUploadProps) {
 			accept={accept}
 			multiple={multiple}
 			disabled={disabled}
-			required={control?.required}
+			// handleChange clears the input value (to allow re-selecting the same
+			// file), which empties the FileList and would fail native `required`
+			// validation despite a valid pick. Track the selection separately and
+			// drop the constraint once files are held.
+			required={control?.required && files.length === 0}
 			onChange={handleChange}
 			className="sr-only"
 			tabIndex={-1}
