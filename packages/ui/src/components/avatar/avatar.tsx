@@ -5,10 +5,11 @@ import { cn } from '../../core'
 import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import { useSkeleton } from '../../providers/skeleton'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
-import { StatusDot } from '../status'
+import { StatusDot, type StatusDotProps } from '../status'
 import { AvatarSkeleton } from './avatar-skeleton'
 
-type Status = 'inactive' | 'active' | 'warning' | 'error'
+// Derive from the StatusDot union (single source of truth) so the two never drift.
+type Status = NonNullable<StatusDotProps['status']>
 
 export type AvatarProps = AvatarVariants & {
 	src?: string | null
