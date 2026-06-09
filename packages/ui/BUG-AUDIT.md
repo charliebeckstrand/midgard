@@ -16,7 +16,7 @@ None.
 
 ### High
 
-**Controlled-without-handler dismissal is permanent** — `components/alert/alert.tsx:127-153,201`. `<Alert open closable>` with no `onOpenChange` sets a sticky `locallyDismissed` flag on close that nothing ever resets, so line 153 returns null permanently and the `open` prop is silently ignored thereafter. Fix: add an effect on `openProp` that clears the flag.
+✅ **Controlled-without-handler dismissal is permanent** — `components/alert/alert.tsx:127-153,201`. `<Alert open closable>` with no `onOpenChange` sets a sticky `locallyDismissed` flag on close that nothing ever resets, so line 153 returns null permanently and the `open` prop is silently ignored thereafter. Fix: add an effect on `openProp` that clears the flag.
 
 **Non-ASCII digit locales wipe the value on edit** — `components/currency-input/currency-input-utilities.ts:28-49,78,85-89`. `\d`/`>='0'&&<='9'` assume ASCII, but `displayFormatter` renders native digits for ar-EG/fa-IR/ne-NP, so the first edit strips every digit and `setNum(undefined)` destroys the value. Fix: normalize native digits to ASCII (or force `-u-nu-latn`) before parsing.
 
@@ -158,13 +158,13 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ### Low
 
-**Controlled single Accordion churns context identity each render** — `components/accordion/accordion.tsx:49-108`. `toArray(props.value)` allocates a new array per render, defeating the context `useMemo` and re-rendering every item. Fix: memoize the wrapped value.
+✅ **Controlled single Accordion churns context identity each render** — `components/accordion/accordion.tsx:49-108`. `toArray(props.value)` allocates a new array per render, defeating the context `useMemo` and re-rendering every item. Fix: memoize the wrapped value.
 
-**Avatar duplicate accessible name (src + initials + alt)** — `components/avatar/avatar.tsx:55-75`. Both the initials svg (role=img) and the img carry the same `alt`, announced twice. Fix: aria-hide the fallback when the image is present.
+✅ **Avatar duplicate accessible name (src + initials + alt)** — `components/avatar/avatar.tsx:55-75`. Both the initials svg (role=img) and the img carry the same `alt`, announced twice. Fix: aria-hide the fallback when the image is present.
 
-**Avatar status branch splits props vs className across nodes** — `components/avatar/avatar.tsx:48-92`. With `status`, `{...props}` lands on the inner span but `className` on the wrapper, so `#id.class` matches nothing and clicks on the dot/padding miss `onClick`. Fix: apply props and className to the same element.
+✅ **Avatar status branch splits props vs className across nodes** — `components/avatar/avatar.tsx:48-92`. With `status`, `{...props}` lands on the inner span but `className` on the wrapper, so `#id.class` matches nothing and clicks on the dot/padding miss `onClick`. Fix: apply props and className to the same element.
 
-**BottomNav misroutes className to inner NavList** — `components/bottom-nav/bottom-nav.tsx:8-15`. Type declares className for the `<nav>` landmark but it's applied to the `<ul>`. Fix: forward className to the nav.
+✅ **BottomNav misroutes className to inner NavList** — `components/bottom-nav/bottom-nav.tsx:8-15`. Type declares className for the `<nav>` landmark but it's applied to the `<ul>`. Fix: forward className to the nav.
 
 **Calendar pickerYear stale after month nav while closed** — `components/calendar/use-calendar-picker.tsx:71-112`. Reducer re-syncs to `year` only on an `open` dispatch; header chevrons change `year` while closed, so a non-trigger open shows the mount-time year. Fix: sync reducer on `year` change (shares root cause with the imperative-open bug).
 
