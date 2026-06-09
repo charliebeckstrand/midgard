@@ -4,7 +4,7 @@ import { Pin } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table-column-manager'
-import { toggleInSet } from '../../utilities'
+import { toggleItem } from '../../utilities'
 import { Button } from '../button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../checkbox'
 import { Control } from '../control'
@@ -69,7 +69,7 @@ export function DataTableColumnManager({
 
 	const toggle = useCallback(
 		(id: string | number) => {
-			setHidden((prev) => toggleInSet(prev ?? new Set<string | number>(), id))
+			setHidden((prev) => toggleItem(prev ?? new Set<string | number>(), id))
 		},
 		[setHidden],
 	)

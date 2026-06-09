@@ -3,7 +3,7 @@
  * otherwise. The input is left untouched, suiting `setState` updaters that
  * must not mutate prior state.
  */
-export function toggleInSet<T>(set: ReadonlySet<T>, item: T): Set<T> {
+export function toggleItem<T>(set: ReadonlySet<T>, item: T): Set<T> {
 	const next = new Set(set)
 
 	if (next.has(item)) next.delete(item)

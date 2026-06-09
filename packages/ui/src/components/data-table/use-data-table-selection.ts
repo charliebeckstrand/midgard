@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react'
 import { useControllable } from '../../hooks'
-import { toggleInSet } from '../../utilities'
+import { toggleItem } from '../../utilities'
 import type { DataTableSelection } from './data-table'
 
 type DataTableSelectionOptions = {
@@ -48,7 +48,7 @@ export function useDataTableSelection({
 
 	const toggleRow = useCallback(
 		(key: string | number) => {
-			setSelectionRaw((prev) => toggleInSet(prev ?? new Set(), key))
+			setSelectionRaw((prev) => toggleItem(prev ?? new Set(), key))
 		},
 		[setSelectionRaw],
 	)
