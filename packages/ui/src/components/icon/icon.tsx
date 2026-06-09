@@ -1,6 +1,6 @@
 'use client'
 
-import { cloneElement, type ReactElement } from 'react'
+import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { useSize } from '../../primitives/density'
 import { k } from '../../recipes/kata/icon'
@@ -39,6 +39,12 @@ export function Icon({ icon, size, className, label }: IconProps) {
 			(icon.props as { className?: string }).className,
 			className,
 		),
-		...(isNumeric && { style: { width: resolvedSize, height: resolvedSize } }),
+		...(isNumeric && {
+			style: {
+				...(icon.props as { style?: CSSProperties }).style,
+				width: resolvedSize,
+				height: resolvedSize,
+			},
+		}),
 	})
 }
