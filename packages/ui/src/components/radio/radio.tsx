@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useSkeleton } from '../../providers/skeleton'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
@@ -9,6 +9,7 @@ import { RadioSkeleton } from './radio-skeleton'
 
 export type RadioProps = RadioVariants & {
 	className?: string
+	ref?: Ref<HTMLInputElement>
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 /** Single radio control wrapped in its label — id, disabled, required, and invalid state resolve from the enclosing control group. */
@@ -19,6 +20,7 @@ export function Radio({
 	id,
 	disabled,
 	required,
+	ref,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: RadioProps) {
@@ -44,6 +46,7 @@ export function Radio({
 			<input
 				type="radio"
 				data-slot="radio"
+				ref={ref}
 				id={resolvedId}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
