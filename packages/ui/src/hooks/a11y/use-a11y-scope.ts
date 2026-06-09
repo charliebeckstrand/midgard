@@ -26,8 +26,14 @@ export type A11yScope<Slot extends string = never> = {
 	sub: (suffix: string) => string
 	/** Derived id for each declared slot. */
 	ids: Record<Slot, string>
-	/** Per-slot mount registrar — call inside an effect; the cleanup deregisters. */
-	register: Record<Slot, () => () => void>
+	/**
+	 * Per-slot mount registrar — call inside an effect; the cleanup deregisters.
+	 * Pass the id the slot actually renders (a consumer `id` overriding the derived
+	 * one) so the composed `aria-*` references the rendered element, never a
+	 * dangling generated id. Omit to register the derived id. Reference-counted, so
+	 * two instances of the same slot don't drop the id when one unmounts.
+	 */
+	register: Record<Slot, (renderedId?: string) => () => void>
 	/** Spreadable bag — `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
 	ariaProps: AriaProps
 }
@@ -46,7 +52,9 @@ export function useA11yScope<Slot extends string = never>(
 
 	const scope = useIdScope({ id })
 
-	const [present, setPresent] = useState<Record<string, boolean>>({})
+	// Per slot, a multiset of the ids currently registered (rendered id → mount
+	// count). Reference-counting keeps the id live while any instance holds it.
+	const [present, setPresent] = useState<Record<string, Record<string, number>>>({})
 
 	const ids = useMemo(() => {
 		const out = {} as Record<Slot, string>
@@ -57,31 +65,53 @@ export function useA11yScope<Slot extends string = never>(
 	}, [scope.sub, slots])
 
 	const register = useMemo(() => {
-		const out = {} as Record<Slot, () => () => void>
+		const out = {} as Record<Slot, (renderedId?: string) => () => void>
 
 		for (const key of Object.keys(slots ?? {}) as Slot[]) {
-			out[key] = () => {
-				setPresent((prev) => ({ ...prev, [key]: true }))
+			out[key] = (renderedId?: string) => {
+				const resolved = renderedId ?? ids[key]
 
-				return () => setPresent((prev) => ({ ...prev, [key]: false }))
+				setPresent((prev) => {
+					const slot = prev[key] ?? {}
+
+					return { ...prev, [key]: { ...slot, [resolved]: (slot[resolved] ?? 0) + 1 } }
+				})
+
+				return () =>
+					setPresent((prev) => {
+						const slot = { ...(prev[key] ?? {}) }
+
+						const next = (slot[resolved] ?? 0) - 1
+
+						if (next <= 0) delete slot[resolved]
+						else slot[resolved] = next
+
+						return { ...prev, [key]: slot }
+					})
 			}
 		}
 
 		return out
-	}, [slots])
+	}, [slots, ids])
 
 	const buckets = useMemo(() => {
 		const labelledby: string[] = []
 		const describedby: string[] = []
 
 		for (const key of Object.keys(slots ?? {}) as Slot[]) {
-			if (!present[key]) continue
+			const slotCounts = present[key]
 
-			;(slots?.[key] === 'labelledby' ? labelledby : describedby).push(ids[key])
+			if (!slotCounts) continue
+
+			const target = slots?.[key] === 'labelledby' ? labelledby : describedby
+
+			for (const [idValue, count] of Object.entries(slotCounts)) {
+				if (count > 0) target.push(idValue)
+			}
 		}
 
 		return { labelledby, describedby }
-	}, [present, ids, slots])
+	}, [present, slots])
 
 	// Composed at the top level — `useAriaIds` is a hook and cannot run inside
 	// the bucketing loop above.

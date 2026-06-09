@@ -19,7 +19,7 @@ export function Description({ className, id, ...props }: DescriptionProps) {
 	// this id while the Description is rendered.
 	const registerDescription = control?.registerDescription
 
-	useEffect(() => registerDescription?.(), [registerDescription])
+	useEffect(() => registerDescription?.(id), [registerDescription, id])
 
 	return (
 		<p

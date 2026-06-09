@@ -46,6 +46,43 @@ describe('useA11yScope', () => {
 		expect(result.current.ariaProps['aria-describedby']).toBe('x-description')
 	})
 
+	it('composes a registered rendered id over the derived one', () => {
+		const { result } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
+
+		act(() => {
+			result.current.register.title('custom-title')
+		})
+
+		expect(result.current.ariaProps['aria-labelledby']).toBe('custom-title')
+	})
+
+	it('reference-counts a slot so one unmount keeps a co-mounted id', () => {
+		const { result } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
+
+		let cleanupA = () => {}
+
+		let cleanupB = () => {}
+
+		act(() => {
+			cleanupA = result.current.register.description('shared')
+			cleanupB = result.current.register.description('shared')
+		})
+
+		expect(result.current.ariaProps['aria-describedby']).toBe('shared')
+
+		act(() => {
+			cleanupA()
+		})
+
+		expect(result.current.ariaProps['aria-describedby']).toBe('shared')
+
+		act(() => {
+			cleanupB()
+		})
+
+		expect(result.current.ariaProps['aria-describedby']).toBeUndefined()
+	})
+
 	it('deregisters a slot when its cleanup runs', () => {
 		const { result } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
 

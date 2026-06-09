@@ -49,8 +49,10 @@ export function Message({
 	useEffect(() => {
 		if (!rendersError) return
 
-		return registerMessage?.()
-	}, [rendersError, registerMessage])
+		// The error variant renders `id ?? control.messageId`; register that id so
+		// a custom id doesn't orphan the field's aria-describedby.
+		return registerMessage?.(id)
+	}, [rendersError, registerMessage, id])
 
 	if (isFormBoundError && (!issues || issues.length === 0)) return null
 
