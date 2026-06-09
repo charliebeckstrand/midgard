@@ -1,5 +1,6 @@
 import { Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
@@ -14,7 +15,7 @@ export type PhoneInputProps = Omit<
 }
 
 function formatNANP(raw: string) {
-	const digits = raw.replace(/\D/g, '')
+	const digits = digitsOnly(raw)
 
 	const d = (digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits).slice(0, 10)
 
@@ -32,7 +33,7 @@ function formatInternational(raw: string) {
 
 	const hasPlus = trimmed.startsWith('+')
 
-	const digits = trimmed.replace(/\D/g, '').slice(0, 15)
+	const digits = digitsOnly(trimmed).slice(0, 15)
 
 	if (!digits) return hasPlus ? '+' : ''
 

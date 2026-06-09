@@ -2,18 +2,14 @@
 
 import { useCallback } from 'react'
 import { useControllable } from '../../hooks'
+import { toggleInSet } from '../../utilities'
 
 export function toggleExpandedSet(
 	expanded: Set<string>,
 	path: string,
 	onChange: (next: Set<string>) => void,
 ) {
-	const next = new Set(expanded)
-
-	if (next.has(path)) next.delete(path)
-	else next.add(path)
-
-	onChange(next)
+	onChange(toggleInSet(expanded, path))
 }
 
 type JsonTreeExpansion = {
@@ -34,14 +30,7 @@ export function useJsonTreeExpansion({ initial, expanded, onExpandedChange }: Js
 
 	const toggle = useCallback(
 		(path: string) => {
-			setExpanded((prev) => {
-				const next = new Set(prev)
-
-				if (next.has(path)) next.delete(path)
-				else next.add(path)
-
-				return next
-			})
+			setExpanded((prev) => toggleInSet(prev ?? new Set<string>(), path))
 		},
 		[setExpanded],
 	)
