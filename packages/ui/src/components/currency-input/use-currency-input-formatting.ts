@@ -25,11 +25,17 @@ export function useCurrencyInputFormatting({
 	locale,
 	precision,
 }: CurrencyFormattingOptions): CurrencyFormattingResult {
+	// `numberingSystem: 'latn'` pins ASCII digits: the editing parser only
+	// recognizes 0-9, so a locale that renders native digits (ar-EG, fa-IR,
+	// ne-NP) would otherwise have its whole value stripped on the first edit.
+	// Separators stay locale-correct — they're extracted from formatToParts
+	// below, so display and parsing always agree.
 	const formatter = useMemo(
 		() =>
 			new Intl.NumberFormat(locale, {
 				style: 'currency',
 				currency,
+				numberingSystem: 'latn',
 				...(precision !== undefined && {
 					minimumFractionDigits: precision,
 					maximumFractionDigits: precision,
@@ -68,6 +74,7 @@ export function useCurrencyInputFormatting({
 		return new Intl.NumberFormat(locale, {
 			style: 'decimal',
 			useGrouping: true,
+			numberingSystem: 'latn',
 			minimumFractionDigits: options.minimumFractionDigits,
 			maximumFractionDigits: options.maximumFractionDigits,
 		})
