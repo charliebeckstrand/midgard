@@ -1,9 +1,12 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { type ContainerPadding, type ContainerSize, paddingMap, sizeMap } from './variants'
+import { k } from '../../recipes/kata/container'
+
+export type ContainerSize = keyof typeof k.size
+export type ContainerPadding = keyof typeof k.padding
 
 export type ContainerProps = {
-	/** Max-width constraint. Defaults to `xl`. */
+	/** Max-width constraint. Defaults to `md`. */
 	size?: ContainerSize
 	/** Responsive horizontal padding. Defaults to `md`. Pass `none` to disable. */
 	padding?: ContainerPadding
@@ -21,7 +24,7 @@ export function Container({
 	return (
 		<div
 			data-slot="container"
-			className={cn('mx-auto w-full h-full', sizeMap[size], paddingMap[padding], className)}
+			className={cn('mx-auto w-full h-full', k.size[size], k.padding[padding], className)}
 			{...props}
 		>
 			{children}
