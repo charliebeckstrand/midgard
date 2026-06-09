@@ -22,6 +22,21 @@ type TooltipStateOptions = {
 	className?: string
 }
 
+/**
+ * Whether the floating reference is disabled — either the reference node itself
+ * matches `:disabled` (the trigger cloned onto a `<button>` switched off by its
+ * own `disabled` attribute or an ancestor `<fieldset disabled>`) or a disabled
+ * control sits inside it (the wrapper-`<div>` fallback). `querySelector` scans
+ * descendants only and misses the reference-is-the-control case, so `matches`
+ * has to cover it.
+ */
+function isReferenceDisabled(reference: unknown): boolean {
+	return (
+		reference instanceof Element &&
+		(reference.matches(':disabled') || reference.querySelector(':disabled') !== null)
+	)
+}
+
 export function useTooltipState({
 	placement = 'top',
 	delay = 250,
@@ -37,9 +52,7 @@ export function useTooltipState({
 		gate: (next, gateRefs) => {
 			if (next && !enabled) return false
 
-			const reference = gateRefs.reference.current
-
-			if (next && reference instanceof Element && reference.querySelector(':disabled')) return false
+			if (next && isReferenceDisabled(gateRefs.reference.current)) return false
 
 			return true
 		},
@@ -53,18 +66,18 @@ export function useTooltipState({
 
 	const wasDisabledRef = useRef(false)
 
-	// Polls the reference subtree for the `:disabled` pseudo-class after every
-	// render. The `:disabled` state can be set by a child `disabled` attribute,
-	// an ancestor `<fieldset disabled>`, or an external wrapper — none of which
-	// emit a React signal. A post-render effect fires alongside whatever
-	// triggered the change. MutationObserver cannot detect the ancestor-fieldset
-	// case.
+	// Polls the reference node and its subtree for the `:disabled` pseudo-class
+	// after every render. The `:disabled` state can be set by the reference's own
+	// `disabled` attribute, a child `disabled` attribute, an ancestor
+	// `<fieldset disabled>`, or an external wrapper — none of which emit a React
+	// signal. A post-render effect fires alongside whatever triggered the change.
+	// MutationObserver cannot detect the ancestor-fieldset case.
 	useEffect(() => {
 		const reference = refs.reference.current
 
 		if (!(reference instanceof Element)) return
 
-		const isDisabled = !!reference.querySelector(':disabled')
+		const isDisabled = isReferenceDisabled(reference)
 
 		if (isDisabled && open) {
 			setOpen(false)
