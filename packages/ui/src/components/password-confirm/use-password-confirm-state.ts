@@ -50,8 +50,15 @@ export function usePasswordConfirmState({
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
+	// `disabled` must suppress match firing too — not just mismatch (which `status`
+	// already gates to idle). Otherwise a match fires while disabled and pins
+	// prevMatchState to 'match', swallowing the legitimate match after re-enable.
 	const matchState =
-		status === 'warning' ? 'mismatch' : password && confirm && password === confirm ? 'match' : null
+		status === 'warning'
+			? 'mismatch'
+			: !disabled && password && confirm && password === confirm
+				? 'match'
+				: null
 
 	useEffect(() => {
 		if (matchState === prevMatchState.current) return
