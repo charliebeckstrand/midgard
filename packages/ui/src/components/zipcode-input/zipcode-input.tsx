@@ -1,3 +1,5 @@
+'use client'
+
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
 export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
