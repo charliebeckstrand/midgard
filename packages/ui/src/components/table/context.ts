@@ -1,3 +1,5 @@
+'use client'
+
 import { createContext } from '../../core'
 import type { Step } from '../../recipes'
 

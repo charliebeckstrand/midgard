@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext } from '../../core/create-context'
+import { createContext } from '../../core'
 import type { SearchIndex } from './json-tree-utilities'
 
 type JsonTreeContextValue = {

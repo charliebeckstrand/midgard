@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useMemo } from 'react'
-import { cn } from '../../core/cn'
+import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/collapse'

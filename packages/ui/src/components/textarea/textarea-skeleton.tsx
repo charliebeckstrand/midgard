@@ -5,14 +5,15 @@ import { k } from '../../recipes/kata/textarea'
 import { Placeholder } from '../placeholder'
 
 export type TextareaSkeletonProps = {
-	/** Visible text rows, mirrored from `Textarea` so the silhouette matches its height. @default 3 */
+	/** Visible rows the control reserves; drives the placeholder height. */
 	rows?: number
 	className?: string
 }
 
 /**
- * Skeleton silhouette for `Textarea`. Its height keys off `rows` rather than a
- * size step, so it is hand-written (cf. §3.6) instead of `createSkeleton`.
+ * Textarea-shaped placeholder. Height tracks the reserved `rows` count rather
+ * than the Density `size` axis, so it folds in the row math by hand instead of
+ * using the size-driven `createSkeleton` factory.
  */
 export function TextareaSkeleton({ rows = 3, className }: TextareaSkeletonProps) {
 	return (
