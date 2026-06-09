@@ -75,7 +75,14 @@ export function ToastAlert({
 				transition={motionConfig.transition}
 				role={assertive ? 'alert' : 'status'}
 				onMouseEnter={onPause}
-				onMouseLeave={onResume}
+				onMouseLeave={(e) => {
+					// Don't resume while focus is still inside the toast (keyboard user);
+					// mirror the onBlur guard so moving the pointer away doesn't restart
+					// auto-dismiss out from under focus (WCAG 2.2.1).
+					if (e.currentTarget.contains(document.activeElement)) return
+
+					onResume()
+				}}
 				// Pauses the auto-dismiss timer while focus is anywhere inside the toast
 				// (WCAG 2.2.1). `onFocus`/`onBlur` bubble (focusin/focusout); resumes
 				// only once focus leaves the subtree.
