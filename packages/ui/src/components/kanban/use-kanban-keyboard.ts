@@ -1,19 +1,15 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
-import { accessibleName, announce } from '../../core'
+import { type KeyboardEvent, useCallback } from 'react'
+import { accessibleName, announce, querySlot } from '../../core'
+import { useKeyboardLifted } from '../../hooks'
 import { moveItem } from '../../utilities'
 import type { KanbanColumnBase } from './types'
 
-const cardName = (cardId: string) =>
-	accessibleName(
-		document.querySelector(`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`),
-	)
+const cardName = (cardId: string) => accessibleName(querySlot('kanban-card', 'card-id', cardId))
 
 const columnName = (columnId: string) =>
-	accessibleName(
-		document.querySelector(`[data-slot="kanban-column"][data-column-id="${CSS.escape(columnId)}"]`),
-	)
+	accessibleName(querySlot('kanban-column', 'column-id', columnId))
 
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -24,23 +20,16 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	getKey: (item: T) => string
 	onValueChange?: (next: C[]) => void
 }) {
-	const [liftedCardId, setLiftedCardId] = useState<string | null>(null)
-
-	const movingRef = useRef(false)
-
-	const refocusCard = useCallback((cardId: string) => {
-		movingRef.current = true
-
-		requestAnimationFrame(() => {
-			const el = document.querySelector(
-				`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`,
-			) as HTMLElement | null
-
-			el?.focus()
-
-			movingRef.current = false
-		})
+	const focusCard = useCallback((cardId: string) => {
+		querySlot('kanban-card', 'card-id', cardId)?.focus()
 	}, [])
+
+	const {
+		liftedId: liftedCardId,
+		setLiftedId: setLiftedCardId,
+		refocus: refocusCard,
+		onBlur: onCardBlur,
+	} = useKeyboardLifted(focusCard)
 
 	const findColumnByCardId = useCallback(
 		(id: string) => columns.find((c) => c.items.some((i) => getKey(i) === id)),
@@ -62,14 +51,6 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		},
 		[findColumnByCardId, getKey],
 	)
-
-	const focusCard = useCallback((cardId: string) => {
-		const el = document.querySelector<HTMLElement>(
-			`[data-slot="kanban-card"][data-card-id="${CSS.escape(cardId)}"]`,
-		)
-
-		el?.focus()
-	}, [])
 
 	const focusNeighbor = useCallback(
 		(
@@ -313,15 +294,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 					break
 			}
 		},
-		[liftedCardId, moveWithinColumn, moveToColumn, focusNeighbor, locate],
+		[liftedCardId, setLiftedCardId, moveWithinColumn, moveToColumn, focusNeighbor, locate],
 	)
-
-	const onCardBlur = useCallback(() => {
-		// Blur events during cross-column refocusing do not clear lifted state.
-		if (movingRef.current) return
-
-		setLiftedCardId(null)
-	}, [])
 
 	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }
 }

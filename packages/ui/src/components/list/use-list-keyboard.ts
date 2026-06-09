@@ -1,14 +1,12 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useRef, useState } from 'react'
-import { accessibleName, announce } from '../../core'
+import { type KeyboardEvent, useCallback } from 'react'
+import { accessibleName, announce, querySlot } from '../../core'
+import { useKeyboardLifted } from '../../hooks'
 import type { Orientation } from '../../types'
 import { moveItem } from '../../utilities'
 
-const itemName = (id: string) =>
-	accessibleName(
-		document.querySelector(`[data-slot="list-item"][data-item-id="${CSS.escape(id)}"]`),
-	)
+const itemName = (id: string) => accessibleName(querySlot('list-item', 'item-id', id))
 
 type Options<T> = {
 	items: T[]
@@ -24,30 +22,16 @@ type Options<T> = {
  * visible during a keyboard move — mirrors the behavior of `useKanbanKeyboard`.
  */
 export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Options<T>) {
-	const [liftedId, setLiftedId] = useState<string | null>(null)
-
-	const movingRef = useRef(false)
-
 	const focusItem = useCallback((id: string) => {
-		const el = document.querySelector<HTMLElement>(
-			`[data-slot="list-item"][data-item-id="${CSS.escape(id)}"]`,
-		)
-
-		el?.focus()
+		querySlot('list-item', 'item-id', id)?.focus()
 	}, [])
 
-	const refocusItem = useCallback(
-		(id: string) => {
-			movingRef.current = true
-
-			requestAnimationFrame(() => {
-				focusItem(id)
-
-				movingRef.current = false
-			})
-		},
-		[focusItem],
-	)
+	const {
+		liftedId,
+		setLiftedId,
+		refocus: refocusItem,
+		onBlur: onItemBlur,
+	} = useKeyboardLifted(focusItem)
 
 	const focusNeighbor = useCallback(
 		(id: string, direction: -1 | 1 | 'start' | 'end') => {
@@ -192,14 +176,8 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 					break
 			}
 		},
-		[liftedId, orientation, focusNeighbor, moveByDirection, locate],
+		[liftedId, setLiftedId, orientation, focusNeighbor, moveByDirection, locate],
 	)
-
-	const onItemBlur = useCallback(() => {
-		if (movingRef.current) return
-
-		setLiftedId(null)
-	}, [])
 
 	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
 }
