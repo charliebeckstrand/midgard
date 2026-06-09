@@ -58,6 +58,7 @@ describe('Tooltip disabled gating (real browser)', () => {
 		// checkpoint that the open delay has elapsed: a failed gate would have
 		// surfaced 'Show password' by now, with no pointer-leave to close it.
 		await userEvent.keyboard('{Tab}')
+
 		await waitFor(() => expect(screen.getByText('Sentinel tip')).toBeInTheDocument())
 
 		expect(screen.queryByText('Show password')).not.toBeInTheDocument()
@@ -80,6 +81,7 @@ describe('Tooltip disabled gating (real browser)', () => {
 		const { container, rerender } = renderUI(<Harness disabled={false} />)
 
 		await userEvent.hover(bySlot(container, 'tooltip-trigger') as HTMLElement)
+
 		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
 
 		rerender(<Harness disabled />)
