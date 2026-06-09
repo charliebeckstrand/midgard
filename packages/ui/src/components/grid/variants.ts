@@ -137,12 +137,19 @@ export function resolveRows(value: Responsive<number> | undefined): ResolvedResp
 	return resolveScalar(value, 'rows', rows, asNumber)
 }
 
-export function resolveGap(value: Responsive<GridGap> | undefined): string[] {
-	return resolveResponsive(value, (v, bp) => {
-		const cls = gapMap[v]
+// Literal breakpoint rows so the Tailwind scanner sources `sm:gap-2` etc.;
+// interpolation (`${bp}:${cls}`) is invisible to it. `initial` reuses the kata.
+const responsiveGapMap: Record<Breakpoint, Record<GridGap, string>> = {
+	initial: gapMap,
+	sm: { xs: 'sm:gap-1', sm: 'sm:gap-2', md: 'sm:gap-3', lg: 'sm:gap-4', xl: 'sm:gap-6' },
+	md: { xs: 'md:gap-1', sm: 'md:gap-2', md: 'md:gap-3', lg: 'md:gap-4', xl: 'md:gap-6' },
+	lg: { xs: 'lg:gap-1', sm: 'lg:gap-2', md: 'lg:gap-3', lg: 'lg:gap-4', xl: 'lg:gap-6' },
+	xl: { xs: 'xl:gap-1', sm: 'xl:gap-2', md: 'xl:gap-3', lg: 'xl:gap-4', xl: 'xl:gap-6' },
+	'2xl': { xs: '2xl:gap-1', sm: '2xl:gap-2', md: '2xl:gap-3', lg: '2xl:gap-4', xl: '2xl:gap-6' },
+}
 
-		return bp ? `${bp}:${cls}` : cls
-	})
+export function resolveGap(value: Responsive<GridGap> | undefined): string[] {
+	return resolveResponsive(value, (v, bp) => responsiveGapMap[bp ?? 'initial'][v])
 }
 
 export function resolveRowSpan(value: Responsive<number> | undefined): ResolvedResponsive {
