@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactNode, useCallback } from 'react'
+import { type ReactNode, useCallback, useEffect } from 'react'
+import { usePanelA11y } from '../../primitives/panel'
 import { Button, type ButtonVariants } from '../button'
 import {
 	Dialog,
@@ -10,6 +11,24 @@ import {
 	type DialogPanelVariants,
 	DialogTitle,
 } from '../dialog'
+
+/**
+ * Registers `children` as the alertdialog's description when no explicit
+ * `description` slot renders — `role="alertdialog"` requires its message to
+ * be referenced by `aria-describedby`, and children are the message in the
+ * title + children form.
+ */
+function ConfirmBody({ children }: { children: ReactNode }) {
+	const { descriptionId, registerDescription } = usePanelA11y()
+
+	useEffect(() => registerDescription?.(), [registerDescription])
+
+	return (
+		<div id={descriptionId} data-slot="confirm-body">
+			{children}
+		</div>
+	)
+}
 
 type ConfirmAction = {
 	label?: string
@@ -59,7 +78,8 @@ export function Confirm({
 					{description && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
 			)}
-			{children}
+			{children !== undefined &&
+				(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
 			<DialogFooter>
 				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
 					{cancel?.label ?? 'Cancel'}
