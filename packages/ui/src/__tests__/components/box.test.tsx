@@ -2,18 +2,10 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, itForwardsRef, renderUI } from '../helpers'
 
 describe('Box', () => {
-	it('forwards ref', () => {
-		const ref = createRef<HTMLDivElement>()
-
-		const { container } = renderUI(<Box ref={ref}>content</Box>)
-
-		expect(ref.current).toBeInstanceOf(HTMLDivElement)
-
-		expect(ref.current).toBe(bySlot(container, 'box'))
-	})
+	itForwardsRef<HTMLDivElement>((ref) => <Box ref={ref}>content</Box>, 'box')
 
 	it('renders as a link when href is provided', () => {
 		const { container } = renderUI(<Box href="/path">Link</Box>)

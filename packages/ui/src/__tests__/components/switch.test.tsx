@@ -2,17 +2,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, expectSlot, fireEvent, itRendersSkeletonPlaceholder, renderUI } from '../helpers'
 
 describe('Switch', () => {
 	it('renders a checkbox input with data-slot="switch"', () => {
 		const { container } = renderUI(<Switch />)
 
-		const input = bySlot(container, 'switch')
-
-		expect(input).toBeInTheDocument()
-
-		expect(input?.tagName).toBe('INPUT')
+		const input = expectSlot(container, 'switch', 'input')
 
 		expect(input).toHaveAttribute('type', 'checkbox')
 	})
@@ -41,12 +37,7 @@ describe('Switch', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Switch />, { skeleton: true })
-
-		expect(bySlot(container, 'switch')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
+	itRendersSkeletonPlaceholder(<Switch />, 'switch')
 })
 
 describe('Switch size resolution', () => {
