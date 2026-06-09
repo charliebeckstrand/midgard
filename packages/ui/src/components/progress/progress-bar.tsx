@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import { useSize } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
@@ -27,6 +28,8 @@ export function ProgressBar({
 	className,
 	...labelProps
 }: ProgressBarProps) {
+	const resolvedSize = useSize(size)
+
 	const determinate = value != null
 
 	const percent = determinate ? clamp(pct(value, 0, max), 0, 100) : 0
@@ -39,7 +42,7 @@ export function ProgressBar({
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(k({ size }), className)}
+			className={cn(k({ size: resolvedSize }), className)}
 		>
 			{determinate ? (
 				<ReducedMotion>
