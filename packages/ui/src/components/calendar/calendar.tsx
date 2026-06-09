@@ -242,6 +242,7 @@ export function Calendar({
 					getDayProps={getDayProps}
 					onSelect={handleSelect}
 					monthLabel={monthLabel}
+					localeTag={localeTag}
 				/>
 			</div>
 		</Density>
