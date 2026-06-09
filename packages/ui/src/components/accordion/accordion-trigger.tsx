@@ -39,6 +39,9 @@ export function AccordionTrigger({
 				{...props}
 				data-slot="accordion-trigger"
 				{...triggerProps}
+				// The panel unmounts while closed (AnimatePresence), so the reference
+				// is set only while its target id exists — the Stepper pattern.
+				aria-controls={open ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
 				onClick={(e) => {
 					toggle()
