@@ -65,6 +65,31 @@ describe('DataTableColumnManager', () => {
 		expect(onOrderChange).toHaveBeenCalledWith(['name', 'role', 'email'])
 	})
 
+	it('preserves ids outside the manager set (select/actions) in place on reorder', () => {
+		const onOrderChange = vi.fn()
+
+		// The DataTable's full order includes the selection and actions columns,
+		// which are filtered out of the manager's `columns` — they must survive
+		// a reorder in their original positions rather than being dropped.
+		const { container } = renderUI(
+			<DataTableColumnManager
+				columns={columns}
+				order={['select', 'name', 'email', 'role', 'actions']}
+				onOrderChange={onOrderChange}
+			/>,
+		)
+
+		const email = allBySlot(container, 'list-item')[1] as HTMLElement
+
+		email.focus()
+
+		fireEvent.keyDown(email, { key: ' ' })
+
+		fireEvent.keyDown(email, { key: 'ArrowDown' })
+
+		expect(onOrderChange).toHaveBeenCalledWith(['select', 'name', 'role', 'email', 'actions'])
+	})
+
 	it('renders a save-preset button only when onSavePreset is provided', () => {
 		const { rerender } = renderUI(<DataTableColumnManager columns={columns} />)
 

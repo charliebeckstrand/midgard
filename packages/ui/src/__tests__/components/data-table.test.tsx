@@ -705,5 +705,57 @@ describe('DataTable', () => {
 
 			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
 		})
+
+		it('exposes grid semantics so the row/col index scheme is honored', () => {
+			const { container } = renderUI(
+				<DataTable
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+				/>,
+			)
+
+			const table = container.querySelector('table')
+
+			// aria-rowindex/rowcount are inert on a plain role="table".
+			expect(table).toHaveAttribute('role', 'grid')
+
+			expect(table).toHaveAttribute('aria-colcount', String(columns.length))
+
+			const headers = container.querySelectorAll('thead th')
+
+			expect(headers[0]).toHaveAttribute('aria-colindex', '1')
+
+			expect(headers[headers.length - 1]).toHaveAttribute('aria-colindex', String(columns.length))
+		})
+
+		it('keeps the native table role when not virtualized', () => {
+			const { container } = renderUI(
+				<DataTable columns={columns} rows={manyRows} getKey={getKey} />,
+			)
+
+			const table = container.querySelector('table')
+
+			expect(table).not.toHaveAttribute('role', 'grid')
+
+			expect(table).not.toHaveAttribute('aria-colcount')
+		})
+	})
+
+	it('labels selection checkboxes with rowLabel instead of the raw key', () => {
+		const selectColumns = [{ id: 'select', selectable: true }, ...columns]
+
+		renderUI(
+			<DataTable
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={(row) => `${row.name}, age ${row.age}`}
+			/>,
+		)
+
+		expect(screen.getByRole('checkbox', { name: 'Select Alice, age 30' })).toBeInTheDocument()
 	})
 })

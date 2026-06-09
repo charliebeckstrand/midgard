@@ -12,6 +12,7 @@ type DataTableBodyProps<T> = {
 	getKey: (row: T, index: number) => string | number
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
+	rowLabel?: (row: T) => string
 	empty: ReactNode
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
@@ -30,6 +31,7 @@ export function DataTableBody<T>({
 	getKey,
 	rowLoading,
 	rowClassName,
+	rowLabel,
 	empty,
 	selection,
 	toggleRow,
@@ -48,6 +50,7 @@ export function DataTableBody<T>({
 				visibleColumns={visibleColumns}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
+				rowLabel={rowLabel}
 				selection={selection}
 				toggleRow={toggleRow}
 				estimateSize={virtualize.estimateSize}
@@ -69,6 +72,7 @@ export function DataTableBody<T>({
 						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
+						rowLabel={rowLabel?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						dataRowIndex={index}

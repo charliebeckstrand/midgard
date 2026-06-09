@@ -25,11 +25,15 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 	return (
 		<TableHead>
 			<TableRow aria-rowindex={virtualized ? 1 : undefined}>
-				{columns.map((col) => {
+				{columns.map((col, colIdx) => {
+					// Header column indices accompany the virtualized row-index scheme.
+					const colIndex = virtualized ? colIdx + 1 : undefined
+
 					if (col.selectable) {
 						return (
 							<TableHeader
 								key={col.id}
+								aria-colindex={colIndex}
 								className={cn(k.selectCell, stickyHeader && k.sticky.head, col.headerClassName)}
 								style={col.width ? { width: col.width } : undefined}
 							>
@@ -51,6 +55,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 						<DataTableColumnHeader
 							key={col.id}
 							column={col}
+							colIndex={colIndex}
 							sorted={sorted}
 							direction={sorted ? sort?.direction : undefined}
 							stickyHeader={stickyHeader}
@@ -65,6 +70,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 
 type DataTableColumnHeaderProps = {
 	column: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
+	colIndex: number | undefined
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean
@@ -73,6 +79,7 @@ type DataTableColumnHeaderProps = {
 
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	column,
+	colIndex,
 	sorted,
 	direction,
 	stickyHeader,
@@ -80,6 +87,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 }: DataTableColumnHeaderProps) {
 	return (
 		<TableHeader
+			aria-colindex={colIndex}
 			aria-sort={
 				column.sortable
 					? sorted
