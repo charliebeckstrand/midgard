@@ -22,6 +22,32 @@ export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never
 	? { className?: string }
 	: { size?: S; className?: string }
 
+// Widest-to-narrowest order of the resolvable sizes. A skeleton recipe's `size`
+// map is keyed by Step (sm/md/lg), but `useSize` can resolve a sub-Step value
+// (xs/xl) inherited from a control affix; clamp those to the nearest key the
+// recipe actually defines so the silhouette class isn't dropped.
+const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): ClassValue {
+	if (resolved in sizeMap) return sizeMap[resolved]
+
+	const index = MA_ORDER.indexOf(resolved as (typeof MA_ORDER)[number])
+
+	if (index === -1) return undefined
+
+	for (let distance = 1; distance < MA_ORDER.length; distance++) {
+		const lower = MA_ORDER[index - distance]
+
+		if (lower && lower in sizeMap) return sizeMap[lower]
+
+		const higher = MA_ORDER[index + distance]
+
+		if (higher && higher in sizeMap) return sizeMap[higher]
+	}
+
+	return undefined
+}
+
 /**
  * Build a skeleton component from a recipe's `skeleton` surface, rendering a
  * `<Placeholder>` that carries the recipe's shape classes.
@@ -54,7 +80,10 @@ export function createSkeleton<S extends ResolvableSize>(
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
 		const resolvedSize = useSize(size)
 
-		const sizeClass = 'size' in skeleton ? skeleton.size[resolvedSize] : undefined
+		const sizeClass =
+			'size' in skeleton
+				? sizeClassFor(skeleton.size as Record<string, ClassValue>, resolvedSize)
+				: undefined
 
 		return createElement(Placeholder, {
 			className: cn(skeleton.base, sizeClass, className),
