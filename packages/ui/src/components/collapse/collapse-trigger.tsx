@@ -22,6 +22,9 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			{...props}
 			data-slot="collapse-trigger"
 			{...triggerProps}
+			// The panel unmounts while closed (AnimatePresence), so the reference
+			// is set only while its target id exists — the Stepper pattern.
+			aria-controls={open ? triggerProps['aria-controls'] : undefined}
 			onClick={(e) => {
 				toggle()
 				onClick?.(e)
