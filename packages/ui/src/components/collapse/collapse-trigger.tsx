@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { cn } from '../../core/cn'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
