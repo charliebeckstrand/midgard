@@ -2,15 +2,69 @@ import type { LngLat, RouteData } from './types'
 
 export type SegmentStatus = 'pending' | 'active' | 'done'
 
+/** Index of the path point nearest `position` (squared planar distance). */
+function nearestPathIndex(path: LngLat[], position: LngLat): number {
+	let best = 0
+
+	let bestDist = Number.POSITIVE_INFINITY
+
+	for (let i = 0; i < path.length; i++) {
+		const point = path[i]
+
+		if (!point) continue
+
+		const dx = point[0] - position[0]
+
+		const dy = point[1] - position[1]
+
+		const dist = dx * dx + dy * dy
+
+		if (dist < bestDist) {
+			bestDist = dist
+
+			best = i
+		}
+	}
+
+	return best
+}
+
+/** Largest stop index whose boundary path-point sits at or before `segmentIndex`. */
+function stopIndexForSegment(boundaries: number[], segmentIndex: number): number {
+	let stopIndex = 0
+
+	for (let k = 0; k < boundaries.length; k++) {
+		const boundary = boundaries[k]
+
+		if (boundary !== undefined && boundary <= segmentIndex) stopIndex = k
+	}
+
+	return stopIndex
+}
+
 /**
- * Build one GeoJSON LineString feature per segment between consecutive stops,
- * tagged with the status that determines its color.
+ * Build one GeoJSON LineString feature per segment between consecutive path
+ * points, tagged with the status that determines its color.
  *
  * Segment rule: a segment inherits its starting stop's status; a done → active
- * transition keeps the completed portion green up to the current position.
+ * transition keeps the completed portion green up to the current position. When
+ * an explicit `path` is supplied (denser than `stops`), segments are assigned to
+ * the stop interval they fall within — matching each stop to its nearest path
+ * point — instead of indexing `stops` by the dense path index.
  */
 export function toSegmentCollection(data: RouteData) {
-	const path: LngLat[] = data.path ?? data.stops.map((s) => s.position)
+	const stops = data.stops
+
+	const explicitPath = data.path
+
+	const path: LngLat[] = explicitPath ?? stops.map((s) => s.position)
+
+	// Without an explicit path the points ARE the stops, so the mapping is the
+	// identity (boundaries[i] === i); otherwise each stop maps to its nearest
+	// path point and a segment inherits the interval it lies within.
+	const boundaries = explicitPath
+		? stops.map((s) => nearestPathIndex(path, s.position))
+		: stops.map((_, i) => i)
 
 	const segments: Array<{
 		type: 'Feature'
@@ -25,9 +79,11 @@ export function toSegmentCollection(data: RouteData) {
 
 		if (!fromPoint || !toPoint) continue
 
-		const from = data.stops[i]?.status
+		const stopIndex = stopIndexForSegment(boundaries, i)
 
-		const to = data.stops[i + 1]?.status
+		const from = stops[stopIndex]?.status
+
+		const to = stops[stopIndex + 1]?.status
 
 		let status: SegmentStatus = 'pending'
 
