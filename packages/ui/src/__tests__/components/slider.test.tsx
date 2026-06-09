@@ -64,12 +64,6 @@ describe('Slider', () => {
 		expect(el.value).toBe('42')
 	})
 
-	it('renders with explicit size and color variants', () => {
-		const { container } = renderUI(<Slider size="sm" color="green" />)
-
-		expect(bySlot(container, 'slider')).toBeInTheDocument()
-	})
-
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {
 		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
 

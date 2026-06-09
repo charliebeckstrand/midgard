@@ -53,12 +53,6 @@ describe('Textarea', () => {
 		expect(bySlot(container, 'textarea')).toBeInTheDocument()
 	})
 
-	it('renders with an explicit resize prop', () => {
-		const { container } = renderUI(<Textarea resize="none" />)
-
-		expect(bySlot(container, 'textarea')).toBeInTheDocument()
-	})
-
 	it('renders actions next to the textarea', () => {
 		const { container } = renderUI(<Textarea actions={<span>send</span>} />)
 

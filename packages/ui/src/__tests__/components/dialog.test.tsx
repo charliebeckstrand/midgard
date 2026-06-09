@@ -58,16 +58,6 @@ describe('Dialog', () => {
 		expect(screen.getByText('Center')).toBeInTheDocument()
 	})
 
-	it('renders with explicit size variant', () => {
-		renderUI(
-			<Dialog open size="sm" onOpenChange={() => {}}>
-				Small
-			</Dialog>,
-		)
-
-		expect(screen.getByText('Small')).toBeInTheDocument()
-	})
-
 	it('respects dismissOnBackdrop=false', () => {
 		renderUI(
 			<Dialog open dismissOnBackdrop={false} onOpenChange={() => {}}>

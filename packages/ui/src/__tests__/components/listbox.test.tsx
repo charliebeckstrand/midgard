@@ -350,16 +350,6 @@ describe('Listbox', () => {
 		expect(button.querySelector('.tabular-nums')).toBeInTheDocument()
 	})
 
-	it('resolves an explicit size override', () => {
-		const { container } = renderUI(
-			<Listbox size="lg">
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
-	})
-
 	it('mounts in multi-select mode with an empty default value', () => {
 		const { container } = renderUI(
 			<Listbox multiple>

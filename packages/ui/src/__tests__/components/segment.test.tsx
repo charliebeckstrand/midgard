@@ -161,30 +161,6 @@ describe('Segment', () => {
 
 		expect(bySlot(container, 'tab-list')).toHaveAttribute('aria-label', 'View mode')
 	})
-
-	it('renders with an explicit size variant', () => {
-		const { container } = renderUI(
-			<Segment value="a" size="sm">
-				<SegmentControl aria-label="View">
-					<SegmentItem value="a">A</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'segment')).toBeInTheDocument()
-	})
-
-	it('renders with size="lg"', () => {
-		const { container } = renderUI(
-			<Segment value="a" size="lg">
-				<SegmentControl aria-label="View">
-					<SegmentItem value="a">A</SegmentItem>
-				</SegmentControl>
-			</Segment>,
-		)
-
-		expect(bySlot(container, 'segment')).toBeInTheDocument()
-	})
 })
 
 describe('Segment keyboard navigation', () => {

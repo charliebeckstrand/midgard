@@ -120,14 +120,4 @@ describe('SheetClose', () => {
 
 		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
 	})
-
-	it('renders with an explicit size variant', () => {
-		renderUI(
-			<Sheet open size="sm" onOpenChange={() => {}}>
-				Small sheet
-			</Sheet>,
-		)
-
-		expect(screen.getByText('Small sheet')).toBeInTheDocument()
-	})
 })

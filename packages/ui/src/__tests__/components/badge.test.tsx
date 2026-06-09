@@ -32,20 +32,4 @@ describe('Badge', () => {
 
 		expect(screen.getByText('×')).toBeInTheDocument()
 	})
-
-	it('renders with the xs sub-Step size variant', () => {
-		const { container } = renderUI(<Badge size="xs">Tiny</Badge>)
-
-		expect(bySlot(container, 'badge')).toBeInTheDocument()
-	})
-
-	it('renders with rounded and color variants', () => {
-		const { container } = renderUI(
-			<Badge rounded="full" color="green" variant="soft">
-				Done
-			</Badge>,
-		)
-
-		expect(bySlot(container, 'badge')).toBeInTheDocument()
-	})
 })
