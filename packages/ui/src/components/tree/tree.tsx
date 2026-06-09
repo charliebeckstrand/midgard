@@ -1,6 +1,13 @@
 'use client'
 
-import { type FocusEvent, type ReactNode, useEffect, useMemo, useRef } from 'react'
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	type ReactNode,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
@@ -26,11 +33,29 @@ export type TreeProps = AccessibleName & {
 export function Tree({ size, indent = false, children, className, ...labelProps }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useA11yRoving(ref, {
+	const rovingKeyDown = useA11yRoving(ref, {
 		itemSelector: ITEM_SELECTOR,
 		orientation: 'vertical',
 		focusOnEmpty: true,
 	})
+
+	// `focusOnEmpty` seeds the first item when no treeitem is active, but a
+	// focused prefix/suffix control inside an item also reads as "empty"
+	// (indexOf === -1). Only let roving run for the tree container itself or a
+	// treeitem, so arrows/Home/End on an inner control aren't hijacked.
+	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+		const target = e.target
+
+		if (
+			target instanceof HTMLElement &&
+			target !== e.currentTarget &&
+			!target.matches(ITEM_SELECTOR)
+		) {
+			return
+		}
+
+		rovingKeyDown(e)
+	}
 
 	const inherited = useDensity()
 
