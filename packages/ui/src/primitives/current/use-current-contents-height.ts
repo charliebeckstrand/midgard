@@ -18,20 +18,29 @@ export function useCurrentContentsHeight(
 
 		if (!element || !enabled) return
 
-		const resizeObserver = new ResizeObserver(([entry]) => {
-			if (entry) setHeight(entry.contentRect.height)
+		// Track every `data-current` child's height; report the tallest. When the
+		// context value is undefined, all panels are `data-current` and stacked, so
+		// measuring only the first would clip the taller ones.
+		const heights = new Map<Element, number>()
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) heights.set(entry.target, entry.contentRect.height)
+
+			let max = 0
+
+			for (const value of heights.values()) max = Math.max(max, value)
+
+			setHeight(max)
 		})
 
-		// Observe the active child (`data-current`).
+		// Observe every active child (`data-current`).
 		const observe = () => {
 			resizeObserver.disconnect()
 
-			for (const child of element.children) {
-				if (child.hasAttribute('data-current')) {
-					resizeObserver.observe(child)
+			heights.clear()
 
-					break
-				}
+			for (const child of element.children) {
+				if (child.hasAttribute('data-current')) resizeObserver.observe(child)
 			}
 		}
 
