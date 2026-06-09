@@ -1,7 +1,7 @@
 'use client'
 
-import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
+import { useMaskInput } from './use-mask-input'
 
 export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChange'> & {
 	value?: string
@@ -11,17 +11,20 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	meaningful?: (char: string) => boolean
 }
 
-/** Input that reformats its value through `format` as the user types, preserving caret position — controlled or uncontrolled via `value`/`defaultValue`. */
+/** Input that reformats its value through `format` as the user types, preserving caret position — controlled or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form field by `name`. */
 export function MaskInput({
 	value,
 	defaultValue,
 	onValueChange,
 	format,
 	meaningful,
+	name,
+	onBlur,
 	ref,
 	...props
 }: MaskInputProps) {
-	const masked = useMaskedInput({
+	const masked = useMaskInput({
+		name,
 		value,
 		defaultValue,
 		onChange: onValueChange,
@@ -34,8 +37,14 @@ export function MaskInput({
 		<Input
 			ref={masked.ref}
 			data-slot="mask-input"
+			name={name}
 			value={masked.value}
 			onChange={masked.onChange}
+			onBlur={(e) => {
+				masked.onBlur()
+
+				onBlur?.(e)
+			}}
 			{...props}
 		/>
 	)

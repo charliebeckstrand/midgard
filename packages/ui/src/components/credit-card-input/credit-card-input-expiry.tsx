@@ -1,7 +1,7 @@
 'use client'
 
-import { useMaskedInput } from '../../hooks'
 import { Input, type InputProps } from '../input'
+import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
 export type CreditCardInputExpiryProps = Omit<
@@ -22,10 +22,13 @@ export function CreditCardInputExpiry({
 	placeholder,
 	onValueChange,
 	onValidityChange,
+	name,
+	onBlur,
 	ref,
 	...props
 }: CreditCardInputExpiryProps) {
-	const masked = useMaskedInput({
+	const masked = useMaskInput({
+		name,
 		value,
 		defaultValue,
 		onChange: onValueChange,
@@ -40,7 +43,13 @@ export function CreditCardInputExpiry({
 			inputMode="numeric"
 			autoComplete="cc-exp"
 			placeholder={placeholder ?? 'MM/YY'}
+			name={name}
 			value={masked.value}
+			onBlur={(e) => {
+				masked.onBlur()
+
+				onBlur?.(e)
+			}}
 			onChange={(e) => {
 				const raw = e.target.value
 

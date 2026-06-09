@@ -1,7 +1,8 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -128,5 +129,31 @@ describe('MaskInput', () => {
 		const input = bySlot(container, 'mask-input')
 
 		expect(input).toBeDisabled()
+	})
+
+	it('binds to a Form field by name, storing the formatted text', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ code: '' }} onSubmit={onSubmit}>
+				<MaskInput name="code" format={formatGroups} />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const input = bySlot(container, 'mask-input') as HTMLInputElement
+
+		await user.type(input, '123456')
+
+		expect(input.value).toBe('123-456')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ code: '123-456' }),
+			expect.anything(),
+		)
 	})
 })
