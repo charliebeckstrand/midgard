@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { densityPresets, useDensity } from '../../primitives/density'
@@ -11,13 +11,14 @@ import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/use-form-text'
-import { Placeholder } from '../placeholder'
+import { TextareaSkeleton } from './textarea-skeleton'
 
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'
 	className?: string
 	actions?: ReactNode
+	ref?: Ref<HTMLTextAreaElement>
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
 /**
@@ -49,6 +50,7 @@ export function Textarea(props: TextareaProps) {
 		onBlur,
 		rows = 3,
 		style,
+		ref,
 		'aria-describedby': ariaDescribedBy,
 		...rest
 	} = props
@@ -80,12 +82,7 @@ export function Textarea(props: TextareaProps) {
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder
-				className={cn(k.skeleton.base, className)}
-				style={{ height: `calc(${rows}lh + 1rem)` }}
-			/>
-		)
+		return <TextareaSkeleton rows={rows} className={className} />
 	}
 
 	// An explicit `value` prop takes ownership of the controlled state;
@@ -119,6 +116,7 @@ export function Textarea(props: TextareaProps) {
 		>
 			<textarea
 				data-slot="textarea"
+				ref={ref}
 				{...controlProps}
 				rows={rows}
 				style={hasActionsStyle}
