@@ -14,8 +14,8 @@ export type A11yPanelRole = 'dialog' | 'alertdialog'
 export type A11yPanelProviderValue = {
 	titleId: string
 	descriptionId: string
-	registerTitle: () => () => void
-	registerDescription: () => () => void
+	registerTitle: (renderedId?: string) => () => void
+	registerDescription: (renderedId?: string) => () => void
 }
 
 export type A11yPanel = {

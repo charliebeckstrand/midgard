@@ -20,7 +20,7 @@ export function Label({ className, htmlFor, id, ...props }: LabelProps) {
 	// while the Label is rendered, keeping the reference live and accurate.
 	const registerLabel = control?.registerLabel
 
-	useEffect(() => registerLabel?.(), [registerLabel])
+	useEffect(() => registerLabel?.(id), [registerLabel, id])
 
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control

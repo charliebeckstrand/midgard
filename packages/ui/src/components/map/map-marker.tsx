@@ -67,7 +67,9 @@ export function MapMarker({
 
 			if (init.className) el.className = init.className
 
-			const marker = new Marker({ element: el, anchor: init.anchor })
+			// `anchor` is read from the closure (not the ref) so it stays a genuine
+			// dependency — the marker is recreated when it changes.
+			const marker = new Marker({ element: el, anchor })
 
 			markerRef.current = marker
 
@@ -89,11 +91,29 @@ export function MapMarker({
 
 			setElement(null)
 		}
-	}, [onReady])
+		// `anchor` has no public maplibre setter, so the marker is recreated when it
+		// changes; position and className are synced in place by the effects below.
+	}, [onReady, anchor])
 
 	useEffect(() => {
 		markerRef.current?.setLngLat(position)
 	}, [position])
+
+	// Sync className in place without clobbering maplibre's own marker classes:
+	// remove the previously-applied tokens, then add the current ones.
+	const appliedClassRef = useRef(className)
+
+	useEffect(() => {
+		if (!element) return
+
+		const prev = appliedClassRef.current
+
+		if (prev) element.classList.remove(...prev.split(/\s+/).filter(Boolean))
+
+		if (className) element.classList.add(...className.split(/\s+/).filter(Boolean))
+
+		appliedClassRef.current = className
+	}, [element, className])
 
 	const onClickRef = useRef(onClick)
 

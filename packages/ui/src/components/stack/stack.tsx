@@ -2,6 +2,7 @@
 
 import { useDensityNullable } from '../../primitives/density'
 import { FlexBase, type FlexProps } from '../flex'
+import { defaultAlignFromDirection } from '../flex/flex-utilities'
 
 export type StackProps = FlexProps
 
@@ -12,10 +13,22 @@ export type StackProps = FlexProps
  * inside `<DensityProvider density="compact">` (or any Density provider) inherits the
  * matching spacing step without further wiring.
  */
-export function Stack({ direction = 'col', gap, ...props }: StackProps) {
+export function Stack({ direction = 'col', align, gap, ...props }: StackProps) {
 	const density = useDensityNullable()
 
 	const resolvedGap = gap ?? density?.space ?? 'md'
 
-	return <FlexBase data-slot="stack" direction={direction} gap={resolvedGap} {...props} />
+	// Match Flex: a column stack aligns children to the start so auto-width
+	// children keep their intrinsic width instead of stretching (items-stretch).
+	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
+
+	return (
+		<FlexBase
+			data-slot="stack"
+			direction={direction}
+			align={resolvedAlign}
+			gap={resolvedGap}
+			{...props}
+		/>
+	)
 }

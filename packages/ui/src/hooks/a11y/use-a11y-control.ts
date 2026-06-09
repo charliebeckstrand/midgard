@@ -20,10 +20,13 @@ export type A11yControl = {
 	descriptionId: string
 	/** Id the error Message slot renders with. */
 	messageId: string
-	/** Slot registration — Label / Description / error Message call these on mount. */
-	registerLabel: () => () => void
-	registerDescription: () => () => void
-	registerMessage: () => () => void
+	/**
+	 * Slot registration — Label / Description / error Message call these on mount,
+	 * passing the id they actually render so `aria-*` never references a dangling id.
+	 */
+	registerLabel: (renderedId?: string) => () => void
+	registerDescription: (renderedId?: string) => () => void
+	registerMessage: (renderedId?: string) => () => void
 }
 
 /**

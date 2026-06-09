@@ -46,111 +46,113 @@ None.
 
 ### Medium
 
-**AccordionTrigger props clobber a11y wiring** — `components/accordion/accordion-trigger.tsx:35-46`. `{...props}` spreads after `id`/`aria-*`/`disabled`/`data-slot`, so a consumer `id` orphans the panel's `aria-labelledby`; `data-slot`/`disabled` overrides break roving-tabindex and context-disabled. Fix: spread props before internal wiring.
+_Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked ✅ below. Unmarked items are either left to the High-bugs session or its active files (FiltersField, useControllable, floating sidebar, JsonTree Tab, polite toasts), tractable-but-not-yet-done (Calendar `initialFocus`, ScrollArea ResizeObserver), or the risky/public-API tail (Grid `span='full'`, List `getKey`, use-pending-caret ×2)._
 
-**Address suggestions spinner stuck on after close** — `components/address-input/use-address-input-suggestions.ts:35-92`. When `enabled` flips false mid-flight, the effect early-returns before `setLoading(false)`, leaving a perpetual spinner on the closed field. Fix: reset loading in the disabled branch/cleanup.
+✅ **AccordionTrigger props clobber a11y wiring** — `components/accordion/accordion-trigger.tsx:35-46`. `{...props}` spreads after `id`/`aria-*`/`disabled`/`data-slot`, so a consumer `id` orphans the panel's `aria-labelledby`; `data-slot`/`disabled` overrides break roving-tabindex and context-disabled. Fix: spread props before internal wiring.
 
-**Address menu reflickers on every keystroke** — `components/address-input/use-address-input-suggestions.ts:50-52`. `setReady(false)` fires synchronously per keystroke, driving `open` false and unmounting the panel until the debounced fetch resolves. Fix: don't collapse `ready` while results are showing.
+✅ **Address suggestions spinner stuck on after close** — `components/address-input/use-address-input-suggestions.ts:35-92`. When `enabled` flips false mid-flight, the effect early-returns before `setLoading(false)`, leaving a perpetual spinner on the closed field. Fix: reset loading in the disabled branch/cleanup.
 
-**Calendar picker state not reset on imperative open** — `components/calendar/use-calendar-picker.tsx:105-112`. The `open` reducer reset only fires from the Popover's `onOpenChange`; `openPicker()` bypasses it, reopening with stale view/year and navigating wrong on month select. Fix: reset reducer when `pickerOpen` transitions true.
+✅ **Address menu reflickers on every keystroke** — `components/address-input/use-address-input-suggestions.ts:50-52`. `setReady(false)` fires synchronously per keystroke, driving `open` false and unmounting the panel until the debounced fetch resolves. Fix: don't collapse `ready` while results are showing.
 
-**System chat message announced as "Assistant said"** — `components/chat-message/chat-message.tsx:32`. The author-label ternary only distinguishes `user`; `type="system"` falls to the assistant branch, mis-attributing system status lines. Fix: handle/omit the prefix for `system`.
+✅ **Calendar picker state not reset on imperative open** — `components/calendar/use-calendar-picker.tsx:105-112`. The `open` reducer reset only fires from the Popover's `onOpenChange`; `openPicker()` bypasses it, reopening with stale view/year and navigating wrong on month select. Fix: reset reducer when `pickerOpen` transitions true.
 
-**CodeBlock renders stale highlighted markup during re-tokenization** — `components/code/code-block.tsx:57-105`. On a cache-miss `code`/`lang`/`theme` change, `html` is never reset, so the previous snippet's markup renders for the full async duration instead of the plain fallback. Fix: reset `html` on input change.
+✅ **System chat message announced as "Assistant said"** — `components/chat-message/chat-message.tsx:32`. The author-label ternary only distinguishes `user`; `type="system"` falls to the assistant branch, mis-attributing system status lines. Fix: handle/omit the prefix for `system`.
 
-**ColorEyedropper SSR/client hydration mismatch** — `components/color/color-eyedropper.tsx:22-27`. `window.EyeDropper` is read during render → null on server, `<Button>` on first Chromium client render. Fix: defer the check to a mount effect.
+✅ **CodeBlock renders stale highlighted markup during re-tokenization** — `components/code/code-block.tsx:57-105`. On a cache-miss `code`/`lang`/`theme` change, `html` is never reset, so the previous snippet's markup renders for the full async duration instead of the plain fallback. Fix: reset `html` on input change.
 
-**Combobox hijacks Home/End from the editable input** — `components/combobox/use-combobox-input.ts:74-95`. Only Escape/Enter are intercepted; Home/End fall through to roving and `preventDefault` the caret jump. Fix: let Home/End reach the textbox (or guard when caret-navigable).
+✅ **ColorEyedropper SSR/client hydration mismatch** — `components/color/color-eyedropper.tsx:22-27`. `window.EyeDropper` is read during render → null on server, `<Button>` on first Chromium client render. Fix: defer the check to a mount effect.
 
-**CopyButton drops focus on copy and never restores it** — `components/copy-button/copy-button.tsx:52`. Setting `disabled` on copy blurs the button to `<body>` for the timeout and never refocuses. Fix: refocus on re-enable (or use aria-disabled).
+✅ **Combobox hijacks Home/End from the editable input** — `components/combobox/use-combobox-input.ts:74-95`. Only Escape/Enter are intercepted; Home/End fall through to roving and `preventDefault` the caret jump. Fix: let Home/End reach the textbox (or guard when caret-navigable).
 
-**CVV not re-truncated when brand shrinks max length** — `components/credit-card-input/credit-card-input-cvv.tsx:58-68`. `format` runs only on change/seed; an amex→visa brand change leaves a stored 4-digit CVV displayed under maxLength=3 and a stale validity. Fix: re-format the stored value when `maxLength` changes.
+✅ **CopyButton drops focus on copy and never restores it** — `components/copy-button/copy-button.tsx:52`. Setting `disabled` on copy blurs the button to `<body>` for the timeout and never refocuses. Fix: refocus on re-enable (or use aria-disabled).
+
+✅ **CVV not re-truncated when brand shrinks max length** — `components/credit-card-input/credit-card-input-cvv.tsx:58-68`. `format` runs only on change/seed; an amex→visa brand change leaves a stored 4-digit CVV displayed under maxLength=3 and a stale validity. Fix: re-format the stored value when `maxLength` changes.
 
 **Calendar dialog opens focused on "Previous month"** — `components/date-picker/date-picker-content.tsx:55-65`. `FloatingFocusManager` is `modal` with no `initialFocus`, so floating-ui's default lands on the first tabbable (the prev-month button) instead of the grid. Fix: set `initialFocus` to the selected/today day.
 
-**Description custom `id` → dangling `aria-describedby`** — `components/fieldset/description.tsx:22-30`. Registration composes `control.descriptionId` while the element renders `id ?? control.descriptionId`; a custom id orphans the reference. Fix: register/compose the rendered id.
+✅ **Description custom `id` → dangling `aria-describedby`** — `components/fieldset/description.tsx:22-30`. Registration composes `control.descriptionId` while the element renders `id ?? control.descriptionId`; a custom id orphans the reference. Fix: register/compose the rendered id.
 
-**Message custom `id` → dangling `aria-describedby`** — `components/fieldset/message.tsx:49-59`. Same mechanism for the error slot's `messageId`. Fix: as above.
+✅ **Message custom `id` → dangling `aria-describedby`** — `components/fieldset/message.tsx:49-59`. Same mechanism for the error slot's `messageId`. Fix: as above.
 
-**Label custom `id` → dangling `aria-labelledby`** — `components/fieldset/label.tsx:23-31`. Same mechanism; portalled listbox/combobox popups read `control.labelledBy` and end up unnamed. Fix: as above.
+✅ **Label custom `id` → dangling `aria-labelledby`** — `components/fieldset/label.tsx:23-31`. Same mechanism; portalled listbox/combobox popups read `control.labelledBy` and end up unnamed. Fix: as above.
 
-**File input reset to '' defeats native `required`** — `components/file-upload/use-file-upload-handlers.ts:48-57`. `e.target.value = ''` (for same-file reselect) empties the FileList, so a `required` hidden input fails native validation on submit despite a valid pick. Fix: track validity independently of the cleared input.
+✅ **File input reset to '' defeats native `required`** — `components/file-upload/use-file-upload-handlers.ts:48-57`. `e.target.value = ''` (for same-file reselect) empties the FileList, so a `required` hidden input fails native validation on submit despite a valid pick. Fix: track validity independently of the cleared input.
 
 **FiltersField overwrites a Radio's `value`** — `components/filters/filters-field.tsx:120-127`. A cloned Radio gets `value={fieldValue}` (clobbering the author's option value) and never gets `checked`. Fix: don't overwrite `value` for radios; drive `checked`.
 
 **Grid `span='full'` + start overflows the parent** — `components/grid/variants.ts:174-178`. With columns set, `full` emits `col-span-N`; from a non-default start CSS spans N tracks past the grid edge instead of clamping. Fix: clamp end to the grid's last line.
 
-**Group produces duplicate React keys across fragment boundaries** — `components/group/use-group.ts:24-69`. Flattening hoists fragment children into one list keyed by literal `child.key`, colliding keys that were unique per scope. Fix: namespace keys by depth/index.
+✅ **Group produces duplicate React keys across fragment boundaries** — `components/group/use-group.ts:24-69`. Flattening hoists fragment children into one list keyed by literal `child.key`, colliding keys that were unique per scope. Fix: namespace keys by depth/index.
 
-**Group silently drops non-element children** — `components/group/use-group.ts:27-37`. Text/number children fail `isValidElement` and are excluded from the rendered output. Fix: preserve non-element children in place.
+✅ **Group silently drops non-element children** — `components/group/use-group.ts:27-37`. Text/number children fail `isValidElement` and are excluded from the rendered output. Fix: preserve non-element children in place.
 
-**Matched JsonTree branch can't be collapsed during search** — `components/json-tree/json-tree-node.tsx:57-97`. `search && hasMatch` force-opens `open=true` over `userOpen`, so the toggle is a permanent no-op. Fix: let `userOpen` override the force-open after user interaction.
+✅ **Matched JsonTree branch can't be collapsed during search** — `components/json-tree/json-tree-node.tsx:57-97`. `search && hasMatch` force-opens `open=true` over `userOpen`, so the toggle is a permanent no-op. Fix: let `userOpen` override the force-open after user interaction.
 
 **Virtualized JsonTree unreachable by Tab when root scrolls out** — `components/json-tree/json-tree-branch-header.tsx:41`. Tab stop is hardcoded to `depth===0`; without `manageTabIndex` the roving hook never re-seats it, so scrolling the root row out of the virtual window leaves no `tabIndex=0`. Fix: enable `manageTabIndex` or seat a stop on a mounted row.
 
-**Kanban arrow nav can't cross an empty column** — `components/kanban/use-kanban-keyboard.ts:110-125`. `focusNeighbor` inspects only the immediate neighbor; an empty adjacent column returns false and stops. Fix: skip empty columns to the next populated one.
+✅ **Kanban arrow nav can't cross an empty column** — `components/kanban/use-kanban-keyboard.ts:110-125`. `focusNeighbor` inspects only the immediate neighbor; an empty adjacent column returns false and stops. Fix: skip empty columns to the next populated one.
 
 **List index-key fallback remounts items on reorder** — `components/list/use-list-drag.ts:22-32`. The types permit `sortable=false` + `onReorder` with no `getKey`, yielding positional keys that change on reorder, breaking drag continuity and keyboard-move refocus. Fix: require `getKey` when `onReorder` is set.
 
-**MapMarker ignores className/anchor changes after mount** — `components/map/map-marker.tsx:49-96`. Only `position` is synced post-mount; className/anchor are read once at creation despite the comment. Fix: add effects re-applying className/anchor.
+✅ **MapMarker ignores className/anchor changes after mount** — `components/map/map-marker.tsx:49-96`. Only `position` is synced post-mount; className/anchor are read once at creation despite the comment. Fix: add effects re-applying className/anchor.
 
-**Map route segments mis-colored when `path` is supplied** — `components/map/map-route-utilities.ts:12-43`. The loop indexes `stops[i]`/`stops[i+1]` by dense path-segment index, so a completed route renders mostly `pending`. Fix: map path segments to stops by distance/stop boundaries, not path index.
+✅ **Map route segments mis-colored when `path` is supplied** — `components/map/map-route-utilities.ts:12-43`. The loop indexes `stops[i]`/`stops[i+1]` by dense path-segment index, so a completed route renders mostly `pending`. Fix: map path segments to stops by distance/stop boundaries, not path index.
 
-**MenuItem onClick/onKeyDown clobbered by consumer handler** — `components/menu/menu-item.tsx:68-79,90-110`. Internal `handleSelect`/`onKeyDown` precede `{...rest}`, so a consumer `onClick` drops `onAction` and leaves the menu open (live consumer: `shared/.../sidebar-user-menu.tsx:45`). Fix: compose handlers like MenuTrigger does.
+✅ **MenuItem onClick/onKeyDown clobbered by consumer handler** — `components/menu/menu-item.tsx:68-79,90-110`. Internal `handleSelect`/`onKeyDown` precede `{...rest}`, so a consumer `onClick` drops `onAction` and leaves the menu open (live consumer: `shared/.../sidebar-user-menu.tsx:45`). Fix: compose handlers like MenuTrigger does.
 
-**`disabled` fails to suppress onPasswordMatch (and swallows the later real match)** — `components/password-confirm/use-password-confirm-state.ts:43-63`. The `match` branch isn't gated by `disabled`, so it fires while disabled; `prevMatchState` then blocks the legitimate match after re-enable. Fix: gate the match branch on `disabled`.
+✅ **`disabled` fails to suppress onPasswordMatch (and swallows the later real match)** — `components/password-confirm/use-password-confirm-state.ts:43-63`. The `match` branch isn't gated by `disabled`, so it fires while disabled; `prevMatchState` then blocks the legitimate match after re-enable. Fix: gate the match branch on `disabled`.
 
-**PDF rotation state not reset on document change** — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34`. The page→degrees map survives a `src`/`pages` swap on the same instance, rotating the new doc's pages. Fix: clear rotations on document change.
+✅ **PDF rotation state not reset on document change** — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34`. The page→degrees map survives a `src`/`pages` swap on the same instance, rotating the new doc's pages. Fix: clear rotations on document change.
 
-**Skeleton drops silhouette class for xs/xl under affix cascade** — `components/placeholder/placeholder-skeleton.ts:54-61`. `useSize` resolves a wide `Ma` value (e.g. `xs` from a Button/Input affix) that indexes a Step-keyed map (`sm`/`md`/`lg`), yielding undefined with no defaults fallback. Fix: fall back to the recipe's default size when out of range.
+✅ **Skeleton drops silhouette class for xs/xl under affix cascade** — `components/placeholder/placeholder-skeleton.ts:54-61`. `useSize` resolves a wide `Ma` value (e.g. `xs` from a Button/Input affix) that indexes a Step-keyed map (`sm`/`md`/`lg`), yielding undefined with no defaults fallback. Fix: fall back to the recipe's default size when out of range.
 
-**Query-builder date round-trips through UTC, shifting the day** — `components/query-builder/query-builder-rule-value.tsx:58-67`. `toISOString().slice(0,10)` serializes local-midnight to UTC and `new Date(str)` parses YYYY-MM-DD as UTC, drifting ±1 day off-UTC. Fix: serialize/parse using local date components.
+✅ **Query-builder date round-trips through UTC, shifting the day** — `components/query-builder/query-builder-rule-value.tsx:58-67`. `toISOString().slice(0,10)` serializes local-midnight to UTC and `new Date(str)` parses YYYY-MM-DD as UTC, drifting ±1 day off-UTC. Fix: serialize/parse using local date components.
 
-**Resizable keyboard resize runs side effects inside the setSizes updater** — `components/resizable/use-resizable-panel.ts:120-135`. The updater mutates `sizesRef` and calls `onSizesChange`; StrictMode double-invokes it, firing the callback twice per keypress. Fix: run side effects outside the updater (as the drag path does).
+✅ **Resizable keyboard resize runs side effects inside the setSizes updater** — `components/resizable/use-resizable-panel.ts:120-135`. The updater mutates `sizesRef` and calls `onSizesChange`; StrictMode double-invokes it, firing the callback twice per keypress. Fix: run side effects outside the updater (as the drag path does).
 
 **ScrollArea ResizeObserver misses child add/remove** — `components/scroll-area/use-scroll-area-scrollbar.ts:57-71`. Observes only mount-time children; a viewport RO doesn't fire on its own scrollHeight change, so dynamic content leaves a stale thumb. Fix: add a MutationObserver or re-subscribe on child changes.
 
-**SignaturePad stroke style changes only apply on resize** — `components/signature-pad/use-signature-pad-canvas-sizing.ts:32-68`. `configureStroke` runs only inside `resize` (fired by ResizeObserver), so runtime `strokeColor`/`strokeWidth` changes don't reach drawn segments (dot vs line mismatch). Fix: re-apply stroke config when those props change.
+✅ **SignaturePad stroke style changes only apply on resize** — `components/signature-pad/use-signature-pad-canvas-sizing.ts:32-68`. `configureStroke` runs only inside `resize` (fired by ResizeObserver), so runtime `strokeColor`/`strokeWidth` changes don't reach drawn segments (dot vs line mismatch). Fix: re-apply stroke config when those props change.
 
-**Stack renders items-stretch instead of items-start** — `components/stack/stack.tsx:15-20`. Composing `FlexBase` directly skips Flex's `defaultAlignFromDirection('col') → 'start'`, so auto-width children stretch. Fix: apply the column align default.
+✅ **Stack renders items-stretch instead of items-start** — `components/stack/stack.tsx:15-20`. Composing `FlexBase` directly skips Flex's `defaultAlignFromDirection('col') → 'start'`, so auto-width children stretch. Fix: apply the column align default.
 
-**Stepper aria-controls dangles when panels are omitted** — `components/stepper/stepper-step.tsx:94-96`. The current step always emits `aria-controls={panelId}`, but the supported panels-free mode renders no panel. Fix: only emit when a panel is rendered.
+✅ **Stepper aria-controls dangles when panels are omitted** — `components/stepper/stepper-step.tsx:94-96`. The current step always emits `aria-controls={panelId}`, but the supported panels-free mode renders no panel. Fix: only emit when a panel is rendered.
 
-**Uncontrolled Switch ignores native form reset** — `components/switch/switch.tsx:40-87`. Switch always renders as React-controlled (`checked={on ?? false}`), so a native `type=reset` doesn't fire onChange and the value stays stale (Checkbox stays genuinely uncontrolled). Fix: leave the input uncontrolled when neither `checked` nor a binding is supplied.
+✅ **Uncontrolled Switch ignores native form reset** — `components/switch/switch.tsx:40-87`. Switch always renders as React-controlled (`checked={on ?? false}`), so a native `type=reset` doesn't fire onChange and the value stays stale (Checkbox stays genuinely uncontrolled). Fix: leave the input uncontrolled when neither `checked` nor a binding is supplied.
 
 _(Reclassified **Low** after verification — see note at top.)_ **Textarea omits `ref` from its public type** — `components/textarea/textarea.tsx:16-21`. `TextareaProps` doesn't declare `ref` (every sibling leaf does, e.g. `input.tsx:28`), so typed consumers can't pass one for focus/selection/measurement. At runtime a forced `ref` still forwards via `{...rest}` (`textarea.tsx:136`) under React 19. Fix: add `ref?: Ref<HTMLTextAreaElement>` to the type and destructure it onto the `<textarea>` for parity.
 
-**TimeAgo rolls past its own unit boundary** — `components/time-ago/use-time-ago-relative-time.ts:25-39,109-111`. Unit chosen by the bucket's lower edge but magnitude is `Math.round`, yielding "60 seconds ago"/"24 hours ago"/"7 days ago" on the common live-refresh path. Fix: roll over to the next unit when the rounded value reaches its threshold.
+✅ **TimeAgo rolls past its own unit boundary** — `components/time-ago/use-time-ago-relative-time.ts:25-39,109-111`. Unit chosen by the bucket's lower edge but magnitude is `Math.round`, yielding "60 seconds ago"/"24 hours ago"/"7 days ago" on the common live-refresh path. Fix: roll over to the next unit when the rounded value reaches its threshold.
 
-**TimeAgo `interval={0}` → render storm** — `components/time-ago/use-time-ago-relative-time.ts:87,95`. Typed `number | 'auto'` with no lower-bound clamp; `setInterval(fn, 0)` fires continuously. Fix: clamp the interval to a sane floor.
+✅ **TimeAgo `interval={0}` → render storm** — `components/time-ago/use-time-ago-relative-time.ts:87,95`. Typed `number | 'auto'` with no lower-bound clamp; `setInterval(fn, 0)` fires continuously. Fix: clamp the interval to a sane floor.
 
-**Toast onMouseLeave resumes timer while focus is still inside** — `components/toast/toast-alert.tsx:77-85`. `onResume` is unconditional (unlike the focus-guarded `onBlur`), so moving the pointer off while focus stays inside auto-dismisses under a keyboard user (WCAG 2.2.1). Fix: skip resume when focus remains within the toast.
+✅ **Toast onMouseLeave resumes timer while focus is still inside** — `components/toast/toast-alert.tsx:77-85`. `onResume` is unconditional (unlike the focus-guarded `onBlur`), so moving the pointer off while focus stays inside auto-dismisses under a keyboard user (WCAG 2.2.1). Fix: skip resume when focus remains within the toast.
 
 **Polite toasts likely never announced** — `components/toast/toast-alert.tsx:76-98`. ToastAlert sets `role` on its own wrapper and omits `severity`, bypassing Alert's persistent-announcer mitigation, so role=status toasts inserted with their text aren't reliably announced. Fix: route polite toasts through the shared announcer.
 
-**Tree arrow/Home/End jumps from prefix/suffix controls** — `components/tree/tree.tsx:29-33`. With `focusOnEmpty:true`, a focused prefix control makes `indexOf(activeElement) === -1`, so the fallback sends ArrowDown to the first item. Fix: guard the empty-focus fallback when focus is on a descendant control.
+✅ **Tree arrow/Home/End jumps from prefix/suffix controls** — `components/tree/tree.tsx:29-33`. With `focusOnEmpty:true`, a focused prefix control makes `indexOf(activeElement) === -1`, so the fallback sends ArrowDown to the first item. Fix: guard the empty-focus fallback when focus is on a descendant control.
 
-**Height observer measures only first data-current child** — `primitives/current/use-current-contents-height.ts:26-36`. When `context.value` is undefined every panel is `data-current` and stacked, but height tracks only the first → the others are clipped. Fix: measure the union/max of all current panels (or guard the undefined-value case).
+✅ **Height observer measures only first data-current child** — `primitives/current/use-current-contents-height.ts:26-36`. When `context.value` is undefined every panel is `data-current` and stacked, but height tracks only the first → the others are clipped. Fix: measure the union/max of all current panels (or guard the undefined-value case).
 
-**Panel Title/Description custom `id` breaks dialog aria wiring** — `primitives/panel/panel.tsx:84,101`. Registration composes the generated `titleId`/`descriptionId` while the element renders `id ?? titleId`; a custom id leaves the dialog's `aria-labelledby`/`describedby` dangling (and suppresses the `aria-label` fallback). Fix: adopt the rendered id during registration.
+✅ **Panel Title/Description custom `id` breaks dialog aria wiring** — `primitives/panel/panel.tsx:84,101`. Registration composes the generated `titleId`/`descriptionId` while the element renders `id ?? titleId`; a custom id leaves the dialog's `aria-labelledby`/`describedby` dangling (and suppresses the `aria-label` fallback). Fix: adopt the rendered id during registration.
 
-**Hidden ReadyReveal layer stays keyboard-focusable** — `primitives/ready-reveal/ready-reveal.tsx:37-54`. The hidden layer uses only opacity/blur/pointer-events/aria-hidden — focusable descendants remain Tab-reachable inside an aria-hidden subtree. Fix: apply `inert`/`visibility:hidden` to the hidden layer.
+✅ **Hidden ReadyReveal layer stays keyboard-focusable** — `primitives/ready-reveal/ready-reveal.tsx:37-54`. The hidden layer uses only opacity/blur/pointer-events/aria-hidden — focusable descendants remain Tab-reachable inside an aria-hidden subtree. Fix: apply `inert`/`visibility:hidden` to the hidden layer.
 
 **useControllable collapses batched functional updates** — `hooks/use-controllable.ts:41-53`. The uncontrolled setter resolves a functional updater against a render-stale `valueRef` instead of threading `prev => ...` into `setInternalValue`, so two updates in one batch lose the first (e.g. `toggleRow(a)` then `toggleRow(b)`). Fix: pass the functional updater to `setInternalValue`.
 
-**Frozen selection snapshot never clears on interrupted exit** — `hooks/use-deferred-toggle.ts:51-66`. `flushPending` is wired only to `onExitComplete`, which motion v12 skips when the exit is interrupted by reopen, pinning `selectionValue` to the pre-selection value (wrong row painted/announced selected). Fix: clear the freeze on reopen.
+✅ **Frozen selection snapshot never clears on interrupted exit** — `hooks/use-deferred-toggle.ts:51-66`. `flushPending` is wired only to `onExitComplete`, which motion v12 skips when the exit is interrupted by reopen, pinning `selectionValue` to the pre-selection value (wrong row painted/announced selected). Fix: clear the freeze on reopen.
 
-**Page-scroll closes floating panels (root scrollbar press)** — `hooks/use-floating-ui.ts:62-81`. The custom `isScrollbarPress` drops floating-ui's `isLastTraversableNode` term, so a press on the html/body root scrollbar (computed overflow `visible`) isn't recognized and closes the panel. Fix: OR in `isLastTraversableNode(target)`.
+✅ **Page-scroll closes floating panels (root scrollbar press)** — `hooks/use-floating-ui.ts:62-81`. The custom `isScrollbarPress` drops floating-ui's `isLastTraversableNode` term, so a press on the html/body root scrollbar (computed overflow `visible`) isn't recognized and closes the panel. Fix: OR in `isLastTraversableNode(target)`.
 
 **Pending caret applied to a later unrelated render** — `hooks/use-pending-caret.ts:21-33`. The dependency-free layout effect consumes `pendingCaretRef` on every render; if the intended render doesn't commit (controlled consumer rejects the value), the stale caret misfires later. Fix: tie the pending caret to a specific render/version.
 
 **Controlled input with unchanged value never re-applies caret** — `hooks/use-pending-caret.ts:21-37`. When the controlled value doesn't change, no commit fires the effect, so the cursor jumps to the end — exactly what the hook claims to prevent. Fix: apply the caret without requiring a commit.
 
-**Scrollable-ancestor search matches overflow style without checking it scrolls** — `hooks/use-scroll-within.ts:13-23`. Stops at the first `overflow:auto` ancestor without `scrollHeight > clientHeight`, so a non-overflowing wrapper is chosen and `scrollTo` no-ops (`block:'nearest'` callers fail to reveal items). Fix: verify actual scrollability.
+✅ **Scrollable-ancestor search matches overflow style without checking it scrolls** — `hooks/use-scroll-within.ts:13-23`. Stops at the first `overflow:auto` ancestor without `scrollHeight > clientHeight`, so a non-overflowing wrapper is chosen and `scrollTo` no-ops (`block:'nearest'` callers fail to reveal items). Fix: verify actual scrollability.
 
-**Slot presence is a boolean, not a refcount** — `hooks/a11y/use-a11y-scope.ts:59-71`. Two same-id slot instances share one boolean; unmounting one drops the id from `aria-describedby`/`labelledby` while the other is still mounted. Fix: reference-count slot presence.
+✅ **Slot presence is a boolean, not a refcount** — `hooks/a11y/use-a11y-scope.ts:59-71`. Two same-id slot instances share one boolean; unmounting one drops the id from `aria-describedby`/`labelledby` while the other is still mounted. Fix: reference-count slot presence.
 
-**New toast restarts auto-dismiss while one is hovered/focused** — `providers/toast/toast.tsx:104`. The push path calls `startTimer()` unconditionally (unlike the guarded `reset`), arming a live timer despite `pausedRef=true` (WCAG 2.2.1). Fix: skip `startTimer` when paused.
+✅ **New toast restarts auto-dismiss while one is hovered/focused** — `providers/toast/toast.tsx:104`. The push path calls `startTimer()` unconditionally (unlike the guarded `reset`), arming a live timer despite `pausedRef=true` (WCAG 2.2.1). Fix: skip `startTimer` when paused.
 
 **Floating sidebar hover locks body scroll** — `layouts/sidebar/sidebar.tsx:93-112`. The container-less Sheet computes `scoped=false`, so hovering the hot zone calls `useScrollLock(true)`, locking page scroll and padding the body. Fix: scope the sheet or skip scroll lock for the hover-peek.
 

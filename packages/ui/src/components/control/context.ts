@@ -24,10 +24,10 @@ export type ControlContextValue = {
 	descriptionId?: string
 	/** Id the error Message slot renders with. */
 	messageId?: string
-	/** Slot registration — Label / Description / error Message call these on mount; `labelledBy` / `describedBy` only reference ids of rendered slots. */
-	registerLabel?: () => () => void
-	registerDescription?: () => () => void
-	registerMessage?: () => () => void
+	/** Slot registration — Label / Description / error Message call these on mount, passing the id they render; `labelledBy` / `describedBy` only reference ids of rendered slots. */
+	registerLabel?: (renderedId?: string) => () => void
+	registerDescription?: (renderedId?: string) => () => void
+	registerMessage?: (renderedId?: string) => () => void
 }
 
 /**

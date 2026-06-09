@@ -72,6 +72,7 @@ export function useComboboxState<T>({
 		nullable,
 		value,
 		setValue,
+		open,
 	})
 
 	const select = useCallback(

@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
 import { configureStroke, drawSnapshot } from './signature-pad-utilities'
 
@@ -66,6 +66,17 @@ export function useSignaturePadCanvasSizing({
 			drawSnapshot(canvas, snapshot)
 		}
 	}, [containerRef, canvasRef])
+
+	// `configureStroke` otherwise runs only on resize, so a runtime strokeColor /
+	// strokeWidth change wouldn't reach segments drawn before the next resize.
+	// Re-apply it to the live context when those props change (no resize/clear).
+	useEffect(() => {
+		const context = canvasRef.current?.getContext('2d')
+
+		if (!context) return
+
+		configureStroke(context, strokeColor, strokeWidth)
+	}, [canvasRef, strokeColor, strokeWidth])
 
 	useResizeObserver(containerRef, resize)
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type DeferredToggleOptions<T> = {
 	/** Multi-select mode — the held value is an array and toggling adds / removes entries. */
@@ -11,6 +11,12 @@ type DeferredToggleOptions<T> = {
 	value: T | T[] | undefined
 	/** Setter for the underlying value, called with an updater that receives the previous value. */
 	setValue: (updater: (prev: T | T[] | undefined) => T | T[] | undefined) => void
+	/**
+	 * Whether the menu is open. The freeze is cleared when this transitions back
+	 * to `true` — a reopen interrupts the exit animation, so `onExitComplete`
+	 * (and thus `flushPending`) never fires and the snapshot would otherwise stick.
+	 */
+	open?: boolean
 }
 
 /**
@@ -28,6 +34,7 @@ export function useDeferredToggle<T>({
 	nullable,
 	value,
 	setValue,
+	open,
 }: DeferredToggleOptions<T>) {
 	const toggle = useCallback(
 		(newValue: T) => {
@@ -62,6 +69,19 @@ export function useDeferredToggle<T>({
 	const flushPending = useCallback(() => {
 		setFrozen(null)
 	}, [])
+
+	// Clear the freeze when the menu reopens: an interrupted exit (reopen mid-close)
+	// skips onExitComplete, so flushPending never runs and selectionValue would
+	// stay pinned to the pre-selection snapshot.
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		const wasOpen = prevOpenRef.current
+
+		prevOpenRef.current = open
+
+		if (open && !wasOpen) setFrozen(null)
+	}, [open])
 
 	const selectionValue = frozen ? frozen.value : value
 

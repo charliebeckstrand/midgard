@@ -94,7 +94,13 @@ export function usePdfViewer({
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, defaultRotation)
+	// `pages` is the resolved document (consumer `pages` or the src-loaded set);
+	// its identity changes on a document swap, resetting per-page rotations.
+	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(
+		safePage,
+		defaultRotation,
+		pages,
+	)
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
 

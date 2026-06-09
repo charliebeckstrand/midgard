@@ -28,8 +28,12 @@ export function ChatMessage({
 	children,
 }: ChatMessageProps) {
 	// Speaker is conveyed visually by bubble side/color only; a visually hidden
-	// author label names it for assistive technology.
-	const author = (type ?? 'assistant') === 'user' ? 'You said' : 'Assistant said'
+	// author label names it for assistive technology. System messages are status
+	// lines, not an utterance, so they get a plain "System" attribution.
+	const resolvedType = type ?? 'assistant'
+
+	const author =
+		resolvedType === 'user' ? 'You said' : resolvedType === 'system' ? 'System' : 'Assistant said'
 
 	return (
 		<div

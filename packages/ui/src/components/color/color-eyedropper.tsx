@@ -1,6 +1,7 @@
 'use client'
 
 import { Pipette } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { hexToHsva } from './color-utilities'
@@ -22,7 +23,14 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
 export function ColorEyedropper({ className }: { className?: string }) {
 	const { setHsva, disabled, size } = useColorPanelContext()
 
-	const EyeDropper = getEyeDropper()
+	// Probe for the API only after mount: reading it during render returns
+	// undefined on the server but the constructor on a supporting client, which
+	// would hydrate a <Button> over server-rendered null and mismatch.
+	const [EyeDropper, setEyeDropper] = useState<EyeDropperConstructor>()
+
+	useEffect(() => {
+		setEyeDropper(() => getEyeDropper())
+	}, [])
 
 	if (!EyeDropper) return null
 

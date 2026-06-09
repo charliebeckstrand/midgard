@@ -38,6 +38,7 @@ export function useListboxState<T>({
 		nullable,
 		value,
 		setValue,
+		open,
 	})
 
 	const select = useCallback(

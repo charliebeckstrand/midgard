@@ -62,8 +62,13 @@ const SCROLLABLE_RE = /auto|scroll/
 function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 	const style = getComputedStyle(target)
 
-	const scrollableX = SCROLLABLE_RE.test(style.overflowX)
-	const scrollableY = SCROLLABLE_RE.test(style.overflowY)
+	// The root (html/body) scrolls the page even though its computed overflow is
+	// `visible`; floating-ui treats the last traversable node as scrollable, so a
+	// press on the root scrollbar isn't mistaken for an outside press that closes.
+	const isRoot = target === document.documentElement || target === document.body
+
+	const scrollableX = isRoot || SCROLLABLE_RE.test(style.overflowX)
+	const scrollableY = isRoot || SCROLLABLE_RE.test(style.overflowY)
 
 	const canScrollX =
 		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth

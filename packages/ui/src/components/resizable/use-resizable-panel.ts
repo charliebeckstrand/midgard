@@ -117,22 +117,24 @@ export function useResizablePanel({
 		const leftIdx = handleIndex
 		const rightIdx = handleIndex + 1
 
-		setSizes((prev) => {
-			if (prev[leftIdx] === undefined || prev[rightIdx] === undefined) return prev
+		const prev = sizesRef.current
 
-			const next = [...prev]
+		if (prev[leftIdx] === undefined || prev[rightIdx] === undefined) return
 
-			next[leftIdx] = prev[leftIdx] + delta
-			next[rightIdx] = prev[rightIdx] - delta
+		const next = [...prev]
 
-			const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+		next[leftIdx] = prev[leftIdx] + delta
+		next[rightIdx] = prev[rightIdx] - delta
 
-			sizesRef.current = clamped
+		const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
 
-			onSizesChangeRef.current?.(clamped)
+		// Side effects run here, not inside the setSizes updater — StrictMode
+		// double-invokes the updater, firing onSizesChange twice per keypress.
+		sizesRef.current = clamped
 
-			return clamped
-		})
+		setSizes(clamped)
+
+		onSizesChangeRef.current?.(clamped)
 	}, [])
 
 	const startDrag = useCallback(

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
@@ -62,6 +62,7 @@ export function MenuItem(props: MenuItemProps) {
 			className: _className,
 			children: _children,
 			onAction: _onAction,
+			onClick: consumerOnClick,
 			...rest
 		} = props
 
@@ -71,8 +72,13 @@ export function MenuItem(props: MenuItemProps) {
 				tabIndex={-1}
 				data-slot="menu-item"
 				className={classes}
-				onClick={handleSelect}
 				{...rest}
+				// Composed after the spread so a consumer onClick runs alongside
+				// selection rather than replacing onAction/close.
+				onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+					consumerOnClick?.(e)
+					handleSelect()
+				}}
 			>
 				{children}
 			</LinkComponent>
@@ -84,6 +90,8 @@ export function MenuItem(props: MenuItemProps) {
 		className: _className,
 		children: _children,
 		onAction: _onAction,
+		onClick: consumerOnClick,
+		onKeyDown: consumerOnKeyDown,
 		...rest
 	} = props
 
@@ -96,14 +104,23 @@ export function MenuItem(props: MenuItemProps) {
 			data-slot="menu-item"
 			data-disabled={disabled || undefined}
 			className={classes}
-			onClick={handleSelect}
-			onKeyDown={(e) => {
+			{...rest}
+			// Composed after the spread so consumer handlers run alongside
+			// selection rather than replacing onAction/close.
+			onClick={(e: MouseEvent<HTMLButtonElement>) => {
+				consumerOnClick?.(e)
+				handleSelect()
+			}}
+			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
+				consumerOnKeyDown?.(e)
+
+				if (e.defaultPrevented) return
+
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault()
 					handleSelect()
 				}
 			}}
-			{...rest}
 		>
 			{children}
 		</button>

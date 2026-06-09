@@ -15,7 +15,11 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
 	while (scroller) {
 		const { overflowY } = getComputedStyle(scroller)
 
-		if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') break
+		const scrollable = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
+
+		// Require the ancestor to actually overflow, not merely declare a scroll
+		// style — otherwise a non-overflowing wrapper is chosen and scrollTo no-ops.
+		if (scrollable && scroller.scrollHeight > scroller.clientHeight) break
 
 		scroller = scroller.parentElement
 	}

@@ -1,7 +1,13 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactElement, useCallback } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type ReactElement,
+	useCallback,
+	useEffect,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/copy-button'
 import type { Size } from '../../types'
@@ -32,18 +38,35 @@ export function CopyButton({
 }: CopyButtonProps) {
 	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
 
+	const buttonRef = useRef<HTMLButtonElement>(null)
+
+	// Entering the copied state disables the button, which blurs focus to <body>.
+	// Remember whether the button was focused so we can restore it on re-enable.
+	const restoreFocusRef = useRef(false)
+
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)
+
+			restoreFocusRef.current = document.activeElement === buttonRef.current
 
 			void copy()
 		},
 		[onClick, copy],
 	)
 
+	useEffect(() => {
+		if (copied || !restoreFocusRef.current) return
+
+		restoreFocusRef.current = false
+
+		buttonRef.current?.focus()
+	}, [copied])
+
 	return (
 		<ToggleIconButton
 			{...props}
+			ref={buttonRef}
 			pressed={copied}
 			icon={icon ?? <Clipboard />}
 			pressedIcon={<Check />}

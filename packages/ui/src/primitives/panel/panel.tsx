@@ -24,8 +24,8 @@ export type PanelContentProps = ComponentPropsWithoutRef<'div'>
 type PanelA11yContextValue = {
 	titleId?: string
 	descriptionId?: string
-	registerTitle?: () => () => void
-	registerDescription?: () => () => void
+	registerTitle?: (renderedId?: string) => () => void
+	registerDescription?: (renderedId?: string) => () => void
 }
 
 export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
@@ -77,7 +77,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		const { titleId, registerTitle } = usePanelA11y()
 		const { size } = useDensity()
 
-		useEffect(() => registerTitle?.(), [registerTitle])
+		useEffect(() => registerTitle?.(id), [registerTitle, id])
 
 		return (
 			<h2
@@ -94,7 +94,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	function Description({ className, id, ...props }: PanelDescriptionProps) {
 		const { descriptionId, registerDescription } = usePanelA11y()
 
-		useEffect(() => registerDescription?.(), [registerDescription])
+		useEffect(() => registerDescription?.(id), [registerDescription, id])
 
 		return (
 			<p

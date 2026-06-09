@@ -109,17 +109,27 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 					break
 				case 'ArrowLeft':
 				case 'ArrowRight': {
-					const nextColIdx = colIdx + (key === 'ArrowLeft' ? -1 : 1)
+					const dir = key === 'ArrowLeft' ? -1 : 1
 
-					if (nextColIdx < 0 || nextColIdx >= columns.length) return false
+					// Skip over empty columns to the next populated one in the travel
+					// direction instead of stopping at the first empty neighbor.
+					let nextColIdx = colIdx + dir
 
-					const nextCol = columns[nextColIdx]
+					while (nextColIdx >= 0 && nextColIdx < columns.length) {
+						const nextCol = columns[nextColIdx]
 
-					if (!nextCol || nextCol.items.length === 0) return false
+						if (nextCol && nextCol.items.length > 0) {
+							targetCol = nextCol
 
-					targetCol = nextCol
+							targetIdx = Math.min(itemIdx, targetCol.items.length - 1)
 
-					targetIdx = Math.min(itemIdx, targetCol.items.length - 1)
+							break
+						}
+
+						nextColIdx += dir
+					}
+
+					if (targetCol === col) return false
 
 					break
 				}

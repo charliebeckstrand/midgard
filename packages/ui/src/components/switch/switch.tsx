@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent, ComponentPropsWithoutRef } from 'react'
+import { type ChangeEvent, type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useControllable } from '../../hooks'
 import { useSkeleton } from '../../providers/skeleton'
@@ -42,12 +42,36 @@ export function Switch({
 		defaultValue: defaultChecked ?? false,
 	})
 
+	// React-control the input only when a `checked` prop or form binding drives it.
+	// Without one, rendering `checked={on}` would make the input perpetually
+	// controlled, so a native `<button type="reset">` couldn't revert it.
+	const isControlled = binding != null || checked !== undefined
+
+	const inputRef = useRef<HTMLInputElement>(null)
+
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setOn(e.target.checked)
 
 		if (binding) binding.onChange(e)
 		else onChange?.(e)
 	}
+
+	// A native form reset reverts the uncontrolled input without firing onChange;
+	// mirror the reverted value into the owned aria state on the next frame.
+	useEffect(() => {
+		if (isControlled) return
+
+		const input = inputRef.current
+		const form = input?.form
+
+		if (!form) return
+
+		const handleReset = () => requestAnimationFrame(() => setOn(input.checked))
+
+		form.addEventListener('reset', handleReset)
+
+		return () => form.removeEventListener('reset', handleReset)
+	}, [isControlled, setOn])
 
 	const {
 		id: resolvedId,
@@ -79,11 +103,12 @@ export function Switch({
 				type="checkbox"
 				role="switch"
 				data-slot="switch"
+				ref={inputRef}
 				id={resolvedId}
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				checked={on ?? false}
+				{...(isControlled ? { checked: on ?? false } : { defaultChecked: defaultChecked ?? false })}
 				aria-checked={on ?? false}
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}

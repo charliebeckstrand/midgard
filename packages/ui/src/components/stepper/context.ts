@@ -14,6 +14,8 @@ type StepperContextValue = {
 	linear: boolean
 	/** Stable id base used to wire each step button to its panel. */
 	baseId: string
+	/** Whether a StepperPanels group is rendered; gates each step's aria-controls. */
+	hasPanels: boolean
 }
 
 type StepperStepContextValue = {

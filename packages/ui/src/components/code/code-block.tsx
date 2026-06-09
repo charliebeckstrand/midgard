@@ -65,6 +65,10 @@ export function CodeBlock({
 			return
 		}
 
+		// Cache miss: drop the previous snippet's markup so the plain fallback shows
+		// during re-tokenization instead of stale highlighted output for the old input.
+		setHtml(null)
+
 		let cancelled = false
 
 		loadShiki().then(({ codeToHtml }) =>

@@ -4,7 +4,6 @@ import {
 	createElement,
 	Fragment,
 	isValidElement,
-	type ReactElement,
 	type ReactNode,
 	useMemo,
 } from 'react'
@@ -19,19 +18,31 @@ function positionAt(index: number, length: number): GroupPosition {
 	return 'middle'
 }
 
+type FlatChild = { node: ReactNode; key: string }
+
 // Recurse into fragments, flattening them into the position-stamping pass.
-// `Children.toArray` treats a fragment as a single opaque child.
-function flattenChildren(children: ReactNode): ReactElement[] {
-	const result: ReactElement[] = []
+// `Children.toArray` treats a fragment as a single opaque child. Each entry
+// carries a key namespaced by its fragment path so keys that were unique within
+// a fragment don't collide once hoisted into one list. Non-element children
+// (text/number) are kept in place rather than dropped.
+function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
+	const result: FlatChild[] = []
 
-	Children.forEach(children, (child) => {
-		if (!isValidElement(child)) return
+	Children.forEach(children, (child, index) => {
+		if (isValidElement(child) && child.type === Fragment) {
+			result.push(
+				...flattenChildren(
+					(child.props as { children?: ReactNode }).children,
+					`${prefix}${index}.`,
+				),
+			)
 
-		if (child.type === Fragment) {
-			result.push(...flattenChildren((child.props as { children?: ReactNode }).children))
-		} else {
-			result.push(child)
+			return
 		}
+
+		const ownKey = isValidElement(child) && child.key != null ? child.key : String(index)
+
+		result.push({ node: child, key: `${prefix}${ownKey}` })
 	})
 
 	return result
@@ -53,13 +64,22 @@ export function useGroup(children: ReactNode, orientation: GroupOrientation): Re
 	// Memoized: stable element identity across parent re-renders preserves
 	// descendant state (focus, transient hover/active classes, etc.).
 	return useMemo(() => {
-		const arr = flattenChildren(children)
+		const flat = flattenChildren(children)
 
-		return arr.map((child, index) => {
-			const position = positionAt(index, arr.length)
-			const key = child.key ?? index
+		// Position is stamped over the joinable elements only; non-element children
+		// pass through in place without affecting start/middle/end calculation.
+		const total = flat.reduce((count, { node }) => (isValidElement(node) ? count + 1 : count), 0)
 
-			const cloned = cloneElement(child, {
+		let elementIndex = 0
+
+		return flat.map(({ node, key }) => {
+			if (!isValidElement(node)) return node
+
+			const position = positionAt(elementIndex, total)
+
+			elementIndex += 1
+
+			const cloned = cloneElement(node, {
 				'data-group': position,
 				'data-group-orientation': orientation,
 				key,
