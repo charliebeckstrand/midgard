@@ -25,30 +25,22 @@ function FilteredPalette() {
 }
 
 describe('CommandPalette', () => {
-	it('renders input when open', () => {
+	it('renders the input, command list, and close button when open', () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
 				<div>Items</div>
 			</CommandPalette>,
 		)
 
-		const input = bySlot(document.body, 'command-palette-input')
-
-		expect(input).toBeInTheDocument()
-	})
-
-	it('renders command list when open', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<div>Items</div>
-			</CommandPalette>,
-		)
+		expect(bySlot(document.body, 'command-palette-input')).toBeInTheDocument()
 
 		const list = bySlot(document.body, 'command-palette-list')
 
 		expect(list).toBeInTheDocument()
 
 		expect(list).toHaveAttribute('role', 'listbox')
+
+		expect(screen.getByLabelText('Close')).toBeInTheDocument()
 	})
 
 	it('does not render when closed', () => {
@@ -59,16 +51,6 @@ describe('CommandPalette', () => {
 		)
 
 		expect(bySlot(document.body, 'command-palette-input')).not.toBeInTheDocument()
-	})
-
-	it('renders close button', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<div>Items</div>
-			</CommandPalette>,
-		)
-
-		expect(screen.getByLabelText('Close')).toBeInTheDocument()
 	})
 
 	it('applies placeholder to input', () => {

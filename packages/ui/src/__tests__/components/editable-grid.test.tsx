@@ -41,8 +41,8 @@ describe('EditableGrid', () => {
 		expect(el).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
-	it('renders column headers and row values', () => {
-		renderUI(
+	it('renders column headers, row values, and a gridcell per editable column × row', () => {
+		const { container } = renderUI(
 			<EditableGrid
 				columns={columns}
 				rows={rows}
@@ -58,17 +58,6 @@ describe('EditableGrid', () => {
 		expect(screen.getByText('CA')).toBeInTheDocument()
 
 		expect(screen.getByText('2.35')).toBeInTheDocument()
-	})
-
-	it('renders a gridcell per editable column × row', () => {
-		const { container } = renderUI(
-			<EditableGrid
-				columns={columns}
-				rows={rows}
-				getKey={(row) => row.id}
-				onValueChange={() => {}}
-			/>,
-		)
 
 		expect(allBySlot(container, 'editable-grid-cell')).toHaveLength(rows.length * columns.length)
 	})

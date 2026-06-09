@@ -4,7 +4,7 @@ import { SearchInput } from '../../components/search-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('SearchInput', () => {
-	it('renders an input with data-slot="search-input"', () => {
+	it('renders an input with data-slot="search-input" and a search icon prefix', () => {
 		const { container } = renderUI(<SearchInput />)
 
 		const input = bySlot(container, 'search-input')
@@ -12,10 +12,6 @@ describe('SearchInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input?.tagName).toBe('INPUT')
-	})
-
-	it('renders a search icon prefix', () => {
-		const { container } = renderUI(<SearchInput />)
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})

@@ -11,7 +11,7 @@ import { OffcanvasContext } from '../../primitives/offcanvas'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sidebar', () => {
-	it('renders with data-slot="sidebar"', () => {
+	it('renders with data-slot="sidebar" and a default aria-label', () => {
 		const { container } = renderUI(<Sidebar>content</Sidebar>)
 
 		const el = bySlot(container, 'sidebar')
@@ -19,14 +19,8 @@ describe('Sidebar', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('NAV')
-	})
 
-	it('has default aria-label', () => {
-		const { container } = renderUI(<Sidebar>content</Sidebar>)
-
-		const el = bySlot(container, 'sidebar')
-
-		expect(el).toHaveAttribute('aria-label', 'Sidebar')
+		expect(bySlot(container, 'sidebar')).toHaveAttribute('aria-label', 'Sidebar')
 	})
 
 	it('fires a consumer onKeyDown without losing roving navigation', () => {

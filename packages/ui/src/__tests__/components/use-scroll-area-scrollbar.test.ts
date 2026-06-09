@@ -1,33 +1,12 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
-import { makePointerEvent } from '../helpers'
-
-type Geometry = {
-	clientHeight?: number
-	clientWidth?: number
-	scrollHeight?: number
-	scrollWidth?: number
-	scrollTop?: number
-	scrollLeft?: number
-}
-
-function mockGeometry<T extends HTMLElement>(el: T, g: Geometry): T {
-	for (const [key, value] of Object.entries(g)) {
-		Object.defineProperty(el, key, {
-			value,
-			configurable: true,
-			writable: true,
-		})
-	}
-
-	return el
-}
+import { makePointerEvent, mockDomGeometry } from '../helpers'
 
 function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: 'auto' | 'visible') {
 	const hook = renderHook(() => useScrollAreaScrollbar({ orientation, scrollbar }))
 
-	const viewport = mockGeometry(document.createElement('div'), {
+	const viewport = mockDomGeometry(document.createElement('div'), {
 		clientHeight: 100,
 		clientWidth: 100,
 		scrollHeight: 400,
@@ -36,9 +15,9 @@ function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: '
 		scrollLeft: 0,
 	})
 
-	const vTrack = mockGeometry(document.createElement('div'), { clientHeight: 100 })
+	const vTrack = mockDomGeometry(document.createElement('div'), { clientHeight: 100 })
 
-	const hTrack = mockGeometry(document.createElement('div'), { clientWidth: 100 })
+	const hTrack = mockDomGeometry(document.createElement('div'), { clientWidth: 100 })
 
 	hook.result.current.viewportRef.current = viewport
 
@@ -102,7 +81,7 @@ describe('useScrollAreaScrollbar', () => {
 			expect(hook.result.current.verticalThumb.offset).toBe(0)
 			expect(hook.result.current.verticalThumb.visible).toBe(true)
 
-			mockGeometry(viewport, { scrollTop: 150 })
+			mockDomGeometry(viewport, { scrollTop: 150 })
 
 			act(() => hook.result.current.handleScroll())
 
@@ -113,7 +92,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('hides the thumb when content fits in the viewport', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			mockGeometry(viewport, { scrollHeight: 80 })
+			mockDomGeometry(viewport, { scrollHeight: 80 })
 
 			act(() => hook.result.current.handleScroll())
 
@@ -124,7 +103,7 @@ describe('useScrollAreaScrollbar', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
 			// viewport=100, content=2000, track=100 → raw=5 → clamped to 20
-			mockGeometry(viewport, { scrollHeight: 2000 })
+			mockDomGeometry(viewport, { scrollHeight: 2000 })
 
 			act(() => hook.result.current.handleScroll())
 
@@ -292,7 +271,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('drags the horizontal axis when axis="x"', () => {
 			const { hook, viewport } = setupHook('horizontal', 'visible')
 
-			mockGeometry(viewport, { scrollWidth: 400, clientWidth: 100, scrollHeight: 100 })
+			mockDomGeometry(viewport, { scrollWidth: 400, clientWidth: 100, scrollHeight: 100 })
 
 			act(() => hook.result.current.handleScroll())
 
@@ -341,7 +320,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			act(() => hook.result.current.handleScroll())
 
-			mockGeometry(vTrack, { clientHeight: 10 })
+			mockDomGeometry(vTrack, { clientHeight: 10 })
 
 			const handler = hook.result.current.startDrag('y')
 

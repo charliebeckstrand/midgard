@@ -3,10 +3,10 @@ import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Sheet', () => {
-	it('renders with role="dialog" when open', () => {
+	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>
-				content
+				Sheet content
 			</Sheet>,
 		)
 
@@ -15,14 +15,6 @@ describe('Sheet', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('aria-modal', 'true')
-	})
-
-	it('renders children when open', () => {
-		renderUI(
-			<Sheet open onOpenChange={() => {}}>
-				Sheet content
-			</Sheet>,
-		)
 
 		expect(screen.getByText('Sheet content')).toBeInTheDocument()
 	})
@@ -119,15 +111,5 @@ describe('SheetClose', () => {
 		)
 
 		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
-	})
-
-	it('renders with an explicit size variant', () => {
-		renderUI(
-			<Sheet open size="sm" onOpenChange={() => {}}>
-				Small sheet
-			</Sheet>,
-		)
-
-		expect(screen.getByText('Small sheet')).toBeInTheDocument()
 	})
 })

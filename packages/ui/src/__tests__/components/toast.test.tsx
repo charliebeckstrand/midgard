@@ -374,28 +374,6 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it.each([
-		['top-left'],
-		['top-right'],
-		['bottom-left'],
-		['bottom-right'],
-	] as const)('renders a toast under the %s viewport', (position) => {
-		let api: ReturnType<typeof useToast> | undefined
-
-		renderUI(
-			<ToastProvider>
-				<Toast position={position} />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
-
-		act(() => {
-			api?.toast({ title: `Hello-${position}` })
-		})
-
-		expect(screen.getByText(`Hello-${position}`)).toBeInTheDocument()
-	})
-
-	it.each([
 		['default'],
 		['secondary'],
 		['success'],

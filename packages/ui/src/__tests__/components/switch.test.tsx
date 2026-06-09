@@ -5,7 +5,7 @@ import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Switch', () => {
-	it('renders a checkbox input with data-slot="switch"', () => {
+	it('renders a checkbox input with data-slot="switch" and a thumb element', () => {
 		const { container } = renderUI(<Switch />)
 
 		const input = bySlot(container, 'switch')
@@ -15,10 +15,6 @@ describe('Switch', () => {
 		expect(input?.tagName).toBe('INPUT')
 
 		expect(input).toHaveAttribute('type', 'checkbox')
-	})
-
-	it('renders a thumb element', () => {
-		const { container } = renderUI(<Switch />)
 
 		const thumb = bySlot(container, 'switch-thumb')
 

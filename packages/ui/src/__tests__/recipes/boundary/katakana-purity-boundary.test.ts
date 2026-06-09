@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+
+import { walkSource } from '../../helpers/walk-source'
 
 // katakana/ is the bridge layer. A bridge receives kiso token bundles by
 // argument and wires them into the recipe surface a kata exports; it must
@@ -23,7 +24,7 @@ describe('katakana purity boundary', () => {
 	it('katakana imports nothing from kiso — not values, not types', () => {
 		const violations: string[] = []
 
-		walk(katakanaDir, (file, content) => {
+		walkSource(katakanaDir, (file, content) => {
 			if (!/\.ts$/.test(file)) return
 
 			// Strip comments before scanning; commented-out imports don't trigger the check.
@@ -46,17 +47,3 @@ describe('katakana purity boundary', () => {
 		).toEqual([])
 	})
 })
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.')) continue
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
-}

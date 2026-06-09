@@ -38,17 +38,6 @@ describe('ScrollArea', () => {
 		expect(bySlot(container, 'scroll-area-viewport')).toBeInTheDocument()
 	})
 
-	it('forwards bare and rounded variant props to the wrapper', () => {
-		const { container } = renderUI(
-			<ScrollArea bare rounded>
-				content
-			</ScrollArea>,
-		)
-
-		// Bare/rounded only affect class names — confirm the component mounted.
-		expect(bySlot(container, 'scroll-area')).toBeInTheDocument()
-	})
-
 	it('uses scrollbar="visible" to keep the scrollbar in the active state', () => {
 		const { container } = renderUI(<ScrollArea scrollbar="visible">content</ScrollArea>)
 

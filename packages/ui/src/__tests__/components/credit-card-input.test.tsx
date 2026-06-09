@@ -11,7 +11,7 @@ import {
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('CreditCardInput', () => {
-	it('renders an input with type text and numeric inputMode', () => {
+	it('renders an input with type text, numeric inputMode, and a credit card icon prefix', () => {
 		const { container } = renderUI(<CreditCardInput />)
 
 		const input = bySlot(container, 'credit-card-input')
@@ -21,10 +21,6 @@ describe('CreditCardInput', () => {
 		expect(input).toHaveAttribute('type', 'text')
 
 		expect(input).toHaveAttribute('inputmode', 'numeric')
-	})
-
-	it('renders a credit card icon prefix by default', () => {
-		const { container } = renderUI(<CreditCardInput />)
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})

@@ -3,7 +3,7 @@ import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('LoadingDots', () => {
-	it('renders an output with data-slot="loading-dots"', () => {
+	it('renders an output with data-slot="loading-dots" and a default sr-only label of "Loading"', () => {
 		const { container } = renderUI(<LoadingDots />)
 
 		const dots = bySlot(container, 'loading-dots')
@@ -11,10 +11,6 @@ describe('LoadingDots', () => {
 		expect(dots).toBeInTheDocument()
 
 		expect(dots?.tagName).toBe('OUTPUT')
-	})
-
-	it('has a default sr-only label of "Loading"', () => {
-		renderUI(<LoadingDots />)
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')
@@ -36,7 +32,7 @@ describe('LoadingDots', () => {
 })
 
 describe('LoadingSpinner', () => {
-	it('renders an output with data-slot="loading-spinner"', () => {
+	it('renders an output with data-slot="loading-spinner" and a default sr-only label of "Loading"', () => {
 		const { container } = renderUI(<LoadingSpinner />)
 
 		const spinner = bySlot(container, 'loading-spinner')
@@ -44,10 +40,6 @@ describe('LoadingSpinner', () => {
 		expect(spinner).toBeInTheDocument()
 
 		expect(spinner?.tagName).toBe('OUTPUT')
-	})
-
-	it('has a default sr-only label of "Loading"', () => {
-		renderUI(<LoadingSpinner />)
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')

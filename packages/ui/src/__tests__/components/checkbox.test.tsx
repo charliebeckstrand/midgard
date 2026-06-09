@@ -6,7 +6,7 @@ import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Checkbox', () => {
-	it('renders a checkbox input with data-slot="checkbox"', () => {
+	it('renders a checkbox input with data-slot="checkbox" and a check icon', () => {
 		const { container } = renderUI(<Checkbox />)
 
 		const input = bySlot(container, 'checkbox')
@@ -16,10 +16,6 @@ describe('Checkbox', () => {
 		expect(input?.tagName).toBe('INPUT')
 
 		expect(input).toHaveAttribute('type', 'checkbox')
-	})
-
-	it('renders a check icon', () => {
-		const { container } = renderUI(<Checkbox />)
 
 		const check = bySlot(container, 'checkbox-check')
 

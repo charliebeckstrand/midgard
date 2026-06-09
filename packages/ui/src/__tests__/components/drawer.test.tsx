@@ -5,10 +5,10 @@ import { DensityProvider } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
-	it('renders with role="dialog" when open', () => {
+	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
-				content
+				Drawer content
 			</Drawer>,
 		)
 
@@ -17,14 +17,6 @@ describe('Drawer', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('aria-modal', 'true')
-	})
-
-	it('renders children when open', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}}>
-				Drawer content
-			</Drawer>,
-		)
 
 		expect(screen.getByText('Drawer content')).toBeInTheDocument()
 	})

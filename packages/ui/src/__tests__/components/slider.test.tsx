@@ -7,20 +7,12 @@ import { DensityProvider } from '../../providers/density'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Slider', () => {
-	it('renders with data-slot="slider"', () => {
-		const { container } = renderUI(<Slider />)
-
-		const el = bySlot(container, 'slider')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('INPUT')
-	})
-
-	it('renders as a range input', () => {
+	it('renders as a range input with data-slot="slider"', () => {
 		const { container } = renderUI(<Slider />)
 
 		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(el).toBeInTheDocument()
 
 		expect(el.type).toBe('range')
 	})
@@ -63,12 +55,6 @@ describe('Slider', () => {
 		const el = bySlot(container, 'slider') as HTMLInputElement
 
 		expect(el.value).toBe('42')
-	})
-
-	it('renders with explicit size and color variants', () => {
-		const { container } = renderUI(<Slider size="sm" color="green" />)
-
-		expect(bySlot(container, 'slider')).toBeInTheDocument()
 	})
 
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {

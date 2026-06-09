@@ -25,33 +25,29 @@ describe('iro ramp contrast', () => {
 	})
 
 	describe('onSurface clears text AA on the page surface', () => {
-		for (const color of COLORS) {
-			it(color, () => {
-				const [light, dark] = onSurface[color]
+		it.each(COLORS)('%s', (color) => {
+			const [light, dark] = onSurface[color]
 
-				expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
-				expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
-			})
-		}
+			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+		})
 	})
 
 	describe('onTint clears text AA on the soft fill and a plain surface', () => {
-		for (const color of COLORS) {
-			it(color, () => {
-				const [light, dark] = onTint[color]
+		it.each(COLORS)('%s', (color) => {
+			const [light, dark] = onTint[color]
 
-				// The 15% soft-palette wash behind this foreground.
-				const wash = iro.palette.soft.bg[color].join(' ')
+			// The 15% soft-palette wash behind this foreground.
+			const wash = iro.palette.soft.bg[color].join(' ')
 
-				expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
-				expect(contrastOf(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(contrastOf(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
 
-				expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 
-				expect(contrastOf(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
-			})
-		}
+			expect(contrastOf(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+		})
 	})
 
 	it('strong (max-emphasis neutral) clears text AA', () => {
@@ -62,13 +58,11 @@ describe('iro ramp contrast', () => {
 	})
 
 	describe('marker clears non-text 3:1 on the page surface', () => {
-		for (const color of COLORS) {
-			it(color, () => {
-				const [light, dark] = marker[color]
+		it.each(COLORS)('%s', (color) => {
+			const [light, dark] = marker[color]
 
-				expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
-				expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(NON_TEXT_AA)
-			})
-		}
+			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
+			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(NON_TEXT_AA)
+		})
 	})
 })
