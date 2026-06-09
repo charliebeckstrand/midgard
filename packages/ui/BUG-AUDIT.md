@@ -166,15 +166,15 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **BottomNav misroutes className to inner NavList** — `components/bottom-nav/bottom-nav.tsx:8-15`. Type declares className for the `<nav>` landmark but it's applied to the `<ul>`. Fix: forward className to the nav.
 
-**Calendar pickerYear stale after month nav while closed** — `components/calendar/use-calendar-picker.tsx:71-112`. Reducer re-syncs to `year` only on an `open` dispatch; header chevrons change `year` while closed, so a non-trigger open shows the mount-time year. Fix: sync reducer on `year` change (shares root cause with the imperative-open bug).
+✅ **Calendar pickerYear stale after month nav while closed** (verified already fixed via the imperative-open `yearRef` reset) — `components/calendar/use-calendar-picker.tsx:71-112`. Reducer re-syncs to `year` only on an `open` dispatch; header chevrons change `year` while closed, so a non-trigger open shows the mount-time year. Fix: sync reducer on `year` change (shares root cause with the imperative-open bug).
 
-**Day cell aria-label ignores configured locale** — `components/calendar/calendar-day-cell.tsx:41-50`. Uses `toLocaleDateString(undefined, …)`; `localeTag` is never threaded down, so day announcements use the browser locale. Fix: pass `localeTag` to the cell.
+✅ **Day cell aria-label ignores configured locale** (verified already fixed — `localeTag` is threaded to the cell) — `components/calendar/calendar-day-cell.tsx:41-50`. Uses `toLocaleDateString(undefined, …)`; `localeTag` is never threaded down, so day announcements use the browser locale. Fix: pass `localeTag` to the cell.
 
-**Calendar viewDate seed reads `new Date()` during render** — `components/calendar/use-calendar-month.ts:18-22`. The lazy initializer can land in different months on server vs client near a month boundary (the sibling `today` is deferred to avoid exactly this). Fix: defer the seed to a mount effect.
+✅ **Calendar viewDate seed reads `new Date()` during render** (clock-seeded views now self-correct in a mount effect) — `components/calendar/use-calendar-month.ts:18-22`. The lazy initializer can land in different months on server vs client near a month boundary (the sibling `today` is deferred to avoid exactly this). Fix: defer the seed to a mount effect.
 
-**Card padding-collapse selector catches content slots** — `components/card/card.tsx:47`. `[&:has(>[data-slot^=card-])]:p-0` matches `card-title`/`card-description`, which supply no padding, so `<Card><CardTitle/><CardDescription/></Card>` renders flush. Fix: target only structural slots.
+✅ **Card padding-collapse selector catches content slots** — `components/card/card.tsx:47`. `[&:has(>[data-slot^=card-])]:p-0` matches `card-title`/`card-description`, which supply no padding, so `<Card><CardTitle/><CardDescription/></Card>` renders flush. Fix: target only structural slots.
 
-**Combobox virtual highlight not re-anchored when options change for same query** — `components/combobox/combobox.tsx:215-231`. The re-anchor effect keys on `deferredQuery`; async option swaps for an identical query leave `aria-activedescendant` pointing at an unmounted id. Fix: re-anchor on option-set change.
+✅ **Combobox virtual highlight not re-anchored when options change for same query** — `components/combobox/combobox.tsx:215-231`. The re-anchor effect keys on `deferredQuery`; async option swaps for an identical query leave `aria-activedescendant` pointing at an unmounted id. Fix: re-anchor on option-set change.
 
 **CommandPaletteItem onClick clobbers selection/close handler** — `components/command-palette/command-palette-item.tsx:44-66`. `optionProps` (with `onClick: handleSelect`) spreads before forwarded props, so a consumer `onClick` drops `onAction`/`close`. Fix: compose handlers / spread internal last.
 
