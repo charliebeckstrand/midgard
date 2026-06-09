@@ -20,18 +20,22 @@ describe('Breadcrumb', () => {
 })
 
 describe('BreadcrumbItem', () => {
-	it('sets aria-current when current', () => {
+	it('styles the current item without duplicating aria-current on the <li>', () => {
+		// aria-current belongs on the crumb (BreadcrumbLink) only — both the
+		// list item and the link carrying it would announce the state twice.
 		const { container } = renderUI(
 			<Breadcrumb>
 				<BreadcrumbList>
-					<BreadcrumbItem current>Page</BreadcrumbItem>
+					<BreadcrumbItem current>
+						<BreadcrumbLink current>Page</BreadcrumbLink>
+					</BreadcrumbItem>
 				</BreadcrumbList>
 			</Breadcrumb>,
 		)
 
-		const el = bySlot(container, 'breadcrumb-item')
+		expect(bySlot(container, 'breadcrumb-item')).not.toHaveAttribute('aria-current')
 
-		expect(el).toHaveAttribute('aria-current', 'page')
+		expect(bySlot(container, 'breadcrumb-link')).toHaveAttribute('aria-current', 'page')
 	})
 })
 
@@ -52,6 +56,26 @@ describe('BreadcrumbLink', () => {
 		expect(el?.tagName).toBe('A')
 
 		expect(el).toHaveAttribute('href', '/home')
+	})
+
+	it('marks a current crumb that is still a link with aria-current', () => {
+		const { container } = renderUI(
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem current>
+						<BreadcrumbLink href="/here" current>
+							Here
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+				</BreadcrumbList>
+			</Breadcrumb>,
+		)
+
+		const el = bySlot(container, 'breadcrumb-link')
+
+		expect(el?.tagName).toBe('A')
+
+		expect(el).toHaveAttribute('aria-current', 'page')
 	})
 })
 
