@@ -18,9 +18,9 @@ None.
 
 ✅ **Controlled-without-handler dismissal is permanent** — `components/alert/alert.tsx:127-153,201`. `<Alert open closable>` with no `onOpenChange` sets a sticky `locallyDismissed` flag on close that nothing ever resets, so line 153 returns null permanently and the `open` prop is silently ignored thereafter. Fix: add an effect on `openProp` that clears the flag.
 
-**Non-ASCII digit locales wipe the value on edit** — `components/currency-input/currency-input-utilities.ts:28-49,78,85-89`. `\d`/`>='0'&&<='9'` assume ASCII, but `displayFormatter` renders native digits for ar-EG/fa-IR/ne-NP, so the first edit strips every digit and `setNum(undefined)` destroys the value. Fix: normalize native digits to ASCII (or force `-u-nu-latn`) before parsing.
+✅ **Non-ASCII digit locales wipe the value on edit** (fixed: both formatters pin `numberingSystem: 'latn'`) — `components/currency-input/currency-input-utilities.ts:28-49,78,85-89`. `\d`/`>='0'&&<='9'` assume ASCII, but `displayFormatter` renders native digits for ar-EG/fa-IR/ne-NP, so the first edit strips every digit and `setNum(undefined)` destroys the value. Fix: normalize native digits to ASCII (or force `-u-nu-latn`) before parsing.
 
-**Column reorder drops selection/actions columns** — `components/data-table/data-table-column-manager.tsx:85-108`. `handleReorder` walks the full `order` but a filtered `byId`, so `if (!col) continue` discards the select/actions ids; they jump to the table end and persist into saved presets. Fix: preserve unmatched ids in place.
+✅ **Column reorder drops selection/actions columns** — `components/data-table/data-table-column-manager.tsx:85-108`. `handleReorder` walks the full `order` but a filtered `byId`, so `if (!col) continue` discards the select/actions ids; they jump to the table end and persist into saved presets. Fix: preserve unmatched ids in place.
 
 **DescriptionList crashes in RSC (missing `'use client'`)** — `components/dl/description-list.tsx:1-29`. Renders a client Context Provider with no `'use client'` directive; subpath imports resolve to raw source (not the tsup-bannered dist), so it executes server-side and Next rejects it. Fix: add `'use client'` to line 1.
 
@@ -68,7 +68,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **CVV not re-truncated when brand shrinks max length** — `components/credit-card-input/credit-card-input-cvv.tsx:58-68`. `format` runs only on change/seed; an amex→visa brand change leaves a stored 4-digit CVV displayed under maxLength=3 and a stale validity. Fix: re-format the stored value when `maxLength` changes.
 
-**Calendar dialog opens focused on "Previous month"** — `components/date-picker/date-picker-content.tsx:55-65`. `FloatingFocusManager` is `modal` with no `initialFocus`, so floating-ui's default lands on the first tabbable (the prev-month button) instead of the grid. Fix: set `initialFocus` to the selected/today day.
+✅ **Calendar dialog opens focused on "Previous month"** (fixed: `initialFocus` lands on the dialog itself, which now also carries the virtual-focus key handler) — `components/date-picker/date-picker-content.tsx:55-65`. `FloatingFocusManager` is `modal` with no `initialFocus`, so floating-ui's default lands on the first tabbable (the prev-month button) instead of the grid. Fix: set `initialFocus` to the selected/today day.
 
 ✅ **Description custom `id` → dangling `aria-describedby`** — `components/fieldset/description.tsx:22-30`. Registration composes `control.descriptionId` while the element renders `id ?? control.descriptionId`; a custom id orphans the reference. Fix: register/compose the rendered id.
 
@@ -176,9 +176,9 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Combobox virtual highlight not re-anchored when options change for same query** — `components/combobox/combobox.tsx:215-231`. The re-anchor effect keys on `deferredQuery`; async option swaps for an identical query leave `aria-activedescendant` pointing at an unmounted id. Fix: re-anchor on option-set change.
 
-**CommandPaletteItem onClick clobbers selection/close handler** — `components/command-palette/command-palette-item.tsx:44-66`. `optionProps` (with `onClick: handleSelect`) spreads before forwarded props, so a consumer `onClick` drops `onAction`/`close`. Fix: compose handlers / spread internal last.
+✅ **CommandPaletteItem onClick clobbers selection/close handler** — `components/command-palette/command-palette-item.tsx:44-66`. `optionProps` (with `onClick: handleSelect`) spreads before forwarded props, so a consumer `onClick` drops `onAction`/`close`. Fix: compose handlers / spread internal last.
 
-**Range DatePicker never forwards aria-required** — `components/date-picker/date-picker-range.tsx:24-41`. `useDatePickerRangeState` omits `required`, so a range picker in a required Control isn't announced as required (the single variant is). Fix: forward `control?.required`.
+✅ **Range DatePicker never forwards aria-required** — `components/date-picker/date-picker-range.tsx:24-41`. `useDatePickerRangeState` omits `required`, so a range picker in a required Control isn't announced as required (the single variant is). Fix: forward `control?.required`.
 
 **Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
 
