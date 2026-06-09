@@ -34,6 +34,9 @@ export function AccordionTrigger({
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
 				type="button"
+				// Consumer props first so they can't clobber the a11y id wiring,
+				// roving tabindex, context-driven disabled, or data-slot below.
+				{...props}
 				data-slot="accordion-trigger"
 				{...triggerProps}
 				disabled={disabled}
@@ -42,7 +45,6 @@ export function AccordionTrigger({
 					onClick?.(e)
 				}}
 				className={cn(k.trigger, className)}
-				{...props}
 			>
 				<span className="flex-1">
 					{typeof children === 'function' ? children({ open }) : children}
