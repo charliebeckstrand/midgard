@@ -48,6 +48,29 @@ describe('Avatar', () => {
 
 		expect(bySlot(container, 'avatar')).toBeInTheDocument()
 	})
+
+	it('hides the initials fallback from assistive tech when an image is present', () => {
+		const { container } = renderUI(<Avatar src="/avatar.png" initials="JD" alt="User" />)
+
+		// The image's alt is the single accessible name; the svg is decorative.
+		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(container.querySelector('svg')).not.toHaveAttribute('aria-label')
+
+		expect(container.querySelector('img')).toHaveAttribute('alt', 'User')
+	})
+
+	it('applies className and spread props to the same element when status is set', () => {
+		const { container } = renderUI(
+			<Avatar initials="AB" status="active" className="custom" id="me" />,
+		)
+
+		const wrapper = bySlot(container, 'avatar-with-status')
+
+		expect(wrapper).toHaveClass('custom')
+
+		expect(wrapper).toHaveAttribute('id', 'me')
+	})
 })
 
 describe('AvatarGroup', () => {
