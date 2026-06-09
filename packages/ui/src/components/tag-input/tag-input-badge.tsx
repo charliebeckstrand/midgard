@@ -1,7 +1,9 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { cn } from '../../core'
 import type { Color } from '../../recipes'
+import { k } from '../../recipes/kata/tag-input'
 import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -20,12 +22,14 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 			variant="outline"
 			rounded="full"
 			color={color}
+			className={cn(k.badge)}
 			suffix={
 				!disabled && (
 					<Button
 						aria-label={`Remove ${label}`}
 						variant="bare"
 						onMouseDown={(e) => e.preventDefault()}
+						tabIndex={-1}
 						onClick={(e) => {
 							e.stopPropagation()
 
@@ -36,6 +40,12 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 					</Button>
 				)
 			}
+			tabIndex={0}
+			onKeyDown={(e) => {
+				if (e.key === 'Backspace' || e.key === 'Delete') {
+					onRemove()
+				}
+			}}
 		>
 			<span className="truncate">{label}</span>
 		</Badge>

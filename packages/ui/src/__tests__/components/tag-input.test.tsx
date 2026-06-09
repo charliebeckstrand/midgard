@@ -11,6 +11,10 @@ function getRemoveButtons(container: HTMLElement) {
 	return Array.from(container.querySelectorAll<HTMLButtonElement>('button[aria-label^="Remove"]'))
 }
 
+function getBadges(container: HTMLElement) {
+	return Array.from(container.querySelectorAll<HTMLElement>('[role="listitem"]'))
+}
+
 describe('TagInput', () => {
 	it('renders an input', () => {
 		const { container } = renderUI(<TagInput />)
@@ -153,6 +157,86 @@ describe('TagInput', () => {
 		await user.click(getRemoveButtons(container)[0] as Element)
 
 		await waitFor(() => expect(document.activeElement).toBe(getInput(container)))
+	})
+
+	it('makes each tag badge focusable', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
+
+		const badges = getBadges(container)
+
+		expect(badges.length).toBe(2)
+
+		for (const badge of badges) {
+			expect(badge).toHaveAttribute('tabindex', '0')
+		}
+	})
+
+	it('keeps the remove button out of the tab order', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react']} />)
+
+		// The badge owns keyboard removal (Backspace/Delete); its inner button is
+		// reachable by pointer only, so Tab lands on the badge, not the button.
+		expect(getRemoveButtons(container)[0]).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('removes the focused tag on Backspace', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
+		)
+
+		const user = userEvent.setup()
+
+		;(getBadges(container)[0] as HTMLElement).focus()
+
+		await user.keyboard('{Backspace}')
+
+		expect(onChange).toHaveBeenCalledWith(['vue'])
+	})
+
+	it('removes the focused tag on Delete', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<TagInput defaultValue={['react', 'vue']} onValueChange={onChange} />,
+		)
+
+		const user = userEvent.setup()
+
+		;(getBadges(container)[1] as HTMLElement).focus()
+
+		await user.keyboard('{Delete}')
+
+		expect(onChange).toHaveBeenCalledWith(['react'])
+	})
+
+	it('leaves the focused tag in place on other keys', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<TagInput defaultValue={['react']} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		;(getBadges(container)[0] as HTMLElement).focus()
+
+		await user.keyboard('{Enter}')
+		await user.keyboard('a')
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('returns focus to the input after removing the focused tag with Backspace', async () => {
+		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
+
+		const user = userEvent.setup()
+
+		;(getBadges(container)[0] as HTMLElement).focus()
+
+		await user.keyboard('{Backspace}')
+
+		// Focus must not strand on the now-detached badge (WCAG 2.4.3).
+		expect(document.activeElement).toBe(getInput(container))
 	})
 
 	it('removes last tag on Backspace when input is empty', async () => {

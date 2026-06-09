@@ -32,16 +32,13 @@ export const focus = {
 		// ≥3:1 against zinc-900. Mouse-focus outlines are suppressed globally
 		// (:focus:not(:focus-visible)).
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
-		'focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500',
+		'focus-visible:outline-blue-600',
 	],
-	inset: [
-		'outline-none',
-		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600 dark:focus-visible:ring-blue-500',
-	],
+	inset: ['outline-none', 'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600'],
 	outline: [
-		'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-blue-600 dark:has-focus-visible:outline-blue-500',
+		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',
 		/** Swaps to an inset ring inside `[data-scroll-region]` ancestors where `overflow-y-auto` would clip the outset outline. */
-		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600 dark:[[data-scroll-region]_&]:has-focus-visible:border-blue-500',
+		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
 	lifted: ['z-10', 'shadow-md', 'focus-visible:ring-violet-600'],

@@ -23,6 +23,7 @@ export function Demo() {
 	const [colorVariant, setColorVariant] = useState<Variant>('solid')
 
 	const [iconSize, setIconSize] = useState<Size>('md')
+
 	const [iconOnlySize, setIconOnlySize] = useState<Size>('md')
 
 	return (

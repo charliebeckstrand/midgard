@@ -34,14 +34,16 @@ export const k = defineRecipe(
 			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',
-			'min-w-6 min-h-6',
 			weight.semibold,
 			...disabled,
 			...cursor,
-			focus.ring,
 		],
 		variant: {
-			outline: 'ring-1 ring-inset',
+			solid: focus.ring,
+			soft: focus.inset,
+			outline: ['ring-1 ring-inset', focus.inset],
+			plain: focus.inset,
+			bare: focus.inset,
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
 		// is present the component sets `data-has-label`, which overrides `py` to
@@ -95,22 +97,38 @@ export const k = defineRecipe(
 			{
 				variant: 'bare',
 				size: 'xs',
-				class: ['-m-1.5 data-[has-label]:-my-[calc(--spacing(1)-1px)]'],
+				class: [
+					padding.p('0.75'),
+					'data-[has-label]:py-[calc(--spacing(0.5)-1px)]',
+					'-m-0.75 data-[has-label]:-my-[calc(--spacing(0.5)-1px)]',
+				],
 			},
 			{
 				variant: 'bare',
 				size: 'sm',
-				class: ['-m-2 data-[has-label]:-my-[calc(--spacing(1.5)-1px)]'],
+				class: [
+					padding.p('1'),
+					'data-[has-label]:py-[calc(--spacing(0.75)-1px)]',
+					'-m-1 data-[has-label]:-my-[calc(--spacing(0.75)-1px)]',
+				],
 			},
 			{
 				variant: 'bare',
 				size: 'md',
-				class: ['-m-2.5 data-[has-label]:-my-[calc(--spacing(2)-1px)]'],
+				class: [
+					padding.p('1.25'),
+					'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+					'-m-1.25 data-[has-label]:-my-[calc(--spacing(1)-1px)]',
+				],
 			},
 			{
 				variant: 'bare',
 				size: 'lg',
-				class: ['-m-3 data-[has-label]:-my-[calc(--spacing(2.5)-1px)]'],
+				class: [
+					padding.p('1.5'),
+					'data-[has-label]:py-[calc(--spacing(1.25)-1px)]',
+					'-m-1.5 data-[has-label]:-my-[calc(--spacing(1.25)-1px)]',
+				],
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
