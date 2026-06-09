@@ -59,7 +59,14 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
 }
 
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
-	const { value: currentValue, onValueChange, orientation, linear, baseId } = useStepper()
+	const {
+		value: currentValue,
+		onValueChange,
+		orientation,
+		linear,
+		baseId,
+		hasPanels,
+	} = useStepper()
 
 	const state = computeState(value, currentValue)
 
@@ -91,9 +98,10 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				// Only the current step's panel is mounted; aria-controls is set only then
-				// to avoid referencing an unmounted panel id.
-				aria-controls={state === 'current' ? panelId : undefined}
+				// Only the current step's panel is mounted, and only when a StepperPanels
+				// group exists; aria-controls is set only then to avoid referencing an
+				// id that is never rendered (panels-free mode) or unmounted.
+				aria-controls={hasPanels && state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
 				className={cn(classes, 'cursor-pointer')}

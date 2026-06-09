@@ -72,6 +72,8 @@ export function Stepper({
 		activeSelector: '[aria-current="step"]',
 	})
 
+	const hasPanels = panelsChildren.length > 0
+
 	const contextValue = useMemo(
 		() => ({
 			value,
@@ -79,8 +81,9 @@ export function Stepper({
 			orientation: resolvedOrientation,
 			linear,
 			baseId,
+			hasPanels,
 		}),
-		[value, onValueChange, resolvedOrientation, linear, baseId],
+		[value, onValueChange, resolvedOrientation, linear, baseId, hasPanels],
 	)
 
 	const row = (
