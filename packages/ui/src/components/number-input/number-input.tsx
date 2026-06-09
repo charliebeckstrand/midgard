@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
+import { clamp } from '../../utilities'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { useFormField } from '../form/context'
@@ -68,15 +69,13 @@ export function NumberInput({
 
 	const round = (n: number) => Number(n.toFixed(precision))
 
-	const clamp = (n: number) => {
-		if (min !== undefined && n < min) return min
-		if (max !== undefined && n > max) return max
-
-		return n
-	}
+	const clampValue = (n: number) =>
+		clamp(n, min ?? Number.NEGATIVE_INFINITY, max ?? Number.POSITIVE_INFINITY)
 
 	const change = (delta: number) => {
-		setCurrent((prev) => (prev === undefined ? round(clamp(0)) : round(clamp(prev + delta))))
+		setCurrent((prev) =>
+			prev === undefined ? round(clampValue(0)) : round(clampValue(prev + delta)),
+		)
 	}
 
 	const atMin = min !== undefined && current !== undefined && current <= min
@@ -105,7 +104,7 @@ export function NumberInput({
 	const handleBlur = () => {
 		field?.setTouched()
 
-		setCurrent((prev) => (prev === undefined ? undefined : round(clamp(prev))))
+		setCurrent((prev) => (prev === undefined ? undefined : round(clampValue(prev))))
 	}
 
 	return (
