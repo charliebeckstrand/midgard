@@ -20,10 +20,16 @@ import { renderUI } from '../helpers'
  * hit area is the border-box. The last case pins that invariant.
  */
 describe('bare button target-size floor', () => {
-	it('floors an icon-only bare box to 24px without growing its footprint', () => {
+	// xs and sm sit below 24px naturally (12px/16px icons) and lean on the
+	// floor; md clears it on padding alone. All three keep the footprint small.
+	it.each([
+		'xs',
+		'sm',
+		'md',
+	] as const)('floors an icon-only bare %s box to 24px without growing its footprint', (size) => {
 		const { getByRole } = renderUI(
 			<span data-slot="wrap" className="inline-flex">
-				<Button aria-label="Remove" variant="bare" size="md">
+				<Button aria-label="Remove" variant="bare" size={size}>
 					<Icon icon={<X />} />
 				</Button>
 			</span>,
@@ -39,15 +45,15 @@ describe('bare button target-size floor', () => {
 		expect(box.width).toBeGreaterThanOrEqual(24)
 		expect(box.height).toBeGreaterThanOrEqual(24)
 
-		// ...while the negative margin collapses the margin-box back to the 20px
-		// md icon — the wrapper never grows.
+		// ...while the negative margin collapses the margin-box back toward the
+		// icon — the wrapper never grows.
 		const wrapBox = wrap.getBoundingClientRect()
 
 		expect(wrapBox.width).toBeLessThan(24)
 		expect(wrapBox.height).toBeLessThan(24)
 	})
 
-	it('leaves a labelled bare button on its natural inline box', () => {
+	it('keeps a labelled bare button footprint on its text line box', () => {
 		const { getByRole } = renderUI(
 			<span data-slot="wrap" className="inline-flex">
 				<Button variant="bare" size="md">
@@ -60,9 +66,13 @@ describe('bare button target-size floor', () => {
 
 		const wrap = button.closest('[data-slot="wrap"]') as HTMLElement
 
-		// `:not([data-has-label])` excludes the floor: no negative-margin pull;
-		// the button's margin-box equals its border-box and the wrapper tracks it exactly.
-		expect(wrap.getBoundingClientRect().height).toBe(button.getBoundingClientRect().height)
+		// A labelled bare button is excluded from the floor; instead it carries
+		// the affix-aligned py with a matched -my pull, so its border-box exceeds
+		// the md text line box (24px) by 3px per side while the wrapper stays on
+		// the line box and the row never grows.
+		expect(wrap.getBoundingClientRect().height).toBe(24)
+
+		expect(button.getBoundingClientRect().height).toBe(30)
 	})
 
 	it('confines the icon-only mouse hit area to the box (no pseudo bleed)', () => {
