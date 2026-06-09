@@ -4,7 +4,7 @@ import { Node, Project, SyntaxKind } from 'ts-morph'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
 import { buildApi } from '../api-reference'
-import { collectHelpers } from './derive-code/collect-helpers'
+import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
 
 // ---------------------------------------------------------------------------
