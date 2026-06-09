@@ -113,6 +113,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				getFloatingProps={state.getFloatingProps}
 				context={state.context}
 				size={size}
+				onKeyDown={state.onTriggerKeyDown}
 			>
 				<Calendar
 					ref={state.calendar.calendarRef}

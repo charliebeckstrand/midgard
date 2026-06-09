@@ -33,6 +33,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				size={size}
 				truncate={truncate}
 				disabled={state.disabled}
+				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
@@ -46,6 +47,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				getFloatingProps={state.getFloatingProps}
 				context={state.context}
 				size={size}
+				onKeyDown={state.onTriggerKeyDown}
 				onExitComplete={state.onExitComplete}
 			>
 				<CalendarRange

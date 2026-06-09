@@ -9,7 +9,7 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { addDays, clampDate, formatDate } from './date-picker-utilities'
+import { addDays, addMonths, clampDate, formatDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -54,6 +54,15 @@ export function useDatePickerState({
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
 			return clampDate(addDays(base, delta), min, max)
+		},
+		[active, getInitialActiveDate, min, max],
+	)
+
+	const moveGridMonths = useCallback(
+		(delta: number) => {
+			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+
+			return clampDate(addMonths(base, delta), min, max)
 		},
 		[active, getInitialActiveDate, min, max],
 	)
@@ -142,6 +151,7 @@ export function useDatePickerState({
 		openCalendar,
 		closeCalendar,
 		moveGridDate,
+		moveGridMonths,
 		getInitialActiveDate,
 		handleSelect,
 		calendarRef,
