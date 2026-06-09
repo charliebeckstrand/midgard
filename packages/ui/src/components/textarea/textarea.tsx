@@ -11,7 +11,7 @@ import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormText } from '../form/use-form-text'
-import { Placeholder } from '../placeholder'
+import { TextareaSkeleton } from './textarea-skeleton'
 
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
@@ -80,12 +80,7 @@ export function Textarea(props: TextareaProps) {
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	if (useSkeleton()) {
-		return (
-			<Placeholder
-				className={cn(k.skeleton.base, className)}
-				style={{ height: `calc(${rows}lh + 1rem)` }}
-			/>
-		)
+		return <TextareaSkeleton rows={rows} className={className} />
 	}
 
 	// An explicit `value` prop takes ownership of the controlled state;
