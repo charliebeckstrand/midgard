@@ -13,6 +13,10 @@ function buildScrollable() {
 
 	Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 100 })
 
+	// Genuinely overflows: scrollWithin only treats an ancestor as the scroller
+	// when its content exceeds its client box.
+	Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 1000 })
+
 	Object.defineProperty(scroller, 'scrollTop', { configurable: true, value: 0, writable: true })
 
 	scroller.scrollTo = vi.fn()
@@ -162,6 +166,25 @@ describe('useScrollWithin', () => {
 			result.current(node)
 
 			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 30, behavior: 'auto' })
+		})
+
+		it('skips an ancestor with a scroll style that does not actually overflow', () => {
+			stubScrollable()
+
+			const { scroller, node } = buildScrollable()
+
+			// Content fits the client box: not a real scroller, so scrollTo no-ops.
+			Object.defineProperty(scroller, 'scrollHeight', { configurable: true, value: 100 })
+
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
+
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 110, height: 20 })
+
+			const { result } = renderHook(() => useScrollWithin())
+
+			result.current(node)
+
+			expect(scroller.scrollTo).not.toHaveBeenCalled()
 		})
 	})
 })
