@@ -36,11 +36,7 @@ export function ChatMessage({
 		resolvedType === 'user' ? 'You said' : resolvedType === 'system' ? 'System' : 'Assistant said'
 
 	return (
-		<div
-			data-slot="chat-message"
-			data-type={type ?? 'assistant'}
-			className={cn(k({ type }), className)}
-		>
+		<div data-slot="chat-message" data-type={resolvedType} className={cn(k({ type }), className)}>
 			<div data-slot="chat-message-bubble" className={cn(k.bubble({ type }))}>
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
