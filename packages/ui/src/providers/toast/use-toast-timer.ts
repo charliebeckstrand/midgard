@@ -20,6 +20,11 @@ export function useToastTimer(
 	useEffect(() => () => clearTimeout(timerRef.current), [])
 
 	const startTimer = useCallback(() => {
+		// Don't arm while paused (pointer/focus on a live toast); `resume` clears
+		// the flag before restarting. Without this, pushing a new toast would arm a
+		// live auto-dismiss timer under the user's pointer/focus (WCAG 2.2.1).
+		if (pausedRef.current) return
+
 		clearTimeout(timerRef.current)
 
 		startRef.current = Date.now()
