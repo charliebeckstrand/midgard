@@ -44,7 +44,12 @@ export function Card({
 			radius={k.radius[token.size]}
 			className={cn(
 				'overflow-hidden -outline-offset-1',
-				'[&:has(>[data-slot^=card-])]:p-0',
+				// Collapse the Card's own padding only for structural slots that bring
+				// their own — a bare CardTitle/CardDescription child supplies none and
+				// must keep the frame padding.
+				'[&:has(>[data-slot=card-header])]:p-0',
+				'[&:has(>[data-slot=card-body])]:p-0',
+				'[&:has(>[data-slot=card-footer])]:p-0',
 				className,
 			)}
 			{...props}
