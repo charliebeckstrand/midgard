@@ -25,11 +25,10 @@ export function useCurrencyInputFormatting({
 	locale,
 	precision,
 }: CurrencyFormattingOptions): CurrencyFormattingResult {
-	// `numberingSystem: 'latn'` pins ASCII digits: the editing parser only
-	// recognizes 0-9, so a locale that renders native digits (ar-EG, fa-IR,
-	// ne-NP) would otherwise have its whole value stripped on the first edit.
-	// Separators stay locale-correct — they're extracted from formatToParts
-	// below, so display and parsing always agree.
+	// `numberingSystem: 'latn'` pins ASCII digits; the editing parser only
+	// recognizes 0-9 and strips native digits (ar-EG, fa-IR, ne-NP).
+	// Separators stay locale-correct: formatToParts below extracts them, and
+	// display and parsing agree.
 	const formatter = useMemo(
 		() =>
 			new Intl.NumberFormat(locale, {

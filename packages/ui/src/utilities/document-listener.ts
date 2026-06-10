@@ -12,11 +12,11 @@ const registries = new Map<string, Registry>()
  * detaches on the last.
  *
  * Handlers fire in subscription order and every subscriber receives the
- * event — deduplication, not top-most-only routing. Returns an unsubscribe fn.
+ * event: deduplication, not top-most-only routing. Returns an unsubscribe fn.
  *
  * Each `handler` must be a distinct function reference (callers pass a fresh
- * closure per effect run); the same reference subscribed twice would dedupe in
- * the handler set and detach early on the first unsubscribe.
+ * closure per effect run); the same reference subscribed twice dedupes in
+ * the handler set and detaches early on the first unsubscribe.
  */
 export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	type: K,
@@ -38,14 +38,14 @@ export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 
 	if (reg.listener === null) {
 		reg.listener = (event) => {
-			// Snapshot so a handler that unsubscribes mid-dispatch doesn't skip others.
+			// Dispatch over a snapshot; a mid-dispatch unsubscribe skips no handler.
 			for (const h of [...reg.handlers]) {
 				try {
 					h(event)
 				} catch (error) {
 					// Match native addEventListener semantics: a throw in one listener
-					// must not stop the others. Surface it to the global error handler
-					// out of band rather than aborting the dispatch loop.
+					// does not stop the others. The microtask rethrow surfaces it to
+					// the global error handler out of band.
 					queueMicrotask(() => {
 						throw error
 					})

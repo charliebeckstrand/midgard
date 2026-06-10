@@ -1,17 +1,17 @@
 /**
- * Mode helpers — colocate light ("hiru", 昼) and dark ("yoru", 夜) values
+ * Mode helpers: colocate light ("hiru", 昼) and dark ("yoru", 夜) values
  * for a token.
  *
  * `mode()` fuses a scalar light/dark pair into a flat `string[]` (the shape
  * the recipe engine consumes). `defineColors()` does the same across a
- * multi-key map — useful for kata-specific colour palettes that aren't part
+ * multi-key map, useful for kata-specific colour palettes that aren't part
  * of the iro.palette × iro.colors matrix, e.g. checkbox / radio / switch
  * exposing CSS-variable bundles per colour.
  *
- * Authoring style: the dark string carries its own `dark:` prefix (one per
- * class, since a single entry may bundle several variable-setters). Use
- * `shades()` from `./shades` for the per-`Color` form; both helpers expect
- * the dark class to ship its prefix so Tailwind picks up the full literal.
+ * Authoring style: the dark string carries its own `dark:` prefix, one per
+ * class; a single entry may bundle several variable-setters. Use `shades()`
+ * from `./shades` for the per-`Color` form; both helpers expect the dark
+ * class to ship its prefix, and Tailwind detects only full class literals.
  */
 
 type ModeValue = string | readonly (string | readonly string[])[]

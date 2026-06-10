@@ -14,8 +14,8 @@ import {
 
 /**
  * Registers `children` as the alertdialog's description when no explicit
- * `description` slot renders — `role="alertdialog"` requires its message to
- * be referenced by `aria-describedby`, and children are the message in the
+ * `description` slot renders. `role="alertdialog"` requires its message
+ * referenced by `aria-describedby`; children are the message in the
  * title + children form.
  */
 function ConfirmBody({ children }: { children: ReactNode }) {
@@ -48,7 +48,7 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'size'> & {
 	className?: string
 }
 
-/** Confirmation dialog built on Dialog with `role="alertdialog"` — pairs a cancel and confirm action whose labels, colors, and disabled state are configurable. */
+/** Confirmation dialog built on Dialog with `role="alertdialog"`. Pairs a cancel and confirm action whose labels, colors, and disabled state are configurable. */
 export function Confirm({
 	open,
 	onOpenChange,

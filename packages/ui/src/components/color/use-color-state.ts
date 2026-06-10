@@ -19,13 +19,11 @@ export type ColorState = {
 }
 
 /**
- * Controlled/uncontrolled colour state. Keeps HSVA internally regardless of the
- * consumer's wire format, preserving hue through greyscale and black where hex
- * would lose it.
+ * Controlled/uncontrolled colour state. Keeps HSVA internally regardless of
+ * the consumer's wire format; hex drops hue at greyscale and black.
  *
- * Owns the HSVA and reconciles against the `value` prop, skipping echoes of our
- * own emission (compared on the serialised form) so a parent mirroring
- * `onValueChange` does not overwrite the in-flight hue.
+ * Owns the HSVA and reconciles against the `value` prop, skipping echoes of
+ * its own emission, compared on the serialised form.
  */
 export function useColorState({
 	value,
@@ -39,7 +37,7 @@ export function useColorState({
 	const hsvaRef = useRef(hsva)
 	hsvaRef.current = hsva
 
-	// Last external value we adopted or emitted, in the consumer's wire format —
+	// Last external value adopted or emitted, in the consumer's wire format;
 	// the echo guard the reconcile effect compares against.
 	const cacheRef = useRef<string | Hsva>(serializeColor(hsva, format, alpha))
 
@@ -55,8 +53,7 @@ export function useColorState({
 	useEffect(() => {
 		if (value === undefined) return
 
-		// Skip values that match what we last emitted; only genuinely different
-		// external values re-seat the internal HSVA.
+		// Skip echoes of the last adopted or emitted value.
 		if (sameColorValue(value, cacheRef.current)) return
 
 		const parsed = toHsva(value)

@@ -19,7 +19,7 @@ export type ToastInput = Omit<ToastData, 'id' | 'duration'> & {
 	duration?: number
 	/**
 	 * Optional caller-supplied id. When omitted, the provider generates one.
-	 * Callers are responsible for uniqueness — `dismiss({ id })` removes every
+	 * Callers are responsible for uniqueness; `dismiss({ id })` removes every
 	 * toast matching the id.
 	 */
 	id?: string

@@ -1,7 +1,7 @@
 /**
- * Count the "meaningful" characters in `s[0, end)` — those matching `keep`.
- * Used to anchor the caret to a typed character across a reformat that inserts
- * or removes separators.
+ * Count the "meaningful" characters in `s[0, end)`: those matching `keep`.
+ * Anchors the caret to a typed character across a reformat that inserts or
+ * removes separators.
  */
 export function countMeaningful(s: string, end: number, keep: (char: string) => boolean) {
 	const limit = Math.min(end, s.length)

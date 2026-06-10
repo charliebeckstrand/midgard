@@ -15,7 +15,7 @@ export type SlotProps<T extends Tag> = {
  *
  * Use only for slots whose entire body is element + class composition + prop
  * spread. If a slot needs hooks, conditional rendering, or wrapping context,
- * write it inline — the helper deliberately has no escape hatch.
+ * write it inline; the helper has no escape hatch.
  *
  * @example
  *   export const CardBody = createSlot('div', 'card-body', 'p-(--ui-padding)')

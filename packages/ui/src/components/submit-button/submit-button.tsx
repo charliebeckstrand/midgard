@@ -10,8 +10,8 @@ export type SubmitButtonProps = Omit<Extract<ButtonProps, { href?: never }>, 'ty
 /**
  * Submit button bound to the enclosing `<Form>`. Reflects `submitting` via
  * `loading`; falls back to `type="submit"` outside a Form. Doesn't auto-disable
- * on validity — submitting an invalid form runs full validation and surfaces
- * every error, where a disabled button just hides why nothing happens.
+ * on validity; submitting an invalid form runs full validation and surfaces
+ * every error.
  */
 export function SubmitButton({ disabled, children, ...props }: SubmitButtonProps) {
 	const status = useFormStatus()

@@ -1,5 +1,5 @@
 /**
- * Control archetype — surface vocabulary. `default` paints a solid surface,
+ * Control archetype: surface vocabulary. `default` paints a solid surface,
  * `outline` layers a border without a fill, `glass` is transparent + blurred
  * for nested-in-overlay contexts. The check-input branch reuses the same
  * shape via `kiso/control/check.ts`.

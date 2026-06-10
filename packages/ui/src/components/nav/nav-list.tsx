@@ -17,9 +17,9 @@ export function NavList({ orientation, className, children, ...props }: NavListP
 
 	// A `<ul>` of links inside the enclosing `<nav>` landmark. Each link is
 	// individually Tab-focusable with the current one marked
-	// `aria-current="page"` — a link list, not a roving-tabindex menubar. The
-	// list element preserves count/position semantics that CSS flex would strip;
-	// Tailwind preflight zeroes its default margin/padding/marker.
+	// `aria-current="page"`: a link list, not a roving-tabindex menubar. The
+	// list element preserves count/position semantics; Tailwind preflight
+	// zeroes its default margin/padding/marker.
 	return (
 		<ActiveIndicatorScope>
 			<ul

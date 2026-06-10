@@ -65,7 +65,7 @@ describe('useCalendarFocus: header', () => {
 
 		expect(document.activeElement).toBe(grid.querySelector('button'))
 
-		// sanity: header was not touched
+		// sanity: focus leaves the header
 		expect(header.contains(document.activeElement)).toBe(false)
 	})
 
@@ -237,9 +237,9 @@ describe('useCalendarFocus: footer', () => {
 	})
 
 	it('treats a missing footerRef as no footer for keyboard navigation', () => {
-		// `footerRef` is optional; passing it as undefined should leave the
-		// inner `(footerRef?.current ?? null)` chain on the nullish branch
-		// rather than throw.
+		// `footerRef` is optional; passing it as undefined leaves the inner
+		// `(footerRef?.current ?? null)` chain on the nullish branch rather
+		// than throwing.
 		const grid = makeContainer(14)
 
 		const header = makeContainer(3)
@@ -263,7 +263,7 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		;(header.querySelector('button') as HTMLButtonElement).focus()
 
 		// ArrowRight goes through the header roving handler, which calls
-		// preventDefault — that's the path line 82 guards.
+		// preventDefault; that's the path line 82 guards.
 		const event = makeKeyEvent('ArrowRight')
 
 		handleHeaderKeyDown(event)
@@ -275,7 +275,7 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 		const { handleHeaderKeyDown } = setup({ stopPropagation: true })
 
 		// 'a' has no roving binding, so preventDefault is never called and
-		// the late `defaultPrevented` guard should leave stopPropagation alone.
+		// the late `defaultPrevented` guard leaves stopPropagation alone.
 		const event = makeKeyEvent('a')
 
 		handleHeaderKeyDown(event)
@@ -317,7 +317,7 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 	it('stopPropagation propagates from grid keydown when the roving handler prevents default', () => {
 		const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14, stopPropagation: true })
 
-		// Mid-grid focus — ArrowRight hits the roving grid handler, which calls
+		// Mid-grid focus: ArrowRight hits the roving grid handler, which calls
 		// preventDefault and triggers the late `defaultPrevented` guard.
 		const buttons = grid.querySelectorAll('button')
 

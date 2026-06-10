@@ -11,7 +11,7 @@ import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
 /**
- * Props for `<NavItem>` — a navigation link/button. Extends the canonical
+ * Props for `<NavItem>`, a navigation link/button. Extends the canonical
  * `NavItemProps` with `value` for binding to the surrounding `<Nav>`'s
  * selection state.
  */
@@ -32,8 +32,8 @@ export function NavItem({
 }: NavMenuItemProps) {
 	const item = useNavItem({ current, value, preventClose, onClick })
 
-	// Affixes render as siblings of the inner button, not nested inside it, so
-	// a slot can host its own interactive element. The row uses flex only when
+	// Affixes render as siblings of the inner button, not nested inside it; a
+	// slot can host its own interactive element. The row uses flex only when
 	// an affix is present.
 	const hasAffix = prefix != null || suffix != null
 

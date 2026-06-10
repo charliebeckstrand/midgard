@@ -75,7 +75,7 @@ export function useEditableGridAugmentedColumns<T>({
 
 					return {
 						// Stable per-cell id that `aria-activedescendant` resolves to;
-						// derived from position, not selection state, so it stays out of the memo.
+						// derived from position, not selection state, and out of the memo.
 						id: cellId(`cell-${rowIdx}-${colIdx}`),
 						role: 'gridcell',
 						'aria-readonly': readOnly || undefined,

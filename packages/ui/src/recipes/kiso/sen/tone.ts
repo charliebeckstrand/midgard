@@ -1,6 +1,6 @@
 /**
- * Sen tone — the colour pairs (`light`/`dark`) every line concern
- * composes with its structural width. Lives separately so border /
+ * Sen tone: the colour pairs (`light`/`dark`) every line concern
+ * composes with its structural width. Lives separately; border /
  * outline / ring share one source of truth for low-contrast,
  * emphasis, subtle, and transparent tones.
  *

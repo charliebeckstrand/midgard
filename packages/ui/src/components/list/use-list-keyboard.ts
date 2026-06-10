@@ -19,7 +19,7 @@ type Options<T> = {
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
  * Pairs with a disabled dnd-kit keyboard sensor, keeping the original item
- * visible during a keyboard move — mirrors the behavior of `useKanbanKeyboard`.
+ * visible during a keyboard move; mirrors `useKanbanKeyboard`.
  */
 export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Options<T>) {
 	const focusItem = useCallback((id: string) => {
@@ -85,7 +85,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 		[items, getKey, onReorder, refocusItem],
 	)
 
-	// Card's current 1-based position, for announcements.
+	// Item's 1-based position, for announcements.
 	const locate = useCallback(
 		(id: string) => {
 			const index = items.findIndex((i) => getKey(i) === id)

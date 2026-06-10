@@ -1,10 +1,9 @@
-// Note: `matchMedia`, `ResizeObserver`, `scrollIntoView`, and canvas
-// `getContext` are already stubbed globally in `setup/jsdom-stubs.ts`;
-// `stubMatchMedia` is only needed to override the global stub.
+// `matchMedia`, `ResizeObserver`, `scrollIntoView`, and canvas `getContext`
+// are stubbed globally in `setup/jsdom-stubs.ts`; `stubMatchMedia` overrides
+// the global stub.
 //
-// This barrel is also imported by the browser suites, so it must stay free
-// of node-only modules — `walk-source` (node:fs) is imported directly by
-// the boundary tests instead.
+// The browser suites also import this barrel, so it stays free of node-only
+// modules; the boundary tests import `walk-source` (node:fs) directly.
 export { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 export { default as userEvent } from '@testing-library/user-event'
 export { axe, axePage } from './axe'

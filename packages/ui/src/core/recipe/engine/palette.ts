@@ -1,20 +1,20 @@
 /**
- * definePalette() — declares a recipe's colour × variant matrix.
+ * definePalette(): declares a recipe's colour × variant matrix.
  *
  * First argument: the matrix. Each entry takes one of two shapes:
  *
- *   1. `Record<Color, string[]>` — a single per-colour record. Pass
+ *   1. `Record<Color, string[]>`: a single per-colour record. Pass
  *      `iro.palette.plain.text` directly when a variant pulls from one
  *      slot.
- *   2. `readonly Record<Color, string[]>[]` — an array of records merged
+ *   2. `readonly Record<Color, string[]>[]`: an array of records merged
  *      per colour. Pass `[solid.bg, solid.text, solid.hover]` to bundle
  *      several iro.palette slots into one variant.
  *
  * Subsequent arguments: per-colour overlays. Each `{ color → class }` map
- * applies its classes to every variant in the matrix — used for non-palette
+ * applies its classes to every variant in the matrix; covers non-palette
  * colour values like `inherit`. Multiple overlays merge left-to-right.
  *
- * Stored on `RecipeConfig.palette` rather than on a variant axis: the
+ * Lives on `RecipeConfig.palette` rather than on a variant axis: the
  * variant scaffold (`{ outline: 'ring-1 ring-inset', … }`) and the palette
  * matrix stay in separate fields with single responsibilities.
  */

@@ -21,15 +21,13 @@ import type { Context } from './types'
  * Walk a React children tree and produce a simplified code block showing how
  * to use the components on display.
  *
- * - Styling wrappers (divs, spans, Fragments) are transparently skipped.
+ * - Styling wrappers (divs, spans, Fragments) flatten away.
  * - Pure text/number children collapse to `…`.
- * - Runs of 3+ identical sibling renders collapse to a single representative
- *   so loops don't dominate the output.
- * - Imports are collected automatically from build-time component tags.
+ * - Runs of 3+ identical sibling renders collapse to a single representative.
+ * - Imports come from build-time component tags.
  *
- * Returns `null` when the subtree contains no recognized components — the
- * caller should then either provide an explicit `code` override or omit the
- * code block entirely.
+ * Returns `null` when the subtree contains no recognized components; the
+ * caller then provides an explicit `code` override or omits the code block.
  */
 export function deriveCode(children: ReactNode): string | null {
 	const context: Context = {
@@ -50,9 +48,9 @@ export function deriveCode(children: ReactNode): string | null {
 
 /**
  * Renders a list of React children as a JSX snippet. Pass-through wrappers
- * are flattened, text leaves keep their position relative to surrounding
- * elements, and consecutive iterated siblings (3+ identical renders) collapse
- * to a single representative. Authored siblings without keys are kept intact.
+ * flatten, text leaves keep their position relative to surrounding elements,
+ * and consecutive iterated siblings (3+ identical renders) collapse to a
+ * single representative. Authored siblings without keys stay intact.
  */
 function renderNodes(nodes: ReactNode[], context: Context, indent: string): string {
 	const items = collectChildItems(nodes)
@@ -118,7 +116,7 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 		lines.push(line)
 	}
 
-	// Length is >= 2 here (single-element case returned early), so the keyed
+	// Length is >= 2 here (single-element case returned early); the keyed
 	// check alone decides iteration-collapse.
 	const isIteration = elements.every(hasExplicitKey)
 
@@ -146,20 +144,19 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 function hasExplicitKey(element: ReactElement): element is ReactElement & { key: string } {
 	// `Children.toArray` serializes user-provided keys with a `.$` prefix
 	// (positional siblings get `.0`, `.1`, …; nested arrays concatenate as
-	// `.0/.$x`). We test for the `.$` marker, not a bare `$`, so authored
-	// keys containing `$` in a non-iteration position don't false-positive.
+	// `.0/.$x`). The check matches the `.$` marker, not a bare `$`.
 	return typeof element.key === 'string' && element.key.includes('.$')
 }
 
 /**
- * Render a single recognized component element. Unknown components are
- * transparently unwrapped so their internal composition can still contribute.
+ * Render a single recognized component element. Unknown components unwrap;
+ * their children render in place.
  */
 function renderElement(element: ReactElement, context: Context, indent: string): string {
 	const info = context.registry.byType.get(element.type)
 
 	if (!info) {
-		// Unknown component (e.g. a locally-defined demo wrapper) — walk its
+		// Unknown component (e.g. a locally-defined demo wrapper): walk its
 		// children for recognizable components.
 		const children = elementChildren(element)
 
@@ -168,7 +165,7 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		}
 
 		// Self-closing helper with a build-time snippet attached by the
-		// docs plugin's `pre` transform — use the raw JSX verbatim.
+		// docs plugin's `pre` transform: use the raw JSX verbatim.
 		const snippet = readSnippet(element.type)
 
 		if (snippet !== null) {
@@ -190,8 +187,8 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 
 	if (childrenStr === '') return open
 
-	// Short text children render inline. `childrenStr` carries its indent
-	// prefix; strip it since the value sits between tags on a single line.
+	// Short text children render inline between the tags; strip the indent
+	// prefix from `childrenStr`.
 	if (!childrenStr.includes('\n') && !childrenStr.includes('<')) {
 		return `${open}${childrenStr.trimStart()}</${info.name}>`
 	}
@@ -200,9 +197,9 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 }
 
 /**
- * Renders the children of a recognized component via `renderNodes`, then
- * substitutes a `…` placeholder when children exist but nothing was renderable
- * — keeping the parent as `<Foo>…</Foo>` rather than collapsing it to `<Foo />`.
+ * Renders the children of a recognized component via `renderNodes`. When
+ * children exist but nothing renders, substitutes a `…` placeholder; the
+ * parent stays `<Foo>…</Foo>`.
  */
 function renderChildrenContent(nodes: ReactNode[], context: Context, indent: string): string {
 	if (nodes.length === 0) return ''

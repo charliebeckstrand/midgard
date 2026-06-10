@@ -1,5 +1,5 @@
 /**
- * Ma (間) — interval. The named spacing scale shared by padding,
+ * Ma (間): interval. The named spacing scale shared by padding,
  * margin, and gap. One file per axis family; this barrel assembles the
  * named bundle that every kata reads.
  *

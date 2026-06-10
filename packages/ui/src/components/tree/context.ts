@@ -19,10 +19,9 @@ type TreePositionValue = {
 }
 
 /**
- * Per-item sibling position, stamped by `Tree` / `TreeItemChildren` so each
- * treeitem can emit `aria-setsize`/`aria-posinset` — with collapsible
- * branches the DOM child count diverges from the logical set, so "item 2 of
- * 5" is otherwise unannounceable.
+ * Per-item sibling position, stamped by `Tree` / `TreeItemChildren`; each
+ * treeitem emits it as `aria-setsize`/`aria-posinset`. With collapsible
+ * branches the DOM child count diverges from the logical set.
  */
 export const [TreePositionContext, useTreePosition] = createContext<TreePositionValue>(
 	'TreePosition',

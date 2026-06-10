@@ -48,7 +48,7 @@ export function EditableGridCell<T>({
 	const cellRef = useRef<HTMLDivElement>(null)
 
 	// `aria-selected` belongs on the owning `role="gridcell"` <td>, not this
-	// inner content div — reflect the live selection onto it.
+	// inner content div; this reflects the live selection onto it.
 	useEditableGridCellAriaSelected(cellRef, isActive || inRange)
 
 	return (

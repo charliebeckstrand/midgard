@@ -37,7 +37,7 @@ export function SidebarItem({
 
 	const Wrapper = inList ? 'li' : 'span'
 
-	// Affixes render as siblings of the inner button, not nested inside it, so
+	// Affixes render as siblings of the inner button, not nested inside it;
 	// a slot can host its own interactive element. The row goes flex only when
 	// an affix is present.
 	const hasAffix = prefix != null || suffix != null

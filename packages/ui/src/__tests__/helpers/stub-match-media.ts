@@ -9,7 +9,7 @@ type StubMatchMediaOverrides = Partial<
  * for call-list assertions; pair with `vi.unstubAllGlobals()` in `afterEach`.
  *
  * Pass `overrides` to share an `addEventListener` / `removeEventListener` spy
- * across every MQL the hook constructs — covering the subscribe-and-cleanup
+ * across every MQL the hook constructs, covering the subscribe-and-cleanup
  * shape used by `useMediaQuery` and similar hooks.
  */
 export function stubMatchMedia(

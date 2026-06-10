@@ -4,11 +4,10 @@ import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
 import { VirtualOptions } from '../primitives/virtual-options'
 import { makeComboboxOptions } from './fixtures'
 
-// Listbox opens on user click, so we can't benchmark the open-panel path the
-// same way Combobox does (which has a direct `open` prop). These benches
-// measure the closed Listbox at various option counts — which still mount
-// everything below the trigger — and the virtualized wrapper rendered inside
-// a stand-in role="listbox" container.
+// Listbox opens on user click and exposes no direct `open` prop (Combobox
+// does). These benches measure the closed Listbox at several option counts
+// (everything below the trigger still mounts) and the virtualized wrapper
+// rendered inside a stand-in role="listbox" container.
 
 const options100 = makeComboboxOptions(100)
 const options500 = makeComboboxOptions(500)
@@ -42,7 +41,7 @@ describe('Listbox · closed (options provided as children)', () => {
 
 describe('Listbox · options inside a stand-in listbox panel', () => {
 	// Bypass the real Listbox open/close state by rendering options inside a
-	// matching role="listbox" container — isolates per-option rendering cost.
+	// matching role="listbox" container; isolates per-option rendering cost.
 	function renderPanel(opts: { value: string; label: string }[]) {
 		return (
 			<div role="listbox" style={{ maxHeight: '400px', overflow: 'auto' }}>

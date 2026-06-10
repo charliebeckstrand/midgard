@@ -486,7 +486,7 @@ describe('DataTable', () => {
 				/>,
 			)
 
-			// Both rows still render — the loading flag only mutates the row classes.
+			// Both rows still render; the loading flag only mutates the row classes.
 			const trs = container.querySelectorAll('tbody tr')
 
 			expect(trs).toHaveLength(rows.length)
@@ -572,10 +572,10 @@ describe('DataTable', () => {
 				/>,
 			)
 
-			// Select column survives — the checkbox column header still renders.
+			// Select column survives: the checkbox column header still renders.
 			expect(screen.getByRole('checkbox', { name: 'Select all rows' })).toBeInTheDocument()
 
-			// Actions column survives — buttons still render in body.
+			// Actions column survives: buttons still render in body.
 			expect(screen.getByRole('button', { name: 'Edit Alice' })).toBeInTheDocument()
 
 			// Regular hideable column is dropped.

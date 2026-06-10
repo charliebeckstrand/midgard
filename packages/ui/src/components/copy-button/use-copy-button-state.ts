@@ -34,13 +34,13 @@ export function useCopyButtonState({
 
 			setCopied(true)
 
-			// A label change on an already-focused control isn't announced; surface success explicitly.
+			// Screen readers skip label changes on an already-focused control; announce success explicitly.
 			announce('Copied')
 
 			onCopiedChangeRef.current?.(true)
 		} catch {
 			// Clipboard write failed (denied permission, insecure context, or missing API);
-			// the copied state is not set.
+			// `copied` stays false.
 		}
 	}, [value])
 

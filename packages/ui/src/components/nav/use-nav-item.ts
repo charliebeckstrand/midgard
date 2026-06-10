@@ -18,7 +18,7 @@ import type { Step } from '../../recipes'
 
 /**
  * Canonical props shared by nav-item-style components (NavItem, SidebarItem).
- * Each extends this with its own extras — `value` for selection binding,
+ * Each extends this with its own extras: `value` for selection binding,
  * `size` for an explicit step.
  */
 export type NavItemProps = {
@@ -27,9 +27,9 @@ export type NavItemProps = {
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
-	/** Rendered before the inner button, outside it — the slot can host its own interactive element (e.g. a drag handle button). */
+	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). */
 	prefix?: ReactNode
-	/** Rendered after the inner button, outside it — the slot can host its own interactive element (e.g. an actions button). */
+	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). */
 	suffix?: ReactNode
 	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
 } & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>

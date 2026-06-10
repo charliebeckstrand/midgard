@@ -4,9 +4,9 @@ import { createElement, Fragment, type FunctionComponent, type ReactNode } from 
 import { bench, describe, vi } from 'vitest'
 
 // `deriveCode` imports `virtual:component-modules` indirectly via its registry.
-// In a bare-node bench environment the Vite plugin never runs, so we stand in
-// for it with an empty record. The walk we're measuring reads tags off element
-// types (set per-fixture below) — it doesn't consult this map.
+// In a bare-node bench environment the Vite plugin never runs; an empty record
+// stands in. The measured walk reads tags off element types (set per-fixture
+// below) and never consults this map.
 vi.mock('virtual:component-modules', () => ({ default: {} as Record<string, string> }))
 
 const { deriveCode } = await import('../../docs/derive-code')

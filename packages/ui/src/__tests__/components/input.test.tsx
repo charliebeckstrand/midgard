@@ -92,7 +92,7 @@ describe('Input', () => {
 
 describe('Input size resolution', () => {
 	// Each size variant brings a unique text class via ji; matching it
-	// confirms which size the kata actually rendered.
+	// confirms which size the kata rendered.
 	const textClassFor = {
 		sm: 'text-sm',
 		md: 'text-base',

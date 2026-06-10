@@ -83,11 +83,11 @@ export function SidebarLayout({
 				/>
 			)}
 
-			{/* Sidebar on desktop — inline when locked */}
+			{/* Sidebar on desktop: inline when locked */}
 			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
 
-			{/* Sidebar on desktop — sheet when floating. Non-modal: a pointer-revealed
-			    peek must not steal or trap focus, nor lock body scroll. */}
+			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
+			    peek doesn't steal focus or lock body scroll. */}
 			{floating && (
 				<Sheet
 					side="left"
@@ -107,7 +107,7 @@ export function SidebarLayout({
 				</Sheet>
 			)}
 
-			{/* Buffer to the right of the floating sidebar — keeps it open while pointer lingers within 40px */}
+			{/* Buffer to the right of the floating sidebar; keeps it open while the pointer lingers within 40px */}
 			{floating &&
 				floatingOpen &&
 				typeof document !== 'undefined' &&

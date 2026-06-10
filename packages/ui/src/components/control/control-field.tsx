@@ -6,7 +6,7 @@ import { ControlContext } from './context'
 import { useControlFieldContext } from './use-control-field-context'
 
 export type ControlFieldProps = {
-	/** Pin the generated field id; otherwise a scoped id is derived. */
+	/** Pins the generated field id; otherwise derives a scoped id. */
 	htmlFor?: string
 	children: ReactNode
 }

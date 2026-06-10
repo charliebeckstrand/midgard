@@ -22,8 +22,8 @@ export type MapMarkerProps = {
 	onClick?: () => void
 	/**
 	 * Accessible name for an interactive marker. The default pin is decorative
-	 * (`aria-hidden`), so a clickable marker with no labelled children needs this
-	 * to be usable by screen readers (WCAG 4.1.2).
+	 * (`aria-hidden`); a clickable marker with no labelled children requires
+	 * this for screen readers (WCAG 4.1.2).
 	 */
 	'aria-label'?: string
 	className?: string
@@ -67,8 +67,8 @@ export function MapMarker({
 
 			if (init.className) el.className = init.className
 
-			// `anchor` is read from the closure (not the ref) so it stays a genuine
-			// dependency — the marker is recreated when it changes.
+			// `anchor` is read from the closure (not the ref) and stays a genuine
+			// dependency; the marker is recreated when it changes.
 			const marker = new Marker({ element: el, anchor })
 
 			markerRef.current = marker
@@ -91,8 +91,8 @@ export function MapMarker({
 
 			setElement(null)
 		}
-		// `anchor` has no public maplibre setter, so the marker is recreated when it
-		// changes; position and className are synced in place by the effects below.
+		// `anchor` has no public maplibre setter; the marker is recreated when it
+		// changes. Position and className sync in place via the effects below.
 	}, [onReady, anchor])
 
 	useEffect(() => {
@@ -100,7 +100,7 @@ export function MapMarker({
 	}, [position])
 
 	// Sync className in place without clobbering maplibre's own marker classes:
-	// remove the previously-applied tokens, then add the current ones.
+	// remove the last-applied tokens, then add the current ones.
 	const appliedClassRef = useRef(className)
 
 	useEffect(() => {

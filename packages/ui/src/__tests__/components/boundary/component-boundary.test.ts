@@ -6,12 +6,12 @@ import { describe, expect, it } from 'vitest'
 // rather than reaching into each other's files:
 //
 //   1. A component's index.ts re-exports only from within its own folder, or
-//      from its owning kata — `recipes/kata/<same-name>` and any sub-kata
+//      from its owning kata: `recipes/kata/<same-name>` and any sub-kata
 //      `recipes/kata/<same-name>-<anything>`. Kata variants are part of the
 //      component's public API; re-exporting from a sibling component's
 //      internals is not.
 //   2. No file imports a sibling component's main `<name>.tsx` via a deep
-//      relative path (`'../<other>/<other>'`). The barrel — `'../<other>'` —
+//      relative path (`'../<other>/<other>'`). The barrel, `'../<other>'`,
 //      is the public entry point; deep main-file imports bypass it.
 
 const componentsDir = join(__dirname, '../../../components')
@@ -77,8 +77,7 @@ describe('component internals boundary', () => {
 
 	// Rendering `<XxxContext value={…}>` makes the module a client module: the
 	// package's subpath exports resolve to raw source, so a missing directive
-	// surfaces as an RSC crash only at runtime in a consuming Next app
-	// (originally hit by DescriptionList).
+	// surfaces as an RSC crash only at runtime in a consuming Next app.
 	it("a module that renders a Context provider carries 'use client'", () => {
 		const violations: string[] = []
 

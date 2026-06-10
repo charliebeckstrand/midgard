@@ -9,8 +9,8 @@ type Profile = 'driving' | 'walking' | 'cycling'
 export type FetchOsrmRouteOptions = {
 	/**
 	 * OSRM-compatible base URL. Defaults to the OSRM public demo server,
-	 * which is rate-limited and frequently returns 504s — point at a
-	 * self-hosted OSRM instance for production.
+	 * which is rate-limited and prone to 504s; point at a self-hosted OSRM
+	 * instance for production.
 	 */
 	baseUrl?: string
 	profile?: Profile
@@ -20,7 +20,7 @@ export type FetchOsrmRouteOptions = {
 export type FetchValhallaRouteOptions = {
 	/**
 	 * Valhalla base URL. Defaults to the OSM community server, which has
-	 * a best-effort fair-use policy — point at a self-hosted Valhalla for
+	 * a best-effort fair-use policy; point at a self-hosted Valhalla for
 	 * production.
 	 */
 	baseUrl?: string
@@ -30,7 +30,7 @@ export type FetchValhallaRouteOptions = {
 
 /**
  * Fetch a routed polyline through OSRM. Returns the geometry coordinates,
- * or null if there are fewer than 2 waypoints or the request fails —
+ * or null if there are fewer than 2 waypoints or the request fails;
  * callers should fall back to a straight-line path.
  */
 export async function fetchOsrmRoute(
@@ -63,7 +63,7 @@ export async function fetchOsrmRoute(
 /**
  * Fetch a routed polyline through Valhalla (OSRM-compatible response mode).
  * Same semantics as `fetchOsrmRoute`: returns null on <2 waypoints or any
- * error so callers can fall back to straight-line segments.
+ * error; callers should fall back to straight-line segments.
  */
 export async function fetchValhallaRoute(
 	waypoints: LngLat[],

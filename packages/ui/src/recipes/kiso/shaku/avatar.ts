@@ -1,5 +1,5 @@
 /**
- * Shaku avatar — square dimension scale for avatars.
+ * Shaku avatar: square dimension scale for avatars.
  *
  * Layer: kiso · Concern: avatar dimension
  */

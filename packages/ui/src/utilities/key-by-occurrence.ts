@@ -1,8 +1,8 @@
 /**
  * Pair each string with a React-key-safe identifier: the value itself for the
- * first occurrence, suffixed with its occurrence index for repeats. Lists that
- * can legitimately contain duplicates (controlled tag values, un-deduped
- * validation messages) would otherwise collide on bare value keys.
+ * first occurrence, suffixed with its occurrence index for repeats. Lists with
+ * duplicates (controlled tag values, un-deduped validation messages) collide
+ * on bare value keys.
  */
 export function keyByOccurrence(values: readonly string[]): { key: string; value: string }[] {
 	const seen = new Map<string, number>()

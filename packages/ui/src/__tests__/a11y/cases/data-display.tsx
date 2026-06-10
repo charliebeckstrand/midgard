@@ -56,12 +56,11 @@ const listTasks = [
 	{ id: 'b', label: 'Write the tests' },
 ]
 
-/** Data display — badges, status, disclosures, trees, and tabular data. */
+/** Data display: badges, status, disclosures, trees, and tabular data. */
 export const dataDisplayCases: readonly Case[] = [
 	['badge', <Badge key="b">New</Badge>],
 	[
-		// Status indicator paired with a visible text label; meaning is not
-		// conveyed by the dot alone.
+		// Status indicator paired with a visible text label.
 		'status',
 		<span key="sd">
 			<StatusDot status="active" /> Active

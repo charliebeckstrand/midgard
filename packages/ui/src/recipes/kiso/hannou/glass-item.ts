@@ -1,5 +1,5 @@
 /**
- * Hannou glass-item — hover / focus highlight for items inside a glass
+ * Hannou glass-item: hover / focus highlight for items inside a glass
  * parent. Lives here as a state concern; the surface chrome that
  * triggers the cascade (`group-data-[glass]/glass`) lives in `omote`.
  *

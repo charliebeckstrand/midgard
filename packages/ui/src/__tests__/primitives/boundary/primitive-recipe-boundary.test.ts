@@ -7,7 +7,7 @@ import { walkSource } from '../../helpers/walk-source'
 // Value imports from `recipes` (the barrel), `recipes/katakana/*`, or
 // `recipes/kiso/*` bypass the kata curation and pull applicator or substrate
 // fragments directly into the primitive layer. Type-only imports from the
-// barrel are permitted — primitives derive prop unions from `Step`, `Ma`,
+// barrel are permitted; primitives derive prop unions from `Step`, `Ma`,
 // `Color`, `Ji`, `GroupOrientation`, and `GroupPosition`.
 
 const primitivesDir = join(__dirname, '../../../primitives')

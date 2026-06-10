@@ -6,7 +6,7 @@ import { renderUI } from '../helpers'
 
 /**
  * Bare-button target-size floor (real browser). The bare variant carries no
- * padding: an icon-only bare button's border-box is just the icon — below the
+ * padding: an icon-only bare button's border-box is the icon alone, below the
  * WCAG 2.5.8 24px minimum. The recipe floors that box to 24px and pulls the
  * overshoot back with a matched negative margin; the floor never grows the row
  * it sits in.
@@ -46,7 +46,7 @@ describe('bare button target-size floor', () => {
 		expect(box.height).toBeGreaterThanOrEqual(24)
 
 		// ...while the negative margin collapses the margin-box back toward the
-		// icon — the wrapper never grows.
+		// icon; the wrapper never grows.
 		const wrapBox = wrap.getBoundingClientRect()
 
 		expect(wrapBox.width).toBeLessThan(24)

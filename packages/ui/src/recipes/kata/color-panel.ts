@@ -56,7 +56,7 @@ export const k = defineRecipe(
 		sliders: 'flex flex-col gap-2',
 		/** Preview swatch + hex field share a row beneath the sliders. */
 		previewRow: 'flex items-center gap-2',
-		/** Eyedropper overlaid on the preview, revealed on hover or focus of the swatch. */
+		/** Label-above-input column for one channel input. */
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',

@@ -15,7 +15,7 @@ import { Stack } from '../../../components/stack'
 import { GlassProvider } from '../../../providers/glass'
 import type { Case } from './types'
 
-/** Layout & surface primitives — structural containers with no interactive role. */
+/** Layout & surface primitives: structural containers with no interactive role. */
 export const layoutCases: readonly Case[] = [
 	['box', <Box key="bx">Content</Box>],
 	[

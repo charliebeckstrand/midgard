@@ -25,7 +25,7 @@ type DataTableColumnVisibilityOptions<T extends ColumnLike> = {
  * the standalone column manager. Owns the default-order derivation (the
  * columns' own order), the two `useControllable` bindings with their
  * undefined-coalescing, and the id → column lookup map. The setters are the
- * raw `useControllable` setters, so callers can pass a value or an updater.
+ * raw `useControllable` setters; they accept a value or an updater.
  */
 export function useDataTableColumnVisibility<T extends ColumnLike>({
 	columns,

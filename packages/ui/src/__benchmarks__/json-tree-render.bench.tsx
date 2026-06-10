@@ -5,8 +5,8 @@ import { JsonTree } from '../components/json-tree'
 import { collectPaths } from '../components/json-tree/json-tree-utilities'
 import { makeJsonTree } from './fixtures'
 
-// JsonTree's render cost is dominated by JsonNode recursion + filterEntries.
-// Pair with json-tree.bench.ts (pure logic) to isolate algorithmic cost.
+// JsonNode recursion + filterEntries dominate JsonTree's render cost;
+// json-tree.bench.ts isolates the pure logic.
 
 const small = makeJsonTree(3, 5)
 const medium = makeJsonTree(4, 5)
@@ -98,8 +98,8 @@ describe('JsonTree · virtualized render', () => {
 	})
 })
 
-// Re-render cost when a single branch toggles. Controlled `expanded` lets us
-// flip one branch per iteration and measure only the re-render (not the mount).
+// Re-render cost when a single branch toggles. Controlled `expanded` flips
+// one branch per iteration and measures only the re-render (not the mount).
 const togglePaths = [...collectPaths(medium, undefined, Number.POSITIVE_INFINITY)]
 
 const branchToToggle = togglePaths[Math.floor(togglePaths.length / 2)] ?? togglePaths[0] ?? ''

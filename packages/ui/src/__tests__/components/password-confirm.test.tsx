@@ -62,8 +62,8 @@ describe('PasswordConfirmInput', () => {
 
 		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
 
-		// Focusing the invalid field must announce the reason, not a bare
-		// "invalid" — the warning id joins the input's aria-describedby.
+		// The warning id joins the input's aria-describedby, so focusing the
+		// invalid field announces the reason, not a bare "invalid".
 		const describedBy = confirmInput.getAttribute('aria-describedby')
 
 		expect(describedBy).toBeTruthy()
@@ -94,7 +94,7 @@ describe('PasswordConfirmInput', () => {
 
 		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
 
-		// Unmounting the confirm field clears the stale confirm value/name —
+		// Unmounting the confirm field clears the stale confirm value/name;
 		// the warning must not keep reporting a mismatch against nothing.
 		rerender(
 			<PasswordConfirm warning="Passwords do not match">

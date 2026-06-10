@@ -69,7 +69,7 @@ describe('CodeBlock', () => {
 	it('does not throw when unmounted before shiki resolves', async () => {
 		const { unmount } = renderUI(<CodeBlock code="unique-unmount-token" />)
 
-		// Tear the component down on the same tick — the cancelled flag inside the effect
+		// Tear the component down on the same tick; the cancelled flag inside the effect
 		// suppresses the trailing setHtml call.
 		unmount()
 

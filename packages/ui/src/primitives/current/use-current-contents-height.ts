@@ -19,8 +19,7 @@ export function useCurrentContentsHeight(
 		if (!element || !enabled) return
 
 		// Track every `data-current` child's height; report the tallest. When the
-		// context value is undefined, all panels are `data-current` and stacked, so
-		// measuring only the first would clip the taller ones.
+		// context value is undefined, all panels are `data-current` and stacked.
 		const heights = new Map<Element, number>()
 
 		const resizeObserver = new ResizeObserver((entries) => {
@@ -42,7 +41,6 @@ export function useCurrentContentsHeight(
 			setHeight(max)
 		})
 
-		// Observe every active child (`data-current`).
 		const observe = () => {
 			resizeObserver.disconnect()
 
@@ -57,7 +55,6 @@ export function useCurrentContentsHeight(
 
 		const mutationObserver = new MutationObserver(observe)
 
-		// Watch only the `data-current` attribute, not `style`.
 		mutationObserver.observe(element, {
 			childList: true,
 			subtree: true,

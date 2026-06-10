@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — color-panel. The picker's overall block silhouette across
+ * Kokkaku skeleton: color-panel. The picker's overall block silhouette across
  * the three control size steps; chrome, sliders, and swatches collapse into one
  * placeholder rectangle.
  *

@@ -1,5 +1,5 @@
 /**
- * Shaku combobox — sub-pixel positioning for the combobox dropdown
+ * Shaku combobox: sub-pixel positioning for the combobox dropdown
  * caret. Insets 1px within the control border, keeping the chevron
  * clear of the chrome at fractional zoom.
  *

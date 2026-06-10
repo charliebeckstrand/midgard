@@ -8,7 +8,7 @@ import { CopyButton } from '../copy-button'
 
 const MAX_CACHE_SIZE = 200
 
-/** Token cache keyed by theme + language + code. Avoids re-tokenizing on remount. */
+/** Token cache keyed by theme + language + code. */
 const htmlCache = new Map<string, string>()
 
 const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000${lang}\u0000${code}`
@@ -23,7 +23,7 @@ function cacheSet(key: string, value: string) {
 	htmlCache.set(key, value)
 }
 
-// Lazy-load shiki on first use to keep the initial bundle small.
+// Lazy-load shiki on first use.
 let shikiPromise: Promise<typeof import('shiki')> | null = null
 
 export function loadShiki() {
@@ -66,8 +66,8 @@ export function CodeBlock({
 			return
 		}
 
-		// Cache miss: drop the previous snippet's markup so the plain fallback shows
-		// during re-tokenization instead of stale highlighted output for the old input.
+		// Cache miss: drop the previous snippet's markup; the plain fallback shows
+		// during re-tokenization.
 		setHtml(null)
 
 		let cancelled = false

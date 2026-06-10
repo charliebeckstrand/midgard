@@ -10,7 +10,7 @@ import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
-// Require an accessible name: multiple tablists are otherwise indistinguishable.
+// Requires an accessible name.
 export type TabListProps = AccessibleName &
 	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
 

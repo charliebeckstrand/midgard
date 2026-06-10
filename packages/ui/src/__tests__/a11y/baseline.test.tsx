@@ -23,10 +23,10 @@ describe('a11y baseline (axe)', () => {
 })
 
 /**
- * Overlay gate: these components portal their content to `document.body`; the
- * container-scoped check inspects an empty node. Renders each in its canonical
- * open state (`cases.ts` → `overlays`) and asserts the whole document is clean.
- * Cleanup resets `document.body` between cases.
+ * Overlay gate: these components portal their content to `document.body`.
+ * Renders each in its canonical open state (`cases.ts` → `overlays`) and
+ * asserts the whole document is clean. Cleanup resets `document.body`
+ * between cases.
  */
 describe('a11y baseline (axe) — overlays', () => {
 	it.each(overlays)('%s has no axe violations', async (_name, element) => {
@@ -39,7 +39,7 @@ describe('a11y baseline (axe) — overlays', () => {
 /**
  * Interactive gate: overlays with no controlled-open prop (tooltip, the
  * select/combobox/date-picker popovers). Each case carries an `open` step that
- * drives the real interaction before the document is checked. Same body scope
+ * drives the real interaction before the axe check runs. Same body scope
  * and cleanup as the overlays gate.
  */
 describe('a11y baseline (axe) — interactive', () => {
@@ -54,8 +54,8 @@ describe('a11y baseline (axe) — interactive', () => {
 	})
 })
 
-// Teeth check: a known defect (icon-only button with no accessible name,
-// WCAG 4.1.2) must surface — confirming the matcher is wired, not just passing.
+// Teeth check: asserts a known defect (icon-only button with no accessible
+// name, WCAG 4.1.2) surfaces, confirming the matcher is wired.
 describe('a11y baseline (axe) — teeth check', () => {
 	it('detects an icon-only button with no accessible name', async () => {
 		const { container } = renderUI(

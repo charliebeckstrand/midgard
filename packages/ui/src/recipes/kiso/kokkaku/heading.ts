@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — heading. Height tracks the resolved type-scale rung
+ * Kokkaku skeleton: heading. Height tracks the resolved type-scale rung
  * (the level's natural size shifted by the ambient density step), matching
  * the real heading at every density. Width caps at `sm:max-w-sm`, placing
  * multi-line skeletons below rather than alongside.

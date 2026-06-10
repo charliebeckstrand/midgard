@@ -1,6 +1,5 @@
 /**
- * Ugoki overlay — backdrop fade for dialogs and sheets. Opacity only;
- * the modal scrim doesn't need positional motion.
+ * Ugoki overlay: backdrop fade for dialogs and sheets. Opacity only.
  *
  * Layer: kiso · Concern: backdrop motion
  */

@@ -39,9 +39,9 @@ export function Message({
 
 	const issues = isFormBoundError ? field.errors : undefined
 
-	// Error messages register so aria-describedby references the id only while
-	// the message is rendered. Registered before the early return to keep hook
-	// order stable. Success messages are not field descriptions and don't register.
+	// Error messages register; aria-describedby references the id only while
+	// the message renders. Registration precedes the early return; hook order
+	// stays stable. Success messages are not field descriptions and don't register.
 	const rendersError =
 		variant === 'error' && (isFormBoundError ? (issues?.length ?? 0) > 0 : children != null)
 
@@ -50,8 +50,8 @@ export function Message({
 	useEffect(() => {
 		if (!rendersError) return
 
-		// The error variant renders `id ?? control.messageId`; register that id so
-		// a custom id doesn't orphan the field's aria-describedby.
+		// The error variant renders `id ?? control.messageId`; register that id.
+		// An unregistered custom id orphans the field's aria-describedby.
 		return registerMessage?.(id)
 	}, [rendersError, registerMessage, id])
 
@@ -67,8 +67,8 @@ export function Message({
 	const role = variant === 'error' ? 'alert' : 'status'
 
 	if (isFormBoundError && issues && all && issues.length > 1) {
-		// Text alone can collide as a key — the native validator path doesn't
-		// dedupe identical messages — so repeats get an occurrence suffix.
+		// Text alone can collide as a key; the native validator path doesn't
+		// dedupe identical messages. Repeats get an occurrence suffix.
 		const keyed = keyByOccurrence(issues)
 
 		return (

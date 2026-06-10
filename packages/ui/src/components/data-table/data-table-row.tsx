@@ -17,23 +17,23 @@ type DataTableRowProps<T> = {
 	/** Human-readable name for the selection checkbox ("Select {label}"); falls back to the row key. */
 	rowLabel?: string
 	/**
-	 * This row's selected state. Passed as a prop, not read from context, so
+	 * This row's selected state. Passed as a prop, not read from context;
 	 * `memo` re-renders only this row when its selection flips.
 	 */
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */
 	toggleRow: (key: string | number) => void
 	/**
-	 * 1-based position in the full row set (header = 1), set only when the body
-	 * is virtualized so assistive tech can report position despite the windowed
-	 * DOM. Omitted otherwise.
+	 * 1-based position in the full row set (header = 1). Set only when the body
+	 * is virtualized; assistive tech reads it to report position in the
+	 * windowed DOM. Omitted otherwise.
 	 */
 	rowIndex?: number
 	/**
-	 * 0-based index into the full `rows` array, surfaced as `data-row-index` so
-	 * keyboard bridges (e.g. EditableGrid) can resolve a `<tr>` to its data row
-	 * without relying on physical DOM position — which diverges from the data
-	 * order once spacer rows and windowing enter the picture under virtualization.
+	 * 0-based index into the full `rows` array, surfaced as `data-row-index`.
+	 * Keyboard bridges (e.g. EditableGrid) resolve a `<tr>` to its data row
+	 * through it; under virtualization, spacer rows and windowing make physical
+	 * DOM position diverge from data order.
 	 */
 	dataRowIndex: number
 }
@@ -65,7 +65,7 @@ function DataTableRowImpl<T>({
 			>
 				{columns.map((col, colIdx) => {
 					// Cell column indices accompany aria-rowindex under virtualization
-					// (rowIndex is only set then) so AT can report the active column.
+					// (rowIndex is only set then).
 					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
 					if (col.selectable) {

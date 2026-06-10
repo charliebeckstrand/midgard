@@ -22,7 +22,7 @@ describe('PasswordStrength', () => {
 			el.hasAttribute('data-passed'),
 		)
 
-		// length 8+, has uppercase, has number — 3 rules pass, symbol does not
+		// length 8+, has uppercase, has number: 3 rules pass, symbol does not
 		expect(passed).toHaveLength(3)
 	})
 

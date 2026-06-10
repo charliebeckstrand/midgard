@@ -36,15 +36,14 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 			>)
 		: null
 
-	// The child's own ref is merged (not overwritten) to support triggers that
-	// pass one (React 19 ref-as-prop), so a consumer's `ref` still receives the
-	// node instead of being clobbered by the floating reference.
+	// Merges the child's own ref (React 19 ref-as-prop) with the floating
+	// reference; both receive the node.
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	// Returns a cleanup from the ref callback so React 19 does not call it with
-	// null on unmount. This prevents `setReference(null)` from firing a state
-	// update during deletion effects, which can cascade into a "Maximum update
-	// depth" error when ancestor state is still in flux.
+	// React 19 skips the null call on unmount when the ref callback returns a
+	// cleanup. `setReference(null)` during deletion effects fires a state
+	// update that can cascade into a "Maximum update depth" error while
+	// ancestor state is in flux.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			triggerRef.current = node as HTMLButtonElement | null

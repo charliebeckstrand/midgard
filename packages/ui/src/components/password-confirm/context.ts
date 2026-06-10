@@ -7,7 +7,7 @@ type PasswordConfirmContextValue = {
 	setConfirm: (value: string) => void
 	setConfirmName: (name: string | undefined) => void
 	confirmHasFormError: boolean
-	/** Id of the rendered mismatch warning — merged into the confirm input's `aria-describedby` while the mismatch holds; undefined when no `warning` is configured. */
+	/** Id of the rendered mismatch warning; merged into the confirm input's `aria-describedby` while the mismatch holds. Undefined when no `warning` is configured. */
 	warningId: string | undefined
 }
 

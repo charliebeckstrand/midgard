@@ -9,7 +9,7 @@ import { useColorPanelContext } from './context'
 import { type DragPosition, useColorDrag } from './use-color-drag'
 
 type ColorSliderProps = {
-	/** `hue` rides the `0–360` wheel; `alpha` rides the `0–1` transparency track. */
+	/** `hue` rides the `0-360` wheel; `alpha` rides the `0-1` transparency track. */
 	channel: 'hue' | 'alpha'
 }
 

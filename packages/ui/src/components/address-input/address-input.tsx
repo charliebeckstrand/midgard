@@ -24,7 +24,7 @@ export type AddressInputProps = {
 	'aria-label'?: string
 }
 
-/** Address autocomplete over a pluggable geocoding `provider` — built on Combobox, debounces the query and only fetches once `minQueryLength` is reached. */
+/** Address autocomplete over a pluggable geocoding `provider`. Built on Combobox; debounces the query and fetches once `minQueryLength` is reached. */
 export function AddressInput({
 	value,
 	onValueChange,

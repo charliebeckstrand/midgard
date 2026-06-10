@@ -9,9 +9,9 @@ export type BreadcrumbLinkProps = {
 
 /**
  * A breadcrumb crumb: a link when `href` is set, otherwise a `<span>`. Either
- * form carries `aria-current="page"` when `current` — the APG keeps the
- * current crumb a link too. Routes through `Polymorphic` so href dispatch and
- * the app's registered link component are shared with the rest of the
+ * form carries `aria-current="page"` when `current`; the APG keeps the
+ * current crumb a link too. Routes through `Polymorphic`, sharing href
+ * dispatch and the app's registered link component with the rest of the
  * library; breadcrumb supplies its own `k.link` styling.
  */
 export function BreadcrumbLink({

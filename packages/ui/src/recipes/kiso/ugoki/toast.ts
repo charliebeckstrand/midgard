@@ -1,5 +1,5 @@
 /**
- * Ugoki toast — toast slide-in from the top or bottom edge.
+ * Ugoki toast: toast slide-in from the top or bottom edge.
  *
  * Layer: kiso · Concern: toast motion
  */

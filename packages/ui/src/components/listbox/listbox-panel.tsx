@@ -29,11 +29,11 @@ type ListboxPanelProps = {
 }
 
 /**
- * Internal — the listbox menu surface rendered through FloatingPortal.
- * Owns the entry/exit animation and the listbox role; floating positioning
- * + open state is supplied by the caller.
+ * Internal: the listbox menu surface rendered through FloatingPortal.
+ * Owns the entry/exit animation and the listbox role; the caller supplies
+ * floating positioning and open state.
  *
- * Not exported from the package barrel — intentionally internal.
+ * Not exported from the package barrel.
  */
 export function ListboxPanel({
 	id,
@@ -54,9 +54,9 @@ export function ListboxPanel({
 	const root = usePortalContainer()
 
 	// The element `FloatingFocusManager` lands focus on when the panel opens:
-	// the selected option (so arrow-keys resume from the current value), else the
-	// listbox itself. Populated in the floating node's ref callback — which fires
-	// after the option children have committed — so the manager reads it before
+	// the selected option (arrow keys resume from the current value), else the
+	// listbox itself. Populated in the floating node's ref callback, which
+	// fires after the option children commit; the manager then reads it before
 	// running its initial-focus effect.
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
@@ -64,10 +64,10 @@ export function ListboxPanel({
 		<FloatingPortal root={root ?? undefined}>
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
-					// Non-modal: focus moves into the panel on open and is contained.
+					// Non-modal: focus moves into the panel on open and stays contained.
 					// Tab leaves the surface through the focus guards and `closeOnFocusOut`
 					// dismisses it (a select closes on Tab; it doesn't trap like a dialog).
-					// Return-focus is managed by `useFloatingUI`'s `returnFocusTo`;
+					// `useFloatingUI`'s `returnFocusTo` manages return-focus;
 					// `returnFocus={false}` suppresses the manager's own return-focus.
 					<FloatingFocusManager
 						context={context}

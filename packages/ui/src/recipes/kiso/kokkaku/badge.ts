@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — badge. Pill silhouette across the four badge size
+ * Kokkaku skeleton: badge. Pill silhouette across the four badge size
  * steps.
  *
  * Layer: kiso · Concern: skeleton form · Unit: badge

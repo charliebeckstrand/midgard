@@ -10,10 +10,10 @@ export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	control?: boolean
 }
 
-// `size` resolves from the prop or the recipe default only — Kbd is a pure,
-// server-renderable display leaf and deliberately stays density-inert (reading
-// ambient Density would force `'use client'` onto every key glyph in static content).
-/** Keyboard-key glyph — optionally prepends the Command (`command`) or Control (`control`) modifier symbol. */
+// `size` resolves from the prop or the recipe default only. Kbd is a pure,
+// server-renderable display leaf and stays density-inert; reading ambient
+// Density requires `'use client'`.
+/** Keyboard-key glyph; optionally prepends the Command (`command`) or Control (`control`) modifier symbol. */
 export function Kbd({ command, control, size, className, children, ...props }: KbdProps) {
 	return (
 		<kbd data-slot="kbd" className={cn(k({ size }), className)} {...props}>

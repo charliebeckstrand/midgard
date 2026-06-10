@@ -34,7 +34,7 @@ function toArray(value: string | string[] | null | undefined): string[] {
 }
 
 /**
- * Vertically stacked set of collapsible sections — `type='single'` keeps at
+ * Vertically stacked set of collapsible sections. `type='single'` keeps at
  * most one open (optionally `collapsible` to none); `type='multiple'` allows
  * any number. Controlled via `value`/`onValueChange` or uncontrolled, with
  * roving-tabindex keyboard navigation across triggers.
@@ -46,8 +46,8 @@ export function Accordion(props: AccordionProps) {
 
 	const collapsible = isMultiple ? true : (props.collapsible ?? true)
 
-	// Memoized so the single-mode `toArray` wrap doesn't mint a new array — and
-	// with it a new context identity — on every render of a controlled accordion.
+	// The single-mode `toArray` wrap mints a new array each call; memoization
+	// keeps the context identity stable across controlled renders.
 	const controlledValue = useMemo(
 		() =>
 			props.type === 'multiple'

@@ -6,7 +6,7 @@ import { type RefObject, useEffect } from 'react'
  * Observes size changes on `ref.current` and invokes `callback` on each
  * change, plus once synchronously when the effect first attaches.
  *
- * `callback` is captured in the effect's dependency array. Pass a stable
+ * The effect's dependency array captures `callback`. Pass a stable
  * reference (e.g. `useCallback`) and read mutable values through a ref
  * inside the callback; a fresh reference re-subscribes the observer each
  * render and re-fires its initial callback.

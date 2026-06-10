@@ -50,7 +50,7 @@ export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileU
 
 /**
  * File picker over a hidden `<input type="file">`, rendered as one of three
- * `variant`s — a drag-and-drop `area` dropzone, a readonly `input` field, or a
+ * `variant`s: a drag-and-drop `area` dropzone, a readonly `input` field, or a
  * `button`. Mirrors enclosing `<Control>`/`<Field>` invalid and required state
  * onto the real input.
  */
@@ -58,7 +58,7 @@ export function FileUpload(props: FileUploadProps) {
 	const { accept, multiple, disabled, className, children, onFiles } = props
 
 	// Mirrors Control/Field invalid + required + error-message wiring onto the
-	// hidden `<input type="file">` — the real control in every variant. The
+	// hidden `<input type="file">`, the real control in every variant. The
 	// input variant's visible `<Input>` self-resolves the same context.
 	const control = useControl()
 
@@ -86,10 +86,9 @@ export function FileUpload(props: FileUploadProps) {
 			accept={accept}
 			multiple={multiple}
 			disabled={disabled}
-			// handleChange clears the input value (to allow re-selecting the same
-			// file), which empties the FileList and would fail native `required`
-			// validation despite a valid pick. Track the selection separately and
-			// drop the constraint once files are held.
+			// handleChange clears the input value, emptying the FileList; native
+			// `required` validation then fails despite a valid pick. Tracks the
+			// selection separately and drops the constraint once files are held.
 			required={control?.required && files.length === 0}
 			onChange={handleChange}
 			className="sr-only"
@@ -154,7 +153,7 @@ export function FileUpload(props: FileUploadProps) {
 
 	return (
 		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
-			{/* Sibling of the button, not nested inside it — a focusable `<input>`
+			{/* Sibling of the button, not nested inside it: a focusable `<input>`
 			    inside an interactive control produces nested-interactive markup. */}
 			{renderHiddenInput(typeof children === 'string' ? children : 'Upload file')}
 			<button

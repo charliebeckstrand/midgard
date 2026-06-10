@@ -17,7 +17,7 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 	} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * Scrollable viewport with custom overlay scrollbars and draggable thumbs —
+ * Scrollable viewport with custom overlay scrollbars and draggable thumbs.
  * `scrollbar` toggles between `auto` (fade in while scrolling), `visible`, and
  * `hidden`. The viewport becomes keyboard-focusable only while actually
  * scrollable.
@@ -64,8 +64,8 @@ export function ScrollArea({
 				ref={viewportRef}
 				tabIndex={hasVertical || hasHorizontal ? 0 : undefined}
 				className={k.viewport({ orientation, bare })}
-				// Composed, not clobbered: a consumer onScroll must not disable
-				// thumb tracking and the auto-fade.
+				// Composed, not clobbered: thumb tracking and the auto-fade run
+				// before the consumer's onScroll.
 				onScroll={(e: UIEvent<HTMLDivElement>) => {
 					handleScroll()
 

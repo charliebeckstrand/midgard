@@ -107,7 +107,7 @@ describe('Button', () => {
 		// Removed from the tab order, mirroring the disabled <button> branch.
 		expect(link).toHaveAttribute('tabindex', '-1')
 
-		// Activation is cancelled — the default navigation is prevented and the
+		// Activation is cancelled: the default navigation is prevented and the
 		// consumer's handler never fires.
 		const notCancelled = fireEvent.click(link)
 
@@ -143,7 +143,7 @@ describe('Button', () => {
 
 	describe('size resolution', () => {
 		// Each size variant brings a distinct text class via ji; matching
-		// it confirms which size the kata actually rendered.
+		// it confirms which size the kata rendered.
 		const textClassFor = {
 			xs: 'text-xs',
 			sm: 'text-sm',
@@ -187,11 +187,11 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
 		})
 
-		// Regression: `<Input>` / `<SelectTrigger>` wrap their affix descendants
-		// in an `<AffixContext>` carrying the one-step-smaller affix size. The
-		// Affix cascade is read first by `useSize` — so when `<Density>` (or
-		// a surrounding `<Card>`) mounts an outer Step cascade at the app root,
-		// the affix wrap still pins the button to the smaller affix size.
+		// `<Input>` / `<SelectTrigger>` wrap their affix descendants in an
+		// `<AffixContext>` carrying the one-step-smaller affix size. `useSize`
+		// reads the Affix cascade first: when `<Density>` (or a surrounding
+		// `<Card>`) mounts an outer Step cascade at the app root, the affix
+		// wrap still pins the button to the smaller affix size.
 
 		it('Affix wins over an enclosing Density', () => {
 			const { container } = renderUI(

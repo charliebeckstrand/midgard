@@ -12,7 +12,7 @@ export type RadioProps = RadioVariants & {
 	ref?: Ref<HTMLInputElement>
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
-/** Single radio control wrapped in its label — id, disabled, required, and invalid state resolve from the enclosing control group. */
+/** Single radio control wrapped in its label; id, disabled, required, and invalid state resolve from the enclosing control group. */
 export function Radio({
 	className,
 	color,

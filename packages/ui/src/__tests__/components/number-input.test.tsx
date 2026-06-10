@@ -50,8 +50,8 @@ describe('NumberInput', () => {
 
 		const user = userEvent.setup()
 
-		// (1e-7).toString() is "1e-7"; a naive split('.') read precision 0 and
-		// rounded the step away entirely.
+		// (1e-7).toString() is "1e-7"; precision derivation handles scientific
+		// notation rather than reading 0 from a split('.').
 		await user.click(screen.getByLabelText('Increase'))
 
 		expect(onValueChange).toHaveBeenCalledWith(1e-7)

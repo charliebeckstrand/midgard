@@ -26,7 +26,7 @@ export type CreditCardInputProps = Omit<
 	prefix?: ReactNode
 }
 
-/** Numeric Input that masks card numbers into spaced groups — detects the brand and emits Luhn validity as you type. */
+/** Numeric Input that masks card numbers into spaced groups; detects the brand and emits Luhn validity as you type. */
 export function CreditCardInput({
 	value,
 	defaultValue,

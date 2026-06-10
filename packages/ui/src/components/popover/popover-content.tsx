@@ -26,8 +26,8 @@ export type PopoverContentProps = {
 	size?: Step
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
-	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`,
-	 * so focus is not trapped. Omit both to render it as an unlabelled generic
+	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`;
+	 * focus is not trapped. Omit both to render it as an unlabelled generic
 	 * surface.
 	 */
 	'aria-label'?: string
@@ -36,11 +36,11 @@ export type PopoverContentProps = {
 }
 
 /**
- * The floating surface. Non-modal by design: it renders through
- * `FloatingSurface` (not a focus manager), so Tab is not trapped — it moves
- * through the panel and out into the page, an outside press dismisses it, and
- * focus returns to the trigger on close. `autoFocus` moves initial focus into
- * the panel on open. Use `Dialog` when the content must contain focus.
+ * The floating surface. Non-modal: renders through `FloatingSurface` (not a
+ * focus manager). Tab moves through the panel and out into the page, an
+ * outside press dismisses it, and focus returns to the trigger on close.
+ * `autoFocus` moves initial focus into the panel on open. Use `Dialog` when
+ * the content must contain focus.
  */
 export function PopoverContent({
 	className,

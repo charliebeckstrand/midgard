@@ -16,7 +16,7 @@ type SliderBaseProps = SliderVariants & {
 	min?: number
 	max?: number
 	step?: number
-	/** Formats the value for assistive tech (`aria-valuetext`) — currency, ratings, levels announce as meaningful text instead of a bare number. */
+	/** Formats the value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number) => string
 	ref?: Ref<HTMLInputElement>
 }
@@ -27,7 +27,7 @@ export type SliderProps = SliderBaseProps &
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 
-/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an enclosing Form field by `name`, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
+/** Range input for a single value; controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an enclosing Form field by `name`, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
 export function Slider({
 	value,
 	defaultValue,
@@ -66,11 +66,10 @@ export function Slider({
 	const percent = pct(current, min, max)
 
 	// Resolves id/disabled/describedby from a wrapping Control or Field, falling
-	// back to a generated id — the same chain Input uses. A range input has no
-	// text of its own; this lets a sibling <Label htmlFor> (or a <Field><Label>
-	// with no explicit id) name it.
-	// `required` is not resolved: a range input always has a value, so the
-	// attribute does not apply (HTML constraint validation) — only invalid +
+	// back to a generated id (the same chain Input uses). A sibling <Label
+	// htmlFor> (or a <Field><Label> with no explicit id) names the input via
+	// this id. `required` is not resolved: a range input always has a value and
+	// HTML constraint validation ignores the attribute; only invalid +
 	// describedby carry meaning here.
 	const controlProps = useControlProps({
 		id,

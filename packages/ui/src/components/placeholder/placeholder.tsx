@@ -14,8 +14,8 @@ export type PlaceholderProps = {
  *
  * When rendered inside a `<Group>` (directly or via context propagating through
  * any wrapper), the `data-group` attributes it stamps from `JoinContext` match
- * the group's container-scoped `tsunagi` join selectors, so adjacent
- * placeholders appear as a single continuous shape just like the real controls.
+ * the group's container-scoped `tsunagi` join selectors; adjacent placeholders
+ * appear as a single continuous shape, like the real controls.
  */
 export function Placeholder({ className, ...props }: PlaceholderProps) {
 	const join = useJoin()

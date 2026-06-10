@@ -8,9 +8,9 @@ import { editorKeyHandler } from './editable-grid-editor-utilities'
 import type { EditableGridEditorProps } from './types'
 
 /**
- * Default inline editor. Wraps `Input` in `Headless` so it renders as a bare
- * element that fills the cell, mirrors the cell's draft buffer, and routes
- * Enter / Tab / Escape / blur through the grid's commit and cancel callbacks.
+ * Default inline editor. Renders a bare `Input` (via `Headless`) that fills
+ * the cell, mirrors the cell's draft buffer, and routes Enter / Tab / Escape /
+ * blur through the grid's commit and cancel callbacks.
  */
 export function EditableGridTextEditor<T>({
 	draft,
@@ -23,8 +23,8 @@ export function EditableGridTextEditor<T>({
 }: EditableGridEditorProps<T>) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	// Snapshot the focus mode at mount; the effect must not re-run when the
-	// user types and the draft / formatted comparison flips.
+	// Snapshots the focus mode at mount; the effect does not re-run when typing
+	// flips the draft / formatted comparison.
 	const selectAllOnMount = useRef(selectAllOnFocus).current
 
 	useLayoutEffect(() => {

@@ -15,7 +15,7 @@ import type { QueryCombinator, QueryGroup } from './types'
 
 export type QueryBuilderGroupProps = {
 	group: QueryGroup
-	/** When true, the group is the root — its "remove" button is suppressed. */
+	/** When true, the group is the root and omits its "remove" button. */
 	root?: boolean
 	className?: string
 }

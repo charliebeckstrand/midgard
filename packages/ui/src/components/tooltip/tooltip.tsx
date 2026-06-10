@@ -12,11 +12,9 @@ export type TooltipProps = {
 	interactive?: boolean
 	enabled?: boolean
 	/**
-	 * Size step applied to the tooltip content. Forwarded via context so
-	 * setting it once on `<Tooltip>` styles its `<TooltipContent>` without
-	 * threading the prop through children. An explicit `size` on
-	 * `<TooltipContent>` still wins. When unset, content falls back to the
-	 * enclosing Density size, then `'md'`.
+	 * Size step applied to the tooltip content. Forwarded via context to
+	 * `<TooltipContent>`; an explicit `size` there still wins. When unset,
+	 * content falls back to the enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	className?: string
@@ -24,7 +22,7 @@ export type TooltipProps = {
 }
 
 /**
- * Hover/focus tooltip root — wires up floating state and shares `placement`,
+ * Hover/focus tooltip root; wires up floating state and shares `placement`,
  * `delay`, and `size` with its `<TooltipTrigger>` and `<TooltipContent>` via
  * context.
  */

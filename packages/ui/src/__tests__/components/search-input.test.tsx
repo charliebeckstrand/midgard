@@ -50,9 +50,8 @@ describe('SearchInput', () => {
 	})
 
 	it('clears a controlled field when the clear button is clicked', async () => {
-		// Regression: clearing must notify the parent through onChange, otherwise a
-		// controlled field stays stuck showing the old value (setCurrentValue is a
-		// no-op while controlled).
+		// Clearing notifies the parent through onChange; setCurrentValue is a
+		// no-op while controlled.
 		function Controlled() {
 			const [value, setValue] = useState('query')
 

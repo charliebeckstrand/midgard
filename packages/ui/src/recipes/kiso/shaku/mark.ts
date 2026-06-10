@@ -1,6 +1,6 @@
 /**
- * Shaku mark — inline-mark dimensions for `<code>` and `<kbd>`. Sized to
- * sit naturally within body text at three density steps.
+ * Shaku mark: inline-mark dimensions for `<code>` and `<kbd>`. Sized to
+ * sit within body text at three density steps.
  *
  * Layer: kiso · Concern: inline-mark dimension
  */

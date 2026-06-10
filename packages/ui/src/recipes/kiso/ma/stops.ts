@@ -1,5 +1,5 @@
 /**
- * Ma stops — the raw `--spacing` numerals shared by every spacing axis.
+ * Ma stops: the raw `--spacing` numerals shared by every spacing axis.
  * `padding`, `margin`, and `gap` compose finished utilities by indexing
  * into this label set. Consumers that need bare tokens for arbitrary-value
  * construction reach this directly.

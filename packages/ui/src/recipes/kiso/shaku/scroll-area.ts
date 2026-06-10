@@ -1,5 +1,5 @@
 /**
- * Shaku scroll-area — dimension scales for `<ScrollArea>`. Keyed by
+ * Shaku scroll-area: dimension scales for `<ScrollArea>`. Keyed by
  * orientation (vertical / horizontal / both) and size step. `dvh` /
  * `dvw` give the viewport-locked variants.
  *

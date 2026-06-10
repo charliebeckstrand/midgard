@@ -41,7 +41,7 @@ export type ListProps<T> = BaseListProps<T> &
 		| {
 				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
 				sortable?: true
-				/** Stable key extractor — required for DnD tracking. */
+				/** Stable key extractor; required for DnD tracking. */
 				getKey: (item: T) => string
 				/** Called with the next ordering. Omit to render a non-reorderable list. */
 				onReorder?: (next: T[]) => void
@@ -62,7 +62,7 @@ export type ListProps<T> = BaseListProps<T> &
 	)
 
 /**
- * Renders an ordered `items` source through a `children` render function —
+ * Renders an ordered `items` source through a `children` render function,
  * with optional drag-and-drop and keyboard reordering when `onReorder` is
  * supplied. Read-only lists skip per-item sortable registration entirely.
  */

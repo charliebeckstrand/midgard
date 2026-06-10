@@ -16,8 +16,8 @@ export function Label({ className, htmlFor, id, ...props }: LabelProps) {
 
 	const { size } = useDensity()
 
-	// Registers while mounted so the field's `labelledBy` only references this id
-	// while the Label is rendered, keeping the reference live and accurate.
+	// Registers while mounted; the field's `labelledBy` references this id only
+	// while the Label renders.
 	const registerLabel = control?.registerLabel
 
 	useEffect(() => registerLabel?.(id), [registerLabel, id])

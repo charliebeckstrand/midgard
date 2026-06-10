@@ -78,7 +78,7 @@ export function FlexBase({
 /**
  * Horizontal flex container. Use Flex for rows, Stack for columns.
  *
- * `gap` resolves through `explicit ?? Density.space` — a Flex inside a
+ * `gap` resolves through `explicit ?? Density.space`; a Flex inside a
  * Density-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
  * matching spacing step. Outside any provider, `gap` stays unset.
  */

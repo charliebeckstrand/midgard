@@ -7,7 +7,7 @@ const labelText = 'text-xs text-zinc-500 dark:text-zinc-400'
 /**
  * Horizontal showcase row used inside demos: a fixed-width text label next to
  * the component being demonstrated. The wrapper is transparent to the docs
- * code-derivation walker, so derived snippets show only `children`.
+ * code-derivation walker; derived snippets show only `children`.
  */
 export function LabeledRow({
 	label,

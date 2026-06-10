@@ -8,7 +8,7 @@ type LastEdited = 'password' | 'confirm' | null
 type PasswordConfirmStateOptions = {
 	/**
 	 * Suppresses match/mismatch firing and forces `status` to `'idle'` while set.
-	 * Typically passed when the password field itself has a higher-priority validation error.
+	 * Pass when the password field itself has a higher-priority validation error.
 	 */
 	disabled?: boolean
 	onPasswordMatch?: () => void
@@ -50,9 +50,9 @@ export function usePasswordConfirmState({
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
-	// `disabled` must suppress match firing too — not just mismatch (which `status`
-	// already gates to idle). Otherwise a match fires while disabled and pins
-	// prevMatchState to 'match', swallowing the legitimate match after re-enable.
+	// `disabled` suppresses match firing too, not mismatch alone (which `status`
+	// already gates to idle). A match fired while disabled pins prevMatchState
+	// to 'match', swallowing the legitimate match after re-enable.
 	const matchState =
 		status === 'warning'
 			? 'mismatch'

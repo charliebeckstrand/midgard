@@ -27,8 +27,8 @@ export type ChatPromptProps = {
 	actions?: ReactNode
 	className?: string
 	/**
-	 * Accessible name for the composer. A placeholder is not an accessible name,
-	 * so the textarea defaults to `"Message"` when neither this nor
+	 * Accessible name for the composer. A placeholder is not an accessible name;
+	 * the textarea defaults to `"Message"` when neither this nor
 	 * `aria-labelledby` is supplied (WCAG 3.3.2 / 4.1.2). Pass `aria-labelledby`
 	 * instead to point at a visible label.
 	 */
@@ -36,7 +36,7 @@ export type ChatPromptProps = {
 	'aria-labelledby'?: string
 }
 
-/** Auto-resizing chat composer built on Textarea — submits on Enter (Shift+Enter for newlines) and toggles its send button to a stop control while `streaming`. */
+/** Auto-resizing chat composer built on Textarea. Submits on Enter (Shift+Enter for newlines) and toggles its send button to a stop control while `streaming`. */
 export function ChatPrompt({
 	value,
 	onValueChange,
@@ -53,7 +53,7 @@ export function ChatPrompt({
 }: ChatPromptProps) {
 	const canSubmit = !disabled && value.trim().length > 0
 
-	// Ensures the composer always has an accessible name (WCAG 3.3.2 / 4.1.2).
+	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
 	const labelProps = ariaLabelledBy
 		? { 'aria-labelledby': ariaLabelledBy }

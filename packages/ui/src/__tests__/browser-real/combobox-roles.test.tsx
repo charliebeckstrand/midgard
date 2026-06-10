@@ -4,11 +4,11 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Combobox ARIA roles (real floating engine). Guards the single-widget tree
- * against the live engine: floating-ui's `useRole` would nest duplicate widgets
+ * Combobox ARIA roles (real floating engine). Verifies `role: null` on
+ * `useFloatingUI` keeps floating-ui's `useRole` from nesting duplicate widgets
  * inside the Combobox's hand-rolled `role="combobox"` input and `role="listbox"`
- * panel via the positioning/reference wrappers (ARIA-AUDIT pattern A). jsdom
- * mocks `useRole` away; `role: null` on `useFloatingUI` is the fix guarded here.
+ * panel via the positioning/reference wrappers. jsdom mocks `useRole` away, so
+ * only the real engine exercises this path.
  */
 describe('Combobox ARIA roles (real browser)', () => {
 	it('exposes exactly one combobox and one listbox when open', async () => {
@@ -29,7 +29,7 @@ describe('Combobox ARIA roles (real browser)', () => {
 
 		await waitFor(() => expect(screen.getAllByRole('listbox')).toHaveLength(1))
 
-		// The input is the only combobox — the SelectTrigger wrapper does not shadow it.
+		// The input is the only combobox; the SelectTrigger wrapper does not shadow it.
 		expect(screen.getAllByRole('combobox')).toHaveLength(1)
 
 		expect(input.tagName).toBe('INPUT')

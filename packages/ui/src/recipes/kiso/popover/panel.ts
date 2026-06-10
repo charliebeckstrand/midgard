@@ -1,5 +1,5 @@
 /**
- * Popover archetype — panel slot bundle. Composes the floating panel's
+ * Popover archetype: panel slot bundle. Composes the floating panel's
  * base layout, surface, glass treatment, ring, and motion. Property names
  * mirror the kata slot layout for direct destructuring pass-through.
  *

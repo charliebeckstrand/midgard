@@ -1,9 +1,8 @@
 import { vi } from 'vitest'
 
 /**
- * Build a stub CanvasRenderingContext2D. JSDOM ships no canvas backend, so
- * tests that exercise drawing code need a hand-rolled context. Override any
- * field via `overrides` to assert on or replace behavior.
+ * Build a stub CanvasRenderingContext2D; jsdom ships no canvas backend.
+ * Override any field via `overrides` to assert on or replace behavior.
  */
 export function makeCanvasContext(
 	overrides: Partial<CanvasRenderingContext2D> = {},

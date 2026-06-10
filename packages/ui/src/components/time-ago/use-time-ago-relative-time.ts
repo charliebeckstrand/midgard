@@ -5,7 +5,7 @@ import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 
-// `Intl.RelativeTimeFormat` construction is expensive. One instance is cached per locale.
+// `Intl.RelativeTimeFormat` construction is expensive; the cache holds one instance per locale.
 const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
 
 function getRelativeTimeFormat(locale: string | undefined) {
@@ -42,8 +42,8 @@ function pickUnit(absMs: number): { unit: Unit; value: number } {
 		if (Math.round(value) < rollover) return { unit, value }
 	}
 
-	// Unreachable: the year step's rollover is Infinity, so the loop always
-	// returns. Kept as an explicit fallback for the type checker.
+	// Unreachable: the year step's rollover is Infinity; the loop always
+	// returns. The explicit fallback satisfies the type checker.
 	return { unit: 'year', value: absMs / YEAR }
 }
 
@@ -59,8 +59,8 @@ function adaptiveInterval(absMs: number) {
 	return DAY
 }
 
-// Floor for an explicit numeric interval: `setInterval(fn, 0)` otherwise fires
-// continuously, and relative text never needs sub-quarter-second refresh.
+// Floor for an explicit numeric interval. `setInterval(fn, 0)` fires
+// continuously; relative text never needs sub-quarter-second refresh.
 const MIN_REFRESH_MS = 250
 
 type RelativeTimeOptions = {
@@ -85,8 +85,8 @@ export function useTimeAgoRelativeTime({
 	locale,
 	interval = 'auto',
 }: RelativeTimeOptions): RelativeTimeResult {
-	// Client-only clock: null until mount, so the first render (server and client)
-	// produces no relative text, avoiding hydration mismatches at unit boundaries.
+	// Client-only clock: null until mount. The first render (server and client)
+	// produces no relative text; hydration matches at unit boundaries.
 	const [now, setNow] = useState<Date | null>(null)
 
 	const then = useMemo(() => (date instanceof Date ? date : new Date(date)), [date])

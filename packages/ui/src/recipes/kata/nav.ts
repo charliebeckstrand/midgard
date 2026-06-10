@@ -27,7 +27,7 @@ export const k = {
 			weight.medium,
 			rounded.lg,
 		],
-		/** Wrapper for a prefix/suffix slot — sits outside the inner button, above the active indicator. */
+		/** Wrapper for a prefix/suffix slot; sits outside the inner button, above the active indicator. */
 		affix: ['relative', 'z-10', flex.row, 'shrink-0'],
 	},
 } as const

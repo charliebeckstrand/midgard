@@ -3,7 +3,7 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // A hook's option / param / result types must not carry a `Use` prefix.
-// `Use` reads like a hook name but labels a type — e.g. `TagInputOptions`, not
+// `Use` reads like a hook name but labels a type; e.g. `TagInputOptions`, not
 // `UseTagInputOptions`. Matches only `type` / `interface` declarations whose
 // name begins with `Use` + an uppercase letter (`User`, `Usage`, etc. are fine).
 

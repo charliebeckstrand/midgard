@@ -9,9 +9,9 @@ export type PdfViewerPage = {
 	thumbnail?: string
 	/** Optional accessible label for the page. Falls back to `Page N`. */
 	label?: string
-	/** Intrinsic width in pixels. Used to size the viewport before the image loads. */
+	/** Intrinsic width in pixels. Sizes the viewport before the image loads. */
 	width?: number
-	/** Intrinsic height in pixels. Used to size the viewport before the image loads. */
+	/** Intrinsic height in pixels. Sizes the viewport before the image loads. */
 	height?: number
 }
 

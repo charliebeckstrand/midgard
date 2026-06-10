@@ -70,7 +70,7 @@ describe('Combobox', () => {
 		const suffix = bySlot(container, 'suffix')
 
 		expect(suffix).toBeInTheDocument()
-		// The chevron is a decorative mouse affordance, not a second button — the
+		// The chevron is a decorative mouse affordance, not a second button; the
 		// input carries the combobox semantics.
 		expect(suffix).not.toHaveAttribute('role', 'button')
 		expect(suffix).toHaveAttribute('aria-hidden', 'true')
@@ -252,7 +252,7 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		// Panel is in FloatingPortal — query document. jsdom has no layout;
+		// Panel is in FloatingPortal; query document. jsdom has no layout;
 		// react-virtual renders 0 items, so the count is bounded by options.length.
 		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
 		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
@@ -261,7 +261,7 @@ describe('Combobox', () => {
 
 // APG editable-combobox contract: DOM focus stays on the input while arrow keys
 // move a *virtual* highlight, surfaced to assistive tech via the input's
-// aria-activedescendant pointing at the active option's id — not by pulling
+// aria-activedescendant pointing at the active option's id, not by pulling
 // focus onto the option.
 describe('Combobox active-descendant keyboard model', () => {
 	function renderTwoOptions() {
@@ -370,7 +370,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
 
-	// Clicking an option must not pull focus off the input — otherwise single-select
+	// Clicking an option must not pull focus off the input; otherwise single-select
 	// (which closes on select) would drop focus to <body> when the panel unmounts.
 	it('keeps focus on the input when an option is clicked', async () => {
 		const user = userEvent.setup()

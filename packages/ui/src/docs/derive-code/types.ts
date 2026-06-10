@@ -1,5 +1,5 @@
 /**
- * A recognized UI component: the symbol/function the demo actually renders and
+ * A recognized UI component: the symbol/function the demo renders and
  * where to import it from.
  */
 export type ComponentInfo = { name: string; module: string }
@@ -25,7 +25,7 @@ export type ComponentRegistry = {
 
 /**
  * Per-call state threaded through the traversal. Carries the registry and
- * accumulates imports as we discover them.
+ * accumulates discovered imports.
  */
 export type Context = {
 	registry: ComponentRegistry

@@ -13,7 +13,7 @@ export type TimelineProps = TimelineVariants & {
 	children?: ReactNode
 }
 
-/** Ordered list of timeline items rendered as an `<ol>` — propagates `orientation` and `variant` to its `<TimelineItem>` children via context. */
+/** Ordered list of timeline items rendered as an `<ol>`; propagates `orientation` and `variant` to its `<TimelineItem>` children via context. */
 export function Timeline({
 	orientation = 'vertical',
 	variant = 'solid',

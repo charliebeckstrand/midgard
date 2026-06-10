@@ -1,6 +1,6 @@
 /**
  * Query a single element by its `data-slot` attribute within a container.
- * Returns `null` when not found — mirrors `querySelector` semantics.
+ * Returns `null` when not found, mirroring `querySelector` semantics.
  */
 export function bySlot(container: HTMLElement, name: string) {
 	return container.querySelector<HTMLElement>(`[data-slot="${name}"]`)

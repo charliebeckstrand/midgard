@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — button. Rounded-lg silhouette across the four
+ * Kokkaku skeleton: button. Rounded-lg silhouette across the four
  * button size steps.
  *
  * Layer: kiso · Concern: skeleton form · Unit: button

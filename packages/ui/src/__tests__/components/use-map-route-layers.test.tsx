@@ -10,7 +10,7 @@ import { useMapRouteLayers } from '../../components/map/use-map-route-layers'
 
 type Handler = (...args: unknown[]) => void
 
-// Only the MapLibreMap members `useMapRouteLayers` actually calls. Typed as a
+// Only the MapLibreMap members `useMapRouteLayers` calls. Typed as a
 // `Pick` and cast to MapLibreMap via the bidirectional-overlap rule (MapLibreMap
 // is assignable to the `Pick`).
 type RouteLayerMapApi = Pick<
@@ -57,8 +57,8 @@ function makeFakeMap(): FakeMap {
 
 	const canvasStyle = { cursor: '' }
 
-	// `vi.fn()` without an inferred impl produces `Mock<Procedure>` — the
-	// universal-donor shape `(...args: any[]) => any` — which assigns cleanly
+	// `vi.fn()` without an inferred impl produces `Mock<Procedure>`, the
+	// universal-donor shape `(...args: any[]) => any`, which assigns cleanly
 	// to MapLibre's overloaded method types via the `api as MapLibreMap` cast.
 	const onSpy = vi.fn()
 

@@ -8,16 +8,16 @@ type Size = { width: number; height: number }
 type PageSizeResult = {
 	/** Intrinsic page size: caller-supplied dimensions, the measured natural size, or `null` pre-load. */
 	pageSize: Size | null
-	/** Wire to the active page `<img>`'s `onLoad` so the hook can capture the natural size. */
+	/** Wire to the active page `<img>`'s `onLoad`; captures the natural size. */
 	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
 }
 
 /**
  * Resolves the active page's intrinsic dimensions. Prefers caller-supplied
  * `width`/`height` from the page model, then falls back to the natural
- * dimensions of the loaded `<img>`. The measured size is reset on page
- * change so a new page whose intrinsic dimensions are unknown until `<img>`
- * loads doesn't inherit the previous page's aspect ratio.
+ * dimensions of the loaded `<img>`. Page change resets the measured size;
+ * a new page does not inherit the previous page's aspect ratio while its
+ * `<img>` loads.
  */
 export function usePdfViewerPageSize(
 	activePage: PdfViewerPage | undefined,

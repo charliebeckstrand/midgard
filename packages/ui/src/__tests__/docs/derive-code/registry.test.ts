@@ -41,7 +41,7 @@ describe('defaultRegistry.byName', () => {
 	})
 
 	it('resolves a known component name back to its module', () => {
-		// `Button` is the canonical recognizable export — it lives in components/button.
+		// `Button` is the canonical recognizable export; it lives in components/button.
 		const info = defaultRegistry.byName.get('Button')
 
 		expect(info?.name).toBe('Button')

@@ -19,17 +19,17 @@ export type A11yPanelProviderValue = {
 }
 
 export type A11yPanel = {
-	/** Spread onto the panel root — role, `aria-modal`, and the labelling refs. */
+	/** Spread onto the panel root: role, `aria-modal`, and the labelling refs. */
 	ariaProps: AriaProps
 	/** Feed into `PanelProviders` so Title / Description slots register and adopt their ids. */
 	a11y: A11yPanelProviderValue
 }
 
 /**
- * Modal-panel labelling scope — `useA11yScope` specialized for dialog roots
+ * Modal-panel labelling scope: `useA11yScope` specialized for dialog roots
  * (dialog, drawer, sheet). Sets `role` + `aria-modal`, derives the Title /
  * Description ids, and only wires `aria-labelledby` / `aria-describedby` once
- * those slots register, so the panel never references an id absent from the DOM.
+ * those slots register.
  */
 export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
 	const scope = useA11yScope({ slots: PANEL_SLOTS })

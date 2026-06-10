@@ -28,7 +28,7 @@ type VirtualWindow = {
  * visible items plus the top/bottom spacer heights that stand in for the rows
  * outside the viewport. Callers render their own row and spacer elements
  * (table rows, list divs); this owns only the virtualizer wiring and the
- * spacer math, which is otherwise copy-pasted at every call site.
+ * spacer math.
  */
 export function useVirtualWindow({
 	count,
@@ -38,7 +38,6 @@ export function useVirtualWindow({
 }: VirtualWindowOptions): VirtualWindow {
 	// `@tanstack/react-virtual` reads these getters off the options object each
 	// cycle; a fresh closure per render busts its internal option identity.
-	// The size getter is kept referentially stable across renders.
 	const getSize = useCallback(() => estimateSize, [estimateSize])
 
 	const virtualizer = useVirtualizer({

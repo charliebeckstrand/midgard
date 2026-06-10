@@ -22,7 +22,7 @@ export const k = {
 	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
 	item: {
 		base: itemBase,
-		/** Wrapper for a prefix/suffix slot — sits outside the inner button, above the active indicator. */
+		/** Wrapper for a prefix/suffix slot; sits outside the inner button, above the active indicator. */
 		affix: ['relative', 'z-10', flex.row, 'shrink-0'],
 	},
 	section: [flex.col, 'gap-0.5'],

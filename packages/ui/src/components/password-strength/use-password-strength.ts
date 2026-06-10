@@ -55,8 +55,8 @@ export function usePasswordStrength({
 	)
 
 	// Keyed on the joined ids, not `results`: results change identity on every
-	// keystroke, and a fresh `passed` array per keystroke re-fired
-	// onStrengthChange even when nothing about the strength changed.
+	// keystroke, and a fresh `passed` array per keystroke re-fires
+	// onStrengthChange even when the strength is unchanged.
 	const passedKey = useMemo(
 		() =>
 			results

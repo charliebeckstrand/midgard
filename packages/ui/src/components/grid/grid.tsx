@@ -27,7 +27,7 @@ export type GridProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children' | 'style'>
 
 /**
- * CSS grid container with responsive `columns`, `rows`, and `gap` — `gap`
+ * CSS grid container with responsive `columns`, `rows`, and `gap`. `gap`
  * falls back to enclosing Density then `'md'`, and the resolved `columns` flow
  * down through context to child items.
  */

@@ -8,7 +8,7 @@ describe('Stack', () => {
 
 		const el = bySlot(container, 'stack') as HTMLElement
 
-		// The old hardcoded 'md' fallback diverged from Flex and the documented
+		// No 'md' fallback: gap stays unset, matching Flex and the documented
 		// contract.
 		expect(el.className).not.toMatch(/gap-/)
 	})

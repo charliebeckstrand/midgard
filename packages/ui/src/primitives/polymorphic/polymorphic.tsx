@@ -10,14 +10,14 @@ import { type LinkProps, useLink } from '../link'
  *   - `href` present  → render the app-registered router link (`useLink`)
  *   - `href` absent   → render the `as` element
  *
- * `as` selects the *non-link* fallback element — an intrinsic tag
- * (`as="div"`, `as="span"`) or a custom component — and is ignored when
- * `href` is present. The type-level union below gates `href` so the
- * non-link arm can't receive it, with centralized `data-slot` /
- * `className` / `ref` forwarding and router integration.
+ * `as` selects the non-link fallback element, an intrinsic tag
+ * (`as="div"`, `as="span"`) or a custom component, and is ignored when
+ * `href` is present. The type-level union excludes `href` from the
+ * non-link arm and centralizes `data-slot` / `className` / `ref`
+ * forwarding and router integration.
  */
 
-/** Props for `Polymorphic` — strips `href` from the fallback arm so it can't be passed accidentally. */
+/** Props for `Polymorphic`; the fallback arm excludes `href`. */
 export type PolymorphicProps<Fallback extends ElementType, Omitted extends PropertyKey = never> =
 	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className' | Omitted>)
 	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
@@ -58,8 +58,8 @@ export function Polymorphic<Fallback extends ElementType>({
 		)
 	}
 
-	// `as as ElementType` widens a union of string tags to `ElementType`,
-	// preventing `{...rest}` from collapsing to the `never` intersection of
+	// `as as ElementType` widens a union of string tags to `ElementType`;
+	// the narrow union collapses `{...rest}` to the `never` intersection of
 	// every branch. Unrelated to the generic.
 	const Element = as as ElementType
 

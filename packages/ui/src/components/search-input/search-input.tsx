@@ -22,7 +22,7 @@ export type SearchInputProps = Omit<
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
-/** Search-type Input with a leading search icon — shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. Binds to an enclosing Form field by `name`. */
+/** Search-type Input with a leading search icon. Shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. Binds to an enclosing Form field by `name`. */
 export function SearchInput({
 	value,
 	defaultValue,
@@ -64,10 +64,10 @@ export function SearchInput({
 	const handleClear = useCallback(() => {
 		const input = inputRef.current
 
-		// Drive the clear through a native input event so it flows through
-		// `handleChange` like any edit — `setCurrentValue('')` alone is a no-op
-		// while controlled, so this dispatches the change to both controlled
-		// and uncontrolled consumers.
+		// Drive the clear through a native input event; it flows through
+		// `handleChange` like any edit. `setCurrentValue('')` alone is a no-op
+		// while controlled; the dispatch reaches both controlled and
+		// uncontrolled consumers.
 		if (input) {
 			const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
 

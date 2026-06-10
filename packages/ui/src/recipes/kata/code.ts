@@ -21,7 +21,7 @@ export const k = defineRecipe(
 			fallback: 'text-zinc-400',
 		},
 		// Sits in the flex row, not absolutely positioned: `items-start` lands it on
-		// the first code line, so a single-line block reads as vertically centred.
+		// the first code line; a single-line block reads as vertically centred.
 		copy: ['text-zinc-400', 'hover:not-disabled:text-white'],
 	},
 )

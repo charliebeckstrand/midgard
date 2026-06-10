@@ -31,7 +31,7 @@ export type CalendarRangeProps = {
 	className?: string
 }
 
-/** Range-aware variant of `Calendar` — paints the active range and tracks a hover date for the in-progress endpoint. */
+/** Range-aware variant of `Calendar`; paints the active range and tracks a hover date for the in-progress endpoint. */
 export function CalendarRange({
 	onValueChange,
 	min,

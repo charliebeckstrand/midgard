@@ -15,7 +15,7 @@ type DayCellProps = {
 	color?: ButtonVariants['color']
 	className?: string
 	gridColumnStart?: number
-	/** Resolved BCP 47 tag so the day's accessible name matches the visible grid. */
+	/** Resolved BCP 47 tag; the day's accessible name uses the same locale as the visible grid. */
 	localeTag: string
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void

@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — textarea. Fills width; height comes from the
+ * Kokkaku skeleton: textarea. Fills width; height comes from the
  * caller (textarea's intrinsic min-height).
  *
  * Layer: kiso · Concern: skeleton form · Unit: textarea

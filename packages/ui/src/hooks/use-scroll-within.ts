@@ -17,8 +17,8 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
 
 		const scrollable = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
 
-		// Require the ancestor to actually overflow, not merely declare a scroll
-		// style — otherwise a non-overflowing wrapper is chosen and scrollTo no-ops.
+		// Require the ancestor to overflow, not merely declare a scroll style;
+		// scrollTo no-ops on a non-overflowing wrapper.
 		if (scrollable && scroller.scrollHeight > scroller.clientHeight) break
 
 		scroller = scroller.parentElement

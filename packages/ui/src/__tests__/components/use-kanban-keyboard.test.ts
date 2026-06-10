@@ -418,9 +418,9 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			}),
 		)
 
-		// 'b1' is in column index 1; column index 2 exists but is empty — we're
-		// targeting the out-of-bounds case where direction would push the index
-		// past `columns.length`.
+		// 'b1' is in column index 1; column index 2 exists but is empty. Targets
+		// the out-of-bounds case where direction would push the index past
+		// `columns.length`.
 		act(() => {
 			result.current.onCardKeyDown('b1', makeKeyEvent(' '))
 		})

@@ -10,10 +10,10 @@ import { TableContext, type TableContextValue } from './context'
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Resolves through
-	 * `explicit ?? Density.space ?? 'snug'` — so `<DensityProvider
+	 * `explicit ?? Density.space ?? 'snug'`; `<DensityProvider
 	 * density="compact">`, or any density-providing surface (Card, Drawer,
-	 * Popover, Group), tightens the table automatically. The explicit prop is
-	 * converted to the `Step` carried by the universal Density token.
+	 * Popover, Group), tightens the table. The explicit prop converts to the
+	 * `Step` carried by the universal Density token.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -37,7 +37,7 @@ export type TableProps = TableVariants & {
 	tableProps?: TableElementProps
 }
 
-/** Styled `<table>` shell that shares `grid`, `striped`, and resolved density via context to its rows and cells — `density` resolves through `explicit ?? Density.space ?? 'snug'`. */
+/** Styled `<table>` shell that shares `grid`, `striped`, and resolved density via context to its rows and cells. `density` resolves through `explicit ?? Density.space ?? 'snug'`. */
 export function Table({
 	bleed,
 	grid,

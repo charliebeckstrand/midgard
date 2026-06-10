@@ -4,7 +4,7 @@ import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { ProgressBar } from '../../../components/progress'
 import type { Case } from './types'
 
-/** Feedback — loading indicators, progress, and inline alerts and banners. */
+/** Feedback: loading indicators, progress, and inline alerts and banners. */
 export const feedbackCases: readonly Case[] = [
 	['loading-spinner', <LoadingSpinner key="s" />],
 	['loading-dots', <LoadingDots key="ld" />],

@@ -1,5 +1,5 @@
 /**
- * Segment archetype — per-segment item. Layout, focus chrome, disabled
+ * Segment archetype: per-segment item. Layout, focus chrome, disabled
  * and cursor states, sized by the same axis as the outer control.
  *
  * Layer: kiso · Archetype: segment · Concern: item

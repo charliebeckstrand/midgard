@@ -5,8 +5,8 @@ import { createContext } from '../../core'
 /**
  * App-wide internationalization defaults. Locale-aware components (currency,
  * number, date, time, phone fields) read this when their own props are
- * unspecified, so a single `<LocaleProvider>` at the app root configures the
- * whole tree without prop-drilling.
+ * unspecified. A single `<LocaleProvider>` at the app root configures the
+ * whole tree.
  */
 export type LocaleConfig = {
 	/** BCP 47 locale tag (e.g. `'en-US'`, `'fr-FR'`). */

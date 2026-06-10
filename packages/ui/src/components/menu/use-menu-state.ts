@@ -26,9 +26,9 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 	const isStatic = defaultOpen && !isDropdown
 
 	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
-	// their own roles; `role: null` suppresses floating-ui's `useRole` so the
-	// positioning wrapper is not double-stamped. `menuId` lets the trigger's
-	// `aria-controls` point at the real menu panel.
+	// their own roles; `role: null` suppresses floating-ui's `useRole`, which
+	// double-stamps the positioning wrapper. `menuId` wires the trigger's
+	// `aria-controls` to the real menu panel.
 	const menuId = useId()
 
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =

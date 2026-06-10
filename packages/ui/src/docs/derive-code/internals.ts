@@ -6,8 +6,8 @@ import type { Context } from './types'
 // ---------------------------------------------------------------------------
 
 /**
- * Fragment and intrinsic HTML elements are transparent — styling/grouping
- * wrappers that are not part of the documented API surface.
+ * Fragment and intrinsic HTML elements are transparent: styling/grouping
+ * wrappers outside the documented API surface.
  */
 export function isPassThrough(element: ReactElement): boolean {
 	return element.type === Fragment || typeof element.type === 'string'
@@ -30,8 +30,8 @@ type ChildItem = { kind: 'text'; value: string } | { kind: 'element'; value: Rea
 /**
  * Walk children in source order, flattening pass-through wrappers and
  * surfacing both recognized elements and text leaves as a position-preserving
- * sequence. Adjacent text leaves are coalesced into a single item so inline
- * interpolation like `<Foo>Hi {name}</Foo>` keeps rendering on one line.
+ * sequence. Adjacent text leaves coalesce into a single item; inline
+ * interpolation like `<Foo>Hi {name}</Foo>` renders on one line.
  */
 export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 	const items: ChildItem[] = []
@@ -46,7 +46,7 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 		textBuffer = []
 	}
 
-	// Text leaves accumulate into a run; an element ends the run and is appended.
+	// Text leaves accumulate into a run; appending an element ends the run.
 	const addText = (value: string) => {
 		if (value !== '') textBuffer.push(value)
 	}
@@ -72,7 +72,7 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 		if (!isValidElement(n)) continue
 
 		// Pass-through wrappers (Fragment, intrinsic tags) flatten: recurse and
-		// merge their text leaves into the current run so `<span>Hi</span> there`
+		// merge their text leaves into the current run; `<span>Hi</span> there`
 		// coalesces.
 		if (isPassThrough(n)) collectChildItems(elementChildren(n)).forEach(add)
 		else addElement(n)
@@ -90,8 +90,7 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 /**
  * Resolve a name for a nested element prop. Registered components win; bare
  * intrinsic strings (e.g. `<div />` as an icon) pass through. Anything else
- * returns `null` so the caller drops the prop rather than emitting a name
- * that wouldn't have a matching import.
+ * returns `null`; the caller drops the prop.
  */
 export function getElementName(element: ReactElement, context: Context): string | null {
 	const info = context.registry.byType.get(element.type)
@@ -107,11 +106,11 @@ export function getElementName(element: ReactElement, context: Context): string 
 
 export const INDENT = '  '
 
-// Stand-in for content that's present but has no clean literal form — an
+// Stand-in for content that's present but has no clean literal form: an
 // unrenderable child subtree, or a prop value like a Date or config object.
 export const PLACEHOLDER = '…'
 
-// Props that never belong in derived code — either structural (children, key,
+// Props that never belong in derived code: either structural (children, key,
 // ref) or styling noise (className).
 const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
 
@@ -138,7 +137,7 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 
 	if (typeof value === 'number') return `${key}={${value}}`
 
-	// Event handlers and other callbacks would render as opaque closures.
+	// Event handlers and other callbacks have no literal form.
 	if (typeof value === 'function') return null
 
 	if (isValidElement(value)) {
@@ -157,9 +156,9 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 		return `${key}={[${value.map(formatLiteral).join(', ')}]}`
 	}
 
-	// Present but unserializable — a Date, a config object, an array of objects.
-	// The source identifier (`min={min}`) is unavailable at render time.
-	// Emit a `…` placeholder rather than silently dropping the prop.
+	// Present but unserializable: a Date, a config object, an array of objects.
+	// The source identifier (`min={min}`) is unavailable at render time; emit
+	// a `…` placeholder.
 	return `${key}={${PLACEHOLDER}}`
 }
 
@@ -177,8 +176,7 @@ function jsxString(value: string): string {
 
 function formatLiteral(value: string | number | boolean): string {
 	// `JSON.stringify` escapes embedded quotes, backslashes, and control
-	// characters; a bare template literal emits invalid JS for strings
-	// containing single quotes.
+	// characters.
 	if (typeof value === 'string') return JSON.stringify(value)
 
 	return String(value)
@@ -220,8 +218,8 @@ export function renderOpenTag(
 // ---------------------------------------------------------------------------
 
 /**
- * Record an import for `name` from `mod`. Lazily allocates the inner Set so
- * the first import for a module doesn't need a separate setup step.
+ * Record an import for `name` from `mod`. Allocates the inner Set on first
+ * use.
  */
 export function addImport(context: Context, mod: string, name: string): void {
 	const set = context.imports.get(mod) ?? new Set<string>()
@@ -233,7 +231,7 @@ export function addImport(context: Context, mod: string, name: string): void {
 
 /**
  * Combine the imports accumulated on `context` with the rendered JSX into the
- * final code block. Imports are sorted by module; `react` keeps its bare
+ * final code block. Sorts imports by module; `react` keeps its bare
  * specifier, everything else uses the `ui/*` package layout.
  */
 export function assemble(context: Context, jsx: string): string {
@@ -254,9 +252,8 @@ export function assemble(context: Context, jsx: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Components decorated by the docs plugin's `pre` transform carry their original
- * source as `__code`. Reading it lets the walker show the helper's full body
- * instead of an opaque `<HelperDemo />` tag.
+ * Components decorated by the docs plugin's `pre` transform carry their
+ * original source as `__code`.
  */
 type WithCode = { __code?: string }
 
@@ -274,8 +271,8 @@ export function readSnippet(type: unknown): string | null {
 
 /**
  * Dedents a raw snippet and re-indents subsequent lines to `targetIndent`.
- * Line 1 is returned as-is — the caller prefixes it with its own indent,
- * matching the convention used by `renderElement`.
+ * Returns line 1 as-is; the caller prefixes it with its own indent, matching
+ * the `renderElement` convention.
  */
 export function reindent(code: string, targetIndent: string): string {
 	const lines = code.split('\n')
@@ -313,7 +310,7 @@ const TAG_RE = /<([A-Z][\w]*)/g
 /**
  * Register imports for anything the snippet references: UI components via
  * JSX opening tags, and React hooks via bare identifier use. `addImport`
- * dedupes per-(module,name), so repeated matches are harmless.
+ * dedupes per-(module,name).
  */
 export function collectSnippetImports(snippet: string, context: Context): void {
 	for (const [, name] of snippet.matchAll(TAG_RE)) {

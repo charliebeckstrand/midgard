@@ -65,7 +65,7 @@ export function useSignaturePadDrawing({
 
 		context.moveTo(point.x, point.y)
 
-		// Dot so a tap leaves a mark.
+		// Draws a dot; a bare tap leaves a mark.
 		context.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2)
 
 		context.fillStyle = strokeColor

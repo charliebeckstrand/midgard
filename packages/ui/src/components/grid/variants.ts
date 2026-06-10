@@ -8,13 +8,13 @@ export type { Responsive }
 export type GridGap = Ma
 
 // Numeric grid props (`columns`, `rows`, `span`, `rowSpan`, `start`,
-// `rowStart`) are threaded through CSS custom properties read by static
+// `rowStart`) thread through CSS custom properties read by static
 // Tailwind utilities.
 //
 // Each breakpoint owns a distinct variable (`--cols`, `--cols-sm`, …); only
 // the breakpoints with a user-provided value emit an override class. The
 // result: a fixed set of literal class strings the JIT scanner can index,
-// with arbitrary numeric values at runtime — no safelist needed.
+// with arbitrary numeric values at runtime and no safelist.
 
 type ClassMap = Record<Breakpoint, string>
 
@@ -137,8 +137,8 @@ export function resolveRows(value: Responsive<number> | undefined): ResolvedResp
 	return resolveScalar(value, 'rows', rows, asNumber)
 }
 
-// Literal breakpoint rows so the Tailwind scanner sources `sm:gap-2` etc.;
-// interpolation (`${bp}:${cls}`) is invisible to it. `initial` reuses the kata.
+// Literal breakpoint rows: interpolation (`${bp}:${cls}`) is invisible to the
+// Tailwind scanner. `initial` reuses the kata.
 const responsiveGapMap: Record<Breakpoint, Record<GridGap, string>> = {
 	initial: gapMap,
 	sm: { xs: 'sm:gap-1', sm: 'sm:gap-2', md: 'sm:gap-3', lg: 'sm:gap-4', xl: 'sm:gap-6' },

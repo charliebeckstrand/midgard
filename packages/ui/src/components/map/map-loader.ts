@@ -14,7 +14,7 @@ let promise: Promise<MapLibreModule> | null = null
 
 /**
  * Load maplibre-gl lazily and share the result across all components. A single
- * pending promise prevents concurrent `import()` calls from racing — the second
+ * pending promise prevents concurrent `import()` calls from racing; the second
  * caller awaits the first caller's resolution.
  */
 export function loadMapLibre(): Promise<MapLibreModule> {

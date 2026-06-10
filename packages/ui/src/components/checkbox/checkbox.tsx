@@ -24,7 +24,7 @@ export type CheckboxProps = CheckboxVariants & {
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 /**
- * Labeled checkbox with an `indeterminate` tri-state — binds to enclosing Form
+ * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
  * and Control context for `name`, validation, and sizing.
  */
 export function Checkbox({
@@ -66,7 +66,6 @@ export function Checkbox({
 	const setRef = useComposedRef(internalRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
-	// Keyed on the value so the node is reused across toggles.
 	useLayoutEffect(() => {
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])

@@ -12,7 +12,7 @@ export type SwitchFieldProps = SwitchFieldVariants & {
 
 /**
  * Pairs a Switch with its Label. Generates a scoped id and broadcasts it
- * through `ControlContext` so the inner Switch and Label auto-wire without
+ * through `ControlContext`; the inner Switch and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldProps) {

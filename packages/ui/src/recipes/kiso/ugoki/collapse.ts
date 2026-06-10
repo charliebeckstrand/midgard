@@ -1,5 +1,5 @@
 /**
- * Ugoki collapse — height reveal for `<Collapse>` panels. Two variants:
+ * Ugoki collapse: height reveal for `<Collapse>` panels. Two variants:
  * `fade` crossfades opacity alongside the height change; `slide` is
  * height-only.
  *

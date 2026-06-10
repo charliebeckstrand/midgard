@@ -1,5 +1,5 @@
 /**
- * Kokkaku skeleton — avatar. Rounded-full silhouette sized by the
+ * Kokkaku skeleton: avatar. Rounded-full silhouette sized by the
  * standard avatar dimension scale.
  *
  * Layer: kiso · Concern: skeleton form · Unit: avatar

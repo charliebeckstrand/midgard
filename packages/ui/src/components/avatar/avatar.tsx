@@ -8,7 +8,7 @@ import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { StatusDot, type StatusDotProps } from '../status'
 import { AvatarSkeleton } from './avatar-skeleton'
 
-// Derive from the StatusDot union (single source of truth) so the two never drift.
+// The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
 
 export type AvatarProps = AvatarVariants & {
@@ -21,7 +21,7 @@ export type AvatarProps = AvatarVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
-/** User image, initials, or fallback in a sized circle — pair with `status` to overlay a corner StatusDot. */
+/** User image, initials, or fallback in a sized circle. Pair with `status` to overlay a corner StatusDot. */
 export function Avatar({
 	src,
 	alt = '',
@@ -44,8 +44,8 @@ export function Avatar({
 		return <AvatarSkeleton size={size} className={className} />
 	}
 
-	// With an image present the initials are a purely visual fallback —
-	// aria-hide them so the image's alt is the single accessible name.
+	// With an image present the initials are a visual fallback; aria-hidden
+	// leaves the image's alt as the single accessible name.
 	const initialsHidden = !!src || !alt
 
 	const content = (
@@ -89,8 +89,8 @@ export function Avatar({
 		)
 	}
 
-	// `className` and `{...props}` both land on the wrapper so consumer ids,
-	// handlers, and classes target one element — clicks on the dot included.
+	// `className` and `{...props}` both land on the wrapper; consumer ids,
+	// handlers, and classes target one element, dot included.
 	return (
 		<DensityScope scale={size}>
 			<span
@@ -106,7 +106,7 @@ export function Avatar({
 					{content}
 				</span>
 				<StatusDot status={status} className={cn('absolute top-0 right-0', k.statusRing)} />
-				{/* Status is conveyed by color alone; the sr-only span names it for assistive technology. */}
+				{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
 				<span className="sr-only">
 					{statusLabel ?? status.charAt(0).toUpperCase() + status.slice(1)}
 				</span>

@@ -28,7 +28,7 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
-	/** Inter-toast gap (px), animated to 0 on dismiss so neighbours slide in. */
+	/** Inter-toast gap (px), animated to 0 on dismiss; neighbours slide in. */
 	gap: 8,
 }
 

@@ -40,7 +40,7 @@ export function extractProps(
  * Collects props from every union and intersection arm individually. Walking
  * arms separately surfaces arm-only discriminated members and collects every
  * contributing type for props that appear in multiple arms with distinct types.
- * Nested unions within intersection arms are split by recursion.
+ * Recursion splits nested unions within intersection arms.
  */
 function collectAllProperties(
 	type: ts.Type,
@@ -124,10 +124,10 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 }
 
 /**
- * Returns the source text for mapped-type prop declarations, bypassing the
- * formatter that would expand them into verbose noise like
- * `{ [K in keyof T]?: Validator<T, K> | undefined }`. Type references and
- * primitives still flow through the formatter for alias resolution.
+ * Returns the source text for mapped-type prop declarations instead of the
+ * formatter's expansion (`{ [K in keyof T]?: Validator<T, K> | undefined }`).
+ * Type references and primitives still flow through the formatter for alias
+ * resolution.
  */
 function inlineSourceType(symbol: ts.Symbol): string | null {
 	const decl = symbol.getDeclarations()?.[0]
@@ -154,7 +154,7 @@ function hasProjectDeclaration(symbol: ts.Symbol): boolean {
 	return declarations.some((decl) => !decl.getSourceFile().fileName.includes('/node_modules/'))
 }
 
-/** External npm package the symbol declares in — `undefined` for project source and the stdlib. */
+/** External npm package the symbol declares in; `undefined` for project source and the stdlib. */
 function getExternalPackage(symbol: ts.Symbol): string | undefined {
 	const decl = symbol.getDeclarations()?.[0]
 

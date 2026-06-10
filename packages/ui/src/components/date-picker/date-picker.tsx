@@ -37,10 +37,10 @@ export type DatePickerBaseProps = {
 	 */
 	size?: ControlSize
 	/**
-	 * Truncate the displayed date label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content — useful inside a
-	 * `<Group>` or any other content-sized parent that would otherwise collapse
-	 * the label. @default true
+	 * Truncates the displayed date label when it overflows the trigger.
+	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
+	 * `<Group>` or another content-sized parent that collapses the label.
+	 * @default true
 	 */
 	truncate?: boolean
 	className?: string
@@ -54,7 +54,7 @@ export type DatePickerBaseProps = {
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
 /**
- * Popover date picker wrapping a Calendar — switches between single and range
+ * Popover date picker wrapping a Calendar; switches between single and range
  * selection on the `range` prop, and supports controlled or uncontrolled `value`.
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
  */

@@ -27,7 +27,7 @@ type MapInstanceResult = {
  * Owns the MapLibre instance lifecycle: construction, ready/load handlers,
  * jumpTo-on-prop-change, setStyle-on-prop-change, and ResizeObserver-driven
  * `map.resize()`. The instance is constructed once with the latest props read
- * through a ref, since MapLibre is expensive to recreate.
+ * through a ref.
  */
 export function useMapInstance({
 	center,
@@ -48,8 +48,8 @@ export function useMapInstance({
 
 	const [ready, setReady] = useState(false)
 
-	// Keep a ref of the props the mount-effect needs so the effect itself can
-	// run once while still reading the latest values.
+	// Ref of the props the mount-effect needs; the effect runs once while
+	// still reading the latest values.
 	const mountPropsRef = useRef({ center, zoom, bearing, pitch, style, interactive, onLoad })
 
 	mountPropsRef.current = { center, zoom, bearing, pitch, style, interactive, onLoad }
@@ -64,8 +64,8 @@ export function useMapInstance({
 		let instance: MapLibreMap | null = null
 
 		// Require Shift+wheel to zoom; plain wheel passes through to page scroll.
-		// Capture phase fires before MapLibre's handler on the inner canvas container,
-		// so stopImmediatePropagation prevents the event from reaching it.
+		// Capture phase fires before MapLibre's handler on the inner canvas
+		// container; stopImmediatePropagation keeps the event from reaching it.
 		const wheelHandler = (e: WheelEvent) => {
 			if (!e.shiftKey) e.stopImmediatePropagation()
 		}
@@ -155,8 +155,8 @@ export function useMapInstance({
 
 	useResizeObserver(containerRef, resize)
 
-	// Stable context — getMap and onReady read from refs, so the value
-	// identity never changes across renders.
+	// Stable context: getMap and onReady read from refs; the value identity
+	// never changes across renders.
 	const contextValue = useMemo<MapContextValue>(
 		() => ({
 			getMap: () => mapRef.current,

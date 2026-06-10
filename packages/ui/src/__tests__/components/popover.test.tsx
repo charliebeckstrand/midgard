@@ -51,14 +51,14 @@ describe('Popover', () => {
 			</Popover>,
 		)
 
-		// The consumer's ref still receives the node — it is composed with the
+		// The consumer's ref still receives the node; it is composed with the
 		// floating reference, not clobbered by it.
 		expect(ref.current).toBe(bySlot(container, 'popover-trigger'))
 	})
 })
 
 describe('PopoverContent size context', () => {
-	// PopoverContent renders through FloatingPortal — query the document.
+	// PopoverContent renders through FloatingPortal; query the document.
 	const popoverContent = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
 	const buttonInPopover = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
@@ -258,7 +258,7 @@ describe('Popover non-modal semantics', () => {
 		)
 
 		// Focus starts on the panel (autoFocus); tabbing past its single control
-		// leaves the panel — a modal focus trap would keep focus inside.
+		// leaves the panel, where a modal focus trap would keep focus inside.
 		await user.tab()
 		await user.tab()
 

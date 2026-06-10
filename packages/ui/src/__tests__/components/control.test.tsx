@@ -295,7 +295,6 @@ describe('Control nesting', () => {
 			</Control>,
 		)
 		const controls = allBySlot(container, 'control')
-		// Both parent and child control wrappers should be marked disabled
 		expect(controls[0]).toHaveAttribute('data-disabled')
 		expect(controls[1]).toHaveAttribute('data-disabled')
 	})
@@ -321,7 +320,6 @@ describe('Control + size', () => {
 				<Input />
 			</Control>,
 		)
-		// The input element should have the lg size class applied via inputVariants
 		const input = bySlot(container, 'input')
 		expect(input).toBeInTheDocument()
 	})

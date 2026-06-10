@@ -130,8 +130,8 @@ export function SidebarContent({ route }: { route: string }) {
 											current={route === demo.id}
 											onClick={(e) => {
 												// Prevent the browser's default hash-link scroll;
-												// our deferredRoute effect handles scroll-to-top
-												// after the new demo commits.
+												// the deferredRoute effect scrolls to top after
+												// the new demo commits.
 												e.preventDefault()
 
 												prefetch()

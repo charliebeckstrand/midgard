@@ -16,7 +16,7 @@ type InputValueResult = {
 	value: InputHTMLAttributes<HTMLInputElement>['value']
 	onChange: ChangeEventHandler<HTMLInputElement> | undefined
 	onBlur: FocusEventHandler<HTMLInputElement> | undefined
-	/** Pass to `useControlProps` so the form's invalid flag merges in. */
+	/** Pass to `useControlProps`; the form's invalid flag merges in. */
 	binding: FormTextBinding | undefined
 }
 
@@ -24,8 +24,8 @@ type InputValueResult = {
  * Resolves Input's value / onChange / onBlur against the Form binding cascade.
  *
  * When value/onChange are passed explicitly, the binding supplies name and invalid
- * state but does not override them. `value={null}` or `value={undefined}` is
- * coerced to `''` to keep the native input controlled.
+ * state but does not override them. `value={null}` or `value={undefined}`
+ * coerces to `''`; the native input stays controlled.
  */
 export function useInputValue({
 	hasValueProp,

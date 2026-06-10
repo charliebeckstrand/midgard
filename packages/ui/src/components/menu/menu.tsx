@@ -20,7 +20,7 @@ export type MenuProps = {
 }
 
 /**
- * Composition root for menus — provides open state and actions to its trigger
+ * Composition root for menus; provides open state and actions to its trigger
  * and items via context. Acts as a floating dropdown or, when not, a
  * context-menu `application` region driven by right-click.
  */
@@ -38,7 +38,7 @@ export function Menu({ defaultOpen, placement, size, className, children }: Menu
 					data-slot="menu"
 					className={cn(className)}
 					// No role: the wrapper holds arbitrary page content and implements no
-					// keyboard model of its own — role="application" here suppressed AT
+					// keyboard model of its own. role="application" suppresses AT
 					// browse-mode for everything inside it.
 					{...(!isDropdown && { onContextMenu: handleContextMenu })}
 				>

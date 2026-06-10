@@ -24,7 +24,7 @@ export type CurrencyInputProps = Omit<
 }
 
 /**
- * Numeric Input that formats its value as localized currency — emits a `number`
+ * Numeric Input that formats its value as localized currency. Emits a `number`
  * via `onValueChange` while displaying grouped digits and the currency symbol,
  * and binds to an enclosing Form field by `name`. Resolves `currency` and
  * `locale` from props, then `<LocaleProvider>`, then runtime defaults.

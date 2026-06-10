@@ -50,8 +50,8 @@ const initialRates: LaneRate[] = [
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
 
-// CurrencyInput doesn't bind to Form via `name` the way NumberInput does, so
-// bridge it manually for the bulk-edit dialog.
+// CurrencyInput doesn't bind to Form via `name` the way NumberInput does;
+// this wrapper bridges it for the bulk-edit dialog.
 function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: string }) {
 	const field = useFormField(name)
 

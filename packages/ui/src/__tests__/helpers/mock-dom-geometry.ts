@@ -10,7 +10,7 @@ type GeometryKey =
 
 /**
  * Define layout-derived element properties that jsdom always reports as 0.
- * Properties stay writable so a test can re-mock between assertions.
+ * Properties stay writable for re-mocking between assertions.
  */
 export function mockDomGeometry<T extends Element>(
 	el: T,

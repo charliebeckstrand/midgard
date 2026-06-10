@@ -5,8 +5,8 @@ import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Tooltip `:disabled` gating against the real floating engine. The jsdom and
- * main browser suites mock `@floating-ui/react` to a null reference, so the gate
- * — which reads the live reference node — can only be exercised here. A disabled
+ * main browser suites mock `@floating-ui/react` to a null reference, so the
+ * gate, which reads the live reference node, runs only here. A disabled
  * trigger (its own `disabled` or an ancestor `<fieldset disabled>`) must not
  * surface its tooltip, matching the PasswordInput visibility toggle inside a
  * submitting auth form.

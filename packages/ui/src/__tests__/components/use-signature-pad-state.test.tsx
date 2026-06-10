@@ -149,8 +149,7 @@ describe('useSignaturePadState', () => {
 
 		expect(captured.state?.empty).toBe(false)
 
-		// The value-sync effect should have cleared the canvas in preparation
-		// for the snapshot paint.
+		// The value-sync effect clears the canvas before the snapshot paint.
 		expect(context?.clearRect).toHaveBeenCalled()
 	})
 

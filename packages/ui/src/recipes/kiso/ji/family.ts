@@ -1,5 +1,5 @@
 /**
- * Ji family — font-family aliases. `sans` is the default UI face; `mono`
+ * Ji family: font-family aliases. `sans` is the default UI face; `mono`
  * is for code blocks and kbd marks; `serif` is for editorial content.
  *
  * Layer: kiso · Concern: font family

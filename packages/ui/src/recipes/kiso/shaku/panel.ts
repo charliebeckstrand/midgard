@@ -1,6 +1,6 @@
 /**
- * Shaku panel — max-width scale for dialogs and sheets. All breakpoints
- * gate on `sm:` so the panel fills the viewport on phones and caps at
+ * Shaku panel: max-width scale for dialogs and sheets. All breakpoints
+ * gate on `sm:`; the panel fills the viewport on phones and caps at
  * the named size from `sm` up.
  *
  * Layer: kiso · Concern: panel max-width

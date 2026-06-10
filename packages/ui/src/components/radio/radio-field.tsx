@@ -12,7 +12,7 @@ export type RadioFieldProps = {
 
 /**
  * Pairs a Radio with its Label. Generates a scoped id and broadcasts it
- * through `ControlContext` so the inner Radio and Label auto-wire without
+ * through `ControlContext`; the inner Radio and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function RadioField({ className, htmlFor, ...props }: RadioFieldProps) {

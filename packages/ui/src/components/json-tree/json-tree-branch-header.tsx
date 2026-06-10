@@ -12,7 +12,7 @@ type JsonTreeBranchHeaderProps = {
 	open: boolean
 	count: number
 	highlighted: boolean
-	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead, since the root can be windowed out. */
+	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead. */
 	tabbable?: boolean
 	onToggle: () => void
 }

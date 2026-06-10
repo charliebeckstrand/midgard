@@ -16,7 +16,7 @@ type KeybindingsOptions = {
 	timeout?: number
 	/**
 	 * Predicate that returns true to skip an event. tinykeys' default skips
-	 * events originating inside form fields and contenteditable elements —
+	 * events originating inside form fields and contenteditable elements;
 	 * pass `() => false` to fire regardless of focus (e.g. ⌘K openers).
 	 */
 	ignore?: KeybindingFilter
@@ -24,8 +24,8 @@ type KeybindingsOptions = {
 
 /**
  * Subscribe to tinykeys keybindings for the lifetime of the component.
- * Handlers are read fresh on each event, so the bindings map can close over
- * changing state without re-subscribing.
+ * Reads handlers fresh on each event; the bindings map closes over changing
+ * state without re-subscribing.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
 	const { enabled = true, target, event, capture, timeout, ignore } = options
@@ -34,8 +34,8 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 
 	bindingsRef.current = bindings
 
-	// `ignore` is held in a ref; a stable ref-reading wrapper is forwarded when
-	// provided, and `undefined` when omitted — presence is the only dep, not identity.
+	// A ref holds `ignore`; the effect forwards a stable ref-reading wrapper
+	// when provided, `undefined` when omitted. Presence is the dep, not identity.
 	const ignoreRef = useRef(ignore)
 
 	ignoreRef.current = ignore

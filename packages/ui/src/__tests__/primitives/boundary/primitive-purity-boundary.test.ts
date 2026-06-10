@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { collectPatternViolations } from '../../helpers/walk-source'
 
 // Primitives are foundational React/HTML abstractions consumed by components.
-// They must not import from components or layouts — doing so inverts the
-// dependency direction. Imports from `recipes/kata/` (the recipe funnel) are
+// They must not import from components or layouts. Imports from
+// `recipes/kata/` (the recipe funnel) are
 // permitted; kata is the curated recipe surface for both components and
 // primitives.
 

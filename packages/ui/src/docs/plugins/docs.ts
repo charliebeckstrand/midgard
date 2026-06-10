@@ -8,7 +8,7 @@ import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
 
 // ---------------------------------------------------------------------------
-// Demo metadata — parsed for `virtual:demo-metas`
+// Demo metadata parsed for `virtual:demo-metas`
 // ---------------------------------------------------------------------------
 
 type DemoMeta = { name?: string; category?: string }
@@ -21,8 +21,7 @@ function isMetaKey(key: string): key is keyof DemoMeta {
 
 /**
  * Parse `export const meta = { name?: '...', category?: '...' }` out of a
- * demo source file. Drops unknown keys and non-string-literal values so the
- * registry only ever sees the typed shape.
+ * demo source file. Drops unknown keys and non-string-literal values.
  */
 function parseMeta(project: Project, fileName: string, source: string): DemoMeta {
 	const sf = project.createSourceFile(fileName, source, { overwrite: true })
@@ -73,15 +72,14 @@ function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 }
 
 // ---------------------------------------------------------------------------
-// Component tagging — `virtual:component-modules` + the index-barrel transform
+// Component tagging: `virtual:component-modules` + the index-barrel transform
 // ---------------------------------------------------------------------------
 
 export type ReExport = { source: string; localName: string; exportedName: string; isType: boolean }
 
 /**
  * Parse `export { A, type B, C } from '...'` statements out of an index file.
- * Other top-level forms (default exports, plain `export const`) aren't used
- * by component/layout indexes and are ignored.
+ * Ignores other top-level forms (default exports, plain `export const`).
  */
 export function parseReExports(source: string, fileName: string): ReExport[] {
 	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
@@ -118,9 +116,8 @@ function isPascalCase(name: string): boolean {
 
 /**
  * Map a public index file to its module name, or null if the file isn't a
- * taggable barrel. The `docs/` prefix is never matched — that is the sole
- * mechanism keeping docs-internal controls out of derived code blocks
- * (see chrome-contract.test.ts).
+ * taggable barrel. The `docs/` prefix never matches; docs-internal controls
+ * stay out of derived code blocks.
  */
 export function moduleNameFor(filePath: string, srcDir: string): string | null {
 	const rel = path.relative(srcDir, filePath).split(path.sep)
@@ -128,9 +125,10 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 	if (rel[0] === 'components' && rel[2] === 'index.ts') return rel[1] ?? null
 
 	// Providers (e.g. `<GlassProvider>`) are wrappers a demo composes around the
-	// component being shown. Tagging them lets the walker render the wrapper —
-	// and its import — instead of transparently unwrapping it. Their public
-	// specifier nests (`ui/providers/glass`), so carry the full `providers/<name>`.
+	// component being shown. The walker renders tagged providers and their
+	// imports instead of unwrapping them. The module name carries the full
+	// `providers/<name>`, matching the nested public specifier
+	// (`ui/providers/glass`).
 	if (rel[0] === 'providers' && rel[2] === 'index.ts') return rel[1] ? `providers/${rel[1]}` : null
 
 	if (rel[0] === 'layouts' && rel[1] === 'index.ts') return 'layouts'
@@ -140,7 +138,7 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 
 /**
  * Record every PascalCase value re-export of a single index file under
- * `moduleName`. Missing files are skipped so callers needn't pre-check.
+ * `moduleName`. Skips missing files.
  */
 function collectIndexNames(
 	result: Record<string, string>,
@@ -204,15 +202,14 @@ function keepSpecifier(re: ReExport): string {
  * `__module` / `__name` decoration the runtime walker reads. Returns `null` when
  * nothing is taggable, leaving the module untouched.
  *
- * The tag can't be an appended top-level statement: the library declares
- * `sideEffects: false`, so the production build's DCE drops any standalone side
- * effect in a barrel and the decoration silently vanishes (dev, which never
- * tree-shakes, is unaffected). Instead each tagged name is re-bound as
- * `export const Name = __ct_tag(<src>, 'Name')`, so the `Object.assign` rides
- * inside the initializer of a *consumed* export and survives as reachable code.
- * Type and non-PascalCase specifiers (hooks, context helpers) pass through
- * unchanged. Barrels are pure named re-exports — the only shape `moduleNameFor`
- * matches — so regenerating from `reExports` is faithful.
+ * The library declares `sideEffects: false`; production DCE drops standalone
+ * side-effect statements in a barrel. Each tagged name is re-bound as
+ * `export const Name = __ct_tag(<src>, 'Name')`, placing the `Object.assign`
+ * inside the initializer of a consumed export, where it survives as reachable
+ * code. Type and non-PascalCase specifiers (hooks, context helpers) pass
+ * through unchanged. Barrels are pure named re-exports, the only shape
+ * `moduleNameFor` matches; regenerating from `reExports` preserves every
+ * specifier.
  */
 export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): string | null {
 	const tagged = reExports.filter((re) => !re.isType && isPascalCase(re.exportedName))
@@ -239,8 +236,8 @@ export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): st
 	}
 
 	// Tagged exports: import the source binding, decorate it, re-export the
-	// decorated reference. `__ct_tag` returns its argument so the decoration is
-	// load-bearing for the exported value rather than a droppable side effect.
+	// decorated reference. `__ct_tag` returns its argument; the decoration runs
+	// inside the exported value's initializer.
 	lines.push(
 		`const __ct_tag = (v, n) => {` +
 			` if (v != null && (typeof v === 'function' || typeof v === 'object') && !('__module' in v))` +
@@ -279,31 +276,25 @@ function findSrcDir(root: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * The single Vite plugin backing the docs site. It folds what used to be five
- * separate plugins:
+ * The single Vite plugin backing the docs site. It provides:
  *
- *  - `virtual:api-reference`     — prop data parsed from component sources
- *  - `virtual:demo-metas`        — each demo's `{ name?, category? }`
- *  - `virtual:component-modules` — `{ componentName → module }` for snippet imports
+ *  - `virtual:api-reference`: prop data parsed from component sources
+ *  - `virtual:demo-metas`: each demo's `{ name?, category? }`
+ *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
  *  - an `enforce: 'pre'` transform attaching helper `__code` to demo sources
  *
- * It returns TWO plugin objects, not one, and that split is load-bearing:
- * Vite's `enforce` is plugin-wide, so the `__code` transform — which has to read
- * a demo's *raw* TSX (before the JSX transform lowers it) so `collectHelpers`
- * can slice helper source — must live in its own `enforce: 'pre'` object.
- * Collapsing the two for tidiness would silently move `__code` attachment after
- * JSX lowering and break snippet extraction with no failing unit test.
+ * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__code`
+ * transform reads a demo's raw TSX before JSX lowering and lives in its own
+ * `enforce: 'pre'` object.
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform (the derive-code tests depend on both being real) while
- * stubbing api-reference and demo-metas with empty defaults and dropping the
- * demo `__code` pre-transform — matching exactly what the vitest run needs.
+ * tagging transform, stubs api-reference and demo-metas with empty defaults,
+ * and drops the demo `__code` pre-transform.
  */
 export function docsPlugin({ vitest = false }: { vitest?: boolean } = {}): Plugin[] {
-	// Resolved once in `configResolved` and shared by both returned objects via
-	// this closure. `findSrcDir` locates the dir holding `components/` from either
-	// the docs root (`src/docs` → `src`) or the vitest root (`packages/ui` → `src`).
+	// Resolved once in `configResolved`; shared by both returned plugin objects
+	// via this closure.
 	let srcDir = ''
 	let demosDir = ''
 
@@ -336,8 +327,8 @@ export function docsPlugin({ vitest = false }: { vitest?: boolean } = {}): Plugi
 			},
 		]),
 
-		// Tag every public component/provider/layout index barrel so the runtime
-		// walker can recognise the components a demo renders.
+		// Tag every public component/provider/layout index barrel with
+		// `__module` / `__name` for the runtime walker.
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
@@ -360,9 +351,8 @@ export function docsPlugin({ vitest = false }: { vitest?: boolean } = {}): Plugi
 
 		enforce: 'pre',
 
-		// Attach each demo helper's full source as a `__code` static so the walker
-		// can show the helper's body instead of an opaque `<Helper />` tag. Must
-		// see raw TSX, hence `enforce: 'pre'`.
+		// Attach each demo helper's full source as a `__code` static. Runs at
+		// `enforce: 'pre'` on raw TSX, before JSX lowering.
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 

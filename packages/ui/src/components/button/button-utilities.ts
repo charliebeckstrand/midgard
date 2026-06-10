@@ -2,7 +2,7 @@ import { isValidElement } from 'react'
 import { Icon } from '../icon'
 
 // An "icon" child is the library's <Icon>, a raw <svg>, or any element with
-// data-slot="icon". Anything else is treated as a textual label for sizing.
+// data-slot="icon". Anything else counts as a textual label for sizing.
 export function isIconElement(node: unknown): boolean {
 	if (!isValidElement(node)) return false
 

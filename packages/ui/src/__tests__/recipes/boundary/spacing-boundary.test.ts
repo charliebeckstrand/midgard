@@ -12,11 +12,11 @@ import { describe, expect, it } from 'vitest'
 //      a static `Record<Ma, string>` lookup.
 //
 //   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding) lives
-//      only in `recipes/kiso/kasane.ts` — consumers reach it through
+//      only in `recipes/kiso/kasane.ts`; consumers reach it through
 //      `kasane.p / px / py / pl / pr`.
 //
 // Both rules carry an ALLOWLIST of files exempt from the check. The first
-// list is empty (regression guard). The second retains entries whose
+// list is empty. The second retains entries whose
 // remaining `calc(--spacing(…))` literals carry Tailwind variant prefixes
 // (`data-*`, `has-*`, `autofill:*`); variants must appear in source and
 // can't move behind the kasane helpers.
@@ -38,11 +38,11 @@ const RENAMED_UTILITY =
 
 const RAW_CALC = /calc\(--spacing\(/
 
-/** Empty — regression guard. */
+/** Empty: no files are exempt. */
 const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
 
 /**
- * Files still spelling `calc(--spacing(v)-1px)` inline — variant-prefixed
+ * Files that spell `calc(--spacing(v)-1px)` inline: variant-prefixed
  * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) must appear
  * in source; Tailwind variants can't move behind the kasane helpers.
  */

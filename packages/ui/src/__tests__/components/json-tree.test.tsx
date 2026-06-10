@@ -58,7 +58,7 @@ describe('JsonTree', () => {
 	it('calls onExpandedChange when controlled and a branch is toggled', () => {
 		const onExpandedChange = vi.fn()
 
-		// The root path is '$' — include it so the nested branch header renders.
+		// The root path is '$'; include it so the nested branch header renders.
 		const expanded = new Set<string>(['$'])
 
 		renderUI(

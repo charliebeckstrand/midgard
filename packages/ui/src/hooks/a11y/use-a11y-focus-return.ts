@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 export type A11yFocusReturn = {
-	/** Ref callback for the trigger — captures the node to restore focus to on close. */
+	/** Ref callback for the trigger; captures the node to restore focus to on close. */
 	captureTrigger: (node: HTMLElement | null) => void
 	/** Suppress the next close's focus restore (e.g. an outside press that should follow the pointer). */
 	skipNextRefocus: () => void
@@ -11,10 +11,9 @@ export type A11yFocusReturn = {
 
 /**
  * Focus restoration for a floating panel whose focus manager runs with
- * `returnFocus={false}`. On close it focuses the captured trigger — unless
- * `skipNextRefocus` was called for that close, where focus should stay put. The
- * trigger node is captured through `captureTrigger` because floating-ui's
- * `domReference` ref is not reliably populated.
+ * `returnFocus={false}`. On close it focuses the captured trigger, unless
+ * `skipNextRefocus` was called for that close. `captureTrigger` captures the
+ * trigger node; floating-ui's `domReference` ref is not reliably populated.
  */
 export function useA11yFocusReturn(open: boolean): A11yFocusReturn {
 	const triggerRef = useRef<HTMLElement | null>(null)

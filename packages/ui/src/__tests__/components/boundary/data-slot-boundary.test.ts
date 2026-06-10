@@ -2,13 +2,12 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// The slot override is exposed as the native `data-slot` attribute everywhere —
-// DOM attribute, component prop, and call site — so a single token is greppable
-// across the package. The old camelCase prop spelling diverged from the
-// attribute and slipped past `data-slot` audits; this guard fails if it returns.
+// The slot override is exposed as the native `data-slot` attribute everywhere:
+// DOM attribute, component prop, and call site. A single token is greppable
+// across the package; this guard fails on any camelCase prop spelling.
 //
 // The banned identifier is assembled at runtime so this file stays clean of the
-// token it forbids (and therefore doesn't flag itself during the scan).
+// token it forbids and doesn't flag itself during the scan.
 const FORBIDDEN = ['data', 'Slot'].join('')
 
 const srcDir = join(__dirname, '../../..')

@@ -29,7 +29,7 @@ import { subscribeDocumentEvent } from '../utilities/document-listener'
 
 // Explicit return types: `useFloating`'s shape references `@floating-ui/react-dom`,
 // a transitive dep that TS can't express in a portable `.d.ts` (TS2742).
-// Kept local — not re-exported from the barrel.
+// Stays local; the barrel does not re-export it.
 type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
@@ -63,8 +63,7 @@ function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 	const style = getComputedStyle(target)
 
 	// The root (html/body) scrolls the page even though its computed overflow is
-	// `visible`; floating-ui treats the last traversable node as scrollable, so a
-	// press on the root scrollbar isn't mistaken for an outside press that closes.
+	// `visible`; floating-ui treats the last traversable node as scrollable.
 	const isRoot = target === document.documentElement || target === document.body
 
 	const scrollableX = isRoot || SCROLLABLE_RE.test(style.overflowX)
@@ -93,7 +92,7 @@ export type FloatingPanelOptions = {
 	offset?: number
 	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @default false */
 	matchReferenceWidth?: boolean
-	/** Escape hatch — fully overrides the default offset/flip/shift/size middleware chain. */
+	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
 	/** When the panel transitions from open to closed, return focus to this element. */
 	returnFocusTo?: RefObject<HTMLElement | null>
@@ -145,15 +144,15 @@ type FloatingUIOptions = FloatingPanelOptions & {
 	 * Popup role floating-ui stamps on the floating element, plus the matching
 	 * `aria-haspopup`/`aria-controls`/`aria-expanded` on the reference. Pass
 	 * `null` when the component hand-rolls its own roles on inner elements (the
-	 * trigger button and the panel) so floating-ui doesn't double-stamp the
-	 * positioning wrapper — which otherwise nests a duplicate widget around the
-	 * real one (combobox-in-combobox, listbox-in-listbox). @default 'listbox'
+	 * trigger button and the panel); a role here also stamps the positioning
+	 * wrapper, nesting a duplicate widget around the real one
+	 * (combobox-in-combobox, listbox-in-listbox). @default 'listbox'
 	 */
 	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
 }
 
 /**
- * Floating panel with built-in dismiss and role interactions — the common
+ * Floating panel with built-in dismiss and role interactions: the common
  * pattern for listbox, combobox, dropdown menu, and date picker surfaces.
  *
  * Outside-press uses a custom document-level pointerdown listener that checks
@@ -169,8 +168,7 @@ export function useFloatingUI({
 	const dismiss = useDismiss(context, { outsidePress: false })
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
-	// emitting no role/aria props — a component owning its roles is not
-	// double-stamped on the positioning wrapper.
+	// emitting no role/aria props for a component that owns its roles.
 	const role = useRole(context, { role: roleProp ?? 'listbox', enabled: roleProp !== null })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
@@ -191,7 +189,6 @@ export function useFloatingUI({
 
 			const floating = refs.floating.current
 
-			// Skip while the panel hasn't mounted — nothing to compare against.
 			if (!floating) return
 
 			if (floating.contains(target)) return

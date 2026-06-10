@@ -17,8 +17,8 @@ export type ToastProps = {
 /**
  * Renders the toast queue from the surrounding `<ToastProvider>` into a
  * portal at the configured viewport position. Drop one anywhere inside the
- * provider's subtree (typically at the app shell) — siblings of `useToast()`
- * callers don't need to live next to it.
+ * provider's subtree (e.g. the app shell); it need not sit next to
+ * `useToast()` callers.
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
@@ -31,7 +31,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 
 	return createPortal(
 		<ReducedMotion>
-			{/* Not itself a live region — each toast carries its own `role` (status /
+			{/* Not itself a live region: each toast carries its own `role` (status /
 			    alert) mapping severity to politeness directly. */}
 			<div data-slot="toast-viewport" className={cn(k.viewport({ position }))}>
 				<div className={cn(k.scroll, isBottom && 'flex-col-reverse')}>

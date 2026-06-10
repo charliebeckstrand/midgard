@@ -14,8 +14,8 @@ type SortableItemOptions = {
 /**
  * Wraps dnd-kit's `useSortable` with the standard style composition used by
  * sortable components in this package: transform via `CSS.Transform.toString`,
- * the hook's transition value, and a hidden opacity while dragging so the
- * `<DragOverlay>` can own the visual.
+ * the hook's transition value, and a hidden opacity while dragging (the
+ * `<DragOverlay>` owns the dragged visual).
  */
 export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 	const {

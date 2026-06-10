@@ -1,7 +1,6 @@
 /**
- * Slider archetype — shared substrate for the native and ranged sliders.
- * Currently one fragment (the colour CSS-variable bundle); structured as
- * a sub-folder for extensibility.
+ * Slider archetype: shared substrate for the native and ranged sliders.
+ * One fragment: the colour CSS-variable bundle.
  */
 
 import { color } from './color'

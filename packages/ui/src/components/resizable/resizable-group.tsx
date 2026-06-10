@@ -24,7 +24,6 @@ export function ResizableGroup({
 }: ResizableGroupProps) {
 	const groupRef = useRef<HTMLDivElement>(null)
 
-	// Extract panel configs from children
 	const panelConfigs = useMemo<PanelConfig[]>(() => {
 		const configs: PanelConfig[] = []
 
@@ -50,7 +49,7 @@ export function ResizableGroup({
 		onSizesChange,
 	})
 
-	// Wraps each panel/handle in an index provider so its position is available via context.
+	// Wraps each panel/handle in an index provider; context carries its position.
 	const wrapped = useMemo(() => {
 		let panelIdx = 0
 		let handleIdx = 0

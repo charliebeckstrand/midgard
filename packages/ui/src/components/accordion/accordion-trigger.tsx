@@ -10,9 +10,9 @@ import { useAccordionItem } from './context'
 export type AccordionTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
 	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
 	/**
-	 * Heading level (1–6) of the element wrapping the trigger button. The
+	 * Heading level (1-6) of the element wrapping the trigger button. The
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
-	 * heading so panels are reachable via heading navigation. @default 3
+	 * heading. @default 3
 	 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 }
@@ -26,21 +26,21 @@ export function AccordionTrigger({
 }: AccordionTriggerProps) {
 	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
-	// Tailwind preflight zeroes heading font and margin; the wrapper is invisible
-	// chrome that satisfies the WAI-ARIA accordion heading requirement.
+	// Tailwind preflight zeroes heading font and margin; the wrapper is
+	// invisible chrome required by the WAI-ARIA accordion pattern.
 	const Heading = `h${level}` as const
 
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
 				type="button"
-				// Consumer props first so they can't clobber the a11y id wiring,
-				// roving tabindex, context-driven disabled, or data-slot below.
+				// Consumer props spread first; the a11y id wiring, roving tabindex,
+				// context-driven disabled, and data-slot below take precedence.
 				{...props}
 				data-slot="accordion-trigger"
 				{...triggerProps}
-				// The panel unmounts while closed (AnimatePresence), so the reference
-				// is set only while its target id exists — the Stepper pattern.
+				// The panel unmounts while closed (AnimatePresence); the reference
+				// is set only while its target id exists.
 				aria-controls={open ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
 				onClick={(e) => {

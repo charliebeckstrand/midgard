@@ -7,7 +7,7 @@ import { renderUI, waitFor } from '../helpers'
 /**
  * Virtualization windowing (real browser). With a real layout engine the
  * virtualizer measures an actual viewport; asserts that a windowed subset
- * renders and that the window tracks scroll position — behaviour jsdom can't
+ * renders and that the window tracks scroll position, behaviour jsdom can't
  * exercise (zero-size scroll container → zero rendered rows).
  *
  * Coverage spans the two production windowing seams: `useVirtualWindow` (the

@@ -32,13 +32,13 @@ export type SheetProps = SheetPanelVariants & {
 	modal?: boolean
 	/**
 	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
-	 * `SheetTitle` registers, since it names the sheet.
+	 * `SheetTitle` registers.
 	 */
 	'aria-label'?: string
 }
 
 /**
- * Edge-anchored overlay panel sliding in from `side` — controlled via
+ * Edge-anchored overlay panel sliding in from `side`; controlled via
  * `open`/`onOpenChange`. Portals to `document.body` by default, or scopes to a
  * `container` with absolute positioning and no scroll lock.
  */

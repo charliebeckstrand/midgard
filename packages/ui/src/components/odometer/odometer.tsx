@@ -16,7 +16,7 @@ function defaultFormat(value: number) {
 	return formatInteger(Math.round(value))
 }
 
-/** Numeric readout that tweens between values over `duration` — announces only the settled target via `aria-label`. */
+/** Numeric readout that tweens between values over `duration`; announces only the settled target via `aria-label`. */
 export function Odometer({
 	value,
 	duration = 800,
@@ -27,8 +27,8 @@ export function Odometer({
 	const display = useOdometerAnimatedValue({ value, duration })
 
 	return (
-		// Exposes the settled target as `aria-label` rather than a live region,
-		// avoiding announcement of each intermediate tween value.
+		// Exposes the settled target as `aria-label` rather than a live region;
+		// a live region announces each intermediate tween value.
 		<span
 			data-slot="odometer"
 			role="img"

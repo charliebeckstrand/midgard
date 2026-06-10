@@ -1,6 +1,6 @@
 /**
- * Iro solid — opaque fill palette. The colour paints the background;
- * text is white (or amber-950 against amber to preserve contrast).
+ * Iro solid: opaque fill palette. The colour paints the background;
+ * text is white (amber-950 against amber).
  * Hover darkens the fill by one step.
  *
  * Layer: kiso · Concern: solid palette

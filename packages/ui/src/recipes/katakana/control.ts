@@ -1,9 +1,9 @@
 /**
- * Control bridge — the Control family archetype (text-input + check
+ * Control bridge: the Control family archetype (text-input + check
  * branches). A pure bridge: it receives the `control` token bundle from
  * the calling kata and wires it into a recipe surface, importing only the
  * recipe engine. It declares the token shape it needs as its own contract
- * (`ControlTokens`) — katakana references kiso in neither value nor type.
+ * (`ControlTokens`); katakana references kiso in neither value nor type.
  *
  * `control(t, overlay)` covers `input`, `textarea`, `listbox`, `combobox`,
  * `date-picker`: kata that frame a user-input element with the library's
@@ -14,8 +14,8 @@
  * Returns a recipe callable as `k({ variant, density, size, …extraAxes })`:
  *   - `k.number` and caller-defined slots are direct strings.
  *   - `k.inputControl({ variant })` is the surface recipe for the inner
- *     `<input>` — `default` paints `surface.default`, `glass` paints
- *     `surface.glass`, `outline` is empty so kata can layer borders.
+ *     `<input>`: `default` paints `surface.default`, `glass` paints
+ *     `surface.glass`, `outline` is empty; kata layer their own borders.
  *   - `k.prefix` / `k.suffix` are density-keyed affix-padding tables.
  *
  * `check(t, overlay)` is the check-input branch (`checkbox`, `radio`):
@@ -28,7 +28,7 @@ import { applyRecipe, defineRecipe, type RecipeConfig } from '../../core/recipe'
 
 type Empty = Record<never, never>
 
-/** Density / size step keys — mirrors the kiso `sun` step scale. */
+/** Density / size step keys; mirrors the kiso `sun` step scale. */
 type Step = 'sm' | 'md' | 'lg'
 
 /** The slice of the `control` token bundle the bridges read. */

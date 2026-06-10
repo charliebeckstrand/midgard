@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
 export type ResizableHandleProps = {
-	/** Accessible name — distinguishes multiple handles ("Resize sidebar"). @default 'Resize' */
+	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @default 'Resize' */
 	'aria-label'?: string
 	className?: string
 }

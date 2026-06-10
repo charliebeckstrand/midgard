@@ -243,10 +243,8 @@ describe('Listbox', () => {
 		expect(notCancelled).toBe(true)
 	})
 
-	// Regression: the default chevron sits in the suffix slot beside the trigger,
-	// not inside it, so a bare mousedown blurred the focused trigger (focus only
-	// returned on the click that followed). Cancelling the suffix mousedown keeps
-	// focus on the trigger.
+	// The default chevron sits in the suffix slot beside the trigger, not inside
+	// it. Cancelling the suffix mousedown keeps focus on the trigger.
 	it('cancels mousedown on the default chevron so the trigger keeps focus', () => {
 		const { container } = renderUI(
 			<Listbox>

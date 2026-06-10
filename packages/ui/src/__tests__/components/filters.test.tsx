@@ -46,7 +46,7 @@ describe('FiltersField', () => {
 
 		const checkbox = bySlot(container, 'checkbox') as HTMLInputElement
 
-		// A toggle reads `checked`, not `value` — without it the control never
+		// A toggle reads `checked`, not `value`; without it the control never
 		// reflects the filter state.
 		expect(checkbox.checked).toBe(true)
 
@@ -83,7 +83,7 @@ describe('FiltersField', () => {
 
 		const radios = allBySlot(container, 'radio') as HTMLInputElement[]
 
-		// The option `value` must survive cloning — it is the radio's identity.
+		// The option `value` must survive cloning; it is the radio's identity.
 		expect(radios[0]).toHaveAttribute('value', 'open')
 
 		expect(radios[1]).toHaveAttribute('value', 'closed')
@@ -149,7 +149,7 @@ describe('Filters announcements', () => {
 			</Filters>,
 		)
 
-		// Lazily created on first announce — absent means nothing was announced on mount.
+		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(politeRegion()?.textContent ?? '').toBe('')
 
 		rerender(
@@ -385,7 +385,7 @@ describe('Filters extras', () => {
 
 		await user.clear(input)
 
-		// Empty string is inactive — Filters should drop `name` from the value object.
+		// Empty string is inactive: Filters drops `name` from the value object.
 		expect(onChange).toHaveBeenCalled()
 
 		const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1] as [

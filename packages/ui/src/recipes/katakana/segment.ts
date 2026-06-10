@@ -1,19 +1,19 @@
 /**
- * Segment bridge — segmented-control archetype shared by `<Segment>`
+ * Segment bridge: segmented-control archetype shared by `<Segment>`
  * (standalone) and `<Tabs variant="segment">`. A pure bridge: it receives
  * the `segment` token bundle and returns the kata `k` surface, importing
  * only the recipe engine and declaring the token shape it needs as its own
- * contract — katakana references kiso in neither value nor type.
+ * contract; katakana references kiso in neither value nor type.
  *
- *   - `control` — outer chrome recipe, callable as `control({ size })`
- *   - `item` — per-segment recipe, callable as `item({ size })`
- *   - `indicator` — class fragment for the sliding indicator
+ *   - `control`: outer chrome recipe, callable as `control({ size })`
+ *   - `item`: per-segment recipe, callable as `item({ size })`
+ *   - `indicator`: class fragment for the sliding indicator
  */
 
 import type { ClassValue } from 'clsx'
 import { defineRecipe } from '../../core/recipe'
 
-/** Size step keys — mirrors the kiso `sun` step scale. */
+/** Size step keys; mirrors the kiso `sun` step scale. */
 type Step = 'sm' | 'md' | 'lg'
 
 /** A size-axed recipe fragment (base chrome + per-step sizing). */

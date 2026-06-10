@@ -1,5 +1,5 @@
 /**
- * Control archetype — input element. Pre-assembled text-input base:
+ * Control archetype: input element. Pre-assembled text-input base,
  * the bare element `reset` plus the kasane rounded corner.
  *
  * Layer: kiso · Archetype: control · Concern: input

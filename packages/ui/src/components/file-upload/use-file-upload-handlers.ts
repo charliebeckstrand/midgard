@@ -49,8 +49,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		(e: ChangeEvent<HTMLInputElement>) => {
 			handleFiles(e.target.files)
 
-			// Resets the native input value so re-selecting the same file fires a
-			// `change` event; the event is suppressed when the value is unchanged.
+			// Resets the native input value; the browser suppresses `change` when
+			// the value is unchanged (re-selecting the same file).
 			e.target.value = ''
 		},
 		[handleFiles],
@@ -64,8 +64,8 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		setDragDepth((d) => d + 1)
 	}, [])
 
-	// `dragover` calls `preventDefault` to permit a drop; state is not changed
-	// here — `dragenter`/`dragleave` own the depth counter.
+	// `preventDefault` on `dragover` marks the element a valid drop target;
+	// `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback((e: DragEvent) => {
 		e.preventDefault()
 

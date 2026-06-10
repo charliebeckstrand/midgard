@@ -1,5 +1,5 @@
 /**
- * Iro bare — colour at the muted text shade with a darken-on-hover.
+ * Iro bare: colour at the muted text shade with a darken-on-hover.
  * Renders at the ramp's `onSurface` role at rest and steps to `onTint`
  * (the max-emphasis neutral for zinc) on hover, written as full literals
  * for Tailwind's scanner.

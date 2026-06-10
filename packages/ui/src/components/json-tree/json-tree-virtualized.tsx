@@ -52,11 +52,9 @@ export function JsonTreeVirtualized({
 		onExpandedChange,
 	})
 
-	// The recursive variant auto-expands branches containing a match during
-	// render; the flat walk only follows `expanded`, which left matches hidden
-	// in virtualized mode. Seed matching branch paths once per search term —
-	// seeding (rather than force-opening at flatten time) keeps a matched
-	// branch collapsible afterwards.
+	// The flat walk follows only `expanded`, unlike the recursive variant's
+	// render-time auto-expand. Seeds matching branch paths once per search
+	// term; a seeded branch stays collapsible afterwards.
 	const seededSearchRef = useRef<string | null>(null)
 
 	useEffect(() => {
@@ -82,9 +80,8 @@ export function JsonTreeVirtualized({
 		overscan,
 	})
 
-	// The Tab stop rides the first *focusable rendered* row: with windowing,
-	// the depth-0 root can be scrolled out of the DOM, and a depth-anchored
-	// stop would leave the tree unreachable by Tab.
+	// The Tab stop rides the first focusable rendered row; windowing can
+	// scroll the depth-0 root out of the DOM.
 	const firstFocusable = useMemo(
 		() =>
 			virtualItems.find((vi) => flatNodes[vi.index] && flatNodes[vi.index]?.type !== 'branch-close')
