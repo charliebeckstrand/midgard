@@ -104,6 +104,9 @@ export function Switch({
 			className={cn(k({ size: resolvedSize, color }), className)}
 		>
 			<input
+				// Consumer props first so they can't clobber the switch role, the
+				// synced aria-checked, the controlled wiring, or data-slot below.
+				{...props}
 				type="checkbox"
 				role="switch"
 				data-slot="switch"
@@ -118,7 +121,6 @@ export function Switch({
 				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}
-				{...props}
 			/>
 			<span data-slot="switch-thumb" aria-hidden="true" className={k.thumb()} />
 		</label>
