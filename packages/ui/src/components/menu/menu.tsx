@@ -37,7 +37,10 @@ export function Menu({ defaultOpen, placement, size, className, children }: Menu
 				<div
 					data-slot="menu"
 					className={cn(className)}
-					{...(!isDropdown && { role: 'application', onContextMenu: handleContextMenu })}
+					// No role: the wrapper holds arbitrary page content and implements no
+					// keyboard model of its own — role="application" here suppressed AT
+					// browse-mode for everything inside it.
+					{...(!isDropdown && { onContextMenu: handleContextMenu })}
 				>
 					{children}
 				</div>
