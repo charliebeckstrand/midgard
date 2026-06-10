@@ -19,8 +19,8 @@ describe('Timeline', () => {
 			</Timeline>,
 		)
 
-		// `current` was previously accepted and silently discarded. ARIA stays
-		// on the TimelineItem <li>; the marker carries the styling hook.
+		// `current` reaches the marker as a data attribute. ARIA stays on the
+		// TimelineItem <li>; the marker carries the styling hook.
 		expect(bySlot(container, 'timeline-marker')).toHaveAttribute('data-current')
 	})
 

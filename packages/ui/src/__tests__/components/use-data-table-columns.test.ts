@@ -218,7 +218,7 @@ describe('useDataTableColumns', () => {
 
 		const first = result.current.visibleColumns
 
-		// Same columns, new array — should still reuse the cached reference.
+		// Same columns, new array: still reuses the cached reference.
 		rerender({ cols: [...columns] })
 
 		expect(result.current.visibleColumns).toBe(first)
@@ -258,7 +258,7 @@ describe('useDataTableColumns', () => {
 			}),
 		)
 
-		// Controlled `hidden` wins; only "name" should be hidden.
+		// Controlled `hidden` wins; only "name" is hidden.
 		expect(result.current.hiddenColumns.has('name')).toBe(true)
 
 		expect(result.current.hiddenColumns.has('age')).toBe(false)

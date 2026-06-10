@@ -108,7 +108,7 @@ describe('List keyboard reordering', () => {
 		input.focus()
 
 		// Space/Arrow/Home/End bubbling from an inner control are the control's
-		// own keys — they must not be treated as lift/reorder gestures (which
+		// own keys; they must not be treated as lift/reorder gestures (which
 		// would also preventDefault the caret movement away).
 		const spaceEvent = fireEvent.keyDown(input, { key: ' ' })
 
@@ -120,7 +120,7 @@ describe('List keyboard reordering', () => {
 
 		expect(document.activeElement).toBe(input)
 
-		// Not preventDefault'd — the key reaches the input.
+		// Not preventDefault'd: the key reaches the input.
 		expect(spaceEvent).toBe(true)
 	})
 

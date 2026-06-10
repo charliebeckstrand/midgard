@@ -16,11 +16,11 @@ import {
 } from '../helpers'
 
 beforeEach(() => {
-	// Default to desktop so the thumbnail sidebar renders. Driving isDesktop via
-	// matchMedia (the real useMinWidth path) instead of a per-file vi.mock of the
-	// shared `../../hooks` barrel avoids poisoning the vmThreads module cache for
-	// files that import the barrel unmocked (e.g. a11y/baseline.test.tsx renders
-	// the real PdfViewer). See src/__tests__/setup/module-mocks.ts.
+	// Defaults to desktop so the thumbnail sidebar renders. Drives isDesktop via
+	// matchMedia (the real useMinWidth path), not a per-file vi.mock of the
+	// shared `../../hooks` barrel; a mock would poison the vmThreads module cache
+	// for files that import the barrel unmocked (e.g. a11y/baseline.test.tsx
+	// renders the real PdfViewer). See src/__tests__/setup/module-mocks.ts.
 	stubMatchMedia((query) => query === '(min-width: 1024px)')
 })
 

@@ -137,9 +137,9 @@ describe('CommandPalette active descendant', () => {
 		const status = bySlot(document.body, 'command-palette-no-results')
 
 		// `<output>` is implicitly role="status" (a polite live region); stays
-		// mounted regardless of results — a CSS peer-empty toggle reveals it when the
-		// listbox filters to empty. Sits outside the listbox (aria-required-children
-		// owns only options).
+		// mounted regardless of results, and a CSS peer-empty toggle reveals it
+		// when the listbox filters to empty. Sits outside the listbox
+		// (aria-required-children owns only options).
 		expect(status?.tagName).toBe('OUTPUT')
 
 		expect(status).toHaveTextContent('No results')
@@ -266,7 +266,7 @@ describe('CommandPaletteItem', () => {
 
 		await user.click(screen.getByText('Run'))
 
-		// A consumer handler must not clobber selection/close — both fire.
+		// A consumer handler must not clobber selection/close; both fire.
 		expect(onClick).toHaveBeenCalled()
 
 		expect(onAction).toHaveBeenCalled()

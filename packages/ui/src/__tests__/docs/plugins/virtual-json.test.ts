@@ -7,8 +7,8 @@ import {
 
 /**
  * Minimal stand-in for the bits of the Vite dev server that the HMR hook
- * touches. `getModuleById` echoes the id back as the module so assertions can
- * tell which virtual modules were invalidated; `invalidatedIds` records them.
+ * touches. `getModuleById` echoes the id back as the module; `invalidatedIds`
+ * records each invalidated virtual module.
  */
 function fakeServer() {
 	const invalidatedIds: string[] = []

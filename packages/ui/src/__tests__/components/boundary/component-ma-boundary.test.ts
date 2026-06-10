@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `Ma` is kiso's spacing axis — padding, margin, gap. Layout primitives
+// `Ma` is kiso's spacing axis: padding, margin, gap. Layout primitives
 // (Box, Flex, Grid, Split) compose it into their `variants.ts` files; that is
 // its public role. Every other component derives the same union from its
 // kata recipe's `VariantProps`. Importing `Ma` directly anywhere else

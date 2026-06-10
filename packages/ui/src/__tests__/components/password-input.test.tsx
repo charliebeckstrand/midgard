@@ -35,8 +35,7 @@ describe('PasswordInput', () => {
 		const toggle = screen.getByRole('button', { name: 'Show password' })
 
 		// APG toggle pattern: aria-pressed conveys the state while the
-		// accessible name stays fixed — swapping the name on toggle isn't
-		// reliably announced on the same control.
+		// accessible name stays fixed.
 		expect(toggle).toHaveAttribute('aria-pressed', 'false')
 
 		await user.click(toggle)

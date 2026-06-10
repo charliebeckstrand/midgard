@@ -351,7 +351,7 @@ describe('Slider + Control', () => {
 
 describe('Slider density inheritance', () => {
 	// Each size variant brings a unique py-* hit-area class; matching it
-	// confirms which size the recipe actually rendered.
+	// confirms which size the recipe rendered.
 	const padClassFor = { sm: 'py-3', md: 'py-4', lg: 'py-5' } as const
 
 	it('inherits size from an ambient Density when no explicit prop is set', () => {

@@ -16,7 +16,7 @@ describe('StatusDot', () => {
 
 		const el = bySlot(container, 'status-dot')
 
-		// Status conveyed by colour alone — a bare dot exposes no role or name.
+		// Status conveyed by colour alone: a bare dot exposes no role or name.
 		expect(el).not.toHaveAttribute('role')
 
 		expect(el).not.toHaveAttribute('aria-label')

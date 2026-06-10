@@ -96,7 +96,7 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 	})
 
 	it('preserves a named interface across the optional-stripping path', () => {
-		// Uses a project-local interface — independent of @types/react.
+		// Uses a project-local interface, independent of @types/react.
 		const { type, checker, location } = typeOfPropValue({
 			'index.ts': [
 				`interface Theme { color: string }`,

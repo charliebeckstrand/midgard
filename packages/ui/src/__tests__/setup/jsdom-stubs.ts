@@ -34,6 +34,5 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 }
 
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
-// on every call. Returns null instead — components null-check the context, so
-// the behaviour is identical without the noise.
+// on every call. Returns null instead; components null-check the context.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']

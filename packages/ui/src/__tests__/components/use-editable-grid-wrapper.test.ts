@@ -58,7 +58,7 @@ function setup(
 	const effectiveAnchor = options.anchor ?? (options.hasMultiSelection ? { row: 0, col: 1 } : null)
 
 	// `options.active === undefined` means "use the default"; `null` means
-	// "explicitly no active cell" — needed to exercise the null-active branches.
+	// "explicitly no active cell", which exercises the null-active branches.
 	const activeValue = 'active' in options ? (options.active ?? null) : { row: 0, col: 0 }
 
 	const partialNav: Partial<EditableGridNavigationApi> = {

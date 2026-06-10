@@ -217,7 +217,7 @@ describe('QueryBuilder', () => {
 
 		const { container } = renderUI(<QueryBuilder fields={[selectField]} value={tree} />)
 
-		// Field selector + operator selector + value selector — 3 listbox buttons total.
+		// Field selector + operator selector + value selector: 3 listbox buttons total.
 		expect(container.querySelectorAll('[data-slot="listbox-button"]')).toHaveLength(3)
 	})
 
@@ -233,7 +233,7 @@ describe('QueryBuilder', () => {
 
 		const { container } = renderUI(<QueryBuilder fields={[textField]} value={tree} />)
 
-		// Only the two selects (field, operator) are present — no value input.
+		// Only the two selects (field, operator) are present; no value input.
 		expect(container.querySelector('input[type="text"]')).not.toBeInTheDocument()
 
 		expect(container.querySelectorAll('[data-slot="listbox-button"]')).toHaveLength(2)
@@ -460,7 +460,7 @@ describe('QueryBuilderRuleValue', () => {
 })
 
 // Removing a rule unmounts its remove button; without focus management that
-// drops focus to <body> (WCAG 2.4.3). Focus should follow the APG list pattern:
+// drops focus to <body> (WCAG 2.4.3). Focus follows the APG list pattern:
 // previous sibling, else next, else the group's "Add rule" control.
 describe('QueryBuilder removal focus', () => {
 	const removeButtons = () => screen.getAllByRole('button', { name: 'Remove rule' })

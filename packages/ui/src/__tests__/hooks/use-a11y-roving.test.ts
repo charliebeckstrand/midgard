@@ -580,7 +580,7 @@ describe('useA11yRoving — manageTabIndex', () => {
 
 		expect(tabIndices(container)).toEqual([0, -1, -1])
 
-		// Focus landing on a control by any route — a click, programmatic focus —
+		// Focus landing on a control by any route (a click, programmatic focus)
 		// makes it the resting stop.
 		items[2]?.focus()
 

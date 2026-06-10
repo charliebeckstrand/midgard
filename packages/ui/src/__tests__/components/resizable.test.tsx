@@ -24,7 +24,7 @@ describe('Resizable', () => {
 			</ResizableGroup>,
 		)
 
-		// Side-by-side panels are separated by a vertical bar — a separator's
+		// Side-by-side panels are separated by a vertical bar; a separator's
 		// orientation is its own, not the group's flex axis.
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-orientation', 'vertical')
 	})

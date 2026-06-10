@@ -18,8 +18,8 @@ describe('resolveDirection', () => {
 	})
 
 	it('emits mobile-first breakpoint-prefixed classes for a responsive value', () => {
-		// Regression: direction must be mobile-first (min-width `md:`) to match
-		// gap/justify/Grid, not desktop-first `max-md:`.
+		// Direction is mobile-first (min-width `md:`) to match gap/justify/Grid,
+		// not desktop-first `max-md:`.
 		const result = resolveDirection({ initial: 'row', md: 'col' })
 
 		expect(result).toEqual(['flex-row', 'md:flex-col'])

@@ -46,8 +46,8 @@ describe('useCalendarMonth: initial viewDate', () => {
 describe('useCalendarMonth: navigation', () => {
 	it('prevMonth steps to the previous month', () => {
 		// Inline `new Date()` inside renderHook re-runs every render and would
-		// re-trigger the value→viewDate re-anchor — hoist the instance so the
-		// hook's `value !== prevValueRef.current` check stays false.
+		// re-trigger the value→viewDate re-anchor; hoisting the instance keeps
+		// the hook's `value !== prevValueRef.current` check false.
 		const value = new Date(2026, 4, 1)
 
 		const { result } = renderHook(() => useCalendarMonth({ value, activeGridDate: null }))
@@ -110,7 +110,7 @@ describe('useCalendarMonth: re-anchoring', () => {
 			{ initialProps },
 		)
 
-		// Same-month activeGridDate should be a no-op against the current view.
+		// Same-month activeGridDate is a no-op against the current view.
 		rerender({ value: new Date(2026, 4, 1), activeGridDate: new Date(2026, 4, 20) })
 
 		expect(result.current.month).toBe(4)

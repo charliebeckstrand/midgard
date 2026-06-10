@@ -65,7 +65,7 @@ describe('groupValues', () => {
 	it('skips non-finite values', () => {
 		const groups = groupValues(data, 'region', 'year', 'amount')
 
-		// 'not-a-number' becomes NaN and should be filtered before bucketing.
+		// 'not-a-number' becomes NaN and is filtered before bucketing.
 		expect(groups.get('NA')?.get('2024')?.length).toBe(2)
 	})
 })

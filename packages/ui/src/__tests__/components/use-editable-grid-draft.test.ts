@@ -187,7 +187,7 @@ describe('useEditableGridDraft: commitEdit', () => {
 	})
 
 	it('skips write when the draft matches the original formatted value', () => {
-		// Lossy format→parse should not overwrite an unchanged cell.
+		// Lossy format→parse does not overwrite an unchanged cell.
 		const { api, applyCellWrite } = setup()
 
 		act(() => api.current.beginEdit({ row: 0, col: 0 }, '$2.35', '$2.35'))
@@ -220,7 +220,7 @@ describe('useEditableGridDraft: commitEdit', () => {
 
 		expect(secondReturn).toBe(true)
 
-		// applyCellWrite ran only on the first commit.
+		// applyCellWrite runs only on the first commit.
 		expect(applyCellWrite).toHaveBeenCalledTimes(1)
 	})
 

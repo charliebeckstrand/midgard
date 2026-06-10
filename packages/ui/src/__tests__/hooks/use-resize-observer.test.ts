@@ -30,7 +30,7 @@ function installResizeObserverStub() {
 
 	// `lib.dom`'s `ResizeObserver` has overloaded constructor signatures that
 	// `vi.fn()`-shaped methods don't satisfy structurally; the cast narrows to
-	// the runtime contract the hook actually uses.
+	// the runtime contract the hook uses.
 	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
 
 	return {

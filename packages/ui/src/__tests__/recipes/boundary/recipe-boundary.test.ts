@@ -2,12 +2,12 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// `kata/`, `katakana/`, and `kiso/` are internal-only — see the header in
+// `kata/`, `katakana/`, and `kiso/` are internal-only; see the header in
 // src/recipes/index.ts for the full contract. This test pins four boundaries:
 //
 //   1. package.json `exports` never lists ./recipes or ./recipes/*.
 //   2. The recipes barrel never re-exports anything from kata/, katakana/,
-//      or kiso/ value bindings — only type re-exports flow through it.
+//      or kiso/ value bindings; only type re-exports flow through it.
 //   3. The recipes barrel surfaces types only (no value `export` statements).
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
@@ -95,7 +95,7 @@ describe('recipes internal-boundary contract', () => {
 			walk(root, (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
-				// Matches `from 'ui/recipes...'` / `from "ui/recipes..."` — the only
+				// Matches `from 'ui/recipes...'` / `from "ui/recipes..."`, the only
 				// reachable import path under the workspace's module-resolution setup.
 				if (/from\s+['"]ui\/recipes(?:\/|['"])/.test(content)) {
 					offenders.push(file.slice(workspaceRoot.length + 1))

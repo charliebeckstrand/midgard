@@ -56,7 +56,7 @@ describe('Tooltip', () => {
 
 		const trigger = bySlot(container, 'tooltip-trigger')
 
-		// The trigger IS the button — no intermediate non-focusable <div>.
+		// The trigger IS the button: no intermediate non-focusable <div>.
 		expect(trigger?.tagName).toBe('BUTTON')
 		expect(trigger).toHaveTextContent('Hover me')
 	})

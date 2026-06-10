@@ -51,7 +51,6 @@ describe('kata boundary', () => {
 
 			if (!RECIPE_IMPORT.test(source)) continue
 
-			/** Locations sanctioned to author recipes. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

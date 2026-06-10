@@ -5,9 +5,7 @@ const PROJECT_ROOT = '/project'
 
 /**
  * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
- * across every `createInMemoryProgram` call. Parsing `lib.es2022.d.ts` is the
- * dominant cost of building an in-memory Program; caching the immutable
- * SourceFile keeps the suite fast.
+ * across every `createInMemoryProgram` call.
  */
 const diskSourceFileCache = new Map<string, ts.SourceFile>()
 
@@ -37,9 +35,7 @@ function readDiskSourceFile(
  * (`React.ReactNode`, `HTMLAttributes`, etc. resolve without bundling type
  * definitions into the test).
  *
- * Returns each in-memory file's SourceFile under `sourceFiles` so tests can
- * pluck specific nodes (e.g. "the first type alias in `props.ts`") without
- * re-parsing.
+ * Returns each in-memory file's SourceFile under `sourceFiles`.
  */
 export function createInMemoryProgram(files: Record<string, string>): {
 	program: ts.Program
@@ -106,11 +102,7 @@ export function createInMemoryProgram(files: Record<string, string>): {
 	return { program, checker: program.getTypeChecker(), sourceFiles }
 }
 
-/**
- * Locate the first `type X = …` declaration in a source file and return its
- * RHS type node. Useful for tests that want to hand a focused annotation to
- * a walker without parsing the surrounding context.
- */
+/** Locates the type alias named `name` in a source file and returns its RHS type node. */
 export function firstTypeAlias(sf: ts.SourceFile, name: string): ts.TypeNode {
 	for (const stmt of sf.statements) {
 		if (ts.isTypeAliasDeclaration(stmt) && stmt.name.text === name) return stmt.type

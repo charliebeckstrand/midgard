@@ -60,7 +60,7 @@ describe('Calendar', () => {
 		const politeRegion = () =>
 			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
 
-		// Lazily created on first announce — absent means nothing was announced on mount.
+		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(politeRegion()?.textContent ?? '').toBe('')
 
 		await user.click(screen.getByLabelText('Next month'))
@@ -137,7 +137,7 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={defaultValue} active={{ zone: 'header', index: 1 }} />)
 
-		// Header should still render the label button — just confirm Calendar mounts.
+		// Header still renders the label button, confirming Calendar mounts.
 		expect(screen.getByRole('button', { name: /June 2025/ })).toBeInTheDocument()
 	})
 
@@ -399,7 +399,7 @@ describe('Calendar keyboard navigation', () => {
 	// Disabled (out-of-range) days render as `<button disabled>` and can't take
 	// focus. Roving skips them; arrow navigation must not trap at range edges (WCAG 2.1.1).
 	function renderMinTenth() {
-		// June 2025 begins on a Sunday; `min` on the 10th disables June 1–9, so the
+		// June 2025 begins on a Sunday; `min` on the 10th disables June 1-9, so the
 		// grid's first focusable day is the 10th.
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={new Date(2025, 5, 10)} />)
 	}

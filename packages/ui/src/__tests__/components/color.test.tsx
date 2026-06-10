@@ -71,8 +71,8 @@ describe('color conversions', () => {
 	})
 
 	it('reaches every byte value on a channel — the RGB inputs never snap', () => {
-		// Regression guard: full-precision HSV must round-trip every RGB byte value
-		// exactly (0–255 inclusive).
+		// Full-precision HSV round-trips every RGB byte value exactly
+		// (0-255 inclusive).
 		for (let n = 0; n <= 255; n++) {
 			const base = { r: n, g: 100, b: 200, a: 1 }
 

@@ -301,7 +301,7 @@ describe('useScrollAreaScrollbar', () => {
 				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
 			})
 
-			// Restart the drag from a new origin — the prior cleanup runs first.
+			// Restart the drag from a new origin; the prior cleanup runs first.
 			act(() => {
 				handler(makePointerEvent<HTMLDivElement>({ clientY: 50, clientX: 0 }))
 			})

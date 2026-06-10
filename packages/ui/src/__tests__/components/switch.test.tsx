@@ -10,7 +10,7 @@ describe('Switch', () => {
 
 		const input = container.querySelector('input') as HTMLInputElement
 
-		// Internal wiring wins over a consumer spread (the established pattern).
+		// Internal wiring wins over a consumer spread.
 		expect(input).toHaveAttribute('role', 'switch')
 
 		expect(input).toHaveAttribute('aria-checked', 'true')

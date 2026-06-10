@@ -24,8 +24,8 @@ describe('TabList', () => {
 
 		const tab = screen.getByRole('tab', { name: 'Overview tab' })
 
-		// The type advertises the whole button surface; dropping it lost
-		// aria-label on icon-only tabs, test ids, titles, focus handlers.
+		// The type advertises the whole button surface: aria-label on icon-only
+		// tabs, test ids, titles, focus handlers all pass through.
 		expect(tab).toHaveAttribute('data-testid', 'tab-a')
 
 		expect(tab).toHaveAttribute('title', 'Overview')

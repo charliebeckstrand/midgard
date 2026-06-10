@@ -50,7 +50,7 @@ describe('reindent', () => {
 	})
 
 	it('keeps line 1 as authored and prefixes targetIndent onto subsequent lines (no dedent path)', () => {
-		// Closing `}` at col 0 — minIndent = 0; targetIndent is prefixed onto
+		// Closing `}` at col 0 makes minIndent 0; targetIndent is prefixed onto
 		// each subsequent line's original whitespace.
 		const source = ['function Demo() {', '\treturn null', '}'].join('\n')
 
@@ -64,7 +64,7 @@ describe('reindent', () => {
 	})
 
 	it('dedents subsequent lines by the shared minimum indent before applying targetIndent', () => {
-		// All non-line-0 lines start with at least one tab — minIndent = 1;
+		// All non-line-0 lines start with at least one tab, so minIndent = 1;
 		// the leading tab is stripped before targetIndent is applied.
 		const source = ['{', '\tif (x) {', '\t\treturn 1', '\t}'].join('\n')
 

@@ -63,7 +63,7 @@ describe('cursorForCount', () => {
 	})
 
 	it('returns the index after the Nth meaningful character', () => {
-		// "1,234.56" — 1 -> pos 1; 2 -> pos 3; 3 -> pos 4; 4 -> pos 5; '.' -> pos 6; 5 -> pos 7; 6 -> pos 8
+		// "1,234.56": 1 -> pos 1; 2 -> pos 3; 3 -> pos 4; 4 -> pos 5; '.' -> pos 6; 5 -> pos 7; 6 -> pos 8
 		expect(cursorForCount('1,234.56', 4, decimalMeaningful)).toBe(5)
 	})
 

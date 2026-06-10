@@ -6,7 +6,7 @@ import { axeGeometry } from './helpers/axe-geometry'
 /**
  * Geometry a11y gate (real browser). Runs the canonical corpus through real
  * Chromium with the production Tailwind CSS loaded, asserting `color-contrast`
- * and `target-size` — the two rules disabled in jsdom (no layout or colour).
+ * and `target-size`, the two rules disabled in jsdom (no layout or colour).
  * Reusing the exact corpus keeps both gates in lockstep: a component is verified
  * for structure (jsdom) and geometry (here).
  */
@@ -29,7 +29,7 @@ describe('a11y geometry (axe) — baseline', () => {
 })
 
 /**
- * Overlays portal to `document.body`; the container would be empty — asserts
+ * Overlays portal to `document.body`, leaving the container empty; asserts
  * the whole document, matching the jsdom overlay gate.
  */
 describe('a11y geometry (axe) — overlays', () => {

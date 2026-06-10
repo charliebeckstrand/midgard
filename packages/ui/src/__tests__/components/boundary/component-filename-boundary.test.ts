@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest'
 //                                `variants.ts`
 //
 // In addition, every component / hook file must export a symbol whose
-// PascalCase (or `useCamelCase`) form matches its kebab-case filename —
+// PascalCase (or `useCamelCase`) form matches its kebab-case filename:
 // `tag-input-badge.tsx` exports `TagInputBadge`, `use-tag-input-keyboard.ts`
 // exports `useTagInputKeyboard`. Catches the case where a file is renamed but
 // its exported component or hook keeps the old, now-divergent name.
@@ -37,7 +37,7 @@ const BARE_ALLOWED = new Set([
 const UTILITY_SUFFIXES = ['-utilities', '-constants'] as const
 
 // Grandfathered files where renaming would break a stable public API
-// (`Field`, `Label`, etc.). Never extend this list for new files — fix the
+// (`Field`, `Label`, etc.). Never extend this list for new files; fix the
 // file or fix the export.
 const ALLOWLIST = new Set([
 	'dl/description-details.tsx',

@@ -124,7 +124,7 @@ describe('EditableGridCurrencyEditor', () => {
 
 		expect(input.value).not.toContain('2.35')
 
-		// And it must not be selected — the next keystroke would replace it.
+		// And it must not be selected; the next keystroke would replace it.
 		expect(input.selectionStart).toBe(input.selectionEnd)
 	})
 

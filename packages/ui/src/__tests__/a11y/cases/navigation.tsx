@@ -29,7 +29,7 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components
 import { Toolbar, ToolbarSeparator } from '../../../components/toolbar'
 import type { Case } from './types'
 
-/** Navigation surfaces — links, tablists, steppers, and toolbars. */
+/** Navigation surfaces: links, tablists, steppers, and toolbars. */
 export const navigationCases: readonly Case[] = [
 	[
 		'link',
@@ -38,7 +38,7 @@ export const navigationCases: readonly Case[] = [
 		</Link>,
 	],
 	[
-		// Previous/Next sit outside the <ol> — must not be list items.
+		// Previous/Next sit outside the <ol>; they are not list items.
 		'pagination',
 		<Pagination key="p">
 			<PaginationPrevious />

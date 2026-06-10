@@ -19,7 +19,7 @@ describe('ScrollArea', () => {
 		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
 
 		// The consumer handler must not clobber the internal scroll handler
-		// (which drives thumb tracking and auto-fade) — both fire.
+		// (which drives thumb tracking and auto-fade); both fire.
 		fireEvent.scroll(viewport)
 
 		expect(onScroll).toHaveBeenCalledTimes(1)
