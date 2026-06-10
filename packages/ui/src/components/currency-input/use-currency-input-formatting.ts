@@ -44,7 +44,11 @@ export function useCurrencyInputFormatting({
 	)
 
 	const { symbol, symbolIsPrefix, group, decimal, maxFractionDigits } = useMemo(() => {
-		const parts = formatter.formatToParts(0)
+		// A large fractional sample forces group and decimal parts into the
+		// output: formatToParts(0) emits neither, which would wire comma-decimal
+		// locales (de-DE: group '.', decimal ',') to the en-US fallbacks and
+		// make parseEditing strip the user's decimal comma as a group separator.
+		const parts = formatter.formatToParts(1234567.89)
 
 		const currencyPart = parts.find((p) => p.type === 'currency')
 
@@ -61,7 +65,9 @@ export function useCurrencyInputFormatting({
 		return {
 			symbol: currencyPart?.value ?? '',
 			symbolIsPrefix: currencyIdx < integerIdx,
-			group: groupPart?.value ?? ',',
+			// If a locale emits no group part, never fall back to the decimal
+			// char: parseEditing strips group chars before decimal substitution.
+			group: groupPart?.value ?? (decimalPart?.value === ',' ? '.' : ','),
 			decimal: decimalPart?.value ?? '.',
 			maxFractionDigits: options.maximumFractionDigits ?? 2,
 		}

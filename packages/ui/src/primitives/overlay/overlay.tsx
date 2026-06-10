@@ -2,7 +2,7 @@
 
 import { FloatingFocusManager, useFloating } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type HTMLAttributes, type ReactNode, type RefObject, useEffect } from 'react'
+import { type HTMLAttributes, type ReactNode, type RefObject, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
@@ -30,9 +30,11 @@ type OverlayProps = {
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Modal overlays (the default) trap focus, move it into the panel on open,
-	 * and lock body scroll. Pass `false` for transient, pointer-driven surfaces
-	 * (e.g. a hover-revealed sheet) that must not steal focus or block the page;
-	 * Escape dismissal still works.
+	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
+	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
+	 * sheet) that must not steal focus or block the page: no backdrop renders,
+	 * the page behind stays interactive (the panel re-enables its own pointer
+	 * events), and Escape or a pointer press outside the panel dismisses.
 	 */
 	modal?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
@@ -58,10 +60,16 @@ export function Overlay({
 	// portal mount only; modal positioning and scroll lock key off `scoped`.
 	const portalContainer = usePortalContainer(container)
 
+	const containerRef = useRef<HTMLDivElement>(null)
+
 	useDismissable({
 		open,
 		onDismiss: () => onOpenChange(false),
-		outsidePointer: false,
+		// Modal overlays own outside-press dismissal via the blocking backdrop's
+		// click handler; non-modal overlays render no backdrop, so outside
+		// pointer presses dismiss directly.
+		outsidePointer: !modal && dismissOnBackdrop,
+		containerRef,
 	})
 
 	useScrollLock(open && !scoped && modal)
@@ -74,18 +82,26 @@ export function Overlay({
 
 	const panel = (
 		<div
-			ref={refs.setFloating}
+			ref={(node) => {
+				refs.setFloating(node)
+
+				containerRef.current = node
+			}}
 			data-slot="overlay"
-			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed')}
+			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
 		>
-			<motion.div
-				{...k.motion}
-				data-slot="overlay-backdrop"
-				className={className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)}
-				onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
-				aria-hidden="true"
-			/>
+			{modal && (
+				<motion.div
+					{...k.motion}
+					data-slot="overlay-backdrop"
+					className={
+						className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
+					}
+					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
+					aria-hidden="true"
+				/>
+			)}
 			{children}
 		</div>
 	)

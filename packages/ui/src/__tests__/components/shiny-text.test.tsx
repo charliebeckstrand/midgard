@@ -1,10 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText } from '../../components/shiny-text'
-import { bySlot, renderUI, stubMatchMedia } from '../helpers'
+import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
+
+const { pauseSpy, playSpy } = vi.hoisted(() => ({ pauseSpy: vi.fn(), playSpy: vi.fn() }))
+
+// Stubs the imperative sweep so hover pause/resume is observable in jsdom.
+vi.mock('motion', async (importOriginal) => {
+	const mod = await importOriginal<typeof import('motion')>()
+
+	return {
+		...mod,
+		animate: vi.fn(() => ({ pause: pauseSpy, play: playSpy, stop: vi.fn() })),
+	}
+})
 
 describe('ShinyText', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
+
+		pauseSpy.mockClear()
+
+		playSpy.mockClear()
 	})
 
 	it('renders its children inside the masked span', () => {
@@ -41,5 +57,30 @@ describe('ShinyText', () => {
 		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
 
 		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Shine')
+	})
+
+	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {
+		const onMouseEnter = vi.fn()
+		const onMouseLeave = vi.fn()
+
+		const { container } = renderUI(
+			<ShinyText pauseOnHover onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+				Shine
+			</ShinyText>,
+		)
+
+		const el = bySlot(container, 'shiny-text') as HTMLElement
+
+		const user = userEvent.setup()
+
+		await user.hover(el)
+
+		expect(onMouseEnter).toHaveBeenCalled()
+		expect(pauseSpy).toHaveBeenCalled()
+
+		await user.unhover(el)
+
+		expect(onMouseLeave).toHaveBeenCalled()
+		expect(playSpy).toHaveBeenCalled()
 	})
 })

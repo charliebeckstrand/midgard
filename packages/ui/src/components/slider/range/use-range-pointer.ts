@@ -133,10 +133,19 @@ export function useRangePointer(opts: {
 		[update, valueFromPointer, current, min, max, step, overlap],
 	)
 
-	const onPointerUp = useCallback(() => {
+	const endDrag = useCallback(() => {
 		draggingRef.current = null
 		pendingStackedRef.current = null
 	}, [])
 
-	return { onPointerDown, onPointerMove, onPointerUp }
+	// `lostpointercapture` fires on every capture end: normal release,
+	// `pointercancel` (browser-claimed gesture), or node removal. It is the
+	// authoritative reset, mirroring `use-color-drag.ts`.
+	return {
+		onPointerDown,
+		onPointerMove,
+		onPointerUp: endDrag,
+		onPointerCancel: endDrag,
+		onLostPointerCapture: endDrag,
+	}
 }

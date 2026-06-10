@@ -177,6 +177,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		const cleanup = () => {
 			window.removeEventListener('pointermove', onMove)
 			window.removeEventListener('pointerup', onUp)
+			window.removeEventListener('pointercancel', onUp)
 
 			dragCleanupRef.current = null
 		}
@@ -185,6 +186,9 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		window.addEventListener('pointermove', onMove)
 		window.addEventListener('pointerup', onUp)
+		// A cancelled pointer (OS gesture, pen leaving range) never fires
+		// pointerup; without this the drag keeps scrolling on buttonless moves.
+		window.addEventListener('pointercancel', onUp)
 
 		dragCleanupRef.current = cleanup
 	}

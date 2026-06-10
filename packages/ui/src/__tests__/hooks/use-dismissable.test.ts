@@ -69,6 +69,55 @@ describe('useDismissable', () => {
 		expect(onDismiss).not.toHaveBeenCalled()
 	})
 
+	it('routes Escape to the topmost open dismissable only', () => {
+		const bottom = vi.fn()
+
+		const top = vi.fn()
+
+		renderHook(() => useDismissable({ open: true, onDismiss: bottom }))
+
+		const { unmount } = renderHook(() => useDismissable({ open: true, onDismiss: top }))
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+		expect(top).toHaveBeenCalledOnce()
+
+		expect(bottom).not.toHaveBeenCalled()
+
+		// Closing the top layer promotes the one beneath.
+		unmount()
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+		expect(bottom).toHaveBeenCalledOnce()
+	})
+
+	it('does not occupy a layer slot when escape is disabled', () => {
+		const bottom = vi.fn()
+
+		renderHook(() => useDismissable({ open: true, onDismiss: bottom }))
+
+		renderHook(() => useDismissable({ open: true, onDismiss: vi.fn(), escape: false }))
+
+		document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+		expect(bottom).toHaveBeenCalledOnce()
+	})
+
+	it('ignores Escape presses a consumer already handled via preventDefault', () => {
+		const onDismiss = vi.fn()
+
+		renderHook(() => useDismissable({ open: true, onDismiss }))
+
+		const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+
+		event.preventDefault()
+
+		document.dispatchEvent(event)
+
+		expect(onDismiss).not.toHaveBeenCalled()
+	})
+
 	it('reads the latest onDismiss without resubscribing', () => {
 		const first = vi.fn()
 

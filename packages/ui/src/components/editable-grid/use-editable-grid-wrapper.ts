@@ -269,6 +269,13 @@ export function useEditableGridWrapper<T>({
 				.split('\n')
 				.map((r) => r.split('\t'))
 
+			// Spreadsheet clipboards terminate text/plain with a newline; drop the
+			// resulting empty trailing row so a copied cell pastes as a single cell
+			// instead of a matrix write that blanks the row below the target.
+			const trailing = matrix[matrix.length - 1]
+
+			if (matrix.length > 1 && trailing?.length === 1 && trailing[0] === '') matrix.pop()
+
 			// Single cell → fill all selected cells if there's a multi-selection,
 			// else write to active (which may still bulk-fill by row selection).
 			if (matrix.length === 1 && (matrix[0]?.length ?? 0) === 1) {
