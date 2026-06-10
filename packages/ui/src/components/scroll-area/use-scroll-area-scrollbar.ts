@@ -63,11 +63,31 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		const observer = new ResizeObserver(updateThumbs)
 
-		observer.observe(el)
+		const observeChildren = () => {
+			observer.disconnect()
 
-		for (const child of Array.from(el.children)) observer.observe(child)
+			observer.observe(el)
 
-		return () => observer.disconnect()
+			for (const child of Array.from(el.children)) observer.observe(child)
+		}
+
+		observeChildren()
+
+		// Children added or removed after mount change the scroll extent without
+		// resizing any observed element — re-seat the observer and re-measure.
+		const mutations = new MutationObserver(() => {
+			observeChildren()
+
+			updateThumbs()
+		})
+
+		mutations.observe(el, { childList: true })
+
+		return () => {
+			mutations.disconnect()
+
+			observer.disconnect()
+		}
 	}, [updateThumbs])
 
 	useEffect(
@@ -84,6 +104,10 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		const handleWheel = (event: WheelEvent) => {
 			if (!event.shiftKey) return
+
+			// A horizontally scrollable viewport owns shift+wheel natively —
+			// forwarding would hijack the gesture from its own content.
+			if (el.scrollWidth > el.clientWidth) return
 
 			event.preventDefault()
 
