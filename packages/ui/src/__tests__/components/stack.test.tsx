@@ -3,6 +3,16 @@ import { Stack } from '../../components/stack'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Stack', () => {
+	it('leaves gap unset outside any Density provider, matching Flex', () => {
+		const { container } = renderUI(<Stack>content</Stack>)
+
+		const el = bySlot(container, 'stack') as HTMLElement
+
+		// The old hardcoded 'md' fallback diverged from Flex and the documented
+		// contract.
+		expect(el.className).not.toMatch(/gap-/)
+	})
+
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Stack id="test">content</Stack>)
 

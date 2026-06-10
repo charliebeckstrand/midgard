@@ -9,14 +9,14 @@ export type StackProps = FlexProps
 /**
  * Vertical flex container. Shorthand for Flex with column direction.
  *
- * `gap` resolves through `explicit ?? Density.space ?? 'lg'` — so a Stack
- * inside `<DensityProvider density="compact">` (or any Density provider) inherits the
- * matching spacing step without further wiring.
+ * `gap` resolves through `explicit ?? Density.space` — a Stack inside any
+ * Density provider inherits the matching spacing step. Outside any provider,
+ * `gap` stays unset, matching Flex.
  */
 export function Stack({ direction = 'col', align, gap, ...props }: StackProps) {
 	const density = useDensityNullable()
 
-	const resolvedGap = gap ?? density?.space ?? 'md'
+	const resolvedGap = gap ?? density?.space
 
 	// Match Flex: a column stack stretches children across the inline axis so
 	// stacked blocks span full width. Pass `align` to opt out (e.g. 'start').
