@@ -17,6 +17,12 @@ describe('useA11yPanel', () => {
 		expect(result.current.ariaProps.role).toBe('alertdialog')
 	})
 
+	it('omits aria-modal for a non-modal panel', () => {
+		const { result } = renderHook(() => useA11yPanel('dialog', false))
+
+		expect(result.current.ariaProps['aria-modal']).toBeUndefined()
+	})
+
 	it('omits labelling attributes until slots register', () => {
 		const { result } = renderHook(() => useA11yPanel())
 

@@ -19,6 +19,18 @@ describe('Sheet', () => {
 		expect(screen.getByText('Sheet content')).toBeInTheDocument()
 	})
 
+	it('omits aria-modal on a non-modal sheet', () => {
+		renderUI(
+			<Sheet open modal={false} onOpenChange={() => {}}>
+				Peek content
+			</Sheet>,
+		)
+
+		// A hover-peek neither traps focus nor locks scroll; announcing it as
+		// modal would tell AT the rest of the page is inert when it isn't.
+		expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-modal')
+	})
+
 	it('does not render when closed', () => {
 		renderUI(
 			<Sheet open={false} onOpenChange={() => {}}>

@@ -58,7 +58,7 @@ export function Sheet({
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
-	const { ariaProps, a11y } = useA11yPanel()
+	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
 	return (
 		<Overlay
