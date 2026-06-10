@@ -4,6 +4,32 @@ import { Tree, TreeItem } from '../../components/tree'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Tree', () => {
+	it('announces sibling position via aria-posinset/aria-setsize', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="a.ts" />
+					<TreeItem label="b.ts" />
+					<TreeItem label="c.ts" />
+				</TreeItem>
+				<TreeItem label="README" />
+			</Tree>,
+		)
+
+		const items = container.querySelectorAll('[role="treeitem"]')
+
+		// Roots: 1 of 2 and 2 of 2; nested: 2 of 3 for b.ts.
+		expect(items[0]).toHaveAttribute('aria-posinset', '1')
+
+		expect(items[0]).toHaveAttribute('aria-setsize', '2')
+
+		const b = Array.from(items).find((el) => el.textContent?.includes('b.ts'))
+
+		expect(b).toHaveAttribute('aria-posinset', '2')
+
+		expect(b).toHaveAttribute('aria-setsize', '3')
+	})
+
 	it('renders with data-slot="tree" and role="tree"', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
