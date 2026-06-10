@@ -249,6 +249,29 @@ describe('CommandPaletteItem', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('composes a consumer onClick with the selection handler', async () => {
+		const onClick = vi.fn()
+
+		const onAction = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem onAction={onAction} onClick={onClick}>
+					Run
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Run'))
+
+		// A consumer handler must not clobber selection/close — both fire.
+		expect(onClick).toHaveBeenCalled()
+
+		expect(onAction).toHaveBeenCalled()
+	})
+
 	it('does not close the palette when closeOnAction is false', async () => {
 		const onOpenChange = vi.fn()
 

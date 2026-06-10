@@ -119,6 +119,40 @@ describe('CopyButton', () => {
 		}
 	})
 
+	it('stays focusable and focused through the copied window (WCAG 2.4.3)', async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+
+		const restore = stubClipboard(writeText)
+
+		try {
+			const { container } = renderUI(<CopyButton value="hello" />)
+
+			const button = container.querySelector('button') as HTMLButtonElement
+
+			button.focus()
+
+			await act(async () => {
+				fireEvent.click(button)
+			})
+
+			await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Copied'))
+
+			// Disabling here would drop keyboard focus to <body> mid-interaction.
+			expect(button).not.toBeDisabled()
+
+			expect(document.activeElement).toBe(button)
+
+			// Re-activating during the window is a no-op, not a second write.
+			await act(async () => {
+				fireEvent.click(button)
+			})
+
+			expect(writeText).toHaveBeenCalledTimes(1)
+		} finally {
+			restore()
+		}
+	})
+
 	it('does not fire onCopiedChange when clipboard.writeText rejects', async () => {
 		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
 		const onCopiedChange = vi.fn()

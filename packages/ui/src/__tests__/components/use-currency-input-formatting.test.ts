@@ -37,4 +37,21 @@ describe('useCurrencyInputFormatting', () => {
 
 		expect(result.current.displayFormatter.format(1234567.89)).toBe('1,234,567.89')
 	})
+
+	it('renders ASCII digits for native-digit locales so the parser can read them back', () => {
+		// ar-EG would render ١٢٣٤ by default; the editing parser only recognizes
+		// 0-9, so a native-digit display wipes the value on the first edit.
+		const { result } = renderHook(() =>
+			useCurrencyInputFormatting({ locale: 'ar-EG', currency: 'EGP' }),
+		)
+
+		const display = result.current.displayFormatter.format(1234.56)
+
+		expect(display).toMatch(/1/)
+
+		expect(display).not.toMatch(/[٠-٩۰-۹]/)
+
+		// The extracted separators match the display, whatever the locale uses.
+		expect(display).toContain(result.current.decimal)
+	})
 })

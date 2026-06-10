@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef, UIEvent } from 'react'
 import { cn } from '../../core'
 import {
 	k,
@@ -30,6 +30,7 @@ export function ScrollArea({
 	bare,
 	className,
 	children,
+	onScroll,
 	...props
 }: ScrollAreaProps) {
 	const {
@@ -63,7 +64,13 @@ export function ScrollArea({
 				ref={viewportRef}
 				tabIndex={hasVertical || hasHorizontal ? 0 : undefined}
 				className={k.viewport({ orientation, bare })}
-				onScroll={handleScroll}
+				// Composed, not clobbered: a consumer onScroll must not disable
+				// thumb tracking and the auto-fade.
+				onScroll={(e: UIEvent<HTMLDivElement>) => {
+					handleScroll()
+
+					onScroll?.(e)
+				}}
 				{...props}
 			>
 				{children}

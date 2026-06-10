@@ -13,6 +13,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		size = 'md',
 		truncate = true,
 		className,
+		'aria-label': ariaLabel,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
 	} = props
@@ -32,7 +33,9 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
+				aria-label={ariaLabel}
 				disabled={state.disabled}
+				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
 				className={className}
@@ -46,6 +49,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				getFloatingProps={state.getFloatingProps}
 				context={state.context}
 				size={size}
+				onKeyDown={state.onTriggerKeyDown}
 				onExitComplete={state.onExitComplete}
 			>
 				<CalendarRange

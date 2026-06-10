@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
@@ -56,8 +57,11 @@ export function CreditCardInputCvv({
 	name,
 	onBlur,
 	ref,
+	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputCvvProps) {
+	const control = useControl()
+
 	const maxLength = resolveCvvLength(brand)
 
 	const resolvedBrand = resolveBrand(brand)
@@ -105,6 +109,9 @@ export function CreditCardInputCvv({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"
+			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2) —
+			// default an aria-label, yielding to a registered Field <Label>.
+			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}

@@ -14,24 +14,41 @@ type NumericEditorBindings = {
 
 /**
  * Shared wiring for numeric editor slots (CurrencyInput- / NumberInput-backed).
- * Seeds the local value from `column.field`, mirrors edits into the grid's
- * draft as `String(value)`, focuses-and-selects on mount, and forwards the
- * standard editor keyboard contract.
+ * Seeds the local value from the grid `draft` (type-to-edit) or `column.field`,
+ * mirrors edits into the draft as `String(value)`, focuses on mount (selecting
+ * only for Enter/F2/double-click opens), and forwards the standard editor
+ * keyboard contract.
  */
 export function useEditableGridNumericEditor<T>({
 	row,
 	column,
+	draft,
 	setDraft,
 	commit,
 	cancel,
+	selectAllOnFocus,
 }: EditableGridEditorProps<T>): NumericEditorBindings {
-	const initial = column.field ? (row[column.field] as unknown) : undefined
+	// Type-to-edit seeds the grid draft with the typed key before the editor
+	// mounts — honor it (the text editor reads `draft` directly), or the first
+	// keystroke is silently replaced by the old value. Non-numeric drafts (the
+	// Enter / double-click paths seed the *formatted* display, e.g. "$1,234.00")
+	// fall back to the row field.
+	const fromDraft = draft === '' ? Number.NaN : Number(draft)
 
-	const [value, setValue] = useState<number | undefined>(
-		typeof initial === 'number' ? initial : undefined,
-	)
+	const fieldValue = column.field ? (row[column.field] as unknown) : undefined
+
+	const initial = Number.isFinite(fromDraft)
+		? fromDraft
+		: typeof fieldValue === 'number'
+			? fieldValue
+			: undefined
+
+	const [value, setValue] = useState<number | undefined>(initial)
 
 	const ref = useRef<HTMLInputElement>(null)
+
+	// Captured at mount: mid-edit draft changes must not re-trigger selection.
+	const selectOnMountRef = useRef(selectAllOnFocus)
 
 	useLayoutEffect(() => {
 		const input = ref.current
@@ -40,7 +57,10 @@ export function useEditableGridNumericEditor<T>({
 
 		input.focus()
 
-		input.select()
+		// Select-all only when the draft holds the prior value to be replaced —
+		// selecting after type-to-edit would make the next keystroke wipe the
+		// first one.
+		if (selectOnMountRef.current) input.select()
 	}, [])
 
 	return {

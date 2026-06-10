@@ -81,6 +81,7 @@ export function QueryBuilderRuleValue({
 			<DatePicker
 				value={dateValue}
 				placeholder="Value"
+				aria-label={label}
 				onValueChange={(d) => onValueChange(d ? toIsoDate(d) : '')}
 			/>
 		)

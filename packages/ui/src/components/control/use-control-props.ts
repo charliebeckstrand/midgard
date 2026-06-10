@@ -63,7 +63,10 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 		disabled: input.disabled ?? control?.disabled,
 		required: input.required ?? control?.required,
 		readOnly: input.readOnly ?? control?.readOnly,
-		invalid: control?.invalid || input.binding?.invalid,
+		// A mounted error Message marks the control invalid even without a form
+		// binding — the message was already in aria-describedby, but aria-invalid
+		// never flipped for non-form-bound fields.
+		invalid: control?.invalid || input.binding?.invalid || control?.messageRegistered || undefined,
 		'aria-describedby': describedBy,
 	}
 }

@@ -87,9 +87,10 @@ export function DataTableColumnManager({
 			for (const id of order) {
 				const col = byId.get(id)
 
-				if (!col) continue
-
-				if (col.pinned) {
+				// Ids outside the manager's set (select/actions columns) keep their
+				// position — dropping them would shove them to the table end and
+				// persist that into saved presets.
+				if (!col || col.pinned) {
 					next.push(id)
 				} else {
 					next.push(reorderedIds[idx] as string | number)

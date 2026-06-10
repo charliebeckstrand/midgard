@@ -20,6 +20,8 @@ export type A11yControl = {
 	descriptionId: string
 	/** Id the error Message slot renders with. */
 	messageId: string
+	/** `true` while an error Message is mounted — fields OR this into `aria-invalid` so a rendered error always marks its control invalid. */
+	messageRegistered: boolean
 	/**
 	 * Slot registration — Label / Description / error Message call these on mount,
 	 * passing the id they actually render so `aria-*` never references a dangling id.
@@ -47,6 +49,7 @@ export function useA11yControl(id: string): A11yControl {
 			labelId: scope.ids.label,
 			descriptionId: scope.ids.description,
 			messageId: scope.ids.error,
+			messageRegistered: scope.registered.error,
 			registerLabel: scope.register.label,
 			registerDescription: scope.register.description,
 			registerMessage: scope.register.error,
@@ -57,6 +60,7 @@ export function useA11yControl(id: string): A11yControl {
 			scope.ids.label,
 			scope.ids.description,
 			scope.ids.error,
+			scope.registered.error,
 			scope.register.label,
 			scope.register.description,
 			scope.register.error,

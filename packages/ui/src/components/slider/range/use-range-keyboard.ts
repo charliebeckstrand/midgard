@@ -26,6 +26,9 @@ export function useRangeKeyboard(opts: {
 				ArrowUp: (i) => current[i] + step,
 				ArrowLeft: (i) => current[i] - step,
 				ArrowDown: (i) => current[i] - step,
+				// APG slider pattern: Page keys take a large step.
+				PageUp: (i) => current[i] + step * 10,
+				PageDown: (i) => current[i] - step * 10,
 				Home: () => min,
 				End: () => max,
 			}
@@ -41,7 +44,7 @@ export function useRangeKeyboard(opts: {
 			// In swap mode, a cross-thumb key flips the value's index; focus
 			// follows to the button that now holds the moving value.
 			if (overlap === 'swap') {
-				const snapped = snapToStep(clamp(raw, min, max), min, step)
+				const snapped = clamp(snapToStep(raw, min, step), min, max)
 
 				const willSwap =
 					(index === 0 && snapped > current[1]) || (index === 1 && snapped < current[0])

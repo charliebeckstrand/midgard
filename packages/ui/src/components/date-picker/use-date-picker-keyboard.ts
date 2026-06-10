@@ -14,6 +14,7 @@ type DatePickerKeyDownParams = {
 	openCalendar: () => void
 	closeCalendar: () => void
 	moveGridDate: (delta: number) => Date
+	moveGridMonths: (delta: number) => Date
 	getInitialActiveDate: () => Date
 	handleSelect: (date: Date) => void
 	calendarRef: RefObject<CalendarHandle | null>
@@ -29,6 +30,7 @@ export function useDatePickerKeyboard({
 	openCalendar,
 	closeCalendar,
 	moveGridDate,
+	moveGridMonths,
 	getInitialActiveDate,
 	handleSelect,
 	calendarRef,
@@ -72,6 +74,21 @@ export function useDatePickerKeyboard({
 				if (footerButtons.length > 0) {
 					setActive({ zone: 'footer', index: 0 })
 				}
+
+				return
+			}
+
+			// APG date-grid: PageUp/PageDown move a month, Shift+Page a year. The
+			// highlight materializes on the moved date when none exists yet, and
+			// the calendar view re-anchors to follow it.
+			if (e.key === 'PageUp' || e.key === 'PageDown') {
+				e.preventDefault()
+
+				const direction = e.key === 'PageUp' ? -1 : 1
+
+				const next = moveGridMonths(e.shiftKey ? direction * 12 : direction)
+
+				setActive({ zone: 'grid', date: next })
 
 				return
 			}
@@ -258,6 +275,7 @@ export function useDatePickerKeyboard({
 			openCalendar,
 			closeCalendar,
 			moveGridDate,
+			moveGridMonths,
 			getInitialActiveDate,
 			handleSelect,
 			calendarRef,

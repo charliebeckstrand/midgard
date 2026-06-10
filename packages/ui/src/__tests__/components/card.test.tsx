@@ -164,10 +164,12 @@ describe('Card size system', () => {
 	})
 
 	// Card always carries a static `p-{density}` so callers can compose with
-	// Box's normal padding contract; the `:has(>[data-slot^=card-])` selector
-	// zeroes that padding when slot children (CardHeader/CardBody/etc.) own
-	// the layout, preventing the outer + inner double-padding regression.
-	it('suppresses its outer padding when card slot children are present', () => {
+	// Box's normal padding contract; the `:has(>[data-slot=card-…])` selectors
+	// zero that padding when structural slot children (CardHeader/CardBody/
+	// CardFooter) own the layout, preventing the outer + inner double-padding
+	// regression. Content slots (CardTitle/CardDescription) supply no padding
+	// of their own and must not collapse the frame.
+	it('suppresses its outer padding only for structural slot children', () => {
 		const { container } = renderUI(
 			<Card size="md">
 				<CardBody>body</CardBody>
@@ -176,6 +178,11 @@ describe('Card size system', () => {
 
 		const cls = bySlot(container, 'card')?.className ?? ''
 
-		expect(cls).toContain('[&:has(>[data-slot^=card-])]:p-0')
+		expect(cls).toContain('[&:has(>[data-slot=card-header])]:p-0')
+		expect(cls).toContain('[&:has(>[data-slot=card-body])]:p-0')
+		expect(cls).toContain('[&:has(>[data-slot=card-footer])]:p-0')
+
+		// The old prefix selector also matched content slots like card-title.
+		expect(cls).not.toContain('[&:has(>[data-slot^=card-])]:p-0')
 	})
 })

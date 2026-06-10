@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
+import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import type { AccessibleName } from '../../types'
 import { Flex } from '../flex'
@@ -83,6 +84,10 @@ export function Filters<T extends FilterValue = FilterValue>({
 		() => Object.values(filterValue).filter(isActive).length,
 		[filterValue],
 	)
+
+	// Changing a filter re-renders results silently; narrate the active count
+	// so AT users hear the effect (WCAG 4.1.3). The hook skips the initial value.
+	useA11yAnnouncements(`${activeCount} ${activeCount === 1 ? 'filter' : 'filters'} active`)
 
 	const context: FiltersContextValue = useMemo(
 		() => ({ value: filterValue, setValue, clear: handleClear, activeCount }),

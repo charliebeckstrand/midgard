@@ -36,13 +36,6 @@ const severityIconMap: Record<AlertSeverity, ReactElement> = {
 	error: <XCircle />,
 }
 
-const severityRoleMap: Record<AlertSeverity, 'alert' | 'status'> = {
-	info: 'status',
-	success: 'status',
-	warning: 'alert',
-	error: 'alert',
-}
-
 const SLOT_DISPLAY_NAMES = new Set(['alert-title', 'alert-description', 'alert-body'])
 
 function isSlotChild(node: ReactNode): boolean {
@@ -128,6 +121,17 @@ export function Alert({
 
 	const [locallyDismissed, setLocallyDismissed] = useState(false)
 
+	// Any change to the controlled prop supersedes a local dismissal — without
+	// this, one dismissal would hide the alert permanently and `open` would be
+	// silently ignored thereafter.
+	const [prevOpenProp, setPrevOpenProp] = useState(openProp)
+
+	if (openProp !== prevOpenProp) {
+		setPrevOpenProp(openProp)
+
+		setLocallyDismissed(false)
+	}
+
 	const alertRef = useRef<HTMLDivElement>(null)
 
 	const wasOpen = useRef(open)
@@ -152,13 +156,11 @@ export function Alert({
 
 	if (!open || (controlledWithoutHandler && locallyDismissed)) return null
 
-	const resolvedVariant = variant ?? 'soft'
-
 	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
 
 	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
 
-	const role = severity ? severityRoleMap[severity] : undefined
+	const role = severity ? (politeSeverity ? 'status' : 'alert') : undefined
 
 	return (
 		<div
@@ -192,7 +194,7 @@ export function Alert({
 			{closable && (
 				<Button
 					variant="plain"
-					color={resolvedVariant === 'solid' ? 'inherit' : resolvedColor}
+					color={variant === 'solid' ? 'inherit' : resolvedColor}
 					aria-label="Dismiss"
 					className={cn(k.close, 'self-center')}
 					onClick={() => {

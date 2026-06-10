@@ -38,6 +38,14 @@ describe('Slider', () => {
 		expect(el).toHaveAttribute('id', 'test')
 	})
 
+	it('announces the value via getValueText', () => {
+		const { container } = renderUI(
+			<Slider defaultValue={3} max={5} getValueText={(v) => `${v} of 5 stars`} />,
+		)
+
+		expect(bySlot(container, 'slider')).toHaveAttribute('aria-valuetext', '3 of 5 stars')
+	})
+
 	it('fires onValueChange on input', () => {
 		const onValueChange = vi.fn()
 
@@ -102,6 +110,51 @@ describe('RangeSlider', () => {
 		expect(lo).toHaveAttribute('aria-label', 'Min price')
 
 		expect(hi).toHaveAttribute('aria-label', 'Max price')
+	})
+
+	it('never lands past max when snapping rounds upward (clamp after snap)', () => {
+		const onChange = vi.fn()
+
+		// min=2 max=10 step=3: End snaps toward 11; clamping must run after the
+		// snap so aria-valuenow never exceeds aria-valuemax.
+		const { container } = renderUI(
+			<RangeSlider min={2} max={10} step={3} defaultValue={[2, 8]} onValueChange={onChange} />,
+		)
+
+		const [, hi] = allBySlot(container, 'slider-range-thumb')
+
+		fireEvent.keyDown(hi as HTMLElement, { key: 'End' })
+
+		expect(onChange).toHaveBeenCalledWith([2, 10])
+	})
+
+	it('takes a large step on Page keys (APG slider pattern)', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider defaultValue={[10, 90]} step={1} onValueChange={onChange} />,
+		)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		fireEvent.keyDown(lo as HTMLElement, { key: 'PageUp' })
+
+		expect(onChange).toHaveBeenCalledWith([20, 90])
+	})
+
+	it('announces thumb values via getValueText', () => {
+		const { container } = renderUI(
+			<RangeSlider
+				defaultValue={[25, 75]}
+				getValueText={(v, i) => `${i === 0 ? 'from' : 'to'} $${v}`}
+			/>,
+		)
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-valuetext', 'from $25')
+
+		expect(hi).toHaveAttribute('aria-valuetext', 'to $75')
 	})
 
 	it('moves the low thumb right when ArrowRight is pressed', () => {

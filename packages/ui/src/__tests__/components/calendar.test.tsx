@@ -52,6 +52,22 @@ describe('Calendar', () => {
 		expect(typeof ref.current?.openPicker).toBe('function')
 	})
 
+	it('announces the new month through the polite live region on navigation', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		const politeRegion = () =>
+			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+		// Lazily created on first announce — absent means nothing was announced on mount.
+		expect(politeRegion()?.textContent ?? '').toBe('')
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('July 2025'))
+	})
+
 	it('changes the month when the previous / next nav buttons are clicked', async () => {
 		const user = userEvent.setup()
 

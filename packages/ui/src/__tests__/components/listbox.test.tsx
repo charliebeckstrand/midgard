@@ -162,6 +162,21 @@ describe('Listbox', () => {
 		expect(screen.getByRole('listbox', { name: 'Current page' })).toBeInTheDocument()
 	})
 
+	it('merges a consumer aria-describedby ahead of the field ids', () => {
+		renderUI(
+			<>
+				<p id="hint">Pick a fruit</p>
+				<Listbox aria-label="Fruit" aria-describedby="hint">
+					<div>Option</div>
+				</Listbox>
+			</>,
+		)
+
+		const button = screen.getByRole('combobox', { name: 'Fruit' })
+
+		expect(button.getAttribute('aria-describedby')).toContain('hint')
+	})
+
 	it('names the listbox from a wrapping Field Label (no explicit aria-label)', () => {
 		const { container } = renderUI(
 			<Field>

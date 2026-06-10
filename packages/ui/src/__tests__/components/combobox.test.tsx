@@ -307,6 +307,49 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(active).toHaveAttribute('data-active')
 	})
 
+	it('re-anchors the highlight when options swap under an unchanged query', async () => {
+		const user = userEvent.setup()
+
+		const { rerender } = renderUI(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				<ComboboxOption key="apple" value="apple">
+					<ComboboxLabel>Apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		// An async provider replaces the option set without the query changing
+		// (e.g. address suggestions resolving); the highlighted node unmounts.
+		rerender(
+			<Combobox<string> displayValue={(v) => v} placeholder="Search">
+				<ComboboxOption key="apricot" value="apricot">
+					<ComboboxLabel>Apricot</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		const activeId = input.getAttribute('aria-activedescendant')
+
+		expect(activeId).toBeTruthy()
+
+		// The reference must point at a mounted option, re-anchored to the top match.
+		const active = document.getElementById(activeId as string)
+
+		expect(active).toHaveAttribute('role', 'option')
+
+		expect(active).toHaveAttribute('data-active')
+	})
+
 	it('clears aria-activedescendant when the menu closes', async () => {
 		const user = userEvent.setup()
 

@@ -5,7 +5,8 @@ import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
-import { MAX_CACHE_SIZE } from './code-block-constants'
+
+const MAX_CACHE_SIZE = 200
 
 /** Token cache keyed by theme + language + code. Avoids re-tokenizing on remount. */
 const htmlCache = new Map<string, string>()

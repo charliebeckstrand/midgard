@@ -10,7 +10,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { addDays, clampDate, formatRange } from './date-picker-utilities'
+import { addDays, addMonths, clampDate, formatRange } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -69,6 +69,19 @@ export function useDatePickerRangeState({
 			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
 
 			const next = clampDate(addDays(base, delta), min, max)
+
+			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
+
+			return next
+		},
+		[active, getInitialActiveDate, min, max, rangeStart],
+	)
+
+	const moveGridMonths = useCallback(
+		(delta: number) => {
+			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+
+			const next = clampDate(addMonths(base, delta), min, max)
 
 			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
 
@@ -173,6 +186,7 @@ export function useDatePickerRangeState({
 		openCalendar,
 		closeCalendar,
 		moveGridDate,
+		moveGridMonths,
 		getInitialActiveDate,
 		handleSelect,
 		calendarRef,
@@ -184,6 +198,7 @@ export function useDatePickerRangeState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		required: control?.required,
 		invalid: control?.invalid,
 		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,

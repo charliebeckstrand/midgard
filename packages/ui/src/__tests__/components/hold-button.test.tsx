@@ -59,6 +59,108 @@ describe('HoldButton', () => {
 		expect(onHoldCancel).toHaveBeenCalledOnce()
 	})
 
+	it('cancels a keyboard hold on blur instead of completing after focus loss', () => {
+		vi.useFakeTimers()
+
+		try {
+			const onComplete = vi.fn()
+
+			const onHoldCancel = vi.fn()
+
+			const { container } = renderUI(
+				<HoldButton duration={500} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = bySlot(container, 'hold-button') as HTMLElement
+
+			fireEvent.keyDown(el, { key: ' ' })
+
+			// Tab-away routes the keyup elsewhere; the irreversible action must
+			// not fire for an unfocused control.
+			fireEvent.blur(el)
+
+			act(() => {
+				vi.advanceTimersByTime(600)
+			})
+
+			expect(onComplete).not.toHaveBeenCalled()
+
+			expect(onHoldCancel).toHaveBeenCalledOnce()
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('cancels a keyboard hold when the window loses focus', () => {
+		vi.useFakeTimers()
+
+		try {
+			const onComplete = vi.fn()
+
+			const { container } = renderUI(
+				<HoldButton duration={500} onComplete={onComplete}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = bySlot(container, 'hold-button') as HTMLElement
+
+			fireEvent.keyDown(el, { key: ' ' })
+
+			fireEvent.blur(window)
+
+			act(() => {
+				vi.advanceTimersByTime(600)
+			})
+
+			expect(onComplete).not.toHaveBeenCalled()
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('ignores releasing the other activation key mid-hold', () => {
+		vi.useFakeTimers()
+
+		try {
+			const onComplete = vi.fn()
+
+			const onHoldCancel = vi.fn()
+
+			const { container } = renderUI(
+				<HoldButton duration={500} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = bySlot(container, 'hold-button') as HTMLElement
+
+			// Space starts the hold; pressing and releasing Enter must not abort it.
+			fireEvent.keyDown(el, { key: ' ' })
+
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			fireEvent.keyUp(el, { key: 'Enter' })
+
+			expect(onHoldCancel).not.toHaveBeenCalled()
+
+			act(() => {
+				vi.advanceTimersByTime(600)
+			})
+
+			expect(onComplete).toHaveBeenCalledOnce()
+
+			// The initiating key's release after completion is a no-op.
+			fireEvent.keyUp(el, { key: ' ' })
+
+			expect(onHoldCancel).not.toHaveBeenCalled()
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
 	it('starts on Space keydown', () => {
 		const onHoldStart = vi.fn()
 

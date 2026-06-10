@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId } from 'react'
+import { type MouseEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -31,7 +31,12 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
-	function handleSelect() {
+	const onClick = (props as { onClick?: (e: MouseEvent<HTMLElement>) => void }).onClick
+
+	function handleSelect(e: MouseEvent<HTMLElement>) {
+		// The consumer handler composes with — not replaces — selection/close.
+		onClick?.(e)
+
 		if (disabled) return
 
 		onAction?.()
@@ -41,6 +46,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	// Attributes shared by both render branches; host-element props are spread
 	// per branch via `forwardedProps` to keep the polymorphic union narrowed.
+	// They come first so they can't clobber the option wiring below.
 	const optionProps = {
 		id: itemId,
 		role: 'option' as const,
@@ -54,26 +60,27 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	if (props.href !== undefined) {
 		return (
-			<LinkComponent {...optionProps} {...forwardedProps(props)}>
+			<LinkComponent {...forwardedProps(props)} {...optionProps}>
 				{children}
 			</LinkComponent>
 		)
 	}
 
 	return (
-		<button type="button" {...optionProps} {...forwardedProps(props)}>
+		<button type="button" {...forwardedProps(props)} {...optionProps}>
 			{children}
 		</button>
 	)
 }
 
 /** Drop the item's own props, leaving the host element's attributes to forward. */
-function forwardedProps<T extends CommandPaletteItemBaseProps>({
+function forwardedProps<T extends CommandPaletteItemBaseProps & { onClick?: unknown }>({
 	disabled: _disabled,
 	className: _className,
 	children: _children,
 	onAction: _onAction,
 	closeOnAction: _closeOnAction,
+	onClick: _onClick,
 	...rest
 }: T) {
 	return rest

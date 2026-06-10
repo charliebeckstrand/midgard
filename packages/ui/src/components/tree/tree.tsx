@@ -15,6 +15,7 @@ import { k, type TreeSize } from '../../recipes/kata/tree'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
+import { stampTreePositions } from './tree-item-children'
 import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
 export type TreeProps = AccessibleName & {
@@ -103,7 +104,7 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 				onFocus={handleFocus}
 				{...labelProps}
 			>
-				{children}
+				{stampTreePositions(children)}
 			</div>
 		</TreeContext>
 	)

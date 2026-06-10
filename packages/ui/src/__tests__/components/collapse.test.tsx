@@ -13,6 +13,27 @@ describe('Collapse', () => {
 		expect(screen.getByText('Content')).toBeInTheDocument()
 	})
 
+	it('only references the panel via aria-controls while it is mounted', () => {
+		renderUI(
+			<Collapse trigger="Toggle">
+				<p>Content</p>
+			</Collapse>,
+		)
+
+		const trigger = screen.getByText('Toggle')
+
+		// Closed: the panel is unmounted, so the reference would dangle.
+		expect(trigger).not.toHaveAttribute('aria-controls')
+
+		fireEvent.click(trigger)
+
+		const controls = trigger.getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).not.toBeNull()
+	})
+
 	it('toggles open state on trigger click', () => {
 		const onOpenChange = vi.fn()
 

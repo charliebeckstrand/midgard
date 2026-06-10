@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
-import { useTreeContext } from './context'
+import { useTreeContext, useTreePosition } from './context'
 import { AFFIX_SELECTOR, PREFIX_INTERACTIVE_SELECTOR } from './tree-constants'
 
 type TreeItemContentProps = {
@@ -32,6 +32,8 @@ export function TreeItemContent({
 	className,
 }: TreeItemContentProps) {
 	const { depth, size, indent } = useTreeContext()
+
+	const { posinset, setsize } = useTreePosition()
 
 	const paddingLeft = indent ? `${0.5 + depth * k.indentStep[size]}rem` : '0.5rem'
 
@@ -93,6 +95,8 @@ export function TreeItemContent({
 			aria-expanded={hasChildren ? open : undefined}
 			aria-current={current || undefined}
 			aria-level={depth + 1}
+			aria-posinset={posinset}
+			aria-setsize={setsize}
 			tabIndex={-1}
 			data-slot="tree-item-content"
 			data-open={open || undefined}

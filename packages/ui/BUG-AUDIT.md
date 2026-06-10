@@ -16,31 +16,31 @@ None.
 
 ### High
 
-**Controlled-without-handler dismissal is permanent** — `components/alert/alert.tsx:127-153,201`. `<Alert open closable>` with no `onOpenChange` sets a sticky `locallyDismissed` flag on close that nothing ever resets, so line 153 returns null permanently and the `open` prop is silently ignored thereafter. Fix: add an effect on `openProp` that clears the flag.
+✅ **Controlled-without-handler dismissal is permanent** — `components/alert/alert.tsx:127-153,201`. `<Alert open closable>` with no `onOpenChange` sets a sticky `locallyDismissed` flag on close that nothing ever resets, so line 153 returns null permanently and the `open` prop is silently ignored thereafter. Fix: add an effect on `openProp` that clears the flag.
 
-**Non-ASCII digit locales wipe the value on edit** — `components/currency-input/currency-input-utilities.ts:28-49,78,85-89`. `\d`/`>='0'&&<='9'` assume ASCII, but `displayFormatter` renders native digits for ar-EG/fa-IR/ne-NP, so the first edit strips every digit and `setNum(undefined)` destroys the value. Fix: normalize native digits to ASCII (or force `-u-nu-latn`) before parsing.
+✅ **Non-ASCII digit locales wipe the value on edit** (fixed: both formatters pin `numberingSystem: 'latn'`) — `components/currency-input/currency-input-utilities.ts:28-49,78,85-89`. `\d`/`>='0'&&<='9'` assume ASCII, but `displayFormatter` renders native digits for ar-EG/fa-IR/ne-NP, so the first edit strips every digit and `setNum(undefined)` destroys the value. Fix: normalize native digits to ASCII (or force `-u-nu-latn`) before parsing.
 
-**Column reorder drops selection/actions columns** — `components/data-table/data-table-column-manager.tsx:85-108`. `handleReorder` walks the full `order` but a filtered `byId`, so `if (!col) continue` discards the select/actions ids; they jump to the table end and persist into saved presets. Fix: preserve unmatched ids in place.
+✅ **Column reorder drops selection/actions columns** — `components/data-table/data-table-column-manager.tsx:85-108`. `handleReorder` walks the full `order` but a filtered `byId`, so `if (!col) continue` discards the select/actions ids; they jump to the table end and persist into saved presets. Fix: preserve unmatched ids in place.
 
-**DescriptionList crashes in RSC (missing `'use client'`)** — `components/dl/description-list.tsx:1-29`. Renders a client Context Provider with no `'use client'` directive; subpath imports resolve to raw source (not the tsup-bannered dist), so it executes server-side and Next rejects it. Fix: add `'use client'` to line 1.
+✅ **DescriptionList crashes in RSC (missing `'use client'`)** (fixed — and the same latent gap in Navbar/Headless/Timeline; a boundary test now enforces the directive on any module rendering a Context provider) — `components/dl/description-list.tsx:1-29`. Renders a client Context Provider with no `'use client'` directive; subpath imports resolve to raw source (not the tsup-bannered dist), so it executes server-side and Next rejects it. Fix: add `'use client'` to line 1.
 
-**Numeric/currency editors drop the first typed character** — `components/editable-grid/use-editable-grid-numeric-editor.ts:28-44`. Editor seeds `value` from `row[column.field]` and ignores the grid `draft`, so type-to-edit shows the old value selected and loses the typed key. Fix: seed from `draft` like the text editor.
+✅ **Numeric/currency editors drop the first typed character** — `components/editable-grid/use-editable-grid-numeric-editor.ts:28-44`. Editor seeds `value` from `row[column.field]` and ignores the grid `draft`, so type-to-edit shows the old value selected and loses the typed key. Fix: seed from `draft` like the text editor.
 
-**FiltersField toggle controls never reflect filter state** — `components/filters/filters-field.tsx:118-127`. Clones Checkbox/Switch with `value`/`onChange` but they read `checked`; never passing `checked` leaves them uncontrolled, desynced from the filter value. Fix: pass `checked` for toggle-type controls.
+✅ **FiltersField toggle controls never reflect filter state** — `components/filters/filters-field.tsx:118-127`. Clones Checkbox/Switch with `value`/`onChange` but they read `checked`; never passing `checked` leaves them uncontrolled, desynced from the filter value. Fix: pass `checked` for toggle-type controls.
 
-**Keyboard hold never cancels on focus/window loss** — `components/hold-button/hold-button.tsx:73-82`. Hold starts on keydown, cancels only on a keyup on the same button; Tab/Alt-Tab mid-press routes keyup elsewhere, so the irreversible `onComplete` still fires. Fix: add blur/window-blur/visibilitychange cancel.
+✅ **Keyboard hold never cancels on focus/window loss** (fixed: element blur, window blur, and visibilitychange all cancel an in-progress hold) — `components/hold-button/hold-button.tsx:73-82`. Hold starts on keydown, cancels only on a keyup on the same button; Tab/Alt-Tab mid-press routes keyup elsewhere, so the irreversible `onComplete` still fires. Fix: add blur/window-blur/visibilitychange cancel.
 
-**Virtualized JsonTree never auto-expands search matches** — `components/json-tree/json-tree-utilities.tsx:195-210`. `open = expanded.has(path)` and `flattenTree` returns early on closed branches; nothing seeds matching paths into `expanded`, so the documented auto-expand contract is broken in virtualized mode. Fix: seed/expand search-matching branch paths.
+✅ **Virtualized JsonTree never auto-expands search matches** (fixed: matching branch paths are seeded into `expanded` once per term, keeping matched branches collapsible) — `components/json-tree/json-tree-utilities.tsx:195-210`. `open = expanded.has(path)` and `flattenTree` returns early on closed branches; nothing seeds matching paths into `expanded`, so the documented auto-expand contract is broken in virtualized mode. Fix: seed/expand search-matching branch paths.
 
-**List-item keyboard handler hijacks Space/Arrow/Home/End from descendants** — `components/list/list-item.tsx:37`. `onKeyDown` lacks a `target === currentTarget` guard; bubbled keystrokes from inner buttons/inputs are treated as reorder gestures and `preventDefault`'d. Fix: guard on event source.
+✅ **List-item keyboard handler hijacks Space/Arrow/Home/End from descendants** — `components/list/list-item.tsx:37`. `onKeyDown` lacks a `target === currentTarget` guard; bubbled keystrokes from inner buttons/inputs are treated as reorder gestures and `preventDefault`'d. Fix: guard on event source.
 
-**User onBlur clobbers NumberInput clamp/round/setTouched** — `components/number-input/number-input.tsx:122,151`. `onBlur` isn't in the Omit list and `{...props}` spreads after `onBlur={handleBlur}`, so a consumer `onBlur` wins and the documented clamp/round-on-blur and form `setTouched` never run. Fix: merge handlers or spread props before internal wiring.
+✅ **User onBlur clobbers NumberInput clamp/round/setTouched** (fixed: composed) — `components/number-input/number-input.tsx:122,151`. `onBlur` isn't in the Omit list and `{...props}` spreads after `onBlur={handleBlur}`, so a consumer `onBlur` wins and the documented clamp/round-on-blur and form `setTouched` never run. Fix: merge handlers or spread props before internal wiring.
 
-**Consumer onScroll clobbers ScrollArea handleScroll** — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
+✅ **Consumer onScroll clobbers ScrollArea handleScroll** (fixed: composed) — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
 
-**Range slider clamps before snapping → value > max** — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
+✅ **Range slider clamps before snapping → value > max** (fixed: snap first, clamp last — both the update path and the keyboard swap prediction) — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
 
-**Tab drops all button props except onClick** — `components/tabs/tab.tsx:24-99`. Type advertises the full button surface but the component forwards a fixed set with no `...rest`; `aria-label`, `data-testid`, `onFocus`/`onKeyDown`, `title`, etc. vanish (icon-only tabs lose their accessible name). Fix: collect and forward `...rest`.
+✅ **Tab drops all button props except onClick** (fixed: rest forwarded, tab wiring wins) — `components/tabs/tab.tsx:24-99`. Type advertises the full button surface but the component forwards a fixed set with no `...rest`; `aria-label`, `data-testid`, `onFocus`/`onKeyDown`, `title`, etc. vanish (icon-only tabs lose their accessible name). Fix: collect and forward `...rest`.
 
 **Floating sidebar hover-peek traps keyboard focus** — `layouts/sidebar/sidebar.tsx:81-112`. Pointer-hover over a 2px hot zone opens a modal `Sheet`/`Overlay` whose `FloatingFocusManager modal` has no opt-out, stealing/trapping focus on mere hover. Fix: render the hover-peek non-modal (no focus trap).
 
@@ -68,7 +68,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **CVV not re-truncated when brand shrinks max length** — `components/credit-card-input/credit-card-input-cvv.tsx:58-68`. `format` runs only on change/seed; an amex→visa brand change leaves a stored 4-digit CVV displayed under maxLength=3 and a stale validity. Fix: re-format the stored value when `maxLength` changes.
 
-**Calendar dialog opens focused on "Previous month"** — `components/date-picker/date-picker-content.tsx:55-65`. `FloatingFocusManager` is `modal` with no `initialFocus`, so floating-ui's default lands on the first tabbable (the prev-month button) instead of the grid. Fix: set `initialFocus` to the selected/today day.
+✅ **Calendar dialog opens focused on "Previous month"** (fixed: `initialFocus` lands on the dialog itself, which now also carries the virtual-focus key handler) — `components/date-picker/date-picker-content.tsx:55-65`. `FloatingFocusManager` is `modal` with no `initialFocus`, so floating-ui's default lands on the first tabbable (the prev-month button) instead of the grid. Fix: set `initialFocus` to the selected/today day.
 
 ✅ **Description custom `id` → dangling `aria-describedby`** — `components/fieldset/description.tsx:22-30`. Registration composes `control.descriptionId` while the element renders `id ?? control.descriptionId`; a custom id orphans the reference. Fix: register/compose the rendered id.
 
@@ -78,7 +78,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **File input reset to '' defeats native `required`** — `components/file-upload/use-file-upload-handlers.ts:48-57`. `e.target.value = ''` (for same-file reselect) empties the FileList, so a `required` hidden input fails native validation on submit despite a valid pick. Fix: track validity independently of the cleared input.
 
-**FiltersField overwrites a Radio's `value`** — `components/filters/filters-field.tsx:120-127`. A cloned Radio gets `value={fieldValue}` (clobbering the author's option value) and never gets `checked`. Fix: don't overwrite `value` for radios; drive `checked`.
+✅ **FiltersField overwrites a Radio's `value`** — `components/filters/filters-field.tsx:120-127`. A cloned Radio gets `value={fieldValue}` (clobbering the author's option value) and never gets `checked`. Fix: don't overwrite `value` for radios; drive `checked`.
 
 **Grid `span='full'` + start overflows the parent** — `components/grid/variants.ts:174-178`. With columns set, `full` emits `col-span-N`; from a non-default start CSS spans N tracks past the grid edge instead of clamping. Fix: clamp end to the grid's last line.
 
@@ -88,7 +88,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Matched JsonTree branch can't be collapsed during search** — `components/json-tree/json-tree-node.tsx:57-97`. `search && hasMatch` force-opens `open=true` over `userOpen`, so the toggle is a permanent no-op. Fix: let `userOpen` override the force-open after user interaction.
 
-**Virtualized JsonTree unreachable by Tab when root scrolls out** — `components/json-tree/json-tree-branch-header.tsx:41`. Tab stop is hardcoded to `depth===0`; without `manageTabIndex` the roving hook never re-seats it, so scrolling the root row out of the virtual window leaves no `tabIndex=0`. Fix: enable `manageTabIndex` or seat a stop on a mounted row.
+✅ **Virtualized JsonTree unreachable by Tab when root scrolls out** (fixed: the Tab stop rides the first focusable rendered row) — `components/json-tree/json-tree-branch-header.tsx:41`. Tab stop is hardcoded to `depth===0`; without `manageTabIndex` the roving hook never re-seats it, so scrolling the root row out of the virtual window leaves no `tabIndex=0`. Fix: enable `manageTabIndex` or seat a stop on a mounted row.
 
 ✅ **Kanban arrow nav can't cross an empty column** — `components/kanban/use-kanban-keyboard.ts:110-125`. `focusNeighbor` inspects only the immediate neighbor; an empty adjacent column returns false and stops. Fix: skip empty columns to the next populated one.
 
@@ -110,7 +110,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Resizable keyboard resize runs side effects inside the setSizes updater** — `components/resizable/use-resizable-panel.ts:120-135`. The updater mutates `sizesRef` and calls `onSizesChange`; StrictMode double-invokes it, firing the callback twice per keypress. Fix: run side effects outside the updater (as the drag path does).
 
-**ScrollArea ResizeObserver misses child add/remove** — `components/scroll-area/use-scroll-area-scrollbar.ts:57-71`. Observes only mount-time children; a viewport RO doesn't fire on its own scrollHeight change, so dynamic content leaves a stale thumb. Fix: add a MutationObserver or re-subscribe on child changes.
+✅ **ScrollArea ResizeObserver misses child add/remove** (fixed: a MutationObserver re-seats the observer and re-measures on childList changes) — `components/scroll-area/use-scroll-area-scrollbar.ts:57-71`. Observes only mount-time children; a viewport RO doesn't fire on its own scrollHeight change, so dynamic content leaves a stale thumb. Fix: add a MutationObserver or re-subscribe on child changes.
 
 ✅ **SignaturePad stroke style changes only apply on resize** — `components/signature-pad/use-signature-pad-canvas-sizing.ts:32-68`. `configureStroke` runs only inside `resize` (fired by ResizeObserver), so runtime `strokeColor`/`strokeWidth` changes don't reach drawn segments (dot vs line mismatch). Fix: re-apply stroke config when those props change.
 
@@ -120,7 +120,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Uncontrolled Switch ignores native form reset** — `components/switch/switch.tsx:40-87`. Switch always renders as React-controlled (`checked={on ?? false}`), so a native `type=reset` doesn't fire onChange and the value stays stale (Checkbox stays genuinely uncontrolled). Fix: leave the input uncontrolled when neither `checked` nor a binding is supplied.
 
-_(Reclassified **Low** after verification — see note at top.)_ **Textarea omits `ref` from its public type** — `components/textarea/textarea.tsx:16-21`. `TextareaProps` doesn't declare `ref` (every sibling leaf does, e.g. `input.tsx:28`), so typed consumers can't pass one for focus/selection/measurement. At runtime a forced `ref` still forwards via `{...rest}` (`textarea.tsx:136`) under React 19. Fix: add `ref?: Ref<HTMLTextAreaElement>` to the type and destructure it onto the `<textarea>` for parity.
+✅ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omits `ref` from its public type** (verified already fixed — `ref` is in `TextareaProps`) — `components/textarea/textarea.tsx:16-21`. `TextareaProps` doesn't declare `ref` (every sibling leaf does, e.g. `input.tsx:28`), so typed consumers can't pass one for focus/selection/measurement. At runtime a forced `ref` still forwards via `{...rest}` (`textarea.tsx:136`) under React 19. Fix: add `ref?: Ref<HTMLTextAreaElement>` to the type and destructure it onto the `<textarea>` for parity.
 
 ✅ **TimeAgo rolls past its own unit boundary** — `components/time-ago/use-time-ago-relative-time.ts:25-39,109-111`. Unit chosen by the bucket's lower edge but magnitude is `Math.round`, yielding "60 seconds ago"/"24 hours ago"/"7 days ago" on the common live-refresh path. Fix: roll over to the next unit when the rounded value reaches its threshold.
 
@@ -128,7 +128,7 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Toast onMouseLeave resumes timer while focus is still inside** — `components/toast/toast-alert.tsx:77-85`. `onResume` is unconditional (unlike the focus-guarded `onBlur`), so moving the pointer off while focus stays inside auto-dismisses under a keyboard user (WCAG 2.2.1). Fix: skip resume when focus remains within the toast.
 
-**Polite toasts likely never announced** — `components/toast/toast-alert.tsx:76-98`. ToastAlert sets `role` on its own wrapper and omits `severity`, bypassing Alert's persistent-announcer mitigation, so role=status toasts inserted with their text aren't reliably announced. Fix: route polite toasts through the shared announcer.
+✅ **Polite toasts likely never announced** (fixed: polite toasts mirror their text through the persistent announcer on mount) — `components/toast/toast-alert.tsx:76-98`. ToastAlert sets `role` on its own wrapper and omits `severity`, bypassing Alert's persistent-announcer mitigation, so role=status toasts inserted with their text aren't reliably announced. Fix: route polite toasts through the shared announcer.
 
 ✅ **Tree arrow/Home/End jumps from prefix/suffix controls** — `components/tree/tree.tsx:29-33`. With `focusOnEmpty:true`, a focused prefix control makes `indexOf(activeElement) === -1`, so the fallback sends ArrowDown to the first item. Fix: guard the empty-focus fallback when focus is on a descendant control.
 
@@ -158,71 +158,71 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ### Low
 
-**Controlled single Accordion churns context identity each render** — `components/accordion/accordion.tsx:49-108`. `toArray(props.value)` allocates a new array per render, defeating the context `useMemo` and re-rendering every item. Fix: memoize the wrapped value.
+✅ **Controlled single Accordion churns context identity each render** — `components/accordion/accordion.tsx:49-108`. `toArray(props.value)` allocates a new array per render, defeating the context `useMemo` and re-rendering every item. Fix: memoize the wrapped value.
 
-**Avatar duplicate accessible name (src + initials + alt)** — `components/avatar/avatar.tsx:55-75`. Both the initials svg (role=img) and the img carry the same `alt`, announced twice. Fix: aria-hide the fallback when the image is present.
+✅ **Avatar duplicate accessible name (src + initials + alt)** — `components/avatar/avatar.tsx:55-75`. Both the initials svg (role=img) and the img carry the same `alt`, announced twice. Fix: aria-hide the fallback when the image is present.
 
-**Avatar status branch splits props vs className across nodes** — `components/avatar/avatar.tsx:48-92`. With `status`, `{...props}` lands on the inner span but `className` on the wrapper, so `#id.class` matches nothing and clicks on the dot/padding miss `onClick`. Fix: apply props and className to the same element.
+✅ **Avatar status branch splits props vs className across nodes** — `components/avatar/avatar.tsx:48-92`. With `status`, `{...props}` lands on the inner span but `className` on the wrapper, so `#id.class` matches nothing and clicks on the dot/padding miss `onClick`. Fix: apply props and className to the same element.
 
-**BottomNav misroutes className to inner NavList** — `components/bottom-nav/bottom-nav.tsx:8-15`. Type declares className for the `<nav>` landmark but it's applied to the `<ul>`. Fix: forward className to the nav.
+✅ **BottomNav misroutes className to inner NavList** — `components/bottom-nav/bottom-nav.tsx:8-15`. Type declares className for the `<nav>` landmark but it's applied to the `<ul>`. Fix: forward className to the nav.
 
-**Calendar pickerYear stale after month nav while closed** — `components/calendar/use-calendar-picker.tsx:71-112`. Reducer re-syncs to `year` only on an `open` dispatch; header chevrons change `year` while closed, so a non-trigger open shows the mount-time year. Fix: sync reducer on `year` change (shares root cause with the imperative-open bug).
+✅ **Calendar pickerYear stale after month nav while closed** (verified already fixed via the imperative-open `yearRef` reset) — `components/calendar/use-calendar-picker.tsx:71-112`. Reducer re-syncs to `year` only on an `open` dispatch; header chevrons change `year` while closed, so a non-trigger open shows the mount-time year. Fix: sync reducer on `year` change (shares root cause with the imperative-open bug).
 
-**Day cell aria-label ignores configured locale** — `components/calendar/calendar-day-cell.tsx:41-50`. Uses `toLocaleDateString(undefined, …)`; `localeTag` is never threaded down, so day announcements use the browser locale. Fix: pass `localeTag` to the cell.
+✅ **Day cell aria-label ignores configured locale** (verified already fixed — `localeTag` is threaded to the cell) — `components/calendar/calendar-day-cell.tsx:41-50`. Uses `toLocaleDateString(undefined, …)`; `localeTag` is never threaded down, so day announcements use the browser locale. Fix: pass `localeTag` to the cell.
 
-**Calendar viewDate seed reads `new Date()` during render** — `components/calendar/use-calendar-month.ts:18-22`. The lazy initializer can land in different months on server vs client near a month boundary (the sibling `today` is deferred to avoid exactly this). Fix: defer the seed to a mount effect.
+✅ **Calendar viewDate seed reads `new Date()` during render** (clock-seeded views now self-correct in a mount effect) — `components/calendar/use-calendar-month.ts:18-22`. The lazy initializer can land in different months on server vs client near a month boundary (the sibling `today` is deferred to avoid exactly this). Fix: defer the seed to a mount effect.
 
-**Card padding-collapse selector catches content slots** — `components/card/card.tsx:47`. `[&:has(>[data-slot^=card-])]:p-0` matches `card-title`/`card-description`, which supply no padding, so `<Card><CardTitle/><CardDescription/></Card>` renders flush. Fix: target only structural slots.
+✅ **Card padding-collapse selector catches content slots** — `components/card/card.tsx:47`. `[&:has(>[data-slot^=card-])]:p-0` matches `card-title`/`card-description`, which supply no padding, so `<Card><CardTitle/><CardDescription/></Card>` renders flush. Fix: target only structural slots.
 
-**Combobox virtual highlight not re-anchored when options change for same query** — `components/combobox/combobox.tsx:215-231`. The re-anchor effect keys on `deferredQuery`; async option swaps for an identical query leave `aria-activedescendant` pointing at an unmounted id. Fix: re-anchor on option-set change.
+✅ **Combobox virtual highlight not re-anchored when options change for same query** — `components/combobox/combobox.tsx:215-231`. The re-anchor effect keys on `deferredQuery`; async option swaps for an identical query leave `aria-activedescendant` pointing at an unmounted id. Fix: re-anchor on option-set change.
 
-**CommandPaletteItem onClick clobbers selection/close handler** — `components/command-palette/command-palette-item.tsx:44-66`. `optionProps` (with `onClick: handleSelect`) spreads before forwarded props, so a consumer `onClick` drops `onAction`/`close`. Fix: compose handlers / spread internal last.
+✅ **CommandPaletteItem onClick clobbers selection/close handler** — `components/command-palette/command-palette-item.tsx:44-66`. `optionProps` (with `onClick: handleSelect`) spreads before forwarded props, so a consumer `onClick` drops `onAction`/`close`. Fix: compose handlers / spread internal last.
 
-**Range DatePicker never forwards aria-required** — `components/date-picker/date-picker-range.tsx:24-41`. `useDatePickerRangeState` omits `required`, so a range picker in a required Control isn't announced as required (the single variant is). Fix: forward `control?.required`.
+✅ **Range DatePicker never forwards aria-required** — `components/date-picker/date-picker-range.tsx:24-41`. `useDatePickerRangeState` omits `required`, so a range picker in a required Control isn't announced as required (the single variant is). Fix: forward `control?.required`.
 
-**Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
+✅ **Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
 
-**HoldButton: releasing one of two held keys cancels the hold** — `components/hold-button/hold-button.tsx:78-82`. keyup cancels for any Space/Enter without tracking which key started. Fix: track the initiating key.
+✅ **HoldButton: releasing one of two held keys cancels the hold** (fixed: only the initiating key's release cancels) — `components/hold-button/hold-button.tsx:78-82`. keyup cancels for any Space/Enter without tracking which key started. Fix: track the initiating key.
 
-**Icon numeric size overwrites the source icon's inline style** — `components/icon/icon.tsx:33-43`. `cloneElement` replaces `style` wholesale (className is carefully re-merged; style isn't). Fix: merge the source `style`.
+✅ **Icon numeric size overwrites the source icon's inline style** (verified already fixed — the source style is spread-merged) — `components/icon/icon.tsx:33-43`. `cloneElement` replaces `style` wholesale (className is carefully re-merged; style isn't). Fix: merge the source `style`.
 
-**Input hasAffix `!== undefined` vs truthy render guards** — `components/input/input.tsx:121-155`. A falsy-but-defined prefix/suffix (`false`/`null`/`0`) sets `hasAffix` but renders no affix; `prefix={0}` emits a raw `0`. Fix: align the checks (use truthiness or normalize).
+✅ **Input hasAffix `!== undefined` vs truthy render guards** (fixed: one presence definition for wrapper and guards; a `0` affix now renders in its slot) — `components/input/input.tsx:121-155`. A falsy-but-defined prefix/suffix (`false`/`null`/`0`) sets `hasAffix` but renders no affix; `prefix={0}` emits a raw `0`. Fix: align the checks (use truthiness or normalize).
 
 **Controlled JsonTree without onExpandedChange swallows clicks** — `components/json-tree/json-tree-node.tsx:91-97`. `expanded` set with no handler makes `toggle` write dead `userOpen` state; clicks no-op. Fix: warn or update internal state.
 
-**Kanban column section emits dangling aria-labelledby without a title** — `components/kanban/kanban-column.tsx:44-45`. The labelledby id is emitted unconditionally when no `aria-label`, but only KanbanColumnTitle renders it. Fix: only reference the id when the title is rendered.
+✅ **Kanban column section emits dangling aria-labelledby without a title** (fixed: the title registers while mounted; the reference is gated on it) — `components/kanban/kanban-column.tsx:44-45`. The labelledby id is emitted unconditionally when no `aria-label`, but only KanbanColumnTitle renders it. Fix: only reference the id when the title is rendered.
 
-**NumberInput scientific-notation step → precision 0** — `components/number-input/number-input.tsx:67`. `step={1e-7}.toString()` is `'1e-7'`, so `split('.')[1]` is undefined and values snap to integers. Fix: compute precision without relying on decimal string form.
+✅ **NumberInput scientific-notation step → precision 0** (fixed: `stepPrecision` handles exponent notation) — `components/number-input/number-input.tsx:67`. `step={1e-7}.toString()` is `'1e-7'`, so `split('.')[1]` is undefined and values snap to integers. Fix: compute precision without relying on decimal string form.
 
-**NumberInput round-after-clamp can exceed min/max** — `components/number-input/number-input.tsx:69,79,108`. Rounding a clamped value to coarser step precision can re-cross the bound (max=0.06,step=0.1 → 0.1). Fix: clamp after rounding.
+✅ **NumberInput round-after-clamp can exceed min/max** (fixed: clamp runs after rounding) — `components/number-input/number-input.tsx:69,79,108`. Rounding a clamped value to coarser step precision can re-cross the bound (max=0.06,step=0.1 → 0.1). Fix: clamp after rounding.
 
-**PasswordConfirm confirmName/confirm not reset on unmount** — `components/password-confirm/password-confirm-input.tsx:14-16`. The register effect has no cleanup and parent `confirm` isn't cleared, leaving a stale warning. Fix: add cleanup clearing confirmName/confirm.
+✅ **PasswordConfirm confirmName/confirm not reset on unmount** (fixed: the register effect cleans up both) — `components/password-confirm/password-confirm-input.tsx:14-16`. The register effect has no cleanup and parent `confirm` isn't cleared, leaving a stale warning. Fix: add cleanup clearing confirmName/confirm.
 
-**onStrengthChange fires on every keystroke (passedIds identity churn)** — `components/password-strength/use-password-strength.ts:57-74`. `passedIds` is a fresh array per value change, defeating the deps guard despite unchanged scoring. Fix: gate on value, not array identity.
+✅ **onStrengthChange fires on every keystroke (passedIds identity churn)** (fixed: `passed` identity keyed on the joined ids) — `components/password-strength/use-password-strength.ts:57-74`. `passedIds` is a fresh array per value change, defeating the deps guard despite unchanged scoring. Fix: gate on value, not array identity.
 
-**PDF defaultRotation not snapped to 90** — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:26-33`. Documented to snap but never rounded; `defaultRotation={45}` mis-sizes/clips. Fix: snap to the nearest multiple of 90.
+✅ **PDF defaultRotation not snapped to 90** (fixed: snapped at the source) — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:26-33`. Documented to snap but never rounded; `defaultRotation={45}` mis-sizes/clips. Fix: snap to the nearest multiple of 90.
 
-**ProgressGauge renders empty positioned span for label={false}** — `components/progress/progress-gauge.tsx:46-94`. `resolvedLabel != null` is true for `false`, mounting a styled empty span. Fix: guard `label !== false`.
+✅ **ProgressGauge renders empty positioned span for label={false}** — `components/progress/progress-gauge.tsx:46-94`. `resolvedLabel != null` is true for `false`, mounting a styled empty span. Fix: guard `label !== false`.
 
-**ProgressBar value={NaN} renders aria-valuenow="NaN", width "NaN%"** — `components/progress/progress-bar.tsx:30-49`. `NaN != null` is treated determinate and clamp yields NaN (same in ProgressGauge). Fix: treat NaN as indeterminate/0.
+✅ **ProgressBar value={NaN} renders aria-valuenow="NaN", width "NaN%"** (fixed: NaN is indeterminate) — `components/progress/progress-bar.tsx:30-49`. `NaN != null` is treated determinate and clamp yields NaN (same in ProgressGauge). Fix: treat NaN as indeterminate/0.
 
-**clampPair leaves left unclamped after second-pass reassignment** — `components/resizable/use-resizable-panel.ts:34-50`. Over-constrained min/max lets the right clamp push left below its min. Fix: re-clamp left after reassignment.
+✅ **clampPair leaves left unclamped after second-pass reassignment** (fixed: clamps into the intersection of both sides' feasible intervals) — `components/resizable/use-resizable-panel.ts:34-50`. Over-constrained min/max lets the right clamp push left below its min. Fix: re-clamp left after reassignment.
 
-**Shift+wheel hijacked from a horizontal viewport** — `components/scroll-area/use-scroll-area-scrollbar.ts:85-96`. shift+wheel always forwards to an outer ancestor (viewport excluded), breaking shift-to-pan on horizontal scroll-areas. Fix: don't hijack when the viewport itself scrolls horizontally.
+✅ **Shift+wheel hijacked from a horizontal viewport** (fixed: a horizontally scrollable viewport keeps the gesture) — `components/scroll-area/use-scroll-area-scrollbar.ts:85-96`. shift+wheel always forwards to an outer ancestor (viewport excluded), breaking shift-to-pan on horizontal scroll-areas. Fix: don't hijack when the viewport itself scrolls horizontally.
 
-**Stack forces gap-md outside any Density provider** — `components/stack/stack.tsx:18`. Hardcoded `'md'` fallback diverges from Flex (no fallback) and the documented unset contract; JSDoc also wrongly says `'lg'`. Fix: drop the fallback (and fix the doc).
+✅ **Stack forces gap-md outside any Density provider** (fixed: gap stays unset outside a provider, matching Flex and the docs) — `components/stack/stack.tsx:18`. Hardcoded `'md'` fallback diverges from Flex (no fallback) and the documented unset contract; JSDoc also wrongly says `'lg'`. Fix: drop the fallback (and fix the doc).
 
-**Consumer aria-checked/role clobbers Switch's synced value** — `components/switch/switch.tsx:86-93`. `{...props}` spreads after `aria-checked`/`role`, letting a consumer desync AT state. Fix: spread props before, or omit these from the type.
+✅ **Consumer aria-checked/role clobbers Switch's synced value** (fixed: props spread first, internal wiring wins) — `components/switch/switch.tsx:86-93`. `{...props}` spreads after `aria-checked`/`role`, letting a consumer desync AT state. Fix: spread props before, or omit these from the type.
 
-**Inactive auto tabs omit aria-controls though fade panels stay mounted** — `components/tabs/tab.tsx:85`. Default `fade=true` keeps inactive panels mounted, but inactive tabs suppress `aria-controls`. Fix: emit aria-controls when the panel exists.
+✅ **Inactive auto tabs omit aria-controls though fade panels stay mounted** (fixed: a fade-mode TabContents registers via context; inactive tabs then keep the reference) — `components/tabs/tab.tsx:85`. Default `fade=true` keeps inactive panels mounted, but inactive tabs suppress `aria-controls`. Fix: emit aria-controls when the panel exists.
 
-**TagInput refocusOnMaxRelease flag leaks in controlled mode** — `components/tag-input/tag-input.tsx:73-89`. If the parent rejects the update, `atMax` never flips, leaving the flag set to steal focus on a later unrelated transition. Fix: clear the flag when removal is observed (not on transition only).
+✅ **TagInput refocusOnMaxRelease flag leaks in controlled mode** (fixed: the flag is consumed on the next committed render) — `components/tag-input/tag-input.tsx:73-89`. If the parent rejects the update, `atMax` never flips, leaving the flag set to steal focus on a later unrelated transition. Fix: clear the flag when removal is observed (not on transition only).
 
-**TagInput duplicate controlled values collide keys** — `components/tag-input/tag-input.tsx:122-124`. `value={['a','a']}` produces colliding `key={t}`. Fix: key by index/stable id.
+✅ **TagInput duplicate controlled values collide keys** (fixed: occurrence-suffixed keys) — `components/tag-input/tag-input.tsx:122-124`. `value={['a','a']}` produces colliding `key={t}`. Fix: key by index/stable id.
 
-**TimelineMarker accepts `current` but discards it** — `components/timeline/timeline-marker.tsx:16-32`. Public prop is destructured to `_current` and never used. Fix: implement or remove it from the type.
+✅ **TimelineMarker accepts `current` but discards it** (fixed: exposed as a data-current styling hook; ARIA stays on the item) — `components/timeline/timeline-marker.tsx:16-32`. Public prop is destructured to `_current` and never used. Fix: implement or remove it from the type.
 
-**Tooltip disabled detection misses the reference element itself** — `components/tooltip/use-tooltip-state.ts:42,67`. `querySelector(':disabled')` only matches descendants, but the reference IS the disabled control; contradicts the documented child/fieldset cases. Fix: use `matches(':disabled')`.
+✅ **Tooltip disabled detection misses the reference element itself** (verified already fixed — `matches(':disabled')` checks the element too) — `components/tooltip/use-tooltip-state.ts:42,67`. `querySelector(':disabled')` only matches descendants, but the reference IS the disabled control; contradicts the documented child/fieldset cases. Fix: use `matches(':disabled')`.
 
 **Fade-mode CurrentContent overwrites caller `style`** — `primitives/current/current-content.tsx:46-62`. Internal `style` is set after `{...props}` in fade mode (non-fade preserves it). Fix: merge caller `style`.
 
@@ -244,13 +244,13 @@ These classes recur across many files and are the highest-leverage fixes:
 
 **Container keyboard handlers hijack keys from focusable descendants (no `target === currentTarget` guard, or a too-broad roving fallback).** Affected: `list/list-item.tsx:37` (Space/Arrow/Home/End), `combobox/use-combobox-input.ts:74-95` (Home/End), `tree/tree.tsx:29-33` (Arrow/Home/End via `focusOnEmpty`), `kanban/use-kanban-keyboard.ts:110-125` (can't cross empty column). All are roving-navigation handlers on a parent that fail to exclude events originating in inner controls / off-grid focus.
 
-**Post-mount sync gaps: an effect/observer applies one prop but silently freezes the rest after mount.** Affected: `map/map-marker.tsx:49-96` (className/anchor frozen, only position synced), `signature-pad/use-signature-pad-canvas-sizing.ts:32-68` (stroke style only on resize), `credit-card-input/credit-card-input-cvv.tsx:58-68` (maxLength not re-applied), `scroll-area/use-scroll-area-scrollbar.ts:57-71` (children add/remove unobserved), `pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34` (rotation not reset on doc change). Common cause: a `useCallback`/effect with deps that exclude the changing prop, or a one-time seed.
+**Post-mount sync gaps: an effect/observer applies one prop but silently freezes the rest after mount.** Affected: ~~`map/map-marker.tsx:49-96`~~ **✅** (verified fixed — className synced in place, anchor recreates the marker), `signature-pad/use-signature-pad-canvas-sizing.ts:32-68` (stroke style only on resize), `credit-card-input/credit-card-input-cvv.tsx:58-68` (maxLength not re-applied), `scroll-area/use-scroll-area-scrollbar.ts:57-71` (children add/remove unobserved), `pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34` (rotation not reset on doc change). Common cause: a `useCallback`/effect with deps that exclude the changing prop, or a one-time seed.
 
 **Controlled/uncontrolled state desync — control ignores its driving prop or seeds from the wrong source.** Affected: `alert/alert.tsx:127-153` (sticky local flag overrides `open`), `filters/filters-field.tsx:118-127` (toggles never get `checked`), `switch/switch.tsx:40-87` (always React-controlled, ignores native reset), `editable-grid/use-editable-grid-numeric-editor.ts:28-44` (ignores `draft`), `tag-input.tsx:73-89` (flag leaks when parent rejects update), and the foundational `hooks/use-controllable.ts:41-53` (functional updaters collapse in a batch — affects every consumer that calls the setter with `prev => …` twice per tick).
 
 **Layout effect / lazy state initializer reads time or measurements without an SSR/commit guard.** Affected: `color/color-eyedropper.tsx:22-27` (window.EyeDropper during render), `calendar/use-calendar-month.ts:18-22` (`new Date()` in initializer), and the caret hooks `hooks/use-pending-caret.ts:21-37` (dependency-free layout effect not tied to a specific render).
 
-**UTC vs local-time date conversion drifts the day** — currently `query-builder/query-builder-rule-value.tsx:58-67`; the Calendar emits local-midnight Dates, so any consumer serializing via `toISOString().slice(0,10)` will hit the same ±1 day drift.
+✅ **UTC vs local-time date conversion drifts the day** (verified already fixed — query-builder serializes by local wall-clock components) — currently `query-builder/query-builder-rule-value.tsx:58-67`; the Calendar emits local-midnight Dates, so any consumer serializing via `toISOString().slice(0,10)` will hit the same ±1 day drift.
 
 ## Uncertain / needs human eyes
 

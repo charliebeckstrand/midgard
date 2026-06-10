@@ -13,6 +13,51 @@ import { DensityProvider } from '../../providers/density'
 import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
+	it('forwards the full button surface to the tab', () => {
+		renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a" aria-label="Overview tab" data-testid="tab-a" title="Overview" />
+				</TabList>
+			</Tabs>,
+		)
+
+		const tab = screen.getByRole('tab', { name: 'Overview tab' })
+
+		// The type advertises the whole button surface; dropping it lost
+		// aria-label on icon-only tabs, test ids, titles, focus handlers.
+		expect(tab).toHaveAttribute('data-testid', 'tab-a')
+
+		expect(tab).toHaveAttribute('title', 'Overview')
+	})
+
+	it('keeps aria-controls on inactive tabs while fade panels stay mounted', () => {
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a">Panel A</TabContent>
+					<TabContent value="b">Panel B</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		const tabs = container.querySelectorAll('[role="tab"]')
+
+		// Default fade mode keeps inactive panels mounted, so the inactive tab's
+		// reference resolves instead of being omitted.
+		const inactive = tabs[1] as HTMLElement
+
+		const controls = inactive.getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).not.toBeNull()
+	})
+
 	it('renders with data-slot="tab-list" and role="tablist"', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a">

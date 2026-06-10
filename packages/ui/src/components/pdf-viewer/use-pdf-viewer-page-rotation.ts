@@ -36,15 +36,20 @@ export function usePdfViewerPageRotation(
 		setRotations({})
 	}, [documentKey])
 
-	const rotation = rotations[page] ?? defaultRotation
+	// Documented to snap to 90° increments; an unsnapped default (e.g. 45)
+	// would put `normalizedRotation` outside 0|90|180|270 and skew the
+	// transposition math.
+	const snappedDefault = Math.round(defaultRotation / 90) * 90
+
+	const rotation = rotations[page] ?? snappedDefault
 
 	const normalizedRotation = ((rotation % 360) + 360) % 360
 
 	const isTransposed = normalizedRotation === 90 || normalizedRotation === 270
 
 	const rotate = useCallback(() => {
-		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? defaultRotation) + 90 }))
-	}, [page, defaultRotation])
+		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? snappedDefault) + 90 }))
+	}, [page, snappedDefault])
 
 	return { rotation, normalizedRotation, isTransposed, rotate }
 }

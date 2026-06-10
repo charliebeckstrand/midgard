@@ -39,7 +39,14 @@ export function EditableGridCellEditor<T>({
 				commit={commitEdit}
 				cancel={cancelEdit}
 				align={align}
-				ariaLabel={`Edit row ${rowIdx + 1} column ${colIdx + 1}`}
+				// Name the editor by what it edits — a bare "row 4 column 2" gives a
+				// screen-reader user no column context. Non-string titles fall back
+				// to the coordinate form.
+				ariaLabel={
+					typeof column.title === 'string'
+						? `Edit ${column.title}, row ${rowIdx + 1}`
+						: `Edit row ${rowIdx + 1} column ${colIdx + 1}`
+				}
 				selectAllOnFocus={draft === formatted}
 			/>
 		</div>

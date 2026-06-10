@@ -27,6 +27,30 @@ describe('AccordionTrigger', () => {
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
+
+	it('only references the panel via aria-controls while it is mounted', () => {
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger>Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Toggle' })
+
+		// Closed: the panel is unmounted, so the reference would dangle.
+		expect(trigger).not.toHaveAttribute('aria-controls')
+
+		fireEvent.click(trigger)
+
+		const controls = trigger.getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
+	})
 })
 
 describe('AccordionPanel', () => {

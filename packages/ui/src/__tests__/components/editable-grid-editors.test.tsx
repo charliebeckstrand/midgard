@@ -107,6 +107,27 @@ describe('EditableGridCurrencyEditor', () => {
 		expect(document.activeElement).toBe(input)
 	})
 
+	it('seeds from the draft on type-to-edit so the first keystroke survives', () => {
+		// Typing "5" into the active cell seeds the grid draft before the editor
+		// mounts; seeding from the row value would silently drop that keystroke.
+		const { container } = renderUI(
+			<EditableGridCurrencyEditor
+				{...makeProps({ draft: '5', selectAllOnFocus: false })}
+				currency="USD"
+				locale="en-US"
+			/>,
+		)
+
+		const input = bySlot(container, 'editable-grid-currency-input') as HTMLInputElement
+
+		expect(input.value).toContain('5')
+
+		expect(input.value).not.toContain('2.35')
+
+		// And it must not be selected — the next keystroke would replace it.
+		expect(input.selectionStart).toBe(input.selectionEnd)
+	})
+
 	it('mirrors numeric edits into the draft as a string', () => {
 		const setDraft = vi.fn()
 
@@ -176,6 +197,16 @@ describe('EditableGridNumberEditor', () => {
 		expect(input.value).toBe('2.35')
 
 		expect(document.activeElement).toBe(input)
+	})
+
+	it('seeds from the draft on type-to-edit so the first keystroke survives', () => {
+		const { container } = renderUI(
+			<EditableGridNumberEditor {...makeProps({ draft: '5', selectAllOnFocus: false })} />,
+		)
+
+		const input = bySlot(container, 'editable-grid-number-input') as HTMLInputElement
+
+		expect(input.value).toBe('5')
 	})
 
 	it('mirrors numeric edits into the draft as a string', () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type CalendarMonthOptions = {
 	value: Date | null | undefined
@@ -20,6 +20,26 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 
 		return new Date(seed.getFullYear(), seed.getMonth(), 1)
 	})
+
+	// A clock-seeded view can differ between the server render and the client
+	// (timezone offset, month boundary) — the sibling `today` defers to a mount
+	// effect for exactly this reason. The state seed must stay synchronous so
+	// SSR paints a month; instead, correct any drift once after mount.
+	const clockSeeded = useRef(value == null && defaultValue == null)
+
+	useEffect(() => {
+		if (!clockSeeded.current) return
+
+		clockSeeded.current = false
+
+		const now = new Date()
+
+		setViewDate((prev) =>
+			prev.getFullYear() === now.getFullYear() && prev.getMonth() === now.getMonth()
+				? prev
+				: new Date(now.getFullYear(), now.getMonth(), 1),
+		)
+	}, [])
 
 	const year = viewDate.getFullYear()
 

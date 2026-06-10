@@ -31,6 +31,8 @@ export type RangeSliderProps = {
 	 * price']`). Defaults to `['Range start', 'Range end']`.
 	 */
 	labels?: [string, string]
+	/** Formats a thumb's value for assistive tech (`aria-valuetext`) — currency, ratings, levels announce as meaningful text instead of a bare number. */
+	getValueText?: (value: number, thumb: 0 | 1) => string
 	className?: string
 	style?: CSSProperties
 }
@@ -47,6 +49,7 @@ export function RangeSlider({
 	disabled = false,
 	allowCross = true,
 	labels = ['Range start', 'Range end'],
+	getValueText,
 	className,
 	style,
 }: RangeSliderProps) {
@@ -132,6 +135,7 @@ export function RangeSlider({
 				aria-valuemin={min}
 				aria-valuemax={current[1]}
 				aria-valuenow={current[0]}
+				aria-valuetext={getValueText?.(current[0], 0)}
 				aria-label={labels[0]}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
@@ -149,6 +153,7 @@ export function RangeSlider({
 				aria-valuemin={current[0]}
 				aria-valuemax={max}
 				aria-valuenow={current[1]}
+				aria-valuetext={getValueText?.(current[1], 1)}
 				aria-label={labels[1]}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}

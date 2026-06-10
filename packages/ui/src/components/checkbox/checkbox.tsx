@@ -80,6 +80,8 @@ export function Checkbox({
 		k.checkSize[resolvedSize],
 	)
 
+	const Mark = indeterminate ? Minus : Check
+
 	return (
 		<label
 			data-slot="control"
@@ -101,23 +103,14 @@ export function Checkbox({
 				className={k.input()}
 				{...props}
 			/>
-			{indeterminate
-				? (icon ?? (
-						<Minus
-							data-slot="checkbox-check"
-							aria-hidden="true"
-							className={checkClass}
-							strokeWidth={2}
-						/>
-					))
-				: (icon ?? (
-						<Check
-							data-slot="checkbox-check"
-							aria-hidden="true"
-							className={checkClass}
-							strokeWidth={2}
-						/>
-					))}
+			{icon ?? (
+				<Mark
+					data-slot="checkbox-check"
+					aria-hidden="true"
+					className={checkClass}
+					strokeWidth={2}
+				/>
+			)}
 		</label>
 	)
 }

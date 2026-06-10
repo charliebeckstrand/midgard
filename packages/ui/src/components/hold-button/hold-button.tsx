@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEvent, PointerEvent } from 'react'
+import { type FocusEvent, type KeyboardEvent, type PointerEvent, useRef } from 'react'
 import { cn } from '../../core'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
@@ -34,6 +34,7 @@ export function HoldButton({
 	onPointerLeave,
 	onKeyDown,
 	onKeyUp,
+	onBlur,
 	...props
 }: HoldButtonProps) {
 	const { fillRef, start, cancel } = useHoldButtonGesture({
@@ -43,6 +44,10 @@ export function HoldButton({
 		onHoldStart,
 		onHoldCancel,
 	})
+
+	// The key that initiated the hold. Only its own keyup cancels — pressing
+	// and releasing the *other* activation key mid-hold must not abort it.
+	const heldKeyRef = useRef<string | null>(null)
 
 	return (
 		<Button
@@ -71,14 +76,32 @@ export function HoldButton({
 				onPointerLeave?.(e)
 			}}
 			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
-				if (!e.repeat && (e.key === ' ' || e.key === 'Enter')) start()
+				if (!e.repeat && (e.key === ' ' || e.key === 'Enter')) {
+					heldKeyRef.current ??= e.key
+
+					start()
+				}
 
 				onKeyDown?.(e)
 			}}
 			onKeyUp={(e: KeyboardEvent<HTMLButtonElement>) => {
-				if (e.key === ' ' || e.key === 'Enter') cancel()
+				if (e.key === heldKeyRef.current) {
+					heldKeyRef.current = null
+
+					cancel()
+				}
 
 				onKeyUp?.(e)
+			}}
+			onBlur={(e: FocusEvent<HTMLButtonElement>) => {
+				// Tab-away routes the keyup elsewhere; an unfocused button must not
+				// complete an irreversible hold (window/visibility loss is guarded
+				// in the gesture hook).
+				heldKeyRef.current = null
+
+				cancel()
+
+				onBlur?.(e)
 			}}
 		>
 			<span

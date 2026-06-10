@@ -97,10 +97,36 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Failed', severity: 'error' })
 		})
 
-		// Default toasts queue politely; errors interrupt.
-		expect(screen.getByRole('status')).toHaveTextContent('Saved')
+		// Default toasts queue politely; errors interrupt. (The shared announcer
+		// also carries role="status", so scope to toasts.)
+		const statuses = screen.getAllByRole('status')
+
+		expect(statuses.some((el) => el.textContent?.includes('Saved'))).toBe(true)
 
 		expect(screen.getByRole('alert')).toHaveTextContent('Failed')
+	})
+
+	it('mirrors polite toasts through the announcer (role=status alone is unreliable)', async () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Saved', description: 'All changes stored' })
+		})
+
+		// The announcer writes asynchronously (microtask) so insertion and text
+		// land in separate frames.
+		await vi.waitFor(() => {
+			const announcer = document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+			expect(announcer?.textContent).toContain('Saved')
+		})
 	})
 
 	it('dismisses a toast when dismiss() is called', () => {

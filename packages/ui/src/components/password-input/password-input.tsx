@@ -30,7 +30,10 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: TogglePro
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<Button variant="bare" aria-label={text} onClick={onToggle}>
+				{/* Fixed accessible name + aria-pressed (the APG toggle pattern):
+				    swapping the name on a state change isn't reliably announced on
+				    the same control. The visible tooltip still swaps. */}
+				<Button variant="bare" aria-label={showLabel} aria-pressed={visible} onClick={onToggle}>
 					<Icon icon={visible ? <EyeOff /> : <Eye />} />
 				</Button>
 			</TooltipTrigger>

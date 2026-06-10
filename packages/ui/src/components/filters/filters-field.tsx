@@ -117,10 +117,17 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 
 		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
 
-		const cloned: Record<string, unknown> = {
-			value: fieldValue ?? null,
-			[handlerProp]: handleChange,
-		}
+		// Toggles read `checked`, not `value`: a Checkbox/Switch reflects the
+		// boolean slot, and a Radio keeps its own option `value` (clobbering it
+		// would break the group) and is checked when it matches the slot.
+		const cloned: Record<string, unknown> =
+			child.type === Radio
+				? { checked: fieldValue === (child.props as { value?: unknown }).value }
+				: child.type === Checkbox || child.type === Switch
+					? { checked: !!fieldValue }
+					: { value: fieldValue ?? null }
+
+		cloned[handlerProp] = handleChange
 
 		if (expectsClearCallback(child)) cloned.onClear = handleClear
 

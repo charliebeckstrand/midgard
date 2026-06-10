@@ -88,15 +88,15 @@ export function Button({
 		)
 	}
 
+	if (skeleton) {
+		return <ButtonSkeleton size={size} className={className} />
+	}
+
 	// Non-icon children count as a text label; labeled buttons use control height
 	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
-
-	if (skeleton) {
-		return <ButtonSkeleton size={size} className={className} />
-	}
 
 	const content = (
 		<AffixContext value={resolvedSize}>

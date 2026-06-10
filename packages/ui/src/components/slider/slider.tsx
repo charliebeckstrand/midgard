@@ -16,6 +16,8 @@ type SliderBaseProps = SliderVariants & {
 	min?: number
 	max?: number
 	step?: number
+	/** Formats the value for assistive tech (`aria-valuetext`) — currency, ratings, levels announce as meaningful text instead of a bare number. */
+	getValueText?: (value: number) => string
 	ref?: Ref<HTMLInputElement>
 }
 
@@ -33,6 +35,7 @@ export function Slider({
 	min = 0,
 	max = 100,
 	step = 1,
+	getValueText,
 	size,
 	color,
 	className,
@@ -97,6 +100,7 @@ export function Slider({
 			max={max}
 			step={step}
 			name={name}
+			aria-valuetext={getValueText?.(current)}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
 			onBlur={(e) => {

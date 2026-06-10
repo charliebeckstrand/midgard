@@ -1,2 +1,6 @@
-export { Container, type ContainerProps } from './container'
-export type { ContainerPadding, ContainerSize } from './variants'
+export {
+	Container,
+	type ContainerPadding,
+	type ContainerProps,
+	type ContainerSize,
+} from './container'

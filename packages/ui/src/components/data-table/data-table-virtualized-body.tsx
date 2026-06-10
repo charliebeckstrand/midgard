@@ -13,6 +13,7 @@ type DataTableVirtualizedBodyProps<T> = {
 	visibleColumns: DataTableColumn<T>[]
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
+	rowLabel?: (row: T) => string
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	estimateSize: number
@@ -26,6 +27,7 @@ export function DataTableVirtualizedBody<T>({
 	visibleColumns,
 	rowLoading,
 	rowClassName,
+	rowLabel,
 	selection,
 	toggleRow,
 	estimateSize,
@@ -64,6 +66,7 @@ export function DataTableVirtualizedBody<T>({
 						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
+						rowLabel={rowLabel?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						dataRowIndex={vr.index}

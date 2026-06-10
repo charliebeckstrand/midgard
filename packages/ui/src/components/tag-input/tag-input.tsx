@@ -4,6 +4,7 @@ import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useEffect, useRef, useState } from 'react'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
+import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Flex } from '../flex'
@@ -81,12 +82,15 @@ export function TagInput({
 	// onMaxReleased avoids racing the commit, which under load could focus the
 	// still-disabled input and silently drop the focus.
 	useEffect(() => {
-		if (refocusOnMaxRelease.current && !atMax) {
-			refocusOnMaxRelease.current = false
+		// Consume the flag on every committed render: if a controlled parent
+		// rejected the removal (atMax never released), a stale flag must not
+		// steal focus on some unrelated later release.
+		const shouldRefocus = refocusOnMaxRelease.current
 
-			inputRef.current?.focus()
-		}
-	}, [atMax])
+		refocusOnMaxRelease.current = false
+
+		if (shouldRefocus && !atMax) inputRef.current?.focus()
+	})
 
 	const [inputValue, setInputValue] = useState('')
 
@@ -116,12 +120,17 @@ export function TagInput({
 		}
 	}, [addTag, inputValue])
 
+	// Duplicate controlled values ('a','a') would collide on a bare value key;
+	// repeats get an occurrence suffix (the validate path dedupes, the
+	// controlled path can't).
+	const keyedTags = keyByOccurrence(tags)
+
 	const badges =
 		tags.length > 0 ? (
 			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap>
-				{tags.map((t, i) => (
+				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge
-						key={t}
+						key={key}
 						label={t}
 						color={resolvedColor}
 						disabled={disabled}

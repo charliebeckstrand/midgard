@@ -21,6 +21,7 @@ function setup(overrides: Setup = {}) {
 	const openCalendar = vi.fn()
 	const closeCalendar = vi.fn()
 	const moveGridDate = vi.fn((delta: number) => new Date(2026, 0, 15 + delta))
+	const moveGridMonths = vi.fn((delta: number) => new Date(2026, 0 + delta, 15))
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
 	const handleSelect = vi.fn()
 	const onFooterActivate = vi.fn()
@@ -43,6 +44,7 @@ function setup(overrides: Setup = {}) {
 			openCalendar,
 			closeCalendar,
 			moveGridDate,
+			moveGridMonths,
 			getInitialActiveDate,
 			handleSelect,
 			calendarRef,
@@ -57,6 +59,7 @@ function setup(overrides: Setup = {}) {
 		openCalendar,
 		closeCalendar,
 		moveGridDate,
+		moveGridMonths,
 		getInitialActiveDate,
 		handleSelect,
 		onFooterActivate,
@@ -176,6 +179,38 @@ describe('useDatePickerKeyboard: open with null active', () => {
 
 describe('useDatePickerKeyboard: grid zone', () => {
 	const gridActive: CalendarActive = { zone: 'grid', date: new Date(2026, 0, 15) }
+
+	it('moves a month on PageUp/PageDown and a year with Shift (APG date grid)', () => {
+		const { handler, moveGridMonths, setActive } = setup({ active: gridActive })
+
+		handler(makeKeyEvent<HTMLElement>('PageUp'))
+
+		expect(moveGridMonths).toHaveBeenCalledWith(-1)
+
+		handler(makeKeyEvent<HTMLElement>('PageDown'))
+
+		expect(moveGridMonths).toHaveBeenCalledWith(1)
+
+		handler(makeKeyEvent<HTMLElement>('PageUp', { shiftKey: true }))
+
+		expect(moveGridMonths).toHaveBeenCalledWith(-12)
+
+		handler(makeKeyEvent<HTMLElement>('PageDown', { shiftKey: true }))
+
+		expect(moveGridMonths).toHaveBeenCalledWith(12)
+
+		expect(setActive).toHaveBeenCalledTimes(4)
+	})
+
+	it('materializes the grid highlight when Page keys arrive with no active zone', () => {
+		const { handler, moveGridMonths, setActive } = setup({ active: null })
+
+		handler(makeKeyEvent<HTMLElement>('PageDown'))
+
+		expect(moveGridMonths).toHaveBeenCalledWith(1)
+
+		expect(setActive).toHaveBeenCalledWith({ zone: 'grid', date: expect.any(Date) })
+	})
 
 	it('moves grid date backward one day on ArrowLeft', () => {
 		const { handler, moveGridDate, setActive } = setup({ active: gridActive })

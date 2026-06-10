@@ -148,13 +148,6 @@ export function hexToHsva(input: string): Hsva | null {
 	return rgba ? rgbaToHsva(rgba) : null
 }
 
-/** Lower-cased, `#`-prefixed, fixed-width hex — the form swatch equality compares against. */
-export function normalizeHex(input: string, alpha = false): string | null {
-	const rgba = hexToRgba(input)
-
-	return rgba ? rgbaToHex(rgba, alpha).toLowerCase() : null
-}
-
 /** Accept either wire format and land on HSVA. Format-agnostic — a stray string still parses. */
 export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 	if (value == null) return null

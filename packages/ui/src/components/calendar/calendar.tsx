@@ -12,6 +12,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
+import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
@@ -201,6 +202,11 @@ export function Calendar({
 		() => viewDate.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' }),
 		[viewDate, localeTag],
 	)
+
+	// Month navigation (header chevrons, picker, arrowing across a boundary)
+	// re-renders the grid silently; narrate the new view so screen readers
+	// hear where they landed (WCAG 4.1.3). The hook skips the initial value.
+	useA11yAnnouncements(monthLabel)
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 

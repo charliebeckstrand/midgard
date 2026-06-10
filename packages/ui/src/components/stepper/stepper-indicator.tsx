@@ -10,6 +10,14 @@ export type StepperIndicatorProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
+// Completed/current/upcoming differ visually by color and the checkmark
+// glyph only (WCAG 1.4.1); the sr-only suffix names the state for AT.
+const STATE_TEXT = {
+	completed: 'completed',
+	current: 'current step',
+	upcoming: 'not started',
+} as const
+
 export function StepperIndicator({ className, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()
 	const { state } = useStepperStep()
@@ -26,6 +34,7 @@ export function StepperIndicator({ className, ...props }: StepperIndicatorProps)
 			{state === 'current' && (
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
+			<span className="sr-only">, {STATE_TEXT[state]}</span>
 		</span>
 	)
 }

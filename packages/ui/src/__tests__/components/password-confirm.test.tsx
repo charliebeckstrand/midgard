@@ -43,6 +43,67 @@ describe('PasswordConfirmInput', () => {
 
 		expect(confirmInput).toHaveAttribute('data-warning')
 	})
+
+	it('describes the confirm input by the warning while the mismatch holds', () => {
+		renderUI(
+			<PasswordConfirm warning="Passwords do not match">
+				<PasswordInput name="password" />
+				<PasswordConfirmInput name="confirm" />
+			</PasswordConfirm>,
+		)
+
+		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+		const passwordInput = inputs[0] as HTMLInputElement
+
+		const confirmInput = inputs[1] as HTMLInputElement
+
+		fireEvent.input(passwordInput, { target: { value: 'abc' } })
+
+		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
+
+		// Focusing the invalid field must announce the reason, not a bare
+		// "invalid" — the warning id joins the input's aria-describedby.
+		const describedBy = confirmInput.getAttribute('aria-describedby')
+
+		expect(describedBy).toBeTruthy()
+
+		const warning = document.getElementById((describedBy as string).split(' ').at(-1) as string)
+
+		expect(warning).toHaveTextContent('Passwords do not match')
+
+		// Matching again drops both the warning and the reference.
+		fireEvent.change(confirmInput, { target: { value: 'abc' } })
+
+		expect(confirmInput).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('resets the coordinator when the confirm input unmounts', () => {
+		const { rerender } = renderUI(
+			<PasswordConfirm warning="Passwords do not match">
+				<PasswordInput name="password" />
+				<PasswordConfirmInput name="confirm" />
+			</PasswordConfirm>,
+		)
+
+		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
+
+		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
+
+		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
+
+		// Unmounting the confirm field clears the stale confirm value/name —
+		// the warning must not keep reporting a mismatch against nothing.
+		rerender(
+			<PasswordConfirm warning="Passwords do not match">
+				<PasswordInput name="password" />
+			</PasswordConfirm>,
+		)
+
+		expect(screen.queryByText('Passwords do not match')).not.toBeInTheDocument()
+	})
 })
 
 describe('PasswordConfirm warning rendering', () => {

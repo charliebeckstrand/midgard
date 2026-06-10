@@ -27,6 +27,25 @@ describe('PasswordInput', () => {
 		expect(input).toHaveAttribute('type', 'text')
 	})
 
+	it('exposes the toggle as a pressed-state button with a fixed name', async () => {
+		renderUI(<PasswordInput />)
+
+		const user = userEvent.setup()
+
+		const toggle = screen.getByRole('button', { name: 'Show password' })
+
+		// APG toggle pattern: aria-pressed conveys the state while the
+		// accessible name stays fixed — swapping the name on toggle isn't
+		// reliably announced on the same control.
+		expect(toggle).toHaveAttribute('aria-pressed', 'false')
+
+		await user.click(toggle)
+
+		expect(toggle).toHaveAttribute('aria-pressed', 'true')
+
+		expect(toggle).toHaveAccessibleName('Show password')
+	})
+
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<PasswordInput placeholder="Enter password" />)
 

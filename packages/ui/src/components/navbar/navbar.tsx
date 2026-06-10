@@ -1,3 +1,5 @@
+'use client'
+
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'

@@ -11,10 +11,19 @@ import { useMenuActions, useMenuState } from './context'
 
 export type MenuContentProps = {
 	className?: string
+	/** Accessible name for a `static` menu, which has no trigger to name it. */
+	'aria-label'?: string
+	/** Id of a visible element naming a `static` menu. */
+	'aria-labelledby'?: string
 	children: ReactNode
 }
 
-export function MenuContent({ className, children }: MenuContentProps) {
+export function MenuContent({
+	className,
+	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	children,
+}: MenuContentProps) {
 	const { open, menuId, floatingStyles, getFloatingProps, density, size } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
@@ -24,6 +33,8 @@ export function MenuContent({ className, children }: MenuContentProps) {
 			<Density space={density} size={size}>
 				<PopoverPanel
 					role="menu"
+					aria-label={ariaLabel}
+					aria-labelledby={ariaLabelledby}
 					itemSelector='[role="menuitem"]:not([data-disabled])'
 					typeahead
 					glass={glass}

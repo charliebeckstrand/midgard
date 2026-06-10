@@ -64,6 +64,33 @@ describe('Alert', () => {
 		expect(screen.queryByText('content')).not.toBeInTheDocument()
 	})
 
+	it('re-shows after a local dismissal when the controlled open prop changes', () => {
+		const { rerender } = renderUI(
+			<Alert open closable>
+				content
+			</Alert>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+
+		expect(screen.queryByText('content')).not.toBeInTheDocument()
+
+		rerender(
+			<Alert open={false} closable>
+				content
+			</Alert>,
+		)
+
+		// The prop change supersedes the sticky local dismissal.
+		rerender(
+			<Alert open closable>
+				content
+			</Alert>,
+		)
+
+		expect(screen.getByText('content')).toBeInTheDocument()
+	})
+
 	it('moves focus to returnFocusTo when dismissed', () => {
 		function Harness() {
 			const triggerRef = useRef<HTMLButtonElement>(null)

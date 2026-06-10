@@ -34,7 +34,18 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 			ref={setNodeRef}
 			style={style}
 			tabIndex={interactive ? (tabIndex ?? 0) : undefined}
-			onKeyDown={interactive ? (e: KeyboardEvent) => onItemKeyDown(id, e) : undefined}
+			onKeyDown={
+				interactive
+					? (e: KeyboardEvent) => {
+							// Keys bubbling from focusable descendants (buttons, inputs)
+							// belong to them — treating them as reorder gestures would
+							// hijack Space/Arrow/Home/End and preventDefault them away.
+							if (e.target !== e.currentTarget) return
+
+							onItemKeyDown(id, e)
+						}
+					: undefined
+			}
 			onBlur={interactive ? onItemBlur : undefined}
 			{...(interactive ? dragAttrs : {})}
 			data-slot="list-item"

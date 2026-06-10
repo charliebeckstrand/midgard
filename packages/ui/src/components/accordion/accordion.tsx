@@ -46,13 +46,19 @@ export function Accordion(props: AccordionProps) {
 
 	const collapsible = isMultiple ? true : (props.collapsible ?? true)
 
-	const controlledValue = isMultiple
-		? props.value
-		: props.value !== undefined
-			? toArray(props.value)
-			: undefined
+	// Memoized so the single-mode `toArray` wrap doesn't mint a new array — and
+	// with it a new context identity — on every render of a controlled accordion.
+	const controlledValue = useMemo(
+		() =>
+			props.type === 'multiple'
+				? props.value
+				: props.value !== undefined
+					? toArray(props.value)
+					: undefined,
+		[props.type, props.value],
+	)
 
-	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue ?? null)
+	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
 
 	const onValueChangeRef = useRef(props.onValueChange)
 

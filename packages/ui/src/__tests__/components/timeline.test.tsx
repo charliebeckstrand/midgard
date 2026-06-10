@@ -9,6 +9,21 @@ import {
 import { bySlot, renderUI } from '../helpers'
 
 describe('Timeline', () => {
+	it('exposes a current compound marker as a styling hook', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem>
+					<TimelineMarker color="blue" current />
+					Now
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		// `current` was previously accepted and silently discarded. ARIA stays
+		// on the TimelineItem <li>; the marker carries the styling hook.
+		expect(bySlot(container, 'timeline-marker')).toHaveAttribute('data-current')
+	})
+
 	it('renders with data-slot="timeline"', () => {
 		const { container } = renderUI(
 			<Timeline>

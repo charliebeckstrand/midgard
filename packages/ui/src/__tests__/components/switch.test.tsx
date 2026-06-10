@@ -5,6 +5,17 @@ import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 
 describe('Switch', () => {
+	it('keeps the switch role and synced aria-checked over consumer props', () => {
+		const { container } = renderUI(<Switch checked onChange={() => {}} role="checkbox" />)
+
+		const input = container.querySelector('input') as HTMLInputElement
+
+		// Internal wiring wins over a consumer spread (the established pattern).
+		expect(input).toHaveAttribute('role', 'switch')
+
+		expect(input).toHaveAttribute('aria-checked', 'true')
+	})
+
 	it('renders a checkbox input with data-slot="switch" and a thumb element', () => {
 		const { container } = renderUI(<Switch />)
 

@@ -4,6 +4,7 @@ import { type ComponentPropsWithoutRef, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
+import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 
@@ -66,6 +67,10 @@ export function Message({
 	const role = variant === 'error' ? 'alert' : 'status'
 
 	if (isFormBoundError && issues && all && issues.length > 1) {
+		// Text alone can collide as a key — the native validator path doesn't
+		// dedupe identical messages — so repeats get an occurrence suffix.
+		const keyed = keyByOccurrence(issues)
+
 		return (
 			<ul
 				data-slot="message"
@@ -74,8 +79,8 @@ export function Message({
 				role={role}
 				className={className_}
 			>
-				{issues.map((issue) => (
-					<li key={issue}>{issue}</li>
+				{keyed.map(({ key, value }) => (
+					<li key={key}>{value}</li>
 				))}
 			</ul>
 		)

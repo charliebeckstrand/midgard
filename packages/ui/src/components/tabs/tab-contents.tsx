@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { useTabsContext } from './context'
@@ -9,8 +9,20 @@ import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 export type TabContentsProps = Omit<ComponentPropsWithoutRef<typeof CurrentContents>, 'slotPrefix'>
 export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
 
-export function TabContents(props: TabContentsProps) {
-	return <CurrentContents slotPrefix="tab" {...props} />
+export function TabContents({ fade = true, ...props }: TabContentsProps) {
+	const tabsContext = useTabsContext()
+
+	const registerMountedPanels = tabsContext?.registerMountedPanels
+
+	// Fade mode keeps inactive panels mounted; tell the tabs so inactive Tabs
+	// keep their aria-controls reference instead of assuming the panel is gone.
+	useEffect(() => {
+		if (!fade) return
+
+		return registerMountedPanels?.()
+	}, [fade, registerMountedPanels])
+
+	return <CurrentContents slotPrefix="tab" fade={fade} {...props} />
 }
 
 /**

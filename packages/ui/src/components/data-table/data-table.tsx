@@ -62,6 +62,13 @@ export type DataTableProps<T> = TableVariants & {
 
 	rowClassName?: (row: T) => string | undefined
 
+	/**
+	 * Human-readable name for a row, used to label its selection checkbox
+	 * ("Select {label}"). Falls back to the raw row key, which can be cryptic
+	 * for assistive tech when keys are ids.
+	 */
+	rowLabel?: (row: T) => string
+
 	stickyHeader?: boolean
 	maxHeight?: string
 
@@ -108,6 +115,7 @@ export function DataTable<T>({
 	selection: selectionConfig,
 	columnManager: columnManagerConfig,
 	rowClassName,
+	rowLabel,
 	stickyHeader = false,
 	maxHeight,
 	loading = false,
@@ -204,12 +212,20 @@ export function DataTable<T>({
 			striped={striped}
 			className={className}
 			// `aria-busy` marks the table as updating while the loading skeleton
-			// stands in for the body. Virtualization windows the DOM, so
-			// `aria-rowcount` advertises the full row count (header + data rows).
+			// stands in for the body. Virtualization windows the DOM, so the full
+			// extent is advertised: `role="grid"` (aria-rowindex is inert on a
+			// plain `role="table"`), `aria-rowcount` (header + data rows), and
+			// `aria-colcount`, with per-cell indices emitted by head/row.
 			tableProps={{
 				...tableProps,
 				...(loading ? { 'aria-busy': true } : {}),
-				...(virtualizeEnabled ? { 'aria-rowcount': rows.length + 1 } : {}),
+				...(virtualizeEnabled
+					? {
+							role: tableProps?.role ?? 'grid',
+							'aria-rowcount': rows.length + 1,
+							'aria-colcount': visibleColumns.length,
+						}
+					: {}),
 			}}
 		>
 			<DataTableHead
@@ -226,6 +242,7 @@ export function DataTable<T>({
 				getKey={getKey}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
+				rowLabel={rowLabel}
 				empty={empty}
 				selection={selection}
 				toggleRow={toggleRow}

@@ -146,6 +146,20 @@ describe('MenuContent', () => {
 		expect(menu).toBeInTheDocument()
 	})
 
+	it('names a static menu via the forwarded aria-label', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent aria-label="Actions">
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// A static menu has no trigger to name it; the forwarded label is the
+		// only path to an accessible name.
+		expect(container.querySelector('[role="menu"]')).toHaveAttribute('aria-label', 'Actions')
+	})
+
 	it('does not steal focus when rendered as a static menu', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
@@ -415,7 +429,10 @@ describe('Menu context-menu mode', () => {
 		const root = bySlot(container, 'menu') as HTMLElement
 
 		// Without a placement prop the root wrapper opts into context-menu mode.
-		expect(root).toHaveAttribute('role', 'application')
+		// The wrapper holds arbitrary page content and implements no keyboard
+		// model — it must NOT carry role="application", which suppresses AT
+		// browse-mode for everything inside it.
+		expect(root).not.toHaveAttribute('role')
 
 		fireEvent.contextMenu(root, { clientX: 50, clientY: 80 })
 

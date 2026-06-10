@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	buildSearchIndex,
+	collectMatchPaths,
 	collectPaths,
 	filterEntries,
 	flattenTree,
@@ -31,6 +32,29 @@ describe('normalizeSearch', () => {
 
 	it('defaults the filter flag to false when omitted', () => {
 		expect(normalizeSearch({ value: 'term' })).toEqual({ value: 'term', filter: false })
+	})
+})
+
+describe('collectMatchPaths', () => {
+	it('collects every branch on the path to a match and prunes the rest', () => {
+		const data: JsonValue = {
+			hit: { inner: { needle: 'x' } },
+			miss: { other: { value: 1 } },
+		}
+
+		const index = buildSearchIndex(data, 'needle')
+
+		const paths = collectMatchPaths(data, undefined, index)
+
+		expect(paths).toEqual(new Set(['$', '$.hit', '$.hit.inner']))
+	})
+
+	it('returns an empty set when nothing matches', () => {
+		const data: JsonValue = { a: { b: 1 } }
+
+		const index = buildSearchIndex(data, 'zzz')
+
+		expect(collectMatchPaths(data, undefined, index).size).toBe(0)
 	})
 })
 

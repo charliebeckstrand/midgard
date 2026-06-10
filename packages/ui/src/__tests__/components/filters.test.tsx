@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
+import { Checkbox } from '../../components/checkbox'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
 import { Input } from '../../components/input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { Radio } from '../../components/radio'
+import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Filters group', () => {
 	it('exposes the bar as a named role="group"', () => {
@@ -29,6 +31,72 @@ describe('FiltersField', () => {
 		)
 		const input = bySlot(container, 'input') as HTMLInputElement
 		expect(input.value).toBe('hello')
+	})
+
+	it('drives a Checkbox via checked, reflecting the boolean slot', async () => {
+		const onValueChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<Filters aria-label="Filters" value={{ done: true }} onValueChange={onValueChange}>
+				<FiltersField name="done">
+					<Checkbox />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const checkbox = bySlot(container, 'checkbox') as HTMLInputElement
+
+		// A toggle reads `checked`, not `value` — without it the control never
+		// reflects the filter state.
+		expect(checkbox.checked).toBe(true)
+
+		rerender(
+			<Filters aria-label="Filters" value={{}} onValueChange={onValueChange}>
+				<FiltersField name="done">
+					<Checkbox />
+				</FiltersField>
+			</Filters>,
+		)
+
+		expect(checkbox.checked).toBe(false)
+
+		const user = userEvent.setup()
+
+		await user.click(checkbox)
+
+		expect(onValueChange).toHaveBeenCalledWith({ done: true })
+	})
+
+	it('keeps a Radio option value and checks it against the slot', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ status: 'open' }} onValueChange={onValueChange}>
+				<FiltersField name="status">
+					<Radio name="status" value="open" />
+				</FiltersField>
+				<FiltersField name="status">
+					<Radio name="status" value="closed" />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const radios = allBySlot(container, 'radio') as HTMLInputElement[]
+
+		// The option `value` must survive cloning — it is the radio's identity.
+		expect(radios[0]).toHaveAttribute('value', 'open')
+
+		expect(radios[1]).toHaveAttribute('value', 'closed')
+
+		expect(radios[0]?.checked).toBe(true)
+
+		expect(radios[1]?.checked).toBe(false)
+
+		const user = userEvent.setup()
+
+		await user.click(radios[1] as HTMLInputElement)
+
+		expect(onValueChange).toHaveBeenCalledWith({ status: 'closed' })
 	})
 
 	it('calls onChange when input changes (auto-binding)', async () => {
@@ -65,6 +133,34 @@ describe('FiltersField', () => {
 		const user = userEvent.setup()
 		await user.type(input, 'b')
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
+	})
+})
+
+describe('Filters announcements', () => {
+	it('announces the active count politely when filters change, skipping mount', async () => {
+		const politeRegion = () =>
+			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+		const { rerender } = renderUI(
+			<Filters aria-label="Filters" value={{ name: 'a' }} onValueChange={() => {}}>
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		// Lazily created on first announce — absent means nothing was announced on mount.
+		expect(politeRegion()?.textContent ?? '').toBe('')
+
+		rerender(
+			<Filters aria-label="Filters" value={{ name: 'a', other: 'b' }} onValueChange={() => {}}>
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('2 filters active'))
 	})
 })
 

@@ -8,6 +8,8 @@ import type { FlatNode } from './json-tree-utilities'
 type JsonNodeRowProps = {
 	node: FlatNode
 	onToggle: (path: string) => void
+	/** Carries the tree's single Tab stop. Windowing decides per render which mounted row holds it. */
+	tabbable?: boolean
 }
 
 /**
@@ -15,7 +17,7 @@ type JsonNodeRowProps = {
  * Shares visual slots (`json-node`, `json-node-toggle`, `json-close`) and
  * classes with the recursive `JsonTreeNode`.
  */
-export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
+export function JsonTreeNodeRow({ node, onToggle, tabbable }: JsonNodeRowProps) {
 	if (node.type === 'leaf') {
 		return (
 			<JsonTreeLeafRow
@@ -23,6 +25,7 @@ export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
 				keyName={node.keyName}
 				value={node.value}
 				highlighted={node.highlighted}
+				tabbable={tabbable}
 			/>
 		)
 	}
@@ -42,6 +45,7 @@ export function JsonTreeNodeRow({ node, onToggle }: JsonNodeRowProps) {
 				open={node.open}
 				count={node.count}
 				highlighted={node.highlighted}
+				tabbable={tabbable}
 				onToggle={() => onToggle(node.path)}
 			/>
 		</div>

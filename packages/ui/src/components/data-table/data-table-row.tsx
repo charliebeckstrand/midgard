@@ -14,6 +14,8 @@ type DataTableRowProps<T> = {
 	columns: DataTableColumn<T>[]
 	loading: boolean
 	className: string | undefined
+	/** Human-readable name for the selection checkbox ("Select {label}"); falls back to the row key. */
+	rowLabel?: string
 	/**
 	 * This row's selected state. Passed as a prop, not read from context, so
 	 * `memo` re-renders only this row when its selection flips.
@@ -42,6 +44,7 @@ function DataTableRowImpl<T>({
 	columns,
 	loading,
 	className,
+	rowLabel,
 	selected,
 	toggleRow,
 	rowIndex,
@@ -60,14 +63,22 @@ function DataTableRowImpl<T>({
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>
-				{columns.map((col) => {
+				{columns.map((col, colIdx) => {
+					// Cell column indices accompany aria-rowindex under virtualization
+					// (rowIndex is only set then) so AT can report the active column.
+					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
+
 					if (col.selectable) {
 						return (
-							<TableCell key={col.id} className={cn(k.selectCell, col.className)}>
+							<TableCell
+								key={col.id}
+								aria-colindex={colIndex}
+								className={cn(k.selectCell, col.className)}
+							>
 								<Checkbox
 									checked={selected}
 									onChange={() => toggleRow(rowKey)}
-									aria-label={`Select row ${rowKey}`}
+									aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
 								/>
 							</TableCell>
 						)
@@ -75,7 +86,11 @@ function DataTableRowImpl<T>({
 
 					if (col.actions) {
 						return (
-							<TableCell key={col.id} className={cn(k.actionsCell, col.className)}>
+							<TableCell
+								key={col.id}
+								aria-colindex={colIndex}
+								className={cn(k.actionsCell, col.className)}
+							>
 								{col.actions(row)}
 							</TableCell>
 						)
@@ -86,6 +101,7 @@ function DataTableRowImpl<T>({
 					return (
 						<TableCell
 							key={col.id}
+							aria-colindex={colIndex}
 							{...cellExtra}
 							className={cn(col.className, cellExtra?.className)}
 						>

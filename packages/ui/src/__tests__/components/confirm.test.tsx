@@ -41,6 +41,45 @@ describe('Confirm', () => {
 		expect(screen.getByText('Extra content')).toBeInTheDocument()
 	})
 
+	it('describes the alertdialog by its children when no description is given', () => {
+		renderUI(
+			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} title="Delete item">
+				This cannot be undone.
+			</Confirm>,
+		)
+
+		const dialog = screen.getByRole('alertdialog')
+
+		const describedBy = dialog.getAttribute('aria-describedby')
+
+		expect(describedBy).toBeTruthy()
+
+		expect(document.getElementById(describedBy as string)).toHaveTextContent(
+			'This cannot be undone.',
+		)
+	})
+
+	it('keeps the explicit description as the accessible description over children', () => {
+		renderUI(
+			<Confirm
+				open
+				onOpenChange={() => {}}
+				onConfirm={() => {}}
+				description="This cannot be undone."
+			>
+				<div>Extra content</div>
+			</Confirm>,
+		)
+
+		const dialog = screen.getByRole('alertdialog')
+
+		const describedBy = dialog.getAttribute('aria-describedby')
+
+		expect(document.getElementById(describedBy as string)).toHaveTextContent(
+			'This cannot be undone.',
+		)
+	})
+
 	it('renders default Confirm and Cancel buttons', () => {
 		renderUI(<Confirm open onOpenChange={() => {}} onConfirm={() => {}} />)
 

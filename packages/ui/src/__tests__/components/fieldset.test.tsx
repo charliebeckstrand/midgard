@@ -92,6 +92,43 @@ describe('Message', () => {
 		expect(screen.getByText('Looks good')).toBeInTheDocument()
 	})
 
+	it('flips the control aria-invalid while an error Message is mounted', () => {
+		// A non-form-bound Field whose error Message renders was described by the
+		// message but never marked invalid (the audit's message/field gap).
+		const { container, rerender } = renderUI(
+			<Field>
+				<Label>Name</Label>
+				<Input />
+				<Message>Required</Message>
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		rerender(
+			<Field>
+				<Label>Name</Label>
+				<Input />
+			</Field>,
+		)
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('does not mark the control invalid for a success Message', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Name</Label>
+				<Input />
+				<Message variant="success">Looks good</Message>
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-invalid')
+	})
+
 	it('respects an explicit id when provided', () => {
 		const { container } = renderUI(<Message id="m1">oops</Message>)
 

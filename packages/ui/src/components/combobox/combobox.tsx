@@ -233,6 +233,25 @@ export function Combobox<T>({
 		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
 	}, [open, deferredQuery])
 
+	// Async option swaps for an unchanged query (e.g. address suggestions
+	// resolving) unmount the highlighted option while `deferredQuery` — the
+	// key of the effect above — never changes, leaving `aria-activedescendant`
+	// dangling. Runs after every render (the swap arrives as new children, not
+	// through any dep this component could key on) with a cheap existence
+	// guard, re-anchoring to the top match only when the highlight's id has
+	// left the document.
+	useEffect(() => {
+		if (!open) return
+
+		const activeId = inputRef.current?.getAttribute('aria-activedescendant')
+
+		if (!activeId || document.getElementById(activeId)) return
+
+		const items = queryItems(optionsRef.current, OPTION_SELECTOR)
+
+		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
+	})
+
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,

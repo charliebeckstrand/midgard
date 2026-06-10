@@ -458,4 +458,18 @@ describe('KanbanColumn naming', () => {
 
 		expect(screen.getByRole('region', { name: 'Done' })).toBeInTheDocument()
 	})
+
+	it('omits aria-labelledby when no title is rendered, so it never dangles', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				{columns.map((column) => (
+					<KanbanColumn key={column.id} columnId={column.id} />
+				))}
+			</Kanban>,
+		)
+
+		for (const section of container.querySelectorAll('[data-slot="kanban-column"]')) {
+			expect(section).not.toHaveAttribute('aria-labelledby')
+		}
+	})
 })

@@ -8,10 +8,11 @@ export type BreadcrumbLinkProps = {
 } & PolymorphicProps<'span'>
 
 /**
- * A breadcrumb crumb: a link when `href` is set, otherwise a `<span>` marked
- * `aria-current="page"` for the current location. Routes through `Polymorphic`
- * so href dispatch and the app's registered link component are shared with the
- * rest of the library; breadcrumb supplies its own `k.link` styling.
+ * A breadcrumb crumb: a link when `href` is set, otherwise a `<span>`. Either
+ * form carries `aria-current="page"` when `current` — the APG keeps the
+ * current crumb a link too. Routes through `Polymorphic` so href dispatch and
+ * the app's registered link component are shared with the rest of the
+ * library; breadcrumb supplies its own `k.link` styling.
  */
 export function BreadcrumbLink({
 	current = false,
@@ -25,7 +26,7 @@ export function BreadcrumbLink({
 			as="span"
 			href={href}
 			data-slot="breadcrumb-link"
-			aria-current={current && href === undefined ? 'page' : undefined}
+			aria-current={current ? 'page' : undefined}
 			className={cn(k.link({ current }), className)}
 			{...props}
 		>

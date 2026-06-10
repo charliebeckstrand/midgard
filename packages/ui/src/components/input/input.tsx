@@ -121,7 +121,14 @@ export function Input(props: InputProps) {
 	const resolvedPrefix = prefix
 	const resolvedSuffix = loading ? <LoadingSpinner /> : suffix
 
-	const hasAffix = resolvedPrefix !== undefined || resolvedSuffix !== undefined
+	// One definition of "present" for both the wrapper class and the render
+	// guards — `!== undefined` here with truthy guards below let a null/false
+	// affix style the frame while rendering nothing (and `0` leaked as a bare
+	// text node through the `&&`).
+	const hasPrefix = resolvedPrefix != null && resolvedPrefix !== false
+	const hasSuffix = resolvedSuffix != null && resolvedSuffix !== false
+
+	const hasAffix = hasPrefix || hasSuffix
 
 	if (skeleton) {
 		return <ControlSkeleton size={size} className={className} />
@@ -140,7 +147,7 @@ export function Input(props: InputProps) {
 						hasAffix && 'group/control flex flex-wrap items-center',
 					)}
 				>
-					{resolvedPrefix && (
+					{hasPrefix && (
 						<span className={cn('peer/prefix', k.affix, k.prefix[token.space])}>
 							{resolvedPrefix}
 						</span>
@@ -148,7 +155,7 @@ export function Input(props: InputProps) {
 
 					{inputEl}
 
-					{resolvedSuffix && (
+					{hasSuffix && (
 						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.space])}>
 							{resolvedSuffix}
 						</span>

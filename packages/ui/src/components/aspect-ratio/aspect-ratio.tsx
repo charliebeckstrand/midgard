@@ -1,6 +1,8 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '../../core'
-import { type AspectRatioPreset, ratioMap } from './variants'
+import { k } from '../../recipes/kata/aspect-ratio'
+
+export type AspectRatioPreset = keyof typeof k.ratio
 
 export type AspectRatioProps = {
 	/** Preset name or numeric ratio. Defaults to square. */
@@ -22,7 +24,7 @@ export function AspectRatio({
 	return (
 		<div
 			data-slot="aspect-ratio"
-			className={cn('overflow-hidden', isPreset && ratioMap[ratio], className)}
+			className={cn('overflow-hidden', isPreset && k.ratio[ratio], className)}
 			style={isPreset ? style : { aspectRatio: ratio, ...style }}
 			{...props}
 		>

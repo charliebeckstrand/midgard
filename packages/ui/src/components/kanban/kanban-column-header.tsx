@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { type ReactNode, useEffect } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { kanbanColumnTitleId, useKanbanColumnContext } from './context'
@@ -22,7 +24,9 @@ export type KanbanColumnTitleProps = {
 }
 
 export function KanbanColumnTitle({ children, className }: KanbanColumnTitleProps) {
-	const { columnId } = useKanbanColumnContext()
+	const { columnId, registerTitle } = useKanbanColumnContext()
+
+	useEffect(() => registerTitle(), [registerTitle])
 
 	return (
 		<span
