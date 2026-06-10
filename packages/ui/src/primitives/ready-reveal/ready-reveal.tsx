@@ -23,8 +23,8 @@ const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 const GRID_CELL = { gridArea: '1 / 1' } as const
 
 /**
- * Crossfade transition between a placeholder and real content.
- * The placeholder should mirror the content layout so dimensions stay stable.
+ * Crossfades between a placeholder and real content.
+ * The placeholder mirrors the content layout, keeping dimensions stable.
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	return (
@@ -36,8 +36,8 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 			>
 				<motion.div
 					aria-hidden={ready}
-					// `inert` (not just aria-hidden + pointer-events) keeps the hidden
-					// layer's descendants out of the Tab order and off the a11y tree.
+					// `inert` keeps the hidden layer's descendants out of the Tab
+					// order and off the a11y tree.
 					inert={ready}
 					animate={ready ? HIDDEN : VISIBLE}
 					initial={false}

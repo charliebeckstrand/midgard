@@ -3,8 +3,8 @@
 import { type Ref, type RefCallback, useCallback, useRef } from 'react'
 
 /**
- * Merge several refs into one stable callback ref. Each provided ref — object
- * or function — receives the node on attach. Useful when a component keeps an
+ * Merge several refs into one stable callback ref. Each provided ref (object
+ * or function) receives the node on attach. Useful when a component keeps an
  * internal ref (for measurement or caret restoration) yet must also forward an
  * external `ref`. The returned callback is stable across renders and always
  * writes to the latest refs.

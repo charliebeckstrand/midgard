@@ -6,9 +6,9 @@ import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 
 /**
- * Renders the page surface inside the measured viewport — either the active
+ * Renders the page surface inside the measured viewport: either the active
  * page image, an error message, a loading placeholder, or an empty state.
- * The viewport's aspect ratio is driven by the `scale` input so the container
+ * The `scale` input drives the viewport's aspect ratio; the container
  * reserves space before the image paints.
  */
 export function PdfViewerViewport() {

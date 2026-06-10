@@ -13,7 +13,7 @@ import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
 type ColorPickerBaseProps = {
-	/** Enable the alpha channel — adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
+	/** Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
 	alpha?: boolean
 	/** Preset swatches, or `false` to hide them. Defaults to a built-in palette. */
 	swatches?: readonly string[] | false
@@ -31,7 +31,7 @@ type ColorPickerBaseProps = {
 export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
- * Popover colour picker — a Control-integrated swatch trigger that opens a
+ * Popover colour picker: a Control-integrated swatch trigger that opens a
  * floating `ColorPanel`. Controlled or uncontrolled, speaking a hex string
  * (default) or an HSVA object per `format`; `size` resolves through the
  * explicit prop, then `<Control>`, then Density, then `'md'`.
@@ -69,14 +69,14 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		defaultValue: props.defaultValue,
 		format,
 		alpha,
-		// See ColorPanel — the format discriminant is erased into a widened handler.
+		// As in ColorPanel: the format discriminant erases into a widened handler.
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 		placement,
 		disabled,
 	})
 
-	// The picker owns the colour; the inline panel is driven as a controlled child.
-	// The format union is rebuilt at runtime and the prop bag is asserted into shape.
+	// The picker owns the colour and drives the inline panel as a controlled child.
+	// The prop bag rebuilds the format union at runtime and asserts into shape.
 	const panelProps = {
 		format,
 		value: serializeColor(state.hsva, format, alpha),

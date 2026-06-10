@@ -1,2 +1,2 @@
-/** No-op function. Useful as a default callback. */
+/** No-op function. */
 export const noop: () => void = () => {}

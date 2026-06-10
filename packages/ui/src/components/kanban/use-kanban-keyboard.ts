@@ -92,8 +92,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 				case 'ArrowRight': {
 					const dir = key === 'ArrowLeft' ? -1 : 1
 
-					// Skip over empty columns to the next populated one in the travel
-					// direction instead of stopping at the first empty neighbor.
+					// Skip empty columns to the next populated one in the travel
+					// direction.
 					let nextColIdx = colIdx + dir
 
 					while (nextColIdx >= 0 && nextColIdx < columns.length) {
@@ -195,7 +195,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			onValueChange(next)
 
-			// Card is appended to the end of the target column.
+			// The move appends the card to the end of the target column.
 			const position = targetCol.items.length + 1
 
 			announce(

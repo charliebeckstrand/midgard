@@ -11,8 +11,8 @@ type CalendarMonthOptions = {
 /**
  * Owns the calendar's `viewDate` (the month/year currently rendered) and the
  * rules that re-anchor it when `value` or the `active` grid date moves to a
- * different month. The re-anchor happens during render via prev-ref tracking
- * rather than in a `useEffect`, avoiding an extra render cycle.
+ * different month. The re-anchor happens during render via prev-ref tracking,
+ * not in a `useEffect`; it costs no extra render cycle.
  */
 export function useCalendarMonth({ value, defaultValue, activeGridDate }: CalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {
@@ -22,9 +22,9 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	})
 
 	// A clock-seeded view can differ between the server render and the client
-	// (timezone offset, month boundary) — the sibling `today` defers to a mount
-	// effect for exactly this reason. The state seed must stay synchronous so
-	// SSR paints a month; instead, correct any drift once after mount.
+	// (timezone offset, month boundary); the sibling `today` defers to a mount
+	// effect for the same mismatch. The state seed stays synchronous and SSR
+	// paints a month; this effect corrects any drift once after mount.
 	const clockSeeded = useRef(value == null && defaultValue == null)
 
 	useEffect(() => {

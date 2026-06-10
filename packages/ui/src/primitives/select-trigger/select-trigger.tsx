@@ -16,7 +16,7 @@ type SelectTriggerProps = {
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode
-	/** Props spread onto the suffix `<span>` slot — used by Combobox to make the chevron a click target. */
+	/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
 	suffixProps?: Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
 	className?: string
 	frameProps?: Omit<ComponentPropsWithoutRef<typeof ControlFrame>, 'className' | 'children'>
@@ -33,7 +33,7 @@ type SelectTriggerProps = {
  * The interactive element (input vs button) and any non-wrapped suffix content
  * are supplied by the caller.
  *
- * A presentational primitive — it owns no state.
+ * A presentational primitive; it owns no state.
  */
 export function SelectTrigger({
 	open,

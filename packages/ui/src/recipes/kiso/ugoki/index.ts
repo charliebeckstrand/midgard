@@ -1,5 +1,5 @@
 /**
- * Ugoki (動き) — motion. CSS transition fragments live under `css`;
+ * Ugoki (動き): motion. CSS transition fragments live under `css`;
  * Framer Motion enter / exit configs flow through their own files.
  * This barrel assembles the named bundle that every kata reads.
  */

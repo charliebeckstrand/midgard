@@ -1,5 +1,5 @@
 /**
- * Segment archetype — outer control. The rounded-box chrome that hosts the
+ * Segment archetype: outer control. The rounded-box chrome that hosts the
  * segment items and the sliding indicator. The size axis sets the padding
  * and the gap between items.
  *

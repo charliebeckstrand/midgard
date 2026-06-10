@@ -81,9 +81,7 @@ describe('Textarea', () => {
 	})
 
 	it('keeps an explicit controlled value over a Form binding of the same name', () => {
-		// Regression: an explicit `value` must win over the enclosing Form's store,
-		// matching Input. Otherwise a controlled Textarea inside a Form tracking the
-		// same field silently shows the store value and desyncs from the consumer.
+		// An explicit `value` wins over the enclosing Form's store, matching Input.
 		const { container } = renderUI(
 			<Form defaultValues={{ bio: 'stored' }}>
 				<Textarea name="bio" value="explicit" onChange={() => {}} />

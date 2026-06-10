@@ -17,7 +17,7 @@ export type PopoverProps = {
 }
 
 /**
- * Composition root for a click-triggered, **non-modal** floating dialog —
+ * Composition root for a click-triggered, **non-modal** floating dialog;
  * supplies positioning and disclosure state to its trigger and panel via
  * context, controlled or uncontrolled through `open`/`onOpenChange`. The panel
  * does not trap focus and carries no `aria-modal`: Tab moves through it and on
@@ -33,10 +33,9 @@ export function Popover({
 	children,
 }: PopoverProps) {
 	// The trigger (`aria-haspopup="dialog"`) and the panel (`role="dialog"`)
-	// carry their own roles; `role: null` suppresses floating-ui's `useRole` so
-	// it doesn't stamp a second, unnamed `role="dialog"` onto the positioning
-	// wrapper. `panelId` lets the trigger's `aria-controls` point at the real
-	// panel.
+	// carry their own roles; `role: null` suppresses floating-ui's `useRole`,
+	// which stamps a second, unnamed `role="dialog"` onto the positioning
+	// wrapper. `panelId` wires the trigger's `aria-controls` to the real panel.
 	const panelId = useId()
 
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =

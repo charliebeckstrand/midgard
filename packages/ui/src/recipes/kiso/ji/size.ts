@@ -1,5 +1,5 @@
 /**
- * Ji size — type-size scale. Each step bundles `font-size` with its
+ * Ji size: type-size scale. Each step bundles `font-size` with its
  * matching `line-height` per the Tailwind named scale.
  *
  * Layer: kiso · Concern: type size

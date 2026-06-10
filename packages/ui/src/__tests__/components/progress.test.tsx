@@ -87,8 +87,7 @@ describe('ProgressGauge', () => {
 	it('renders no label slot for label={false}', () => {
 		const { container } = renderUI(<ProgressGauge value={40} label={false} aria-label="Used" />)
 
-		// `false` previously slipped past a `!= null` guard, rendering an empty
-		// absolutely-positioned span over the gauge.
+		// `false` renders no label span over the gauge.
 		expect(container.querySelector('[data-slot="progress-gauge"] span')).toBeNull()
 	})
 

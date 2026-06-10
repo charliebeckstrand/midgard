@@ -1,6 +1,6 @@
 /**
- * Ji (字) — typography. Four named axes — `size`, `weight`, `leading`,
- * `family` — each addressable as `ji.<axis>.<key>`. One file per concern;
+ * Ji (字): typography. Four named axes (`size`, `weight`, `leading`,
+ * `family`), each addressable as `ji.<axis>.<key>`. One file per concern;
  * this barrel assembles the named bundle that every kata reads.
  */
 

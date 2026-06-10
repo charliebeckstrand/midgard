@@ -38,7 +38,7 @@ export type PasswordStrengthProps = {
 	className?: string
 }
 
-/** Password strength meter and rule checklist driven by a `value` against a set of `rules` — renders a four-segment `progressbar` and reports the level via `onStrengthChange`. */
+/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a four-segment `progressbar` and reports the level via `onStrengthChange`. */
 export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,
@@ -94,7 +94,7 @@ export function PasswordStrength({
 								className={cn(k.rule.icon, passed ? k.rule.iconPass : k.rule.iconFail)}
 							/>
 							<span className={cn(passed ? k.rule.textPass : k.rule.text)}>{rule.label}</span>
-							{/* Pass/fail is otherwise conveyed by the (decorative) icon and color only. */}
+							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
 							<span className="sr-only">{passed ? ' — met' : ' — not met'}</span>
 						</li>
 					))}

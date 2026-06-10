@@ -513,7 +513,7 @@ describe('Toast: useToast behavior', () => {
 			</ToastProvider>,
 		)
 
-		// Should be a silent no-op rather than throw.
+		// A silent no-op rather than a throw.
 		expect(() => {
 			act(() => {
 				api?.dismiss({ id: 'does-not-exist' })
@@ -537,7 +537,7 @@ describe('Toast: useToast behavior', () => {
 			api?.toast({ title: 'Three', persist: true })
 		})
 
-		// With maxToasts=0 the excess-cap branch is skipped — everything stays.
+		// With maxToasts=0 the excess-cap branch is skipped; everything stays.
 		expect(screen.getByText('One')).toBeInTheDocument()
 
 		expect(screen.getByText('Two')).toBeInTheDocument()

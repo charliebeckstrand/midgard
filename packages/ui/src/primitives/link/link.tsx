@@ -17,9 +17,9 @@ export type LinkContextValue = {
 }
 
 /**
- * Link context — exposes the framework-specific link component an app has
- * registered (e.g. `next/link`). The user-facing `<Link>` lives in
- * `components/link`; the friendly `<UIProvider>` (which registers it) lives in
+ * Link context: exposes the framework-specific link component an app
+ * registers (e.g. `next/link`). The user-facing `<Link>` lives in
+ * `components/link`; `<UIProvider>` (which registers it) lives in
  * `providers/ui`. Primitives consume the context to render links without
  * depending on either.
  */

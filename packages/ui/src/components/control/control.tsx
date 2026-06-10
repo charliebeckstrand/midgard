@@ -71,8 +71,8 @@ export function Control({
 			required,
 			size: mergedSize,
 			variant: mergedVariant,
-			// The a11y bundle (label / description / error ids + registrars +
-			// composed labelledBy/describedBy) is spread wholesale.
+			// Spreads the a11y bundle wholesale: label / description / error ids,
+			// registrars, and composed labelledBy/describedBy.
 			...a11y,
 		}),
 		[

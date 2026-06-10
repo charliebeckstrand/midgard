@@ -60,7 +60,7 @@ describe('useGroup', () => {
 		const { container } = renderUI(<Harness count={3} />)
 
 		// React keys aren't visible in the DOM; the data-original-key attribute is
-		// our proxy. cloneElement should not strip it.
+		// the proxy. cloneElement must not strip it.
 		const keys = allBySlot(container, 'child').map((el) => el.getAttribute('data-original-key'))
 
 		expect(keys).toEqual(['0', '1', '2'])

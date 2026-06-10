@@ -26,12 +26,12 @@ export type RangeSliderProps = {
 	 */
 	allowCross?: boolean
 	/**
-	 * Accessible names for the `[start, end]` thumbs. Override the generic
-	 * defaults so each range announces what it bounds (e.g. `['Min price', 'Max
-	 * price']`). Defaults to `['Range start', 'Range end']`.
+	 * Accessible names for the `[start, end]` thumbs; name what each thumb
+	 * bounds (e.g. `['Min price', 'Max price']`). Defaults to
+	 * `['Range start', 'Range end']`.
 	 */
 	labels?: [string, string]
-	/** Formats a thumb's value for assistive tech (`aria-valuetext`) — currency, ratings, levels announce as meaningful text instead of a bare number. */
+	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number, thumb: 0 | 1) => string
 	className?: string
 	style?: CSSProperties

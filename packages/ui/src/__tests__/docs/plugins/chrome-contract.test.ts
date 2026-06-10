@@ -11,14 +11,11 @@ const DOCS_COMPONENTS = path.join(SRC_DIR, 'docs', 'components')
 
 /**
  * The docs code-derivation walker filters its own UI controls out of generated
- * snippets purely by their NOT being tagged with __module/__name at build time
- * (INV-UNWRAP-UNKNOWN). There is no allow/deny list — the only thing keeping a
+ * snippets by their not being tagged with __module/__name at build time
+ * (INV-UNWRAP-UNKNOWN). There is no allow/deny list; the only thing keeping a
  * docs-internal control (VariantListbox, LabeledRow, ...) out of every code
- * block is that the docs plugin's `moduleNameFor` declines to name it.
- *
- * That guarantee was implicit and untested: tag one of these by accident, or
- * relocate a real component under src/docs/, and code blocks silently break
- * with no failing test. This file makes the contract explicit.
+ * block is that the docs plugin's `moduleNameFor` declines to name it. This
+ * suite pins that contract.
  */
 describe('chrome contract: docs-internal controls are never tagged', () => {
 	it('declines every real file under src/docs/components/', () => {
@@ -39,8 +36,8 @@ describe('chrome contract: docs-internal controls are never tagged', () => {
 	})
 
 	it('declines an index.ts even if one were nested under src/docs/components/', () => {
-		// The `docs/` segment — not the filename shape — is what protects controls,
-		// so a control authored as `<name>/index.ts` must still be excluded.
+		// The `docs/` segment, not the filename shape, protects controls; a
+		// control authored as `<name>/index.ts` is still excluded.
 		expect(moduleNameFor(path.join(DOCS_COMPONENTS, 'fake-control', 'index.ts'), SRC_DIR)).toBe(
 			null,
 		)

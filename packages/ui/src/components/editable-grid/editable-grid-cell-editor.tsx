@@ -15,7 +15,7 @@ type EditableGridCellEditorProps<T> = {
 
 /**
  * The active cell's in-place editor. Only this component subscribes to the
- * per-keystroke edit-session slice; surrounding cell shells are left untouched
+ * per-keystroke edit-session slice; surrounding cell shells do not re-render
  * while the user types.
  */
 export function EditableGridCellEditor<T>({
@@ -39,9 +39,8 @@ export function EditableGridCellEditor<T>({
 				commit={commitEdit}
 				cancel={cancelEdit}
 				align={align}
-				// Name the editor by what it edits — a bare "row 4 column 2" gives a
-				// screen-reader user no column context. Non-string titles fall back
-				// to the coordinate form.
+				// Names the editor by the column it edits; non-string titles fall
+				// back to the coordinate form.
 				ariaLabel={
 					typeof column.title === 'string'
 						? `Edit ${column.title}, row ${rowIdx + 1}`

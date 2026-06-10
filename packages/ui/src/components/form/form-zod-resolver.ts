@@ -11,16 +11,16 @@ export type ZodLike = { safeParse: (input: unknown) => ZodParseResult }
 /**
  * Adapt a Zod-shaped schema (anything exposing `safeParse`) to the
  * `Validators<T>` map that `<Form>` consumes. The library takes no dependency
- * on `zod` itself — Valibot, ArkType, or a hand-rolled schema with the same
+ * on `zod` itself; Valibot, ArkType, or a hand-rolled schema with the same
  * shape all plug in.
  *
- * Parses the whole schema once per `values` identity and caches the result, so
- * per-field calls inside one reducer pass don't re-parse. Cross-field
- * refinements work because every field reads from the same memoized parse.
+ * Parses the whole schema once per `values` identity and caches the result;
+ * per-field calls inside one reducer pass hit the cache. Cross-field
+ * refinements read from the same memoized parse.
  *
- * Every issue at `path[0] === <field>` is collected, preserving schema order
- * and de-duplicating identical messages. Form-level issues (`path: []`) are
- * dropped — attach them to a real field via `.refine(..., { path: ['…'] })`.
+ * Collects every issue at `path[0] === <field>`, preserving schema order
+ * and de-duplicating identical messages. Drops form-level issues
+ * (`path: []`); attach them to a real field via `.refine(..., { path: ['…'] })`.
  */
 export function zodResolver<T extends Record<string, unknown>>(
 	schema: ZodLike,

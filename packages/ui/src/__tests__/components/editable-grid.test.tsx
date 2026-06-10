@@ -505,7 +505,7 @@ describe('EditableGrid', () => {
 		fireEvent.mouseDown(cells[3] as HTMLElement, { metaKey: true })
 
 		// Meta+click moves focus to the new cell and keeps the prior active in
-		// the extras set — we can only directly observe the new active here.
+		// the extras set; only the new active is directly observable here.
 		expect(cells[3]).toHaveAttribute('data-active')
 	})
 
@@ -560,7 +560,7 @@ describe('EditableGrid', () => {
 
 		expect(document.activeElement).toBe(grid)
 
-		// Row 2 is index 1; col 0 (first editable) of that row should be active.
+		// Row 2 is index 1; col 0 (first editable) of that row is active.
 		const cells = allBySlot(container, 'editable-grid-cell')
 
 		// editableCols = [state, rate]; row 1 (second row) cell 0 = index 2.

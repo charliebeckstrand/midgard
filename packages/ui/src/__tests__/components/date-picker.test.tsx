@@ -31,8 +31,8 @@ function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | nul
 }
 
 // Controlled usage: the parent holds `Date | undefined` and clears by passing
-// `value={undefined}` back. Guards against the field flipping to uncontrolled on
-// clear and resurfacing the stale value (the "click Clear twice" regression).
+// `value={undefined}` back. Asserts the field stays controlled on clear and
+// does not resurface the stale value.
 function ControlledDatePicker() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 

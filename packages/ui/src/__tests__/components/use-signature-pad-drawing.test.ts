@@ -121,7 +121,7 @@ describe('useSignaturePadDrawing', () => {
 	})
 
 	it('flips empty on a tap (pointerdown with no move)', () => {
-		// Regression guard: a tap (pointerdown with no move) must flip `empty` to false.
+		// A tap (pointerdown with no move) flips `empty` to false.
 		const { result, setEmpty } = setup({ empty: true })
 
 		act(() => {

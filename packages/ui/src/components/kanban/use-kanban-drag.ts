@@ -23,8 +23,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		[columns, getKey],
 	)
 
-	// Card-to-column index for `dragOver`, which fires per pointer move. Avoids
-	// a full `columns × items` scan on every event.
+	// Card-to-column index for `dragOver`, which fires per pointer move.
 	const cardIndex = useMemo(() => {
 		const m = new Map<string, C>()
 
@@ -71,7 +70,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (!activeCol || !overCol) return
 
-		// Same-column reorders are committed in dragEnd, not dragOver.
+		// Same-column reorders commit in dragEnd, not dragOver.
 		if (activeCol.id === overCol.id) return
 
 		const activeIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
@@ -127,7 +126,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (!activeCol || !overCol) return
 
-		// Cross-column moves are applied in dragOver; skip them here.
+		// Cross-column moves apply in dragOver; skip them here.
 		if (activeCol.id !== overCol.id) return
 
 		const oldIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)

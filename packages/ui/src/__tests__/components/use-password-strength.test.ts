@@ -53,7 +53,7 @@ describe('usePasswordStrength', () => {
 
 		expect(onStrengthChange).toHaveBeenCalledTimes(1)
 
-		// Same rules pass — a fresh passed-array identity must not re-fire.
+		// Same rules pass; a fresh passed-array identity must not re-fire.
 		rerender({ value: 'abcdefghi' })
 
 		expect(onStrengthChange).toHaveBeenCalledTimes(1)

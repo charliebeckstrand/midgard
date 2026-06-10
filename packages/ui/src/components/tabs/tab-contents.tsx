@@ -14,8 +14,8 @@ export function TabContents({ fade = true, ...props }: TabContentsProps) {
 
 	const registerMountedPanels = tabsContext?.registerMountedPanels
 
-	// Fade mode keeps inactive panels mounted; tell the tabs so inactive Tabs
-	// keep their aria-controls reference instead of assuming the panel is gone.
+	// Fade mode keeps inactive panels mounted; registers that with the Tabs
+	// context.
 	useEffect(() => {
 		if (!fade) return
 
@@ -26,11 +26,10 @@ export function TabContents({ fade = true, ...props }: TabContentsProps) {
 }
 
 /**
- * Idiomatic tab panel — renders when its `value` matches the active tab. Inside
- * `<Tabs>` it auto-wires `role="tabpanel"`, the matching `aria-labelledby` →
+ * Idiomatic tab panel; renders when its `value` matches the active tab. Inside
+ * `<Tabs>` it auto-wires `role="tabpanel"`, `aria-labelledby` to the matching
  * tab, and a computed `tabIndex` (`0` when the panel has no focusable child,
- * keeping it keyboard-reachable per APG), pairing with its `Tab` via the Tabs
- * base id + value.
+ * per APG), pairing with its `Tab` via the Tabs base id + value.
  */
 export function TabContent({ value, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
@@ -41,8 +40,7 @@ export function TabContent({ value, ...props }: TabContentProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
-	// `0` only when the panel has no focusable child (APG), keeping it
-	// keyboard-reachable without a redundant tab stop.
+	// `0` only when the panel has no focusable child (APG).
 	const tabIndex = useTabPanelTabIndex(ref)
 
 	return (

@@ -18,8 +18,8 @@ class FakeMap {
 	constructor(opts: { container: HTMLElement }) {
 		this.container = opts.container
 
-		// Wraps the 'load' emission in act() so the React state update triggered
-		// by useMapInstance's handler flushes synchronously in tests.
+		// Wraps the 'load' emission in act(); the React state update triggered
+		// by useMapInstance's handler flushes synchronously.
 		queueMicrotask(() => {
 			act(() => {
 				this.emit('load')

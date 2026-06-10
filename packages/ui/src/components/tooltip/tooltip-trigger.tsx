@@ -25,15 +25,14 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
 
 /**
  * Wires the floating reference onto the trigger. When `children` is an element,
- * the reference props (focus/hover/click handlers + the `useRole` tooltip
- * `aria-describedby`) and ref are cloned **onto that element** rather than a
- * wrapping `<div>`, so keyboard focus reaches the trigger and the description is
- * announced against the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
+ * the trigger clones the reference props (focus/hover/click handlers + the
+ * `useRole` tooltip `aria-describedby`) and ref onto that element rather than
+ * a wrapping `<div>`; keyboard focus reaches the trigger and the description
+ * announces on the focusable node itself (WCAG 2.1.1 / 1.4.13 / 4.1.2).
  *
- * The child's own ref is merged (not overwritten) to support triggers that pass
- * one. The non-element fallback renders a plain `<div>` — tooltip triggers are
- * frequently nested inside other interactive content, where a `<button>` fallback
- * would produce invalid nested-interactive markup.
+ * The child's own ref merges with the floating ref. The non-element fallback
+ * renders a plain `<div>`; a `<button>` fallback nested inside interactive
+ * content is invalid markup.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const { setReference, getReferenceProps, enabled, className } = useTooltipContext()

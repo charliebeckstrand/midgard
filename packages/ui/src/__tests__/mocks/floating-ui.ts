@@ -20,7 +20,7 @@ type MockFocusManagerProps = {
 }
 
 // Stable id stamped on the floating element by `useRole`, mirrored onto the
-// reference's `aria-describedby` while open — enough to assert the tooltip's
+// reference's `aria-describedby` while open; enough to assert the tooltip's
 // description relationship without a real floating engine.
 const FLOATING_ID = 'floating-ui-mock-id'
 
@@ -35,9 +35,8 @@ function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerPr
 /**
  * Composes a list of prop bags into one: function-valued keys under the same
  * name are chained (earlier first), other defined values are copied (later
- * wins), and `undefined` values are skipped. Generalizes the previous
- * onClick-only composition so reference/floating handlers and aria attributes
- * from every interaction merge consistently.
+ * wins), and `undefined` values are skipped. Reference/floating handlers and
+ * aria attributes from every interaction merge consistently.
  */
 function mergeProps(list: (MockProps | undefined)[]): MockProps {
 	const out: MockProps = {}
@@ -68,19 +67,18 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
 /**
  * `@floating-ui/react` mock applied globally via `setup/module-mocks.ts`.
  *
- * Provides just enough behavior for tests:
+ * Provides minimal behavior for tests:
  *   - `useFloating` exposes `open` and `onOpenChange` on `context` so consumers
  *     of `useClick`/`useFocus` can wire open-on-interaction.
  *   - `useClick` / `useFocus` return reference handlers that *open* the panel
- *     (open-only, not toggle): `userEvent.click` fires focus then click, so a
- *     toggling click would re-close what focus just opened. Dismissal in these
- *     components flows through other paths (overlay signal, outside-press), so
- *     open-only keeps the focus + pointer paths consistent.
+ *     (open-only, not toggle): `userEvent.click` fires focus then click, and a
+ *     toggling click would re-close what focus just opened. Dismissal flows
+ *     through other paths (overlay signal, outside-press).
  *   - `useRole` is additive but gated on `enabled`: it emits the tooltip
  *     `aria-describedby` (reference, while open) + panel `id`/`role` (floating)
- *     ONLY when `enabled !== false`. Every consumer that passes `role: null`
+ *     only when `enabled !== false`. Every consumer that passes `role: null`
  *     calls `useRole` with `enabled: false`, so it stays a noop for them and
- *     they keep hand-rolling their own roles — the positioning wrapper is not
+ *     they keep hand-rolling their own roles; the positioning wrapper is not
  *     stamped with a duplicate role.
  *   - `useInteractions` merges interaction reference/floating prop bags (and
  *     any user-supplied props) via `mergeProps`, chaining handlers.

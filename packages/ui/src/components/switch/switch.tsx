@@ -15,8 +15,8 @@ export type SwitchProps = SwitchVariants & {
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
 /**
- * Toggle control backed by a native `role="switch"` checkbox — controlled via
- * `checked` or uncontrolled. Owns its checked state so `aria-checked` stays in
+ * Toggle control backed by a native `role="switch"` checkbox; controlled via
+ * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
  * sync. Integrates with enclosing `<Form>` and `<Control>` for binding,
  * sizing, and validation.
  */
@@ -37,16 +37,16 @@ export function Switch({
 }: SwitchProps) {
 	const binding = useFormToggle(name, { onChange })
 
-	// `aria-checked` is required by `role="switch"` and must track the live value.
-	// Owning the state here keeps it in sync for both controlled and uncontrolled usage.
+	// `role="switch"` requires `aria-checked` to track the live value. Owning
+	// the state here keeps it in sync for controlled and uncontrolled usage.
 	const [on, setOn] = useControllable<boolean>({
 		value: binding ? binding.checked : checked,
 		defaultValue: defaultChecked ?? false,
 	})
 
 	// React-control the input only when a `checked` prop or form binding drives it.
-	// Without one, rendering `checked={on}` would make the input perpetually
-	// controlled, so a native `<button type="reset">` couldn't revert it.
+	// Without one, rendering `checked={on}` makes the input perpetually
+	// controlled and a native `<button type="reset">` cannot revert it.
 	const isControlled = binding != null || checked !== undefined
 
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -104,8 +104,9 @@ export function Switch({
 			className={cn(k({ size: resolvedSize, color }), className)}
 		>
 			<input
-				// Consumer props first so they can't clobber the switch role, the
-				// synced aria-checked, the controlled wiring, or data-slot below.
+				// Consumer props spread first; the switch role, the synced
+				// aria-checked, the controlled wiring, and data-slot below take
+				// precedence.
 				{...props}
 				type="checkbox"
 				role="switch"

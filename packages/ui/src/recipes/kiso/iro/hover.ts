@@ -1,6 +1,6 @@
 /**
- * Iro hover — low-alpha hover wash shared by soft / outline / plain
- * palette variants. Each tint is the colour at 15% opacity so the wash
+ * Iro hover: low-alpha hover wash shared by soft / outline / plain
+ * palette variants. Each tint is the colour at 15% opacity; the wash
  * sits in front of any base fill without re-tinting.
  *
  * Layer: kiso · Concern: hover wash

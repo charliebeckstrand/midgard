@@ -20,9 +20,8 @@ export type FormProps<T extends Record<string, unknown>> = {
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
 	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
-	 * Passing `undefined` re-syncs to `defaultValues` under the same contract,
-	 * so consumers can toggle between an external source and the baseline.
-	 * Pass a stable reference — memoize derived objects to avoid sync loops.
+	 * Passing `undefined` re-syncs to `defaultValues` under the same contract.
+	 * Pass a stable reference; a new derived object each render loops the sync.
 	 */
 	values?: T
 	validate?: Validators<T>
@@ -39,7 +38,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 >
 
 /**
- * Reducer-backed form scope over typed `defaultValues` — tracks dirty, touched,
+ * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,
  * errors, and submitting state, validates on the `validateOn` trigger, and
  * disables its `<Fieldset>` while submitting.
  */

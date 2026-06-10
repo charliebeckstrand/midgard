@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/current'
 import { useCurrent, useCurrentFade } from './current'
 
 export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
-	/** Slot prefix used to stamp `data-slot="<slotPrefix>-content"`. */
+	/** Slot prefix stamped as `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
 	value?: string

@@ -36,11 +36,11 @@ export type PivotTableProps<T> = {
 	grid?: boolean
 	striped?: boolean
 	className?: string
-	/** Accessible name for the table — a caption-equivalent for a dense pivot. Optional, since a native `<table>` is valid unnamed. */
+	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
 	'aria-label'?: string
 }
 
-/** Two-axis aggregation table — groups rows by `(row × column)` keys and aggregates a value field into each cell. */
+/** Two-axis aggregation table: groups rows by `(row × column)` keys and aggregates a value field into each cell. */
 export function PivotTable<T>({
 	rows,
 	keys,

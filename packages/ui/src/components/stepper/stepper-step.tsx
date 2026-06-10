@@ -70,7 +70,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 
 	const state = computeState(value, currentValue)
 
-	// Shares baseId + value with StepperPanel so the two derive matching ids.
+	// Shares baseId + value with StepperPanel; the two derive matching ids.
 	const { triggerId, panelId } = useA11yDisclosure({ id: baseId, key: value })
 
 	const classes = cn(k.step({ orientation }), className)
@@ -98,9 +98,8 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				// Only the current step's panel is mounted, and only when a StepperPanels
-				// group exists; aria-controls is set only then to avoid referencing an
-				// id that is never rendered (panels-free mode) or unmounted.
+				// aria-controls applies only while a StepperPanels group exists and
+				// this step is current; the panel id is in the DOM only then.
 				aria-controls={hasPanels && state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}

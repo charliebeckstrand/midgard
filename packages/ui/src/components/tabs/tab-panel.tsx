@@ -17,8 +17,7 @@ export type TabPanelProps = {
 export function TabPanel({ id, className, ...props }: TabPanelProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	// `0` only when the panel has no focusable child, keeping it
-	// keyboard-reachable without a redundant tab stop.
+	// `0` only when the panel has no focusable child.
 	const tabIndex = useTabPanelTabIndex(ref)
 
 	return (

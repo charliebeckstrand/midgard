@@ -24,13 +24,13 @@ export type DrawerProps = DrawerPanelVariants & {
 	children: ReactNode
 	/**
 	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
-	 * `DrawerTitle` registers, since it names the drawer.
+	 * `DrawerTitle` registers.
 	 */
 	'aria-label'?: string
 }
 
 /**
- * Animated overlay panel anchored to a screen edge — controlled via
+ * Animated overlay panel anchored to a screen edge; controlled via
  * `open`/`onOpenChange`. Opens a density cascade sized by `size`, with optional
  * `glass` surface treatment.
  */

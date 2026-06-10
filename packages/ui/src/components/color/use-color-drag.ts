@@ -3,7 +3,7 @@
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { clamp } from '../../utilities'
 
-/** Pointer position within the tracked element, each axis normalised to `0–1`. */
+/** Pointer position within the tracked element, each axis normalised to `0-1`. */
 export type DragPosition = { x: number; y: number }
 
 export type ColorDragHandlers = {
@@ -15,9 +15,9 @@ export type ColorDragHandlers = {
 }
 
 /**
- * Translate pointer drags over `ref` into normalised `0–1` positions. Captures
- * the pointer on press so a drag that leaves the element keeps tracking, and
- * focuses the element so keyboard control picks up where the pointer left off.
+ * Translates pointer drags over `ref` into normalised `0-1` positions.
+ * Captures the pointer on press; drags that leave the element keep tracking.
+ * Press also focuses the element, handing off to keyboard control.
  * Shared by the 2D saturation/value area and the 1D hue/alpha tracks.
  */
 export function useColorDrag(
@@ -74,8 +74,8 @@ export function useColorDrag(
 		}
 	}, [])
 
-	// `lostpointercapture` fires on every capture end — normal release,
-	// `pointercancel` (browser-claimed gesture), or node removal — and is the
+	// `lostpointercapture` fires on every capture end: normal release,
+	// `pointercancel` (browser-claimed gesture), or node removal. It is the
 	// authoritative reset for `dragging`.
 	const onLostPointerCapture = useCallback(() => {
 		dragging.current = false

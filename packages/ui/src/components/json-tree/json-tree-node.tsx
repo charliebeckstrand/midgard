@@ -51,9 +51,8 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const empty = visibleEntries.length === 0
 
-	// Computed during render: a filtered-out empty branch stays closed (nothing to
-	// show), then the user's explicit toggle wins — so a search-matched branch can
-	// still be collapsed — then the search auto-open, then the depth default.
+	// Precedence: a filtered-out empty branch stays closed, then the user's
+	// explicit toggle, then the search auto-open, then the depth default.
 	const open = controlled
 		? expanded.has(nodePath)
 		: search && filter && empty

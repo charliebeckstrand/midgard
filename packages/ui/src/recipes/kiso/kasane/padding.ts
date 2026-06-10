@@ -1,10 +1,10 @@
 /**
- * Kasane padding — ring-compensated padding helpers. Each stop subtracts
- * 1 px from the relevant axis so the content area lines up with the inset
- * fill rather than the outer ring. The literal class strings live here as
- * static maps so Tailwind's JIT scanner sees every utility the codebase
+ * Kasane padding: ring-compensated padding helpers. Each stop subtracts
+ * 1 px from the relevant axis; the content area lines up with the inset
+ * fill rather than the outer ring. The literal class strings live here
+ * as static maps; Tailwind's JIT scanner sees every utility the codebase
  * generates. Variant-prefixed cases (`data-*`, `has-*`, `autofill:*`)
- * stay inline at their call sites — Tailwind variants must appear in
+ * stay inline at their call sites; Tailwind variants must appear in
  * source, not at runtime.
  *
  * Layer: kiso · Concern: ring-compensated padding

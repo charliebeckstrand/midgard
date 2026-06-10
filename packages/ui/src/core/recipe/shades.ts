@@ -2,10 +2,9 @@
  * Pair-form mode declarations.
  *
  * Build a `Record<Color, string[]>` from per-colour light/dark shade pairs.
- * The dark class must carry its own `dark:` prefix — Tailwind's content
- * scanner only picks up class strings that exist as full literals in source,
- * so we never construct the prefix at runtime. Pass a single string for
- * tokens that don't change between modes.
+ * The dark class must carry its own `dark:` prefix; Tailwind's content
+ * scanner only picks up class strings that exist as full literals in source.
+ * Pass a single string for tokens that don't change between modes.
  *
  * @example
  *   const text = shades({

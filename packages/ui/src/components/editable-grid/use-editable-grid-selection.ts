@@ -5,7 +5,7 @@ import { useControllable } from '../../hooks'
 import type { DataTableSelection } from '../data-table'
 import type { EditableGridSelectionApi } from './types'
 
-// Stable empty-selection sentinel. Treated as read-only — all updates go through
+// Stable empty-selection sentinel. Treated as read-only; all updates go through
 // `setSelection(new Set(...))`.
 const EMPTY_SELECTION = new Set<string | number>()
 

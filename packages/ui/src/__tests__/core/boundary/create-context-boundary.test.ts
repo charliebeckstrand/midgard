@@ -41,7 +41,6 @@ describe('createContext boundary', () => {
 
 			if (!REACT_CREATE_CONTEXT.test(source)) continue
 
-			/** `core/create-context.ts` is the only permitted importer of `createContext` from React. */
 			if (isSanctioned(rel)) continue
 
 			violations.push(rel)

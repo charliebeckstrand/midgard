@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph'
 
-/** Dot-joined name of a TypeName — `Foo`, `Foo.Bar`, `Foo.Bar.Baz`. */
+/** Dot-joined name of a TypeName: `Foo`, `Foo.Bar`, `Foo.Bar.Baz`. */
 export function typeRefName(name: ts.EntityName): string {
 	if (ts.isIdentifier(name)) return name.text
 
@@ -44,7 +44,7 @@ export function stringLiteralKeys(node: ts.TypeNode | undefined): string[] {
 /**
  * Pass-through type names whose first type argument is a string-literal tag
  * (`'div'`, `'button'`, …). Shared between pass-through detection and
- * project-prop collection so the two lists never drift.
+ * project-prop collection.
  */
 export const STRING_LITERAL_PASS_THROUGHS: ReadonlySet<string> = new Set([
 	'ComponentPropsWithRef',

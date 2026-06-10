@@ -1,5 +1,5 @@
 /**
- * Narabi slide — edge-anchored positioning for sliding panels (sheet,
+ * Narabi slide: edge-anchored positioning for sliding panels (sheet,
  * drawer). Each direction pins to the corresponding viewport edge and
  * fills the perpendicular axis.
  *

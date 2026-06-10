@@ -31,7 +31,7 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	className?: string
 }
 
-/** Coordinator for a row of filter controls over a `Record` value — shares set/clear and an active-count via context, dropping empty fields from the payload. The bar is a named `role="group"`, so require `aria-label`/`aria-labelledby`. */
+/** Coordinator for a row of filter controls over a `Record` value. Shares set/clear and an active-count via context, dropping empty fields from the payload. The bar is a named `role="group"`; pass `aria-label` or `aria-labelledby`. */
 export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,
@@ -86,7 +86,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	)
 
 	// Changing a filter re-renders results silently; narrate the active count
-	// so AT users hear the effect (WCAG 4.1.3). The hook skips the initial value.
+	// (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(`${activeCount} ${activeCount === 1 ? 'filter' : 'filters'} active`)
 
 	const context: FiltersContextValue = useMemo(

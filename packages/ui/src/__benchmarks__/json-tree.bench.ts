@@ -11,7 +11,7 @@ import {
 } from '../components/json-tree/json-tree-utilities'
 import { makeJsonTree } from './fixtures'
 
-// Tree sizes chosen so branch count grows exponentially:
+// Tree sizes (branch count grows exponentially):
 // small   (d=3, b=5)   = ~125 branches
 // medium  (d=4, b=5)   = ~625 branches
 // large   (d=5, b=5)   = ~3,125 branches

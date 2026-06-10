@@ -30,8 +30,8 @@ export function useTagInput({
 
 	const atMax = max !== undefined && tags.length >= max
 
-	// Each outcome — addition, duplicate, limit, rejection — is announced via
-	// the live region (WCAG 4.1.3, 3.3.1). Rejections include the reason.
+	// Announces each outcome (addition, duplicate, limit, rejection) via the
+	// live region (WCAG 4.1.3, 3.3.1). Rejections include the reason.
 	const addTag = useCallback(
 		(raw: string): boolean => {
 			const tag = raw.trim()

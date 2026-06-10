@@ -50,9 +50,9 @@ export function Tab({
 
 	const current = currentProp ?? (value !== undefined && context?.value === value)
 
-	// Derives a matched tab/panel id pair from the Tabs base id + value for
-	// idiomatic <TabContent value> auto-wiring. An explicit `id` prop overrides
-	// this for manual <TabPanel id> linkage. Segments have no panels and never
+	// Derives a matched tab/panel id pair from the Tabs base id + value,
+	// auto-wiring <TabContent value>. An explicit `id` prop overrides this
+	// for manual <TabPanel id> linkage. Segments have no panels and never
 	// auto-wire `aria-controls`.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
@@ -75,19 +75,19 @@ export function Tab({
 		<span className={cn(stretch && 'flex-1', 'group relative')} {...indicator.tapHandlers}>
 			<Headless>
 				<Button
-					// The type advertises the full button surface — forward it
-					// (aria-label, data-testid, onFocus, title, …), with the tab
-					// wiring below winning over any colliding consumer prop.
+					// Forwards the full button surface (aria-label, data-testid,
+					// onFocus, title, …); the tab wiring below wins over any
+					// colliding consumer prop.
 					{...rest}
 					data-slot="tab"
 					data-current={current || undefined}
 					role="tab"
 					id={tabId}
 					aria-selected={current ?? false}
-					// Explicit-id panels are always mounted, so `aria-controls` is always
-					// set. Auto panels unmount when inactive UNLESS a fade-mode
-					// TabContents keeps them mounted (it registers via context) —
-					// then every tab may reference its panel.
+					// Explicit-id panels stay mounted; `aria-controls` is always set.
+					// Auto panels unmount when inactive unless a fade-mode
+					// TabContents keeps them mounted (registered via context);
+					// then every tab references its panel.
 					aria-controls={
 						id !== undefined || current || tabsContext?.panelsMounted ? controlsId : undefined
 					}

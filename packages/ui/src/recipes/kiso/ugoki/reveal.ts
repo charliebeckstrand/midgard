@@ -1,5 +1,5 @@
 /**
- * Ugoki reveal — placeholder-to-content crossfade with vertical shift
+ * Ugoki reveal: placeholder-to-content crossfade with vertical shift
  * and blur. Used by `<ReadyReveal>` to animate the moment a skeleton
  * resolves into real content.
  *

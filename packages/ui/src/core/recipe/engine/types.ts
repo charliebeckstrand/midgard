@@ -1,11 +1,11 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares — six reserved fields
+ * `RecipeConfig` is the shape a kata declares: six reserved fields
  * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
  * any number of variant axes as top-level fields. `Recipe<C>` is what
  * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
- * from either side — use it in kata to type the consumer-facing
+ * from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
  */
 
@@ -21,7 +21,7 @@ export type VariantAxis = Record<string, ClassValue>
 /** A compound rule applies a class set when every named axis matches. */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
-/** Reserved top-level config field names — kata may not use these as axis names. */
+/** Reserved top-level config field names; kata may not use these as axis names. */
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /** The reserved fields' types. */
@@ -32,9 +32,9 @@ type RecipeBase = {
 	slots?: Record<string, ClassValue>
 	defaults?: Record<string, string | number | boolean>
 	/**
-	 * Skeleton payload — a `kokkaku.<name>` config the consumer reads as
-	 * `k.skeleton.base` / `k.skeleton.size[…]`. Attached to the recipe at
-	 * creation time and exposed with its inferred type preserved. Callable
+	 * Skeleton payload: a `kokkaku.<name>` config the consumer reads as
+	 * `k.skeleton.base` / `k.skeleton.size[…]`. Attaches to the recipe at
+	 * creation time with its inferred type preserved. Callable
 	 * siblings (sub-recipes, motion bundles, fragment maps) pass through
 	 * the `extras` second argument instead.
 	 */
@@ -44,7 +44,7 @@ type RecipeBase = {
 /**
  * A recipe config: reserved fields plus any number of variant axes at the
  * top level. The engine accepts any object that satisfies `RecipeBase`;
- * non-reserved fields are treated as variant axes at runtime.
+ * the runtime treats non-reserved fields as variant axes.
  */
 export type RecipeConfig = RecipeBase
 
@@ -64,7 +64,7 @@ export type ResolvedConfig = {
 
 export type Recipe<C extends RecipeBase> = {
 	(props?: ComputedProps<C>): string
-	/** Resolved config — exposed for introspection. */
+	/** Resolved config, exposed for introspection. */
 	readonly config: ResolvedConfig
 } & { [K in keyof NonNullable<C['slots']>]: string } & (C['skeleton'] extends undefined
 		? unknown
@@ -80,7 +80,7 @@ type ExplicitVariantKeys<C> = C extends { variant: infer V } ? keyof V & string 
  */
 type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean : keyof A) : keyof A
 
-/** Computed prop shape for a given config — used internally and by `VariantProps`. */
+/** Computed prop shape for a given config; used internally and by `VariantProps`. */
 export type ComputedProps<C> = {
 	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
 } & (C extends { palette: PaletteConfig<infer E, infer M> }

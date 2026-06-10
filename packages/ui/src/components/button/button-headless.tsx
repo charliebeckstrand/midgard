@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
 
-// Loose type at the call boundary — the public discriminated union lives on
+// Loose type at the call boundary: the public discriminated union lives on
 // `ButtonProps`; this internal helper accepts the post-destructure rest and
 // casts to the target element type at each spread.
 type ButtonHeadlessProps = {

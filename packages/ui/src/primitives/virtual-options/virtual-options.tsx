@@ -6,7 +6,7 @@ import { useVirtualWindow } from '../../hooks'
 export type VirtualOptionsProps<T> = {
 	/** Items to render. The current filtered/sorted set, in order. */
 	items: T[]
-	/** Row height in pixels. Assumes uniform heights — defaults to 36. */
+	/** Row height in pixels. Assumes uniform heights. Defaults to 36. */
 	estimateSize?: number
 	/** How many rows to render outside the viewport. Defaults to 10. */
 	overscan?: number
@@ -22,7 +22,7 @@ export type VirtualOptionsProps<T> = {
  * the rest are represented by top/bottom spacer divs.
  *
  * Assumes uniform item heights. Keyboard arrow-key navigation only traverses
- * options currently in the DOM — users of large lists should filter by typing.
+ * options currently in the DOM; users of large lists should filter by typing.
  */
 export function VirtualOptions<T>({
 	items,

@@ -14,8 +14,8 @@ type PageRotationResult = {
 }
 
 /**
- * Manages per-page rotation state. Each page tracks its rotation independently,
- * so navigating away from a rotated page and back preserves it.
+ * Manages per-page rotation state. Each page tracks its rotation independently;
+ * navigating away from a rotated page and back preserves it.
  */
 export function usePdfViewerPageRotation(
 	page: number,
@@ -25,7 +25,7 @@ export function usePdfViewerPageRotation(
 	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	// Per-page rotations belong to one document; clear them when the document
-	// changes so a new `src`/`pages` isn't rendered with the prior doc's rotations.
+	// changes.
 	const prevDocumentKeyRef = useRef(documentKey)
 
 	useEffect(() => {
@@ -37,7 +37,7 @@ export function usePdfViewerPageRotation(
 	}, [documentKey])
 
 	// Documented to snap to 90° increments; an unsnapped default (e.g. 45)
-	// would put `normalizedRotation` outside 0|90|180|270 and skew the
+	// puts `normalizedRotation` outside 0|90|180|270 and skews the
 	// transposition math.
 	const snappedDefault = Math.round(defaultRotation / 90) * 90
 

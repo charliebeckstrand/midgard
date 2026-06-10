@@ -1,5 +1,5 @@
 /**
- * Narabi description — truncated description layout with a spacer
+ * Narabi description: truncated description layout with a spacer
  * pseudo-element for overflow. The leading `before:w-2` shrinks before
  * the text truncates, landing the ellipsis inside the visible row.
  *

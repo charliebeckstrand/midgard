@@ -17,7 +17,7 @@ export type CopyButtonProps = {
 	onCopiedChange?: (copied: boolean) => void
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
-/** Clipboard-copy control built on ToggleIconButton — writes `value`, flips to a check glyph, and reverts after `timeout`. */
+/** Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`. */
 export function CopyButton({
 	value,
 	icon,
@@ -32,9 +32,9 @@ export function CopyButton({
 }: CopyButtonProps) {
 	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
 
-	// The button stays enabled and focused through the success window —
-	// disabling it would drop keyboard focus to <body> mid-interaction
-	// (WCAG 2.4.3); re-copying during the window is just a no-op.
+	// The button stays enabled and focused through the success window;
+	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).
+	// Re-copying during the window is a no-op.
 	const handleClick = useCallback<NonNullable<CopyButtonProps['onClick']>>(
 		(event) => {
 			onClick?.(event)

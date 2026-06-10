@@ -47,7 +47,7 @@ export { useFormActions }
 
 const noopSubscribe = () => () => {}
 
-/** Internal — the component-level provider wires the store and actions. */
+/** Internal; the component-level provider wires the store and actions. */
 export function FormProvider({
 	store,
 	actions,
@@ -65,7 +65,7 @@ export function FormProvider({
 }
 
 /**
- * Whole form state. Re-renders on ANY state change — prefer `useFormField`
+ * Whole form state. Re-renders on ANY state change; prefer `useFormField`
  * (per-field) or `useFormStatus` (form-level booleans) for slices.
  */
 export function useFormState(): FormStateValue | undefined {
@@ -113,8 +113,8 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 	const store = useFormStoreContext()
 	const actions = useFormActions()
 
-	// Caches the last slice by content so an unchanged field returns a stable
-	// snapshot reference across snapshots, not just identity.
+	// Caches the last slice by content; an unchanged field returns a stable
+	// reference across snapshots.
 	const cacheRef = useRef<FieldSlice | null>(null)
 
 	const select = useCallback(
@@ -222,7 +222,7 @@ export function useFormStatus(): FormStatus | undefined {
 	return slice ?? undefined
 }
 
-/** Returns combined state + actions. Re-renders on any state change — prefer `useFormActions`/`useFormField`/`useFormStatus`. */
+/** Returns combined state + actions. Re-renders on any state change; prefer `useFormActions`/`useFormField`/`useFormStatus`. */
 export function useFormContext(): FormContextValue | undefined {
 	const state = useFormState()
 	const actions = useFormActions()

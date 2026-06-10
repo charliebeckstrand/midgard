@@ -130,7 +130,7 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			// Lazily created on first announce — absent means nothing was announced.
+			// Lazily created on first announce; absent means nothing was announced.
 			expect(politeRegion()?.textContent ?? '').toBe('')
 
 			rerender(
@@ -152,7 +152,7 @@ describe('Alert', () => {
 			// Flush the announcer's microtask, then confirm nothing was written.
 			await Promise.resolve()
 
-			// Lazily created on first announce — absent means nothing was announced.
+			// Lazily created on first announce; absent means nothing was announced.
 			expect(politeRegion()?.textContent ?? '').toBe('')
 		})
 
@@ -171,7 +171,7 @@ describe('Alert', () => {
 
 			await Promise.resolve()
 
-			// Lazily created on first announce — absent means nothing was announced.
+			// Lazily created on first announce; absent means nothing was announced.
 			expect(politeRegion()?.textContent ?? '').toBe('')
 		})
 	})

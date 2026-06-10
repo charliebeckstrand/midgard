@@ -1,5 +1,5 @@
 /**
- * Hannou disabled — dormant state. Dims the element and animates the
+ * Hannou disabled: dormant state. Dims the element and animates the
  * opacity transition. `cursor-not-allowed` lives separately in
  * `cursor.ts`; compose both or either independently.
  *

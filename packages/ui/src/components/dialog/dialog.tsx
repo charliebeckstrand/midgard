@@ -26,7 +26,7 @@ export type DialogProps = DialogPanelVariants & {
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command
-	 * palette). Ignored once a `DialogTitle` registers, since it names the dialog.
+	 * palette). Ignored once a `DialogTitle` registers.
 	 */
 	'aria-label'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -39,9 +39,9 @@ const placementClasses = {
 } as const
 
 /**
- * Modal surface rendered in an Overlay with focus trapping and backdrop dismiss —
- * animates as a bottom sheet on mobile and a centered panel on desktop, and is
- * named by a registered `<DialogTitle>` or the `aria-label` fallback.
+ * Modal surface rendered in an Overlay with focus trapping and backdrop dismiss.
+ * Animates as a bottom sheet on mobile and a centered panel on desktop; a
+ * registered `<DialogTitle>` or the `aria-label` fallback names it.
  */
 export function Dialog({
 	open,
@@ -64,7 +64,7 @@ export function Dialog({
 
 	const { ariaProps, a11y } = useA11yPanel(role)
 
-	// aria-label is suppressed when aria-labelledby is present (registered DialogTitle takes precedence).
+	// aria-labelledby (a registered DialogTitle) takes precedence over aria-label.
 	const ariaLabelledBy = ariaProps['aria-labelledby']
 
 	return (

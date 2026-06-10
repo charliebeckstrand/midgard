@@ -93,8 +93,8 @@ describe('Message', () => {
 	})
 
 	it('flips the control aria-invalid while an error Message is mounted', () => {
-		// A non-form-bound Field whose error Message renders was described by the
-		// message but never marked invalid (the audit's message/field gap).
+		// A non-form-bound Field with a rendered error Message marks its control
+		// invalid, not only described-by.
 		const { container, rerender } = renderUI(
 			<Field>
 				<Label>Name</Label>

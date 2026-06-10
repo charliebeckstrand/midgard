@@ -1,7 +1,7 @@
 /**
- * Control archetype — frame. The outer flex wrapper that hosts the
+ * Control archetype: frame. The outer flex wrapper that hosts the
  * user-input element. Group-join behaviour comes from the `tsunagi` classes
- * on the enclosing `<Group>` container — the frame just carries kasane chrome.
+ * on the enclosing `<Group>` container; the frame carries kasane chrome.
  *
  * Layer: kiso · Archetype: control · Concern: frame
  */

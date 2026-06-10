@@ -69,7 +69,7 @@ describe('DataTableColumnManager', () => {
 		const onOrderChange = vi.fn()
 
 		// The DataTable's full order includes the selection and actions columns,
-		// which are filtered out of the manager's `columns` — they must survive
+		// which are filtered out of the manager's `columns`; they must survive
 		// a reorder in their original positions rather than being dropped.
 		const { container } = renderUI(
 			<DataTableColumnManager

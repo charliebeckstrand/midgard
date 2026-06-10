@@ -65,10 +65,10 @@ const gridColumns: EditableGridColumn<GridRow>[] = [
 	{ id: 'email', title: 'Email', field: 'email' },
 ]
 
-/** Complex, interactive data surfaces — trees, grids, boards, and query UIs. */
+/** Complex, interactive data surfaces: trees, grids, boards, and query UIs. */
 export const dataComplexCases: readonly Case[] = [
 	[
-		// role=tree of expandable nodes; expanded a couple of levels deep.
+		// role=tree of expandable nodes; expanded two levels deep.
 		'json tree',
 		<JsonTree key="jt" data={jsonSample} defaultExpandDepth={2} />,
 	],
@@ -120,7 +120,7 @@ export const dataComplexCases: readonly Case[] = [
 		/>,
 	],
 	[
-		// Filter bar: FiltersField owns the control context — Label names the
+		// Filter bar: FiltersField owns the control context; Label names the
 		// Input directly (no Field wrapper) and the value binds through the slot.
 		'filters',
 		<Filters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>

@@ -4,17 +4,17 @@ import { useLayoutEffect, useRef } from 'react'
 import type { EditableGridSnapshot, EditableGridStore } from './context'
 
 /**
- * Bridges the navigation-owned cell state to an external-store interface so each
- * cell subscribes to just its own derived slice via `useSyncExternalStore`.
+ * Bridges the navigation-owned cell state to an external-store interface; each
+ * cell subscribes to its own derived slice via `useSyncExternalStore`.
  *
  * Navigation state stays the source of truth; this mirrors each committed
  * `snapshot` into the store in a layout effect (before paint) and notifies
- * subscribers. Cells whose slice is unchanged bail on the next snapshot, so
+ * subscribers. Cells whose slice is unchanged bail on the next snapshot;
  * moving the active cell re-renders only the cells whose `isActive`/`inRange`
- * actually flipped instead of every visible cell.
+ * flipped.
  *
- * `snapshot` must be referentially stable while its fields are unchanged (pass a
- * memoized object) — otherwise the effect notifies every render.
+ * `snapshot` must stay referentially stable while its fields are unchanged
+ * (pass a memoized object); an unstable snapshot notifies every render.
  */
 export function useEditableGridStore(snapshot: EditableGridSnapshot): EditableGridStore {
 	const internalRef = useRef<{

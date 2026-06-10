@@ -13,7 +13,7 @@ import { noop, renderUI, screen, waitFor } from '../helpers'
  *
  * Dialog stands in for the family: drawer, sheet, confirm, and the command
  * palette all route through the same `Overlay` primitive and its
- * `<FloatingFocusManager modal>` — trapping is wired once and shared.
+ * `<FloatingFocusManager modal>`; trapping is wired once and shared.
  */
 
 /**

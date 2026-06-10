@@ -1,6 +1,6 @@
 import type { Hsva } from './types'
 
-/** Opaque black — the silhouette a panel falls back to with no initial value. */
+/** Opaque black; the fallback when no initial value is given. */
 export const DEFAULT_HSVA: Hsva = { h: 0, s: 0, v: 0, a: 1 }
 
 /**

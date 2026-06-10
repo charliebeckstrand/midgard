@@ -26,7 +26,7 @@ export type MapProps = {
 	/**
 	 * Accessible name for the map region. When set, an interactive map is
 	 * exposed as `role="application"` and a static map as a labelled
-	 * `role="group"` (not `role="img"`, which would hide interactive children);
+	 * `role="group"` (not `role="img"`, which hides interactive children);
 	 * without it the container stays an unlabeled presentational div.
 	 */
 	label?: string
@@ -35,7 +35,7 @@ export type MapProps = {
 	onLoad?: (map: MapLibreMap) => void
 }
 
-/** MapLibre-backed interactive map — provides the map instance to descendants (markers, routes, geofences) via context. */
+/** MapLibre-backed interactive map: provides the map instance to descendants (markers, routes, geofences) via context. */
 function MapView({
 	camera,
 	preset,
@@ -48,8 +48,8 @@ function MapView({
 }: MapProps) {
 	const resolvedStyle = preset ? mapPresets[preset] : (style ?? mapPresets.demo)
 
-	// Resolve `center` from its primitive lng/lat components for a stable
-	// reference across renders.
+	// Resolve `center` from its primitive lng/lat components; the reference
+	// stays stable across renders.
 	const lng = camera?.center?.[0] ?? 0
 	const lat = camera?.center?.[1] ?? 0
 
@@ -65,7 +65,7 @@ function MapView({
 		onLoad,
 	})
 
-	// aria-label only attaches to a role that supports it; pair them so an
+	// aria-label only attaches to a role that supports it; pair them. An
 	// unlabeled map stays a plain presentational div.
 	const regionProps = label
 		? { role: interactive ? 'application' : 'group', 'aria-label': label }

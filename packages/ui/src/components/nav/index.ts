@@ -19,7 +19,7 @@ export {
 } from './nav-list'
 // `useNavItem` is the shared behavior hook for nav-item-style components;
 // SidebarItem reaches for it across the barrel (CONVENTIONS §3). `NavItemProps`
-// is the canonical base type — the Nav family's `<NavItem>` extends it with
+// is the canonical base type: the Nav family's `<NavItem>` extends it with
 // `value` in `NavMenuItemProps`, SidebarItem with `size`.
 export {
 	type NavItemProps,

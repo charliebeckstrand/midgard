@@ -8,8 +8,8 @@ type FormattedInputOptions = {
 	/** Reformats raw text on every change. */
 	format: (raw: string) => string
 	/**
-	 * Predicate identifying characters preserved across `format`. Used to keep
-	 * the caret aligned with the typed character when format inserts or removes
+	 * Predicate identifying characters preserved across `format`. Keeps the
+	 * caret aligned with the typed character when format inserts or removes
 	 * separators. Defaults to ASCII alphanumerics and `+`.
 	 */
 	meaningful?: (char: string) => boolean
@@ -20,11 +20,11 @@ type FormattedInputOptions = {
 const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
 
 /**
- * Caret-preserving reformat engine for formatted text inputs — the stateless
+ * Caret-preserving reformat engine for formatted text inputs: the stateless
  * core under `useMaskInput` and `CurrencyInput`. `reformat` applies `format`
  * to a change event's text and queues a caret restore (via the returned `ref`)
- * so separators inserted by formatting don't shove the cursor to the end on
- * every keystroke. The caller owns the state the formatted text commits to.
+ * that keeps the cursor on the typed character when formatting inserts
+ * separators. The caller owns the state the formatted text commits to.
  */
 export function useFormattedInput({
 	format,

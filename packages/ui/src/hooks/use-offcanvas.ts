@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 /**
- * Manages offcanvas sidebar state — open/close plus auto-close
+ * Manages offcanvas sidebar state: open/close plus auto-close
  * when the viewport crosses the `--breakpoint-lg` threshold.
  */
 export function useOffcanvas() {
@@ -16,8 +16,8 @@ export function useOffcanvas() {
 			.getPropertyValue('--breakpoint-lg')
 			.trim()
 
-		// Bail when the design token isn't defined — `matchMedia('(min-width: )')`
-		// is an invalid query that never fires; auto-close-on-resize requires it.
+		// Bail when the design token is undefined; `matchMedia('(min-width: )')`
+		// is an invalid query that never fires.
 		if (!breakpoint) return
 
 		const mql = window.matchMedia(`(min-width: ${breakpoint})`)

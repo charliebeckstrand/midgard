@@ -17,8 +17,7 @@ export type PdfViewerProps = {
 	pages?: PdfViewerPage[]
 	/**
 	 * Source URL for the PDF document. Drives the viewport when `pages` is
-	 * omitted, and always powers the download and print toolbar actions —
-	 * so it remains meaningful alongside `pages`.
+	 * omitted, and always powers the download and print toolbar actions.
 	 */
 	src?: string
 	/** Filename used for the download attribute. Only meaningful with `src`. */
@@ -38,7 +37,7 @@ export type PdfViewerProps = {
 	'aria-label'?: string
 }
 
-/** PDF document viewer — renders pages from `pages` or via pdf.js from `src`, with toolbar controls for zoom, rotation, download, and print. */
+/** PDF document viewer: renders pages from `pages` or via pdf.js from `src`, with toolbar controls for zoom, rotation, download, and print. */
 export function PdfViewer({
 	pages,
 	src,

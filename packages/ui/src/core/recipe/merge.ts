@@ -1,8 +1,7 @@
 /**
  * Concatenates per-key class records into one. Used when a kata needs a
- * pre-merged variant × colour bundle outside the engine's compound expansion
- * — e.g. calendar reading button's soft palette for the selected-cell
- * colour.
+ * pre-merged variant × colour bundle outside the engine's compound expansion,
+ * e.g. calendar reading button's soft palette for the selected-cell colour.
  *
  * @example
  *   const { soft } = iro.palette

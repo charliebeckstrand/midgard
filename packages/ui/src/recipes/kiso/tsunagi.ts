@@ -1,5 +1,5 @@
 /**
- * Tsunagi (繋ぎ) — group joins.
+ * Tsunagi (繋ぎ): group joins.
  *
  * Container-scoped classes that flatten the join-side radii and overlap
  * adjacent borders for the children of a `<Group>`. `useGroup()` stamps
@@ -8,24 +8,25 @@
  * `<Group>` carries the matching orientation bundle on its container, and
  * the descendant selectors apply only once a child reports a position.
  *
- * Authored as container classes on the group; the cost lands on the single
- * container, so an ungrouped element carries no join utilities.
+ * Authored as container classes on the group; the cost lands on the
+ * single container, and an ungrouped element carries no join utilities.
  *
- * Keyed on both orientation and position for depth-tolerance and nest-safety.
+ * Keyed on both orientation and position: depth-tolerant and nest-safe.
  * Depth-tolerant: the bordered element is `ControlFrame`, nested below a
- * control wrapper in Select / DatePicker — a direct-child combinator wouldn't
- * reach it. Nest-safe: the orientation match keeps an inner vertical group
- * clear of an outer horizontal one, and same-orientation nesting reapplies
- * identical position-keyed declarations, staying idempotent on the cascade.
+ * control wrapper in Select / DatePicker; a direct-child combinator
+ * wouldn't reach it. Nest-safe: the orientation match keeps an inner
+ * vertical group clear of an outer horizontal one, and same-orientation
+ * nesting reapplies identical position-keyed declarations, staying
+ * idempotent on the cascade.
  *
- * `::before` / `::after` mirror the outer radius drop so kasane consumers
- * don't show rounded inset-fill or focus-overlay corners on a flat side.
- * Borders overlap by 1 px (`-ms-px` / `-mt-px`) so adjacent rings don't
+ * `::before` / `::after` mirror the outer radius drop; kasane consumers
+ * show no rounded inset-fill or focus-overlay corners on a flat side.
+ * Borders overlap by 1 px (`-ms-px` / `-mt-px`); adjacent rings don't
  * double.
  *
  * Horizontal uses logical end / start radii (`rounded-e-none` /
- * `rounded-s-none`) so RTL mirrors automatically. Vertical uses physical
- * top / bottom — those don't flip in RTL.
+ * `rounded-s-none`); RTL mirrors automatically. Vertical uses physical
+ * top / bottom; those don't flip in RTL.
  *
  * Layer: kiso · Concern: group joins
  */
@@ -36,8 +37,8 @@ export type GroupPosition = 'start' | 'middle' | 'end' | 'only'
 
 export type GroupOrientation = Orientation
 
-// Literal class strings — Tailwind's source scanner can't see selectors built
-// from templates, so each variant is spelled out in full.
+// Literal class strings: Tailwind's source scanner can't see selectors built
+// from templates; each variant is spelled out in full.
 const horizontal = [
 	'[&_[data-group-orientation=horizontal][data-group=start]]:rounded-e-none',
 	'[&_[data-group-orientation=horizontal][data-group=start]]:before:rounded-e-none',

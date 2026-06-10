@@ -7,11 +7,11 @@ import { useRef } from 'react'
  * `null`-means-controlled-empty convention.
  *
  * `useControllable` reads `value === undefined` as "uncontrolled". A controlled
- * picker clears by emitting `onValueChange(undefined)`, so the consumer feeds
- * `value={undefined}` back — which would silently flip the field to uncontrolled
- * and resurface the stale internal value, taking a second clear to actually
- * empty it. Once a defined value has been seen the field stays controlled, and a
- * later `undefined` is forwarded as `null` (a controlled clear) instead.
+ * picker clears by emitting `onValueChange(undefined)`, and the consumer feeds
+ * `value={undefined}` back, which would flip the field to uncontrolled,
+ * resurface the stale internal value, and take a second clear to empty it.
+ * After the first defined value the field stays controlled; a later
+ * `undefined` forwards as `null` (a controlled clear).
  */
 export function useDatePickerControlled<T>(value: T | undefined): T | null | undefined {
 	const controlled = useRef(false)

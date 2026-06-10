@@ -16,7 +16,7 @@ function collectRuleIds(group: QueryGroupNode): string[] {
 }
 
 // Complements query-builder.bench.ts: this measures the full render cost of
-// the recursive QueryGroup/QueryRule tree, not just tree utilities.
+// the recursive QueryGroup/QueryRule tree, not the tree utilities alone.
 
 const shallowWide = makeQueryTree(1, 10) // 10 rules
 const balanced = makeQueryTree(2, 4) // ~16 rules in 4 groups

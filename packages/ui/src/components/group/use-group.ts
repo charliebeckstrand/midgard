@@ -22,9 +22,9 @@ type FlatChild = { node: ReactNode; key: string }
 
 // Recurse into fragments, flattening them into the position-stamping pass.
 // `Children.toArray` treats a fragment as a single opaque child. Each entry
-// carries a key namespaced by its fragment path so keys that were unique within
-// a fragment don't collide once hoisted into one list. Non-element children
-// (text/number) are kept in place rather than dropped.
+// carries a key namespaced by its fragment path; keys unique within a fragment
+// stay unique once hoisted into one list. Non-element children (text/number)
+// stay in place.
 function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
 	const result: FlatChild[] = []
 
@@ -66,8 +66,8 @@ export function useGroup(children: ReactNode, orientation: GroupOrientation): Re
 	return useMemo(() => {
 		const flat = flattenChildren(children)
 
-		// Position is stamped over the joinable elements only; non-element children
-		// pass through in place without affecting start/middle/end calculation.
+		// Stamps position on joinable elements only; non-element children pass
+		// through in place without affecting start/middle/end calculation.
 		const total = flat.reduce((count, { node }) => (isValidElement(node) ? count + 1 : count), 0)
 
 		let elementIndex = 0

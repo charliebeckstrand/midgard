@@ -6,7 +6,7 @@ import './tailwind.css'
 
 /**
  * Browser-suite setup. Registers the axe and jest-dom matchers and tears down
- * the DOM between cases. No `matchMedia` / `ResizeObserver` stubs — the real
+ * the DOM between cases. No `matchMedia` / `ResizeObserver` stubs; the real
  * engine provides them.
  */
 expect.extend(toHaveNoViolations)

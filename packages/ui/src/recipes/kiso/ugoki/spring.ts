@@ -1,5 +1,5 @@
 /**
- * Ugoki spring — fluid spring transition for Framer `layoutId`
+ * Ugoki spring: fluid spring transition for Framer `layoutId`
  * transitions (segment indicator slide, tab indicator).
  *
  * Layer: kiso · Concern: spring transition

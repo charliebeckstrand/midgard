@@ -16,8 +16,8 @@ describe('usePdfViewerPageRotation', () => {
 	it('snaps an unaligned default rotation to the nearest 90°', () => {
 		const { result } = renderHook(() => usePdfViewerPageRotation(1, 45))
 
-		// Documented contract: rotation snaps to 90° increments — an unsnapped
-		// default would put normalizedRotation outside 0|90|180|270.
+		// Documented contract: rotation snaps to 90° increments, keeping
+		// normalizedRotation inside 0|90|180|270.
 		expect(result.current.rotation).toBe(90)
 
 		expect(result.current.normalizedRotation).toBe(90)

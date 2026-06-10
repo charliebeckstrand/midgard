@@ -9,8 +9,7 @@ type ListItemStaticProps = {
 	children: ReactNode
 }
 
-// Everything except `id` is constant for a static (non-sortable) item; the
-// dnd-shaped value is hoisted once outside the component as a module constant.
+// Everything except `id` is constant for a static (non-sortable) item.
 const STATIC_CONTEXT = {
 	setNodeRef: noop,
 	setActivatorNodeRef: noop,

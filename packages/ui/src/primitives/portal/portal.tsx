@@ -9,7 +9,7 @@ import { createContext } from '../../core'
 export type PortalContainer = HTMLElement | null
 
 /**
- * Portal container context — the default node library portals (overlays,
+ * Portal container context: the default node library portals (overlays,
  * floating surfaces, dropdown panels, toasts) render into. The user-facing
  * `<UIProvider>` (which registers it) lives in `providers/ui`; primitives and
  * components consume `usePortalContainer` here without depending on it.

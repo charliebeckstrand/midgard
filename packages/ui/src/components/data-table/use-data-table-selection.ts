@@ -22,7 +22,7 @@ type DataTableSelectionResult = {
 /**
  * Owns the data table's selection state: the controllable `Set<key>`, the
  * row-toggle and all-toggle actions, and the `allSelected` / `someSelected`
- * flags derived from the current rowKeys. `rowKeys` is mirrored in a ref so
+ * flags derived from the current rowKeys. A ref mirrors `rowKeys`;
  * `toggleAll` stays stable across selection edits.
  */
 export function useDataTableSelection({

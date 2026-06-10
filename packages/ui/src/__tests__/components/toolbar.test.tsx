@@ -101,10 +101,10 @@ describe('Toolbar', () => {
 	})
 
 	it('keeps the resting Tab stop on the focused control when a disabled sibling re-enables', async () => {
-		// Regression: a control that becomes enabled arrives at the native
-		// `tabIndex=0`, indistinguishable by count from the deliberate stop. With
-		// focus on another control, the resting stop holds on the focused one
-		// rather than jumping to the new arrival.
+		// A control that becomes enabled arrives at the native `tabIndex=0`,
+		// indistinguishable by count from the deliberate stop. With focus on
+		// another control, the resting stop holds on the focused one rather
+		// than jumping to the new arrival.
 		function Harness() {
 			const [enabled, setEnabled] = useState(false)
 
@@ -141,9 +141,8 @@ describe('Toolbar', () => {
 	})
 
 	it('keeps a custom [tabindex] item in the roving query after demotion', () => {
-		// Regression: roving demotes non-resting items to tabindex="-1". Matching
-		// only [tabindex="0"] dropped a demoted custom item from the query,
-		// orphaning it and making it unreachable by arrow keys.
+		// Roving demotes non-resting items to tabindex="-1". The item selector
+		// still matches a demoted custom item, keeping it reachable by arrow keys.
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor">
 				<button type="button">A</button>

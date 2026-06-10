@@ -89,11 +89,10 @@ export function filterEntries(
 	)
 }
 
-/** Collect paths for all expandable (branch) nodes, optionally limited to a max depth. */
 /**
- * Paths of every branch whose subtree contains a search match — the set to
- * seed into `expanded` so each match is reachable. Prunes on the index: a
- * branch without a match can't have matching descendants.
+ * Paths of every branch whose subtree contains a search match; the seed set
+ * for `expanded`. Prunes on the index: a branch without a match has no
+ * matching descendants.
  */
 export function collectMatchPaths(
 	data: JsonValue,
@@ -117,6 +116,7 @@ export function collectMatchPaths(
 	return paths
 }
 
+/** Collect paths for all expandable (branch) nodes, optionally limited to a max depth. */
 export function collectPaths(
 	data: JsonValue,
 	rootKey?: string,

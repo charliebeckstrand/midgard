@@ -91,7 +91,7 @@ export function hasRules(group: QueryGroup): boolean {
 }
 
 /**
- * Apply a transform to the node matching `id`, walking recursively.
+ * Applies a transform to the node matching `id`, walking recursively.
  *
  * Returns the same `tree` reference when `id` is not found, keeping
  * unrelated subtrees referentially equal for memoized descendants.
@@ -185,17 +185,16 @@ export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId: string }
 
 /**
- * Ordered focus candidates for the neighbourhood around node `id` — used when
- * `id` is leaving the tree (removal) and focus must move somewhere sensible
- * rather than dropping to <body> (WCAG 2.4.3).
+ * Ordered focus candidates for the neighbourhood around node `id`, used when
+ * removal takes `id` out of the tree; focus then moves to a neighbour instead
+ * of dropping to <body> (WCAG 2.4.3).
  *
- * Resolution is deliberately ambiguous: it returns *several* candidates, best
- * first, and leaves the choice to the caller, which focuses the first that
- * resolves to a live element. This way a disabled, unmounted, or otherwise
- * unfocusable target degrades to the next one. The ladder follows the APG
- * list pattern — previous sibling, then next sibling, then the enclosing
- * group's add control, then the same for each ancestor on the way to the root.
- * Empty when `id` isn't found.
+ * Returns several candidates, best first, and leaves the choice to the
+ * caller, which focuses the first that resolves to a live element. A
+ * disabled, unmounted, or otherwise unfocusable target degrades to the next
+ * one. The ladder follows the APG list pattern: previous sibling, then next
+ * sibling, then the enclosing group's add control, then the same for each
+ * ancestor on the way to the root. Empty when `id` isn't found.
  */
 export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 	const index = tree.children.findIndex((child) => child.id === id)
@@ -219,8 +218,8 @@ export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 		if (child.type === 'group') {
 			const inner = findFocusTarget(child, id)
 
-			// Found inside a nested group — fall back to this group's add control
-			// (and, by recursion, its ancestors') once the nested options run out.
+			// Found inside a nested group: this group's add control (and, by
+			// recursion, its ancestors') follows the nested options.
 			if (inner.length > 0) return [...inner, { kind: 'add', groupId: tree.id }]
 		}
 	}

@@ -1,5 +1,5 @@
 /**
- * Narabi field — slot adjacency rules for `<Field>` stacks. Sibling-
+ * Narabi field: slot adjacency rules for `<Field>` stacks. Sibling-
  * selector margins space label / description / control / alert slots
  * evenly via a single rule per transition pair.
  *

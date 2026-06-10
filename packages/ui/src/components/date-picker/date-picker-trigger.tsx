@@ -27,13 +27,13 @@ type DatePickerTriggerProps = {
 	displayValue: string
 	placeholder: string
 	size: ControlSize
-	/** When `false`, the trigger grows to fit its content and the truncation Tooltip is skipped. */
+	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
 	disabled?: boolean
 	required?: boolean
 	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
-	/** Accessible name for the trigger when no Field label wraps it — the placeholder is not a programmatic name. */
+	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
 	className?: string
 	'data-group'?: string

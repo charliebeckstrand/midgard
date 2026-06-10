@@ -39,8 +39,8 @@ function region(assertive: boolean): HTMLElement {
 
 /**
  * Imperative screen-reader announcement. Sends `message` to a visually-hidden
- * `aria-live` region appended to `document.body` — lazily created on first use,
- * shared process-wide. Use for one-off, event-driven feedback ("Copied",
+ * `aria-live` region appended to `document.body`, lazily created on first use
+ * and shared process-wide. Use for one-off, event-driven feedback ("Copied",
  * "Tag added") with no natural focus or DOM home; for narrating a changing
  * value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
  * for empty messages.
@@ -50,8 +50,8 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 
 	const node = region(assertive)
 
-	// Clears first so identical re-announcements register as a change,
-	// then sets on the next microtask so the mutation is observed.
+	// Clears, then sets on the next microtask; live regions announce only
+	// observed mutations, even for identical messages.
 	node.textContent = ''
 
 	queueMicrotask(() => {
@@ -59,7 +59,7 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 	})
 }
 
-/** Test-only: removes the injected regions so suites stay isolated. */
+/** Test-only: removes the injected regions. */
 export function __resetAnnouncer(): void {
 	politeRegion?.remove()
 	assertiveRegion?.remove()

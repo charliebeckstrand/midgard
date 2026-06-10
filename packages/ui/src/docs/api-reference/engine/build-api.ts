@@ -16,7 +16,7 @@ import {
 
 /**
  * Extract API reference data for every component under `<srcDir>/components`,
- * keyed by directory name. One ts-morph Project covers the whole package so
+ * keyed by directory name. One ts-morph Project covers the whole package;
  * the type checker resolves cross-file references in a single pass.
  */
 export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
@@ -65,8 +65,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 /**
  * Open a ts-morph Project rooted at the package's `tsconfig.json` (one level
- * above `srcDir`). That config excludes `src/docs`, so docs files stay out of
- * the project's source surface.
+ * above `srcDir`). That config excludes `src/docs`.
  */
 function openProject(srcDir: string): Project {
 	return new Project({

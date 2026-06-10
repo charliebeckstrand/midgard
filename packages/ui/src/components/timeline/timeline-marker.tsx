@@ -34,9 +34,8 @@ export function TimelineMarker({
 	return (
 		<span
 			data-slot="timeline-marker"
-			// `current` was accepted and silently discarded; expose it as a styling
-			// hook. ARIA stays on the TimelineItem <li>, which already announces
-			// aria-current — stamping the marker too would double it.
+			// `current` is a styling hook only. ARIA stays on the TimelineItem <li>,
+			// which announces aria-current; the marker carries none.
 			data-current={current || undefined}
 			className={cn(
 				k.marker.base,

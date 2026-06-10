@@ -71,7 +71,7 @@ describe('useDatePickerRangeState', () => {
 
 			expect(result.current.open).toBe(false)
 
-			// Pending — not yet committed.
+			// Pending, not yet committed.
 			expect(onChange).not.toHaveBeenCalled()
 
 			act(() => result.current.onExitComplete())

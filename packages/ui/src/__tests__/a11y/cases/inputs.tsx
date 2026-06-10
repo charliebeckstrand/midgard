@@ -57,7 +57,7 @@ export const inputCases: readonly Case[] = [
 	],
 	[
 		// No explicit id: the Field generates one and both Label and Slider read
-		// it from Control context — the label names the range input.
+		// it from Control context; the label names the range input.
 		'slider in field',
 		<Field key="f">
 			<Label>Volume</Label>

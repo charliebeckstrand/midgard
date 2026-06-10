@@ -1,13 +1,13 @@
 /**
- * Panel bridge — slot bundle shared by `dialog`, `drawer`, and `sheet`. A
+ * Panel bridge: slot bundle shared by `dialog`, `drawer`, and `sheet`. A
  * pure bridge: it receives the `panel` token bundle plus the kata's
  * caller-supplied recipes and stitches them into the standard slot bundle
  * (title / description / header / body / footer / close), referencing kiso
  * in neither value nor type.
  *
  * Each kata's panel has its own variant axes (size + surface + side for
- * sheet, surface for drawer, size + surface for dialog), so unlike
- * `control` / `check` the bridge doesn't own the variants. The kata
+ * sheet, surface for drawer, size + surface for dialog). Unlike
+ * `control` / `check`, the bridge doesn't own the variants. The kata
  * defines them via its own `defineRecipe` call and hands the result to
  * `panel(t, { … })`, which composes the bundle's `layout` with caller
  * extras.
@@ -62,7 +62,7 @@ function toArray(v?: string | string[]): string[] {
  * Build the panel slot bundle from the `panel` tokens and the caller input.
  *
  * `panel` and (optional) `backdrop` are caller-supplied `defineRecipe(...)`
- * results — they carry the kata's variants and stay callable, so consumers
+ * results; they carry the kata's variants and stay callable. Consumers
  * keep `VariantProps<typeof result.panel>` inference. The other slots are
  * zero-variant class fragments built from the bundle's `layout` plus
  * optional caller extras.

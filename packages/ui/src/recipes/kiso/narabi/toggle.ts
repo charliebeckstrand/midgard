@@ -1,5 +1,5 @@
 /**
- * Narabi toggle — the two-column grid that holds a check/radio/switch
+ * Narabi toggle: the two-column grid that holds a check/radio/switch
  * control alongside its label and description. Control sits in column 1
  * row 1, label in column 2 row 1, description in column 2 row 2.
  *

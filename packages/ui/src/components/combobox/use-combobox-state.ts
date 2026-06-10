@@ -35,7 +35,7 @@ export function useComboboxState<T>({
 }: ComboboxStateParams<T>) {
 	const [query, setQueryInternal] = useState('')
 
-	// Bypass deferral on empty query so the filter clears immediately.
+	// An empty query bypasses deferral; the filter clears immediately.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal

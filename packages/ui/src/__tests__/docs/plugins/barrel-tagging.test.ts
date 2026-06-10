@@ -40,12 +40,11 @@ describe('buildTaggedBarrel', () => {
 		expect(out).toContain('__module: "button"')
 	})
 
-	// The load-bearing invariant. The tag MUST ride inside a consumed export's
+	// The load-bearing invariant: the tag must ride inside a consumed export's
 	// initializer. A standalone `__ct_tag(...)` statement is a bare side effect
 	// that the production build (the library declares `sideEffects: false`)
-	// tree-shakes away — silently emptying every derived "Show code" block while
-	// dev, which never tree-shakes, stays green. If a refactor reverts to an
-	// appended suffix, this fails instead of the breakage reaching prod unseen.
+	// tree-shakes away, emptying every derived "Show code" block while dev,
+	// which never tree-shakes, stays green.
 	it('never emits a standalone (tree-shakeable) tag statement', () => {
 		const out = rewrite(BUTTON_BARREL, 'button')
 
@@ -77,7 +76,7 @@ describe('buildTaggedBarrel', () => {
 		// Type-only specifiers are preserved as type re-exports.
 		expect(out).toContain('export { type GlassProviderProps } from "./glass"')
 
-		// Both PascalCase values — the component and the context — are tagged.
+		// Both PascalCase values (the component and the context) are tagged.
 		expect(out).toContain('export const GlassProvider = __ct_tag(')
 
 		expect(out).toContain('export const GlassContext = __ct_tag(')

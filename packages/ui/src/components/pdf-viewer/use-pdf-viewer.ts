@@ -104,7 +104,7 @@ export function usePdfViewer({
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
 
-	// Pass `isTransposed` as the invalidation key so the viewport re-measures
+	// `isTransposed` is the invalidation key; the viewport re-measures
 	// synchronously on rotation flip, before paint.
 	const viewportSize = usePdfViewerViewportSize(viewportRef, isTransposed)
 
@@ -127,8 +127,8 @@ export function usePdfViewer({
 
 	const visible = !!(viewportSize && pageSize)
 
-	// Memoized so PdfViewerContext value identity is stable across renders that
-	// don't touch its fields.
+	// Memoized; PdfViewerContext value identity stays stable across renders
+	// that don't touch its fields.
 	return useMemo<PdfViewerResult>(
 		() => ({
 			pages,

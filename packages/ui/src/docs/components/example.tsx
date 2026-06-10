@@ -23,7 +23,7 @@ export function Example({
 	actions?: ReactNode
 	preview?: ReactNode
 	footer?: ReactNode
-	/** Explicit override. When omitted, the block is derived from `children`. */
+	/** Explicit override. When omitted, the block derives from `children`. */
 	code?: string
 	children: ReactNode
 }) {

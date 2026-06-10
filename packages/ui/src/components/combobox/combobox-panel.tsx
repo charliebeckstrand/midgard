@@ -32,11 +32,11 @@ type ComboboxPanelProps = {
 }
 
 /**
- * Internal — the combobox menu surface rendered through FloatingPortal.
+ * Internal: the combobox menu surface rendered through FloatingPortal.
  * Owns the entry/exit animation, the listbox role, and the Escape-to-close
- * handler; floating positioning + open state is supplied by the caller.
+ * handler; the caller supplies floating positioning and open state.
  *
- * Not exported from the package barrel — intentionally internal.
+ * Not exported from the package barrel.
  */
 export function ComboboxPanel({
 	id,
@@ -86,9 +86,9 @@ export function ComboboxPanel({
 									}}
 								>
 									{/* The listbox owns only options, per aria-required-children. The
-									    empty-state status message is a sibling inside the panel chrome,
-									    so it still announces and still renders on the dropdown surface;
-									    a peer/:empty toggle swaps the two as options come and go. */}
+									    empty-state status message is a sibling inside the panel chrome;
+									    it announces and renders on the dropdown surface. A peer/:empty
+									    toggle swaps the two as options come and go. */}
 									<div
 										role="listbox"
 										id={id}

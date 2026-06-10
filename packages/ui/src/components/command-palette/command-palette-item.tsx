@@ -26,7 +26,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 
 	const { component: LinkComponent } = useLink()
 
-	// Stable id so the input's aria-activedescendant can point at the active item.
+	// Stable id; the input's aria-activedescendant points at the active item.
 	const itemId = useId()
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
@@ -34,7 +34,7 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const onClick = (props as { onClick?: (e: MouseEvent<HTMLElement>) => void }).onClick
 
 	function handleSelect(e: MouseEvent<HTMLElement>) {
-		// The consumer handler composes with — not replaces — selection/close.
+		// The consumer handler runs first, then selection/close.
 		onClick?.(e)
 
 		if (disabled) return
@@ -44,9 +44,9 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		if (closeOnAction) close()
 	}
 
-	// Attributes shared by both render branches; host-element props are spread
-	// per branch via `forwardedProps` to keep the polymorphic union narrowed.
-	// They come first so they can't clobber the option wiring below.
+	// Attributes shared by both render branches; host-element props spread per
+	// branch via `forwardedProps`, keeping the polymorphic union narrowed. They
+	// come first; the option wiring below wins on collision.
 	const optionProps = {
 		id: itemId,
 		role: 'option' as const,

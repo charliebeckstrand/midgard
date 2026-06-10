@@ -9,7 +9,7 @@ import { Heading } from '../heading'
 export type CardTitleProps = {
 	className?: string
 	size?: Step
-	/** Heading level, so the card title fits the document outline. @default 3 */
+	/** Heading level of the rendered title. @default 3 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 } & Omit<ComponentPropsWithoutRef<'h3'>, 'className'>
 

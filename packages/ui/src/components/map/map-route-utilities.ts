@@ -48,9 +48,9 @@ function stopIndexForSegment(boundaries: number[], segmentIndex: number): number
  *
  * Segment rule: a segment inherits its starting stop's status; a done → active
  * transition keeps the completed portion green up to the current position. When
- * an explicit `path` is supplied (denser than `stops`), segments are assigned to
- * the stop interval they fall within — matching each stop to its nearest path
- * point — instead of indexing `stops` by the dense path index.
+ * an explicit `path` is supplied (denser than `stops`), segments are assigned
+ * to the stop interval they fall within (each stop matches its nearest path
+ * point) instead of indexing `stops` by the dense path index.
  */
 export function toSegmentCollection(data: RouteData) {
 	const stops = data.stops
@@ -59,7 +59,7 @@ export function toSegmentCollection(data: RouteData) {
 
 	const path: LngLat[] = explicitPath ?? stops.map((s) => s.position)
 
-	// Without an explicit path the points ARE the stops, so the mapping is the
+	// Without an explicit path the points ARE the stops and the mapping is the
 	// identity (boundaries[i] === i); otherwise each stop maps to its nearest
 	// path point and a segment inherits the interval it lies within.
 	const boundaries = explicitPath
@@ -101,7 +101,7 @@ export function toSegmentCollection(data: RouteData) {
 	return { type: 'FeatureCollection' as const, features: segments }
 }
 
-/** MapLibre `match` expression keyed on `properties.status` — paints each segment with its status colour, falling back to `pending`. */
+/** MapLibre `match` expression keyed on `properties.status`: paints each segment with its status colour, falling back to `pending`. */
 export function toColorMatch(colors: Record<SegmentStatus, string>) {
 	return [
 		'match',

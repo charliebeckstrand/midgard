@@ -11,7 +11,7 @@ type UIContextOptions = {
 type UIRenderOptions = UIContextOptions & Omit<RenderOptions, 'wrapper'>
 
 /**
- * Custom render that wraps the component in commonly needed context providers.
+ * Custom render that wraps the component in skeleton/glass context providers.
  *
  * Pass `skeleton: true` to simulate skeleton mode and `glass: true` for glass
  * mode. The announcer's live region is created on demand by `announce` /

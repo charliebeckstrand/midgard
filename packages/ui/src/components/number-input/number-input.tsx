@@ -30,7 +30,7 @@ export type NumberInputProps = Omit<
 	step?: number
 }
 
-/** Numeric Input with stepper buttons — clamps to `min`/`max` and rounds to `step` precision on blur rather than mid-entry, and binds to an enclosing Form field by `name`. */
+/** Numeric Input with stepper buttons. Clamps to `min`/`max` and rounds to `step` precision on blur rather than mid-entry, and binds to an enclosing Form field by `name`. */
 export function NumberInput({
 	value,
 	defaultValue,
@@ -65,8 +65,8 @@ export function NumberInput({
 	const clampValue = (n: number) =>
 		clamp(n, min ?? Number.NEGATIVE_INFINITY, max ?? Number.POSITIVE_INFINITY)
 
-	// Clamp AFTER rounding — `toFixed` rounds half-up, so rounding a clamped
-	// value could land past min/max (e.g. max 10.05 at precision 1 → 10.1).
+	// Clamp AFTER rounding: `toFixed` rounds half-up, and rounding a clamped
+	// value can land past min/max (e.g. max 10.05 at precision 1 → 10.1).
 	const change = (delta: number) => {
 		const next = current === undefined ? clampValue(round(0)) : clampValue(round(current + delta))
 
@@ -105,8 +105,8 @@ export function NumberInput({
 
 		setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
 
-		// Composed, not clobbered: a consumer onBlur must not silently disable
-		// the documented clamp/round-on-blur and the form's touched tracking.
+		// Composed, not clobbered: clamp/round-on-blur and the form's touched
+		// tracking run before the consumer's onBlur.
 		onBlur?.(e)
 	}
 
@@ -156,9 +156,9 @@ export function NumberInput({
 }
 
 /**
- * Decimal places implied by `step`, robust to scientific notation —
+ * Decimal places implied by `step`, robust to scientific notation.
  * `(1e-7).toString()` is `'1e-7'`, which a naive `split('.')` reads as
- * precision 0 and would round every entry to an integer.
+ * precision 0, rounding every entry to an integer.
  */
 function stepPrecision(step: number): number {
 	const s = step.toString()

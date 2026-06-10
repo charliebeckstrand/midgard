@@ -167,8 +167,8 @@ describe('useResizablePanel', () => {
 				}),
 			)
 
-			// A huge nudge: right clamps to its min (10) and the prior two-pass
-			// derivation handed left the remainder (90) — past its own max of 60.
+			// A huge nudge: right clamps to its min (10); left clamps to its own
+			// max of 60 rather than taking the remainder (90).
 			act(() => result.current.resize(0, 90))
 
 			expect(result.current.sizes[0]).toBe(60)

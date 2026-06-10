@@ -7,7 +7,7 @@ import type { Case } from './types'
 
 const noop = () => {}
 
-/** Form structure — the form element, its fields, and the bound submit control. */
+/** Form structure: the form element, its fields, and the bound submit control. */
 export const formCases: readonly Case[] = [
 	[
 		// A form with one labelled field; the bound SubmitButton inherits Button

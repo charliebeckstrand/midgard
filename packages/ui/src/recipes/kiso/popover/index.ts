@@ -1,5 +1,5 @@
 /**
- * Popover archetype — floating overlay shared by popover, combobox,
+ * Popover archetype: floating overlay shared by popover, combobox,
  * listbox, and date-picker kata. Owns the trigger and portal classes, the
  * default body-text colour, and the panel slot bundle (base, surface,
  * glass, ring, motion).

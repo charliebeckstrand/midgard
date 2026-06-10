@@ -13,8 +13,7 @@ function readStoredDensity(): DensityLevel {
 
 /**
  * Persisted docs density preference (`loose | snug | compact`), defaulting to
- * `snug` — the ambient `<Density>` default — so the docs look unchanged until
- * a level is chosen.
+ * `snug`, the ambient `<Density>` default.
  */
 export function useDensity() {
 	const [density, setDensity] = useState<DensityLevel>(readStoredDensity)

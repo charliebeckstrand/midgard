@@ -6,7 +6,7 @@ import { collectPatternViolations } from '../../helpers/walk-source'
 // Top-level hooks are reusable building blocks consumed by components,
 // primitives, and other hooks. They must not import from components, layouts,
 // providers, or recipe-layer internals (kata / katakana). Importing from
-// primitives is allowed — hooks may read context from primitive providers.
+// primitives is allowed; hooks may read context from primitive providers.
 
 const hooksDir = join(__dirname, '../../../hooks')
 const srcDir = join(__dirname, '../../..')

@@ -1,8 +1,7 @@
 /**
- * Colour math for the picker family — pure conversions between HSVA (the
+ * Colour math for the picker family: pure conversions between HSVA (the
  * interactive source of truth), RGBA, and hex strings, plus the parse /
- * serialise / equality helpers the state hook leans on. Kept free of React so
- * the seam stays synchronously testable.
+ * serialise / equality helpers the state hook leans on. Free of React.
  */
 
 import { clamp } from '../../utilities'
@@ -10,7 +9,7 @@ import type { ColorFormat, Hsva, Rgba } from './types'
 
 const round = (n: number) => Math.round(n)
 
-/** Clamp an HSVA into its canonical ranges (`h 0–360`, `s/v 0–100`, `a 0–1`) at full precision. */
+/** Clamp an HSVA into its canonical ranges (`h 0-360`, `s/v 0-100`, `a 0-1`) at full precision. */
 export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
 		h: clamp(h, 0, 360),
@@ -21,9 +20,9 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * Clamp and round an HSVA for output / comparison — integers for `h`/`s`/`v`,
- * two decimals for `a`. Full precision is kept internally; rounding happens only
- * at these edges so every byte value remains reachable through an RGB or hex round-trip.
+ * Clamp and round an HSVA for output / comparison: integers for `h`/`s`/`v`,
+ * two decimals for `a`. Full precision stays internal; rounding happens only
+ * at these edges.
  */
 function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
@@ -34,7 +33,7 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	}
 }
 
-/** True when two colours render identically — hue is ignored where saturation or value collapse it. */
+/** True when two colours render identically; ignores hue where saturation or value collapse it. */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
 	const ca = roundHsva(a)
 	const cb = roundHsva(b)
@@ -98,7 +97,7 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 
 	const s = max === 0 ? 0 : d / max
 
-	// Full precision; rounding is deferred to the output edges (roundHsva).
+	// Full precision; rounding defers to the output edges (roundHsva).
 	return { h, s: s * 100, v: max * 100, a: clamp(a, 0, 1) }
 }
 
@@ -148,7 +147,7 @@ export function hexToHsva(input: string): Hsva | null {
 	return rgba ? rgbaToHsva(rgba) : null
 }
 
-/** Accept either wire format and land on HSVA. Format-agnostic — a stray string still parses. */
+/** Accept either wire format and land on HSVA. Format-agnostic; a stray string still parses. */
 export function toHsva(value: string | Hsva | undefined | null): Hsva | null {
 	if (value == null) return null
 
@@ -166,7 +165,7 @@ export function serializeColor(hsva: Hsva, format: ColorFormat, alpha: boolean):
 	return hsvaToHex(hsva, alpha)
 }
 
-/** Echo detection for controlled values — a string compares case-insensitively, an object by render-equality. */
+/** Echo detection for controlled values: a string compares case-insensitively, an object by render-equality. */
 export function sameColorValue(
 	a: string | Hsva | undefined,
 	b: string | Hsva | undefined,

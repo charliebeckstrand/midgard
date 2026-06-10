@@ -13,8 +13,8 @@ const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
-	// Bypasses deferral on empty query: the deferred copy would otherwise paint
-	// one stale frame of the prior filter when the palette resets on open/close.
+	// Bypasses deferral on empty query: the deferred copy paints one stale
+	// frame of the prior filter when the palette resets on open/close.
 	const deferredQueryInternal = useDeferredValue(query)
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
@@ -33,8 +33,8 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	// On each filter change, moves the keyboard highlight to the top result so
 	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
-	// option (or are cleared when nothing matches). Skipped on the initial value
-	// so the first arrow key picks the first item on open.
+	// option (or are cleared when nothing matches). Skipped on the initial
+	// value; the first arrow key on open picks the first item.
 	const lastDeferredRef = useRef(deferredQuery)
 
 	useEffect(() => {

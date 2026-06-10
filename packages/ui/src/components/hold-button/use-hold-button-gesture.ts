@@ -26,10 +26,10 @@ export function useHoldButtonGesture({
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	// Always points at the latest `cancel` closure; read by the window guards
-	// and the disabled effect below so neither re-binds per render.
+	// and the disabled effect below. Neither re-binds per render.
 	const cancelRef = useRef<() => void>(() => {})
 
-	// The fill animates unconditionally — it gates an irreversible action in
+	// The fill animates unconditionally: it gates an irreversible action in
 	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
 	// decorative and collapses to an instant under prefers-reduced-motion.
 	const reduceMotion = useReducedMotion()
@@ -55,9 +55,8 @@ export function useHoldButtonGesture({
 	}
 
 	// Window-level guards for a keyboard hold: Alt-Tab or tab-away routes the
-	// keyup elsewhere, and without these the irreversible `onComplete` still
-	// fires after focus loss. Stable identities so add/remove pair across the
-	// per-render `start`/`cancel` closures.
+	// keyup elsewhere, and the guards cancel the hold on focus loss. Stable
+	// identities; add/remove pair across the per-render `start`/`cancel` closures.
 	const guardsRef = useRef({
 		blur: () => cancelRef.current(),
 		visibility: () => {
@@ -130,8 +129,8 @@ export function useHoldButtonGesture({
 
 	cancelRef.current = cancel
 
-	// Cancels any in-progress hold when `disabled` changes. `cancel` is read
-	// from the ref so the effect depends only on `disabled`, not on `onHoldCancel`.
+	// Cancels any in-progress hold when `disabled` changes. The effect reads
+	// `cancel` from the ref and depends only on `disabled`, not on `onHoldCancel`.
 	useEffect(() => {
 		if (disabled) cancelRef.current()
 	}, [disabled])

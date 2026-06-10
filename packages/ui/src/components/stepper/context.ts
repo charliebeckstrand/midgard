@@ -12,7 +12,7 @@ type StepperContextValue = {
 	onValueChange?: (value: number) => void
 	orientation: StepperOrientation
 	linear: boolean
-	/** Stable id base used to wire each step button to its panel. */
+	/** Stable id base wiring each step button to its panel. */
 	baseId: string
 	/** Whether a StepperPanels group is rendered; gates each step's aria-controls. */
 	hasPanels: boolean

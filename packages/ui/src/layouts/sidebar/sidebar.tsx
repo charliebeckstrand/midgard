@@ -86,10 +86,10 @@ export function SidebarLayout({
 				/>
 			)}
 
-			{/* Sidebar on desktop — inline when locked */}
+			{/* Sidebar on desktop: inline when locked */}
 			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
 
-			{/* Sidebar on desktop — sheet when floating */}
+			{/* Sidebar on desktop: sheet when floating */}
 			{floating && (
 				<Sheet
 					side="left"
@@ -111,7 +111,7 @@ export function SidebarLayout({
 				</Sheet>
 			)}
 
-			{/* Buffer to the right of the floating sidebar — keeps it open while pointer lingers within 40px */}
+			{/* Buffer to the right of the floating sidebar; keeps it open while the pointer lingers within 40px */}
 			{floating &&
 				floatingOpen &&
 				typeof document !== 'undefined' &&

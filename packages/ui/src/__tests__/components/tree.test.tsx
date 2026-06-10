@@ -433,7 +433,7 @@ describe('TreeItem', () => {
 
 		expect(onOpenChange).toHaveBeenCalledWith(true)
 
-		// Controlled — open stays false until the parent flips the prop.
+		// Controlled: open stays false until the parent flips the prop.
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})
 })

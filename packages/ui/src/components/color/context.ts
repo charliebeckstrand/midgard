@@ -5,7 +5,7 @@ import type { ControlSize } from '../control/context'
 import type { Hsva } from './types'
 
 export type ColorPanelContextValue = {
-	/** Current colour as HSVA — the panel's lossless source of truth. */
+	/** Current colour as HSVA; the panel's lossless source of truth. */
 	hsva: Hsva
 	/** Commit a new colour; accepts a value or an updater over the previous one. */
 	setHsva: (next: Hsva | ((prev: Hsva) => Hsva)) => void

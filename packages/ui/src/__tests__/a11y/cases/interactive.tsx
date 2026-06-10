@@ -13,7 +13,7 @@ import type { InteractiveCase } from './types'
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
 
 /**
- * Interactive corpus — overlays with no controlled-open prop. Each case carries
+ * Interactive corpus: overlays with no controlled-open prop. Each case carries
  * an `open` step that drives the real interaction before asserting against
  * `document.body`. Covers hover/focus tooltips and the listbox/calendar popovers
  * that only open on click or typing.

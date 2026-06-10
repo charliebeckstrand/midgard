@@ -34,9 +34,9 @@ export function useEditableGridDraft<T>({
 	// Tab / Escape commit; ensures a single commit per edit session.
 	const sessionClosedRef = useRef(false)
 
-	// The cell's formatted display value when editing began. No-op commits are
-	// skipped when this matches the draft, so a lossy format→parse round-trip
-	// (e.g. "$2.35" → NaN) does not overwrite an unchanged cell.
+	// The cell's formatted display value when editing began. Commits skip when
+	// this matches the draft; a lossy format→parse round-trip (e.g. "$2.35" →
+	// NaN) does not overwrite an unchanged cell.
 	const originalFormattedRef = useRef('')
 
 	const beginEdit = useCallback(

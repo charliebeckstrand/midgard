@@ -10,7 +10,6 @@ export type LoadingSpinnerProps = LoadingSpinnerVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
-// Static SVG hoisted as a module-level constant.
 const SPINNER_SVG = (
 	<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">
 		<circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="3" />
@@ -18,7 +17,7 @@ const SPINNER_SVG = (
 	</svg>
 )
 
-/** Indeterminate loading indicator rendered as a live `<output>` — `size` resolves from enclosing Density, with an `sr-only` `label`. */
+/** Indeterminate loading indicator rendered as a live `<output>`; `size` resolves from enclosing Density, with an `sr-only` `label`. */
 export function LoadingSpinner({
 	size,
 	color,

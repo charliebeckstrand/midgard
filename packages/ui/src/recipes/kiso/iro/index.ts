@@ -1,5 +1,5 @@
 /**
- * Iro (色) — colour. The palette matrix, keyed by variant
+ * Iro (色): colour. The palette matrix, keyed by variant
  * (solid / soft / outline / plain / bare) × colour × slot
  * (bg / text / hover / ring / border), plus the semantic intent-colour
  * text bundle and the `marker` shade for chromatic dots / glyphs. One file

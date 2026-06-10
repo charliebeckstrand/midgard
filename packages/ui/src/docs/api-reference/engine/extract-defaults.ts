@@ -3,7 +3,7 @@ import { ts } from 'ts-morph'
 /**
  * Collect every default the component declares inline on its first parameter:
  * `function Foo({ size = 'md' })` → `{ size: "'md'" }`. Values keep their
- * source quoting so they render as authored.
+ * source quoting.
  */
 export function extractDefaults(callable: ts.SignatureDeclaration): Map<string, string> {
 	const defaults = new Map<string, string>()

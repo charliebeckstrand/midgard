@@ -1,5 +1,5 @@
 /**
- * Omote blur — backdrop-filter strengths used by glass and popover
+ * Omote blur: backdrop-filter strengths used by glass and popover
  * chromes.
  *
  * Layer: kiso · Concern: backdrop blur

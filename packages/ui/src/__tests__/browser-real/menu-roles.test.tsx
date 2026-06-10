@@ -5,13 +5,13 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Menu ARIA roles (real floating engine). Guards the single-menu tree against
- * the live engine: floating-ui's `useRole` would stamp `role="menu"` on the
- * positioning wrapper while `PopoverPanel` renders the real `role="menu"`,
- * nesting two menus, and the trigger's `aria-controls` would point at the
- * wrapper rather than the menuitem container (ARIA-AUDIT pattern A). jsdom
- * mocks `useRole` away; `role: null` on `useFloatingDisclosure` plus a
- * hand-rolled `aria-controls` → panel id is the fix guarded here.
+ * Menu ARIA roles (real floating engine). Verifies `role: null` on
+ * `useFloatingDisclosure` plus a hand-rolled `aria-controls` → panel id keep
+ * floating-ui's `useRole` from stamping `role="menu"` on the positioning
+ * wrapper alongside `PopoverPanel`'s real `role="menu"`, which would nest two
+ * menus and point the trigger's `aria-controls` at the wrapper rather than
+ * the menuitem container. jsdom mocks `useRole` away, so only the real engine
+ * exercises this path.
  */
 describe('Menu ARIA roles (real browser)', () => {
 	it('exposes exactly one menu whose id the trigger controls', async () => {

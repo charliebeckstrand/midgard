@@ -7,7 +7,7 @@ export const buttonSpring = {
 } as const
 
 // A loading anchor blocks navigation (`defaultPrevented` stops next/link) and
-// swallows the event so the consumer's `onClick` does not fire.
+// swallows the event; the consumer's `onClick` does not fire.
 function cancelActivation(e: MouseEvent<HTMLAnchorElement>) {
 	e.preventDefault()
 
@@ -15,9 +15,9 @@ function cancelActivation(e: MouseEvent<HTMLAnchorElement>) {
 }
 
 /**
- * Props that gate a loading anchor — out of the tab order and with activation
+ * Props that gate a loading anchor: out of the tab order and with activation
  * cancelled, mirroring the disabled `<button>` branch. Shared by the standard
- * and headless renderers so the two can't drift.
+ * and headless renderers.
  */
 export const loadingProps = {
 	'aria-disabled': true,

@@ -11,7 +11,7 @@ export type MapGeofenceProps = {
 	shape: GeofenceShape
 	/** Fill color. Defaults to translucent blue. */
 	color?: string
-	/** Fill opacity (0–1). Defaults to 0.15. */
+	/** Fill opacity (0-1). Defaults to 0.15. */
 	fillOpacity?: number
 	/** Stroke color. Defaults to `color`. */
 	strokeColor?: string
@@ -36,7 +36,7 @@ export function MapGeofence({
 
 	const lineId = `map-geofence-line-${reactId}`
 
-	// The mount effect reads initial props via a ref so it can safely run once.
+	// The mount effect reads initial props via a ref and runs once.
 	const mountPropsRef = useRef({ shape, color, fillOpacity, strokeColor, strokeWidth })
 
 	mountPropsRef.current = { shape, color, fillOpacity, strokeColor, strokeWidth }

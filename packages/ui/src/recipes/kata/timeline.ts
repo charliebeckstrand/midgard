@@ -9,7 +9,7 @@ const { size, weight } = ji
  * 500 dark), clearing non-text 3:1 on the page; `lineBefore` / `lineAfter`
  * paint the inbound / outbound rail at the same shade (zinc uses a subtle
  * structural rail). The `before:` / `after:` prefixes are verbatim class
- * literals — Tailwind's scanner requires literal strings for class discovery.
+ * literals: Tailwind's scanner requires literal strings for class discovery.
  */
 const palette: Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }> = {
 	zinc: {

@@ -88,7 +88,7 @@ export type CalendarProps = {
 	className?: string
 }
 
-/** Single-date month-grid picker — exposes navigation, focus, and picker handles to a parent via `ref` for embedded use. */
+/** Single-date month-grid picker; exposes navigation, focus, and picker handles to a parent via `ref` for embedded use. */
 export function Calendar({
 	value: valueProp,
 	defaultValue,
@@ -125,8 +125,8 @@ export function Calendar({
 		onValueChange: handleValueChange,
 	})
 
-	// Populated after mount only, avoiding a server/client mismatch on "today"
-	// (e.g. across a day boundary or timezone offset). Null until then.
+	// Populated after mount only; a server-rendered "today" can mismatch the
+	// client across a day boundary or timezone offset. Null until then.
 	const [today, setToday] = useState<Date | null>(null)
 
 	useEffect(() => {
@@ -204,8 +204,8 @@ export function Calendar({
 	)
 
 	// Month navigation (header chevrons, picker, arrowing across a boundary)
-	// re-renders the grid silently; narrate the new view so screen readers
-	// hear where they landed (WCAG 4.1.3). The hook skips the initial value.
+	// re-renders the grid silently; this announces the new view to screen
+	// readers (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(monthLabel)
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null

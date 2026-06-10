@@ -10,9 +10,9 @@ const CONTROL_SLOTS = {
 } as const satisfies Record<string, A11yRelation>
 
 export type A11yControl = {
-	/** Composed `aria-describedby` — registered slot ids only, or undefined when none are rendered. */
+	/** Composed `aria-describedby`: registered slot ids only, or undefined when none are rendered. */
 	describedBy: string | undefined
-	/** Composed `aria-labelledby` — the Label's id once it registers, else undefined. Lets a portalled popup (e.g. a listbox) name itself from the field's Label. */
+	/** Composed `aria-labelledby`: the Label's id once it registers, else undefined. Lets a portalled popup (e.g. a listbox) name itself from the field's Label. */
 	labelledBy: string | undefined
 	/** Id the Label slot renders with. */
 	labelId: string
@@ -20,11 +20,12 @@ export type A11yControl = {
 	descriptionId: string
 	/** Id the error Message slot renders with. */
 	messageId: string
-	/** `true` while an error Message is mounted — fields OR this into `aria-invalid` so a rendered error always marks its control invalid. */
+	/** `true` while an error Message is mounted; fields OR this into `aria-invalid`. */
 	messageRegistered: boolean
 	/**
-	 * Slot registration — Label / Description / error Message call these on mount,
-	 * passing the id they actually render so `aria-*` never references a dangling id.
+	 * Slot registration: Label / Description / error Message call these on
+	 * mount, passing the id they render; the composed `aria-*` references only
+	 * rendered ids.
 	 */
 	registerLabel: (renderedId?: string) => () => void
 	registerDescription: (renderedId?: string) => () => void
@@ -32,12 +33,11 @@ export type A11yControl = {
 }
 
 /**
- * Field a11y scaffolding — `useA11yScope` specialized for a labelled control.
+ * Field a11y scaffolding: `useA11yScope` specialized for a labelled control.
  * Derives the Label / Description / error-Message ids from the control id,
- * tracks whether each slot is actually rendered, and composes `aria-describedby`
- * / `aria-labelledby` from only the registered ids — a field never references
- * an id absent from the DOM. Id shape: `${id}-label`, `${id}-description`,
- * `${id}-error`.
+ * tracks whether each slot is rendered, and composes `aria-describedby` /
+ * `aria-labelledby` from only the registered ids. Id shape: `${id}-label`,
+ * `${id}-description`, `${id}-error`.
  */
 export function useA11yControl(id: string): A11yControl {
 	const scope = useA11yScope({ id, slots: CONTROL_SLOTS })

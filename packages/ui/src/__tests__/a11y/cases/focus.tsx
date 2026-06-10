@@ -57,7 +57,7 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
 }
 
 /**
- * Focus corpus — dismissable surfaces that move keyboard focus programmatically
+ * Focus corpus: dismissable surfaces that move keyboard focus programmatically
  * (an explicit `.focus()` call) on open, observable in jsdom: the command
  * palette's search input, an `autoFocus` popover, and the dropdown panels
  * (menu, select's listbox). The gate (`focus.test.tsx`) asserts focus leaves the
@@ -65,7 +65,7 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
  *
  * The modal Overlay family (dialog/drawer/sheet/confirm) is excluded: its trap
  * finds the first tabbable via floating-ui's layout-dependent `tabbable` pass,
- * which jsdom can't evaluate (no geometry) — covered in the real-browser suite.
+ * which jsdom can't evaluate (no geometry); covered in the real-browser suite.
  * Combobox is excluded: that pattern keeps focus on the input.
  */
 export const focus: readonly FocusCase[] = [

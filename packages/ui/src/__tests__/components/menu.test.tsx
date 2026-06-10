@@ -109,8 +109,8 @@ describe('MenuTrigger', () => {
 	})
 
 	it('toggles open and still calls a consumer onClick on the fallback button', () => {
-		// Regression: on the plain-button fallback a consumer onClick must not
-		// clobber the open toggle.
+		// On the plain-button fallback a consumer onClick must not clobber the
+		// open toggle.
 		const onClick = vi.fn()
 
 		renderUI(
@@ -430,7 +430,7 @@ describe('Menu context-menu mode', () => {
 
 		// Without a placement prop the root wrapper opts into context-menu mode.
 		// The wrapper holds arbitrary page content and implements no keyboard
-		// model — it must NOT carry role="application", which suppresses AT
+		// model; it must NOT carry role="application", which suppresses AT
 		// browse-mode for everything inside it.
 		expect(root).not.toHaveAttribute('role')
 

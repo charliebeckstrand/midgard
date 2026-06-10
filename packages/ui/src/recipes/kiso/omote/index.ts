@@ -1,5 +1,5 @@
 /**
- * Omote (面) — surfaces. `bg` carries the raw fills (`bg.surface`,
+ * Omote (面): surfaces. `bg` carries the raw fills (`bg.surface`,
  * `bg.tint`, `bg.popover`, `bg.skeleton`); the other keys carry the
  * composed chromes that wrap a fill with ring / blur / pulse / etc.
  * One file per concern; this barrel assembles the named bundle that

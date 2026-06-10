@@ -236,12 +236,12 @@ describe('useEditableGridNavigation: addCellToSelection', () => {
 			result.current.moveActiveTo({ row: 0, col: 0 })
 		})
 
-		// Extend to (1,1) — creates a 2x2 rectangle anchored at (0,0).
+		// Extend to (1,1): creates a 2x2 rectangle anchored at (0,0).
 		act(() => {
 			result.current.moveActiveTo({ row: 1, col: 1 }, true)
 		})
 
-		// CMD/Ctrl click on (2,2): the 2x2 rect should bake into extras.
+		// CMD/Ctrl click on (2,2): the 2x2 rect bakes into extras.
 		act(() => {
 			result.current.addCellToSelection({ row: 2, col: 2 })
 		})
@@ -251,7 +251,7 @@ describe('useEditableGridNavigation: addCellToSelection', () => {
 		expect(result.current.extraCells.has(cellKey(1, 0))).toBe(true)
 		expect(result.current.extraCells.has(cellKey(1, 1))).toBe(true)
 
-		// The newly clicked cell should not appear in extras — it's the new active.
+		// The newly clicked cell does not appear in extras; it's the new active.
 		expect(result.current.extraCells.has(cellKey(2, 2))).toBe(false)
 	})
 })

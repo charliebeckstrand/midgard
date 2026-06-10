@@ -31,8 +31,8 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: TogglePro
 		<Tooltip>
 			<TooltipTrigger>
 				{/* Fixed accessible name + aria-pressed (the APG toggle pattern):
-				    swapping the name on a state change isn't reliably announced on
-				    the same control. The visible tooltip still swaps. */}
+				    screen readers do not reliably announce a name swap on the same
+				    control. The visible tooltip still swaps. */}
 				<Button variant="bare" aria-label={showLabel} aria-pressed={visible} onClick={onToggle}>
 					<Icon icon={visible ? <EyeOff /> : <Eye />} />
 				</Button>
@@ -42,7 +42,7 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel }: TogglePro
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility — suppress it via `toggleButton.visible`. */
+/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `toggleButton.visible`. */
 export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
 

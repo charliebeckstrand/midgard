@@ -53,9 +53,9 @@ export function useEditableGridWrapper<T>({
 
 			const wrapper = wrapperRef.current
 
-			// Events bubbled from an in-grid selection checkbox: only Tab forward is
-			// intercepted to bridge into the cell cursor; Shift+Tab, Space, and all
-			// other keys pass through to the checkbox.
+			// Events bubbled from an in-grid selection checkbox: only Tab forward
+			// bridges into the cell cursor; Shift+Tab, Space, and all other keys
+			// pass through to the checkbox.
 			const tgt = e.target
 
 			if (
@@ -81,7 +81,7 @@ export function useEditableGridWrapper<T>({
 				} else if (section.tagName === 'TBODY') {
 					// Resolve via `data-row-index`, not DOM child position: under
 					// virtualization the body contains spacer rows plus only the
-					// windowed rows, so child position does not map to data order.
+					// windowed rows; child position does not map to data order.
 					const attr = tr.getAttribute('data-row-index')
 
 					if (attr === null) return
@@ -130,8 +130,7 @@ export function useEditableGridWrapper<T>({
 					return
 				case 'Tab': {
 					// Shift+Tab from the leftmost editable column moves focus to the
-					// row's selection checkbox (when present) and clears active state,
-					// letting the user continue tabbing past the header or out of the grid.
+					// row's selection checkbox (when present) and clears active state.
 					if (e.shiftKey && active?.col === 0 && wrapper) {
 						// Look up the row by `data-row-index`, not DOM position,
 						// which is unreliable under virtualization.

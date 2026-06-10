@@ -12,7 +12,7 @@ export type CheckboxFieldProps = {
 
 /**
  * Pairs a Checkbox with its Label. Generates a scoped id and broadcasts it
- * through `ControlContext` so the inner Checkbox and Label auto-wire without
+ * through `ControlContext`; the inner Checkbox and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
 export function CheckboxField({ className, htmlFor, ...props }: CheckboxFieldProps) {

@@ -1,5 +1,5 @@
 /**
- * Narabi (並び) — arrangement. Ordering, positioning, and slot
+ * Narabi (並び): arrangement. Ordering, positioning, and slot
  * relationships between siblings. One file per concern; this barrel
  * assembles the named bundle that every kata reads.
  */

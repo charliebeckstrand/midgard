@@ -38,8 +38,8 @@ type DataTableColumnsResult<T> = {
  * `hiddenColumns`, the derived `columnById` map, the ordered + filtered
  * `visibleColumns` list, and the `managerItems` shape consumed by the
  * column-manager dialog. `manageColumns` / `manageColumnsLabel` collapse the
- * config's enabled flag and label into a couple of plain values for the
- * dialog's render gate.
+ * config's enabled flag and label into plain values for the dialog's render
+ * gate.
  */
 export function useDataTableColumns<T>({
 	columns,

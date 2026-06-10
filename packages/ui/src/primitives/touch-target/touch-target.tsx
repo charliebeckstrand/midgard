@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
  * without altering visual layout. The invisible expansion sibling captures
  * pointer events across the full 44 px area and, sitting inside the interactive
  * host, forwards them to it via event bubbling. It is hidden on `pointer-fine`
- * devices, so mouse users keep the element's natural hit area.
+ * devices.
  */
 export function TouchTarget({ children }: { children: ReactNode }) {
 	return (

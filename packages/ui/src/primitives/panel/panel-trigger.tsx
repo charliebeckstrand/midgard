@@ -14,19 +14,16 @@ export type PanelTriggerProps = {
 	>
 	onClick?: () => void
 	/**
-	 * Open state of the panel this trigger controls. When provided, it is
-	 * surfaced as `aria-expanded` so assistive technology announces the
-	 * disclosure state. Omit it and `aria-expanded` is left off rather than
-	 * reported incorrectly.
+	 * Open state of the panel this trigger controls. When provided, the trigger
+	 * surfaces it as `aria-expanded`; when omitted, it sets no `aria-expanded`.
 	 */
 	open?: boolean
 }
 
 /**
- * Wraps a single child so clicking it invokes `onClick` (typically to open a
- * panel). The child's own `onClick` runs first, then the trigger's. The child
- * is marked `aria-haspopup="dialog"` (and `aria-expanded` when `open` is given)
- * so the disclosure relationship is exposed to assistive technology.
+ * Wraps a single child; clicking it invokes `onClick`. The child's own
+ * `onClick` runs first, then the trigger's. Marks the child
+ * `aria-haspopup="dialog"` and, when `open` is given, `aria-expanded`.
  */
 export function PanelTrigger({ children, onClick, open }: PanelTriggerProps) {
 	return cloneElement(children, {

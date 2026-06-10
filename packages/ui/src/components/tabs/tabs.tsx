@@ -21,7 +21,7 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 
 /**
  * Tab-group root holding selection state and `variant`/`orientation`/`size`
- * context for its list and panels — controlled or uncontrolled via
+ * context for its list and panels. Controlled or uncontrolled via
  * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
  */
 export function Tabs({
@@ -46,8 +46,8 @@ export function Tabs({
 
 	const baseId = useId()
 
-	// Tracks whether a fade-mode TabContents (inactive panels stay mounted) is
-	// rendered, so inactive tabs can keep aria-controls without it dangling.
+	// Tracks whether a fade-mode TabContents (inactive panels stay mounted)
+	// is rendered.
 	const [panelsMounted, setPanelsMounted] = useState(false)
 
 	const registerMountedPanels = useCallback(() => {

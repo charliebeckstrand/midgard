@@ -22,10 +22,10 @@ type BaseOptionProps = {
 	disabled?: boolean
 	onSelect: () => void
 	/**
-	 * Stamps a stable `id` so a combobox/textbox can point its
-	 * `aria-activedescendant` at this option while it owns DOM focus, and
-	 * prevents mousedown from pulling focus off that input. Off for
-	 * focus-roving lists (listbox/select), which move real focus to the option.
+	 * Stamps a stable `id` the owning combobox/textbox points its
+	 * `aria-activedescendant` at, and blocks mousedown from pulling focus off
+	 * that input. Off for focus-roving lists (listbox/select), which move real
+	 * focus to the option.
 	 */
 	activeDescendant?: boolean
 } & Omit<
@@ -136,14 +136,14 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
  * Factory for select-like option components. Consumers supply the data-slot
  * prefix and the context hook.
  *
- * The selected-state check icon is owned by `BaseOption`, which reads the
- * ambient Density to size it. Per-option `icon` overrides it.
+ * `BaseOption` owns the selected-state check icon and sizes it from the
+ * ambient Density. Per-option `icon` overrides it.
  */
 export function createSelectOption<TValue = unknown>(config: {
 	slotPrefix: string
 	/**
-	 * Pass for active-descendant lists (combobox) so each option gets a stable
-	 * `id` the owning input can reference. Omit for focus-roving lists.
+	 * Pass for active-descendant lists (combobox); each option gets a stable
+	 * `id` the owning input references. Omit for focus-roving lists.
 	 */
 	activeDescendant?: boolean
 	useContext: () => {

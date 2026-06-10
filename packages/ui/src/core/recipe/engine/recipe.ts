@@ -1,5 +1,5 @@
 /**
- * defineRecipe — the recipe primitive.
+ * defineRecipe: the recipe primitive.
  *
  * Builds a callable recipe from a `RecipeConfig`:
  *
@@ -13,12 +13,12 @@
  *   - `skeleton` is reserved at the config root and attaches to the
  *     recipe as `k.skeleton` with its caller-inferred type.
  *   - `extras` (optional second argument) attaches arbitrary kata-shaped
- *     siblings to the recipe — `motion`, sub-recipes, fragment maps.
+ *     siblings to the recipe: `motion`, sub-recipes, fragment maps.
  *     The returned recipe stays callable as `k({...})` and gains the
  *     extras as direct properties (`k.motion`).
  *
  * The kata exports the recipe as `k`; callers use `k(...)` for the variant
- * call and `k.title` for slot classes — one binding per kata.
+ * call and `k.title` for slot classes; one binding per kata.
  */
 
 import type { ClassValue } from 'clsx'
@@ -101,8 +101,8 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
-	// Assert the final shape — slot properties, `.config`, and extras are
-	// attached at runtime and invisible to the type system.
+	// Assert the final shape: slot properties, `.config`, and extras attach
+	// at runtime, invisible to the type system.
 	return recipe as Recipe<C> & X
 }
 
@@ -119,8 +119,8 @@ function matches(rule: CompoundRule, values: Record<string, string | undefined>)
 /**
  * Collects each non-reserved top-level field as a variant axis, then expands
  * `palette` into the `color` axis plus per-(variant × colour) compounds.
- * Palette-matrix keys missing from `variant:` are added as empty entries —
- * valid values with no structural class.
+ * Palette-matrix keys missing from `variant:` become empty entries (valid
+ * values with no structural class).
  */
 function expand(config: RecipeConfig): ResolvedConfig {
 	const variants: Record<string, Record<string, ClassValue>> = {}

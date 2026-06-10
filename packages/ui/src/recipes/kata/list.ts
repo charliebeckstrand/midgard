@@ -38,8 +38,7 @@ const item = defineRecipe({
 	// Row padding is applied via the variant × density compound rules below.
 	// Card-like variants use the uniform `ma.p` scale; `plain` uses a tighter
 	// px/py ratio. Padding utilities live on this compound axis, not the density
-	// axis, because tailwind-merge keeps a later `px`/`py` alongside an earlier
-	// `p` — the compound rules avoid that conflict.
+	// axis: tailwind-merge keeps a later `px`/`py` alongside an earlier `p`.
 	density: { sm: '', md: '', lg: '' },
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],

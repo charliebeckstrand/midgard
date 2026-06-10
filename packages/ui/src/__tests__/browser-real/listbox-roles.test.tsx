@@ -5,12 +5,12 @@ import { ListboxOption } from '../../components/listbox/listbox-option'
 import { renderUI, screen, waitFor } from '../helpers'
 
 /**
- * Listbox ARIA roles (real floating engine). Guards the single-widget tree
- * against the live engine: floating-ui's `useRole` would stamp a `combobox`
+ * Listbox ARIA roles (real floating engine). Verifies `role: null` on
+ * `useFloatingUI` keeps floating-ui's `useRole` from stamping a `combobox`
  * role on the reference wrapper and a popup role on the positioning wrapper,
- * nesting duplicates inside the Listbox's hand-rolled `role="combobox"` trigger
- * and `role="listbox"` panel (ARIA-AUDIT pattern A). jsdom mocks `useRole` away;
- * `role: null` on `useFloatingUI` is the fix guarded here.
+ * which would nest duplicates inside the Listbox's hand-rolled
+ * `role="combobox"` trigger and `role="listbox"` panel. jsdom mocks `useRole`
+ * away, so only the real engine exercises this path.
  */
 describe('Listbox ARIA roles (real browser)', () => {
 	it('exposes exactly one combobox and one listbox when open', async () => {
@@ -27,7 +27,7 @@ describe('Listbox ARIA roles (real browser)', () => {
 
 		await waitFor(() => expect(screen.getAllByRole('listbox')).toHaveLength(1))
 
-		// The trigger is the only combobox — the positioning wrapper does not shadow it.
+		// The trigger is the only combobox; the positioning wrapper does not shadow it.
 		expect(screen.getAllByRole('combobox')).toHaveLength(1)
 
 		expect(trigger.tagName).toBe('BUTTON')

@@ -120,9 +120,9 @@ describe('useColorDrag', () => {
 		expect(onPosition).not.toHaveBeenCalled()
 	})
 
-	// Regression: capture can end without a pointerup reaching the node (a
-	// browser-claimed gesture, the node being torn out). Before, `dragging`
-	// stayed set and the handle kept tracking the pointer until the next click.
+	// Capture can end without a pointerup reaching the node (a browser-claimed
+	// gesture, the node being torn out); the lost-capture handler clears
+	// `dragging` so the handle stops tracking the pointer.
 	it('onLostPointerCapture ends the drag so a captureless move is ignored', () => {
 		const { api, node, onPosition } = setup()
 

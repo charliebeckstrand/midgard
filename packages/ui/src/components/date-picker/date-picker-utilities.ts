@@ -16,7 +16,7 @@ export function addDays(date: Date, amount: number): Date {
 	return fromCalendarDate(toCalendarDate(date).add({ days: amount }))
 }
 
-/** Day-of-month is constrained to the target month's length (Jan 31 + 1 month → Feb 28/29). */
+/** Clamps day-of-month to the target month's length (Jan 31 + 1 month → Feb 28/29). */
 export function addMonths(date: Date, amount: number): Date {
 	return fromCalendarDate(toCalendarDate(date).add({ months: amount }))
 }

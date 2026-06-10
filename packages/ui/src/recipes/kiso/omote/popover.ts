@@ -1,5 +1,5 @@
 /**
- * Omote popover — floating popover surface. Translucent fill, ring, and
+ * Omote popover: floating popover surface. Translucent fill, ring, and
  * blur compose together as a single chrome.
  *
  * Layer: kiso · Concern: popover surface

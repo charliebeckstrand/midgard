@@ -1,6 +1,6 @@
 /**
- * Segment archetype — sliding indicator. The visible fill that animates
- * between segment positions to mark the active item.
+ * Segment archetype: sliding indicator. The visible fill that marks the
+ * active item and animates between segment positions.
  *
  * Layer: kiso · Archetype: segment · Concern: indicator
  */

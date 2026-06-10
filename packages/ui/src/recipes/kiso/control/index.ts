@@ -1,5 +1,5 @@
 /**
- * Control archetype — the framed surface that wraps a user-input element.
+ * Control archetype: the framed surface that wraps a user-input element.
  *
  * Consumed by input, textarea, listbox, combobox, date-picker, checkbox,
  * radio, and ControlFrame. Exposes class fragments (frame, surface, reset,

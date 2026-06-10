@@ -32,7 +32,7 @@ function isDecoration(child: ReactElement): boolean {
 
 // Children that receive a DOM ChangeEvent on `onChange`; everything else
 // receives the value-shaped `onValueChange`. The same dispatcher handles both
-// at runtime — only the prop name differs.
+// at runtime; only the prop name differs.
 const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Input,
 	SearchInput,
@@ -46,7 +46,7 @@ function expectsEventCallback(child: ReactElement): boolean {
 	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// Children that expose an `onClear` callback (e.g. SearchInput's X button) —
+// Children that expose an `onClear` callback (e.g. SearchInput's X button);
 // wired to clear the filter slot.
 const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
 
@@ -87,7 +87,6 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		setValue(name, undefined)
 	}, [name, setValue])
 
-	// Render prop pattern
 	if (typeof children === 'function') {
 		const renderProps: FiltersFieldRenderProps = {
 			value: fieldValue,
@@ -118,8 +117,8 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
 
 		// Toggles read `checked`, not `value`: a Checkbox/Switch reflects the
-		// boolean slot, and a Radio keeps its own option `value` (clobbering it
-		// would break the group) and is checked when it matches the slot.
+		// boolean slot; a Radio keeps its own option `value`, checked when it
+		// matches the slot.
 		const cloned: Record<string, unknown> =
 			child.type === Radio
 				? { checked: fieldValue === (child.props as { value?: unknown }).value }

@@ -10,15 +10,15 @@ type DensityProviderProps = {
 
 /**
  * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) and the
- * app-wide entry point for ambient density. Wrap a region — or the app root —
- * to set its baseline; it broadcasts the matching `Step` through the universal
- * Density primitive so every size-aware component (Input, Button, Card, …)
- * inherits automatically.
+ * app-wide entry point for ambient density. Wrap a region or the app root to
+ * set its baseline; it broadcasts the matching `Step` through the universal
+ * Density primitive, and every size-aware component (Input, Button, Card, …)
+ * inherits it.
  *
  * Reference consumer: `<Input>`. Form fields resolve their size through
- * `useDensity()`, so dropping an `<Input>` (or any `<Field>`-wrapped field)
- * inside `<DensityProvider density="compact">` shrinks the field to `'sm'`
- * without touching its props.
+ * `useDensity()`; an `<Input>` (or any `<Field>`-wrapped field) inside
+ * `<DensityProvider density="compact">` shrinks to `'sm'` without touching
+ * its props.
  */
 export function DensityProvider({ density, className, children }: DensityProviderProps) {
 	const step = densityToSize[density]

@@ -6,7 +6,7 @@ import type { Ma, Step } from '../../recipes'
 import { useAffix } from '../affix'
 
 /**
- * Density token — broadcast by `<Density>`, read by every size-aware component
+ * Density token: broadcast by `<Density>`, read by every size-aware component
  * through {@link useDensity}.
  *
  * Two axes, both keyed on {@link Step}:
@@ -18,7 +18,7 @@ import { useAffix } from '../affix'
  * without touching font size; `<Density size="lg">` bumps text and icon
  * without re-padding. Cascade is per-axis innermost-wins.
  *
- * `size` matches the `size` prop every component exposes — the ambient axis
+ * `size` matches the `size` prop every component exposes; the ambient axis
  * is the default a `<Button>` / `<Input>` picks up.
  *
  * Internal names are positional (`sm | md | lg`); friendlier public labels
@@ -38,7 +38,7 @@ type DensityToken = {
  */
 type DensityInput = Partial<DensityToken> & { scale?: Step }
 
-/** Diagonal preset table — `scale="md"` resolves to `{ space: 'md', size: 'md' }`. */
+/** Diagonal preset table: `scale="md"` resolves to `{ space: 'md', size: 'md' }`. */
 export const densityPresets: Record<Step, DensityToken> = {
 	sm: { space: 'sm', size: 'sm' },
 	md: { space: 'md', size: 'md' },
@@ -53,7 +53,7 @@ const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | n
  * Read the active density. Returns the diagonal `md` preset when no provider
  * is in the tree.
  *
- * Use {@link useDensityNullable} to distinguish "no ancestor" from `md` —
+ * Use {@link useDensityNullable} to distinguish "no ancestor" from `md`;
  * layout primitives (Box, Flex, Stack, Grid) whose `p` / `gap` treat
  * `undefined` as "no style applied" need the nullable read.
  */
@@ -86,9 +86,9 @@ export function useSize<T extends Ma = Ma>(explicit?: T): T {
 export type DensityProps = DensityInput & { children: ReactNode }
 
 /**
- * Broadcasts a density token to descendants. Each axis cascades independently
- * — `<Density size="lg">` overrides `size` while inheriting `space` from
- * the surrounding context.
+ * Broadcasts a density token to descendants. Each axis cascades
+ * independently; `<Density size="lg">` overrides `size` while inheriting
+ * `space` from the surrounding context.
  */
 export function Density({ children, scale, space: spaceProp, size: sizeProp }: DensityProps) {
 	const parent = useDensity()
@@ -106,9 +106,8 @@ export function Density({ children, scale, space: spaceProp, size: sizeProp }: D
 }
 
 /**
- * Sugar for a component's `size` prop. Wraps content in `<Density scale>`
- * when `scale` is provided so descendants inherit; otherwise renders children
- * directly — no extra provider when there's no override.
+ * Sugar for a component's `size` prop. Wraps children in `<Density scale>`
+ * when `scale` is provided; otherwise renders children directly.
  */
 export function DensityScope({ scale, children }: { scale?: Step; children: ReactNode }) {
 	return scale ? <Density scale={scale}>{children}</Density> : children

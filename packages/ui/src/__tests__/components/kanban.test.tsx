@@ -195,7 +195,7 @@ describe('KanbanCard', () => {
 
 		expect(card).not.toHaveAttribute('data-disabled')
 
-		// No forced aria-label — the card is named by its content; dnd-kit supplies
+		// No forced aria-label: the card is named by its content; dnd-kit supplies
 		// the draggable role and its keyboard-instructions description.
 		expect(card).not.toHaveAttribute('aria-label')
 
@@ -257,7 +257,7 @@ describe('KanbanColumnBody', () => {
 	it('renders children when the column has cards, omitting the empty fallback', () => {
 		const { container } = renderUI(<Board />)
 
-		// With non-empty items the fallback element should not render.
+		// With non-empty items the fallback element does not render.
 		expect(screen.queryByText('Empty')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'kanban-card')).toBeInTheDocument()
@@ -282,7 +282,7 @@ describe('KanbanColumnBody', () => {
 })
 
 // Keyboard drag-and-drop: Space lifts a card, then arrows reorder it within
-// and across columns, while un-lifted arrows just move focus.
+// and across columns, while un-lifted arrows move focus only.
 // Reorders surface through onValueChange.
 describe('Kanban keyboard reorder', () => {
 	const cardOf = (root: HTMLElement, id: string) =>

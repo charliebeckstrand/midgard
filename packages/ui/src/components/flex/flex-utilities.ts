@@ -1,9 +1,8 @@
 import type { FlexAlign, FlexDirection, ResponsiveAlign, ResponsiveDirection } from './variants'
 
-// Per-orientation cross-axis default: rows center their children (so items of
-// unequal height sit on a shared centre line) while columns stretch theirs to
-// fill the inline axis — the natural `align-items: stretch` that lets stacked
-// blocks span full width. Either is overridden by an explicit `align`.
+// Per-orientation cross-axis default: rows center their children; columns
+// stretch theirs to fill the inline axis (`align-items: stretch`). An
+// explicit `align` overrides either.
 function alignForDirection(dir: FlexDirection): FlexAlign {
 	return dir === 'col' || dir === 'col-reverse' ? 'stretch' : 'center'
 }

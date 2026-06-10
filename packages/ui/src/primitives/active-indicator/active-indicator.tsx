@@ -11,7 +11,7 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
 	{ default: undefined },
 )
 
-/** Scopes active indicators so independent nav / tab groups can coexist. */
+/** Scopes active indicators to a single nav / tab group. */
 export function ActiveIndicatorScope({ children, id }: { id?: string; children: ReactNode }) {
 	const fallbackId = useId()
 
@@ -48,8 +48,7 @@ export function useActiveIndicator() {
 
 /**
  * Visual marker that morphs between sibling items via Motion's shared-element
- * transition. Resolves its `layoutId` from the nearest `ActiveIndicatorScope`
- * so independent groups (nav, tabs) don't trade animations.
+ * transition. Resolves its `layoutId` from the nearest `ActiveIndicatorScope`.
  */
 export function ActiveIndicator({
 	ref,
@@ -68,8 +67,8 @@ export function ActiveIndicator({
 
 	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
 
-	// Unique per instance, stable per render — gates `layoutDependency` so
-	// external reflow doesn't animate the indicator.
+	// Unique per instance, stable across renders. With `layoutDependency`
+	// constant, external reflow does not animate the indicator.
 	const instanceId = useId()
 
 	return (
@@ -80,8 +79,8 @@ export function ActiveIndicator({
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
 				className={cn('absolute inset-0', 'bg-zinc-300 dark:bg-zinc-600', 'rounded-lg', className)}
-				// `borderRadius` is set inline so Motion's layout projection applies
-				// inverse-scale correction during the shared-element transition.
+				// Motion's layout projection applies inverse-scale correction to inline
+				// `borderRadius` during the shared-element transition.
 				style={{ borderRadius: 8, ...style }}
 				transition={k.spring}
 			>

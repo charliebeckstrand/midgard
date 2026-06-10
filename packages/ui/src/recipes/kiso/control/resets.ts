@@ -1,5 +1,5 @@
 /**
- * Control archetype — element-specific resets. The `number` reset hides
+ * Control archetype: element-specific resets. The `number` reset hides
  * native spinners and switches `<input type="number">` to text appearance.
  *
  * Layer: kiso · Archetype: control · Concern: resets

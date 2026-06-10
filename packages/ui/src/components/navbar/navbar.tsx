@@ -8,7 +8,7 @@ import { NavbarContext } from './context'
 
 export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
 
-/** Horizontal top-level navigation landmark — establishes an active-indicator scope for its child items. */
+/** Horizontal top-level navigation landmark; establishes an active-indicator scope for its child items. */
 export function Navbar({
 	variant = 'outline',
 	'aria-label': ariaLabel = 'Main',

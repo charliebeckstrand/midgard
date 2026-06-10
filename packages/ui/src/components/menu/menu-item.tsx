@@ -41,7 +41,7 @@ export function MenuItem(props: MenuItemProps) {
 	if (props.href !== undefined) {
 		// Anchors with `href` are navigable via middle-click, Cmd-click, and
 		// "Open in new tab", none of which fire `onClick`. Disabled items render
-		// as a `<span>` with no `href` so those paths are unavailable.
+		// as a `<span>` with no `href`.
 		if (disabled) {
 			return (
 				<span
@@ -73,8 +73,8 @@ export function MenuItem(props: MenuItemProps) {
 				data-slot="menu-item"
 				className={classes}
 				{...rest}
-				// Composed after the spread so a consumer onClick runs alongside
-				// selection rather than replacing onAction/close.
+				// Composed after the spread: runs the consumer onClick, then
+				// selection (onAction/close).
 				onClick={(e: MouseEvent<HTMLAnchorElement>) => {
 					consumerOnClick?.(e)
 					handleSelect()
@@ -105,8 +105,8 @@ export function MenuItem(props: MenuItemProps) {
 			data-disabled={disabled || undefined}
 			className={classes}
 			{...rest}
-			// Composed after the spread so consumer handlers run alongside
-			// selection rather than replacing onAction/close.
+			// Composed after the spread: runs consumer handlers, then selection
+			// (onAction/close).
 			onClick={(e: MouseEvent<HTMLButtonElement>) => {
 				consumerOnClick?.(e)
 				handleSelect()

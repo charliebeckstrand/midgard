@@ -42,8 +42,8 @@ export type PanelProvidersProps = {
 
 /**
  * Wraps a panel surface's children in the shared context envelope: the Close
- * context (so `PanelClose` and slot dismiss resolve) nested over the A11y
- * context (so Title / Description register and adopt their ids).
+ * context (`PanelClose` and slot dismiss resolve it) nested over the A11y
+ * context (Title / Description register and adopt their ids).
  */
 export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersProps) {
 	const closeValue = usePanelCloseValue(onOpenChange)
@@ -83,8 +83,7 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 			<h2
 				id={id ?? titleId}
 				data-slot={`${slotPrefix}-title`}
-				// An `<h2>`: weight (level 2) and density-scaled size both drawn
-				// from the heading scale via `headingWeight` and `titleSize`.
+				// Level-2 weight and density-scaled size come from the heading scale.
 				className={cn(titleClass, headingWeight(2), titleSize(size), className)}
 				{...props}
 			/>

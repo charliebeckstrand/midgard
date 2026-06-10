@@ -56,11 +56,11 @@ describe('Form', () => {
 
 		fireEvent.change(bySlot(container, 'field-a') as HTMLInputElement, { target: { value: 'x' } })
 
-		// The edited field re-rendered with its new value...
+		// The edited field re-renders with its new value...
 		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
 		expect(renders.a).toBeGreaterThan(bAfterMount)
 
-		// ...while the untouched sibling did not re-render at all.
+		// ...while the untouched sibling does not re-render.
 		expect(renders.b).toBe(bAfterMount)
 	})
 
@@ -306,7 +306,7 @@ describe('Form', () => {
 				}),
 		)
 
-		// Captured during render so the reset can be driven programmatically — a
+		// Captured during render so the reset can be driven programmatically; a
 		// reset button would sit inside the fieldset that submitting disables.
 		let actions: ReturnType<typeof useFormActions>
 
@@ -343,7 +343,7 @@ describe('Form', () => {
 			actions?.reset()
 		})
 
-		// The handler resolves only now — its stale fieldErrors must be dropped.
+		// The handler resolves only now; its stale fieldErrors must be dropped.
 		await act(async () => {
 			resolveSubmit?.({ fieldErrors: { name: 'taken on the server' } })
 		})

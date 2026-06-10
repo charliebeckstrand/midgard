@@ -29,8 +29,8 @@ type ListboxBaseProps = {
 	className?: string
 	inputId?: string
 	/**
-	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it — the
-	 * combobox trigger's text is its value, not its name, so a bare Listbox
+	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it. The
+	 * combobox trigger's text is its value, not its name; a bare Listbox
 	 * (e.g. in a toolbar) needs one of these to be reachable.
 	 */
 	'aria-label'?: string
@@ -39,13 +39,13 @@ type ListboxBaseProps = {
 	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Render the selected value with tabular numerals so digit changes don't shift layout. */
+	/** Renders the selected value with tabular numerals; digit changes do not shift layout. */
 	tabularNums?: boolean
 	/**
-	 * Truncate the selected-value label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content — useful inside a
-	 * `<Group>` or any other content-sized parent that would otherwise collapse
-	 * the label. @default true
+	 * Truncates the selected-value label when it overflows the trigger.
+	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
+	 * `<Group>` or another content-sized parent that collapses the label.
+	 * @default true
 	 */
 	truncate?: boolean
 	/** Show a clear button in place of the chevron when a value is selected. */
@@ -80,7 +80,7 @@ export type ListboxProps<T> = ListboxBaseProps & {
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
 /**
- * Select-style dropdown over arbitrary `<ListboxOption>` values — single or
+ * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
  * `multiple` selection, controlled or uncontrolled, with an optional clear
  * control and a portalled panel. `size` resolves from the prop, then `<Control>`,
  * then enclosing Density.
@@ -124,8 +124,8 @@ export function Listbox<T>({
 
 	const resolvedDisabled = disabled ?? control?.disabled
 
-	// Input/Textarea/Checkbox all merge a consumer aria-describedby; an
-	// unwrapped Listbox could previously not be described at all.
+	// Merges a consumer aria-describedby with the field's registered ids,
+	// matching Input/Textarea/Checkbox.
 	const describedBy = useAriaIds(ariaDescribedBy, control?.describedBy)
 
 	const resolvedSize = token.size
@@ -222,7 +222,7 @@ export function Listbox<T>({
 					onClick: () => setOpen(!open),
 					// While open, focus lives on the active option in the portalled panel. A
 					// mousedown would pull it onto the button; if released off-target, no click
-					// fires — stranding focus on the trigger and killing keyboard navigation.
+					// fires, stranding focus on the trigger and killing keyboard navigation.
 					onMouseDown: open ? (event) => event.preventDefault() : undefined,
 				}}
 				prefix={prefix}
@@ -234,7 +234,7 @@ export function Listbox<T>({
 								// The default chevron is a sibling of the trigger, not part of
 								// it; a bare mousedown blurs the focused trigger (focus only
 								// returns on the click that follows). preventDefault keeps focus
-								// on the trigger — the frame's onClick still toggles the menu.
+								// on the trigger; the frame's onClick still toggles the menu.
 								onMouseDown: (event) => event.preventDefault(),
 							}
 				}
@@ -266,7 +266,7 @@ export function Listbox<T>({
 				density={token.space}
 				size={token.size}
 				ariaLabel={ariaLabel}
-				// Name the listbox from the trigger's name: an explicit aria-label
+				// Names the listbox from the trigger's name: an explicit aria-label
 				// wins, else aria-labelledby, else the field's Label (via Control).
 				ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 				floatingStyles={floatingStyles}

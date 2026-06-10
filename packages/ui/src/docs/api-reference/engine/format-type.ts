@@ -8,16 +8,15 @@ const TYPE_FORMAT_FLAGS =
  * aliases over expanded unions, and renders large unions in full rather than
  * truncating.
  *
- *   - Named alias (`ReactNode`, `BoxPadding`) — use the alias name directly.
- *   - Interface or class instance (`ReactElement`) — use the declaration's
+ *   - Named alias (`ReactNode`, `BoxPadding`): use the alias name directly.
+ *   - Interface or class instance (`ReactElement`): use the declaration's
  *     name; TS otherwise fills in type-parameter defaults
  *     (`ReactElement<unknown, …>`).
- *   - Generic type parameter — fall back to its default or constraint, so
- *     `Filters<T extends FilterValue>` shows `FilterValue` rather than a
- *     meaningless bare `T`.
+ *   - Generic type parameter: fall back to its default or constraint;
+ *     `Filters<T extends FilterValue>` shows `FilterValue`, not a bare `T`.
  *   - String-literal members render with single quotes.
  *
- * Works on raw compiler types (not ts-morph wrappers) so recursion can format
+ * Works on raw compiler types (not ts-morph wrappers); recursion formats
  * types returned by `getDefaultFromTypeParameter` / `getBaseConstraintOfType`,
  * which ts-morph doesn't surface as wrapped Types.
  */
@@ -38,8 +37,7 @@ export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts
 }
 
 /**
- * Same as `formatType`, but strips `| undefined` from optional unions so
- * every optional prop doesn't carry redundant noise.
+ * Same as `formatType`, but strips `| undefined` from optional unions.
  */
 export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
 	const named = namedTypeShortName(type, checker, location)
@@ -66,7 +64,8 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 /**
  * Short name for a type whose identity is a named declaration (alias /
  * interface / class). Trims trailing type arguments that match their
- * declared defaults so `ReactElement` wins over `ReactElement<unknown, …>`.
+ * declared defaults; `ReactElement` renders instead of
+ * `ReactElement<unknown, …>`.
  */
 function namedTypeShortName(
 	type: ts.Type,
@@ -112,11 +111,10 @@ function namedTypeShortName(
 /**
  * Drops trailing arguments that match their parameter's declared default,
  * returning the minimal arg list. Returns `null` on mismatched arity or
- * missing defaults mid-list — caller falls back to TS's full rendering.
+ * missing defaults mid-list; the caller falls back to TS's full rendering.
  *
  * Defaults that reference an earlier type parameter (`type Foo<T, U = T>`)
- * are resolved against the supplied arg at that earlier position; without
- * this, they collapse to a bare unbound parameter and the comparison fails.
+ * resolve against the supplied arg at that earlier position.
  */
 function trimDefaultArgs(
 	args: readonly ts.Type[] | undefined,
@@ -173,7 +171,7 @@ function formatNameWithArgs(
 
 /**
  * Format a single-call-signature function type by recursing into each
- * parameter and the return type — so nested type parameters (`T` inside
+ * parameter and the return type; nested type parameters (`T` inside
  * `(value: T) => void`) hit the same default / constraint fallback as
  * top-level types. Overloads and hybrid types defer to TS's default.
  */
@@ -235,7 +233,7 @@ function toSingleQuotes(s: string): string {
 }
 
 /**
- * Narrow to a type reference — an object type whose identity is a generic
+ * Narrow to a type reference: an object type whose identity is a generic
  * instantiation. `getTypeArguments()` is only meaningful on these.
  */
 function isTypeReference(type: ts.Type): type is ts.TypeReference {

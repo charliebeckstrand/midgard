@@ -57,7 +57,7 @@ describe('useRangePointer', () => {
 	it('onPointerDown moves the nearest thumb to the pointer position', () => {
 		const { api, setRange } = setup({ current: [20, 80] })
 
-		// clientX=30 on a 0–100 track maps to value 30 — closer to thumb 0 (20) than thumb 1 (80).
+		// clientX=30 on a 0-100 track maps to value 30, closer to thumb 0 (20) than thumb 1 (80).
 		api.onPointerDown(makeEvent({ clientX: 30 }))
 
 		expect(setRange).toHaveBeenCalled()
@@ -231,7 +231,7 @@ describe('useRangePointer', () => {
 
 		setRange.mockClear()
 
-		// Drag the upper thumb past the lower one — swap re-points draggingRef
+		// Drag the upper thumb past the lower one: swap re-points draggingRef
 		// at index 0 so subsequent moves track the same finger.
 		api.onPointerMove(makeEvent({ clientX: 10 }))
 

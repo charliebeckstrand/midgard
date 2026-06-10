@@ -88,8 +88,7 @@ export function DataTableColumnManager({
 				const col = byId.get(id)
 
 				// Ids outside the manager's set (select/actions columns) keep their
-				// position — dropping them would shove them to the table end and
-				// persist that into saved presets.
+				// position.
 				if (!col || col.pinned) {
 					next.push(id)
 				} else {

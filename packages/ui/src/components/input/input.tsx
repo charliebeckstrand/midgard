@@ -32,8 +32,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
 /**
- * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner —
- * resolves variant, size, and invalid state from enclosing Control, Form, GlassProvider,
+ * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner.
+ * Resolves variant, size, and invalid state from enclosing Control, Form, GlassProvider,
  * and Density context, and drops to a bare `<input>` under headless context.
  */
 export function Input(props: InputProps) {
@@ -122,9 +122,8 @@ export function Input(props: InputProps) {
 	const resolvedSuffix = loading ? <LoadingSpinner /> : suffix
 
 	// One definition of "present" for both the wrapper class and the render
-	// guards — `!== undefined` here with truthy guards below let a null/false
-	// affix style the frame while rendering nothing (and `0` leaked as a bare
-	// text node through the `&&`).
+	// guards: a null/false affix styles the frame while rendering nothing,
+	// and `0` leaks as a bare text node through a plain `&&`.
 	const hasPrefix = resolvedPrefix != null && resolvedPrefix !== false
 	const hasSuffix = resolvedSuffix != null && resolvedSuffix !== false
 

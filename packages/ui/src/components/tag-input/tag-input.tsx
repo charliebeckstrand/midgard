@@ -39,7 +39,7 @@ export type TagInputProps = {
 
 /**
  * Token-entry field rendering its tags as removable badges in the `<Input>`
- * prefix — controlled or uncontrolled via `value`/`defaultValue`, committing
+ * prefix; controlled or uncontrolled via `value`/`defaultValue`, committing
  * on Enter, removing with Backspace, and gating additions through `validate`
  * and `max`.
  */
@@ -76,15 +76,13 @@ export function TagInput({
 		},
 	})
 
-	// Return focus to the input once it can hold focus again (WCAG 2.4.3). At max
-	// the input is disabled, so it only re-enables on the releasing render;
-	// focusing from this effect — after commit — rather than a synchronous frame in
-	// onMaxReleased avoids racing the commit, which under load could focus the
-	// still-disabled input and silently drop the focus.
+	// Returns focus to the input once it can hold focus again (WCAG 2.4.3). At
+	// max the input is disabled and re-enables only on the releasing render; a
+	// synchronous focus in onMaxReleased can race the commit and land on the
+	// still-disabled input.
 	useEffect(() => {
-		// Consume the flag on every committed render: if a controlled parent
-		// rejected the removal (atMax never released), a stale flag must not
-		// steal focus on some unrelated later release.
+		// Consumes the flag on every committed render, including when a
+		// controlled parent rejects the removal (atMax never released).
 		const shouldRefocus = refocusOnMaxRelease.current
 
 		refocusOnMaxRelease.current = false
@@ -120,7 +118,7 @@ export function TagInput({
 		}
 	}, [addTag, inputValue])
 
-	// Duplicate controlled values ('a','a') would collide on a bare value key;
+	// Duplicate controlled values ('a','a') collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the
 	// controlled path can't).
 	const keyedTags = keyByOccurrence(tags)
@@ -137,9 +135,9 @@ export function TagInput({
 						onRemove={() => {
 							removeTag(i)
 
-							// Returns focus to the input after badge removal (WCAG 2.4.3). At max
-							// the input is still disabled here, so this no-ops; the effect above
-							// re-focuses once the releasing render commits.
+							// Returns focus to the input after badge removal (WCAG 2.4.3).
+							// At max the input is still disabled here and this no-ops; the
+							// effect above re-focuses once the releasing render commits.
 							inputRef.current?.focus()
 						}}
 					/>

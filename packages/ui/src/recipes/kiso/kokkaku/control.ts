@@ -1,8 +1,8 @@
 /**
- * Kokkaku skeleton — control. Shared by every `<ControlFrame>`
+ * Kokkaku skeleton: control. Shared by every `<ControlFrame>`
  * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker).
  *
- * `full` is the standalone-skeleton default — fills its parent. `group`
+ * `full` is the standalone-skeleton default; fills its parent. `group`
  * is the in-group default: grows to share the row with sibling
  * placeholders, with a size-aware minimum width. Override via `className`
  * (e.g. `w-44 flex-none`) to pin a fixed slot.

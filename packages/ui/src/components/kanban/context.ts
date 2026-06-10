@@ -14,9 +14,9 @@ export type KanbanContextValue = {
 	columnItemIds: Record<string, string[]>
 	/** Live map of card content keyed by card id, used by the drag overlay. */
 	overlayMap: RefObject<Map<string, ReactNode>>
-	/** Keyboard handler for cards — pass cardId and the event. */
+	/** Keyboard handler for cards. */
 	onCardKeyDown: (cardId: string, event: KeyboardEvent) => void
-	/** Blur handler — clears lifted state when focus leaves a card. */
+	/** Blur handler; clears lifted state when focus leaves a card. */
 	onCardBlur: () => void
 }
 
@@ -24,12 +24,12 @@ export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValu
 
 export type KanbanColumnContextValue = {
 	columnId: string
-	/** Title-slot registrar — the column only emits `aria-labelledby` while a title is mounted, so the reference never dangles. */
+	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
 }
 
 export const [KanbanColumnContext, useKanbanColumnContext] =
 	createContext<KanbanColumnContextValue>('KanbanColumn')
 
-/** Id the column's title renders with, so the column `<section>` can name itself via `aria-labelledby`. */
+/** Id the column's title renders with; the column `<section>` references it via `aria-labelledby`. */
 export const kanbanColumnTitleId = (columnId: string) => `kanban-column-title-${columnId}`

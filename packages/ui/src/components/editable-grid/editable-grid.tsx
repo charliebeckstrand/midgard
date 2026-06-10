@@ -63,7 +63,7 @@ export type EditableGridProps<T> = TableVariants & {
 	children?: never
 }
 
-/** Spreadsheet-style grid over `DataTable` — adds inline cell editing, keyboard navigation, and batch-apply on multi-row selections. */
+/** Spreadsheet-style grid over `DataTable`: adds inline cell editing, keyboard navigation, and batch-apply on multi-row selections. */
 export function EditableGrid<T>({
 	columns,
 	rows,
@@ -124,7 +124,7 @@ export function EditableGrid<T>({
 		cellId: cells.sub,
 	})
 
-	// Stable while editing — the cell shells subscribe here; typing only moves the
+	// Stable while editing; the cell shells subscribe here. Typing only moves the
 	// edit slice below, leaving cell shells untouched.
 	const stateValue = useMemo<EditableGridStateValue>(
 		() => ({
@@ -147,8 +147,8 @@ export function EditableGrid<T>({
 		],
 	)
 
-	// Mirrored into the store below so each cell subscribes to its own derived
-	// slice; only cells whose slice actually changed re-render on navigation.
+	// Mirrored into the store below; each cell subscribes to its own derived
+	// slice. Only cells whose slice changed re-render on navigation.
 	const cellSnapshot = useMemo<EditableGridSnapshot>(
 		() => ({
 			active: nav.active,

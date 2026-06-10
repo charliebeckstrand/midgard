@@ -52,8 +52,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			className={cn(className)}
 			{...referenceProps}
 			{...props}
-			// Placed after the spreads so the toggle is composed with any
-			// consumer-supplied onClick rather than replaced by it.
+			// Placed after the spreads: runs any consumer-supplied onClick, then
+			// the toggle.
 			onClick={(e: MouseEvent<HTMLButtonElement>) => {
 				;(props as ComponentPropsWithoutRef<'button'>).onClick?.(e)
 				setOpen(!open)

@@ -3,8 +3,8 @@ import { vi } from 'vitest'
 
 /**
  * Build a synthetic React PointerEvent. `preventDefault` / `stopPropagation`
- * are `vi.fn()` spies by default so tests can assert against them. The cast
- * is local to this helper; call sites stay typed.
+ * are `vi.fn()` spies by default. The cast is local to this helper; call
+ * sites stay typed.
  */
 export function makePointerEvent<T extends Element = Element>(
 	overrides: Partial<PointerEvent<T>> = {},

@@ -75,8 +75,8 @@ export function CreditCardInputCvv({
 		ref,
 	})
 
-	// Latest unstable accessors / callback, read by the effect below so it can
-	// depend only on the brand-derived length and brand.
+	// Latest unstable accessors / callback; the effect below reads them here
+	// and depends only on the brand-derived length and brand.
 	const latestRef = useRef({ value: masked.value, setValue: masked.setValue, onValidityChange })
 
 	latestRef.current = { value: masked.value, setValue: masked.setValue, onValidityChange }
@@ -91,9 +91,9 @@ export function CreditCardInputCvv({
 			return
 		}
 
-		// A brand change can shrink the CVV length (Amex 4 → Visa 3): re-truncate
-		// the stored value so it isn't displayed over the new maxLength, and
-		// re-report validity (which also branches on brand) so it doesn't go stale.
+		// A brand change can shrink the CVV length (Amex 4 → Visa 3):
+		// re-truncates the stored value to the new maxLength and re-reports
+		// validity (which also branches on brand).
 		const { value, setValue, onValidityChange: onValidity } = latestRef.current
 
 		const truncated = formatCvv(value, maxLength)
@@ -109,8 +109,8 @@ export function CreditCardInputCvv({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2) —
-			// default an aria-label, yielding to a registered Field <Label>.
+			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
+			// defaults an aria-label, yielding to a registered Field <Label>.
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}

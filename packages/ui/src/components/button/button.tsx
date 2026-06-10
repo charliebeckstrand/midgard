@@ -42,7 +42,7 @@ export type ButtonProps = ButtonBaseProps &
 	)
 
 /**
- * Polymorphic action control — renders a `<button>` or, when `href` is set,
+ * Polymorphic action control: renders a `<button>` or, when `href` is set,
  * a `<Link>` anchor. Resolves `size` against enclosing Density, swaps in a
  * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
  * and degrades to skeleton or headless output under those providers.
