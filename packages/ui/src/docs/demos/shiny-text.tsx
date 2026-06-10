@@ -64,7 +64,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<ShinyText className="text-4xl font-bold">Shiny Text</ShinyText>
+				<ShinyText className="text-3xl font-bold">Shiny Text</ShinyText>
 			</Example>
 
 			<SpeedExample />
