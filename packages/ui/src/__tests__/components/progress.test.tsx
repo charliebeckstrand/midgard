@@ -17,6 +17,14 @@ describe('ProgressBar', () => {
 		expect(el).toHaveAttribute('aria-valuemax', '100')
 	})
 
+	it('treats value={NaN} as indeterminate instead of rendering NaN attributes', () => {
+		renderUI(<ProgressBar value={Number.NaN} aria-label="Loading" />)
+
+		const bar = screen.getByRole('progressbar')
+
+		expect(bar).not.toHaveAttribute('aria-valuenow')
+	})
+
 	it('renders an indeterminate bar when value is undefined', () => {
 		const { container } = renderUI(<ProgressBar aria-label="Progress" />)
 
@@ -82,6 +90,14 @@ describe('ProgressGauge', () => {
 		renderUI(<ProgressGauge value={75} label={<span>3 of 4</span>} aria-label="Progress" />)
 
 		expect(screen.getByText('3 of 4')).toBeInTheDocument()
+	})
+
+	it('renders no label slot for label={false}', () => {
+		const { container } = renderUI(<ProgressGauge value={40} label={false} aria-label="Used" />)
+
+		// `false` previously slipped past a `!= null` guard, rendering an empty
+		// absolutely-positioned span over the gauge.
+		expect(container.querySelector('[data-slot="progress-gauge"] span')).toBeNull()
 	})
 
 	it('omits the label slot when no label is provided', () => {

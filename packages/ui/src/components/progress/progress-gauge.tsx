@@ -89,7 +89,7 @@ export function ProgressGauge({
 				</svg>
 			</ReducedMotion>
 
-			{resolvedLabel != null && (
+			{resolvedLabel != null && resolvedLabel !== false && (
 				<span className={k.gauge.label({ size: resolvedSize })}>{resolvedLabel}</span>
 			)}
 		</div>
