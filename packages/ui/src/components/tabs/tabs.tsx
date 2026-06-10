@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useId, useMemo } from 'react'
+import { type ComponentPropsWithoutRef, useId, useMemo, useCallback, useState } from 'react'
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
@@ -46,9 +46,26 @@ export function Tabs({
 
 	const baseId = useId()
 
+	// Tracks whether a fade-mode TabContents (inactive panels stay mounted) is
+	// rendered, so inactive tabs can keep aria-controls without it dangling.
+	const [panelsMounted, setPanelsMounted] = useState(false)
+
+	const registerMountedPanels = useCallback(() => {
+		setPanelsMounted(true)
+
+		return () => setPanelsMounted(false)
+	}, [])
+
 	const tabsContext = useMemo(
-		() => ({ variant, orientation: resolvedOrientation, size: resolvedSize, baseId }),
-		[variant, resolvedOrientation, resolvedSize, baseId],
+		() => ({
+			variant,
+			orientation: resolvedOrientation,
+			size: resolvedSize,
+			baseId,
+			panelsMounted,
+			registerMountedPanels,
+		}),
+		[variant, resolvedOrientation, resolvedSize, baseId, panelsMounted, registerMountedPanels],
 	)
 
 	const isVertical = resolvedOrientation === 'vertical'

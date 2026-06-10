@@ -19,7 +19,7 @@ export type TabProps = {
 	stretch?: boolean
 	disabled?: boolean
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value'>
+} & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
 
 export function Tab({
 	value,
@@ -30,6 +30,7 @@ export function Tab({
 	className,
 	children,
 	onClick,
+	...rest
 }: TabProps) {
 	const context = useCurrent()
 
@@ -74,15 +75,22 @@ export function Tab({
 		<span className={cn(stretch && 'flex-1', 'group relative')} {...indicator.tapHandlers}>
 			<Headless>
 				<Button
+					// The type advertises the full button surface — forward it
+					// (aria-label, data-testid, onFocus, title, …), with the tab
+					// wiring below winning over any colliding consumer prop.
+					{...rest}
 					data-slot="tab"
 					data-current={current || undefined}
 					role="tab"
 					id={tabId}
 					aria-selected={current ?? false}
 					// Explicit-id panels are always mounted, so `aria-controls` is always
-					// set. Auto panels can unmount when inactive; only the current tab
-					// references its panel — inactive tabs omit `aria-controls`.
-					aria-controls={id !== undefined || current ? controlsId : undefined}
+					// set. Auto panels unmount when inactive UNLESS a fade-mode
+					// TabContents keeps them mounted (it registers via context) —
+					// then every tab may reference its panel.
+					aria-controls={
+						id !== undefined || current || tabsContext?.panelsMounted ? controlsId : undefined
+					}
 					tabIndex={current ? 0 : -1}
 					disabled={disabled}
 					type="button"
