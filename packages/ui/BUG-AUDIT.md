@@ -40,7 +40,7 @@ None.
 
 ✅ **Range slider clamps before snapping → value > max** (fixed: snap first, clamp last — both the update path and the keyboard swap prediction) — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
 
-**Tab drops all button props except onClick** — `components/tabs/tab.tsx:24-99`. Type advertises the full button surface but the component forwards a fixed set with no `...rest`; `aria-label`, `data-testid`, `onFocus`/`onKeyDown`, `title`, etc. vanish (icon-only tabs lose their accessible name). Fix: collect and forward `...rest`.
+✅ **Tab drops all button props except onClick** (fixed: rest forwarded, tab wiring wins) — `components/tabs/tab.tsx:24-99`. Type advertises the full button surface but the component forwards a fixed set with no `...rest`; `aria-label`, `data-testid`, `onFocus`/`onKeyDown`, `title`, etc. vanish (icon-only tabs lose their accessible name). Fix: collect and forward `...rest`.
 
 **Floating sidebar hover-peek traps keyboard focus** — `layouts/sidebar/sidebar.tsx:81-112`. Pointer-hover over a 2px hot zone opens a modal `Sheet`/`Overlay` whose `FloatingFocusManager modal` has no opt-out, stealing/trapping focus on mere hover. Fix: render the hover-peek non-modal (no focus trap).
 
@@ -120,7 +120,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Uncontrolled Switch ignores native form reset** — `components/switch/switch.tsx:40-87`. Switch always renders as React-controlled (`checked={on ?? false}`), so a native `type=reset` doesn't fire onChange and the value stays stale (Checkbox stays genuinely uncontrolled). Fix: leave the input uncontrolled when neither `checked` nor a binding is supplied.
 
-_(Reclassified **Low** after verification — see note at top.)_ **Textarea omits `ref` from its public type** — `components/textarea/textarea.tsx:16-21`. `TextareaProps` doesn't declare `ref` (every sibling leaf does, e.g. `input.tsx:28`), so typed consumers can't pass one for focus/selection/measurement. At runtime a forced `ref` still forwards via `{...rest}` (`textarea.tsx:136`) under React 19. Fix: add `ref?: Ref<HTMLTextAreaElement>` to the type and destructure it onto the `<textarea>` for parity.
+✅ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omits `ref` from its public type** (verified already fixed — `ref` is in `TextareaProps`) — `components/textarea/textarea.tsx:16-21`. `TextareaProps` doesn't declare `ref` (every sibling leaf does, e.g. `input.tsx:28`), so typed consumers can't pass one for focus/selection/measurement. At runtime a forced `ref` still forwards via `{...rest}` (`textarea.tsx:136`) under React 19. Fix: add `ref?: Ref<HTMLTextAreaElement>` to the type and destructure it onto the `<textarea>` for parity.
 
 ✅ **TimeAgo rolls past its own unit boundary** — `components/time-ago/use-time-ago-relative-time.ts:25-39,109-111`. Unit chosen by the bucket's lower edge but magnitude is `Math.round`, yielding "60 seconds ago"/"24 hours ago"/"7 days ago" on the common live-refresh path. Fix: roll over to the next unit when the rounded value reaches its threshold.
 
@@ -128,7 +128,7 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Toast onMouseLeave resumes timer while focus is still inside** — `components/toast/toast-alert.tsx:77-85`. `onResume` is unconditional (unlike the focus-guarded `onBlur`), so moving the pointer off while focus stays inside auto-dismisses under a keyboard user (WCAG 2.2.1). Fix: skip resume when focus remains within the toast.
 
-**Polite toasts likely never announced** — `components/toast/toast-alert.tsx:76-98`. ToastAlert sets `role` on its own wrapper and omits `severity`, bypassing Alert's persistent-announcer mitigation, so role=status toasts inserted with their text aren't reliably announced. Fix: route polite toasts through the shared announcer.
+✅ **Polite toasts likely never announced** (fixed: polite toasts mirror their text through the persistent announcer on mount) — `components/toast/toast-alert.tsx:76-98`. ToastAlert sets `role` on its own wrapper and omits `severity`, bypassing Alert's persistent-announcer mitigation, so role=status toasts inserted with their text aren't reliably announced. Fix: route polite toasts through the shared announcer.
 
 ✅ **Tree arrow/Home/End jumps from prefix/suffix controls** — `components/tree/tree.tsx:29-33`. With `focusOnEmpty:true`, a focused prefix control makes `indexOf(activeElement) === -1`, so the fallback sends ArrowDown to the first item. Fix: guard the empty-focus fallback when focus is on a descendant control.
 
@@ -214,15 +214,15 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Consumer aria-checked/role clobbers Switch's synced value** (fixed: props spread first, internal wiring wins) — `components/switch/switch.tsx:86-93`. `{...props}` spreads after `aria-checked`/`role`, letting a consumer desync AT state. Fix: spread props before, or omit these from the type.
 
-**Inactive auto tabs omit aria-controls though fade panels stay mounted** — `components/tabs/tab.tsx:85`. Default `fade=true` keeps inactive panels mounted, but inactive tabs suppress `aria-controls`. Fix: emit aria-controls when the panel exists.
+✅ **Inactive auto tabs omit aria-controls though fade panels stay mounted** (fixed: a fade-mode TabContents registers via context; inactive tabs then keep the reference) — `components/tabs/tab.tsx:85`. Default `fade=true` keeps inactive panels mounted, but inactive tabs suppress `aria-controls`. Fix: emit aria-controls when the panel exists.
 
-**TagInput refocusOnMaxRelease flag leaks in controlled mode** — `components/tag-input/tag-input.tsx:73-89`. If the parent rejects the update, `atMax` never flips, leaving the flag set to steal focus on a later unrelated transition. Fix: clear the flag when removal is observed (not on transition only).
+✅ **TagInput refocusOnMaxRelease flag leaks in controlled mode** (fixed: the flag is consumed on the next committed render) — `components/tag-input/tag-input.tsx:73-89`. If the parent rejects the update, `atMax` never flips, leaving the flag set to steal focus on a later unrelated transition. Fix: clear the flag when removal is observed (not on transition only).
 
-**TagInput duplicate controlled values collide keys** — `components/tag-input/tag-input.tsx:122-124`. `value={['a','a']}` produces colliding `key={t}`. Fix: key by index/stable id.
+✅ **TagInput duplicate controlled values collide keys** (fixed: occurrence-suffixed keys) — `components/tag-input/tag-input.tsx:122-124`. `value={['a','a']}` produces colliding `key={t}`. Fix: key by index/stable id.
 
-**TimelineMarker accepts `current` but discards it** — `components/timeline/timeline-marker.tsx:16-32`. Public prop is destructured to `_current` and never used. Fix: implement or remove it from the type.
+✅ **TimelineMarker accepts `current` but discards it** (fixed: exposed as a data-current styling hook; ARIA stays on the item) — `components/timeline/timeline-marker.tsx:16-32`. Public prop is destructured to `_current` and never used. Fix: implement or remove it from the type.
 
-**Tooltip disabled detection misses the reference element itself** — `components/tooltip/use-tooltip-state.ts:42,67`. `querySelector(':disabled')` only matches descendants, but the reference IS the disabled control; contradicts the documented child/fieldset cases. Fix: use `matches(':disabled')`.
+✅ **Tooltip disabled detection misses the reference element itself** (verified already fixed — `matches(':disabled')` checks the element too) — `components/tooltip/use-tooltip-state.ts:42,67`. `querySelector(':disabled')` only matches descendants, but the reference IS the disabled control; contradicts the documented child/fieldset cases. Fix: use `matches(':disabled')`.
 
 **Fade-mode CurrentContent overwrites caller `style`** — `primitives/current/current-content.tsx:46-62`. Internal `style` is set after `{...props}` in fade mode (non-fade preserves it). Fix: merge caller `style`.
 
