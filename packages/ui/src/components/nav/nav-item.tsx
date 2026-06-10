@@ -32,16 +32,14 @@ export function NavItem({
 }: NavMenuItemProps) {
 	const item = useNavItem({ current, value, preventClose, onClick })
 
-	// Affixes render as siblings of the inner button, not nested inside it; a
-	// slot can host its own interactive element. The row uses flex only when
-	// an affix is present.
-	const hasAffix = prefix != null || suffix != null
-
+	// The row (<li>) owns the chrome; the inner button is a content strip
+	// filling the remaining space. Affixes render as its siblings, so a slot
+	// can host its own interactive element.
 	return (
 		<li
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={cn('group relative list-none', hasAffix && 'flex items-center gap-1')}
+			className={cn(k.item.base, 'list-none', className)}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
@@ -54,7 +52,7 @@ export function NavItem({
 					data-slot="nav-item-inner"
 					data-current={item.current || undefined}
 					aria-current={item.current ? 'page' : undefined}
-					className={cn(k.item.base, 'relative z-10', hasAffix && 'min-w-0 flex-1', className)}
+					className={cn(k.item.inner)}
 					onClick={item.handleClick}
 					{...props}
 				>

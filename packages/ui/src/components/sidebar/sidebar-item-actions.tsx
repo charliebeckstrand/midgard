@@ -5,16 +5,21 @@ import { k } from '../../recipes/kata/sidebar'
 export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
 /**
- * Trailing decoration slot for a SidebarItem (badges, kbd hints). Renders
- * inside the item's button, so children must be non-interactive; interactive
- * elements belong in the item's `prefix`/`suffix` slots, which render outside
- * the button. Hidden on the mini rail.
+ * Trailing action cluster for a SidebarItem. The item hoists it out of the
+ * inner button to the row, so it can host interactive elements (icon buttons,
+ * menus) as well as badges and kbd hints. Hidden on the mini rail.
  */
 export function SidebarItemActions({ className, ...props }: SidebarItemActionsProps) {
 	return (
 		<div
 			data-slot="sidebar-item-actions"
-			className={cn('flex items-center gap-1', k.mini.hidden, className)}
+			className={cn(
+				'relative z-10',
+				'flex items-center gap-1',
+				'shrink-0',
+				k.mini.hidden,
+				className,
+			)}
 			{...props}
 		/>
 	)

@@ -9,12 +9,14 @@ import { cursor } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
 import { item } from './item'
-import { nav } from './nav'
+import { nav, navInner } from './nav'
 import { tint } from './tint'
 
 export const hannou = {
 	item,
 	nav,
+	/** Content strip inside a nav row: the real button/anchor, above the active indicator. */
+	navInner,
 	/** Disabled / dormant state. */
 	disabled,
 	/** Cursor feedback: pointer when interactive, not-allowed when disabled. */

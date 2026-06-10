@@ -119,15 +119,12 @@ describe('Sidebar mini', () => {
 
 		const user = userEvent.setup()
 
-		// Actions render inside the item button, so they host non-interactive
-		// decorations (badges, kbd hints); interactive elements go in
-		// prefix/suffix.
 		const { container } = renderUI(
 			<Sidebar mini>
 				<SidebarItem>
 					<SidebarLabel>Home</SidebarLabel>
 					<SidebarItemActions>
-						<span>12</span>
+						<button type="button">remove</button>
 					</SidebarItemActions>
 				</SidebarItem>
 			</Sidebar>,
@@ -149,7 +146,7 @@ describe('Sidebar mini', () => {
 		// must not echo non-label children (actions, affix helpers).
 		expect(tooltip).toHaveTextContent('Home')
 
-		expect(tooltip).not.toHaveTextContent('12')
+		expect(tooltip.querySelector('button')).toBeNull()
 
 		expect(bySlot(tooltip, 'sidebar-item-actions')).toBeNull()
 	})
@@ -201,8 +198,8 @@ describe('Sidebar mini', () => {
 		)
 
 		// Height follows the rail width, so items stay uniform squares even
-		// when icon glyph aspect ratios differ.
-		expect(bySlot(container, 'sidebar-item-inner')?.className).toContain(
+		// when icon glyph aspect ratios differ. The row owns the chrome.
+		expect(bySlot(container, 'sidebar-item')?.className).toContain(
 			'lg:group-data-[mini]/sidebar:aspect-square',
 		)
 	})
@@ -385,6 +382,42 @@ describe('SidebarItem', () => {
 		expect(screen.getByRole('button', { name: 'drag' })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'more' })).toBeInTheDocument()
+	})
+
+	it('hoists SidebarItemActions out of the inner button to the row', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem onClick={onClick}>
+					<SidebarLabel>Home</SidebarLabel>
+					<SidebarItemActions>
+						<button type="button">remove</button>
+					</SidebarItemActions>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const item = bySlot(container, 'sidebar-item')
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		const actions = bySlot(container, 'sidebar-item-actions')
+
+		if (!item || !inner || !actions) throw new Error('slots missing')
+
+		// The actions slot is a row sibling of the button, so it can host its
+		// own interactive elements without nesting buttons (invalid HTML).
+		expect(item.contains(actions)).toBe(true)
+
+		expect(inner.contains(actions)).toBe(false)
+
+		expect(inner.querySelector('button')).toBeNull()
+
+		// Activating an action never bubbles into the nav button.
+		fireEvent.click(screen.getByRole('button', { name: 'remove' }))
+
+		expect(onClick).not.toHaveBeenCalled()
 	})
 
 	it('omits the affix slots when no prefix or suffix is provided', () => {
