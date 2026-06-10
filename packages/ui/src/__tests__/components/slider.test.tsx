@@ -349,6 +349,61 @@ describe('Slider + Control', () => {
 	})
 })
 
+describe('Slider + Form', () => {
+	it('binds to a Form field by name', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ volume: 30 }} onSubmit={onSubmit}>
+				<Slider name="volume" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const slider = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(slider.value).toBe('30')
+
+		fireEvent.change(slider, { target: { value: '60' } })
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ volume: 60 }),
+			expect.anything(),
+		)
+	})
+
+	it('merges a field-level error from the Form into the invalid state', () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ volume: 30 }}
+				validate={{ volume: (v) => (v > 50 ? 'Too loud' : undefined) }}
+				validateOn="change"
+			>
+				<Slider name="volume" />
+			</Form>,
+		)
+
+		const el = bySlot(container, 'slider') as HTMLInputElement
+
+		expect(el).not.toHaveAttribute('aria-invalid')
+
+		fireEvent.change(el, { target: { value: '80' } })
+
+		expect(el).toHaveAttribute('aria-invalid', 'true')
+
+		expect(el).toHaveAttribute('data-invalid')
+
+		// The merge is live: a passing value clears the invalid state again.
+		fireEvent.change(el, { target: { value: '40' } })
+
+		expect(el).not.toHaveAttribute('aria-invalid')
+	})
+})
+
 describe('Slider density inheritance', () => {
 	// Each size variant brings a unique py-* hit-area class; matching it
 	// confirms which size the recipe rendered.
@@ -382,31 +437,5 @@ describe('Slider density inheritance', () => {
 		const { container } = renderUI(<Slider />)
 
 		expect(bySlot(container, 'slider')?.className).toContain(padClassFor.md)
-	})
-
-	it('binds to a Form field by name', async () => {
-		const onSubmit = vi.fn()
-
-		const { container } = renderUI(
-			<Form defaultValues={{ volume: 30 }} onSubmit={onSubmit}>
-				<Slider name="volume" />
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		const slider = bySlot(container, 'slider') as HTMLInputElement
-
-		expect(slider.value).toBe('30')
-
-		fireEvent.change(slider, { target: { value: '60' } })
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByRole('button', { name: 'Submit' }))
-
-		expect(onSubmit).toHaveBeenCalledWith(
-			expect.objectContaining({ volume: 60 }),
-			expect.anything(),
-		)
 	})
 })

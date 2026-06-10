@@ -89,6 +89,30 @@ describe('CurrencyInput', () => {
 		expect(input.value).toBe('1,234.50')
 	})
 
+	it('keeps the caret next to the typed digit when grouping separators shift', async () => {
+		const { container } = renderUI(<CurrencyInput />)
+
+		const input = bySlot(container, 'currency-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		await user.type(input, '123456')
+
+		expect(input.value).toBe('123,456')
+
+		input.setSelectionRange(3, 3)
+
+		await user.keyboard('9')
+
+		// Reformatting inserts a new separator before the typed digit; the caret
+		// stays anchored after the 9 instead of being pushed to the end.
+		expect(input.value).toBe('1,239,456')
+
+		expect(input.selectionStart).toBe(5)
+	})
+
 	it('reformats and emits the parsed number on blur', async () => {
 		const onChange = vi.fn()
 

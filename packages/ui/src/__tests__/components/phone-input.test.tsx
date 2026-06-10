@@ -1,7 +1,8 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form, useFormField } from '../../components/form'
 import { PhoneInput } from '../../components/phone-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('PhoneInput', () => {
 	it('renders an input with type tel and a phone icon prefix by default', () => {
@@ -154,5 +155,58 @@ describe('PhoneInput', () => {
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
 		expect(input.value).toBe('')
+	})
+
+	it('binds to a Form field by name, storing the formatted text', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ phone: '' }} onSubmit={onSubmit}>
+				<PhoneInput name="phone" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
+
+		await user.type(input, '5551234567')
+
+		expect(input.value).toBe('(555) 123-4567')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ phone: '(555) 123-4567' }),
+			expect.anything(),
+		)
+	})
+
+	it('marks the form field touched on blur', async () => {
+		function TouchedProbe() {
+			const field = useFormField('phone')
+
+			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ phone: '' }}>
+				<PhoneInput name="phone" />
+				<TouchedProbe />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'phone-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+
+		await user.tab()
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
 	})
 })

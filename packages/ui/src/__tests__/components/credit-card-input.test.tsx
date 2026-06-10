@@ -9,6 +9,7 @@ import {
 	formatExpiry,
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
+import { Form, useFormField } from '../../components/form'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CreditCardInput', () => {
@@ -298,6 +299,82 @@ describe('CreditCardInputCvv', () => {
 		await user.type(input, 'ab12c')
 
 		expect(input.value).toBe('12')
+	})
+})
+
+describe('Credit card trio + Form', () => {
+	it('binds number, expiry, and CVV to their own Form fields, storing the formatted text', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ number: '', expiry: '', cvv: '' }} onSubmit={onSubmit}>
+				<CreditCardInput name="number" />
+				<CreditCardInputExpiry name="expiry" />
+				<CreditCardInputCvv name="cvv" brand="visa" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.type(bySlot(container, 'credit-card-input') as HTMLInputElement, '4242424242424242')
+
+		await user.type(screen.getByRole('textbox', { name: 'Expiration date' }), '1228')
+
+		await user.type(screen.getByRole('textbox', { name: 'Security code' }), '123')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({
+				number: '4242 4242 4242 4242',
+				expiry: '12/28',
+				cvv: '123',
+			}),
+			expect.anything(),
+		)
+	})
+
+	it('marks each form field touched on its own blur', async () => {
+		function TouchedProbe({ name }: { name: string }) {
+			const field = useFormField(name)
+
+			return <span data-testid={`touched-${name}`}>{field?.touched ? 'touched' : 'untouched'}</span>
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ number: '', expiry: '', cvv: '' }}>
+				<CreditCardInput name="number" />
+				<CreditCardInputExpiry name="expiry" />
+				<CreditCardInputCvv name="cvv" brand="visa" />
+				<TouchedProbe name="number" />
+				<TouchedProbe name="expiry" />
+				<TouchedProbe name="cvv" />
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(bySlot(container, 'credit-card-input') as HTMLInputElement)
+
+		expect(screen.getByTestId('touched-number').textContent).toBe('untouched')
+
+		// Tab number -> expiry -> cvv -> out; each blur touches only its own field.
+		await user.tab()
+
+		expect(screen.getByTestId('touched-number').textContent).toBe('touched')
+
+		expect(screen.getByTestId('touched-expiry').textContent).toBe('untouched')
+
+		await user.tab()
+
+		expect(screen.getByTestId('touched-expiry').textContent).toBe('touched')
+
+		expect(screen.getByTestId('touched-cvv').textContent).toBe('untouched')
+
+		await user.tab()
+
+		expect(screen.getByTestId('touched-cvv').textContent).toBe('touched')
 	})
 })
 
