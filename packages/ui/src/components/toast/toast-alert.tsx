@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { cn } from '../../core'
+import { useEffect, useRef } from 'react'
+import { announce, cn } from '../../core'
 import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
@@ -61,6 +62,20 @@ export function ToastAlert({
 
 	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
 
+	// role="status" content mounted in the same commit as the live region is
+	// not reliably announced; mirror polite toasts through the persistent
+	// announcer on mount (WCAG 4.1.3). role="alert" announces on insertion.
+	const contentRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (assertive) return
+
+		const message = contentRef.current?.textContent?.trim()
+
+		if (message) announce(message)
+		// Mount-only: each toast id mounts exactly once.
+	}, [assertive])
+
 	return (
 		<motion.div
 			layout
@@ -75,6 +90,7 @@ export function ToastAlert({
 				initial={{ ...motionConfig.initial, opacity: 0 }}
 				animate={motionConfig.animate}
 				transition={motionConfig.transition}
+				ref={contentRef}
 				role={assertive ? 'alert' : 'status'}
 				onMouseEnter={onPause}
 				onMouseLeave={(e) => {
