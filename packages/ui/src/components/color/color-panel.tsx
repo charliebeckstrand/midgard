@@ -20,7 +20,7 @@ import type { ColorValueProps, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
-	/** Enable the alpha channel — adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
+	/** Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
 	alpha?: boolean
 	/** Preset swatches, or `false` to hide them. Defaults to a built-in palette. */
 	swatches?: readonly string[] | false
@@ -35,9 +35,9 @@ type ColorPanelBaseProps = {
 export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
- * Inline colour picker — a saturation/brightness field with hue (and optional
+ * Inline colour picker: a saturation/brightness field with hue (and optional
  * alpha) sliders, hex / RGB inputs, preset swatches, and an eyedropper. Holds
- * HSVA internally so dragging stays lossless, and speaks either a hex string
+ * HSVA internally, keeping drags lossless, and speaks either a hex string
  * (default) or an HSVA object through `value` / `onValueChange` per `format`.
  */
 export function ColorPanel(props: ColorPanelProps) {
@@ -68,8 +68,8 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 		defaultValue: props.defaultValue,
 		format: props.format ?? 'hex',
 		alpha,
-		// The format discriminant keeps callers' value/onValueChange paired; the handler
-		// is widened to both wire shapes because the hook works in HSVA internally.
+		// The format discriminant keeps callers' value/onValueChange paired; the
+		// handler widens to both wire shapes.
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
 	})
 

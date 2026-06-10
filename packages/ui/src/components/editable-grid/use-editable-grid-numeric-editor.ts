@@ -29,8 +29,7 @@ export function useEditableGridNumericEditor<T>({
 	selectAllOnFocus,
 }: EditableGridEditorProps<T>): NumericEditorBindings {
 	// Type-to-edit seeds the grid draft with the typed key before the editor
-	// mounts — honor it (the text editor reads `draft` directly), or the first
-	// keystroke is silently replaced by the old value. Non-numeric drafts (the
+	// mounts; a numeric draft seeds the local value. Non-numeric drafts (the
 	// Enter / double-click paths seed the *formatted* display, e.g. "$1,234.00")
 	// fall back to the row field.
 	const fromDraft = draft === '' ? Number.NaN : Number(draft)
@@ -47,7 +46,7 @@ export function useEditableGridNumericEditor<T>({
 
 	const ref = useRef<HTMLInputElement>(null)
 
-	// Captured at mount: mid-edit draft changes must not re-trigger selection.
+	// Captured at mount; mid-edit draft changes do not re-trigger selection.
 	const selectOnMountRef = useRef(selectAllOnFocus)
 
 	useLayoutEffect(() => {
@@ -57,9 +56,8 @@ export function useEditableGridNumericEditor<T>({
 
 		input.focus()
 
-		// Select-all only when the draft holds the prior value to be replaced —
-		// selecting after type-to-edit would make the next keystroke wipe the
-		// first one.
+		// Select-all only when the draft holds the prior value. Selecting after
+		// type-to-edit makes the next keystroke wipe the first.
 		if (selectOnMountRef.current) input.select()
 	}, [])
 

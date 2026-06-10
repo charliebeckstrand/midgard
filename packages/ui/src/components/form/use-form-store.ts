@@ -4,13 +4,13 @@ import { useLayoutEffect, useRef } from 'react'
 import type { FormStateValue, FormStore } from './context'
 
 /**
- * Bridges the reducer-owned form state to an external-store interface so fields
- * subscribe to just their own slice via `useSyncExternalStore`.
+ * Bridges the reducer-owned form state to an external-store interface; fields
+ * subscribe to their own slice via `useSyncExternalStore`.
  *
  * The reducer stays the source of truth; this mirrors each committed
  * `formState` into the store in a layout effect (before paint) and notifies
- * subscribers. Fields whose slice is unchanged bail on the next snapshot, so
- * typing in one field re-renders only that field instead of the whole form.
+ * subscribers. Fields whose slice is unchanged bail on the next snapshot;
+ * typing in one field re-renders only that field.
  */
 export function useFormStore(formState: FormStateValue): FormStore {
 	const internalRef = useRef<{
@@ -20,7 +20,7 @@ export function useFormStore(formState: FormStateValue): FormStore {
 	} | null>(null)
 
 	if (internalRef.current === null) {
-		// Seed both `state` and `server` from the first committed state so SSR,
+		// Seed both `state` and `server` from the first committed state; SSR,
 		// hydration, and the initial client render share the same snapshot.
 		internalRef.current = { state: formState, server: formState, listeners: new Set() }
 	}

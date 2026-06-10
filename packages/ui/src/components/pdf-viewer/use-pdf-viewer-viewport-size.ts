@@ -7,9 +7,8 @@ type ViewportSize = { width: number; height: number }
 /**
  * Tracks the content-box size of `ref.current` (`clientWidth`/`Height` minus padding).
  *
- * Re-measures synchronously when `invalidationKey` changes, before paint —
- * e.g. on rotation flip, where the viewport's aspect ratio changes and the
- * new dimensions must be available before the browser paints.
+ * Re-measures synchronously when `invalidationKey` changes, before paint;
+ * e.g. a rotation flip changes the viewport's aspect ratio.
  */
 export function usePdfViewerViewportSize(
 	ref: RefObject<HTMLElement | null>,
@@ -20,8 +19,7 @@ export function usePdfViewerViewportSize(
 	const lastInvalidationKeyRef = useRef(invalidationKey)
 
 	// `measure` is the same operation whether triggered by ResizeObserver or by
-	// an invalidation-key change. Pulling it out of the effects keeps both
-	// branches honest and lets each effect declare its real dependencies.
+	// an invalidation-key change.
 	const measure = useCallback(() => {
 		const el = ref.current
 
@@ -53,7 +51,7 @@ export function usePdfViewerViewportSize(
 	}, [ref, measure])
 
 	// Caller-driven invalidation: re-measure after commit, before paint.
-	// `measure` reads layout via getComputedStyle / clientWidth, so this runs
+	// `measure` reads layout via getComputedStyle / clientWidth; this runs
 	// in useLayoutEffect. The lastInvalidationKey ref skips the redundant
 	// remeasure on mount.
 	useLayoutEffect(() => {

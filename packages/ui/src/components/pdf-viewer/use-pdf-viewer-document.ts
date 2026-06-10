@@ -8,9 +8,9 @@ import type { PdfViewerPage } from './types'
 async function configureWorker() {
 	const pdfjs = await import('pdfjs-dist')
 
-	// Skip the worker URL import once workerSrc is set — this also lets the
-	// runtime (or a test) pre-configure workerSrc and bypass the Vite-specific
-	// `?url` import, which is not reliably resolvable outside a Vite build.
+	// Skip the worker URL import once workerSrc is set; a pre-configured
+	// workerSrc (runtime or test) bypasses the Vite-specific `?url` import,
+	// which does not resolve outside a Vite build.
 	if (pdfjs.GlobalWorkerOptions.workerSrc) return
 
 	const workerUrlModule = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
@@ -50,9 +50,9 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 		const createdUrls: string[] = []
 		let docBlobUrl: string | null = null
 
-		// Tracks the in-flight render task and document so cleanup can cancel and
-		// destroy them. `releasePdf` is idempotent (it nulls what it frees) so
-		// the async path and the cleanup can both call it.
+		// Tracks the in-flight render task and document; cleanup cancels and
+		// destroys them. `releasePdf` is idempotent (it nulls what it frees);
+		// the async path and the cleanup both call it.
 		let doc: PDFDocumentProxy | null = null
 		let renderTask: RenderTask | null = null
 
@@ -89,7 +89,7 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 
 				setDocumentUrl(docBlobUrl)
 
-				// pdf.js takes ownership of the buffer, so hand over a copy
+				// pdf.js takes ownership of the buffer; hand over a copy
 				doc = await pdfjs.getDocument({ data: buffer.slice(0) }).promise
 
 				// `doc` is assigned after `getDocument` resolves; release here if

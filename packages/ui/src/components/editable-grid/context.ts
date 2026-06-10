@@ -44,7 +44,7 @@ export const [EditableGridEditContext, useEditableGridEdit] =
 
 /**
  * Combined state + edit-session view. Re-renders on any change, including every
- * keystroke — prefer `useEditableGridEdit` (editor) or `useEditableGridCellSlice`
+ * keystroke. Prefer `useEditableGridEdit` (editor) or `useEditableGridCellSlice`
  * (cell) internally; this is the stable public surface for external consumers.
  */
 export function useEditableGrid(): EditableGridContextValue {
@@ -75,9 +75,9 @@ export type EditableGridCellSlice = {
 
 /**
  * Subscribes a single cell to the store and returns its derived selection flags.
- * The slice is cached by content so an unchanged cell keeps a stable snapshot and
- * skips re-rendering when an unrelated cell becomes active — the rectangle math
- * still runs per cell (cheap integer compares), but reconciliation does not.
+ * Caches the slice by content: an unchanged cell keeps a stable snapshot and
+ * skips re-rendering when an unrelated cell becomes active. The rectangle math
+ * still runs per cell (cheap integer compares); reconciliation does not.
  */
 export function useEditableGridCellSlice(
 	rowIdx: number,

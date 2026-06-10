@@ -18,7 +18,7 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: () => Record<string, unknown>
 	context: FloatingRootContext
-	/** Re-broadcast through `<Density>` because the portal teleports the panel out of the trigger's cascade. */
+	/** Re-broadcast through `<Density>`; the portal renders the panel outside the trigger's cascade. */
 	size: ControlSize
 	children: ReactNode
 }

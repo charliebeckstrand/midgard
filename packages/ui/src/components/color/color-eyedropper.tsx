@@ -18,14 +18,14 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
 
 /**
  * Samples a colour from anywhere on screen via the `EyeDropper` API. Renders
- * nothing where the API is unavailable, so it stays a progressive enhancement.
+ * nothing where the API is unavailable.
  */
 export function ColorEyedropper({ className }: { className?: string }) {
 	const { setHsva, disabled, size } = useColorPanelContext()
 
-	// Probe for the API only after mount: reading it during render returns
-	// undefined on the server but the constructor on a supporting client, which
-	// would hydrate a <Button> over server-rendered null and mismatch.
+	// Probe for the API after mount. Reading it during render returns undefined
+	// on the server but the constructor on a supporting client, mismatching
+	// hydration.
 	const [EyeDropper, setEyeDropper] = useState<EyeDropperConstructor>()
 
 	useEffect(() => {
@@ -42,7 +42,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 
 			if (parsed) setHsva(parsed)
 		} catch {
-			// The user dismissed the eyedropper (AbortError) — nothing to commit.
+			// The user dismissed the eyedropper (AbortError); nothing to commit.
 		}
 	}
 

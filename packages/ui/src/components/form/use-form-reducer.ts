@@ -35,8 +35,8 @@ export type SubmitResult<T> = {
 
 /**
  * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
- * validation failures and `{ fieldErrors }` returns are mid-flow (the user
- * will fix and retry) and do not fire `onSettled`.
+ * validation failures and `{ fieldErrors }` returns are mid-flow and do not
+ * fire `onSettled`.
  */
 export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
 
@@ -47,7 +47,7 @@ export type FormHelpers<T> = {
 
 /**
  * Return nothing (or `Promise<void>`) for success; optionally return a
- * `SubmitResult<T>` — sync or async — to surface server-side validation
+ * `SubmitResult<T>`, sync or async, to surface server-side validation
  * issues without going through `helpers.setErrors`. Throw or reject to
  * trigger `onSettled({ ok: false, error })`. Annotate the return as
  * `satisfies SubmitResult<T>` for autocomplete on the shape.
@@ -74,9 +74,8 @@ type FormReducerOptions<T extends Record<string, unknown>> = {
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
 	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
-	 * Passing `undefined` re-syncs to `defaultValues` under the same contract,
-	 * so consumers can toggle between an external source and the baseline.
-	 * Pass a stable reference — memoize derived objects to avoid sync loops.
+	 * Passing `undefined` re-syncs to `defaultValues` under the same contract.
+	 * Pass a stable reference; a new derived object each render loops the sync.
 	 */
 	values?: T
 	validate?: Validators<T>
@@ -115,9 +114,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const defaultsRef = useRef(initialValues)
 
-	// Mount-time snapshot of `defaultValues` for restoring the original baseline
-	// when `controlledValues` transitions to `undefined`. `defaultsRef` shifts on
-	// each sync and cannot serve this role.
+	// Mount-time snapshot of `defaultValues`; restores the original baseline
+	// when `controlledValues` transitions to `undefined`. `defaultsRef` shifts
+	// on each sync and cannot serve this role.
 	const initialDefaultsRef = useRef(defaultValues)
 
 	const validateRef = useRef(validate)
@@ -128,8 +127,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	onSettledRef.current = onSettled
 
-	// Monotonic token identifying the current submit. Bumped on reset, unmount,
-	// or a newer submit; an in-flight handler compares against it to detect
+	// Monotonic token identifying the current submit. Reset, unmount, and newer
+	// submits bump it; an in-flight handler compares against it to detect
 	// supersession before writing errors or clearing state.
 	const submitTokenRef = useRef(0)
 
@@ -137,7 +136,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	const { values, errors, touched } = state
 
-	// Mirrors current values so `getValue` reads the latest state without
+	// Mirrors current values; `getValue` reads the latest state without
 	// changing actions object identity across re-renders.
 	const valuesRef = useRef(values)
 
@@ -157,7 +156,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	// Derived from the live `errors` map, which includes server / external errors
 	// from `setErrors` or an `onSubmit` `{ fieldErrors }` return. The reducer
-	// keeps `errors` current per `validateOn`, so this reads it directly rather
+	// keeps `errors` current per `validateOn`; this reads it directly rather
 	// than re-running validators.
 	const valid = useMemo(
 		() => !Object.values(errors).some((issues) => issues !== undefined && issues.length > 0),
@@ -189,8 +188,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	}, [])
 
 	const reset = useCallback(
-		// Typed wider than `T` to satisfy `FormActions.reset` (no `T` at the context
-		// level); `FormHelpers<T>` re-narrows at the consumer via contravariance.
+		// Typed wider than `T`; `FormActions.reset` carries no `T` at the context
+		// level. `FormHelpers<T>` re-narrows at the consumer via contravariance.
 		(nextDefaults?: Record<string, unknown>) => {
 			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
 
@@ -207,13 +206,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	)
 
 	// Tracks the controlled `values` prop. Reference change → replace `values`
-	// and shift the dirty baseline; `touched`/`errors`/`submitting` are preserved.
+	// and shift the dirty baseline; `touched`/`errors`/`submitting` persist.
 	// Transitioning to `undefined` re-syncs to the mount-time `defaultValues`.
 	// Use `reset(nextDefaults)` to also clear touched and errors.
 	const lastSyncedValuesRef = useRef(controlledValues)
 
-	// Runs before paint (layout effect, not a passive side effect) so a
-	// controlled-value change takes effect before the next frame is rendered.
+	// Runs before paint (layout effect, not a passive side effect); a
+	// controlled-value change lands before the next frame renders.
 	useLayoutEffect(() => {
 		if (controlledValues === lastSyncedValuesRef.current) return
 
@@ -258,13 +257,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 					reset,
 				})
 
-				// Superseded by a reset, unmount, or newer submit — discard this result.
+				// Superseded by a reset, unmount, or newer submit; discard this result.
 				if (submitTokenRef.current !== token) return
 
 				const fieldErrors = extractFieldErrors(raw)
 
 				if (fieldErrors) {
-					// Field errors — mid-flow, not a terminal outcome; does not fire `onSettled`.
+					// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
 					setErrorsExternal(fieldErrors)
 				} else {
 					onSettledRef.current?.({ ok: true, values: valuesRef.current })

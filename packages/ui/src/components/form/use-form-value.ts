@@ -16,18 +16,18 @@ export type FormValueResult<T> = {
 	setValue: (value: SetValue<T>) => void
 	/** Marks the field touched; no-op outside a Form. Call from `onBlur`. */
 	setTouched: () => void
-	/** Pass to `useControlProps` so the field's error state merges into `invalid`. */
+	/** Pass to `useControlProps`; the field's error state merges into `invalid`. */
 	binding: { invalid: boolean } | undefined
 }
 
 /**
- * `useControllable` bound to an enclosing Form field by `name` — the
+ * `useControllable` bound to an enclosing Form field by `name`: the
  * value-typed analogue of `useFormText` / `useFormToggle` for controls that
  * emit `onValueChange` instead of change events.
  *
  * Resolution mirrors Input's cascade: an explicit `value` prop wins; otherwise
  * a form field with this `name` drives the state (the store is the single
- * source of truth, so `defaultValue` is ignored); otherwise the hook is plain
+ * source of truth; `defaultValue` is ignored); otherwise the hook is plain
  * controlled / uncontrolled state.
  */
 export function useFormValue<T>(
@@ -40,7 +40,7 @@ export function useFormValue<T>(
 
 	const [current, setCurrent] = useControllable<T>({
 		// `?? null` keeps a bound control controlled even while the store holds
-		// no value yet, so internal state can never diverge from the form.
+		// no value yet.
 		value: bound ? ((field.value as T | undefined) ?? null) : value,
 		defaultValue,
 		onValueChange: bound

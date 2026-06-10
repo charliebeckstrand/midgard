@@ -17,8 +17,8 @@ export function useEditableGridRows<T>({
 
 	rowsRef.current = rows
 
-	// Editable column indices (exclude selectable / actions) — these are the
-	// columns the active-cell cursor can land on.
+	// Editable columns (excludes selectable / actions): the columns the
+	// active-cell cursor can land on.
 	const editableCols = useMemo(() => columns.filter((c) => !c.selectable && !c.actions), [columns])
 
 	const rowIndexMap = useMemo(() => {

@@ -8,7 +8,7 @@ type PageScaleOptions = {
 	/** True when the page is rotated 90° / 270°; swaps width and height in the layout. */
 	isTransposed: boolean
 	zoom: number
-	/** Drives whether the viewport reserves space. When false, `aspectRatio` is undefined so the viewer can collapse. */
+	/** Drives whether the viewport reserves space. When false, `aspectRatio` is undefined and the viewer collapses. */
 	hasContent: boolean
 }
 
