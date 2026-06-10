@@ -22,11 +22,11 @@ None.
 
 ✅ **Column reorder drops selection/actions columns** — `components/data-table/data-table-column-manager.tsx:85-108`. `handleReorder` walks the full `order` but a filtered `byId`, so `if (!col) continue` discards the select/actions ids; they jump to the table end and persist into saved presets. Fix: preserve unmatched ids in place.
 
-**DescriptionList crashes in RSC (missing `'use client'`)** — `components/dl/description-list.tsx:1-29`. Renders a client Context Provider with no `'use client'` directive; subpath imports resolve to raw source (not the tsup-bannered dist), so it executes server-side and Next rejects it. Fix: add `'use client'` to line 1.
+✅ **DescriptionList crashes in RSC (missing `'use client'`)** (fixed — and the same latent gap in Navbar/Headless/Timeline; a boundary test now enforces the directive on any module rendering a Context provider) — `components/dl/description-list.tsx:1-29`. Renders a client Context Provider with no `'use client'` directive; subpath imports resolve to raw source (not the tsup-bannered dist), so it executes server-side and Next rejects it. Fix: add `'use client'` to line 1.
 
-**Numeric/currency editors drop the first typed character** — `components/editable-grid/use-editable-grid-numeric-editor.ts:28-44`. Editor seeds `value` from `row[column.field]` and ignores the grid `draft`, so type-to-edit shows the old value selected and loses the typed key. Fix: seed from `draft` like the text editor.
+✅ **Numeric/currency editors drop the first typed character** — `components/editable-grid/use-editable-grid-numeric-editor.ts:28-44`. Editor seeds `value` from `row[column.field]` and ignores the grid `draft`, so type-to-edit shows the old value selected and loses the typed key. Fix: seed from `draft` like the text editor.
 
-**FiltersField toggle controls never reflect filter state** — `components/filters/filters-field.tsx:118-127`. Clones Checkbox/Switch with `value`/`onChange` but they read `checked`; never passing `checked` leaves them uncontrolled, desynced from the filter value. Fix: pass `checked` for toggle-type controls.
+✅ **FiltersField toggle controls never reflect filter state** — `components/filters/filters-field.tsx:118-127`. Clones Checkbox/Switch with `value`/`onChange` but they read `checked`; never passing `checked` leaves them uncontrolled, desynced from the filter value. Fix: pass `checked` for toggle-type controls.
 
 **Keyboard hold never cancels on focus/window loss** — `components/hold-button/hold-button.tsx:73-82`. Hold starts on keydown, cancels only on a keyup on the same button; Tab/Alt-Tab mid-press routes keyup elsewhere, so the irreversible `onComplete` still fires. Fix: add blur/window-blur/visibilitychange cancel.
 
@@ -78,7 +78,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **File input reset to '' defeats native `required`** — `components/file-upload/use-file-upload-handlers.ts:48-57`. `e.target.value = ''` (for same-file reselect) empties the FileList, so a `required` hidden input fails native validation on submit despite a valid pick. Fix: track validity independently of the cleared input.
 
-**FiltersField overwrites a Radio's `value`** — `components/filters/filters-field.tsx:120-127`. A cloned Radio gets `value={fieldValue}` (clobbering the author's option value) and never gets `checked`. Fix: don't overwrite `value` for radios; drive `checked`.
+✅ **FiltersField overwrites a Radio's `value`** — `components/filters/filters-field.tsx:120-127`. A cloned Radio gets `value={fieldValue}` (clobbering the author's option value) and never gets `checked`. Fix: don't overwrite `value` for radios; drive `checked`.
 
 **Grid `span='full'` + start overflows the parent** — `components/grid/variants.ts:174-178`. With columns set, `full` emits `col-span-N`; from a non-default start CSS spans N tracks past the grid edge instead of clamping. Fix: clamp end to the grid's last line.
 
@@ -180,7 +180,7 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Range DatePicker never forwards aria-required** — `components/date-picker/date-picker-range.tsx:24-41`. `useDatePickerRangeState` omits `required`, so a range picker in a required Control isn't announced as required (the single variant is). Fix: forward `control?.required`.
 
-**Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
+✅ **Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
 
 **HoldButton: releasing one of two held keys cancels the hold** — `components/hold-button/hold-button.tsx:78-82`. keyup cancels for any Space/Enter without tracking which key started. Fix: track the initiating key.
 
