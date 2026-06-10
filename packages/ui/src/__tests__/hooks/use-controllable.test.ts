@@ -70,4 +70,36 @@ describe('useControllable', () => {
 
 		expect(result.current[0]).toBeUndefined()
 	})
+
+	it('chains functional updates batched in a single act', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ defaultValue: 0, onValueChange }))
+
+		act(() => {
+			result.current[1]((prev) => (prev ?? 0) + 1)
+			result.current[1]((prev) => (prev ?? 0) + 1)
+		})
+
+		expect(result.current[0]).toBe(2)
+
+		expect(onValueChange).toHaveBeenNthCalledWith(1, 1)
+
+		expect(onValueChange).toHaveBeenNthCalledWith(2, 2)
+	})
+
+	it('chains batched functional updates in controlled mode', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable({ value: 10, onValueChange }))
+
+		act(() => {
+			result.current[1]((prev) => (prev ?? 0) + 1)
+			result.current[1]((prev) => (prev ?? 0) + 1)
+		})
+
+		expect(onValueChange).toHaveBeenNthCalledWith(1, 11)
+
+		expect(onValueChange).toHaveBeenNthCalledWith(2, 12)
+	})
 })
