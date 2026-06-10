@@ -102,7 +102,7 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 /**
- * Type-ahead select pairing a text input with a floating option panel —
+ * Type-ahead select pairing a text input with a floating option panel:
  * single or `multiple` selection, controlled or uncontrolled `value`, and an
  * optional `clearable` affordance. Pass `children` as a function to receive the
  * live and deferred query for client-side filtering.
@@ -208,11 +208,11 @@ export function Combobox<T>({
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, and on each filter
 	// change jumps it to the top match (or clears it when nothing matches).
-	// Skips the initial query so the first arrow key picks the first option.
-	// Uses `ariaSelected: false` since options own their selection state.
+	// Skips the initial query; the first arrow key then picks the first option.
+	// Passes `ariaSelected: false`; options own their selection state.
 	//
-	// Under `VirtualOptions` only windowed rows are in the DOM, so the active
-	// row is limited to the rendered window.
+	// Under `VirtualOptions` only windowed rows are in the DOM; the active row
+	// stays within the rendered window.
 	const lastQueryRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -234,12 +234,12 @@ export function Combobox<T>({
 	}, [open, deferredQuery])
 
 	// Async option swaps for an unchanged query (e.g. address suggestions
-	// resolving) unmount the highlighted option while `deferredQuery` — the
-	// key of the effect above — never changes, leaving `aria-activedescendant`
-	// dangling. Runs after every render (the swap arrives as new children, not
-	// through any dep this component could key on) with a cheap existence
-	// guard, re-anchoring to the top match only when the highlight's id has
-	// left the document.
+	// resolving) unmount the highlighted option while `deferredQuery`, the key
+	// of the effect above, never changes; `aria-activedescendant` dangles.
+	// Runs after every render (the swap arrives as new children, not through
+	// any dep this component could key on) with an existence guard,
+	// re-anchoring to the top match only when the highlight's id has left the
+	// document.
 	useEffect(() => {
 		if (!open) return
 
@@ -351,7 +351,7 @@ export function Combobox<T>({
 						? undefined
 						: {
 								// Decorative mouse-only affordance; hidden from assistive
-								// tech since the input carries combobox semantics.
+								// tech. The input carries combobox semantics.
 								'aria-hidden': true,
 								onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
 							}
@@ -383,8 +383,8 @@ export function Combobox<T>({
 				density={token.space}
 				size={token.size}
 				ariaLabel={ariaLabel}
-				// Name the listbox from the input's name: an explicit aria-label wins,
-				// else the field's Label (via Control).
+				// Names the listbox from the input's name: an explicit aria-label
+				// wins, else the field's Label (via Control).
 				ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
 				floatingStyles={floatingStyles}
 				getFloatingProps={getFloatingProps}

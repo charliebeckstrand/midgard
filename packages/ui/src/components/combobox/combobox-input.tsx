@@ -37,11 +37,11 @@ type ComboboxInputProps = {
 }
 
 /**
- * Internal — the ARIA combobox input element wrapped in <Headless> so the
+ * Internal: the ARIA combobox input element, wrapped in <Headless>; the
  * surrounding <SelectTrigger> chrome owns its appearance. Carries combobox
- * role + popup wiring; behaviour comes from useComboboxInput.
+ * role + popup wiring; useComboboxInput supplies behaviour.
  *
- * Not exported from the package barrel — intentionally internal.
+ * Not exported from the package barrel.
  */
 export function ComboboxInput({
 	id,

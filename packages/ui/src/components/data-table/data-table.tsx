@@ -63,9 +63,8 @@ export type DataTableProps<T> = TableVariants & {
 	rowClassName?: (row: T) => string | undefined
 
 	/**
-	 * Human-readable name for a row, used to label its selection checkbox
-	 * ("Select {label}"). Falls back to the raw row key, which can be cryptic
-	 * for assistive tech when keys are ids.
+	 * Human-readable name for a row; labels its selection checkbox
+	 * ("Select {label}"). Falls back to the raw row key.
 	 */
 	rowLabel?: (row: T) => string
 
@@ -84,14 +83,14 @@ export type DataTableProps<T> = TableVariants & {
 	/**
 	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in
 	 * the scroll viewport (plus overscan) render to the DOM. Requires
-	 * `maxHeight` — virtualization needs a scroll container of known size.
+	 * `maxHeight`, which sizes the scroll container.
 	 *
 	 * Pass `true` for defaults (44px row height, 10 overscan), or an object
 	 * to tune. Assumes uniform row heights.
 	 *
-	 * Without virtualization every row in `rows` renders to the DOM; a few
-	 * hundred rows are fine but past ~500 rows initial render and column-state
-	 * changes become noticeably slow. Enable virtualization at that scale.
+	 * Without virtualization every row in `rows` renders to the DOM; past
+	 * ~500 rows initial render and column-state changes become slow. Enable
+	 * virtualization at that scale.
 	 */
 	virtualize?: DataTableVirtualize
 
@@ -106,7 +105,7 @@ export type DataTableProps<T> = TableVariants & {
 	children?: never
 }
 
-/** Sortable, selectable table over a flat row source — with optional row virtualization and a column manager. */
+/** Sortable, selectable table over a flat row source, with optional row virtualization and a column manager. */
 export function DataTable<T>({
 	columns,
 	rows,
@@ -212,9 +211,9 @@ export function DataTable<T>({
 			striped={striped}
 			className={className}
 			// `aria-busy` marks the table as updating while the loading skeleton
-			// stands in for the body. Virtualization windows the DOM, so the full
-			// extent is advertised: `role="grid"` (aria-rowindex is inert on a
-			// plain `role="table"`), `aria-rowcount` (header + data rows), and
+			// stands in for the body. Virtualization windows the DOM; these props
+			// advertise the full extent: `role="grid"` (aria-rowindex is inert on
+			// a plain `role="table"`), `aria-rowcount` (header + data rows), and
 			// `aria-colcount`, with per-cell indices emitted by head/row.
 			tableProps={{
 				...tableProps,

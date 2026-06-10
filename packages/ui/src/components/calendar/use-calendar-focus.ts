@@ -4,10 +4,10 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useA11yRoving } from '../../hooks'
 
-// Out-of-range day cells render as `<button disabled>`, which can't take focus.
-// Every query here is scoped to focusable buttons; roving skips disabled cells
-// because `.focus()` on a disabled element is a no-op that would freeze the
-// active index at the edge of a disabled range (WCAG 2.1.1).
+// Out-of-range day cells render as `<button disabled>`, which can't take
+// focus. Every query here scopes to focusable buttons and roving skips
+// disabled cells; `.focus()` on a disabled element is a no-op that would
+// freeze the active index at the edge of a disabled range (WCAG 2.1.1).
 const FOCUSABLE = 'button:not(:disabled)'
 
 type CalendarFocusOptions = {

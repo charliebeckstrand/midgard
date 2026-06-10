@@ -98,8 +98,8 @@ export function useCalendarPicker({
 
 	const prevPickerOpenRef = useRef(false)
 
-	// Read `year` through a ref so the open effect doesn't refocus the grid on
-	// year changes while the picker is open.
+	// A ref mirrors `year`, keeping it out of the open effect's deps; year
+	// changes while the picker is open do not refocus the grid.
 	const yearRef = useRef(year)
 
 	yearRef.current = year
@@ -111,9 +111,9 @@ export function useCalendarPicker({
 
 		if (!pickerOpen) return
 
-		// Reset the view/year on every open transition — including imperative
-		// (`openPicker()`) and controlled opens that bypass handlePickerOpen — so
-		// the picker never reopens with a stale view or navigates from a stale year.
+		// Resets the view/year on every open transition, including imperative
+		// (`openPicker()`) and controlled opens that bypass handlePickerOpen; the
+		// picker reopens with a fresh view and navigates from the current year.
 		if (!wasOpen) dispatch({ type: 'open', year: yearRef.current })
 
 		focusPickerGrid()

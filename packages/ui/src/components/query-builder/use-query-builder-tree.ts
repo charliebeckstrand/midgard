@@ -44,9 +44,9 @@ export function useQueryBuilderTree({
 
 	const root = tree ?? initial
 
-	// `remove` is referentially stable, so it cannot close over the live tree.
-	// The latest root is mirrored into a ref that the handler reads when
-	// computing where focus should land after a node disappears.
+	// `remove` is referentially stable and cannot close over the live tree. A
+	// ref mirrors the latest root; the handler reads it to compute where focus
+	// lands after a node disappears.
 	const treeRef = useRef(root)
 
 	treeRef.current = root
@@ -62,10 +62,10 @@ export function useQueryBuilderTree({
 		else focusables.current.delete(key)
 	}, [])
 
-	// Each removal sets a fresh candidate array. The effect therefore runs only
-	// after a removal commits (the removed node now unregistered), never on
-	// unrelated re-renders. `pendingFocus` is deliberately left set: clearing
-	// it triggers an extra render that remounts the just-focused control.
+	// Each removal sets a fresh candidate array; the effect runs only after a
+	// removal commits (the removed node now unregistered), never on unrelated
+	// re-renders. `pendingFocus` stays set: clearing it triggers an extra
+	// render that remounts the just-focused control.
 	const [pendingFocus, setPendingFocus] = useState<FocusTarget[] | null>(null)
 
 	useEffect(() => {
@@ -118,7 +118,7 @@ export function useQueryBuilderTree({
 
 	const remove = useCallback(
 		(id: string) => {
-			// Resolve focus candidates from the pre-removal tree; the effect
+			// Resolves focus candidates from the pre-removal tree; the effect
 			// moves focus once the node has unmounted.
 			const targets = findFocusTarget(treeRef.current, id)
 

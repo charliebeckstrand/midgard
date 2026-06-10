@@ -117,7 +117,7 @@ export function useDatePickerRangeState({
 
 				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
 
-				// Pin both endpoints so the range stays stable through the exit animation.
+				// Pins both endpoints; the range stays stable through the exit animation.
 				dispatch({ type: 'pinEndpoint', date: end })
 
 				pendingRef.current = { value: range }
@@ -160,8 +160,8 @@ export function useDatePickerRangeState({
 		role: 'dialog',
 	})
 
-	// Captures the trigger for `useA11yFocusReturn`; `FloatingFocusManager`
-	// runs with `returnFocus={false}` so manual restoration is required.
+	// Captures the trigger for `useA11yFocusReturn`, which restores focus
+	// manually; `FloatingFocusManager` runs with `returnFocus={false}`.
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
 			captureTrigger(node)

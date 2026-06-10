@@ -33,7 +33,7 @@ export function DataTableVirtualizedBody<T>({
 	estimateSize,
 	overscan,
 }: DataTableVirtualizedBodyProps<T>) {
-	// Stable getter for the scroll element — the ref object never changes.
+	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
 	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
@@ -70,7 +70,7 @@ export function DataTableVirtualizedBody<T>({
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						dataRowIndex={vr.index}
-						// Header occupies row 1, so data rows are offset by 2.
+						// Header occupies row 1; data rows are offset by 2.
 						rowIndex={vr.index + 2}
 					/>
 				)

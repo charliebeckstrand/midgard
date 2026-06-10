@@ -13,7 +13,7 @@ export type QueryBuilderRuleValueProps = {
 	className?: string
 }
 
-// Serialize/parse the date by its local wall-clock components. Round-tripping
+// Serializes/parses the date by its local wall-clock components. Round-tripping
 // through `toISOString().slice(0, 10)` / `new Date('YYYY-MM-DD')` interprets the
 // value as UTC midnight and drifts the day by ±1 in non-UTC timezones.
 function toIsoDate(date: Date): string {

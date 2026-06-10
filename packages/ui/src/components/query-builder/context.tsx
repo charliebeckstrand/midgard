@@ -46,7 +46,7 @@ export { useQueryBuilderActions, useQueryBuilderState }
 
 /**
  * Callback ref that registers the element under `key` for the lifetime it's
- * mounted. Memoized on `key` so the ref identity is stable across renders.
+ * mounted. Memoized on `key`; the ref identity stays stable across renders.
  */
 export function useFocusableRef(key: string) {
 	const register = useQueryBuilderFocus()
@@ -54,7 +54,7 @@ export function useFocusableRef(key: string) {
 	return useCallback((el: HTMLElement | null) => register(key, el), [register, key])
 }
 
-/** Internal — the component-level provider wires all three contexts. */
+/** Internal: the component-level provider wires the four contexts. */
 export function QueryBuilderProvider({
 	state,
 	actions,
@@ -82,7 +82,7 @@ export function QueryBuilderProvider({
 /**
  * Returns combined state + actions + the current tree.
  *
- * Re-renders on every edit because the tree changes. Prefer
+ * Re-renders on every edit; the tree changes each time. Prefer
  * `useQueryBuilderActions` or `useQueryBuilderState` when you don't need the
  * tree itself.
  */

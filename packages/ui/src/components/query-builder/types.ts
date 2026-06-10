@@ -33,7 +33,7 @@ export type QueryField = {
 	name: string
 	label: string
 	type: QueryFieldType
-	/** Override the default operator list for this field's type. */
+	/** Overrides the default operator list for this field's type. */
 	operators?: QueryOperator[]
 	/** Required when `type === 'select'`. */
 	options?: { label: string; value: string }[]

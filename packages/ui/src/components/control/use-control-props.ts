@@ -41,7 +41,7 @@ export type ControlPropsResult = {
  * `<Field>` context. `invalid` additionally OR's with the form binding's
  * invalid flag.
  *
- * Size is **not** resolved here — every field reads `useDensity()` directly
+ * Does **not** resolve size; every field reads `useDensity()` directly
  * (input / textarea / switch / etc. compose `size ?? control?.size` against
  * the Density cascade at the call site).
  *
@@ -64,8 +64,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 		required: input.required ?? control?.required,
 		readOnly: input.readOnly ?? control?.readOnly,
 		// A mounted error Message marks the control invalid even without a form
-		// binding — the message was already in aria-describedby, but aria-invalid
-		// never flipped for non-form-bound fields.
+		// binding.
 		invalid: control?.invalid || input.binding?.invalid || control?.messageRegistered || undefined,
 		'aria-describedby': describedBy,
 	}
