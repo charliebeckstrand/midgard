@@ -22,10 +22,10 @@ export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never
 	? { className?: string }
 	: { size?: S; className?: string }
 
-// Widest-to-narrowest order of the resolvable sizes. A skeleton recipe's `size`
+// Narrowest-to-widest order of the resolvable sizes. A skeleton recipe's `size`
 // map is keyed by Step (sm/md/lg), but `useSize` can resolve a sub-Step value
-// (xs/xl) inherited from a control affix; clamp those to the nearest key the
-// recipe actually defines so the silhouette class isn't dropped.
+// (xs/xl) inherited from a control affix; those clamp to the nearest key the
+// recipe defines.
 const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): ClassValue {

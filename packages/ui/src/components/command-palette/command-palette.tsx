@@ -14,7 +14,7 @@ import { Input } from '../input'
 import { CommandPaletteContext } from './context'
 import { useCommandPaletteState } from './use-command-palette-state'
 
-// Stable filter; passed to `useKeybindings` to fire even inside form fields.
+// Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
 const IGNORE_NOTHING = () => false
 
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
@@ -25,7 +25,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	dismissOnBackdrop?: boolean
 	className?: string
 	/**
-	 * Global shortcut that toggles the palette — tinykeys syntax, e.g.
+	 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
 	 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
 	 * disable. @default '$mod+KeyK'
 	 */
@@ -33,7 +33,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	/**
 	 * Items to render in the palette. Pass a function to receive the live query
 	 * and a deferred copy; filter against `deferredQuery` to keep typing
-	 * responsive. CommandPalette does not virtualize — keep the rendered set to
+	 * responsive. CommandPalette does not virtualize; keep the rendered set to
 	 * a few hundred items, or wrap children in your own windowed renderer for
 	 * larger sets.
 	 */
@@ -42,7 +42,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 
 const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
-/** Searchable command launcher in a modal dialog — children receive the live query for client-side filtering. */
+/** Searchable command launcher in a modal dialog; children receive the live query for client-side filtering. */
 export function CommandPalette({
 	open,
 	onOpenChange,

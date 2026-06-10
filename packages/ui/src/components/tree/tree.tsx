@@ -30,7 +30,7 @@ export type TreeProps = AccessibleName & {
 	className?: string
 }
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation — keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby` so the tree is never unnamed. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation; keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({ size, indent = false, children, className, ...labelProps }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -42,8 +42,8 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 
 	// `focusOnEmpty` seeds the first item when no treeitem is active, but a
 	// focused prefix/suffix control inside an item also reads as "empty"
-	// (indexOf === -1). Only let roving run for the tree container itself or a
-	// treeitem, so arrows/Home/End on an inner control aren't hijacked.
+	// (indexOf === -1). Roving runs only for the tree container itself or a
+	// treeitem; arrows/Home/End on an inner control stay with the control.
 	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
 		const target = e.target
 
@@ -68,7 +68,7 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 	)
 
 	// Keeps the first treeitem tabbable as the rendered set changes (open/close,
-	// search, expand-all). Subsequent focus shifts are handled by the focus capture below.
+	// search, expand-all). The focus capture below handles subsequent shifts.
 	useEffect(() => {
 		const container = ref.current
 

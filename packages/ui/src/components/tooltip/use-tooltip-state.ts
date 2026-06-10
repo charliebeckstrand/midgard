@@ -23,12 +23,12 @@ type TooltipStateOptions = {
 }
 
 /**
- * Whether the floating reference is disabled — either the reference node itself
- * matches `:disabled` (the trigger cloned onto a `<button>` switched off by its
- * own `disabled` attribute or an ancestor `<fieldset disabled>`) or a disabled
- * control sits inside it (the wrapper-`<div>` fallback). `querySelector` scans
- * descendants only and misses the reference-is-the-control case, so `matches`
- * has to cover it.
+ * Whether the floating reference is disabled: the reference node itself
+ * matches `:disabled` (the trigger cloned onto a `<button>` switched off by
+ * its own `disabled` attribute or an ancestor `<fieldset disabled>`), or a
+ * disabled control sits inside it (the wrapper-`<div>` fallback).
+ * `querySelector` scans descendants only; `matches` covers the
+ * reference-is-the-control case.
  */
 function isReferenceDisabled(reference: unknown): boolean {
 	return (
@@ -69,7 +69,7 @@ export function useTooltipState({
 	// Polls the reference node and its subtree for the `:disabled` pseudo-class
 	// after every render. The `:disabled` state can be set by the reference's own
 	// `disabled` attribute, a child `disabled` attribute, an ancestor
-	// `<fieldset disabled>`, or an external wrapper — none of which emit a React
+	// `<fieldset disabled>`, or an external wrapper; none of these emit a React
 	// signal. A post-render effect fires alongside whatever triggered the change.
 	// MutationObserver cannot detect the ancestor-fieldset case.
 	useEffect(() => {

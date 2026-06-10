@@ -8,7 +8,7 @@ import { useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
 
 export type ListItemProps = {
-	/** Content rendered before the main content — replaces the auto-inserted `<ListHandle>` when provided. */
+	/** Content rendered before the main content; replaces the auto-inserted `<ListHandle>` when provided. */
 	prefix?: ReactNode
 	/** Content rendered after the main content. */
 	suffix?: ReactNode
@@ -25,8 +25,8 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 
 	const lifted = liftedId === id
 
-	// dnd-kit hands back role="button" which would override the <li> semantics.
-	// Keep the focus/aria hints, drop the role.
+	// dnd-kit's attributes set role="button", overriding the <li> semantics.
+	// Drop the role; keep the focus/aria hints.
 	const { role: _role, tabIndex, ...dragAttrs } = attributes
 
 	return (
@@ -38,8 +38,7 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 				interactive
 					? (e: KeyboardEvent) => {
 							// Keys bubbling from focusable descendants (buttons, inputs)
-							// belong to them — treating them as reorder gestures would
-							// hijack Space/Arrow/Home/End and preventDefault them away.
+							// belong to them, not the reorder gestures.
 							if (e.target !== e.currentTarget) return
 
 							onItemKeyDown(id, e)

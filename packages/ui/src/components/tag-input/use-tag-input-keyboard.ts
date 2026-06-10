@@ -15,7 +15,7 @@ type KeyboardOptions = {
 	tagCount: number
 }
 
-/** Keyboard handler for tag inputs — Enter / comma to add, Backspace to remove. Skips IME composition. */
+/** Keyboard handler for tag inputs: Enter / comma to add, Backspace to remove. Skips IME composition. */
 export function useTagInputKeyboard({
 	inputValue,
 	addTag,

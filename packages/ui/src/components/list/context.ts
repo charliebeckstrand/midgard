@@ -7,7 +7,7 @@ import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 
 export type ListContextValue = {
-	/** Visual variant — see `List.variant` for semantics. */
+	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
@@ -21,7 +21,7 @@ export type ListContextValue = {
 	itemCount: number
 	/** Whether `<ListItem>` should auto-insert a `<ListHandle>`. */
 	sortable: boolean
-	/** Keyboard handler for list items — Space lifts, arrows move / navigate. */
+	/** Keyboard handler for list items: Space lifts, arrows move / navigate. */
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void
 	/** Blur handler that drops any active keyboard lift. */
 	onItemBlur: () => void
@@ -37,7 +37,7 @@ export type ListItemContextValue = {
 	setActivatorNodeRef: (node: HTMLElement | null) => void
 	/** a11y attributes for the drag handle. */
 	attributes: DraggableAttributes
-	/** Drag handle listeners — applied to `<ListHandle>`. */
+	/** Drag handle listeners; applied to `<ListHandle>`. */
 	listeners: SyntheticListenerMap | undefined
 	/** Transform + transition + opacity style for the `<li>`. */
 	style: CSSProperties

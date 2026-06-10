@@ -67,7 +67,7 @@ export type AlertProps = AlertVariants & {
 	actions?: ReactNode
 	block?: boolean
 	closable?: boolean
-	/** Initial open state — uncontrolled. @default true */
+	/** Initial open state (uncontrolled). @default true */
 	defaultOpen?: boolean
 	/** Controlled open state. */
 	open?: boolean
@@ -76,7 +76,7 @@ export type AlertProps = AlertVariants & {
 	/**
 	 * When the alert is dismissed via its close button, move focus to this
 	 * element instead of letting it fall to the document body (WCAG 2.4.3).
-	 * Opt-in — focus is left untouched when unset. Typically the control that
+	 * Opt-in; focus is untouched when unset. Point it at the control that
 	 * surfaced the alert.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
@@ -87,7 +87,7 @@ export type AlertProps = AlertVariants & {
 }
 
 /**
- * Dismissible message bar with severity-driven color, icon, and ARIA role —
+ * Dismissible message bar with severity-driven color, icon, and ARIA role;
  * accepts `title`/`description`/`actions` props or slotted children, and runs
  * controlled or uncontrolled via `open`/`defaultOpen`.
  */
@@ -115,15 +115,13 @@ export function Alert({
 		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
 	})
 
-	// When `open` is controlled but `onOpenChange` is absent, `setOpen(false)` is
-	// a no-op. Track dismissal locally so the close button still works.
+	// When `open` is controlled but `onOpenChange` is absent, `setOpen(false)`
+	// is a no-op; local state tracks dismissal instead.
 	const controlledWithoutHandler = openProp !== undefined && onOpenChange === undefined
 
 	const [locallyDismissed, setLocallyDismissed] = useState(false)
 
-	// Any change to the controlled prop supersedes a local dismissal — without
-	// this, one dismissal would hide the alert permanently and `open` would be
-	// silently ignored thereafter.
+	// Any change to the controlled prop supersedes a local dismissal.
 	const [prevOpenProp, setPrevOpenProp] = useState(openProp)
 
 	if (openProp !== prevOpenProp) {
@@ -136,10 +134,10 @@ export function Alert({
 
 	const wasOpen = useRef(open)
 
-	// `role="status"` (info/success) is not reliably announced when the live
-	// region and its text are inserted together. On closed→open, mirrors rendered
-	// text through the persistent announcer so screen readers receive it (WCAG
-	// 4.1.3). `role="alert"` (warning/error) announces on insertion without this.
+	// Screen readers can miss `role="status"` (info/success) when the live
+	// region and its text are inserted together. On closed→open, mirrors
+	// rendered text through the persistent announcer (WCAG 4.1.3).
+	// `role="alert"` (warning/error) announces on insertion.
 	const politeSeverity = severity === 'info' || severity === 'success'
 
 	useEffect(() => {

@@ -48,9 +48,8 @@ export function KanbanColumn({
 					data-slot="kanban-column"
 					data-column-id={columnId}
 					data-over={over || undefined}
-					// Name the column from its rendered title; an explicit aria-label
-					// wins, and the reference is emitted only while a title is mounted
-					// so it never dangles.
+					// Names the column from its rendered title; an explicit aria-label
+					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}
 					aria-labelledby={!ariaLabel && hasTitle ? kanbanColumnTitleId(columnId) : undefined}
 					className={cn(k.column.base, over && k.column.over, className)}

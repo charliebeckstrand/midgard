@@ -50,8 +50,8 @@ export function TreeItemContent({
 			return
 		}
 
-		// Leaf row: forwards the click to the first interactive control in the prefix slot
-		// (e.g. a Checkbox), so the label acts as its hit area.
+		// Leaf row: forwards the click to the first interactive control in the
+		// prefix slot (e.g. a Checkbox); the label acts as its hit area.
 		const target = e.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
 
 		target?.click()

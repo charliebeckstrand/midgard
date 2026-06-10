@@ -10,7 +10,7 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 export type { SignaturePadHandle }
 
 export type SignaturePadProps = {
-	/** Controlled value — a data URL, or `null` / `undefined` when empty. */
+	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
 	value?: string | null
 	/** Initial value for uncontrolled mode. */
 	defaultValue?: string | null
@@ -31,7 +31,7 @@ export type SignaturePadProps = {
 	className?: string
 }
 
-/** Pointer-driven canvas for capturing a signature — emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio. */
+/** Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio. */
 export function SignaturePad({
 	value,
 	defaultValue,
@@ -46,9 +46,9 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
-	// Mirrors Control/Field invalid + error-message wiring onto the canvas so its
-	// rendered-image value carries the field's validity and shares the same
-	// description/error ids as the rest of the control cascade.
+	// Mirrors Control/Field invalid + error-message wiring onto the canvas; its
+	// rendered-image value carries the field's validity and shares the control
+	// cascade's description/error ids.
 	const control = useControl()
 
 	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
@@ -88,8 +88,8 @@ export function SignaturePad({
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
 				aria-disabled={disabled || readOnly || undefined}
-				// Programmatically focusable (not in the tab order) for focus
-				// restoration when the clear button unmounts.
+				// Programmatically focusable (not in the tab order); receives focus
+				// when the clear button unmounts.
 				tabIndex={-1}
 				{...invalidAttrs(control?.invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}

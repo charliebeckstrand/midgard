@@ -27,7 +27,7 @@ export function useSignaturePadCanvasSizing({
 
 	sizingRef.current = { empty, strokeColor, strokeWidth }
 
-	// Mutable props flow through `sizingRef` so `resize` has a stable identity;
+	// Mutable props flow through `sizingRef`; `resize` stays identity-stable and
 	// `useResizeObserver` re-subscribes only when its callback reference changes.
 	const resize = useCallback(() => {
 		const container = containerRef.current
@@ -67,9 +67,9 @@ export function useSignaturePadCanvasSizing({
 		}
 	}, [containerRef, canvasRef])
 
-	// `configureStroke` otherwise runs only on resize, so a runtime strokeColor /
-	// strokeWidth change wouldn't reach segments drawn before the next resize.
-	// Re-apply it to the live context when those props change (no resize/clear).
+	// The resize callback runs `configureStroke` only on resize; this re-applies
+	// it to the live context when strokeColor / strokeWidth change (no
+	// resize/clear).
 	useEffect(() => {
 		const context = canvasRef.current?.getContext('2d')
 

@@ -28,9 +28,8 @@ export type JsonTreeProps = {
 	/**
 	 * Enables row virtualization. Flattens the visible tree into a linear list
 	 * and renders only the viewport slice plus overscan. Requires `maxHeight`.
-	 *
-	 * Trade-off: instant expand/collapse (no animation). For most cases that's
-	 * fine; if animations matter for your tree, leave this off.
+	 * Expand/collapse is instant (no animation); leave this off when the
+	 * animation matters.
 	 */
 	virtualize?: JsonTreeVirtualize
 	/** Scroll-container height when `virtualize` is on. */
@@ -38,7 +37,7 @@ export type JsonTreeProps = {
 	className?: string
 }
 
-/** Collapsible tree view for arbitrary JSON — supports search highlighting, controlled expansion, and optional row virtualization. */
+/** Collapsible tree view for arbitrary JSON; supports search highlighting, controlled expansion, and optional row virtualization. */
 export function JsonTree({
 	data,
 	rootKey,

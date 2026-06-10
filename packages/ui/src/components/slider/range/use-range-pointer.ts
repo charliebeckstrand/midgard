@@ -67,7 +67,7 @@ export function useRangePointer(opts: {
 			if (current[0] === current[1]) {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 
-				// Pointer landed off the stack — pick the thumb on that side and jump it.
+				// Pointer off the stack: pick the thumb on that side and jump it.
 				if (snapped < current[0]) {
 					draggingRef.current = 0
 					update(0, raw)
@@ -82,7 +82,7 @@ export function useRangePointer(opts: {
 					return
 				}
 
-				// Pointer landed on the stack — defer until the first move shows direction.
+				// Pointer on the stack: defer until the first move shows direction.
 				pendingStackedRef.current = event.clientX
 
 				return
@@ -119,8 +119,8 @@ export function useRangePointer(opts: {
 			const dragging = draggingRef.current
 
 			// Passes the index active when this move began. After `useRangeUpdate`
-			// re-sorts on swap, `draggingRef` follows to the new slot of the written
-			// value so subsequent moves continue tracking the same pointer.
+			// re-sorts on swap, `draggingRef` follows to the new slot of the
+			// written value.
 			if (overlap === 'swap') {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 

@@ -46,10 +46,9 @@ export function CreditCardInputExpiry({
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-exp"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2) —
-			// default an aria-label, yielding to a registered Field <Label>
-			// (aria-labelledby outranks aria-label in the accname computation,
-			// so the default never shadows a real label).
+			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
+			// defaults an aria-label, yielding to a registered Field <Label>
+			// (aria-labelledby outranks aria-label in the accname computation).
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Expiration date')}
 			placeholder={placeholder ?? 'MM/YY'}
 			name={name}
@@ -62,8 +61,8 @@ export function CreditCardInputExpiry({
 			onChange={(e) => {
 				const raw = e.target.value
 
-				// Backspace over the auto-inserted "/" deletes the preceding digit;
-				// without this the formatter re-appends "/" and traps the caret.
+				// The formatter re-appends a deleted trailing "/" and traps the
+				// caret; backspace over it deletes the preceding digit instead.
 				if (masked.value.endsWith('/') && raw === masked.value.slice(0, -1)) {
 					const next = raw.slice(0, -1)
 
