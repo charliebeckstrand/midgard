@@ -16,6 +16,17 @@ function getBadges(container: HTMLElement) {
 }
 
 describe('TagInput', () => {
+	it('renders duplicate controlled values without key collisions', () => {
+		const { container } = renderUI(
+			<TagInput value={['a', 'a']} onValueChange={() => {}} aria-label="Tags" />,
+		)
+
+		// The controlled path can't dedupe; both badges must render.
+		const list = container.querySelector('[data-slot="tags"]')
+
+		expect(list?.children.length).toBe(2)
+	})
+
 	it('renders an input', () => {
 		const { container } = renderUI(<TagInput />)
 

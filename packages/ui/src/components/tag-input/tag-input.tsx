@@ -81,12 +81,15 @@ export function TagInput({
 	// onMaxReleased avoids racing the commit, which under load could focus the
 	// still-disabled input and silently drop the focus.
 	useEffect(() => {
-		if (refocusOnMaxRelease.current && !atMax) {
-			refocusOnMaxRelease.current = false
+		// Consume the flag on every committed render: if a controlled parent
+		// rejected the removal (atMax never released), a stale flag must not
+		// steal focus on some unrelated later release.
+		const shouldRefocus = refocusOnMaxRelease.current
 
-			inputRef.current?.focus()
-		}
-	}, [atMax])
+		refocusOnMaxRelease.current = false
+
+		if (shouldRefocus && !atMax) inputRef.current?.focus()
+	})
 
 	const [inputValue, setInputValue] = useState('')
 
@@ -116,12 +119,25 @@ export function TagInput({
 		}
 	}, [addTag, inputValue])
 
+	// Duplicate controlled values ('a','a') would collide on a bare value key;
+	// repeats get an occurrence suffix (the validate path dedupes, the
+	// controlled path can't).
+	const seen = new Map<string, number>()
+
+	const keyedTags = tags.map((t) => {
+		const n = seen.get(t) ?? 0
+
+		seen.set(t, n + 1)
+
+		return { tag: t, key: n === 0 ? t : `${t} ${n}` }
+	})
+
 	const badges =
 		tags.length > 0 ? (
 			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap>
-				{tags.map((t, i) => (
+				{keyedTags.map(({ tag: t, key }, i) => (
 					<TagInputBadge
-						key={t}
+						key={key}
 						label={t}
 						color={resolvedColor}
 						disabled={disabled}
