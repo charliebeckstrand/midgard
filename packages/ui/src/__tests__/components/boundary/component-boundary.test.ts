@@ -78,7 +78,7 @@ describe('component internals boundary', () => {
 	// Rendering `<XxxContext value={…}>` makes the module a client module: the
 	// package's subpath exports resolve to raw source, so a missing directive
 	// surfaces as an RSC crash only at runtime in a consuming Next app
-	// (the DescriptionList bug — BUG-AUDIT High).
+	// (originally hit by DescriptionList).
 	it("a module that renders a Context provider carries 'use client'", () => {
 		const violations: string[] = []
 
