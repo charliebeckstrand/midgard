@@ -74,6 +74,31 @@ describe('component internals boundary', () => {
 			`sibling main file imported deeply (use the barrel '../<name>' instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
+
+	// Rendering `<XxxContext value={…}>` makes the module a client module: the
+	// package's subpath exports resolve to raw source, so a missing directive
+	// surfaces as an RSC crash only at runtime in a consuming Next app
+	// (the DescriptionList bug — BUG-AUDIT High).
+	it("a module that renders a Context provider carries 'use client'", () => {
+		const violations: string[] = []
+
+		const PROVIDER_JSX = /<[A-Z][A-Za-z]*Context[\s>]/
+
+		walk(componentsDir, (file, content) => {
+			if (!file.endsWith('.tsx')) return
+
+			if (!PROVIDER_JSX.test(content)) return
+
+			if (content.startsWith("'use client'")) return
+
+			violations.push(relative(srcDir, file))
+		})
+
+		expect(
+			violations,
+			`Context provider rendered without 'use client' (crashes in RSC):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
 })
 
 function isOwnKataReexport(target: string, component: string): boolean {

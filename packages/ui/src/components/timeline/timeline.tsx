@@ -1,3 +1,5 @@
+'use client'
+
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type TimelineVariants } from '../../recipes/kata/timeline'
