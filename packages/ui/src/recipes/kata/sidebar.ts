@@ -8,16 +8,6 @@ const { flex } = narabi
 const { divider } = sen
 const { icon } = shaku
 
-const itemBase = defineRecipe({
-	base: [...nav, ...cursor, 'group relative', flex.row, 'w-full', 'text-left'],
-	size: {
-		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
-		md: [size.md, gap.g('2'), padding.p('2'), radius.r('2'), icon.md],
-		lg: [size.lg, gap.g('2.5'), padding.p('2.5'), radius.r('2.5'), icon.lg],
-	},
-	defaults: { size: 'md' },
-})
-
 /**
  * Mini (icon-rail) rules, active when the nav carries `data-mini`. Every rule
  * is `lg:`-scoped: below the desktop breakpoint the same markup keeps its full
@@ -30,7 +20,23 @@ const mini = {
 	hidden: 'lg:group-data-[mini]/sidebar:hidden',
 	/** Visually removes the label from the rail but keeps it in the accessible name. */
 	srOnly: 'lg:group-data-[mini]/sidebar:sr-only',
+	/**
+	 * Squares the item to the rail width with the icon centered. The width of
+	 * the widest icon sets the rail, so height-from-width keeps every item the
+	 * same square even when glyph aspect ratios differ (FontAwesome).
+	 */
+	square: 'lg:group-data-[mini]/sidebar:aspect-square lg:group-data-[mini]/sidebar:justify-center',
 } as const
+
+const itemBase = defineRecipe({
+	base: [...nav, ...cursor, 'group relative', flex.row, 'w-full', 'text-left', mini.square],
+	size: {
+		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
+		md: [size.md, gap.g('2'), padding.p('2'), radius.r('2'), icon.md],
+		lg: [size.lg, gap.g('2.5'), padding.p('2.5'), radius.r('2.5'), icon.lg],
+	},
+	defaults: { size: 'md' },
+})
 
 export const k = {
 	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],

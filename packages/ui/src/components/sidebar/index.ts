@@ -1,4 +1,5 @@
 export type { SidebarItemVariants } from '../../recipes/kata/sidebar'
+export { useSidebarMini } from './context'
 export { Sidebar, type SidebarProps } from './sidebar'
 export { SidebarDivider, type SidebarDividerProps } from './sidebar-divider'
 export { SidebarItem, type SidebarItemProps } from './sidebar-item'
