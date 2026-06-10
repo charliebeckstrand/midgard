@@ -28,9 +28,9 @@ None.
 
 ✅ **FiltersField toggle controls never reflect filter state** — `components/filters/filters-field.tsx:118-127`. Clones Checkbox/Switch with `value`/`onChange` but they read `checked`; never passing `checked` leaves them uncontrolled, desynced from the filter value. Fix: pass `checked` for toggle-type controls.
 
-**Keyboard hold never cancels on focus/window loss** — `components/hold-button/hold-button.tsx:73-82`. Hold starts on keydown, cancels only on a keyup on the same button; Tab/Alt-Tab mid-press routes keyup elsewhere, so the irreversible `onComplete` still fires. Fix: add blur/window-blur/visibilitychange cancel.
+✅ **Keyboard hold never cancels on focus/window loss** (fixed: element blur, window blur, and visibilitychange all cancel an in-progress hold) — `components/hold-button/hold-button.tsx:73-82`. Hold starts on keydown, cancels only on a keyup on the same button; Tab/Alt-Tab mid-press routes keyup elsewhere, so the irreversible `onComplete` still fires. Fix: add blur/window-blur/visibilitychange cancel.
 
-**Virtualized JsonTree never auto-expands search matches** — `components/json-tree/json-tree-utilities.tsx:195-210`. `open = expanded.has(path)` and `flattenTree` returns early on closed branches; nothing seeds matching paths into `expanded`, so the documented auto-expand contract is broken in virtualized mode. Fix: seed/expand search-matching branch paths.
+✅ **Virtualized JsonTree never auto-expands search matches** (fixed: matching branch paths are seeded into `expanded` once per term, keeping matched branches collapsible) — `components/json-tree/json-tree-utilities.tsx:195-210`. `open = expanded.has(path)` and `flattenTree` returns early on closed branches; nothing seeds matching paths into `expanded`, so the documented auto-expand contract is broken in virtualized mode. Fix: seed/expand search-matching branch paths.
 
 **List-item keyboard handler hijacks Space/Arrow/Home/End from descendants** — `components/list/list-item.tsx:37`. `onKeyDown` lacks a `target === currentTarget` guard; bubbled keystrokes from inner buttons/inputs are treated as reorder gestures and `preventDefault`'d. Fix: guard on event source.
 
@@ -88,7 +88,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Matched JsonTree branch can't be collapsed during search** — `components/json-tree/json-tree-node.tsx:57-97`. `search && hasMatch` force-opens `open=true` over `userOpen`, so the toggle is a permanent no-op. Fix: let `userOpen` override the force-open after user interaction.
 
-**Virtualized JsonTree unreachable by Tab when root scrolls out** — `components/json-tree/json-tree-branch-header.tsx:41`. Tab stop is hardcoded to `depth===0`; without `manageTabIndex` the roving hook never re-seats it, so scrolling the root row out of the virtual window leaves no `tabIndex=0`. Fix: enable `manageTabIndex` or seat a stop on a mounted row.
+✅ **Virtualized JsonTree unreachable by Tab when root scrolls out** (fixed: the Tab stop rides the first focusable rendered row) — `components/json-tree/json-tree-branch-header.tsx:41`. Tab stop is hardcoded to `depth===0`; without `manageTabIndex` the roving hook never re-seats it, so scrolling the root row out of the virtual window leaves no `tabIndex=0`. Fix: enable `manageTabIndex` or seat a stop on a mounted row.
 
 ✅ **Kanban arrow nav can't cross an empty column** — `components/kanban/use-kanban-keyboard.ts:110-125`. `focusNeighbor` inspects only the immediate neighbor; an empty adjacent column returns false and stops. Fix: skip empty columns to the next populated one.
 
@@ -182,15 +182,15 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Multi-error Message keyed by error text** — `components/fieldset/message.tsx:75-77`. Duplicate identical messages (native validator path doesn't dedupe) collide React keys. Fix: key by index.
 
-**HoldButton: releasing one of two held keys cancels the hold** — `components/hold-button/hold-button.tsx:78-82`. keyup cancels for any Space/Enter without tracking which key started. Fix: track the initiating key.
+✅ **HoldButton: releasing one of two held keys cancels the hold** (fixed: only the initiating key's release cancels) — `components/hold-button/hold-button.tsx:78-82`. keyup cancels for any Space/Enter without tracking which key started. Fix: track the initiating key.
 
-**Icon numeric size overwrites the source icon's inline style** — `components/icon/icon.tsx:33-43`. `cloneElement` replaces `style` wholesale (className is carefully re-merged; style isn't). Fix: merge the source `style`.
+✅ **Icon numeric size overwrites the source icon's inline style** (verified already fixed — the source style is spread-merged) — `components/icon/icon.tsx:33-43`. `cloneElement` replaces `style` wholesale (className is carefully re-merged; style isn't). Fix: merge the source `style`.
 
-**Input hasAffix `!== undefined` vs truthy render guards** — `components/input/input.tsx:121-155`. A falsy-but-defined prefix/suffix (`false`/`null`/`0`) sets `hasAffix` but renders no affix; `prefix={0}` emits a raw `0`. Fix: align the checks (use truthiness or normalize).
+✅ **Input hasAffix `!== undefined` vs truthy render guards** (fixed: one presence definition for wrapper and guards; a `0` affix now renders in its slot) — `components/input/input.tsx:121-155`. A falsy-but-defined prefix/suffix (`false`/`null`/`0`) sets `hasAffix` but renders no affix; `prefix={0}` emits a raw `0`. Fix: align the checks (use truthiness or normalize).
 
 **Controlled JsonTree without onExpandedChange swallows clicks** — `components/json-tree/json-tree-node.tsx:91-97`. `expanded` set with no handler makes `toggle` write dead `userOpen` state; clicks no-op. Fix: warn or update internal state.
 
-**Kanban column section emits dangling aria-labelledby without a title** — `components/kanban/kanban-column.tsx:44-45`. The labelledby id is emitted unconditionally when no `aria-label`, but only KanbanColumnTitle renders it. Fix: only reference the id when the title is rendered.
+✅ **Kanban column section emits dangling aria-labelledby without a title** (fixed: the title registers while mounted; the reference is gated on it) — `components/kanban/kanban-column.tsx:44-45`. The labelledby id is emitted unconditionally when no `aria-label`, but only KanbanColumnTitle renders it. Fix: only reference the id when the title is rendered.
 
 **NumberInput scientific-notation step → precision 0** — `components/number-input/number-input.tsx:67`. `step={1e-7}.toString()` is `'1e-7'`, so `split('.')[1]` is undefined and values snap to integers. Fix: compute precision without relying on decimal string form.
 
