@@ -33,6 +33,8 @@ type DatePickerTriggerProps = {
 	required?: boolean
 	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+	/** Accessible name for the trigger when no Field label wraps it — the placeholder is not a programmatic name. */
+	'aria-label'?: string
 	className?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
@@ -48,6 +50,7 @@ export function DatePickerTrigger({
 	displayValue,
 	placeholder,
 	size,
+	'aria-label': ariaLabel,
 	truncate = true,
 	disabled = false,
 	required = false,
@@ -81,6 +84,7 @@ export function DatePickerTrigger({
 					<Button
 						type="button"
 						id={triggerId}
+						aria-label={ariaLabel}
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}

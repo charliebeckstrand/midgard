@@ -45,6 +45,8 @@ export type DatePickerBaseProps = {
 	truncate?: boolean
 	className?: string
 	disabled?: boolean
+	/** Accessible name for the trigger when no Field/Label wraps the picker. */
+	'aria-label'?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
 }
@@ -79,6 +81,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		size = 'md',
 		truncate = true,
 		className,
+		'aria-label': ariaLabel,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
 	} = props
@@ -98,6 +101,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
+				aria-label={ariaLabel}
 				disabled={state.disabled}
 				required={state.required}
 				invalid={state.invalid}

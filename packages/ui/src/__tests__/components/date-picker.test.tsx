@@ -40,6 +40,12 @@ function ControlledDatePicker() {
 }
 
 describe('DatePicker', () => {
+	it('names the trigger via aria-label for unwrapped pickers', () => {
+		renderUI(<DatePicker aria-label="Due date" />)
+
+		expect(screen.getByRole('button', { name: 'Due date' })).toBeInTheDocument()
+	})
+
 	it('renders trigger button', () => {
 		const { container } = renderUI(<DatePicker />)
 
