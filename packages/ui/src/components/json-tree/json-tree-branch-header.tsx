@@ -12,6 +12,8 @@ type JsonTreeBranchHeaderProps = {
 	open: boolean
 	count: number
 	highlighted: boolean
+	/** Carries the tree's single Tab stop. Defaults to the root row; the virtualized variant passes the first rendered row instead, since the root can be windowed out. */
+	tabbable?: boolean
 	onToggle: () => void
 }
 
@@ -22,6 +24,7 @@ export function JsonTreeBranchHeader({
 	open,
 	count,
 	highlighted,
+	tabbable,
 	onToggle,
 }: JsonTreeBranchHeaderProps) {
 	const paddingLeft = `${depth * INDENT_REM}rem`
@@ -38,7 +41,7 @@ export function JsonTreeBranchHeader({
 				role="treeitem"
 				aria-expanded={open}
 				aria-level={depth + 1}
-				tabIndex={depth === 0 ? 0 : -1}
+				tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
 				data-slot="json-node-toggle"
 				data-open={open || undefined}
 				className={cn(k.toggle)}

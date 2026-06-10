@@ -90,6 +90,33 @@ export function filterEntries(
 }
 
 /** Collect paths for all expandable (branch) nodes, optionally limited to a max depth. */
+/**
+ * Paths of every branch whose subtree contains a search match — the set to
+ * seed into `expanded` so each match is reachable. Prunes on the index: a
+ * branch without a match can't have matching descendants.
+ */
+export function collectMatchPaths(
+	data: JsonValue,
+	rootKey: string | undefined,
+	index: SearchIndex,
+): Set<string> {
+	const paths = new Set<string>()
+
+	function walk(value: JsonValue, path: string) {
+		if (!isBranch(value) || index.get(value) !== true) return
+
+		paths.add(path)
+
+		for (const [childKey, childValue] of getEntries(value)) {
+			walk(childValue, `${path}.${childKey}`)
+		}
+	}
+
+	if (isBranch(data)) walk(data, String(rootKey ?? '$'))
+
+	return paths
+}
+
 export function collectPaths(
 	data: JsonValue,
 	rootKey?: string,

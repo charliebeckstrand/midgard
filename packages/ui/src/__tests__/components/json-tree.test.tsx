@@ -228,6 +228,31 @@ describe('JsonTree', () => {
 			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
 		})
 
+		it('auto-expands branches containing a match in virtualized mode', () => {
+			const onExpandedChange = vi.fn()
+
+			// jsdom's zero-size viewport renders no rows, so the expansion seeding
+			// is observed through onExpandedChange rather than the DOM.
+			renderUI(
+				<JsonTree
+					data={{ outer: { inner: { needle: 'match' } } }}
+					defaultExpandDepth={0}
+					virtualize
+					maxHeight="200px"
+					search={{ value: 'needle' }}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			const seeded = onExpandedChange.mock.calls.at(-1)?.[0] as Set<string>
+
+			expect(seeded).toBeDefined()
+
+			expect(seeded.has('$.outer')).toBe(true)
+
+			expect(seeded.has('$.outer.inner')).toBe(true)
+		})
+
 		it('mounts virtualized with an active search term', () => {
 			const { container } = renderUI(
 				<JsonTree
@@ -457,6 +482,31 @@ describe('JsonTreeNodeRow', () => {
 		expect(bySlot(container, 'json-node-toggle')).toHaveAttribute('data-open')
 
 		expect(screen.queryByText('1 item')).not.toBeInTheDocument()
+	})
+})
+
+describe('JsonTreeNodeRow tab stop', () => {
+	it('carries the Tab stop on a windowed non-root row when tabbable', () => {
+		// With virtualization the depth-0 root can scroll out of the DOM; the
+		// stop must be assignable to whichever rendered row comes first.
+		const { container, rerender } = renderUI(
+			<JsonTreeNodeRow
+				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				onToggle={() => {}}
+				tabbable
+			/>,
+		)
+
+		expect(container.querySelector('[role="treeitem"]')).toHaveAttribute('tabindex', '0')
+
+		rerender(
+			<JsonTreeNodeRow
+				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
+				onToggle={() => {}}
+			/>,
+		)
+
+		expect(container.querySelector('[role="treeitem"]')).toHaveAttribute('tabindex', '-1')
 	})
 })
 
