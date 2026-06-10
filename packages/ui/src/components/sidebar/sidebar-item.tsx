@@ -10,7 +10,8 @@ import { Button } from '../button'
 import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
-import { useInSidebarList } from './context'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+import { useInSidebarList, useSidebarMini } from './context'
 
 export type SidebarItemProps = NavItemProps & {
 	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
@@ -42,6 +43,31 @@ export function SidebarItem({
 	// an affix is present.
 	const hasAffix = prefix != null || suffix != null
 
+	// Resolved by the Sidebar root: true only when mini on a desktop viewport,
+	// so the mobile drawer keeps plain items.
+	const mini = useSidebarMini()
+
+	const inner = (
+		<Button
+			data-slot="sidebar-item-inner"
+			data-current={item.current || undefined}
+			aria-current={item.current ? 'page' : undefined}
+			className={cn(
+				k.item.base({ size: item.size }),
+				'relative z-10',
+				hasAffix && 'min-w-0 flex-1',
+				className,
+			)}
+			onClick={item.handleClick}
+			{...props}
+		>
+			<TouchTarget>
+				{icon && <Icon icon={icon} size={item.size} />}
+				{children}
+			</TouchTarget>
+		</Button>
+	)
+
 	return (
 		<Wrapper
 			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
@@ -55,24 +81,19 @@ export function SidebarItem({
 				</span>
 			)}
 			<Headless>
-				<Button
-					data-slot="sidebar-item-inner"
-					data-current={item.current || undefined}
-					aria-current={item.current ? 'page' : undefined}
-					className={cn(
-						k.item.base({ size: item.size }),
-						'relative z-10',
-						hasAffix && 'min-w-0 flex-1',
-						className,
-					)}
-					onClick={item.handleClick}
-					{...props}
-				>
-					<TouchTarget>
-						{icon && <Icon icon={icon} size={item.size} />}
-						{children}
-					</TouchTarget>
-				</Button>
+				{mini ? (
+					// The label children render twice: visually hidden inside the rail
+					// button (keeping the accessible name) and as the tooltip surface,
+					// which portals out of the nav so the rail's CSS can't reach it.
+					// `*:cursor-pointer` restores nav cursor over the trigger's
+					// help-cursor default.
+					<Tooltip placement="right" className="*:cursor-pointer">
+						<TooltipTrigger>{inner}</TooltipTrigger>
+						<TooltipContent>{children}</TooltipContent>
+					</Tooltip>
+				) : (
+					inner
+				)}
 			</Headless>
 			{suffix != null && (
 				<span data-slot="sidebar-item-suffix" className={cn(k.item.affix)}>

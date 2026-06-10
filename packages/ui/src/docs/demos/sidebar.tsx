@@ -1,4 +1,5 @@
 import {
+	Aperture,
 	ChartBar,
 	ChevronDown,
 	Cog,
@@ -33,6 +34,7 @@ import {
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { cn } from '../../core'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Navigation' }
@@ -57,9 +59,14 @@ const chats = [
 	{ value: 'development', label: 'Development' },
 ]
 
-function SidebarFrame({ children }: { children: ReactNode }) {
+function SidebarFrame({ children, className }: { children: ReactNode; className?: string }) {
 	return (
-		<div className="h-108 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+		<div
+			className={cn(
+				'h-108 w-72 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800',
+				className,
+			)}
+		>
 			{children}
 		</div>
 	)
@@ -270,6 +277,50 @@ function SuffixSidebarExample() {
 	)
 }
 
+function MiniSidebarExample() {
+	const [active, setActive] = useState('home')
+
+	return (
+		<SidebarFrame className="lg:w-fit">
+			<Sidebar mini>
+				{(mini) => (
+					<>
+						<SidebarHeader>
+							{mini ? (
+								// Fills the header row so the glyph centers on the rail's
+								// icon column (the items' symmetric padding does the rest).
+								<div className="flex flex-1 justify-center">
+									<Icon
+										icon={<Aperture />}
+										size="lg"
+										className="hover:rotate-360 transition-transform duration-300"
+									/>
+								</div>
+							) : (
+								<Heading level={3}>Acme Inc.</Heading>
+							)}
+						</SidebarHeader>
+						<SidebarBody>
+							<SidebarList aria-label="Main">
+								{primary.map(({ value, label, icon }) => (
+									<SidebarItem
+										key={value}
+										icon={icon}
+										current={active === value}
+										onClick={() => setActive(value)}
+									>
+										<SidebarLabel>{label}</SidebarLabel>
+									</SidebarItem>
+								))}
+							</SidebarList>
+						</SidebarBody>
+					</>
+				)}
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
 export function Demo() {
 	return (
 		<>
@@ -291,6 +342,18 @@ export function Demo() {
 
 			<Example title="With suffix slot">
 				<SuffixSidebarExample />
+			</Example>
+
+			<Example
+				title="Mini"
+				prefix={
+					<Text variant="muted">
+						In its mini variant, the sidebar collapses to a slim icon rail; on mobile, it reverts to
+						standard sidebar behavior.
+					</Text>
+				}
+			>
+				<MiniSidebarExample />
 			</Example>
 		</>
 	)

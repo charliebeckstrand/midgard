@@ -12,7 +12,14 @@ const layout = defineRecipe({
 })
 
 const panel = defineRecipe({
-	base: ['shrink-0 min-w-0', 'overflow-x-hidden overflow-y-auto', 'max-lg:hidden'],
+	base: [
+		'shrink-0 min-w-0',
+		'overflow-x-hidden overflow-y-auto',
+		'max-lg:hidden',
+		// A mini sidebar sets the rail width; the panel follows it instead of
+		// holding the size step open.
+		'has-data-[mini]:w-fit',
+	],
 	size: {
 		sm: 'w-2xs',
 		md: 'w-xs',
