@@ -91,8 +91,11 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 	}
 
 	const toggle = () => {
-		if (controlled && onExpandedChange) {
-			toggleExpandedSet(expanded, nodePath, onExpandedChange)
+		if (controlled) {
+			// Controlled without a handler is read-only (a controlled input with no
+			// onChange): no dead local state that would surface as a surprise jump
+			// if the consumer later dropped `expanded`.
+			if (onExpandedChange) toggleExpandedSet(expanded, nodePath, onExpandedChange)
 		} else {
 			setUserOpen(!open)
 		}
