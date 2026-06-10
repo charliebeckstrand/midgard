@@ -18,17 +18,32 @@ const itemBase = defineRecipe({
 	defaults: { size: 'md' },
 })
 
+/**
+ * Mini (icon-rail) rules, active when the nav carries `data-mini`. Every rule
+ * is `lg:`-scoped: below the desktop breakpoint the same markup keeps its full
+ * layout, so the mobile drawer renders naturally.
+ */
+const mini = {
+	/** Collapses the nav to its intrinsic icon-rail width. */
+	rail: 'lg:data-[mini]:w-fit',
+	/** Removes a slot from the rail entirely (affixes, item actions, header content). */
+	hidden: 'lg:group-data-[mini]/sidebar:hidden',
+	/** Visually removes the label from the rail but keeps it in the accessible name. */
+	srOnly: 'lg:group-data-[mini]/sidebar:sr-only',
+} as const
+
 export const k = {
-	base: ['overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
+	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
+	mini,
 	item: {
 		base: itemBase,
 		/** Wrapper for a prefix/suffix slot; sits outside the inner button, above the active indicator. */
-		affix: ['relative', 'z-10', flex.row, 'shrink-0'],
+		affix: ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden],
 	},
 	section: [flex.col, 'gap-0.5'],
 	list: [flex.col, 'gap-0.5'],
-	label: ['truncate'],
-	header: [flex.row, 'justify-between', 'gap-3'],
+	label: ['truncate', mini.srOnly],
+	header: [flex.row, 'gap-3'],
 	body: ['overflow-y-auto', flex.col, flex.fill, 'gap-4'],
 	divider: divider.top,
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],

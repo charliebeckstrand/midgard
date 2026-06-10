@@ -1,12 +1,27 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving } from '../../hooks'
+import { useA11yRoving, useMinWidth } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
+import { SidebarMiniContext } from './context'
 
-export type SidebarProps = ComponentPropsWithoutRef<'nav'>
+export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
+	/**
+	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
+	 * affixes and item actions hide, and items gain a hover tooltip naming the
+	 * label. Below the breakpoint the sidebar keeps its full layout, so the
+	 * mobile drawer is unaffected.
+	 */
+	mini?: boolean
+	/**
+	 * Render-prop children receive the resolved mini state — true only when
+	 * `mini` is set and the viewport is desktop — to branch content between
+	 * the two presentations (a logo glyph standing in for the wordmark, say).
+	 */
+	children?: ReactNode | ((mini: boolean) => ReactNode)
+}
 
 /**
  * Vertical navigation landmark with a true roving-tabindex keyboard model: the
@@ -16,6 +31,7 @@ export type SidebarProps = ComponentPropsWithoutRef<'nav'>
  */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
+	mini = false,
 	className,
 	children,
 	onKeyDown,
@@ -30,21 +46,31 @@ export function Sidebar({
 		activeSelector: '[aria-current="page"]',
 	})
 
+	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
+	// and the same breakpoint resolves the state handed to the render prop and
+	// to items (which mount their label tooltips off it).
+	const desktop = useMinWidth(1024)
+
+	const resolvedMini = mini && desktop
+
 	return (
 		<ActiveIndicatorScope>
-			<nav
-				ref={ref}
-				data-slot="sidebar"
-				aria-label={ariaLabel}
-				className={cn(k.base, className)}
-				onKeyDown={(e) => {
-					handleKeyDown(e)
-					onKeyDown?.(e)
-				}}
-				{...props}
-			>
-				{children}
-			</nav>
+			<SidebarMiniContext value={resolvedMini}>
+				<nav
+					ref={ref}
+					data-slot="sidebar"
+					data-mini={mini || undefined}
+					aria-label={ariaLabel}
+					className={cn(k.base, className)}
+					onKeyDown={(e) => {
+						handleKeyDown(e)
+						onKeyDown?.(e)
+					}}
+					{...props}
+				>
+					{typeof children === 'function' ? children(resolvedMini) : children}
+				</nav>
+			</SidebarMiniContext>
 		</ActiveIndicatorScope>
 	)
 }

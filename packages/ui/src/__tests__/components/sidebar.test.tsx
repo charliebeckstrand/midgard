@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	Sidebar,
 	SidebarBody,
@@ -8,7 +8,7 @@ import {
 	SidebarList,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar" and a default aria-label', () => {
@@ -67,6 +67,123 @@ describe('Sidebar', () => {
 	})
 })
 
+describe('Sidebar mini', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('marks the nav with data-mini', () => {
+		const { container } = renderUI(<Sidebar mini>content</Sidebar>)
+
+		expect(bySlot(container, 'sidebar')).toHaveAttribute('data-mini')
+	})
+
+	it('omits data-mini by default', () => {
+		const { container } = renderUI(<Sidebar>content</Sidebar>)
+
+		expect(bySlot(container, 'sidebar')).not.toHaveAttribute('data-mini')
+	})
+
+	it('backs items with a label tooltip on desktop', async () => {
+		// Desktop viewport and a hover-capable pointer.
+		stubMatchMedia(() => true)
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Sidebar mini>
+				<SidebarItem icon={<svg aria-hidden="true" />}>
+					<SidebarLabel>Home</SidebarLabel>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		if (!inner) throw new Error('item missing')
+
+		// The trigger clones onto the item button itself, keeping its slot.
+		expect(inner.tagName).toBe('BUTTON')
+
+		await user.click(inner)
+
+		await waitFor(() => expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument())
+
+		expect(bySlot(document.body, 'tooltip-content')).toHaveTextContent('Home')
+	})
+
+	it('keeps plain items below the desktop breakpoint', async () => {
+		stubMatchMedia(() => false)
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Sidebar mini>
+				<SidebarItem icon={<svg aria-hidden="true" />}>
+					<SidebarLabel>Home</SidebarLabel>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		if (!inner) throw new Error('item missing')
+
+		await user.click(inner)
+
+		expect(bySlot(document.body, 'tooltip-content')).toBeNull()
+	})
+
+	it('keeps the label in the rail via sr-only rather than removing it', () => {
+		const { container } = renderUI(
+			<Sidebar mini>
+				<SidebarItem>
+					<SidebarLabel>Home</SidebarLabel>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		// Visually collapsed on the desktop rail, still in the accessible name.
+		expect(bySlot(container, 'sidebar-label')?.className).toContain(
+			'lg:group-data-[mini]/sidebar:sr-only',
+		)
+	})
+
+	it('hands the resolved mini state to render-prop children on desktop', () => {
+		stubMatchMedia(() => true)
+
+		renderUI(
+			<Sidebar mini>
+				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+			</Sidebar>,
+		)
+
+		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
+	})
+
+	it('resolves render-prop mini to false below the desktop breakpoint', () => {
+		stubMatchMedia(() => false)
+
+		renderUI(
+			<Sidebar mini>
+				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+			</Sidebar>,
+		)
+
+		expect(screen.getByTestId('branch')).toHaveTextContent('full')
+	})
+
+	it('resolves render-prop mini to false when the prop is unset', () => {
+		stubMatchMedia(() => true)
+
+		renderUI(
+			<Sidebar>{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}</Sidebar>,
+		)
+
+		expect(screen.getByTestId('branch')).toHaveTextContent('full')
+	})
+})
+
 describe('SidebarHeader', () => {
 	it('renders a close button inside an offcanvas surface and invokes close on click', () => {
 		const close = vi.fn()
@@ -81,7 +198,7 @@ describe('SidebarHeader', () => {
 
 		const header = bySlot(container, 'sidebar-header')
 
-		expect(header?.className).toContain('justify-between')
+		expect(header?.className).toContain('gap-3')
 
 		const closeButton = screen.getByRole('button', { name: 'Close navigation' })
 
