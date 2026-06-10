@@ -1,5 +1,5 @@
 /**
- * Ma padding — full padding utility maps keyed by the spacing label
+ * Ma padding: full padding utility maps keyed by the spacing label
  * set. `p` is the all-sides shorthand; `px` / `py` / `pl` / `pr` / `pt`
  * / `pb` are the directional variants.
  *

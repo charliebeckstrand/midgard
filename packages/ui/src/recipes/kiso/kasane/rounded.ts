@@ -1,5 +1,5 @@
 /**
- * Kasane rounded — named-radius pass-through to Tailwind's named radius
+ * Kasane rounded: named-radius pass-through to Tailwind's named radius
  * scale. Sits beside the numeric `r(v)` helpers in `radius`;
  * `rounded.lg` → `rounded-lg`.
  *

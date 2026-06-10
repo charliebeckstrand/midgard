@@ -1,5 +1,5 @@
 /**
- * Ji leading — line-height aliases. `none` is for headings that should
+ * Ji leading: line-height aliases. `none` is for headings that should
  * sit at their exact em-height; `tight` is for descriptions; `normal`
  * is body copy; `relaxed` is long-form prose.
  *

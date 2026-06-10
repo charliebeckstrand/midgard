@@ -1,5 +1,5 @@
 /**
- * Narabi flex — the small flex primitives shared across kata. Each is a
+ * Narabi flex: the small flex primitives shared across kata. Each is a
  * single utility (or pair) that recurred enough to earn a name; consumers
  * spread them inline rather than re-typing the literal.
  *

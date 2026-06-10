@@ -1,6 +1,6 @@
 /**
- * Control archetype — check-input branch. `hidden` overlays a native input
- * on top of the custom surface, keeping keyboard, focus, and form semantics
+ * Control archetype: check-input branch. `hidden` overlays a native input
+ * on top of the custom surface; keyboard, focus, and form semantics stay
  * on the native element. `surface` paints the visible box / circle with the
  * standard hover and disabled treatment.
  *
@@ -40,7 +40,7 @@ const surface = [
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
 ]
 
-/** Layout shell — position, inline-flex centering, focus outline, cursor. */
+/** Layout shell: position, inline-flex centering, focus outline, cursor. */
 const shell = ['relative', flex.inline, 'justify-center', focus.outline, ...cursor]
 
 /** Pre-assembled chrome: shell + surface. The applicator's standard base. */
@@ -50,9 +50,9 @@ const base = [...shell, ...surface]
  * Checked-state accent colours shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
  * `--check-bg` / `--check-border` for one accent. zinc diverges per component
- * (checkbox uses a neutral fill, radio a high-contrast one), so each kata
- * defines its own zinc and spreads these four. Literal class strings for
- * static extraction by Tailwind's scanner.
+ * (checkbox uses a neutral fill, radio a high-contrast one); each kata
+ * defines its own zinc and spreads these four. Literal class strings;
+ * Tailwind's scanner extracts them statically.
  */
 const color = {
 	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',

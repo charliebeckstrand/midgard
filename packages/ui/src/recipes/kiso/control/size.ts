@@ -1,5 +1,5 @@
 /**
- * Control archetype — size axis. Text + icon dimension; padding lives in
+ * Control archetype: size axis. Text + icon dimension; padding lives in
  * `density`.
  *
  * Layer: kiso · Archetype: control · Concern: size

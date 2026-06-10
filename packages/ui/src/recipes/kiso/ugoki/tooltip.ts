@@ -1,5 +1,5 @@
 /**
- * Ugoki tooltip — tooltip fade with subtle scale, tuned for rapid show/hide.
+ * Ugoki tooltip: tooltip fade with subtle scale, tuned for rapid show/hide.
  *
  * Layer: kiso · Concern: tooltip motion
  */

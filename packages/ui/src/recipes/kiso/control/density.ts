@@ -1,12 +1,12 @@
 /**
- * Control archetype — density axis. Padding + radius + child-gap dimension.
+ * Control archetype: density axis. Padding + radius + child-gap dimension.
  *
- * Affix padding (`affix.prefix`, `affix.suffix`) is the same axis — keyed
- * by density step, not size step. Corner radius matches `py` at every step
- * for a constant 1:1 padding-to-radius ratio across non-ControlFrame
- * controls (listbox, combobox, date-picker button); for ControlFrame
+ * Affix padding (`affix.prefix`, `affix.suffix`) is the same axis, keyed
+ * by density step, not size step. Corner radius matches `py` at every
+ * step; the padding-to-radius ratio holds 1:1 across non-ControlFrame
+ * controls (listbox, combobox, date-picker button). For ControlFrame
  * consumers (input, textarea, select trigger), `kata/control.ts` exposes
- * `frameRadius` and `<ControlFrame>` reads it from `useDensity()` so the
+ * `frameRadius`, `<ControlFrame>` reads it from `useDensity()`, and the
  * chrome on the wrapping frame carries the matching radius. Gap = py/2 at
  * every step (rounded to the spacing scale).
  *

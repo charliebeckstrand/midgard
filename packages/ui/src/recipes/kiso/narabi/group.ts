@@ -1,5 +1,5 @@
 /**
- * Narabi group — slot adjacency rules for `<Fieldset>` groups. Spaces
+ * Narabi group: slot adjacency rules for `<Fieldset>` groups. Spaces
  * stacked fields and gives the group label a heavier weight than its
  * children's labels.
  *

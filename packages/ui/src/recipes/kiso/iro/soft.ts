@@ -1,5 +1,5 @@
 /**
- * Iro soft — translucent fill palette. Background is the colour at 15%
+ * Iro soft: translucent fill palette. Background is the colour at 15%
  * opacity; text inherits the colour-axis text shade. Hover doubles the
  * opacity to 30%.
  *

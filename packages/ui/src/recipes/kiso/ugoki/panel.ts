@@ -1,5 +1,5 @@
 /**
- * Ugoki panel — slide-from-edge panel configs keyed by direction. Used
+ * Ugoki panel: slide-from-edge panel configs keyed by direction. Used
  * by sheet and drawer to animate the panel into view from its anchored
  * edge.
  *

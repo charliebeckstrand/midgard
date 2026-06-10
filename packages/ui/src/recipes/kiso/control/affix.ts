@@ -1,14 +1,14 @@
 /**
- * Control archetype — affix slot padding.
+ * Control archetype: affix slot padding.
  *
- * Affix padding equals `density.px`, aligning a text affix's content with
+ * Affix padding equals `density.px`; a text affix's content aligns with
  * the input text in an affix-less control. When the slot hosts an element
- * with its own outer chrome — a non-bare `<Button>` or a `<Badge>`,
- * matched on `data-slot` — the affix padding shrinks to a constant `1.5`
+ * with its own outer chrome (a non-bare `<Button>` or a `<Badge>`,
+ * matched on `data-slot`), the affix padding shrinks to a constant `1.5`
  * spacing-units at every density step. `affixStepDown`
  * (`primitives/affix/affix.ts`) reduces the slot's child one notch per
  * density step; both `density.px` and the stepped-down child padding grow
- * 0.5 per notch, so the per-step deltas cancel and the constant holds at
+ * 0.5 per notch, and the per-step deltas cancel, holding the constant at
  * every step. The boundary test at
  * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
  * this against the live recipes.

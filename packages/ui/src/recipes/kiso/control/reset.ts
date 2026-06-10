@@ -1,5 +1,5 @@
 /**
- * Control archetype — input element reset. Strips the inner
+ * Control archetype: input element reset. Strips the inner
  * `<input>` / `<textarea>` to transparent with no border; the input
  * inherits text colour and placeholder treatment from the design tokens.
  * `input.ts` composes this with the kasane corner radius to form the

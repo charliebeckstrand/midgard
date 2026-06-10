@@ -1,8 +1,8 @@
 /**
- * Hannou fg — foreground (text-colour) feedback on interaction state.
+ * Hannou fg: foreground (text-colour) feedback on interaction state.
  * Hover / focus darken the foreground; disabled lifts it; `current`
  * marks the active surface (e.g. the current nav item) via `data-current`.
- * Pairs with `omote.bg` — `omote.bg.X` paints the surface,
+ * Pairs with `omote.bg`: `omote.bg.X` paints the surface,
  * `hannou.fg.X` paints the text response.
  *
  * Layer: kiso · Concern: foreground state

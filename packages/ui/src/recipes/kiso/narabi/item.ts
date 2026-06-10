@@ -1,5 +1,5 @@
 /**
- * Narabi item — icon-slot dimensioning for sibling items in a list.
+ * Narabi item: icon-slot dimensioning for sibling items in a list.
  * Composes the standard icon size with the inherit-colour rule and the
  * forced-colors safety net for High Contrast Mode legibility.
  *

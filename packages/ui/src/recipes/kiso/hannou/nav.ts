@@ -1,5 +1,5 @@
 /**
- * Hannou nav — nav-item chrome shared by `kata/nav` and `kata/sidebar`.
+ * Hannou nav: nav-item chrome shared by `kata/nav` and `kata/sidebar`.
  * Composes the icon-slot size, a low-alpha hover tint, and the inset
  * focus indicator.
  *

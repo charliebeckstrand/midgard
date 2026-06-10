@@ -1,5 +1,5 @@
 /**
- * Ma margin — full margin utility maps keyed by the spacing label set.
+ * Ma margin: full margin utility maps keyed by the spacing label set.
  * `m` is the all-sides shorthand; `mx` / `my` / `ml` / `mr` / `mt` /
  * `mb` are the directional variants.
  *

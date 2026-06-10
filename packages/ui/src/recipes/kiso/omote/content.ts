@@ -1,5 +1,5 @@
 /**
- * Omote content — card content block with viewport-dependent chrome.
+ * Omote content: card content block with viewport-dependent chrome.
  * At `lg` and up the block paints a surface, shadow, and rounded corners;
  * below `lg` it sits flat against the page. Used for content wrappers
  * that should read as cards on desktop and flush sections on mobile.

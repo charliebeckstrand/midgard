@@ -1,5 +1,5 @@
 /**
- * Shaku listbox — listbox dropdown caret positioning. Flush to the
+ * Shaku listbox: listbox dropdown caret positioning. Flush to the
  * button border (no inset); the listbox button provides its own
  * chevron affordance.
  *

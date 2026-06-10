@@ -1,5 +1,5 @@
 /**
- * Ma gap — the named gap scale (xs/sm/md/lg/xl), the single source of truth
+ * Ma gap: the named gap scale (xs/sm/md/lg/xl), the single source of truth
  * for bidirectional gap. `Flex` reaches it through `recipes/kata/flex`, which
  * adds the `gap-0` reset step.
  *
