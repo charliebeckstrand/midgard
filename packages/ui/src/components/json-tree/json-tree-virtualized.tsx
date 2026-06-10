@@ -82,6 +82,16 @@ export function JsonTreeVirtualized({
 		overscan,
 	})
 
+	// The Tab stop rides the first *focusable rendered* row: with windowing,
+	// the depth-0 root can be scrolled out of the DOM, and a depth-anchored
+	// stop would leave the tree unreachable by Tab.
+	const firstFocusable = useMemo(
+		() =>
+			virtualItems.find((vi) => flatNodes[vi.index] && flatNodes[vi.index]?.type !== 'branch-close')
+				?.index,
+		[virtualItems, flatNodes],
+	)
+
 	return (
 		<div
 			ref={ref}
@@ -94,29 +104,20 @@ export function JsonTreeVirtualized({
 			{topSpacer > 0 && (
 				<div role="presentation" data-slot="json-tree-spacer" style={{ height: topSpacer }} />
 			)}
-			{(() => {
-				// The Tab stop rides the first *focusable rendered* row: with
-				// windowing, the depth-0 root can be scrolled out of the DOM, and a
-				// depth-anchored stop would leave the tree unreachable by Tab.
-				const firstFocusable = virtualItems.find(
-					(vi) => flatNodes[vi.index] && flatNodes[vi.index]?.type !== 'branch-close',
-				)?.index
+			{virtualItems.map((virtualItem) => {
+				const node = flatNodes[virtualItem.index]
 
-				return virtualItems.map((virtualItem) => {
-					const node = flatNodes[virtualItem.index]
+				if (!node) return null
 
-					if (!node) return null
-
-					return (
-						<JsonTreeNodeRow
-							key={`${node.type}:${node.path}`}
-							node={node}
-							onToggle={toggle}
-							tabbable={virtualItem.index === firstFocusable}
-						/>
-					)
-				})
-			})()}
+				return (
+					<JsonTreeNodeRow
+						key={`${node.type}:${node.path}`}
+						node={node}
+						onToggle={toggle}
+						tabbable={virtualItem.index === firstFocusable}
+					/>
+				)
+			})}
 			{bottomSpacer > 0 && (
 				<div role="presentation" data-slot="json-tree-spacer" style={{ height: bottomSpacer }} />
 			)}

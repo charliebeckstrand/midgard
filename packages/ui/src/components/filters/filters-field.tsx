@@ -122,19 +122,12 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		// would break the group) and is checked when it matches the slot.
 		const cloned: Record<string, unknown> =
 			child.type === Radio
-				? {
-						checked: fieldValue === (child.props as { value?: unknown }).value,
-						[handlerProp]: handleChange,
-					}
+				? { checked: fieldValue === (child.props as { value?: unknown }).value }
 				: child.type === Checkbox || child.type === Switch
-					? {
-							checked: !!fieldValue,
-							[handlerProp]: handleChange,
-						}
-					: {
-							value: fieldValue ?? null,
-							[handlerProp]: handleChange,
-						}
+					? { checked: !!fieldValue }
+					: { value: fieldValue ?? null }
+
+		cloned[handlerProp] = handleChange
 
 		if (expectsClearCallback(child)) cloned.onClear = handleClear
 

@@ -4,6 +4,7 @@ import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useEffect, useRef, useState } from 'react'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
+import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Flex } from '../flex'
@@ -122,20 +123,12 @@ export function TagInput({
 	// Duplicate controlled values ('a','a') would collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the
 	// controlled path can't).
-	const seen = new Map<string, number>()
-
-	const keyedTags = tags.map((t) => {
-		const n = seen.get(t) ?? 0
-
-		seen.set(t, n + 1)
-
-		return { tag: t, key: n === 0 ? t : `${t} ${n}` }
-	})
+	const keyedTags = keyByOccurrence(tags)
 
 	const badges =
 		tags.length > 0 ? (
 			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap>
-				{keyedTags.map(({ tag: t, key }, i) => (
+				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge
 						key={key}
 						label={t}

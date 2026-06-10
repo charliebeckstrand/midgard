@@ -68,9 +68,7 @@ describe('PasswordConfirmInput', () => {
 
 		expect(describedBy).toBeTruthy()
 
-		const warning = document.getElementById(
-			(describedBy as string).split(' ').at(-1) as string,
-		)
+		const warning = document.getElementById((describedBy as string).split(' ').at(-1) as string)
 
 		expect(warning).toHaveTextContent('Passwords do not match')
 

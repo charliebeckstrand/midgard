@@ -157,7 +157,10 @@ describe('RangeSlider', () => {
 
 	it('announces thumb values via getValueText', () => {
 		const { container } = renderUI(
-			<RangeSlider defaultValue={[25, 75]} getValueText={(v, i) => `${i === 0 ? 'from' : 'to'} $${v}`} />,
+			<RangeSlider
+				defaultValue={[25, 75]}
+				getValueText={(v, i) => `${i === 0 ? 'from' : 'to'} $${v}`}
+			/>,
 		)
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')

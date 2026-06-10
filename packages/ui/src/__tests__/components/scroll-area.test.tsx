@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { bySlot, fireEvent, renderUI } from '../helpers'
-
-function setGeometry(el: Element, geometry: Record<string, number>) {
-	for (const [key, value] of Object.entries(geometry)) {
-		Object.defineProperty(el, key, { value, configurable: true })
-	}
-}
+import { bySlot, fireEvent, mockGeometry, renderUI } from '../helpers'
 
 describe('ScrollArea', () => {
 	it('passes through HTML attributes to the viewport', () => {
@@ -36,7 +30,7 @@ describe('ScrollArea', () => {
 
 		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
 
-		setGeometry(viewport, { scrollWidth: 400, clientWidth: 100 })
+		mockGeometry(viewport, { scrollWidth: 400, clientWidth: 100 })
 
 		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
 
@@ -52,7 +46,7 @@ describe('ScrollArea', () => {
 
 		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
 
-		setGeometry(viewport, { scrollWidth: 100, clientWidth: 100 })
+		mockGeometry(viewport, { scrollWidth: 100, clientWidth: 100 })
 
 		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
 

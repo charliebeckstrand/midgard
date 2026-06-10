@@ -123,9 +123,7 @@ describe('Toast: useToast behavior', () => {
 		// The announcer writes asynchronously (microtask) so insertion and text
 		// land in separate frames.
 		await vi.waitFor(() => {
-			const announcer = document.body.querySelector(
-				'[data-slot="live-region"][aria-live="polite"]',
-			)
+			const announcer = document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
 
 			expect(announcer?.textContent).toContain('Saved')
 		})

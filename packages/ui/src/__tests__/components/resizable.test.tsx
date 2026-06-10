@@ -48,10 +48,7 @@ describe('Resizable', () => {
 			</ResizableGroup>,
 		)
 
-		expect(bySlot(container, 'resizable-handle')).toHaveAttribute(
-			'aria-label',
-			'Resize sidebar',
-		)
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Resize sidebar')
 	})
 
 	it('handle is focusable', () => {

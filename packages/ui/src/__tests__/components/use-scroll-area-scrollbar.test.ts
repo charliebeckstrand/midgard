@@ -1,28 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
-import { makePointerEvent } from '../helpers'
-
-type Geometry = {
-	clientHeight?: number
-	clientWidth?: number
-	scrollHeight?: number
-	scrollWidth?: number
-	scrollTop?: number
-	scrollLeft?: number
-}
-
-function mockGeometry<T extends HTMLElement>(el: T, g: Geometry): T {
-	for (const [key, value] of Object.entries(g)) {
-		Object.defineProperty(el, key, {
-			value,
-			configurable: true,
-			writable: true,
-		})
-	}
-
-	return el
-}
+import { makePointerEvent, mockGeometry } from '../helpers'
 
 function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: 'auto' | 'visible') {
 	const hook = renderHook(() => useScrollAreaScrollbar({ orientation, scrollbar }))
