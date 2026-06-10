@@ -21,25 +21,33 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference)
 
-	const referenceProps = getReferenceProps()
-
+	// Consumer/child props route through `getReferenceProps`, which composes
+	// their event handlers with the floating interactions instead of clobbering
+	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle composes
+	// with the consumer's own onClick: theirs runs first.
 	if (isValidElement(children)) {
-		return cloneElement(children as ReactElement<Record<string, unknown>>, {
+		const child = children as ReactElement<Record<string, unknown>>
+
+		const childOnClick = child.props.onClick as ((e: MouseEvent) => void) | undefined
+
+		return cloneElement(child, {
+			...getReferenceProps({
+				...child.props,
+				onClick: (e: MouseEvent) => {
+					childOnClick?.(e)
+					setOpen(!open)
+				},
+			}),
 			ref: mergeRefs,
 			'aria-haspopup': 'menu',
 			'aria-expanded': open,
 			'aria-controls': open ? menuId : undefined,
 			'data-slot': 'menu-trigger',
-			...referenceProps,
-			onClick: (e: MouseEvent) => {
-				const childOnClick = (children as ReactElement<Record<string, unknown>>).props?.onClick as
-					| ((e: MouseEvent) => void)
-					| undefined
-				childOnClick?.(e)
-				setOpen(!open)
-			},
+			className: cn(className, child.props.className as string | undefined),
 		})
 	}
+
+	const { onClick: consumerOnClick, ...rest } = props as ComponentPropsWithoutRef<'button'>
 
 	return (
 		<button
@@ -50,14 +58,13 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			aria-controls={open ? menuId : undefined}
 			data-slot="menu-trigger"
 			className={cn(className)}
-			{...referenceProps}
-			{...props}
-			// Placed after the spreads: runs any consumer-supplied onClick, then
-			// the toggle.
-			onClick={(e: MouseEvent<HTMLButtonElement>) => {
-				;(props as ComponentPropsWithoutRef<'button'>).onClick?.(e)
-				setOpen(!open)
-			}}
+			{...getReferenceProps({
+				...rest,
+				onClick: (e: MouseEvent<HTMLButtonElement>) => {
+					consumerOnClick?.(e)
+					setOpen(!open)
+				},
+			})}
 		>
 			{children}
 		</button>

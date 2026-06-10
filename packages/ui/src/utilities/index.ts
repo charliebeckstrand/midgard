@@ -1,6 +1,7 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export { digitsOnly } from './digits-only'
+export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
 export { formatFraction, formatInteger } from './format-number'
 export { keyByOccurrence } from './key-by-occurrence'

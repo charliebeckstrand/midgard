@@ -141,6 +141,34 @@ describe('useRangePointer', () => {
 		expect(setRange).not.toHaveBeenCalled()
 	})
 
+	it('onPointerCancel clears the drag so subsequent moves are ignored', () => {
+		const { api, setRange } = setup({ current: [20, 80] })
+
+		api.onPointerDown(makeEvent({ clientX: 30 }))
+
+		api.onPointerCancel()
+
+		setRange.mockClear()
+
+		api.onPointerMove(makeEvent({ clientX: 60 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+	})
+
+	it('onLostPointerCapture clears the drag so subsequent moves are ignored', () => {
+		const { api, setRange } = setup({ current: [20, 80] })
+
+		api.onPointerDown(makeEvent({ clientX: 30 }))
+
+		api.onLostPointerCapture()
+
+		setRange.mockClear()
+
+		api.onPointerMove(makeEvent({ clientX: 60 }))
+
+		expect(setRange).not.toHaveBeenCalled()
+	})
+
 	it('clamps the pointer value when dragging past the track edges', () => {
 		const { api, setRange } = setup({ current: [20, 80] })
 

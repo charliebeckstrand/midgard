@@ -154,6 +154,48 @@ describe('Overlay', () => {
 		expect(document.body.style.overflow).toBe('')
 	})
 
+	it('renders no backdrop and disables wrapper pointer events when modal=false', () => {
+		renderUI(
+			<Overlay open modal={false} onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+
+		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+
+		expect(overlay.className).toContain('pointer-events-none')
+	})
+
+	it('dismisses on a pointer press outside the panel when modal=false', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open modal={false} onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		fireEvent.pointerDown(document.body)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('does not dismiss on a pointer press inside the panel when modal=false', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open modal={false} onOpenChange={onOpenChange}>
+				<button type="button">inside</button>
+			</Overlay>,
+		)
+
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'inside' }))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	it('still dismisses on Escape when modal=false', () => {
 		const onOpenChange = vi.fn()
 

@@ -247,6 +247,29 @@ describe('useScrollAreaScrollbar', () => {
 			expect(viewport.scrollTop).toBe(40)
 		})
 
+		it('stops the drag on pointercancel', () => {
+			const { hook, viewport } = setupHook('vertical', 'visible')
+
+			act(() => hook.result.current.handleScroll())
+
+			const handler = hook.result.current.startDrag('y')
+
+			act(() => {
+				handler(makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 }))
+			})
+
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointercancel'))
+			})
+
+			// A cancelled pointer must end the drag; buttonless moves do nothing.
+			act(() => {
+				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 50 }))
+			})
+
+			expect(viewport.scrollTop).toBe(0)
+		})
+
 		it('cleans up listeners on unmount mid-drag', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 

@@ -26,6 +26,7 @@ import {
 	useRef,
 } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { useEscapeLayer } from './use-escape-layer'
 
 // Explicit return types: `useFloating`'s shape references `@floating-ui/react-dom`,
 // a transitive dep that TS can't express in a portable `.d.ts` (TS2742).
@@ -165,7 +166,10 @@ export function useFloatingUI({
 }: FloatingUIOptions): FloatingUIResult {
 	const { refs, floatingStyles, context } = useFloatingPanel(rest)
 
-	const dismiss = useDismiss(context, { outsidePress: false })
+	// Escape goes through the shared dismiss-layer stack instead of
+	// floating-ui's flat document listener, so a panel inside a Dialog/Sheet
+	// consumes the press without also closing the surface beneath.
+	const dismiss = useDismiss(context, { outsidePress: false, escapeKey: false })
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.
@@ -178,6 +182,11 @@ export function useFloatingUI({
 	const onOpenChangeRef = useRef(onOpenChange)
 
 	onOpenChangeRef.current = onOpenChange
+
+	useEscapeLayer({
+		open,
+		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+	})
 
 	useEffect(() => {
 		if (!open) return

@@ -10,6 +10,7 @@ import {
 } from '@floating-ui/react'
 import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
 import { useControllable } from './use-controllable'
+import { useEscapeLayer } from './use-escape-layer'
 import { type FloatingPanelOptions, useFloatingPanel } from './use-floating-ui'
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
@@ -97,7 +98,18 @@ export function useFloatingDisclosure({
 
 	refsRef.current = refs
 
-	const dismiss = useDismiss(context)
+	// Escape goes through the shared dismiss-layer stack instead of
+	// floating-ui's flat document listener, so a disclosure inside a
+	// Dialog/Sheet consumes the press without also closing the surface
+	// beneath. Tooltips stay unlayered: incidental hover surfaces close on
+	// any Escape without swallowing the press meant for the layer below.
+	const dismiss = useDismiss(context, { escapeKey: false })
+
+	useEscapeLayer({
+		open,
+		layered: roleProp !== 'tooltip',
+		onDismiss: close,
+	})
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.

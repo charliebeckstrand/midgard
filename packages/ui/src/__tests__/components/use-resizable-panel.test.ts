@@ -422,6 +422,34 @@ describe('useResizablePanel', () => {
 
 			expect(result.current.sizes).toEqual([50, 50])
 		})
+
+		it('stops updating after pointercancel', () => {
+			const group = makeGroup({ width: 1000, height: 100 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new Event('pointercancel'))
+			})
+
+			expect(result.current.dragging).toBeNull()
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 900, clientY: 0 }))
+			})
+
+			expect(result.current.sizes).toEqual([50, 50])
+		})
 	})
 
 	describe('degenerate configurations', () => {

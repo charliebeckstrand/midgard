@@ -40,8 +40,12 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 					</Button>
 				)
 			}
-			tabIndex={0}
+			// Disabled badges drop out of the tab order and ignore removal keys;
+			// the remove button above is already suppressed.
+			tabIndex={disabled ? undefined : 0}
 			onKeyDown={(e) => {
+				if (disabled) return
+
 				if (e.key === 'Backspace' || e.key === 'Delete') {
 					onRemove()
 				}

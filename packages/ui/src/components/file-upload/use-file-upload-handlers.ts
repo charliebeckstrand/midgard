@@ -56,21 +56,34 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		[handleFiles],
 	)
 
-	const handleDragEnter = useCallback((e: DragEvent) => {
-		e.preventDefault()
+	// Disabled dropzones skip `preventDefault`: the element never becomes a
+	// valid drop target, `data-drag-over` is never set, and the browser
+	// handles the drop natively.
+	const handleDragEnter = useCallback(
+		(e: DragEvent) => {
+			if (disabled) return
 
-		e.stopPropagation()
+			e.preventDefault()
 
-		setDragDepth((d) => d + 1)
-	}, [])
+			e.stopPropagation()
+
+			setDragDepth((d) => d + 1)
+		},
+		[disabled],
+	)
 
 	// `preventDefault` on `dragover` marks the element a valid drop target;
 	// `dragenter`/`dragleave` own the depth counter.
-	const handleDragOver = useCallback((e: DragEvent) => {
-		e.preventDefault()
+	const handleDragOver = useCallback(
+		(e: DragEvent) => {
+			if (disabled) return
 
-		e.stopPropagation()
-	}, [])
+			e.preventDefault()
+
+			e.stopPropagation()
+		},
+		[disabled],
+	)
 
 	const handleDragLeave = useCallback((e: DragEvent) => {
 		e.preventDefault()
@@ -82,6 +95,15 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 
 	const handleDrop = useCallback(
 		(e: DragEvent) => {
+			// Defensive: with `dragover` unprevented the browser shouldn't target
+			// a disabled dropzone, but after a mid-drag `disabled` flip a drop
+			// event can still fire here; clear the highlight, ignore the files.
+			if (disabled) {
+				setDragDepth(0)
+
+				return
+			}
+
 			e.preventDefault()
 
 			e.stopPropagation()
@@ -90,7 +112,7 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 
 			handleFiles(e.dataTransfer.files)
 		},
-		[handleFiles],
+		[disabled, handleFiles],
 	)
 
 	return {

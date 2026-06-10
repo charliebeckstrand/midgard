@@ -106,12 +106,17 @@ export function MenuItem(props: MenuItemProps) {
 			className={classes}
 			{...rest}
 			// Composed after the spread: runs consumer handlers, then selection
-			// (onAction/close).
+			// (onAction/close). The disabled guard precedes both so disabled
+			// items are inert on every input path.
 			onClick={(e: MouseEvent<HTMLButtonElement>) => {
+				if (disabled) return
+
 				consumerOnClick?.(e)
 				handleSelect()
 			}}
 			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
+				if (disabled) return
+
 				consumerOnKeyDown?.(e)
 
 				if (e.defaultPrevented) return

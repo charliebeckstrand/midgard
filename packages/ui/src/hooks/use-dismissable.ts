@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { useEscapeLayer } from './use-escape-layer'
 
 type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
@@ -30,33 +31,23 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 
 	onDismissRef.current = onDismiss
 
+	useEscapeLayer({
+		open,
+		enabled: escapeEnabled,
+		onDismiss: () => onDismissRef.current(),
+	})
+
 	useEffect(() => {
-		if (!open) return
+		if (!open || !outsidePointer) return
 
-		const cleanups: Array<() => void> = []
+		const onPointerDown = (e: PointerEvent) => {
+			const el = ref.current
 
-		if (escapeEnabled) {
-			const onKeyDown = (e: KeyboardEvent) => {
-				if (e.key === 'Escape') onDismissRef.current()
-			}
-
-			cleanups.push(subscribeDocumentEvent('keydown', onKeyDown))
+			if (el && !el.contains(e.target as Node)) onDismissRef.current()
 		}
 
-		if (outsidePointer) {
-			const onPointerDown = (e: PointerEvent) => {
-				const el = ref.current
-
-				if (el && !el.contains(e.target as Node)) onDismissRef.current()
-			}
-
-			cleanups.push(subscribeDocumentEvent('pointerdown', onPointerDown))
-		}
-
-		return () => {
-			for (const cleanup of cleanups) cleanup()
-		}
-	}, [open, escapeEnabled, outsidePointer, ref])
+		return subscribeDocumentEvent('pointerdown', onPointerDown)
+	}, [open, outsidePointer, ref])
 
 	return ref
 }

@@ -7,7 +7,7 @@ import {
 	CommandPaletteItem,
 	CommandPaletteLabel,
 } from '../../components/command-palette'
-import { bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -310,6 +310,37 @@ describe('CommandPaletteItem', () => {
 		await user.click(screen.getByText('Run'))
 
 		expect(onAction).not.toHaveBeenCalled()
+	})
+
+	it('does not invoke a consumer onClick when disabled', async () => {
+		const onClick = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem disabled onClick={onClick}>
+					Run
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByText('Run'))
+
+		expect(onClick).not.toHaveBeenCalled()
+	})
+
+	it('prevents navigation when a disabled link item is clicked', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem disabled href="/somewhere">
+					Go
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		// fireEvent returns false when the event's default was prevented.
+		expect(fireEvent.click(screen.getByText('Go'))).toBe(false)
 	})
 
 	it('exposes aria-disabled on a disabled item', () => {

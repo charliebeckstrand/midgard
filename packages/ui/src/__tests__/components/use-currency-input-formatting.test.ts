@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { parseEditing } from '../../components/currency-input/currency-input-utilities'
 import { useCurrencyInputFormatting } from '../../components/currency-input/use-currency-input-formatting'
 
 describe('useCurrencyInputFormatting', () => {
@@ -53,5 +54,26 @@ describe('useCurrencyInputFormatting', () => {
 
 		// The extracted separators match the display, whatever the locale uses.
 		expect(display).toContain(result.current.decimal)
+	})
+
+	it('extracts comma-decimal locale separators (de-DE groups with dots)', () => {
+		// formatToParts(0) emits no group part; the extraction must sample a
+		// grouped value or de-DE silently inherits the en-US ',' group fallback
+		// and parseEditing strips the user's decimal comma as a group separator.
+		const { result } = renderHook(() =>
+			useCurrencyInputFormatting({ locale: 'de-DE', currency: 'EUR' }),
+		)
+
+		expect(result.current.group).toBe('.')
+
+		expect(result.current.decimal).toBe(',')
+	})
+
+	it('round-trips a typed comma-decimal amount through parseEditing', () => {
+		const { result } = renderHook(() =>
+			useCurrencyInputFormatting({ locale: 'de-DE', currency: 'EUR' }),
+		)
+
+		expect(parseEditing('1.234,56', result.current.group, result.current.decimal)).toBe(1234.56)
 	})
 })
