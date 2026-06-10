@@ -9,12 +9,11 @@ Already fixed on `claude/ui-bug-audit-vmbnj1` (not listed below): editable-grid
 spreadsheet-paste blanking the row below the target, currency-input separator
 extraction corrupting comma-decimal locales, flat Escape dismissal closing
 every open overlay layer at once, and non-modal Sheet rendering a blocking
-backdrop. Second round (cross-cutting patterns): `pointercancel` handling in
-the resizable/scroll-area/range-slider drags, `disabled` guards on the
-secondary input paths of command-palette items, menu items, tag-input badges,
-and file-upload drag handlers, consumer-handler composition in MenuTrigger
-(child props now route through `getReferenceProps`) and ShinyText (hover
-handlers compose with `pauseOnHover`; `disabled` re-parks the shine).
+backdrop. The second round fixed the three cross-cutting patterns:
+
+- `pointercancel` handling in the resizable, scroll-area, and range-slider drags
+- `disabled` guards on the secondary input paths of command-palette items, menu items, tag-input badges, and file-upload drag handlers
+- consumer-handler composition in MenuTrigger (child props route through `getReferenceProps`) and ShinyText (hover handlers compose with `pauseOnHover`; `disabled` re-parks the shine)
 
 ## High — broken behavior
 
@@ -86,15 +85,15 @@ handlers compose with `pauseOnHover`; `disabled` re-parks the shine).
 
 ## Cross-cutting patterns
 
-All three addressed in the second round (see preamble). The conventions to
-hold the line on for new code:
+The second round fixed all three (see preamble). New code follows these
+conventions:
 
-1. **`disabled` guards at the top of every composed handler** — not just the
-   primary activation path.
-2. **Hand-rolled drags handle `pointercancel`** — where the pointer is
+1. **`disabled` guards sit at the top of every composed handler**: not just
+   the primary activation path.
+2. **Hand-rolled drags handle `pointercancel`**: where the pointer is
    captured, `lostpointercapture` is the authoritative reset
    (`use-color-drag.ts`, `use-range-pointer.ts`).
-3. **Compose consumer handlers, don't replace them** — route cloned-child or
+3. **Compose consumer handlers, don't replace them**: route cloned-child or
    consumer props through floating-ui's prop getters
    (`getReferenceProps(childProps)`), and place composed handlers after
    `{...props}` spreads.

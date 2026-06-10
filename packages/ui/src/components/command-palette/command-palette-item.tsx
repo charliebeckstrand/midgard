@@ -34,9 +34,9 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const onClick = (props as { onClick?: (e: MouseEvent<HTMLElement>) => void }).onClick
 
 	function handleSelect(e: MouseEvent<HTMLElement>) {
-		// Guarded before the consumer handler so disabled items are inert on
-		// every input path; preventDefault keeps disabled link items from
-		// navigating.
+		// The disabled guard runs before the consumer handler: disabled items
+		// are inert on every input path, and preventDefault keeps disabled
+		// link items from navigating.
 		if (disabled) {
 			e.preventDefault()
 
