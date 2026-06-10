@@ -47,8 +47,9 @@ export function FloatingSurface({
 							ref={setFloating}
 							style={style ? { ...floatingStyles, ...style } : floatingStyles}
 							className={cn(k.portal, className)}
-							{...rest}
-							{...getFloatingProps()}
+							// Routed through getFloatingProps so consumer handlers compose
+							// with floating-ui's own instead of being overwritten.
+							{...getFloatingProps(rest)}
 						>
 							{children}
 						</div>
