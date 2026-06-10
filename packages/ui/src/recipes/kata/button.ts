@@ -100,42 +100,30 @@ export const k = defineRecipe(
 			},
 			{ inherit },
 		),
+		// Compound variants ensure the palette is correct when a variant and size combo triggers the
+		// icon-only bare button floor. The `not-data-[has-label]` selector is repeated here to
+		// override the size styles with the floor styles when the button is icon-only, but defer to
+		// the size styles when a label is present.
 		compound: [
 			{
 				variant: 'bare',
 				size: 'xs',
-				class: [
-					padding.p('0.75'),
-					'data-[has-label]:py-[calc(--spacing(0.5)-1px)]',
-					'-m-0.75 data-[has-label]:-my-[calc(--spacing(0.5)-1px)]',
-				],
+				class: ['not-data-[has-label]:p-0.75'],
 			},
 			{
 				variant: 'bare',
 				size: 'sm',
-				class: [
-					padding.p('1'),
-					'data-[has-label]:py-[calc(--spacing(0.75)-1px)]',
-					'-m-1 data-[has-label]:-my-[calc(--spacing(0.75)-1px)]',
-				],
+				class: ['not-data-[has-label]:p-1'],
 			},
 			{
 				variant: 'bare',
 				size: 'md',
-				class: [
-					padding.p('1.25'),
-					'data-[has-label]:py-[calc(--spacing(1)-1px)]',
-					'-m-1.25 data-[has-label]:-my-[calc(--spacing(1)-1px)]',
-				],
+				class: ['not-data-[has-label]:p-1.25'],
 			},
 			{
 				variant: 'bare',
 				size: 'lg',
-				class: [
-					padding.p('1.5'),
-					'data-[has-label]:py-[calc(--spacing(1.25)-1px)]',
-					'-m-1.5 data-[has-label]:-my-[calc(--spacing(1.25)-1px)]',
-				],
+				class: ['not-data-[has-label]:p-1.5'],
 			},
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },

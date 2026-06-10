@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { affixStepDown } from '../../../primitives/affix/affix'
-import type { Step } from '../../../recipes'
+import type { Ma, Step } from '../../../recipes'
 import { k as button } from '../../../recipes/kata/button'
 import { control } from '../../../recipes/kiso/control'
 
@@ -89,5 +89,89 @@ describe('control affix has-button compensation', () => {
 		})
 
 		expect(new Set(deltas).size).toBe(1)
+	})
+})
+
+// Affix bare-Button compensation invariant.
+//
+// A chrome-less icon-only bare Button has no outer box, so its glyph aligns to
+// the *text line* (`density.px`), not the chip-content line — there is no 0.5
+// chip inset. The override subtracts the button's stepped-down icon-only
+// compound padding (`not-data-[has-label]:p-…` in `kata/button.ts`) from
+// `density.px`:
+//
+//   affix.pl(has-bare) = input.px − bare.compound.p[affixStepDown(step)]
+//
+// Unlike the non-bare arm this cannot collapse to a constant: the bare compound
+// scale grows 0.25 per notch — half of `density.px`'s 0.5 — so the per-step
+// deltas can't cancel and the value drifts (1.75 → 2 → 2.25). The test parses
+// the live compound rule rather than the literals; if input.px, the bare
+// compound p, or affixStepDown drifts, the assertion points at the source.
+
+const COMPOUND_P_RE = /:p-([\d.]+)$/
+
+function findBareCompoundP(size: Ma): number {
+	const rules = button.config.compound as ReadonlyArray<Record<string, unknown>>
+
+	for (const rule of rules) {
+		if (rule.variant !== 'bare' || rule.size !== size) continue
+
+		for (const cls of (rule.class as readonly unknown[]).flat(Number.POSITIVE_INFINITY)) {
+			if (typeof cls !== 'string') continue
+
+			const match = cls.match(COMPOUND_P_RE)
+
+			if (match) return Number(match[1])
+		}
+	}
+
+	throw new Error(`No bare compound p- class found for size "${size}"`)
+}
+
+describe('control affix has-bare-button compensation', () => {
+	for (const step of STEPS) {
+		const buttonSize = affixStepDown(step)
+
+		const hostPx = findSpacing(control.density[step], 'px-[')
+
+		const bareP = findBareCompoundP(buttonSize)
+
+		const expected = hostPx - bareP
+
+		it(`${step}: affix.prefix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
+			const actual = findSpacing(
+				control.affix.prefix[step],
+				'has-[[data-variant=bare]:not([data-has-label])]:pl-[',
+			)
+
+			expect(actual).toBe(expected)
+		})
+
+		it(`${step}: affix.suffix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
+			const actual = findSpacing(
+				control.affix.suffix[step],
+				'has-[[data-variant=bare]:not([data-has-label])]:pr-[',
+			)
+
+			expect(actual).toBe(expected)
+		})
+	}
+
+	it('the bare compensation drifts a uniform 0.25 per step (the non-bare lockstep does not apply)', () => {
+		const values = STEPS.map(
+			(step) => findSpacing(control.density[step], 'px-[') - findBareCompoundP(affixStepDown(step)),
+		)
+
+		const drift = new Set<number>()
+
+		values.reduce((prev, curr) => {
+			drift.add(curr - prev)
+
+			return curr
+		})
+
+		expect(drift.size).toBe(1)
+
+		expect(drift.has(0.25)).toBe(true)
 	})
 })
