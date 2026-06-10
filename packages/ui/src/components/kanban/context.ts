@@ -24,6 +24,8 @@ export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValu
 
 export type KanbanColumnContextValue = {
 	columnId: string
+	/** Title-slot registrar — the column only emits `aria-labelledby` while a title is mounted, so the reference never dangles. */
+	registerTitle: () => () => void
 }
 
 export const [KanbanColumnContext, useKanbanColumnContext] =

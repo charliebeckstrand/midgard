@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, kanbanColumnTitleId, useKanbanContext } from './context'
@@ -30,7 +30,15 @@ export function KanbanColumn({
 
 	const over = interactive && isOver && activeId !== null
 
-	const value = useMemo(() => ({ columnId }), [columnId])
+	const [hasTitle, setHasTitle] = useState(false)
+
+	const registerTitle = useCallback(() => {
+		setHasTitle(true)
+
+		return () => setHasTitle(false)
+	}, [])
+
+	const value = useMemo(() => ({ columnId, registerTitle }), [columnId, registerTitle])
 
 	return (
 		<KanbanColumnContext value={value}>
@@ -40,9 +48,11 @@ export function KanbanColumn({
 					data-slot="kanban-column"
 					data-column-id={columnId}
 					data-over={over || undefined}
-					// Name the column from its rendered title; an explicit aria-label wins.
+					// Name the column from its rendered title; an explicit aria-label
+					// wins, and the reference is emitted only while a title is mounted
+					// so it never dangles.
 					aria-label={ariaLabel}
-					aria-labelledby={ariaLabel ? undefined : kanbanColumnTitleId(columnId)}
+					aria-labelledby={!ariaLabel && hasTitle ? kanbanColumnTitleId(columnId) : undefined}
 					className={cn(k.column.base, over && k.column.over, className)}
 				>
 					{children}
