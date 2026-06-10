@@ -107,6 +107,41 @@ describe('List keyboard reordering', () => {
 		)
 	}
 
+	it('leaves keys from focusable descendants alone', () => {
+		const onReorder = vi.fn()
+
+		renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={onReorder}>
+				{(item) => (
+					<ListItem>
+						{item.label}
+						<input aria-label={`edit ${item.label}`} />
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const input = screen.getByLabelText('edit Alpha')
+
+		input.focus()
+
+		// Space/Arrow/Home/End bubbling from an inner control are the control's
+		// own keys — they must not be treated as lift/reorder gestures (which
+		// would also preventDefault the caret movement away).
+		const spaceEvent = fireEvent.keyDown(input, { key: ' ' })
+
+		fireEvent.keyDown(input, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(input, { key: 'Home' })
+
+		expect(onReorder).not.toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(input)
+
+		// Not preventDefault'd — the key reaches the input.
+		expect(spaceEvent).toBe(true)
+	})
+
 	it('focuses the next item on ArrowDown when not lifted', () => {
 		const { container } = renderList()
 
