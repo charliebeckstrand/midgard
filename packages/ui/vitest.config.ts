@@ -14,14 +14,11 @@ export default defineConfig({
 			'./src/__tests__/setup/restore-prototype-focus.ts',
 		],
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
-		// The browser suites verify behaviour jsdom can't — layout/colour geometry
-		// (vitest.browser.config.ts) and real-floating-engine focus trapping
-		// (vitest.browser-real.config.ts) — so neither may run under this jsdom config.
-		exclude: [
-			...configDefaults.exclude,
-			'src/__tests__/browser/**',
-			'src/__tests__/browser-real/**',
-		],
+		// The browser suite (vitest.browser.config.ts) verifies behaviour jsdom
+		// can't — layout/colour geometry and, in its floating-ui project,
+		// real-floating-engine focus trapping — so it may not run under this
+		// jsdom config.
+		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',

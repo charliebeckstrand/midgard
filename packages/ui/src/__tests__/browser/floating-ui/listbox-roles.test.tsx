@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Listbox } from '../../components/listbox'
-import { ListboxOption } from '../../components/listbox/listbox-option'
-import { renderUI, screen, waitFor } from '../helpers'
+import { Listbox } from '../../../components/listbox'
+import { ListboxOption } from '../../../components/listbox/listbox-option'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Listbox ARIA roles (real floating engine). Verifies `role: null` on

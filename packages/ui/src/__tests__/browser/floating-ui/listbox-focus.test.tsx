@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Button } from '../../components/button'
-import { Listbox } from '../../components/listbox'
-import { ListboxOption } from '../../components/listbox/listbox-option'
-import { renderUI, screen, waitFor } from '../helpers'
+import { Button } from '../../../components/button'
+import { Listbox } from '../../../components/listbox'
+import { ListboxOption } from '../../../components/listbox/listbox-option'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Listbox focus containment (real floating engine). Asserts that opening the

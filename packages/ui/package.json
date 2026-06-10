@@ -47,7 +47,6 @@
 		"docs:preview": "vite preview --config vite.docs.config.ts --port 3456",
 		"test": "vitest run",
 		"test:browser": "vitest run --config vitest.browser.config.ts",
-		"test:browser-real": "vitest run --config vitest.browser-real.config.ts",
 		"test:a11y": "vitest run src/__tests__/a11y",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Button } from '../../components/button'
-import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
-import { renderUI, screen, waitFor } from '../helpers'
+import { Button } from '../../../components/button'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Menu ARIA roles (real floating engine). Verifies `role: null` on

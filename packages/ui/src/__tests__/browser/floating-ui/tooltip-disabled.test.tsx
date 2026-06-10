@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { bySlot, renderUI, screen, waitFor } from '../helpers'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { bySlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Tooltip `:disabled` gating against the real floating engine. The jsdom and
