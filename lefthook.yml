@@ -7,7 +7,7 @@ pre-commit:
       run: pnpm check-types
       priority: 2
     - name: test
-      run: pnpm --filter ui test
+      run: pnpm --filter ui test && pnpm --filter ui test:browser
       priority: 3
     - name: knip
       run: pnpm knip

@@ -142,16 +142,11 @@ export function Demo() {
 				<SidebarBody>
 					<SidebarSection>
 						{conversations.map((conv) => (
-							<SidebarItem key={conv.id} current={conv.active}>
-								<Stack direction="row" align="center" full>
-									<Stack full className="gap-0 min-w-0">
-										<SidebarLabel>{conv.title}</SidebarLabel>
-										<Text className="text-xs truncate" variant="muted">
-											{conv.preview}
-										</Text>
-									</Stack>
-									<Spacer />
-									{!conv.active && (
+							<SidebarItem
+								key={conv.id}
+								current={conv.active}
+								suffix={
+									!conv.active && (
 										<Button
 											aria-label="Delete conversation"
 											color="red"
@@ -161,7 +156,17 @@ export function Demo() {
 										>
 											<Icon icon={<Trash />} />
 										</Button>
-									)}
+									)
+								}
+							>
+								<Stack direction="row" align="center" full>
+									<Stack full className="gap-0 min-w-0">
+										<SidebarLabel>{conv.title}</SidebarLabel>
+										<Text className="text-xs truncate" variant="muted">
+											{conv.preview}
+										</Text>
+									</Stack>
+									<Spacer />
 								</Stack>
 							</SidebarItem>
 						))}
