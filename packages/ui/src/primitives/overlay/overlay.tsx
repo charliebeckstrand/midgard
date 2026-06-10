@@ -28,6 +28,13 @@ type OverlayProps = {
 	container?: HTMLElement | null
 	/** Element to receive initial focus when the overlay opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
+	/**
+	 * Modal overlays (the default) trap focus, move it into the panel on open,
+	 * and lock body scroll. Pass `false` for transient, pointer-driven surfaces
+	 * (e.g. a hover-revealed sheet) that must not steal focus or block the page;
+	 * Escape dismissal still works.
+	 */
+	modal?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 export function Overlay({
@@ -39,6 +46,7 @@ export function Overlay({
 	children,
 	container,
 	initialFocus,
+	modal = true,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -56,7 +64,7 @@ export function Overlay({
 		outsidePointer: false,
 	})
 
-	useScrollLock(open && !scoped)
+	useScrollLock(open && !scoped && modal)
 
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
@@ -64,30 +72,37 @@ export function Overlay({
 
 	if (typeof document === 'undefined') return null
 
+	const panel = (
+		<div
+			ref={refs.setFloating}
+			data-slot="overlay"
+			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed')}
+			{...props}
+		>
+			<motion.div
+				{...k.motion}
+				data-slot="overlay-backdrop"
+				className={className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)}
+				onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
+				aria-hidden="true"
+			/>
+			{children}
+		</div>
+	)
+
 	return createPortal(
 		<ReducedMotion>
 			<AnimatePresence>
-				{open && (
-					<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
-						<div
-							ref={refs.setFloating}
-							data-slot="overlay"
-							className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed')}
-							{...props}
-						>
-							<motion.div
-								{...k.motion}
-								data-slot="overlay-backdrop"
-								className={
-									className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
-								}
-								onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
-								aria-hidden="true"
-							/>
-							{children}
-						</div>
-					</FloatingFocusManager>
-				)}
+				{open &&
+					// Non-modal overlays skip focus management entirely: no trap, no
+					// initial-focus steal, no focus return — focus stays where it is.
+					(modal ? (
+						<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+							{panel}
+						</FloatingFocusManager>
+					) : (
+						panel
+					))}
 			</AnimatePresence>
 		</ReducedMotion>,
 		portalContainer ?? document.body,
