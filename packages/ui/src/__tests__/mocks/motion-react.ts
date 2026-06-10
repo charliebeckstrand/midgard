@@ -100,6 +100,19 @@ function useMotionValue<T>(initial: T) {
 	}
 }
 
+// Derives a static motion value from a source: `.get()` applies the transform
+// to the source's current value. No reactivity is needed in jsdom, where the
+// animation runtime is stubbed and nothing reads per-frame updates.
+function useTransform<I, O>(source: { get: () => I } | (() => O), transform?: (value: I) => O) {
+	const read = () =>
+		typeof source === 'function' ? source() : transform ? transform(source.get()) : source.get()
+	return {
+		get: read,
+		set: () => {},
+		on: () => () => {},
+	}
+}
+
 // Reads the reduced-motion preference from `window.matchMedia`, mirroring the
 // real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
 // the reduced path with `stubMatchMedia` + `vi.unstubAllGlobals()` in
@@ -120,4 +133,5 @@ export default {
 	useAnimate,
 	useMotionValue,
 	useReducedMotion,
+	useTransform,
 }
