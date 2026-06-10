@@ -8,7 +8,7 @@ export type A11yLiveLevel = 'polite' | 'assertive'
 export type A11yLiveRegionOptions = {
 	/** Announcement urgency. `'assertive'` interrupts; `'polite'` waits. */
 	level?: A11yLiveLevel
-	/** Read the region as a whole on change rather than just the diff. */
+	/** Read the region as a whole on change rather than only the diff. */
 	atomic?: boolean
 	/** Visually hide the region (`sr-only`) while keeping it in the a11y tree. */
 	srOnly?: boolean
@@ -24,7 +24,7 @@ export type A11yLiveRegionProps = {
 }
 
 /**
- * Props for a live region the consumer fills with children — a status/alert
+ * Props for a live region the consumer fills with children: a status/alert
  * landmark with matching `aria-live` / `aria-atomic`, optionally visually
  * hidden. For imperative, no-visible-home announcements use `announce` /
  * `useA11yAnnouncements` instead.

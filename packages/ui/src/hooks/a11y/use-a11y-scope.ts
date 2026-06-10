@@ -13,7 +13,7 @@ export type A11yScopeOptions<Slot extends string = never> = {
 	id?: string
 	/**
 	 * Named slots mapped to the relation each feeds once it registers. Pass a
-	 * stable reference (a module constant) — an inline literal re-derives the
+	 * stable reference (a module constant); an inline literal re-derives the
 	 * scope each render.
 	 */
 	slots?: Record<Slot, A11yRelation>
@@ -27,16 +27,16 @@ export type A11yScope<Slot extends string = never> = {
 	/** Derived id for each declared slot. */
 	ids: Record<Slot, string>
 	/**
-	 * Per-slot mount registrar — call inside an effect; the cleanup deregisters.
-	 * Pass the id the slot actually renders (a consumer `id` overriding the derived
-	 * one) so the composed `aria-*` references the rendered element, never a
-	 * dangling generated id. Omit to register the derived id. Reference-counted, so
-	 * two instances of the same slot don't drop the id when one unmounts.
+	 * Per-slot mount registrar: call inside an effect; the cleanup deregisters.
+	 * Pass the id the slot renders (a consumer `id` overriding the derived one);
+	 * the composed `aria-*` then references the rendered element, never a
+	 * dangling generated id. Omit to register the derived id. Reference-counted:
+	 * the id stays until every instance of the slot unmounts.
 	 */
 	register: Record<Slot, (renderedId?: string) => () => void>
-	/** Spreadable bag — `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
+	/** Spreadable bag: `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
 	ariaProps: AriaProps
-	/** Per-slot presence — `true` while at least one instance of the slot is mounted. */
+	/** Per-slot presence: `true` while at least one instance of the slot is mounted. */
 	registered: Record<Slot, boolean>
 }
 
@@ -44,7 +44,7 @@ export type A11yScope<Slot extends string = never> = {
  * Universal accessibility scope: a stable id plus slot-driven `aria-labelledby`
  * / `aria-describedby` wiring. Declare named slots and the relation each feeds;
  * the matching part registers on mount and the composed attributes reference
- * only the slots actually in the DOM, never a dangling id. Specialized hooks
+ * only the slots present in the DOM, never a dangling id. Specialized hooks
  * (`useA11yPanel`, `useA11yControl`) layer their slot vocabulary over this base.
  */
 export function useA11yScope<Slot extends string = never>(
@@ -115,8 +115,7 @@ export function useA11yScope<Slot extends string = never>(
 		return { labelledby, describedby }
 	}, [present, slots])
 
-	// Composed at the top level — `useAriaIds` is a hook and cannot run inside
-	// the bucketing loop above.
+	// `useAriaIds` is a hook; it cannot run inside the bucketing loop above.
 	const labelledby = useAriaIds(...buckets.labelledby)
 	const describedby = useAriaIds(...buckets.describedby)
 

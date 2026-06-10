@@ -4,9 +4,8 @@ import { useCallback, useRef, useState } from 'react'
 
 /**
  * Lifted-item state for keyboard reordering. Space toggles an item's "lifted"
- * id, blur drops it — except blurs caused by the hook's own `refocus`, which
- * restores focus on the next frame after a reorder re-renders the DOM and must
- * not clear the lifted state mid-move.
+ * id; blur drops it. `refocus` restores focus on the frame after a reorder
+ * re-renders the DOM; blurs it causes keep the lifted state.
  */
 export function useKeyboardLifted(focus: (id: string) => void) {
 	const [liftedId, setLiftedId] = useState<string | null>(null)

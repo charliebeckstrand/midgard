@@ -22,14 +22,14 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
 }
 
 /**
- * Move the virtual-mode active marker to `items[index]`: shifts `data-active`,
- * and — when `activeDescendantRef` is given — points `aria-activedescendant` on
- * the owner at the active item. By default it also mirrors `aria-selected` onto
- * the items — highlight doubles as selection (command palette model); pass
- * `ariaSelected: false` when items carry their own `aria-selected` for a stored
- * value (e.g. a combobox), keeping the highlight a pure focus cue.
+ * Move the virtual-mode active marker to `items[index]`: shifts `data-active`
+ * and, when `activeDescendantRef` is given, points `aria-activedescendant` on
+ * the owner at the active item. By default it also mirrors `aria-selected`
+ * onto the items (highlight doubles as selection, the command palette model);
+ * pass `ariaSelected: false` when items carry their own `aria-selected` for a
+ * stored value (e.g. a combobox), keeping the highlight a pure focus cue.
  * Pass a negative `index` (or an empty list) to clear the active state. The
- * prior active item is found by its `data-active` marker; callers don't track
+ * `data-active` marker identifies the prior active item; callers don't track
  * an index.
  */
 export function setVirtualActive(
@@ -62,9 +62,8 @@ export function setVirtualActive(
 
 /**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
- * other item `-1`. Writes only on divergence to avoid a MutationObserver
- * watching `tabindex` feeding back on these edits. Pass `undefined` to demote
- * all.
+ * other item `-1`. Writes only on divergence; a MutationObserver watches
+ * `tabindex` and fires on every edit. Pass `undefined` to demote all.
  */
 function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
 	for (const it of items) {
@@ -160,12 +159,12 @@ function nextIndexGrid(
 	}
 }
 
-/** Whether a key event should drive type-ahead — a lone printable character. */
+/** Whether a key event should drive type-ahead: a lone printable character. */
 function isTypeaheadKey(e: KeyboardEvent): boolean {
 	return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
 }
 
-/** Label used to match an item during type-ahead: `aria-label`, else text. */
+/** Label that matches an item during type-ahead: `aria-label`, else text. */
 function itemLabel(el: HTMLElement): string {
 	return (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().toLowerCase()
 }
@@ -178,7 +177,7 @@ export type TypeaheadState = { query: string; timer: number }
  * matching item, or null. Repeated presses of the same character cycle through
  * items that start with it (search resumes past `currentIndex`); distinct
  * characters build a prefix matched from `currentIndex` onward. The buffer
- * self-clears after a short idle window.
+ * self-clears after a 500 ms idle window.
  */
 export function matchTypeahead(
 	state: TypeaheadState,
@@ -218,7 +217,7 @@ type RovingOptions = RovingConfig & {
 	itemSelector: string
 	/**
 	 * `focus` moves real DOM focus to the active item; `virtual` marks it with
-	 * `data-active` so a separate input can retain focus.
+	 * `data-active` while a separate input retains focus.
 	 * @default 'focus'
 	 */
 	mode?: 'focus' | 'virtual'
@@ -227,7 +226,7 @@ type RovingOptions = RovingConfig & {
 	/**
 	 * Jump to the item whose label starts with recently typed characters
 	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
-	 * not for text inputs that own their own typing. The label is read from each
+	 * not for text inputs that own their own typing. Reads the label from each
 	 * item's `aria-label`, falling back to its trimmed `textContent`.
 	 * @default false
 	 */
@@ -237,8 +236,8 @@ type RovingOptions = RovingConfig & {
 	/**
 	 * Virtual mode: mirror the highlight onto each item's `aria-selected`. Leave
 	 * on when the highlight *is* the selection (command palette); turn off when
-	 * the items own `aria-selected` for a stored value (combobox), so moving the
-	 * highlight only repoints `aria-activedescendant`.
+	 * the items own `aria-selected` for a stored value (combobox), where moving
+	 * the highlight only repoints `aria-activedescendant`.
 	 * @default true
 	 */
 	manageAriaSelected?: boolean
@@ -256,16 +255,16 @@ type RovingOptions = RovingConfig & {
 	manageTabIndex?: boolean
 	/**
 	 * Focus mode + `manageTabIndex`: selector for the item that holds the resting
-	 * `tabIndex=0` on mount (e.g. `[aria-current="page"]`). Falls back to the first
-	 * item when it matches nothing, and is ignored once the user has roved.
+	 * `tabIndex=0` on mount (e.g. `[aria-current="page"]`). Falls back to the
+	 * first item when it matches nothing; applies only until the user roves.
 	 */
 	activeSelector?: string
 	/**
 	 * Virtual mode: a `combobox`/`textbox` element that owns the listbox. When
-	 * provided, the active item is mirrored into ARIA — `aria-selected` is set on
-	 * it (and cleared from the previous one) and the element's
-	 * `aria-activedescendant` is pointed at the active item's `id` — so assistive
-	 * tech can track the keyboard highlight while focus stays on the input.
+	 * provided, the hook mirrors the active item into ARIA: it sets
+	 * `aria-selected` on the item (clearing the previous one) and points the
+	 * element's `aria-activedescendant` at the active item's `id` while focus
+	 * stays on the input.
 	 */
 	activeDescendantRef?: RefObject<HTMLElement | null>
 }
@@ -303,8 +302,8 @@ export function useA11yRoving(
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
 	// (items added/removed, disabled toggled, current item moved) and carrying the
-	// stop to whatever item takes focus. Writes only on divergence to avoid the
-	// observer feeding back on its own tabindex edits.
+	// stop to whatever item takes focus. Writes only on divergence; the observer
+	// fires on its own tabindex edits.
 	useEffect(() => {
 		if (mode !== 'focus' || !manageTabIndex) return
 
@@ -324,7 +323,7 @@ export function useA11yRoving(
 
 			const tabbable = items.filter((it) => it.tabIndex === 0)
 
-			// A single existing stop means the user has already roved — preserve it.
+			// A single existing stop means the user has already roved; preserve it.
 			// Otherwise, seat the stop on the active item (per `activeSelector`),
 			// falling back to the first.
 			const active =

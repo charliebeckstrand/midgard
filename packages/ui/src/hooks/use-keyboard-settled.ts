@@ -23,7 +23,7 @@ export function useKeyboardSettled() {
 
 		const viewport = window.visualViewport
 
-		// No visual viewport API or not a touch device — fire now
+		// No visual viewport API or not a touch device: fire now
 		if (!viewport || !('ontouchstart' in window)) {
 			callback()
 

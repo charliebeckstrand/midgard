@@ -1,5 +1,5 @@
 /**
- * Locate the element stamped `data-slot="<slot>"` whose `data-<attr>` equals
+ * Locates the element stamped `data-slot="<slot>"` whose `data-<attr>` equals
  * `id`. Keyboard-reorder hooks use it to re-find an item by stable id after a
  * state update re-renders the DOM.
  */

@@ -11,16 +11,16 @@ type Options<T> = DefaultOption<T> | ErrorOption
 
 /**
  * Creates a typed context and its consumer hook. The Context itself is the
- * Provider — render `<MyContext value={…}>` directly (React 19).
+ * Provider; render `<MyContext value={…}>` directly (React 19).
  *
  * - Without options, the hook throws `use${name} must be used within <${name}>`
- *   when used outside a provider — for required context (Menu, Tabs, Dialog, etc.).
+ *   when used outside a provider; for required context (Menu, Tabs, Dialog, etc.).
  * - With `{ default }`, the hook returns the default when used outside a
- *   provider — for optional / ambient context (Glass, Skeleton, Headless,
+ *   provider; for optional / ambient context (Glass, Skeleton, Headless,
  *   Density, Control, etc.).
  * - With `{ error }`, the hook still throws when used outside a provider, with
- *   the supplied message instead of the default template — for the rare case
- *   where the consumer name (e.g. `PanelClose`) differs from the wrapper the
+ *   the supplied message instead of the default template; for the case where
+ *   the consumer name (e.g. `PanelClose`) differs from the wrapper the
  *   developer needs to add (`Dialog` / `Sheet` / `Drawer`).
  *
  * For thin cases where a named hook would be empty sugar, discard the hook
@@ -58,7 +58,7 @@ export function createContext<T>(name: string, options?: Options<T>): [ReactCont
 		hasDefault ? (options as DefaultOption<T>).default : (MISSING as unknown as T),
 	)
 
-	// Names the context so it shows as `<${name}>` in React DevTools.
+	// React DevTools shows the context as `<${name}>`.
 	Context.displayName = name
 
 	function useContextValue(): T {

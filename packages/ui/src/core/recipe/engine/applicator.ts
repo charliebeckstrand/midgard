@@ -1,5 +1,5 @@
 /**
- * applyRecipe — the merge helper a katakana bridge calls to fold a kata's
+ * applyRecipe: the merge helper a katakana bridge calls to fold a kata's
  * per-call overlay over an archetype's standard config / extras, then hand
  * the result to `defineRecipe`. Preserves key-type inference via an explicit
  * return type, conditional intersection, and a single cast at the engine
@@ -12,7 +12,7 @@ import { defineRecipe } from './recipe'
 import type { Recipe, RecipeConfig, ReservedField } from './types'
 
 /**
- * Empty — the empty mapped type. `keyof Empty = never`, which `Merge`
+ * Empty: the empty mapped type. `keyof Empty = never`, which `Merge`
  * folds against when the caller declares no overlay. Spelled
  * `Record<never, never>` rather than `{}` (`object`, `unknown`, and
  * `Record<keyof any, never>` all widen or carry an index signature that
@@ -29,7 +29,7 @@ type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
 
 /**
  * The per-call overlay a kata hands an applicator. Identical to
- * `RecipeConfig` — extra variant axes are top-level keys (like `density`
+ * `RecipeConfig`: extra variant axes are top-level keys (like `density`
  * / `size` in `defineRecipe`), not nested under an `axes` field.
  * Callable siblings (`motion`, sub-recipes) flow through the
  * applicator's separate `extras` argument, mirroring
@@ -54,7 +54,7 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
  * The shape `applyRecipe(...)` returns. Merges the standard config / extras
  * with the caller's overlay / extras and forwards to `Recipe<…>`, folding
  * the empty-overlay case via `Merge` to keep a wide index signature out of
- * the prop union. Internal to this module — the bridge derives its variant
+ * the prop union. Internal to this module; the bridge derives its variant
  * types from the concrete `k` at the kata.
  */
 type ApplicatorReturn<
@@ -67,9 +67,9 @@ type ApplicatorReturn<
 		Omit<StandardConfig, 'slots'> & {
 			slots: Merge<NonNullable<StandardConfig['slots']>, SlotsOf<Overlay>>
 		},
-		// Keep `skeleton` in the overlay so it flows into `Recipe<…>` and
+		// Keep `skeleton` in the overlay; it flows into `Recipe<…>` and
 		// surfaces as `k.skeleton` with its caller-inferred type. Other
-		// reserved fields stay stripped — the runtime merges them via the
+		// reserved fields stay stripped; the runtime merges them via the
 		// explicit branches in `applyRecipe`.
 		Omit<Overlay, Exclude<ReservedField, 'skeleton'>>
 	>
@@ -80,21 +80,21 @@ type ApplicatorReturn<
  * Apply an archetype's standard config / extras over a kata's per-call
  * overlay and forward to `defineRecipe`.
  *
- * Signature mirrors `defineRecipe(config, extras)` — the caller's
+ * Signature mirrors `defineRecipe(config, extras)`: the caller's
  * recipe-config overlay flows through `config` (second arg); kata-
  * specific siblings flow through `extras` (third arg). Standard pieces
  * live at the archetype module's top level in `standard.config` /
  * `standard.extras`.
  *
  * Merge semantics:
- *   - `base` — standard's then caller's, concatenated.
- *   - `slots` — shallow merge; caller's keys override.
- *   - `defaults` — shallow merge; caller's keys override.
- *   - `palette` — caller's overrides standard's; palettes replace, they
+ *   - `base`: standard's then caller's, concatenated.
+ *   - `slots`: shallow merge; caller's keys override.
+ *   - `defaults`: shallow merge; caller's keys override.
+ *   - `palette`: caller's overrides standard's; palettes replace, they
  *     don't merge.
- *   - `compound` — standard's then caller's, concatenated; every rule
+ *   - `compound`: standard's then caller's, concatenated; every rule
  *     still gets a chance to match.
- *   - variant axes (every other top-level key) — shallow merge; caller's
+ *   - variant axes (every other top-level key): shallow merge; caller's
  *     overrides on axis-name conflicts.
  */
 export function applyRecipe<
@@ -114,7 +114,7 @@ export function applyRecipe<
 		slots: callerSlots,
 		defaults: callerDefaults,
 		compound: callerCompound,
-		// Palette flows through `restConfig` below — caller's overrides standard's.
+		// Palette flows through `restConfig` below; caller's overrides standard's.
 		...restConfig
 	} = overlay
 

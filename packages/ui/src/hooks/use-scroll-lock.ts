@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-// Reference-counted; nested overlays don't release the lock prematurely.
+// Reference count shared by nested overlays.
 let scrollLockCount = 0
 
 let scrollLockPreviousOverflow = ''
@@ -19,9 +19,9 @@ function acquireScrollLock() {
 
 		scrollLockPreviousPaddingRight = body.style.paddingRight
 
-		// Pad the body by the scrollbar's width before hiding overflow — absorbs
-		// the space the scrollbar occupied, avoiding a layout shift. Applied
-		// only when a vertical scrollbar is present.
+		// Pads the body by the scrollbar's width before hiding overflow,
+		// replacing the space the scrollbar occupied. Applies only when a
+		// vertical scrollbar is present.
 		const hasScrollbar = documentElement.scrollHeight > documentElement.clientHeight
 
 		const scrollbarWidth = window.innerWidth - documentElement.clientWidth
