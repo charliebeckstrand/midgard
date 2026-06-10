@@ -5,9 +5,8 @@ import type { GroupOrientation, GroupPosition } from '../../recipes'
 
 /**
  * Per-element join position broadcast by `<Group>` (via `useGroup`) to each
- * direct child. Read by `<Placeholder>` so skeleton renders inherit the same
- * end-cap radii and 1 px overlap as the real controls — without each leaf
- * having to forward `data-group` to its placeholder render path.
+ * direct child. `<Placeholder>` reads it; skeleton renders inherit the real
+ * controls' end-cap radii and 1 px overlap.
  */
 type JoinContextValue = {
 	position: GroupPosition

@@ -17,9 +17,9 @@ export type ToastViewportContextValue = {
 	handleExitComplete: () => void
 }
 
-/** Public — caller-facing API for emitting and dismissing toasts. */
+/** Public: caller-facing API for emitting and dismissing toasts. */
 export const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 
-/** Internal — viewport state consumed by the `<Toast>` viewport. */
+/** Internal: viewport state the `<Toast>` viewport consumes. */
 export const [ToastViewportContext, useToastViewport] =
 	createContext<ToastViewportContextValue>('ToastViewport')

@@ -9,7 +9,7 @@ import { CurrentFadeContext } from './current'
 import { useCurrentContentsHeight } from './use-current-contents-height'
 
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
-	/** Slot prefix used to stamp `data-slot="<slotPrefix>-contents"` and pair with `CurrentContent` siblings. */
+	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string
 	/** Animate height between active panels. Default true. */
 	fade?: boolean

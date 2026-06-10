@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
-// motion/react shim — strips animation props so components mount cleanly
-// without a full animation runtime.
+// motion/react shim: strips animation props; components mount without a
+// full animation runtime.
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
 
@@ -69,9 +69,9 @@ vi.mock('motion/react', async () => {
 	return { motion, AnimatePresence, LayoutGroup, useAnimate, useMotionValue }
 })
 
-// Browser shims — only installed in jsdom runs. Pure-logic benchmark files
+// Browser shims, installed only in jsdom runs. Pure-logic benchmark files
 // opt into `node` via `// @vitest-environment node`, where `window` is
-// undefined and these shims are simply skipped.
+// undefined and the shims do not run.
 
 if (typeof window !== 'undefined') {
 	if (typeof window.matchMedia !== 'function') {

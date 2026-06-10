@@ -8,7 +8,7 @@ export type PanelCloseProps = {
 }
 
 /**
- * Wraps a single child so clicking it closes the enclosing panel (Dialog, Sheet,
+ * Wraps a single child; clicking it closes the enclosing panel (Dialog, Sheet,
  * Drawer). The child's own `onClick` runs first, then the panel's `close()`.
  */
 export function PanelClose({ children }: PanelCloseProps) {

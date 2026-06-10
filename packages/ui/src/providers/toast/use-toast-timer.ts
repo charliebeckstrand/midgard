@@ -21,8 +21,8 @@ export function useToastTimer(
 
 	const startTimer = useCallback(() => {
 		// Don't arm while paused (pointer/focus on a live toast); `resume` clears
-		// the flag before restarting. Without this, pushing a new toast would arm a
-		// live auto-dismiss timer under the user's pointer/focus (WCAG 2.2.1).
+		// the flag before restarting. WCAG 2.2.1: no live auto-dismiss timer under
+		// the user's pointer/focus.
 		if (pausedRef.current) return
 
 		clearTimeout(timerRef.current)
@@ -33,9 +33,8 @@ export function useToastTimer(
 	}, [start])
 
 	const pause = useCallback(() => {
-		// Hover and focus both pause (onMouseEnter + onFocus); a second call
-		// without this guard would subtract elapsed-since-start again, collapsing
-		// remaining time to ~0.
+		// Hover and focus both pause (onMouseEnter + onFocus); the guard makes
+		// the second call a no-op.
 		if (pausedRef.current) return
 
 		pausedRef.current = true
@@ -61,8 +60,8 @@ export function useToastTimer(
 		[duration],
 	)
 
-	// Restores the full duration and restarts the timer. Skipped while paused;
-	// `resume()` picks up the new remaining when the pointer leaves.
+	// Restores the full duration and restarts the timer. While paused, skips
+	// the restart; `resume()` picks up the new remaining when the pointer leaves.
 	const reset = useCallback(
 		(ms?: number) => {
 			remainingRef.current = ms ?? duration

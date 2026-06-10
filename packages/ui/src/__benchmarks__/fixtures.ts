@@ -1,9 +1,8 @@
 /**
  * Deterministic fixture generators for benchmarks.
  *
- * Benchmarks need reproducible inputs so run-to-run variance reflects the
- * code under test — not the data. Each helper here is seeded with a simple
- * LCG so identical parameters always produce identical output.
+ * Each helper seeds an LCG; identical parameters produce identical output,
+ * and run-to-run variance reflects the code under test, not the data.
  */
 
 import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'

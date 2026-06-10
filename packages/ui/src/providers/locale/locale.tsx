@@ -8,9 +8,9 @@ type LocaleProviderProps = LocaleConfig & {
 }
 
 /**
- * Broadcasts internationalization defaults — locale, currency, number / date
- * formatting options, time zone — so locale-aware components inherit them
- * without per-call props. Explicit props on individual components still win.
+ * Broadcasts internationalization defaults (locale, currency, number / date
+ * formatting options, time zone) to locale-aware components. Explicit props
+ * on individual components still win.
  */
 export function LocaleProvider({
 	locale,
