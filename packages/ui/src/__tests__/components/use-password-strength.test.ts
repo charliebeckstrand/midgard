@@ -43,6 +43,22 @@ describe('usePasswordStrength', () => {
 		expect(result.current.passedCount).toBe(1)
 	})
 
+	it('does not re-fire onStrengthChange for keystrokes that leave strength unchanged', () => {
+		const onStrengthChange = vi.fn()
+
+		const { rerender } = renderHook(
+			({ value }) => usePasswordStrength({ value, rules, onStrengthChange }),
+			{ initialProps: { value: 'abcdefgh' } },
+		)
+
+		expect(onStrengthChange).toHaveBeenCalledTimes(1)
+
+		// Same rules pass — a fresh passed-array identity must not re-fire.
+		rerender({ value: 'abcdefghi' })
+
+		expect(onStrengthChange).toHaveBeenCalledTimes(1)
+	})
+
 	it('preserves rule order and identity in results', () => {
 		const { result } = renderHook(() => usePasswordStrength({ value: 'Ab1!', rules }))
 

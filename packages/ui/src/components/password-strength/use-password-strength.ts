@@ -54,7 +54,19 @@ export function usePasswordStrength({
 		[rules, value],
 	)
 
-	const passedIds = useMemo(() => results.filter((r) => r.passed).map((r) => r.rule.id), [results])
+	// Keyed on the joined ids, not `results`: results change identity on every
+	// keystroke, and a fresh `passed` array per keystroke re-fired
+	// onStrengthChange even when nothing about the strength changed.
+	const passedKey = useMemo(
+		() =>
+			results
+				.filter((r) => r.passed)
+				.map((r) => r.rule.id)
+				.join('\u0000'),
+		[results],
+	)
+
+	const passedIds = useMemo(() => (passedKey === '' ? [] : passedKey.split('\u0000')), [passedKey])
 
 	const passedCount = passedIds.length
 
