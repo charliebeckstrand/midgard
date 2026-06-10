@@ -106,6 +106,27 @@ describe('EditableGrid', () => {
 		expect(onChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'rate', value: '9.99' }])
 	})
 
+	it('names the open editor by its column title and row number', () => {
+		const { container } = renderUI(
+			<EditableGrid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		// Second row, rate column.
+		fireEvent.doubleClick(allBySlot(container, 'editable-grid-cell')[3] as HTMLElement)
+
+		// String column titles name the editor by what it edits; the bare
+		// "row 2 column 2" coordinate form is the non-string-title fallback only.
+		expect(bySlot(container, 'editable-grid-input')).toHaveAttribute(
+			'aria-label',
+			'Edit Rate, row 2',
+		)
+	})
+
 	it('cancels the edit on Escape without firing onValueChange', () => {
 		const onChange = vi.fn()
 

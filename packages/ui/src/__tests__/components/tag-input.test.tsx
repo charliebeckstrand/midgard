@@ -1,7 +1,7 @@
-import { createRef } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
+import { bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -168,6 +168,43 @@ describe('TagInput', () => {
 		await user.click(getRemoveButtons(container)[0] as Element)
 
 		await waitFor(() => expect(document.activeElement).toBe(getInput(container)))
+	})
+
+	it('does not steal focus on a later release after a controlled parent rejects a removal', async () => {
+		function RejectingParent() {
+			const [value, setValue] = useState(['a', 'b'])
+
+			return (
+				<>
+					{/* The parent rejects the removal: it re-commits the same tags, so
+					    atMax never releases and the refocus flag must die on that render,
+					    not survive to the next release. */}
+					<TagInput value={value} max={2} onValueChange={() => setValue((prev) => [...prev])} />
+					<button type="button" onClick={() => setValue(['b'])}>
+						release
+					</button>
+				</>
+			)
+		}
+
+		const { container } = renderUI(<RejectingParent />)
+
+		const user = userEvent.setup()
+
+		await user.click(getRemoveButtons(container)[0] as Element)
+
+		// Rejected removal: still at max, input still disabled.
+		expect(getInput(container)).toBeDisabled()
+
+		// An unrelated later release re-enables the input; focus stays where the
+		// user put it instead of being stolen by the stale flag.
+		const release = screen.getByRole('button', { name: 'release' })
+
+		await user.click(release)
+
+		expect(getInput(container)).toBeEnabled()
+
+		expect(document.activeElement).toBe(release)
 	})
 
 	it('makes each tag badge focusable', () => {

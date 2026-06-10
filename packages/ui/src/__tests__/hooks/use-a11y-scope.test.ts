@@ -101,6 +101,29 @@ describe('useA11yScope', () => {
 		expect(result.current.ariaProps['aria-labelledby']).toBeUndefined()
 	})
 
+	it('exposes per-slot presence via registered', () => {
+		const { result } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
+
+		expect(result.current.registered.title).toBe(false)
+
+		let cleanup = () => {}
+
+		act(() => {
+			cleanup = result.current.register.title()
+		})
+
+		// Presence tracks only the registered slot, for the life of its mount.
+		expect(result.current.registered.title).toBe(true)
+
+		expect(result.current.registered.description).toBe(false)
+
+		act(() => {
+			cleanup()
+		})
+
+		expect(result.current.registered.title).toBe(false)
+	})
+
 	it('keeps ids and register referentially stable across re-renders', () => {
 		const { result, rerender } = renderHook(() => useA11yScope({ id: 'x', slots: SLOTS }))
 

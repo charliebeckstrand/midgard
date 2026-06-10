@@ -380,6 +380,14 @@ describe('DatePicker keyboard', () => {
 })
 
 describe('DatePicker range', () => {
+	it('names the trigger via aria-label for unwrapped pickers', () => {
+		// The range variant threads aria-label through to the same trigger; the
+		// placeholder is not a programmatic name.
+		renderUI(<DatePicker range aria-label="Stay dates" />)
+
+		expect(screen.getByRole('button', { name: 'Stay dates' })).toBeInTheDocument()
+	})
+
 	it('renders trigger with range placeholder', () => {
 		const { container } = renderUI(<DatePicker range placeholder="Pick dates" />)
 
