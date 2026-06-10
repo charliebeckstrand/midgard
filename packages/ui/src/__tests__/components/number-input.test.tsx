@@ -16,6 +16,73 @@ describe('NumberInput', () => {
 		expect(input).toHaveAttribute('type', 'number')
 	})
 
+	it('composes a consumer onBlur with the clamp/round-on-blur contract', async () => {
+		const onBlur = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<NumberInput defaultValue={15} max={10} onBlur={onBlur} onValueChange={onValueChange} />,
+		)
+
+		const input = screen.getByRole('spinbutton')
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		await user.tab()
+
+		// The documented clamp-on-blur must run AND the consumer handler fire.
+		expect(onValueChange).toHaveBeenCalledWith(10)
+
+		expect(onBlur).toHaveBeenCalled()
+	})
+
+	it('derives step precision from scientific notation', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<NumberInput defaultValue={0} step={1e-7} onValueChange={onValueChange} />)
+
+		const user = userEvent.setup()
+
+		// (1e-7).toString() is "1e-7"; a naive split('.') read precision 0 and
+		// rounded the step away entirely.
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(onValueChange).toHaveBeenCalledWith(1e-7)
+	})
+
+	it('clamps after rounding so a stepped value never exceeds max', async () => {
+		const onValueChange = vi.fn()
+
+		// 9.99 + 0.1 = 10.09 → rounded to precision 1 → 10.1; clamping must run
+		// after the rounding, landing exactly on max.
+		renderUI(
+			<NumberInput defaultValue={9.99} step={0.1} max={10.05} onValueChange={onValueChange} />,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		expect(onValueChange).toHaveBeenCalledWith(10.05)
+	})
+
+	it('announces the stepped value through the polite live region', async () => {
+		renderUI(<NumberInput defaultValue={4} />)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		const politeRegion = document.body.querySelector(
+			'[data-slot="live-region"][aria-live="polite"]',
+		)
+
+		await vi.waitFor(() => expect(politeRegion).toHaveTextContent('5'))
+	})
+
 	it('renders decrease and increase buttons', () => {
 		renderUI(<NumberInput />)
 

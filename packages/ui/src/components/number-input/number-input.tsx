@@ -1,8 +1,8 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import type { ChangeEvent } from 'react'
-import { cn } from '../../core'
+import type { ChangeEvent, FocusEvent } from 'react'
+import { announce, cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
@@ -44,6 +44,7 @@ export function NumberInput({
 	className,
 	name,
 	ref,
+	onBlur,
 	...props
 }: NumberInputProps) {
 	const field = useFormField(name)
@@ -65,17 +66,23 @@ export function NumberInput({
 	// resolved locally only to pick the padding that clears the stepper buttons.
 	const resolvedSize: ControlSize = size ?? inherited.size
 
-	const precision = step.toString().split('.')[1]?.length ?? 0
+	const precision = stepPrecision(step)
 
 	const round = (n: number) => Number(n.toFixed(precision))
 
 	const clampValue = (n: number) =>
 		clamp(n, min ?? Number.NEGATIVE_INFINITY, max ?? Number.POSITIVE_INFINITY)
 
+	// Clamp AFTER rounding — `toFixed` rounds half-up, so rounding a clamped
+	// value could land past min/max (e.g. max 10.05 at precision 1 → 10.1).
 	const change = (delta: number) => {
-		setCurrent((prev) =>
-			prev === undefined ? round(clampValue(0)) : round(clampValue(prev + delta)),
-		)
+		const next = current === undefined ? clampValue(round(0)) : clampValue(round(current + delta))
+
+		setCurrent(next)
+
+		// The steppers are tabIndex -1 and mutate silently for AT virtual-cursor
+		// users; mirror the new value through the announcer (WCAG 4.1.3).
+		announce(String(next))
 	}
 
 	const atMin = min !== undefined && current !== undefined && current <= min
@@ -101,10 +108,14 @@ export function NumberInput({
 		setCurrent(n)
 	}
 
-	const handleBlur = () => {
+	const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
 		field?.setTouched()
 
-		setCurrent((prev) => (prev === undefined ? undefined : round(clampValue(prev))))
+		setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
+
+		// Composed, not clobbered: a consumer onBlur must not silently disable
+		// the documented clamp/round-on-blur and the form's touched tracking.
+		onBlur?.(e)
 	}
 
 	return (
@@ -150,4 +161,23 @@ export function NumberInput({
 			{...props}
 		/>
 	)
+}
+
+/**
+ * Decimal places implied by `step`, robust to scientific notation —
+ * `(1e-7).toString()` is `'1e-7'`, which a naive `split('.')` reads as
+ * precision 0 and would round every entry to an integer.
+ */
+function stepPrecision(step: number): number {
+	const s = step.toString()
+
+	const match = s.match(/^(\d+)?(?:\.(\d+))?[eE]([+-]?\d+)$/)
+
+	if (match) {
+		const mantissaDecimals = match[2]?.length ?? 0
+
+		return Math.max(0, mantissaDecimals - Number(match[3]))
+	}
+
+	return s.split('.')[1]?.length ?? 0
 }
