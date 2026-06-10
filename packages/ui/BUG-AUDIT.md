@@ -32,9 +32,9 @@ None.
 
 ✅ **Virtualized JsonTree never auto-expands search matches** (fixed: matching branch paths are seeded into `expanded` once per term, keeping matched branches collapsible) — `components/json-tree/json-tree-utilities.tsx:195-210`. `open = expanded.has(path)` and `flattenTree` returns early on closed branches; nothing seeds matching paths into `expanded`, so the documented auto-expand contract is broken in virtualized mode. Fix: seed/expand search-matching branch paths.
 
-**List-item keyboard handler hijacks Space/Arrow/Home/End from descendants** — `components/list/list-item.tsx:37`. `onKeyDown` lacks a `target === currentTarget` guard; bubbled keystrokes from inner buttons/inputs are treated as reorder gestures and `preventDefault`'d. Fix: guard on event source.
+✅ **List-item keyboard handler hijacks Space/Arrow/Home/End from descendants** — `components/list/list-item.tsx:37`. `onKeyDown` lacks a `target === currentTarget` guard; bubbled keystrokes from inner buttons/inputs are treated as reorder gestures and `preventDefault`'d. Fix: guard on event source.
 
-**User onBlur clobbers NumberInput clamp/round/setTouched** — `components/number-input/number-input.tsx:122,151`. `onBlur` isn't in the Omit list and `{...props}` spreads after `onBlur={handleBlur}`, so a consumer `onBlur` wins and the documented clamp/round-on-blur and form `setTouched` never run. Fix: merge handlers or spread props before internal wiring.
+✅ **User onBlur clobbers NumberInput clamp/round/setTouched** (fixed: composed) — `components/number-input/number-input.tsx:122,151`. `onBlur` isn't in the Omit list and `{...props}` spreads after `onBlur={handleBlur}`, so a consumer `onBlur` wins and the documented clamp/round-on-blur and form `setTouched` never run. Fix: merge handlers or spread props before internal wiring.
 
 **Consumer onScroll clobbers ScrollArea handleScroll** — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
 
@@ -192,9 +192,9 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Kanban column section emits dangling aria-labelledby without a title** (fixed: the title registers while mounted; the reference is gated on it) — `components/kanban/kanban-column.tsx:44-45`. The labelledby id is emitted unconditionally when no `aria-label`, but only KanbanColumnTitle renders it. Fix: only reference the id when the title is rendered.
 
-**NumberInput scientific-notation step → precision 0** — `components/number-input/number-input.tsx:67`. `step={1e-7}.toString()` is `'1e-7'`, so `split('.')[1]` is undefined and values snap to integers. Fix: compute precision without relying on decimal string form.
+✅ **NumberInput scientific-notation step → precision 0** (fixed: `stepPrecision` handles exponent notation) — `components/number-input/number-input.tsx:67`. `step={1e-7}.toString()` is `'1e-7'`, so `split('.')[1]` is undefined and values snap to integers. Fix: compute precision without relying on decimal string form.
 
-**NumberInput round-after-clamp can exceed min/max** — `components/number-input/number-input.tsx:69,79,108`. Rounding a clamped value to coarser step precision can re-cross the bound (max=0.06,step=0.1 → 0.1). Fix: clamp after rounding.
+✅ **NumberInput round-after-clamp can exceed min/max** (fixed: clamp runs after rounding) — `components/number-input/number-input.tsx:69,79,108`. Rounding a clamped value to coarser step precision can re-cross the bound (max=0.06,step=0.1 → 0.1). Fix: clamp after rounding.
 
 **PasswordConfirm confirmName/confirm not reset on unmount** — `components/password-confirm/password-confirm-input.tsx:14-16`. The register effect has no cleanup and parent `confirm` isn't cleared, leaving a stale warning. Fix: add cleanup clearing confirmName/confirm.
 
@@ -244,7 +244,7 @@ These classes recur across many files and are the highest-leverage fixes:
 
 **Container keyboard handlers hijack keys from focusable descendants (no `target === currentTarget` guard, or a too-broad roving fallback).** Affected: `list/list-item.tsx:37` (Space/Arrow/Home/End), `combobox/use-combobox-input.ts:74-95` (Home/End), `tree/tree.tsx:29-33` (Arrow/Home/End via `focusOnEmpty`), `kanban/use-kanban-keyboard.ts:110-125` (can't cross empty column). All are roving-navigation handlers on a parent that fail to exclude events originating in inner controls / off-grid focus.
 
-**Post-mount sync gaps: an effect/observer applies one prop but silently freezes the rest after mount.** Affected: `map/map-marker.tsx:49-96` (className/anchor frozen, only position synced), `signature-pad/use-signature-pad-canvas-sizing.ts:32-68` (stroke style only on resize), `credit-card-input/credit-card-input-cvv.tsx:58-68` (maxLength not re-applied), `scroll-area/use-scroll-area-scrollbar.ts:57-71` (children add/remove unobserved), `pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34` (rotation not reset on doc change). Common cause: a `useCallback`/effect with deps that exclude the changing prop, or a one-time seed.
+**Post-mount sync gaps: an effect/observer applies one prop but silently freezes the rest after mount.** Affected: ~~`map/map-marker.tsx:49-96`~~ **✅** (verified fixed — className synced in place, anchor recreates the marker), `signature-pad/use-signature-pad-canvas-sizing.ts:32-68` (stroke style only on resize), `credit-card-input/credit-card-input-cvv.tsx:58-68` (maxLength not re-applied), `scroll-area/use-scroll-area-scrollbar.ts:57-71` (children add/remove unobserved), `pdf-viewer/use-pdf-viewer-page-rotation.ts:24-34` (rotation not reset on doc change). Common cause: a `useCallback`/effect with deps that exclude the changing prop, or a one-time seed.
 
 **Controlled/uncontrolled state desync — control ignores its driving prop or seeds from the wrong source.** Affected: `alert/alert.tsx:127-153` (sticky local flag overrides `open`), `filters/filters-field.tsx:118-127` (toggles never get `checked`), `switch/switch.tsx:40-87` (always React-controlled, ignores native reset), `editable-grid/use-editable-grid-numeric-editor.ts:28-44` (ignores `draft`), `tag-input.tsx:73-89` (flag leaks when parent rejects update), and the foundational `hooks/use-controllable.ts:41-53` (functional updaters collapse in a batch — affects every consumer that calls the setter with `prev => …` twice per tick).
 
