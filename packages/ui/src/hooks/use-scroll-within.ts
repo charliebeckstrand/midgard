@@ -30,7 +30,10 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
 
 	const scrollerRect = scroller.getBoundingClientRect()
 
-	const offset = nodeRect.top - scrollerRect.top
+	// scrollTop/clientHeight are padding-box metrics while the rect top is
+	// border-box; subtract the top border so a bordered scroller doesn't
+	// overstate the offset and over-scroll.
+	const offset = nodeRect.top - scrollerRect.top - scroller.clientTop
 
 	const slack = scroller.clientHeight - nodeRect.height
 
