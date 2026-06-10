@@ -43,15 +43,7 @@ export const k = defineRecipe(
 			soft: focus.inset,
 			outline: ['ring-1 ring-inset', focus.inset],
 			plain: focus.inset,
-			bare: [
-				focus.inset,
-				// WCAG 2.5.8 floor: an icon-only bare box (xs 18px) must still hit
-				// 24px. The floored border-box is the button's real footprint; a
-				// control affix re-aligns the glyph by subtracting the compound `p`
-				// from its own padding (see affix-compensation boundary). Labelled
-				// bare buttons are excluded; they stay on the size-level `py`.
-				'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6',
-			],
+			bare: focus.inset,
 		},
 		// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
 		// is present the component sets `data-has-label`, which overrides `py` to
