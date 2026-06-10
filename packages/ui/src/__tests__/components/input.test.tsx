@@ -41,6 +41,21 @@ describe('Input', () => {
 		expect(input).toHaveAttribute('placeholder', 'Enter text')
 	})
 
+	it('treats a null/false affix as absent, and renders a 0 affix', () => {
+		const { container, rerender } = renderUI(<Input prefix={null} suffix={false} />)
+
+		// No affix means no flex wrapper class and no stray nodes.
+		expect(container.querySelector('[data-slot="suffix"]')).toBeNull()
+
+		expect(container.textContent).toBe('')
+
+		rerender(<Input suffix={0} />)
+
+		// A 0 affix is real content and renders inside the suffix slot,
+		// not as a bare text node leaked through a truthiness guard.
+		expect(container.querySelector('[data-slot="suffix"]')?.textContent).toBe('0')
+	})
+
 	it('renders prefix and suffix', () => {
 		const { container } = renderUI(
 			<Input
