@@ -36,7 +36,7 @@ None.
 
 ✅ **User onBlur clobbers NumberInput clamp/round/setTouched** (fixed: composed) — `components/number-input/number-input.tsx:122,151`. `onBlur` isn't in the Omit list and `{...props}` spreads after `onBlur={handleBlur}`, so a consumer `onBlur` wins and the documented clamp/round-on-blur and form `setTouched` never run. Fix: merge handlers or spread props before internal wiring.
 
-**Consumer onScroll clobbers ScrollArea handleScroll** — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
+✅ **Consumer onScroll clobbers ScrollArea handleScroll** (fixed: composed) — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
 
 **Range slider clamps before snapping → value > max** — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
 
@@ -110,7 +110,7 @@ _Progress (session `claude/ui-medium-bugs-audit-bvc421`): 42 of 53 fixed, marked
 
 ✅ **Resizable keyboard resize runs side effects inside the setSizes updater** — `components/resizable/use-resizable-panel.ts:120-135`. The updater mutates `sizesRef` and calls `onSizesChange`; StrictMode double-invokes it, firing the callback twice per keypress. Fix: run side effects outside the updater (as the drag path does).
 
-**ScrollArea ResizeObserver misses child add/remove** — `components/scroll-area/use-scroll-area-scrollbar.ts:57-71`. Observes only mount-time children; a viewport RO doesn't fire on its own scrollHeight change, so dynamic content leaves a stale thumb. Fix: add a MutationObserver or re-subscribe on child changes.
+✅ **ScrollArea ResizeObserver misses child add/remove** (fixed: a MutationObserver re-seats the observer and re-measures on childList changes) — `components/scroll-area/use-scroll-area-scrollbar.ts:57-71`. Observes only mount-time children; a viewport RO doesn't fire on its own scrollHeight change, so dynamic content leaves a stale thumb. Fix: add a MutationObserver or re-subscribe on child changes.
 
 ✅ **SignaturePad stroke style changes only apply on resize** — `components/signature-pad/use-signature-pad-canvas-sizing.ts:32-68`. `configureStroke` runs only inside `resize` (fired by ResizeObserver), so runtime `strokeColor`/`strokeWidth` changes don't reach drawn segments (dot vs line mismatch). Fix: re-apply stroke config when those props change.
 
@@ -202,13 +202,13 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **PDF defaultRotation not snapped to 90** (fixed: snapped at the source) — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:26-33`. Documented to snap but never rounded; `defaultRotation={45}` mis-sizes/clips. Fix: snap to the nearest multiple of 90.
 
-**ProgressGauge renders empty positioned span for label={false}** — `components/progress/progress-gauge.tsx:46-94`. `resolvedLabel != null` is true for `false`, mounting a styled empty span. Fix: guard `label !== false`.
+✅ **ProgressGauge renders empty positioned span for label={false}** — `components/progress/progress-gauge.tsx:46-94`. `resolvedLabel != null` is true for `false`, mounting a styled empty span. Fix: guard `label !== false`.
 
-**ProgressBar value={NaN} renders aria-valuenow="NaN", width "NaN%"** — `components/progress/progress-bar.tsx:30-49`. `NaN != null` is treated determinate and clamp yields NaN (same in ProgressGauge). Fix: treat NaN as indeterminate/0.
+✅ **ProgressBar value={NaN} renders aria-valuenow="NaN", width "NaN%"** (fixed: NaN is indeterminate) — `components/progress/progress-bar.tsx:30-49`. `NaN != null` is treated determinate and clamp yields NaN (same in ProgressGauge). Fix: treat NaN as indeterminate/0.
 
-**clampPair leaves left unclamped after second-pass reassignment** — `components/resizable/use-resizable-panel.ts:34-50`. Over-constrained min/max lets the right clamp push left below its min. Fix: re-clamp left after reassignment.
+✅ **clampPair leaves left unclamped after second-pass reassignment** (fixed: clamps into the intersection of both sides' feasible intervals) — `components/resizable/use-resizable-panel.ts:34-50`. Over-constrained min/max lets the right clamp push left below its min. Fix: re-clamp left after reassignment.
 
-**Shift+wheel hijacked from a horizontal viewport** — `components/scroll-area/use-scroll-area-scrollbar.ts:85-96`. shift+wheel always forwards to an outer ancestor (viewport excluded), breaking shift-to-pan on horizontal scroll-areas. Fix: don't hijack when the viewport itself scrolls horizontally.
+✅ **Shift+wheel hijacked from a horizontal viewport** (fixed: a horizontally scrollable viewport keeps the gesture) — `components/scroll-area/use-scroll-area-scrollbar.ts:85-96`. shift+wheel always forwards to an outer ancestor (viewport excluded), breaking shift-to-pan on horizontal scroll-areas. Fix: don't hijack when the viewport itself scrolls horizontally.
 
 **Stack forces gap-md outside any Density provider** — `components/stack/stack.tsx:18`. Hardcoded `'md'` fallback diverges from Flex (no fallback) and the documented unset contract; JSDoc also wrongly says `'lg'`. Fix: drop the fallback (and fix the doc).
 
@@ -250,7 +250,7 @@ These classes recur across many files and are the highest-leverage fixes:
 
 **Layout effect / lazy state initializer reads time or measurements without an SSR/commit guard.** Affected: `color/color-eyedropper.tsx:22-27` (window.EyeDropper during render), `calendar/use-calendar-month.ts:18-22` (`new Date()` in initializer), and the caret hooks `hooks/use-pending-caret.ts:21-37` (dependency-free layout effect not tied to a specific render).
 
-**UTC vs local-time date conversion drifts the day** — currently `query-builder/query-builder-rule-value.tsx:58-67`; the Calendar emits local-midnight Dates, so any consumer serializing via `toISOString().slice(0,10)` will hit the same ±1 day drift.
+✅ **UTC vs local-time date conversion drifts the day** (verified already fixed — query-builder serializes by local wall-clock components) — currently `query-builder/query-builder-rule-value.tsx:58-67`; the Calendar emits local-midnight Dates, so any consumer serializing via `toISOString().slice(0,10)` will hit the same ±1 day drift.
 
 ## Uncertain / needs human eyes
 
