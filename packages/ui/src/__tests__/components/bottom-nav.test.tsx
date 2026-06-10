@@ -6,23 +6,15 @@ import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 const TestIcon = <svg data-testid="icon" />
 
 describe('BottomNav', () => {
-	it('renders a nav element with data-slot="nav"', () => {
+	it('renders its children in a nav element with data-slot="nav"', () => {
 		const { container } = renderUI(
-			<BottomNav>
-				<BottomNavItem icon={TestIcon}>Home</BottomNavItem>
-			</BottomNav>,
-		)
-
-		expect(bySlot(container, 'nav')).toBeInTheDocument()
-	})
-
-	it('renders its children', () => {
-		renderUI(
 			<BottomNav>
 				<BottomNavItem icon={TestIcon}>Home</BottomNavItem>
 				<BottomNavItem icon={TestIcon}>Search</BottomNavItem>
 			</BottomNav>,
 		)
+
+		expect(bySlot(container, 'nav')).toBeInTheDocument()
 
 		expect(screen.getByText('Home')).toBeInTheDocument()
 		expect(screen.getByText('Search')).toBeInTheDocument()
@@ -50,16 +42,6 @@ describe('BottomNav', () => {
 })
 
 describe('BottomNavItem', () => {
-	it('renders with data-slot="bottom-nav-item"', () => {
-		const { container } = renderUI(
-			<BottomNav>
-				<BottomNavItem icon={TestIcon}>Tab</BottomNavItem>
-			</BottomNav>,
-		)
-
-		expect(bySlot(container, 'bottom-nav-item')).toBeInTheDocument()
-	})
-
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<BottomNav>

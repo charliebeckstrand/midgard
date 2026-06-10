@@ -30,7 +30,7 @@ describe('Tree', () => {
 		expect(b).toHaveAttribute('aria-setsize', '3')
 	})
 
-	it('renders with data-slot="tree" and role="tree"', () => {
+	it('renders with data-slot="tree", role="tree", and the required accessible name', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="Item 1" />
@@ -42,14 +42,6 @@ describe('Tree', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('role', 'tree')
-	})
-
-	it('forwards the required accessible name onto the tree', () => {
-		renderUI(
-			<Tree aria-label="Files">
-				<TreeItem label="Item 1" />
-			</Tree>,
-		)
 
 		expect(screen.getByRole('tree')).toHaveAccessibleName('Files')
 	})

@@ -4,7 +4,7 @@ import { PhoneInput } from '../../components/phone-input'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('PhoneInput', () => {
-	it('renders an input with type tel', () => {
+	it('renders an input with type tel and a phone icon prefix by default', () => {
 		const { container } = renderUI(<PhoneInput />)
 
 		const input = bySlot(container, 'phone-input')
@@ -12,10 +12,6 @@ describe('PhoneInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input).toHaveAttribute('type', 'tel')
-	})
-
-	it('renders a phone icon prefix by default', () => {
-		const { container } = renderUI(<PhoneInput />)
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})

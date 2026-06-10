@@ -3,9 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
-
-const noop = () => {}
+import { act, bySlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {

@@ -4,8 +4,8 @@ import { Search, X } from 'lucide-react'
 import { type ChangeEvent, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
 import { Button } from '../button'
+import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { LoadingSpinner } from '../loading'
@@ -22,13 +22,15 @@ export type SearchInputProps = Omit<
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
-/** Search-type Input with a leading search icon — shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. */
+/** Search-type Input with a leading search icon — shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. Binds to an enclosing Form field by `name`. */
 export function SearchInput({
 	value,
 	defaultValue,
 	loading,
 	onChange,
 	onClear,
+	onBlur,
+	name,
 	ref,
 	className,
 	...props
@@ -37,10 +39,16 @@ export function SearchInput({
 
 	const setRefs = useComposedRef(inputRef, ref)
 
-	const [currentValue = '', setCurrentValue] = useControllable<string>({
+	const {
+		value: current,
+		setValue: setCurrentValue,
+		setTouched,
+	} = useFormValue<string>(name, {
 		value,
 		defaultValue: defaultValue ?? '',
 	})
+
+	const currentValue = current ?? ''
 
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
@@ -90,8 +98,14 @@ export function SearchInput({
 			ref={setRefs}
 			data-slot="search-input"
 			type="search"
+			name={name}
 			value={currentValue}
 			onChange={handleChange}
+			onBlur={(e) => {
+				setTouched()
+
+				onBlur?.(e)
+			}}
 			prefix={SEARCH_PREFIX}
 			suffix={suffix}
 			className={cn('[&::-webkit-search-cancel-button]:appearance-none', className)}

@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+
+import { collectPatternViolations } from '../../helpers/walk-source'
 
 // kiso/ holds the design-system tokens — both the primitive atomic concerns
 // (iro, ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
@@ -29,18 +30,10 @@ const FORBIDDEN_PATTERNS = [
 
 describe('kiso purity boundary', () => {
 	it('kiso does not import from katakana, kata, components, layouts, primitives, hooks, or providers', () => {
-		const violations: string[] = []
-
-		walk(kisoDir, (file, content) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
-
-			const rel = relative(srcDir, file)
-
-			for (const { label, regex } of FORBIDDEN_PATTERNS) {
-				for (const match of content.matchAll(regex)) {
-					violations.push(`${rel} → ${label} (${match[0]})`)
-				}
-			}
+		const violations = collectPatternViolations({
+			dir: kisoDir,
+			srcDir,
+			patterns: FORBIDDEN_PATTERNS,
 		})
 
 		expect(
@@ -49,17 +42,3 @@ describe('kiso purity boundary', () => {
 		).toEqual([])
 	})
 })
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.')) continue
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
-}

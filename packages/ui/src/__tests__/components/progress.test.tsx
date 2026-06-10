@@ -39,14 +39,6 @@ describe('ProgressBar', () => {
 		expect(bySlot(container, 'progress-bar')).toHaveAttribute('aria-valuenow', '100')
 	})
 
-	it('supports the size and color variants', () => {
-		const { container } = renderUI(
-			<ProgressBar value={50} size="sm" color="green" aria-label="Progress" />,
-		)
-
-		expect(bySlot(container, 'progress-bar')).toBeInTheDocument()
-	})
-
 	it('honours aria-labelledby instead of aria-label', () => {
 		const { container } = renderUI(
 			<>

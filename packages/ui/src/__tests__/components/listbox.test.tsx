@@ -342,6 +342,18 @@ describe('Listbox', () => {
 		expect(onChange).toHaveBeenCalledWith([])
 	})
 
+	// Covers the explicit-size branch of the density resolution in listbox.tsx
+	// (size prop selects a densityPreset over the inherited token).
+	it('resolves an explicit size override', () => {
+		const { container } = renderUI(
+			<Listbox size="lg">
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
+	})
+
 	it('renders the selected value label via displayValue', () => {
 		renderUI(
 			<Listbox value="alpha" displayValue={(v) => v.toUpperCase()}>
@@ -363,16 +375,6 @@ describe('Listbox', () => {
 
 		// The tabular-nums class is applied to the inner label span.
 		expect(button.querySelector('.tabular-nums')).toBeInTheDocument()
-	})
-
-	it('resolves an explicit size override', () => {
-		const { container } = renderUI(
-			<Listbox size="lg">
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		expect(bySlot(container, 'listbox-button')).toBeInTheDocument()
 	})
 
 	it('mounts in multi-select mode with an empty default value', () => {

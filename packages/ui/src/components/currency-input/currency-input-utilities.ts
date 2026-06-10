@@ -1,8 +1,3 @@
-import {
-	countMeaningful as countMeaningfulBy,
-	cursorForCount as cursorForCountBy,
-} from '../../utilities'
-
 export function escapeRegExp(s: string) {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -39,14 +34,6 @@ function disallowedRe(decimal: string) {
 
 export function isMeaningful(c: string, decimal: string) {
 	return (c >= '0' && c <= '9') || c === '-' || c === decimal
-}
-
-export function countMeaningful(s: string, end: number, decimal: string) {
-	return countMeaningfulBy(s, end, (c) => isMeaningful(c, decimal))
-}
-
-export function cursorForCount(s: string, target: number, decimal: string) {
-	return cursorForCountBy(s, target, (c) => isMeaningful(c, decimal))
 }
 
 export function formatEditing(

@@ -6,7 +6,7 @@ import { Density } from '../../primitives/density'
 import { renderUI, screen, userEvent } from '../helpers'
 
 describe('NumberInput', () => {
-	it('renders an input with type number', () => {
+	it('renders an input with type number alongside decrease and increase buttons', () => {
 		renderUI(<NumberInput />)
 
 		const input = screen.getByRole('spinbutton')
@@ -14,6 +14,10 @@ describe('NumberInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input).toHaveAttribute('type', 'number')
+
+		expect(screen.getByLabelText('Decrease')).toBeInTheDocument()
+
+		expect(screen.getByLabelText('Increase')).toBeInTheDocument()
 	})
 
 	it('composes a consumer onBlur with the clamp/round-on-blur contract', async () => {
@@ -83,13 +87,6 @@ describe('NumberInput', () => {
 		await vi.waitFor(() => expect(politeRegion).toHaveTextContent('5'))
 	})
 
-	it('renders decrease and increase buttons', () => {
-		renderUI(<NumberInput />)
-
-		expect(screen.getByLabelText('Decrease')).toBeInTheDocument()
-
-		expect(screen.getByLabelText('Increase')).toBeInTheDocument()
-	})
 
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()

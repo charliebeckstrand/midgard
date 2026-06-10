@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useMaskedInput } from '../../hooks'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
+import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
@@ -54,6 +54,8 @@ export function CreditCardInputCvv({
 	brand,
 	placeholder,
 	onValidityChange,
+	name,
+	onBlur,
 	ref,
 	'aria-label': ariaLabel,
 	...props
@@ -64,7 +66,8 @@ export function CreditCardInputCvv({
 
 	const resolvedBrand = resolveBrand(brand)
 
-	const masked = useMaskedInput({
+	const masked = useMaskInput({
+		name,
 		value,
 		defaultValue,
 		onChange: onValueChange,
@@ -111,7 +114,13 @@ export function CreditCardInputCvv({
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
+			name={name}
 			value={masked.value}
+			onBlur={(e) => {
+				masked.onBlur()
+
+				onBlur?.(e)
+			}}
 			onChange={(e) => {
 				masked.onChange(e)
 

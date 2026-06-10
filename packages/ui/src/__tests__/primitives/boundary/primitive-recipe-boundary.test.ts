@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+
+import { walkSource } from '../../helpers/walk-source'
 
 // Primitives access the recipe layer only through `recipes/kata/<name>`.
 // Value imports from `recipes` (the barrel), `recipes/katakana/*`, or
@@ -19,7 +20,7 @@ describe('primitive recipe-import boundary', () => {
 	it('primitives import recipe values only via recipes/kata/<name>', () => {
 		const violations: string[] = []
 
-		walk(primitivesDir, (file, content) => {
+		walkSource(primitivesDir, (file, content) => {
 			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 			const rel = relative(srcDir, file)
@@ -73,18 +74,4 @@ function isAllTypeNamed(importStmt: string): boolean {
 	if (names.length === 0) return false
 
 	return names.every((name) => name.startsWith('type '))
-}
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.')) continue
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
 }

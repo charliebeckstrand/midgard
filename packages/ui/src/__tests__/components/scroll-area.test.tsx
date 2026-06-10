@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { bySlot, fireEvent, mockGeometry, renderUI } from '../helpers'
+import { bySlot, fireEvent, mockDomGeometry, renderUI } from '../helpers'
 
 describe('ScrollArea', () => {
 	it('passes through HTML attributes to the viewport', () => {
@@ -30,7 +30,7 @@ describe('ScrollArea', () => {
 
 		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
 
-		mockGeometry(viewport, { scrollWidth: 400, clientWidth: 100 })
+		mockDomGeometry(viewport, { scrollWidth: 400, clientWidth: 100 })
 
 		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
 
@@ -46,7 +46,7 @@ describe('ScrollArea', () => {
 
 		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
 
-		mockGeometry(viewport, { scrollWidth: 100, clientWidth: 100 })
+		mockDomGeometry(viewport, { scrollWidth: 100, clientWidth: 100 })
 
 		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
 
@@ -80,17 +80,6 @@ describe('ScrollArea', () => {
 		const { container } = renderUI(<ScrollArea orientation="both">content</ScrollArea>)
 
 		expect(bySlot(container, 'scroll-area-viewport')).toBeInTheDocument()
-	})
-
-	it('forwards bare and rounded variant props to the wrapper', () => {
-		const { container } = renderUI(
-			<ScrollArea bare rounded>
-				content
-			</ScrollArea>,
-		)
-
-		// Bare/rounded only affect class names — confirm the component mounted.
-		expect(bySlot(container, 'scroll-area')).toBeInTheDocument()
 	})
 
 	it('uses scrollbar="visible" to keep the scrollbar in the active state', () => {

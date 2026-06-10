@@ -11,12 +11,16 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
 	})
 
-	it('defaults type to assistant when unspecified', () => {
+	it('defaults to an assistant message with no timestamp or cursor slots', () => {
 		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
 
 		expect(el).toHaveAttribute('data-type', 'assistant')
+
+		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'chat-message-cursor')).not.toBeInTheDocument()
 	})
 
 	it('reflects the type prop on data-type', () => {
@@ -37,22 +41,10 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('omits the timestamp slot when not provided', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
-
-		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
-	})
-
 	it('renders a cursor slot when streaming', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
 		expect(bySlot(container, 'chat-message-cursor')).toBeInTheDocument()
-	})
-
-	it('omits the cursor slot when not streaming', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
-
-		expect(bySlot(container, 'chat-message-cursor')).not.toBeInTheDocument()
 	})
 
 	it('renders the actions slot when provided', () => {

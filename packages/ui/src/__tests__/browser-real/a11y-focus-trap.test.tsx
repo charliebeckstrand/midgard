@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogTitle } from '../../components/dialog'
-import { renderUI, screen, waitFor } from '../helpers'
+import { noop, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Modal focus-trap gate (real floating engine). Asserts the trap a keyboard or
@@ -15,8 +15,6 @@ import { renderUI, screen, waitFor } from '../helpers'
  * palette all route through the same `Overlay` primitive and its
  * `<FloatingFocusManager modal>` — trapping is wired once and shared.
  */
-
-const noop = () => {}
 
 /**
  * An open modal dialog with two focusables, rendered next to a sibling button

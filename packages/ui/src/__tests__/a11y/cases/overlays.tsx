@@ -21,9 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../../components/pop
 import { Sheet, SheetBody, SheetTitle } from '../../../components/sheet'
 import { Toast } from '../../../components/toast'
 import { ToastProvider, useToast } from '../../../providers/toast'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 /**
  * Mounts a `ToastProvider`, enqueues one toast on mount, and renders the

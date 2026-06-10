@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../components/chat-prompt'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
-
-function noop() {}
+import { bySlot, noop, renderUI, screen, userEvent } from '../helpers'
 
 describe('ChatPrompt', () => {
 	it('renders a textarea marked with data-slot="chat-prompt"', () => {

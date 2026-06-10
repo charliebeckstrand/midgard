@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
-	countMeaningful,
-	cursorForCount,
 	escapeRegExp,
 	formatEditing,
 	isMeaningful,
 	parseEditing,
 } from '../../components/currency-input/currency-input-utilities'
+import { countMeaningful, cursorForCount } from '../../utilities'
+
+const decimalMeaningful = (c: string) => isMeaningful(c, '.')
 
 describe('escapeRegExp', () => {
 	it('escapes characters with regex meaning', () => {
@@ -44,30 +45,30 @@ describe('isMeaningful', () => {
 
 describe('countMeaningful', () => {
 	it('counts meaningful characters up to a cursor', () => {
-		expect(countMeaningful('1,234.56', 5, '.')).toBe(4) // 1, 2, 3, 4
+		expect(countMeaningful('1,234.56', 5, decimalMeaningful)).toBe(4) // 1, 2, 3, 4
 	})
 
 	it('clamps to the string length', () => {
-		expect(countMeaningful('123', 99, '.')).toBe(3)
+		expect(countMeaningful('123', 99, decimalMeaningful)).toBe(3)
 	})
 
 	it('returns 0 when the cursor is at the start', () => {
-		expect(countMeaningful('1,234.56', 0, '.')).toBe(0)
+		expect(countMeaningful('1,234.56', 0, decimalMeaningful)).toBe(0)
 	})
 })
 
 describe('cursorForCount', () => {
 	it('returns 0 when target is 0', () => {
-		expect(cursorForCount('1,234.56', 0, '.')).toBe(0)
+		expect(cursorForCount('1,234.56', 0, decimalMeaningful)).toBe(0)
 	})
 
 	it('returns the index after the Nth meaningful character', () => {
 		// "1,234.56" — 1 -> pos 1; 2 -> pos 3; 3 -> pos 4; 4 -> pos 5; '.' -> pos 6; 5 -> pos 7; 6 -> pos 8
-		expect(cursorForCount('1,234.56', 4, '.')).toBe(5)
+		expect(cursorForCount('1,234.56', 4, decimalMeaningful)).toBe(5)
 	})
 
 	it('returns the string length when target exceeds meaningful count', () => {
-		expect(cursorForCount('1,234.56', 99, '.')).toBe('1,234.56'.length)
+		expect(cursorForCount('1,234.56', 99, decimalMeaningful)).toBe('1,234.56'.length)
 	})
 })
 

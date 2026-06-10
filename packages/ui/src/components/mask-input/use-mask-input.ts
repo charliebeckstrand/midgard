@@ -1,11 +1,15 @@
 'use client'
 
 import type { ChangeEvent, Ref } from 'react'
-import { countMeaningful, cursorForCount } from '../utilities'
-import { useControllable } from './use-controllable'
-import { usePendingCaret } from './use-pending-caret'
+import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { useFormValue } from '../form/use-form-value'
 
 type MaskedInputOptions = {
+	/**
+	 * Binds to an enclosing Form field. The stored value is the formatted text,
+	 * so form defaults for masked fields should be supplied pre-formatted.
+	 */
+	name?: string
 	value?: string
 	defaultValue?: string
 	onChange?: (value: string) => void
@@ -20,47 +24,41 @@ type MaskedInputOptions = {
 	meaningful?: (char: string) => boolean
 }
 
-const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
-
 /**
  * Controlled/uncontrolled string state for masked text inputs. Applies `format`
  * to the seed and to every subsequent change, returning props ready to spread
  * onto an `Input`. Restores the caret to its pre-format position when the
- * returned `ref` is attached, so separators inserted by `format` don't push
- * the cursor to the end on every keystroke.
+ * returned `ref` is attached, and binds to an enclosing Form field by `name`
+ * (value, touched on blur, and error state via `binding`).
  */
-export function useMaskedInput({
+export function useMaskInput({
+	name,
 	value,
 	defaultValue,
 	onChange,
 	format,
 	ref: externalRef,
-	meaningful = defaultMeaningful,
+	meaningful,
 }: MaskedInputOptions) {
-	const [current, setCurrent] = useControllable<string>({
+	const {
+		value: current,
+		setValue,
+		setTouched,
+		binding,
+	} = useFormValue<string>(name, {
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
 		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
 	})
 
-	const { ref, setCaret } = usePendingCaret(externalRef)
+	const { ref, reformat } = useFormattedInput({ format, meaningful, ref: externalRef })
 
 	return {
 		value: current ?? '',
 		ref,
-		setValue: (raw: string) => setCurrent(format(raw)),
-		onChange: (e: ChangeEvent<HTMLInputElement>) => {
-			const raw = e.target.value
-
-			const cursor = e.target.selectionStart ?? raw.length
-
-			const meaningfulBefore = countMeaningful(raw, cursor, meaningful)
-
-			const formatted = format(raw)
-
-			setCaret(cursorForCount(formatted, meaningfulBefore, meaningful))
-
-			setCurrent(formatted)
-		},
+		binding,
+		setValue: (raw: string) => setValue(format(raw)),
+		onChange: (e: ChangeEvent<HTMLInputElement>) => setValue(reformat(e)),
+		onBlur: () => setTouched(),
 	}
 }

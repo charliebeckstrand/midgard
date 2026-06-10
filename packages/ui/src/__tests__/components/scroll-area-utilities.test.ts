@@ -4,6 +4,7 @@ import {
 	computeThumb,
 	findScrollableAncestor,
 } from '../../components/scroll-area/scroll-area-utilities'
+import { mockDomGeometry } from '../helpers'
 
 describe('computeThumb', () => {
 	it('returns hiddenThumb when content fits the viewport', () => {
@@ -44,10 +45,7 @@ describe('findScrollableAncestor', () => {
 	function makeAncestor(overflow: string, scrollHeight: number, clientHeight = 100) {
 		const el = document.createElement('div')
 
-		Object.defineProperty(el, 'scrollHeight', { configurable: true, value: scrollHeight })
-		Object.defineProperty(el, 'clientHeight', { configurable: true, value: clientHeight })
-		Object.defineProperty(el, 'scrollWidth', { configurable: true, value: 0 })
-		Object.defineProperty(el, 'clientWidth', { configurable: true, value: 0 })
+		mockDomGeometry(el, { scrollHeight, clientHeight, scrollWidth: 0, clientWidth: 0 })
 
 		el.style.overflowY = overflow
 

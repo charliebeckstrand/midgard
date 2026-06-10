@@ -4,7 +4,7 @@ import { DensityProvider } from '../../providers/density'
 import { renderUI, screen } from '../helpers'
 
 describe('Dialog', () => {
-	it('renders with role="dialog" when open', () => {
+	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
 				Dialog content
@@ -16,16 +16,8 @@ describe('Dialog', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('aria-modal', 'true')
-	})
 
-	it('renders children when open', () => {
-		renderUI(
-			<Dialog open onOpenChange={() => {}}>
-				Hello World
-			</Dialog>,
-		)
-
-		expect(screen.getByText('Hello World')).toBeInTheDocument()
+		expect(screen.getByText('Dialog content')).toBeInTheDocument()
 	})
 
 	it('does not render when closed', () => {
@@ -46,26 +38,6 @@ describe('Dialog', () => {
 		)
 
 		expect(screen.getByText('Top-placed')).toBeInTheDocument()
-	})
-
-	it('renders with placement="center" (default)', () => {
-		renderUI(
-			<Dialog open onOpenChange={() => {}}>
-				Center
-			</Dialog>,
-		)
-
-		expect(screen.getByText('Center')).toBeInTheDocument()
-	})
-
-	it('renders with explicit size variant', () => {
-		renderUI(
-			<Dialog open size="sm" onOpenChange={() => {}}>
-				Small
-			</Dialog>,
-		)
-
-		expect(screen.getByText('Small')).toBeInTheDocument()
 	})
 
 	it('respects dismissOnBackdrop=false', () => {

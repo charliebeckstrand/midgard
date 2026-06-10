@@ -1,7 +1,8 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { Form } from '../../components/form'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CurrencyInput', () => {
 	it('renders an input with data-slot="currency-input"', () => {
@@ -204,5 +205,31 @@ describe('CurrencyInput', () => {
 		renderUI(<CurrencyInput ref={refCb} value={5} onValueChange={() => {}} />)
 
 		expect(refCb).toHaveBeenCalledWith(expect.any(HTMLInputElement))
+	})
+
+	it('binds to a Form field by name, storing the parsed number', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ price: undefined }} onSubmit={onSubmit}>
+				<CurrencyInput name="price" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const input = bySlot(container, 'currency-input') as HTMLInputElement
+
+		await user.type(input, '1234.5')
+
+		expect(input.value).toBe('1,234.5')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ price: 1234.5 }),
+			expect.anything(),
+		)
 	})
 })

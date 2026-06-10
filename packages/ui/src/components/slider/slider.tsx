@@ -2,12 +2,12 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useDensity } from '../../primitives/density'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
+import { useFormValue } from '../form/use-form-value'
 
 type SliderBaseProps = SliderVariants & {
 	value?: number
@@ -27,7 +27,7 @@ export type SliderProps = SliderBaseProps &
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 
-/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
+/** Range input for a single value — controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an enclosing Form field by `name`, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
 export function Slider({
 	value,
 	defaultValue,
@@ -42,11 +42,18 @@ export function Slider({
 	style,
 	id,
 	disabled,
+	name,
+	onBlur,
 	ref,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: SliderProps) {
-	const [internal, setInternal] = useControllable<number>({
+	const {
+		value: internal,
+		setValue: setInternal,
+		setTouched,
+		binding,
+	} = useFormValue<number>(name, {
 		value,
 		defaultValue: defaultValue ?? min,
 		onValueChange: (next) => {
@@ -65,7 +72,12 @@ export function Slider({
 	// `required` is not resolved: a range input always has a value, so the
 	// attribute does not apply (HTML constraint validation) — only invalid +
 	// describedby carry meaning here.
-	const controlProps = useControlProps({ id, disabled, 'aria-describedby': ariaDescribedBy })
+	const controlProps = useControlProps({
+		id,
+		disabled,
+		'aria-describedby': ariaDescribedBy,
+		binding,
+	})
 
 	const scope = useIdScope({ id: controlProps.id })
 
@@ -87,9 +99,15 @@ export function Slider({
 			min={min}
 			max={max}
 			step={step}
+			name={name}
 			aria-valuetext={getValueText?.(current)}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
+			onBlur={(e) => {
+				setTouched()
+
+				onBlur?.(e)
+			}}
 			className={cn(k({ size: resolvedSize, color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}

@@ -1,8 +1,8 @@
 'use client'
 
-import { useMaskedInput } from '../../hooks'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
+import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
 export type CreditCardInputExpiryProps = Omit<
@@ -23,13 +23,16 @@ export function CreditCardInputExpiry({
 	placeholder,
 	onValueChange,
 	onValidityChange,
+	name,
+	onBlur,
 	ref,
 	'aria-label': ariaLabel,
 	...props
 }: CreditCardInputExpiryProps) {
 	const control = useControl()
 
-	const masked = useMaskedInput({
+	const masked = useMaskInput({
+		name,
 		value,
 		defaultValue,
 		onChange: onValueChange,
@@ -49,7 +52,13 @@ export function CreditCardInputExpiry({
 			// so the default never shadows a real label).
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Expiration date')}
 			placeholder={placeholder ?? 'MM/YY'}
+			name={name}
 			value={masked.value}
+			onBlur={(e) => {
+				masked.onBlur()
+
+				onBlur?.(e)
+			}}
 			onChange={(e) => {
 				const raw = e.target.value
 
