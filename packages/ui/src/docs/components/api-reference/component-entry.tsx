@@ -8,13 +8,12 @@ import { Text } from '../../../components/text'
 import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
 import { PropsTable } from './props-table'
 
-/** React-style event handlers — `onClick`, `onChange`, … */
+/** React-style event handlers: `onClick`, `onChange`, … */
 const EVENT_PROP = /^on[A-Z]/
 
 /**
- * Split into props and events, sorted within each bucket. `never`-typed
- * entries are dropped — they're the trace of a discriminated-union arm
- * that rules a key out.
+ * Split into props and events, sorted within each bucket. Drops `never`-typed
+ * entries: residue of a discriminated-union arm that rules a key out.
  */
 function partition(props: readonly PropDef[]): { props: PropDef[]; events: PropDef[] } {
 	const out = { props: [] as PropDef[], events: [] as PropDef[] }

@@ -31,16 +31,14 @@ type SettingsDialogProps = {
  * dialog of appearance + density listboxes. Selections apply immediately and
  * persist through the `useTheme` / `useDensity` hooks that own the state.
  *
- * The listbox panels are portalled into a node *inside* the dialog (via
- * `UIProvider`'s `portalContainer`) rather than `document.body`. A modal `Dialog` runs
- * floating-ui's `markOthers`, which `aria-hidden`s every body sibling — so a
- * panel portalled to `body` lands there and vanishes from the accessibility
- * tree. Scoping the portal into the overlay subtree keeps the options reachable.
+ * The listbox panels portal into a node *inside* the dialog (via `UIProvider`'s
+ * `portalContainer`), not `document.body`. A modal `Dialog` runs floating-ui's
+ * `markOthers`, which `aria-hidden`s every body sibling; a panel portalled to
+ * `body` vanishes from the accessibility tree.
  *
- * The mount node sits inside `DialogBody` (a plain block, no flex `gap`) so it
- * doesn't perturb the panel's slot rhythm, and the fields are gated on it:
- * `FloatingPortal` captures its target when it first mounts, so the listboxes
- * must not render until the mount node exists.
+ * The mount node sits inside `DialogBody` (a plain block, no flex `gap`), and
+ * the fields are gated on it: `FloatingPortal` captures its target on first
+ * mount; the listboxes render only after the mount node exists.
  */
 export function SettingsDialog({
 	mode,
@@ -84,7 +82,7 @@ export function SettingsDialog({
 							</UIProvider>
 						)}
 					</Stack>
-					{/* Portal target for the listbox panels — see the note above. */}
+					{/* Portal target for the listbox panels; see the note above. */}
 					<div ref={setPortalRoot} className="contents" />
 				</DialogBody>
 				<DialogFooter>

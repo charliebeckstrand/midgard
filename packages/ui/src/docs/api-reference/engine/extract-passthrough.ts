@@ -60,7 +60,7 @@ function walk(
 
 	const name = typeRefName(node.typeName)
 
-	// Omit<T, 'a' | 'b'> — recurse, carrying the keys forward.
+	// Omit<T, 'a' | 'b'>: recurse, carrying the keys forward.
 	if (name === 'Omit') {
 		const [inner, keys] = node.typeArguments ?? []
 
@@ -69,7 +69,7 @@ function walk(
 		return
 	}
 
-	// Pick narrows to a slice — not a full pass-through.
+	// Pick narrows to a slice, not a full pass-through.
 	if (name === 'Pick') return
 
 	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)
@@ -80,7 +80,7 @@ function walk(
 		return
 	}
 
-	// Project alias — follow to its RHS and keep walking.
+	// Project alias: follow to its RHS and keep walking.
 	const target = resolveTypeAliasTarget(node.typeName, checker)
 
 	if (target) walk(target, omitted, out, visited, checker)
@@ -119,12 +119,12 @@ function extractStringLiteral(
 }
 
 /**
- * Class-name stems whose HTML tag differs from the lowercased stem. The
- * unlisted majority (`HTMLDivElement` → `div`, `HTMLInputElement` → `input`,
- * …) falls through to the lowercased stem. Ambiguous classes — `HTMLHeading`
- * covers `h1..h6`, `HTMLTableCell` covers `td` and `th`, `HTMLTableSection`
- * covers `tbody/thead/tfoot`, `HTMLMod` covers `del/ins`, `HTMLQuote`
- * covers `q` and `blockquote` — pick the most representative tag.
+ * Class-name stems whose HTML tag differs from the lowercased stem. Unlisted
+ * stems (`HTMLDivElement` → `div`, `HTMLInputElement` → `input`, …) fall
+ * through to the lowercased stem. Ambiguous classes pick the most
+ * representative tag: `HTMLHeading` covers `h1..h6`, `HTMLTableCell` covers
+ * `td` and `th`, `HTMLTableSection` covers `tbody/thead/tfoot`, `HTMLMod`
+ * covers `del/ins`, `HTMLQuote` covers `q` and `blockquote`.
  */
 const HTML_ELEMENT_TAG_OVERRIDES: ReadonlyMap<string, string> = new Map([
 	['Anchor', 'a'],

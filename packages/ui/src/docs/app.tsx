@@ -16,9 +16,8 @@ import { demos } from './registry'
 export function App() {
 	const route = useHash()
 
-	// Defers the route while the next demo's chunk is in flight, so the
-	// previous demo stays on screen instead of flashing to a Suspense
-	// fallback during navigation.
+	// Defers the route while the next demo's chunk is in flight; the previous
+	// demo stays on screen during navigation.
 	const deferredRoute = useDeferredValue(route)
 
 	const [mode, setMode] = useTheme()
@@ -37,9 +36,7 @@ export function App() {
 		if (deferredRoute != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [deferredRoute])
 
-	// Warm Shiki on idle so the first code-block reveal doesn't pay the cost.
-	// Per-demo prefetch happens via sidebar hover/focus — there's no need to
-	// fan out to all 104 demos here.
+	// Warm Shiki on idle. Per-demo prefetch happens via sidebar hover/focus.
 	useEffect(() => {
 		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
 

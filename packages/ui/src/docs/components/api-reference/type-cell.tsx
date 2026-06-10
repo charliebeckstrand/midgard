@@ -74,7 +74,7 @@ function unquote(part: string): string {
 	return part.replace(/^'|'$/g, '')
 }
 
-/** One badge per top-level union arm — `'sm' | 'md'` renders as two badges. */
+/** One badge per top-level union arm: `'sm' | 'md'` renders as two badges. */
 function TypeBadges({ type }: { type: string }) {
 	return (
 		<Flex gap="sm" align="center" wrap>
@@ -86,10 +86,9 @@ function TypeBadges({ type }: { type: string }) {
 }
 
 /**
- * Each entry is titled by the type name it resolves, so the reader can tell
- * which alias they're looking at without inferring it from context. Multi-line
- * definitions render as `<CodeBlock>`; single-line definitions reuse the
- * props-table badges for consistency.
+ * Each entry is titled by the type name it resolves. Multi-line definitions
+ * render as `<CodeBlock>`; single-line definitions reuse the props-table
+ * badges.
  */
 function ReferencesPanel({ references }: { references: Record<string, string> }) {
 	const entries = Object.entries(references)
@@ -111,11 +110,10 @@ function ReferencesPanel({ references }: { references: Record<string, string> })
 /**
  * Type-column cell. Picks one of three modes:
  *
- *   - **External** — outline badge with a source-package tooltip. The type
- *     isn't authored here, so hover-to-source beats splitting into badges.
- *   - **References** — bare type plus a Sheet trigger for the resolved
+ *   - **External**: outline badge with a source-package tooltip.
+ *   - **References**: bare type plus a Sheet trigger for the resolved
  *     definitions of every referenced alias.
- *   - **Simple** (default) — plain badges via `TypeBadges`.
+ *   - **Simple** (default): plain badges via `TypeBadges`.
  */
 export function TypeCell({ prop }: { prop: PropDef }) {
 	const [open, setOpen] = useState(false)

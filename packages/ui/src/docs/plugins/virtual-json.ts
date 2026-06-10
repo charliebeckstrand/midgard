@@ -20,8 +20,8 @@ type Entry = { spec: VirtualJsonSpec; resolved: string; cached: string | null }
  *
  * Each spec gets its own `\0`-prefixed resolved id and its own lazily-filled
  * cache; `load` generates on first read, and `handleHotUpdate` clears only the
- * caches whose `shouldInvalidate` matches the changed file (returning just the
- * modules it invalidated). Spread the returned hooks into a Plugin alongside
+ * caches whose `shouldInvalidate` matches the changed file (returning the
+ * invalidated modules). Spread the returned hooks into a Plugin alongside
  * `name` and any other hooks. A single docs plugin can serve every docs virtual
  * module through one call.
  */
@@ -70,9 +70,7 @@ export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
 }
 
 /**
- * Single-module convenience wrapper over {@link virtualJsonModules}. Each docs
- * plugin that owns exactly one virtual module uses this signature; the behaviour
- * is identical to passing a one-element array.
+ * Single-module convenience wrapper over {@link virtualJsonModules}.
  */
 export function virtualJsonHooks(opts: VirtualJsonSpec): Hooks {
 	return virtualJsonModules([opts])

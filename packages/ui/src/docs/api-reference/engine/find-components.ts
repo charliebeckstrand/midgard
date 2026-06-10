@@ -12,7 +12,7 @@ type FunctionLike = FunctionDeclaration | FunctionExpression | ArrowFunction
 
 export type ComponentDecl = {
 	name: string
-	/** Inner function — after unwrapping `forwardRef` / `memo` — whose first parameter holds the props. */
+	/** Inner function, after unwrapping `forwardRef` / `memo`, whose first parameter holds the props. */
 	callable: FunctionLike
 }
 
@@ -47,8 +47,8 @@ export function readPublicExports(indexFile: SourceFile): string[] {
 }
 
 /**
- * Resolve an exported name back to the component's callable — unwrapping
- * `forwardRef(...)` / `memo(...)` so the first parameter holds the props.
+ * Resolve an exported name back to the component's callable, unwrapping
+ * `forwardRef(...)` / `memo(...)`; the first parameter holds the props.
  */
 export function findComponent(name: string, indexFile: SourceFile): ComponentDecl | null {
 	const exported = indexFile.getExportedDeclarations().get(name)
@@ -77,7 +77,7 @@ function resolveCallable(decl: ExportedDeclarations): FunctionLike | null {
 }
 
 /**
- * Walk into call arguments until the first function / arrow form, so
+ * Walk into call arguments until the first function / arrow form;
  * `forwardRef(<inner>)` and similar wrappers yield the inner function.
  */
 export function unwrapFunctionLike(node: Node): FunctionLike | null {

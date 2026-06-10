@@ -6,9 +6,9 @@ import type { ComponentInfo, ComponentRegistry } from './types'
 type Tagged = { __module?: string; __name?: string }
 
 /**
- * Read the `__module` / `__name` decoration attached by the `component-tags`
- * Vite plugin. Returns `undefined` for built-ins, demo-local helpers, or any
- * function that wasn't tagged at build time.
+ * Read the `__module` / `__name` decoration attached by the docs Vite
+ * plugin's barrel transform. Returns `undefined` for built-ins, demo-local
+ * helpers, or any function without a build-time tag.
  */
 function readTag(type: unknown): ComponentInfo | undefined {
 	if (type == null) return undefined

@@ -34,8 +34,8 @@ const BUILTIN_TYPES = new Set([
 ])
 
 /**
- * Recipe-engine internals — `Recipe`, `RecipeBase`, `ResolvedConfig`,
- * `VariantProps`, … — treated the same as `node_modules`: excluded from
+ * Recipe-engine internals (`Recipe`, `RecipeBase`, `ResolvedConfig`,
+ * `VariantProps`, …) get the same treatment as `node_modules`: excluded from
  * reference cards.
  */
 const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
@@ -45,13 +45,12 @@ const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
  * form for the docs panel. Recurses through references discovered inside each
  * definition.
  *
- * Object-shaped aliases render as an apparent-property body — the shape the
- * caller would actually pass — so `Pick<…>` / `Omit<…>` / intersection
- * compositions collapse to one card. Intersection arms from `node_modules` or
- * the recipe engine are dropped before properties are enumerated, keeping HTML
- * pass-throughs out of the panel (the pass-through section covers them).
+ * Object-shaped aliases render as an apparent-property body, the shape the
+ * caller passes; `Pick<…>` / `Omit<…>` / intersection compositions collapse
+ * to one card. Intersection arms from `node_modules` or the recipe engine drop
+ * before property enumeration (the pass-through section covers HTML attrs).
  *
- * Scope is project source only — `node_modules`, React/DOM typings, recipe
+ * Scope is project source only: `node_modules`, React/DOM typings, recipe
  * engine internals, and built-in utility types (`Array`, `Pick`, …) are
  * excluded.
  */
@@ -64,8 +63,7 @@ export function extractReferences(
 
 	// Each entry carries its resolution scope: top-level names resolve from
 	// the component's call-site; recursively discovered names resolve from
-	// their defining site, so transitively referenced types resolve without
-	// being imported into the original module.
+	// their defining site.
 	const queue: { name: string; from: ts.Node }[] = collectTypeNames(formattedType).map((name) => ({
 		name,
 		from: location,
@@ -99,8 +97,8 @@ export function extractReferences(
 function collectTypeNames(text: string): string[] {
 	const names: string[] = []
 
-	// Blank out string and template-literal content so PascalCase tokens
-	// inside them (`'PageHeader'`, `` `#${string}` ``) don't reach symbol
+	// Blank out string and template-literal content; PascalCase tokens
+	// inside them (`'PageHeader'`, `` `#${string}` ``) skip symbol
 	// resolution.
 	const stripped = text.replace(/'[^'\\]*'|"[^"\\]*"|`[^`\\]*`/g, '')
 
@@ -122,8 +120,8 @@ function resolveAliasDefinition(
 	location: ts.Node,
 	checker: ts.TypeChecker,
 ): { text: string; declaration: ts.Node } | null {
-	// Include `Alias` so `import { type Foo } from '…'` is visible — type-only
-	// imports bind as alias symbols rather than direct type symbols.
+	// Type-only imports (`import { type Foo } from '…'`) bind as alias symbols,
+	// not direct type symbols; the `Alias` flag includes them.
 	const symbols = checker.getSymbolsInScope(location, ts.SymbolFlags.Type | ts.SymbolFlags.Alias)
 
 	const symbol = symbols.find((s) => s.getName() === name)
@@ -160,9 +158,9 @@ function resolveAliasDefinition(
 }
 
 /**
- * Declarations under `node_modules` or the recipe engine are opaque — neither
- * resolves to a reference card, and properties from them are filtered out of
- * apparent-shape bodies.
+ * Declarations under `node_modules` or the recipe engine are opaque: neither
+ * resolves to a reference card, and apparent-shape bodies filter out their
+ * properties.
  */
 function isExternalDeclaration(decl: ts.Declaration): boolean {
 	const file = decl.getSourceFile().fileName
@@ -171,13 +169,12 @@ function isExternalDeclaration(decl: ts.Declaration): boolean {
 }
 
 /**
- * Renders an object-shaped alias as its resolved apparent shape. Property
- * symbols whose every declaration is external are dropped, so
- * `Omit<HTMLAttributes<…>, …> & { … }` collapses to the project arm without
- * enumerating every HTML attr.
+ * Renders an object-shaped alias as its resolved apparent shape. Drops
+ * property symbols whose every declaration is external;
+ * `Omit<HTMLAttributes<…>, …> & { … }` collapses to the project arm.
  *
  * Returns `null` for primitives, literal unions, and function types; the
- * caller falls back to source text for those, which is already concise.
+ * caller falls back to source text for those.
  */
 function formatApparentShape(
 	symbol: ts.Symbol,
@@ -192,8 +189,7 @@ function formatApparentShape(
 		? checker.getTypeFromTypeNode(decl.type)
 		: checker.getDeclaredTypeOfSymbol(symbol)
 
-	// Function types and hybrid callables read better as source text — their
-	// call signature is the whole point.
+	// Function types and hybrid callables fall back to source text.
 	if (declaredType.getCallSignatures().length > 0) return null
 
 	const properties: { name: string; sym: ts.Symbol }[] = []
@@ -223,8 +219,7 @@ function formatApparentShape(
 
 /**
  * Returns true when every declaration site of the symbol is in `node_modules`
- * or the recipe engine — contributed by an external intersection arm, not part
- * of the project's surface API.
+ * or the recipe engine.
  */
 function isExternalPropertySymbol(symbol: ts.Symbol): boolean {
 	const declarations = symbol.getDeclarations() ?? []
