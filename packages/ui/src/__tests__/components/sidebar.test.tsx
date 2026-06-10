@@ -4,8 +4,10 @@ import {
 	SidebarBody,
 	SidebarHeader,
 	SidebarItem,
+	SidebarItemActions,
 	SidebarLabel,
 	SidebarList,
+	useSidebarMini,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { bySlot, fireEvent, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
@@ -112,6 +114,39 @@ describe('Sidebar mini', () => {
 		expect(bySlot(document.body, 'tooltip-content')).toHaveTextContent('Home')
 	})
 
+	it('surfaces only the SidebarLabel in the tooltip', async () => {
+		stubMatchMedia(() => true)
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Sidebar mini>
+				<SidebarItem>
+					<SidebarLabel>Home</SidebarLabel>
+					<SidebarItemActions>
+						<button type="button">remove</button>
+					</SidebarItemActions>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		if (!inner) throw new Error('item missing')
+
+		await user.click(inner)
+
+		await waitFor(() => expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument())
+
+		const tooltip = bySlot(document.body, 'tooltip-content')
+
+		// The portal escapes the rail's group-scoped hiding, so the surface
+		// must not echo non-label children (actions, affix helpers).
+		expect(tooltip).toHaveTextContent('Home')
+
+		expect(tooltip?.querySelector('button')).toBeNull()
+	})
+
 	it('keeps plain items below the desktop breakpoint', async () => {
 		stubMatchMedia(() => false)
 
@@ -149,6 +184,22 @@ describe('Sidebar mini', () => {
 		)
 	})
 
+	it('squares items to the rail width', () => {
+		const { container } = renderUI(
+			<Sidebar mini>
+				<SidebarItem>
+					<SidebarLabel>Home</SidebarLabel>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		// Height follows the rail width, so items stay uniform squares even
+		// when icon glyph aspect ratios differ.
+		expect(bySlot(container, 'sidebar-item-inner')?.className).toContain(
+			'lg:group-data-[mini]/sidebar:aspect-square',
+		)
+	})
+
 	it('hands the resolved mini state to render-prop children on desktop', () => {
 		stubMatchMedia(() => true)
 
@@ -181,6 +232,22 @@ describe('Sidebar mini', () => {
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
+	})
+
+	it('exposes the resolved mini state to descendants via useSidebarMini', () => {
+		stubMatchMedia(() => true)
+
+		function Probe() {
+			return <span data-testid="probe">{useSidebarMini() ? 'rail' : 'full'}</span>
+		}
+
+		renderUI(
+			<Sidebar mini>
+				<Probe />
+			</Sidebar>,
+		)
+
+		expect(screen.getByTestId('probe')).toHaveTextContent('rail')
 	})
 })
 

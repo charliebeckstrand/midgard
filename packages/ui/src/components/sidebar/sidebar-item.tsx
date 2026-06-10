@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { Children, isValidElement, type Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -12,6 +12,7 @@ import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useInSidebarList, useSidebarMini } from './context'
+import { SidebarLabel } from './sidebar-label'
 
 export type SidebarItemProps = NavItemProps & {
 	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
@@ -46,6 +47,14 @@ export function SidebarItem({
 	// Resolved by the Sidebar root: true only when mini on a desktop viewport,
 	// so the mobile drawer keeps plain items.
 	const mini = useSidebarMini()
+
+	// The tooltip surface portals out of the nav, where the rail's
+	// group-scoped hiding can't reach, so anything echoed into it (actions,
+	// affix helpers) would render. Surface only the SidebarLabel children;
+	// items composed without one fall back to their full children.
+	const labels = Children.toArray(children).filter(
+		(child) => isValidElement(child) && child.type === SidebarLabel,
+	)
 
 	const inner = (
 		<Button
@@ -82,14 +91,13 @@ export function SidebarItem({
 			)}
 			<Headless>
 				{mini ? (
-					// The label children render twice: visually hidden inside the rail
-					// button (keeping the accessible name) and as the tooltip surface,
-					// which portals out of the nav so the rail's CSS can't reach it.
+					// The label renders twice: visually hidden inside the rail button
+					// (keeping the accessible name) and as the tooltip surface.
 					// `*:cursor-pointer` restores nav cursor over the trigger's
 					// help-cursor default.
 					<Tooltip placement="right" className="*:cursor-pointer">
 						<TooltipTrigger>{inner}</TooltipTrigger>
-						<TooltipContent>{children}</TooltipContent>
+						<TooltipContent>{labels.length > 0 ? labels : children}</TooltipContent>
 					</Tooltip>
 				) : (
 					inner
