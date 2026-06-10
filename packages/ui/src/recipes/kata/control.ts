@@ -6,7 +6,7 @@ const { frame } = control
 
 /**
  * Density-keyed corner radius for the outer frame element. Applied via
- * `useDensity()` in `<ControlFrame>` — radius tracks `py` at each step:
+ * `useDensity()` in `<ControlFrame>`; radius tracks `py` at each step:
  * sm → 1.5, md → 2, lg → 2.5.
  */
 const frameRadius = {

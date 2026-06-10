@@ -38,7 +38,7 @@ const dot = defineRecipe({
 })
 
 /**
- * Rotating SVG indicator — indeterminate spinner. The spin is
+ * Rotating SVG indicator: indeterminate spinner. The spin is
  * `motion-safe:`-gated, resting as a static glyph under
  * `prefers-reduced-motion` (WCAG 2.3.3).
  */

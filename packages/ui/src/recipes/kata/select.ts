@@ -14,8 +14,8 @@ export const k = {
 			'*:data-[slot=icon]:pointer-events-none',
 			...text.muted,
 			...cursor,
-			// The disabled input/button is a sibling of the affix, not a descendant,
-			// so cursor reacts to the enclosing control frame instead.
+			// The disabled input/button is a sibling of the affix, not a descendant;
+			// the cursor reacts to the enclosing control frame.
 			'group-has-[:disabled]/control:cursor-not-allowed group-has-[[data-disabled]]/control:cursor-not-allowed',
 		],
 	},

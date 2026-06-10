@@ -30,7 +30,7 @@ const base = {
 const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<Step, number>
 
 /**
- * Font weight per heading level — bold at the top of the scale, easing to
+ * Font weight per heading level: bold at the top of the scale, easing to
  * medium. Heading-like elements that don't render `<Heading>` (e.g. the panel
  * title slot) pull their weight via {@link headingWeight}.
  */
@@ -51,7 +51,7 @@ const levelWeight = {
 export function headingScale(level: Level, step: Step): Rung {
 	const index = Math.min(ladder.length - 1, Math.max(0, ladder.indexOf(base[level]) + shift[step]))
 
-	// Clamped above, so the lookup is always in bounds; the fallback satisfies
+	// The index is clamped above; the fallback satisfies
 	// `noUncheckedIndexedAccess`.
 	return ladder[index] ?? base[level]
 }
@@ -59,7 +59,7 @@ export function headingScale(level: Level, step: Step): Rung {
 /**
  * Density-scaled font size for component titles (Card, Dialog / Sheet /
  * Drawer). Resolves the level-4 `lg` rung shifted ±1 by the ambient density
- * step — `md` returns `text-lg`, `sm`/`lg` move one rung. Returns the
+ * step: `md` returns `text-lg`, `sm`/`lg` move one rung. Returns the
  * matching `ji.size` class.
  */
 export function titleSize(step: Step): string {
@@ -68,7 +68,7 @@ export function titleSize(step: Step): string {
 
 /**
  * Heading font weight for a `level`. Used by heading-like elements that don't
- * render `<Heading>` directly — e.g. the panel title (`<h2>`, level 2).
+ * render `<Heading>` directly, e.g. the panel title (`<h2>`, level 2).
  */
 export function headingWeight(level: Level): string {
 	return levelWeight[level]

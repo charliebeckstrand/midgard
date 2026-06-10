@@ -37,7 +37,7 @@ const delta = defineRecipe({
 
 /**
  * Skeleton placeholder dimensions for each Stat slot. Heights match the text
- * line-height of the live element. Widths are defaults — override via `className`.
+ * line-height of the live element. Widths are defaults; override via `className`.
  */
 const skeleton = {
 	value: defineRecipe({

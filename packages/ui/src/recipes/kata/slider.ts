@@ -14,7 +14,7 @@ export const k = defineRecipe({
 		'outline-none',
 		...disabled,
 
-		// --slider-value is set inline (0–100 %); --slider-fill / --slider-track come from the color variant.
+		// --slider-value is set inline (0-100%); --slider-fill / --slider-track come from the color variant.
 		'[&::-webkit-slider-runnable-track]:w-full',
 		'[&::-webkit-slider-runnable-track]:rounded-full',
 		'[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--slider-fill)_0,var(--slider-fill)_var(--slider-value,0%),var(--slider-track)_var(--slider-value,0%),var(--slider-track)_100%)]',

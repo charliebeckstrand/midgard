@@ -1,16 +1,16 @@
 /**
- * Recipes — the design-system layer of the UI package.
+ * Recipes: the design-system layer of the UI package.
  *
- *   kiso/     — the design tokens. Two tiers: primitive atomic concerns
+ *   kiso/     - the design tokens. Two tiers: primitive atomic concerns
  *               (iro / ji / ma / narabi / omote / hannou / sen / shaku /
  *               sun / tsunagi / ugoki / kokkaku / kasane) and semantic
  *               archetype bundles (control / popover / segment / panel /
  *               slider) composed from them. Read only by kata.
- *   katakana/ — the bridge. Pure functions that receive a kiso token
+ *   katakana/ - the bridge. Pure functions that receive a kiso token
  *               bundle by argument and wire it into a recipe surface,
- *               importing only the recipe engine — never kiso values.
+ *               importing only the recipe engine, never kiso values.
  *               Reached through the namespaced `bridge` object.
- *   kata/     — per-component recipes (1:1 with `src/components/<name>/`).
+ *   kata/     - per-component recipes (1:1 with `src/components/<name>/`).
  *               The only layer that touches kiso; drives the bridge.
  *               Consumed by components and primitives.
  *
@@ -20,9 +20,9 @@
  * and `__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`) so consumers
- * can derive prop unions without threading the type through their kata. No
- * runtime values pass through; values reach consumers through their kata
+ * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`); consumers
+ * derive prop unions from them without threading types through their kata.
+ * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
  * `__tests__/recipes/boundary/recipe-boundary.test.ts`.
  */

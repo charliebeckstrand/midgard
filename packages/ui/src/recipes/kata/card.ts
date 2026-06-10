@@ -7,7 +7,7 @@ const { gap, p, pb, pt, px } = ma
 /**
  * Density-keyed body padding from `ma.p`: sm → p-2, md → p-3, lg → p-4.
  * Header / footer pad three sides via the directional maps below; the edge
- * facing the body stays open so the body slot closes the box.
+ * facing the body stays open and the body slot closes the box.
  */
 const bodyPadding = {
 	sm: p.sm,
@@ -27,7 +27,7 @@ const footerPadding = {
 	lg: [px.lg, pb.lg, 'pt-0'],
 } as const satisfies Record<Step, readonly string[]>
 
-// One step tighter than `ma.gap` at each density — footer actions sit close.
+// One step tighter than `ma.gap` at each density; footer actions sit close.
 const footerGap = {
 	sm: gap.xs,
 	md: gap.sm,
