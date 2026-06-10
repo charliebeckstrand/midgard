@@ -18,7 +18,7 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 
 	const ref = useComposedRef(inputRef, externalRef)
 
-	useLayoutEffect(() => {
+	const flush = () => {
 		const target = pendingCaretRef.current
 
 		if (target === null) return
@@ -30,10 +30,21 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 		if (el && document.activeElement === el) {
 			el.setSelectionRange(target, target)
 		}
-	})
+	}
+
+	// Consumes the pending caret on the commit that re-rendered the input.
+	useLayoutEffect(flush)
 
 	const setCaret = (position: number | null) => {
 		pendingCaretRef.current = position
+
+		// A commit isn't guaranteed: a controlled consumer may reject the value,
+		// or formatting may collapse to the unchanged string (React then restores
+		// the DOM value, shoving the caret to the end, without re-rendering).
+		// The microtask runs after that restore; when a commit did happen, the
+		// layout effect has already consumed the caret and this no-ops. Either
+		// way the pending value never leaks into a later unrelated commit.
+		if (position !== null) queueMicrotask(flush)
 	}
 
 	return { ref, setCaret }
