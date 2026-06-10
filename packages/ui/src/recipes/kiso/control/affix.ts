@@ -13,6 +13,23 @@
  * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
  * this against the live recipes.
  *
+ * An icon-only bare `<Button>` carries no outer chrome, so its glyph
+ * aligns to the text line rather than the chip-content line: the override
+ * subtracts the button's stepped-down compound padding (`kata/button.ts`)
+ * from `density.px`, landing the icon exactly where a text affix sits. The
+ * non-bare constant has no counterpart here — the bare compound scale
+ * grows 0.25 per notch (half of `density.px`'s 0.5), so the deltas can't
+ * cancel and the padding drifts (`1.75 → 2 → 2.25`). A *labeled* bare
+ * button carries the regular `p` and stays on the `density.px` base path,
+ * hence the `:not([data-has-label])` scope.
+ *
+ * The bare arm keys on `data-variant`, not `data-slot`: a wrapper can
+ * hijack the slot id (e.g. `<TooltipTrigger>` rewrites a child's
+ * `data-slot` to `tooltip-trigger`, as the `<PasswordInput>` toggle does),
+ * but `data-variant` survives. It also stays exclusive to `<Button>` —
+ * `<Badge>` emits only `data-slot=badge` — and matches the button whether
+ * it renders as `<button>` or, with `href`, as `<a>`.
+ *
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
@@ -26,16 +43,19 @@ export const affix = {
 			padding.pl('2.5'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
 			padding.pl('3'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
 			padding.pl('3.5'),
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2.25)-1px)]',
 		],
 	},
 	suffix: {
@@ -43,16 +63,19 @@ export const affix = {
 			padding.pr('2.5'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
 			padding.pr('3'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
 			padding.pr('3.5'),
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2.25)-1px)]',
 		],
 	},
 } as const
