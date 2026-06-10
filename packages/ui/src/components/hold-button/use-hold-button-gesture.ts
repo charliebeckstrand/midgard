@@ -25,6 +25,10 @@ export function useHoldButtonGesture({
 
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+	// Always points at the latest `cancel` closure; read by the window guards
+	// and the disabled effect below so neither re-binds per render.
+	const cancelRef = useRef<() => void>(() => {})
+
 	// The fill animates unconditionally — it gates an irreversible action in
 	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
 	// decorative and collapses to an instant under prefers-reduced-motion.
@@ -50,6 +54,29 @@ export function useHoldButtonGesture({
 		}
 	}
 
+	// Window-level guards for a keyboard hold: Alt-Tab or tab-away routes the
+	// keyup elsewhere, and without these the irreversible `onComplete` still
+	// fires after focus loss. Stable identities so add/remove pair across the
+	// per-render `start`/`cancel` closures.
+	const guardsRef = useRef({
+		blur: () => cancelRef.current(),
+		visibility: () => {
+			if (document.hidden) cancelRef.current()
+		},
+	})
+
+	const attachGuards = () => {
+		window.addEventListener('blur', guardsRef.current.blur)
+
+		document.addEventListener('visibilitychange', guardsRef.current.visibility)
+	}
+
+	const detachGuards = () => {
+		window.removeEventListener('blur', guardsRef.current.blur)
+
+		document.removeEventListener('visibilitychange', guardsRef.current.visibility)
+	}
+
 	const start = () => {
 		if (disabled || holdingRef.current) return
 
@@ -59,10 +86,14 @@ export function useHoldButtonGesture({
 
 		clearTimer()
 
+		attachGuards()
+
 		timerRef.current = setTimeout(() => {
 			timerRef.current = null
 
 			holdingRef.current = false
+
+			detachGuards()
 
 			setFill(0, resetDuration)
 
@@ -79,6 +110,8 @@ export function useHoldButtonGesture({
 
 		clearTimer()
 
+		detachGuards()
+
 		setFill(0, resetDuration)
 
 		onHoldCancel?.()
@@ -87,16 +120,18 @@ export function useHoldButtonGesture({
 	useEffect(
 		() => () => {
 			if (timerRef.current !== null) clearTimeout(timerRef.current)
+
+			window.removeEventListener('blur', guardsRef.current.blur)
+
+			document.removeEventListener('visibilitychange', guardsRef.current.visibility)
 		},
 		[],
 	)
 
-	// Cancels any in-progress hold when `disabled` changes. `cancel` is read
-	// from a ref so the effect depends only on `disabled`, not on `onHoldCancel`.
-	const cancelRef = useRef(cancel)
-
 	cancelRef.current = cancel
 
+	// Cancels any in-progress hold when `disabled` changes. `cancel` is read
+	// from the ref so the effect depends only on `disabled`, not on `onHoldCancel`.
 	useEffect(() => {
 		if (disabled) cancelRef.current()
 	}, [disabled])
