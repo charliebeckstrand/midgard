@@ -13,6 +13,20 @@ const items: Item[] = [
 ]
 
 describe('List', () => {
+	it('requires getKey for reorderable configurations (compile-time)', () => {
+		// Never rendered — exists for `tsc`. The index-key fallback produces
+		// positional keys that change on reorder, remounting items mid-drag, so
+		// `onReorder` without `getKey` must not typecheck.
+		const typeChecks = () => (
+			// @ts-expect-error — onReorder requires getKey
+			<List items={items} sortable={false} onReorder={() => {}}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>
+		)
+
+		expect(typeChecks).toBeTypeOf('function')
+	})
+
 	it('renders a data-slot="list" ul with one list item per input', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id}>
