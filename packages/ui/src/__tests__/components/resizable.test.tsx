@@ -15,6 +15,45 @@ describe('Resizable', () => {
 		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('role', 'separator')
 	})
 
+	it('reports the separator orientation perpendicular to the group axis', () => {
+		const { container } = renderUI(
+			<ResizableGroup orientation="horizontal">
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		// Side-by-side panels are separated by a vertical bar — a separator's
+		// orientation is its own, not the group's flex axis.
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-orientation', 'vertical')
+	})
+
+	it('accepts a custom handle label and defaults to Resize', () => {
+		const { container, rerender } = renderUI(
+			<ResizableGroup>
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Resize')
+
+		rerender(
+			<ResizableGroup>
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle aria-label="Resize sidebar" />
+				<ResizablePanel>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		expect(bySlot(container, 'resizable-handle')).toHaveAttribute(
+			'aria-label',
+			'Resize sidebar',
+		)
+	})
+
 	it('handle is focusable', () => {
 		const { container } = renderUI(
 			<ResizableGroup>

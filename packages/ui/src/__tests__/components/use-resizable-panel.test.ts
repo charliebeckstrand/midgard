@@ -155,6 +155,27 @@ describe('useResizablePanel', () => {
 			expect(onSizesChange).toHaveBeenCalledWith([60, 40])
 		})
 
+		it('respects the left panel maxSize even when derived from the clamped right', () => {
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(null),
+					orientation: 'horizontal',
+					panelConfigs: [
+						{ defaultSize: 1, minSize: 0, maxSize: 60 },
+						{ defaultSize: 1, minSize: 10, maxSize: 100 },
+					],
+				}),
+			)
+
+			// A huge nudge: right clamps to its min (10) and the prior two-pass
+			// derivation handed left the remainder (90) — past its own max of 60.
+			act(() => result.current.resize(0, 90))
+
+			expect(result.current.sizes[0]).toBe(60)
+
+			expect(result.current.sizes[1]).toBe(40)
+		})
+
 		it('clamps to the right panel maxSize', () => {
 			const { result } = renderHook(() =>
 				useResizablePanel({

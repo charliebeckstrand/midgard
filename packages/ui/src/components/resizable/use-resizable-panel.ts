@@ -32,22 +32,24 @@ function clampPair(
 	const rc = constraints[rightIdx]
 
 	let left = result[leftIdx] ?? 0
-	let right = result[rightIdx] ?? 0
 
-	if (lc) {
-		left = clamp(left, lc.minSize, lc.maxSize)
-	}
+	// Clamp into the interval where BOTH sides' constraints hold: left's own
+	// bounds intersected with the complement of right's. The prior two-pass
+	// clamp left `left` unclamped after deriving it from the clamped right.
+	const lcMin = lc?.minSize ?? 0
+	const lcMax = lc?.maxSize ?? Number.POSITIVE_INFINITY
+	const rcMin = rc?.minSize ?? 0
+	const rcMax = rc?.maxSize ?? Number.POSITIVE_INFINITY
 
-	right = total - left
+	const feasibleMin = Math.max(lcMin, total - rcMax)
+	const feasibleMax = Math.min(lcMax, total - rcMin)
 
-	if (rc) {
-		right = clamp(right, rc.minSize, rc.maxSize)
-	}
-
-	left = total - right
+	// Over-constrained pairs have no feasible interval; left's own bounds win.
+	left =
+		feasibleMin <= feasibleMax ? clamp(left, feasibleMin, feasibleMax) : clamp(left, lcMin, lcMax)
 
 	result[leftIdx] = left
-	result[rightIdx] = right
+	result[rightIdx] = total - left
 
 	return result
 }

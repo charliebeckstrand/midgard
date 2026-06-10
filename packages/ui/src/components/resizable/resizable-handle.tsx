@@ -6,11 +6,13 @@ import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
 export type ResizableHandleProps = {
+	/** Accessible name — distinguishes multiple handles ("Resize sidebar"). @default 'Resize' */
+	'aria-label'?: string
 	className?: string
 }
 
 export function ResizableHandle(props: ResizableHandleProps) {
-	const { className } = props
+	const { 'aria-label': ariaLabel = 'Resize', className } = props
 
 	const { orientation, dragging, sizes, panelConfigs, startDrag, resize } = useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
@@ -56,8 +58,10 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			data-slot="resizable-handle"
 			data-dragging={isDragging || undefined}
 			role="separator"
-			aria-orientation={orientation}
-			aria-label="Resize"
+			// A separator's orientation is its own, not the group's flex axis: the
+			// handle between side-by-side panels is a vertical bar.
+			aria-orientation={isHorizontal ? 'vertical' : 'horizontal'}
+			aria-label={ariaLabel}
 			aria-valuenow={panelSize}
 			aria-valuemin={panelMinSize}
 			aria-valuemax={panelMaxSize}
