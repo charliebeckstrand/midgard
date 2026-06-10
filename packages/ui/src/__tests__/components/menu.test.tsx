@@ -440,7 +440,7 @@ describe('Menu context-menu mode', () => {
 		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
 	})
 
-	it('does not register a contextmenu handler when placement is provided (dropdown mode)', () => {
+	it('does not open from a contextmenu event when placement is provided (dropdown mode)', () => {
 		const { container } = renderUI(
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -454,7 +454,11 @@ describe('Menu context-menu mode', () => {
 
 		const root = bySlot(container, 'menu') as HTMLElement
 
-		expect(root).not.toHaveAttribute('role', 'application')
+		fireEvent.contextMenu(root, { clientX: 50, clientY: 80 })
+
+		// A dropdown menu opens through its trigger only; right-click stays the
+		// browser's.
+		expect(container.querySelector('[role="menu"]')).not.toBeInTheDocument()
 	})
 })
 

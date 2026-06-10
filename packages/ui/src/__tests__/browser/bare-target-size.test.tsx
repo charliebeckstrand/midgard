@@ -5,11 +5,13 @@ import { Icon } from '../../components/icon'
 import { renderUI } from '../helpers'
 
 /**
- * Bare-button target-size floor (real browser). The bare variant carries no
- * padding: an icon-only bare button's border-box is the icon alone, below the
- * WCAG 2.5.8 24px minimum. The recipe floors that box to 24px and pulls the
- * overshoot back with a matched negative margin; the floor never grows the row
- * it sits in.
+ * Bare-button target-size floor (real browser). The bare variant carries only
+ * its compound icon padding: an icon-only bare button's padded box (xs 18px,
+ * sm 24px) can sit below the WCAG 2.5.8 24px minimum, so the recipe floors it
+ * with `min-w-6 min-h-6`. The floored border-box is the real footprint — there
+ * is no margin pull; inside a control affix the host re-aligns the glyph by
+ * subtracting the button's padding from its own (see
+ * `recipes/boundary/affix-compensation-boundary.test.ts`).
  *
  * The corpus gate clears the tag-input's bare X through axe's spacing exception
  * and can't detect a no-op floor; this measures the box directly. jsdom has no
@@ -20,13 +22,14 @@ import { renderUI } from '../helpers'
  * hit area is the border-box. The last case pins that invariant.
  */
 describe('bare button target-size floor', () => {
-	// xs and sm sit below 24px naturally (12px/16px icons) and lean on the
-	// floor; md clears it on padding alone. All three keep the footprint small.
+	// xs sits below 24px naturally (12px icon + p-0.75) and leans on the floor;
+	// sm lands exactly on it (16px + p-1); md clears it on padding alone
+	// (20px + p-1.25 = 30px).
 	it.each([
-		'xs',
-		'sm',
-		'md',
-	] as const)('floors an icon-only bare %s box to 24px without growing its footprint', (size) => {
+		['xs', 24],
+		['sm', 24],
+		['md', 30],
+	] as const)('floors an icon-only bare %s box at the 24px minimum', (size, expected) => {
 		const { getByRole } = renderUI(
 			<span data-slot="wrap" className="inline-flex">
 				<Button aria-label="Remove" variant="bare" size={size}>
@@ -41,19 +44,18 @@ describe('bare button target-size floor', () => {
 
 		const box = button.getBoundingClientRect()
 
-		// Hit box clears the 24px minimum...
-		expect(box.width).toBeGreaterThanOrEqual(24)
-		expect(box.height).toBeGreaterThanOrEqual(24)
+		expect(box.width).toBe(expected)
+		expect(box.height).toBe(expected)
 
-		// ...while the negative margin collapses the margin-box back toward the
-		// icon; the wrapper never grows.
+		// The floored border-box is the footprint: no negative margin pulls the
+		// margin-box back, so the wrapper sits exactly on the button's box.
 		const wrapBox = wrap.getBoundingClientRect()
 
-		expect(wrapBox.width).toBeLessThan(24)
-		expect(wrapBox.height).toBeLessThan(24)
+		expect(wrapBox.width).toBe(box.width)
+		expect(wrapBox.height).toBe(box.height)
 	})
 
-	it('keeps a labelled bare button footprint on its text line box', () => {
+	it('keeps a labelled bare button in lockstep with same-size control chrome', () => {
 		const { getByRole } = renderUI(
 			<span data-slot="wrap" className="inline-flex">
 				<Button variant="bare" size="md">
@@ -66,13 +68,13 @@ describe('bare button target-size floor', () => {
 
 		const wrap = button.closest('[data-slot="wrap"]') as HTMLElement
 
-		// A labelled bare button is excluded from the floor; instead it carries
-		// the affix-aligned py with a matched -my pull, so its border-box exceeds
-		// the md text line box (24px) by 3px per side while the wrapper stays on
-		// the line box and the row never grows.
-		expect(wrap.getBoundingClientRect().height).toBe(24)
+		// A labelled bare button is excluded from the floor and the icon-only
+		// compound padding; it carries the size-level `data-[has-label]:py`, so
+		// its border-box matches same-size Input/Select chrome (md → 38px) and
+		// is its own footprint.
+		expect(button.getBoundingClientRect().height).toBe(38)
 
-		expect(button.getBoundingClientRect().height).toBe(30)
+		expect(wrap.getBoundingClientRect().height).toBe(38)
 	})
 
 	it('confines the icon-only mouse hit area to the box (no pseudo bleed)', () => {

@@ -45,10 +45,11 @@ export const k = defineRecipe(
 			plain: focus.inset,
 			bare: [
 				focus.inset,
-				// WCAG 2.5.8 floor: an icon-only bare box (xs 16px, sm 22px) must
-				// still hit 24px; the compound negative margins keep the floored box
-				// from growing the row. Labelled bare buttons are excluded; their
-				// box stays in affix lockstep (see affix-compensation boundary).
+				// WCAG 2.5.8 floor: an icon-only bare box (xs 18px) must still hit
+				// 24px. The floored border-box is the button's real footprint; a
+				// control affix re-aligns the glyph by subtracting the compound `p`
+				// from its own padding (see affix-compensation boundary). Labelled
+				// bare buttons are excluded; they stay on the size-level `py`.
 				'not-data-[has-label]:min-w-6 not-data-[has-label]:min-h-6',
 			],
 		},

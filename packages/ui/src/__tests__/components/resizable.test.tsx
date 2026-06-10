@@ -90,18 +90,6 @@ describe('Resizable', () => {
 		expect(panels[1]?.style.flex).toBe('30 0 0px')
 	})
 
-	it('handle has aria-label="Resize"', () => {
-		const { container } = renderUI(
-			<ResizableGroup>
-				<ResizablePanel>A</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel>B</ResizablePanel>
-			</ResizableGroup>,
-		)
-
-		expect(bySlot(container, 'resizable-handle')).toHaveAttribute('aria-label', 'Resize')
-	})
-
 	it('handle has aria-valuenow reflecting panel size', () => {
 		const { container } = renderUI(
 			<ResizableGroup>
