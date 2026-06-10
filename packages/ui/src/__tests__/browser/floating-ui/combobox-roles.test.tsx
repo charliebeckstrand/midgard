@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
-import { renderUI, screen, waitFor } from '../helpers'
+import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Combobox ARIA roles (real floating engine). Verifies `role: null` on

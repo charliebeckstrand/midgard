@@ -60,6 +60,36 @@ describe('StepperDescription', () => {
 	})
 })
 
+describe('StepperIndicator', () => {
+	it('names each step state for assistive tech', () => {
+		const { container } = renderUI(
+			<Stepper value={2} onValueChange={() => {}}>
+				<StepperStep value={1}>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+				<StepperStep value={2}>
+					<StepperTitle>Two</StepperTitle>
+				</StepperStep>
+				<StepperStep value={3}>
+					<StepperTitle>Three</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const steps = Array.from(
+			container.querySelectorAll<HTMLButtonElement>('button[data-slot="stepper-step"]'),
+		)
+
+		// Completed/current/upcoming differ visually by color and the checkmark
+		// glyph only (WCAG 1.4.1); each step's name must carry its state.
+		expect(steps[0]).toHaveAccessibleName(expect.stringContaining('completed'))
+
+		expect(steps[1]).toHaveAccessibleName(expect.stringContaining('current step'))
+
+		expect(steps[2]).toHaveAccessibleName(expect.stringContaining('not started'))
+	})
+})
+
 describe('StepperPanel', () => {
 	it('renders matching panel content', () => {
 		renderUI(

@@ -145,6 +145,42 @@ describe('useComboboxInput onBlur', () => {
 
 		expect(close).not.toHaveBeenCalled()
 	})
+
+	it('fires onTouched when focus leaves the floating element', () => {
+		const onTouched = vi.fn()
+
+		const { result, floatingRef } = setup<string>({ onTouched })
+
+		floatingRef.current = document.createElement('div')
+
+		const event = makeFocusEvent<HTMLInputElement>({
+			relatedTarget: document.createElement('span'),
+		})
+
+		result.current.onBlur(event)
+
+		expect(onTouched).toHaveBeenCalled()
+	})
+
+	it('does not fire onTouched when focus moves inside the floating element', () => {
+		const onTouched = vi.fn()
+
+		const { result, floatingRef } = setup<string>({ onTouched })
+
+		const floating = document.createElement('div')
+
+		const inside = document.createElement('span')
+
+		floating.appendChild(inside)
+
+		floatingRef.current = floating
+
+		const event = makeFocusEvent<HTMLInputElement>({ relatedTarget: inside })
+
+		result.current.onBlur(event)
+
+		expect(onTouched).not.toHaveBeenCalled()
+	})
 })
 
 describe('useComboboxInput onKeyDown', () => {

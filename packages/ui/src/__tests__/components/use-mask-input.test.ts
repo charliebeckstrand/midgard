@@ -1,5 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
+import { createElement, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form, useFormField } from '../../components/form'
 import { useMaskInput } from '../../components/mask-input/use-mask-input'
 import { makeChangeEvent } from '../helpers'
 
@@ -56,5 +58,52 @@ describe('useMaskInput', () => {
 		)
 
 		expect(result.current.value).toBe('locked')
+	})
+
+	it('returns no binding outside a Form', () => {
+		const { result } = renderHook(() => useMaskInput({ format: upper }))
+
+		expect(result.current.binding).toBeUndefined()
+	})
+
+	it('marks the bound form field touched via onBlur', () => {
+		const wrapper = ({ children }: { children: ReactNode }) =>
+			createElement(Form<{ code: string }>, { defaultValues: { code: '' }, children })
+
+		const { result } = renderHook(
+			() => ({
+				masked: useMaskInput({ name: 'code', format: upper }),
+				field: useFormField('code'),
+			}),
+			{ wrapper },
+		)
+
+		expect(result.current.field?.touched).toBe(false)
+
+		act(() => {
+			result.current.masked.onBlur()
+		})
+
+		expect(result.current.field?.touched).toBe(true)
+	})
+
+	it('surfaces the bound field error state through binding', () => {
+		const wrapper = ({ children }: { children: ReactNode }) =>
+			createElement(Form<{ code: string }>, {
+				defaultValues: { code: '' },
+				validate: { code: (v) => (v.length < 3 ? 'too short' : undefined) },
+				validateOn: 'change',
+				children,
+			})
+
+		const { result } = renderHook(() => useMaskInput({ name: 'code', format: upper }), { wrapper })
+
+		expect(result.current.binding).toEqual({ invalid: false })
+
+		act(() => {
+			result.current.setValue('ab')
+		})
+
+		expect(result.current.binding).toEqual({ invalid: true })
 	})
 })

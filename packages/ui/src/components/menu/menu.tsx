@@ -21,8 +21,8 @@ export type MenuProps = {
 
 /**
  * Composition root for menus; provides open state and actions to its trigger
- * and items via context. Acts as a floating dropdown or, when not, a
- * context-menu `application` region driven by right-click.
+ * and items via context. With a `placement` it acts as a floating dropdown;
+ * without one the wrapper opens as a context menu on right-click.
  */
 export function Menu({ defaultOpen, placement, size, className, children }: MenuProps) {
 	const { state, actions, handleContextMenu, isDropdown } = useMenuState({

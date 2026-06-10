@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form } from '../../components/form'
+import { Form, useFormField } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -156,5 +156,32 @@ describe('SearchInput', () => {
 			expect.objectContaining({ q: 'midgard' }),
 			expect.anything(),
 		)
+	})
+
+	it('marks the form field touched on blur', async () => {
+		function TouchedProbe() {
+			const field = useFormField('q')
+
+			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
+		}
+
+		const { container } = renderUI(
+			<Form defaultValues={{ q: '' }}>
+				<SearchInput name="q" />
+				<TouchedProbe />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'search-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+
+		await user.tab()
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
 	})
 })

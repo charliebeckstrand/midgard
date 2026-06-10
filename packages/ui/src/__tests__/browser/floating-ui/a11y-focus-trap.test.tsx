@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Button } from '../../components/button'
-import { Dialog, DialogBody, DialogTitle } from '../../components/dialog'
-import { noop, renderUI, screen, waitFor } from '../helpers'
+import { Button } from '../../../components/button'
+import { Dialog, DialogBody, DialogTitle } from '../../../components/dialog'
+import { noop, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Modal focus-trap gate (real floating engine). Asserts the trap a keyboard or
  * screen-reader user depends on: focus can't escape an open modal (WCAG 2.4.3 /
  * 2.1.2). jsdom resolves tabbability to zero-size; floating-ui's focus guards
- * never engage there, and the main browser suite mocks `@floating-ui/react` away.
- * This config keeps the engine real (vitest.browser-real.config.ts).
+ * never engage there, and the `browser` project mocks `@floating-ui/react` away.
+ * This project keeps the engine real (the `floating-ui` project in
+ * vitest.browser.config.ts).
  *
  * Dialog stands in for the family: drawer, sheet, confirm, and the command
  * palette all route through the same `Overlay` primitive and its

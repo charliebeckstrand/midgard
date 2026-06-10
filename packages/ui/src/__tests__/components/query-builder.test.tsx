@@ -444,6 +444,16 @@ describe('QueryBuilderRuleValue', () => {
 		expect(textInput).not.toBeInTheDocument()
 	})
 
+	it('names the date picker by the rule field label', () => {
+		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
+
+		renderUI(<QueryBuilderRuleValue field={field} value="2024-03-05" onValueChange={() => {}} />)
+
+		// The select/number/text branches name their controls "<label> value";
+		// the date branch threads the same name through DatePicker's aria-label.
+		expect(screen.getByRole('button', { name: 'Start value' })).toBeInTheDocument()
+	})
+
 	it('falls back to a text input for unknown field types', () => {
 		const field: QueryField = { name: 'x', label: 'X', type: 'boolean' }
 

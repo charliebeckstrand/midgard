@@ -3,7 +3,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
-import { Form } from '../../components/form'
+import { Form, useFormField } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
@@ -429,6 +429,43 @@ describe('Combobox active-descendant keyboard model', () => {
 			expect.objectContaining({ fruit: 'apple' }),
 			expect.anything(),
 		)
+	})
+
+	// The panel half of the condition (focus moving *into* the floating panel
+	// does not touch) is pinned in use-combobox-input.test.ts: the global
+	// floating-ui mock keeps `refs.floating` empty, so the containment guard
+	// is unreachable from the rendered component.
+	it('marks the form field touched when focus leaves the combobox', async () => {
+		const user = userEvent.setup()
+
+		function TouchedProbe() {
+			const field = useFormField('fruit')
+
+			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
+		}
+
+		renderUI(
+			<Form defaultValues={{ fruit: undefined }}>
+				<Combobox<string> name="fruit" displayValue={(v) => v} placeholder="Search">
+					<ComboboxOption value="apple">
+						<ComboboxLabel>Apple</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+				<TouchedProbe />
+			</Form>,
+		)
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+
+		await user.tab()
+
+		expect(screen.getByTestId('touched').textContent).toBe('touched')
 	})
 })
 

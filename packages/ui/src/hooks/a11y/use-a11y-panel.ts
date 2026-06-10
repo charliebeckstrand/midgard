@@ -29,14 +29,15 @@ export type A11yPanel = {
  * Modal-panel labelling scope: `useA11yScope` specialized for dialog roots
  * (dialog, drawer, sheet). Sets `role` + `aria-modal`, derives the Title /
  * Description ids, and only wires `aria-labelledby` / `aria-describedby` once
- * those slots register.
+ * those slots register. Non-modal panels omit `aria-modal` so AT keeps the
+ * rest of the page reachable, matching the surface's actual focus behavior.
  */
-export function useA11yPanel(role: A11yPanelRole = 'dialog'): A11yPanel {
+export function useA11yPanel(role: A11yPanelRole = 'dialog', modal = true): A11yPanel {
 	const scope = useA11yScope({ slots: PANEL_SLOTS })
 
 	const ariaProps = useMemo<AriaProps>(
-		() => ({ role, 'aria-modal': true, ...scope.ariaProps }),
-		[role, scope.ariaProps],
+		() => ({ role, 'aria-modal': modal || undefined, ...scope.ariaProps }),
+		[role, modal, scope.ariaProps],
 	)
 
 	const a11y = useMemo<A11yPanelProviderValue>(
