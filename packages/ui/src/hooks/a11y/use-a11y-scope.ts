@@ -36,6 +36,8 @@ export type A11yScope<Slot extends string = never> = {
 	register: Record<Slot, (renderedId?: string) => () => void>
 	/** Spreadable bag — `aria-labelledby` / `aria-describedby` composed from the slots currently registered. */
 	ariaProps: AriaProps
+	/** Per-slot presence — `true` while at least one instance of the slot is mounted. */
+	registered: Record<Slot, boolean>
 }
 
 /**
@@ -123,8 +125,20 @@ export function useA11yScope<Slot extends string = never>(
 		[labelledby, describedby],
 	)
 
+	const registered = useMemo(() => {
+		const out = {} as Record<Slot, boolean>
+
+		for (const key of Object.keys(slots ?? {}) as Slot[]) {
+			const slotCounts = present[key]
+
+			out[key] = !!slotCounts && Object.values(slotCounts).some((count) => count > 0)
+		}
+
+		return out
+	}, [present, slots])
+
 	return useMemo(
-		() => ({ id: scope.id, sub: scope.sub, ids, register, ariaProps }),
-		[scope.id, scope.sub, ids, register, ariaProps],
+		() => ({ id: scope.id, sub: scope.sub, ids, register, ariaProps, registered }),
+		[scope.id, scope.sub, ids, register, ariaProps, registered],
 	)
 }
