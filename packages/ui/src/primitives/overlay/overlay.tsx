@@ -95,7 +95,7 @@ export function Overlay({
 			<AnimatePresence>
 				{open &&
 					// Non-modal overlays skip focus management entirely: no trap, no
-					// initial-focus steal, no focus return — focus stays where it is.
+					// initial-focus steal, no focus return; focus stays where it is.
 					(modal ? (
 						<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
 							{panel}

@@ -48,7 +48,7 @@ export type ListProps<T> = BaseListProps<T> &
 		  }
 		| {
 				sortable: false
-				/** Stable key extractor — required for DnD tracking. */
+				/** Stable key extractor; required for DnD tracking. */
 				getKey: (item: T) => string
 				/** Called with the next ordering; the consumer renders its own `<ListHandle>`. */
 				onReorder: (next: T[]) => void

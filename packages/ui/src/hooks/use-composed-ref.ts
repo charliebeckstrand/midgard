@@ -18,6 +18,6 @@ export function useComposedRef<T>(...refs: (Ref<T> | undefined)[]): RefCallback<
 		}
 	}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the spread *is* the dependency list — one entry per input ref.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the spread *is* the dependency list, one entry per input ref.
 	return useCallback(compose, refs)
 }

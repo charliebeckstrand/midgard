@@ -4,8 +4,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
 
 const noop = () => {}
 
-// Mirrors floating-ui's getFloatingProps contract: user props are merged
-// into (and composed with) the returned props.
+// Mirrors floating-ui's contract: user props merge into the result.
 const mergeFloatingProps = (userProps?: object) => ({ ...userProps })
 
 const baseProps = {
@@ -56,7 +55,7 @@ describe('FloatingSurface', () => {
 		)
 
 		// The consumer handler reaches floating-ui's merger rather than being
-		// spread alongside (and clobbered by) its return.
+		// clobbered by its return.
 		expect(getFloatingProps).toHaveBeenCalledWith(expect.objectContaining({ onKeyDown }))
 
 		const el = document.querySelector<HTMLElement>('[data-slot="composed"]') as HTMLElement

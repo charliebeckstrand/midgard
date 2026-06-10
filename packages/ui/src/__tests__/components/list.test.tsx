@@ -14,11 +14,11 @@ const items: Item[] = [
 
 describe('List', () => {
 	it('requires getKey for reorderable configurations (compile-time)', () => {
-		// Never rendered — exists for `tsc`. The index-key fallback produces
+		// Never rendered; exists for `tsc`. The index-key fallback produces
 		// positional keys that change on reorder, remounting items mid-drag, so
 		// `onReorder` without `getKey` must not typecheck.
 		const typeChecks = () => (
-			// @ts-expect-error — onReorder requires getKey
+			// @ts-expect-error: onReorder requires getKey
 			<List items={items} sortable={false} onReorder={() => {}}>
 				{(item) => <ListItem>{item.label}</ListItem>}
 			</List>

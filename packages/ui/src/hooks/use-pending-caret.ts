@@ -39,10 +39,10 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 
 		// A commit isn't guaranteed: a controlled consumer may reject the value,
 		// or formatting may collapse to the unchanged string (React then restores
-		// the DOM value, shoving the caret to the end, without re-rendering).
-		// The microtask runs after that restore; when a commit did happen, the
-		// layout effect has already consumed the caret and this no-ops. Either
-		// way the pending value never leaks into a later unrelated commit.
+		// the DOM value, pushing the caret to the end, without re-rendering).
+		// The microtask runs after that restore and no-ops when the layout effect
+		// already consumed the caret, so the pending value never leaks into a
+		// later unrelated commit.
 		if (position !== null) queueMicrotask(flush)
 	}
 

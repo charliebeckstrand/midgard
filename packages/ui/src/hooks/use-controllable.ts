@@ -24,10 +24,9 @@ export function useControllable<T>({
 
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
-	// Resolution base for functional updaters. Re-synced to the committed value
-	// each render, but advanced eagerly on every `setValue` call so two updates
-	// in one batch chain (`prev => …` sees the first update's result) instead of
-	// both resolving against the same stale committed value.
+	// Resolution base for functional updaters: re-synced to the committed value
+	// each render, advanced eagerly on every `setValue` call so updaters batched
+	// in one tick chain instead of resolving against the same stale value.
 	const valueRef = useRef(currentValue)
 
 	valueRef.current = currentValue
