@@ -80,6 +80,10 @@ export default defineConfig({
 					name: 'floating-ui',
 					setupFiles: [
 						resolve(import.meta.dirname, 'src/__tests__/browser/setup/index.ts'),
+						resolve(
+							import.meta.dirname,
+							'src/__tests__/browser/floating-ui/setup/act-environment.ts',
+						),
 						resolve(import.meta.dirname, 'src/__tests__/browser/floating-ui/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/floating-ui/**/*.test.{ts,tsx}'],
