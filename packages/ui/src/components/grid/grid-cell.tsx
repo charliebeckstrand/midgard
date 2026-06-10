@@ -2,7 +2,6 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useGrid } from './context'
 import {
 	type Responsive,
 	resolveColStart,
@@ -33,9 +32,7 @@ export function GridCell({
 	children,
 	...props
 }: GridCellProps) {
-	const context = useGrid()
-
-	const sp = resolveSpan(span, context?.columns)
+	const sp = resolveSpan(span)
 	const rs = resolveRowSpan(rowSpan)
 	const cs = resolveColStart(start)
 	const rss = resolveRowStart(rowStart)

@@ -90,7 +90,7 @@ describe('GridCell', () => {
 		expect(cell?.style.getPropertyValue('--span')).toBe('3')
 	})
 
-	it('emits col-span-full for span="full" when Grid has no columns', () => {
+	it('emits col-span-full for span="full"', () => {
 		const { container } = renderUI(
 			<Grid>
 				<GridCell span="full">cell</GridCell>
@@ -100,17 +100,23 @@ describe('GridCell', () => {
 		expect(bySlot(container, 'grid-cell')?.className).toContain('col-span-full')
 	})
 
-	it('mirrors the parent column count for span="full" when Grid columns is provided', () => {
+	it('emits col-span-full for span="full" with Grid columns, clamping to the last line', () => {
+		// `grid-column: 1 / -1` plus the start variable class: Tailwind orders
+		// `col-start-*` after `col-span-*`, so the start re-opens while the `-1`
+		// end clamps to the grid edge instead of overflowing past it.
 		const { container } = renderUI(
 			<Grid columns={4}>
-				<GridCell span="full">cell</GridCell>
+				<GridCell span="full" start={2}>
+					cell
+				</GridCell>
 			</Grid>,
 		)
 
 		const cell = bySlot(container, 'grid-cell')
 
-		expect(cell?.className).toContain('col-span-(--span)')
-		expect(cell?.style.getPropertyValue('--span')).toBe('4')
+		expect(cell?.className).toContain('col-span-full')
+		expect(cell?.className).toContain('col-start-(--col-start)')
+		expect(cell?.style.getPropertyValue('--col-start')).toBe('2')
 	})
 
 	it('routes rowSpan, start, and rowStart through CSS variables', () => {
