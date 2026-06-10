@@ -25,7 +25,7 @@ export function TimelineMarker({
 	pulse,
 	lineBefore,
 	lineAfter,
-	current: _current,
+	current,
 	className,
 	children,
 }: TimelineMarkerProps) {
@@ -34,6 +34,10 @@ export function TimelineMarker({
 	return (
 		<span
 			data-slot="timeline-marker"
+			// `current` was accepted and silently discarded; expose it as a styling
+			// hook. ARIA stays on the TimelineItem <li>, which already announces
+			// aria-current — stamping the marker too would double it.
+			data-current={current || undefined}
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
