@@ -12,7 +12,7 @@ export type ShinyTextProps = {
 	disabled?: boolean
 	/** Seconds per sweep. @default 2 */
 	speed?: number
-	/** Base text color; any CSS color. @default 'currentColor' */
+	/** Base text color; any CSS color. @default 'var(--shiny-text-color)' — zinc-600, zinc-400 in dark mode */
 	color?: string
 	/** Highlight color swept across the text; any CSS color. @default 'var(--color-white)' */
 	shineColor?: string
@@ -43,7 +43,7 @@ const OFF_LEFT = -50
 export function ShinyText({
 	disabled = false,
 	speed = 2,
-	color = 'currentColor',
+	color = 'var(--shiny-text-color)',
 	shineColor = 'var(--color-white)',
 	spread = 120,
 	yoyo = false,
@@ -99,7 +99,11 @@ export function ShinyText({
 		<motion.span
 			ref={ref}
 			data-slot="shiny-text"
-			className={cn('inline-block bg-clip-text text-transparent', className)}
+			className={cn(
+				'inline-block bg-clip-text text-transparent',
+				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
+				className,
+			)}
 			style={{
 				backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
 				backgroundSize: '200% auto',
