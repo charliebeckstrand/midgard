@@ -468,6 +468,37 @@ describe('useEditableGridWrapper: onWrapperPaste', () => {
 		])
 	})
 
+	it('treats a spreadsheet single-cell paste with a trailing newline as a single cell', () => {
+		const { api, applyCellWrite, onValueChange } = setup()
+
+		// Excel/Sheets terminate text/plain with \r\n; the row below the target
+		// must not be blanked by an empty trailing matrix row.
+		api.onWrapperPaste(makePaste('hello\r\n'))
+
+		expect(applyCellWrite).toHaveBeenCalledWith(0, 0, 'hello')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('drops the empty trailing row of a matrix paste with a trailing newline', () => {
+		const { api, onValueChange } = setup({
+			active: { row: 0, col: 0 },
+			rows: [
+				{ id: 'a', value: '' },
+				{ id: 'b', value: '' },
+			],
+		})
+
+		api.onWrapperPaste(makePaste('a1\nb1\n'))
+
+		const changes = onValueChange.mock.calls[0]?.[0]
+
+		expect(changes).toEqual([
+			{ rowKey: 'a', columnId: 'value', value: 'a1' },
+			{ rowKey: 'b', columnId: 'value', value: 'b1' },
+		])
+	})
+
 	it('is a no-op while editing', () => {
 		const { api, applyCellWrite } = setup({ editing: true })
 

@@ -25,9 +25,12 @@ export type SheetProps = SheetPanelVariants & {
 	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
-	 * Modal sheets (the default) trap focus, move it into the panel on open, and
-	 * lock body scroll. Pass `false` for transient, pointer-driven surfaces
-	 * (e.g. a hover-revealed peek) that must not steal focus or block the page.
+	 * Modal sheets (the default) trap focus, move it into the panel on open,
+	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
+	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
+	 * peek) that must not steal focus or block the page: no backdrop renders
+	 * and the page behind stays interactive; Escape or a pointer press outside
+	 * the panel dismisses.
 	 */
 	modal?: boolean
 	/**
@@ -75,7 +78,13 @@ export function Sheet({
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"
 				onClick={(e) => e.stopPropagation()}
-				className={cn(k.panel({ side, size, surface: resolvedSurface }), className)}
+				className={cn(
+					k.panel({ side, size, surface: resolvedSurface }),
+					// Non-modal overlays disable pointer events on the full-viewport
+					// wrapper so the page stays interactive; the panel re-enables its own.
+					modal === false && 'pointer-events-auto',
+					className,
+				)}
 			>
 				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
 					{children}
