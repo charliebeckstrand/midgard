@@ -196,11 +196,11 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **NumberInput round-after-clamp can exceed min/max** (fixed: clamp runs after rounding) — `components/number-input/number-input.tsx:69,79,108`. Rounding a clamped value to coarser step precision can re-cross the bound (max=0.06,step=0.1 → 0.1). Fix: clamp after rounding.
 
-**PasswordConfirm confirmName/confirm not reset on unmount** — `components/password-confirm/password-confirm-input.tsx:14-16`. The register effect has no cleanup and parent `confirm` isn't cleared, leaving a stale warning. Fix: add cleanup clearing confirmName/confirm.
+✅ **PasswordConfirm confirmName/confirm not reset on unmount** (fixed: the register effect cleans up both) — `components/password-confirm/password-confirm-input.tsx:14-16`. The register effect has no cleanup and parent `confirm` isn't cleared, leaving a stale warning. Fix: add cleanup clearing confirmName/confirm.
 
-**onStrengthChange fires on every keystroke (passedIds identity churn)** — `components/password-strength/use-password-strength.ts:57-74`. `passedIds` is a fresh array per value change, defeating the deps guard despite unchanged scoring. Fix: gate on value, not array identity.
+✅ **onStrengthChange fires on every keystroke (passedIds identity churn)** (fixed: `passed` identity keyed on the joined ids) — `components/password-strength/use-password-strength.ts:57-74`. `passedIds` is a fresh array per value change, defeating the deps guard despite unchanged scoring. Fix: gate on value, not array identity.
 
-**PDF defaultRotation not snapped to 90** — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:26-33`. Documented to snap but never rounded; `defaultRotation={45}` mis-sizes/clips. Fix: snap to the nearest multiple of 90.
+✅ **PDF defaultRotation not snapped to 90** (fixed: snapped at the source) — `components/pdf-viewer/use-pdf-viewer-page-rotation.ts:26-33`. Documented to snap but never rounded; `defaultRotation={45}` mis-sizes/clips. Fix: snap to the nearest multiple of 90.
 
 **ProgressGauge renders empty positioned span for label={false}** — `components/progress/progress-gauge.tsx:46-94`. `resolvedLabel != null` is true for `false`, mounting a styled empty span. Fix: guard `label !== false`.
 
