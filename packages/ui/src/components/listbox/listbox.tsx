@@ -3,7 +3,7 @@
 import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
 import { type ReactNode, useId, useMemo, useRef } from 'react'
-import { useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { densityPresets, useDensity } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
@@ -34,6 +34,8 @@ type ListboxBaseProps = {
 	 * (e.g. in a toolbar) needs one of these to be reachable.
 	 */
 	'aria-label'?: string
+	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
+	'aria-describedby'?: string
 	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
@@ -107,6 +109,7 @@ export function Listbox<T>({
 	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedBy,
 	'data-slot': slot = 'listbox',
 	children,
 }: ListboxProps<T>) {
@@ -120,6 +123,10 @@ export function Listbox<T>({
 	const resolvedId = inputId ?? control?.id
 
 	const resolvedDisabled = disabled ?? control?.disabled
+
+	// Input/Textarea/Checkbox all merge a consumer aria-describedby; an
+	// unwrapped Listbox could previously not be described at all.
+	const describedBy = useAriaIds(ariaDescribedBy, control?.describedBy)
 
 	const resolvedSize = token.size
 
@@ -239,7 +246,7 @@ export function Listbox<T>({
 					controlsId={listboxId}
 					ariaLabel={ariaLabel}
 					ariaLabelledby={ariaLabelledby}
-					describedBy={control?.describedBy}
+					describedBy={describedBy}
 					disabled={resolvedDisabled}
 					invalid={control?.invalid}
 					label={label}
