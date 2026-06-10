@@ -119,12 +119,15 @@ describe('Sidebar mini', () => {
 
 		const user = userEvent.setup()
 
+		// Actions render inside the item button, so they host non-interactive
+		// decorations (badges, kbd hints); interactive elements go in
+		// prefix/suffix.
 		const { container } = renderUI(
 			<Sidebar mini>
 				<SidebarItem>
 					<SidebarLabel>Home</SidebarLabel>
 					<SidebarItemActions>
-						<button type="button">remove</button>
+						<span>12</span>
 					</SidebarItemActions>
 				</SidebarItem>
 			</Sidebar>,
@@ -140,11 +143,15 @@ describe('Sidebar mini', () => {
 
 		const tooltip = bySlot(document.body, 'tooltip-content')
 
+		if (!tooltip) throw new Error('tooltip missing')
+
 		// The portal escapes the rail's group-scoped hiding, so the surface
 		// must not echo non-label children (actions, affix helpers).
 		expect(tooltip).toHaveTextContent('Home')
 
-		expect(tooltip?.querySelector('button')).toBeNull()
+		expect(tooltip).not.toHaveTextContent('12')
+
+		expect(bySlot(tooltip, 'sidebar-item-actions')).toBeNull()
 	})
 
 	it('keeps plain items below the desktop breakpoint', async () => {
