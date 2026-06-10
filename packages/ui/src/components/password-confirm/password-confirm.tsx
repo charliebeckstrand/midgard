@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type SyntheticEvent, useCallback, useMemo, useState } from 'react'
+import { type ReactNode, type SyntheticEvent, useCallback, useId, useMemo, useState } from 'react'
 import { useA11yLiveRegion } from '../../hooks'
 import { useFormContext } from '../form/context'
 import { Text } from '../text'
@@ -49,9 +49,13 @@ export function PasswordConfirm({
 		[setPassword, setLastEdited],
 	)
 
+	const generatedWarningId = useId()
+
+	const warningId = warning != null ? generatedWarningId : undefined
+
 	const context = useMemo(
-		() => ({ status, setConfirm, setConfirmName, confirmHasFormError }),
-		[status, setConfirm, confirmHasFormError],
+		() => ({ status, setConfirm, setConfirmName, confirmHasFormError, warningId }),
+		[status, setConfirm, confirmHasFormError, warningId],
 	)
 
 	const liveWarning = useA11yLiveRegion({ className: 'pt-2' })
@@ -61,7 +65,7 @@ export function PasswordConfirm({
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (
-					<div {...liveWarning}>
+					<div {...liveWarning} id={warningId}>
 						<Text color="amber">{warning}</Text>
 					</div>
 				)}
