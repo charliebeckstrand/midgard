@@ -12,7 +12,7 @@ function RegisteredLinkExample() {
 
 	return (
 		<UIProvider link={RouterLink}>
-			<Link href="#providers-ui">Documentation</Link>
+			<Link href="#providers-ui">Link</Link>
 		</UIProvider>
 	)
 }
@@ -21,7 +21,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default link component">
-				<Link href="#providers-ui">Documentation</Link>
+				<Link href="#providers-ui">Link</Link>
 			</Example>
 
 			<Example title="Link component registered through UIProvider">

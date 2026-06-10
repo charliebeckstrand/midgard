@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useId, useMemo, useCallback, useState } from 'react'
+import { type ComponentPropsWithoutRef, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'

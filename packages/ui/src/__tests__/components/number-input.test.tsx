@@ -87,7 +87,6 @@ describe('NumberInput', () => {
 		await vi.waitFor(() => expect(politeRegion).toHaveTextContent('5'))
 	})
 
-
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 

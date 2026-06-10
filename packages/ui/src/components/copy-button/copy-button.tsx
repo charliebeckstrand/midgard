@@ -59,7 +59,7 @@ export function CopyButton({
 			// In the copied state, the label is always "Copied"; at rest, the caller's
 			// label wins over the generic default.
 			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
-			className={cn(k.base, className)}
+			className={cn(k({ copied }).base, className)}
 		/>
 	)
 }
