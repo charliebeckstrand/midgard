@@ -82,6 +82,28 @@ describe('JsonTree', () => {
 		expect(next.has('$.nested')).toBe(true)
 	})
 
+	it('stays read-only when controlled without onExpandedChange', () => {
+		const expanded = new Set<string>(['$'])
+
+		const { rerender } = renderUI(<JsonTree data={{ nested: { value: 1 } }} expanded={expanded} />)
+
+		const toggle = screen.getByText('"nested"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		// Click is a no-op (controlled input with no onChange) and must not bank
+		// local state that would apply once the consumer drops `expanded`.
+		fireEvent.click(toggle)
+
+		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+
+		rerender(<JsonTree data={{ nested: { value: 1 } }} />)
+
+		// Uncontrolled now: the depth default keeps `nested` closed. The dead
+		// click previously banked userOpen=true, springing the branch open here.
+		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+	})
+
 	it('reflects the controlled expanded set on render', () => {
 		const expanded = new Set<string>(['$', '$.nested'])
 

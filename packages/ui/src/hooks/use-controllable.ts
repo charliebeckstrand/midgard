@@ -24,6 +24,9 @@ export function useControllable<T>({
 
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
+	// Resolution base for functional updaters: re-synced to the committed value
+	// each render, advanced eagerly on every `setValue` call so updaters batched
+	// in one tick chain instead of resolving against the same stale value.
 	const valueRef = useRef(currentValue)
 
 	valueRef.current = currentValue
@@ -42,6 +45,8 @@ export function useControllable<T>({
 			typeof next === 'function'
 				? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
 				: next
+
+		valueRef.current = resolved
 
 		// Stale internal state surfaces as a jump if the consumer later drops
 		// the `value` prop.

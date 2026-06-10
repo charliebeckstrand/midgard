@@ -213,6 +213,27 @@ describe('SidebarLayout floating mode', () => {
 		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
 	})
 
+	it('does not trap focus or lock scroll when the hover-peek opens', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<a href="/a">nav-link</a>} floating>
+				<button type="button">page button</button>
+			</SidebarLayout>,
+		)
+
+		const pageButton = screen.getByRole('button', { name: 'page button' })
+
+		pageButton.focus()
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		fireEvent.pointerEnter(hotZone)
+
+		// Mere hover must not steal focus from the page nor lock its scroll.
+		expect(document.activeElement).toBe(pageButton)
+
+		expect(document.body.style.overflow).toBe('')
+	})
+
 	it('scales the mobile navbar padding to the ambient density', () => {
 		const { container: small } = renderUI(
 			<Density size="sm">

@@ -14,7 +14,8 @@ function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) 
 		setFloating: noop,
 		floatingStyles: {},
 		getReferenceProps: () => ({}),
-		getFloatingProps: () => ({}),
+		// Mirrors floating-ui's contract: user props merge into the result.
+		getFloatingProps: (userProps?: object) => ({ ...userProps }),
 	}
 }
 

@@ -166,23 +166,17 @@ export function resolveRowStart(value: Responsive<number> | undefined): Resolved
 
 /**
  * Span has two extras over a plain numeric prop:
- *   1. The literal `'full'` value, which spans the entire row regardless of
- *      column count (`grid-column: 1 / -1`). When the parent `Grid` declares
- *      a `columns` count, the span mirrors that count instead; the cell
- *      respects its `start` position and spans only up to the parent's grid.
+ *   1. The literal `'full'` value, which spans the entire row
+ *      (`grid-column: 1 / -1`). Composed with a `start` this clamps to the
+ *      grid's last line rather than overflowing: Tailwind emits `col-start-*`
+ *      after `col-span-*`, so the start class re-opens `grid-column-start`
+ *      while the shorthand's `-1` end holds.
  *   2. A responsive object may mix numeric values and `'full'` per breakpoint.
  */
-export function resolveSpan(
-	value: Responsive<number | 'full'> | undefined,
-	columns: Responsive<number> | undefined,
-): ResolvedResponsive {
+export function resolveSpan(value: Responsive<number | 'full'> | undefined): ResolvedResponsive {
 	if (value === undefined) return EMPTY
 
-	if (value === 'full') {
-		if (columns === undefined) return { classes: [spanFull.initial], style: {} }
-
-		return resolveScalar(columns, 'span', span, asNumber)
-	}
+	if (value === 'full') return { classes: [spanFull.initial], style: {} }
 
 	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
 		const obj: Partial<Record<Breakpoint, number | 'full'>> = value

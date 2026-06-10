@@ -91,25 +91,19 @@ describe('resolveRowSpan, resolveColStart, resolveRowStart', () => {
 
 describe('resolveSpan', () => {
 	it('returns empty when value is undefined', () => {
-		expect(resolveSpan(undefined, undefined).classes).toEqual([])
+		expect(resolveSpan(undefined).classes).toEqual([])
 	})
 
-	it('returns the full-span class when value is "full" and no parent columns are set', () => {
-		const result = resolveSpan('full', undefined)
+	it('returns the full-span class when value is "full"', () => {
+		const result = resolveSpan('full')
 
-		expect(result.classes.length).toBe(1)
+		expect(result.classes).toEqual(['col-span-full'])
 
 		expect(result.style).toEqual({})
 	})
 
-	it('mirrors the parent column count when value is "full" and columns is set', () => {
-		const result = resolveSpan('full', 4)
-
-		expect(result.style).toMatchObject({ '--span': 4 })
-	})
-
 	it('handles a responsive value with a mix of numbers and "full"', () => {
-		const result = resolveSpan({ initial: 2, sm: 'full', md: 3 }, undefined)
+		const result = resolveSpan({ initial: 2, sm: 'full', md: 3 })
 
 		expect(result.classes.length).toBe(3)
 
@@ -117,7 +111,7 @@ describe('resolveSpan', () => {
 	})
 
 	it('handles a scalar numeric value', () => {
-		const result = resolveSpan(2, undefined)
+		const result = resolveSpan(2)
 
 		expect(result.style).toMatchObject({ '--span': 2 })
 	})

@@ -25,6 +25,12 @@ export type SheetProps = SheetPanelVariants & {
 	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
+	 * Modal sheets (the default) trap focus, move it into the panel on open, and
+	 * lock body scroll. Pass `false` for transient, pointer-driven surfaces
+	 * (e.g. a hover-revealed peek) that must not steal focus or block the page.
+	 */
+	modal?: boolean
+	/**
 	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 	 * `SheetTitle` registers.
 	 */
@@ -47,6 +53,7 @@ export function Sheet({
 	children,
 	container,
 	initialFocus,
+	modal,
 	'aria-label': ariaLabel,
 }: SheetProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
@@ -59,6 +66,7 @@ export function Sheet({
 			onOpenChange={onOpenChange}
 			container={container}
 			initialFocus={initialFocus}
+			modal={modal}
 			className={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div

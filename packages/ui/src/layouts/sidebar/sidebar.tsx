@@ -7,7 +7,6 @@ import {
 	type Ref,
 	useEffect,
 	useMemo,
-	useRef,
 	useState,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -67,8 +66,6 @@ export function SidebarLayout({
 
 	const scrollWithin = useScrollWithin()
 
-	const floatingInitialFocusRef = useRef<HTMLDivElement>(null)
-
 	const { size } = useDensity()
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
@@ -89,20 +86,19 @@ export function SidebarLayout({
 			{/* Sidebar on desktop: inline when locked */}
 			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
 
-			{/* Sidebar on desktop: sheet when floating */}
+			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
+			    peek doesn't steal focus or lock body scroll. */}
 			{floating && (
 				<Sheet
 					side="left"
 					size="xs"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
-					initialFocus={floatingInitialFocusRef}
+					modal={false}
 					className="sm:top-0 sm:left-0 sm:bottom-0 sm:rounded-l-none"
 				>
 					<div
-						ref={floatingInitialFocusRef}
-						tabIndex={-1}
-						className="flex flex-col h-full outline-none"
+						className="flex flex-col h-full"
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					>

@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 const noop = () => {}
+
+// Mirrors floating-ui's contract: user props merge into the result.
+const mergeFloatingProps = (userProps?: object) => ({ ...userProps })
 
 const baseProps = {
 	setFloating: noop,
 	floatingStyles: {},
-	getFloatingProps: () => ({}),
+	getFloatingProps: mergeFloatingProps,
 }
 
 describe('FloatingSurface', () => {
@@ -33,13 +36,42 @@ describe('FloatingSurface', () => {
 		expect(screen.queryByText('hidden')).toBeNull()
 	})
 
+	it('routes forwarded props through getFloatingProps so handlers compose', () => {
+		const getFloatingProps = vi.fn(mergeFloatingProps)
+
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<FloatingSurface
+				open
+				setFloating={noop}
+				floatingStyles={{}}
+				getFloatingProps={getFloatingProps}
+				onKeyDown={onKeyDown}
+				data-slot="composed"
+			>
+				<span>panel</span>
+			</FloatingSurface>,
+		)
+
+		// The consumer handler reaches floating-ui's merger rather than being
+		// clobbered by its return.
+		expect(getFloatingProps).toHaveBeenCalledWith(expect.objectContaining({ onKeyDown }))
+
+		const el = document.querySelector<HTMLElement>('[data-slot="composed"]') as HTMLElement
+
+		fireEvent.keyDown(el, { key: 'a' })
+
+		expect(onKeyDown).toHaveBeenCalled()
+	})
+
 	it('merges caller style over floatingStyles on the positioned wrapper', () => {
 		renderUI(
 			<FloatingSurface
 				open
 				setFloating={noop}
 				floatingStyles={{ position: 'absolute' }}
-				getFloatingProps={() => ({})}
+				getFloatingProps={mergeFloatingProps}
 				style={{ pointerEvents: 'auto' }}
 				data-slot="merged-style"
 			>

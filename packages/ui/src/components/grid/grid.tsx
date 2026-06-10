@@ -1,9 +1,8 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, useMemo } from 'react'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensityNullable } from '../../primitives/density'
-import { GridContext } from './context'
 import {
 	alignMap,
 	flowMap,
@@ -51,27 +50,23 @@ export function Grid({
 	const cols = resolveCols(columns)
 	const resolvedRows = resolveRows(rows)
 
-	const value = useMemo(() => ({ columns }), [columns])
-
 	return (
-		<GridContext value={value}>
-			<div
-				data-slot="grid"
-				className={cn(
-					'grid',
-					...cols.classes,
-					...resolvedRows.classes,
-					...resolveGap(resolvedGap),
-					flow && flowMap[flow],
-					align && alignMap[align],
-					justify && justifyMap[justify],
-					className,
-				)}
-				style={{ ...cols.style, ...resolvedRows.style, ...style }}
-				{...props}
-			>
-				{children}
-			</div>
-		</GridContext>
+		<div
+			data-slot="grid"
+			className={cn(
+				'grid',
+				...cols.classes,
+				...resolvedRows.classes,
+				...resolveGap(resolvedGap),
+				flow && flowMap[flow],
+				align && alignMap[align],
+				justify && justifyMap[justify],
+				className,
+			)}
+			style={{ ...cols.style, ...resolvedRows.style, ...style }}
+			{...props}
+		>
+			{children}
+		</div>
 	)
 }

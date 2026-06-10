@@ -103,4 +103,28 @@ describe('CurrentContents / CurrentContent', () => {
 
 		expect(panel).toHaveAttribute('aria-labelledby', 'tab-a')
 	})
+
+	it('preserves caller style under the positioning keys in fade mode', () => {
+		renderUI(
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="test" fade>
+					<CurrentContent slotPrefix="test" value="a" style={{ minHeight: 120 }}>
+						Content A
+					</CurrentContent>
+					<CurrentContent slotPrefix="test" value="b" style={{ minHeight: 80 }}>
+						Content B
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		const current = screen.getByText('Content A')
+
+		expect(current).toHaveStyle({ minHeight: '120px', position: 'relative' })
+
+		// The faded-out panel keeps its caller style too; positioning wins.
+		const hidden = screen.getByText('Content B')
+
+		expect(hidden).toHaveStyle({ minHeight: '80px', position: 'absolute' })
+	})
 })

@@ -21,8 +21,6 @@ import { useListKeyboard } from './use-list-keyboard'
 type BaseListProps<T> = {
 	/** Ordered items. */
 	items: T[]
-	/** Called with the next ordering. Omit to render a non-reorderable list. */
-	onReorder?: (next: T[]) => void
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. */
 	variant?: ListVariant
 	/** Layout axis. Defaults to vertical. */
@@ -35,6 +33,9 @@ type BaseListProps<T> = {
 	'aria-label'?: string
 }
 
+// Reorderable configurations require `getKey`: the index fallback produces
+// positional keys that change on reorder, remounting items mid-drag and
+// breaking keyboard-move refocus.
 export type ListProps<T> = BaseListProps<T> &
 	(
 		| {
@@ -42,11 +43,21 @@ export type ListProps<T> = BaseListProps<T> &
 				sortable?: true
 				/** Stable key extractor; required for DnD tracking. */
 				getKey: (item: T) => string
+				/** Called with the next ordering. Omit to render a non-reorderable list. */
+				onReorder?: (next: T[]) => void
+		  }
+		| {
+				sortable: false
+				/** Stable key extractor; required for DnD tracking. */
+				getKey: (item: T) => string
+				/** Called with the next ordering; the consumer renders its own `<ListHandle>`. */
+				onReorder: (next: T[]) => void
 		  }
 		| {
 				sortable: false
 				/** Stable key extractor. Optional when the list is read-only; falls back to item index. */
 				getKey?: (item: T) => string
+				onReorder?: undefined
 		  }
 	)
 

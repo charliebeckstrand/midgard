@@ -126,6 +126,48 @@ describe('Overlay', () => {
 		expect(backdrop.className).toBe('custom-backdrop')
 	})
 
+	it('does not steal focus when modal=false', () => {
+		const outside = document.createElement('button')
+
+		document.body.appendChild(outside)
+
+		outside.focus()
+
+		renderUI(
+			<Overlay open modal={false} onOpenChange={() => {}}>
+				<button type="button">inside</button>
+			</Overlay>,
+		)
+
+		expect(document.activeElement).toBe(outside)
+
+		outside.remove()
+	})
+
+	it('does not lock body scroll when modal=false', () => {
+		renderUI(
+			<Overlay open modal={false} onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(document.body.style.overflow).toBe('')
+	})
+
+	it('still dismisses on Escape when modal=false', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open modal={false} onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		fireEvent.keyDown(document, { key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
 	it('renders into a scoped container when one is provided', () => {
 		const host = document.createElement('div')
 

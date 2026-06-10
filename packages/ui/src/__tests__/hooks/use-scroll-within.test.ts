@@ -168,6 +168,26 @@ describe('useScrollWithin', () => {
 			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 30, behavior: 'auto' })
 		})
 
+		it('subtracts the scroller top border from the offset', () => {
+			stubScrollable()
+
+			const { scroller, node } = buildScrollable()
+
+			// Border-box rect top vs padding-box scroll metrics: clientTop is the
+			// top border width and must come off the offset.
+			Object.defineProperty(scroller, 'clientTop', { configurable: true, value: 5 })
+
+			scroller.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
+
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 50, height: 20 })
+
+			const { result } = renderHook(() => useScrollWithin())
+
+			result.current(node, { block: 'start' })
+
+			expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 45, behavior: 'auto' })
+		})
+
 		it('skips an ancestor with a scroll style that does not actually overflow', () => {
 			stubScrollable()
 
