@@ -77,16 +77,17 @@ export function RangeSlider({
 
 	const overlap = allowCross ? 'swap' : 'clamp'
 
-	const { onPointerDown, onPointerMove, onPointerUp } = useRangePointer({
-		min,
-		max,
-		step,
-		disabled,
-		current,
-		trackRef,
-		setRange,
-		overlap,
-	})
+	const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture } =
+		useRangePointer({
+			min,
+			max,
+			step,
+			disabled,
+			current,
+			trackRef,
+			setRange,
+			overlap,
+		})
 
 	const handleKeyDown = useRangeKeyboard({
 		min,
@@ -110,6 +111,8 @@ export function RangeSlider({
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
 			onPointerUp={onPointerUp}
+			onPointerCancel={onPointerCancel}
+			onLostPointerCapture={onLostPointerCapture}
 		>
 			{/* Track */}
 			<div

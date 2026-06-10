@@ -9,14 +9,18 @@ Already fixed on `claude/ui-bug-audit-vmbnj1` (not listed below): editable-grid
 spreadsheet-paste blanking the row below the target, currency-input separator
 extraction corrupting comma-decimal locales, flat Escape dismissal closing
 every open overlay layer at once, and non-modal Sheet rendering a blocking
-backdrop.
+backdrop. Second round (cross-cutting patterns): `pointercancel` handling in
+the resizable/scroll-area/range-slider drags, `disabled` guards on the
+secondary input paths of command-palette items, menu items, tag-input badges,
+and file-upload drag handlers, consumer-handler composition in MenuTrigger
+(child props now route through `getReferenceProps`) and ShinyText (hover
+handlers compose with `pauseOnHover`; `disabled` re-parks the shine).
 
 ## High — broken behavior
 
 - [ ] **`src/components/editable-grid/use-editable-grid-wrapper.ts:48`** (with `use-editable-grid-draft.ts:42`) — `beginEdit` doesn't verify the active cell is mounted. Under `virtualize`, scrolling the active cell out of the window and pressing a key sets `editing=true` with no editor mounted: all keys and paste go dead, and the recovery paths commit the stale draft into a cell the user never edited.
 - [ ] **`src/components/map/use-map-instance.ts:135-145`** — `map.setStyle()` on a `style`/`preset` prop change removes every custom source/layer; `MapRoute`/`MapGeofence` only add theirs in the single `load` handler and never re-add. A dark-mode preset toggle permanently erases routes and geofences. The style is also identity-compared, so an inline `style` object re-triggers the wipe every parent render. Fix shape: re-add sources/layers on `styledata`/`style.load`, and deep-or-key compare.
 - [ ] **`src/components/file-upload/use-file-upload-handlers.ts:83-94`** — `handleDrop` feeds `dataTransfer.files` straight through: drag-and-drop bypasses both `accept` and `multiple`, which only constrain the native picker.
-- [ ] **`src/components/command-palette/command-palette-item.tsx:36-40`** — disabled items are fully operable by pointer: consumer `onClick` fires *before* the `disabled` guard, and disabled link items still navigate (palette stays open). Keyboard correctly skips them, making pointer the inconsistent path.
 - [ ] **`src/components/menu/menu-content.tsx:31-49`** + **`menu-item.tsx:102`** — static menus (`defaultOpen`, no `placement`) are unreachable by keyboard: every item hardcodes `tabIndex={-1}`, roving runs without `manageTabIndex`, and there is no autofocus entry point. Tab skips the whole `role="menu"` widget.
 - [ ] **`src/layouts/sidebar/sidebar.tsx:78-108`** — `floating` mode's only opening affordances are `aria-hidden` pointer-hover zones, and the mobile open button is `lg:hidden`. On ≥lg viewports keyboard/screen-reader users cannot reach the navigation at all.
 - [ ] **`src/components/chat-prompt/chat-prompt.tsx:92`** — the paperclip "Add attachment" button is hardcoded with no `onClick` and no prop to wire or suppress it: a focusable, announced control that does nothing in every composer.
@@ -25,7 +29,6 @@ backdrop.
 
 ## Medium
 
-- [ ] **Missing `pointercancel` handling (three hand-rolled drags)** — `src/components/resizable/use-resizable-panel.ts:207-227`, `src/components/scroll-area/use-scroll-area-scrollbar.ts:168-189`, `src/components/slider/range/use-range-pointer.ts:136-139`. A cancelled pointer (OS gesture, pen leaving range) leaves the drag flag set; subsequent buttonless pointer movement keeps resizing/scrolling/dragging. `use-color-drag.ts` and signature-pad show the correct in-repo pattern.
 - [ ] **`src/components/kanban/use-kanban-drag.ts:148`** — `handleDragOver` commits cross-column moves via `onValueChange`, but `handleDragCancel` only clears the active id: Escape-cancelled drags strand the card in the last-hovered column instead of restoring the pre-drag layout.
 - [ ] **`src/components/kanban/kanban-card.tsx:329`** — `overlayMap.current.set(cardId, children)` on every render, never deleted: unbounded growth on boards whose cards churn, each entry pinning a ReactNode tree.
 - [ ] **`src/components/filters/filters.tsx:13`** (with `filters-field.tsx:78`) — `isActive(false)` is truthy: unchecking a Switch/Checkbox filter emits `{flag: false}` instead of `{}`, `activeCount` reports a phantom filter, and the live region announces it.
@@ -33,8 +36,6 @@ backdrop.
 - [ ] **`src/components/color/use-color-state.ts:53-66`** — internal state commits before notifying and reconciles only on `value` identity change, so a controlled parent rejecting an update (same hex string) drifts; behavior differs between string and object wire formats.
 - [ ] **`src/components/time-ago/use-time-ago-relative-time.ts:103-112`** — the clock effect's deps omit the date, so a `date` prop change renders against a stale `now` (up to a full adaptive interval, worst case ~24h).
 - [ ] **`src/providers/toast/toast.tsx:81-86`** — caller-supplied `toast({ id })` appends unconditionally: duplicate ids produce duplicate React keys in `AnimatePresence`. Dedup/replace on collision.
-- [ ] **`src/components/menu/menu-item.tsx:103-113`** — disabled menu items run consumer `onClick` before the `disabled` guard (same pattern as the command-palette finding above).
-- [ ] **`src/components/menu/menu-trigger.tsx:24-33`** — clone branch spreads `getReferenceProps()` without the child's props, silently discarding a child `onKeyDown` (Escape handling) and dropping the accepted `className`. `TooltipTrigger`/`PopoverTrigger` compose correctly.
 - [ ] **`src/components/slider/range/use-range-pointer.ts:61-63`** — `preventDefault()` on pointerdown suppresses focus and nothing focuses the thumb, so drag-then-arrow-key fine-tuning is dead and pointer users never see a focus ring.
 - [ ] **`src/components/pdf-viewer/use-pdf-viewer-document.ts:139-147`** — a `null` `canvas.toBlob` result (Safari canvas-area cap) returns without `setLoading(false)`/`setError`: viewer stuck on "Loading PDF" forever.
 - [ ] **`src/components/code/code-block.tsx:29-35,75-91`** — `loadShiki()` caches a rejected promise forever and the highlight chain has no `.catch`: one chunk-load failure disables highlighting for the session with unhandled rejections.
@@ -42,8 +43,7 @@ backdrop.
 - [ ] **`src/components/editable-grid/editable-grid.tsx:200`** — nothing scrolls the active cell into view (selection is `aria-activedescendant`-based, so the browser won't); under `virtualize` the id can dangle on an unmounted cell.
 - [ ] **`src/layouts/dashboard.tsx:48`** (with `layouts/stacked.tsx:36`) — hardcoded `<main>` nests the `<main>` rendered by `StackedLayoutBody` in the documented composition: invalid HTML, duplicate landmark.
 - [ ] **`src/recipes/kata/menu.ts:14-18`**, **`src/recipes/kata/option.ts:20-24`** — per-density/size `py-*` is defeated by the composed base's `sm:py-1.5` (responsive variant survives tailwind-merge and outranks bare utilities): all sizes render `py-1.5` at ≥sm; verified by executing the recipes.
-- [ ] **`src/components/tag-input/tag-input-badge.tsx:43-48`** — disabled `TagInput` still allows badge focus and Backspace/Delete removal; the badge is also a focusable `role="listitem"` with no key-operable role/name.
-- [ ] **`src/components/file-upload/use-file-upload-handlers.ts:59-94`** — drag handlers never check `disabled`: a disabled dropzone still accepts drops and lights up `data-drag-over`.
+- [ ] **`src/components/tag-input/tag-input-badge.tsx:43-48`** — the badge is a focusable `role="listitem"` with no key-operable role/name (the disabled focus/removal half is fixed).
 - [ ] **`src/components/date-picker/date-picker-utilities.ts:3-9`** — `toLocaleDateString()` with no locale: the trigger label ignores the `LocaleProvider` the calendar inside the same popover honors, and SSR/client locale divergence causes hydration text mismatch.
 - [ ] **`src/layouts/sidebar/sidebar.tsx:128-134`** — inline callback ref re-runs `scrollWithin(current, {block:'center'})` on every commit while the drawer is open, fighting the user's scroll. Run once per open.
 - [ ] **`src/components/progress/progress-gauge.tsx:40-52`** — no NaN guard (ProgressBar has one for the same case): `value={NaN}` (e.g. `0/0`) yields `aria-valuenow={NaN}` and an invalid SVG `strokeDashoffset`.
@@ -82,11 +82,19 @@ backdrop.
 - [ ] **`src/components/currency-input/currency-input-utilities.ts:72-76`** — `formatEditing` round-trips the integer part through `Number()`: beyond 15 significant digits the display rewrites typed digits to the nearest float.
 - [ ] **`src/recipes/kiso/hannou/cursor.ts:12`** — `has-[data-disabled]` compiles to `:has(data-disabled)` (a type selector for a nonexistent element); intended `has-[[data-disabled]]`/`has-data-disabled`. Spread into dozens of kata.
 - [ ] **`src/recipes/kata/checkbox.ts:22`** — `has-[disabled]:*` same selector bug; currently dead weight (the composed base ships the correct `has-[:disabled]` forms).
-- [ ] **`src/components/shiny-text/shiny-text.tsx:72-75,112-117`** — toggling `disabled` mid-sweep freezes the shine across the text instead of parking it off-screen (cleanup `stop()` runs before the park); and `{...props}` spread after the pause handlers lets a consumer `onMouseEnter`/`onMouseLeave` silently disable `pauseOnHover`.
 - [ ] **`src/components/code/code-block.tsx:54-56`** — `useState` initializer reads the module-level `htmlCache` during render: hydration mismatch when same-content CodeBlocks hydrate across separate Suspense boundaries.
 
 ## Cross-cutting patterns
 
-1. **`disabled` enforced only on the primary path** — command-palette items, menu items, tag-input badges, file-upload drag handlers all stay live through secondary input paths. Consider a shared convention: guard at the top of every composed handler, and stamp `pointer-events-none` for `data-disabled` surfaces.
-2. **Hand-rolled drags skip `pointercancel`** — the correct pattern already exists in `use-color-drag.ts` (pointer capture + `lostpointercapture` as the authoritative reset); extract or copy it.
-3. **Consumer handlers clobbered or fired out of order** — spread-order and clone-element prop composition (MenuTrigger, ShinyText); compose, don't replace.
+All three addressed in the second round (see preamble). The conventions to
+hold the line on for new code:
+
+1. **`disabled` guards at the top of every composed handler** — not just the
+   primary activation path.
+2. **Hand-rolled drags handle `pointercancel`** — where the pointer is
+   captured, `lostpointercapture` is the authoritative reset
+   (`use-color-drag.ts`, `use-range-pointer.ts`).
+3. **Compose consumer handlers, don't replace them** — route cloned-child or
+   consumer props through floating-ui's prop getters
+   (`getReferenceProps(childProps)`), and place composed handlers after
+   `{...props}` spreads.

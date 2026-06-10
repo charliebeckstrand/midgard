@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { FileUpload } from '../../components/file-upload'
@@ -99,6 +99,52 @@ describe('FileUpload + Control', () => {
 		expect(describedBy).toContain('doc-description')
 
 		expect(describedBy).toContain('doc-error')
+	})
+})
+
+describe('FileUpload disabled dropzone', () => {
+	const dropzone = (container: HTMLElement) =>
+		container.querySelector('[data-slot="file-upload"]') as HTMLElement
+
+	it('does not light up data-drag-over while disabled', () => {
+		const { container } = renderUI(<FileUpload disabled>Upload</FileUpload>)
+
+		const zone = dropzone(container)
+
+		fireEvent.dragEnter(zone, { dataTransfer: { files: makeFileList([]) } })
+
+		expect(zone).not.toHaveAttribute('data-drag-over')
+	})
+
+	it('ignores dropped files while disabled', () => {
+		const onFiles = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload disabled onFiles={onFiles}>
+				Upload
+			</FileUpload>,
+		)
+
+		const zone = dropzone(container)
+
+		const files = makeFileList([new File(['x'], 'resume.pdf')])
+
+		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+		fireEvent.drop(zone, { dataTransfer: { files } })
+
+		expect(onFiles).not.toHaveBeenCalled()
+	})
+
+	it('accepts dropped files when enabled', () => {
+		const onFiles = vi.fn()
+
+		const { container } = renderUI(<FileUpload onFiles={onFiles}>Upload</FileUpload>)
+
+		const zone = dropzone(container)
+
+		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
+
+		expect(onFiles).toHaveBeenCalledTimes(1)
 	})
 })
 

@@ -53,6 +53,8 @@ export function ShinyText({
 	ref,
 	className,
 	children,
+	onMouseEnter,
+	onMouseLeave,
 	...props
 }: ShinyTextProps) {
 	const reduceMotion = useReducedMotion()
@@ -70,9 +72,11 @@ export function ShinyText({
 	const controlsRef = useRef<AnimationPlaybackControls | null>(null)
 
 	useEffect(() => {
-		if (disabled || reduceMotion || skeleton) return
-
+		// Always re-park first: a mid-sweep `disabled` flip otherwise leaves the
+		// shine frozen wherever the previous cleanup's `stop()` caught it.
 		position.set(from)
+
+		if (disabled || reduceMotion || skeleton) return
 
 		const controls = animate(position, to, {
 			duration: speed,
@@ -109,12 +113,22 @@ export function ShinyText({
 				backgroundSize: '200% auto',
 				backgroundPosition,
 			}}
-			onMouseEnter={pauseOnHover ? () => controlsRef.current?.pause() : undefined}
-			onMouseLeave={pauseOnHover ? () => controlsRef.current?.play() : undefined}
 			{...(props as Omit<
 				ComponentPropsWithoutRef<'span'>,
 				'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 			>)}
+			// Composed after the spread so a consumer handler can't clobber
+			// `pauseOnHover`; both run.
+			onMouseEnter={(e) => {
+				onMouseEnter?.(e)
+
+				if (pauseOnHover) controlsRef.current?.pause()
+			}}
+			onMouseLeave={(e) => {
+				onMouseLeave?.(e)
+
+				if (pauseOnHover) controlsRef.current?.play()
+			}}
 		>
 			{children}
 		</motion.span>

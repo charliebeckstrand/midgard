@@ -108,6 +108,28 @@ describe('MenuTrigger', () => {
 		expect(onClick).toHaveBeenCalled()
 	})
 
+	it('preserves the child className and onKeyDown when cloning', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger className="trigger-extra">
+					<button type="button" className="child-extra" onKeyDown={onKeyDown}>
+						Open
+					</button>
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = screen.getByText('Open')
+
+		expect(trigger).toHaveClass('trigger-extra', 'child-extra')
+
+		fireEvent.keyDown(trigger, { key: 'a' })
+
+		expect(onKeyDown).toHaveBeenCalled()
+	})
+
 	it('toggles open and still calls a consumer onClick on the fallback button', () => {
 		// On the plain-button fallback a consumer onClick must not clobber the
 		// open toggle.
@@ -278,6 +300,29 @@ describe('MenuItem', () => {
 		fireEvent.click(screen.getByText('Item'))
 
 		expect(onAction).not.toHaveBeenCalled()
+	})
+
+	it('does not call a consumer onClick or onKeyDown when disabled', () => {
+		const onClick = vi.fn()
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem disabled onClick={onClick} onKeyDown={onKeyDown}>
+						Item
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('Item')
+
+		fireEvent.click(item)
+		fireEvent.keyDown(item, { key: 'Enter' })
+
+		expect(onClick).not.toHaveBeenCalled()
+		expect(onKeyDown).not.toHaveBeenCalled()
 	})
 
 	it('sets data-disabled when disabled', () => {

@@ -211,6 +211,7 @@ export function useResizablePanel({
 
 				document.removeEventListener('pointermove', onMove)
 				document.removeEventListener('pointerup', onUp)
+				document.removeEventListener('pointercancel', onUp)
 				document.removeEventListener('contextmenu', onUp)
 
 				cleanupRef.current = null
@@ -218,11 +219,16 @@ export function useResizablePanel({
 
 			document.addEventListener('pointermove', onMove)
 			document.addEventListener('pointerup', onUp)
+			// A cancelled pointer (OS gesture, pen leaving range) never fires
+			// pointerup; without this the drag flag stays set and buttonless
+			// movement keeps resizing.
+			document.addEventListener('pointercancel', onUp)
 			document.addEventListener('contextmenu', onUp)
 
 			cleanupRef.current = () => {
 				document.removeEventListener('pointermove', onMove)
 				document.removeEventListener('pointerup', onUp)
+				document.removeEventListener('pointercancel', onUp)
 				document.removeEventListener('contextmenu', onUp)
 			}
 		},

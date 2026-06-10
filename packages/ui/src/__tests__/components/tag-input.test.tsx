@@ -1,7 +1,7 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -356,6 +356,27 @@ describe('TagInput', () => {
 		const removeButtons = getRemoveButtons(container)
 
 		expect(removeButtons.length).toBe(0)
+	})
+
+	it('keeps badges out of the tab order when disabled', () => {
+		const { container } = renderUI(<TagInput defaultValue={['react']} disabled />)
+
+		expect(getBadges(container)[0]).not.toHaveAttribute('tabindex')
+	})
+
+	it('ignores Backspace/Delete on badges when disabled', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<TagInput defaultValue={['react']} onValueChange={onChange} disabled />,
+		)
+
+		const badge = getBadges(container)[0] as HTMLElement
+
+		fireEvent.keyDown(badge, { key: 'Backspace' })
+		fireEvent.keyDown(badge, { key: 'Delete' })
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	it('renders tags slot when tags exist', () => {

@@ -9,7 +9,7 @@ type MenuStateValue = {
 	/** Id of the menu panel; the trigger's `aria-controls` points at it. */
 	menuId: string
 	floatingStyles: CSSProperties
-	getReferenceProps: () => Record<string, unknown>
+	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
 	density: Step
 	size: Step
