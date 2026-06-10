@@ -16,8 +16,8 @@ export type HoldButtonProps = Omit<
 }
 
 /**
- * Button that fires `onComplete` only after a sustained press of `duration` ms —
- * a fill overlay animates progress, and releasing early cancels. Responds to
+ * Button that fires `onComplete` only after a sustained press of `duration` ms.
+ * A fill overlay animates progress, and releasing early cancels. Responds to
  * both pointer hold and Space/Enter keydown.
  */
 export function HoldButton({
@@ -45,8 +45,8 @@ export function HoldButton({
 		onHoldCancel,
 	})
 
-	// The key that initiated the hold. Only its own keyup cancels — pressing
-	// and releasing the *other* activation key mid-hold must not abort it.
+	// The key that initiated the hold. Only its own keyup cancels; releasing
+	// the *other* activation key mid-hold does not abort the hold.
 	const heldKeyRef = useRef<string | null>(null)
 
 	return (
@@ -94,9 +94,8 @@ export function HoldButton({
 				onKeyUp?.(e)
 			}}
 			onBlur={(e: FocusEvent<HTMLButtonElement>) => {
-				// Tab-away routes the keyup elsewhere; an unfocused button must not
-				// complete an irreversible hold (window/visibility loss is guarded
-				// in the gesture hook).
+				// Tab-away routes the keyup elsewhere; an unfocused button does not
+				// complete the hold. The gesture hook guards window/visibility loss.
 				heldKeyRef.current = null
 
 				cancel()

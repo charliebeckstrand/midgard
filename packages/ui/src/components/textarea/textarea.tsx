@@ -22,13 +22,13 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
 
 /**
- * Multi-line text control with optional `autoResize` and an `actions` slot —
- * resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
+ * Multi-line text control with optional `autoResize` and an `actions` slot.
+ * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
  * `<GlassProvider>`, and Density contexts. Stays controlled when a `value` prop is
  * present, even if `null`/`undefined`.
  */
 export function Textarea(props: TextareaProps) {
-	// A wrapper that passes value={null} or value={undefined} must stay controlled;
+	// A wrapper that passes value={null} or value={undefined} stays controlled;
 	// check for the prop's presence before destructuring.
 	const hasValueProp = 'value' in props
 
@@ -106,8 +106,8 @@ export function Textarea(props: TextareaProps) {
 
 	const hasActions = actions !== undefined
 
-	// field-sizing: content ignores `rows`, so enforce it as a min-height floor.
-	// Add extra space to account for padding and gap when actions are present.
+	// `field-sizing: content` ignores `rows`; enforce it as a min-height floor.
+	// Extra space covers padding and gap when actions are present.
 	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 4rem)`, ...style } : style
 
 	return (

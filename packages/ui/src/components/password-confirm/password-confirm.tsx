@@ -17,7 +17,7 @@ export type PasswordConfirmProps = {
 }
 
 /**
- * Coordinator for a password and its confirmation field — tracks match status
+ * Coordinator for a password and its confirmation field. Tracks match status
  * across both inputs and surfaces a `warning` until they agree, suppressed
  * while the password has a form error.
  */

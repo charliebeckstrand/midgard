@@ -20,7 +20,7 @@ export type TimeAgoProps = Omit<
 	absolute?: boolean
 }
 
-/** Self-refreshing relative timestamp rendered in a `<time>` element — formats via `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and steps its refresh `interval` coarser as the value ages. */
+/** Self-refreshing relative timestamp rendered in a `<time>` element. Formats via `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and steps its refresh `interval` coarser as the value ages. */
 export function TimeAgo({
 	date,
 	format,

@@ -56,7 +56,7 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 	return k.outline[outline]
 }
 
-/** Polymorphic layout primitive for padding, margin, radius, background, and outline tokens — `p` inherits the ambient Density while `px`/`py` stay explicit. */
+/** Polymorphic layout primitive for padding, margin, radius, background, and outline tokens. `p` inherits the ambient Density while `px`/`py` stay explicit. */
 export function Box({
 	p,
 	px,
@@ -76,7 +76,7 @@ export function Box({
 }: BoxProps) {
 	const density = useDensityNullable()
 
-	// Only `p` inherits from ambient Density — `px` / `py` stay explicit.
+	// Only `p` inherits from ambient Density; `px` / `py` stay explicit.
 	const resolvedPadding = p ?? density?.space
 
 	return (

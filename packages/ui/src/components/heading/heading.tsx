@@ -14,7 +14,7 @@ export type HeadingProps = {
 	level?: HeadingLevel
 	/**
 	 * Overrides the ambient density `size` axis for this heading. Shifts the
-	 * level's natural size along the type scale — `sm` one rung down, `lg` one
+	 * level's natural size along the type scale: `sm` one rung down, `lg` one
 	 * up, `md` neutral. Omit to inherit from the surrounding `<Density>`.
 	 */
 	size?: Step
@@ -22,7 +22,7 @@ export type HeadingProps = {
 } & Omit<ComponentPropsWithoutRef<'h1'>, 'className'>
 
 /**
- * Semantic heading rendering `h1`–`h6` per `level`. Weight tracks the level;
+ * Semantic heading rendering `h1`-`h6` per `level`. Weight tracks the level;
  * font size is the level's natural size shifted by the ambient density `size`
  * axis (override per-heading with `size`). Degrades to a skeleton placeholder
  * under `<Skeleton>`.

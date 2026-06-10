@@ -23,8 +23,8 @@ export type SplitProps = {
 	ratio?: SplitRatio
 	/**
 	 * Gap between the two panes. Resolves through
-	 * `explicit ?? Density.space ?? 'lg'`, so a Split inside a Density
-	 * provider inherits the matching spacing step without further wiring.
+	 * `explicit ?? Density.space ?? 'lg'`; a Split inside a Density
+	 * provider inherits the matching spacing step.
 	 */
 	gap?: SplitGap
 	/** Cross-axis alignment. */
@@ -32,7 +32,7 @@ export type SplitProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** Two-pane grid layout — `orientation` chooses rows or columns and `ratio` sizes the first pane against the second. */
+/** Two-pane grid layout. `orientation` chooses rows or columns and `ratio` sizes the first pane against the second. */
 export function Split({
 	orientation = 'horizontal',
 	ratio = '1/2',

@@ -2,8 +2,8 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { ToggleGroup } from '../../primitives/toggle'
 import type { AccessibleName } from '../../types'
 
-// A `radiogroup` div is not named by an enclosing `<fieldset>`'s `<legend>`;
-// an explicit `aria-label` or `aria-labelledby` is required.
+// An enclosing `<fieldset>`'s `<legend>` does not name a `radiogroup` div;
+// pass an explicit `aria-label` or `aria-labelledby`.
 export type RadioGroupProps = AccessibleName &
 	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
 

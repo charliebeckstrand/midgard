@@ -45,8 +45,8 @@ export function Card({
 			className={cn(
 				'overflow-hidden -outline-offset-1',
 				// Collapse the Card's own padding only for structural slots that bring
-				// their own — a bare CardTitle/CardDescription child supplies none and
-				// must keep the frame padding.
+				// their own; a bare CardTitle/CardDescription child supplies none and
+				// keeps the frame padding.
 				'[&:has(>[data-slot=card-header])]:p-0',
 				'[&:has(>[data-slot=card-body])]:p-0',
 				'[&:has(>[data-slot=card-footer])]:p-0',

@@ -12,7 +12,7 @@ export type TextareaSkeletonProps = {
 
 /**
  * Textarea-shaped placeholder. Height tracks the reserved `rows` count rather
- * than the Density `size` axis, so it folds in the row math by hand instead of
+ * than the Density `size` axis; it folds in the row math by hand instead of
  * using the size-driven `createSkeleton` factory.
  */
 export function TextareaSkeleton({ rows = 3, className }: TextareaSkeletonProps) {

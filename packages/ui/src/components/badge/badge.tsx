@@ -24,7 +24,7 @@ export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
  *
  * When `size` is set explicitly to a Density step (`sm`/`md`/`lg`), it
  * cascades to descendants via `<DensityScope>` so prefix/suffix slots inherit
- * the badge's density. `xs` is sub-Step and doesn't propagate — descendants
+ * the badge's density. `xs` is sub-Step and doesn't propagate; descendants
  * keep the ambient density.
  */
 export function Badge({

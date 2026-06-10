@@ -20,7 +20,7 @@ type ScrollbarOptions = {
 }
 
 /**
- * Custom scrollbar state — thumb geometry, visibility fade, and drag-to-scroll.
+ * Custom scrollbar state: thumb geometry, visibility fade, and drag-to-scroll.
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
  */
 export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOptions) {
@@ -74,7 +74,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		observeChildren()
 
 		// Children added or removed after mount change the scroll extent without
-		// resizing any observed element — re-seat the observer and re-measure.
+		// resizing any observed element; re-seat the observer and re-measure.
 		const mutations = new MutationObserver(() => {
 			observeChildren()
 
@@ -105,8 +105,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 		const handleWheel = (event: WheelEvent) => {
 			if (!event.shiftKey) return
 
-			// A horizontally scrollable viewport owns shift+wheel natively —
-			// forwarding would hijack the gesture from its own content.
+			// A horizontally scrollable viewport owns shift+wheel natively;
+			// forwarding hijacks the gesture from its own content.
 			if (el.scrollWidth > el.clientWidth) return
 
 			event.preventDefault()
@@ -162,7 +162,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
 
-		// Cleans up any prior drag (defensive — pointerup normally handles this).
+		// Cleans up any prior drag (defensive; pointerup handles the usual path).
 		dragCleanupRef.current?.()
 
 		const onMove = (ev: PointerEvent) => {

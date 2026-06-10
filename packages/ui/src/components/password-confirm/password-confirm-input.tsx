@@ -21,8 +21,8 @@ export function PasswordConfirmInput({
 	useEffect(() => {
 		setConfirmName(props.name)
 
-		// Unmount resets the coordinator: a stale confirm value/name would keep
-		// reporting a mismatch against a field that no longer exists.
+		// Unmount resets the coordinator; a stale confirm value/name keeps
+		// reporting a mismatch against a removed field.
 		return () => {
 			setConfirmName(undefined)
 
@@ -32,16 +32,15 @@ export function PasswordConfirmInput({
 
 	const showWarning = status === 'warning' && !confirmHasFormError
 
-	// While the mismatch holds, the warning text describes the invalid field —
-	// without this, focusing it announces "invalid" with no reason.
+	// While the mismatch holds, the warning text describes the invalid field.
 	const describedBy = useAriaIds(ariaDescribedBy, showWarning ? warningId : undefined)
 
 	return (
 		<PasswordInput
 			data-password-confirm-input
 			{...(showWarning ? { 'data-warning': true } : {})}
-			// A mismatch is otherwise signalled only by the visual `data-warning`;
-			// surface it programmatically too. A caller-supplied `invalid` still wins.
+			// Otherwise only the visual `data-warning` signals a mismatch; surface
+			// it programmatically too. A caller-supplied `invalid` still wins.
 			invalid={invalid ?? (showWarning || undefined)}
 			aria-describedby={describedBy}
 			{...props}

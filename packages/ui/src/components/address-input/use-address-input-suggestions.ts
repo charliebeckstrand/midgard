@@ -35,8 +35,7 @@ export function useAddressInputSuggestions({
 	useEffect(() => {
 		if (!enabled) {
 			// Disabled mid-flight (e.g. the field closed): the prior run's cleanup
-			// already aborted the request, but loading/ready must reset or the closed
-			// field keeps a perpetual spinner.
+			// aborts the request; loading/ready reset here.
 			setLoading(false)
 
 			setReady(false)
@@ -58,9 +57,9 @@ export function useAddressInputSuggestions({
 
 		setLoading(true)
 
-		// Leave `ready` as-is: collapsing it here unmounts an open menu on every
-		// keystroke until the debounced fetch resolves. The prior results stay
-		// visible (with the spinner) and are replaced when new results arrive.
+		// Leave `ready` as-is: collapsing it unmounts an open menu on every
+		// keystroke until the debounced fetch resolves. Prior results stay
+		// visible (with the spinner) until new results arrive.
 
 		const delay = query.length === 0 ? 0 : debounceMs
 

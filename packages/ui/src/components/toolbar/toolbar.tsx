@@ -18,8 +18,8 @@ export type ToolbarProps = AccessibleName &
 
 /**
  * ARIA toolbar grouping related controls with roving-tabindex arrow-key
- * navigation along its `orientation`. Requires `aria-label`/`aria-labelledby`
- * so the group is never an unnamed `toolbar`.
+ * navigation along its `orientation`. Requires `aria-label`/`aria-labelledby`;
+ * the group is never an unnamed `toolbar`.
  */
 export function Toolbar({
 	orientation = 'horizontal',

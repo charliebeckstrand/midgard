@@ -15,9 +15,9 @@ export type ChatMessageProps = ChatMessageVariants & {
 
 /**
  * Conversational message bubble sided and colored by `type` (`user` or
- * `assistant`) — with an optional `timestamp`, `actions` rail, and a blinking
- * `streaming` cursor. Speaker is announced to assistive tech via a visually
- * hidden author label.
+ * `assistant`), with an optional `timestamp`, `actions` rail, and a blinking
+ * `streaming` cursor. A visually hidden author label announces the speaker
+ * to assistive tech.
  */
 export function ChatMessage({
 	type,
@@ -27,9 +27,9 @@ export function ChatMessage({
 	className,
 	children,
 }: ChatMessageProps) {
-	// Speaker is conveyed visually by bubble side/color only; a visually hidden
+	// Bubble side/color alone convey the speaker visually; a visually hidden
 	// author label names it for assistive technology. System messages are status
-	// lines, not an utterance, so they get a plain "System" attribution.
+	// lines, not an utterance; they get a plain "System" attribution.
 	const resolvedType = type ?? 'assistant'
 
 	const author =

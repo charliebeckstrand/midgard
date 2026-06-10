@@ -11,8 +11,8 @@ function getToastMotion(position: ToastPosition) {
 	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
-// Derive the variant/color unions from the Alert recipe so a palette change
-// there propagates here instead of silently drifting.
+// Derive the variant/color unions from the Alert recipe; a palette change
+// there propagates here.
 const severityAlertMap: Record<
 	NonNullable<ToastSeverity>,
 	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
@@ -62,9 +62,10 @@ export function ToastAlert({
 
 	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
 
-	// role="status" content mounted in the same commit as the live region is
-	// not reliably announced; mirror polite toasts through the persistent
-	// announcer on mount (WCAG 4.1.3). role="alert" announces on insertion.
+	// Screen readers do not reliably announce role="status" content mounted in
+	// the same commit as the live region; mirror polite toasts through the
+	// persistent announcer on mount (WCAG 4.1.3). role="alert" announces on
+	// insertion.
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -95,8 +96,8 @@ export function ToastAlert({
 				onMouseEnter={onPause}
 				onMouseLeave={(e) => {
 					// Don't resume while focus is still inside the toast (keyboard user);
-					// mirror the onBlur guard so moving the pointer away doesn't restart
-					// auto-dismiss out from under focus (WCAG 2.2.1).
+					// mirrors the onBlur guard. Auto-dismiss stays paused under focus
+					// (WCAG 2.2.1).
 					if (e.currentTarget.contains(document.activeElement)) return
 
 					onResume()

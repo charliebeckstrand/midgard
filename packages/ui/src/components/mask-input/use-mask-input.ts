@@ -6,8 +6,8 @@ import { useFormValue } from '../form/use-form-value'
 
 type MaskedInputOptions = {
 	/**
-	 * Binds to an enclosing Form field. The stored value is the formatted text,
-	 * so form defaults for masked fields should be supplied pre-formatted.
+	 * Binds to an enclosing Form field. The stored value is the formatted text;
+	 * supply form defaults for masked fields pre-formatted.
 	 */
 	name?: string
 	value?: string
@@ -17,8 +17,8 @@ type MaskedInputOptions = {
 	/** External ref to compose with the hook's internal input ref. */
 	ref?: Ref<HTMLInputElement>
 	/**
-	 * Predicate identifying characters preserved across `format`. Used to keep
-	 * the caret aligned with the typed character when format inserts or removes
+	 * Predicate identifying characters preserved across `format`. Keeps the
+	 * caret aligned with the typed character when `format` inserts or removes
 	 * separators. Defaults to ASCII alphanumerics and `+`.
 	 */
 	meaningful?: (char: string) => boolean

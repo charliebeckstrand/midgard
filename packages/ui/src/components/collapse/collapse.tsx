@@ -10,7 +10,7 @@ import { CollapseTrigger } from './collapse-trigger'
 import { CollapseContext } from './context'
 
 export type CollapseProps = {
-	/** Initial open state — uncontrolled. */
+	/** Initial open state (uncontrolled). */
 	defaultOpen?: boolean
 	/** Controlled open state. */
 	open?: boolean
@@ -28,7 +28,7 @@ export type CollapseProps = {
 }
 
 /**
- * Animated show/hide region for a single panel — controlled via `open` or
+ * Animated show/hide region for a single panel; controlled via `open` or
  * uncontrolled via `defaultOpen`. Pass `trigger` for the convenience layout,
  * or omit it and supply <CollapseTrigger>/<CollapsePanel> for the compound API.
  */

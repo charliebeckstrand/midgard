@@ -4,7 +4,7 @@ import { Nav, NavList, type NavProps } from '../nav'
 
 export type BottomNavProps = NavProps
 
-/** Fixed bottom navigation bar — Nav wrapping a horizontal NavList for mobile-style tab destinations. */
+/** Fixed bottom navigation bar: Nav wrapping a horizontal NavList for mobile-style tab destinations. */
 export function BottomNav({
 	'aria-label': ariaLabel = 'Bottom',
 	children,

@@ -8,11 +8,11 @@ import { k, type StatusDotVariants } from '../../recipes/kata/status'
 export type StatusDotProps = StatusDotVariants & {
 	className?: string
 	/**
-	 * Accessible name for the dot. Status is conveyed by colour alone, so a
-	 * standalone dot needs a text alternative — when set, the dot is exposed as
-	 * `role="img"` with this label (WCAG 1.4.1 / 1.1.1). Omit it when the dot is
-	 * decorative and paired with adjacent visible text (e.g. Avatar supplies its
-	 * own sr-only status label, so its dot stays silent to avoid a double read).
+	 * Accessible name for the dot. Colour alone conveys status; a standalone
+	 * dot needs a text alternative. When set, the dot renders as `role="img"`
+	 * with this label (WCAG 1.4.1 / 1.1.1). Omit it when the dot is decorative
+	 * and paired with adjacent visible text (e.g. Avatar supplies its own
+	 * sr-only status label, and its dot stays silent).
 	 */
 	label?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
@@ -31,7 +31,7 @@ export function StatusDot({
 	const resolvedSize = size ?? inherited.size
 
 	// A bare <span> can't carry aria-label; name it only by promoting it to an
-	// image, so the role and label stay paired.
+	// image. The role and label stay paired.
 	const labelProps = label ? ({ role: 'img', 'aria-label': label } as const) : undefined
 
 	return (

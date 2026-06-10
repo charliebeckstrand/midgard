@@ -8,7 +8,7 @@ export type HeadlessProps = {
 }
 
 /**
- * Strips chrome from headless-aware descendants — they render the bare
+ * Strips chrome from headless-aware descendants; they render the bare
  * semantic element. Renders as a pass-through (no host element), keeping the
  * disabled child a direct child of any surrounding `ControlFrame` and
  * `kasane`'s `has-[>:disabled]` selectors intact.

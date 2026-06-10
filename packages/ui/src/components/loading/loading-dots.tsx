@@ -10,15 +10,15 @@ export type LoadingDotsProps = LoadingDotsVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
 
-// Negative delays seat each dot at a different point in the pulse cycle so
-// the wave is already staggered on first paint. Keyed by the (unique) delay class.
+// Negative delays seat each dot at a different point in the pulse cycle;
+// the wave staggers from first paint. Keyed by the (unique) delay class.
 const DOT_DELAYS = [
 	'motion-safe:[animation-delay:-300ms]',
 	'motion-safe:[animation-delay:-150ms]',
 	'motion-safe:[animation-delay:0ms]',
 ] as const
 
-/** Indeterminate loading indicator — three breathing dots rendered as a live `<output>`; `size` resolves from enclosing Density, with an `sr-only` `label`. */
+/** Indeterminate loading indicator: three breathing dots rendered as a live `<output>`; `size` resolves from enclosing Density, with an `sr-only` `label`. */
 export function LoadingDots({
 	size,
 	color,

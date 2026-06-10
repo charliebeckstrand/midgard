@@ -17,13 +17,14 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 	return (
 		<button
 			type="button"
-			// Consumer props first so they can't clobber the a11y id wiring
-			// (aria-expanded/aria-controls), context-driven toggle, or data-slot below.
+			// Consumer props spread first; the a11y id wiring
+			// (aria-expanded/aria-controls), context-driven toggle, and data-slot
+			// below take precedence.
 			{...props}
 			data-slot="collapse-trigger"
 			{...triggerProps}
-			// The panel unmounts while closed (AnimatePresence), so the reference
-			// is set only while its target id exists — the Stepper pattern.
+			// The panel unmounts while closed (AnimatePresence); the reference
+			// is set only while its target id exists.
 			aria-controls={open ? triggerProps['aria-controls'] : undefined}
 			onClick={(e) => {
 				toggle()

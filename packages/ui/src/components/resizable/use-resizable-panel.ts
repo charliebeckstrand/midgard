@@ -34,8 +34,7 @@ function clampPair(
 	let left = result[leftIdx] ?? 0
 
 	// Clamp into the interval where BOTH sides' constraints hold: left's own
-	// bounds intersected with the complement of right's. The prior two-pass
-	// clamp left `left` unclamped after deriving it from the clamped right.
+	// bounds intersected with the complement of right's.
 	const lcMin = lc?.minSize ?? 0
 	const lcMax = lc?.maxSize ?? Number.POSITIVE_INFINITY
 	const rcMin = rc?.minSize ?? 0
@@ -91,8 +90,8 @@ export function useResizablePanel({
 	sizesRef.current = sizes
 
 	// Re-derives sizes when panels are added/removed, keeping the sizes array
-	// aligned with the current panel set. State is adjusted during render, not
-	// in an effect, to avoid a frame of misaligned layout.
+	// aligned with the current panel set. State adjusts during render, not in
+	// an effect; an effect shows one frame of misaligned layout.
 	const prevCountRef = useRef(panelConfigs.length)
 
 	if (prevCountRef.current !== panelConfigs.length) {
@@ -130,7 +129,7 @@ export function useResizablePanel({
 
 		const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
 
-		// Side effects run here, not inside the setSizes updater — StrictMode
+		// Side effects run here, not inside the setSizes updater: StrictMode
 		// double-invokes the updater, firing onSizesChange twice per keypress.
 		sizesRef.current = clamped
 
@@ -153,7 +152,7 @@ export function useResizablePanel({
 
 			const totalSize = orient === 'horizontal' ? rect.width : rect.height
 
-			// Subtract handle widths for accurate deltas.
+			// Handle widths don't count toward the draggable size.
 			let handleWidth = 0
 
 			group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]').forEach((h) => {

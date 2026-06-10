@@ -30,7 +30,7 @@ export function ProgressBar({
 }: ProgressBarProps) {
 	const resolvedSize = useSize(size)
 
-	// NaN is "no usable value": treating it as determinate rendered
+	// NaN is "no usable value": treating it as determinate renders
 	// aria-valuenow="NaN" and width "NaN%".
 	const determinate = value != null && !Number.isNaN(value)
 
