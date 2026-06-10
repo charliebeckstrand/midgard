@@ -38,7 +38,7 @@ None.
 
 ✅ **Consumer onScroll clobbers ScrollArea handleScroll** (fixed: composed) — `components/scroll-area/scroll-area.tsx:61-68`. `onScroll={handleScroll}` precedes `{...props}` (which retains `onScroll`), so a consumer handler disables thumb tracking and auto-fade. Fix: compose the handlers.
 
-**Range slider clamps before snapping → value > max** — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
+✅ **Range slider clamps before snapping → value > max** (fixed: snap first, clamp last — both the update path and the keyboard swap prediction) — `components/slider/range/use-range-update.ts:17`. `snapToStep(clamp(raw))` can round past max with no re-clamp (e.g. min=2,max=10,step=3, End → 11), producing `aria-valuenow > aria-valuemax` and a thumb past the track. Fix: clamp after snapping.
 
 **Tab drops all button props except onClick** — `components/tabs/tab.tsx:24-99`. Type advertises the full button surface but the component forwards a fixed set with no `...rest`; `aria-label`, `data-testid`, `onFocus`/`onKeyDown`, `title`, etc. vanish (icon-only tabs lose their accessible name). Fix: collect and forward `...rest`.
 
@@ -210,9 +210,9 @@ _(Reclassified **Low** after verification — see note at top.)_ **Textarea omit
 
 ✅ **Shift+wheel hijacked from a horizontal viewport** (fixed: a horizontally scrollable viewport keeps the gesture) — `components/scroll-area/use-scroll-area-scrollbar.ts:85-96`. shift+wheel always forwards to an outer ancestor (viewport excluded), breaking shift-to-pan on horizontal scroll-areas. Fix: don't hijack when the viewport itself scrolls horizontally.
 
-**Stack forces gap-md outside any Density provider** — `components/stack/stack.tsx:18`. Hardcoded `'md'` fallback diverges from Flex (no fallback) and the documented unset contract; JSDoc also wrongly says `'lg'`. Fix: drop the fallback (and fix the doc).
+✅ **Stack forces gap-md outside any Density provider** (fixed: gap stays unset outside a provider, matching Flex and the docs) — `components/stack/stack.tsx:18`. Hardcoded `'md'` fallback diverges from Flex (no fallback) and the documented unset contract; JSDoc also wrongly says `'lg'`. Fix: drop the fallback (and fix the doc).
 
-**Consumer aria-checked/role clobbers Switch's synced value** — `components/switch/switch.tsx:86-93`. `{...props}` spreads after `aria-checked`/`role`, letting a consumer desync AT state. Fix: spread props before, or omit these from the type.
+✅ **Consumer aria-checked/role clobbers Switch's synced value** (fixed: props spread first, internal wiring wins) — `components/switch/switch.tsx:86-93`. `{...props}` spreads after `aria-checked`/`role`, letting a consumer desync AT state. Fix: spread props before, or omit these from the type.
 
 **Inactive auto tabs omit aria-controls though fade panels stay mounted** — `components/tabs/tab.tsx:85`. Default `fade=true` keeps inactive panels mounted, but inactive tabs suppress `aria-controls`. Fix: emit aria-controls when the panel exists.
 
