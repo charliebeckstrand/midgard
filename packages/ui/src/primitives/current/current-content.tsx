@@ -23,6 +23,7 @@ export function CurrentContent({
 	slotPrefix,
 	value,
 	className,
+	style,
 	children,
 	ref,
 	...props
@@ -37,7 +38,13 @@ export function CurrentContent({
 		if (!current) return null
 
 		return (
-			<div ref={ref} data-slot={`${slotPrefix}-content`} className={className} {...props}>
+			<div
+				ref={ref}
+				data-slot={`${slotPrefix}-content`}
+				className={className}
+				style={style}
+				{...props}
+			>
 				{children}
 			</div>
 		)
@@ -54,8 +61,12 @@ export function CurrentContent({
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
 			initial={false}
 			transition={k.transition}
+			// Caller style is preserved under the positioning keys, matching the
+			// non-fade branch; the positioning wins on collision.
 			style={
-				current ? { position: 'relative' } : { position: 'absolute', top: 0, left: 0, right: 0 }
+				current
+					? { ...style, position: 'relative' }
+					: { ...style, position: 'absolute', top: 0, left: 0, right: 0 }
 			}
 			inert={!current}
 			className={className}

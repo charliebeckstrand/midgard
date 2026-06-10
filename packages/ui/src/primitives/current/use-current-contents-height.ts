@@ -24,7 +24,16 @@ export function useCurrentContentsHeight(
 		const heights = new Map<Element, number>()
 
 		const resizeObserver = new ResizeObserver((entries) => {
-			for (const entry of entries) heights.set(entry.target, entry.contentRect.height)
+			// Border-box, not contentRect: the content box excludes panel
+			// padding/border, under-sizing the container and clipping the bottom.
+			for (const entry of entries) {
+				const borderBox = entry.borderBoxSize?.[0]
+
+				heights.set(
+					entry.target,
+					borderBox ? borderBox.blockSize : entry.target.getBoundingClientRect().height,
+				)
+			}
 
 			let max = 0
 
