@@ -6,7 +6,6 @@ type ListboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
 	multiple: boolean
 	onSelect: (value: T) => void
-	close: () => void
 }
 
 export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox')

@@ -5,8 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 type PageRotationResult = {
 	/** Raw rotation in degrees for the active page. May be ≥ 360. */
 	rotation: number
-	/** Rotation reduced to one of `0 | 90 | 180 | 270`. */
-	normalizedRotation: number
 	/** True at 90° / 270°, where the page's bbox width and height are swapped. False at 0° and 180°. */
 	isTransposed: boolean
 	/** Rotates the active page 90° clockwise. */
@@ -51,5 +49,5 @@ export function usePdfViewerPageRotation(
 		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? snappedDefault) + 90 }))
 	}, [page, snappedDefault])
 
-	return { rotation, normalizedRotation, isTransposed, rotate }
+	return { rotation, isTransposed, rotate }
 }

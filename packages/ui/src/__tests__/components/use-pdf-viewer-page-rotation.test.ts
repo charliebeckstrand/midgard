@@ -8,19 +8,14 @@ describe('usePdfViewerPageRotation', () => {
 
 		expect(result.current.rotation).toBe(0)
 
-		expect(result.current.normalizedRotation).toBe(0)
-
 		expect(result.current.isTransposed).toBe(false)
 	})
 
 	it('snaps an unaligned default rotation to the nearest 90°', () => {
 		const { result } = renderHook(() => usePdfViewerPageRotation(1, 45))
 
-		// Documented contract: rotation snaps to 90° increments, keeping
-		// normalizedRotation inside 0|90|180|270.
+		// Documented contract: rotation snaps to 90° increments.
 		expect(result.current.rotation).toBe(90)
-
-		expect(result.current.normalizedRotation).toBe(90)
 
 		expect(result.current.isTransposed).toBe(true)
 	})
@@ -32,12 +27,10 @@ describe('usePdfViewerPageRotation', () => {
 
 		expect(result.current.rotation).toBe(90)
 
-		expect(result.current.normalizedRotation).toBe(90)
-
 		expect(result.current.isTransposed).toBe(true)
 	})
 
-	it('normalizedRotation wraps past 360°', () => {
+	it('rotation past 360° is untransposed again', () => {
 		const { result } = renderHook(() => usePdfViewerPageRotation(1, 0))
 
 		act(() => result.current.rotate())
@@ -49,8 +42,6 @@ describe('usePdfViewerPageRotation', () => {
 		act(() => result.current.rotate())
 
 		expect(result.current.rotation).toBe(360)
-
-		expect(result.current.normalizedRotation).toBe(0)
 
 		expect(result.current.isTransposed).toBe(false)
 	})

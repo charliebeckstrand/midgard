@@ -1,4 +1,4 @@
-import { definePalette, defineRecipe, merge, type VariantProps } from '../../core/recipe'
+import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, ugoki } from '../kiso'
 
 const { palette } = iro
@@ -13,18 +13,6 @@ const { spring } = ugoki
 
 // Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
 const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
-
-const solid = {
-	...merge(palette.solid.bg, palette.solid.text, palette.solid.hover),
-	inherit,
-}
-const soft = { ...merge(palette.soft.bg, palette.soft.text, palette.soft.hover), inherit }
-const outline = {
-	...merge(palette.outline.ring, palette.outline.text, palette.outline.hover),
-	inherit,
-}
-const plain = { ...merge(palette.plain.text, palette.plain.hover), inherit }
-const bare = { ...merge(palette.bare.text, palette.bare.hover), inherit }
 
 export const k = defineRecipe(
 	{
@@ -123,11 +111,6 @@ export const k = defineRecipe(
 		skeleton: button,
 	},
 	{
-		solid,
-		soft,
-		outline,
-		plain,
-		bare,
 		motion: spring,
 	},
 )
