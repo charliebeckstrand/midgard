@@ -3,6 +3,7 @@
 import type { KeyboardEvent, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
@@ -12,11 +13,13 @@ export type ListItemProps = {
 	prefix?: ReactNode
 	/** Content rendered after the main content. */
 	suffix?: ReactNode
-	children?: ReactNode
 	className?: string
-}
+	// The content area is the link switch: with `href` set it renders the
+	// app-registered router link, a `<div>` otherwise. `prefix` is a string-typed
+	// RDFa global we repurpose as a slot; `ref` is owned by the dnd-kit `<li>`.
+} & PolymorphicProps<'div', 'prefix' | 'ref'>
 
-export function ListItem({ prefix, suffix, children, className }: ListItemProps) {
+export function ListItem({ prefix, suffix, children, className, href, ...props }: ListItemProps) {
 	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 
 	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
@@ -54,7 +57,15 @@ export function ListItem({ prefix, suffix, children, className }: ListItemProps)
 			className={cn(k.item({ variant, density: space, active: dragging, lifted }), className)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
-			<div className={k.content}>{children}</div>
+			<Polymorphic
+				as="div"
+				href={href}
+				data-slot="list-item-content"
+				className={k.content(href)}
+				{...props}
+			>
+				{children}
+			</Polymorphic>
 			{suffix && suffix}
 		</li>
 	)

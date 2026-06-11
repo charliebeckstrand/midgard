@@ -1,7 +1,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen } from '../kiso'
 
-const { disabled } = hannou
+const { disabled, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -67,6 +67,18 @@ const item = defineRecipe({
 	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
 })
 
+// Content column. The `link` axis carries the `href`-driven treatment:
+// muted at rest, stepping to the max-emphasis neutral on hover (cf.
+// breadcrumb's non-current link).
+const content = defineRecipe({
+	base: [flex.col, 'flex-1 min-w-0'],
+	link: {
+		true: [text.muted, fg.hover],
+		false: '',
+	},
+	defaults: { link: false },
+})
+
 export const k = {
 	root,
 	item,
@@ -82,7 +94,8 @@ export const k = {
 		),
 		...disabled,
 	],
-	content: 'flex flex-col flex-1 min-w-0',
+	/** Content column; pass the item's `href` — its presence flips the link treatment. */
+	content: (href?: string) => content({ link: href !== undefined }),
 	label: 'min-w-0 truncate',
 	description: ['min-w-0 truncate', size.sm, text.muted],
 } as const

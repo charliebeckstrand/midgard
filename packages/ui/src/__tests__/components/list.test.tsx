@@ -72,6 +72,77 @@ describe('ListItem', () => {
 
 		expect(bySlot(container, 'list-item')).toHaveAttribute('data-item-id', 'a')
 	})
+
+	it('renders the content as a div by default', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const content = bySlot(container, 'list-item-content')
+
+		expect(content?.tagName).toBe('DIV')
+	})
+
+	it('renders the content as a link when href is provided, keeping the li wrapper', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem href="/path">{item.label}</ListItem>}
+			</List>,
+		)
+
+		// The wrapper stays an <li>; only the inner content switches to the link.
+		expect(bySlot(container, 'list-item')?.tagName).toBe('LI')
+
+		const content = bySlot(container, 'list-item-content')
+
+		expect(content?.tagName).toBe('A')
+
+		expect(content).toHaveAttribute('href', '/path')
+	})
+
+	it('mutes linked content at rest and steps to the strong neutral on hover', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem href="/path">{item.label}</ListItem>}
+			</List>,
+		)
+
+		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+
+		expect(cls).toMatch(/(^|\s)text-zinc-500(\s|$)/)
+
+		expect(cls).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
+
+		expect(cls).toContain('hover:not-disabled:text-zinc-950')
+
+		expect(cls).toContain('dark:hover:not-disabled:text-white')
+	})
+
+	it('keeps non-linked content on the inherited item color', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+
+		expect(cls).not.toContain('text-zinc-500')
+
+		expect(cls).not.toContain('hover:not-disabled:text-zinc-950')
+	})
+
+	it('forwards HTML attributes to the content element', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem id="content-id">{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(bySlot(container, 'list-item-content')).toHaveAttribute('id', 'content-id')
+	})
 })
 
 describe('ListLabel', () => {
