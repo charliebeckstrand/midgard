@@ -1,10 +1,10 @@
 'use client'
 
+import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, useCallback } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { Orientation } from '../../types'
-import { moveItem } from '../../utilities'
 
 const itemName = (id: string) => accessibleName(querySlot('list-item', 'item-id', id))
 
@@ -70,9 +70,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			if (newIdx < 0 || newIdx >= items.length) return
 
-			const next = moveItem(items, idx, newIdx)
-
-			if (!next) return
+			const next = arrayMove(items, idx, newIdx)
 
 			onReorder(next)
 

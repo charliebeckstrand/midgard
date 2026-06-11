@@ -1,4 +1,11 @@
 import { type ReactNode, type RefObject, useEffect } from 'react'
+import { vi } from 'vitest'
+
+// Passed through unmocked: ref merging is pure React wiring with no floating
+// engine behind it, so the real hook keeps its genuine semantics (memoized on
+// the ref list, React 19 cleanup refs, `null` when every ref is absent).
+const { useMergeRefs } =
+	await vi.importActual<typeof import('@floating-ui/react')>('@floating-ui/react')
 
 const noop = () => {}
 
@@ -107,6 +114,7 @@ const floatingUIMock = {
 			? {}
 			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
 	useHover: (): MockInteraction => ({}),
+	useMergeRefs,
 	useFloating: (opts: MockContext) => ({
 		refs: {
 			setReference: noop,
