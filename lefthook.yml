@@ -7,10 +7,10 @@ pre-commit:
       run: pnpm check-types
       priority: 2
     - name: test
-      run: pnpm --filter ui test
+      run: pnpm turbo run test --filter=ui
       priority: 3
     - name: knip
-      run: pnpm knip
+      run: pnpm turbo run knip
       priority: 4
 
 commit-msg:
