@@ -145,7 +145,7 @@ export function Listbox<T>({
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
-	const { open, setOpen, close, select, flushPending, selectionValue } = useListboxState<T>({
+	const { open, setOpen, select, flushPending, selectionValue } = useListboxState<T>({
 		multiple,
 		nullable,
 		value,
@@ -218,8 +218,8 @@ export function Listbox<T>({
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
 	const contextValue = useMemo(
-		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void, close }),
-		[selectionValue, multiple, select, close],
+		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
+		[selectionValue, multiple, select],
 	)
 
 	if (skeleton) {
