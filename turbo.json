@@ -3,18 +3,26 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["BIFROST_URL"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/postcss.config.mjs"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "check-types": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "app/**", "tsconfig.json", "../../tsconfig.base.json", "../../tsconfig.nextjs.json"]
+      "inputs": [
+        "src/**",
+        "app/**",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.nextjs.json"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "lint": {
-      "inputs": ["src/**", "app/**", "../../biome.json"]
+      "inputs": ["src/**", "app/**", "$TURBO_ROOT$/biome.json"]
     },
     "test": {
       "dependsOn": ["^build"],
@@ -23,9 +31,20 @@
         "app/**",
         "vitest.config.ts",
         "tsconfig.json",
-        "../../tsconfig.base.json"
+        "$TURBO_ROOT$/tsconfig.base.json"
       ],
       "outputs": ["coverage/**", "test-results/**"]
+    },
+    "//#knip": {
+      "inputs": [
+        "knip.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "postcss.config.mjs",
+        "apps/**",
+        "packages/**"
+      ]
     }
   }
 }
