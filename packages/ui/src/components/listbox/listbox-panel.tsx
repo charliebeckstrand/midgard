@@ -2,7 +2,13 @@
 
 import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import { type CSSProperties, type ReactNode, useRef } from 'react'
+import {
+	type CSSProperties,
+	type HTMLProps,
+	type KeyboardEventHandler,
+	type ReactNode,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
@@ -22,9 +28,11 @@ type ListboxPanelProps = {
 	ariaLabelledby?: string
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
-	getFloatingProps: () => Record<string, unknown>
+	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 	setFloating: (node: HTMLElement | null) => void
 	flushPending: () => void
+	/** Tab keydown anywhere in the panel: close and carry focus past the trigger. */
+	onTabOut: KeyboardEventHandler<HTMLElement>
 	children: ReactNode
 }
 
@@ -49,6 +57,7 @@ export function ListboxPanel({
 	getFloatingProps,
 	setFloating,
 	flushPending,
+	onTabOut,
 	children,
 }: ListboxPanelProps) {
 	const root = usePortalContainer()
@@ -65,11 +74,11 @@ export function ListboxPanel({
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
 					// Non-modal: focus moves into the panel on open and stays contained.
-					// Tab leaves the surface through the focus guards and `closeOnFocusOut`
-					// dismisses it, with focus proceeding to the next tabbable (a select
-					// closes on Tab; it doesn't trap like a dialog).
-					// `useFloatingUI`'s `returnFocusTo` manages return-focus;
-					// `returnFocus={false}` suppresses the manager's own return-focus.
+					// Tab exits through `onTabOut` — commit (at the option), close, and
+					// carry focus past the trigger (a select closes on Tab; it doesn't
+					// trap like a dialog); `closeOnFocusOut` still dismisses any other
+					// focus departure. `useFloatingUI`'s `returnFocusTo` manages
+					// return-focus; `returnFocus={false}` suppresses the manager's own.
 					<FloatingFocusManager
 						context={context}
 						modal={false}
@@ -88,7 +97,7 @@ export function ListboxPanel({
 							style={floatingStyles}
 							className={k.portal}
 							tabIndex={-1}
-							{...getFloatingProps()}
+							{...getFloatingProps({ onKeyDown: onTabOut })}
 						>
 							<Density space={density} size={size}>
 								<PopoverPanel

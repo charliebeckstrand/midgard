@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Listbox } from '../../../components/listbox'
@@ -68,6 +68,126 @@ describe('Listbox focus (real browser)', () => {
 		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus())
+	})
+
+	it('dismisses the listbox on Shift+Tab and moves focus to the previous tabbable', async () => {
+		renderUI(
+			<>
+				<Button>Before</Button>
+				<Listbox aria-label="pick">
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+			</>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
+		const panel = await findPanel()
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus())
+	})
+
+	// APG select pattern: Tab accepts the highlighted option, Escape cancels.
+	it('commits the highlighted option on Tab', async () => {
+		renderUI(
+			<>
+				<Listbox aria-label="pick" displayValue={(v: string) => v}>
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+				<Button>Outside</Button>
+			</>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		await userEvent.click(trigger)
+
+		const panel = await findPanel()
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(trigger).toHaveTextContent('b'))
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus())
+	})
+
+	// Tabbing out on the already-selected option must not re-toggle it: with
+	// `nullable`, onSelect on the current value clears the selection.
+	it('does not clear a nullable selection when tabbing out on the selected option', async () => {
+		renderUI(
+			<>
+				<Listbox aria-label="pick" nullable defaultValue="b" displayValue={(v: string) => v}>
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+				<Button>Outside</Button>
+			</>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'pick' })
+
+		await userEvent.click(trigger)
+
+		const panel = await findPanel()
+
+		// Initial focus lands on the selected option.
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		await waitFor(() => expect(trigger).toHaveTextContent('b'))
+	})
+
+	it('closes without toggling on Tab in multiple mode', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<>
+				<Listbox
+					aria-label="pick"
+					multiple
+					defaultValue={['a']}
+					onValueChange={onValueChange}
+					displayValue={(v: string) => v}
+				>
+					<ListboxOption value="a">A</ListboxOption>
+					<ListboxOption value="b">B</ListboxOption>
+				</Listbox>
+				<Button>Outside</Button>
+			</>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'pick' }))
+
+		const panel = await findPanel()
+
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+		await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(isOpen()).toBe(false))
+
+		expect(onValueChange).not.toHaveBeenCalled()
 
 		await waitFor(() => expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus())
 	})
