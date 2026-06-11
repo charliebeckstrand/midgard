@@ -58,10 +58,10 @@ export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps)
 					) : (
 						<ShipmentInfo data={data} />
 					)}
-					<DialogFooter>
-						<Button onClick={() => setOpen(false)}>Close</Button>
-					</DialogFooter>
 				</DialogBody>
+				<DialogFooter>
+					<Button onClick={() => setOpen(false)}>Close</Button>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)
