@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
@@ -22,6 +22,8 @@ export type DrawerProps = DrawerPanelVariants & {
 	glass?: boolean
 	className?: string
 	children: ReactNode
+	/** Element to receive initial focus when the drawer opens. Defaults to the first tabbable child. */
+	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
 	 * `DrawerTitle` registers.
@@ -42,6 +44,7 @@ export function Drawer({
 	glass,
 	className,
 	children,
+	initialFocus,
 	'aria-label': ariaLabel,
 }: DrawerProps) {
 	const resolvedSurface = useResolvedSurface(surface, glass)
@@ -56,6 +59,7 @@ export function Drawer({
 		<Overlay
 			open={open}
 			onOpenChange={onOpenChange}
+			initialFocus={initialFocus}
 			className={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div

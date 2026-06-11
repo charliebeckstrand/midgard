@@ -273,7 +273,7 @@ function SuffixSidebarExample() {
 							suffix={
 								<Menu placement="bottom-end">
 									<MenuTrigger>
-										<Button variant="plain">
+										<Button variant="bare">
 											<Icon icon={<ChevronDown />} />
 										</Button>
 									</MenuTrigger>

@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
@@ -39,6 +40,19 @@ describe('Drawer', () => {
 		)
 
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
+	})
+
+	it('moves initial focus to the initialFocus element on open', () => {
+		const ref = createRef<HTMLInputElement>()
+
+		renderUI(
+			<Drawer open onOpenChange={() => {}} initialFocus={ref}>
+				<button type="button">First tabbable</button>
+				<input ref={ref} aria-label="Composer" />
+			</Drawer>,
+		)
+
+		expect(screen.getByLabelText('Composer')).toHaveFocus()
 	})
 })
 
