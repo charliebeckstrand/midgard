@@ -2,7 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
-import { type ReactNode, useId, useMemo, useRef } from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { densityPresets, useDensity } from '../../primitives/density'
@@ -166,6 +166,26 @@ export function Listbox<T>({
 		role: null,
 	})
 
+	// Tab in either direction exits the composite widget in one keystroke (APG
+	// select pattern). By the time the event bubbles here the focused option
+	// has already committed itself (single-select). Closing through
+	// `context.onOpenChange` with `'focus-out'` keeps `returnFocusTo` from
+	// snapping focus back, and re-seating focus on the trigger before the
+	// default action runs makes sequential focus navigation proceed from the
+	// trigger: forward to the next tabbable, Shift+Tab to the previous. Left
+	// to the focus manager, Shift+Tab lands on the trigger itself, costing a
+	// second keystroke.
+	const handleTabOut = useCallback(
+		(event: KeyboardEvent<HTMLElement>) => {
+			if (event.key !== 'Tab') return
+
+			context.onOpenChange(false, event.nativeEvent, 'focus-out')
+
+			triggerRef.current?.focus()
+		},
+		[context],
+	)
+
 	const label = resolveLabel({ value, displayValue, multiple })
 
 	const hasValue = multiple
@@ -274,6 +294,7 @@ export function Listbox<T>({
 				getFloatingProps={getFloatingProps}
 				setFloating={refs.setFloating}
 				flushPending={flushPending}
+				onTabOut={handleTabOut}
 			>
 				{children}
 			</ListboxPanel>

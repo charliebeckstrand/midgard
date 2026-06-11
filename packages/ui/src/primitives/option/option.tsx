@@ -28,6 +28,14 @@ type BaseOptionProps = {
 	 * focus to the option.
 	 */
 	activeDescendant?: boolean
+	/**
+	 * Single-select focus-roving lists: Tab commits the focused option before
+	 * the keystroke leaves the widget (APG select pattern: Tab accepts, Escape
+	 * cancels). Skipped when the option is already selected — `onSelect` on
+	 * the current value clears a `nullable` selection. The event is not
+	 * consumed; the owning panel redirects the focus move.
+	 */
+	commitOnTab?: boolean
 } & Omit<
 	ComponentPropsWithoutRef<'div'>,
 	| 'className'
@@ -50,6 +58,7 @@ export function BaseOption({
 	disabled,
 	onSelect,
 	activeDescendant = false,
+	commitOnTab = false,
 	id,
 	...props
 }: BaseOptionProps) {
@@ -92,6 +101,8 @@ export function BaseOption({
 
 					if (!disabled) onSelect()
 				}
+
+				if (event.key === 'Tab' && commitOnTab && !disabled && !selected) onSelect()
 			}}
 			className={cn(k.base, k.size[size])}
 			{...props}
@@ -169,6 +180,10 @@ export function createSelectOption<TValue = unknown>(config: {
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
 				activeDescendant={config.activeDescendant}
+				// Focus-roving single-select only: active-descendant lists keep DOM
+				// focus on the input (the option never sees the keydown), and
+				// multi-select toggles stay put until an explicit Enter/Space/click.
+				commitOnTab={!config.activeDescendant && !multiple}
 			>
 				{children}
 			</BaseOption>
