@@ -60,11 +60,7 @@ export const k = defineRecipe(
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
 		swatches: 'grid grid-cols-10 gap-1.5',
-		swatch: [
-			'aspect-square w-full cursor-pointer rounded-md',
-			'hover:scale-110 transition-all',
-			...focus.ring,
-		],
+		swatch: ['aspect-square w-full cursor-pointer rounded-md', 'hover:scale-110', ...focus.ring],
 	},
 )
 
