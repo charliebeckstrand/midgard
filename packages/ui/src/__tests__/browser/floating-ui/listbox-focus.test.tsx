@@ -8,9 +8,10 @@ import { renderUI, screen, waitFor } from '../../helpers'
 /**
  * Listbox focus containment (real floating engine). Asserts that opening the
  * listbox pulls focus into the panel and keeps it contained: Tab dismisses the
- * surface (a select closes on Tab rather than trapping like a dialog) and
- * Escape / selection return focus to the trigger. `FloatingFocusManager`'s
- * guards and `closeOnFocusOut` don't engage under jsdom (mocked).
+ * surface and carries focus to the next tabbable (a select closes on Tab
+ * rather than trapping like a dialog) and Escape / selection return focus to
+ * the trigger. `FloatingFocusManager`'s guards and `closeOnFocusOut` don't
+ * engage under jsdom (mocked).
  */
 
 const panelSel = '[data-slot="popover-panel"]'
@@ -44,8 +45,10 @@ describe('Listbox focus (real browser)', () => {
 		expect(document.activeElement?.getAttribute('data-selected')).toBe('true')
 	})
 
-	// Guards the invariant: Tab dismisses the listbox and does not strand focus on `<body>`.
-	it('dismisses the listbox on Tab instead of leaving it open', async () => {
+	// Guards the APG select pattern: Tab dismisses the listbox and the keystroke
+	// proceeds, landing focus on the next tabbable after the trigger — not
+	// snapped back to the trigger, not stranded on `<body>`.
+	it('dismisses the listbox on Tab and moves focus to the next tabbable', async () => {
 		renderUI(
 			<>
 				<Listbox aria-label="pick">
@@ -66,7 +69,7 @@ describe('Listbox focus (real browser)', () => {
 
 		await waitFor(() => expect(isOpen()).toBe(false))
 
-		expect(document.activeElement).not.toBe(document.body)
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus())
 	})
 
 	it('returns focus to the trigger on Escape', async () => {

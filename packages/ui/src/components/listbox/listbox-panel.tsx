@@ -66,7 +66,8 @@ export function ListboxPanel({
 				{open && (
 					// Non-modal: focus moves into the panel on open and stays contained.
 					// Tab leaves the surface through the focus guards and `closeOnFocusOut`
-					// dismisses it (a select closes on Tab; it doesn't trap like a dialog).
+					// dismisses it, with focus proceeding to the next tabbable (a select
+					// closes on Tab; it doesn't trap like a dialog).
 					// `useFloatingUI`'s `returnFocusTo` manages return-focus;
 					// `returnFocus={false}` suppresses the manager's own return-focus.
 					<FloatingFocusManager

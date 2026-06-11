@@ -100,7 +100,9 @@ export type FloatingPanelOptions = {
 	 * When the panel transitions from open to closed, return focus to this
 	 * element (or its first `button`/`[tabindex]` descendant when the element
 	 * itself is a non-focusable wrapper). An `'outside-press'` close skips the
-	 * restore: focus follows the pointer instead of snapping back.
+	 * restore (focus follows the pointer), as does a `'focus-out'` close
+	 * (Tab already carried focus to the next tabbable; snapping back would
+	 * undo it).
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }
@@ -157,10 +159,13 @@ export function useFloatingPanel({
 	const prevOpenRef = useRef(open)
 
 	useEffect(() => {
-		// An outside press skips restoration: focus follows the pointer rather
-		// than snapping back to the trigger. Every other close (Escape,
+		// An outside press skips restoration (focus follows the pointer), as
+		// does a focus-out (Tab moved focus to the next tabbable; APG select
+		// closes and lets the keystroke proceed). Every other close (Escape,
 		// selection, programmatic) restores it.
-		if (prevOpenRef.current && !open && closeReasonRef.current !== 'outside-press') {
+		const reason = closeReasonRef.current
+
+		if (prevOpenRef.current && !open && reason !== 'outside-press' && reason !== 'focus-out') {
 			const trigger = returnFocusTo?.current
 
 			if (trigger) (trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
