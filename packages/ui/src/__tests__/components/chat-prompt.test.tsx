@@ -1,6 +1,7 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../components/chat-prompt'
-import { bySlot, noop, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, makeFileList, noop, renderUI, screen, userEvent } from '../helpers'
 
 describe('ChatPrompt', () => {
 	it('renders a textarea marked with data-slot="chat-prompt"', () => {
@@ -11,6 +12,16 @@ describe('ChatPrompt', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('TEXTAREA')
+	})
+
+	it('forwards ref to the underlying textarea', () => {
+		const ref = createRef<HTMLTextAreaElement>()
+
+		const { container } = renderUI(
+			<ChatPrompt ref={ref} value="" onValueChange={noop} onSubmit={noop} />,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'chat-prompt'))
 	})
 
 	it('gives the composer a default accessible name', () => {
@@ -202,6 +213,62 @@ describe('ChatPrompt', () => {
 		)
 
 		expect(screen.getByRole('button', { name: 'Attach' })).toBeInTheDocument()
+	})
+
+	it('omits the attachment button when onAttach is not provided', () => {
+		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		expect(screen.queryByRole('button', { name: 'Add attachment' })).not.toBeInTheDocument()
+
+		expect(container.querySelector('input[type="file"]')).not.toBeInTheDocument()
+	})
+
+	it('clicking the attachment button opens the file picker', async () => {
+		const { container } = renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={noop} />,
+		)
+
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		const openPicker = vi.spyOn(input, 'click')
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Add attachment' }))
+
+		expect(openPicker).toHaveBeenCalledOnce()
+	})
+
+	it('passes picked files to onAttach and clears the input for re-selection', () => {
+		const onAttach = vi.fn()
+
+		const { container } = renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={onAttach} />,
+		)
+
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		const file = new File(['x'], 'loads.csv', { type: 'text/csv' })
+
+		fireEvent.change(input, { target: { files: makeFileList([file]) } })
+
+		expect(onAttach).toHaveBeenCalledWith([file])
+
+		expect(input.value).toBe('')
+	})
+
+	it('forwards accept to the attachment file input', () => {
+		const { container } = renderUI(
+			<ChatPrompt
+				value=""
+				onValueChange={noop}
+				onSubmit={noop}
+				onAttach={noop}
+				accept=".pdf,.csv"
+			/>,
+		)
+
+		expect(container.querySelector('input[type="file"]')).toHaveAttribute('accept', '.pdf,.csv')
 	})
 
 	it('renders a placeholder in skeleton mode', () => {
