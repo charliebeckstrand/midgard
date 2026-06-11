@@ -14,6 +14,7 @@ import { tint } from './tint'
 
 export const hannou = {
 	item,
+	/** Nav-item chrome in layers (`base`, `tint`, `focus`), so katas can re-seat the surface on a wrapper row. */
 	nav,
 	/** Disabled / dormant state. */
 	disabled,

@@ -603,3 +603,174 @@ describe('useA11yRoving — manageTabIndex', () => {
 		container.remove()
 	})
 })
+
+describe('useA11yRoving — row actions', () => {
+	const ROW = {
+		rowSelector: '[data-slot="row"]',
+		actionSelector: '[data-slot="action"]:not(:disabled)',
+	}
+
+	function makeControl(slot: string, label: string, disabled = false) {
+		const btn = document.createElement('button')
+
+		btn.setAttribute('data-slot', slot)
+
+		btn.textContent = label
+
+		btn.disabled = disabled
+
+		return btn
+	}
+
+	// Each row wraps an item with optional prefix/suffix action controls.
+	function makeRows(rows: Array<{ prefix?: boolean; suffix?: boolean; suffixDisabled?: boolean }>) {
+		const container = document.createElement('div')
+
+		rows.forEach((spec, i) => {
+			const rowEl = document.createElement('div')
+
+			rowEl.setAttribute('data-slot', 'row')
+
+			if (spec.prefix) rowEl.appendChild(makeControl('action', `prefix-${i}`))
+
+			rowEl.appendChild(makeControl('item', `item-${i}`))
+
+			if (spec.suffix) rowEl.appendChild(makeControl('action', `suffix-${i}`, spec.suffixDisabled))
+
+			container.appendChild(rowEl)
+		})
+
+		document.body.appendChild(container)
+
+		return container
+	}
+
+	function setup(container: HTMLElement, manageTabIndex = false) {
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', row: ROW, manageTabIndex })
+		})
+
+		return result
+	}
+
+	const byText = (container: HTMLElement, label: string) =>
+		Array.from(container.querySelectorAll('button')).find((b) => b.textContent === label)
+
+	it('roves from the item into its suffix action on the cross-axis forward arrow', () => {
+		const container = makeRows([{ suffix: true }, { suffix: true }])
+
+		const result = setup(container)
+
+		byText(container, 'item-0')?.focus()
+
+		const event = makeKeyEvent('ArrowRight')
+
+		result.current(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(byText(container, 'suffix-0'))
+
+		container.remove()
+	})
+
+	it('roves from the item into its prefix action on the cross-axis back arrow', () => {
+		const container = makeRows([{ prefix: true, suffix: true }])
+
+		const result = setup(container)
+
+		byText(container, 'item-0')?.focus()
+
+		result.current(makeKeyEvent('ArrowLeft'))
+
+		expect(document.activeElement).toBe(byText(container, 'prefix-0'))
+
+		container.remove()
+	})
+
+	it('clamps at the row edges instead of wrapping', () => {
+		const container = makeRows([{ suffix: true }])
+
+		const result = setup(container)
+
+		byText(container, 'suffix-0')?.focus()
+
+		result.current(makeKeyEvent('ArrowRight'))
+
+		expect(document.activeElement).toBe(byText(container, 'suffix-0'))
+
+		container.remove()
+	})
+
+	it('skips disabled actions', () => {
+		const container = makeRows([{ suffix: true, suffixDisabled: true }])
+
+		const result = setup(container)
+
+		byText(container, 'item-0')?.focus()
+
+		const event = makeKeyEvent('ArrowRight')
+
+		result.current(event)
+
+		// The only action is disabled, so the item is the row edge.
+		expect(document.activeElement).toBe(byText(container, 'item-0'))
+
+		container.remove()
+	})
+
+	it('anchors main-axis arrows from an action to the row, landing on the adjacent item', () => {
+		const container = makeRows([{ suffix: true }, { suffix: true }])
+
+		const result = setup(container)
+
+		byText(container, 'suffix-0')?.focus()
+
+		const event = makeKeyEvent('ArrowDown')
+
+		result.current(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(byText(container, 'item-1'))
+
+		container.remove()
+	})
+
+	it('leaves cross-axis keys alone when nothing in a row has focus', () => {
+		const container = makeRows([{ suffix: true }])
+
+		const result = setup(container)
+
+		const event = makeKeyEvent('ArrowRight')
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		container.remove()
+	})
+
+	it('manageTabIndex: pins actions at tabIndex -1 and rests the stop on the item', () => {
+		const container = makeRows([{ prefix: true, suffix: true }])
+
+		setup(container, true)
+
+		expect(byText(container, 'prefix-0')?.tabIndex).toBe(-1)
+
+		expect(byText(container, 'suffix-0')?.tabIndex).toBe(-1)
+
+		expect(byText(container, 'item-0')?.tabIndex).toBe(0)
+
+		// Focus landing on an action keeps the resting stop on the row's item.
+		byText(container, 'suffix-0')?.focus()
+
+		expect(byText(container, 'item-0')?.tabIndex).toBe(0)
+
+		expect(byText(container, 'suffix-0')?.tabIndex).toBe(-1)
+
+		container.remove()
+	})
+})

@@ -206,5 +206,52 @@ describe('useScrollWithin', () => {
 
 			expect(scroller.scrollTo).not.toHaveBeenCalled()
 		})
+
+		it('stops at a clipping ancestor instead of scrolling an outer container', () => {
+			// Resolve overflowY per element: a clipping wrapper nested inside an
+			// overflowing outer scroller.
+			const overflow = new Map<Element, string>()
+
+			vi.spyOn(window, 'getComputedStyle').mockImplementation(
+				(el: Element) => ({ overflowY: overflow.get(el) ?? 'visible' }) as CSSStyleDeclaration,
+			)
+
+			const outer = document.createElement('div')
+
+			const clip = document.createElement('div')
+
+			const node = document.createElement('div')
+
+			outer.appendChild(clip)
+
+			clip.appendChild(node)
+
+			document.body.appendChild(outer)
+
+			overflow.set(outer, 'auto')
+
+			overflow.set(clip, 'hidden')
+
+			// The outer scroller overflows, so without the clip guard the walk
+			// would continue past the clip and scroll the outer to reveal the node.
+			Object.defineProperty(outer, 'clientHeight', { configurable: true, value: 100 })
+
+			Object.defineProperty(outer, 'scrollHeight', { configurable: true, value: 1000 })
+
+			Object.defineProperty(outer, 'scrollTop', { configurable: true, value: 0, writable: true })
+
+			outer.scrollTo = vi.fn()
+
+			outer.getBoundingClientRect = () => DOMRect.fromRect({ y: 0, height: 100 })
+
+			// Node sits below the outer viewport; a reveal would otherwise scroll it.
+			node.getBoundingClientRect = () => DOMRect.fromRect({ y: 200, height: 20 })
+
+			const { result } = renderHook(() => useScrollWithin())
+
+			result.current(node)
+
+			expect(outer.scrollTo).not.toHaveBeenCalled()
+		})
 	})
 })

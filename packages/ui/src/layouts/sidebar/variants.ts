@@ -1,5 +1,7 @@
 import { defineRecipe } from '../../core/recipe'
-import { omote } from '../../recipes/kiso'
+import { omote, sen } from '../../recipes/kiso'
+
+const { focus } = sen
 
 const layout = defineRecipe({
 	base: [
@@ -77,7 +79,9 @@ const header = defineRecipe({
 	defaults: { size: 'md' },
 })
 
-const body = defineRecipe({ base: 'flex-1 min-h-0 overflow-y-auto' })
+const body = defineRecipe({
+	base: ['flex-1 min-h-0 overflow-y-auto', focus.inset],
+})
 
 const footer = defineRecipe({ base: 'shrink-0' })
 

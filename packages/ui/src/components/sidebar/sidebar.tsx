@@ -24,10 +24,22 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
 }
 
 /**
+ * Affix actions inside items (prefix/suffix buttons and links) join the
+ * keyboard model on the cross axis: Left/Right rove through the focused row's
+ * controls while the actions stay out of the Tab order.
+ */
+const rovingRow = {
+	rowSelector: '[data-slot="sidebar-item"]',
+	actionSelector:
+		'[data-slot="sidebar-item-prefix"] :is(button,a[href]):not(:disabled), [data-slot="sidebar-item-suffix"] :is(button,a[href]):not(:disabled)',
+}
+
+/**
  * Vertical navigation landmark with a true roving-tabindex keyboard model: the
- * item list is a single Tab stop, Up/Down arrows move focus between items, and
- * the resting stop sits on the current page (`aria-current="page"`), falling
- * back to the first item. Establishes an active-indicator scope.
+ * item list is a single Tab stop, Up/Down arrows move focus between items,
+ * Left/Right rove into an item's prefix/suffix actions, and the resting stop
+ * sits on the current page (`aria-current="page"`), falling back to the first
+ * item. Establishes an active-indicator scope.
  */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
@@ -44,6 +56,7 @@ export function Sidebar({
 		// Nav is a single Tab stop; the resting position is the current-page item.
 		manageTabIndex: true,
 		activeSelector: '[aria-current="page"]',
+		row: rovingRow,
 	})
 
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,

@@ -3,6 +3,7 @@
 import type { Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { TouchTarget } from '../../primitives/touch-target'
 import { k } from '../../recipes/kata/nav'
 import { Button } from '../button'
@@ -33,20 +34,25 @@ export function NavItem({
 	const item = useNavItem({ current, value, preventClose, onClick })
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
-	// slot can host its own interactive element. The row uses flex only when
-	// an affix is present.
+	// slot can host its own interactive element. With an affix present the row
+	// goes flex and takes over the interaction chrome (`k.item.row` + `bare`),
+	// so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
 	return (
 		<li
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={cn('group relative list-none', hasAffix && 'flex items-center gap-1')}
+			className={cn(
+				'group relative list-none',
+				hasAffix && ['flex items-center gap-1', k.item.row],
+			)}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
-				<span data-slot="nav-item-prefix" className={cn(k.item.affix)}>
-					{prefix}
+				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>
+					{/* The item chrome is fixed at md, so slot controls step to sm. */}
+					<AffixContext value={affixStepDown('md')}>{prefix}</AffixContext>
 				</span>
 			)}
 			<Headless>
@@ -54,7 +60,12 @@ export function NavItem({
 					data-slot="nav-item-inner"
 					data-current={item.current || undefined}
 					aria-current={item.current ? 'page' : undefined}
-					className={cn(k.item.base, 'relative z-10', hasAffix && 'min-w-0 flex-1', className)}
+					className={cn(
+						hasAffix ? k.item.bare : k.item.base,
+						'relative z-10',
+						hasAffix && 'min-w-0 flex-1',
+						className,
+					)}
 					onClick={item.handleClick}
 					{...props}
 				>
@@ -65,11 +76,16 @@ export function NavItem({
 				</Button>
 			</Headless>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" className={cn(k.item.affix)}>
-					{suffix}
+				<span data-slot="nav-item-suffix" className={cn(k.item.suffix)}>
+					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>
 				</span>
 			)}
-			{item.current && <ActiveIndicator ref={item.indicator.ref} />}
+			{item.current && (
+				<ActiveIndicator
+					ref={item.indicator.ref}
+					className={hasAffix ? cn(k.item.indicator) : undefined}
+				/>
+			)}
 		</li>
 	)
 }
