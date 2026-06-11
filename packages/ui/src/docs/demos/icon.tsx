@@ -40,9 +40,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Custom size">
-				<div className="dark:text-white">
-					<Icon icon={<Star />} size={32} />
-				</div>
+				<Icon icon={<Star />} size={32} />
 			</Example>
 		</>
 	)

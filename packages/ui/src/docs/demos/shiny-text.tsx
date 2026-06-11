@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { Alert } from '../../components/alert'
+import { Badge } from '../../components/badge'
 import { Flex } from '../../components/flex'
 import { ShinyText } from '../../components/shiny-text'
 import { Stack } from '../../components/stack'
-import { Text } from '../../components/text'
-import { code } from '../code'
 import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
 import { VariantListbox } from '../components/variant-listbox'
@@ -13,9 +13,9 @@ export const meta = { category: 'Data Display' }
 const directions = ['left', 'right'] as const
 
 const palettes = [
-	{ name: 'Silver', color: 'var(--color-zinc-500)', shineColor: 'var(--color-white)' },
-	{ name: 'Gold', color: 'var(--color-amber-500)', shineColor: 'var(--color-amber-200)' },
-	{ name: 'Iris', color: 'var(--color-violet-500)', shineColor: 'var(--color-violet-200)' },
+	{ name: 'Zinc', color: 'var(--color-zinc-500)', shineColor: 'var(--color-white)' },
+	{ name: 'Amber', color: 'var(--color-amber-500)', shineColor: 'var(--color-amber-200)' },
+	{ name: 'Violet', color: 'var(--color-violet-500)', shineColor: 'var(--color-violet-200)' },
 	{ name: 'Sky', color: 'var(--color-sky-500)', shineColor: 'var(--color-sky-200)' },
 ] as const
 
@@ -29,9 +29,9 @@ function SpeedExample() {
 			title="Speed"
 			actions={<ValueStepper value={speed} min={1} max={6} onValueChange={setSpeed} />}
 			prefix={
-				<Text variant="muted" className="tabular-nums">
-					speed = {speed}s
-				</Text>
+				<Badge color="zinc" className="tabular-nums">
+					{speed}s
+				</Badge>
 			}
 		>
 			<Stack gap="sm" align="start">
@@ -69,14 +69,7 @@ export function Demo() {
 
 			<SpeedExample />
 
-			<Example
-				title="Colors"
-				code={code`
-					<ShinyText color="var(--color-amber-500)" shineColor="var(--color-amber-200)">
-						Gold
-					</ShinyText>
-				`}
-			>
+			<Example title="Colors">
 				<Stack gap="sm" align="start">
 					{palettes.map((palette) => (
 						<ShinyText
@@ -93,12 +86,7 @@ export function Demo() {
 
 			<DirectionExample />
 
-			<Example
-				title="Spread"
-				code={code`
-					<ShinyText spread={200}>Wide angle</ShinyText>
-				`}
-			>
+			<Example title="Spread">
 				<Flex gap="lg" wrap>
 					{spreads.map((spread) => (
 						<ShinyText key={spread} spread={spread} className="text-3xl font-semibold tabular-nums">
@@ -116,7 +104,7 @@ export function Demo() {
 
 			<Example
 				title="Pause on hover"
-				prefix={<Text variant="muted">The sweep halts while the pointer is over the text.</Text>}
+				prefix={<Alert severity="info">The sweep halts while the pointer is over the text.</Alert>}
 			>
 				<Stack gap="sm" align="start">
 					<ShinyText pauseOnHover className="text-3xl font-semibold">
