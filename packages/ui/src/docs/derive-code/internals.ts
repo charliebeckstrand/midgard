@@ -1,5 +1,5 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
-import type { Context } from './types'
+import type { ComponentInfo, Context } from './types'
 
 // ---------------------------------------------------------------------------
 // Type guards
@@ -88,14 +88,41 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve a name for a nested element prop. Registered components win; bare
+ * Resolve an element type to its `ComponentInfo`. Build-time tags win.
+ * Untagged types fall back to a `displayName` lookup against `byName`,
+ * restricted to external entries (demo imports from packages like
+ * lucide-react, whose components carry a stable `displayName` but no tag).
+ * UI components only resolve by tag; matching them by name could alias a
+ * demo-local stand-in.
+ */
+export function resolveType(type: unknown, context: Context): ComponentInfo | undefined {
+	const info = context.registry.byType.get(type)
+
+	if (info) return info
+
+	const displayName = (type as { displayName?: unknown } | null)?.displayName
+
+	if (typeof displayName !== 'string') return undefined
+
+	const named = context.registry.byName.get(displayName)
+
+	return named?.external ? named : undefined
+}
+
+/**
+ * Resolve a name for a nested element prop, recording the import for
+ * recognized components. Registered and external components win; bare
  * intrinsic strings (e.g. `<div />` as an icon) pass through. Anything else
  * returns `null`; the caller drops the prop.
  */
 export function getElementName(element: ReactElement, context: Context): string | null {
-	const info = context.registry.byType.get(element.type)
+	const info = resolveType(element.type, context)
 
-	if (info) return info.name
+	if (info) {
+		if (info.module) addImport(context, info.module, info.name, info.external)
+
+		return info.name
+	}
 
 	return typeof element.type === 'string' ? element.type : null
 }
@@ -219,26 +246,29 @@ export function renderOpenTag(
 
 /**
  * Record an import for `name` from `mod`. Allocates the inner Set on first
- * use.
+ * use. `external` marks `mod` as a bare package specifier (`lucide-react`);
+ * `assemble` emits it without the `ui/` prefix.
  */
-export function addImport(context: Context, mod: string, name: string): void {
+export function addImport(context: Context, mod: string, name: string, external = false): void {
 	const set = context.imports.get(mod) ?? new Set<string>()
 
 	set.add(name)
 
 	context.imports.set(mod, set)
+
+	if (external) context.externalModules.add(mod)
 }
 
 /**
  * Combine the imports accumulated on `context` with the rendered JSX into the
- * final code block. Sorts imports by module; `react` keeps its bare
- * specifier, everything else uses the `ui/*` package layout.
+ * final code block. Sorts imports by module; `react` and external packages
+ * keep their bare specifiers, everything else uses the `ui/*` package layout.
  */
 export function assemble(context: Context, jsx: string): string {
 	const imports = [...context.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
 		.map(([mod, names]) => {
-			const specifier = mod === 'react' ? 'react' : `ui/${mod}`
+			const specifier = mod === 'react' || context.externalModules.has(mod) ? mod : `ui/${mod}`
 
 			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
 		})
@@ -318,7 +348,7 @@ export function collectSnippetImports(snippet: string, context: Context): void {
 
 		const info = context.registry.byName.get(name)
 
-		if (info?.module) addImport(context, info.module, info.name)
+		if (info?.module) addImport(context, info.module, info.name, info.external)
 	}
 
 	for (const [, hook] of snippet.matchAll(HOOK_RE)) {

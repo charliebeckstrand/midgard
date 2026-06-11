@@ -42,6 +42,24 @@ describe('addImport', () => {
 
 		expect(context.imports.get('group')).toEqual(new Set(['Group', 'GroupItem']))
 	})
+
+	it('records external modules for bare-specifier emission', () => {
+		const context = makeContext()
+
+		addImport(context, 'lucide-react', 'Star', true)
+
+		expect(context.imports.get('lucide-react')).toEqual(new Set(['Star']))
+
+		expect(context.externalModules.has('lucide-react')).toBe(true)
+	})
+
+	it('leaves non-external modules out of the external set', () => {
+		const context = makeContext()
+
+		addImport(context, 'button', 'Button')
+
+		expect(context.externalModules.size).toBe(0)
+	})
 })
 
 describe('assemble', () => {
@@ -77,6 +95,14 @@ describe('assemble', () => {
 		addImport(context, 'file-upload', 'FileUpload')
 
 		expect(assemble(context, '')).toBe(`import { FileUpload } from 'ui/file-upload'`)
+	})
+
+	it('emits a bare specifier for external modules', () => {
+		const context = makeContext()
+
+		addImport(context, 'lucide-react', 'Star', true)
+
+		expect(assemble(context, '')).toBe(`import { Star } from 'lucide-react'`)
 	})
 
 	it('sorts modules alphabetically across the emitted lines', () => {

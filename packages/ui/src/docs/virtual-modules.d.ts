@@ -7,7 +7,7 @@ declare module 'virtual:api-reference' {
 }
 
 declare module 'virtual:component-modules' {
-	const data: Record<string, string>
+	const data: Record<string, string | { module: string; external: true }>
 
 	export default data
 }

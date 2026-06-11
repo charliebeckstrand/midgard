@@ -1,8 +1,45 @@
+import { Star } from 'lucide-react'
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { deriveCode } from '../../../docs/derive-code'
 import { GlassProvider } from '../../../providers/glass'
 import { tag } from './helpers'
+
+describe('deriveCode external components', () => {
+	// End-to-end through the default registry: the real lucide `Star` resolves
+	// by displayName against the demo-import entries the docs plugin collects.
+	it('renders an external icon prop and emits its bare-specifier import', () => {
+		const Icon = tag<{ icon?: unknown; size?: number }>('Icon', 'icon')
+
+		const tree = createElement(Icon, { icon: createElement(Star), size: 32 })
+
+		expect(deriveCode(tree)).toBe(
+			[
+				`import { Icon } from 'ui/icon'`,
+				`import { Star } from 'lucide-react'`,
+				'',
+				'<Icon icon={<Star />} size={32} />',
+			].join('\n'),
+		)
+	})
+
+	it('renders an external icon as a direct child', () => {
+		const Button = tag<{ children?: unknown }>('Button', 'button')
+
+		const tree = createElement(Button, null, createElement(Star))
+
+		expect(deriveCode(tree)).toBe(
+			[
+				`import { Button } from 'ui/button'`,
+				`import { Star } from 'lucide-react'`,
+				'',
+				'<Button>',
+				'  <Star />',
+				'</Button>',
+			].join('\n'),
+		)
+	})
+})
 
 describe('deriveCode iteration vs authored siblings', () => {
 	const Group = tag<{ size?: string; children?: unknown }>('Group', 'group')

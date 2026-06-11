@@ -58,4 +58,12 @@ describe('defaultRegistry.byName', () => {
 
 		expect(info?.module).toBe('providers/glass')
 	})
+
+	it('resolves a demo package import to an external entry', () => {
+		// Demos import lucide icons (`Star` in the icon demo); the plugin records
+		// them under their bare package specifier with the external mark.
+		const info = defaultRegistry.byName.get('Star')
+
+		expect(info).toEqual({ name: 'Star', module: 'lucide-react', external: true })
+	})
 })

@@ -21,7 +21,12 @@ function readTag(type: unknown): ComponentInfo | undefined {
 }
 
 const byName = new Map<string, ComponentInfo>(
-	Object.entries(componentModules).map(([name, module]) => [name, { name, module }] as const),
+	Object.entries(componentModules).map(([name, entry]) => [
+		name,
+		typeof entry === 'string'
+			? { name, module: entry }
+			: { name, module: entry.module, external: true },
+	]),
 )
 
 /**

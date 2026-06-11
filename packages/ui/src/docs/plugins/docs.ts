@@ -114,6 +114,50 @@ function isPascalCase(name: string): boolean {
 	return /^[A-Z]/.test(name)
 }
 
+export type ExternalImport = { name: string; specifier: string }
+
+// Packages whose imports never surface as external components: react hooks
+// resolve through `collectSnippetImports`, and the renderer has no place in
+// derived code.
+const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
+
+/**
+ * Parse the PascalCase named value imports a demo takes from external
+ * packages (bare specifiers like `lucide-react`). Relative imports resolve
+ * through the tagged ui barrels and stay out. Aliased specifiers record their
+ * source name — the name matching the component's `displayName` and the
+ * import a reader would write.
+ */
+export function parseExternalImports(source: string, fileName: string): ExternalImport[] {
+	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+
+	const result: ExternalImport[] = []
+
+	for (const stmt of sf.statements) {
+		if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
+
+		const specifier = stmt.moduleSpecifier.text
+
+		if (specifier.startsWith('.') || EXCLUDED_PACKAGES.test(specifier)) continue
+
+		const clause = stmt.importClause
+
+		if (!clause || clause.isTypeOnly || !clause.namedBindings) continue
+
+		if (!ts.isNamedImports(clause.namedBindings)) continue
+
+		for (const spec of clause.namedBindings.elements) {
+			if (spec.isTypeOnly) continue
+
+			const name = (spec.propertyName ?? spec.name).text
+
+			if (isPascalCase(name)) result.push({ name, specifier })
+		}
+	}
+
+	return result
+}
+
 /**
  * Map a public index file to its module name, or null if the file isn't a
  * taggable barrel. The `docs/` prefix never matches; docs-internal controls
@@ -137,11 +181,17 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 }
 
 /**
+ * A name-map value: a ui module name (string), or an external package entry
+ * carrying its bare import specifier.
+ */
+type ModuleEntry = string | { module: string; external: true }
+
+/**
  * Record every PascalCase value re-export of a single index file under
  * `moduleName`. Skips missing files.
  */
 function collectIndexNames(
-	result: Record<string, string>,
+	result: Record<string, ModuleEntry>,
 	indexPath: string,
 	moduleName: string,
 ): void {
@@ -159,7 +209,7 @@ function collectIndexNames(
  * deriving each module's name from its directory via `moduleFor`.
  */
 function collectDirNames(
-	result: Record<string, string>,
+	result: Record<string, ModuleEntry>,
 	dir: string,
 	moduleFor: (name: string) => string,
 ): void {
@@ -173,18 +223,41 @@ function collectDirNames(
 }
 
 /**
+ * Record every external component imported by a demo (e.g. lucide icons)
+ * under its bare package specifier. Runs after the ui collectors, and ui
+ * names win collisions via `??=`: an external sharing a component's name
+ * stays unresolvable rather than shadowing it.
+ */
+function collectDemoExternals(result: Record<string, ModuleEntry>, demosDir: string): void {
+	if (!fs.existsSync(demosDir)) return
+
+	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
+		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
+
+		const full = path.join(entry.parentPath, entry.name)
+
+		for (const { name, specifier } of parseExternalImports(fs.readFileSync(full, 'utf-8'), full)) {
+			result[name] ??= { module: specifier, external: true }
+		}
+	}
+}
+
+/**
  * Walk every public `components/*\/index.ts`, `providers/*\/index.ts`, and
  * `layouts/index.ts` at build time and collect `{ name → module }` for every
- * PascalCase value re-export.
+ * PascalCase value re-export, plus an external entry for every package
+ * component the demos import (resolved at runtime by `displayName`).
  */
-function buildNameMap(srcDir: string): Record<string, string> {
-	const result: Record<string, string> = {}
+function buildNameMap(srcDir: string): Record<string, ModuleEntry> {
+	const result: Record<string, ModuleEntry> = {}
 
 	collectDirNames(result, path.join(srcDir, 'components'), (name) => name)
 
 	collectDirNames(result, path.join(srcDir, 'providers'), (name) => `providers/${name}`)
 
 	collectIndexNames(result, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
+
+	collectDemoExternals(result, path.join(srcDir, 'docs', 'demos'))
 
 	return result
 }
