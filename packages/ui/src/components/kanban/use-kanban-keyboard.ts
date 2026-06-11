@@ -1,28 +1,35 @@
 'use client'
 
 import { arrayMove } from '@dnd-kit/sortable'
-import { type KeyboardEvent, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { KanbanColumnBase } from './types'
 
-const cardName = (cardId: string) => accessibleName(querySlot('kanban-card', 'card-id', cardId))
+const cardName = (container: ParentNode | null, cardId: string) =>
+	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId))
 
-const columnName = (columnId: string) =>
-	accessibleName(querySlot('kanban-column', 'column-id', columnId))
+const columnName = (container: ParentNode | null, columnId: string) =>
+	accessibleName(querySlot(container, 'kanban-column', 'column-id', columnId))
 
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
 	onValueChange,
+	containerRef,
 }: {
 	columns: C[]
 	getKey: (item: T) => string
 	onValueChange?: (next: C[]) => void
+	/** Board root; scopes card lookups so concurrent boards (and the drag overlay clone) don't cross-match. */
+	containerRef: RefObject<HTMLElement | null>
 }) {
-	const focusCard = useCallback((cardId: string) => {
-		querySlot('kanban-card', 'card-id', cardId)?.focus()
-	}, [])
+	const focusCard = useCallback(
+		(cardId: string) => {
+			querySlot(containerRef.current, 'kanban-card', 'card-id', cardId)?.focus()
+		},
+		[containerRef],
+	)
 
 	const {
 		liftedId: liftedCardId,
@@ -148,13 +155,13 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 
 			announce(
-				`${cardName(cardId)} moved to position ${newIdx + 1} of ${col.items.length} in ${columnName(col.id)}.`,
+				`${cardName(containerRef.current, cardId)} moved to position ${newIdx + 1} of ${col.items.length} in ${columnName(containerRef.current, col.id)}.`,
 				{ assertive: true },
 			)
 
 			refocusCard(cardId)
 		},
-		[columns, getKey, onValueChange, findColumnByCardId, refocusCard],
+		[columns, getKey, onValueChange, findColumnByCardId, refocusCard, containerRef],
 	)
 
 	const moveToColumn = useCallback(
@@ -197,13 +204,13 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 			const position = targetCol.items.length + 1
 
 			announce(
-				`${cardName(cardId)} moved to ${columnName(targetCol.id)}, position ${position} of ${position}.`,
+				`${cardName(containerRef.current, cardId)} moved to ${columnName(containerRef.current, targetCol.id)}, position ${position} of ${position}.`,
 				{ assertive: true },
 			)
 
 			refocusCard(cardId)
 		},
-		[columns, getKey, onValueChange, findColumnByCardId, refocusCard],
+		[columns, getKey, onValueChange, findColumnByCardId, refocusCard, containerRef],
 	)
 
 	const onCardKeyDown = useCallback(
@@ -220,13 +227,13 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 				const loc = locate(cardId)
 
 				const where = loc
-					? `, position ${loc.position} of ${loc.count} in ${columnName(loc.columnId)}`
+					? `, position ${loc.position} of ${loc.count} in ${columnName(containerRef.current, loc.columnId)}`
 					: ''
 
 				announce(
 					lifting
-						? `Picked up ${cardName(cardId)}${where}. Use arrow keys to move, Enter to drop.`
-						: `Dropped ${cardName(cardId)}${where}.`,
+						? `Picked up ${cardName(containerRef.current, cardId)}${where}. Use arrow keys to move, Enter to drop.`
+						: `Dropped ${cardName(containerRef.current, cardId)}${where}.`,
 					{ assertive: true },
 				)
 
@@ -259,10 +266,12 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 					const loc = locate(cardId)
 
 					const where = loc
-						? `, position ${loc.position} of ${loc.count} in ${columnName(loc.columnId)}`
+						? `, position ${loc.position} of ${loc.count} in ${columnName(containerRef.current, loc.columnId)}`
 						: ''
 
-					announce(`Dropped ${cardName(cardId)}${where}.`, { assertive: true })
+					announce(`Dropped ${cardName(containerRef.current, cardId)}${where}.`, {
+						assertive: true,
+					})
 
 					break
 				}
@@ -292,7 +301,15 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 					break
 			}
 		},
-		[liftedCardId, setLiftedCardId, moveWithinColumn, moveToColumn, focusNeighbor, locate],
+		[
+			liftedCardId,
+			setLiftedCardId,
+			moveWithinColumn,
+			moveToColumn,
+			focusNeighbor,
+			locate,
+			containerRef,
+		],
 	)
 
 	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }

@@ -7,7 +7,7 @@ import {
 	type DragStartEvent,
 } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
@@ -89,11 +89,14 @@ export function List<T>({
 		dndContextProps,
 	} = useListDrag({ items, getKey, onReorder, orientation, disabled })
 
+	const containerRef = useRef<HTMLUListElement>(null)
+
 	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
 		items,
 		getKey: effectiveGetKey,
 		orientation,
 		onReorder,
+		containerRef,
 	})
 
 	// Clear keyboard-lifted state when a pointer drag begins.
@@ -132,6 +135,7 @@ export function List<T>({
 
 	const ul = (
 		<ul
+			ref={containerRef}
 			aria-label={ariaLabel}
 			data-slot="list"
 			data-orientation={orientation}
