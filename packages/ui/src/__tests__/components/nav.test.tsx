@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { Navbar } from '../../components/navbar'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -171,6 +172,89 @@ describe('NavItem', () => {
 		)
 
 		expect(bySlot(container, 'icon')).toBeInTheDocument()
+	})
+
+	it('re-seats the interaction chrome on the row when an affix is present', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem suffix={<button type="button">more</button>}>Dashboard</NavItem>
+					<NavItem>Plain</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		const [affixed, plain] = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="nav-item"]'),
+		)
+
+		// The wrapper row has the hover tint and projects the inner button's
+		// focus ring via :has, so affix slots render inside the chrome.
+		expect(affixed?.className).toContain('has-[[data-slot=nav-item-inner]:focus-visible]:ring-2')
+
+		expect(affixed?.className).toContain('hover:bg-zinc-950/5')
+
+		expect(plain?.className).not.toContain('hover:bg-zinc-950/5')
+
+		// The inner button renders without its own surface, keeping only
+		// outline suppression.
+		const inner = affixed?.querySelector('[data-slot="nav-item-inner"]')
+
+		expect(inner?.className).not.toContain('focus-visible:ring-2')
+
+		expect(inner?.className).toContain('outline-none')
+
+		// The slot insets from the row edge so the control never sits flush
+		// against the chrome.
+		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain('mr-2')
+	})
+
+	it('re-draws the focus ring on the active indicator of a current affixed row', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem current suffix={<button type="button">more</button>}>
+						Dashboard
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		// The row's own ring paints beneath the indicator's opaque pill, so the
+		// focused current row re-draws the ring on the pill.
+		expect(bySlot(container, 'active-indicator')?.className).toContain(
+			'group-has-[[data-slot=nav-item-inner]:focus-visible]:ring-2',
+		)
+	})
+
+	it('steps affix controls down one size, with an explicit size winning', () => {
+		renderUI(
+			<Nav>
+				<NavList>
+					<NavItem suffix={<Button aria-label="auto" />}>Dashboard</NavItem>
+					<NavItem suffix={<Button aria-label="explicit" size="lg" />}>Reports</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		// The md item chrome steps slot controls to sm; an explicit size wins.
+		expect(screen.getByRole('button', { name: 'auto' })).toHaveAttribute('data-size', 'sm')
+
+		expect(screen.getByRole('button', { name: 'explicit' })).toHaveAttribute('data-size', 'lg')
+	})
+
+	it('keeps affix actions individually Tab-focusable (link list, no roving)', () => {
+		renderUI(
+			<Nav>
+				<NavList>
+					<NavItem suffix={<button type="button">more</button>}>Dashboard</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		// NavList is a plain link list, not a roving composite; the affix action
+		// stays in the natural Tab order.
+		expect(screen.getByRole('button', { name: 'more' }).tabIndex).toBe(0)
 	})
 })
 

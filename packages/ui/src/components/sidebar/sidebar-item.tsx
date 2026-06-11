@@ -3,6 +3,7 @@
 import { Children, isValidElement, type Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { TouchTarget } from '../../primitives/touch-target'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
@@ -40,8 +41,9 @@ export function SidebarItem({
 	const Wrapper = inList ? 'li' : 'span'
 
 	// Affixes render as siblings of the inner button, not nested inside it;
-	// a slot can host its own interactive element. The row goes flex only when
-	// an affix is present.
+	// a slot can host its own interactive element. With an affix present the
+	// row goes flex and takes over the interaction chrome (`chrome: 'row'`),
+	// so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
 	// Resolved by the Sidebar root: true only when mini on a desktop viewport,
@@ -62,7 +64,7 @@ export function SidebarItem({
 			data-current={item.current || undefined}
 			aria-current={item.current ? 'page' : undefined}
 			className={cn(
-				k.item.base({ size: item.size }),
+				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
 				'relative z-10',
 				hasAffix && 'min-w-0 flex-1',
 				className,
@@ -81,12 +83,15 @@ export function SidebarItem({
 		<Wrapper
 			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			className={cn('group relative list-none', hasAffix && 'flex items-center')}
+			className={cn(
+				'group relative list-none',
+				hasAffix && ['flex items-center', k.item.row({ size: item.size })],
+			)}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
-				<span data-slot="sidebar-item-prefix" className={cn(k.item.affix)}>
-					{prefix}
+				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: item.size }))}>
+					<AffixContext value={affixStepDown(item.size)}>{prefix}</AffixContext>
 				</span>
 			)}
 			<Headless>
@@ -104,11 +109,16 @@ export function SidebarItem({
 				)}
 			</Headless>
 			{suffix != null && (
-				<span data-slot="sidebar-item-suffix" className={cn(k.item.affix)}>
-					{suffix}
+				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: item.size }))}>
+					<AffixContext value={affixStepDown(item.size)}>{suffix}</AffixContext>
 				</span>
 			)}
-			{item.current && <ActiveIndicator ref={item.indicator.ref} />}
+			{item.current && (
+				<ActiveIndicator
+					ref={item.indicator.ref}
+					className={hasAffix ? cn(k.item.indicator) : undefined}
+				/>
+			)}
 		</Wrapper>
 	)
 }

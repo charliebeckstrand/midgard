@@ -14,6 +14,37 @@ type RovingConfig = {
 	orientation?: Orientation
 }
 
+type RovingRowConfig = {
+	/** Selector for the wrapper grouping an item with its action controls. */
+	rowSelector: string
+	/** Selector for the action controls themselves; disjoint from `itemSelector`. */
+	actionSelector: string
+}
+
+/** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. */
+function crossAxisDelta(key: string, orientation: Orientation): number | null {
+	const forward = orientation === 'vertical' ? 'ArrowRight' : 'ArrowDown'
+
+	const back = orientation === 'vertical' ? 'ArrowLeft' : 'ArrowUp'
+
+	return key === forward ? 1 : key === back ? -1 : null
+}
+
+/** Visible, enabled controls of a row in DOM order: its item plus its actions. */
+function rowControls(
+	rowEl: HTMLElement,
+	itemSelector: string,
+	actionSelector: string,
+): HTMLElement[] {
+	return (
+		queryItems(rowEl, `${itemSelector}, ${actionSelector}`)
+			.filter((el) => !el.matches(':disabled') && (el.checkVisibility?.() ?? true))
+			// Spec orders selector-list matches by document position, but jsdom
+			// (nwsapi) groups them by selector; sort so arrow order is the DOM order.
+			.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+	)
+}
+
 /** All elements matching `selector` inside `container`. */
 export function queryItems(container: HTMLElement | null, selector: string): HTMLElement[] {
 	if (!container) return []
@@ -267,9 +298,24 @@ type RovingOptions = RovingConfig & {
 	 * stays on the input.
 	 */
 	activeDescendantRef?: RefObject<HTMLElement | null>
+	/**
+	 * Focus mode: cross-axis roving into per-item action controls (e.g. a
+	 * sidebar item's prefix/suffix buttons). `rowSelector` matches the wrapper
+	 * grouping an item with its actions; `actionSelector` matches the action
+	 * controls. The cross arrows (Left/Right under a vertical `orientation`)
+	 * move through the focused row's visible controls in DOM order, clamped at
+	 * the row edges. Main-axis arrows from an action anchor at the row's item,
+	 * so Up/Down reach the adjacent row. With `manageTabIndex`, the hook pins
+	 * actions at `tabIndex=-1` so the widget stays a single Tab stop that
+	 * always re-enters on an item. Ignored when `cols` is set.
+	 */
+	row?: RovingRowConfig
 }
 
-/** Arrow / Home / End navigation over items inside `containerRef`. Wraps at both ends. */
+/**
+ * Arrow / Home / End navigation over items inside `containerRef`. Wraps at
+ * both ends; with `row`, the cross arrows rove into per-row action controls.
+ */
 export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
 	{
@@ -285,9 +331,16 @@ export function useA11yRoving(
 		manageAriaSelected = true,
 		manageTabIndex = false,
 		activeSelector,
+		row,
 	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
+
+	// Depend on the selector strings, not the `row` object: callers pass inline
+	// literals whose identity changes per render.
+	const rowSelector = row?.rowSelector
+
+	const actionSelector = row?.actionSelector
 
 	const typeaheadRef = useRef<TypeaheadState>({ query: '', timer: 0 })
 
@@ -313,6 +366,13 @@ export function useA11yRoving(
 
 		const normalize = () => {
 			const items = queryItems(el, itemSelector)
+
+			// Row actions never hold the resting stop; cross-axis arrows reach them.
+			if (actionSelector) {
+				for (const action of queryItems(el, actionSelector)) {
+					if (action.tabIndex !== -1) action.tabIndex = -1
+				}
+			}
 
 			if (!items.length) return
 
@@ -346,7 +406,22 @@ export function useA11yRoving(
 
 			const target = items.find((it) => it === e.target)
 
-			if (target) seatTabStop(items, target)
+			if (target) {
+				seatTabStop(items, target)
+
+				return
+			}
+
+			// Focus moving elsewhere inside a row (to an affix action) keeps the
+			// resting stop on the row's item: Tab re-enters on an item, never an
+			// action.
+			if (rowSelector && e.target instanceof HTMLElement) {
+				const rowEl = e.target.closest(rowSelector)
+
+				const anchor = rowEl ? items.find((it) => rowEl.contains(it)) : undefined
+
+				if (anchor) seatTabStop(items, anchor)
+			}
 		}
 
 		el.addEventListener('focusin', onFocusIn)
@@ -365,7 +440,15 @@ export function useA11yRoving(
 
 			observer.disconnect()
 		}
-	}, [containerRef, itemSelector, mode, manageTabIndex, activeSelector])
+	}, [
+		containerRef,
+		itemSelector,
+		mode,
+		manageTabIndex,
+		activeSelector,
+		rowSelector,
+		actionSelector,
+	])
 
 	return useCallback(
 		(e: KeyboardEvent) => {
@@ -375,9 +458,42 @@ export function useA11yRoving(
 
 			const isVirtual = mode === 'virtual'
 
-			const currentIndex = isVirtual
+			const active = document.activeElement as HTMLElement | null
+
+			let currentIndex = isVirtual
 				? items.findIndex((el) => el.dataset.active !== undefined)
-				: items.indexOf(document.activeElement as HTMLElement)
+				: items.indexOf(active as HTMLElement)
+
+			// Focus sitting on a row's action control: cross-axis arrows move
+			// through the row's own controls, and main-axis moves anchor to the
+			// row's item so Up/Down reach the adjacent row.
+			const rowEl =
+				!isVirtual && rowSelector && actionSelector && cols === undefined
+					? active?.closest<HTMLElement>(rowSelector)
+					: undefined
+
+			if (rowEl && containerRef.current?.contains(rowEl)) {
+				if (currentIndex === -1) {
+					currentIndex = items.findIndex((it) => rowEl.contains(it))
+				}
+
+				const crossDelta = crossAxisDelta(e.key, orientation ?? 'vertical')
+
+				if (crossDelta !== null && actionSelector) {
+					const controls = rowControls(rowEl, itemSelector, actionSelector)
+
+					const index = controls.indexOf(active as HTMLElement)
+
+					if (index !== -1) {
+						e.preventDefault()
+
+						// Clamped at the row edges, unlike the wrapping main axis.
+						controls[index + crossDelta]?.focus()
+
+						return
+					}
+				}
+			}
 
 			const moveTo = (index: number) => {
 				if (!isVirtual) {
@@ -451,6 +567,8 @@ export function useA11yRoving(
 			scrollWithin,
 			manageAriaSelected,
 			manageTabIndex,
+			rowSelector,
+			actionSelector,
 		],
 	)
 }

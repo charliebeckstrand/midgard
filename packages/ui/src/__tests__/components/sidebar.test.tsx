@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import {
 	Sidebar,
 	SidebarBody,
@@ -48,6 +49,62 @@ describe('Sidebar', () => {
 
 		// ...and the consumer's handler is chained rather than clobbered.
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
+	})
+
+	it('roves into affix actions with Left/Right and back to items with Up/Down', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem>Home</SidebarItem>
+				<SidebarItem
+					prefix={<button type="button">drag</button>}
+					suffix={<button type="button">more</button>}
+				>
+					Settings
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const nav = bySlot(container, 'sidebar') as HTMLElement
+
+		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+
+		items[1]?.focus()
+
+		fireEvent.keyDown(nav, { key: 'ArrowRight' })
+
+		expect(screen.getByRole('button', { name: 'more' })).toHaveFocus()
+
+		fireEvent.keyDown(nav, { key: 'ArrowLeft' })
+
+		expect(items[1]).toHaveFocus()
+
+		fireEvent.keyDown(nav, { key: 'ArrowLeft' })
+
+		expect(screen.getByRole('button', { name: 'drag' })).toHaveFocus()
+
+		// Main-axis arrows move from the action to the adjacent row's item.
+		fireEvent.keyDown(nav, { key: 'ArrowUp' })
+
+		expect(items[0]).toHaveFocus()
+	})
+
+	it('keeps affix actions out of the Tab order', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem suffix={<button type="button">more</button>}>Home</SidebarItem>
+			</Sidebar>,
+		)
+
+		const action = screen.getByRole('button', { name: 'more' })
+
+		expect(action.tabIndex).toBe(-1)
+
+		// Focusing the action keeps the resting Tab stop on the item.
+		action.focus()
+
+		const inner = bySlot(container, 'sidebar-item-inner') as HTMLButtonElement | null
+
+		expect(inner?.tabIndex).toBe(0)
 	})
 
 	it('is a single Tab stop seated on the current page', () => {
@@ -378,6 +435,76 @@ describe('SidebarItem', () => {
 		expect(screen.getByRole('button', { name: 'drag' })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'more' })).toBeInTheDocument()
+	})
+
+	it('re-seats the interaction chrome on the row when an affix is present', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem suffix={<button type="button">more</button>}>Home</SidebarItem>
+				<SidebarItem>Plain</SidebarItem>
+			</Sidebar>,
+		)
+
+		const [affixed, plain] = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="sidebar-item"]'),
+		)
+
+		// The wrapper row has the hover tint and projects the inner button's
+		// focus ring via :has, so affix slots render inside the chrome.
+		expect(affixed?.className).toContain(
+			'has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2',
+		)
+
+		expect(affixed?.className).toContain('hover:bg-zinc-950/5')
+
+		expect(plain?.className).not.toContain('hover:bg-zinc-950/5')
+
+		// The inner button renders without its own surface, keeping only
+		// outline suppression.
+		const inner = affixed?.querySelector('[data-slot="sidebar-item-inner"]')
+
+		expect(inner?.className).not.toContain('focus-visible:ring-2')
+
+		expect(inner?.className).toContain('outline-none')
+
+		// The slot insets from the row edge so the control never sits flush
+		// against the chrome (md step).
+		expect(affixed?.querySelector('[data-slot="sidebar-item-suffix"]')?.className).toContain('mr-2')
+	})
+
+	it('re-draws the focus ring on the active indicator of a current affixed row', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem current suffix={<button type="button">more</button>}>
+					Home
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		// The row's own ring paints beneath the indicator's opaque pill, so the
+		// focused current row re-draws the ring on the pill.
+		expect(bySlot(container, 'active-indicator')?.className).toContain(
+			'group-has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2',
+		)
+	})
+
+	it('steps affix controls down one size, with an explicit size winning', () => {
+		renderUI(
+			<Sidebar>
+				<SidebarItem suffix={<Button aria-label="auto" />}>Home</SidebarItem>
+				<SidebarItem size="lg" suffix={<Button aria-label="from-lg" />}>
+					Docs
+				</SidebarItem>
+				<SidebarItem suffix={<Button aria-label="explicit" size="lg" />}>Help</SidebarItem>
+			</Sidebar>,
+		)
+
+		// md host → sm control; lg host → md; an explicit size prop wins.
+		expect(screen.getByRole('button', { name: 'auto' })).toHaveAttribute('data-size', 'sm')
+
+		expect(screen.getByRole('button', { name: 'from-lg' })).toHaveAttribute('data-size', 'md')
+
+		expect(screen.getByRole('button', { name: 'explicit' })).toHaveAttribute('data-size', 'lg')
 	})
 
 	it('omits the affix slots when no prefix or suffix is provided', () => {

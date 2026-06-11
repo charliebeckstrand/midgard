@@ -150,8 +150,7 @@ export function Demo() {
 										<Button
 											aria-label="Delete conversation"
 											color="red"
-											variant="soft"
-											size="sm"
+											variant="plain"
 											onClick={() => setConfirmOpen(true)}
 										>
 											<Icon icon={<Trash />} />
@@ -197,7 +196,7 @@ export function Demo() {
 				</SidebarLayoutHeader>
 
 				<SidebarLayoutBody ref={bodyRef}>
-					<Stack gap="lg" full flex="1">
+					<Stack gap="lg" full flex="1" className="pb-4">
 						{messages.map((msg) => (
 							<ChatMessage key={msg.id} role={msg.role}>
 								{msg.content}

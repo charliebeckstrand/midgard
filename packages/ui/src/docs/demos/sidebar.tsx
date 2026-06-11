@@ -19,6 +19,14 @@ import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import {
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuLabel,
+	MenuSection,
+	MenuTrigger,
+} from '../../components/menu'
+import {
 	Sidebar,
 	SidebarBody,
 	SidebarDivider,
@@ -263,9 +271,26 @@ function SuffixSidebarExample() {
 						<SidebarItem
 							icon={<Inbox />}
 							suffix={
-								<Button variant="plain">
-									<Icon icon={<ChevronDown />} />
-								</Button>
+								<Menu placement="bottom-end">
+									<MenuTrigger>
+										<Button variant="plain">
+											<Icon icon={<ChevronDown />} />
+										</Button>
+									</MenuTrigger>
+									<MenuContent>
+										<MenuSection>
+											<MenuItem>
+												<MenuLabel>Mark as Read</MenuLabel>
+											</MenuItem>
+											<MenuItem>
+												<MenuLabel>Move to Folder</MenuLabel>
+											</MenuItem>
+											<MenuItem>
+												<MenuLabel>Delete</MenuLabel>
+											</MenuItem>
+										</MenuSection>
+									</MenuContent>
+								</Menu>
 							}
 						>
 							<SidebarLabel>Inbox</SidebarLabel>

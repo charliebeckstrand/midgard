@@ -27,9 +27,9 @@ export type NavItemProps = {
 	className?: string
 	preventClose?: boolean
 	spring?: boolean
-	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). */
+	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode
-	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). */
+	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	suffix?: ReactNode
 	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
 } & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>

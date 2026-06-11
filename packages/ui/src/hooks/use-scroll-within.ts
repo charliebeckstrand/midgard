@@ -21,6 +21,14 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
 		// scrollTo no-ops on a non-overflowing wrapper.
 		if (scrollable && scroller.scrollHeight > scroller.clientHeight) break
 
+		// A clipping ancestor (overflow: hidden/clip) bounds the node's scroll
+		// context: nothing outside it can bring the node into view, so stop here
+		// rather than walk up and scroll an outer page container the caller never
+		// meant to touch. Without this, a nav item whose own scroller doesn't
+		// overflow (e.g. a short sidebar inside a clipped frame) scrolls the
+		// whole page on mount.
+		if (overflowY === 'hidden' || overflowY === 'clip') return
+
 		scroller = scroller.parentElement
 	}
 
