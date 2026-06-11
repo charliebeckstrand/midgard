@@ -23,7 +23,6 @@ export const item = {
 		'justify-center',
 		'whitespace-nowrap',
 		rounded.lg,
-		'outline-none',
 		weight.medium,
 		'select-none',
 		focus.indicator,

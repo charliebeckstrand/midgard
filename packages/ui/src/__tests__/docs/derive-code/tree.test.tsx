@@ -6,8 +6,9 @@ import {
 	getElementName,
 	isPassThrough,
 	isPrimitive,
+	resolveType,
 } from '../../../docs/derive-code/internals'
-import { makeContext, tag } from './helpers'
+import { external, makeContext, tag } from './helpers'
 
 describe('isPrimitive', () => {
 	it('accepts strings, numbers, and booleans', () => {
@@ -124,19 +125,69 @@ describe('collectChildItems element handling', () => {
 	})
 })
 
+describe('resolveType', () => {
+	it('prefers the build-time tag over any displayName lookup', () => {
+		// `tag()` sets `displayName` alongside the tag; the tag must win even
+		// when a conflicting external `byName` entry exists.
+		const Button = tag('Button', 'button')
+
+		const context = makeContext({
+			byName: new Map([['Button', { name: 'Button', module: 'other-lib', external: true }]]),
+		})
+
+		expect(resolveType(Button, context)).toEqual({ name: 'Button', module: 'button' })
+	})
+
+	it('resolves an untagged type by displayName against an external entry', () => {
+		const Star = external('Star')
+
+		const context = makeContext({
+			byName: new Map([['Star', { name: 'Star', module: 'lucide-react', external: true }]]),
+		})
+
+		expect(resolveType(Star, context)).toEqual({
+			name: 'Star',
+			module: 'lucide-react',
+			external: true,
+		})
+	})
+
+	it('ignores displayName matches against non-external entries', () => {
+		const Impostor = external('Button')
+
+		const context = makeContext({
+			byName: new Map([['Button', { name: 'Button', module: 'button' }]]),
+		})
+
+		expect(resolveType(Impostor, context)).toBeUndefined()
+	})
+
+	it('returns undefined for intrinsic strings and untagged functions', () => {
+		const context = makeContext()
+
+		expect(resolveType('div', context)).toBeUndefined()
+
+		expect(resolveType(() => null, context)).toBeUndefined()
+	})
+})
+
 describe('getElementName', () => {
-	it('returns the registry name for a recognized component', () => {
+	it('returns the registry name for a recognized component and records its import', () => {
 		const Button = tag('Button', 'button')
 
 		const context = makeContext()
 
 		expect(getElementName(createElement(Button), context)).toBe('Button')
+
+		expect(context.imports.get('button')).toEqual(new Set(['Button']))
 	})
 
-	it('returns the tag name for an intrinsic element', () => {
+	it('returns the tag name for an intrinsic element without recording an import', () => {
 		const context = makeContext()
 
 		expect(getElementName(createElement('div'), context)).toBe('div')
+
+		expect(context.imports.size).toBe(0)
 	})
 
 	it('returns null for an unrecognized non-intrinsic component', () => {

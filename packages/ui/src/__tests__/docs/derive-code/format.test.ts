@@ -1,7 +1,7 @@
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { formatProps, renderOpenTag } from '../../../docs/derive-code/internals'
-import { makeContext, tag } from './helpers'
+import { external, makeContext, tag } from './helpers'
 
 describe('formatProps value handling', () => {
 	it('drops undefined / null / false', () => {
@@ -91,12 +91,44 @@ describe('formatProps value handling', () => {
 		expect(result).toEqual(['items={…}'])
 	})
 
-	it('renders an element-valued prop using the registry tag', () => {
+	it('renders an element-valued prop using the registry tag and records its import', () => {
 		const Icon = tag<{ name?: string }>('Icon', 'icon')
 
-		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, makeContext())
+		const context = makeContext()
+
+		const result = formatProps({ icon: createElement(Icon, { name: 'star' }) }, context)
 
 		expect(result).toEqual(['icon={<Icon name="star" />}'])
+
+		expect(context.imports.get('icon')).toEqual(new Set(['Icon']))
+	})
+
+	it('resolves an external element-valued prop by displayName and records its import', () => {
+		const Star = external('Star')
+
+		const context = makeContext({
+			byName: new Map([['Star', { name: 'Star', module: 'lucide-react', external: true }]]),
+		})
+
+		const result = formatProps({ icon: createElement(Star) }, context)
+
+		expect(result).toEqual(['icon={<Star />}'])
+
+		expect(context.imports.get('lucide-react')).toEqual(new Set(['Star']))
+
+		expect(context.externalModules.has('lucide-react')).toBe(true)
+	})
+
+	it('drops a displayName match against a non-external byName entry', () => {
+		// A demo-local stand-in sharing a ui component's name must not resolve
+		// to the real component's import.
+		const Impostor = external('Button')
+
+		const context = makeContext({
+			byName: new Map([['Button', { name: 'Button', module: 'button' }]]),
+		})
+
+		expect(formatProps({ icon: createElement(Impostor) }, context)).toEqual([])
 	})
 
 	it('drops element-valued props whose type is unregistered and non-intrinsic', () => {

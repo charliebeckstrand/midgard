@@ -16,9 +16,23 @@ export function tag<P>(name: string, module: string): FunctionComponent<P> {
 }
 
 /**
+ * A stand-in for an external package component (e.g. a lucide icon): no
+ * build-time tag, just the runtime `displayName` the resolver matches against
+ * external `byName` entries.
+ */
+export function external<P>(name: string): FunctionComponent<P> {
+	const Component: FunctionComponent<P> = () => null
+
+	Component.displayName = name
+
+	return Component
+}
+
+/**
  * Builds a fresh `Context` with an empty import accumulator. `byType` defaults
  * to the production tag reader (`defaultRegistry.byType`), resolving `tag()`
- * components; pass `byName` to resolve snippet tag names.
+ * components; pass `byName` to resolve snippet tag names and `external()`
+ * components.
  */
 export function makeContext(registry?: Partial<ComponentRegistry>): Context {
 	return {
@@ -27,5 +41,6 @@ export function makeContext(registry?: Partial<ComponentRegistry>): Context {
 			byName: registry?.byName ?? new Map(),
 		},
 		imports: new Map(),
+		externalModules: new Set(),
 	}
 }

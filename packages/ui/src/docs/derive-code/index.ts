@@ -13,6 +13,7 @@ import {
 	readSnippet,
 	reindent,
 	renderOpenTag,
+	resolveType,
 } from './internals'
 import { defaultRegistry } from './registry'
 import type { Context } from './types'
@@ -24,7 +25,8 @@ import type { Context } from './types'
  * - Styling wrappers (divs, spans, Fragments) flatten away.
  * - Pure text/number children collapse to `…`.
  * - Runs of 3+ identical sibling renders collapse to a single representative.
- * - Imports come from build-time component tags.
+ * - Imports come from build-time component tags; external components (e.g.
+ *   lucide icons) resolve by `displayName` against the demos' package imports.
  *
  * Returns `null` when the subtree contains no recognized components; the
  * caller then provides an explicit `code` override or omits the code block.
@@ -33,6 +35,7 @@ export function deriveCode(children: ReactNode): string | null {
 	const context: Context = {
 		registry: defaultRegistry,
 		imports: new Map(),
+		externalModules: new Set(),
 	}
 
 	const jsx = renderNodes(Children.toArray(children), context, '')
@@ -153,7 +156,7 @@ function hasExplicitKey(element: ReactElement): element is ReactElement & { key:
  * their children render in place.
  */
 function renderElement(element: ReactElement, context: Context, indent: string): string {
-	const info = context.registry.byType.get(element.type)
+	const info = resolveType(element.type, context)
 
 	if (!info) {
 		// Unknown component (e.g. a locally-defined demo wrapper): walk its
@@ -177,7 +180,7 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		return ''
 	}
 
-	if (info.module) addImport(context, info.module, info.name)
+	if (info.module) addImport(context, info.module, info.name, info.external)
 
 	const propParts = formatProps(element.props as Record<string, unknown>, context)
 

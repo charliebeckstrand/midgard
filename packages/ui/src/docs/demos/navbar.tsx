@@ -19,10 +19,10 @@ function NavItems() {
 }
 
 function NavProviderDemo() {
-	const [current, setCurrent] = useState('home')
+	const [current, setCurrent] = useState<string | undefined>('home')
 
 	return (
-		<NavContext value={{ value: current, onChange: setCurrent }}>
+		<NavContext value={{ value: current, onValueChange: setCurrent }}>
 			<Navbar>
 				<NavItems />
 				<Spacer />
