@@ -9,7 +9,6 @@ export {
 	type A11yDisclosureOptions,
 	useA11yDisclosure,
 } from './use-a11y-disclosure'
-export { type A11yFocusReturn, useA11yFocusReturn } from './use-a11y-focus-return'
 export {
 	type A11yLiveLevel,
 	type A11yLiveRegionOptions,

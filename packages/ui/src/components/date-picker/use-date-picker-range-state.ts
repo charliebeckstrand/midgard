@@ -3,7 +3,7 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
 
-import { useA11yFocusReturn, useFloatingUI } from '../../hooks'
+import { useFloatingUI } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
@@ -37,7 +37,7 @@ export function useDatePickerRangeState({
 
 	const [open, setOpen] = useState(false)
 
-	const { captureTrigger, skipNextRefocus } = useA11yFocusReturn(open)
+	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
@@ -129,16 +129,11 @@ export function useDatePickerRangeState({
 	)
 
 	const handleOpenChange = useCallback(
-		(nextOpen: boolean, _event?: Event, reason?: OpenChangeReason) => {
-			if (!nextOpen) {
-				if (reason === 'outside-press') skipNextRefocus()
-
-				closeCalendar()
-			} else {
-				openCalendar()
-			}
+		(nextOpen: boolean) => {
+			if (nextOpen) openCalendar()
+			else closeCalendar()
 		},
-		[closeCalendar, openCalendar, skipNextRefocus],
+		[closeCalendar, openCalendar],
 	)
 
 	const showClear = rangeStart === null && value != null
@@ -158,17 +153,27 @@ export function useDatePickerRangeState({
 		onOpenChange: handleOpenChange,
 		offset: 8,
 		role: 'dialog',
+		returnFocusTo: triggerRef,
 	})
 
-	// Captures the trigger for `useA11yFocusReturn`, which restores focus
-	// manually; `FloatingFocusManager` runs with `returnFocus={false}`.
+	// Public open-change entry: routes through floating-ui's context so a
+	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
+	// focus return.
+	const onOpenChange = useCallback(
+		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
+			context.onOpenChange(nextOpen, event, reason),
+		[context],
+	)
+
+	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
+	// `FloatingFocusManager` runs with `returnFocus={false}`.
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
-			captureTrigger(node)
+			triggerRef.current = node
 
 			refs.setReference(node)
 		},
-		[captureTrigger, refs],
+		[refs],
 	)
 
 	const setActive = useCallback(
@@ -202,7 +207,7 @@ export function useDatePickerRangeState({
 		invalid: control?.invalid,
 		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,
-		onOpenChange: handleOpenChange,
+		onOpenChange,
 		onTriggerKeyDown,
 		onExitComplete: flushPending,
 		setReference,

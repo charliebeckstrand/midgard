@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
@@ -42,6 +42,8 @@ export function useColorPickerState({
 
 	const [open, setOpen] = useState(false)
 
+	const triggerRef = useRef<HTMLElement | null>(null)
+
 	const onOpenChange = useCallback((next: boolean) => setOpen(next), [])
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -50,7 +52,19 @@ export function useColorPickerState({
 		onOpenChange,
 		offset: 8,
 		role: 'dialog',
+		returnFocusTo: triggerRef,
 	})
+
+	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
+	// `FloatingFocusManager` runs with `returnFocus={false}`.
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			triggerRef.current = node
+
+			refs.setReference(node)
+		},
+		[refs],
+	)
 
 	return {
 		triggerId: scope.id,
@@ -62,7 +76,7 @@ export function useColorPickerState({
 		setHsva,
 		open,
 		onOpenChange,
-		setReference: refs.setReference,
+		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
 		getReferenceProps,

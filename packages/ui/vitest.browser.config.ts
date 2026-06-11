@@ -52,6 +52,11 @@ export default defineConfig({
 			'@testing-library/react',
 			'@testing-library/user-event',
 			'@testing-library/jest-dom',
+			// Subpath imports are separate optimizer entries from their bare
+			// package: without this entry, a cold cache discovers the setup's
+			// `@testing-library/jest-dom/vitest` import lazily and reloads the
+			// page mid-run.
+			'@testing-library/jest-dom/vitest',
 		],
 	},
 	test: {
