@@ -1,7 +1,7 @@
 'use client'
 
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
@@ -48,10 +48,13 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		handleDragCancel,
 	} = useKanbanDrag({ columns, getKey, onValueChange })
 
+	const containerRef = useRef<HTMLElement>(null)
+
 	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
 		columns,
 		getKey,
 		onValueChange,
+		containerRef,
 	})
 
 	// Clear keyboard-lifted state when a pointer drag begins.
@@ -86,7 +89,12 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 				onDragEnd={interactive ? handleDragEnd : undefined}
 				onDragCancel={interactive ? handleDragCancel : undefined}
 			>
-				<section aria-label={ariaLabel} data-slot="kanban" className={cn(k.base, className)}>
+				<section
+					ref={containerRef}
+					aria-label={ariaLabel}
+					data-slot="kanban"
+					className={cn(k.base, className)}
+				>
 					{children}
 				</section>
 				{interactive ? (

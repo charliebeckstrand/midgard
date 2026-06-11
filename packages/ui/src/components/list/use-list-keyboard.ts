@@ -1,18 +1,21 @@
 'use client'
 
 import { arrayMove } from '@dnd-kit/sortable'
-import { type KeyboardEvent, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { Orientation } from '../../types'
 
-const itemName = (id: string) => accessibleName(querySlot('list-item', 'item-id', id))
+const itemName = (container: ParentNode | null, id: string) =>
+	accessibleName(querySlot(container, 'list-item', 'item-id', id))
 
 type Options<T> = {
 	items: T[]
 	getKey: (item: T) => string
 	orientation: Orientation
 	onReorder?: (next: T[]) => void
+	/** List root; scopes item lookups so concurrent lists with overlapping ids don't cross-match. */
+	containerRef: RefObject<HTMLElement | null>
 }
 
 /**
@@ -21,10 +24,19 @@ type Options<T> = {
  * Pairs with a disabled dnd-kit keyboard sensor, keeping the original item
  * visible during a keyboard move; mirrors `useKanbanKeyboard`.
  */
-export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Options<T>) {
-	const focusItem = useCallback((id: string) => {
-		querySlot('list-item', 'item-id', id)?.focus()
-	}, [])
+export function useListKeyboard<T>({
+	items,
+	getKey,
+	orientation,
+	onReorder,
+	containerRef,
+}: Options<T>) {
+	const focusItem = useCallback(
+		(id: string) => {
+			querySlot(containerRef.current, 'list-item', 'item-id', id)?.focus()
+		},
+		[containerRef],
+	)
 
 	const {
 		liftedId,
@@ -74,13 +86,14 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 			onReorder(next)
 
-			announce(`${itemName(id)} moved to position ${newIdx + 1} of ${items.length}.`, {
-				assertive: true,
-			})
+			announce(
+				`${itemName(containerRef.current, id)} moved to position ${newIdx + 1} of ${items.length}.`,
+				{ assertive: true },
+			)
 
 			refocusItem(id)
 		},
-		[items, getKey, onReorder, refocusItem],
+		[items, getKey, onReorder, refocusItem, containerRef],
 	)
 
 	// Item's 1-based position, for announcements.
@@ -113,8 +126,8 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 
 				announce(
 					lifting
-						? `Picked up ${itemName(id)}${where}. Use arrow keys to move, Enter to drop.`
-						: `Dropped ${itemName(id)}${where}.`,
+						? `Picked up ${itemName(containerRef.current, id)}${where}. Use arrow keys to move, Enter to drop.`
+						: `Dropped ${itemName(containerRef.current, id)}${where}.`,
 					{ assertive: true },
 				)
 
@@ -154,7 +167,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 					const loc = locate(id)
 
 					announce(
-						`Dropped ${itemName(id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
+						`Dropped ${itemName(containerRef.current, id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
 						{ assertive: true },
 					)
 
@@ -174,7 +187,7 @@ export function useListKeyboard<T>({ items, getKey, orientation, onReorder }: Op
 					break
 			}
 		},
-		[liftedId, setLiftedId, orientation, focusNeighbor, moveByDirection, locate],
+		[liftedId, setLiftedId, orientation, focusNeighbor, moveByDirection, locate, containerRef],
 	)
 
 	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }

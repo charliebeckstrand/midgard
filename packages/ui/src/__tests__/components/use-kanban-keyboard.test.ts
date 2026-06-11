@@ -4,6 +4,8 @@ import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanKeyboard } from '../../components/kanban/use-kanban-keyboard'
 import { makeKeyEvent } from '../helpers'
 
+const containerRef = { current: document.body }
+
 type Card = { id: string }
 
 type Column = KanbanColumnBase<Card> & { id: string; items: Card[] }
@@ -20,6 +22,7 @@ describe('useKanbanKeyboard: lift state', () => {
 	it('lifts and drops a card on Space', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -43,6 +46,7 @@ describe('useKanbanKeyboard: lift state', () => {
 	it('ignores modifier keys', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -58,6 +62,7 @@ describe('useKanbanKeyboard: lift state', () => {
 	it('clears liftedCardId on Escape', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -77,6 +82,7 @@ describe('useKanbanKeyboard: lift state', () => {
 	it('clears liftedCardId on blur', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -118,6 +124,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('moves focus to the next card in the column on ArrowDown', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -137,6 +144,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('moves focus to the previous card in the column on ArrowUp', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -152,6 +160,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('moves focus to the first card on Home', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -167,6 +176,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('moves focus to the last card on End', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -182,6 +192,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('moves focus to the next column on ArrowRight', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -197,6 +208,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('does nothing when moving to an empty column', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -214,6 +226,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('does nothing when moving left from the first column', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -231,6 +244,7 @@ describe('useKanbanKeyboard: focus navigation', () => {
 	it('returns false when the card id is not found', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -252,6 +266,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -278,6 +293,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -300,6 +316,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -326,6 +343,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -346,6 +364,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 	it('is a no-op when onValueChange is not provided', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -367,6 +386,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -389,6 +409,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 	it('drops the lifted card on Enter', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 			}),
@@ -412,6 +433,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,
@@ -444,6 +466,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
+				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
 				onValueChange,

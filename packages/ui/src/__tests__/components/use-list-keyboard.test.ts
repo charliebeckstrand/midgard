@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useListKeyboard } from '../../components/list/use-list-keyboard'
 import { makeKeyEvent } from '../helpers'
 
+const containerRef = { current: document.body }
+
 type Item = { id: string }
 
 function buildItems(ids: string[]): Item[] {
@@ -37,6 +39,7 @@ describe('useListKeyboard', () => {
 		it('starts with liftedId null', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -49,6 +52,7 @@ describe('useListKeyboard', () => {
 		it('Space lifts an item; second Space drops it', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -72,6 +76,7 @@ describe('useListKeyboard', () => {
 		it('Escape drops the lifted item', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -88,6 +93,7 @@ describe('useListKeyboard', () => {
 		it('Enter drops the lifted item', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -108,6 +114,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -127,6 +134,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -143,6 +151,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'horizontal',
@@ -159,6 +168,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -175,6 +185,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -191,6 +202,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -220,7 +232,13 @@ describe('useListKeyboard', () => {
 			const items = buildItems(['a', 'b', 'c'])
 
 			const { result } = renderHook(() =>
-				useListKeyboard({ items, getKey: (i) => i.id, orientation: 'vertical', onReorder }),
+				useListKeyboard({
+					containerRef,
+					items,
+					getKey: (i) => i.id,
+					orientation: 'vertical',
+					onReorder,
+				}),
 			)
 
 			act(() => result.current.onItemKeyDown('a', makeKeyEvent(' ')))
@@ -239,6 +257,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -258,6 +277,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -275,6 +295,7 @@ describe('useListKeyboard', () => {
 		it('does not move when onReorder is not provided', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -297,6 +318,7 @@ describe('useListKeyboard', () => {
 		it('ignores Space when shiftKey is held', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -313,6 +335,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -331,6 +354,7 @@ describe('useListKeyboard', () => {
 		it('does not preventDefault when ArrowDown targets an unknown id', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -349,6 +373,7 @@ describe('useListKeyboard', () => {
 
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
@@ -368,6 +393,7 @@ describe('useListKeyboard', () => {
 		it('drops the lifted item when focus leaves outside a reorder', () => {
 			const { result } = renderHook(() =>
 				useListKeyboard({
+					containerRef,
 					items: buildItems(['a', 'b', 'c']),
 					getKey: (i) => i.id,
 					orientation: 'vertical',
