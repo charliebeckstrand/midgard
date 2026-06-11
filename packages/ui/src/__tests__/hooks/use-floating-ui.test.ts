@@ -47,6 +47,33 @@ describe('useFloatingPanel', () => {
 		expect(focus).toHaveBeenCalledTimes(1)
 	})
 
+	it('restores focus to the first focusable descendant of a wrapper returnFocusTo', () => {
+		const wrapper = document.createElement('div')
+
+		const button = document.createElement('button')
+
+		wrapper.appendChild(button)
+
+		const focus = vi.spyOn(button, 'focus')
+
+		const triggerRef = { current: wrapper as HTMLElement }
+
+		const { rerender } = renderHook(
+			({ open }: { open: boolean }) =>
+				useFloatingPanel({
+					placement: 'bottom-start',
+					open,
+					onOpenChange: () => {},
+					returnFocusTo: triggerRef,
+				}),
+			{ initialProps: { open: true } },
+		)
+
+		rerender({ open: false })
+
+		expect(focus).toHaveBeenCalledTimes(1)
+	})
+
 	it('does not restore focus on an open transition', () => {
 		const triggerRef = createRef<HTMLElement>()
 
@@ -216,7 +243,91 @@ describe('useFloatingUI', () => {
 			outside.remove()
 			cleanup()
 		})
+	})
 
+	// Restoration is reason-aware: a dismissal's reason flows through
+	// `context.onOpenChange` into `useFloatingPanel`, whose focus-return effect
+	// skips `'outside-press'` (focus follows the pointer) and restores the
+	// trigger for every other close.
+	describe('reason-aware focus return', () => {
+		it('skips focus return when the close was an outside press', () => {
+			const trigger = document.createElement('button')
+
+			const focus = vi.spyOn(trigger, 'focus')
+
+			const triggerRef = { current: trigger as HTMLElement }
+
+			const onOpenChange = vi.fn()
+
+			const reference = document.createElement('button')
+
+			const floating = document.createElement('div')
+
+			document.body.append(reference, floating)
+
+			const { result, rerender } = renderHook(
+				({ open }: { open: boolean }) =>
+					useFloatingUI({
+						placement: 'bottom-start',
+						open,
+						onOpenChange,
+						returnFocusTo: triggerRef,
+					}),
+				{ initialProps: { open: true } },
+			)
+
+			result.current.refs.domReference.current = reference
+
+			result.current.refs.floating.current = floating
+
+			const outside = document.createElement('div')
+
+			document.body.appendChild(outside)
+
+			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+
+			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
+
+			rerender({ open: false })
+
+			expect(focus).not.toHaveBeenCalled()
+
+			outside.remove()
+			reference.remove()
+			floating.remove()
+		})
+
+		it('returns focus when the close was an Escape press', () => {
+			const trigger = document.createElement('button')
+
+			const focus = vi.spyOn(trigger, 'focus')
+
+			const triggerRef = { current: trigger as HTMLElement }
+
+			const onOpenChange = vi.fn()
+
+			const { rerender } = renderHook(
+				({ open }: { open: boolean }) =>
+					useFloatingUI({
+						placement: 'bottom-start',
+						open,
+						onOpenChange,
+						returnFocusTo: triggerRef,
+					}),
+				{ initialProps: { open: true } },
+			)
+
+			document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+
+			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(KeyboardEvent), 'escape-key')
+
+			rerender({ open: false })
+
+			expect(focus).toHaveBeenCalledTimes(1)
+		})
+	})
+
+	describe('listener lifecycle', () => {
 		it('detaches the listener on unmount', () => {
 			const onOpenChange = vi.fn()
 

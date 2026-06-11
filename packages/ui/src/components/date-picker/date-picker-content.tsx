@@ -63,9 +63,9 @@ export function DatePickerContent({
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
-						// `returnFocus={false}`: focus restoration is driven by
-						// `useDatePickerState`, which refocuses the trigger on Escape or
-						// selection but not on an outside-press dismiss.
+						// `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores
+						// focus — on Escape or selection but not on an outside-press
+						// dismiss, where focus follows the pointer.
 						<FloatingFocusManager
 							context={context}
 							modal

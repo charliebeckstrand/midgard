@@ -21,6 +21,7 @@ import {
 	type CSSProperties,
 	type HTMLProps,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -95,7 +96,12 @@ export type FloatingPanelOptions = {
 	matchReferenceWidth?: boolean
 	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
-	/** When the panel transitions from open to closed, return focus to this element. */
+	/**
+	 * When the panel transitions from open to closed, return focus to this
+	 * element (or its first `button`/`[tabindex]` descendant when the element
+	 * itself is a non-focusable wrapper). Skipped when the close reason is
+	 * `'outside-press'`: focus follows the pointer instead of snapping back.
+	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }
 
@@ -121,10 +127,29 @@ export function useFloatingPanel({
 		[middleware, offsetPx, matchReferenceWidth],
 	)
 
+	const onOpenChangeRef = useRef(onOpenChange)
+
+	onOpenChangeRef.current = onOpenChange
+
+	// Reason of the pending close request, recorded for the focus-return
+	// effect. Populated by every close that flows through floating-ui's
+	// `context.onOpenChange` (interaction hooks, `FloatingFocusManager`,
+	// `useFloatingUI`'s dismiss listeners); programmatic closes carry none.
+	const closeReasonRef = useRef<OpenChangeReason | undefined>(undefined)
+
+	const handleOpenChange = useCallback(
+		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
+			if (!nextOpen) closeReasonRef.current = reason
+
+			onOpenChangeRef.current(nextOpen, event, reason)
+		},
+		[],
+	)
+
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
 		open,
-		onOpenChange,
+		onOpenChange: handleOpenChange,
 		whileElementsMounted: autoUpdate,
 		middleware: resolvedMiddleware,
 	})
@@ -132,7 +157,16 @@ export function useFloatingPanel({
 	const prevOpenRef = useRef(open)
 
 	useEffect(() => {
-		if (prevOpenRef.current && !open) returnFocusTo?.current?.focus()
+		// An outside press skips restoration: focus follows the pointer rather
+		// than snapping back to the trigger. Every other close (Escape,
+		// selection, programmatic) restores it.
+		if (prevOpenRef.current && !open && closeReasonRef.current !== 'outside-press') {
+			const trigger = returnFocusTo?.current
+
+			if (trigger) (trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
+		}
+
+		closeReasonRef.current = undefined
 
 		prevOpenRef.current = open
 	}, [open, returnFocusTo])
@@ -177,11 +211,14 @@ export function useFloatingUI({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
-	const { open, onOpenChange } = rest
+	const { open } = rest
 
-	const onOpenChangeRef = useRef(onOpenChange)
+	// Dismissals route through `context.onOpenChange` rather than the raw
+	// prop, so the close reason reaches `useFloatingPanel`'s focus-return
+	// effect and floating-ui's own `openchange` listeners.
+	const onOpenChangeRef = useRef(context.onOpenChange)
 
-	onOpenChangeRef.current = onOpenChange
+	onOpenChangeRef.current = context.onOpenChange
 
 	useEscapeLayer({
 		open,
