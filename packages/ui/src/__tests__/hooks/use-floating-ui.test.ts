@@ -246,7 +246,7 @@ describe('useFloatingUI', () => {
 	})
 
 	// Restoration is reason-aware: a dismissal's reason flows through
-	// `context.onOpenChange` into `useFloatingPanel`, whose focus-return effect
+	// `context.onOpenChange` into `useFloatingPanel`. Its focus-return effect
 	// skips `'outside-press'` (focus follows the pointer) and restores the
 	// trigger for every other close.
 	describe('reason-aware focus return', () => {

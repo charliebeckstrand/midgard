@@ -42,7 +42,7 @@ export function ColorPickerContent({
 				<AnimatePresence>
 					{open && (
 						// `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores
-						// focus — on Escape but not on an outside-press dismiss, where focus
+						// focus on Escape but not on an outside-press dismiss, where focus
 						// follows the pointer.
 						<FloatingFocusManager context={context} modal returnFocus={false}>
 							<div

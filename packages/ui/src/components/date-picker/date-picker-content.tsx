@@ -64,7 +64,7 @@ export function DatePickerContent({
 				<AnimatePresence onExitComplete={onExitComplete}>
 					{open && (
 						// `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores
-						// focus — on Escape or selection but not on an outside-press
+						// focus on Escape or selection but not on an outside-press
 						// dismiss, where focus follows the pointer.
 						<FloatingFocusManager
 							context={context}

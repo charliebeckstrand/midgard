@@ -99,8 +99,8 @@ export type FloatingPanelOptions = {
 	/**
 	 * When the panel transitions from open to closed, return focus to this
 	 * element (or its first `button`/`[tabindex]` descendant when the element
-	 * itself is a non-focusable wrapper). Skipped when the close reason is
-	 * `'outside-press'`: focus follows the pointer instead of snapping back.
+	 * itself is a non-focusable wrapper). An `'outside-press'` close skips the
+	 * restore: focus follows the pointer instead of snapping back.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }
@@ -131,10 +131,10 @@ export function useFloatingPanel({
 
 	onOpenChangeRef.current = onOpenChange
 
-	// Reason of the pending close request, recorded for the focus-return
-	// effect. Populated by every close that flows through floating-ui's
-	// `context.onOpenChange` (interaction hooks, `FloatingFocusManager`,
-	// `useFloatingUI`'s dismiss listeners); programmatic closes carry none.
+	// Reason of the pending close request; the focus-return effect reads it.
+	// Every close that flows through floating-ui's `context.onOpenChange`
+	// (interaction hooks, `FloatingFocusManager`, `useFloatingUI`'s dismiss
+	// listeners) records one; programmatic closes carry none.
 	const closeReasonRef = useRef<OpenChangeReason | undefined>(undefined)
 
 	const handleOpenChange = useCallback(
