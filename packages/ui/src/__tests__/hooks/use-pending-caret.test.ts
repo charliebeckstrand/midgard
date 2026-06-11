@@ -14,7 +14,7 @@ function setup() {
 	const hook = renderHook(() => usePendingCaret())
 
 	act(() => {
-		hook.result.current.ref(input)
+		hook.result.current.ref?.(input)
 	})
 
 	return { input, ...hook }

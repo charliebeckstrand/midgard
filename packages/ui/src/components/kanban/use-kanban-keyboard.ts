@@ -1,9 +1,9 @@
 'use client'
 
+import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, useCallback } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
-import { moveItem } from '../../utilities'
 import type { KanbanColumnBase } from './types'
 
 const cardName = (cardId: string) => accessibleName(querySlot('kanban-card', 'card-id', cardId))
@@ -143,9 +143,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			if (newIdx < 0 || newIdx >= col.items.length) return
 
-			const nextItems = moveItem(col.items, idx, newIdx)
-
-			if (!nextItems) return
+			const nextItems = arrayMove(col.items, idx, newIdx)
 
 			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 

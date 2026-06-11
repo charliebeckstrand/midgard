@@ -1,8 +1,8 @@
 'use client'
 
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
-import { moveItem } from '../../utilities'
 import type { KanbanColumnBase } from './types'
 
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
@@ -135,9 +135,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return
 
-		const nextItems = moveItem(activeCol.items, oldIdx, newIdx)
-
-		if (!nextItems) return
+		const nextItems = arrayMove(activeCol.items, oldIdx, newIdx)
 
 		const next = columns.map((col) =>
 			col.id === activeCol.id ? { ...col, items: nextItems } : col,
