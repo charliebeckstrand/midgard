@@ -12,8 +12,9 @@ type DensityProviderProps = {
  * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) and the
  * app-wide entry point for ambient density. Wrap a region or the app root to
  * set its baseline; it broadcasts the matching `Step` through the universal
- * Density primitive, and every size-aware component (Input, Button, Card, …)
- * inherits it.
+ * Density primitive, and every size-aware client component (Input, Button,
+ * Tabs, …) inherits it. Static components (Card, Badge, Text, …) ignore it;
+ * size them with explicit props.
  *
  * Reference consumer: `<Input>`. Form fields resolve their size through
  * `useDensity()`; an `<Input>` (or any `<Field>`-wrapped field) inside

@@ -1,22 +1,25 @@
 import { cn } from '../../core'
+import { Density } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
-	 * Step for the card's own padding, its sections, and its radius.
-	 * Defaults to `md`.
+	 * Step for the card's own padding, its sections, and its radius, broadcast
+	 * to children through the density cascade. Defaults to `md`.
 	 */
 	size?: Step
 }
 
 /**
- * Outlined, padded surface built on Box. Static leaf: renders in React
- * Server Components. `size` is explicit (default `md`); the card projects
- * the matching padding onto direct `data-slot=card-*` sections, so sections
- * track the card without reading context. A nested section collapses the
- * Card's own padding to zero.
+ * Outlined, padded surface built on Box. Renders in React Server Components:
+ * the card never reads context — `size` is explicit (default `md`) and the
+ * matching section padding is projected onto direct `data-slot=card-*`
+ * children from outside. An explicit `size` additionally opens a density
+ * scope so size-aware client children (Button, Input, …) inherit the step;
+ * an unsized card stays fully static and lets ambient density flow through.
+ * A nested section collapses the Card's own padding to zero.
  */
 export function Card({
 	size,
@@ -49,7 +52,7 @@ export function Card({
 			)}
 			{...props}
 		>
-			{children}
+			{size ? <Density scale={size}>{children}</Density> : children}
 		</Box>
 	)
 }
