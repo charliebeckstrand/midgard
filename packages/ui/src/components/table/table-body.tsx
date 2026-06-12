@@ -1,19 +1,17 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/table'
-import { useTable } from './context'
 
 export type TableBodyProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'tbody'>, 'className'>
 
+/**
+ * Static leaf: renders in React Server Components. Striping comes from the
+ * parent `<Table striped>` projection.
+ */
 export function TableBody({ className, children, ...props }: TableBodyProps) {
-	const { striped } = useTable()
-
 	return (
-		<tbody data-slot="table-body" className={cn(striped && k.striped, className)} {...props}>
+		<tbody data-slot="table-body" className={cn(className)} {...props}>
 			{children}
 		</tbody>
 	)

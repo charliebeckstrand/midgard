@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Radio, RadioField, RadioGroup } from '../../components/radio'
+import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../components/radio'
 import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -23,8 +23,8 @@ describe('Radio', () => {
 		expect(el.type).toBe('radio')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Radio />, { skeleton: true })
+	it('pairs with an explicit RadioSkeleton in loading trees', () => {
+		const { container } = renderUI(<RadioSkeleton />)
 
 		expect(bySlot(container, 'radio')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

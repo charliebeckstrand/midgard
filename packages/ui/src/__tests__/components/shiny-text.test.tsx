@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ShinyText } from '../../components/shiny-text'
+import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
 const { pauseSpy, playSpy } = vi.hoisted(() => ({ pauseSpy: vi.fn(), playSpy: vi.fn() }))
@@ -44,8 +44,8 @@ describe('ShinyText', () => {
 		expect(bySlot(container, 'shiny-text')).toHaveAttribute('id', 'hero')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<ShinyText>Shine</ShinyText>, { skeleton: true })
+	it('pairs with an explicit ShinyTextSkeleton in loading trees', () => {
+		const { container } = renderUI(<ShinyTextSkeleton />)
 
 		expect(bySlot(container, 'shiny-text')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

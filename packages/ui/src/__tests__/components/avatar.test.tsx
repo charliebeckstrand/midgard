@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Avatar, AvatarGroup } from '../../components/avatar'
+import { Avatar, AvatarGroup, AvatarSkeleton } from '../../components/avatar'
 import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
@@ -26,8 +26,8 @@ describe('Avatar', () => {
 		expect(img).toHaveAttribute('alt', 'User')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Avatar initials="AB" />, { skeleton: true })
+	it('pairs with an explicit AvatarSkeleton in loading trees', () => {
+		const { container } = renderUI(<AvatarSkeleton size="md" />)
 
 		expect(bySlot(container, 'avatar')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

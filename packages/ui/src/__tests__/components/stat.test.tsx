@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../components/stat'
-import { bySlot, renderUI, screen } from '../helpers'
+import {
+	Stat,
+	StatDelta,
+	StatDeltaSkeleton,
+	StatDescriptionSkeleton,
+	StatLabelSkeleton,
+	StatValue,
+	StatValueSkeleton,
+} from '../../components/stat'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Stat', () => {
 	it('passes through HTML attributes', () => {
@@ -12,33 +20,29 @@ describe('Stat', () => {
 	})
 })
 
-describe('Stat in skeleton mode', () => {
-	it('renders a placeholder instead of StatLabel content', () => {
-		const { container } = renderUI(<StatLabel>Revenue</StatLabel>, { skeleton: true })
+describe('Stat skeleton variants', () => {
+	it('renders a label-shaped placeholder', () => {
+		const { container } = renderUI(<StatLabelSkeleton />)
 
-		expect(bySlot(container, 'stat-label')).toBeNull()
-		expect(screen.queryByText('Revenue')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('renders a placeholder instead of StatValue content', () => {
-		const { container } = renderUI(<StatValue>$1,234</StatValue>, { skeleton: true })
+	it('renders a value-shaped placeholder at the explicit size', () => {
+		const { container } = renderUI(<StatValueSkeleton size="sm" />)
 
-		expect(bySlot(container, 'stat-value')).toBeNull()
-		expect(screen.queryByText('$1,234')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('renders a placeholder instead of StatDelta content', () => {
-		const { container } = renderUI(<StatDelta>+5%</StatDelta>, { skeleton: true })
+	it('renders a delta-shaped placeholder', () => {
+		const { container } = renderUI(<StatDeltaSkeleton />)
 
-		expect(bySlot(container, 'stat-delta')).toBeNull()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('renders a placeholder instead of StatDescription content', () => {
-		const { container } = renderUI(<StatDescription>vs last month</StatDescription>, {
-			skeleton: true,
-		})
+	it('renders a description-shaped placeholder', () => {
+		const { container } = renderUI(<StatDescriptionSkeleton />)
 
-		expect(bySlot(container, 'stat-description')).toBeNull()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
 

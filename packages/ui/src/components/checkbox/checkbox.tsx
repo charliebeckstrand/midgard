@@ -10,11 +10,9 @@ import {
 } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { useSkeleton } from '../../providers/skeleton'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
-import { CheckboxSkeleton } from './checkbox-skeleton'
 
 export type CheckboxProps = CheckboxVariants & {
 	indeterminate?: boolean
@@ -74,10 +72,6 @@ export function Checkbox({
 	useLayoutEffect(() => {
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])
-
-	if (useSkeleton()) {
-		return <CheckboxSkeleton className={className} />
-	}
 
 	const checkClass = cn(
 		'pointer-events-none absolute stroke-(--check-mark) opacity-0',

@@ -1,8 +1,5 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
 import { k, type LoadingSpinnerVariants } from '../../recipes/kata/loading'
 
 export type LoadingSpinnerProps = LoadingSpinnerVariants & {
@@ -17,7 +14,12 @@ const SPINNER_SVG = (
 	</svg>
 )
 
-/** Indeterminate loading indicator rendered as a live `<output>`; `size` resolves from enclosing Density, with an `sr-only` `label`. */
+/**
+ * Indeterminate loading indicator rendered as a live `<output>` with an
+ * `sr-only` `label`. Static leaf: renders in React Server Components. `size`
+ * is explicit (recipe default `md`); inside a control affix slot the slot's
+ * projection owns it.
+ */
 export function LoadingSpinner({
 	size,
 	color,
@@ -25,12 +27,10 @@ export function LoadingSpinner({
 	className,
 	...props
 }: LoadingSpinnerProps) {
-	const resolvedSize = useResolvedSize(size)
-
 	return (
 		<output
 			data-slot="loading-spinner"
-			className={cn(k.spinner({ size: resolvedSize, color }), className)}
+			className={cn(k.spinner({ size, color }), className)}
 			{...props}
 		>
 			{SPINNER_SVG}

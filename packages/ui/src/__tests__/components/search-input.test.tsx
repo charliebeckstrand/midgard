@@ -113,13 +113,6 @@ describe('SearchInput', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<SearchInput />, { skeleton: true })
-
-		expect(bySlot(container, 'search-input')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	it('fires onClear when typing reduces the input to empty', async () => {
 		const onClear = vi.fn()
 

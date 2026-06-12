@@ -3,8 +3,8 @@ import type { ComponentPropsWithoutRef } from 'react'
 export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
 
 /**
- * Navigation landmark for a trail of links. Each crumb is an ordinary,
- * individually Tab-focusable link; no roving keyboard model (matching `Nav`).
+ * Container for a breadcrumb navigation. Renders a `<nav>` with `aria-label="Breadcrumb"`.
+ * Compose `<BreadcrumbItem>` and `<BreadcrumbSeparator>` children.
  */
 export function Breadcrumb(props: BreadcrumbProps) {
 	return <nav data-slot="breadcrumb" aria-label="Breadcrumb" {...props} />

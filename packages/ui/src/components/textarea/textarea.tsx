@@ -5,13 +5,11 @@ import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
-import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
-import { TextareaSkeleton } from './textarea-skeleton'
 
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
@@ -84,10 +82,6 @@ export function Textarea(props: TextareaProps) {
 	})
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-
-	if (useSkeleton()) {
-		return <TextareaSkeleton rows={rows} className={className} />
-	}
 
 	const controlProps = {
 		id: resolvedId,

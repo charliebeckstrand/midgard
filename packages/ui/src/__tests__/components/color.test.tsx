@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ColorPanel, ColorPicker } from '../../components/color'
+import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../components/color'
 import {
 	equalHsva,
 	hexToHsva,
@@ -182,8 +182,8 @@ describe('ColorPanel', () => {
 		expect(allBySlot(container, 'color-swatch')).toHaveLength(0)
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<ColorPanel />, { skeleton: true })
+	it('pairs with an explicit ColorPanelSkeleton in loading trees', () => {
+		const { container } = renderUI(<ColorPanelSkeleton />)
 
 		expect(bySlot(container, 'color-panel')).not.toBeInTheDocument()
 
@@ -204,13 +204,5 @@ describe('ColorPicker', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
-	})
-
-	it('renders a control skeleton in skeleton mode', () => {
-		const { container } = renderUI(<ColorPicker />, { skeleton: true })
-
-		expect(bySlot(container, 'color-picker-button')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })

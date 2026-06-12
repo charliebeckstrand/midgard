@@ -1,19 +1,16 @@
-'use client'
-
-import { type ComponentPropsWithoutRef, type ReactNode, type Ref, useMemo } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
-import { type DensityLevel, densityToSize } from '../../providers/density'
+// Deep import on purpose: context.ts is the directive-free level
+// vocabulary (DensityLevel, densityToSize); the barrel would pull the
+// client DensityProvider into the graph.
+import { type DensityLevel, densityToSize } from '../../providers/density/context'
 import { k } from '../../recipes/kata/table'
-import { TableContext, type TableContextValue } from './context'
 
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. Resolves through
-	 * `explicit ?? Density.space ?? 'snug'`; `<DensityProvider
-	 * density="compact">`, or any density-providing surface (Card, Drawer,
-	 * Popover, Group), tightens the table. The explicit prop converts to the
-	 * `Step` carried by the universal Density token.
+	 * Density level driving cell padding. Explicit; defaults to `'snug'`
+	 * (the md step). The table projects the resolved padding onto its
+	 * descendant cells.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -37,7 +34,12 @@ export type TableProps = TableVariants & {
 	tableProps?: TableElementProps
 }
 
-/** Styled `<table>` shell that shares `grid`, `striped`, and resolved density via context to its rows and cells. `density` resolves through `explicit ?? Density.space ?? 'snug'`. */
+/**
+ * Styled `<table>` shell. Static leaf: renders in React Server Components.
+ * The table owns `density`, `grid`, and `striped` and projects them onto
+ * descendant rows and cells, so TableBody, TableCell, and TableHeader read
+ * no context.
+ */
 export function Table({
 	bleed,
 	grid,
@@ -47,28 +49,25 @@ export function Table({
 	children,
 	tableProps,
 }: TableProps) {
-	const inherited = useDensity()
-
-	// Reads the density `space` axis (not `size`) for cell padding;
-	// the explicit DensityLevel prop still wins.
-	const resolvedDensity = density ? densityToSize[density] : inherited.space
-
-	const context = useMemo<TableContextValue>(
-		() => ({
-			density: resolvedDensity,
-			grid: grid ?? false,
-			striped: striped ?? false,
-		}),
-		[resolvedDensity, grid, striped],
-	)
+	// 'snug' maps to the md step.
+	const step = densityToSize[density ?? 'snug']
 
 	return (
-		<TableContext value={context}>
-			<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
-				<table {...tableProps} className={cn(k.base, className, tableProps?.className)}>
-					{children}
-				</table>
-			</div>
-		</TableContext>
+		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
+			<table
+				{...tableProps}
+				data-density={step}
+				className={cn(
+					k.base,
+					k.projection.density[step],
+					grid && k.projection.grid,
+					striped && k.projection.striped,
+					className,
+					tableProps?.className,
+				)}
+			>
+				{children}
+			</table>
+		</div>
 	)
 }

@@ -304,13 +304,6 @@ describe('HoldButton', () => {
 		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<HoldButton>Hold</HoldButton>, { skeleton: true })
-
-		expect(bySlot(container, 'hold-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	describe('hold completion', () => {
 		beforeEach(() => {
 			vi.useFakeTimers()

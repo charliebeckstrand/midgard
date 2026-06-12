@@ -1,12 +1,7 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { DensityScope, useResolvedSize } from '../../primitives/density'
-import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
-import { useSkeleton } from '../../providers/skeleton'
+import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
-import { BadgeSkeleton } from './badge-skeleton'
 
 type BadgeBaseProps = BadgeVariants & {
 	className?: string
@@ -14,18 +9,18 @@ type BadgeBaseProps = BadgeVariants & {
 	suffix?: ReactNode
 }
 
-export type BadgeProps = BadgeBaseProps & PolymorphicProps<'span', 'prefix'>
+export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix'>
 
 /**
- * `size` resolution mirrors Button: explicit prop, then AffixSize (the scoped
- * broadcast from `<Input>` / `<SelectTrigger>` / `<Grid>`), then the ambient
- * Density size, then the recipe's `md` default. AffixSize wins over Density so
- * a badge inside a grid cell renders one step smaller than the grid itself.
+ * Static leaf: renders in React Server Components. `size` is explicit
+ * (recipe default `md`); prefix and suffix icons size through the badge's
+ * own slot projection (`shaku.icon` in the kata size rows). Inside a control
+ * affix slot, set `size` one step below the host control: the affix
+ * compensation constants in `kiso/control/affix` assume the stepped-down
+ * chip.
  *
- * When `size` is set explicitly to a Density step (`sm`/`md`/`lg`), it
- * cascades to descendants via `<DensityScope>` so prefix/suffix slots inherit
- * the badge's density. `xs` is sub-Step and doesn't propagate; descendants
- * keep the ambient density.
+ * `href` renders a plain anchor; pass `render` (e.g. `render={<Link />}`) to
+ * compose the app router link at the call site.
  */
 export function Badge({
 	variant = 'solid',
@@ -35,32 +30,28 @@ export function Badge({
 	className,
 	children,
 	href,
+	render,
 	prefix,
 	suffix,
 	...props
 }: BadgeProps) {
-	const resolvedSize = useResolvedSize(size)
-
-	if (useSkeleton()) {
-		return <BadgeSkeleton size={size} className={className} />
-	}
+	const resolvedSize = size ?? 'md'
 
 	return (
-		<DensityScope scale={size === 'xs' ? undefined : size}>
-			<Polymorphic
-				as="span"
-				data-slot="badge"
-				data-size={resolvedSize}
-				data-has-prefix={!!prefix || undefined}
-				data-has-suffix={!!suffix || undefined}
-				href={href}
-				className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}
-				{...props}
-			>
-				{prefix}
-				{children}
-				{suffix}
-			</Polymorphic>
-		</DensityScope>
+		<PolymorphicStatic
+			as="span"
+			data-slot="badge"
+			data-size={resolvedSize}
+			data-has-prefix={!!prefix || undefined}
+			data-has-suffix={!!suffix || undefined}
+			href={href}
+			render={render}
+			className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}
+			{...props}
+		>
+			{prefix}
+			{children}
+			{suffix}
+		</PolymorphicStatic>
 	)
 }

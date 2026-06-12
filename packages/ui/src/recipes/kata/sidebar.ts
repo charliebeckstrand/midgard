@@ -74,15 +74,18 @@ const itemRow = defineRecipe({
  */
 const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
 
+// Slot icons project one step below the item (`affixStepDown`): the static
+// `<Icon>` leaf reads no context. Client slot children (a small `<Button>`
+// action) read the stepped-down AffixContext.
 const itemPrefix = defineRecipe({
 	base: affix,
-	size: { sm: 'ml-1.5', md: 'ml-2', lg: 'ml-2.5' },
+	size: { sm: ['ml-1.5', icon.xs], md: ['ml-2', icon.sm], lg: ['ml-2.5', icon.md] },
 	defaults: { size: 'md' },
 })
 
 const itemSuffix = defineRecipe({
 	base: affix,
-	size: { sm: 'mr-1.5', md: 'mr-2', lg: 'mr-2.5' },
+	size: { sm: ['mr-1.5', icon.xs], md: ['mr-2', icon.sm], lg: ['mr-2.5', icon.md] },
 	defaults: { size: 'md' },
 })
 

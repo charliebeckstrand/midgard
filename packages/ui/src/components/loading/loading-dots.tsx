@@ -1,8 +1,5 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
 import { k, type LoadingDotsVariants } from '../../recipes/kata/loading'
 
 export type LoadingDotsProps = LoadingDotsVariants & {
@@ -18,7 +15,11 @@ const DOT_DELAYS = [
 	'motion-safe:[animation-delay:0ms]',
 ] as const
 
-/** Indeterminate loading indicator: three breathing dots rendered as a live `<output>`; `size` resolves from enclosing Density, with an `sr-only` `label`. */
+/**
+ * Indeterminate loading indicator: three breathing dots rendered as a live
+ * `<output>` with an `sr-only` `label`. Static leaf: renders in React Server
+ * Components. `size` is explicit (recipe default `md`).
+ */
 export function LoadingDots({
 	size,
 	color,
@@ -26,16 +27,10 @@ export function LoadingDots({
 	className,
 	...props
 }: LoadingDotsProps) {
-	const resolvedSize = useResolvedSize(size)
-
 	return (
-		<output
-			data-slot="loading-dots"
-			className={cn(k({ size: resolvedSize, color }), className)}
-			{...props}
-		>
+		<output data-slot="loading-dots" className={cn(k({ size, color }), className)} {...props}>
 			{DOT_DELAYS.map((delay) => (
-				<span key={delay} aria-hidden="true" className={cn(k.dot({ size: resolvedSize }), delay)} />
+				<span key={delay} aria-hidden="true" className={cn(k.dot({ size }), delay)} />
 			))}
 			<span className="sr-only">{label}</span>
 		</output>

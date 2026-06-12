@@ -89,18 +89,19 @@ describe('Box', () => {
 		expect(bySlot(container, 'box')).toBeNull()
 	})
 
-	it('inherits padding from an ambient Density when p is omitted', () => {
+	it('ignores an ambient Density provider when p is omitted', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Box>content</Box>
 			</DensityProvider>,
 		)
 
-		// compact → sm step → p-2 via paddingMap.
-		expect(bySlot(container, 'box')?.className).toContain('p-2')
+		// Static leaf: spacing tokens are explicit; ambient density reaches
+		// client components only.
+		expect(bySlot(container, 'box')?.className).not.toMatch(/(^|\s)p-\d/)
 	})
 
-	it('explicit p prop wins over the ambient Density', () => {
+	it('explicit p prop applies inside a Density provider', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Box p="lg">content</Box>

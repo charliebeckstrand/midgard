@@ -1,12 +1,20 @@
 import type { ClassValue } from 'clsx'
 import { createElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
 import { Placeholder } from './placeholder'
 
-// Resolved through the Density cascade via `useResolvedSize`. Call sites pin `S` to
-// their kata's `VariantProps['size']`.
-type ResolvableSize = NonNullable<Parameters<typeof useResolvedSize>[0]>
+// Narrowest-to-widest order of the resolvable sizes; also the source of the
+// `ResolvableSize` union (the `Ma` scale, which components must not import
+// from the recipes barrel). A skeleton recipe's `size` map is keyed by Step
+// (sm/md/lg), but the `size` prop can carry a sub-Step value (xs/xl) on
+// `Ma`-scale components; those clamp to the nearest key the recipe defines.
+const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+// Call sites pin `S` to their kata's `VariantProps['size']`. Skeletons are
+// static leaves: size comes from the explicit prop (default `md`), never from
+// context. The loading tree's composer (a Suspense fallback,
+// `<ReadyReveal placeholder>`) knows the size and passes it.
+type ResolvableSize = (typeof MA_ORDER)[number]
 
 type BaseSkeletonRecipe = {
 	/** Base skeleton shape classes. */
@@ -21,12 +29,6 @@ type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
 export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never]
 	? { className?: string }
 	: { size?: S; className?: string }
-
-// Narrowest-to-widest order of the resolvable sizes. A skeleton recipe's `size`
-// map is keyed by Step (sm/md/lg), but `useResolvedSize` can resolve a sub-Step value
-// (xs/xl) inherited from a control affix; those clamp to the nearest key the
-// recipe defines.
-const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): ClassValue {
 	if (resolved in sizeMap) return sizeMap[resolved]
@@ -52,10 +54,10 @@ function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): Cl
  * Build a skeleton component from a recipe's `skeleton` surface, rendering a
  * `<Placeholder>` that carries the recipe's shape classes.
  *
- * A sized recipe (`{ base, size }`) resolves its size through the Density
- * cascade (`useResolvedSize`) and folds in the matching per-size class; the returned
- * component takes an optional `size` prop. A base-only recipe (`{ base }`)
- * has a fixed silhouette and takes no `size` prop.
+ * A sized recipe (`{ base, size }`) folds in the per-size class for the
+ * explicit `size` prop (default `'md'`); the returned component takes an
+ * optional `size` prop. A base-only recipe (`{ base }`) has a fixed
+ * silhouette and takes no `size` prop.
  *
  * Use only for skeletons whose entire body is that. Components that wrap the
  * placeholder (Avatar's `DensityScope`) or fold in extra state (Control's
@@ -78,7 +80,7 @@ export function createSkeleton<S extends ResolvableSize>(
 	name: string,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
-		const resolvedSize = useResolvedSize(size)
+		const resolvedSize = size ?? 'md'
 
 		const sizeClass =
 			'size' in skeleton

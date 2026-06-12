@@ -1,5 +1,3 @@
-'use client'
-
 import { type ColorPanelVariants, k } from '../../recipes/kata/color-panel'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

@@ -1,12 +1,17 @@
-import { hannou, ji, kasane, narabi } from '../kiso'
+import { hannou, ji, kasane, narabi, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { icon } = shaku
 
-/** Shared slot-wrapper structure for the prefix/suffix entries. */
-const affix = ['relative', 'z-10', flex.row, 'shrink-0']
+/**
+ * Shared slot-wrapper structure for the prefix/suffix entries. The item chrome
+ * is fixed at md, so slot icons project one step down (`icon.sm`): the static
+ * `<Icon>` leaf reads no context. Client slot children read AffixContext.
+ */
+const affix = ['relative', 'z-10', flex.row, 'shrink-0', icon.sm]
 
 /** Shared item structure minus the interaction surface. */
 const itemCore = [

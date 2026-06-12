@@ -1,8 +1,5 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useDensityNullable } from '../../primitives/density'
 import { defaultAlignFromDirection } from './flex-utilities'
 import {
 	type ResponsiveAlign,
@@ -39,11 +36,9 @@ export type FlexProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * Horizontal flex container. Use Flex for rows, Stack for columns.
- *
- * `gap` resolves through `explicit ?? Density.space`; a Flex inside a
- * Density-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
- * matching spacing step. Outside any provider, `gap` stays unset.
+ * Horizontal flex container. Use Flex for rows, Stack for columns. Static
+ * leaf: renders in React Server Components. `gap` is explicit; omitted, it
+ * stays unset.
  */
 export function Flex({
 	direction = 'row',
@@ -59,10 +54,6 @@ export function Flex({
 	children,
 	...props
 }: FlexProps) {
-	const density = useDensityNullable()
-
-	const resolvedGap = gap ?? density?.space
-
 	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 
 	return (
@@ -71,7 +62,7 @@ export function Flex({
 			className={cn(
 				resolveDirection(direction),
 				resolveAlign(resolvedAlign),
-				resolveGap(resolvedGap),
+				resolveGap(gap),
 				resolveJustify(justify),
 				wrap && 'flex-wrap',
 				full && 'w-full',

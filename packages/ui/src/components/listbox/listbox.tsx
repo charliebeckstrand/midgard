@@ -15,10 +15,8 @@ import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
-import { useSkeleton } from '../../providers/skeleton'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
-import { ControlSkeleton } from '../control/control-skeleton'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { ListboxContext } from './context'
@@ -126,7 +124,6 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
-	const skeleton = useSkeleton()
 	const token = useControlSize(size)
 
 	const resolvedId = inputId ?? control?.id
@@ -239,10 +236,6 @@ export function Listbox<T>({
 		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
 		[selectionValue, multiple, select],
 	)
-
-	if (skeleton) {
-		return <ControlSkeleton size={size} className={className} />
-	}
 
 	return (
 		<ListboxContext value={contextValue}>

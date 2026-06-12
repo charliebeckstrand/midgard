@@ -36,6 +36,17 @@ export const k = defineRecipe(
 				md: '-space-x-2',
 				lg: '-space-x-2.5',
 			},
+			/**
+			 * Child-avatar size projection. Avatar is a static leaf carrying its
+			 * own md box; the group overrides descendants (`**:` reaches an
+			 * avatar inside its with-status wrapper) so children track the
+			 * group's `size` without reading context. Mirrors `shaku.avatar`.
+			 */
+			size: {
+				sm: '**:data-[slot=avatar]:size-7',
+				md: '**:data-[slot=avatar]:size-9',
+				lg: '**:data-[slot=avatar]:size-11',
+			},
 		},
 		/** Ring around an avatar's status indicator. */
 		statusRing: 'ring-2 ring-white dark:ring-zinc-900',

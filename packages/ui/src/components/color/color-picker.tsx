@@ -2,9 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import type { ControlSize } from '../control/context'
-import { ControlSkeleton } from '../control/control-skeleton'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
@@ -37,14 +35,9 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * explicit prop, then `<Control>`, then Density, then `'md'`.
  */
 export function ColorPicker(props: ColorPickerProps) {
-	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
 	const size = props.size ?? inherited.size
-
-	if (skeleton) {
-		return <ControlSkeleton size={props.size} className={props.className} />
-	}
 
 	return <ColorPickerInner {...props} size={size} />
 }

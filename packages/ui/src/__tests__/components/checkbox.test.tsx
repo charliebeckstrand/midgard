@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
+import { Checkbox, CheckboxField, CheckboxGroup, CheckboxSkeleton } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Density } from '../../primitives/density'
@@ -53,10 +53,11 @@ describe('Checkbox', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Checkbox />, { skeleton: true })
+	it('pairs with an explicit CheckboxSkeleton in loading trees', () => {
+		const { container } = renderUI(<CheckboxSkeleton />)
 
 		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -193,6 +194,7 @@ describe('CheckboxField aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'checkbox') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(description.id).toBeTruthy()

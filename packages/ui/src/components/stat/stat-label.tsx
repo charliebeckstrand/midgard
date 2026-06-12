@@ -1,29 +1,18 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import { k } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
 
 export type StatLabelProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * `size` resolves from the enclosing Density context; a `<StatLabel>`
- * inside `<DensityProvider density="compact">` shrinks alongside its `<StatValue>`.
+ * Static leaf: renders in React Server Components. Renders at the `md` step;
+ * compose `<StatLabelSkeleton>` in the loading tree.
  */
 export function StatLabel({ className, children, ...props }: StatLabelProps) {
-	const { size } = useDensity()
-
-	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.label({ size }), className)} />
-	}
-
 	return (
-		<div data-slot="stat-label" className={cn(k.label({ size }), className)} {...props}>
+		<div data-slot="stat-label" className={cn(k.label({ size: 'md' }), className)} {...props}>
 			{children}
 		</div>
 	)

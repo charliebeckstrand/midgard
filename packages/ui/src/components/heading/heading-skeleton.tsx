@@ -1,7 +1,4 @@
-'use client'
-
 import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { headingScale, k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
@@ -14,15 +11,12 @@ export type HeadingSkeletonProps = {
 }
 
 /**
- * Heading-shaped placeholder. Height tracks the resolved type-scale rung
- * (level shifted by the ambient density `size` axis). Keyed off the rung
- * rather than the Density step alone; it does not use the size-driven
- * `createSkeleton` factory.
+ * Heading-shaped placeholder. Height tracks the type-scale rung (level
+ * shifted by `size`, default `md`). Keyed off the rung rather than a size
+ * step alone; it does not use the size-driven `createSkeleton` factory.
  */
 export function HeadingSkeleton({ level = 1, size, className }: HeadingSkeletonProps) {
-	const { size: ambient } = useDensity()
-
-	const scale = headingScale(level, size ?? ambient)
+	const scale = headingScale(level, size ?? 'md')
 
 	return <Placeholder className={cn(k.skeleton.base, k.skeleton.scale[scale], className)} />
 }

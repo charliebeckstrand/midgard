@@ -1,9 +1,6 @@
-'use client'
-
 import type { Ref } from 'react'
 import { cn } from '../../core'
-import { useDensityNullable } from '../../primitives/density'
-import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
+import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
 import {
 	type BoxBg,
@@ -46,7 +43,7 @@ type BoxBaseProps = {
 }
 
 export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, Omitted> &
-	PolymorphicProps<'div', Omitted>
+	PolymorphicStaticProps<'div', Omitted>
 
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
 	if (!outline) return undefined
@@ -56,7 +53,11 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 	return k.outline[outline]
 }
 
-/** Polymorphic layout primitive for padding, margin, radius, background, and outline tokens. `p` inherits the ambient Density while `px`/`py` stay explicit. */
+/**
+ * Polymorphic layout primitive for padding, margin, radius, background, and
+ * outline tokens. Static leaf: renders in React Server Components. Every
+ * spacing token is explicit; an omitted token applies no style.
+ */
 export function Box({
 	p,
 	px,
@@ -71,22 +72,19 @@ export function Box({
 	ref,
 	className,
 	href,
+	render,
 	children,
 	...props
 }: BoxProps) {
-	const density = useDensityNullable()
-
-	// Only `p` inherits from ambient Density; `px` / `py` stay explicit.
-	const resolvedPadding = p ?? density?.space
-
 	return (
-		<Polymorphic
+		<PolymorphicStatic
 			as="div"
 			ref={ref}
 			data-slot={slot}
 			href={href}
+			render={render}
 			className={cn(
-				resolvedPadding !== undefined && paddingMap[resolvedPadding],
+				p !== undefined && paddingMap[p],
 				px !== undefined && pxMap[px],
 				py !== undefined && pyMap[py],
 				m !== undefined && marginMap[m],
@@ -100,6 +98,6 @@ export function Box({
 			{...props}
 		>
 			{children}
-		</Polymorphic>
+		</PolymorphicStatic>
 	)
 }

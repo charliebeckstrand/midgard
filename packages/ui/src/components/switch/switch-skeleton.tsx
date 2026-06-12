@@ -1,5 +1,3 @@
-'use client'
-
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

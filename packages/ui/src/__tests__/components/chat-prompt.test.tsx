@@ -270,14 +270,4 @@ describe('ChatPrompt', () => {
 
 		expect(container.querySelector('input[type="file"]')).toHaveAttribute('accept', '.pdf,.csv')
 	})
-
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />, {
-			skeleton: true,
-		})
-
-		expect(bySlot(container, 'chat-prompt')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
 })
