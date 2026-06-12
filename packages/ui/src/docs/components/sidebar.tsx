@@ -156,7 +156,7 @@ export function SidebarContent({ route }: { route: string }) {
 				</div>
 				<Button
 					variant="bare"
-					aria-label="Filters"
+					aria-label={sortBy === 'alphabetical' ? 'Sort by group' : 'Sort alphabetically'}
 					onClick={() => setSortBy(sortBy === 'alphabetical' ? 'groups' : 'alphabetical')}
 				>
 					<Icon icon={sortBy === 'alphabetical' ? <ArrowUp01 /> : <ArrowDownAZ />} />
