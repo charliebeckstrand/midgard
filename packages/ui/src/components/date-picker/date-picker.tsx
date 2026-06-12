@@ -4,6 +4,8 @@ import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
+import { DateInput, type DateInputFormat } from '../date-input'
+import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerRange } from './date-picker-range'
@@ -15,6 +17,14 @@ export type DatePickerSingleProps = {
 	value?: Date
 	defaultValue?: Date
 	onValueChange?: (value: Date | undefined) => void
+	/**
+	 * Renders a typed DateInput in place of the popover trigger. The calendar
+	 * icon becomes a labeled suffix button that opens the calendar, and a
+	 * picked date writes back into the input.
+	 */
+	input?: boolean
+	/** Pattern for the typed date while `input` is set. @default 'MM/DD/YYYY' */
+	format?: DateInputFormat
 }
 
 export type DatePickerRangeProps = {
@@ -55,6 +65,8 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
  * Popover date picker wrapping a Calendar; switches between single and range
  * selection on the `range` prop, and supports controlled or uncontrolled `value`.
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
+ * With `input`, a typed DateInput replaces the trigger and the calendar opens
+ * from its suffix button.
  */
 export function DatePicker(props: DatePickerProps) {
 	const inherited = useDensity()
@@ -73,6 +85,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		placeholder = 'Select a date',
 		size = 'md',
 		truncate = true,
+		input = false,
+		format = 'MM/DD/YYYY',
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -80,6 +94,65 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	} = props
 
 	const state = useDatePickerState(props)
+
+	const content = (
+		<DatePickerContent
+			open={state.open}
+			setFloating={state.setFloating}
+			floatingStyles={state.floatingStyles}
+			getFloatingProps={state.getFloatingProps}
+			context={state.context}
+			size={size}
+			onKeyDown={state.onTriggerKeyDown}
+		>
+			<Calendar
+				ref={state.calendar.calendarRef}
+				value={state.calendar.value}
+				onValueChange={state.calendar.onValueChange}
+				min={props.min}
+				max={props.max}
+				active={state.calendar.active}
+				footerRef={state.calendar.footerRef}
+			/>
+			<DatePickerFooter {...state.footer} />
+		</DatePickerContent>
+	)
+
+	if (input) {
+		return (
+			<div className="contents">
+				<div
+					data-slot="control"
+					ref={state.setReference}
+					className={className}
+					{...state.getReferenceProps()}
+				>
+					<DateInput
+						data-slot="datepicker-input"
+						value={state.value ?? null}
+						onValueChange={state.setValue}
+						format={format}
+						min={props.min}
+						max={props.max}
+						size={size}
+						disabled={state.disabled}
+						placeholder={props.placeholder}
+						aria-label={ariaLabel}
+						suffix={
+							<DatePickerCalendarButton
+								open={state.open}
+								disabled={state.disabled}
+								onActivate={() => state.onOpenChange(!state.open)}
+							/>
+						}
+						data-group={dataGroup}
+						data-group-orientation={dataGroupOrientation}
+					/>
+				</div>
+				{content}
+			</div>
+		)
+	}
 
 	return (
 		<div className="contents">
@@ -103,26 +176,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 			/>
-			<DatePickerContent
-				open={state.open}
-				setFloating={state.setFloating}
-				floatingStyles={state.floatingStyles}
-				getFloatingProps={state.getFloatingProps}
-				context={state.context}
-				size={size}
-				onKeyDown={state.onTriggerKeyDown}
-			>
-				<Calendar
-					ref={state.calendar.calendarRef}
-					value={state.calendar.value}
-					onValueChange={state.calendar.onValueChange}
-					min={props.min}
-					max={props.max}
-					active={state.calendar.active}
-					footerRef={state.calendar.footerRef}
-				/>
-				<DatePickerFooter {...state.footer} />
-			</DatePickerContent>
+			{content}
 		</div>
 	)
 }

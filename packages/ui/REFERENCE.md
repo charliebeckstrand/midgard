@@ -4,7 +4,7 @@
 
 ## 1. Component inventory
 
-**Inputs & form fields** — `input` · `textarea` · `select` · `combobox` · `checkbox` · `radio` · `switch` · `slider` · `number-input` · `currency-input` · `credit-card-input` · `phone-input` · `zipcode-input` · `address-input` · `mask-input` · `date-picker` · `calendar` · `file-upload` · `search-input` · `tag-input` · `signature-pad` · `password-input` · `password-confirm` · `password-strength` · `toggle-icon-button`
+**Inputs & form fields** — `input` · `textarea` · `select` · `combobox` · `checkbox` · `radio` · `switch` · `slider` · `number-input` · `currency-input` · `credit-card-input` · `phone-input` · `zipcode-input` · `address-input` · `mask-input` · `date-input` · `date-picker` · `calendar` · `file-upload` · `search-input` · `tag-input` · `signature-pad` · `password-input` · `password-confirm` · `password-strength` · `toggle-icon-button`
 
 **Form structure** — `form` · `fieldset` · `control` · `submit-button`
 

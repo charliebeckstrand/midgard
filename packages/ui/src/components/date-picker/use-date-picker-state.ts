@@ -170,6 +170,8 @@ export function useDatePickerState({
 		disabled: resolvedDisabled,
 		required: control?.required,
 		invalid: control?.invalid,
+		value,
+		setValue,
 		displayValue: value ? formatDate(value) : '',
 		open,
 		onOpenChange,

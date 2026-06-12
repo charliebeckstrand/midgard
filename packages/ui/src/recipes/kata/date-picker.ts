@@ -6,7 +6,7 @@ import { popover } from '../kiso/popover'
 const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { reset, density, size, surface } = control
+const { affix, reset, density, size, surface } = control
 const { portal, panel } = popover
 
 const button = defineRecipe({
@@ -46,6 +46,10 @@ export const k = {
 	value,
 	icon: ['flex items-center', 'pointer-events-none', text.muted],
 	placeholder: text.muted,
+	affix: {
+		...affix,
+		base: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
+	},
 	content: {
 		portal: [focus.ring, ...portal],
 		motion: panel.motion,

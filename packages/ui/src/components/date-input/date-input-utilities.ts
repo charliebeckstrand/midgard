@@ -1,0 +1,187 @@
+export type DateInputFormat = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
+
+type DatePart = 'month' | 'day' | 'year'
+
+type Segment = {
+	part: DatePart
+	length: number
+	/** Highest value the segment can hold; a digit that would exceed it pads the segment and carries over. */
+	cap?: number
+}
+
+const month: Segment = { part: 'month', length: 2, cap: 12 }
+const day: Segment = { part: 'day', length: 2, cap: 31 }
+const year: Segment = { part: 'year', length: 4 }
+
+const layouts: Record<DateInputFormat, { separator: string; segments: Segment[] }> = {
+	'MM/DD/YYYY': { separator: '/', segments: [month, day, year] },
+	'DD/MM/YYYY': { separator: '/', segments: [day, month, year] },
+	'YYYY-MM-DD': { separator: '-', segments: [year, month, day] },
+}
+
+export function dateInputSeparator(format: DateInputFormat): string {
+	return layouts[format].separator
+}
+
+/**
+ * Masks raw text into the format's `MM`/`DD`/`YYYY` segments. Digits fill the
+ * current segment. A digit that would push a capped segment past its cap
+ * zero-pads it and starts the next (`13` → `01/3`); an unseparated run like
+ * `152026` lands as `01/05/2026`. A typed separator zero-pads and closes a
+ * short month or day (`1/` → `01/`), and a completed segment appends the
+ * canonical separator for the next.
+ */
+export function maskDateText(raw: string, format: DateInputFormat): string {
+	const { separator, segments } = layouts[format]
+
+	const done: string[] = []
+
+	let current = ''
+
+	const commit = (text: string) => {
+		done.push(text)
+
+		current = ''
+	}
+
+	for (const char of raw) {
+		// A digit the capped segment cannot take re-enters the loop against the
+		// next segment.
+		let pending: string | null = char
+
+		while (pending !== null && done.length < segments.length) {
+			const segment = segments[done.length]
+
+			if (!segment) break
+
+			if (!/\d/.test(pending)) {
+				// A separator zero-pads and closes a short month or day; it does
+				// nothing on an empty, zero-only, or year segment.
+				if (current.length > 0 && Number(current) > 0 && segment.part !== 'year') {
+					commit(current.padStart(segment.length, '0'))
+				}
+
+				break
+			}
+
+			const digit = Number(pending)
+
+			if (segment.cap !== undefined) {
+				if (current.length === 0 && digit * 10 > segment.cap) {
+					commit(`0${pending}`)
+
+					break
+				}
+
+				if (current.length === 1 && Number(current + pending) > segment.cap) {
+					commit(current.padStart(segment.length, '0'))
+
+					continue
+				}
+
+				// No month or day starts with 00; drop the second zero.
+				if (current === '0' && digit === 0) break
+			}
+
+			current += pending
+
+			pending = null
+
+			if (current.length === segment.length) commit(current)
+		}
+	}
+
+	if (current) return done.length > 0 ? `${done.join(separator)}${separator}${current}` : current
+
+	if (done.length === 0) return ''
+
+	// A trailing separator marks the closed segment and seats the caret for
+	// the next one.
+	return done.length === segments.length
+		? done.join(separator)
+		: `${done.join(separator)}${separator}`
+}
+
+/** Formats a Date as the canonical zero-padded text for the format. */
+export function formatDateValue(date: Date, format: DateInputFormat): string {
+	const { separator, segments } = layouts[format]
+
+	const parts: Record<DatePart, string> = {
+		month: String(date.getMonth() + 1).padStart(2, '0'),
+		day: String(date.getDate()).padStart(2, '0'),
+		year: String(date.getFullYear()).padStart(4, '0'),
+	}
+
+	return segments.map((segment) => parts[segment.part]).join(separator)
+}
+
+const THIRTY_DAY_MONTHS = new Set([4, 6, 9, 11])
+
+function daysInMonth(year: number, month: number): number {
+	if (month !== 2) return THIRTY_DAY_MONTHS.has(month) ? 30 : 31
+
+	const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+
+	return leap ? 29 : 28
+}
+
+/**
+ * Parses masked text back to a Date at local midnight. Returns `undefined`
+ * unless every segment is complete and the result is a real calendar date
+ * (`02/31/2025` fails, as does year `0000`).
+ */
+export function parseDateText(text: string, format: DateInputFormat): Date | undefined {
+	const { separator, segments } = layouts[format]
+
+	const pieces = text.split(separator)
+
+	if (pieces.length !== segments.length) return undefined
+
+	const values: Partial<Record<DatePart, number>> = {}
+
+	for (const [index, segment] of segments.entries()) {
+		const piece = pieces[index]
+
+		if (piece === undefined || piece.length !== segment.length) return undefined
+
+		values[segment.part] = Number(piece)
+	}
+
+	const { month, day, year } = values
+
+	if (month === undefined || day === undefined || year === undefined) return undefined
+
+	if (year < 1 || month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month))
+		return undefined
+
+	const date = new Date(year, month - 1, day)
+
+	// Two-digit years would otherwise resolve to 19xx.
+	date.setFullYear(year)
+
+	return date
+}
+
+/** Same calendar day in local time; two empty values count as the same. */
+export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
+	if (a === undefined || b === undefined) return a === b
+
+	return (
+		a.getFullYear() === b.getFullYear() &&
+		a.getMonth() === b.getMonth() &&
+		a.getDate() === b.getDate()
+	)
+}
+
+function dayKey(date: Date): number {
+	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
+}
+
+/** Day-resolution bounds check; ignores time of day on `min`/`max`. */
+export function isDayInRange(date: Date, min?: Date, max?: Date): boolean {
+	if (min && dayKey(date) < dayKey(min)) return false
+
+	if (max && dayKey(date) > dayKey(max)) return false
+
+	return true
+}
