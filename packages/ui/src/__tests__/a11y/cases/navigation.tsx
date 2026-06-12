@@ -1,4 +1,3 @@
-import { BottomNav, BottomNavItem } from '../../../components/bottom-nav'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -77,17 +76,6 @@ export const navigationCases: readonly Case[] = [
 				</SidebarList>
 			</SidebarBody>
 		</Sidebar>,
-	],
-	[
-		'bottom nav',
-		<BottomNav key="bn">
-			<BottomNavItem href="#home" icon={<svg aria-hidden="true" />} current>
-				Home
-			</BottomNavItem>
-			<BottomNavItem href="#search" icon={<svg aria-hidden="true" />}>
-				Search
-			</BottomNavItem>
-		</BottomNav>,
 	],
 	[
 		'breadcrumb',

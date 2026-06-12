@@ -10,7 +10,7 @@
 
 **Buttons & actions** — `button` · `copy-button` · `hold-button`
 
-**Navigation** — `navbar` · `nav` · `sidebar` · `bottom-nav` · `breadcrumb` · `menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
+**Navigation** — `navbar` · `nav` · `sidebar` · `breadcrumb` · `menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
 
 **Overlays** — `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
 

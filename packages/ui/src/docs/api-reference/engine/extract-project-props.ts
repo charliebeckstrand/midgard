@@ -107,7 +107,7 @@ function walk(
 	//     each arm, detecting pass-through arms.
 	//   • Single TypeReference: drop the branch if it's a pass-through
 	//     (`type FooProps = ComponentPropsWithoutRef<'div'>`); follow the chain
-	//     if it's another project alias (`BottomNavProps = NavProps`).
+	//     if it's another project alias (`StackProps = FlexProps`).
 	//   • Anything else (mapped / conditional / fn): fall through to the
 	//     resolved-type properties below.
 	const aliasTarget = resolveTypeAliasTarget(node.typeName, checker)
