@@ -24,7 +24,7 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 		)
 
 		const input = screen.getByLabelText('Date')
-		const calendarButton = screen.getByRole('button', { name: 'Open the calendar' })
+		const calendarButton = screen.getByRole('button', { name: 'Open calendar' })
 
 		await userEvent.click(calendarButton)
 
@@ -86,7 +86,7 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 			</>,
 		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Open the calendar' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 		await screen.findByRole('dialog')
 
@@ -99,7 +99,7 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		expect(input.closest('[data-floating-ui-inert]')).toBeNull()
 
-		expect(screen.getByRole('button', { name: 'Open the calendar' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeInTheDocument()
 
 		// Modal semantics hold for the rest of the page: the sibling button is
 		// still marked away from AT (text query — aria-hidden empties its

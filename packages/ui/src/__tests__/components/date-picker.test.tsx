@@ -681,7 +681,7 @@ describe('DatePicker input', () => {
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
 		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
-		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await user.click(calendar)
 
@@ -702,7 +702,7 @@ describe('DatePicker input', () => {
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
 		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
-		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await user.click(calendar)
 
@@ -737,7 +737,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input />)
 
-		await user.click(screen.getByRole('button', { name: 'Open the calendar' }))
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
 
