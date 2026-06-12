@@ -1,0 +1,363 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"root": false,
+	"extends": "//",
+	"overrides": [
+		{
+			"includes": ["src/**"],
+			"plugins": ["./boundaries/data-slot.grit"]
+		},
+		{
+			"includes": ["src/**", "!src/__tests__/**", "!src/__benchmarks__/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/components/**",
+				"src/hooks/**",
+				"src/primitives/**",
+				"src/core/**",
+				"src/providers/**",
+				"src/layouts/**"
+			],
+			"plugins": ["./boundaries/use-prefixed-type.grit"]
+		},
+		{
+			"includes": ["src/hooks/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									},
+									{
+										"group": [
+											"**/components/**",
+											"**/layouts/**",
+											"**/providers/**",
+											"**/recipes/kata/**",
+											"**/recipes/katakana/**"
+										],
+										"message": "Top-level hooks must not import from components, layouts, providers, or recipe-layer internals."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/primitives/**"],
+			"plugins": ["./boundaries/recipes-value-import.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									},
+									{
+										"group": ["**/components/**", "**/layouts/**"],
+										"message": "Primitives must not reach upward into the component / layout layer."
+									},
+									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Primitives reach the recipe layer only through recipes/kata/<name>."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/components/**"],
+			"plugins": [
+				"./boundaries/recipes-value-import.grit",
+				"./boundaries/sibling-main-import.grit",
+				"./boundaries/use-client-context.grit",
+				"./boundaries/spacing.grit"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									},
+									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Components reach the recipe layer only through recipes/kata/<name>."
+									},
+									{
+										"group": ["**/recipes", "**/recipes/**"],
+										"importNamePattern": "Ma",
+										"message": "Only variants.ts may import Ma — derive size from the kata's VariantProps instead."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/components/*/index.ts"],
+			"plugins": ["./boundaries/component-barrel.grit"]
+		},
+		{
+			"includes": ["src/components/**/variants.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									},
+									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Components reach the recipe layer only through recipes/kata/<name>."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/recipes/kiso/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									},
+									{
+										"group": [
+											"**/katakana/**",
+											"**/kata/**",
+											"**/components/**",
+											"**/layouts/**",
+											"**/primitives/**",
+											"**/hooks/**",
+											"**/providers/**"
+										],
+										"message": "kiso sits at the bottom of the recipe stack — no upward imports."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/recipes/kiso/control/**",
+				"src/recipes/kiso/popover/**",
+				"src/recipes/kiso/segment/**",
+				"src/recipes/kiso/slider/**"
+			],
+			"plugins": ["./boundaries/spacing.grit"]
+		},
+		{
+			"includes": ["src/recipes/katakana/**"],
+			"plugins": ["./boundaries/spacing.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/kiso", "**/kiso/**"],
+										"message": "katakana must not reference kiso — declare the token contract in the bridge and inject from the kata."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/recipes/kata/**"],
+			"plugins": ["./boundaries/spacing.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/layouts/*/variants.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/core/create-context.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/core/recipe"],
+										"importNamePattern": "defineRecipe",
+										"message": "defineRecipe is sanctioned only in recipes/kata/*, recipes/katakana/*, and layouts/*/variants.ts."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/recipes/index.ts"],
+			"plugins": ["./boundaries/types-only-barrel.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+									}
+								},
+								"patterns": [
+									{
+										"group": ["**/kata/**", "**/katakana/**"],
+										"message": "The recipes barrel must not re-export kata/katakana internals — only kiso/core types flow through it."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}

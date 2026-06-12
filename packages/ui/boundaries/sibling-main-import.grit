@@ -1,0 +1,15 @@
+// No file imports a sibling component's main `<name>.tsx` via a deep relative
+// path (`'../<other>/<other>'`). The barrel, `'../<other>'`, is the public
+// entry point; deep main-file imports bypass it.
+or {
+	JsImport() as $statement,
+	JsExport() as $statement
+} where {
+	$statement <: contains JsModuleSource() as $src,
+	$src <: r"['\"]\.\./([a-z][a-z0-9-]*)/([a-z][a-z0-9-]*)(?:\.tsx?)?['\"]"($dir, $base),
+	$dir <: $base,
+	register_diagnostic(
+		span = $src,
+		message = "Sibling main file imported deeply — use the barrel `'../<name>'` instead."
+	)
+}

@@ -1,0 +1,9 @@
+// The slot override is exposed as the native `data-slot` attribute everywhere:
+// DOM attribute, component prop, and call site. A single token is greppable
+// across the package; this rule fails on any camelCase prop spelling.
+`dataSlot` where {
+	register_diagnostic(
+		span = $match,
+		message = "Found the banned `dataSlot` identifier — expose the slot as the native `data-slot` attribute instead."
+	)
+}

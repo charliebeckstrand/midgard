@@ -1,0 +1,28 @@
+// Spacing boundary.
+//
+//   1. No file may use the `p-{ma}`, `m-{ma}`, `gap-{ma}` shape. Compose
+//      Tailwind natives directly (`p-3`, `gap-2`) from `ma`'s values via a
+//      static `Record<Ma, string>` lookup.
+//   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding) lives
+//      only in `recipes/kiso/kasane.ts`; consumers reach it through
+//      `kasane.p / px / py / pl / pr`. Files whose remaining literals carry
+//      Tailwind variant prefixes (`data-*`, `has-*`, `autofill:*`) are
+//      exempted by filename below; variants must appear in source and can't
+//      move behind the kasane helpers.
+or {
+	or { JsStringLiteralExpression(), JsTemplateChunkElement() } as $literal where {
+		$literal <: r"[\s\S]*\b(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b[\s\S]*",
+		register_diagnostic(
+			span = $literal,
+			message = "Legacy renamed spacing utility — compose Tailwind natives from `ma`'s values via a `Record<Ma, string>` lookup."
+		)
+	},
+	or { JsStringLiteralExpression(), JsTemplateChunkElement() } as $literal where {
+		$literal <: r"[\s\S]*calc\(--spacing\([\s\S]*",
+		$filename <: not r"[\s\S]*(?:recipes/kiso/control/affix\.ts|recipes/kata/button\.ts)",
+		register_diagnostic(
+			span = $literal,
+			message = "Inline `calc(--spacing(…))` — use kasane.p / px / py / pl / pr instead."
+		)
+	}
+}

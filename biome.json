@@ -1,5 +1,6 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"root": true,
 	"assist": {
 		"actions": {
 			"source": {
@@ -40,5 +41,27 @@
 		"enabled": true,
 		"clientKind": "git",
 		"useIgnoreFile": false
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["apps/**", "packages/**", "!packages/ui/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["ui/recipes", "ui/recipes/**"],
+										"message": "The recipe layer is internal to the ui package — import from the component subpath exports instead."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }

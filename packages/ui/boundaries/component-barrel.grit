@@ -1,0 +1,31 @@
+// A component's index.ts re-exports only from within its own folder, or from
+// its owning kata: `recipes/kata/<same-name>` and any sub-kata
+// `recipes/kata/<same-name>-<anything>`. Kata variants are part of the
+// component's public API; re-exporting from a sibling component's internals
+// is not.
+//
+// The sub-kata arms strip one or two trailing `-segment`s from the kata name
+// before comparing against the folder; deeper suffix nesting would need a
+// third arm (none exists in the tree).
+JsExport() as $export where {
+	$export <: contains JsModuleSource() as $src,
+	$filename <: r"[\s\S]*/components/([a-z][a-z0-9-]*)/index\.tsx?"($folder),
+	$src <: not r"['\"]\./[\s\S]*['\"]",
+	$src <: not r"['\"][^'\"]*/recipes/kata/([a-z][a-z0-9-]*)['\"]"($kata) where {
+		or {
+			$kata <: $folder,
+			and {
+				$kata <: r"([a-z0-9-]+)-[a-z0-9]+"($stem),
+				$stem <: $folder
+			},
+			and {
+				$kata <: r"([a-z0-9-]+)-[a-z0-9]+-[a-z0-9]+"($stem),
+				$stem <: $folder
+			}
+		}
+	},
+	register_diagnostic(
+		span = $src,
+		message = "Component barrel re-exports a sibling's files — re-export only from `./…` or the owning `recipes/kata/<name>`."
+	)
+}

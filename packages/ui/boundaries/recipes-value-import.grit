@@ -1,0 +1,37 @@
+// Components and primitives reach the recipe layer through their owning kata
+// (`recipes/kata/<name>`). The `recipes` barrel is types-only for them: a
+// value import from the barrel bypasses the kata curation. Type-only imports
+// (`import type {…}` or all-`type` named specifiers) are fine; the barrel
+// surfaces `Step` / `Ma` / `Color` / `GroupOrientation` / `GroupPosition` for
+// prop-union derivation. Deep imports from katakana/kiso are pinned separately
+// by noRestrictedImports in packages/ui/biome.json.
+or {
+	JsImport(
+		import_clause = JsImportNamedClause(source = $src, named_specifiers = $specifiers) as $clause
+	) where {
+		$src <: r"['\"][^'\"]*/recipes['\"]",
+		$clause <: not r"type\s[\s\S]*",
+		$specifiers <: contains or {
+			JsShorthandNamedImportSpecifier() as $spec,
+			JsNamedImportSpecifier() as $spec
+		} where {
+			$spec <: not r"type\s[\s\S]*"
+		},
+		register_diagnostic(
+			span = $spec,
+			message = "Value import from the recipes barrel — take values from `recipes/kata/<name>`; only types flow through the barrel."
+		)
+	},
+	JsImport(import_clause = or {
+		JsImportDefaultClause(source = $src),
+		JsImportNamespaceClause(source = $src),
+		JsImportCombinedClause(source = $src),
+		JsImportBareClause(source = $src)
+	}) as $import where {
+		$src <: r"['\"][^'\"]*/recipes['\"]",
+		register_diagnostic(
+			span = $import,
+			message = "Non-named import from the recipes barrel — take values from `recipes/kata/<name>`; only types flow through the barrel."
+		)
+	}
+}

@@ -1,0 +1,16 @@
+// Rendering `<XxxContext value={…}>` makes the module a client module: the
+// package's subpath exports resolve to raw source, so a missing directive
+// surfaces as an RSC crash only at runtime in a consuming Next app.
+or {
+	JsxOpeningElement(name = $tag),
+	JsxSelfClosingElement(name = $tag)
+} where {
+	$tag <: r"[A-Z][A-Za-z]*Context",
+	$program <: not contains JsDirective() as $directive where {
+		$directive <: r"['\"]use client['\"]"
+	},
+	register_diagnostic(
+		span = $tag,
+		message = "Context provider rendered without 'use client' (crashes in RSC) — add the directive at the top of the module."
+	)
+}
