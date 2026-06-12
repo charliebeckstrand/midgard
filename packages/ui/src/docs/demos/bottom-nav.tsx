@@ -15,7 +15,7 @@ const items = [
 ]
 
 function BottomNavExample() {
-	const [active, setActive] = useState('home')
+	const [active, setActive] = useState<string | undefined>('home')
 
 	return (
 		<Card bg="none" className="relative">

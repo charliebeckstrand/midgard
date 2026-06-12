@@ -1,6 +1,11 @@
 import { Button } from '../../../components/button'
 import { ColorPicker } from '../../../components/color'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	useComboboxQuery,
+} from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
@@ -11,6 +16,20 @@ import { screen, waitFor } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
+
+function FilteredPeople() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return interactivePeople
+		.filter(
+			(person) => !deferredQuery || person.toLowerCase().includes(deferredQuery.toLowerCase()),
+		)
+		.map((person) => (
+			<ComboboxOption key={person} value={person}>
+				<ComboboxLabel>{person}</ComboboxLabel>
+			</ComboboxOption>
+		))
+}
 
 /**
  * Interactive corpus: overlays with no controlled-open prop. Each case carries
@@ -42,15 +61,7 @@ export const interactive: readonly InteractiveCase[] = [
 		<Field key="icb">
 			<Label>Assignee</Label>
 			<Combobox displayValue={(value: string) => value} placeholder="Select a person">
-				{(query) =>
-					interactivePeople
-						.filter((person) => !query || person.toLowerCase().includes(query.toLowerCase()))
-						.map((person) => (
-							<ComboboxOption key={person} value={person}>
-								<ComboboxLabel>{person}</ComboboxLabel>
-							</ComboboxOption>
-						))
-				}
+				<FilteredPeople />
 			</Combobox>
 		</Field>,
 		async (user) => {
