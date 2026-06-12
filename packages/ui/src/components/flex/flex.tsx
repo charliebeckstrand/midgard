@@ -38,11 +38,7 @@ export type FlexProps = {
 	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/**
- * Undefaulted flex container underlying Flex and Stack. No default gap,
- * alignment, or Density inheritance; children stretch naturally. Reach for
- * it directly when a structural wrapper must stay inert to context.
- */
+/** Undefaulted flex container underlying Flex and Stack: no gap, alignment, or Density inheritance. */
 export function FlexBase({
 	direction,
 	gap,
