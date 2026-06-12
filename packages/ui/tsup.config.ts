@@ -33,6 +33,11 @@ const entry = {
 	...providerEntries,
 }
 
+// No 'use client' banner: a blanket banner stamps the directive onto every
+// output module and would mark the static (server-renderable) components as
+// client the day dist ships. Consumers import source (the exports map points
+// at ./src), where per-file directives are authoritative; dist is a build
+// artifact, not the consumption surface.
 export default defineConfig({
 	entry,
 	format: ['esm'],
@@ -42,5 +47,4 @@ export default defineConfig({
 	dts: false,
 	sourcemap: true,
 	splitting: true,
-	banner: { js: "'use client'" },
 })

@@ -26,7 +26,24 @@
 
 **Escape hatches** — `headless`
 
-## 2. Hooks, primitives, providers
+## 2. Server and client boundaries
+
+The library splits into two tiers. **Static components** carry no `'use client'` directive and read no context, so they render in React Server Components; size and spacing are explicit props with `md` recipe defaults. **Client components** keep `'use client'` in their own file (per [CONVENTIONS.md](../../CONVENTIONS.md) §2.2) and may read context freely.
+
+The boundary rule: ambient styling state crosses the server/client boundary through the DOM, never through React context. Context cannot reach a server-rendered child passed through a client parent; data attributes and CSS can. Concretely:
+
+- Hosts size their slot indicators with recipe projections: `shaku.icon` rows on Button/Badge/Sidebar, stepped-down icon and spinner rows on the control affix slots (`kiso/control/affix`). A projection owns its slot; an explicit `size` on a slot icon or spinner does not override it.
+- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes. Direct-child selectors keep nested instances independent.
+- `AffixContext` remains for client slot children (a Button inside an Input affix still steps down); static leaves never read it.
+- `DensityProvider` reaches client components only (Input, Button, Table, Tabs, …). Static atoms ignore it; pass `size`/`space`/`gap` explicitly. A Badge in a control affix slot takes `size` one step below the control: the affix compensation constants assume the stepped-down chip.
+- Loading UI is composed explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.6); the variants are themselves static.
+- Static leaves that link route through `PolymorphicStatic`: `href` renders a plain anchor, `render={<Link />}` composes the app router link per call site. Client components keep `Polymorphic`, which resolves the `<UIProvider>`-registered link from context.
+
+Two guards pin the contract: `static-component-boundary.test.ts` scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports; `apps/admin/app/rsc-probe` renders the static surface from a server page so `next build` catches transitive client-only pulls.
+
+Follow-up candidates that still read ambient context for styling or formatting only: `locale` (formatting leaves), `glass`, `table`'s density read, and `dl`'s orientation context.
+
+## 3. Hooks, primitives, providers
 
 **Hooks** (`ui/hooks`):
 
@@ -39,11 +56,11 @@
 
 **Primitives** (`ui/primitives/<name>`) — `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
 
-**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `skeleton`, `toast`.
+**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `toast`. Providers configure client components; static components take explicit props (§2).
 
 The screen-reader announcer needs no provider: import the imperative `announce` from `ui/core` for one-off messages, or `useA11yAnnouncements` (hooks) to narrate a changing value. Its live region is created on `document.body` on first use.
 
-## 3. Recipes
+## 4. Recipes
 
 Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
 
@@ -53,7 +70,7 @@ Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
 
 A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props. The three ways a kata reaches the layers below, the boundary contract (cross-layer value imports are forbidden, pinned by tests), and the per-archetype tables live in [`src/recipes/README.md`](src/recipes/README.md).
 
-## 4. Composing a new component
+## 5. Composing a new component
 
 ```
 packages/ui/src/components/<name>/
@@ -71,7 +88,7 @@ When the folder name is plural, the singular stem prefixes its sub-files (`tabs/
 
 Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
 
-## 5. Commands
+## 6. Commands
 
 | Goal | Where | Command |
 |---|---|---|
@@ -81,7 +98,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a de
 | Tests (scoped) | `packages/ui` | `pnpm test:related` / `pnpm test:changed` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
 
-## 6. Where to look
+## 7. Where to look
 
 | Goal | Path |
 |---|---|

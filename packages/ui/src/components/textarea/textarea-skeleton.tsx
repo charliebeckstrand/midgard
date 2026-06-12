@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/textarea'
 import { Placeholder } from '../placeholder'
