@@ -1,11 +1,13 @@
 {
 	"compilerOptions": {
-		"target": "ES2022",
+		"target": "ES2023",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"esModuleInterop": true,
 		"strict": true,
 		"noUncheckedIndexedAccess": true,
+		"noImplicitReturns": true,
+		"erasableSyntaxOnly": true,
 		"skipLibCheck": true,
 		"declaration": true,
 		"declarationMap": true,
@@ -13,7 +15,7 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"verbatimModuleSyntax": true,
-		"lib": ["ES2022"],
+		"lib": ["ES2023"],
 		"paths": {
 			"@/*": ["./src/*"]
 		}

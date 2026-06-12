@@ -42,11 +42,11 @@ function formatInternational(raw: string) {
 	return hasPlus ? `+${digits}` : digits
 }
 
-const formatters: Record<PhoneInputCountry, (raw: string) => string> = {
+const formatters = {
 	US: formatNANP,
 	CA: formatNANP,
 	international: formatInternational,
-}
+} satisfies Record<PhoneInputCountry, (raw: string) => string>
 
 /** Phone-number MaskInput: formats per `country` (NANP for `'US'`/`'CA'`, digit-and-`+` for `'international'`) with a leading phone-icon `prefix`. */
 export function PhoneInput({ country = 'US', prefix, ...props }: PhoneInputProps) {

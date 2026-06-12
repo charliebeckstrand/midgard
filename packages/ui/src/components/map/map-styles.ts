@@ -27,7 +27,7 @@ function rasterStyle(tiles: string[], attribution: string, maxzoom = 19): StyleS
 	}
 }
 
-export const mapPresets: Record<MapPreset, string | StyleSpecification> = {
+export const mapPresets = {
 	demo: DEMO,
 	osm: rasterStyle(
 		['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
@@ -55,4 +55,4 @@ export const mapPresets: Record<MapPreset, string | StyleSpecification> = {
 		],
 		'Tiles © Esri',
 	),
-}
+} satisfies Record<MapPreset, string | StyleSpecification>

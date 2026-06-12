@@ -43,7 +43,7 @@ export type ResponsiveJustify = Responsive<FlexJustify>
 // cannot see classes built by string interpolation. The `initial` row reuses
 // the base map; every breakpoint row is a literal, and `sm:gap-2`,
 // `lg:justify-between`, etc. exist verbatim in source.
-const responsiveDirectionMap: Record<Breakpoint, Record<FlexDirection, string>> = {
+const responsiveDirectionMap = {
 	initial: directionMap,
 	sm: {
 		row: 'sm:flex-row',
@@ -75,9 +75,9 @@ const responsiveDirectionMap: Record<Breakpoint, Record<FlexDirection, string>> 
 		'row-reverse': '2xl:flex-row-reverse',
 		'col-reverse': '2xl:flex-col-reverse',
 	},
-}
+} satisfies Record<Breakpoint, Record<FlexDirection, string>>
 
-const responsiveAlignMap: Record<Breakpoint, Record<FlexAlign, string>> = {
+const responsiveAlignMap = {
 	initial: alignMap,
 	sm: {
 		start: 'sm:items-start',
@@ -114,9 +114,9 @@ const responsiveAlignMap: Record<Breakpoint, Record<FlexAlign, string>> = {
 		stretch: '2xl:items-stretch',
 		baseline: '2xl:items-baseline',
 	},
-}
+} satisfies Record<Breakpoint, Record<FlexAlign, string>>
 
-const responsiveGapMap: Record<Breakpoint, Record<FlexGap, string>> = {
+const responsiveGapMap = {
 	initial: gapMap,
 	sm: {
 		0: 'sm:gap-0',
@@ -158,9 +158,9 @@ const responsiveGapMap: Record<Breakpoint, Record<FlexGap, string>> = {
 		lg: '2xl:gap-4',
 		xl: '2xl:gap-6',
 	},
-}
+} satisfies Record<Breakpoint, Record<FlexGap, string>>
 
-const responsiveJustifyMap: Record<Breakpoint, Record<FlexJustify, string>> = {
+const responsiveJustifyMap = {
 	initial: justifyMap,
 	sm: {
 		start: 'sm:justify-start',
@@ -202,7 +202,7 @@ const responsiveJustifyMap: Record<Breakpoint, Record<FlexJustify, string>> = {
 		around: '2xl:justify-around',
 		evenly: '2xl:justify-evenly',
 	},
-}
+} satisfies Record<Breakpoint, Record<FlexJustify, string>>
 
 export function resolveDirection(value: ResponsiveDirection | undefined): string[] {
 	return resolveResponsive(value, (v, bp) => responsiveDirectionMap[bp ?? 'initial'][v])

@@ -11,7 +11,7 @@ const { size, weight } = ji
  * structural rail). The `before:` / `after:` prefixes are verbatim class
  * literals: Tailwind's scanner requires literal strings for class discovery.
  */
-const palette: Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }> = {
+const palette = {
 	zinc: {
 		dot: marker.zinc,
 		lineBefore: 'before:bg-zinc-200 dark:before:bg-zinc-700',
@@ -37,7 +37,7 @@ const palette: Record<Color, { dot: string[]; lineBefore: string; lineAfter: str
 		lineBefore: 'before:bg-blue-600 dark:before:bg-blue-500',
 		lineAfter: 'after:bg-blue-600 dark:after:bg-blue-500',
 	},
-}
+} satisfies Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }>
 
 const root = defineRecipe({
 	base: ['list-none p-0 m-0'],

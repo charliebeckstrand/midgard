@@ -39,11 +39,11 @@ type DensityToken = {
 type DensityInput = Partial<DensityToken> & { scale?: Step }
 
 /** Diagonal preset table: `scale="md"` resolves to `{ space: 'md', size: 'md' }`. */
-export const densityPresets: Record<Step, DensityToken> = {
+export const densityPresets = {
 	sm: { space: 'sm', size: 'sm' },
 	md: { space: 'md', size: 'md' },
 	lg: { space: 'lg', size: 'lg' },
-}
+} satisfies Record<Step, DensityToken>
 
 const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,

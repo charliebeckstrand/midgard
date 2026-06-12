@@ -14,8 +14,8 @@ export const densityLevels: { label: string; value: DensityLevel }[] = [
  * by `<DensityProvider>`. 1:1 mapping (`loose` → `lg`, `snug` → `md`,
  * `compact` → `sm`); `snug` / `md` is the baseline outside any provider.
  */
-export const densityToSize: Record<DensityLevel, Step> = {
+export const densityToSize = {
 	loose: 'lg',
 	snug: 'md',
 	compact: 'sm',
-}
+} satisfies Record<DensityLevel, Step>

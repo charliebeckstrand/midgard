@@ -13,7 +13,7 @@ import { Box, type BoxPadding } from '../box'
 import { usePopoverContext } from './context'
 
 // Surface padding scales with the resolved Density size; overridable per-instance via `p`.
-const paddingForSize: Record<Step, BoxPadding> = { sm: 'md', md: 'lg', lg: 'xl' }
+const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, BoxPadding>
 
 export type PopoverContentProps = {
 	className?: string

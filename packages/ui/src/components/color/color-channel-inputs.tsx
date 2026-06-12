@@ -23,12 +23,12 @@ export function ColorChannelInputs() {
 	const rgba = hsvaToRgba(hsva)
 
 	// What each field shows at rest, derived from the live colour.
-	const derived: Record<Channel, string> = {
+	const derived = {
 		r: String(rgba.r),
 		g: String(rgba.g),
 		b: String(rgba.b),
 		a: String(Math.round(hsva.a * 100)),
-	}
+	} satisfies Record<Channel, string>
 
 	const { draftProps, setDraft } = useColorField(derived)
 

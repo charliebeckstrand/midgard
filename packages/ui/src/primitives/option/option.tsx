@@ -9,11 +9,11 @@ import { useDensity } from '../density'
 
 // Mirrors `<Icon>`'s size scale for the Density steps an option row can carry.
 // Local to this primitive; does not import `<Icon>` from `components/`.
-const checkIconSize: Record<Step, string> = {
+const checkIconSize = {
 	sm: 'size-4',
 	md: 'size-5',
 	lg: 'size-6',
-}
+} satisfies Record<Step, string>
 
 type BaseOptionProps = {
 	className?: string

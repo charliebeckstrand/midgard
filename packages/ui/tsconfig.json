@@ -3,9 +3,8 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["node", "vitest/globals"],
-		"noImplicitReturns": true
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"types": ["node", "vitest/globals"]
 	},
 	"include": ["src", "tsup.config.ts"],
 	"exclude": ["src/docs", "src/__benchmarks__/docs"]

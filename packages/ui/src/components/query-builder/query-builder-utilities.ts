@@ -48,7 +48,7 @@ function defaultValueFor(field?: QueryField): unknown {
 	return ''
 }
 
-const defaultOperators: Record<QueryFieldType, QueryOperator[]> = {
+const defaultOperators = {
 	text: [
 		{ value: 'equals', label: 'equals' },
 		{ value: 'notEquals', label: 'does not equal' },
@@ -79,7 +79,7 @@ const defaultOperators: Record<QueryFieldType, QueryOperator[]> = {
 		{ value: 'isTrue', label: 'is true', noValue: true },
 		{ value: 'isFalse', label: 'is false', noValue: true },
 	],
-}
+} satisfies Record<QueryFieldType, QueryOperator[]>
 
 export function getOperators(field: QueryField): QueryOperator[] {
 	return field.operators ?? defaultOperators[field.type] ?? []

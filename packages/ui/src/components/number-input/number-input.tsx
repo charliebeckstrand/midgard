@@ -12,11 +12,11 @@ import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
-const padding: Record<ControlSize, string> = {
+const padding = {
 	sm: 'pr-16',
 	md: 'pr-18',
 	lg: 'pr-20',
-}
+} satisfies Record<ControlSize, string>
 
 export type NumberInputProps = Omit<
 	InputProps,
