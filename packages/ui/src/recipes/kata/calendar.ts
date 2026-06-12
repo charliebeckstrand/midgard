@@ -29,9 +29,9 @@ const header = defineRecipe({
 const footer = defineRecipe({
 	base: [flex.row, 'justify-center'],
 	size: {
-		sm: 'pb-1 gap-1',
-		md: 'pb-1 gap-2',
-		lg: 'pb-3 gap-3',
+		sm: 'gap-1',
+		md: 'gap-2',
+		lg: 'gap-3',
 	},
 	defaults: { size: 'md' },
 })

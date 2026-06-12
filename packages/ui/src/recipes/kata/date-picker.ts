@@ -1,9 +1,10 @@
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro } from '../kiso'
+import { hannou, iro, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
 const { cursor } = hannou
+const { focus } = sen
 const { text } = iro
 const { reset, density, size, surface } = control
 const { portal, panel } = popover
@@ -16,7 +17,7 @@ const button = defineRecipe({
 })
 
 const value = defineRecipe({
-	base: ['block'],
+	base: 'block',
 	truncate: {
 		true: 'truncate',
 		false: '',
@@ -34,7 +35,7 @@ export const k = {
 	icon: ['flex items-center', 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	content: {
-		portal,
+		portal: [focus.ring, ...portal],
 		motion: panel.motion,
 		text: text.default,
 		glass: panel.glass,
