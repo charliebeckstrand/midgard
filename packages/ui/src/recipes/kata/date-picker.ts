@@ -24,6 +24,18 @@ const value = defineRecipe({
 	defaults: { truncate: true },
 })
 
+// Portal-only inset around the Calendar and below the footer; an inline
+// Calendar carries no chrome of its own, so this lives here, not in the
+// calendar kata.
+const body = defineRecipe({
+	density: {
+		sm: 'p-2',
+		md: 'p-3',
+		lg: 'p-4',
+	},
+	defaults: { density: 'md' },
+})
+
 export const k = {
 	surface: {
 		default: surface.default,
@@ -38,5 +50,6 @@ export const k = {
 		motion: panel.motion,
 		text: text.default,
 		glass: panel.glass,
+		body,
 	},
 }

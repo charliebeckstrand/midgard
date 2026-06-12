@@ -105,7 +105,12 @@ export function DatePickerContent({
 									onMouseDown={(e) => e.preventDefault()}
 								>
 									<Density scale={size}>
-										<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg">
+										<Box
+											bg={glass ? 'none' : 'popover'}
+											outline={glass || undefined}
+											radius="lg"
+											className={k.content.body({ density: size })}
+										>
 											{children}
 										</Box>
 									</Density>
