@@ -82,7 +82,7 @@ export function DatePickerContent({
 								aria-modal="true"
 								aria-label="Choose date"
 								style={floatingStyles}
-								className={k.content.portal}
+								className={cn(k.content.portal)}
 								tabIndex={-1}
 								{...getFloatingProps({
 									// Composed through floating-ui; its own handlers merge
