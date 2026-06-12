@@ -1,16 +1,13 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { type FocusEvent, useState } from 'react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
-import { formatDateValue } from '../date-input/date-input-utilities'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
-import { DatePickerInputToggle } from './date-picker-input-toggle'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerState } from './use-date-picker-state'
@@ -21,13 +18,12 @@ export type DatePickerSingleProps = {
 	defaultValue?: Date
 	onValueChange?: (value: Date | undefined) => void
 	/**
-	 * Shows a suffix toggle that swaps the popover trigger for a DateInput,
-	 * letting the user type the date in place; moving focus out of the input
-	 * returns to the trigger. While set, the trigger label renders through
-	 * `format` instead of the locale string, so both modes read identically.
+	 * Renders a typed DateInput in place of the popover trigger. The calendar
+	 * icon becomes a labeled suffix button that opens the calendar, and a
+	 * picked date writes back into the input.
 	 */
 	input?: boolean
-	/** Pattern for the typed date, and for the trigger label while `input` is set. @default 'MM/DD/YYYY' */
+	/** Pattern for the typed date while `input` is set. @default 'MM/DD/YYYY' */
 	format?: DateInputFormat
 }
 
@@ -69,7 +65,8 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
  * Popover date picker wrapping a Calendar; switches between single and range
  * selection on the `range` prop, and supports controlled or uncontrolled `value`.
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
- * With `input`, a suffix toggle swaps the trigger for a typed DateInput.
+ * With `input`, a typed DateInput replaces the trigger and the calendar opens
+ * from its suffix button.
  */
 export function DatePicker(props: DatePickerProps) {
 	const inherited = useDensity()
@@ -98,62 +95,64 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const state = useDatePickerState(props)
 
-	const [typing, setTyping] = useState(false)
-
-	// Leaving the control returns to the trigger and re-shows the toggle; a
-	// focus hop to the control's own calendar button stays in input mode.
-	const exitOnFocusLeave = (event: FocusEvent<HTMLElement>) => {
-		const frame = event.currentTarget.closest('[data-slot=control-frame]')
-
-		if (frame && event.relatedTarget instanceof Node && frame.contains(event.relatedTarget)) return
-
-		setTyping(false)
-	}
-
-	if (input && typing) {
-		return (
-			<DateInput
-				data-slot="datepicker-input"
-				autoFocus
-				// Entering with a date selects it, so typing replaces it outright.
-				onFocus={(event) => event.currentTarget.select()}
-				onBlur={exitOnFocusLeave}
-				value={state.value ?? null}
-				onValueChange={state.setValue}
-				format={format}
+	const content = (
+		<DatePickerContent
+			open={state.open}
+			setFloating={state.setFloating}
+			floatingStyles={state.floatingStyles}
+			getFloatingProps={state.getFloatingProps}
+			context={state.context}
+			size={size}
+			onKeyDown={state.onTriggerKeyDown}
+		>
+			<Calendar
+				ref={state.calendar.calendarRef}
+				value={state.calendar.value}
+				onValueChange={state.calendar.onValueChange}
 				min={props.min}
 				max={props.max}
-				size={size}
-				disabled={state.disabled}
-				placeholder={props.placeholder}
-				aria-label={ariaLabel}
-				suffix={
-					<DatePickerCalendarButton
-						disabled={state.disabled}
-						// Keeps focus on the input so the press, not a blur,
-						// drives the mode switch.
-						onMouseDown={(event) => event.preventDefault()}
-						onBlur={exitOnFocusLeave}
-						// No trigger refocus: the opening dialog takes focus, as on
-						// any other open.
-						onActivate={() => {
-							setTyping(false)
-
-							state.onOpenChange(true)
-						}}
-					/>
-				}
-				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
+				active={state.calendar.active}
+				footerRef={state.calendar.footerRef}
 			/>
+			<DatePickerFooter {...state.footer} />
+		</DatePickerContent>
+	)
+
+	if (input) {
+		return (
+			<div className="contents">
+				<div
+					data-slot="control"
+					ref={state.setReference}
+					className={className}
+					{...state.getReferenceProps()}
+				>
+					<DateInput
+						data-slot="datepicker-input"
+						value={state.value ?? null}
+						onValueChange={state.setValue}
+						format={format}
+						min={props.min}
+						max={props.max}
+						size={size}
+						disabled={state.disabled}
+						placeholder={props.placeholder}
+						aria-label={ariaLabel}
+						suffix={
+							<DatePickerCalendarButton
+								open={state.open}
+								disabled={state.disabled}
+								onActivate={() => state.onOpenChange(!state.open)}
+							/>
+						}
+						data-group={dataGroup}
+						data-group-orientation={dataGroupOrientation}
+					/>
+				</div>
+				{content}
+			</div>
 		)
 	}
-
-	// In input mode the trigger reads through the same format the DateInput
-	// writes, so toggling does not change the text.
-	const displayValue =
-		input && state.value ? formatDateValue(state.value, format) : state.displayValue
 
 	return (
 		<div className="contents">
@@ -164,7 +163,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
-				displayValue={displayValue}
+				displayValue={state.displayValue}
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
@@ -173,42 +172,11 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
-				suffix={
-					input ? (
-						<DatePickerInputToggle
-							disabled={state.disabled}
-							onActivate={() => {
-								state.onOpenChange(false)
-
-								setTyping(true)
-							}}
-						/>
-					) : undefined
-				}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 			/>
-			<DatePickerContent
-				open={state.open}
-				setFloating={state.setFloating}
-				floatingStyles={state.floatingStyles}
-				getFloatingProps={state.getFloatingProps}
-				context={state.context}
-				size={size}
-				onKeyDown={state.onTriggerKeyDown}
-			>
-				<Calendar
-					ref={state.calendar.calendarRef}
-					value={state.calendar.value}
-					onValueChange={state.calendar.onValueChange}
-					min={props.min}
-					max={props.max}
-					active={state.calendar.active}
-					footerRef={state.calendar.footerRef}
-				/>
-				<DatePickerFooter {...state.footer} />
-			</DatePickerContent>
+			{content}
 		</div>
 	)
 }

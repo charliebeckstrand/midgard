@@ -1,30 +1,21 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import type { FocusEventHandler, MouseEventHandler } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 type DatePickerCalendarButtonProps = {
-	open?: boolean
+	open: boolean
 	disabled?: boolean
 	onActivate: () => void
-	onMouseDown?: MouseEventHandler<HTMLButtonElement>
-	onBlur?: FocusEventHandler<HTMLButtonElement>
 }
 
-/**
- * The calendar-icon suffix button an `input`-enabled picker renders in both
- * modes: on the trigger it opens the popover; on the DateInput it leaves
- * input mode and opens the popover in one press.
- */
+/** Calendar-icon suffix button that opens an `input`-enabled picker's popover. */
 export function DatePickerCalendarButton({
-	open = false,
+	open,
 	disabled,
 	onActivate,
-	onMouseDown,
-	onBlur,
 }: DatePickerCalendarButtonProps) {
 	return (
 		<Tooltip>
@@ -35,9 +26,7 @@ export function DatePickerCalendarButton({
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					disabled={disabled}
-					onMouseDown={onMouseDown}
 					onClick={onActivate}
-					onBlur={onBlur}
 				>
 					<Icon icon={<CalendarIcon />} />
 				</Button>

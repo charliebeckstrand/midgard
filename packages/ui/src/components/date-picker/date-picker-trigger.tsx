@@ -1,11 +1,10 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, type ReactNode, useRef } from 'react'
+import { type KeyboardEvent, useRef } from 'react'
 
 import { cn, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
@@ -14,7 +13,6 @@ import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
-import { DatePickerCalendarButton } from './date-picker-calendar-button'
 
 // Calendar icon is one step smaller than the trigger size.
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
@@ -37,12 +35,6 @@ type DatePickerTriggerProps = {
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
-	/**
-	 * Rendered in a standard suffix slot after the trigger button, inside the
-	 * same frame. The calendar icon moves into the slot after this content as
-	 * a labeled button that opens the popover.
-	 */
-	suffix?: ReactNode
 	className?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
@@ -64,7 +56,6 @@ export function DatePickerTrigger({
 	required = false,
 	invalid = false,
 	onKeyDown,
-	suffix,
 	className,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
@@ -72,8 +63,6 @@ export function DatePickerTrigger({
 	const glass = useGlass()
 
 	const valueRef = useRef<HTMLSpanElement>(null)
-
-	const buttonRef = useRef<HTMLButtonElement>(null)
 
 	const isTruncated = useIsTruncated(valueRef, displayValue)
 
@@ -93,7 +82,6 @@ export function DatePickerTrigger({
 			>
 				<Headless>
 					<Button
-						ref={buttonRef}
 						type="button"
 						id={triggerId}
 						aria-label={ariaLabel}
@@ -115,31 +103,11 @@ export function DatePickerTrigger({
 							<TooltipTrigger>{valueNode}</TooltipTrigger>
 							<TooltipContent>{displayValue}</TooltipContent>
 						</Tooltip>
-						{suffix == null && (
-							<span className={cn(k.icon)}>
-								<Icon icon={<CalendarIcon />} size={iconSize[size]} />
-							</span>
-						)}
+						<span className={cn(k.icon)}>
+							<Icon icon={<CalendarIcon />} size={iconSize[size]} />
+						</span>
 					</Button>
 				</Headless>
-				{suffix != null && (
-					<AffixContext value={affixStepDown(size)}>
-						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
-							{suffix}
-							<DatePickerCalendarButton
-								open={open}
-								disabled={disabled}
-								// Keyboard handling for the open dialog lives on the trigger
-								// button; seat focus there so arrows reach the grid.
-								onActivate={() => {
-									buttonRef.current?.focus()
-
-									onOpenChange(!open)
-								}}
-							/>
-						</span>
-					</AffixContext>
-				)}
 			</ControlFrame>
 		</div>
 	)
