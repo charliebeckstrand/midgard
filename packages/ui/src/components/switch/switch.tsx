@@ -70,6 +70,7 @@ export function Switch({
 		if (isControlled) return
 
 		const input = inputRef.current
+
 		const form = input?.form
 
 		if (!form) return

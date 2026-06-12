@@ -1,44 +1,42 @@
-import { useState } from 'react'
 import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 import { Example } from '../components/example'
-import { SizeListbox } from '../components/size-listbox'
 
 export const meta = { category: 'Forms' }
 
-const sizes = ['sm', 'md', 'lg'] as const
-
-type Size = (typeof sizes)[number]
+const sizes = [
+	{
+		value: 'sm',
+		label: 'Small',
+	},
+	{
+		value: 'md',
+		label: 'Medium',
+	},
+	{
+		value: 'lg',
+		label: 'Large',
+	},
+] as const
 
 export function Demo() {
-	const [size, setSize] = useState<Size>('md')
-
 	return (
 		<>
-			<Example
-				title="Default"
-				actions={<SizeListbox sizes={sizes} value={size} onValueChange={setSize} />}
-			>
-				<SwitchField size={size}>
+			<Example title="Default">
+				<SwitchField>
 					<Label>Notifications</Label>
 					<Description>Receive email notifications for new activity.</Description>
-					<Switch size={size} />
+					<Switch />
 				</SwitchField>
 			</Example>
 
 			<Example title="Sizes">
-				<SwitchField size="sm">
-					<Label>Small</Label>
-					<Switch size="sm" />
-				</SwitchField>
-				<SwitchField size="md">
-					<Label>Medium</Label>
-					<Switch size="md" defaultChecked />
-				</SwitchField>
-				<SwitchField size="lg">
-					<Label>Large</Label>
-					<Switch size="lg" />
-				</SwitchField>
+				{sizes.map(({ value, label }) => (
+					<SwitchField key={value}>
+						<Label>{label}</Label>
+						<Switch size={value} defaultChecked />
+					</SwitchField>
+				))}
 			</Example>
 
 			<Example title="Colors">

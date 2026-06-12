@@ -2,10 +2,10 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k, type SwitchFieldVariants } from '../../recipes/kata/switch'
+import { k } from '../../recipes/kata/switch'
 import { ControlField } from '../control/control-field'
 
-export type SwitchFieldProps = SwitchFieldVariants & {
+export type SwitchFieldProps = {
 	className?: string
 	htmlFor?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
@@ -15,10 +15,10 @@ export type SwitchFieldProps = SwitchFieldVariants & {
  * through `ControlContext`; the inner Switch and Label auto-wire without
  * the consumer touching `id` / `htmlFor`. Pass `htmlFor` to pin the id.
  */
-export function SwitchField({ className, htmlFor, size, ...props }: SwitchFieldProps) {
+export function SwitchField({ className, htmlFor, ...props }: SwitchFieldProps) {
 	return (
 		<ControlField htmlFor={htmlFor}>
-			<div data-slot="field" className={cn(k.field({ size }), k.disabled, className)} {...props} />
+			<div data-slot="field" className={cn(k.field(), k.disabled, className)} {...props} />
 		</ControlField>
 	)
 }
