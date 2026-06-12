@@ -18,7 +18,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -56,7 +56,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -94,7 +94,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -105,7 +105,7 @@
 									},
 									{
 										"group": ["**/components/**", "**/layouts/**"],
-										"message": "Primitives must not reach upward into the component / layout layer."
+										"message": "Primitives must not import from components or layouts."
 									},
 									{
 										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
@@ -135,7 +135,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -151,7 +151,7 @@
 									{
 										"group": ["**/recipes", "**/recipes/**"],
 										"importNamePattern": "Ma",
-										"message": "Only variants.ts may import Ma — derive size from the kata's VariantProps instead."
+										"message": "Only variants.ts may import Ma. Derive size from the kata's VariantProps."
 									}
 								]
 							}
@@ -175,7 +175,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -206,7 +206,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
@@ -225,7 +225,7 @@
 											"**/hooks/**",
 											"**/providers/**"
 										],
-										"message": "kiso sits at the bottom of the recipe stack — no upward imports."
+										"message": "kiso sits at the bottom of the recipe stack and must not import upward."
 									}
 								]
 							}
@@ -255,13 +255,13 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
 									{
 										"group": ["**/kiso", "**/kiso/**"],
-										"message": "katakana must not reference kiso — declare the token contract in the bridge and inject from the kata."
+										"message": "katakana must not reference kiso. Declare the token contract in the bridge and inject from the kata."
 									}
 								]
 							}
@@ -282,7 +282,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								}
 							}
@@ -302,7 +302,7 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								}
 							}
@@ -344,13 +344,13 @@
 								"paths": {
 									"react": {
 										"importNames": ["createContext"],
-										"message": "createContext from react is sanctioned only in core/create-context.ts — use the core/createContext helper."
+										"message": "Import createContext from react only in core/create-context.ts. Use the core/createContext helper elsewhere."
 									}
 								},
 								"patterns": [
 									{
 										"group": ["**/kata/**", "**/katakana/**"],
-										"message": "The recipes barrel must not re-export kata/katakana internals — only kiso/core types flow through it."
+										"message": "The recipes barrel must not re-export kata or katakana internals. Only kiso and core types flow through it."
 									}
 								]
 							}

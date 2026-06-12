@@ -9,6 +9,6 @@ or {
 	$name <: r"Use[A-Z]\w*",
 	register_diagnostic(
 		span = $name,
-		message = "Type/interface names must not use a `Use` prefix — drop it (e.g. UseFooOptions → FooOptions)."
+		message = "Type names must not carry a `Use` prefix. Rename UseFooOptions to FooOptions."
 	)
 }

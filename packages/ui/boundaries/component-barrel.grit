@@ -26,6 +26,6 @@ JsExport() as $export where {
 	},
 	register_diagnostic(
 		span = $src,
-		message = "Component barrel re-exports a sibling's files — re-export only from `./…` or the owning `recipes/kata/<name>`."
+		message = "Component barrel re-exports a sibling's files. Re-export only from within the folder or from the owning `recipes/kata/<name>`."
 	)
 }

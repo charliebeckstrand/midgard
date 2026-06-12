@@ -1,4 +1,4 @@
-// Rendering `<XxxContext value={…}>` makes the module a client module: the
+// Rendering `<XxxContext value={...}>` makes the module a client module: the
 // package's subpath exports resolve to raw source, so a missing directive
 // surfaces as an RSC crash only at runtime in a consuming Next app.
 or {
@@ -11,6 +11,6 @@ or {
 	},
 	register_diagnostic(
 		span = $tag,
-		message = "Context provider rendered without 'use client' (crashes in RSC) — add the directive at the top of the module."
+		message = "Context provider rendered without 'use client'. Add the directive at the top of the module; without it the module crashes in RSC."
 	)
 }

@@ -54,7 +54,7 @@
 								"patterns": [
 									{
 										"group": ["ui/recipes", "ui/recipes/**"],
-										"message": "The recipe layer is internal to the ui package — import from the component subpath exports instead."
+										"message": "The recipe layer is internal to the ui package. Import from the component subpath exports."
 									}
 								]
 							}

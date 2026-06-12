@@ -4,6 +4,6 @@
 `dataSlot` where {
 	register_diagnostic(
 		span = $match,
-		message = "Found the banned `dataSlot` identifier — expose the slot as the native `data-slot` attribute instead."
+		message = "The `dataSlot` identifier is banned. Expose the slot as the native `data-slot` attribute."
 	)
 }

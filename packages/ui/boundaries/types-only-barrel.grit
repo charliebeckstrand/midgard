@@ -1,6 +1,6 @@
 // The recipes barrel (src/recipes/index.ts) surfaces types only. Every
-// `export` must carry the `type` keyword (`export type {…}` or
-// `export { type X, type Y }`); bare `export {…}`, `export *`, or value
+// `export` must carry the `type` keyword (`export type {...}` or
+// `export { type X, type Y }`); bare `export {...}`, `export *`, or value
 // declarations leak runtime values through the barrel.
 or {
 	JsExport(export_clause = $clause) where {
@@ -15,7 +15,7 @@ or {
 		},
 		register_diagnostic(
 			span = $spec,
-			message = "The recipes barrel is types-only — this export leaks a runtime value."
+			message = "This export leaks a runtime value through the types-only recipes barrel."
 		)
 	},
 	JsExport(export_clause = $clause) where {
@@ -27,7 +27,7 @@ or {
 		},
 		register_diagnostic(
 			span = $clause,
-			message = "The recipes barrel is types-only — this export leaks a runtime value."
+			message = "This export leaks a runtime value through the types-only recipes barrel."
 		)
 	}
 }

@@ -14,7 +14,7 @@ or {
 		$literal <: r"[\s\S]*\b(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b[\s\S]*",
 		register_diagnostic(
 			span = $literal,
-			message = "Legacy renamed spacing utility — compose Tailwind natives from `ma`'s values via a `Record<Ma, string>` lookup."
+			message = "Legacy renamed spacing utility. Compose Tailwind natives from `ma` values via a `Record<Ma, string>` lookup."
 		)
 	},
 	or { JsStringLiteralExpression(), JsTemplateChunkElement() } as $literal where {
@@ -22,7 +22,7 @@ or {
 		$filename <: not r"[\s\S]*(?:recipes/kiso/control/affix\.ts|recipes/kata/button\.ts)",
 		register_diagnostic(
 			span = $literal,
-			message = "Inline `calc(--spacing(…))` — use kasane.p / px / py / pl / pr instead."
+			message = "Inline `calc(--spacing(...))` belongs in kiso/kasane. Use kasane.p / px / py / pl / pr."
 		)
 	}
 }

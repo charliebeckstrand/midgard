@@ -10,6 +10,6 @@ or {
 	$dir <: $base,
 	register_diagnostic(
 		span = $src,
-		message = "Sibling main file imported deeply — use the barrel `'../<name>'` instead."
+		message = "Deep import of a sibling component's main file. Import the barrel `'../<name>'` instead."
 	)
 }
