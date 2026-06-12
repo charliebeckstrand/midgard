@@ -1,5 +1,3 @@
-'use client'
-
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
 import {
