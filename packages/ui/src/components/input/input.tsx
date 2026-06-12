@@ -81,7 +81,7 @@ export function Input(props: InputProps) {
 		required,
 		readOnly,
 		'aria-describedby': ariaDescribedBy,
-		binding: valueState.binding,
+		invalid: valueState.invalid,
 	})
 
 	const scope = useIdScope({ id: sharedAttrs.id })

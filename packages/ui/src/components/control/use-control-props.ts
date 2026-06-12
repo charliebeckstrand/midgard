@@ -3,10 +3,6 @@
 import { useAriaIds } from '../../hooks'
 import { useControl } from './context'
 
-type FieldBinding = {
-	invalid?: boolean
-}
-
 export type ControlPropsOptions = {
 	id?: string
 	autoComplete?: string
@@ -16,11 +12,11 @@ export type ControlPropsOptions = {
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's own ids. */
 	'aria-describedby'?: string
 	/**
-	 * Form binding (from `useFormText` / `useFormToggle`). Its `invalid` flag is
-	 * OR'd with the Control context's `invalid`; an external form error and an
-	 * ambient `<Field invalid>` both surface.
+	 * Form-bound invalid state (from `useInputValue` / `useFormValue` /
+	 * `useFormToggle`); OR's with the Control context's `invalid` so an
+	 * external form error and an ambient `<Field invalid>` both surface.
 	 */
-	binding?: FieldBinding
+	invalid?: boolean
 }
 
 export type ControlPropsResult = {
@@ -38,8 +34,8 @@ export type ControlPropsResult = {
  * id, autoComplete, disabled, required, readOnly, invalid.
  *
  * Resolution order: explicit input wins, then the wrapping `<Control>` /
- * `<Field>` context. `invalid` additionally OR's with the form binding's
- * invalid flag.
+ * `<Field>` context. `invalid` instead OR's the form-bound flag with the
+ * context's.
  *
  * Does **not** resolve size; every field reads `useDensity()` directly
  * (input / textarea / switch / etc. compose `size ?? control?.size` against
@@ -47,7 +43,7 @@ export type ControlPropsResult = {
  *
  * @example
  *   const { id, disabled, required, invalid } = useControlProps({
- *     id: idProp, disabled: disabledProp, required: requiredProp, binding,
+ *     id: idProp, disabled: disabledProp, required: requiredProp, invalid,
  *   })
  */
 export function useControlProps(input: ControlPropsOptions = {}): ControlPropsResult {
@@ -65,7 +61,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 		readOnly: input.readOnly ?? control?.readOnly,
 		// A mounted error Message marks the control invalid even without a form
 		// binding.
-		invalid: control?.invalid || input.binding?.invalid || control?.messageRegistered || undefined,
+		invalid: control?.invalid || input.invalid || control?.messageRegistered || undefined,
 		'aria-describedby': describedBy,
 	}
 }

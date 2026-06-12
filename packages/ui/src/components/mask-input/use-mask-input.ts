@@ -29,7 +29,7 @@ type MaskedInputOptions = {
  * to the seed and to every subsequent change, returning props ready to spread
  * onto an `Input`. Restores the caret to its pre-format position when the
  * returned `ref` is attached, and binds to an enclosing Form field by `name`
- * (value, touched on blur, and error state via `binding`).
+ * (value, touched on blur, and error state via `invalid`).
  */
 export function useMaskInput({
 	name,
@@ -44,7 +44,7 @@ export function useMaskInput({
 		value: current,
 		setValue,
 		setTouched,
-		binding,
+		invalid,
 	} = useFormValue<string>(name, {
 		value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
@@ -56,7 +56,7 @@ export function useMaskInput({
 	return {
 		value: current ?? '',
 		ref,
-		binding,
+		invalid,
 		setValue: (raw: string) => setValue(format(raw)),
 		onChange: (e: ChangeEvent<HTMLInputElement>) => setValue(reformat(e)),
 		onBlur: () => setTouched(),

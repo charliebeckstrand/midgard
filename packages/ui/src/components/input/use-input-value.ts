@@ -1,40 +1,41 @@
 'use client'
 
 import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 'react'
-import { type FormTextBinding, useFormText } from '../form/use-form-text'
+import { useFormText } from '../form/use-form-text'
 
-type InputValueOptions = {
+type InputValueOptions<E extends HTMLInputElement | HTMLTextAreaElement> = {
 	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
 	hasValueProp: boolean
 	name?: string
 	value?: InputHTMLAttributes<HTMLInputElement>['value']
-	onChange?: ChangeEventHandler<HTMLInputElement>
-	onBlur?: FocusEventHandler<HTMLInputElement>
+	onChange?: ChangeEventHandler<E>
+	onBlur?: FocusEventHandler<E>
 }
 
-type InputValueResult = {
+type InputValueResult<E extends HTMLInputElement | HTMLTextAreaElement> = {
 	value: InputHTMLAttributes<HTMLInputElement>['value']
-	onChange: ChangeEventHandler<HTMLInputElement> | undefined
-	onBlur: FocusEventHandler<HTMLInputElement> | undefined
-	/** Pass to `useControlProps`; the form's invalid flag merges in. */
-	binding: FormTextBinding | undefined
+	onChange: ChangeEventHandler<E> | undefined
+	onBlur: FocusEventHandler<E> | undefined
+	/** Pass to `useControlProps`; the field's error state merges into `invalid`. */
+	invalid: boolean | undefined
 }
 
 /**
- * Resolves Input's value / onChange / onBlur against the Form binding cascade.
+ * Resolves a text control's value / onChange / onBlur against the Form
+ * binding cascade (Input; Textarea shares it via the element type param).
  *
- * When value/onChange are passed explicitly, the binding supplies name and invalid
- * state but does not override them. `value={null}` or `value={undefined}`
+ * An explicit value/onChange wins; the bound field still supplies `invalid`
+ * but does not override them. `value={null}` or `value={undefined}`
  * coerces to `''`; the native input stays controlled.
  */
-export function useInputValue({
+export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>({
 	hasValueProp,
 	name,
 	value,
 	onChange,
 	onBlur,
-}: InputValueOptions): InputValueResult {
-	const binding = useFormText(name, { onChange, onBlur })
+}: InputValueOptions<E>): InputValueResult<E> {
+	const binding = useFormText<E>(name, { onChange, onBlur })
 
 	const bound = !hasValueProp && binding !== undefined
 
@@ -44,6 +45,6 @@ export function useInputValue({
 		value: bound ? binding.value : controlledValue,
 		onChange: bound ? binding.onChange : onChange,
 		onBlur: bound ? binding.onBlur : onBlur,
-		binding,
+		invalid: binding?.invalid,
 	}
 }

@@ -21,7 +21,7 @@ describe('useInputValue', () => {
 
 		expect(result.current.onBlur).toBe(onBlur)
 
-		expect(result.current.binding).toBeUndefined()
+		expect(result.current.invalid).toBeUndefined()
 	})
 
 	it('coerces a nullish value to "" when hasValueProp is true', () => {

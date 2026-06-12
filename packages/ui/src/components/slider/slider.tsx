@@ -52,7 +52,7 @@ export function Slider({
 		value: internal,
 		setValue: setInternal,
 		setTouched,
-		binding,
+		invalid,
 	} = useFormValue<number>(name, {
 		value,
 		defaultValue: defaultValue ?? min,
@@ -75,7 +75,7 @@ export function Slider({
 		id,
 		disabled,
 		'aria-describedby': ariaDescribedBy,
-		binding,
+		invalid,
 	})
 
 	const scope = useIdScope({ id: controlProps.id })

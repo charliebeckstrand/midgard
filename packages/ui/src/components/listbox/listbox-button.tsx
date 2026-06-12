@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, Ref } from 'react'
+import type { FocusEventHandler, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
@@ -18,6 +18,7 @@ type ListboxButtonProps = {
 	disabled?: boolean
 	invalid?: boolean
 	label: ReactNode
+	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
 	tabularNums?: boolean
@@ -43,6 +44,7 @@ export function ListboxButton({
 	disabled,
 	invalid,
 	label,
+	onBlur,
 	placeholder,
 	truncate,
 	tabularNums,
@@ -63,6 +65,7 @@ export function ListboxButton({
 				aria-describedby={describedBy}
 				data-slot="listbox-button"
 				disabled={disabled}
+				onBlur={onBlur}
 				{...invalidAttrs(invalid)}
 				className={cn(k({ density, size }))}
 			>

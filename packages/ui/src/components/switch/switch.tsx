@@ -18,7 +18,8 @@ export type SwitchProps = SwitchVariants & {
  * Toggle control backed by a native `role="switch"` checkbox; controlled via
  * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
  * sync. Integrates with enclosing `<Form>` and `<Control>` for binding,
- * sizing, and validation.
+ * sizing, and validation; an explicit `checked` prop wins over the bound
+ * field, and `onChange` fires in either mode.
  */
 export function Switch({
 	className,
@@ -35,19 +36,23 @@ export function Switch({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: SwitchProps) {
-	const binding = useFormToggle(name, { onChange })
+	const {
+		checked: resolvedChecked,
+		onChange: resolvedOnChange,
+		invalid,
+	} = useFormToggle({ name, checked, onChange })
 
 	// `role="switch"` requires `aria-checked` to track the live value. Owning
 	// the state here keeps it in sync for controlled and uncontrolled usage.
 	const [on, setOn] = useControllable<boolean>({
-		value: binding ? binding.checked : checked,
+		value: resolvedChecked,
 		defaultValue: defaultChecked ?? false,
 	})
 
 	// React-control the input only when a `checked` prop or form binding drives it.
 	// Without one, rendering `checked={on}` makes the input perpetually
 	// controlled and a native `<button type="reset">` cannot revert it.
-	const isControlled = binding != null || checked !== undefined
+	const isControlled = resolvedChecked !== undefined
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -56,8 +61,7 @@ export function Switch({
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setOn(e.target.checked)
 
-		if (binding) binding.onChange(e)
-		else onChange?.(e)
+		resolvedOnChange?.(e)
 	}
 
 	// A native form reset reverts the uncontrolled input without firing onChange;
@@ -90,7 +94,7 @@ export function Switch({
 		required,
 		size,
 		'aria-describedby': ariaDescribedBy,
-		binding,
+		invalid,
 	})
 
 	if (useSkeleton()) {

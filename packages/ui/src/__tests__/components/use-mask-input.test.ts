@@ -60,10 +60,10 @@ describe('useMaskInput', () => {
 		expect(result.current.value).toBe('locked')
 	})
 
-	it('returns no binding outside a Form', () => {
+	it('returns no invalid flag outside a Form', () => {
 		const { result } = renderHook(() => useMaskInput({ format: upper }))
 
-		expect(result.current.binding).toBeUndefined()
+		expect(result.current.invalid).toBeUndefined()
 	})
 
 	it('marks the bound form field touched via onBlur', () => {
@@ -87,7 +87,7 @@ describe('useMaskInput', () => {
 		expect(result.current.field?.touched).toBe(true)
 	})
 
-	it('surfaces the bound field error state through binding', () => {
+	it('surfaces the bound field error state through invalid', () => {
 		const wrapper = ({ children }: { children: ReactNode }) =>
 			createElement(Form<{ code: string }>, {
 				defaultValues: { code: '' },
@@ -98,12 +98,12 @@ describe('useMaskInput', () => {
 
 		const { result } = renderHook(() => useMaskInput({ name: 'code', format: upper }), { wrapper })
 
-		expect(result.current.binding).toEqual({ invalid: false })
+		expect(result.current.invalid).toBe(false)
 
 		act(() => {
 			result.current.setValue('ab')
 		})
 
-		expect(result.current.binding).toEqual({ invalid: true })
+		expect(result.current.invalid).toBe(true)
 	})
 })

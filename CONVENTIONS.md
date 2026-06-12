@@ -68,6 +68,10 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 7.1 Forms compose `ui/form`, which owns form state via `useSyncExternalStore` and accepts optional schema resolvers for validation.
 
+7.2 Bindable controls take `name` to bind their value to the enclosing form field. Resolution order on every control: an explicit `value`/`checked` prop wins, then the bound field, then internal (uncontrolled) state. Consumer change handlers fire in every mode. A bound field ignores the control's `defaultValue`/`defaultChecked`; `Form.defaultValues` is the single source of truth. The cascade lives in `useFormValue` (value-typed controls), `useInputValue` (Input, Textarea), and `useFormToggle` (Checkbox, Switch): new bindable controls compose one of these, never a bespoke branch.
+
+7.3 In value props, `undefined` leaves the control uncontrolled; `null` keeps it controlled with no current value.
+
 ## 8. Naming
 
 8.1 kebab-case files/directories; PascalCase components; `useCamelCase` hooks (`use-*.ts`); PascalCase types with a contextual suffix (`<Component>Props`, `<Thing>Option`, `<Feature>State`).
