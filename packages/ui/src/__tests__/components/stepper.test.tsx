@@ -15,6 +15,7 @@ describe('Stepper', () => {
 		const { container } = renderUI(<StepperSkeleton steps={3} />)
 
 		expect(bySlot(container, 'stepper')).not.toBeInTheDocument()
+
 		// One indicator dot and one title line per step.
 		expect(allBySlot(container, 'placeholder')).toHaveLength(6)
 	})

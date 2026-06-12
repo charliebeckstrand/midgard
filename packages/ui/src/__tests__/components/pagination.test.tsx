@@ -14,6 +14,7 @@ describe('Pagination', () => {
 		const { container } = renderUI(<PaginationSkeleton pages={5} />)
 
 		expect(bySlot(container, 'pagination')).not.toBeInTheDocument()
+
 		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
 	})
 

@@ -18,6 +18,7 @@ describe('TabList', () => {
 		const { container } = renderUI(<TabListSkeleton tabs={4} />)
 
 		expect(bySlot(container, 'tab')).not.toBeInTheDocument()
+
 		expect(allBySlot(container, 'placeholder')).toHaveLength(4)
 	})
 

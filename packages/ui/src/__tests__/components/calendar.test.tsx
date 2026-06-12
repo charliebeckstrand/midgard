@@ -9,6 +9,7 @@ describe('Calendar', () => {
 		const { container } = renderUI(<CalendarSkeleton />)
 
 		expect(bySlot(container, 'calendar')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

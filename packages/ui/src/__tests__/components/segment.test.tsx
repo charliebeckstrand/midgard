@@ -10,6 +10,7 @@ describe('Segment', () => {
 		const { container } = renderUI(<SegmentSkeleton />)
 
 		expect(bySlot(container, 'tab-list')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

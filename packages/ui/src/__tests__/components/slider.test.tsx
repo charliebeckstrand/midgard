@@ -12,6 +12,7 @@ describe('Slider', () => {
 		const { container } = renderUI(<SliderSkeleton />)
 
 		expect(bySlot(container, 'slider')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

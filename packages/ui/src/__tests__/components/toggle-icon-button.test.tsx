@@ -10,6 +10,7 @@ describe('ToggleIconButton', () => {
 		const { container } = renderUI(<ToggleIconButtonSkeleton />)
 
 		expect(bySlot(container, 'toggle-icon-button')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

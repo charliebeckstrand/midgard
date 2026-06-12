@@ -12,6 +12,7 @@ describe('ProgressBar', () => {
 		const { container } = renderUI(<ProgressBarSkeleton />)
 
 		expect(bySlot(container, 'progress-bar')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -70,6 +71,7 @@ describe('ProgressGauge', () => {
 		const { container } = renderUI(<ProgressGaugeSkeleton />)
 
 		expect(bySlot(container, 'progress-gauge')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
