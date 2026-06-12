@@ -148,6 +148,18 @@ export function useDatePickerState({
 		[refs],
 	)
 
+	// Captures the dialog for `useDatePickerInputTab`'s reference-side handler.
+	const floatingRef = useRef<HTMLElement | null>(null)
+
+	const setFloating = useCallback(
+		(node: HTMLElement | null) => {
+			floatingRef.current = node
+
+			refs.setFloating(node)
+		},
+		[refs],
+	)
+
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled: resolvedDisabled,
 		open,
@@ -177,7 +189,9 @@ export function useDatePickerState({
 		onOpenChange,
 		onTriggerKeyDown,
 		setReference,
-		setFloating: refs.setFloating,
+		setFloating,
+		triggerRef,
+		floatingRef,
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,

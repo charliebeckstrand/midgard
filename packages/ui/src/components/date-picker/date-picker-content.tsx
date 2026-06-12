@@ -43,6 +43,14 @@ type DatePickerContentProps = {
 	 * keeps working once a real browser moves focus into the modal trap.
 	 */
 	onKeyDown?: (e: KeyboardEvent<HTMLElement>) => void
+	/**
+	 * Elements spared from the modal trap's outside marking. While open,
+	 * `FloatingFocusManager` stamps `aria-hidden` on everything outside the
+	 * floating element — including the reference. `input` mode passes its
+	 * reference group here so the DateInput being edited stays visible to AT;
+	 * the rest of the page remains hidden.
+	 */
+	getInsideElements?: () => Element[]
 	onExitComplete?: () => void
 	children: ReactNode
 }
@@ -55,6 +63,7 @@ export function DatePickerContent({
 	context,
 	size,
 	onKeyDown,
+	getInsideElements,
 	onExitComplete,
 	children,
 }: DatePickerContentProps) {
@@ -81,6 +90,7 @@ export function DatePickerContent({
 							modal
 							returnFocus={false}
 							initialFocus={initialFocusRef}
+							getInsideElements={getInsideElements}
 						>
 							<div
 								ref={(node) => {
