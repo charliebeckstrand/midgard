@@ -25,7 +25,8 @@ export type CheckboxProps = CheckboxVariants & {
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
- * and Control context for `name`, validation, and sizing.
+ * and Control context for `name`, validation, and sizing. An explicit
+ * `checked` prop wins over the bound field; `onChange` fires in either mode.
  */
 export function Checkbox({
 	className,
@@ -43,7 +44,11 @@ export function Checkbox({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CheckboxProps) {
-	const binding = useFormToggle(name, { onChange })
+	const {
+		checked: resolvedChecked,
+		onChange: resolvedOnChange,
+		binding,
+	} = useFormToggle({ name, checked, onChange })
 
 	const {
 		id: resolvedId,
@@ -95,8 +100,8 @@ export function Checkbox({
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				checked={binding?.checked ?? checked}
-				onChange={binding?.onChange ?? onChange}
+				checked={resolvedChecked}
+				onChange={resolvedOnChange}
 				aria-describedby={resolvedDescribedBy}
 				{...invalidAttrs(resolvedInvalid)}
 				className={k.input()}

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, ChangeEventHandler } from 'react'
 import { useFormField } from './context'
 
 export type FormToggleBinding = {
@@ -9,22 +9,47 @@ export type FormToggleBinding = {
 	invalid: boolean
 }
 
-/** Binding for boolean-value controls (Checkbox, Switch). */
-export function useFormToggle(
-	name: string | undefined,
-	handlers?: { onChange?: (e: ChangeEvent<HTMLInputElement>) => void },
-): FormToggleBinding | undefined {
+type FormToggleOptions = {
+	name?: string
+	checked?: boolean
+	onChange?: ChangeEventHandler<HTMLInputElement>
+}
+
+export type FormToggleResult = {
+	checked: boolean | undefined
+	onChange: ChangeEventHandler<HTMLInputElement> | undefined
+	binding: FormToggleBinding | undefined
+}
+
+/**
+ * Resolves a toggle's checked / onChange against the Form binding cascade
+ * (Checkbox, Switch): the boolean analogue of Input's `useInputValue`.
+ *
+ * An explicit `checked` prop wins; otherwise a form field with this `name`
+ * drives the state; otherwise the input stays native uncontrolled
+ * (`defaultChecked`). Alongside an explicit `checked`, the binding still
+ * supplies `invalid` but overrides neither the prop nor `onChange`.
+ */
+export function useFormToggle({ name, checked, onChange }: FormToggleOptions): FormToggleResult {
 	const field = useFormField(name)
 
-	if (!field) return undefined
-
-	return {
+	const binding: FormToggleBinding | undefined = field && {
 		checked: typeof field.value === 'boolean' ? field.value : false,
 		onChange: (e) => {
 			field.setValue(e.target.checked)
+
 			field.setTouched()
-			handlers?.onChange?.(e)
+
+			onChange?.(e)
 		},
 		invalid: field.errors !== undefined && field.errors.length > 0,
+	}
+
+	const bound = checked === undefined && binding !== undefined
+
+	return {
+		checked: bound ? binding.checked : checked,
+		onChange: bound ? binding.onChange : onChange,
+		binding,
 	}
 }

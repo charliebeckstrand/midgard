@@ -9,7 +9,6 @@ import {
 	useFormState,
 	useFormStatus,
 	useFormText,
-	useFormToggle,
 } from '../../components/form'
 import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
 
@@ -1000,36 +999,6 @@ describe('useFormText', () => {
 		})
 
 		expect(onBlur).toHaveBeenCalledOnce()
-	})
-})
-
-describe('useFormToggle', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormToggle('agree'))
-
-		expect(result.current).toBeUndefined()
-	})
-
-	it('toggles the field and calls external onChange', () => {
-		const onChange = vi.fn()
-
-		const wrapper = makeWrapper({ agree: false })
-
-		const { result } = renderHook(() => useFormToggle('agree', { onChange }), { wrapper })
-
-		expect(result.current?.checked).toBe(false)
-
-		act(() => {
-			result.current?.onChange(
-				makeChangeEvent<HTMLInputElement>({
-					target: { checked: true } as HTMLInputElement,
-				}),
-			)
-		})
-
-		expect(result.current?.checked).toBe(true)
-
-		expect(onChange).toHaveBeenCalled()
 	})
 })
 

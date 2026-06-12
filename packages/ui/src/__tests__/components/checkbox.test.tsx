@@ -2,8 +2,15 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
+import { Form, useFormField } from '../../components/form'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+
+function FieldProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return <output data-slot="probe">{String(field?.value)}</output>
+}
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox" and a check icon', () => {
@@ -75,6 +82,53 @@ describe('Checkbox', () => {
 		const input = bySlot(container, 'checkbox') as HTMLInputElement
 
 		expect(input.indeterminate).toBe(true)
+	})
+})
+
+describe('Checkbox in a Form', () => {
+	it('binds checked to the form field by name and chains onChange', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ agree: false }}>
+				<Checkbox name="agree" onChange={onChange} />
+				<FieldProbe name="agree" />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'checkbox') as HTMLInputElement
+
+		expect(input.checked).toBe(false)
+
+		fireEvent.click(input)
+
+		expect(input.checked).toBe(true)
+
+		expect(bySlot(container, 'probe')?.textContent).toBe('true')
+
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	it('lets an explicit checked prop win over the form binding', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ agree: false }}>
+				<Checkbox name="agree" checked onChange={onChange} />
+				<FieldProbe name="agree" />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'checkbox') as HTMLInputElement
+
+		expect(input.checked).toBe(true)
+
+		fireEvent.click(input)
+
+		// The consumer's handler resolves; the store stays untouched.
+		expect(bySlot(container, 'probe')?.textContent).toBe('false')
+
+		expect(onChange).toHaveBeenCalled()
 	})
 })
 
