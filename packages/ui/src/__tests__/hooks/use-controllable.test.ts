@@ -88,6 +88,31 @@ describe('useControllable', () => {
 		expect(result.current[0]).toBeUndefined()
 	})
 
+	it('keeps internal state current when a controlled value clears to undefined', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value: string | undefined }) => useControllable({ value }),
+			{ initialProps: { value: undefined as string | undefined } },
+		)
+
+		// Select while uncontrolled; the parent echoes the value back as controlled.
+		act(() => {
+			result.current[1]('a')
+		})
+
+		rerender({ value: 'a' })
+
+		// Deselect: the setter resolves undefined and the parent clears its state,
+		// flipping the hook back to uncontrolled. The stale internal value must
+		// not resurface.
+		act(() => {
+			result.current[1](undefined)
+		})
+
+		rerender({ value: undefined })
+
+		expect(result.current[0]).toBeUndefined()
+	})
+
 	it('chains functional updates batched in a single act', () => {
 		const onValueChange = vi.fn()
 

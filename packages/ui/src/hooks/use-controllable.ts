@@ -31,11 +31,6 @@ export function useControllable<T>({
 
 	valueRef.current = currentValue
 
-	// The ref keeps the stable (empty-dep) setter reading live controlled-ness.
-	const isControlledRef = useRef(isControlled)
-
-	isControlledRef.current = isControlled
-
 	const onValueChangeRef = useRef(onValueChange)
 
 	onValueChangeRef.current = onValueChange
