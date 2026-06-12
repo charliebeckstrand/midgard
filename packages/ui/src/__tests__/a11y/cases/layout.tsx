@@ -4,7 +4,6 @@ import { Card, CardBody, CardTitle } from '../../../components/card'
 import { Container } from '../../../components/container'
 import { Divider } from '../../../components/divider'
 import { Flex } from '../../../components/flex'
-import { Frame } from '../../../components/frame'
 import { Grid } from '../../../components/grid'
 import { Group } from '../../../components/group'
 import { Placeholder } from '../../../components/placeholder'
@@ -61,12 +60,6 @@ export const layoutCases: readonly Case[] = [
 				<CardTitle>Project settings</CardTitle>
 			</CardBody>
 		</Card>,
-	],
-	[
-		'frame',
-		<Frame key="fr">
-			<span>Content</span>
-		</Frame>,
 	],
 	[
 		'glass',

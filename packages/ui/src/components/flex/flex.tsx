@@ -38,7 +38,11 @@ export type FlexProps = {
 	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** @internal Shared flex implementation used by Flex, Stack, and Frame. */
+/**
+ * Undefaulted flex container underlying Flex and Stack. No default gap,
+ * alignment, or Density inheritance; children stretch naturally. Reach for
+ * it directly when a structural wrapper must stay inert to context.
+ */
 export function FlexBase({
 	direction,
 	gap,
