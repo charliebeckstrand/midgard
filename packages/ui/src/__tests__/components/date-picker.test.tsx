@@ -554,7 +554,7 @@ describe('DatePicker input', () => {
 
 		expect(bySlot(container, 'datepicker-input')).not.toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Open the calendar' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Open calendar' })).not.toBeInTheDocument()
 	})
 
 	it('renders a DateInput with a calendar suffix button instead of the trigger', () => {
@@ -564,7 +564,7 @@ describe('DatePicker input', () => {
 
 		expect(bySlot(container, 'datepicker-button')).not.toBeInTheDocument()
 
-		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		expect(container.querySelector('[data-slot=suffix]')).toContainElement(calendar)
 
@@ -601,7 +601,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input />)
 
-		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await user.click(calendar)
 
@@ -615,7 +615,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
-		await user.click(screen.getByRole('button', { name: 'Open the calendar' }))
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 		const day = findDay(20)
 
@@ -631,7 +631,7 @@ describe('DatePicker input', () => {
 
 		expect(bySlot(container, 'datepicker-input')).toBeDisabled()
 
-		expect(screen.getByRole('button', { name: 'Open the calendar' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeDisabled()
 	})
 
 	it('passes min and max through to the typed date', async () => {

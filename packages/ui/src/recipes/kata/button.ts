@@ -11,9 +11,6 @@ const { focus } = sen
 const { icon } = shaku
 const { spring } = ugoki
 
-// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
-const inherit = ['text-inherit', 'not-disabled:hover:bg-current/15']
-
 export const k = defineRecipe(
 	{
 		base: [
@@ -79,7 +76,8 @@ export const k = defineRecipe(
 				plain: [palette.plain.text, palette.plain.hover],
 				bare: [palette.bare.text, palette.bare.hover],
 			},
-			{ inherit },
+			// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
+			{ inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'] },
 		),
 		// Compound variants ensure the palette is correct when a variant and size combo triggers the
 		// icon-only bare button floor. The `not-data-[has-label]` selector is repeated here to

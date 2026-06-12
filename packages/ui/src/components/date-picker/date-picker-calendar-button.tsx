@@ -22,7 +22,7 @@ export function DatePickerCalendarButton({
 			<TooltipTrigger>
 				<Button
 					variant="bare"
-					aria-label="Open the calendar"
+					aria-label="Open calendar"
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					disabled={disabled}
@@ -31,7 +31,7 @@ export function DatePickerCalendarButton({
 					<Icon icon={<CalendarIcon />} />
 				</Button>
 			</TooltipTrigger>
-			<TooltipContent>Open the calendar</TooltipContent>
+			<TooltipContent>Open calendar</TooltipContent>
 		</Tooltip>
 	)
 }
