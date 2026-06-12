@@ -1,12 +1,13 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useEffect, useRef, useState } from 'react'
+import { type FocusEvent, useEffect, useRef, useState } from 'react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
 import { formatDateValue } from '../date-input/date-input-utilities'
+import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerInputToggle } from './date-picker-input-toggle'
@@ -21,9 +22,9 @@ export type DatePickerSingleProps = {
 	onValueChange?: (value: Date | undefined) => void
 	/**
 	 * Shows a suffix toggle that swaps the popover trigger for a DateInput,
-	 * letting the user type the date in place. While set, the trigger label
-	 * renders through `format` instead of the locale string, so both modes
-	 * read identically.
+	 * letting the user type the date in place; moving focus out of the input
+	 * returns to the trigger. While set, the trigger label renders through
+	 * `format` instead of the locale string, so both modes read identically.
 	 */
 	input?: boolean
 	/** Pattern for the typed date, and for the trigger label while `input` is set. @default 'MM/DD/YYYY' */
@@ -101,23 +102,45 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const wasTyping = useRef(false)
 
-	// Refocus the trigger when leaving input mode; the toggle that held focus
-	// re-mounts inside the new frame. Entering needs no counterpart: the
-	// DateInput autofocuses.
+	// A toggle exit re-seats focus on the trigger: the pressed toggle re-mounts
+	// inside the new frame. A blur exit leaves focus where the user sent it.
+	const refocusTrigger = useRef(false)
+
 	useEffect(() => {
-		if (wasTyping.current && !typing) document.getElementById(state.triggerId)?.focus()
+		if (wasTyping.current && !typing && refocusTrigger.current) {
+			document.getElementById(state.triggerId)?.focus()
+		}
+
+		refocusTrigger.current = false
 
 		wasTyping.current = typing
 	}, [typing, state.triggerId])
+
+	// Leaving the control returns to the trigger; a focus hop between the
+	// control's own buttons stays in input mode.
+	const exitOnFocusLeave = (event: FocusEvent<HTMLElement>) => {
+		const frame = event.currentTarget.closest('[data-slot=control-frame]')
+
+		if (frame && event.relatedTarget instanceof Node && frame.contains(event.relatedTarget)) return
+
+		setTyping(false)
+	}
 
 	const toggle = input ? (
 		<DatePickerInputToggle
 			pressed={typing}
 			disabled={state.disabled}
+			onBlur={exitOnFocusLeave}
 			onToggle={() => {
-				if (!typing) state.onOpenChange(false)
+				if (typing) {
+					refocusTrigger.current = true
 
-				setTyping(!typing)
+					setTyping(false)
+				} else {
+					state.onOpenChange(false)
+
+					setTyping(true)
+				}
 			}}
 		/>
 	) : undefined
@@ -127,6 +150,9 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			<DateInput
 				data-slot="datepicker-input"
 				autoFocus
+				// Entering with a date selects it, so typing replaces it outright.
+				onFocus={(event) => event.currentTarget.select()}
+				onBlur={exitOnFocusLeave}
 				value={state.value ?? null}
 				onValueChange={state.setValue}
 				format={format}
@@ -136,7 +162,25 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				disabled={state.disabled}
 				placeholder={props.placeholder}
 				aria-label={ariaLabel}
-				suffix={toggle}
+				suffix={
+					<>
+						{toggle}
+						<DatePickerCalendarButton
+							disabled={state.disabled}
+							// Keeps focus on the input so the press, not a blur,
+							// drives the mode switch.
+							onMouseDown={(event) => event.preventDefault()}
+							onBlur={exitOnFocusLeave}
+							// No trigger refocus: the opening dialog takes focus, as on
+							// any other open.
+							onActivate={() => {
+								setTyping(false)
+
+								state.onOpenChange(true)
+							}}
+						/>
+					</>
+				}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

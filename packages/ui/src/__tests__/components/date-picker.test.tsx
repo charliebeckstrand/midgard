@@ -555,14 +555,32 @@ describe('DatePicker input mode', () => {
 		expect(screen.queryByRole('button', { name: 'Type the date' })).not.toBeInTheDocument()
 	})
 
-	it('shows an unpressed suffix toggle with the input prop', () => {
+	it('shows an unpressed suffix toggle left of the calendar button', () => {
 		const { container } = renderUI(<DatePicker input />)
 
 		const toggle = screen.getByRole('button', { name: 'Type the date' })
 
+		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+
 		expect(toggle).toHaveAttribute('aria-pressed', 'false')
 
-		expect(container.querySelector('[data-slot=suffix]')).toContainElement(toggle)
+		const suffix = container.querySelector('[data-slot=suffix]')
+
+		expect(suffix).toContainElement(toggle)
+
+		expect(suffix).toContainElement(calendar)
+
+		expect(toggle.compareDocumentPosition(calendar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+	})
+
+	it('opens the calendar from the suffix calendar button', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input />)
+
+		await user.click(screen.getByRole('button', { name: 'Open the calendar' }))
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
 	it('swaps the trigger for a focused DateInput when toggled', async () => {
@@ -586,6 +604,90 @@ describe('DatePicker input mode', () => {
 			'aria-pressed',
 			'true',
 		)
+	})
+
+	it('selects the date text on entry so typing replaces it', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input.selectionStart).toBe(0)
+
+		expect(input.selectionEnd).toBe('06/15/2026'.length)
+
+		await user.keyboard('12252026')
+
+		expect(input.value).toBe('12/25/2026')
+	})
+
+	it('returns to the trigger when the input blurs away', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
+
+		await user.click(document.body)
+
+		expect(bySlot(container, 'datepicker-input')).not.toBeInTheDocument()
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		expect(button).toBeInTheDocument()
+
+		// The picker is a plain combobox again; the main area opens the calendar.
+		await user.click(button)
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+	})
+
+	it('stays in input mode while focus hops between the control’s own buttons', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'Type the date' })).toHaveFocus()
+
+		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
+
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'Open the calendar' })).toHaveFocus()
+
+		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
+
+		// Tabbing past the last control leaves the picker and exits input mode.
+		await user.tab()
+
+		expect(bySlot(container, 'datepicker-input')).not.toBeInTheDocument()
+	})
+
+	it('leaves input mode and opens the calendar from the suffix calendar button', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Open the calendar' }))
+
+		expect(bySlot(container, 'datepicker-input')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		expect(bySlot(container, 'datepicker-button')).toBeInTheDocument()
 	})
 
 	it('renders the trigger label through the format so both modes match', () => {
