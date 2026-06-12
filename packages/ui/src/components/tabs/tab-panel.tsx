@@ -10,7 +10,7 @@ export type TabPanelsProps = SlotProps<'div'>
 export const TabPanels = createSlot('div', 'tab-panels')
 
 export type TabPanelProps = {
-	/** Matches the corresponding Tab's id for aria-labelledby. */
+	/** Matches the corresponding Tab's id for `aria-labelledby`. */
 	id?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'id'>
 

@@ -10,7 +10,7 @@ import { hexToHsva, hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 import { useColorField } from './use-color-field'
 
-/** Hex entry with a copy affordance, two-way bound to the panel's colour. */
+/** Hex entry with a copy affordance, two-way bound to the panel's color. */
 export function ColorHexInput() {
 	const { hsva, setHsva, alpha, disabled, size } = useColorPanelContext()
 

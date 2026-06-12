@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 /**
- * Focus buffer for the colour entry fields. While a field is focused its raw
+ * Focus buffer for the color entry fields. While a field is focused its raw
  * text lives here and shadows the derived value, preserving partially-typed
  * input such as an empty field mid-edit or a half-typed hex. One field edits
  * at a time; a single slot holds it.

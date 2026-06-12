@@ -20,7 +20,7 @@ export type SignaturePadProps = {
 	readOnly?: boolean
 	/** Placeholder rendered over an empty pad. */
 	placeholder?: string
-	/** Stroke colour. Defaults to `#18181b` (zinc-900). */
+	/** Stroke color. Defaults to `#18181b` (zinc-900). */
 	strokeColor?: string
 	/** Stroke width in CSS pixels. Defaults to 2. */
 	strokeWidth?: number

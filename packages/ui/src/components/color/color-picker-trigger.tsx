@@ -28,7 +28,7 @@ type ColorPickerTriggerProps = {
 	'data-group-orientation'?: string
 }
 
-/** Control-framed button showing the current colour swatch and its hex value, opening the picker dialog. */
+/** Control-framed button showing the current color swatch and its hex value, opening the picker dialog. */
 export function ColorPickerTrigger({
 	open,
 	onOpenChange,

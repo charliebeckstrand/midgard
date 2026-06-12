@@ -19,7 +19,7 @@ export type ColorPickerStateOptions = {
 }
 
 /**
- * Wires the popover trigger: owns the colour shared by the swatch and the
+ * Wires the popover trigger: owns the color shared by the swatch and the
  * inline panel, resolves id / disabled / invalid from an enclosing Control,
  * and drives the floating dialog's open state.
  */

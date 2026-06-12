@@ -33,7 +33,7 @@ type ColorPanelBaseProps = {
 export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
- * Inline colour picker: a saturation/brightness field with hue (and optional
+ * Inline color picker: a saturation/brightness field with hue (and optional
  * alpha) sliders, hex / RGB inputs, preset swatches, and an eyedropper. Holds
  * HSVA internally, keeping drags lossless, and speaks either a hex string
  * (default) or an HSVA object through `value` / `onValueChange` per `format`.

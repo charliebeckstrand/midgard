@@ -101,7 +101,7 @@ export function toSegmentCollection(data: RouteData) {
 	return { type: 'FeatureCollection' as const, features: segments }
 }
 
-/** MapLibre `match` expression keyed on `properties.status`: paints each segment with its status colour, falling back to `pending`. */
+/** MapLibre `match` expression keyed on `properties.status`: paints each segment with its status color, falling back to `pending`. */
 export function toColorMatch(colors: Record<SegmentStatus, string>) {
 	return [
 		'match',

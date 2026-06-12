@@ -10,7 +10,7 @@ type ColorSwatchesProps = {
 	swatches: readonly string[]
 }
 
-/** Preset colour chips; the chip matching the current colour reads as pressed. */
+/** Preset color chips; the chip matching the current color reads as pressed. */
 export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 	const { hsva, setHsva, disabled } = useColorPanelContext()
 

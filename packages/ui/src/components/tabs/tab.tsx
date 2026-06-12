@@ -14,7 +14,7 @@ import { useTabsContext } from './context'
 export type TabProps = {
 	value?: string
 	current?: boolean
-	/** Links this tab to its panel via aria-controls. */
+	/** Links this tab to its panel via `aria-controls`. */
 	id?: string
 	stretch?: boolean
 	disabled?: boolean

@@ -20,9 +20,9 @@ export type MapRouteProps = {
 	/** Line color for each segment status. Defaults: pending=zinc-400, active=blue-600, done=green-600. */
 	colors?: Partial<Record<SegmentStatus, string>>
 	width?: number
-	/** Show a marker at each stop (default: true). */
+	/** Show a marker at each stop. Defaults to `true`. */
 	showStops?: boolean
-	/** Disable the click-to-open Timeline Sheet (default: false). */
+	/** Disable the click-to-open Timeline Sheet. Defaults to `false`. */
 	disableInteraction?: boolean
 	/** Fires before the default Timeline Sheet opens. Return `false` to prevent the default. */
 	onSelect?: (route: RouteData) => boolean | undefined

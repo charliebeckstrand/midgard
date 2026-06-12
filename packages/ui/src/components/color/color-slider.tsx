@@ -71,7 +71,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 	}
 
 	// Transparent-to-opaque gradient for the alpha track ends on the current
-	// colour at full opacity.
+	// color at full opacity.
 	const opaque = hsvaToHex({ ...hsva, a: 1 })
 
 	return (

@@ -29,7 +29,7 @@ type ColorPickerBaseProps = {
 export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
- * Popover colour picker: a Control-integrated swatch trigger that opens a
+ * Popover color picker: a Control-integrated swatch trigger that opens a
  * floating `ColorPanel`. Controlled or uncontrolled, speaking a hex string
  * (default) or an HSVA object per `format`; `size` resolves through the
  * explicit prop, then `<Control>`, then Density, then `'md'`.
@@ -68,7 +68,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		disabled,
 	})
 
-	// The picker owns the colour and drives the inline panel as a controlled child.
+	// The picker owns the color and drives the inline panel as a controlled child.
 	// The prop bag rebuilds the format union at runtime and asserts into shape.
 	const panelProps = {
 		format,

@@ -19,7 +19,7 @@ export type ColorState = {
 }
 
 /**
- * Controlled/uncontrolled colour state. Keeps HSVA internally regardless of
+ * Controlled/uncontrolled color state. Keeps HSVA internally regardless of
  * the consumer's wire format; hex drops hue at greyscale and black.
  *
  * Owns the HSVA and reconciles against the `value` prop, skipping echoes of

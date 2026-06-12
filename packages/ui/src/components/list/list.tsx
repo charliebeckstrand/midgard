@@ -41,21 +41,21 @@ export type ListProps<T> = BaseListProps<T> &
 		| {
 				/** Auto-insert a `<ListHandle>` as the first child of each `<ListItem>`. */
 				sortable?: true
-				/** Stable key extractor; required for DnD tracking. */
+				/** Stable key extractor. Required for reorderable lists; read-only lists fall back to the item index. */
 				getKey: (item: T) => string
-				/** Called with the next ordering. Omit to render a non-reorderable list. */
+				/** Called with the next ordering after a drag or keyboard move. Omit to render a read-only list. */
 				onReorder?: (next: T[]) => void
 		  }
 		| {
 				sortable: false
-				/** Stable key extractor; required for DnD tracking. */
+				/** Stable key extractor. Required for reorderable lists; read-only lists fall back to the item index. */
 				getKey: (item: T) => string
-				/** Called with the next ordering; the consumer renders its own `<ListHandle>`. */
+				/** Called with the next ordering after a drag or keyboard move. Omit to render a read-only list. */
 				onReorder: (next: T[]) => void
 		  }
 		| {
 				sortable: false
-				/** Stable key extractor. Optional when the list is read-only; falls back to item index. */
+				/** Stable key extractor. Required for reorderable lists; read-only lists fall back to the item index. */
 				getKey?: (item: T) => string
 				onReorder?: undefined
 		  }

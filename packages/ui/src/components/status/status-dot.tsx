@@ -5,7 +5,7 @@ import { k, type StatusDotVariants } from '../../recipes/kata/status'
 export type StatusDotProps = StatusDotVariants & {
 	className?: string
 	/**
-	 * Accessible name for the dot. Colour alone conveys status; a standalone
+	 * Accessible name for the dot. Color alone conveys status; a standalone
 	 * dot needs a text alternative. When set, the dot renders as `role="img"`
 	 * with this label (WCAG 1.4.1 / 1.1.1). Omit it when the dot is decorative
 	 * and paired with adjacent visible text (e.g. Avatar supplies its own
