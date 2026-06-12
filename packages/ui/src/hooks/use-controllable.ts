@@ -48,9 +48,11 @@ export function useControllable<T>({
 
 		valueRef.current = resolved
 
-		// Stale internal state surfaces as a jump if the consumer later drops
-		// the `value` prop.
-		if (!isControlledRef.current) setInternalValue(resolved)
+		// Written even while controlled: `value !== undefined` decides
+		// controlled-ness per render, so a controlled consumer that clears to
+		// `undefined` flips the hook to uncontrolled; the shadow keeps that
+		// flip resolving to the last committed value instead of a stale one.
+		setInternalValue(resolved)
 
 		onValueChangeRef.current?.(resolved)
 	}, [])
