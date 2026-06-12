@@ -2,6 +2,7 @@ import {
 	CalendarDate,
 	endOfMonth,
 	getDayOfWeek,
+	getLocalTimeZone,
 	isSameDay as isSameCalendarDay,
 	startOfWeek,
 } from '@internationalized/date'
@@ -16,9 +17,24 @@ export function toCalendarDate(date: Date): CalendarDate {
 	return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
 }
 
-/** Inverse of `toCalendarDate`: a local-midnight `Date` for the calendar day. */
+/**
+ * Inverse of `toCalendarDate`: a local-midnight `Date` for the calendar day.
+ * Conversion goes through `@internationalized/date`, not the
+ * `Date(year, month, day)` constructor. The constructor reads years 0–99 as
+ * 1900–1999 (`0001-01-01` → `1901-01-01`).
+ */
 export function fromCalendarDate(date: CalendarDate): Date {
-	return new Date(date.year, date.month - 1, date.day)
+	return date.toDate(getLocalTimeZone())
+}
+
+/**
+ * Local-midnight `Date` for the first of `year`/`month` (0-based month).
+ * Out-of-range months balance into adjacent years (month 12 → January of the
+ * next year). This matches `Date` constructor rollover without its
+ * two-digit-year mapping.
+ */
+export function firstOfMonth(year: number, month: number): Date {
+	return fromCalendarDate(new CalendarDate(year, 1, 1).add({ months: month }))
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
@@ -36,12 +52,14 @@ export function isBetween(date: Date, start: Date, end: Date): boolean {
 }
 
 export function getCalendarDays(year: number, month: number): Date[] {
-	const daysInMonth = endOfMonth(new CalendarDate(year, month + 1, 1)).day
+	const first = new CalendarDate(year, month + 1, 1)
+
+	const daysInMonth = endOfMonth(first).day
 
 	const days: Date[] = []
 
 	for (let day = 1; day <= daysInMonth; day++) {
-		days.push(new Date(year, month, day))
+		days.push(fromCalendarDate(first.set({ day })))
 	}
 
 	return days

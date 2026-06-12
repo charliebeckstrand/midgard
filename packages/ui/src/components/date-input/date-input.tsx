@@ -129,6 +129,7 @@ export function DateInput({
 			// (aria-labelledby outranks aria-label in the accname computation).
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
 			placeholder={placeholder ?? format}
+			autoComplete="off"
 			suffix={suffix ?? <Icon icon={<CalendarIcon />} />}
 			invalid={invalid ?? (typedInvalid || undefined)}
 			name={name}

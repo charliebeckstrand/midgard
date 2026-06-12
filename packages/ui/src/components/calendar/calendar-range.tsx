@@ -10,7 +10,13 @@ import {
 	type CalendarDayContextValue,
 	type CalendarHandle,
 } from './calendar'
-import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
+import {
+	fromCalendarDate,
+	isBeforeDay,
+	isBetween,
+	isSameDay,
+	toCalendarDate,
+} from './calendar-utilities'
 
 export type CalendarRangeProps = {
 	onValueChange?: (date: Date) => void
@@ -88,10 +94,9 @@ export function CalendarRange({
 	)
 
 	const defaultValue = useMemo(() => {
-		if (rangeStart)
-			return new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate())
+		if (rangeStart) return fromCalendarDate(toCalendarDate(rangeStart))
 
-		if (rangeEnd) return new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate())
+		if (rangeEnd) return fromCalendarDate(toCalendarDate(rangeEnd))
 
 		return undefined
 	}, [rangeStart, rangeEnd])
