@@ -122,6 +122,13 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			context={state.context}
 			size={size}
 			onKeyDown={onContentKeyDown}
+			// The reference group stays editable (and Tab-reachable via
+			// useDatePickerInputTab) while open, so it must stay out of the modal
+			// trap's aria-hidden marking. Non-input mode keeps the standard
+			// dialog semantics: the closed trigger is hidden with the page.
+			getInsideElements={
+				input ? () => (state.triggerRef.current ? [state.triggerRef.current] : []) : undefined
+			}
 		>
 			<Calendar
 				ref={state.calendar.calendarRef}

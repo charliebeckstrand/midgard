@@ -30,7 +30,9 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		const dialog = await screen.findByRole('dialog')
 
-		const outside = screen.getByRole('button', { name: 'After', hidden: true })
+		// Text query, not role: the open trap marks the sibling aria-hidden
+		// directly, which empties its computed accessible name.
+		const outside = screen.getByText('After').closest('button') as HTMLElement
 
 		// Editing while open is supported: focus moves into the input on click.
 		await userEvent.click(input)
@@ -74,5 +76,36 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		// The whole walk kept the dialog open.
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
+	it('keeps the editable reference group visible to AT while open', async () => {
+		renderUI(
+			<>
+				<Button>Outside</Button>
+				<DatePicker input />
+			</>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Open the calendar' }))
+
+		await screen.findByRole('dialog')
+
+		// The group the user can type into carries no aria-hidden marking
+		// (WCAG 4.1.2; axe `aria-hidden-focus`): role queries resolve it
+		// through the accessibility tree.
+		const input = screen.getByRole('textbox', { name: 'Date' })
+
+		expect(input.closest('[aria-hidden="true"]')).toBeNull()
+
+		expect(input.closest('[data-floating-ui-inert]')).toBeNull()
+
+		expect(screen.getByRole('button', { name: 'Open the calendar' })).toBeInTheDocument()
+
+		// Modal semantics hold for the rest of the page: the sibling button is
+		// still marked away from AT (text query — aria-hidden empties its
+		// computed accessible name).
+		const outside = screen.getByText('Outside').closest('button') as HTMLElement
+
+		expect(outside.closest('[aria-hidden="true"]')).not.toBeNull()
 	})
 })
