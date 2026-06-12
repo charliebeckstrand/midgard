@@ -3,7 +3,7 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
-import { densityPresets, useDensity } from '../../primitives/density'
+import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
@@ -63,9 +63,7 @@ export function Textarea(props: TextareaProps) {
 		onChange,
 		onBlur,
 	})
-	const inherited = useDensity()
-
-	const token = size ? densityPresets[size] : inherited
+	const token = useControlSize(size)
 
 	const {
 		id: resolvedId,

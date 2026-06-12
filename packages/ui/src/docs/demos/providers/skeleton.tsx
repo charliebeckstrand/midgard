@@ -4,7 +4,12 @@ import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Card, CardBody, CardHeader } from '../../../components/card'
 import { Checkbox } from '../../../components/checkbox'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	useComboboxQuery,
+} from '../../../components/combobox'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Input } from '../../../components/input'
@@ -43,6 +48,18 @@ const dynamicComponents = [
 	{ name: 'Textarea', render: () => <Textarea placeholder="Bio" /> },
 ]
 
+function FilteredComponents() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return dynamicComponents
+		.filter((c) => !deferredQuery || c.name.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((c) => (
+			<ComboboxOption key={c.name} value={c.name}>
+				<ComboboxLabel>{c.name}</ComboboxLabel>
+			</ComboboxOption>
+		))
+}
+
 function DynamicExample() {
 	const [selected, setSelected] = useState<string | undefined>('Button')
 
@@ -58,15 +75,7 @@ function DynamicExample() {
 					onValueChange={setSelected}
 					placeholder="Search components"
 				>
-					{(query) =>
-						dynamicComponents
-							.filter((c) => !query || c.name.toLowerCase().includes(query.toLowerCase()))
-							.map((c) => (
-								<ComboboxOption key={c.name} value={c.name}>
-									<ComboboxLabel>{c.name}</ComboboxLabel>
-								</ComboboxOption>
-							))
-					}
+					<FilteredComponents />
 				</Combobox>
 			}
 		>

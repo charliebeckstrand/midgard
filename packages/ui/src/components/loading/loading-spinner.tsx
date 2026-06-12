@@ -2,7 +2,7 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useSize } from '../../primitives/density'
+import { useResolvedSize } from '../../primitives/density'
 import { k, type LoadingSpinnerVariants } from '../../recipes/kata/loading'
 
 export type LoadingSpinnerProps = LoadingSpinnerVariants & {
@@ -25,7 +25,7 @@ export function LoadingSpinner({
 	className,
 	...props
 }: LoadingSpinnerProps) {
-	const resolvedSize = useSize(size)
+	const resolvedSize = useResolvedSize(size)
 
 	return (
 		<output

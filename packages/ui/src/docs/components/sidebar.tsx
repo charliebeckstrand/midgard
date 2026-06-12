@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import { Combobox, ComboboxOption } from '../../components/combobox'
+import { Combobox, ComboboxOption, useComboboxQuery } from '../../components/combobox'
 import { Heading } from '../../components/heading'
 import {
 	Sidebar,
@@ -39,6 +39,29 @@ function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
 	}, [onVisible])
 
 	return <div ref={ref} aria-hidden="true" />
+}
+
+function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () => void }) {
+	const { deferredQuery } = useComboboxQuery()
+
+	const q = deferredQuery.toLowerCase()
+
+	const filtered = demos.filter((d) => !q || d.name.toLowerCase().includes(q))
+
+	const visible = filtered.slice(0, limit)
+
+	const hasMore = visible.length < filtered.length
+
+	return (
+		<>
+			{visible.map((d) => (
+				<ComboboxOption key={d.id} value={d.id}>
+					{d.name}
+				</ComboboxOption>
+			))}
+			{hasMore && <SearchLoadMore onVisible={onLoadMore} />}
+		</>
+	)
 }
 
 export function SidebarContent({ route }: { route: string }) {
@@ -90,28 +113,10 @@ export function SidebarContent({ route }: { route: string }) {
 					offcanvas?.close()
 				}}
 			>
-				{(query) => {
-					const q = query.toLowerCase()
-
-					const filtered = demos.filter((d) => !q || d.name.toLowerCase().includes(q))
-
-					const visible = filtered.slice(0, searchLimit)
-
-					const hasMore = visible.length < filtered.length
-
-					return (
-						<>
-							{visible.map((d) => (
-								<ComboboxOption key={d.id} value={d.id}>
-									{d.name}
-								</ComboboxOption>
-							))}
-							{hasMore && (
-								<SearchLoadMore onVisible={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)} />
-							)}
-						</>
-					)
-				}}
+				<SearchResults
+					limit={searchLimit}
+					onLoadMore={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)}
+				/>
 			</Combobox>
 			<SidebarBody>
 				<div className="flex flex-col gap-3">

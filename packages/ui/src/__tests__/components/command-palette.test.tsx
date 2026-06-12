@@ -6,20 +6,26 @@ import {
 	CommandPaletteGroup,
 	CommandPaletteItem,
 	CommandPaletteLabel,
+	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
-// Function children that filter against the deferred query, mirroring real usage.
+// Items that filter against the deferred query via the query context,
+// mirroring real usage.
+function FilteredItems() {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	return FILTER_ITEMS.filter((label) =>
+		label.toLowerCase().includes(deferredQuery.toLowerCase()),
+	).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
+}
+
 function FilteredPalette() {
 	return (
 		<CommandPalette open onOpenChange={() => {}}>
-			{(_query, deferredQuery) =>
-				FILTER_ITEMS.filter((label) =>
-					label.toLowerCase().includes(deferredQuery.toLowerCase()),
-				).map((label) => <CommandPaletteItem key={label}>{label}</CommandPaletteItem>)
-			}
+			<FilteredItems />
 		</CommandPalette>
 	)
 }

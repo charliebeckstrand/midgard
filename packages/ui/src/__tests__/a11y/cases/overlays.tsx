@@ -117,16 +117,14 @@ export const overlays: readonly Case[] = [
 		// Command palette: a modal search dialog over a grouped result list.
 		'command palette',
 		<CommandPalette key="cp" open onOpenChange={noop}>
-			{() => (
-				<CommandPaletteGroup title="Files">
-					<CommandPaletteItem>
-						<CommandPaletteLabel>New file</CommandPaletteLabel>
-					</CommandPaletteItem>
-					<CommandPaletteItem>
-						<CommandPaletteLabel>Open file</CommandPaletteLabel>
-					</CommandPaletteItem>
-				</CommandPaletteGroup>
-			)}
+			<CommandPaletteGroup title="Files">
+				<CommandPaletteItem>
+					<CommandPaletteLabel>New file</CommandPaletteLabel>
+				</CommandPaletteItem>
+				<CommandPaletteItem>
+					<CommandPaletteLabel>Open file</CommandPaletteLabel>
+				</CommandPaletteItem>
+			</CommandPaletteGroup>
 		</CommandPalette>,
 	],
 	[

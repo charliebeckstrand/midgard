@@ -39,7 +39,7 @@ export function Demo() {
 				<form onSubmit={handleSubmit}>
 					<StackedLayout>
 						<StackedLayoutHeader>
-							<TabList>
+							<TabList aria-label="Settings sections">
 								<Tab value="profile" disabled={submitting}>
 									Profile
 								</Tab>

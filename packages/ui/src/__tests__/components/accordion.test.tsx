@@ -4,6 +4,7 @@ import {
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
+	useAccordionItem,
 } from '../../components/accordion'
 import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
@@ -246,12 +247,20 @@ describe('Accordion multiple-select behavior', () => {
 	})
 })
 
-describe('AccordionTrigger render-prop child', () => {
-	it('invokes a function child with the current open state', () => {
+describe('useAccordionItem in trigger children', () => {
+	function OpenLabel() {
+		const { open } = useAccordionItem()
+
+		return open ? 'Open!' : 'Closed'
+	}
+
+	it('exposes open=true to trigger children', () => {
 		renderUI(
 			<Accordion defaultValue="a">
 				<AccordionItem value="a">
-					<AccordionTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionTrigger>
+					<AccordionTrigger>
+						<OpenLabel />
+					</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,
@@ -260,11 +269,13 @@ describe('AccordionTrigger render-prop child', () => {
 		expect(screen.getByText('Open!')).toBeInTheDocument()
 	})
 
-	it('invokes a function child with open=false when the item is closed', () => {
+	it('exposes open=false when the item is closed', () => {
 		renderUI(
 			<Accordion>
 				<AccordionItem value="a">
-					<AccordionTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</AccordionTrigger>
+					<AccordionTrigger>
+						<OpenLabel />
+					</AccordionTrigger>
 					<AccordionPanel>Body</AccordionPanel>
 				</AccordionItem>
 			</Accordion>,

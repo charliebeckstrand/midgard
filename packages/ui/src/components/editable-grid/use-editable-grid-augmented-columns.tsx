@@ -3,6 +3,7 @@
 import { type HTMLAttributes, type MouseEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
+import { isDataColumn } from '../../utilities'
 import type { DataTableColumn } from '../data-table'
 import { EditableGridCell } from './editable-grid-cell'
 import { EditableGridTextEditor } from './editable-grid-text-editor'
@@ -42,34 +43,30 @@ export function useEditableGridAugmentedColumns<T>({
 		let editableColIdx = 0
 
 		return columns.map((col) => {
-			if (col.selectable || col.actions) {
-				return {
-					id: col.id,
-					title: col.title,
-					sortable: col.sortable,
-					selectable: col.selectable,
-					actions: col.actions,
-					width: col.width,
-					className: col.className,
-					headerClassName: col.headerClassName,
-				}
-			}
+			// Separate the edit-only fields; `base` carries the DataTableColumn fields.
+			const {
+				field,
+				format,
+				parse,
+				editor: colEditor,
+				readOnly: colReadOnly,
+				align: colAlign,
+				...base
+			} = col
+
+			if (!isDataColumn(col)) return base
 
 			const colIdx = editableColIdx++
 
-			const align = col.align ?? 'left'
+			const align = colAlign ?? 'left'
 
-			const readOnly = col.readOnly ?? false
+			const readOnly = colReadOnly ?? false
 
-			const editor = col.editor ?? EditableGridTextEditor
+			const editor = colEditor ?? EditableGridTextEditor
 
 			return {
-				id: col.id,
-				title: col.title,
-				sortable: col.sortable,
-				width: col.width,
+				...base,
 				className: cn(k.cellTd, col.className),
-				headerClassName: col.headerClassName,
 				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> => {
 					const rowIdx = rowIndexMap.get(row) ?? -1
 

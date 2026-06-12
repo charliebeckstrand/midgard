@@ -19,6 +19,7 @@ import {
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
+	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
@@ -107,6 +108,41 @@ function filterCommands(query: string) {
 	)
 }
 
+function CommandResults() {
+	const { deferredQuery } = useCommandPaletteQuery()
+
+	const results = filterCommands(deferredQuery)
+
+	if (!results.length) {
+		return (
+			<Alert severity="warning" block>
+				<AlertTitle>No commands found</AlertTitle>
+			</Alert>
+		)
+	}
+
+	return groups.map((group) => {
+		const items = results.filter((c) => c.group === group)
+
+		if (!items.length) return null
+
+		return (
+			<CommandPaletteGroup key={group} title={group}>
+				{items.map((c) => (
+					<CommandPaletteItem key={c.id}>
+						<Icon icon={c.icon} size="sm" />
+						<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
+						{c.description && (
+							<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
+						)}
+						{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
+					</CommandPaletteItem>
+				))}
+			</CommandPaletteGroup>
+		)
+	})
+}
+
 export function Demo() {
 	const [open, setOpen] = useState(false)
 
@@ -122,38 +158,7 @@ export function Demo() {
 			</Button>
 
 			<CommandPalette open={open} onOpenChange={setOpen}>
-				{(query) => {
-					const results = filterCommands(query)
-
-					if (!results.length) {
-						return (
-							<Alert severity="warning" block>
-								<AlertTitle>No commands found</AlertTitle>
-							</Alert>
-						)
-					}
-
-					return groups.map((group) => {
-						const items = results.filter((c) => c.group === group)
-
-						if (!items.length) return null
-
-						return (
-							<CommandPaletteGroup key={group} title={group}>
-								{items.map((c) => (
-									<CommandPaletteItem key={c.id}>
-										<Icon icon={c.icon} size="sm" />
-										<CommandPaletteLabel>{c.label}</CommandPaletteLabel>
-										{c.description && (
-											<CommandPaletteDescription>{c.description}</CommandPaletteDescription>
-										)}
-										{c.shortcut && <CommandPaletteShortcut>{c.shortcut}</CommandPaletteShortcut>}
-									</CommandPaletteItem>
-								))}
-							</CommandPaletteGroup>
-						)
-					})
-				}}
+				<CommandResults />
 			</CommandPalette>
 		</Example>
 	)

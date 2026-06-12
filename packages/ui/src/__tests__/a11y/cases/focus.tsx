@@ -78,16 +78,14 @@ export const focus: readonly FocusCase[] = [
 			label="Open command palette"
 			render={(open, onOpenChange) => (
 				<CommandPalette open={open} onOpenChange={onOpenChange}>
-					{() => (
-						<CommandPaletteGroup title="Files">
-							<CommandPaletteItem>
-								<CommandPaletteLabel>New file</CommandPaletteLabel>
-							</CommandPaletteItem>
-							<CommandPaletteItem>
-								<CommandPaletteLabel>Open file</CommandPaletteLabel>
-							</CommandPaletteItem>
-						</CommandPaletteGroup>
-					)}
+					<CommandPaletteGroup title="Files">
+						<CommandPaletteItem>
+							<CommandPaletteLabel>New file</CommandPaletteLabel>
+						</CommandPaletteItem>
+						<CommandPaletteItem>
+							<CommandPaletteLabel>Open file</CommandPaletteLabel>
+						</CommandPaletteItem>
+					</CommandPaletteGroup>
 				</CommandPalette>
 			)}
 		/>,

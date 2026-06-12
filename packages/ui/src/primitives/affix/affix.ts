@@ -18,7 +18,7 @@ import type { Ma, Step } from '../../recipes'
  *   inherit the button's `Ma` size, including `'xs'` and `'xl'`.
  *
  * Read by wider-scale components (Button, Icon, LoadingSpinner) through
- * `useSize`; the universal `useDensity` cascade stays `Step`-typed
+ * `useResolvedSize`; the universal `useDensity` cascade stays `Step`-typed
  * for everyone else. Returns `null` outside any provider; consumers
  * treat `null` as "fall through to the Density cascade".
  */

@@ -19,7 +19,8 @@ import {
 } from '../../hooks'
 import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { densityPresets, useDensity } from '../../primitives/density'
+import { useControlSize } from '../../primitives/density'
+import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
@@ -76,11 +77,11 @@ type ComboboxBaseProps<T> = {
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	/**
-	 * Items to render inside the panel. Pass a function to receive the live
-	 * query and a deferred copy; filter heavy lists against `deferredQuery` to
-	 * keep typing responsive.
+	 * Items to render inside the panel. Read the live and deferred query with
+	 * `useComboboxQuery()`; filter heavy lists against `deferredQuery` to keep
+	 * typing responsive.
 	 */
-	children: ReactNode | ((query: string, deferredQuery: string) => ReactNode)
+	children: ReactNode
 }
 
 type ComboboxSingleProps<T> = {
@@ -103,8 +104,8 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 /**
  * Type-ahead select pairing a text input with a floating option panel:
  * single or `multiple` selection, controlled or uncontrolled `value`, and an
- * optional `clearable` affordance. Pass `children` as a function to receive the
- * live and deferred query for client-side filtering.
+ * optional `clearable` affordance. Children read the live and deferred query
+ * through `useComboboxQuery()` for client-side filtering.
  */
 export function Combobox<T>({
 	id,
@@ -140,9 +141,7 @@ export function Combobox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
-	const inherited = useDensity()
-
-	const token = size ? densityPresets[size] : inherited
+	const token = useControlSize(size)
 
 	const resolvedSize = token.size
 
@@ -235,21 +234,31 @@ export function Combobox<T>({
 	// Async option swaps for an unchanged query (e.g. address suggestions
 	// resolving) unmount the highlighted option while `deferredQuery`, the key
 	// of the effect above, never changes; `aria-activedescendant` dangles.
-	// Runs after every render (the swap arrives as new children, not through
-	// any dep this component could key on) with an existence guard,
-	// re-anchoring to the top match only when the highlight's id has left the
-	// document.
+	// The swap may also originate below this root (a query-context consumer
+	// re-rendering on its own async state), where no render of this component
+	// observes it; a MutationObserver on the options wrapper does. Re-anchors
+	// to the top match only when the highlight's id has left the document.
 	useEffect(() => {
 		if (!open) return
 
-		const activeId = inputRef.current?.getAttribute('aria-activedescendant')
+		const node = optionsRef.current
 
-		if (!activeId || document.getElementById(activeId)) return
+		if (!node) return
 
-		const items = queryItems(optionsRef.current, OPTION_SELECTOR)
+		const observer = new MutationObserver(() => {
+			const activeId = inputRef.current?.getAttribute('aria-activedescendant')
 
-		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
-	})
+			if (!activeId || document.getElementById(activeId)) return
+
+			const items = queryItems(node, OPTION_SELECTOR)
+
+			setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
+		})
+
+		observer.observe(node, { childList: true, subtree: true })
+
+		return () => observer.disconnect()
+	}, [open])
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
@@ -294,8 +303,6 @@ export function Combobox<T>({
 		[scrollWithin],
 	)
 
-	const rendered = typeof children === 'function' ? children(query, deferredQuery) : children
-
 	const hasValue = multiple
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
@@ -327,74 +334,78 @@ export function Combobox<T>({
 		[selectionValue, multiple, select],
 	)
 
+	const queryValue = useQueryValue(query, deferredQuery)
+
 	if (skeleton) {
 		return <ControlSkeleton size={size} className={className} />
 	}
 
 	return (
 		<ComboboxContext value={contextValue}>
-			<SelectTrigger
-				open={open}
-				setReference={refs.setReference}
-				getReferenceProps={getReferenceProps}
-				glass={glass}
-				size={resolvedSize}
-				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				data-slot={slot}
-				prefix={prefix}
-				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
-				suffixProps={
-					suffix || showClear
-						? undefined
-						: {
-								// Decorative mouse-only affordance; hidden from assistive
-								// tech. The input carries combobox semantics.
-								'aria-hidden': true,
-								onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
-							}
-				}
-			>
-				<ComboboxInput
-					id={id}
-					ref={inputRef}
-					type={inputType}
-					autoComplete={autoComplete}
-					aria-label={ariaLabel}
+			<QueryContext value={queryValue}>
+				<SelectTrigger
 					open={open}
-					controlsId={comboboxId}
-					disabled={resolvedDisabled}
-					value={inputDisplay}
-					placeholder={placeholder}
+					setReference={refs.setReference}
+					getReferenceProps={getReferenceProps}
+					glass={glass}
+					size={resolvedSize}
+					className={className}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
+					data-slot={slot}
+					prefix={prefix}
+					suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
+					suffixProps={
+						suffix || showClear
+							? undefined
+							: {
+									// Decorative mouse-only affordance; hidden from assistive
+									// tech. The input carries combobox semantics.
+									'aria-hidden': true,
+									onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
+								}
+					}
+				>
+					<ComboboxInput
+						id={id}
+						ref={inputRef}
+						type={inputType}
+						autoComplete={autoComplete}
+						aria-label={ariaLabel}
+						open={open}
+						controlsId={comboboxId}
+						disabled={resolvedDisabled}
+						value={inputDisplay}
+						placeholder={placeholder}
+						density={token.space}
+						size={token.size}
+						handlers={inputHandlers}
+					/>
+				</SelectTrigger>
+
+				<ComboboxPanel
+					id={comboboxId}
+					open={open}
+					editing={editing}
+					multiple={multiple}
+					glass={glass}
 					density={token.space}
 					size={token.size}
-					handlers={inputHandlers}
-				/>
-			</SelectTrigger>
-
-			<ComboboxPanel
-				id={comboboxId}
-				open={open}
-				editing={editing}
-				multiple={multiple}
-				glass={glass}
-				density={token.space}
-				size={token.size}
-				ariaLabel={ariaLabel}
-				// Names the listbox from the input's name: an explicit aria-label
-				// wins, else the field's Label (via Control).
-				ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
-				floatingStyles={floatingStyles}
-				getFloatingProps={getFloatingProps}
-				optionsRef={optionsRef}
-				setFloating={refs.setFloating}
-				scrollToSelected={scrollToSelected}
-				flushPending={flushPending}
-				onClose={close}
-			>
-				{rendered}
-			</ComboboxPanel>
+					ariaLabel={ariaLabel}
+					// Names the listbox from the input's name: an explicit aria-label
+					// wins, else the field's Label (via Control).
+					ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
+					floatingStyles={floatingStyles}
+					getFloatingProps={getFloatingProps}
+					optionsRef={optionsRef}
+					setFloating={refs.setFloating}
+					scrollToSelected={scrollToSelected}
+					flushPending={flushPending}
+					onClose={close}
+				>
+					{children}
+				</ComboboxPanel>
+			</QueryContext>
 		</ComboboxContext>
 	)
 }
