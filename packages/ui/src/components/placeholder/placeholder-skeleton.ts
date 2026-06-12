@@ -1,12 +1,12 @@
 import type { ClassValue } from 'clsx'
 import { createElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useSize } from '../../primitives/density'
+import { useResolvedSize } from '../../primitives/density'
 import { Placeholder } from './placeholder'
 
-// Resolved through the Density cascade via `useSize`. Call sites pin `S` to
+// Resolved through the Density cascade via `useResolvedSize`. Call sites pin `S` to
 // their kata's `VariantProps['size']`.
-type ResolvableSize = NonNullable<Parameters<typeof useSize>[0]>
+type ResolvableSize = NonNullable<Parameters<typeof useResolvedSize>[0]>
 
 type BaseSkeletonRecipe = {
 	/** Base skeleton shape classes. */
@@ -23,7 +23,7 @@ export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never
 	: { size?: S; className?: string }
 
 // Narrowest-to-widest order of the resolvable sizes. A skeleton recipe's `size`
-// map is keyed by Step (sm/md/lg), but `useSize` can resolve a sub-Step value
+// map is keyed by Step (sm/md/lg), but `useResolvedSize` can resolve a sub-Step value
 // (xs/xl) inherited from a control affix; those clamp to the nearest key the
 // recipe defines.
 const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
@@ -53,7 +53,7 @@ function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): Cl
  * `<Placeholder>` that carries the recipe's shape classes.
  *
  * A sized recipe (`{ base, size }`) resolves its size through the Density
- * cascade (`useSize`) and folds in the matching per-size class; the returned
+ * cascade (`useResolvedSize`) and folds in the matching per-size class; the returned
  * component takes an optional `size` prop. A base-only recipe (`{ base }`)
  * has a fixed silhouette and takes no `size` prop.
  *
@@ -78,7 +78,7 @@ export function createSkeleton<S extends ResolvableSize>(
 	name: string,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
-		const resolvedSize = useSize(size)
+		const resolvedSize = useResolvedSize(size)
 
 		const sizeClass =
 			'size' in skeleton
