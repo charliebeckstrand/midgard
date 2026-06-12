@@ -1,17 +1,20 @@
 pre-commit:
+  parallel: true
+  jobs:
+    - name: biome check
+      run: pnpm biome check --staged --no-errors-on-unmatched
+    - name: ui related tests
+      root: packages/ui/
+      glob: '*.{ts,tsx}'
+      run: pnpm test:related --passWithNoTests {staged_files}
+
+pre-push:
+  parallel: true
   jobs:
     - name: biome check
       run: pnpm biome check
-      priority: 1
-    - name: check-types
-      run: pnpm check-types
-      priority: 2
-    - name: test
-      run: pnpm turbo run test --filter=ui
-      priority: 3
-    - name: knip
-      run: pnpm turbo run knip
-      priority: 4
+    - name: full gate
+      run: pnpm turbo run check-types test knip
 
 commit-msg:
   jobs:
