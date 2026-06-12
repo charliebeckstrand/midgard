@@ -1,11 +1,15 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
+import { useEffect, useRef, useState } from 'react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
+import { DateInput, type DateInputFormat } from '../date-input'
+import { formatDateValue } from '../date-input/date-input-utilities'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { DatePickerInputToggle } from './date-picker-input-toggle'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerState } from './use-date-picker-state'
@@ -15,6 +19,15 @@ export type DatePickerSingleProps = {
 	value?: Date
 	defaultValue?: Date
 	onValueChange?: (value: Date | undefined) => void
+	/**
+	 * Shows a suffix toggle that swaps the popover trigger for a DateInput,
+	 * letting the user type the date in place. While set, the trigger label
+	 * renders through `format` instead of the locale string, so both modes
+	 * read identically.
+	 */
+	input?: boolean
+	/** Pattern for the typed date, and for the trigger label while `input` is set. @default 'MM/DD/YYYY' */
+	format?: DateInputFormat
 }
 
 export type DatePickerRangeProps = {
@@ -55,6 +68,7 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
  * Popover date picker wrapping a Calendar; switches between single and range
  * selection on the `range` prop, and supports controlled or uncontrolled `value`.
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
+ * With `input`, a suffix toggle swaps the trigger for a typed DateInput.
  */
 export function DatePicker(props: DatePickerProps) {
 	const inherited = useDensity()
@@ -73,6 +87,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		placeholder = 'Select a date',
 		size = 'md',
 		truncate = true,
+		input = false,
+		format = 'MM/DD/YYYY',
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -80,6 +96,58 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	} = props
 
 	const state = useDatePickerState(props)
+
+	const [typing, setTyping] = useState(false)
+
+	const wasTyping = useRef(false)
+
+	// Refocus the trigger when leaving input mode; the toggle that held focus
+	// re-mounts inside the new frame. Entering needs no counterpart: the
+	// DateInput autofocuses.
+	useEffect(() => {
+		if (wasTyping.current && !typing) document.getElementById(state.triggerId)?.focus()
+
+		wasTyping.current = typing
+	}, [typing, state.triggerId])
+
+	const toggle = input ? (
+		<DatePickerInputToggle
+			pressed={typing}
+			disabled={state.disabled}
+			onToggle={() => {
+				if (!typing) state.onOpenChange(false)
+
+				setTyping(!typing)
+			}}
+		/>
+	) : undefined
+
+	if (input && typing) {
+		return (
+			<DateInput
+				data-slot="datepicker-input"
+				autoFocus
+				value={state.value ?? null}
+				onValueChange={state.setValue}
+				format={format}
+				min={props.min}
+				max={props.max}
+				size={size}
+				disabled={state.disabled}
+				placeholder={props.placeholder}
+				aria-label={ariaLabel}
+				suffix={toggle}
+				className={className}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+			/>
+		)
+	}
+
+	// In input mode the trigger reads through the same format the DateInput
+	// writes, so toggling does not change the text.
+	const displayValue =
+		input && state.value ? formatDateValue(state.value, format) : state.displayValue
 
 	return (
 		<div className="contents">
@@ -90,7 +158,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
-				displayValue={state.displayValue}
+				displayValue={displayValue}
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
@@ -99,6 +167,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
+				suffix={toggle}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

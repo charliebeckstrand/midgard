@@ -547,3 +547,119 @@ describe('DatePicker range', () => {
 		expect(screen.getByLabelText('Clear selection')).toBeInTheDocument()
 	})
 })
+
+describe('DatePicker input mode', () => {
+	it('renders no toggle without the input prop', () => {
+		renderUI(<DatePicker />)
+
+		expect(screen.queryByRole('button', { name: 'Type the date' })).not.toBeInTheDocument()
+	})
+
+	it('shows an unpressed suffix toggle with the input prop', () => {
+		const { container } = renderUI(<DatePicker input />)
+
+		const toggle = screen.getByRole('button', { name: 'Type the date' })
+
+		expect(toggle).toHaveAttribute('aria-pressed', 'false')
+
+		expect(container.querySelector('[data-slot=suffix]')).toContainElement(toggle)
+	})
+
+	it('swaps the trigger for a focused DateInput when toggled', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input).toBeInTheDocument()
+
+		expect(bySlot(container, 'datepicker-button')).not.toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('06/15/2026')
+
+		expect(screen.getByRole('button', { name: 'Type the date' })).toHaveAttribute(
+			'aria-pressed',
+			'true',
+		)
+	})
+
+	it('renders the trigger label through the format so both modes match', () => {
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('06/15/2026')
+	})
+
+	it('commits a typed date and carries it back to the trigger', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.type(input, '12252026')
+
+		const emitted = onChange.mock.lastCall?.[0] as Date
+
+		expect(emitted.getMonth()).toBe(11)
+		expect(emitted.getDate()).toBe(25)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		expect(button).toHaveTextContent('12/25/2026')
+
+		expect(button).toHaveFocus()
+	})
+
+	it('closes the open calendar when switching to input mode', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
+	})
+
+	it('disables the toggle when the picker is disabled', () => {
+		renderUI(<DatePicker input disabled />)
+
+		expect(screen.getByRole('button', { name: 'Type the date' })).toBeDisabled()
+	})
+
+	it('passes min and max through to the typed date', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker input max={new Date(2026, 11, 31)} onValueChange={onChange} />,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.type(input, '06152027')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+	})
+})

@@ -6,6 +6,7 @@ import { Example } from '../components/example'
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
+	const [typed, setTyped] = useState<Date | undefined>(undefined)
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
@@ -16,6 +17,10 @@ export function Demo() {
 
 			<Example title="Range">
 				<DatePicker range value={range} onValueChange={setRange} placeholder="Select date range" />
+			</Example>
+
+			<Example title="With input">
+				<DatePicker input value={typed} onValueChange={setTyped} />
 			</Example>
 
 			<Example title="Disabled">

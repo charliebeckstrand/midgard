@@ -1,10 +1,11 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, useRef } from 'react'
+import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { cn, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
@@ -35,6 +36,8 @@ type DatePickerTriggerProps = {
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
+	/** Rendered in a standard suffix slot after the trigger button, inside the same frame. */
+	suffix?: ReactNode
 	className?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
@@ -56,6 +59,7 @@ export function DatePickerTrigger({
 	required = false,
 	invalid = false,
 	onKeyDown,
+	suffix,
 	className,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
@@ -108,6 +112,13 @@ export function DatePickerTrigger({
 						</span>
 					</Button>
 				</Headless>
+				{suffix != null && (
+					<AffixContext value={affixStepDown(size)}>
+						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
+							{suffix}
+						</span>
+					</AffixContext>
+				)}
 			</ControlFrame>
 		</div>
 	)
