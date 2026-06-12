@@ -5,11 +5,13 @@ import { loadShiki } from '../components/code'
 import { Heading } from '../components/heading'
 import { SidebarLayout } from '../layouts'
 import { DensityProvider } from '../providers/density'
+import { GlassProvider } from '../providers/glass'
 import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
 import { useDensity } from './hooks/use-density'
 import { useHash } from './hooks/use-hash'
+import { useSurface } from './hooks/use-surface'
 import { useTheme } from './hooks/use-theme'
 import { demos } from './registry'
 
@@ -21,6 +23,8 @@ export function App() {
 	const deferredRoute = useDeferredValue(route)
 
 	const [mode, setMode] = useTheme()
+
+	const [surface, setSurface] = useSurface()
 
 	const [density, setDensity] = useDensity()
 
@@ -49,36 +53,40 @@ export function App() {
 
 	return (
 		<DensityProvider density={density}>
-			<SidebarLayout
-				stickyHeader
-				floating={!locked}
-				actions={
-					<SettingsDialog
-						mode={mode}
-						density={density}
-						onModeChange={setMode}
-						onDensityChange={setDensity}
-					/>
-				}
-				sidebar={<SidebarContent route={route} />}
-			>
-				<div ref={contentRef}>
-					{current ? (
-						<Suspense fallback={null}>
-							<DemoPage
-								key={current.id}
-								demo={current}
-								locked={locked}
-								onToggleLocked={toggleLocked}
-							/>
-						</Suspense>
-					) : (
-						<div className="p-6">
-							<Heading>Select a component</Heading>
-						</div>
-					)}
-				</div>
-			</SidebarLayout>
+			<GlassProvider enabled={surface === 'glass'}>
+				<SidebarLayout
+					stickyHeader
+					floating={!locked}
+					actions={
+						<SettingsDialog
+							mode={mode}
+							surface={surface}
+							density={density}
+							onModeChange={setMode}
+							onSurfaceChange={setSurface}
+							onDensityChange={setDensity}
+						/>
+					}
+					sidebar={<SidebarContent route={route} />}
+				>
+					<div ref={contentRef}>
+						{current ? (
+							<Suspense fallback={null}>
+								<DemoPage
+									key={current.id}
+									demo={current}
+									locked={locked}
+									onToggleLocked={toggleLocked}
+								/>
+							</Suspense>
+						) : (
+							<div className="p-6">
+								<Heading>Select a component</Heading>
+							</div>
+						)}
+					</div>
+				</SidebarLayout>
+			</GlassProvider>
 		</DensityProvider>
 	)
 }
