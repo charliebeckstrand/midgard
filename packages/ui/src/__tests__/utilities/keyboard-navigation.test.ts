@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextIndexForKey } from '../../hooks/a11y/keyboard-navigation'
+import { nextIndexForKey } from '../../utilities/keyboard-navigation'
 
 describe('nextIndexForKey', () => {
 	it('returns null for empty item count', () => {

@@ -1,4 +1,4 @@
-import type { Orientation } from '../../types'
+import type { Orientation } from '../types'
 
 export type NavigationConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */

@@ -1,8 +1,12 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback, useEffect } from 'react'
+import {
+	crossAxisDelta,
+	type NavigationConfig,
+	nextIndexForKey,
+} from '../../utilities/keyboard-navigation'
 import { useScrollWithin } from '../use-scroll-within'
-import { crossAxisDelta, type NavigationConfig, nextIndexForKey } from './keyboard-navigation'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 type RovingRowConfig = {
