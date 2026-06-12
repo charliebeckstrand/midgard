@@ -128,10 +128,11 @@ function TypeSummary({ prop }: { prop: PropDef }) {
 
 /**
  * One badge per top-level union arm: `'sm' | 'md'` renders as two badges.
- * Function types stay whole; their return-type unions are not arms.
+ * Function types stay whole (their return-type unions are not arms), and
+ * repeated arms collapse: badges key by their text.
  */
 function TypeBadges({ type }: { type: string }) {
-	const parts = type.includes('=>') ? [type] : splitUnion(type)
+	const parts = type.includes('=>') ? [type] : [...new Set(splitUnion(type))]
 
 	return (
 		<Flex gap="sm" align="center" wrap>

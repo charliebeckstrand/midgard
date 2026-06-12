@@ -2,7 +2,7 @@ import { ts } from 'ts-morph'
 import type { PropDef } from '../types'
 import { deriveUsage } from './derive-usage'
 import { extractReferences } from './extract-references'
-import { formatPropType } from './format-type'
+import { formatPropType, formatType } from './format-type'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 
@@ -137,12 +137,39 @@ function buildPropDef(
 	return prop
 }
 
-/** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
+/**
+ * Render the distinct union arms across every contributing type, joined with
+ * `|`. The collected types overlap (the union-merged type plus each arm's
+ * narrowed type), so arms dedupe twice: by type identity (literal types are
+ * interned) and by rendered text (structurally equal function types declared
+ * in separate arms). Anonymous unions split into arms; named alias unions
+ * stay whole so they render by name. `undefined` arms drop (optional props
+ * carry one).
+ */
 function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
-	const rendered: string[] = []
+	const arms: ts.Type[] = []
 
 	for (const t of types) {
-		const text = formatPropType(t, checker, location)
+		const candidates = t.isUnion() && !t.aliasSymbol ? t.types : [t]
+
+		for (const arm of candidates) {
+			if (arm.flags & ts.TypeFlags.Undefined) continue
+
+			if (!arms.includes(arm)) arms.push(arm)
+		}
+	}
+
+	// Every arm was `undefined`: fall back to the plain rendering.
+	if (arms.length === 0) {
+		const only = types[0]
+
+		return only ? formatPropType(only, checker, location) : 'undefined'
+	}
+
+	const rendered: string[] = []
+
+	for (const arm of arms) {
+		const text = formatType(arm, checker, location)
 
 		if (!rendered.includes(text)) rendered.push(text)
 	}

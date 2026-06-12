@@ -105,6 +105,36 @@ describe('extractProps', () => {
 		expect(prop(props, 'valueB').required).toBeUndefined()
 	})
 
+	it('dedupes top-level union arms collected from overlapping arm types', () => {
+		const props = propsOf(
+			[
+				`type FooProps =`,
+				`\t| { type?: 'single'; value?: string | null }`,
+				`\t| { type: 'multiple'; value?: string | null }`,
+				`export function Foo(props: FooProps) { return null }`,
+			].join('\n'),
+		)
+
+		// The union-merged type and each arm's narrowed type overlap; the
+		// rendering keeps one copy of every arm.
+		expect(prop(props, 'type').type).toBe(`'single' | 'multiple'`)
+
+		expect(prop(props, 'value').type).toBe('null | string')
+	})
+
+	it('keeps function renderings whole when joining arm types', () => {
+		const props = propsOf(
+			[
+				`type FooProps =`,
+				`\t| { mode: 'a'; pick?: (row: unknown) => string | number }`,
+				`\t| { mode: 'b'; pick?: (row: unknown) => string | number }`,
+				`export function Foo(props: FooProps) { return null }`,
+			].join('\n'),
+		)
+
+		expect(prop(props, 'pick').type).toBe('(row: unknown) => string | number')
+	})
+
 	it('keeps `required` for non-optional props inside intersection arms', () => {
 		const props = propsOf(
 			[
