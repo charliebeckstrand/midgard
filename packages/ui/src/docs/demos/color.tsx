@@ -3,7 +3,7 @@ import type { Hsva } from '../../components/color'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
-import { LabeledRow } from '../components/labeled'
+import { LabeledRow, LabeledRows } from '../components/labeled'
 
 const sizes = ['sm', 'md', 'lg'] as const
 
@@ -61,11 +61,13 @@ export function Demo() {
 			<PickerExample />
 
 			<Example title="Sizes">
-				{sizes.map((size) => (
-					<LabeledRow key={size} label={size}>
-						<ColorPicker size={size} defaultValue="#8b5cf6" />
-					</LabeledRow>
-				))}
+				<LabeledRows>
+					{sizes.map((size) => (
+						<LabeledRow key={size} label={size}>
+							<ColorPicker size={size} defaultValue="#8b5cf6" />
+						</LabeledRow>
+					))}
+				</LabeledRows>
 			</Example>
 
 			<Example title="Disabled">

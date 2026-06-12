@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
 import { Flex } from '../../components/flex'
-import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
-import { LabeledRow } from '../components/labeled'
+import { LabeledRow, LabeledRows } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
@@ -28,13 +27,13 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Variants">
-				<Stack gap="sm">
+				<LabeledRows>
 					{variants.map((v) => (
-						<LabeledRow key={v} label={v} labelWidth="lg">
+						<LabeledRow key={v} label={v}>
 							<Avatar variant={v} initials="A" />
 						</LabeledRow>
 					))}
-				</Stack>
+				</LabeledRows>
 			</Example>
 
 			<Example

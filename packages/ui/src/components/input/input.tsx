@@ -139,7 +139,7 @@ export function Input(props: InputProps) {
 					)}
 				>
 					{hasPrefix && (
-						<span className={cn('peer/prefix', k.affix, k.prefix[token.space])}>
+						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[token.space])}>
 							{resolvedPrefix}
 						</span>
 					)}

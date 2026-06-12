@@ -265,7 +265,7 @@ export function DataTable<T>({
 					/>
 				)}
 
-				{batchActions && (
+				{batchActions && someSelected && (
 					<Toolbar aria-label="Batch actions">
 						{someSelected && batchActions({ selection, setSelection })}
 					</Toolbar>

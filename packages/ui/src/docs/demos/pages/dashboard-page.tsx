@@ -1,11 +1,10 @@
-import { Search } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../../components/card'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
+import { Flex } from '../../../components/flex'
 import { Grid } from '../../../components/grid'
-import { Icon } from '../../../components/icon'
-import { Input } from '../../../components/input'
+import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Stack } from '../../../components/stack'
 import { Stat, StatDelta, StatLabel, StatValue } from '../../../components/stat'
@@ -119,11 +118,18 @@ export function Demo() {
 						</Grid>
 
 						<Card>
-							<CardHeader className="flex sm:flex-row flex-col sm:items-center gap-4 justify-between">
-								<CardTitle>Recent orders</CardTitle>
-								<div className="sm:max-w-md">
-									<Input placeholder="Search orders" prefix={<Icon icon={<Search />} />} />
-								</div>
+							<CardHeader>
+								<Flex
+									gap="sm"
+									align={{ initial: 'start', lg: 'center' }}
+									direction={{ initial: 'col', sm: 'row' }}
+									justify="between"
+								>
+									<CardTitle>Recent orders</CardTitle>
+									<div className="shrink">
+										<SearchInput placeholder="Search orders" />
+									</div>
+								</Flex>
 							</CardHeader>
 							<CardBody>
 								<Table>

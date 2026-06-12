@@ -6,7 +6,6 @@ import { cn } from '../../core'
 import { Button } from '../button'
 import { useFileUploadHandlers } from '../file-upload'
 import { Icon } from '../icon'
-import { Spacer } from '../spacer'
 import { Textarea } from '../textarea'
 
 export type ChatPromptProps = {
@@ -104,7 +103,6 @@ export function ChatPrompt({
 			actions={
 				<>
 					{actions}
-					<Spacer />
 					{onAttach && (
 						<>
 							{/* Sibling of the button, not nested inside it: a focusable
