@@ -99,6 +99,10 @@ export function useComboboxInput<T>({
 			// option.
 			if (e.key === 'Home' || e.key === 'End') return
 
+			// Shift+Arrow extends the textbox selection; routed to roving it
+			// would preventDefault and move the highlight instead.
+			if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return
+
 			rovingKeyDown(e)
 		},
 		[close, optionsRef, rovingKeyDown],
