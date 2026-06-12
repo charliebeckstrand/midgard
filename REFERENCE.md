@@ -11,7 +11,8 @@
 | Testing | [Vitest](https://vitest.dev) |
 | Build | [Turborepo](https://turborepo.dev/docs) |
 | Formatter / linter | [Biome](https://biomejs.dev) |
-| Pre-commit | [Lefthook](https://lefthook.dev) |
+| Git hooks | [Lefthook](https://lefthook.dev) |
+| CI | [GitHub Actions](https://docs.github.com/actions) |
 | Package manager | [pnpm](https://pnpm.io) |
 
 ## 2. Design system

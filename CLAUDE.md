@@ -26,7 +26,7 @@
 
 3.3 For research spanning sources or subsystems, delegate to subagents — one task each.
 
-3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs the full gate pre-commit.
+3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs scoped checks pre-commit and the full gate pre-push; CI gates merges.
 
 ## 4. Version Control
 
