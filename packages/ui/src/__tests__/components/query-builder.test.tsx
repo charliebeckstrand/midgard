@@ -454,6 +454,26 @@ describe('QueryBuilderRuleValue', () => {
 		expect(screen.getByRole('button', { name: 'Start value' })).toBeInTheDocument()
 	})
 
+	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
+	// to 1900–1999, so a stored "0001-01-01" reached the DatePicker as 1901.
+	it('parses an ISO date below year 100 without mapping it to 19xx', () => {
+		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
+
+		renderUI(<QueryBuilderRuleValue field={field} value="0001-01-01" onValueChange={() => {}} />)
+
+		const yearOne = new Date(2000, 0, 1)
+
+		yearOne.setFullYear(1)
+
+		const trigger = screen.getByRole('button', { name: 'Start value' })
+
+		// The trigger repeats the date in its truncation tooltip, so assert
+		// containment rather than the full text.
+		expect(trigger.textContent).toContain(yearOne.toLocaleDateString())
+
+		expect(trigger.textContent).not.toContain('1901')
+	})
+
 	it('falls back to a text input for unknown field types', () => {
 		const field: QueryField = { name: 'x', label: 'X', type: 'boolean' }
 
