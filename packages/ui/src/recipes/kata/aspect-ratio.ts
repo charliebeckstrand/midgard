@@ -1,5 +1,5 @@
-// Preset aspect-ratio classes owned by the recipe layer. Numeric ratios are
-// applied inline via `style` by the component.
+// Preset ratios only; numeric ratios are applied inline via `style` by the
+// component.
 export const k = {
 	ratio: {
 		square: 'aspect-square',

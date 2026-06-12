@@ -79,7 +79,7 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     of `useClick`/`useFocus` can wire open-on-interaction.
  *   - `useClick` / `useFocus` return reference handlers that *open* the panel
  *     (open-only, not toggle): `userEvent.click` fires focus then click, and a
- *     toggling click would re-close what focus just opened. Dismissal flows
+ *     toggling click would immediately re-close what focus opened. Dismissal flows
  *     through other paths (overlay signal, outside-press).
  *   - `useRole` is additive but gated on `enabled`: it emits the tooltip
  *     `aria-describedby` (reference, while open) + panel `id`/`role` (floating)

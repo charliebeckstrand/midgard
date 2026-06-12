@@ -125,7 +125,7 @@ const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
  * Parse the PascalCase named value imports a demo takes from external
  * packages (bare specifiers like `lucide-react`). Relative imports resolve
  * through the tagged ui barrels and stay out. Aliased specifiers record their
- * source name — the name matching the component's `displayName` and the
+ * source name: the name matching the component's `displayName` and the
  * import a reader would write.
  */
 export function parseExternalImports(source: string, fileName: string): ExternalImport[] {

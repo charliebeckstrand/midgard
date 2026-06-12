@@ -45,10 +45,6 @@ export function deriveCode(children: ReactNode): string | null {
 	return assemble(context, jsx)
 }
 
-// ---------------------------------------------------------------------------
-// Tree traversal
-// ---------------------------------------------------------------------------
-
 /**
  * Renders a list of React children as a JSX snippet. Pass-through wrappers
  * flatten, text leaves keep their position relative to surrounding elements,

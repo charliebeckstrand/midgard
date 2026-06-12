@@ -31,7 +31,7 @@ type BaseOptionProps = {
 	/**
 	 * Single-select focus-roving lists: Tab commits the focused option before
 	 * the keystroke leaves the widget (APG select pattern: Tab accepts, Escape
-	 * cancels). Skipped when the option is already selected — `onSelect` on
+	 * cancels). Skipped when the option is already selected: `onSelect` on
 	 * the current value clears a `nullable` selection. The event is not
 	 * consumed; the owning panel redirects the focus move.
 	 */

@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	useComboboxQuery,
+} from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../components/dialog'
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../../components/drawer'
@@ -27,6 +32,18 @@ import { Example } from '../../components/example'
 export const meta = { category: 'Providers' }
 
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
+
+function FilteredPeople() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return people
+		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((p) => (
+			<ComboboxOption key={p} value={p}>
+				<ComboboxLabel>{p}</ComboboxLabel>
+			</ComboboxOption>
+		))
+}
 
 function DialogExample() {
 	const [open, setOpen] = useState(false)
@@ -143,15 +160,7 @@ export function Demo() {
 								displayValue={(v: string) => v}
 								placeholder="Search people"
 							>
-								{(query) =>
-									people
-										.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-										.map((p) => (
-											<ComboboxOption key={p} value={p}>
-												<ComboboxLabel>{p}</ComboboxLabel>
-											</ComboboxOption>
-										))
-								}
+								<FilteredPeople />
 							</Combobox>
 						</Field>
 						<Field>

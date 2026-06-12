@@ -9,7 +9,7 @@ import type { Step } from '../../recipes'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { useFormText } from '../form/use-form-text'
+import { useInputValue } from '../input/use-input-value'
 
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
@@ -54,7 +54,13 @@ export function Textarea(props: TextareaProps) {
 	} = props
 	const glass = useGlass()
 	const control = useControl()
-	const binding = useFormText(name, { onChange, onBlur })
+	const valueState = useInputValue<HTMLTextAreaElement>({
+		hasValueProp,
+		name,
+		value,
+		onChange,
+		onBlur,
+	})
 	const token = useControlSize(size)
 
 	const {
@@ -72,15 +78,10 @@ export function Textarea(props: TextareaProps) {
 		required,
 		readOnly,
 		'aria-describedby': ariaDescribedBy,
-		binding,
+		invalid: valueState.invalid,
 	})
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
-
-	// An explicit `value` prop takes ownership of the controlled state;
-	// the Form binding surfaces name + invalid via useControlProps but does
-	// not override the value or change handlers.
-	const bound = !hasValueProp && binding !== undefined
 
 	const controlProps = {
 		id: resolvedId,
@@ -89,9 +90,9 @@ export function Textarea(props: TextareaProps) {
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
-		value: bound ? binding.value : hasValueProp ? (value ?? '') : value,
-		onChange: bound ? binding.onChange : onChange,
-		onBlur: bound ? binding.onBlur : onBlur,
+		value: valueState.value,
+		onChange: valueState.onChange,
+		onBlur: valueState.onBlur,
 		'aria-describedby': resolvedDescribedBy,
 		...invalidAttrs(resolvedInvalid),
 	}

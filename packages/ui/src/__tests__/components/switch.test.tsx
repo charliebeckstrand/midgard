@@ -1,8 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
+import { Form, useFormField } from '../../components/form'
 import { Switch, SwitchField, SwitchSkeleton } from '../../components/switch'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
+
+function FieldProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return <output data-slot="probe">{String(field?.value)}</output>
+}
 
 describe('Switch', () => {
 	it('keeps the switch role and synced aria-checked over consumer props', () => {
@@ -53,6 +60,55 @@ describe('Switch', () => {
 
 		expect(bySlot(container, 'switch')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+})
+
+describe('Switch in a Form', () => {
+	it('binds checked to the form field by name and chains onChange', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ dark: false }}>
+				<Switch name="dark" onChange={onChange} />
+				<FieldProbe name="dark" />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'switch') as HTMLInputElement
+
+		expect(input.checked).toBe(false)
+
+		fireEvent.click(input)
+
+		expect(input.checked).toBe(true)
+
+		expect(input).toHaveAttribute('aria-checked', 'true')
+
+		expect(bySlot(container, 'probe')?.textContent).toBe('true')
+
+		expect(onChange).toHaveBeenCalled()
+	})
+
+	it('lets an explicit checked prop win over the form binding', () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ dark: false }}>
+				<Switch name="dark" checked onChange={onChange} />
+				<FieldProbe name="dark" />
+			</Form>,
+		)
+
+		const input = bySlot(container, 'switch') as HTMLInputElement
+
+		expect(input.checked).toBe(true)
+
+		fireEvent.click(input)
+
+		// The consumer's handler resolves; the store stays untouched.
+		expect(bySlot(container, 'probe')?.textContent).toBe('false')
+
+		expect(onChange).toHaveBeenCalled()
 	})
 })
 

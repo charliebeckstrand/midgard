@@ -14,7 +14,7 @@ export function countMeaningful(s: string, end: number, keep: (char: string) => 
 }
 
 /**
- * Inverse of {@link countMeaningful}: the string offset just past the
+ * Inverse of {@link countMeaningful}: the string offset one past the
  * `target`-th meaningful character, clamping to the string bounds.
  */
 export function cursorForCount(s: string, target: number, keep: (char: string) => boolean) {

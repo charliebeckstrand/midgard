@@ -4,11 +4,7 @@ import { control } from '../kiso/control'
 const { radius } = kasane
 const { frame } = control
 
-/**
- * Density-keyed corner radius for the outer frame element. Applied via
- * `useDensity()` in `<ControlFrame>`; radius tracks `py` at each step:
- * sm → 1.5, md → 2, lg → 2.5.
- */
+/** Applied via `useDensity()` in `<ControlFrame>`; radius tracks `py` at each step. */
 const frameRadius = {
 	sm: radius.all('1.5'),
 	md: radius.all('2'),

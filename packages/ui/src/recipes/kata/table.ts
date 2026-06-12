@@ -4,7 +4,7 @@ import { iro, sen } from '../kiso'
 const { text } = iro
 const { border } = sen
 
-// Cell padding keyed by density; text is fixed at `text-base`.
+// Density scales the padding only; cell text size never changes.
 const cellDensity = {
 	sm: 'px-1 py-1',
 	md: 'px-2 py-2',

@@ -34,9 +34,11 @@ See [REFERENCE.md](REFERENCE.md).
 
 Within `ui`, a sibling component may reach past the barrel for a foundation's leaf module: its `context.ts`, a `use-*` hook, or a `*-utilities` or `variants` helper. That's how shared cascades like `useControl` and `useGlass` travel without pulling in the component's full surface. What a sibling must never import is another component's main `<name>.tsx`. All of this is enforced by `component-boundary.test.ts`.
 
-3.6 Skeleton state is explicit. A skeleton-aware leaf exports a dedicated `<Name>Skeleton` from its barrel: size- or base-keyed leaves build it with `createSkeleton(k.skeleton, '<Name>Skeleton')` (`button`, `badge`, `checkbox`, `radio`, `switch`, `text`); leaves whose silhouette keys off another axis hand-write it (`heading` by level, `textarea` by rows). Loading trees compose the variants where the real components will render: a Suspense fallback, `loading.tsx`, or a `ReadyReveal` placeholder. Skeleton variants are static leaves ([REFERENCE.md](packages/ui/REFERENCE.md) §2): they read no context and mirror the real component's explicit props (`ControlSkeleton` stands in for the control family). Silhouette dimensions live in the `kokkaku` skeleton-form layer (`recipes/kiso/kokkaku/<name>.ts`), wired into the kata as `skeleton:`. Inline display leaves (`icon`, `kbd`, `code`, `status`, `time-ago`, `odometer`, `link`) and data-heavy compositions (`data-table`) deliberately have none for now; `table` ships `TableLoading`.
+3.6 Composition is compound components over context. The root owns state and provides it through `context.ts`; behavior-bearing sub-components consume it (`useTabsContext`, `useCollapseContext`). Inert slots, whose whole body is element + recipe classes + prop spread, use `createSlot` (`core/create-slot.ts`); the panel surfaces (Dialog, Sheet, Drawer) build their shared slot family with `createPanel` (`primitives/panel`). `children` is plain `ReactNode` everywhere: state reaches descendants through context (`useComboboxQuery`), never through render-function children on a root. Reserve render functions for per-item callbacks where a parent passes data back (a list's item renderer, `VirtualOptions`). Context composition is for client components; static-tier components style descendants through DOM projections instead (§3.8).
 
-3.7 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
+3.7 Skeleton state is explicit. A skeleton-aware leaf exports a dedicated `<Name>Skeleton` from its barrel: size- or base-keyed leaves build it with `createSkeleton(k.skeleton, '<Name>Skeleton')` (`button`, `badge`, `checkbox`, `radio`, `switch`, `text`); leaves whose silhouette keys off another axis hand-write it (`heading` by level, `textarea` by rows). Loading trees compose the variants where the real components will render: a Suspense fallback, `loading.tsx`, or a `ReadyReveal` placeholder. Skeleton variants are static leaves ([REFERENCE.md](packages/ui/REFERENCE.md) §2): they read no context and mirror the real component's explicit props (`ControlSkeleton` stands in for the control family). Silhouette dimensions live in the `kokkaku` skeleton-form layer (`recipes/kiso/kokkaku/<name>.ts`), wired into the kata as `skeleton:`. Inline display leaves (`icon`, `kbd`, `code`, `status`, `time-ago`, `odometer`, `link`) and data-heavy compositions (`data-table`) deliberately have none for now; `table` ships `TableLoading`.
+
+3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
 
 ## 4. TypeScript
 
@@ -67,6 +69,10 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 ## 7. Forms
 
 7.1 Forms compose `ui/form`, which owns form state via `useSyncExternalStore` and accepts optional schema resolvers for validation.
+
+7.2 Bindable controls take `name` to bind their value to the enclosing form field. Resolution order on every control: an explicit `value`/`checked` prop wins, then the bound field, then internal (uncontrolled) state. Consumer change handlers fire in every mode. A bound field ignores the control's `defaultValue`/`defaultChecked`; `Form.defaultValues` is the single source of truth. The cascade lives in `useFormValue` (value-typed controls), `useInputValue` (Input, Textarea), and `useFormToggle` (Checkbox, Switch): new bindable controls compose one of these, never a bespoke branch.
+
+7.3 In value props, `undefined` leaves the control uncontrolled; `null` keeps it controlled with no current value.
 
 ## 8. Naming
 

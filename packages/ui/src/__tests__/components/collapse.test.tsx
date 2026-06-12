@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
+import {
+	Collapse,
+	CollapsePanel,
+	CollapseTrigger,
+	useCollapseContext,
+} from '../../components/collapse'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Collapse', () => {
@@ -106,11 +111,19 @@ describe('Collapse', () => {
 	})
 })
 
-describe('CollapseTrigger render-prop child', () => {
-	it('invokes a function child with the current open state', () => {
+describe('useCollapseContext in trigger children', () => {
+	function OpenLabel() {
+		const { open } = useCollapseContext()
+
+		return open ? 'Open!' : 'Closed'
+	}
+
+	it('exposes open=true to trigger children', () => {
 		renderUI(
 			<Collapse defaultOpen>
-				<CollapseTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</CollapseTrigger>
+				<CollapseTrigger>
+					<OpenLabel />
+				</CollapseTrigger>
 				<CollapsePanel>Body</CollapsePanel>
 			</Collapse>,
 		)
@@ -118,10 +131,12 @@ describe('CollapseTrigger render-prop child', () => {
 		expect(screen.getByText('Open!')).toBeInTheDocument()
 	})
 
-	it('invokes a function child with open=false when collapsed', () => {
+	it('exposes open=false when collapsed', () => {
 		renderUI(
 			<Collapse>
-				<CollapseTrigger>{({ open }) => (open ? 'Open!' : 'Closed')}</CollapseTrigger>
+				<CollapseTrigger>
+					<OpenLabel />
+				</CollapseTrigger>
 				<CollapsePanel>Body</CollapsePanel>
 			</Collapse>,
 		)

@@ -235,4 +235,18 @@ describe('useComboboxInput onKeyDown', () => {
 
 		expect(rovingKeyDown).toHaveBeenCalledWith(event)
 	})
+
+	it('leaves Shift+Arrow to the textbox so it extends the text selection', () => {
+		const { result, rovingKeyDown } = setup<string>()
+
+		for (const key of ['ArrowUp', 'ArrowDown']) {
+			const event = makeKeyEvent<HTMLInputElement>(key, { shiftKey: true })
+
+			result.current.onKeyDown(event)
+
+			expect(event.preventDefault).not.toHaveBeenCalled()
+		}
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
+	})
 })

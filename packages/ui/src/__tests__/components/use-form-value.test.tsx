@@ -19,7 +19,7 @@ describe('useFormValue', () => {
 
 		expect(result.current.value).toBe(1)
 
-		expect(result.current.binding).toBeUndefined()
+		expect(result.current.invalid).toBeUndefined()
 
 		act(() => {
 			result.current.setValue(2)

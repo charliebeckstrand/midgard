@@ -10,13 +10,11 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<CheckboxGroup>
-					<CheckboxField>
-						<Checkbox />
-						<Label>Accept terms and conditions</Label>
-						<Description>You agree to our Terms of Service and Privacy Policy.</Description>
-					</CheckboxField>
-				</CheckboxGroup>
+				<CheckboxField>
+					<Checkbox />
+					<Label>Accept terms and conditions</Label>
+					<Description>You agree to our Terms of Service and Privacy Policy.</Description>
+				</CheckboxField>
 			</Example>
 
 			<Example title="Group">

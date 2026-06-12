@@ -74,22 +74,22 @@ describe('useControlProps', () => {
 		expect(result.current.readOnly).toBe(false)
 	})
 
-	it('resolves invalid from binding when Control has none', () => {
-		const { result } = renderHook(() => useControlProps({ binding: { invalid: true } }))
+	it('resolves invalid from the form-bound flag when Control has none', () => {
+		const { result } = renderHook(() => useControlProps({ invalid: true }))
 
 		expect(result.current.invalid).toBe(true)
 	})
 
-	it('OR-merges Control invalid with binding invalid', () => {
-		const { result } = renderHook(() => useControlProps({ binding: { invalid: false } }), {
+	it('OR-merges Control invalid with the form-bound flag', () => {
+		const { result } = renderHook(() => useControlProps({ invalid: false }), {
 			wrapper: withControl({ id: 'x', invalid: true }),
 		})
 
 		expect(result.current.invalid).toBe(true)
 	})
 
-	it('preserves undefined when neither Control nor binding mark invalid', () => {
-		const { result } = renderHook(() => useControlProps({ binding: {} }), {
+	it('preserves undefined when neither Control nor the bound field mark invalid', () => {
+		const { result } = renderHook(() => useControlProps({}), {
 			wrapper: withControl({ id: 'x' }),
 		})
 

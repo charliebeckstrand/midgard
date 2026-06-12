@@ -1,4 +1,4 @@
-export type { SwitchFieldVariants, SwitchVariants } from '../../recipes/kata/switch'
+export type { SwitchVariants } from '../../recipes/kata/switch'
 export {
 	Switch,
 	type SwitchProps,

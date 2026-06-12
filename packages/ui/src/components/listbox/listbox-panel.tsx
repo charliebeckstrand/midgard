@@ -74,7 +74,7 @@ export function ListboxPanel({
 			<AnimatePresence onExitComplete={flushPending}>
 				{open && (
 					// Non-modal: focus moves into the panel on open and stays contained.
-					// Tab exits through `onTabOut` — commit (at the option), close, and
+					// Tab exits through `onTabOut`: commit (at the option), close, and
 					// carry focus past the trigger (a select closes on Tab; it doesn't
 					// trap like a dialog); `closeOnFocusOut` still dismisses any other
 					// focus departure. `useFloatingUI`'s `returnFocusTo` manages

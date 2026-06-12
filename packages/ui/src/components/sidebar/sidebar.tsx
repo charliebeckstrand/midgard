@@ -16,8 +16,8 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
 	 */
 	mini?: boolean
 	/**
-	 * Render-prop children receive the resolved mini state — true only when
-	 * `mini` is set and the viewport is desktop — to branch content between
+	 * Render-prop children receive the resolved mini state (true only when
+	 * `mini` is set and the viewport is desktop) to branch content between
 	 * the two presentations (a logo glyph standing in for the wordmark, say).
 	 */
 	children?: ReactNode | ((mini: boolean) => ReactNode)

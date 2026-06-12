@@ -51,14 +51,14 @@ const color = defineColors({
 
 const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...ring.inset]
 
+// The control column sizes to the switch itself so the toggle grid's gap
+// stays uniform across switch sizes without a matching field-level prop.
 const field = defineRecipe({
-	base: [...toggle, '*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0'],
-	size: {
-		sm: 'grid-cols-[2rem_1fr]',
-		md: 'grid-cols-[2.5rem_1fr]',
-		lg: 'grid-cols-[3rem_1fr]',
-	},
-	defaults: { size: 'md' },
+	base: [
+		...toggle,
+		'grid-cols-[auto_1fr]',
+		'*:data-[slot=control]:row-span-2 *:data-[slot=control]:mt-0',
+	],
 })
 
 export const k = defineRecipe(
@@ -120,4 +120,3 @@ export const k = defineRecipe(
 )
 
 export type SwitchVariants = VariantProps<typeof k>
-export type SwitchFieldVariants = VariantProps<typeof field>

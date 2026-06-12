@@ -2,14 +2,22 @@
 
 import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
-import { type KeyboardEvent, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	type ReactNode,
+	useCallback,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
+import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
@@ -18,6 +26,7 @@ import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
 type ListboxBaseProps = {
+	name?: string
 	placeholder?: string
 	placement?: Placement
 	prefix?: ReactNode
@@ -80,10 +89,12 @@ export type ListboxProps<T> = ListboxBaseProps & {
 /**
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
  * `multiple` selection, controlled or uncontrolled, with an optional clear
- * control and a portalled panel. `size` resolves from the prop, then `<Control>`,
- * then enclosing Density.
+ * control and a portalled panel. Binds to an enclosing Form field by `name`;
+ * an explicit `value` wins over the bound field. `size` resolves from the
+ * prop, then `<Control>`, then enclosing Density.
  */
 export function Listbox<T>({
+	name,
 	value: valueProp,
 	defaultValue,
 	displayValue,
@@ -130,7 +141,7 @@ export function Listbox<T>({
 		multiple,
 	)
 
-	const [value, setValue] = useControllable<T | T[]>({
+	const { value, setValue, setTouched } = useFormValue<T | T[]>(name, {
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
 		onValueChange: handleValueChange,
@@ -180,6 +191,15 @@ export function Listbox<T>({
 		},
 		[context],
 	)
+
+	// Marks the bound field touched when focus leaves the widget; a blur into
+	// the portalled panel (opening the menu) doesn't count. Mirrors the
+	// combobox input's onBlur.
+	const handleTriggerBlur = (event: FocusEvent<HTMLButtonElement>) => {
+		if (refs.floating.current?.contains(event.relatedTarget as Node)) return
+
+		setTouched()
+	}
 
 	const label = resolveLabel({ value, displayValue, multiple })
 
@@ -261,6 +281,7 @@ export function Listbox<T>({
 					disabled={resolvedDisabled}
 					invalid={control?.invalid}
 					label={label}
+					onBlur={handleTriggerBlur}
 					placeholder={placeholder}
 					truncate={truncate}
 					tabularNums={tabularNums}

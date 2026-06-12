@@ -66,7 +66,7 @@ export function useKeyboardSettled() {
 				lastHeight = currentHeight
 			}
 
-			// 5 stable frames (~83 ms at 60 fps) after keyboard moves, bail after 1 s
+			// 5 stable frames (~83 ms at 60 fps) after keyboard moves, bail after 1s
 			if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {
 				rafRef.current = null
 

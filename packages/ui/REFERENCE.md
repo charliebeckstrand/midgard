@@ -36,7 +36,7 @@ The boundary rule: ambient styling state crosses the server/client boundary thro
 - Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes; Table projects density, grid, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
 - `AffixContext` remains for client slot children (a Button inside an Input affix still steps down); static leaves never read it.
 - `DensityProvider` reaches client components only (Input, Button, Tabs, Menu, …). Static atoms ignore it; pass `size`/`space`/`gap` explicitly. A Badge in a control affix slot takes `size` one step below the control: the affix compensation constants assume the stepped-down chip.
-- Loading UI is composed explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.6); the variants are themselves static.
+- Loading UI is composed explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.7); the variants are themselves static.
 - Static leaves that link route through `PolymorphicStatic`: `href` renders a plain anchor, `render={<Link />}` composes the app router link per call site. Client components keep `Polymorphic`, which resolves the `<UIProvider>`-registered link from context.
 
 Two guards pin the contract: `static-component-boundary.test.ts` scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports; `apps/admin/app/rsc-probe` renders the static surface from a server page so `next build` catches transitive client-only pulls.

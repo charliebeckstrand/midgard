@@ -65,7 +65,7 @@ export function useQueryBuilderTree({
 	// Each removal sets a fresh candidate array; the effect runs only after a
 	// removal commits (the removed node now unregistered), never on unrelated
 	// re-renders. `pendingFocus` stays set: clearing it triggers an extra
-	// render that remounts the just-focused control.
+	// render that remounts the newly focused control.
 	const [pendingFocus, setPendingFocus] = useState<FocusTarget[] | null>(null)
 
 	useEffect(() => {

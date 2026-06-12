@@ -9,7 +9,6 @@ import {
 	useFormState,
 	useFormStatus,
 	useFormText,
-	useFormToggle,
 } from '../../components/form'
 import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
 
@@ -56,11 +55,11 @@ describe('Form', () => {
 
 		fireEvent.change(bySlot(container, 'field-a') as HTMLInputElement, { target: { value: 'x' } })
 
-		// The edited field re-renders with its new value...
+		// The edited field re-renders with its new value.
 		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
 		expect(renders.a).toBeGreaterThan(bAfterMount)
 
-		// ...while the untouched sibling does not re-render.
+		// The untouched sibling does not re-render.
 		expect(renders.b).toBe(bAfterMount)
 	})
 
@@ -1000,36 +999,6 @@ describe('useFormText', () => {
 		})
 
 		expect(onBlur).toHaveBeenCalledOnce()
-	})
-})
-
-describe('useFormToggle', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormToggle('agree'))
-
-		expect(result.current).toBeUndefined()
-	})
-
-	it('toggles the field and calls external onChange', () => {
-		const onChange = vi.fn()
-
-		const wrapper = makeWrapper({ agree: false })
-
-		const { result } = renderHook(() => useFormToggle('agree', { onChange }), { wrapper })
-
-		expect(result.current?.checked).toBe(false)
-
-		act(() => {
-			result.current?.onChange(
-				makeChangeEvent<HTMLInputElement>({
-					target: { checked: true } as HTMLInputElement,
-				}),
-			)
-		})
-
-		expect(result.current?.checked).toBe(true)
-
-		expect(onChange).toHaveBeenCalled()
 	})
 })
 

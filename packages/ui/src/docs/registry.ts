@@ -3,9 +3,7 @@ import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
 
-// ---------------------------------------------------------------------------
 // Lazy demo loaders (no demo code loaded until navigated to)
-// ---------------------------------------------------------------------------
 
 type DemoMeta = { name?: string; category?: string }
 
@@ -40,9 +38,7 @@ for (const [path, meta] of Object.entries(demoMetas)) {
 	metaById.set(pathToId(path), meta)
 }
 
-// ---------------------------------------------------------------------------
 // Demo loading: one cached promise per id, consumed via React's `use()` hook.
-// ---------------------------------------------------------------------------
 
 // React's `use()` returns synchronously only when a promise carries
 // `status`/`value`/`reason`; an untagged promise suspends on first read even
@@ -90,18 +86,12 @@ export function preloadDemo(id: string) {
 	if (loaderById.has(id)) loadDemo(id)
 }
 
-// ---------------------------------------------------------------------------
 // Component API: pre-computed at build time via virtual:api-reference
-// ---------------------------------------------------------------------------
 
 /** Return the pre-computed API for a component, or undefined if none exists. */
 export function getComponentApi(id: string): ComponentApi[] | undefined {
 	return apiData[id]
 }
-
-// ---------------------------------------------------------------------------
-// Public demo list
-// ---------------------------------------------------------------------------
 
 export const demos = [...loaderById.keys()]
 	.map((id) => {
