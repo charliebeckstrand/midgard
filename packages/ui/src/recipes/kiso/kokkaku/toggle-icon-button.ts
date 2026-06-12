@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton: toggle-icon-button. Square silhouette of the
- * icon-only bare button: the icon dimension scale plus the bare
- * padding floor per size step.
+ * icon-only bare button: icon dimension plus padding floor per size
+ * step.
  *
  * Layer: kiso · Concern: skeleton form · Unit: toggle-icon-button
  */

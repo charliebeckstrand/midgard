@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton: pagination. One page-button square (`min-w-9` plus
- * `p-2` chrome resolves to a 9-unit square); button count comes from
- * the composing skeleton.
+ * `p-2` chrome resolves to 9 units); button count comes from the
+ * composing skeleton.
  *
  * Layer: kiso · Concern: skeleton form · Unit: pagination
  */

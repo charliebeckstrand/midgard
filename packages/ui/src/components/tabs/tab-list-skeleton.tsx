@@ -4,7 +4,7 @@ import { k } from '../../recipes/kata/tabs'
 import { Placeholder } from '../placeholder'
 
 export type TabListSkeletonProps = {
-	/** Tab line placeholders to render above the list rail. */
+	/** Tab line placeholders to render. */
 	tabs?: number
 	size?: Step
 	className?: string

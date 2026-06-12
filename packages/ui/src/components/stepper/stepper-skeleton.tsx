@@ -4,15 +4,15 @@ import { k } from '../../recipes/kata/stepper'
 import { Placeholder } from '../placeholder'
 
 export type StepperSkeletonProps = {
-	/** Step placeholders to render, separated like the real horizontal stepper. */
+	/** Step placeholders to render. */
 	steps?: number
 	className?: string
 }
 
 /**
  * Stepper-shaped placeholder: indicator dots with title lines below,
- * joined by the real separator rule. Horizontal orientation only; keyed
- * off the step count rather than a size step, so it does not use the
+ * joined by the real separator rule. Horizontal orientation only. Keyed
+ * off the step count rather than a size step; it does not use the
  * size-driven `createSkeleton` factory.
  */
 export function StepperSkeleton({ steps = 3, className }: StepperSkeletonProps) {

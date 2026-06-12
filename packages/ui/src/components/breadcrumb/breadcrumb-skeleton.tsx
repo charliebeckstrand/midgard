@@ -4,7 +4,7 @@ import { k } from '../../recipes/kata/breadcrumb'
 import { Placeholder } from '../placeholder'
 
 export type BreadcrumbSkeletonProps = {
-	/** Crumb placeholders to render, separated by chevron-sized squares. */
+	/** Crumb placeholders to render. */
 	items?: number
 	className?: string
 }

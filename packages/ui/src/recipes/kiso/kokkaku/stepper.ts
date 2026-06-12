@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton: stepper. Per-step indicator dot and title line for
  * the horizontal orientation; step count comes from the composing
- * skeleton. The title height matches the leading-none text-sm title.
+ * skeleton. Title height matches the leading-none text-sm line.
  *
  * Layer: kiso · Concern: skeleton form · Unit: stepper
  */

@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton: tabs. One tab line per size step at the tab's text
- * line height; the bottom margin mirrors the horizontal tab's padding
- * above the list rail. Tab count comes from the composing skeleton.
+ * line height; the bottom margin mirrors the tab's padding above the
+ * list rail. Tab count comes from the composing skeleton.
  *
  * Layer: kiso · Concern: skeleton form · Unit: tabs
  */

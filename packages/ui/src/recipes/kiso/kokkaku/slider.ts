@@ -1,7 +1,7 @@
 /**
- * Kokkaku skeleton: slider. A track-height line filling its parent; the
- * vertical margins reserve the native hit-area box the real slider pads
- * around the track.
+ * Kokkaku skeleton: slider. A track-height line filling its parent;
+ * vertical margins reserve the hit-area box the real slider pads around
+ * the track.
  *
  * Layer: kiso · Concern: skeleton form · Unit: slider
  */

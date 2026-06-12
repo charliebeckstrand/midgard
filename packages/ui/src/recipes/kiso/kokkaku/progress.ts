@@ -1,7 +1,6 @@
 /**
  * Kokkaku skeleton: progress. The bar fills its parent at the track
- * height per size step; the gauge is a circle on the gauge diameter
- * scale.
+ * height per size step; the gauge is a circle on its diameter scale.
  *
  * Layer: kiso · Concern: skeleton form · Unit: progress
  */

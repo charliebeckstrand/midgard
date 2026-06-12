@@ -75,7 +75,7 @@ export const k = {
 	indicator,
 	segment: bridge.segment(segment),
 	// Two units flow through this kata: the underline tab list and the
-	// segment box `<Segment>` re-exports.
+	// segment box behind `<Segment>`.
 	skeleton: {
 		tab: kokkaku.tabs.tab,
 		segment: kokkaku.segment,
