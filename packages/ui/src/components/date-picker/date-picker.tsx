@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { type FocusEvent, useEffect, useRef, useState } from 'react'
+import { type FocusEvent, useState } from 'react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
@@ -100,24 +100,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const [typing, setTyping] = useState(false)
 
-	const wasTyping = useRef(false)
-
-	// A toggle exit re-seats focus on the trigger: the pressed toggle re-mounts
-	// inside the new frame. A blur exit leaves focus where the user sent it.
-	const refocusTrigger = useRef(false)
-
-	useEffect(() => {
-		if (wasTyping.current && !typing && refocusTrigger.current) {
-			document.getElementById(state.triggerId)?.focus()
-		}
-
-		refocusTrigger.current = false
-
-		wasTyping.current = typing
-	}, [typing, state.triggerId])
-
-	// Leaving the control returns to the trigger; a focus hop between the
-	// control's own buttons stays in input mode.
+	// Leaving the control returns to the trigger and re-shows the toggle; a
+	// focus hop to the control's own calendar button stays in input mode.
 	const exitOnFocusLeave = (event: FocusEvent<HTMLElement>) => {
 		const frame = event.currentTarget.closest('[data-slot=control-frame]')
 
@@ -125,25 +109,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 		setTyping(false)
 	}
-
-	const toggle = input ? (
-		<DatePickerInputToggle
-			pressed={typing}
-			disabled={state.disabled}
-			onBlur={exitOnFocusLeave}
-			onToggle={() => {
-				if (typing) {
-					refocusTrigger.current = true
-
-					setTyping(false)
-				} else {
-					state.onOpenChange(false)
-
-					setTyping(true)
-				}
-			}}
-		/>
-	) : undefined
 
 	if (input && typing) {
 		return (
@@ -163,23 +128,20 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				placeholder={props.placeholder}
 				aria-label={ariaLabel}
 				suffix={
-					<>
-						{toggle}
-						<DatePickerCalendarButton
-							disabled={state.disabled}
-							// Keeps focus on the input so the press, not a blur,
-							// drives the mode switch.
-							onMouseDown={(event) => event.preventDefault()}
-							onBlur={exitOnFocusLeave}
-							// No trigger refocus: the opening dialog takes focus, as on
-							// any other open.
-							onActivate={() => {
-								setTyping(false)
+					<DatePickerCalendarButton
+						disabled={state.disabled}
+						// Keeps focus on the input so the press, not a blur,
+						// drives the mode switch.
+						onMouseDown={(event) => event.preventDefault()}
+						onBlur={exitOnFocusLeave}
+						// No trigger refocus: the opening dialog takes focus, as on
+						// any other open.
+						onActivate={() => {
+							setTyping(false)
 
-								state.onOpenChange(true)
-							}}
-						/>
-					</>
+							state.onOpenChange(true)
+						}}
+					/>
 				}
 				className={className}
 				data-group={dataGroup}
@@ -211,7 +173,18 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
-				suffix={toggle}
+				suffix={
+					input ? (
+						<DatePickerInputToggle
+							disabled={state.disabled}
+							onActivate={() => {
+								state.onOpenChange(false)
+
+								setTyping(true)
+							}}
+						/>
+					) : undefined
+				}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

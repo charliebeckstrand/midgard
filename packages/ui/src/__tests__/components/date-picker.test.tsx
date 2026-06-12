@@ -555,14 +555,12 @@ describe('DatePicker input mode', () => {
 		expect(screen.queryByRole('button', { name: 'Type the date' })).not.toBeInTheDocument()
 	})
 
-	it('shows an unpressed suffix toggle left of the calendar button', () => {
+	it('shows the suffix toggle left of the calendar button', () => {
 		const { container } = renderUI(<DatePicker input />)
 
 		const toggle = screen.getByRole('button', { name: 'Type the date' })
 
 		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
-
-		expect(toggle).toHaveAttribute('aria-pressed', 'false')
 
 		const suffix = container.querySelector('[data-slot=suffix]')
 
@@ -600,10 +598,10 @@ describe('DatePicker input mode', () => {
 
 		expect(input.value).toBe('06/15/2026')
 
-		expect(screen.getByRole('button', { name: 'Type the date' })).toHaveAttribute(
-			'aria-pressed',
-			'true',
-		)
+		// The toggle hides while typing; the calendar button stays.
+		expect(screen.queryByRole('button', { name: 'Type the date' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Open the calendar' })).toBeInTheDocument()
 	})
 
 	it('selects the date text on entry so typing replaces it', async () => {
@@ -641,24 +639,21 @@ describe('DatePicker input mode', () => {
 
 		expect(button).toBeInTheDocument()
 
+		// The toggle is back once typing ends.
+		expect(screen.getByRole('button', { name: 'Type the date' })).toBeInTheDocument()
+
 		// The picker is a plain combobox again; the main area opens the calendar.
 		await user.click(button)
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
-	it('stays in input mode while focus hops between the control’s own buttons', async () => {
+	it('stays in input mode while focus hops to the control’s calendar button', async () => {
 		const user = userEvent.setup()
 
 		const { container } = renderUI(<DatePicker input />)
 
 		await user.click(screen.getByRole('button', { name: 'Type the date' }))
-
-		await user.tab()
-
-		expect(screen.getByRole('button', { name: 'Type the date' })).toHaveFocus()
-
-		expect(bySlot(container, 'datepicker-input')).toBeInTheDocument()
 
 		await user.tab()
 
@@ -696,7 +691,7 @@ describe('DatePicker input mode', () => {
 		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('06/15/2026')
 	})
 
-	it('commits a typed date and carries it back to the trigger', async () => {
+	it('commits a typed date and carries it back to the trigger on blur', async () => {
 		const user = userEvent.setup()
 
 		const onChange = vi.fn()
@@ -714,13 +709,9 @@ describe('DatePicker input mode', () => {
 		expect(emitted.getMonth()).toBe(11)
 		expect(emitted.getDate()).toBe(25)
 
-		await user.click(screen.getByRole('button', { name: 'Type the date' }))
+		await user.click(document.body)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
-
-		expect(button).toHaveTextContent('12/25/2026')
-
-		expect(button).toHaveFocus()
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('12/25/2026')
 	})
 
 	it('closes the open calendar when switching to input mode', async () => {
