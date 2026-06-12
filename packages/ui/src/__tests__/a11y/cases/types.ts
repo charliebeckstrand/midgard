@@ -26,3 +26,18 @@ export type FocusCase = readonly [
 	element: ReactElement,
 	open: (user: UserEvent) => Promise<HTMLElement>,
 ]
+
+/**
+ * A modal surface whose trap must contain Tab while open and return focus to
+ * its trigger on Escape. `trigger` is the accessible name of the opening
+ * button; `surface` resolves the open trapped surface. Asserted only by the
+ * real-browser floating-ui project (`browser/floating-ui/trap-corpus.test.tsx`):
+ * the trap walks floating-ui's layout-dependent `tabbable` pass, which jsdom
+ * resolves to zero-size, so the focus guards never engage there.
+ */
+export type TrapCase = readonly [
+	name: string,
+	trigger: string,
+	element: ReactElement,
+	surface: () => Promise<HTMLElement>,
+]

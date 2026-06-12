@@ -1,5 +1,4 @@
 import type { UserEvent } from '@testing-library/user-event'
-import { type ReactNode, useState } from 'react'
 import { Button } from '../../../components/button'
 import {
 	CommandPalette,
@@ -19,31 +18,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { screen } from '../../helpers'
+import { Disclosure } from './harness'
 import type { FocusCase } from './types'
-
-/**
- * Stateful trigger harness for the command palette: it takes `open`/`onOpenChange`
- * but ships no built-in trigger. Provides a real button and wires the live open
- * state and setter into `render`.
- */
-function Disclosure({
-	label,
-	render,
-}: {
-	label: string
-	render: (open: boolean, onOpenChange: (open: boolean) => void) => ReactNode
-}) {
-	const [open, setOpen] = useState(false)
-
-	return (
-		<>
-			<Button variant="outline" onClick={() => setOpen(true)}>
-				{label}
-			</Button>
-			{render(open, setOpen)}
-		</>
-	)
-}
 
 /** Clicks the named trigger, waits for `surface` to mount, and returns the trigger. */
 const openFrom = (label: string, surface: () => Promise<unknown>) => async (user: UserEvent) => {
