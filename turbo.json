@@ -32,8 +32,7 @@
         "vitest.config.ts",
         "tsconfig.json",
         "$TURBO_ROOT$/tsconfig.base.json"
-      ],
-      "outputs": ["coverage/**", "test-results/**"]
+      ]
     },
     "//#knip": {
       "inputs": [
