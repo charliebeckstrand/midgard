@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, photonProvider } from '../../components/address-input'
-import { bySlot, renderUI, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const mockProvider: AddressProvider = async (query) => [
 	{ id: '1', label: `${query} Main St`, description: 'Somewhere, CA' },
@@ -137,6 +137,31 @@ describe('AddressInput', () => {
 		await waitFor(() => {
 			expect(signals[0]?.aborted).toBe(true)
 		})
+	})
+
+	it('focuses the input and opens the menu from the suffix icon', async () => {
+		const provider = vi.fn(mockProvider)
+
+		const { container } = renderUI(
+			<AddressInput provider={provider} debounceMs={0} minQueryLength={0} />,
+		)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		// The menu has not been requested yet; the provider stays idle.
+		expect(provider).not.toHaveBeenCalled()
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		const suffix = bySlot(container, 'suffix')
+
+		if (!suffix) throw new Error('suffix slot not found')
+
+		fireEvent.mouseDown(suffix)
+
+		expect(input).toHaveFocus()
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
 	})
 
 	it('renders the selected suggestion label as the input display value', () => {
