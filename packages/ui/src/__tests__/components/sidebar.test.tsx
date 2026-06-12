@@ -44,10 +44,10 @@ describe('Sidebar', () => {
 
 		fireEvent.keyDown(nav, { key: 'ArrowDown' })
 
-		// Roving still advances focus to the next item...
+		// Roving still advances focus to the next item.
 		expect(items[1]).toHaveFocus()
 
-		// ...and the consumer's handler is chained rather than clobbered.
+		// The consumer's handler is chained rather than clobbered.
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
 	})
 

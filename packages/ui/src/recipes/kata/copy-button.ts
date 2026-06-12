@@ -5,10 +5,8 @@ const { text } = iro
 const { rounded } = kasane
 const { flex } = narabi
 
-// Resting foreground: muted, darkening on hover/focus.
 const rest = [text.muted, fg.hover, fg.focus]
 
-// Copied foreground: success color, darkening on hover/focus.
 const copied = [
 	text.success,
 	'hover:not-disabled:text-green-700 dark:hover:not-disabled:text-green-500',

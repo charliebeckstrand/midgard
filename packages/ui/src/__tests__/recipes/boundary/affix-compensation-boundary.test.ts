@@ -95,7 +95,7 @@ describe('control affix has-button compensation', () => {
 // Affix bare-Button compensation invariant.
 //
 // A chrome-less icon-only bare Button has no outer box, so its glyph aligns to
-// the *text line* (`density.px`), not the chip-content line — there is no 0.5
+// the *text line* (`density.px`), not the chip-content line: there is no 0.5
 // chip inset. The override subtracts the button's stepped-down icon-only
 // compound padding (`not-data-[has-label]:p-…` in `kata/button.ts`) from
 // `density.px`:
@@ -103,7 +103,7 @@ describe('control affix has-button compensation', () => {
 //   affix.pl(has-bare) = input.px − bare.compound.p[affixStepDown(step)]
 //
 // Unlike the non-bare arm this cannot collapse to a constant: the bare compound
-// scale grows 0.25 per notch — half of `density.px`'s 0.5 — so the per-step
+// scale grows 0.25 per notch (half of `density.px`'s 0.5), so the per-step
 // deltas can't cancel and the value drifts (1.75 → 2 → 2.25). The test parses
 // the live compound rule rather than the literals; if input.px, the bare
 // compound p, or affixStepDown drifts, the assertion points at the source.

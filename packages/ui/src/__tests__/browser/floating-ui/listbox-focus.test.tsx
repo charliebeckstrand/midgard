@@ -46,7 +46,7 @@ describe('Listbox focus (real browser)', () => {
 	})
 
 	// Guards the APG select pattern: Tab dismisses the listbox and the keystroke
-	// proceeds, landing focus on the next tabbable after the trigger — not
+	// proceeds, landing focus on the next tabbable after the trigger: not
 	// snapped back to the trigger, not stranded on `<body>`.
 	it('dismisses the listbox on Tab and moves focus to the next tabbable', async () => {
 		renderUI(

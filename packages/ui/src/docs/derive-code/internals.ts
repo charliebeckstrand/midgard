@@ -1,10 +1,6 @@
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import type { ComponentInfo, Context } from './types'
 
-// ---------------------------------------------------------------------------
-// Type guards
-// ---------------------------------------------------------------------------
-
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
  * wrappers outside the documented API surface.
@@ -16,10 +12,6 @@ export function isPassThrough(element: ReactElement): boolean {
 export function isPrimitive(value: unknown): value is string | number | boolean {
 	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
 }
-
-// ---------------------------------------------------------------------------
-// Tree inspection
-// ---------------------------------------------------------------------------
 
 export function elementChildren(element: ReactElement): ReactNode[] {
 	return Children.toArray((element.props as { children?: ReactNode }).children)
@@ -83,10 +75,6 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 	return items
 }
 
-// ---------------------------------------------------------------------------
-// Naming
-// ---------------------------------------------------------------------------
-
 /**
  * Resolve an element type to its `ComponentInfo`. Build-time tags win.
  * Untagged types fall back to a `displayName` lookup against `byName`,
@@ -126,10 +114,6 @@ export function getElementName(element: ReactElement, context: Context): string 
 
 	return typeof element.type === 'string' ? element.type : null
 }
-
-// ---------------------------------------------------------------------------
-// Prop formatting
-// ---------------------------------------------------------------------------
 
 export const INDENT = '  '
 
@@ -189,10 +173,6 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 	return `${key}={${PLACEHOLDER}}`
 }
 
-// ---------------------------------------------------------------------------
-// Literal formatting
-// ---------------------------------------------------------------------------
-
 // Double-quoted JSX attribute; falls back to braces + JSON when the value
 // contains characters requiring escaping.
 function jsxString(value: string): string {
@@ -208,10 +188,6 @@ function formatLiteral(value: string | number | boolean): string {
 
 	return String(value)
 }
-
-// ---------------------------------------------------------------------------
-// Tag assembly
-// ---------------------------------------------------------------------------
 
 /**
  * Build an opening JSX tag. Decides between inline (`<Foo a="1" b="2">`) and
@@ -239,10 +215,6 @@ export function renderOpenTag(
 
 	return `<${name}\n${propParts.map((p) => propIndent + p).join('\n')}\n${indent}${hasChildren ? '>' : '/>'}`
 }
-
-// ---------------------------------------------------------------------------
-// Import collection
-// ---------------------------------------------------------------------------
 
 /**
  * Record an import for `name` from `mod`. Allocates the inner Set on first
@@ -276,10 +248,6 @@ export function assemble(context: Context, jsx: string): string {
 
 	return jsx ? `${imports}\n\n${jsx}` : imports
 }
-
-// ---------------------------------------------------------------------------
-// Snippets
-// ---------------------------------------------------------------------------
 
 /**
  * Components decorated by the docs plugin's `pre` transform carry their

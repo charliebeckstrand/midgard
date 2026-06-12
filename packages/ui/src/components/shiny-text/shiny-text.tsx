@@ -12,7 +12,7 @@ export type ShinyTextProps = {
 	disabled?: boolean
 	/** Seconds per sweep. @default 2 */
 	speed?: number
-	/** Base text color; any CSS color. @default 'var(--shiny-text-color)' — zinc-600, zinc-400 in dark mode */
+	/** Base text color; any CSS color. @default 'var(--shiny-text-color)' (zinc-600; zinc-400 in dark mode) */
 	color?: string
 	/** Highlight color swept across the text; any CSS color. @default 'var(--color-white)' */
 	shineColor?: string
@@ -30,7 +30,7 @@ export type ShinyTextProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
 
-// Background-position percentages that park the shine just past each edge.
+// Background-position percentages that park the shine past each edge.
 const OFF_RIGHT = 150
 const OFF_LEFT = -50
 

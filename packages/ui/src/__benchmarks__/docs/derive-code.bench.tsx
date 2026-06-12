@@ -11,10 +11,6 @@ vi.mock('virtual:component-modules', () => ({ default: {} as Record<string, stri
 
 const { deriveCode } = await import('../../docs/derive-code')
 
-// ---------------------------------------------------------------------------
-// Tagged component factory
-// ---------------------------------------------------------------------------
-
 type Tagged = FunctionComponent<{ children?: ReactNode }> & { __module: string; __name: string }
 
 function tag(name: string, module = 'ui/components'): Tagged {
@@ -32,14 +28,11 @@ const Icon = tag('Icon')
 const Stack = tag('Stack')
 const Text = tag('Text')
 
-// ---------------------------------------------------------------------------
-// Tree fixtures
-//
-// Sizes target the realistic spread of demo complexity in `src/docs/demos/`:
+// Fixture sizes target the realistic spread of demo complexity in
+// `src/docs/demos/`:
 //   small   ~10  recognized nodes  (e.g. a single-button demo)
 //   medium  ~50  recognized nodes  (e.g. a populated card layout)
 //   heavy   ~200 recognized nodes  (e.g. data-table or query-builder demos)
-// ---------------------------------------------------------------------------
 
 function makeSmall(): ReactNode {
 	return createElement(Stack, null, [
@@ -96,10 +89,6 @@ function makeHeavy(): ReactNode {
 const small = makeSmall()
 const medium = makeMedium()
 const heavy = makeHeavy()
-
-// ---------------------------------------------------------------------------
-// Benches
-// ---------------------------------------------------------------------------
 
 describe('docs: deriveCode walk', () => {
 	bench('small (~10 nodes)', () => {
