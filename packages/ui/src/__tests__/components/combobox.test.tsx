@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
@@ -419,6 +420,55 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(onChange).toHaveBeenCalledWith('apple')
 
 		expect(document.activeElement).toBe(input)
+	})
+
+	// Regression: a controlled value cleared back to `undefined` flipped
+	// useControllable to uncontrolled, resurfacing the stale internal value;
+	// deselecting then took two clicks.
+	it('deselects a nullable controlled selection on the first click', async () => {
+		const user = userEvent.setup()
+
+		function ControlledNullable() {
+			const [selected, setSelected] = useState<string | undefined>(undefined)
+
+			return (
+				<Combobox<string>
+					nullable
+					value={selected}
+					onValueChange={setSelected}
+					displayValue={(v) => v}
+				>
+					<ComboboxOption value="apple">
+						<ComboboxLabel>Apple</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+			)
+		}
+
+		const { container } = renderUI(<ControlledNullable />)
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		await user.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(input).toHaveValue('apple')
+
+		// Focus stayed on the input, so reopen via the chevron.
+		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
+
+		if (!icon) throw new Error('default chevron icon not found')
+
+		fireEvent.mouseDown(icon)
+
+		await screen.findByRole('listbox')
+
+		await user.click(screen.getByRole('option', { name: 'Apple' }))
+
+		expect(input).toHaveValue('')
 	})
 
 	it('binds the selected value to a Form field by name', async () => {
