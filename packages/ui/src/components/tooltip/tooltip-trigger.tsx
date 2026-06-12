@@ -46,10 +46,18 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
+	// React 19 skips the null call on unmount when the ref callback returns a
+	// cleanup. `setReference(null)` during deletion effects fires a state
+	// update that can cascade into a "Maximum update depth" error while
+	// ancestor state is in flux.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			setReference(node)
 			assignRef(childRef, node)
+
+			return () => {
+				assignRef(childRef, null)
+			}
 		},
 		[setReference, childRef],
 	)
