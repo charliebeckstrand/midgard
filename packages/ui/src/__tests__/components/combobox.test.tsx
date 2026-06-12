@@ -105,6 +105,34 @@ describe('Combobox', () => {
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
+	it('focuses the input and toggles the panel from a custom suffix', async () => {
+		const { container } = renderUI(
+			<Combobox<string> suffix={<span>pin</span>} displayValue={(v) => v}>
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const suffix = bySlot(container, 'suffix')
+
+		if (!suffix) throw new Error('suffix slot not found')
+
+		// Custom suffix content owns its semantics (e.g. a live LoadingSpinner);
+		// only the default chevron is hidden wholesale.
+		expect(suffix).not.toHaveAttribute('aria-hidden')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		fireEvent.mouseDown(suffix)
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+
+		expect(bySlot(container, 'combobox-input')).toHaveFocus()
+
+		fireEvent.mouseDown(suffix)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
 	it('threads the input name onto the open listbox', async () => {
 		const { container } = renderUI(
 			<Combobox<string> aria-label="City" displayValue={(v) => v}>

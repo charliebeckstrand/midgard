@@ -348,16 +348,15 @@ export function Combobox<T>({
 					data-slot={slot}
 					prefix={prefix}
 					suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
-					suffixProps={
-						suffix || showClear
-							? undefined
-							: {
-									// Decorative mouse-only affordance; hidden from assistive
-									// tech. The input carries combobox semantics.
-									'aria-hidden': true,
-									onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
-								}
-					}
+					suffixProps={{
+						// Mouse-only toggle affordance; the input carries combobox
+						// semantics. Only the default chevron is decorative enough to
+						// hide from assistive tech — custom suffix content (e.g. a live
+						// LoadingSpinner) owns its own semantics. Interactive suffix
+						// content (the clear button) stops propagation to opt out.
+						'aria-hidden': suffix || showClear ? undefined : true,
+						onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
+					}}
 				>
 					<ComboboxInput
 						id={id}
