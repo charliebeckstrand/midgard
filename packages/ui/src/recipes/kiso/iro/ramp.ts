@@ -34,7 +34,7 @@ type ColorRamp = {
 	marker: Pair
 }
 
-const RAMP: Record<Color, ColorRamp> = {
+const RAMP = {
 	zinc: {
 		onSurface: ['text-zinc-500', 'dark:text-zinc-400'],
 		onTint: ['text-zinc-700', 'dark:text-zinc-400'],
@@ -60,7 +60,7 @@ const RAMP: Record<Color, ColorRamp> = {
 		onTint: ['text-blue-700', 'dark:text-blue-400'],
 		marker: ['text-blue-600', 'dark:text-blue-500'],
 	},
-}
+} satisfies Record<Color, ColorRamp>
 
 /** Project one role across every color into the `[light, dark]` map the engine consumes. */
 function project(role: keyof ColorRamp): Record<Color, [light: string, dark: string]> {

@@ -22,19 +22,19 @@ export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
 type AlertColor = NonNullable<AlertVariants['color']>
 
-const severityColorMap: Record<AlertSeverity, AlertColor> = {
+const severityColorMap = {
 	info: 'blue',
 	success: 'green',
 	warning: 'amber',
 	error: 'red',
-}
+} satisfies Record<AlertSeverity, AlertColor>
 
-const severityIconMap: Record<AlertSeverity, ReactElement> = {
+const severityIconMap = {
 	info: <Info />,
 	success: <CheckCircle />,
 	warning: <AlertTriangle />,
 	error: <XCircle />,
-}
+} satisfies Record<AlertSeverity, ReactElement>
 
 const SLOT_DISPLAY_NAMES = new Set(['alert-title', 'alert-description', 'alert-body'])
 

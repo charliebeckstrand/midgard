@@ -13,16 +13,16 @@ function getToastMotion(position: ToastPosition) {
 
 // Derive the variant/color unions from the Alert recipe; a palette change
 // there propagates here.
-const severityAlertMap: Record<
-	NonNullable<ToastSeverity>,
-	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
-> = {
+const severityAlertMap = {
 	default: { variant: 'solid', color: 'blue' },
 	secondary: { variant: 'solid', color: 'zinc' },
 	success: { variant: 'solid', color: 'green' },
 	warning: { variant: 'solid', color: 'amber' },
 	error: { variant: 'solid', color: 'red' },
-}
+} satisfies Record<
+	NonNullable<ToastSeverity>,
+	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
+>
 
 type ToastAlertProps = {
 	toast: ToastData

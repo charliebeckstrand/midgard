@@ -10,13 +10,13 @@ const { collapse, css } = ugoki
 
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
-const color: Record<JsonValueType, readonly string[] | string> = {
+const color = {
 	key: mode('text-sky-700', 'dark:text-sky-400'),
 	string: mode('text-emerald-700', 'dark:text-emerald-400'),
 	number: mode('text-amber-700', 'dark:text-amber-400'),
 	boolean: mode('text-violet-700', 'dark:text-violet-400'),
 	null: text.muted,
-}
+} satisfies Record<JsonValueType, readonly string[] | string>
 
 const row = [
 	'group/json-node',

@@ -43,26 +43,26 @@ function formatInternational(raw: string) {
 	return raw.slice(0, 12)
 }
 
-const formatters: Record<ZipcodeInputCountry, (raw: string) => string> = {
+const formatters = {
 	US: formatUS,
 	CA: formatCA,
 	GB: formatGB,
 	international: formatInternational,
-}
+} satisfies Record<ZipcodeInputCountry, (raw: string) => string>
 
-const inputModes: Record<ZipcodeInputCountry, MaskInputProps['inputMode']> = {
+const inputModes = {
 	US: 'numeric',
 	CA: 'text',
 	GB: 'text',
 	international: 'text',
-}
+} satisfies Record<ZipcodeInputCountry, MaskInputProps['inputMode']>
 
-const placeholders: Record<ZipcodeInputCountry, string> = {
+const placeholders = {
 	US: '12345',
 	CA: 'A1A 1A1',
 	GB: 'SW1A 1AA',
 	international: '',
-}
+} satisfies Record<ZipcodeInputCountry, string>
 
 /** Postal-code MaskInput: formats, sets `inputMode`, and supplies a placeholder per `country` (`'US'`, `'CA'`, `'GB'`, `'international'`). */
 export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
