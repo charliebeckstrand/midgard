@@ -1,8 +1,5 @@
-'use client'
-
 import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
 import { k } from '../../recipes/kata/icon'
 import type { Size } from '../../types/size'
 
@@ -18,15 +15,16 @@ export type IconProps = {
 	label?: string
 }
 
-/** Sizing and accessibility wrapper that clones a Lucide-style `icon` element. `size` resolves from the prop or ambient Density, and a `label` exposes it as `role="img"` instead of hiding it. */
+/**
+ * Sizing and accessibility wrapper that clones a Lucide-style `icon` element.
+ * Static leaf: renders in React Server Components. `size` is explicit with a
+ * default of `md`; inside a sized host (Button, Badge, Sidebar, control affix
+ * slots) the host's `data-slot=icon` projection owns the size and overrides
+ * these classes. A `label` exposes the icon as `role="img"` instead of hiding
+ * it.
+ */
 export function Icon({ icon, size, className, label }: IconProps) {
-	// `k.size` tops out at `lg` (no `xl` step). `useResolvedSize` can carry `'xl'`
-	// (Button broadcasts up to `Ma`); when that reaches an Icon with no explicit
-	// size, the `k.size` lookup misses and the icon falls back to its inherited
-	// dimensions. The type narrowing makes the missing-key branch explicit.
-	const ambient = useResolvedSize() as Size
-
-	const resolvedSize = size ?? ambient
+	const resolvedSize = size ?? 'md'
 
 	const isNumeric = typeof resolvedSize === 'number'
 

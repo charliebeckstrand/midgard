@@ -40,12 +40,41 @@ const radius = {
 	lg: sun.lg.radius,
 } as const satisfies Record<Step, 'sm' | 'md' | 'lg'>
 
+/**
+ * Card-side projections that keep direct-child sections in step with a
+ * non-md `size`. Sections are static leaves carrying their own md padding;
+ * the card overrides the step-varying properties from outside. Direct-child
+ * selectors keep nested cards independent. md has no row: at the default
+ * step the section's own classes already match, and a consumer `className`
+ * on a section keeps overriding them.
+ */
+const sections = {
+	sm: [
+		'*:data-[slot=card-header]:px-2',
+		'*:data-[slot=card-header]:pt-2',
+		'*:data-[slot=card-body]:p-2',
+		'*:data-[slot=card-footer]:px-2',
+		'*:data-[slot=card-footer]:pb-2',
+		'*:data-[slot=card-footer]:gap-1',
+	],
+	md: [],
+	lg: [
+		'*:data-[slot=card-header]:px-4',
+		'*:data-[slot=card-header]:pt-4',
+		'*:data-[slot=card-body]:p-4',
+		'*:data-[slot=card-footer]:px-4',
+		'*:data-[slot=card-footer]:pb-4',
+		'*:data-[slot=card-footer]:gap-3',
+	],
+} as const satisfies Record<Step, readonly string[]>
+
 export const k = {
 	radius,
 	bodyPadding,
 	headerPadding,
 	footerPadding,
 	footerGap,
+	sections,
 	header: text.default,
 	description: [size.sm, text.muted],
 } as const

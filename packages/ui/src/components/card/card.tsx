@@ -1,24 +1,22 @@
-'use client'
-
 import { cn } from '../../core'
-import { DensityScope, densityPresets, useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
 
 export type CardProps = BoxProps<'radius'> & {
 	/**
-	 * Sets both density and size axes to the same step via the preset table.
-	 * When omitted, both axes inherit from the surrounding density cascade.
-	 * Resolution: explicit prop, then enclosing `<Density>`, then `'md'`.
+	 * Step for the card's own padding, its sections, and its radius.
+	 * Defaults to `md`.
 	 */
 	size?: Step
 }
 
 /**
- * Outlined, padded surface built on Box that opens a density cascade for its
- * children. A nested `data-slot=card-*` section collapses the Card's own
- * padding to zero.
+ * Outlined, padded surface built on Box. Static leaf: renders in React
+ * Server Components. `size` is explicit (default `md`); the card projects
+ * the matching padding onto direct `data-slot=card-*` sections, so sections
+ * track the card without reading context. A nested section collapses the
+ * Card's own padding to zero.
  */
 export function Card({
 	size,
@@ -28,20 +26,16 @@ export function Card({
 	children,
 	...props
 }: CardProps) {
-	const inherited = useDensity()
+	const step = size ?? 'md'
 
-	const token = size ? densityPresets[size] : inherited
-
-	// No skeleton short-circuit: a Card keeps its frame while each child
-	// skeletonizes through the ambient SkeletonContext.
 	return (
 		<Box
 			data-slot="card"
-			data-size={token.size}
-			p={token.space}
+			data-size={step}
+			p={step}
 			bg={bg}
 			outline={outline}
-			radius={k.radius[token.size]}
+			radius={k.radius[step]}
 			className={cn(
 				'overflow-hidden -outline-offset-1',
 				// Collapse the Card's own padding only for structural slots that bring
@@ -50,11 +44,12 @@ export function Card({
 				'[&:has(>[data-slot=card-header])]:p-0',
 				'[&:has(>[data-slot=card-body])]:p-0',
 				'[&:has(>[data-slot=card-footer])]:p-0',
+				k.sections[step],
 				className,
 			)}
 			{...props}
 		>
-			<DensityScope scale={size}>{children}</DensityScope>
+			{children}
 		</Box>
 	)
 }

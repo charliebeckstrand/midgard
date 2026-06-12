@@ -1,5 +1,3 @@
-'use client'
-
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

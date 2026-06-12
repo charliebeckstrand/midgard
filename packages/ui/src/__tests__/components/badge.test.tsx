@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Badge } from '../../components/badge'
+import { Badge, BadgeSkeleton } from '../../components/badge'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Badge', () => {
@@ -15,8 +15,8 @@ describe('Badge', () => {
 		expect(badge).toHaveAttribute('href', '/tags')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Badge>New</Badge>, { skeleton: true })
+	it('pairs with an explicit BadgeSkeleton in loading trees', () => {
+		const { container } = renderUI(<BadgeSkeleton />)
 
 		expect(bySlot(container, 'badge')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

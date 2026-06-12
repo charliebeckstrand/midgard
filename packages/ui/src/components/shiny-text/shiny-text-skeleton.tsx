@@ -1,5 +1,3 @@
-'use client'
-
 import { kokkaku } from '../../recipes/kiso'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

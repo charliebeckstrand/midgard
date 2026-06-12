@@ -53,19 +53,20 @@ describe('Split', () => {
 	})
 })
 
-describe('Split density inheritance', () => {
-	it('inherits gap from an ambient Density when gap is omitted', () => {
+describe('Split gap resolution', () => {
+	it('ignores an ambient Density provider when gap is omitted', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Split>content</Split>
 			</DensityProvider>,
 		)
 
-		// compact → sm step → gap-2 via ma.gap.
-		expect(bySlot(container, 'split')?.className).toContain('gap-2')
+		// Static leaf: gap is explicit (default lg); ambient density reaches
+		// client components only.
+		expect(bySlot(container, 'split')?.className).toContain('gap-4')
 	})
 
-	it('explicit gap wins over the ambient Density', () => {
+	it('explicit gap applies inside a Density provider', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Split gap="xl">content</Split>

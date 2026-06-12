@@ -1,5 +1,3 @@
-'use client'
-
 import { k } from '../../recipes/kata/checkbox'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

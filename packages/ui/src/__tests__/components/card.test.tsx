@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { Button } from '../../components/button'
+import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Card', () => {
-	it('passes through to children in skeleton mode', () => {
+	it('keeps its frame around explicit skeleton children', () => {
 		const { container } = renderUI(
 			<Card>
-				<Button>action</Button>
+				<ButtonSkeleton />
 			</Card>,
-			{ skeleton: true },
 		)
 
-		// The card keeps its frame; the child skeletonizes itself.
+		// Loading trees compose skeleton variants explicitly; the card keeps
+		// its frame around them.
 		expect(bySlot(container, 'card')).toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
@@ -38,60 +38,64 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')?.className).toContain('rounded-md')
 	})
 
-	it('CardBody picks its padding from the surrounding density', () => {
+	it('projects sm section padding onto direct children', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>body</CardBody>
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-body')?.className).toContain('p-2')
+		// The static CardBody carries its own md padding; the sm card overrides
+		// it from outside through the section projection.
+		expect(bySlot(container, 'card')?.className).toContain('*:data-[slot=card-body]:p-2')
+		expect(bySlot(container, 'card-body')?.className).toContain('p-3')
 	})
 
-	it('CardHeader picks its padding from the surrounding density', () => {
+	it('projects lg section padding onto direct children', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardHeader>header</CardHeader>
 			</Card>,
 		)
 
-		const cls = bySlot(container, 'card-header')?.className ?? ''
+		const cls = bySlot(container, 'card')?.className ?? ''
 
-		expect(cls).toContain('px-4')
-		expect(cls).toContain('pt-4')
+		expect(cls).toContain('*:data-[slot=card-header]:px-4')
+		expect(cls).toContain('*:data-[slot=card-header]:pt-4')
 	})
 
-	it('CardTitle text size tracks the Card size, bumped one step up', () => {
+	it('carries no section projection at the md default', () => {
 		const { container } = renderUI(
-			<Card size="lg">
-				<CardTitle>Title</CardTitle>
+			<Card>
+				<CardBody>body</CardBody>
 			</Card>,
 		)
 
-		// Card size "lg" → CardTitle bumps to ji.size.xl = 'text-xl'
+		// At md the section's own classes already match; omitting the
+		// projection keeps a consumer className on the section authoritative.
+		expect(bySlot(container, 'card')?.className).not.toContain('*:data-[slot=card-body]')
+	})
+
+	it('CardTitle text size follows its explicit size prop, bumped one step up', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<CardTitle size="lg">Title</CardTitle>
+			</Card>,
+		)
+
+		// CardTitle size "lg" → bumps to ji.size.xl = 'text-xl'
 		expect(bySlot(container, 'card-title')?.className).toContain('text-xl')
 	})
 
-	it('CardTitle size prop overrides the inherited Card size', () => {
+	it('CardTitle defaults to the md rung regardless of the Card size', () => {
 		const { container } = renderUI(
 			<Card size="lg">
-				<CardTitle size="sm">Title</CardTitle>
+				<CardTitle>Title</CardTitle>
 			</Card>,
 		)
 
-		// CardTitle size "sm" → bumps to ji.size.md = 'text-base'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
-	})
-
-	it('CardTitle text size tracks an ambient Density provider', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<CardTitle>Title</CardTitle>
-			</DensityProvider>,
-		)
-
-		// compact → sm step → titleSize drops one rung to ji.size.md = 'text-base'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-base')
+		// Static leaf: no inherited size. md → bumps one rung to ji.size.lg.
+		expect(bySlot(container, 'card-title')?.className).toContain('text-lg')
 	})
 
 	it('CardTitle weight is derived from its heading level', () => {
@@ -116,7 +120,7 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-title')?.className).toContain('font-bold')
 	})
 
-	it('Buttons inside a Card inherit the Card size', () => {
+	it('Buttons inside a Card keep their own size', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>
@@ -125,31 +129,23 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
-		expect(bySlot(container, 'button')?.className).toContain('text-sm')
+		// The static Card opens no density scope; the Button renders at its own
+		// md default. Pass an explicit size to match a non-md card.
+		expect(bySlot(container, 'button')?.className).toContain('text-base')
 	})
 
-	it('inherits an ambient Density when no size prop is given', () => {
+	it('ignores an ambient Density provider', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Card>content</Card>
 			</DensityProvider>,
 		)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'sm')
+		// Static leaf: ambient density reaches client components only.
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'md')
 	})
 
-	it('explicit size prop wins over an ambient Density', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Card size="lg">content</Card>
-			</DensityProvider>,
-		)
-
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'lg')
-	})
-
-	it('inherits the resolved size from an outer Card when no size prop is given', () => {
+	it('renders nested cards at their own size', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>
@@ -159,8 +155,9 @@ describe('Card size system', () => {
 		)
 
 		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
-		// inner card is the second match
-		expect(cards[1]).toHaveAttribute('data-size', 'sm')
+		// The inner card defaults to md; the outer size does not cascade, and
+		// the direct-child section projection cannot reach into it.
+		expect(cards[1]).toHaveAttribute('data-size', 'md')
 	})
 
 	// Card always carries a static `p-{density}`; the `:has(>[data-slot=card-…])`

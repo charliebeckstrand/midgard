@@ -1,5 +1,3 @@
-'use client'
-
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

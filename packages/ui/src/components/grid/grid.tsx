@@ -1,8 +1,5 @@
-'use client'
-
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import { useDensityNullable } from '../../primitives/density'
 import {
 	alignMap,
 	flowMap,
@@ -27,9 +24,9 @@ export type GridProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children' | 'style'>
 
 /**
- * CSS grid container with responsive `columns`, `rows`, and `gap`. `gap`
- * falls back to enclosing Density then `'md'`, and the resolved `columns` flow
- * down through context to child items.
+ * CSS grid container with responsive `columns`, `rows`, and `gap`. Static
+ * leaf: renders in React Server Components. `gap` is explicit and defaults
+ * to `'md'`.
  */
 export function Grid({
 	columns,
@@ -43,9 +40,7 @@ export function Grid({
 	children,
 	...props
 }: GridProps) {
-	const density = useDensityNullable()
-
-	const resolvedGap = gap ?? density?.space ?? 'md'
+	const resolvedGap = gap ?? 'md'
 
 	const cols = resolveCols(columns)
 	const resolvedRows = resolveRows(rows)

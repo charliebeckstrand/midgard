@@ -1,32 +1,20 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { densityPresets, useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
-import { Placeholder } from '../placeholder'
 
 export type StatValueProps = StatValueVariants & {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * `size` resolution order: explicit prop, then enclosing Density size, then `'md'`.
+ * Static leaf: renders in React Server Components. `size` is explicit and
+ * defaults to `md`; compose `<StatValueSkeleton>` in the loading tree.
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
-	const inherited = useDensity()
-
-	const resolvedSize = size ? densityPresets[size].size : inherited.size
-
-	if (useSkeleton()) {
-		return <Placeholder className={cn(k.skeleton.value({ size: resolvedSize }), className)} />
-	}
-
 	return (
 		<div
 			data-slot="stat-value"
-			className={cn(k.value({ size: resolvedSize }), className)}
+			className={cn(k.value({ size: size ?? 'md' }), className)}
 			{...props}
 		>
 			{children}

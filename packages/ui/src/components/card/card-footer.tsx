@@ -1,19 +1,19 @@
-'use client'
-
 import { cn } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
-import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/card'
 
 export type CardFooterProps = SlotProps<'div'>
 
+/**
+ * Static leaf: renders in React Server Components. Carries md padding and
+ * gap; a non-md `<Card size>` overrides them through the card's section
+ * projection.
+ */
 export function CardFooter({ className, ...props }: CardFooterProps) {
-	const { space } = useDensity()
-
 	return (
 		<div
 			data-slot="card-footer"
-			className={cn(k.footerPadding[space], 'flex items-center', k.footerGap[space], className)}
+			className={cn(k.footerPadding.md, 'flex items-center', k.footerGap.md, className)}
 			{...props}
 		/>
 	)

@@ -1,5 +1,3 @@
-'use client'
-
 import { k } from '../../recipes/kata/text'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 

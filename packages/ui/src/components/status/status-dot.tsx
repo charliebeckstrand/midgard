@@ -1,8 +1,5 @@
-'use client'
-
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { k, type StatusDotVariants } from '../../recipes/kata/status'
 
 export type StatusDotProps = StatusDotVariants & {
@@ -17,6 +14,11 @@ export type StatusDotProps = StatusDotVariants & {
 	label?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
+/**
+ * Static leaf: renders in React Server Components. `size` is explicit and
+ * defaults to `md`; hosts that render the dot (Avatar) pass their resolved
+ * size.
+ */
 export function StatusDot({
 	variant,
 	status,
@@ -26,9 +28,7 @@ export function StatusDot({
 	className,
 	...props
 }: StatusDotProps) {
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+	const resolvedSize = size ?? 'md'
 
 	// A bare <span> can't carry aria-label; name it only by promoting it to an
 	// image. The role and label stay paired.
