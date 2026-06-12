@@ -11,7 +11,7 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
 	})
 
-	it('defaults to an assistant message with no timestamp or cursor slots', () => {
+	it('defaults to an assistant message with no timestamp or shiny-text slots', () => {
 		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
@@ -20,7 +20,7 @@ describe('ChatMessage', () => {
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'chat-message-cursor')).not.toBeInTheDocument()
+		expect(bySlot(container, 'shiny-text')).not.toBeInTheDocument()
 	})
 
 	it('reflects the type prop on data-type', () => {
@@ -41,10 +41,14 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('renders a cursor slot when streaming', () => {
+	it('wraps content in ShinyText when streaming', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
-		expect(bySlot(container, 'chat-message-cursor')).toBeInTheDocument()
+		const shiny = bySlot(container, 'shiny-text')
+
+		expect(shiny).toBeInTheDocument()
+
+		expect(shiny).toHaveTextContent('content')
 	})
 
 	it('renders the actions slot when provided', () => {

@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import { ShinyText } from '../shiny-text'
 
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Shows a blinking cursor glyph at the end of the bubble for streaming responses. */
+	/** Sweeps a ShinyText shimmer across the bubble content for streaming responses. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
@@ -15,8 +16,8 @@ export type ChatMessageProps = ChatMessageVariants & {
 
 /**
  * Conversational message bubble sided and colored by `type` (`user` or
- * `assistant`), with an optional `timestamp`, `actions` rail, and a blinking
- * `streaming` cursor. A visually hidden author label announces the speaker
+ * `assistant`), with an optional `timestamp`, `actions` rail, and a
+ * `streaming` shimmer. A visually hidden author label announces the speaker
  * to assistive tech.
  */
 export function ChatMessage({
@@ -41,8 +42,7 @@ export function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				{children}
-				{streaming && <span data-slot="chat-message-cursor" aria-hidden className={cn(k.cursor)} />}
+				{streaming ? <ShinyText>{children}</ShinyText> : children}
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>
