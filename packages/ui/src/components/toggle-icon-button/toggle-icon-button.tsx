@@ -49,6 +49,9 @@ export function ToggleIconButton({
 		)
 	}
 
+	// Cross-fade classes sit on the icons themselves, not wrapper spans: the
+	// Button's slot projection (`*:data-[slot=icon]`) sizes direct children
+	// only, and a wrapped Icon falls back to its static md default.
 	return (
 		<Button
 			{...props}
@@ -59,19 +62,11 @@ export function ToggleIconButton({
 			className={cn(k.base, className)}
 			prefix={
 				<>
-					<span className={cn(k.transition, pressed ? k.inactive : k.active)}>
-						<Icon icon={icon} />
-					</span>
-					<span
-						className={cn(
-							'absolute inset-0',
-							'flex items-center justify-center',
-							k.transition,
-							pressed ? k.active : k.inactive,
-						)}
-					>
-						<Icon icon={pressedIcon} />
-					</span>
+					<Icon icon={icon} className={cn(k.transition, pressed ? k.inactive : k.active)} />
+					<Icon
+						icon={pressedIcon}
+						className={cn('absolute inset-0 m-auto', k.transition, pressed ? k.active : k.inactive)}
+					/>
 				</>
 			}
 		/>

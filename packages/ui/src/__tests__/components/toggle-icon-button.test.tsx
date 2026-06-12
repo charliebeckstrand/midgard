@@ -107,4 +107,21 @@ describe('ToggleIconButton', () => {
 
 		expect(within(el).queryByTestId('pressed-icon')).toBeInTheDocument()
 	})
+
+	// The Button slot projection (`*:data-[slot=icon]`) sizes direct children
+	// only; a wrapper between button and icon breaks size cascade.
+	it('keeps both crossfade icons direct children of the button', () => {
+		const { container } = renderUI(
+			<ToggleIconButton
+				pressed={false}
+				icon={icon}
+				pressedIcon={pressedIcon}
+				aria-label="Toggle"
+			/>,
+		)
+
+		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+
+		expect(el.querySelectorAll(':scope > [data-slot=icon]')).toHaveLength(2)
+	})
 })
