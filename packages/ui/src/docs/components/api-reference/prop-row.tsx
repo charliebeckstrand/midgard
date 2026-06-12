@@ -18,10 +18,14 @@ import type { PropDef } from '../../api-reference/types'
  * required marker, type summary, and default; the JSDoc description sits
  * beneath it. Rows with more to show (a usage snippet, referenced type
  * definitions) expand inline; the rest are plain lines.
+ *
+ * The outer grid owns the column template — the name column hugs the widest
+ * prop name (`max-content`) — and every row passes the tracks through with
+ * `subgrid`, so the columns line up across rows.
  */
 export function PropRows({ rows }: { rows: PropDef[] }) {
 	return (
-		<div className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+		<div className="grid grid-cols-[max-content_1fr_auto_1rem] gap-x-4 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
 			{rows.map((prop) => (
 				<PropRow key={prop.name} prop={prop} />
 			))}
@@ -34,18 +38,18 @@ function PropRow({ prop }: { prop: PropDef }) {
 
 	if (!prop.usage && references.length === 0) {
 		return (
-			<div className="px-4 py-3">
+			<div className="col-span-4 grid grid-cols-subgrid items-center gap-y-1 px-4 py-3">
 				<RowHeader prop={prop} />
 			</div>
 		)
 	}
 
 	return (
-		<Collapse animate="slide" className="group/prop-row">
-			<CollapseTrigger className="block w-full px-4 py-3 text-left focus-visible:-outline-offset-2">
+		<Collapse animate="slide" className="group/prop-row col-span-4 grid grid-cols-subgrid">
+			<CollapseTrigger className="col-span-4 grid grid-cols-subgrid items-center gap-y-1 px-4 py-3 text-left focus-visible:-outline-offset-2">
 				<RowHeader prop={prop} expandable />
 			</CollapseTrigger>
-			<CollapsePanel>
+			<CollapsePanel className="col-span-4">
 				<Stack gap="lg" className="px-4 pt-1 pb-4">
 					{prop.usage && (
 						<DetailSection title="Usage">
@@ -68,14 +72,14 @@ function PropRow({ prop }: { prop: PropDef }) {
 }
 
 /**
- * Row header on a fixed column template (name, type, default, chevron).
- * Every row uses the same template, so the columns line up across rows; the
- * chevron column is reserved even on non-expandable rows.
+ * Row header cells, placed into the row's subgrid tracks (name, type,
+ * default, chevron). The chevron cell is reserved even on non-expandable
+ * rows.
  */
 function RowHeader({ prop, expandable }: { prop: PropDef; expandable?: boolean }) {
 	return (
-		<div className="grid grid-cols-[minmax(6rem,25%)_1fr_auto_1rem] items-center gap-x-4 gap-y-1">
-			<span className="font-mono text-sm font-medium [overflow-wrap:anywhere]">
+		<>
+			<span className="font-mono text-sm font-medium">
 				{prop.name}
 				{prop.required && (
 					<span className="text-red-600 dark:text-red-400">
@@ -101,7 +105,7 @@ function RowHeader({ prop, expandable }: { prop: PropDef; expandable?: boolean }
 					{prop.description}
 				</Text>
 			)}
-		</div>
+		</>
 	)
 }
 
