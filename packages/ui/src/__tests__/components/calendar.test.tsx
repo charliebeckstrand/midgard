@@ -141,7 +141,7 @@ describe('Calendar', () => {
 	})
 
 	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
-	// to 1900–1999, so a year-1 value seeded a January 1901 view and selections
+	// to 1900–1999. A year-1 value seeded a January 1901 view, and selections
 	// came back as 1901.
 	it('keeps a year below 100 through the view seed and day selection', async () => {
 		const onChange = vi.fn()

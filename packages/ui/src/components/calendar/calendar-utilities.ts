@@ -19,8 +19,9 @@ export function toCalendarDate(date: Date): CalendarDate {
 
 /**
  * Inverse of `toCalendarDate`: a local-midnight `Date` for the calendar day.
- * Conversion goes through the library, not the `Date(year, month, day)`
- * constructor, which reads years 0–99 as 1900–1999 (0001-01-01 → 1901-01-01).
+ * Conversion goes through `@internationalized/date`, not the
+ * `Date(year, month, day)` constructor. The constructor reads years 0–99 as
+ * 1900–1999 (`0001-01-01` → `1901-01-01`).
  */
 export function fromCalendarDate(date: CalendarDate): Date {
 	return date.toDate(getLocalTimeZone())
@@ -29,8 +30,8 @@ export function fromCalendarDate(date: CalendarDate): Date {
 /**
  * Local-midnight `Date` for the first of `year`/`month` (0-based month).
  * Out-of-range months balance into adjacent years (month 12 → January of the
- * next year), matching `Date` constructor rollover without its two-digit-year
- * mapping.
+ * next year). This matches `Date` constructor rollover without its
+ * two-digit-year mapping.
  */
 export function firstOfMonth(year: number, month: number): Date {
 	return fromCalendarDate(new CalendarDate(year, 1, 1).add({ months: month }))
