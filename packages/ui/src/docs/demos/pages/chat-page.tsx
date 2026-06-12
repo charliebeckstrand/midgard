@@ -1,4 +1,4 @@
-import { ArrowUp, CircleDashed, Plus, Trash } from 'lucide-react'
+import { ArrowUp, CircleDashed, Paperclip, Trash } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Confirm } from '../../../components/confirm'
@@ -219,7 +219,7 @@ export function Demo() {
 									Data Analyst
 								</Button>
 								<Button aria-label="Add attachment" variant="plain" size="sm" className="ml-auto">
-									<Icon icon={<Plus />} />
+									<Icon icon={<Paperclip />} />
 								</Button>
 								<Button
 									aria-label="Send"
