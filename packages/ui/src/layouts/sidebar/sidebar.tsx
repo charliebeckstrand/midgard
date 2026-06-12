@@ -13,7 +13,6 @@ import { createPortal } from 'react-dom'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
 import { Flex } from '../../components/flex'
-import { Frame } from '../../components/frame'
 import { Icon } from '../../components/icon'
 import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
@@ -73,7 +72,7 @@ export function SidebarLayout({
 	const layoutValue = useMemo(() => ({ actions, size }), [actions, size])
 
 	return (
-		<Frame className={k.layout()}>
+		<div className={k.layout()}>
 			{/* Hot zone to peek the floating sidebar */}
 			{floating && (
 				<div
@@ -153,13 +152,11 @@ export function SidebarLayout({
 
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
-				<Frame direction="col" className={k.contentWrapper({ floating })}>
-					<Frame direction="col" className={k.content({ size, stickyHeader })}>
-						{children}
-					</Frame>
-				</Frame>
+				<div className={k.contentWrapper({ floating })}>
+					<div className={k.content({ size, stickyHeader })}>{children}</div>
+				</div>
 			</SidebarLayoutContext>
-		</Frame>
+		</div>
 	)
 }
 

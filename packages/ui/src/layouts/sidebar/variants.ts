@@ -6,7 +6,7 @@ const { focus } = sen
 const layout = defineRecipe({
 	base: [
 		'relative isolate',
-		'h-svh w-full max-lg:flex-col',
+		'flex h-svh w-full max-lg:flex-col',
 		'bg-white lg:bg-zinc-100',
 		'dark:bg-zinc-950',
 		'overflow-hidden',
@@ -35,7 +35,7 @@ const floatingHotZone = defineRecipe({
 })
 
 const contentWrapper = defineRecipe({
-	base: ['flex-1', 'lg:min-w-0 lg:py-2 lg:pr-2', 'overflow-hidden'],
+	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pr-2', 'overflow-hidden'],
 	floating: {
 		true: 'lg:pl-2',
 		false: '',
@@ -46,6 +46,7 @@ const contentWrapper = defineRecipe({
 const content = defineRecipe({
 	base: [
 		...omote.content,
+		'flex flex-col',
 		'overflow-y-auto',
 		'grow min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',

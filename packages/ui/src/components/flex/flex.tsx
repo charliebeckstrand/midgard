@@ -38,9 +38,15 @@ export type FlexProps = {
 	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** @internal Shared flex implementation used by Flex, Stack, and Frame. */
-export function FlexBase({
-	direction,
+/**
+ * Horizontal flex container. Use Flex for rows, Stack for columns.
+ *
+ * `gap` resolves through `explicit ?? Density.space`; a Flex inside a
+ * Density-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
+ * matching spacing step. Outside any provider, `gap` stays unset.
+ */
+export function Flex({
+	direction = 'row',
 	gap,
 	align,
 	justify,
@@ -53,12 +59,19 @@ export function FlexBase({
 	children,
 	...props
 }: FlexProps) {
+	const density = useDensityNullable()
+
+	const resolvedGap = gap ?? density?.space
+
+	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
+
 	return (
 		<div
+			data-slot="flex"
 			className={cn(
 				resolveDirection(direction),
-				resolveAlign(align),
-				resolveGap(gap),
+				resolveAlign(resolvedAlign),
+				resolveGap(resolvedGap),
 				resolveJustify(justify),
 				wrap && 'flex-wrap',
 				full && 'w-full',
@@ -72,30 +85,5 @@ export function FlexBase({
 		>
 			{children}
 		</div>
-	)
-}
-
-/**
- * Horizontal flex container. Use Flex for rows, Stack for columns.
- *
- * `gap` resolves through `explicit ?? Density.space`; a Flex inside a
- * Density-providing ancestor (Card, Drawer, `<Density>`, …) inherits the
- * matching spacing step. Outside any provider, `gap` stays unset.
- */
-export function Flex({ direction = 'row', align, gap, ...props }: FlexProps) {
-	const density = useDensityNullable()
-
-	const resolvedGap = gap ?? density?.space
-
-	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
-
-	return (
-		<FlexBase
-			data-slot="flex"
-			direction={direction}
-			align={resolvedAlign}
-			gap={resolvedGap}
-			{...props}
-		/>
 	)
 }
