@@ -1,14 +1,13 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
 
-export type AccordionTriggerProps = Omit<ComponentPropsWithoutRef<'button'>, 'children'> & {
-	children: ReactNode | ((bag: { open: boolean }) => ReactNode)
+export type AccordionTriggerProps = ComponentPropsWithoutRef<'button'> & {
 	/**
 	 * Heading level (1-6) of the element wrapping the trigger button. The
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
@@ -49,9 +48,7 @@ export function AccordionTrigger({
 				}}
 				className={cn(k.trigger, className)}
 			>
-				<span className="flex-1">
-					{typeof children === 'function' ? children({ open }) : children}
-				</span>
+				<span className="flex-1">{children}</span>
 				<Icon icon={<ChevronDown />} className={cn(k.indicator)} />
 			</button>
 		</Heading>

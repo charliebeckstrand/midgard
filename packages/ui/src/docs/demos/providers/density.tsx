@@ -74,7 +74,12 @@ type OrdersFiltersProps = {
 
 function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 	return (
-		<Filters value={value} clear={<ResetButton />} onValueChange={onValueChange}>
+		<Filters
+			aria-label="Order filters"
+			value={value}
+			clear={<ResetButton />}
+			onValueChange={onValueChange}
+		>
 			<FiltersField name="id">
 				<SearchInput placeholder="Search by order ID" autoComplete="off" />
 			</FiltersField>

@@ -36,7 +36,7 @@ export function Demo() {
 	return (
 		<Example>
 			<Tabs defaultValue="login" variant="segment">
-				<TabList className="mb-4">
+				<TabList aria-label="Authentication" className="mb-4">
 					<Tab value="login" disabled={submitting}>
 						Login
 					</Tab>

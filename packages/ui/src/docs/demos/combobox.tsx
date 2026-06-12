@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combobox'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	useComboboxQuery,
+} from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
 import { Example } from '../components/example'
 
@@ -14,6 +19,18 @@ const people = [
 	'Hellen Schmidt',
 ]
 
+function FilteredPeople() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return people
+		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((person) => (
+			<ComboboxOption key={person} value={person}>
+				<ComboboxLabel>{person}</ComboboxLabel>
+			</ComboboxOption>
+		))
+}
+
 function SingleComboboxExample() {
 	const [selected, setSelected] = useState<string | undefined>(undefined)
 
@@ -27,15 +44,7 @@ function SingleComboboxExample() {
 				displayValue={(v: string) => v}
 				placeholder="Select a person"
 			>
-				{(query) =>
-					people
-						.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-						.map((person) => (
-							<ComboboxOption key={person} value={person}>
-								<ComboboxLabel>{person}</ComboboxLabel>
-							</ComboboxOption>
-						))
-				}
+				<FilteredPeople />
 			</Combobox>
 		</Field>
 	)
@@ -54,15 +63,7 @@ function MultiComboboxExample() {
 				displayValue={(v: string) => v}
 				placeholder={selected.length ? `${selected.length} selected` : 'Select people'}
 			>
-				{(query) =>
-					people
-						.filter((p) => !query || p.toLowerCase().includes(query.toLowerCase()))
-						.map((person) => (
-							<ComboboxOption key={person} value={person}>
-								<ComboboxLabel>{person}</ComboboxLabel>
-							</ComboboxOption>
-						))
-				}
+				<FilteredPeople />
 			</Combobox>
 		</Field>
 	)
