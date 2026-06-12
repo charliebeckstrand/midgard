@@ -175,3 +175,46 @@ describe('control affix has-bare-button compensation', () => {
 		expect(drift.has(0.25)).toBe(true)
 	})
 })
+
+// Autofill margin invariant.
+//
+// The browser's autofill highlight paints the inner input's full box,
+// which sits flush against an affix slot (the slot's padding faces the
+// frame edge, not the input). `affix.autofill` insets the highlight by
+// `density.px` on the affixed side only, gated on the slot's `data-slot`
+// via `group-has` against the frame group:
+//
+//   autofill.ml(has-prefix) = autofill.mr(has-suffix) = input.px
+//
+// The margins ride the `density` axis so every control input carries
+// them without per-kata wiring. The test parses the live values; if
+// `density.px` and the margins drift apart, or the margins fall off the
+// density axis, the assertion names the step.
+
+describe('control affix autofill margin', () => {
+	for (const step of STEPS) {
+		const hostPx = findSpacing(control.density[step], 'px-[')
+
+		it(`${step}: autofill margins track input.px (${hostPx}) beside the affixed side`, () => {
+			const ml = findSpacing(
+				[control.affix.autofill.prefix[step]],
+				'group-has-[[data-slot=prefix]]/control:autofill:ml-[',
+			)
+
+			const mr = findSpacing(
+				[control.affix.autofill.suffix[step]],
+				'group-has-[[data-slot=suffix]]/control:autofill:mr-[',
+			)
+
+			expect(ml).toBe(hostPx)
+
+			expect(mr).toBe(hostPx)
+		})
+
+		it(`${step}: the density axis carries both autofill margins`, () => {
+			expect(control.density[step]).toContain(control.affix.autofill.prefix[step])
+
+			expect(control.density[step]).toContain(control.affix.autofill.suffix[step])
+		})
+	}
+})
