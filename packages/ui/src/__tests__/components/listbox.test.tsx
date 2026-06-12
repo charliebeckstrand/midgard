@@ -1,8 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
+import { Form, useFormField } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+
+function FieldProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<output data-slot="probe" data-touched={field?.touched}>
+			{String(field?.value)}
+		</output>
+	)
+}
 
 describe('Listbox', () => {
 	it('renders trigger button with combobox role', () => {
@@ -417,5 +428,65 @@ describe('Listbox', () => {
 
 		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
 		expect(container.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(items.length)
+	})
+})
+
+describe('Listbox in a Form', () => {
+	it('reads the bound field value into the trigger label', () => {
+		renderUI(
+			<Form defaultValues={{ plan: 'pro' }}>
+				<Listbox<string> name="plan" displayValue={(v) => v.toUpperCase()}>
+					<div>Option</div>
+				</Listbox>
+			</Form>,
+		)
+
+		expect(screen.getByText('PRO')).toBeInTheDocument()
+	})
+
+	it('writes back through the bound field', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ plan: 'pro' as string | undefined }}>
+				<Listbox<string> name="plan" clearable displayValue={(v) => v}>
+					<div>Option</div>
+				</Listbox>
+				<FieldProbe name="plan" />
+			</Form>,
+		)
+
+		// Clearing goes through the same setValue path option selection uses,
+		// without driving the floating panel (CONVENTIONS §10.3).
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(bySlot(container, 'probe')?.textContent).toBe('undefined')
+	})
+
+	it('lets an explicit value prop win over the form field', () => {
+		renderUI(
+			<Form defaultValues={{ plan: 'pro' }}>
+				<Listbox<string> name="plan" value="basic" displayValue={(v) => v}>
+					<div>Option</div>
+				</Listbox>
+			</Form>,
+		)
+
+		expect(screen.getByText('basic')).toBeInTheDocument()
+	})
+
+	it('marks the bound field touched when the trigger blurs', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ plan: 'pro' }}>
+				<Listbox<string> name="plan" displayValue={(v) => v}>
+					<div>Option</div>
+				</Listbox>
+				<FieldProbe name="plan" />
+			</Form>,
+		)
+
+		expect(bySlot(container, 'probe')?.dataset.touched).toBe('false')
+
+		fireEvent.blur(screen.getByRole('combobox'))
+
+		expect(bySlot(container, 'probe')?.dataset.touched).toBe('true')
 	})
 })
