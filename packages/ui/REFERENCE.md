@@ -39,7 +39,7 @@ The boundary rule: ambient styling state crosses the server/client boundary thro
 - Loading UI is composed explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.7); the variants are themselves static.
 - Static leaves that link route through `PolymorphicStatic`: `href` renders a plain anchor, `render={<Link />}` composes the app router link per call site. Client components keep `Polymorphic`, which resolves the `<UIProvider>`-registered link from context.
 
-Two guards pin the contract: `static-component-boundary.test.ts` scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports; `apps/admin/app/rsc-probe` renders the static surface from a server page so `next build` catches transitive client-only pulls.
+`static-component-boundary.test.ts` pins the contract: it scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports. The scan is source-level only; a transitive client-only pull through a new dependency surfaces at the consuming app's `next build`, not here.
 
 Follow-up candidates that still read ambient context for styling or formatting only: `locale` (an API decision: explicit props or app wrappers, since formats can't move to CSS) and `glass` (worth migrating once a static surface grows a glass variant; today every reader is client by necessity).
 

@@ -6,8 +6,7 @@ import { describe, expect, it } from 'vitest'
 // directive, no React hooks, no ambient-context imports (the boundary
 // contract in packages/ui/REFERENCE.md §2). This test pins the contract at
 // the source level, where a regression (a context read quietly turning a
-// leaf back into a client component) produces no build error;
-// `apps/admin/app/rsc-probe` complements it at the bundler level.
+// leaf back into a client component) produces no build error.
 //
 // Add a file when a component sheds its context reads; never remove one to
 // silence this test. Paths are relative to `src/components`.
