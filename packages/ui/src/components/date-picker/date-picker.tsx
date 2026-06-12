@@ -1,6 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
+import type { KeyboardEvent } from 'react'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
@@ -10,6 +11,7 @@ import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerTrigger } from './date-picker-trigger'
+import { useDatePickerInputTab } from './use-date-picker-input-tab'
 import { useDatePickerState } from './use-date-picker-state'
 
 export type DatePickerSingleProps = {
@@ -95,6 +97,22 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const state = useDatePickerState(props)
 
+	const inputTab = useDatePickerInputTab({
+		open: state.open,
+		triggerRef: state.triggerRef,
+		floatingRef: state.floatingRef,
+	})
+
+	// With `input`, the dialog's Tab edges hand focus back to the reference
+	// group before the virtual model sees the key.
+	const onContentKeyDown = input
+		? (e: KeyboardEvent<HTMLElement>) => {
+				inputTab.onDialogKeyDown(e)
+
+				if (!e.defaultPrevented) state.onTriggerKeyDown(e)
+			}
+		: state.onTriggerKeyDown
+
 	const content = (
 		<DatePickerContent
 			open={state.open}
@@ -103,7 +121,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			getFloatingProps={state.getFloatingProps}
 			context={state.context}
 			size={size}
-			onKeyDown={state.onTriggerKeyDown}
+			onKeyDown={onContentKeyDown}
 		>
 			<Calendar
 				ref={state.calendar.calendarRef}
@@ -125,7 +143,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					data-slot="control"
 					ref={state.setReference}
 					className={className}
-					{...state.getReferenceProps()}
+					{...state.getReferenceProps({ onKeyDown: inputTab.onReferenceKeyDown })}
 				>
 					<DateInput
 						data-slot="datepicker-input"

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
-import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function findDay(day: number) {
 	const days = screen.getAllByRole('option')
@@ -650,5 +650,66 @@ describe('DatePicker input', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 
 		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+	})
+
+	// Tab-cycle seam (`useDatePickerInputTab`): the handlers redirect focus at
+	// the edges of the reference group and the dialog. The full loop under real
+	// sequential focus navigation runs in the browser suite
+	// (browser/floating-ui/date-picker-input-tab.test.tsx).
+	it('hands Tab from the calendar button to the dialog, and back from its far edge', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+
+		await user.click(calendar)
+
+		// Forward off the reference group's last tabbable: dialog's first.
+		fireEvent.keyDown(calendar, { key: 'Tab' })
+
+		expect(screen.getByRole('button', { name: 'Previous month' })).toHaveFocus()
+
+		// Forward off the dialog's last tabbable: back to the input.
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Today' }), { key: 'Tab' })
+
+		expect(input).toHaveFocus()
+	})
+
+	it('hands Shift+Tab from the input to the dialog, and back from its near edge', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const calendar = screen.getByRole('button', { name: 'Open the calendar' })
+
+		await user.click(calendar)
+
+		// Backward off the reference group's first tabbable: dialog's last.
+		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
+
+		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
+
+		// Backward off the dialog's first tabbable: the calendar button.
+		fireEvent.keyDown(screen.getByRole('button', { name: 'Previous month' }), {
+			key: 'Tab',
+			shiftKey: true,
+		})
+
+		expect(calendar).toHaveFocus()
+	})
+
+	it('leaves Tab alone while the calendar is closed', () => {
+		const { container } = renderUI(<DatePicker input />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
+
+		expect(input).toHaveFocus()
 	})
 })
