@@ -68,6 +68,23 @@ describe('TagInput', () => {
 		expect(container.textContent).toContain('vue')
 	})
 
+	it.each([
+		['sm', 'xs'],
+		['md', 'sm'],
+		['lg', 'md'],
+	] as const)('steps badges down one size at control size %s', (controlSize, badgeSize) => {
+		const { container } = renderUI(<TagInput size={controlSize} defaultValue={['react']} />)
+
+		expect(getBadges(container)[0]).toHaveAttribute('data-size', badgeSize)
+	})
+
+	it('steps badges down from the density-resolved size when size is omitted', () => {
+		// Default density is md; the badge rides the same affix broadcast.
+		const { container } = renderUI(<TagInput defaultValue={['react']} />)
+
+		expect(getBadges(container)[0]).toHaveAttribute('data-size', 'sm')
+	})
+
 	it('adds a tag on Enter', async () => {
 		const onChange = vi.fn()
 

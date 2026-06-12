@@ -2,9 +2,10 @@
 
 import { X } from 'lucide-react'
 import { cn } from '../../core'
+import { useResolvedSize } from '../../primitives/density'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
-import { Badge } from '../badge'
+import { Badge, type BadgeProps } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
@@ -16,12 +17,18 @@ type TagInputBadgeProps = {
 }
 
 export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadgeProps) {
+	// Badge is a static leaf and reads no context; resolve the host Input's
+	// stepped-down affix broadcast (sm → xs, md → sm, lg → md) here and pass
+	// it down, keeping the chip one notch tighter than the control.
+	const size = useResolvedSize<NonNullable<BadgeProps['size']>>()
+
 	return (
 		<Badge
 			role="listitem"
 			variant="outline"
 			rounded="full"
 			color={color}
+			size={size}
 			className={cn(k.badge)}
 			suffix={
 				!disabled && (
