@@ -58,7 +58,7 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 
-	const context = useMemo(() => ({ close, query, deferredQuery }), [close, query, deferredQuery])
+	const context = useMemo(() => ({ close }), [close])
 
 	return {
 		query,

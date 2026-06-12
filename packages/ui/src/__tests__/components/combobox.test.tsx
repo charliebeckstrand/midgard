@@ -5,7 +5,7 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -338,16 +338,20 @@ describe('Combobox active-descendant keyboard model', () => {
 			</Combobox>,
 		)
 
-		const activeId = input.getAttribute('aria-activedescendant')
+		// The reference must point at a mounted option, re-anchored to the top
+		// match. Re-anchoring rides a MutationObserver (a microtask after the
+		// swap commits), so the assertions poll.
+		await waitFor(() => {
+			const activeId = input.getAttribute('aria-activedescendant')
 
-		expect(activeId).toBeTruthy()
+			expect(activeId).toBeTruthy()
 
-		// The reference must point at a mounted option, re-anchored to the top match.
-		const active = document.getElementById(activeId as string)
+			const active = document.getElementById(activeId as string)
 
-		expect(active).toHaveAttribute('role', 'option')
+			expect(active).toHaveAttribute('role', 'option')
 
-		expect(active).toHaveAttribute('data-active')
+			expect(active).toHaveAttribute('data-active')
+		})
 	})
 
 	it('clears aria-activedescendant when the menu closes', async () => {

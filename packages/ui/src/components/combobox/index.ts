@@ -7,3 +7,4 @@ export {
 	ComboboxOption,
 	type ComboboxOptionProps,
 } from './combobox-option'
+export { useComboboxQuery } from './use-combobox-query'

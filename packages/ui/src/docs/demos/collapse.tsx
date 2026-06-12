@@ -1,20 +1,33 @@
 import { useState } from 'react'
 import { Button } from '../../components/button'
-import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
+import {
+	Collapse,
+	CollapsePanel,
+	CollapseTrigger,
+	useCollapseContext,
+} from '../../components/collapse'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
 export const meta = { category: 'Data Display' }
 
+function TriggerLabel() {
+	const { open } = useCollapseContext()
+
+	return open ? 'Hide details' : 'Show details'
+}
+
 function CompoundCollapseExample() {
 	return (
 		<Collapse>
-			<CollapseTrigger>{({ open }) => (open ? 'Hide details' : 'Show details')}</CollapseTrigger>
+			<CollapseTrigger>
+				<TriggerLabel />
+			</CollapseTrigger>
 			<CollapsePanel>
 				<Text variant="muted">
-					The compound API gives you access to the open state in the trigger, so you can change the
-					trigger text or style based on whether the panel is open.
+					The compound API exposes the open state through useCollapseContext, so a child of the
+					trigger can change its text or style based on whether the panel is open.
 				</Text>
 			</CollapsePanel>
 		</Collapse>

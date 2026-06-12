@@ -152,11 +152,9 @@ export const inputCases: readonly Case[] = [
 		<Field key="cb">
 			<Label>Assignee</Label>
 			<Combobox displayValue={(value: string) => value} placeholder="Select a person">
-				{() => (
-					<ComboboxOption value="Wade Cooper">
-						<ComboboxLabel>Wade Cooper</ComboboxLabel>
-					</ComboboxOption>
-				)}
+				<ComboboxOption value="Wade Cooper">
+					<ComboboxLabel>Wade Cooper</ComboboxLabel>
+				</ComboboxOption>
 			</Combobox>
 		</Field>,
 	],

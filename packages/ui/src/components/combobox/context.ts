@@ -2,8 +2,9 @@
 
 import { createContext } from '../../core'
 
-// `query`/`deferredQuery` are not in context; they are passed as render-prop
-// arguments instead. Options read only value/multiple/onSelect.
+// `query`/`deferredQuery` live in the shared query context (`useComboboxQuery`),
+// kept out of this one so options — which read only value/multiple/onSelect —
+// don't re-render on every keystroke.
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
 	multiple: boolean
