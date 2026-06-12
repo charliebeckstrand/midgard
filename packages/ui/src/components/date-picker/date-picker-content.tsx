@@ -13,6 +13,16 @@ import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../box'
 import type { ControlSize } from '../control/context'
 
+// Keys the virtual model navigates with; see the dialog's onKeyDown below.
+const NAVIGATION_KEYS = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'PageUp',
+	'PageDown',
+])
+
 type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
@@ -92,6 +102,15 @@ export function DatePickerContent({
 										// to a header/footer button) belong to that control; only
 										// the dialog itself routes them to the virtual model.
 										if ((e.key === 'Enter' || e.key === ' ') && e.target !== e.currentTarget) return
+
+										// Navigation keys belong to the virtual model even when the
+										// user has Tabbed onto a control inside. Reclaim DOM focus
+										// for the dialog first: a grid move can re-anchor the month
+										// and unmount the focused day button, which would otherwise
+										// drop focus to <body> and orphan the keyboard model.
+										if (NAVIGATION_KEYS.has(e.key) && e.target !== e.currentTarget) {
+											e.currentTarget.focus()
+										}
 
 										onKeyDown?.(e)
 									},

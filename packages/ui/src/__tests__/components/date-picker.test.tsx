@@ -340,6 +340,54 @@ describe('DatePicker keyboard', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 	})
 
+	it('shows the active-day highlight while DOM focus stays on the dialog', async () => {
+		const user = userEvent.setup()
+
+		// June 2025; the initial highlight lands on the 15th.
+		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+
+		const button = screen.getByRole('button')
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
+
+		const day = findDay(15)
+
+		expect(day).not.toHaveFocus()
+
+		// The highlight ring must render without DOM focus; a `focus-visible:`
+		// gated ring never shows under the virtual model.
+		expect(day).toHaveClass('outline-2')
+	})
+
+	it('keeps focus inside the dialog when an arrow move crosses months with a day cell focused', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+
+		const button = screen.getByRole('button')
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		// The modal trap lets Tab reach day cells; seat DOM focus on one.
+		const day30 = findDay(30)
+
+		act(() => day30?.focus())
+
+		// Materialize on the 15th, then the 8th, the 1st, and May 25th; the last
+		// move re-anchors the view to May and unmounts every June day button.
+		await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}{ArrowUp}')
+
+		expect(findDay(31)).toBeInTheDocument() // May has 31 days; the view moved
+
+		expect(screen.getByRole('dialog', { name: 'Choose date' })).toHaveFocus()
+	})
+
 	it('moves the active day with arrows and commits it with Enter', async () => {
 		const user = userEvent.setup()
 

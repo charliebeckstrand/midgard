@@ -73,8 +73,8 @@ export const k = {
 	weekday,
 	day: {
 		base: 'w-full ring-inset',
-		active: [...focus.ring],
-		activeSelected: ['bg-blue-600', ...focus.ring],
+		active: [...focus.virtual],
+		activeSelected: ['bg-blue-600', ...focus.virtual],
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},
