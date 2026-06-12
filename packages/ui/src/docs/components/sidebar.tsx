@@ -1,8 +1,12 @@
 'use client'
 
+import { ArrowDownAZ, ArrowUp01 } from 'lucide-react'
 import { Fragment, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Button } from '../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../components/combobox'
+import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
+import { Icon } from '../../components/icon'
 import {
 	Sidebar,
 	SidebarBody,
@@ -14,7 +18,7 @@ import {
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
-import { demos, preloadDemo, sortedCategories } from '../registry'
+import { type Demo, demos, preloadDemo, sortedCategories } from '../registry'
 
 const SEARCH_PAGE_SIZE = 20
 
@@ -64,6 +68,33 @@ function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () =>
 	)
 }
 
+function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
+	const prefetch = () => preloadDemo(demo.id)
+
+	return (
+		<SidebarItem
+			href={`#${demo.id}`}
+			current={current}
+			onClick={(e) => {
+				// Prevent the browser's default hash-link scroll;
+				// the deferredRoute effect scrolls to top after
+				// the new demo commits.
+				e.preventDefault()
+
+				prefetch()
+
+				navigate(demo.id)
+			}}
+			onMouseEnter={prefetch}
+			onFocus={prefetch}
+		>
+			<SidebarLabel>{demo.name}</SidebarLabel>
+		</SidebarItem>
+	)
+}
+
+type SortBy = 'groups' | 'alphabetical'
+
 export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
 
@@ -72,6 +103,8 @@ export function SidebarContent({ route }: { route: string }) {
 	const scrollWithin = useScrollWithin()
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
+
+	const [sortBy, setSortBy] = useState<SortBy>('groups')
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -89,70 +122,67 @@ export function SidebarContent({ route }: { route: string }) {
 			<SidebarHeader>
 				<Heading level={2}>Components</Heading>
 			</SidebarHeader>
-			<Combobox<string>
-				id={`${id}-search-components`}
-				placeholder="Search components"
-				autoComplete="off"
-				selectable={false}
-				onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
-				onOpenChange={(open) => {
-					if (!open) setSearchLimit(SEARCH_PAGE_SIZE)
-				}}
-				onValueChange={(id) => {
-					if (!id) return
+			<Flex gap="sm">
+				<div className="flex-1">
+					<Combobox<string>
+						id={`${id}-search-components`}
+						placeholder="Search components"
+						autoComplete="off"
+						selectable={false}
+						onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
+						onOpenChange={(open) => {
+							if (!open) setSearchLimit(SEARCH_PAGE_SIZE)
+						}}
+						onValueChange={(id) => {
+							if (!id) return
 
-					navigate(id)
+							navigate(id)
 
-					// Scroll the matching sidebar item into view
-					const sidebar = document.querySelector('[data-slot="sidebar"]')
+							// Scroll the matching sidebar item into view
+							const sidebar = document.querySelector('[data-slot="sidebar"]')
 
-					const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
+							const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
 
-					if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
+							if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 
-					offcanvas?.close()
-				}}
-			>
-				<SearchResults
-					limit={searchLimit}
-					onLoadMore={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)}
-				/>
-			</Combobox>
+							offcanvas?.close()
+						}}
+					>
+						<SearchResults
+							limit={searchLimit}
+							onLoadMore={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)}
+						/>
+					</Combobox>
+				</div>
+				<Button
+					variant="bare"
+					aria-label="Filters"
+					onClick={() => setSortBy(sortBy === 'alphabetical' ? 'groups' : 'alphabetical')}
+				>
+					<Icon icon={sortBy === 'alphabetical' ? <ArrowUp01 /> : <ArrowDownAZ />} />
+				</Button>
+			</Flex>
 			<SidebarBody>
 				<div className="flex flex-col gap-3">
-					{sortedCategories.map(([category, items]) => (
-						<Fragment key={category}>
-							<span className="text-zinc-500 leading-none px-2">{category}</span>
+					{sortBy === 'alphabetical' ? (
+						<SidebarSection>
+							{demos.map((demo) => (
+								<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+							))}
+						</SidebarSection>
+					) : (
+						sortedCategories.map(([category, items]) => (
+							<Fragment key={category}>
+								<span className="text-zinc-500 leading-none px-2">{category}</span>
 
-							<SidebarSection>
-								{items.map((demo) => {
-									const prefetch = () => preloadDemo(demo.id)
-
-									return (
-										<SidebarItem
-											key={demo.id}
-											href={`#${demo.id}`}
-											current={route === demo.id}
-											onClick={(e) => {
-												// Prevent the browser's default hash-link scroll;
-												// the deferredRoute effect scrolls to top after
-												// the new demo commits.
-												e.preventDefault()
-
-												prefetch()
-
-												navigate(demo.id)
-											}}
-											onMouseEnter={prefetch}
-											onFocus={prefetch}
-										>
-											<SidebarLabel>{demo.name}</SidebarLabel>
-										</SidebarItem>
-									)
-								})}
-							</SidebarSection>
-						</Fragment>
-					))}
+								<SidebarSection>
+									{items.map((demo) => (
+										<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+									))}
+								</SidebarSection>
+							</Fragment>
+						))
+					)}
 				</div>
 			</SidebarBody>
 		</Sidebar>
