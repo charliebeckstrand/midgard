@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextIndexForKey, queryItems } from '../../hooks/a11y/use-a11y-roving'
+import { nextIndexForKey } from '../../hooks/a11y/keyboard-navigation'
 
 describe('nextIndexForKey', () => {
 	it('returns null for empty item count', () => {
@@ -109,20 +109,5 @@ describe('nextIndexForKey', () => {
 
 	it('grid with a non-arrow non-Home/End key returns null', () => {
 		expect(nextIndexForKey('a', 0, 6, { cols: 3 })).toBeNull()
-	})
-})
-
-describe('queryItems', () => {
-	it('returns empty array for null container', () => {
-		expect(queryItems(null, 'button')).toEqual([])
-	})
-
-	it('returns matching elements', () => {
-		const container = document.createElement('div')
-		container.innerHTML = '<button>A</button><button>B</button><span>C</span>'
-
-		const items = queryItems(container, 'button')
-
-		expect(items).toHaveLength(2)
 	})
 })
