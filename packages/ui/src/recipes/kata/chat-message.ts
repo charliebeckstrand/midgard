@@ -34,11 +34,6 @@ export const k = defineRecipe(
 		},
 		slots: {
 			timestamp: [size.xs, 'mt-1', ...text.muted],
-			cursor: [
-				'ml-1 inline-block h-[1em] w-[2px] align-[-0.15em]',
-				'bg-current',
-				'motion-safe:animate-pulse',
-			],
 			actions: ['mt-1', flex.row, 'gap-0.5'],
 		},
 		defaults: { type: 'assistant' },
