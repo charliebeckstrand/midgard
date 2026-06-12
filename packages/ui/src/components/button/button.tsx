@@ -5,7 +5,7 @@ import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
-import { useSize } from '../../primitives/density'
+import { useResolvedSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -71,7 +71,7 @@ export function Button({
 
 	const skeleton = useSkeleton()
 
-	const resolvedSize = useSize(size)
+	const resolvedSize = useResolvedSize(size)
 
 	if (headless) {
 		return (

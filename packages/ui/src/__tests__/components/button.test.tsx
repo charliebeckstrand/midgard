@@ -188,7 +188,7 @@ describe('Button', () => {
 		})
 
 		// `<Input>` / `<SelectTrigger>` wrap their affix descendants in an
-		// `<AffixContext>` carrying the one-step-smaller affix size. `useSize`
+		// `<AffixContext>` carrying the one-step-smaller affix size. `useResolvedSize`
 		// reads the Affix cascade first: when `<Density>` (or a surrounding
 		// `<Card>`) mounts an outer Step cascade at the app root, the affix
 		// wrap still pins the button to the smaller affix size.

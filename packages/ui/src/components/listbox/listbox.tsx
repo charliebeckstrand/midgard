@@ -5,7 +5,7 @@ import { ChevronsUpDown, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { densityPresets, useDensity } from '../../primitives/density'
+import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
@@ -116,9 +116,7 @@ export function Listbox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
-	const inherited = useDensity()
-
-	const token = size ? densityPresets[size] : inherited
+	const token = useControlSize(size)
 
 	const resolvedId = inputId ?? control?.id
 

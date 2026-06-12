@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo, useRef } from 'react'
+import { isDataColumn } from '../../utilities'
 import type { DataTableColumnManagerConfig } from './data-table'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
 import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
@@ -77,7 +78,7 @@ export function useDataTableColumns<T>({
 
 			seen.add(col.id)
 
-			if (col.selectable || col.actions || col.pinned) {
+			if (!isDataColumn(col) || col.pinned) {
 				ordered.push(col)
 
 				continue
@@ -92,7 +93,7 @@ export function useDataTableColumns<T>({
 		for (const col of columns) {
 			if (seen.has(col.id)) continue
 
-			if (!col.selectable && !col.actions && !col.pinned && hiddenColumns.has(col.id)) continue
+			if (isDataColumn(col) && !col.pinned && hiddenColumns.has(col.id)) continue
 
 			ordered.push(col)
 		}
@@ -111,14 +112,12 @@ export function useDataTableColumns<T>({
 
 	const managerItems = useMemo<DataTableColumnManagerItem[]>(
 		() =>
-			columns
-				.filter((c) => !c.selectable && !c.actions)
-				.map((c) => ({
-					id: c.id,
-					title: c.title ?? String(c.id),
-					pinned: c.pinned,
-					hideable: c.hideable,
-				})),
+			columns.filter(isDataColumn).map((c) => ({
+				id: c.id,
+				title: c.title ?? String(c.id),
+				pinned: c.pinned,
+				hideable: c.hideable,
+			})),
 		[columns],
 	)
 

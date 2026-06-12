@@ -1,4 +1,5 @@
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react'
+import type { DataTableColumn } from '../data-table'
 
 export type Coord = { row: number; col: number }
 
@@ -42,9 +43,10 @@ export type EditableGridEditorProps<T> = {
 
 export type EditableGridEditor<T = unknown> = (props: EditableGridEditorProps<T>) => ReactNode
 
-export type EditableGridColumn<T> = {
-	id: string | number
-	title?: ReactNode
+export type EditableGridColumn<T> = Omit<
+	DataTableColumn<T>,
+	'cell' | 'cellProps' | 'pinned' | 'hideable'
+> & {
 	/** Read/write field on the row. */
 	field?: keyof T
 	/** Format a cell value for display. Defaults to `String(row[field] ?? '')`. */
@@ -61,12 +63,6 @@ export type EditableGridColumn<T> = {
 	/** Cells in this column can't be edited. Nav still visits them. */
 	readOnly?: boolean
 	align?: EditableGridAlign
-	sortable?: boolean
-	selectable?: boolean
-	actions?: (row: T) => ReactNode
-	width?: string
-	className?: string
-	headerClassName?: string
 }
 
 export type EditableGridRowsApi<T> = {

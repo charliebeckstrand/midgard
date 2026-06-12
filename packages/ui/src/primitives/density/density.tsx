@@ -66,21 +66,48 @@ export function useDensity(): DensityToken {
 export { useDensityNullable }
 
 /**
- * Resolves a wider-scale size through the Affix → Density cascade. Used by
- * components whose own size type spans `Ma` (`Button`, `Icon`, `LoadingSpinner`,
- * `ProgressGauge`), which can inherit sub-`Step` values from a control affix
- * slot.
+ * Resolves a leaf component's size through the full size-axis cascade:
+ * `explicit ?? Affix ?? Density.size`. The Affix step lets an enclosing
+ * control slot (an `<Input>` prefix, a `<SelectTrigger>` chevron) pull the
+ * component one notch tighter than the ambient Density — a step that stays
+ * invisible at the call site unless the resolver names it, hence
+ * `useResolvedSize` over a bare `size` read.
  *
- * Resolution order: `explicit ?? Affix ?? Density.size`.
+ * For `Ma`-scale leaf components (`Button`, `Icon`, `Badge`,
+ * `LoadingSpinner`, `Progress*`) that can carry sub-`Step` (`'xs'`) or `'xl'`
+ * sizes. Control *hosts* resolve their dual-axis token through
+ * {@link useControlSize} instead: they write a stepped-down Affix for their
+ * slots but never read it for their own `Step`-floored size.
  *
  * Generic on the caller's size type; the cast trusts the caller to handle
  * out-of-range values via recipe `defaultVariants` or graceful fallback.
  */
-export function useSize<T extends Ma = Ma>(explicit?: T): T {
+export function useResolvedSize<T extends Ma = Ma>(explicit?: T): T {
 	const affix = useAffix()
 	const density = useDensity()
 
 	return (explicit ?? affix ?? density.size) as T
+}
+
+/**
+ * Resolves a control host's dual-axis density token from its `size` prop. An
+ * explicit `size` pins both axes to that step (the diagonal preset); omitted,
+ * each axis inherits independently from the ambient Density cascade, so a
+ * split `<Density space="lg" size="sm">` stays split.
+ *
+ * Deliberately skips the Affix step {@link useResolvedSize} applies: a host
+ * *writes* a stepped-down Affix into its own slots (see `affixStepDown`) but
+ * resolves its own size from explicit-or-Density only. The `control` recipe's
+ * `size` / `density` variants are `Step`-floored — there is no `'xs'` / `'xl'`
+ * slot to receive an Affix value.
+ *
+ * Used by the control hosts that drive the `control` recipe: `Input`,
+ * `Combobox`, `Textarea`, `Listbox`.
+ */
+export function useControlSize(explicit?: Step): DensityToken {
+	const inherited = useDensity()
+
+	return explicit ? densityPresets[explicit] : inherited
 }
 
 export type DensityProps = DensityInput & { children: ReactNode }
