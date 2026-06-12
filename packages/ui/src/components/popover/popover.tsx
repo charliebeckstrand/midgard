@@ -67,6 +67,7 @@ export function Popover({
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			floatingContext: context,
 			onExitComplete,
 		}),
 		[
@@ -80,6 +81,7 @@ export function Popover({
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			context,
 			onExitComplete,
 		],
 	)

@@ -1,5 +1,5 @@
 /**
- * Sen focus: how an element signals keyboard focus. Five named shapes
+ * Sen focus: how an element signals keyboard focus. Six named shapes
  * cover the patterns the library uses:
  *
  *   - `ring`      outset CSS outline + transparent offset gap. Renders as one
@@ -9,6 +9,9 @@
  *                 reads against the element's own fill even when the fill IS
  *                 the accent colour: a solid button, a selected day, an
  *                 arbitrary-colour swatch.
+ *   - `virtual`   the `ring` stroke without its `:focus-visible` gate, for
+ *                 virtual-highlight models (the date picker grid) where the
+ *                 marked element never holds DOM focus
  *   - `inset`     inset ring, for controls whose fill is already the surface
  *                 (inputs, in-chrome controls) or whose box can't carry an
  *                 outset stroke (bordered, inline)
@@ -34,6 +37,11 @@ export const focus = {
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
 		'focus-visible:outline-blue-600',
 	],
+	// `outline-solid` evicts `inset`'s ungated `outline-none` in
+	// tailwind-merge (same outline-style group) when both land on one
+	// element, e.g. a plain Button day cell; without it the stroke never
+	// renders.
+	virtual: ['outline-solid outline-2 outline-offset-2', 'outline-blue-600'],
 	inset: ['outline-none', 'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600'],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',

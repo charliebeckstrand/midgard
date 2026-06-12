@@ -13,6 +13,16 @@ import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../box'
 import type { ControlSize } from '../control/context'
 
+// Keys the virtual model navigates with; see the dialog's onKeyDown below.
+const NAVIGATION_KEYS = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'PageUp',
+	'PageDown',
+])
+
 type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
@@ -88,10 +98,25 @@ export function DatePickerContent({
 									// Composed through floating-ui; its own handlers merge
 									// rather than clobber.
 									onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
+										// Keys from portaled descendants (the month/year picker
+										// popover) bubble here through the React tree, not the
+										// DOM. That surface owns its keyboard; acting here would
+										// drive the calendar underneath it.
+										if (e.target instanceof Node && !e.currentTarget.contains(e.target)) return
+
 										// Activation keys on a DOM-focused control (the user Tabbed
 										// to a header/footer button) belong to that control; only
 										// the dialog itself routes them to the virtual model.
 										if ((e.key === 'Enter' || e.key === ' ') && e.target !== e.currentTarget) return
+
+										// Navigation keys belong to the virtual model even when the
+										// user has Tabbed onto a control inside. Reclaim DOM focus
+										// for the dialog first: a grid move can re-anchor the month
+										// and unmount the focused day button, dropping focus to
+										// <body>.
+										if (NAVIGATION_KEYS.has(e.key) && e.target !== e.currentTarget) {
+											e.currentTarget.focus()
+										}
 
 										onKeyDown?.(e)
 									},

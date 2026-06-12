@@ -18,6 +18,13 @@ const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, B
 export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean
+	/**
+	 * Traps focus inside the panel while open (`FloatingFocusManager`): Tab
+	 * cycles within it and focus returns to the trigger on close. For panels
+	 * that own a complete keyboard surface, e.g. the calendar's month/year
+	 * picker.
+	 */
+	modal?: boolean
 	p?: BoxPadding
 	/**
 	 * Size step that propagates to descendants via the Density context.
@@ -36,23 +43,32 @@ export type PopoverContentProps = {
 }
 
 /**
- * The floating surface. Non-modal: renders through `FloatingSurface` (not a
- * focus manager). Tab moves through the panel and out into the page, an
- * outside press dismisses it, and focus returns to the trigger on close.
- * `autoFocus` moves initial focus into the panel on open. Use `Dialog` when
- * the content must contain focus.
+ * The floating surface. Non-modal by default: renders through
+ * `FloatingSurface` (not a focus manager). Tab moves through the panel and
+ * out into the page, an outside press dismisses it, and focus returns to
+ * the trigger on close. `autoFocus` moves initial focus into the panel on
+ * open; `modal` traps focus inside it. Use `Dialog` for page-level modal
+ * content.
  */
 export function PopoverContent({
 	className,
 	autoFocus = false,
+	modal = false,
 	p,
 	size,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
-	const { open, panelId, setFloating, floatingStyles, getFloatingProps, onExitComplete } =
-		usePopoverContext()
+	const {
+		open,
+		panelId,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+		floatingContext,
+		onExitComplete,
+	} = usePopoverContext()
 
 	const contentRef = useRef<HTMLDivElement | null>(null)
 
@@ -71,6 +87,7 @@ export function PopoverContent({
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
+			trapFocusContext={modal ? floatingContext : undefined}
 			onExitComplete={onExitComplete}
 		>
 			<motion.div
