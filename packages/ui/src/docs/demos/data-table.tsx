@@ -3,7 +3,7 @@ import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
 import { HoldButton } from '../../components/hold-button'
-import { type DensityLevel, DensityProvider } from '../../providers/density'
+import type { DensityLevel } from '../../providers/density'
 import { code } from '../code'
 import { DensityListbox } from '../components/density-listbox'
 import { Example } from '../components/example'
@@ -139,14 +139,6 @@ const RowActionsExample = () => {
 	)
 }
 
-function DensityExample({ density }: { density: DensityLevel }) {
-	return (
-		<DensityProvider density={density}>
-			<DataTable columns={columns} rows={people} getKey={(row) => row.id} />
-		</DensityProvider>
-	)
-}
-
 const ColumnManagerExample = () => {
 	return (
 		<DataTable
@@ -195,7 +187,7 @@ export function Demo() {
 				title="Density"
 				actions={<DensityListbox value={density} onValueChange={setDensity} />}
 			>
-				<DensityExample density={density} />
+				<DataTable density={density} columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Sticky header" code={code`<DataTable stickyHeader maxHeight="200px" />`}>
