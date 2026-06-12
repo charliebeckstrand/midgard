@@ -120,7 +120,7 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-title')?.className).toContain('font-bold')
 	})
 
-	it('Buttons inside a Card keep their own size', () => {
+	it('Buttons inside a sized Card inherit its size', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>
@@ -129,9 +129,25 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		// The static Card opens no density scope; the Button renders at its own
-		// md default. Pass an explicit size to match a non-md card.
-		expect(bySlot(container, 'button')?.className).toContain('text-base')
+		// An explicit size opens a density scope; the client Button resolves
+		// its size through it.
+		expect(bySlot(container, 'button')?.className).toContain('text-sm')
+	})
+
+	it('Buttons inside an unsized Card follow the ambient density', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Card>
+					<CardBody>
+						<Button>Inside</Button>
+					</CardBody>
+				</Card>
+			</DensityProvider>,
+		)
+
+		// No explicit size, no scope of its own: the ambient cascade reaches
+		// the client Button untouched.
+		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 
 	it('ignores an ambient Density provider', () => {

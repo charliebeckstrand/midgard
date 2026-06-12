@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
-// directive, no React hooks, no ambient-context imports (the boundary
+// directive, no React hooks, no ambient-context reads (the boundary
 // contract in packages/ui/REFERENCE.md §2). This test pins the contract at
 // the source level, where a regression (a context read quietly turning a
 // leaf back into a client component) produces no build error.
@@ -83,12 +83,16 @@ const componentsDir = join(__dirname, '../../../components')
 // and `primitives/polymorphic`'s client export read LinkContext;
 // `primitives/density` and `primitives/affix` are the density cascade;
 // `providers/*` are ambient by definition; `motion/react` forces a client
-// module. Type-only imports are fine: TypeScript erases them. One value
-// exemption: `providers/density/context` is a directive-free constants
-// module (the DensityLevel vocabulary), not a context.
+// module. Type-only imports are fine: TypeScript erases them. Two value
+// exemptions: `providers/density/context` is a directive-free constants
+// module (the DensityLevel vocabulary), not a context; and the bare
+// `Density` broadcast component, which renders a client boundary around
+// children without making the host read anything — a static host may
+// *open* a density scope (Card does, for an explicit `size`), it may never
+// *read* the cascade, which the hook scan below still catches.
 const BANNED_IMPORT_SOURCES = [
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\/(?!density\/context['"])/m,
-	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/density['"]/m,
+	/^import (?!type[\s{])(?!\{ Density \} from )[^'"]*['"][^'"]*\/primitives\/density['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/affix['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/link['"]/m,
 	/^import [^'"]*['"]motion\/react['"]/m,
