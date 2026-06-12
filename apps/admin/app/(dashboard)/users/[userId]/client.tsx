@@ -63,7 +63,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 			<Stack gap="xl">
 				<Heading>{details?.email}</Heading>
 
-				<Stack>
+				<Stack gap="md">
 					<Heading level={2}>Chats</Heading>
 
 					<Table>

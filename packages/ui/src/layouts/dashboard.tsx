@@ -19,7 +19,7 @@ export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 
 	return (
 		<StackedLayout>
-			<Stack>
+			<Stack gap="md">
 				{filters && (
 					<>
 						{/* Filters on desktop */}

@@ -15,7 +15,7 @@ function AreaExample() {
 
 	return (
 		<Sizer>
-			<Stack>
+			<Stack gap="md">
 				<FileUpload accept="image/*" onFiles={setFiles} />
 				{files.length > 0 && (
 					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
@@ -30,7 +30,7 @@ function CustomContentExample() {
 
 	return (
 		<Sizer>
-			<Stack>
+			<Stack gap="md">
 				<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
 					<Icon icon={<Upload />} size="lg" />
 					<Text>Upload documents</Text>
@@ -49,7 +49,7 @@ function InputExample() {
 
 	return (
 		<Sizer>
-			<Stack>
+			<Stack gap="md">
 				<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
 				{files.length > 0 && (
 					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
@@ -64,7 +64,7 @@ function ButtonExample() {
 
 	return (
 		<Sizer>
-			<Stack>
+			<Stack gap="md">
 				<FileUpload variant="button" onFiles={setFiles} />
 				{files.length > 0 && (
 					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>

@@ -5,29 +5,21 @@ import { Example } from '../components/example'
 
 export function Demo() {
 	return (
-		<>
-			<Example title="Default">
-				<Container>
-					<Card>Page content</Card>
+		<Example title="Padding">
+			<Stack gap="lg">
+				<Container padding="none">
+					<Card bg="tint">No padding</Card>
 				</Container>
-			</Example>
-
-			<Example title="Padding">
-				<Stack gap="lg">
-					<Container padding="none">
-						<Card>No padding</Card>
-					</Container>
-					<Container padding="sm">
-						<Card>Small padding</Card>
-					</Container>
-					<Container padding="md">
-						<Card>Medium padding</Card>
-					</Container>
-					<Container padding="lg">
-						<Card>Large padding</Card>
-					</Container>
-				</Stack>
-			</Example>
-		</>
+				<Container padding="sm">
+					<Card bg="tint">Small padding</Card>
+				</Container>
+				<Container padding="md">
+					<Card bg="tint">Medium padding</Card>
+				</Container>
+				<Container padding="lg">
+					<Card bg="tint">Large padding</Card>
+				</Container>
+			</Stack>
+		</Example>
 	)
 }

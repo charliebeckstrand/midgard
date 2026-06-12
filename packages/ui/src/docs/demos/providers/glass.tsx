@@ -120,7 +120,7 @@ export function Demo() {
 		<>
 			<Example title="Wrapper">
 				<GlassProvider>
-					<Stack>
+					<Stack gap="md">
 						<Field>
 							<Label>Input</Label>
 							<Input placeholder="Glass input" />
@@ -139,7 +139,7 @@ export function Demo() {
 
 			<Example title="Form controls">
 				<GlassProvider>
-					<Stack>
+					<Stack gap="md">
 						<Field>
 							<Label>Select</Label>
 							<Select placeholder="Select a person" displayValue={(v: string) => v}>

@@ -47,7 +47,7 @@ export function Demo() {
 					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 				>
 					<DialogBody>
-						<Stack>
+						<Stack gap="md">
 							<Text>
 								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
 								incididunt ut labore et dolore magna aliqua.

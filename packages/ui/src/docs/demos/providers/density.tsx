@@ -138,7 +138,7 @@ export function Demo() {
 							<Heading level={1}>Orders</Heading>
 						</SidebarLayoutHeader>
 						<SidebarLayoutBody>
-							<Stack>
+							<Stack gap="md">
 								<OrdersFilters value={filters} onValueChange={setFilters} />
 								{filteredOrders.length ? (
 									<Table>

@@ -20,7 +20,7 @@ function RequiredExample() {
 
 	return (
 		<Form defaultValues={{ name: '' }} disabled={submitting} onSubmit={handleSubmit}>
-			<Stack>
+			<Stack gap="md">
 				<Control required>
 					<Label>Full name</Label>
 					<Input placeholder="Jane Smith" />
