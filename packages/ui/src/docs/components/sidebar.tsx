@@ -1,15 +1,12 @@
 'use client'
 
-import { ListFilter } from 'lucide-react'
+import { ArrowDownAZ, ArrowUp01 } from 'lucide-react'
 import { Fragment, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../components/combobox'
-import { Fieldset, Label, Legend } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
-import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import {
 	Sidebar,
 	SidebarBody,
@@ -107,8 +104,6 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
-	const [filtersOpen, setFiltersOpen] = useState(false)
-
 	const [sortBy, setSortBy] = useState<SortBy>('groups')
 
 	// Scroll the active item into view when the mobile sidebar opens
@@ -159,41 +154,14 @@ export function SidebarContent({ route }: { route: string }) {
 						/>
 					</Combobox>
 				</div>
-				<Button variant="bare" aria-label="Filters" onClick={() => setFiltersOpen(true)}>
-					<Icon icon={<ListFilter />} />
+				<Button
+					variant="bare"
+					aria-label="Filters"
+					onClick={() => setSortBy(sortBy === 'alphabetical' ? 'groups' : 'alphabetical')}
+				>
+					<Icon icon={sortBy === 'alphabetical' ? <ArrowUp01 /> : <ArrowDownAZ />} />
 				</Button>
 			</Flex>
-			<Sheet side="left" open={filtersOpen} onOpenChange={setFiltersOpen}>
-				<SheetTitle>Filters</SheetTitle>
-				<SheetBody>
-					<Fieldset>
-						<Legend>Sort by</Legend>
-						<RadioGroup aria-label="Sort by">
-							<RadioField>
-								<Radio
-									name={`${id}-sort-by`}
-									value="groups"
-									checked={sortBy === 'groups'}
-									onChange={() => setSortBy('groups')}
-								/>
-								<Label>Groups</Label>
-							</RadioField>
-							<RadioField>
-								<Radio
-									name={`${id}-sort-by`}
-									value="alphabetical"
-									checked={sortBy === 'alphabetical'}
-									onChange={() => setSortBy('alphabetical')}
-								/>
-								<Label>Alphabetical</Label>
-							</RadioField>
-						</RadioGroup>
-					</Fieldset>
-				</SheetBody>
-				<SheetFooter>
-					<Button onClick={() => setFiltersOpen(false)}>Close</Button>
-				</SheetFooter>
-			</Sheet>
 			<SidebarBody>
 				<div className="flex flex-col gap-3">
 					{sortBy === 'alphabetical' ? (
