@@ -37,6 +37,9 @@ const STATIC_COMPONENT_FILES = [
 	'color/color-panel-skeleton.tsx',
 	'control/control-skeleton.tsx',
 	'divider/divider.tsx',
+	'dl/description-details.tsx',
+	'dl/description-list.tsx',
+	'dl/description-term.tsx',
 	'fieldset/legend.tsx',
 	'flex/flex.tsx',
 	'grid/grid.tsx',
@@ -62,7 +65,14 @@ const STATIC_COMPONENT_FILES = [
 	'stat/stat-value-skeleton.tsx',
 	'status/status-dot.tsx',
 	'switch/switch-skeleton.tsx',
+	'table/table.tsx',
+	'table/table-body.tsx',
+	'table/table-cell.tsx',
+	'table/table-empty.tsx',
+	'table/table-head.tsx',
+	'table/table-header.tsx',
 	'table/table-loading.tsx',
+	'table/table-row.tsx',
 	'text/text.tsx',
 	'text/text-skeleton.tsx',
 	'textarea/textarea-skeleton.tsx',
@@ -74,9 +84,11 @@ const componentsDir = join(__dirname, '../../../components')
 // and `primitives/polymorphic`'s client export read LinkContext;
 // `primitives/density` and `primitives/affix` are the density cascade;
 // `providers/*` are ambient by definition; `motion/react` forces a client
-// module. Type-only imports are fine: TypeScript erases them.
+// module. Type-only imports are fine: TypeScript erases them. One value
+// exemption: `providers/density/context` is a directive-free constants
+// module (the DensityLevel vocabulary), not a context.
 const BANNED_IMPORT_SOURCES = [
-	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\//m,
+	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\/(?!density\/context['"])/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/density['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/affix['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/link['"]/m,

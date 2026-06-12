@@ -14,6 +14,7 @@ import { ButtonSkeleton } from 'ui/button'
 import { Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle } from 'ui/card'
 import { CheckboxSkeleton } from 'ui/checkbox'
 import { Divider } from 'ui/divider'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Flex } from 'ui/flex'
 import { Grid } from 'ui/grid'
 import { Heading, HeadingSkeleton } from 'ui/heading'
@@ -36,6 +37,15 @@ import {
 } from 'ui/stat'
 import { StatusDot } from 'ui/status'
 import { SwitchSkeleton } from 'ui/switch'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableLoading,
+	TableRow,
+} from 'ui/table'
 import { Text, TextSkeleton } from 'ui/text'
 import { TextareaSkeleton } from 'ui/textarea'
 
@@ -119,6 +129,33 @@ export default function RscProbePage() {
 				title="Static banner"
 				description="The banner file is static; its Alert core renders as a client island."
 			/>
+
+			<Table density="compact" grid striped>
+				<TableHead>
+					<TableRow>
+						<TableHeader>Name</TableHeader>
+						<TableHeader>Role</TableHeader>
+					</TableRow>
+				</TableHead>
+				<TableBody>
+					<TableRow>
+						<TableCell>Jane Doe</TableCell>
+						<TableCell>Engineer</TableCell>
+					</TableRow>
+					<TableRow>
+						<TableCell>John Roe</TableCell>
+						<TableCell>Designer</TableCell>
+					</TableRow>
+				</TableBody>
+				<TableLoading columns={2} rows={1} />
+			</Table>
+
+			<DescriptionList>
+				<DescriptionTerm>Tier</DescriptionTerm>
+				<DescriptionDetails>Static</DescriptionDetails>
+				<DescriptionTerm>Rendered by</DescriptionTerm>
+				<DescriptionDetails>React Server Components</DescriptionDetails>
+			</DescriptionList>
 
 			<Heading level={2} size="sm">
 				Loading tree (explicit skeleton variants)

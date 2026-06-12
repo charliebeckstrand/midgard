@@ -33,7 +33,7 @@ The library splits into two tiers. **Static components** carry no `'use client'`
 The boundary rule: ambient styling state crosses the server/client boundary through the DOM, never through React context. Context cannot reach a server-rendered child passed through a client parent; data attributes and CSS can. Concretely:
 
 - Hosts size their slot indicators with recipe projections: `shaku.icon` rows on Button/Badge/Sidebar, stepped-down icon and spinner rows on the control affix slots (`kiso/control/affix`). A projection owns its slot; an explicit `size` on a slot icon or spinner does not override it.
-- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes. Direct-child selectors keep nested instances independent.
+- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes; Table projects density, grid, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
 - `AffixContext` remains for client slot children (a Button inside an Input affix still steps down); static leaves never read it.
 - `DensityProvider` reaches client components only (Input, Button, Table, Tabs, …). Static atoms ignore it; pass `size`/`space`/`gap` explicitly. A Badge in a control affix slot takes `size` one step below the control: the affix compensation constants assume the stepped-down chip.
 - Loading UI is composed explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.6); the variants are themselves static.
@@ -41,7 +41,7 @@ The boundary rule: ambient styling state crosses the server/client boundary thro
 
 Two guards pin the contract: `static-component-boundary.test.ts` scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports; `apps/admin/app/rsc-probe` renders the static surface from a server page so `next build` catches transitive client-only pulls.
 
-Follow-up candidates that still read ambient context for styling or formatting only: `locale` (formatting leaves), `glass`, `table`'s density read, and `dl`'s orientation context.
+Follow-up candidates that still read ambient context for styling or formatting only: `locale` (an API decision: explicit props or app wrappers, since formats can't move to CSS) and `glass` (worth migrating once a static surface grows a glass variant; today every reader is client by necessity).
 
 ## 3. Hooks, primitives, providers
 

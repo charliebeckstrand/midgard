@@ -7,7 +7,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../components/table'
-import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -100,8 +99,8 @@ describe('TableBody', () => {
 		expect(body?.tagName).toBe('TBODY')
 	})
 
-	it('inherits striped classes from the enclosing Table when striped is set', () => {
-		const { container: striped } = renderUI(
+	it('stripes through the Table projection, not the tbody', () => {
+		const { container } = renderUI(
 			<Table striped>
 				<TableBody>
 					<TableRow>
@@ -111,21 +110,12 @@ describe('TableBody', () => {
 			</Table>,
 		)
 
-		const { container: plain } = renderUI(
-			<Table>
-				<TableBody>
-					<TableRow>
-						<TableCell>cell</TableCell>
-					</TableRow>
-				</TableBody>
-			</Table>,
+		// The table element carries the stripe selector; the static tbody
+		// stays bare.
+		expect(container.querySelector('table')?.className).toContain(
+			'[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5',
 		)
-
-		const stripedClass = bySlot(striped, 'table-body')?.className ?? ''
-
-		const plainClass = bySlot(plain, 'table-body')?.className ?? ''
-
-		expect(stripedClass.length).toBeGreaterThan(plainClass.length)
+		expect(bySlot(container, 'table-body')?.className).not.toContain('even:')
 	})
 
 	it('applies a custom className on TableBody', () => {
@@ -196,7 +186,7 @@ describe('Table variants', () => {
 		expect(container.querySelector('table')?.className).toContain('extra-table')
 	})
 
-	it('renders grid borders when grid is set', () => {
+	it('renders grid borders through the Table projection when grid is set', () => {
 		const { container: gridded } = renderUI(
 			<Table grid>
 				<TableBody>
@@ -217,16 +207,16 @@ describe('Table variants', () => {
 			</Table>,
 		)
 
-		const griddedClass = gridded.querySelector('tbody td')?.className ?? ''
-
-		const plainClass = plain.querySelector('tbody td')?.className ?? ''
-
-		expect(griddedClass).not.toBe(plainClass)
+		// The projection lives on the table element; cells stay identical.
+		expect(gridded.querySelector('table')?.className).toContain('[&>*>tr>td]:border')
+		expect(gridded.querySelector('tbody td')?.className).toBe(
+			plain.querySelector('tbody td')?.className,
+		)
 	})
 })
 
-describe('Table density inheritance', () => {
-	// Cell padding tracks the density axis: sm px-1, md px-2, lg px-3.
+describe('Table density resolution', () => {
+	// Cell padding tracks the density prop: compact px-1, snug px-2, loose px-3.
 	const body = (
 		<TableBody>
 			<TableRow>
@@ -235,37 +225,33 @@ describe('Table density inheritance', () => {
 		</TableBody>
 	)
 
-	it('defaults to md cell padding outside any provider', () => {
+	it('defaults to snug: md cell padding and no density projection', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 
 		expect(container.querySelector('tbody td')?.className).toContain('px-2')
+		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
 	})
 
-	it('tightens to sm padding under an explicit compact density prop', () => {
+	it('projects sm padding under an explicit compact density prop', () => {
 		const { container } = renderUI(<Table density="compact">{body}</Table>)
 
-		expect(container.querySelector('tbody td')?.className).toContain('px-1')
+		// The static cell keeps its md classes; the table element overrides
+		// them from outside.
+		expect(container.querySelector('table')?.className).toContain('[&>*>tr>td]:px-1')
+		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
+		expect(container.querySelector('tbody td')?.className).toContain('px-2')
 	})
 
-	it('inherits a compact DensityProvider', () => {
+	it('ignores an ambient DensityProvider', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Table>{body}</Table>
 			</DensityProvider>,
 		)
 
-		expect(container.querySelector('tbody td')?.className).toContain('px-1')
-	})
-
-	it('tracks the density axis, not size, under a two-axis Density', () => {
-		const { container } = renderUI(
-			<Density space="lg" size="sm">
-				<Table>{body}</Table>
-			</Density>,
-		)
-
-		// density=lg drives padding even though size=sm.
-		expect(container.querySelector('tbody td')?.className).toContain('px-3')
+		// Static leaf: density comes from the explicit prop only.
+		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+		expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
 	})
 })
 
