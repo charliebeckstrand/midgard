@@ -19,7 +19,7 @@ import {
 } from '../../hooks'
 import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { densityPresets, useDensity } from '../../primitives/density'
+import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import { useSkeleton } from '../../providers/skeleton'
@@ -141,9 +141,7 @@ export function Combobox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const skeleton = useSkeleton()
-	const inherited = useDensity()
-
-	const token = size ? densityPresets[size] : inherited
+	const token = useControlSize(size)
 
 	const resolvedSize = token.size
 
