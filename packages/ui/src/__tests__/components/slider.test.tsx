@@ -2,12 +2,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { RangeSlider, Slider } from '../../components/slider'
+import { RangeSlider, Slider, SliderSkeleton } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
 import { DensityProvider } from '../../providers/density'
 import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Slider', () => {
+	it('pairs with an explicit SliderSkeleton in loading trees', () => {
+		const { container } = renderUI(<SliderSkeleton />)
+
+		expect(bySlot(container, 'slider')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
 	it('renders as a range input with data-slot="slider"', () => {
 		const { container } = renderUI(<Slider />)
 

@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { ProgressBar, ProgressGauge } from '../../components/progress'
+import {
+	ProgressBar,
+	ProgressBarSkeleton,
+	ProgressGauge,
+	ProgressGaugeSkeleton,
+} from '../../components/progress'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ProgressBar', () => {
+	it('pairs with an explicit ProgressBarSkeleton in loading trees', () => {
+		const { container } = renderUI(<ProgressBarSkeleton />)
+
+		expect(bySlot(container, 'progress-bar')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
 	it('sets progressbar role and aria attributes', () => {
 		const { container } = renderUI(<ProgressBar value={50} max={100} aria-label="Progress" />)
 
@@ -54,6 +66,13 @@ describe('ProgressBar', () => {
 })
 
 describe('ProgressGauge', () => {
+	it('pairs with an explicit ProgressGaugeSkeleton in loading trees', () => {
+		const { container } = renderUI(<ProgressGaugeSkeleton />)
+
+		expect(bySlot(container, 'progress-gauge')).not.toBeInTheDocument()
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
 	it('sets progressbar role and aria attributes', () => {
 		const { container } = renderUI(<ProgressGauge value={75} max={100} aria-label="Progress" />)
 

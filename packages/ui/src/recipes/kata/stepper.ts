@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -74,6 +74,7 @@ export const k = {
 		active: ['z-10', 'bg-blue-600 dark:bg-blue-600'],
 	},
 	description: [size.sm, ...text.muted],
+	skeleton: kokkaku.stepper,
 } as const
 
 export type StepperVariants = VariantProps<typeof root>

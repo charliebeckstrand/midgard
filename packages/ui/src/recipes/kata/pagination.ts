@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -39,6 +39,7 @@ const gap = defineRecipe({
 export const k = defineRecipe(
 	{
 		base: [flex.row, 'list-none', 'gap-1'],
+		skeleton: kokkaku.pagination,
 	},
 	{
 		list,

@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, narabi } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -82,6 +82,7 @@ export const k = defineRecipe(
 			lg: 'h-4',
 		},
 		defaults: { size: 'md' },
+		skeleton: kokkaku.progress,
 	},
 	{
 		color,

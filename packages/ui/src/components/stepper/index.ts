@@ -11,5 +11,6 @@ export { StepperIndicator, type StepperIndicatorProps } from './stepper-indicato
 export { StepperPanel, type StepperPanelProps } from './stepper-panel'
 export { StepperPanels, type StepperPanelsProps } from './stepper-panels'
 export { StepperSeparator, type StepperSeparatorProps } from './stepper-separator'
+export { StepperSkeleton, type StepperSkeletonProps } from './stepper-skeleton'
 export { StepperStep, type StepperStepProps } from './stepper-step'
 export { StepperTitle, type StepperTitleProps } from './stepper-title'

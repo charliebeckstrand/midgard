@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 
 const { fg } = hannou
 const { text } = iro
@@ -39,6 +39,7 @@ export const k = {
 	item,
 	link,
 	separator,
+	skeleton: kokkaku.breadcrumb,
 } as const
 
 export type BreadcrumbItemVariants = VariantProps<typeof item>

@@ -7,5 +7,6 @@ export {
 	type TabContentsProps,
 } from './tab-contents'
 export { TabList, type TabListProps } from './tab-list'
+export { TabListSkeleton, type TabListSkeletonProps } from './tab-list-skeleton'
 export { TabPanel, type TabPanelProps, TabPanels, type TabPanelsProps } from './tab-panel'
 export { Tabs, type TabsProps } from './tabs'

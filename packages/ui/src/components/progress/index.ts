@@ -1,3 +1,5 @@
 export type { ProgressGaugeVariants, ProgressTrackVariants } from '../../recipes/kata/progress'
 export { ProgressBar, type ProgressBarProps } from './progress-bar'
+export { ProgressBarSkeleton, type ProgressBarSkeletonProps } from './progress-bar-skeleton'
 export { ProgressGauge, type ProgressGaugeProps } from './progress-gauge'
+export { ProgressGaugeSkeleton, type ProgressGaugeSkeletonProps } from './progress-gauge-skeleton'
