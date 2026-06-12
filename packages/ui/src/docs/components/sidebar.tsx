@@ -9,7 +9,7 @@ import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { Sheet, SheetBody, SheetTitle } from '../../components/sheet'
+import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import {
 	Sidebar,
 	SidebarBody,
@@ -18,7 +18,6 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../../components/sidebar'
-import { Stack } from '../../components/stack'
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
@@ -99,8 +98,6 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 
 type SortBy = 'groups' | 'alphabetical'
 
-type ComponentsFilter = 'server' | 'client' | 'all'
-
 export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
 
@@ -113,10 +110,6 @@ export function SidebarContent({ route }: { route: string }) {
 	const [filtersOpen, setFiltersOpen] = useState(false)
 
 	const [sortBy, setSortBy] = useState<SortBy>('groups')
-
-	// Selection only; the registry carries no server/client metadata yet, so
-	// this can't narrow the list until that exists.
-	const [components, setComponents] = useState<ComponentsFilter>('all')
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -170,67 +163,36 @@ export function SidebarContent({ route }: { route: string }) {
 					<Icon icon={<ListFilter />} />
 				</Button>
 			</Flex>
-			<Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+			<Sheet side="left" open={filtersOpen} onOpenChange={setFiltersOpen}>
 				<SheetTitle>Filters</SheetTitle>
 				<SheetBody>
-					<Stack gap="lg">
-						<Fieldset>
-							<Legend>Sort by</Legend>
-							<RadioGroup aria-label="Sort by">
-								<RadioField>
-									<Radio
-										name={`${id}-sort-by`}
-										value="groups"
-										checked={sortBy === 'groups'}
-										onChange={() => setSortBy('groups')}
-									/>
-									<Label>Groups</Label>
-								</RadioField>
-								<RadioField>
-									<Radio
-										name={`${id}-sort-by`}
-										value="alphabetical"
-										checked={sortBy === 'alphabetical'}
-										onChange={() => setSortBy('alphabetical')}
-									/>
-									<Label>Alphabetical</Label>
-								</RadioField>
-							</RadioGroup>
-						</Fieldset>
-						<Fieldset>
-							<Legend>Components</Legend>
-							<RadioGroup aria-label="Components">
-								<RadioField>
-									<Radio
-										name={`${id}-components`}
-										value="server"
-										checked={components === 'server'}
-										onChange={() => setComponents('server')}
-									/>
-									<Label>Server components</Label>
-								</RadioField>
-								<RadioField>
-									<Radio
-										name={`${id}-components`}
-										value="client"
-										checked={components === 'client'}
-										onChange={() => setComponents('client')}
-									/>
-									<Label>Client components</Label>
-								</RadioField>
-								<RadioField>
-									<Radio
-										name={`${id}-components`}
-										value="all"
-										checked={components === 'all'}
-										onChange={() => setComponents('all')}
-									/>
-									<Label>All components</Label>
-								</RadioField>
-							</RadioGroup>
-						</Fieldset>
-					</Stack>
+					<Fieldset>
+						<Legend>Sort by</Legend>
+						<RadioGroup aria-label="Sort by">
+							<RadioField>
+								<Radio
+									name={`${id}-sort-by`}
+									value="groups"
+									checked={sortBy === 'groups'}
+									onChange={() => setSortBy('groups')}
+								/>
+								<Label>Groups</Label>
+							</RadioField>
+							<RadioField>
+								<Radio
+									name={`${id}-sort-by`}
+									value="alphabetical"
+									checked={sortBy === 'alphabetical'}
+									onChange={() => setSortBy('alphabetical')}
+								/>
+								<Label>Alphabetical</Label>
+							</RadioField>
+						</RadioGroup>
+					</Fieldset>
 				</SheetBody>
+				<SheetFooter>
+					<Button onClick={() => setFiltersOpen(false)}>Close</Button>
+				</SheetFooter>
 			</Sheet>
 			<SidebarBody>
 				<div className="flex flex-col gap-3">
