@@ -26,8 +26,8 @@ function CompoundCollapseExample() {
 			</CollapseTrigger>
 			<CollapsePanel>
 				<Text variant="muted">
-					The compound API exposes the open state through useCollapseContext, so a child of the
-					trigger can change its text or style based on whether the panel is open.
+					The compound API exposes the open state through <code>useCollapseContext</code>, so a
+					child of the trigger can change its text or style based on whether the panel is open.
 				</Text>
 			</CollapsePanel>
 		</Collapse>

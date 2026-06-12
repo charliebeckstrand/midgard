@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 
 // `query`/`deferredQuery` live in the shared query context (`useComboboxQuery`),
-// kept out of this one so options — which read only value/multiple/onSelect —
+// kept out of this one so options, which read only value/multiple/onSelect,
 // don't re-render on every keystroke.
 type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined

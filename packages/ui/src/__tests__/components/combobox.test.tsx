@@ -339,8 +339,8 @@ describe('Combobox active-descendant keyboard model', () => {
 		)
 
 		// The reference must point at a mounted option, re-anchored to the top
-		// match. Re-anchoring rides a MutationObserver (a microtask after the
-		// swap commits), so the assertions poll.
+		// match. Re-anchoring runs in a MutationObserver callback (a microtask
+		// after the swap commits), so the assertions poll.
 		await waitFor(() => {
 			const activeId = input.getAttribute('aria-activedescendant')
 

@@ -11,7 +11,7 @@ export type QueryContextValue = {
 }
 
 /**
- * Shared query envelope for type-ahead roots (Combobox, CommandPalette): the
+ * Shared query context for type-ahead roots (Combobox, CommandPalette): the
  * root provides the live and deferred query; descendants read it through the
  * consumer hook to filter their items.
  */
