@@ -65,10 +65,25 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 
 	const isCurrent = current ?? (value !== undefined && context?.value === value)
 
+	// Scroll once per becoming-current edge, tracked in a ref. The effect also
+	// re-fires without an edge: StrictMode's dev double-invoke replays layout
+	// effects for fibers that merely moved (keyed list reorders), and scrolling
+	// there yanks the scroller to the current item. The ref persists through
+	// those replays but resets on a true remount, keeping deep-link scroll.
+	const scrolledRef = useRef(false)
+
 	useLayoutEffect(() => {
-		if (isCurrent && ref.current) {
-			scrollWithin(ref.current, { block: 'nearest' })
+		if (!isCurrent) {
+			scrolledRef.current = false
+
+			return
 		}
+
+		if (scrolledRef.current || !ref.current) return
+
+		scrolledRef.current = true
+
+		scrollWithin(ref.current, { block: 'nearest' })
 	}, [isCurrent, scrollWithin])
 
 	function handleClick(e: MouseEvent<HTMLElement>) {
