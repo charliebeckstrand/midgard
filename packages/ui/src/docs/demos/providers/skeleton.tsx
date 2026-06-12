@@ -8,6 +8,7 @@ import { ControlSkeleton } from '../../../components/control/control-skeleton'
 import { Flex } from '../../../components/flex'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
+import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { RadioSkeleton } from '../../../components/radio'
 import { SwitchSkeleton } from '../../../components/switch'
 import { Text, TextSkeleton } from '../../../components/text'
@@ -20,7 +21,7 @@ export const meta = { name: 'Skeletons', category: 'Feedback' }
 // Compose loading trees explicitly: each component ships a `<XSkeleton>`
 // counterpart mirroring its silhouette. The variants are static leaves, so
 // a Suspense fallback or loading.tsx can server-render them.
-const skeletonGallery = [
+const skeletonVariants = [
 	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
 	{ name: 'Badge', skeleton: <BadgeSkeleton /> },
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
@@ -33,17 +34,32 @@ const skeletonGallery = [
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
 ]
 
-function GalleryExample() {
+function VariantExample() {
+	const [selected, setSelected] = useState('Button')
+
+	const active = skeletonVariants.find((v) => v.name === selected)
+
 	return (
-		<Example title="Skeleton variants">
-			<div className="grid grid-cols-2 items-center gap-4">
-				{skeletonGallery.map((entry) => (
-					<Flex key={entry.name} gap="md" align="center">
-						<Text className="w-24">{entry.name}</Text>
-						{entry.skeleton}
-					</Flex>
-				))}
-			</div>
+		<Example
+			title="Skeleton variants"
+			actions={
+				<Listbox<string>
+					value={selected}
+					onValueChange={(value) => setSelected(value ?? 'Button')}
+					displayValue={(v: string) => v}
+					placeholder="Select component"
+				>
+					{skeletonVariants.map((v) => (
+						<ListboxOption key={v.name} value={v.name}>
+							<ListboxLabel>{v.name}</ListboxLabel>
+						</ListboxOption>
+					))}
+				</Listbox>
+			}
+		>
+			{/* Block flow on purpose: the line-shaped variants (Text, Heading)
+			    size to their container and collapse to zero width as flex items. */}
+			{active?.skeleton}
 		</Example>
 	)
 }
@@ -122,7 +138,7 @@ function ProfileCardExample() {
 export function Demo() {
 	return (
 		<>
-			<GalleryExample />
+			<VariantExample />
 
 			<Example title="Form">
 				<FormExample />
