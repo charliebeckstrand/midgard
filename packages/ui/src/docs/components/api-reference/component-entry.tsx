@@ -6,7 +6,7 @@ import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Text } from '../../../components/text'
 import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
-import { PropsTable } from './props-table'
+import { PropRows } from './prop-row'
 
 /** React-style event handlers: `onClick`, `onChange`, … */
 const EVENT_PROP = /^on[A-Z]/
@@ -56,7 +56,7 @@ function Section({ title, rows }: { title: string; rows: PropDef[] }) {
 	return (
 		<div className="space-y-4">
 			<Heading level={3}>{title}</Heading>
-			<PropsTable rows={rows} />
+			<PropRows rows={rows} />
 		</div>
 	)
 }
