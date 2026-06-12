@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useRef } from 'react'
+import { isDataColumn } from '../../utilities'
 import type { EditableGridColumn, EditableGridRowsApi } from './types'
 
 /** Derives the cell-rendering primitives (`rowsApi`) and `rowIndexMap` from the grid's raw `rows` and `columns` inputs. */
@@ -19,7 +20,7 @@ export function useEditableGridRows<T>({
 
 	// Editable columns (excludes selectable / actions): the columns the
 	// active-cell cursor can land on.
-	const editableCols = useMemo(() => columns.filter((c) => !c.selectable && !c.actions), [columns])
+	const editableCols = useMemo(() => columns.filter(isDataColumn), [columns])
 
 	const rowIndexMap = useMemo(() => {
 		const m = new Map<T, number>()
