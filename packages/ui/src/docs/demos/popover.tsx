@@ -8,8 +8,6 @@ import { Text } from '../../components/text'
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 const placements = ['left', 'top', 'bottom', 'right'] as const
 
 const iconMap = {

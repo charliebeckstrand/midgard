@@ -8,8 +8,6 @@ import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
 
-export const meta = { category: 'Layout' }
-
 const sizes = ['sm', 'md', 'lg', 'xl', '2xl'] as const
 
 type Size = (typeof sizes)[number]

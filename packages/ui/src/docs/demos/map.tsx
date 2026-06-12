@@ -12,8 +12,6 @@ import { code } from '../code'
 import { Example } from '../components/example'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
-export const meta = { category: 'Data Display' }
-
 const route: RouteData = {
 	id: 'r1',
 	stops: [

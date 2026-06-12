@@ -4,8 +4,6 @@ import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: 'Square', value: 'square' },
 	{ label: 'Video', value: 'video' },

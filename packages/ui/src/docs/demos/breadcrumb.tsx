@@ -7,8 +7,6 @@ import {
 } from '../../components/breadcrumb'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 export function Demo() {
 	return (
 		<Example title="Default">

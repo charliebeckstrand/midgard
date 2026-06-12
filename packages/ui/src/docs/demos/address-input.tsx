@@ -9,8 +9,6 @@ import { Field, Label } from '../../components/fieldset'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Input' }
-
 const places = [
 	{
 		id: '1',

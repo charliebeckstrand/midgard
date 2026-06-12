@@ -1,8 +1,6 @@
 import { PivotTable } from '../../components/pivot-table'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Table' }
-
 type LoadRow = {
 	lane: string
 	carrier: string

@@ -8,8 +8,6 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components
 import { AuthLayout } from '../../../layouts'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Pages' }
-
 const Form = ({
 	onSubmit,
 	children,

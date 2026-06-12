@@ -4,8 +4,6 @@ import { MaskInput } from '../../components/mask-input'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Input' }
-
 function formatLicensePlate(raw: string) {
 	const clean = raw
 		.toUpperCase()

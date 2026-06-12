@@ -3,8 +3,6 @@ import { Card } from '../../components/card'
 import { NavContent, NavContents, NavContext, NavItem, NavList } from '../../components/nav'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 export function Demo() {
 	const [current, setCurrent] = useState<string | undefined>('account')
 

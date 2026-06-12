@@ -9,8 +9,6 @@ import {
 } from '../../components/pagination'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 const totalPages = 10
 
 function getVisiblePages(current: number, total: number): (number | 'gap')[] {

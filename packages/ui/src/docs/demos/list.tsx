@@ -4,8 +4,6 @@ import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const variants = ['separated', 'outline', 'plain', 'solid'] as const
 
 type Task = { id: string; label: string; description?: string }

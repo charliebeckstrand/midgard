@@ -5,8 +5,6 @@ import { Stack } from '../../components/stack'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Chat' }
-
 export function Demo() {
 	return (
 		<>

@@ -6,8 +6,6 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 function CounterExample() {
 	const [value, setValue] = useState(1284)
 

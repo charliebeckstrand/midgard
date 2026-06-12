@@ -4,8 +4,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 const placements = ['left', 'top', 'bottom', 'right'] as const
 
 export function Demo() {

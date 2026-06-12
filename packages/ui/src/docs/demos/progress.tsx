@@ -8,8 +8,6 @@ import { capitalize } from '../components/format'
 import { LabeledColumn, LabeledRow } from '../components/labeled'
 import { ValueStepper } from '../components/value-stepper'
 
-export const meta = { category: 'Feedback' }
-
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const barSizes = ['sm', 'md', 'lg'] as const

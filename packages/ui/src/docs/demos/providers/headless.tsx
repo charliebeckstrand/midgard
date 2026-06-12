@@ -6,8 +6,6 @@ import { Input } from '../../../components/input'
 import { Stack } from '../../../components/stack'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
-
 export function Demo() {
 	return (
 		<>

@@ -2,8 +2,6 @@ import { File, Folder, Image, Music, Video } from 'lucide-react'
 import { Tree, TreeItem } from '../../components/tree'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 export function Demo() {
 	return (
 		<>

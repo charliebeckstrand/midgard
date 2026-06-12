@@ -15,8 +15,6 @@ import { Stack } from '../../components/stack'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 function FormattingToolbarExample() {
 	return (
 		<Toolbar aria-label="Text formatting">

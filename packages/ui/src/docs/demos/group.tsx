@@ -10,8 +10,6 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 type ChildType = 'button' | 'input'
 
 const childOptions: { value: ChildType; label: string }[] = [

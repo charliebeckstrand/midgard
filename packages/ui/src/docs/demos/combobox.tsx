@@ -8,8 +8,6 @@ import {
 import { Field, Label } from '../../components/fieldset'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 const people = [
 	'Wade Cooper',
 	'Arlene McCoy',

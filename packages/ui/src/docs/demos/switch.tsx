@@ -2,8 +2,6 @@ import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 const sizes = [
 	{
 		value: 'sm',

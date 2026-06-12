@@ -4,8 +4,6 @@ import { Text } from '../../components/text'
 import { TimeAgo } from '../../components/time-ago'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 const SEC = 1000
 const MIN = 60 * SEC
 const HOUR = 60 * MIN

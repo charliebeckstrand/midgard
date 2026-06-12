@@ -3,8 +3,6 @@ import { useState } from 'react'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Button' }
-
 export function Demo() {
 	const [dark, setDark] = useState(false)
 	const [noAnimation, setNoAnimation] = useState(false)

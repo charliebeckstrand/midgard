@@ -16,8 +16,6 @@ import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 function ResetButton() {
 	return (
 		<Button type="reset" variant="soft" color="red">

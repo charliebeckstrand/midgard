@@ -7,7 +7,6 @@ import { Spacer } from '../../components/spacer'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
-export const meta = { category: 'Forms' }
 
 const variants = ['default', 'outline'] as const
 const sizes = ['sm', 'md', 'lg'] as const

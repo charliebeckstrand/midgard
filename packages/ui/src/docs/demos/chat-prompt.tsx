@@ -6,8 +6,6 @@ import { ChatPrompt } from '../../components/chat-prompt'
 import { Icon } from '../../components/icon'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Chat' }
-
 function DefaultExample() {
 	const [value, setValue] = useState('')
 

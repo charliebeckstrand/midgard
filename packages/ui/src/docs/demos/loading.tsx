@@ -9,8 +9,6 @@ import { capitalize } from '../components/format'
 import { LabeledColumn } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
 
-export const meta = { category: 'Feedback' }
-
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const

@@ -8,8 +8,6 @@ import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Button' }
-
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
 
 type Variant = (typeof variants)[number]

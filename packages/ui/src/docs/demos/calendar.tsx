@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { Calendar } from '../../components/calendar'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 

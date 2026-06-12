@@ -29,8 +29,6 @@ import { SubmitButton } from '../../components/submit-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 type LaneRate = {
 	id: number
 	state: string

@@ -19,8 +19,6 @@ import {
 } from '../../../layouts'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Pages' }
-
 export function Demo() {
 	const [password, setPassword] = useState('')
 	const [submitting, setSubmitting] = useState(false)

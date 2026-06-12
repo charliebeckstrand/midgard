@@ -29,8 +29,6 @@ import { Textarea } from '../../../components/textarea'
 import { GlassProvider } from '../../../providers/glass'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
-
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
 function FilteredPeople() {

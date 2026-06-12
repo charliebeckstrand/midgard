@@ -3,8 +3,6 @@ import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 const statuses = [
 	{ value: 'active', label: 'Active' },
 	{ value: 'paused', label: 'Paused' },

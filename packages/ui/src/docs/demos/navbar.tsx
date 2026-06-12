@@ -6,8 +6,6 @@ import { Navbar } from '../../components/navbar'
 import { Spacer } from '../../components/spacer'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 function NavItems() {
 	return (
 		<NavList>

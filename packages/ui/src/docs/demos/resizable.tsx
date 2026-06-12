@@ -2,8 +2,6 @@ import { Card } from '../../components/card'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 const Pane = () => <Card className="h-full" />
 
 export function Demo() {

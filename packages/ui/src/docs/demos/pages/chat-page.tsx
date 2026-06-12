@@ -25,8 +25,6 @@ import {
 } from '../../../layouts'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Pages' }
-
 type Message = {
 	id: number
 	role: 'user' | 'agent'

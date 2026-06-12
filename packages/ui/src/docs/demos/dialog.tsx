@@ -15,8 +15,6 @@ import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 export function Demo() {
 	const [open, setOpen] = useState(false)
 

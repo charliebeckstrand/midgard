@@ -8,8 +8,6 @@ import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const directions = ['left', 'right'] as const
 
 const palettes = [

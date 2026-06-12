@@ -3,8 +3,6 @@ import { CopyButton } from '../../components/copy-button'
 import { Flex } from '../../components/flex'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Button' }
-
 export function Demo() {
 	return (
 		<>

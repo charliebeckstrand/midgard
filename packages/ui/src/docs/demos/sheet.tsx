@@ -4,8 +4,6 @@ import { Flex } from '../../components/flex'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 export function Demo() {
 	const [leftOpen, setLeftOpen] = useState(false)
 	const [rightOpen, setRightOpen] = useState(false)

@@ -3,8 +3,6 @@ import { Field, Label } from '../../components/fieldset'
 import { ZipcodeInput } from '../../components/zipcode-input'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Input' }
-
 function ControlledExample() {
 	const [value, setValue] = useState('')
 

@@ -3,8 +3,6 @@ import { Field, Label } from '../../components/fieldset'
 import { SearchInput } from '../../components/search-input'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Input' }
-
 const placeholder = 'Search'
 
 function ControlledExample() {
