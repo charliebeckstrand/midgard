@@ -43,7 +43,7 @@ describe('useControllable', () => {
 		expect(result.current[0]).toBe('controlled')
 	})
 
-	it('does not update internal state in controlled mode', () => {
+	it('keeps returning the controlled value after setValue', () => {
 		const { result } = renderHook(() => useControllable({ value: 'locked' }))
 
 		act(() => {
@@ -51,6 +51,23 @@ describe('useControllable', () => {
 		})
 
 		expect(result.current[0]).toBe('locked')
+	})
+
+	it('resolves to the last set value when the consumer clears the value prop', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value?: string }) => useControllable({ value }),
+			{ initialProps: { value: 'selected' } as { value?: string } },
+		)
+
+		// A controlled consumer clearing in response to onValueChange: setValue
+		// fires while controlled, then the value prop drops to undefined.
+		act(() => {
+			result.current[1](undefined)
+		})
+
+		rerender({ value: undefined })
+
+		expect(result.current[0]).toBeUndefined()
 	})
 
 	it('calls onValueChange in controlled mode', () => {

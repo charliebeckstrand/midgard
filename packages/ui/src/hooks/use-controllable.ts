@@ -43,9 +43,10 @@ export function useControllable<T>({
 
 		valueRef.current = resolved
 
-		// Mirrored even while controlled: a controlled value cleared back to
-		// `undefined` (e.g. a nullable single-select deselect) flips the hook
-		// uncontrolled, and it must resume from this value, not a stale one.
+		// Written even while controlled: `value !== undefined` decides
+		// controlled-ness per render, so a controlled consumer that clears to
+		// `undefined` flips the hook to uncontrolled; the shadow keeps that
+		// flip resolving to the last committed value instead of a stale one.
 		setInternalValue(resolved)
 
 		onValueChangeRef.current?.(resolved)

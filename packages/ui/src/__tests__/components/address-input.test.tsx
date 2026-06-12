@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, photonProvider } from '../../components/address-input'
@@ -176,6 +177,94 @@ describe('AddressInput', () => {
 		const input = bySlot(container, 'combobox-input') as HTMLInputElement
 
 		expect(input.value).toBe('10 Main St')
+	})
+
+	it('stays empty on blur after clearing a controlled selection', async () => {
+		function Controlled() {
+			const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+
+			return (
+				<AddressInput
+					value={address}
+					onValueChange={setAddress}
+					provider={mockProvider}
+					debounceMs={0}
+					minQueryLength={1}
+				/>
+			)
+		}
+
+		const { container } = renderUI(<Controlled />)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, 'x')
+
+		await user.click(await screen.findByRole('option', { name: /x Main St/ }))
+
+		expect(input.value).toBe('x Main St')
+
+		await user.clear(input)
+
+		expect(input.value).toBe('')
+
+		// Blur leaves editing mode; the display must not resurrect the cleared value.
+		fireEvent.blur(input)
+
+		expect(input.value).toBe('')
+	})
+
+	it('swaps the pin for a clear button while an address is selected', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<AddressInput
+				provider={mockProvider}
+				debounceMs={0}
+				minQueryLength={1}
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		const user = userEvent.setup()
+
+		await user.type(input, 'x')
+
+		await user.click(await screen.findByRole('option', { name: /x Main St/ }))
+
+		const clear = screen.getByRole('button', { name: 'Clear selection' })
+
+		// mousedown is swallowed so the trigger doesn't steal focus before the click lands.
+		fireEvent.mouseDown(clear)
+
+		fireEvent.click(clear)
+
+		expect(onValueChange).toHaveBeenLastCalledWith(undefined)
+
+		expect(input.value).toBe('')
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		// The pin returns once the selection is cleared.
+		expect(bySlot(container, 'suffix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+	})
+
+	it('shows the clear button for a controlled initial value', () => {
+		const selected: AddressSuggestion = {
+			id: '1',
+			label: '10 Main St',
+			description: 'Springfield, IL',
+		}
+
+		renderUI(<AddressInput value={selected} />)
+
+		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 	})
 
 	it('exports a photonProvider', () => {
