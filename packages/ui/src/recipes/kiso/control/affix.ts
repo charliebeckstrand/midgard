@@ -30,29 +30,48 @@
  * `<Badge>` emits only `data-slot=badge` — and matches the button whether
  * it renders as `<button>` or, with `href`, as `<a>`.
  *
+ * Slot icons and spinners size here, not in the leaf: each step projects
+ * the stepped-down `shaku.icon` row onto direct `data-slot=icon` children
+ * (sm → xs, md → sm, lg → md), the same one-notch reduction
+ * `affixStepDown` broadcasts, plus the matching `kata/loading` spinner
+ * size onto `data-slot=loading-spinner` children. `<Icon>` and
+ * `<LoadingSpinner>` are static (server-renderable) leaves and read no
+ * context; the projection keeps a slot indicator in lockstep with the
+ * control, and it owns the slot: an explicit `size` on a slot icon or
+ * spinner does not override it. Client slot children (`<Button>`) read
+ * the stepped-down size from AffixContext.
+ *
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
 import { kasane } from '../kasane'
+import { shaku } from '../shaku'
 
 const { padding } = kasane
+const { icon } = shaku
 
 export const affix = {
 	prefix: {
 		sm: [
 			padding.pl('2.5'),
+			icon.xs,
+			'*:data-[slot=loading-spinner]:size-3',
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
 			padding.pl('3'),
+			icon.sm,
+			'*:data-[slot=loading-spinner]:size-4',
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
 			padding.pl('3.5'),
+			icon.md,
+			'*:data-[slot=loading-spinner]:size-5',
 			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2.25)-1px)]',
@@ -61,18 +80,24 @@ export const affix = {
 	suffix: {
 		sm: [
 			padding.pr('2.5'),
+			icon.xs,
+			'*:data-[slot=loading-spinner]:size-3',
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
 			padding.pr('3'),
+			icon.sm,
+			'*:data-[slot=loading-spinner]:size-4',
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
 			padding.pr('3.5'),
+			icon.md,
+			'*:data-[slot=loading-spinner]:size-5',
 			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2.25)-1px)]',

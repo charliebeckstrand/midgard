@@ -117,7 +117,9 @@ export function Input(props: InputProps) {
 	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
-	const resolvedSuffix = loading ? <LoadingSpinner /> : suffix
+	// LoadingSpinner is a static leaf and reads no context; pass the slot's
+	// stepped-down size explicitly.
+	const resolvedSuffix = loading ? <LoadingSpinner size={affixStepDown(resolvedSize)} /> : suffix
 
 	// One definition of "present" for both the wrapper class and the render
 	// guards: a null/false affix styles the frame while rendering nothing,

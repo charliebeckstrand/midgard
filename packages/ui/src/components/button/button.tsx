@@ -100,7 +100,9 @@ export function Button({
 
 	const content = (
 		<AffixContext value={resolvedSize}>
-			{loading ? <LoadingSpinner {...loadingOptions} /> : prefix}
+			{/* LoadingSpinner is a static leaf and reads no context; pass the
+			    size explicitly. `loadingOptions.size` wins when set. */}
+			{loading ? <LoadingSpinner size={resolvedSize} {...loadingOptions} /> : prefix}
 			{children}
 			{suffix}
 		</AffixContext>
