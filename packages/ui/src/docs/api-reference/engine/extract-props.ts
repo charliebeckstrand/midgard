@@ -178,9 +178,12 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 }
 
 /**
- * Returns the source text for mapped-type prop declarations instead of the
- * formatter's expansion (`{ [K in keyof T]?: Validator<T, K> | undefined }`).
- * Type references and primitives still flow through the formatter for alias
+ * Returns the source text for mapped-type and indexed-access prop
+ * declarations instead of the formatter's expansion: a mapped type renders
+ * as `{ [K in keyof T]?: Validator<T, K> | undefined }`, and an indexed
+ * access like `InputHTMLAttributes<HTMLInputElement>['autoComplete']` would
+ * otherwise expand React's `AutoFill` union into ~1,500 arms. Type
+ * references and primitives still flow through the formatter for alias
  * resolution.
  */
 function inlineSourceType(symbol: ts.Symbol): string | null {
@@ -190,7 +193,7 @@ function inlineSourceType(symbol: ts.Symbol): string | null {
 
 	const node = decl.type
 
-	if (ts.isMappedTypeNode(node)) return node.getText()
+	if (ts.isMappedTypeNode(node) || ts.isIndexedAccessTypeNode(node)) return node.getText()
 
 	return null
 }

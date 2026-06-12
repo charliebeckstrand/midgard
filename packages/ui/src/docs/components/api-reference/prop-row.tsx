@@ -8,7 +8,6 @@ import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/co
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
-import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -68,35 +67,37 @@ function PropRow({ prop }: { prop: PropDef }) {
 	)
 }
 
+/**
+ * Row header on a fixed column template (name, type, default, chevron).
+ * Every row uses the same template, so the columns line up across rows; the
+ * chevron column is reserved even on non-expandable rows.
+ */
 function RowHeader({ prop, expandable }: { prop: PropDef; expandable?: boolean }) {
 	return (
-		<div className="space-y-1">
-			<Flex align="center" gap="md" wrap>
-				<span className="font-mono text-sm font-medium">
-					{prop.name}
-					{prop.required && (
-						<span className="text-red-600 dark:text-red-400">
-							<span aria-hidden>*</span>
-							<span className="sr-only">(required)</span>
-						</span>
-					)}
-				</span>
-				<TypeSummary prop={prop} />
-				<Spacer />
-				{prop.default && (
-					<span className="font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-						default: {prop.default}
+		<div className="grid grid-cols-[minmax(6rem,25%)_1fr_auto_1rem] items-center gap-x-4 gap-y-1">
+			<span className="font-mono text-sm font-medium [overflow-wrap:anywhere]">
+				{prop.name}
+				{prop.required && (
+					<span className="text-red-600 dark:text-red-400">
+						<span aria-hidden>*</span>
+						<span className="sr-only">(required)</span>
 					</span>
 				)}
-				{expandable && (
-					<Icon
-						icon={<ChevronRight />}
-						className="text-zinc-400 transition-transform group-data-[open]/prop-row:rotate-90"
-					/>
-				)}
-			</Flex>
+			</span>
+			<TypeSummary prop={prop} />
+			<span className="font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+				{prop.default && `default: ${prop.default}`}
+			</span>
+			{expandable ? (
+				<Icon
+					icon={<ChevronRight />}
+					className="text-zinc-400 transition-transform group-data-[open]/prop-row:rotate-90"
+				/>
+			) : (
+				<span />
+			)}
 			{prop.description && (
-				<Text variant="muted" className="text-sm">
+				<Text variant="muted" className="col-span-3 col-start-2 text-sm">
 					{prop.description}
 				</Text>
 			)}

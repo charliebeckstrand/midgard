@@ -135,6 +135,22 @@ describe('extractProps', () => {
 		expect(prop(props, 'pick').type).toBe('(row: unknown) => string | number')
 	})
 
+	it('renders indexed-access declarations as source text instead of expanding them', () => {
+		const props = propsOf(
+			[
+				`import type { InputHTMLAttributes } from 'react'`,
+				`type FooProps = {`,
+				`\tautoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']`,
+				`}`,
+				`export function Foo(props: FooProps) { return null }`,
+			].join('\n'),
+		)
+
+		expect(prop(props, 'autoComplete').type).toBe(
+			`InputHTMLAttributes<HTMLInputElement>['autoComplete']`,
+		)
+	})
+
 	it('keeps `required` for non-optional props inside intersection arms', () => {
 		const props = propsOf(
 			[
