@@ -102,7 +102,9 @@ export type FloatingPanelOptions = {
 	 * itself is a non-focusable wrapper). An `'outside-press'` close skips the
 	 * restore (focus follows the pointer), as does a `'focus-out'` close
 	 * (Tab already carried focus to the next tabbable; snapping back would
-	 * undo it).
+	 * undo it). Focus already inside the element also skips it: there is
+	 * nothing to restore, and snapping to the descendant would yank a caret
+	 * (Escape while typing in an input-mode DatePicker's DateInput).
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }
@@ -168,7 +170,11 @@ export function useFloatingPanel({
 		if (prevOpenRef.current && !open && reason !== 'outside-press' && reason !== 'focus-out') {
 			const trigger = returnFocusTo?.current
 
-			if (trigger) (trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
+			// Focus already within the trigger means there is nothing to restore;
+			// retargeting its first button would yank focus from a typeable
+			// reference mid-edit.
+			if (trigger && !trigger.contains(document.activeElement))
+				(trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
 		}
 
 		closeReasonRef.current = undefined

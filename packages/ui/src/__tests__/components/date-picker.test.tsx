@@ -15,7 +15,9 @@ function findDay(day: number) {
 type DatePickerApi = ReturnType<typeof useDatePickerState>
 
 // Drives the close path with an explicit floating-ui reason via a real React ref,
-// which populates the reference node the focus effect reads.
+// which populates the reference node the focus effect reads. The input stands
+// in for a typeable reference (input-mode DatePicker): focus held there at
+// close must not be yanked to the button the restore would otherwise pick.
 function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | null } }) {
 	const state = useDatePickerState({})
 
@@ -23,6 +25,7 @@ function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | nul
 
 	return (
 		<div ref={state.setReference}>
+			<input aria-label="Harness input" data-slot="harness-input" />
 			<button type="button" data-slot="harness-trigger">
 				Trigger
 			</button>
@@ -295,6 +298,22 @@ describe('DatePicker', () => {
 		act(() => apiRef.current?.onOpenChange(false, undefined, 'outside-press'))
 
 		expect(trigger).not.toHaveFocus()
+	})
+
+	it('leaves focus put when it is already inside the reference at close', () => {
+		const apiRef: { current: DatePickerApi | null } = { current: null }
+
+		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
+
+		const input = bySlot(container, 'harness-input') as HTMLInputElement
+
+		act(() => apiRef.current?.onOpenChange(true))
+
+		input.focus()
+
+		act(() => apiRef.current?.onOpenChange(false, undefined, 'escape-key'))
+
+		expect(input).toHaveFocus()
 	})
 })
 
@@ -711,5 +730,27 @@ describe('DatePicker input', () => {
 		fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
 
 		expect(input).toHaveFocus()
+	})
+
+	it('keeps focus and text in the input when Escape closes mid-edit', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input />)
+
+		await user.click(screen.getByRole('button', { name: 'Open the calendar' }))
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.click(input)
+
+		await user.type(input, '12252026')
+
+		await user.keyboard('{Escape}')
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('12/25/2026')
 	})
 })
