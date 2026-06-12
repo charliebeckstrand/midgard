@@ -31,7 +31,7 @@ function fromIsoDate(value: string): Date | undefined {
 
 	const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
 
-	// Years 0-99 would otherwise resolve to 19xx.
+	// Years 0–99 would otherwise resolve to 19xx.
 	date.setFullYear(Number(match[1]))
 
 	return date

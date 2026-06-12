@@ -455,7 +455,7 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
-	// to 1900–1999, so a stored "0001-01-01" reached the DatePicker as 1901.
+	// to 1900–1999. A stored `0001-01-01` reached the DatePicker as 1901.
 	it('parses an ISO date below year 100 without mapping it to 19xx', () => {
 		const field: QueryField = { name: 'start', label: 'Start', type: 'date' }
 

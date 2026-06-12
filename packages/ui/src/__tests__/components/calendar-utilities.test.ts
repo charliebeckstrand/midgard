@@ -77,7 +77,7 @@ describe('isBetween', () => {
 })
 
 // The `Date(year, month, day)` constructor maps years 0–99 to 1900–1999;
-// these guard that calendar dates below year 100 survive conversion verbatim.
+// these guard that dates below year 100 convert with their year intact.
 describe('fromCalendarDate', () => {
 	it('renders a local-midnight Date for the calendar day', () => {
 		const date = fromCalendarDate(new CalendarDate(2024, 6, 15))
