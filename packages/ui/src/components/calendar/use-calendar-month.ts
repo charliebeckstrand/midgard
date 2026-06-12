@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { firstOfMonth } from './calendar-utilities'
+
 type CalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
@@ -18,7 +20,7 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	const [viewDate, setViewDate] = useState(() => {
 		const seed = value ?? defaultValue ?? new Date()
 
-		return new Date(seed.getFullYear(), seed.getMonth(), 1)
+		return firstOfMonth(seed.getFullYear(), seed.getMonth())
 	})
 
 	// A clock-seeded view can differ between the server render and the client
@@ -37,7 +39,7 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 		setViewDate((prev) =>
 			prev.getFullYear() === now.getFullYear() && prev.getMonth() === now.getMonth()
 				? prev
-				: new Date(now.getFullYear(), now.getMonth(), 1),
+				: firstOfMonth(now.getFullYear(), now.getMonth()),
 		)
 	}, [])
 
@@ -46,15 +48,15 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	const month = viewDate.getMonth()
 
 	const prevMonth = useCallback(() => {
-		setViewDate(new Date(year, month - 1, 1))
+		setViewDate(firstOfMonth(year, month - 1))
 	}, [year, month])
 
 	const nextMonth = useCallback(() => {
-		setViewDate(new Date(year, month + 1, 1))
+		setViewDate(firstOfMonth(year, month + 1))
 	}, [year, month])
 
 	const navigateTo = useCallback((y: number, m: number) => {
-		setViewDate(new Date(y, m, 1))
+		setViewDate(firstOfMonth(y, m))
 	}, [])
 
 	const prevActiveGridDateRef = useRef(activeGridDate)
@@ -62,7 +64,7 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	const prevValueRef = useRef(value)
 
 	if (activeGridDate && activeGridDate !== prevActiveGridDateRef.current) {
-		const next = new Date(activeGridDate.getFullYear(), activeGridDate.getMonth(), 1)
+		const next = firstOfMonth(activeGridDate.getFullYear(), activeGridDate.getMonth())
 
 		if (next.getTime() !== viewDate.getTime()) {
 			setViewDate(next)
@@ -76,7 +78,7 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 			value.getFullYear() !== viewDate.getFullYear() ||
 			value.getMonth() !== viewDate.getMonth()
 		) {
-			setViewDate(new Date(value.getFullYear(), value.getMonth(), 1))
+			setViewDate(firstOfMonth(value.getFullYear(), value.getMonth()))
 		}
 	}
 

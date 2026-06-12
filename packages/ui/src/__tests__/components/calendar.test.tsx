@@ -140,6 +140,31 @@ describe('Calendar', () => {
 		}
 	})
 
+	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
+	// to 1900–1999, so a year-1 value seeded a January 1901 view and selections
+	// came back as 1901.
+	it('keeps a year below 100 through the view seed and day selection', async () => {
+		const onChange = vi.fn()
+
+		const yearOne = new Date(2000, 0, 15)
+
+		yearOne.setFullYear(1)
+
+		renderUI(<Calendar defaultValue={yearOne} onValueChange={onChange} />)
+
+		const user = userEvent.setup()
+
+		const dayButton = screen.getAllByRole('option').find((b) => b.textContent === '20')
+
+		expect(dayButton).toBeDefined()
+
+		await user.click(dayButton as HTMLElement)
+
+		const selected = onChange.mock.calls[0]?.[0] as Date
+
+		expect([selected.getFullYear(), selected.getMonth(), selected.getDate()]).toEqual([1, 0, 20])
+	})
+
 	it('marks header zone buttons as active when active.zone is "header"', () => {
 		const defaultValue = new Date(2025, 5, 15)
 

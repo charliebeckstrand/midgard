@@ -1,9 +1,13 @@
+import { CalendarDate } from '@internationalized/date'
 import { describe, expect, it } from 'vitest'
 import {
+	firstOfMonth,
+	fromCalendarDate,
 	getCalendarDays,
 	isBeforeDay,
 	isBetween,
 	isSameDay,
+	toCalendarDate,
 } from '../../components/calendar/calendar-utilities'
 
 describe('isSameDay', () => {
@@ -72,6 +76,56 @@ describe('isBetween', () => {
 	})
 })
 
+// The `Date(year, month, day)` constructor maps years 0–99 to 1900–1999;
+// these guard that calendar dates below year 100 survive conversion verbatim.
+describe('fromCalendarDate', () => {
+	it('renders a local-midnight Date for the calendar day', () => {
+		const date = fromCalendarDate(new CalendarDate(2024, 6, 15))
+
+		expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2024, 5, 15])
+
+		expect([date.getHours(), date.getMinutes()]).toEqual([0, 0])
+	})
+
+	it('keeps years below 100 instead of mapping them to 19xx', () => {
+		const date = fromCalendarDate(new CalendarDate(1, 1, 1))
+
+		expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([1, 0, 1])
+	})
+
+	it('round-trips year 1 through toCalendarDate', () => {
+		const original = new CalendarDate(1, 1, 1)
+
+		expect(toCalendarDate(fromCalendarDate(original)).compare(original)).toBe(0)
+	})
+})
+
+describe('firstOfMonth', () => {
+	it('returns the first day of the month at local midnight', () => {
+		const date = firstOfMonth(2024, 5)
+
+		expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([2024, 5, 1])
+	})
+
+	it('balances month -1 into December of the previous year', () => {
+		const date = firstOfMonth(2024, -1)
+
+		expect([date.getFullYear(), date.getMonth()]).toEqual([2023, 11])
+	})
+
+	it('balances month 12 into January of the next year', () => {
+		const date = firstOfMonth(2024, 12)
+
+		expect([date.getFullYear(), date.getMonth()]).toEqual([2025, 0])
+	})
+
+	it('keeps years below 100 instead of mapping them to 19xx', () => {
+		expect(firstOfMonth(1, 0).getFullYear()).toBe(1)
+
+		expect(firstOfMonth(99, 11).getFullYear()).toBe(99)
+	})
+})
+
 describe('getCalendarDays', () => {
 	it('returns every day in a 30-day month', () => {
 		const days = getCalendarDays(2024, 8) // September 2024
@@ -101,5 +155,15 @@ describe('getCalendarDays', () => {
 		expect(first?.getFullYear()).toBe(2024)
 
 		expect(first?.getMonth()).toBe(5)
+	})
+
+	it('keeps years below 100 instead of mapping them to 19xx', () => {
+		const days = getCalendarDays(1, 0)
+
+		expect(days).toHaveLength(31)
+
+		expect(days[0]?.getFullYear()).toBe(1)
+
+		expect(days.at(-1)?.getFullYear()).toBe(1)
 	})
 })
