@@ -41,6 +41,19 @@
  * override it. Client slot children (`<Button>`) read the stepped-down
  * size from AffixContext.
  *
+ * `autofill` is the input-side counterpart. The browser's autofill
+ * highlight paints the inner input's full box, which sits flush against
+ * an affix slot (the slot's padding faces the frame edge, not the
+ * input), so the fill dead-ends into the slot content. Each entry insets
+ * the highlight by `density.px` on the affixed side only — `autofill:ml`
+ * beside a prefix, `autofill:mr` beside a suffix — gated on the slot's
+ * presence via `group-has` against the frame's `group/control`. The
+ * margins ride the `density` axis (`./density.ts`), so every control
+ * input carries them; on elements that can't match `:autofill` (the
+ * listbox / date-picker buttons) they are inert. The boundary test at
+ * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
+ * the margin to `density.px` per step.
+ *
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
@@ -102,5 +115,17 @@ export const affix = {
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2.25)-1px)]',
 		],
+	},
+	autofill: {
+		prefix: {
+			sm: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(2.5)-1px)]',
+			md: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(3)-1px)]',
+			lg: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(3.5)-1px)]',
+		},
+		suffix: {
+			sm: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(2.5)-1px)]',
+			md: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(3)-1px)]',
+			lg: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(3.5)-1px)]',
+		},
 	},
 } as const
