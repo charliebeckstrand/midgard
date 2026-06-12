@@ -17,10 +17,9 @@ import { Example } from '../../components/example'
 
 export const meta = { name: 'Skeletons', category: 'Feedback' }
 
-// Loading trees are composed explicitly: each component ships a
-// `<XSkeleton>` counterpart that mirrors its silhouette. The variants are
-// static leaves, so a Suspense fallback or loading.tsx can server-render
-// them.
+// Compose loading trees explicitly: each component ships a `<XSkeleton>`
+// counterpart mirroring its silhouette. The variants are static leaves, so
+// a Suspense fallback or loading.tsx can server-render them.
 const skeletonGallery = [
 	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
 	{ name: 'Badge', skeleton: <BadgeSkeleton /> },

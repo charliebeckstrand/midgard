@@ -11,9 +11,9 @@ import type { LinkProps } from '../link'
 /**
  * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
  * with element polymorphism, minus the LinkContext read. The `href` arm
- * renders a plain `<a>`; callers that want the app's router link compose it
- * per call site through `render` (e.g. `render={<Link />}` with `next/link`),
- * which receives the resolved anchor props and the children.
+ * renders a plain `<a>`. For the app's router link, pass `render` per call
+ * site (e.g. `render={<Link />}` with `next/link`); the element is cloned
+ * with the resolved anchor props and the children.
  *
  * Static leaf components (Badge, Box, BreadcrumbLink, …) use this so they can
  * render in React Server Components; client components keep `Polymorphic`,

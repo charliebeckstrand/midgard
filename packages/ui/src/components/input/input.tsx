@@ -114,8 +114,7 @@ export function Input(props: InputProps) {
 	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
-	// LoadingSpinner is a static leaf and reads no context; pass the slot's
-	// stepped-down size explicitly.
+	// LoadingSpinner reads no context; it gets the slot's stepped-down size.
 	const resolvedSuffix = loading ? <LoadingSpinner size={affixStepDown(resolvedSize)} /> : suffix
 
 	// One definition of "present" for both the wrapper class and the render

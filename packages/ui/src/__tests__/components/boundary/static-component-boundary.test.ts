@@ -3,14 +3,11 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
-// directive, no React hooks, no ambient-context imports. Ambient styling
-// state crosses the RSC boundary through the DOM (data attributes and slot
-// projections in the recipes), never through context; context is reserved
-// for behavior inside client components. This test pins the contract at the
-// source level, where a silent regression (a context read quietly turning a
-// leaf back into a client component) produces no build error.
-// `apps/admin/app/rsc-probe` complements it: a server page rendering these
-// components, so `next build` catches transitive client-only pulls.
+// directive, no React hooks, no ambient-context imports (the boundary
+// contract in packages/ui/REFERENCE.md §2). This test pins the contract at
+// the source level, where a regression (a context read quietly turning a
+// leaf back into a client component) produces no build error;
+// `apps/admin/app/rsc-probe` complements it at the bundler level.
 //
 // Add a file when a component sheds its context reads; never remove one to
 // silence this test. Paths are relative to `src/components`.

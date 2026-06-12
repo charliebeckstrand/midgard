@@ -12,12 +12,12 @@ type BadgeBaseProps = BadgeVariants & {
 export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix'>
 
 /**
- * Static leaf: no directive, no context reads, renders in React Server
- * Components. `size` is explicit and defaults to the recipe's `md`; prefix and
- * suffix icons size through the badge's own slot projection (`shaku.icon` in
- * the kata size rows). Inside a control affix slot, set `size` one step below
- * the host control: the affix compensation constants in `kiso/control/affix`
- * assume the stepped-down chip.
+ * Static leaf: renders in React Server Components. `size` is explicit
+ * (recipe default `md`); prefix and suffix icons size through the badge's
+ * own slot projection (`shaku.icon` in the kata size rows). Inside a control
+ * affix slot, set `size` one step below the host control: the affix
+ * compensation constants in `kiso/control/affix` assume the stepped-down
+ * chip.
  *
  * `href` renders a plain anchor; pass `render` (e.g. `render={<Link />}`) to
  * compose the app router link at the call site.

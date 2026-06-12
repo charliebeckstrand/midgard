@@ -7,9 +7,8 @@ export type TableCellProps = {
 } & Omit<ComponentPropsWithoutRef<'td'>, 'className'>
 
 /**
- * Static leaf: renders in React Server Components. Carries md padding; a
- * non-md `<Table density>` (and `grid`) overrides it through the table's
- * projection.
+ * Static leaf: renders in React Server Components. Carries md padding;
+ * `<Table density>` and `grid` override it through the table's projection.
  */
 export function TableCell({ className, children, ...props }: TableCellProps) {
 	return (

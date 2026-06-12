@@ -12,8 +12,8 @@ const MA_ORDER = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 // Call sites pin `S` to their kata's `VariantProps['size']`. Skeletons are
 // static leaves: size comes from the explicit prop (default `md`), never from
-// context. Loading trees are composed explicitly (Suspense fallbacks,
-// `<ReadyReveal placeholder>`), where the composer knows the size.
+// context. The loading tree's composer (a Suspense fallback,
+// `<ReadyReveal placeholder>`) knows the size and passes it.
 type ResolvableSize = (typeof MA_ORDER)[number]
 
 type BaseSkeletonRecipe = {

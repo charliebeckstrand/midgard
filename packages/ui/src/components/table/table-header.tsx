@@ -7,9 +7,8 @@ export type TableHeaderProps = {
 } & Omit<ComponentPropsWithoutRef<'th'>, 'className'>
 
 /**
- * Static leaf: renders in React Server Components. Carries md padding; a
- * non-md `<Table density>` (and `grid`) overrides it through the table's
- * projection.
+ * Static leaf: renders in React Server Components. Carries md padding;
+ * `<Table density>` and `grid` override it through the table's projection.
  */
 export function TableHeader({ className, children, scope = 'col', ...props }: TableHeaderProps) {
 	return (

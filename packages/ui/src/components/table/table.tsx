@@ -49,8 +49,7 @@ export function Table({
 	children,
 	tableProps,
 }: TableProps) {
-	// Reads the density `space` axis (not `size`) for cell padding; 'snug'
-	// maps to the md step.
+	// 'snug' maps to the md step.
 	const step = densityToSize[density ?? 'snug']
 
 	return (

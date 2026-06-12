@@ -30,16 +30,16 @@
  * `<Badge>` emits only `data-slot=badge` — and matches the button whether
  * it renders as `<button>` or, with `href`, as `<a>`.
  *
- * Slot icons and spinners size here, not in the leaf: each step projects
+ * Slot icons and spinners size here, not in the leaf. Each step projects
  * the stepped-down `shaku.icon` row onto direct `data-slot=icon` children
- * (sm → xs, md → sm, lg → md), the same one-notch reduction
- * `affixStepDown` broadcasts, plus the matching `kata/loading` spinner
- * size onto `data-slot=loading-spinner` children. `<Icon>` and
- * `<LoadingSpinner>` are static (server-renderable) leaves and read no
- * context; the projection keeps a slot indicator in lockstep with the
- * control, and it owns the slot: an explicit `size` on a slot icon or
- * spinner does not override it. Client slot children (`<Button>`) read
- * the stepped-down size from AffixContext.
+ * (sm → xs, md → sm, lg → md: the one-notch reduction `affixStepDown`
+ * broadcasts) and the matching `kata/loading` spinner size onto
+ * `data-slot=loading-spinner` children. `<Icon>` and `<LoadingSpinner>`
+ * are static (server-renderable) leaves and read no context; the
+ * projection keeps a slot indicator in lockstep with the control, and it
+ * owns the slot: an explicit `size` on a slot icon or spinner does not
+ * override it. Client slot children (`<Button>`) read the stepped-down
+ * size from AffixContext.
  *
  * Layer: kiso · Archetype: control · Concern: affix
  */

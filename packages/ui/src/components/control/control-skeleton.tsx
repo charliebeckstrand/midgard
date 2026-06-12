@@ -11,8 +11,8 @@ export type ControlSkeletonProps = {
 }
 
 /**
- * Control-shaped placeholder. Static leaf: `size` and `joined` are explicit;
- * the loading tree's composer mirrors the real control's props.
+ * Control-shaped placeholder. Static leaf: `size` and `joined` are explicit
+ * and mirror the real control's props.
  */
 export function ControlSkeleton({ size, joined = false, className }: ControlSkeletonProps) {
 	const resolvedSize = size ?? 'md'
