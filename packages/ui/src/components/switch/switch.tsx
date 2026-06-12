@@ -39,7 +39,7 @@ export function Switch({
 	const {
 		checked: resolvedChecked,
 		onChange: resolvedOnChange,
-		binding,
+		invalid,
 	} = useFormToggle({ name, checked, onChange })
 
 	// `role="switch"` requires `aria-checked` to track the live value. Owning
@@ -94,7 +94,7 @@ export function Switch({
 		required,
 		size,
 		'aria-describedby': ariaDescribedBy,
-		binding,
+		invalid,
 	})
 
 	if (useSkeleton()) {

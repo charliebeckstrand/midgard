@@ -17,7 +17,7 @@ export type FormValueResult<T> = {
 	/** Marks the field touched; no-op outside a Form. Call from `onBlur`. */
 	setTouched: () => void
 	/** Pass to `useControlProps`; the field's error state merges into `invalid`. */
-	binding: { invalid: boolean } | undefined
+	invalid: boolean | undefined
 }
 
 /**
@@ -55,6 +55,6 @@ export function useFormValue<T>(
 		value: current,
 		setValue: setCurrent,
 		setTouched: () => field?.setTouched(),
-		binding: field && { invalid: field.errors !== undefined && field.errors.length > 0 },
+		invalid: field && field.errors !== undefined && field.errors.length > 0,
 	}
 }

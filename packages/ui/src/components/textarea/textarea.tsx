@@ -80,7 +80,7 @@ export function Textarea(props: TextareaProps) {
 		required,
 		readOnly,
 		'aria-describedby': ariaDescribedBy,
-		binding: valueState.binding,
+		invalid: valueState.invalid,
 	})
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)

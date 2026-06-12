@@ -47,7 +47,7 @@ export function Checkbox({
 	const {
 		checked: resolvedChecked,
 		onChange: resolvedOnChange,
-		binding,
+		invalid,
 	} = useFormToggle({ name, checked, onChange })
 
 	const {
@@ -63,7 +63,7 @@ export function Checkbox({
 		required,
 		size,
 		'aria-describedby': ariaDescribedBy,
-		binding,
+		invalid,
 	})
 
 	const internalRef = useRef<HTMLInputElement>(null)

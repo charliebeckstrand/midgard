@@ -20,7 +20,7 @@ describe('useFormToggle', () => {
 
 		expect(result.current.onChange).toBe(onChange)
 
-		expect(result.current.binding).toBeUndefined()
+		expect(result.current.invalid).toBeUndefined()
 	})
 
 	it('reads the form field and writes back through it when no checked prop', () => {
@@ -73,8 +73,8 @@ describe('useFormToggle', () => {
 
 		expect(result.current.field?.value).toBe(false)
 
-		// The binding still surfaces so invalid state reaches useControlProps.
-		expect(result.current.toggle.binding).toBeDefined()
+		// The field's error state still surfaces for useControlProps.
+		expect(result.current.toggle.invalid).toBe(false)
 	})
 
 	it('chains the consumer onChange while bound', () => {
