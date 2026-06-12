@@ -10,11 +10,30 @@ import { useA11yRoving } from '../../hooks'
 // freeze the active index at the edge of a disabled range (WCAG 2.1.1).
 const FOCUSABLE = 'button:not(:disabled)'
 
+// Sealed surfaces swallow these even when no move applies, so a dead key
+// neither scrolls the page nor reaches an outer keyboard model.
+const NAVIGATION_KEYS = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'Home',
+	'End',
+	'PageUp',
+	'PageDown',
+])
+
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
 	footerRef?: RefObject<HTMLElement | null>
 	cols?: number
+	/**
+	 * Seals the surface: every navigation key stops here, handled or not.
+	 * For surfaces nested inside another keyboard model (the month/year
+	 * picker inside the date picker dialog), where a leaked arrow would
+	 * drive the outer model underneath the open surface.
+	 */
 	stopPropagation?: boolean
 }
 
@@ -54,6 +73,15 @@ function isBottomRow(container: HTMLElement | null, cols: number): boolean {
 	return index + cols >= buttons.length
 }
 
+/** Sealed surfaces consume every navigation key, moved or not. */
+function seal(e: KeyboardEvent, stopPropagation: boolean): void {
+	if (!stopPropagation) return
+
+	if (!e.defaultPrevented && NAVIGATION_KEYS.has(e.key)) e.preventDefault()
+
+	if (e.defaultPrevented) e.stopPropagation()
+}
+
 export function useCalendarFocus({
 	headerRef,
 	gridRef,
@@ -85,7 +113,7 @@ export function useCalendarFocus({
 
 			headerRoving(e)
 
-			if (stopPropagation && e.defaultPrevented) e.stopPropagation()
+			seal(e, stopPropagation)
 		},
 		[gridRef, headerRoving, stopPropagation],
 	)
@@ -118,7 +146,7 @@ export function useCalendarFocus({
 
 			gridRoving(e)
 
-			if (stopPropagation && e.defaultPrevented) e.stopPropagation()
+			seal(e, stopPropagation)
 		},
 		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation],
 	)
@@ -157,6 +185,8 @@ export function useCalendarFocus({
 					next.focus()
 				}
 			}
+
+			seal(e, stopPropagation)
 		},
 		[gridRef, footerRef, stopPropagation],
 	)

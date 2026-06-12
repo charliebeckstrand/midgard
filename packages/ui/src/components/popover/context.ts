@@ -1,5 +1,6 @@
 'use client'
 
+import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties, RefObject } from 'react'
 import { createContext } from '../../core'
 
@@ -15,6 +16,8 @@ type PopoverContextValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
+	/** Floating-ui root context; `PopoverContent`'s `modal` trap mounts on it. */
+	floatingContext: FloatingRootContext
 	onExitComplete?: () => void
 }
 

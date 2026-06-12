@@ -98,6 +98,12 @@ export function DatePickerContent({
 									// Composed through floating-ui; its own handlers merge
 									// rather than clobber.
 									onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
+										// Keys from portaled descendants (the month/year picker
+										// popover) bubble here through the React tree, not the
+										// DOM. That surface owns its keyboard; acting here would
+										// drive the calendar underneath it.
+										if (e.target instanceof Node && !e.currentTarget.contains(e.target)) return
+
 										// Activation keys on a DOM-focused control (the user Tabbed
 										// to a header/footer button) belong to that control; only
 										// the dialog itself routes them to the virtual model.
@@ -106,8 +112,8 @@ export function DatePickerContent({
 										// Navigation keys belong to the virtual model even when the
 										// user has Tabbed onto a control inside. Reclaim DOM focus
 										// for the dialog first: a grid move can re-anchor the month
-										// and unmount the focused day button, which would otherwise
-										// drop focus to <body> and orphan the keyboard model.
+										// and unmount the focused day button, dropping focus to
+										// <body>.
 										if (NAVIGATION_KEYS.has(e.key) && e.target !== e.currentTarget) {
 											e.currentTarget.focus()
 										}

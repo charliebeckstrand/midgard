@@ -1,6 +1,6 @@
 'use client'
 
-import { FloatingPortal } from '@floating-ui/react'
+import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../core'
@@ -13,6 +13,11 @@ export type FloatingSurfaceProps = {
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
+	/**
+	 * Floating-ui root context; when set, a modal `FloatingFocusManager`
+	 * traps Tab inside the surface while open.
+	 */
+	trapFocusContext?: FloatingRootContext
 	onExitComplete?: () => void
 	className?: string
 	style?: CSSProperties
@@ -30,6 +35,7 @@ export function FloatingSurface({
 	setFloating,
 	floatingStyles,
 	getFloatingProps,
+	trapFocusContext,
 	onExitComplete,
 	className,
 	style,
@@ -38,22 +44,41 @@ export function FloatingSurface({
 }: FloatingSurfaceProps) {
 	const root = usePortalContainer()
 
+	const surface = open ? (
+		<div
+			ref={setFloating}
+			style={style ? { ...floatingStyles, ...style } : floatingStyles}
+			className={cn(k.portal, className)}
+			// Routed through getFloatingProps so consumer handlers compose
+			// with floating-ui's own instead of being overwritten.
+			{...getFloatingProps(rest)}
+		>
+			{children}
+		</div>
+	) : null
+
 	return (
 		<FloatingPortal root={root ?? undefined}>
 			<ReducedMotion>
 				<AnimatePresence onExitComplete={onExitComplete}>
-					{open && (
-						<div
-							ref={setFloating}
-							style={style ? { ...floatingStyles, ...style } : floatingStyles}
-							className={cn(k.portal, className)}
-							// Routed through getFloatingProps so consumer handlers compose
-							// with floating-ui's own instead of being overwritten.
-							{...getFloatingProps(rest)}
-						>
-							{children}
-						</div>
-					)}
+					{surface &&
+						(trapFocusContext ? (
+							// `returnFocus={false}`: `useFloatingPanel`'s reason-aware
+							// effect owns the close restore, as in DatePickerContent.
+							// `initialFocus={-1}`: the surface owns initial focus (the
+							// month picker seats it on the selected cell), so the
+							// manager must not race it to the first tabbable.
+							<FloatingFocusManager
+								context={trapFocusContext}
+								modal
+								returnFocus={false}
+								initialFocus={-1}
+							>
+								{surface}
+							</FloatingFocusManager>
+						) : (
+							surface
+						))}
 				</AnimatePresence>
 			</ReducedMotion>
 		</FloatingPortal>

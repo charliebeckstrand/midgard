@@ -37,10 +37,11 @@ export const focus = {
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
 		'focus-visible:outline-blue-600',
 	],
-	// Ungated `ring`: the highlight tracks an active marker the model moves
-	// (aria-activedescendant style), so DOM focus never reaches the element
-	// and a `:focus-visible` gate would keep the stroke invisible.
-	virtual: ['outline-2 outline-offset-2', 'outline-blue-600'],
+	// `outline-solid` evicts `inset`'s ungated `outline-none` in
+	// tailwind-merge (same outline-style group) when both land on one
+	// element, e.g. a plain Button day cell; without it the stroke never
+	// renders.
+	virtual: ['outline-solid outline-2 outline-offset-2', 'outline-blue-600'],
 	inset: ['outline-none', 'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600'],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',

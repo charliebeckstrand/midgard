@@ -48,7 +48,7 @@ export function CalendarPicker({
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent>
+			<PopoverContent modal>
 				<CalendarPickerGrid
 					headerRef={pickerHeaderRef}
 					gridRef={pickerGridRef}

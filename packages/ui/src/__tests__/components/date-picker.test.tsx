@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
-import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function findDay(day: number) {
 	const days = screen.getAllByRole('option')
@@ -361,6 +361,12 @@ describe('DatePicker keyboard', () => {
 		// The highlight ring must render without DOM focus; a `focus-visible:`
 		// gated ring never shows under the virtual model.
 		expect(day).toHaveClass('outline-2')
+
+		// `outline-solid` must survive the merge and evict the Button reset's
+		// ungated `outline-none`, which would keep the stroke invisible.
+		expect(day).toHaveClass('outline-solid')
+
+		expect(day).not.toHaveClass('outline-none')
 	})
 
 	it('keeps focus inside the dialog when an arrow move crosses months with a day cell focused', async () => {
@@ -386,6 +392,41 @@ describe('DatePicker keyboard', () => {
 		expect(findDay(31)).toBeInTheDocument() // May has 31 days; the view moved
 
 		expect(screen.getByRole('dialog', { name: 'Choose date' })).toHaveFocus()
+	})
+
+	it('keeps arrow keys inside the open month picker', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+
+		const button = screen.getByRole('button')
+
+		button.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.click(screen.getByRole('button', { name: /June 2025/ }))
+
+		// The picker focuses its selected cell on open.
+		const jun = await screen.findByRole('option', { name: 'Jun', selected: true })
+
+		await waitFor(() => expect(jun).toHaveFocus())
+
+		await user.keyboard('{ArrowUp}') // second row → first row (Mar)
+
+		await user.keyboard('{ArrowUp}') // first row → year label in the picker header
+
+		const yearLabel = screen.getByRole('button', { name: '2025' })
+
+		expect(yearLabel).toHaveFocus()
+
+		// No move applies; the press must stay sealed in the picker rather than
+		// drive the calendar underneath or pull focus back to the dialog.
+		await user.keyboard('{ArrowUp}')
+
+		expect(yearLabel).toHaveFocus()
+
+		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
 	})
 
 	it('moves the active day with arrows and commits it with Enter', async () => {
