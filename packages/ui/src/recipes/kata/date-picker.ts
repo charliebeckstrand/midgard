@@ -24,14 +24,14 @@ const value = defineRecipe({
 	defaults: { truncate: true },
 })
 
-// Portal-only inset around the Calendar and below the footer; an inline
-// Calendar carries no chrome of its own, so this lives here, not in the
-// calendar kata.
+// Portal-only inset around the Calendar plus the Calendar-to-footer gap;
+// an inline Calendar carries no chrome of its own, so this lives here,
+// not in the calendar kata.
 const body = defineRecipe({
 	density: {
-		sm: 'p-2',
-		md: 'p-3',
-		lg: 'p-4',
+		sm: ['p-2', 'space-y-1'],
+		md: ['p-3', 'space-y-2'],
+		lg: ['p-4', 'space-y-3'],
 	},
 	defaults: { density: 'md' },
 })
