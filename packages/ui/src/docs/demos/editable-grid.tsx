@@ -311,7 +311,9 @@ export function Demo() {
 				<Flex justify="end">
 					<Tooltip placement="left">
 						<TooltipTrigger>
-							<Icon icon={<Info />} />
+							<Button variant="bare" aria-label="Editing help">
+								<Icon icon={<Info />} />
+							</Button>
 						</TooltipTrigger>
 						<TooltipContent>
 							Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or
@@ -325,7 +327,9 @@ export function Demo() {
 				<Flex justify="end">
 					<Tooltip placement="left">
 						<TooltipTrigger>
-							<Icon icon={<Info />} />
+							<Button variant="bare" aria-label="Bulk editing help">
+								<Icon icon={<Info />} />
+							</Button>
 						</TooltipTrigger>
 						<TooltipContent>
 							Select multiple rows using the checkboxes, then edit a cell to apply that change to

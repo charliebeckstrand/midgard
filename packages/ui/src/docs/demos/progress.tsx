@@ -5,7 +5,7 @@ import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
-import { LabeledColumn, LabeledRow } from '../components/labeled'
+import { LabeledColumn, LabeledRow, LabeledRows } from '../components/labeled'
 import { ValueStepper } from '../components/value-stepper'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
@@ -38,30 +38,34 @@ export function Demo() {
 							</Example>
 
 							<Example title="Colors">
-								{colors.map((color, i) => (
-									<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
-										<ProgressBar
-											color={color}
-											value={50 + i * 12.5}
-											className="flex-1"
-											aria-label={`${capitalize(color)} progress`}
-										/>
-									</LabeledRow>
-								))}
+								<LabeledRows>
+									{colors.map((color, i) => (
+										<LabeledRow key={color} label={capitalize(color)}>
+											<ProgressBar
+												color={color}
+												value={50 + i * 12.5}
+												className="flex-1"
+												aria-label={`${capitalize(color)} progress`}
+											/>
+										</LabeledRow>
+									))}
+								</LabeledRows>
 							</Example>
 
 							<Example title="Sizes">
-								{barSizes.map((s, i) => (
-									<LabeledRow key={s} label={s}>
-										<ProgressBar
-											size={s}
-											color="red"
-											value={40 + i * 10}
-											className="flex-1"
-											aria-label={`${s} progress`}
-										/>
-									</LabeledRow>
-								))}
+								<LabeledRows>
+									{barSizes.map((s, i) => (
+										<LabeledRow key={s} label={s}>
+											<ProgressBar
+												size={s}
+												color="red"
+												value={40 + i * 10}
+												className="flex-1"
+												aria-label={`${s} progress`}
+											/>
+										</LabeledRow>
+									))}
+								</LabeledRows>
 							</Example>
 						</Stack>
 					</TabContent>

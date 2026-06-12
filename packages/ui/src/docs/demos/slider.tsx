@@ -4,7 +4,7 @@ import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
-import { LabeledRow } from '../components/labeled'
+import { LabeledRow, LabeledRows } from '../components/labeled'
 import { ValueStepper } from '../components/value-stepper'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
@@ -109,24 +109,28 @@ export function Demo() {
 			<InteractiveExample />
 
 			<Example title="Sizes">
-				{sizes.map((s, i) => (
-					<LabeledRow key={s} label={s}>
-						<Slider aria-label={s} size={s} defaultValue={40 + i * 20} className="flex-1" />
-					</LabeledRow>
-				))}
+				<LabeledRows>
+					{sizes.map((s, i) => (
+						<LabeledRow key={s} label={s}>
+							<Slider aria-label={s} size={s} defaultValue={40 + i * 20} className="flex-1" />
+						</LabeledRow>
+					))}
+				</LabeledRows>
 			</Example>
 
 			<Example title="Colors">
-				{colors.map((color, index) => (
-					<LabeledRow key={color} label={capitalize(color)} labelWidth="md">
-						<Slider
-							aria-label={capitalize(color)}
-							color={color}
-							defaultValue={40 + index * 10}
-							className="flex-1"
-						/>
-					</LabeledRow>
-				))}
+				<LabeledRows>
+					{colors.map((color, index) => (
+						<LabeledRow key={color} label={capitalize(color)}>
+							<Slider
+								aria-label={capitalize(color)}
+								color={color}
+								defaultValue={40 + index * 10}
+								className="flex-1"
+							/>
+						</LabeledRow>
+					))}
+				</LabeledRows>
 			</Example>
 
 			<Example title="Step">
