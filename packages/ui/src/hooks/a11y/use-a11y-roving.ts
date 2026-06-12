@@ -1,33 +1,19 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
-import type { Orientation } from '../../types'
+import { type KeyboardEvent, type RefObject, useCallback, useEffect } from 'react'
+import {
+	crossAxisDelta,
+	type NavigationConfig,
+	nextIndexForKey,
+} from '../../utilities/keyboard-navigation'
 import { useScrollWithin } from '../use-scroll-within'
-
-/** Idle window after which the type-ahead buffer resets. */
-const TYPEAHEAD_TIMEOUT_MS = 500
-
-type RovingConfig = {
-	/** Column count for 2D grid navigation. Omit for single-axis mode. */
-	cols?: number
-	/** Axis for 1D navigation. Ignored when `cols` is set. */
-	orientation?: Orientation
-}
+import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 type RovingRowConfig = {
 	/** Selector for the wrapper grouping an item with its action controls. */
 	rowSelector: string
 	/** Selector for the action controls themselves; disjoint from `itemSelector`. */
 	actionSelector: string
-}
-
-/** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. */
-function crossAxisDelta(key: string, orientation: Orientation): number | null {
-	const forward = orientation === 'vertical' ? 'ArrowRight' : 'ArrowDown'
-
-	const back = orientation === 'vertical' ? 'ArrowLeft' : 'ArrowUp'
-
-	return key === forward ? 1 : key === back ? -1 : null
 }
 
 /** Visible, enabled controls of a row in DOM order: its item plus its actions. */
@@ -104,146 +90,7 @@ function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): voi
 	}
 }
 
-/**
- * Next roving index for a key press, or null if unhandled.
- * -1 means nothing is active; a forward key lands on the first item, back on the last.
- * Indices wrap at both ends.
- */
-export function nextIndexForKey(
-	key: string,
-	currentIndex: number,
-	itemCount: number,
-	config: RovingConfig = {},
-): number | null {
-	if (itemCount === 0) return null
-
-	if (key === 'Home') return 0
-
-	if (key === 'End') return itemCount - 1
-
-	return config.cols === undefined
-		? nextIndexLinear(key, currentIndex, itemCount, config.orientation ?? 'vertical')
-		: nextIndexGrid(key, currentIndex, itemCount, config.cols)
-}
-
-/** Wraps `index` into `[0, count)`. */
-function wrap(index: number, count: number): number {
-	return ((index % count) + count) % count
-}
-
-function nextIndexLinear(
-	key: string,
-	currentIndex: number,
-	itemCount: number,
-	orientation: Orientation,
-): number | null {
-	const delta =
-		key === (orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight')
-			? 1
-			: key === (orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft')
-				? -1
-				: null
-
-	if (delta === null) return null
-
-	if (currentIndex === -1) return delta === 1 ? 0 : itemCount - 1
-
-	return wrap(currentIndex + delta, itemCount)
-}
-
-function nextIndexGrid(
-	key: string,
-	currentIndex: number,
-	itemCount: number,
-	cols: number,
-): number | null {
-	if (currentIndex === -1) {
-		if (key === 'ArrowRight' || key === 'ArrowDown') return 0
-
-		if (key === 'ArrowLeft' || key === 'ArrowUp') return itemCount - 1
-
-		return null
-	}
-
-	switch (key) {
-		case 'ArrowRight':
-			return wrap(currentIndex + 1, itemCount)
-		case 'ArrowLeft':
-			return wrap(currentIndex - 1, itemCount)
-		case 'ArrowDown':
-			return currentIndex + cols < itemCount ? currentIndex + cols : currentIndex % cols
-		case 'ArrowUp': {
-			if (currentIndex - cols >= 0) return currentIndex - cols
-
-			// Wrap to the bottommost item in the same column. Columns past the
-			// last row's fill land one row up.
-			const col = currentIndex % cols
-
-			const lastRowFill = itemCount % cols || cols
-
-			const bottomRowStart = itemCount - lastRowFill
-
-			return col < lastRowFill ? bottomRowStart + col : bottomRowStart - cols + col
-		}
-		default:
-			return null
-	}
-}
-
-/** Whether a key event should drive type-ahead: a lone printable character. */
-function isTypeaheadKey(e: KeyboardEvent): boolean {
-	return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
-}
-
-/** Label that matches an item during type-ahead: `aria-label`, else text. */
-function itemLabel(el: HTMLElement): string {
-	return (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().toLowerCase()
-}
-
-/** Mutable buffer backing one roving instance's type-ahead. */
-export type TypeaheadState = { query: string; timer: number }
-
-/**
- * Extend the type-ahead buffer with `key` and return the index of the next
- * matching item, or null. Repeated presses of the same character cycle through
- * items that start with it (search resumes past `currentIndex`); distinct
- * characters build a prefix matched from `currentIndex` onward. The buffer
- * self-clears after a 500 ms idle window.
- */
-export function matchTypeahead(
-	state: TypeaheadState,
-	items: HTMLElement[],
-	key: string,
-	currentIndex: number,
-): number | null {
-	if (typeof window !== 'undefined') {
-		window.clearTimeout(state.timer)
-
-		state.timer = window.setTimeout(() => {
-			state.query = ''
-		}, TYPEAHEAD_TIMEOUT_MS)
-	}
-
-	state.query += key.toLowerCase()
-
-	const repeated = [...state.query].every((char) => char === state.query[0])
-
-	const query = repeated ? state.query.slice(0, 1) : state.query
-
-	const start = repeated ? currentIndex + 1 : Math.max(currentIndex, 0)
-
-	for (let offset = 0; offset < items.length; offset++) {
-		const index = (start + offset) % items.length
-
-		const item = items[index]
-
-		if (item && itemLabel(item).startsWith(query)) return index
-	}
-
-	return null
-}
-
-type RovingOptions = RovingConfig & {
+type RovingOptions = NavigationConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
 	/**
@@ -315,6 +162,9 @@ type RovingOptions = RovingConfig & {
 /**
  * Arrow / Home / End navigation over items inside `containerRef`. Wraps at
  * both ends; with `row`, the cross arrows rove into per-row action controls.
+ * Composes `nextIndexForKey` (key → index math) and `useTypeahead` with the
+ * DOM choreography: focus or virtual active-state moves, single-Tab-stop
+ * `tabIndex` ownership, and row cross-axis roving.
  */
 export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
@@ -342,15 +192,7 @@ export function useA11yRoving(
 
 	const actionSelector = row?.actionSelector
 
-	const typeaheadRef = useRef<TypeaheadState>({ query: '', timer: 0 })
-
-	// `matchTypeahead` schedules a 500 ms buffer-reset timer; clear it on unmount.
-	useEffect(
-		() => () => {
-			if (typeof window !== 'undefined') window.clearTimeout(typeaheadRef.current.timer)
-		},
-		[],
-	)
+	const matchTypeahead = useTypeahead()
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
@@ -532,7 +374,7 @@ export function useA11yRoving(
 			// Type-ahead runs ahead of the focus-empty nav guard; a letter can
 			// jump into the list even when nothing is active yet.
 			if (typeahead && isTypeaheadKey(e)) {
-				const index = matchTypeahead(typeaheadRef.current, items, e.key, currentIndex)
+				const index = matchTypeahead(items, e.key, currentIndex)
 
 				if (index !== null) {
 					e.preventDefault()
@@ -569,6 +411,7 @@ export function useA11yRoving(
 			manageTabIndex,
 			rowSelector,
 			actionSelector,
+			matchTypeahead,
 		],
 	)
 }
