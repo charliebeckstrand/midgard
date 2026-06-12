@@ -5,7 +5,7 @@ import { formatPropType } from './format-type'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 
-type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
+type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[]; optional: boolean }
 
 /**
  * Resolve every project-authored prop the component accepts. `projectNames`
@@ -21,7 +21,9 @@ export function extractProps(
 ): PropDef[] {
 	const props: PropDef[] = []
 
-	for (const { name, symbol, types } of collectAllProperties(propsType, callable, checker)) {
+	for (const collected of collectAllProperties(propsType, callable, checker)) {
+		const { name, symbol } = collected
+
 		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
 
 		if (projectNames) {
@@ -30,7 +32,7 @@ export function extractProps(
 			continue
 		}
 
-		props.push(buildPropDef(name, symbol, types, callable, defaults, checker))
+		props.push(buildPropDef(collected, callable, defaults, checker))
 	}
 
 	return props
@@ -41,53 +43,62 @@ export function extractProps(
  * arms separately surfaces arm-only discriminated members and collects every
  * contributing type for props that appear in multiple arms with distinct types.
  * Recursion splits nested unions within intersection arms.
+ *
+ * Optionality: a union type's own `getProperties()` returns only the props
+ * common to every arm, so any prop *first* discovered inside an arm
+ * (`partial`) is absent elsewhere and therefore optional; common props carry
+ * the checker's merged `Optional` flag.
  */
 function collectAllProperties(
 	type: ts.Type,
 	callable: ts.Node,
 	checker: ts.TypeChecker,
 ): CollectedProp[] {
-	const seen = new Map<string, { symbol: ts.Symbol; types: ts.Type[] }>()
+	const seen = new Map<string, { symbol: ts.Symbol; types: ts.Type[]; optional: boolean }>()
 
-	const visit = (t: ts.Type): void => {
+	const visit = (t: ts.Type, partial: boolean): void => {
 		for (const sym of t.getProperties()) {
 			const name = sym.getName()
 
 			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
 
+			const optional = !!(sym.flags & ts.SymbolFlags.Optional)
+
 			const existing = seen.get(name)
 
 			if (!existing) {
-				seen.set(name, { symbol: sym, types: [armType] })
-			} else if (!existing.types.includes(armType)) {
-				existing.types.push(armType)
+				seen.set(name, { symbol: sym, types: [armType], optional: partial || optional })
+			} else {
+				if (!existing.types.includes(armType)) existing.types.push(armType)
+
+				existing.optional ||= optional
 			}
 		}
 
 		if (t.flags & ts.TypeFlags.Union) {
-			for (const arm of (t as ts.UnionType).types) visit(arm)
+			for (const arm of (t as ts.UnionType).types) visit(arm, true)
 
 			return
 		}
 
 		if (t.flags & ts.TypeFlags.Intersection) {
-			for (const arm of (t as ts.IntersectionType).types) visit(arm)
+			for (const arm of (t as ts.IntersectionType).types) visit(arm, partial)
 		}
 	}
 
-	visit(type)
+	visit(type, false)
 
-	return [...seen.entries()].map(([name, { symbol, types }]) => ({ name, symbol, types }))
+	return [...seen.entries()].map(([name, entry]) => ({ name, ...entry }))
 }
 
 function buildPropDef(
-	name: string,
-	symbol: ts.Symbol,
-	propTypes: ts.Type[],
+	collected: CollectedProp,
 	callable: ts.Node,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
 ): PropDef {
+	const { name, symbol, types: propTypes, optional } = collected
+
 	const inline = inlineSourceType(symbol)
 
 	const prop: PropDef = {
@@ -106,6 +117,12 @@ function buildPropDef(
 	const defaultVal = defaults.get(name)
 
 	if (defaultVal !== undefined) prop.default = defaultVal
+
+	const description = ts.displayPartsToString(symbol.getDocumentationComment(checker)).trim()
+
+	if (description) prop.description = description
+
+	if (!optional) prop.required = true
 
 	return prop
 }

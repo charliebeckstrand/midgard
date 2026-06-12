@@ -10,6 +10,13 @@ export type PropDef = {
 	default?: string
 	/** External package the type originates from, e.g. `@floating-ui/react`. */
 	externalFrom?: string
+	/** JSDoc summary from the prop's declaration. */
+	description?: string
+	/**
+	 * Present only when the caller must supply the prop: declared without `?`
+	 * and, when the props type is a union, present in every arm.
+	 */
+	required?: boolean
 }
 
 /**
