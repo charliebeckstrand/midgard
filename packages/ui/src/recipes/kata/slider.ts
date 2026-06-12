@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou } from '../kiso'
+import { hannou, kokkaku } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -75,6 +75,7 @@ export const k = defineRecipe({
 	},
 	color,
 	defaults: { size: 'md', color: 'blue' },
+	skeleton: kokkaku.slider,
 })
 
 export type SliderVariants = VariantProps<typeof k>

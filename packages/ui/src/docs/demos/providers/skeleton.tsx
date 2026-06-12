@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { BadgeSkeleton } from '../../../components/badge'
+import { BreadcrumbSkeleton } from '../../../components/breadcrumb'
 import { Button, ButtonSkeleton } from '../../../components/button'
+import { CalendarSkeleton } from '../../../components/calendar'
 import { Card, CardBody, CardHeader } from '../../../components/card'
 import { CheckboxSkeleton } from '../../../components/checkbox'
 import { ControlSkeleton } from '../../../components/control/control-skeleton'
@@ -9,10 +11,17 @@ import { Flex } from '../../../components/flex'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
+import { PaginationSkeleton } from '../../../components/pagination'
+import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
 import { RadioSkeleton } from '../../../components/radio'
+import { SegmentSkeleton } from '../../../components/segment'
+import { SliderSkeleton } from '../../../components/slider'
+import { StepperSkeleton } from '../../../components/stepper'
 import { SwitchSkeleton } from '../../../components/switch'
+import { TabListSkeleton } from '../../../components/tabs'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Example } from '../../components/example'
 
@@ -24,14 +33,24 @@ export const meta = { name: 'Skeletons', category: 'Feedback' }
 const skeletonVariants = [
 	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
 	{ name: 'Badge', skeleton: <BadgeSkeleton /> },
+	{ name: 'Breadcrumb', skeleton: <BreadcrumbSkeleton /> },
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
+	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
+	{ name: 'Progress bar', skeleton: <ProgressBarSkeleton /> },
+	{ name: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
 	{ name: 'Radio', skeleton: <RadioSkeleton /> },
+	{ name: 'Segment', skeleton: <SegmentSkeleton /> },
+	{ name: 'Slider', skeleton: <SliderSkeleton /> },
+	{ name: 'Stepper', skeleton: <StepperSkeleton /> },
 	{ name: 'Switch', skeleton: <SwitchSkeleton /> },
+	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
 	{ name: 'Text', skeleton: <TextSkeleton /> },
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
+	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
 ]
 
 function VariantExample() {

@@ -4,12 +4,22 @@ import {
 	StepperDescription,
 	StepperPanel,
 	StepperPanels,
+	StepperSkeleton,
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Stepper', () => {
+	it('pairs with an explicit StepperSkeleton in loading trees', () => {
+		const { container } = renderUI(<StepperSkeleton steps={3} />)
+
+		expect(bySlot(container, 'stepper')).not.toBeInTheDocument()
+
+		// One indicator dot and one title line per step.
+		expect(allBySlot(container, 'placeholder')).toHaveLength(6)
+	})
+
 	it('renders with data-slot="stepper"', () => {
 		const { container } = renderUI(
 			<Stepper value={1}>

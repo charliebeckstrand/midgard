@@ -5,10 +5,19 @@ import {
 	PaginationNext,
 	PaginationPage,
 	PaginationPrevious,
+	PaginationSkeleton,
 } from '../../components/pagination'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Pagination', () => {
+	it('pairs with an explicit PaginationSkeleton in loading trees', () => {
+		const { container } = renderUI(<PaginationSkeleton pages={5} />)
+
+		expect(bySlot(container, 'pagination')).not.toBeInTheDocument()
+
+		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
+	})
+
 	it('renders with data-slot="pagination"', () => {
 		const { container } = renderUI(
 			<Pagination>

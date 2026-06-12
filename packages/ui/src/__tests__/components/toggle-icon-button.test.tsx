@@ -1,10 +1,18 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ToggleIconButton } from '../../components/toggle-icon-button'
+import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../components/toggle-icon-button'
 import { bySlot, fireEvent, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
 	const pressedIcon = <svg data-testid="pressed-icon" />
+
+	it('pairs with an explicit ToggleIconButtonSkeleton in loading trees', () => {
+		const { container } = renderUI(<ToggleIconButtonSkeleton />)
+
+		expect(bySlot(container, 'toggle-icon-button')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
 
 	it('renders with data-slot="toggle-icon-button"', () => {
 		const { container } = renderUI(

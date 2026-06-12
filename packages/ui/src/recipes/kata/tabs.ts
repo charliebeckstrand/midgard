@@ -1,6 +1,6 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
 import { segment } from '../kiso/segment'
 
 const { cursor, disabled, fg } = hannou
@@ -74,4 +74,10 @@ export const k = {
 	tab,
 	indicator,
 	segment: bridge.segment(segment),
+	// Two units flow through this kata: the underline tab list and the
+	// segment box behind `<Segment>`.
+	skeleton: {
+		tab: kokkaku.tabs.tab,
+		segment: kokkaku.segment,
+	},
 } as const

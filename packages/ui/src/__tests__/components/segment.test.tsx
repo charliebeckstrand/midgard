@@ -1,11 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
+import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../components/segment'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 // Segment is a thin preset over <Tabs variant="segment">, so it renders the
 // tab slots (tab-list / tab) and tab ARIA (tablist / tab / aria-selected).
 
 describe('Segment', () => {
+	it('pairs with an explicit SegmentSkeleton in loading trees', () => {
+		const { container } = renderUI(<SegmentSkeleton />)
+
+		expect(bySlot(container, 'tab-list')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+	})
+
 	it('renders the control as a tablist', () => {
 		const { container } = renderUI(
 			<Segment value="a">

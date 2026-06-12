@@ -4,10 +4,20 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
+	BreadcrumbSkeleton,
 } from '../../components/breadcrumb'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
+	it('pairs with an explicit BreadcrumbSkeleton in loading trees', () => {
+		const { container } = renderUI(<BreadcrumbSkeleton items={3} />)
+
+		expect(bySlot(container, 'breadcrumb')).not.toBeInTheDocument()
+
+		// Three crumb lines and two separators between them.
+		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
+	})
+
 	it('renders with data-slot="breadcrumb"', () => {
 		const { container } = renderUI(<Breadcrumb>content</Breadcrumb>)
 

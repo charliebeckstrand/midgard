@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { iro, ji, narabi, sen } from '../kiso'
+import { iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { palette, text } = iro
 const { size, weight } = ji
@@ -78,4 +78,5 @@ export const k = {
 		rangeLeftEdge: 'rounded-r-none',
 		rangeRightEdge: 'rounded-l-none',
 	},
+	skeleton: kokkaku.calendar,
 } as const
