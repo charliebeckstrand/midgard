@@ -69,7 +69,7 @@ export { useDensityNullable }
  * Resolves a leaf component's size through the full size-axis cascade:
  * `explicit ?? Affix ?? Density.size`. The Affix step lets an enclosing
  * control slot (an `<Input>` prefix, a `<SelectTrigger>` chevron) pull the
- * component one notch tighter than the ambient Density — a step that stays
+ * component one notch tighter than the ambient Density, a step that stays
  * invisible at the call site unless the resolver names it, hence
  * `useResolvedSize` over a bare `size` read.
  *
@@ -98,7 +98,7 @@ export function useResolvedSize<T extends Ma = Ma>(explicit?: T): T {
  * Deliberately skips the Affix step {@link useResolvedSize} applies: a host
  * *writes* a stepped-down Affix into its own slots (see `affixStepDown`) but
  * resolves its own size from explicit-or-Density only. The `control` recipe's
- * `size` / `density` variants are `Step`-floored — there is no `'xs'` / `'xl'`
+ * `size` / `density` variants are `Step`-floored: there is no `'xs'` / `'xl'`
  * slot to receive an Affix value.
  *
  * Used by the control hosts that drive the `control` recipe: `Input`,

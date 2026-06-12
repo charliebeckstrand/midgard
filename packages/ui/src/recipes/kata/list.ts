@@ -49,7 +49,6 @@ const item = defineRecipe({
 		false: '',
 	},
 	compound: [
-		// Card-like variants: uniform ma.p scale.
 		{ variant: 'separated', density: 'sm', class: p.sm },
 		{ variant: 'separated', density: 'md', class: p.md },
 		{ variant: 'separated', density: 'lg', class: p.lg },
@@ -59,7 +58,6 @@ const item = defineRecipe({
 		{ variant: 'solid', density: 'sm', class: p.sm },
 		{ variant: 'solid', density: 'md', class: p.md },
 		{ variant: 'solid', density: 'lg', class: p.lg },
-		// `plain`: tighter px/py ratio per step.
 		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
 		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
 		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },
@@ -67,9 +65,8 @@ const item = defineRecipe({
 	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
 })
 
-// Content column. The `link` axis carries the `href`-driven treatment:
-// muted at rest, stepping to the max-emphasis neutral on hover (cf.
-// breadcrumb's non-current link).
+// The `link` axis carries the `href`-driven treatment (cf. breadcrumb's
+// non-current link).
 const content = defineRecipe({
 	base: [flex.col, 'flex-1 min-w-0'],
 	link: {
@@ -94,7 +91,7 @@ export const k = {
 		),
 		...disabled,
 	],
-	/** Content column; pass the item's `href` — its presence flips the link treatment. */
+	/** Content column. Pass the item's `href`; its presence flips the link treatment. */
 	content: (href?: string) => content({ link: href !== undefined }),
 	label: 'min-w-0 truncate',
 	description: ['min-w-0 truncate', size.sm, text.muted],

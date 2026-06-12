@@ -1,5 +1,5 @@
-// Container max-width and horizontal padding apply from `lg` up via bespoke
-// `lg:`-prefixed literals. Owned by the recipe layer, not the component.
+// Max-width and horizontal padding apply from `lg` up; below that the
+// container is full-bleed.
 export const k = {
 	size: {
 		sm: 'lg:max-w-4xl',

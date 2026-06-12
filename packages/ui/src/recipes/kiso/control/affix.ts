@@ -17,7 +17,7 @@
  * aligns to the text line rather than the chip-content line: the override
  * subtracts the button's stepped-down compound padding (`kata/button.ts`)
  * from `density.px`, landing the icon exactly where a text affix sits. The
- * non-bare constant has no counterpart here — the bare compound scale
+ * non-bare constant has no counterpart here: the bare compound scale
  * grows 0.25 per notch (half of `density.px`'s 0.5), so the deltas can't
  * cancel and the padding drifts (`1.75 → 2 → 2.25`). A *labeled* bare
  * button carries the regular `p` and stays on the `density.px` base path,
@@ -26,8 +26,8 @@
  * The bare arm keys on `data-variant`, not `data-slot`: a wrapper can
  * hijack the slot id (e.g. `<TooltipTrigger>` rewrites a child's
  * `data-slot` to `tooltip-trigger`, as the `<PasswordInput>` toggle does),
- * but `data-variant` survives. It also stays exclusive to `<Button>` —
- * `<Badge>` emits only `data-slot=badge` — and matches the button whether
+ * but `data-variant` survives. It also stays exclusive to `<Button>`
+ * (`<Badge>` emits only `data-slot=badge`) and matches the button whether
  * it renders as `<button>` or, with `href`, as `<a>`.
  *
  * Layer: kiso · Archetype: control · Concern: affix

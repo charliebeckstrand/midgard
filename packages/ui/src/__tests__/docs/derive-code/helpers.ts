@@ -17,7 +17,7 @@ export function tag<P>(name: string, module: string): FunctionComponent<P> {
 
 /**
  * A stand-in for an external package component (e.g. a lucide icon): no
- * build-time tag, just the runtime `displayName` the resolver matches against
+ * build-time tag, only the runtime `displayName` the resolver matches against
  * external `byName` entries.
  */
 export function external<P>(name: string): FunctionComponent<P> {

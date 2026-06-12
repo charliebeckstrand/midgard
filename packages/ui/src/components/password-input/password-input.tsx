@@ -58,8 +58,8 @@ export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
 
 	// Input resolves its own disabled internally; mirror that resolution
 	// (useControlProps) so the toggle can't diverge from the field. A disabled
-	// field disables the toggle and re-masks — its value is out of play.
-	// readOnly does neither: the value stays viewable, just not editable.
+	// field disables the toggle and re-masks: its value is out of play.
+	// readOnly does neither; the value stays viewable but not editable.
 	const disabled = props.disabled ?? control?.disabled
 
 	const revealed = visible && !disabled

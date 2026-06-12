@@ -56,11 +56,11 @@ describe('Form', () => {
 
 		fireEvent.change(bySlot(container, 'field-a') as HTMLInputElement, { target: { value: 'x' } })
 
-		// The edited field re-renders with its new value...
+		// The edited field re-renders with its new value.
 		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
 		expect(renders.a).toBeGreaterThan(bAfterMount)
 
-		// ...while the untouched sibling does not re-render.
+		// The untouched sibling does not re-render.
 		expect(renders.b).toBe(bAfterMount)
 	})
 
