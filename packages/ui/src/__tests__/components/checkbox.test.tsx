@@ -57,6 +57,7 @@ describe('Checkbox', () => {
 		const { container } = renderUI(<CheckboxSkeleton />)
 
 		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -193,6 +194,7 @@ describe('CheckboxField aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'checkbox') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(description.id).toBeTruthy()
