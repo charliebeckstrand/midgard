@@ -28,7 +28,6 @@ import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
 type ListboxBaseProps = {
-	/** Binds the selected value to an enclosing Form field. */
 	name?: string
 	placeholder?: string
 	placement?: Placement

@@ -39,7 +39,6 @@ import { useComboboxTrigger } from './use-combobox-trigger'
 
 type ComboboxBaseProps<T> = {
 	id?: string
-	/** Binds the selected value to an enclosing Form field. */
 	name?: string
 	placeholder?: string
 	displayValue?: (value: T) => string
