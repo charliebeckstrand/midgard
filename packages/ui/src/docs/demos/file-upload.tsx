@@ -6,8 +6,6 @@ import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 function Sizer({ children, className }: { children: ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }

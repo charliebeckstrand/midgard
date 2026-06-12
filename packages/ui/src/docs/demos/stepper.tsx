@@ -11,8 +11,6 @@ import {
 import { Example } from '../components/example'
 import { ValueStepper } from '../components/value-stepper'
 
-export const meta = { category: 'Navigation' }
-
 const steps = [
 	{ title: 'Account', description: 'Create your account' },
 	{ title: 'Profile', description: 'Add your details' },

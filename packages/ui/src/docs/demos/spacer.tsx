@@ -5,8 +5,6 @@ import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 export function Demo() {
 	return (
 		<>

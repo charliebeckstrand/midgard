@@ -2,8 +2,6 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/ta
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 const tabs = ['Account', 'Notifications', 'Billing'] as const
 
 export function Demo() {

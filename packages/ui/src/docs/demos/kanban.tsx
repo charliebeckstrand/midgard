@@ -11,8 +11,6 @@ import {
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 type Load = { id: string; code: string; customer: string; weight: string }
 
 type Column = { id: string; title: string; items: Load[] }

@@ -8,8 +8,6 @@ import { LabeledRow } from '../components/labeled'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const groupAvatars = ['AB', 'CD', 'EF', 'GH'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const

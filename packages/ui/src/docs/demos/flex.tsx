@@ -4,8 +4,6 @@ import { Card } from '../../components/card'
 import { Flex } from '../../components/flex'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 export function Demo() {
 	return (
 		<>

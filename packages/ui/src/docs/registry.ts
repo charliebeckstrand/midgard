@@ -5,7 +5,7 @@ import type { ComponentApi } from './api-reference'
 
 // Lazy demo loaders (no demo code loaded until navigated to)
 
-type DemoMeta = { name?: string; category?: string }
+type DemoMeta = { name?: string }
 
 // Each demo exports a `Demo` component; the glob's `import` option resolves
 // loaders directly to that symbol.
@@ -101,44 +101,13 @@ export const demos = [...loaderById.keys()]
 
 		const name = meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
-		const category = meta?.category ?? 'Other'
-
-		return { id, name, category }
+		return { id, name }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 
 export type Demo = (typeof demos)[number]
 
-const categories = demos.reduce<Record<string, typeof demos>>((acc, demo) => {
-	if (!acc[demo.category]) acc[demo.category] = []
-
-	acc[demo.category]?.push(demo)
-
-	return acc
-}, {})
-
-const categoryOrder = [
-	'Forms',
-	'Button',
-	'Input',
-	'Password',
-	'Data Display',
-	'Table',
-	'Feedback',
-	'Overlay',
-	'Navigation',
-	'Chat',
-	'Layout',
-	'Pages',
-	'Providers',
-	'Other',
-]
-
-export const sortedCategories = Object.entries(categories).sort(
-	([a], [b]) => (categoryOrder.indexOf(a) >>> 0) - (categoryOrder.indexOf(b) >>> 0),
-)
-
-export const defaultDemo = sortedCategories[0]?.[1]?.[0]?.id || demos[0]?.id || ''
+export const defaultDemo = demos[0]?.id || ''
 
 // Start the initial demo's import at module-eval time and expose the promise;
 // main.tsx awaits it before mounting.

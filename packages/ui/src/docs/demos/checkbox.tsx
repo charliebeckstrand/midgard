@@ -2,8 +2,6 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbo
 import { Description, Label } from '../../components/fieldset'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 const colors = ['blue', 'green', 'red'] as const
 
 export function Demo() {

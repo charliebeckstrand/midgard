@@ -3,8 +3,6 @@ import { Flex } from '../../components/flex'
 import { Kbd } from '../../components/kbd'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 export function Demo() {
 	return (
 		<>

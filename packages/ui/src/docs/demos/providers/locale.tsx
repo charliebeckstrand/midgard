@@ -7,8 +7,6 @@ import { Group } from '../../../components/group'
 import { LocaleProvider } from '../../../providers/locale'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
-
 const PRESETS = [
 	{ label: 'US', locale: 'en-US', currency: 'USD' },
 	{ label: 'UK', locale: 'en-GB', currency: 'GBP' },

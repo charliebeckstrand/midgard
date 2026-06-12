@@ -30,8 +30,6 @@ import { type DensityLevel, DensityProvider } from '../../../providers/density'
 import { DensityListbox } from '../../components/density-listbox'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
-
 const navItems = [
 	{ icon: <Inbox />, label: 'Inbox', current: true },
 	{ icon: <Users />, label: 'Customers' },

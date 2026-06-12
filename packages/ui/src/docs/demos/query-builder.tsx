@@ -4,8 +4,6 @@ import { QueryBuilder, type QueryField, type QueryGroupNode } from '../../compon
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
 	{ name: 'age', label: 'Age', type: 'number' },

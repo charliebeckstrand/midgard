@@ -8,8 +8,6 @@ import { code } from '../code'
 import { DensityListbox } from '../components/density-listbox'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Table' }
-
 type Person = {
 	id: number
 	name: string

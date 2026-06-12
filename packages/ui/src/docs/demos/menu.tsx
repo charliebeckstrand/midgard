@@ -17,8 +17,6 @@ import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Overlay' }
-
 const surfaces = ['default', 'glass'] as const
 
 export function Demo() {

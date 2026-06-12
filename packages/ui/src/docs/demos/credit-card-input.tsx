@@ -11,8 +11,6 @@ import { Stack } from '../../components/stack'
 import { code } from '../code'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Input' }
-
 function ControlledExample() {
 	const [value, setValue] = useState('')
 

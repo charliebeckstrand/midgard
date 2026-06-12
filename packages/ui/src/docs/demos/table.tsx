@@ -9,8 +9,6 @@ import {
 } from '../../components/table'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 const users = [
 	{ name: 'Wade Cooper', email: 'wade@example.com', role: 'Admin' },
 	{ name: 'Arlene McCoy', email: 'arlene@example.com', role: 'Editor' },

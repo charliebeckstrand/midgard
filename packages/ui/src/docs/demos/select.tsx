@@ -2,8 +2,6 @@ import { Field, Label } from '../../components/fieldset'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 export function Demo() {
 	return (
 		<Example title="Default">

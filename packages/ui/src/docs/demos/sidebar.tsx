@@ -45,8 +45,6 @@ import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 const primary = [
 	{ value: 'home', label: 'Home', icon: <Home /> },
 	{ value: 'inbox', label: 'Inbox', icon: <Inbox /> },

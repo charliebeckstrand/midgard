@@ -5,8 +5,6 @@ import { code } from '../code'
 import { Example } from '../components/example'
 import { SizeListbox } from '../components/size-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const sizes = ['sm', 'md', 'lg'] as const
 
 type Size = (typeof sizes)[number]

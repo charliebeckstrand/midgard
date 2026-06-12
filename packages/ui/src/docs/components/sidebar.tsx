@@ -1,7 +1,7 @@
 'use client'
 
-import { ArrowDownAZ, ArrowUp01 } from 'lucide-react'
-import { Fragment, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
+import { use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../components/combobox'
 import { Flex } from '../../components/flex'
@@ -18,7 +18,7 @@ import {
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
-import { type Demo, demos, preloadDemo, sortedCategories } from '../registry'
+import { type Demo, demos, preloadDemo } from '../registry'
 
 const SEARCH_PAGE_SIZE = 20
 
@@ -93,7 +93,7 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 	)
 }
 
-type SortBy = 'groups' | 'alphabetical'
+type SortDirection = 'desc' | 'asc'
 
 export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
@@ -104,7 +104,9 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
-	const [sortBy, setSortBy] = useState<SortBy>('groups')
+	const [direction, setDirection] = useState<SortDirection>('desc')
+
+	const sorted = direction === 'desc' ? demos : [...demos].reverse()
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -156,34 +158,18 @@ export function SidebarContent({ route }: { route: string }) {
 				</div>
 				<Button
 					variant="bare"
-					aria-label={sortBy === 'alphabetical' ? 'Sort by group' : 'Sort alphabetically'}
-					onClick={() => setSortBy(sortBy === 'alphabetical' ? 'groups' : 'alphabetical')}
+					aria-label={direction === 'desc' ? 'Sort Z to A' : 'Sort A to Z'}
+					onClick={() => setDirection(direction === 'desc' ? 'asc' : 'desc')}
 				>
-					<Icon icon={sortBy === 'alphabetical' ? <ArrowUp01 /> : <ArrowDownAZ />} />
+					<Icon icon={direction === 'desc' ? <ArrowDownAZ /> : <ArrowUpZA />} />
 				</Button>
 			</Flex>
 			<SidebarBody>
-				<div className="flex flex-col gap-3">
-					{sortBy === 'alphabetical' ? (
-						<SidebarSection>
-							{demos.map((demo) => (
-								<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
-							))}
-						</SidebarSection>
-					) : (
-						sortedCategories.map(([category, items]) => (
-							<Fragment key={category}>
-								<span className="text-zinc-500 leading-none px-2">{category}</span>
-
-								<SidebarSection>
-									{items.map((demo) => (
-										<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
-									))}
-								</SidebarSection>
-							</Fragment>
-						))
-					)}
-				</div>
+				<SidebarSection>
+					{sorted.map((demo) => (
+						<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+					))}
+				</SidebarSection>
 			</SidebarBody>
 		</Sidebar>
 	)

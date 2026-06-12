@@ -9,8 +9,6 @@ import {
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Password' }
-
 function BasicExample() {
 	const [value, setValue] = useState('')
 

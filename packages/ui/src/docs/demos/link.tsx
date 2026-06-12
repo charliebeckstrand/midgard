@@ -2,8 +2,6 @@ import { Link } from '../../components/link'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 export function Demo() {
 	return (
 		<>

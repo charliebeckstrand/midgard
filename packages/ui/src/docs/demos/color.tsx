@@ -5,8 +5,6 @@ import { Text } from '../../components/text'
 import { Example } from '../components/example'
 import { LabeledRow } from '../components/labeled'
 
-export const meta = { category: 'Forms' }
-
 const sizes = ['sm', 'md', 'lg'] as const
 
 function PanelExample() {

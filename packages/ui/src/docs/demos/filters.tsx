@@ -10,8 +10,6 @@ import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 type BasicFilters = {
 	search: string | undefined
 	status: string | undefined

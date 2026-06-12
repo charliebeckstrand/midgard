@@ -7,8 +7,6 @@ import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 const items = [
 	{
 		name: 'Holiday Promo',

@@ -4,8 +4,6 @@ import { BottomNav, BottomNavItem } from '../../components/bottom-nav'
 import { Card } from '../../components/card'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Navigation' }
-
 const items = [
 	{ value: 'home', label: 'Home', icon: <Home />, iconName: 'Home' },
 	{ value: 'search', label: 'Search', icon: <Search />, iconName: 'Search' },

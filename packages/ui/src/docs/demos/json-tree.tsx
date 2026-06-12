@@ -5,8 +5,6 @@ import { SearchInput } from '../../components/search-input'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 const sample = {
 	id: 42,
 	name: 'Ada Lovelace',

@@ -8,8 +8,6 @@ import {
 import { Example } from '../components/example'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const variants = ['separated', 'outline', 'plain'] as const
 
 const items = [

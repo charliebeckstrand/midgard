@@ -13,7 +13,7 @@ declare module 'virtual:component-modules' {
 }
 
 declare module 'virtual:demo-metas' {
-	const data: Record<string, { name?: string; category?: string }>
+	const data: Record<string, { name?: string }>
 
 	export default data
 }

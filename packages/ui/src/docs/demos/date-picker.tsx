@@ -3,8 +3,6 @@ import { DatePicker } from '../../components/date-picker'
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)

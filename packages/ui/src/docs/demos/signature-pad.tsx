@@ -7,8 +7,6 @@ import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 function DefaultExample() {
 	const [value, setValue] = useState<string | null>(null)
 	const [previewOpen, setPreviewOpen] = useState(false)

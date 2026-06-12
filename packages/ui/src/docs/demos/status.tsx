@@ -7,8 +7,6 @@ import { capitalize } from '../components/format'
 import { SizeListbox } from '../components/size-listbox'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Data Display' }
-
 const statuses = ['inactive', 'active', 'info', 'warning', 'error'] as const
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const

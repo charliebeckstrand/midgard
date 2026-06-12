@@ -6,8 +6,6 @@ import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 import { VariantListbox } from '../components/variant-listbox'
 
-export const meta = { category: 'Feedback' }
-
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 const types = ['info', 'success', 'warning', 'error'] as const

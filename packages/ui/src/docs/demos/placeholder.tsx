@@ -2,8 +2,6 @@ import { Placeholder } from '../../components/placeholder'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Feedback' }
-
 export function Demo() {
 	return (
 		<Example title="Default">

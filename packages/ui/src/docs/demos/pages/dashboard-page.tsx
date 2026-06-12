@@ -20,8 +20,6 @@ import {
 import { DashboardLayout, StackedLayoutBody } from '../../../layouts'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Pages' }
-
 const stats = [
 	{ label: 'Total revenue', value: '$45,231', delta: '+20.1%', trend: 'up' as const },
 	{ label: 'Subscriptions', value: '2,350', delta: '+12.5%', trend: 'up' as const },

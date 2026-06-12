@@ -5,8 +5,6 @@ import { Toast } from '../../../components/toast'
 import { ToastProvider, useToast } from '../../../providers/toast'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
-
 function SeverityExample() {
 	const { toast } = useToast()
 

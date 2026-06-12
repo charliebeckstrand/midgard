@@ -11,17 +11,17 @@ import { virtualJsonModules } from './virtual-json'
 // Demo metadata parsed for `virtual:demo-metas`
 // ---------------------------------------------------------------------------
 
-type DemoMeta = { name?: string; category?: string }
+type DemoMeta = { name?: string }
 
-const META_KEYS: ReadonlySet<string> = new Set(['name', 'category'])
+const META_KEYS: ReadonlySet<string> = new Set(['name'])
 
 function isMetaKey(key: string): key is keyof DemoMeta {
 	return META_KEYS.has(key)
 }
 
 /**
- * Parse `export const meta = { name?: '...', category?: '...' }` out of a
- * demo source file. Drops unknown keys and non-string-literal values.
+ * Parse `export const meta = { name?: '...' }` out of a demo source file.
+ * Drops unknown keys and non-string-literal values.
  */
 function parseMeta(project: Project, fileName: string, source: string): DemoMeta {
 	const sf = project.createSourceFile(fileName, source, { overwrite: true })
@@ -352,7 +352,7 @@ function findSrcDir(root: string): string {
  * The single Vite plugin backing the docs site. It provides:
  *
  *  - `virtual:api-reference`: prop data parsed from component sources
- *  - `virtual:demo-metas`: each demo's `{ name?, category? }`
+ *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
  *  - an `enforce: 'pre'` transform attaching helper `__code` to demo sources

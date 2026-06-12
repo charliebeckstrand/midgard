@@ -2,8 +2,6 @@ import { Card } from '../../components/card'
 import { Split } from '../../components/split'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 export function Demo() {
 	return (
 		<>

@@ -6,8 +6,6 @@ import { Stack } from '../../components/stack'
 import { SubmitButton } from '../../components/submit-button'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 async function simulateAsyncSubmission() {
 	return new Promise<void>((r) => setTimeout(r, 1000))
 }

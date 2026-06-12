@@ -8,8 +8,6 @@ import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 export function Demo() {
 	const [discardOpen, setDiscardOpen] = useState(false)
 	const [termsConditionsOpen, setTermsConditionsOpen] = useState(false)

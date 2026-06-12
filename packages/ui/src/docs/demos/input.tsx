@@ -5,8 +5,6 @@ import { Input } from '../../components/input'
 import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 
-export const meta = { category: 'Forms' }
-
 const variants = ['default', 'outline'] as const
 
 export function Demo() {

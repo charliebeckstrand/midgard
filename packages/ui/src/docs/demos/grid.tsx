@@ -2,8 +2,6 @@ import { Card } from '../../components/card'
 import { Grid, GridCell, GridDivider } from '../../components/grid'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 export function Demo() {
 	return (
 		<>

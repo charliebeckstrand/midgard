@@ -25,8 +25,6 @@ import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 type Command = {
 	id: string
 	label: string

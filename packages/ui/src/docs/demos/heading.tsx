@@ -1,8 +1,6 @@
 import { Heading } from '../../components/heading'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 const levels = [1, 2, 3, 4, 5, 6] as const
 
 export function Demo() {

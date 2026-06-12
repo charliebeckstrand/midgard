@@ -3,8 +3,6 @@ import { Button } from '../../components/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../components/drawer'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Overlay' }
-
 export function Demo() {
 	const [open, setOpen] = useState(false)
 	const [glassOpen, setGlassOpen] = useState(false)

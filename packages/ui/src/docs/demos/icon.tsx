@@ -6,8 +6,6 @@ import { Icon } from '../../components/icon'
 import { Example } from '../components/example'
 import { LabeledColumn } from '../components/labeled'
 
-export const meta = { category: 'Data Display' }
-
 const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export function Demo() {

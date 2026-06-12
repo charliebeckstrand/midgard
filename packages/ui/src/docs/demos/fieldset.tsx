@@ -5,8 +5,6 @@ import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Forms' }
-
 export function Demo() {
 	return (
 		<>

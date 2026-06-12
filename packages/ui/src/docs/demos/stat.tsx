@@ -6,8 +6,6 @@ import { Stack } from '../../components/stack'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../components/stat'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Data Display' }
-
 export function Demo() {
 	return (
 		<>

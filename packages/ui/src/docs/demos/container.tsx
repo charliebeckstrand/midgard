@@ -3,8 +3,6 @@ import { Container } from '../../components/container'
 import { Stack } from '../../components/stack'
 import { Example } from '../components/example'
 
-export const meta = { category: 'Layout' }
-
 export function Demo() {
 	return (
 		<>
