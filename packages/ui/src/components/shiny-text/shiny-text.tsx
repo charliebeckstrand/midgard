@@ -4,8 +4,6 @@ import { type AnimationPlaybackControls, animate } from 'motion'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useSkeleton } from '../../providers/skeleton'
-import { ShinyTextSkeleton } from './shiny-text-skeleton'
 
 export type ShinyTextProps = {
 	/** Halt the sweep, leaving the shine parked off-screen so only the base color shows. */
@@ -38,7 +36,7 @@ const OFF_LEFT = -50
  * Text masked by a gradient whose highlight sweeps across it on a loop. The
  * sweep is driven by an imperative `animate()` outside any `MotionConfig`, so
  * the hook reads the OS preference directly and renders static text under
- * reduced motion (WCAG 2.3.3). Degrades to a skeleton under that provider.
+ * reduced motion (WCAG 2.3.3). Compose `<ShinyTextSkeleton>` in loading trees.
  */
 export function ShinyText({
 	disabled = false,
@@ -59,8 +57,6 @@ export function ShinyText({
 }: ShinyTextProps) {
 	const reduceMotion = useReducedMotion()
 
-	const skeleton = useSkeleton()
-
 	const from = direction === 'left' ? OFF_RIGHT : OFF_LEFT
 
 	const to = direction === 'left' ? OFF_LEFT : OFF_RIGHT
@@ -76,7 +72,7 @@ export function ShinyText({
 		// shine frozen wherever the previous cleanup's `stop()` caught it.
 		position.set(from)
 
-		if (disabled || reduceMotion || skeleton) return
+		if (disabled || reduceMotion) return
 
 		const controls = animate(position, to, {
 			duration: speed,
@@ -93,11 +89,7 @@ export function ShinyText({
 
 			controlsRef.current = null
 		}
-	}, [disabled, reduceMotion, skeleton, from, to, speed, yoyo, delay, position])
-
-	if (skeleton) {
-		return <ShinyTextSkeleton className={className} />
-	}
+	}, [disabled, reduceMotion, from, to, speed, yoyo, delay, position])
 
 	return (
 		<motion.span

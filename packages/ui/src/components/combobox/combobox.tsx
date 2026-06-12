@@ -22,10 +22,8 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
-import { useSkeleton } from '../../providers/skeleton'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
-import { ControlSkeleton } from '../control/control-skeleton'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -140,7 +138,6 @@ export function Combobox<T>({
 }: ComboboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
-	const skeleton = useSkeleton()
 	const token = useControlSize(size)
 
 	const resolvedSize = token.size
@@ -325,10 +322,6 @@ export function Combobox<T>({
 		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
 		[selectionValue, multiple, select],
 	)
-
-	if (skeleton) {
-		return <ControlSkeleton size={size} className={className} />
-	}
 
 	return (
 		<ComboboxContext value={contextValue}>

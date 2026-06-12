@@ -81,13 +81,6 @@ describe('Input', () => {
 
 		expect(onChange).toHaveBeenCalled()
 	})
-
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Input />, { skeleton: true })
-
-		expect(bySlot(container, 'input')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
 })
 
 describe('Input size resolution', () => {

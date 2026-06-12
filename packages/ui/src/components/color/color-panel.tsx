@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import { k } from '../../recipes/kata/color-panel'
 import type { ControlSize } from '../control/context'
 import { ColorArea } from './color-area'
@@ -11,7 +10,6 @@ import { ColorChannelInputs } from './color-channel-inputs'
 import { DEFAULT_SWATCHES } from './color-constants'
 import { ColorEyedropper } from './color-eyedropper'
 import { ColorHexInput } from './color-hex-input'
-import { ColorPanelSkeleton } from './color-panel-skeleton'
 import { ColorSlider } from './color-slider'
 import { ColorSwatches } from './color-swatches'
 import { hsvaToCss } from './color-utilities'
@@ -41,14 +39,9 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  * (default) or an HSVA object through `value` / `onValueChange` per `format`.
  */
 export function ColorPanel(props: ColorPanelProps) {
-	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
 	const size = props.size ?? inherited.size
-
-	if (skeleton) {
-		return <ColorPanelSkeleton size={props.size} className={props.className} />
-	}
 
 	return <ColorPanelInner {...props} size={size} />
 }

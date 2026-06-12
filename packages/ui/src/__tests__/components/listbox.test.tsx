@@ -112,18 +112,6 @@ describe('Listbox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-			{ skeleton: true },
-		)
-
-		expect(bySlot(container, 'listbox-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
 		const { container } = renderUI(
 			<Listbox>

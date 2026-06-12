@@ -112,13 +112,6 @@ describe('DatePicker', () => {
 		expect(container.textContent).toContain('1/15/2025')
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<DatePicker />, { skeleton: true })
-
-		expect(bySlot(container, 'datepicker-button')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	it('opens the calendar content when the trigger is clicked', async () => {
 		const user = userEvent.setup()
 

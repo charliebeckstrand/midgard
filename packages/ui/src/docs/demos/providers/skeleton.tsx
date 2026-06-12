@@ -1,76 +1,50 @@
 import { useState } from 'react'
-import { Avatar } from '../../../components/avatar'
-import { Badge } from '../../../components/badge'
-import { Button } from '../../../components/button'
+import { Avatar, AvatarSkeleton } from '../../../components/avatar'
+import { BadgeSkeleton } from '../../../components/badge'
+import { Button, ButtonSkeleton } from '../../../components/button'
 import { Card, CardBody, CardHeader } from '../../../components/card'
-import { Checkbox } from '../../../components/checkbox'
-import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
+import { CheckboxSkeleton } from '../../../components/checkbox'
+import { ControlSkeleton } from '../../../components/control/control-skeleton'
 import { Flex } from '../../../components/flex'
-import { Heading } from '../../../components/heading'
+import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
-import { Radio } from '../../../components/radio'
-import { Switch } from '../../../components/switch'
-import { Text } from '../../../components/text'
-import { Textarea } from '../../../components/textarea'
-import { Skeleton } from '../../../providers/skeleton'
+import { RadioSkeleton } from '../../../components/radio'
+import { SwitchSkeleton } from '../../../components/switch'
+import { Text, TextSkeleton } from '../../../components/text'
+import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Example } from '../../components/example'
 
-export const meta = { category: 'Providers' }
+export const meta = { name: 'Skeletons', category: 'Feedback' }
 
-const dynamicComponents = [
-	{ name: 'Avatar', render: () => <Avatar size="md" /> },
-	{ name: 'Badge', render: () => <Badge>New</Badge> },
-	{ name: 'Button', render: () => <Button>Submit</Button> },
-	{
-		name: 'Card',
-		render: () => (
-			<Card>
-				<CardHeader>
-					<Heading level={3}>Title</Heading>
-				</CardHeader>
-				<CardBody>
-					<Text>The quick brown fox jumps over the lazy dog.</Text>
-				</CardBody>
-			</Card>
-		),
-	},
-	{ name: 'Checkbox', render: () => <Checkbox /> },
-	{ name: 'Heading', render: () => <Heading level={3}>The quick brown fox</Heading> },
-	{ name: 'Input', render: () => <Input placeholder="Email" /> },
-	{ name: 'Radio', render: () => <Radio /> },
-	{ name: 'Switch', render: () => <Switch /> },
-	{ name: 'Text', render: () => <Text>The quick brown fox jumps over the lazy dog.</Text> },
-	{ name: 'Textarea', render: () => <Textarea placeholder="Bio" /> },
+// Loading trees are composed explicitly: each component ships a
+// `<XSkeleton>` counterpart that mirrors its silhouette. The variants are
+// static leaves, so a Suspense fallback or loading.tsx can server-render
+// them.
+const skeletonGallery = [
+	{ name: 'Avatar', skeleton: <AvatarSkeleton /> },
+	{ name: 'Badge', skeleton: <BadgeSkeleton /> },
+	{ name: 'Button', skeleton: <ButtonSkeleton /> },
+	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
+	{ name: 'Control', skeleton: <ControlSkeleton /> },
+	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
+	{ name: 'Radio', skeleton: <RadioSkeleton /> },
+	{ name: 'Switch', skeleton: <SwitchSkeleton /> },
+	{ name: 'Text', skeleton: <TextSkeleton /> },
+	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
 ]
 
-function DynamicExample() {
-	const [selected, setSelected] = useState<string | undefined>('Button')
-
-	const active = dynamicComponents.find((c) => c.name === selected)
-
+function GalleryExample() {
 	return (
-		<Example
-			title="Dynamic skeletons"
-			actions={
-				<Combobox
-					value={selected}
-					displayValue={(v: string) => v}
-					onValueChange={setSelected}
-					placeholder="Search components"
-				>
-					{(query) =>
-						dynamicComponents
-							.filter((c) => !query || c.name.toLowerCase().includes(query.toLowerCase()))
-							.map((c) => (
-								<ComboboxOption key={c.name} value={c.name}>
-									<ComboboxLabel>{c.name}</ComboboxLabel>
-								</ComboboxOption>
-							))
-					}
-				</Combobox>
-			}
-		>
-			<Skeleton>{active?.render()}</Skeleton>
+		<Example title="Skeleton variants">
+			<div className="grid grid-cols-2 items-center gap-4">
+				{skeletonGallery.map((entry) => (
+					<Flex key={entry.name} gap="md" align="center">
+						<Text className="w-24">{entry.name}</Text>
+						{entry.skeleton}
+					</Flex>
+				))}
+			</div>
 		</Example>
 	)
 }
@@ -88,21 +62,21 @@ function FormExample() {
 				{ready ? 'Reset' : 'Simulate load'}
 			</Button>
 
-			<Skeleton ready={ready}>
+			<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
 				<Heading level={3}>Create account</Heading>
-			</Skeleton>
-			<Skeleton ready={ready}>
+			</ReadyReveal>
+			<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
 				<Input placeholder="Email" />
-			</Skeleton>
-			<Skeleton ready={ready}>
+			</ReadyReveal>
+			<ReadyReveal ready={ready} placeholder={<ControlSkeleton />}>
 				<Input placeholder="Password" type="password" />
-			</Skeleton>
-			<Skeleton ready={ready}>
+			</ReadyReveal>
+			<ReadyReveal ready={ready} placeholder={<TextareaSkeleton />}>
 				<Textarea placeholder="Bio" />
-			</Skeleton>
-			<Skeleton ready={ready}>
+			</ReadyReveal>
+			<ReadyReveal ready={ready} placeholder={<ButtonSkeleton />}>
 				<Button color="blue">Sign up</Button>
-			</Skeleton>
+			</ReadyReveal>
 		</>
 	)
 }
@@ -123,23 +97,23 @@ function ProfileCardExample() {
 			<Card bg="none">
 				<CardHeader>
 					<Flex gap="md">
-						<Skeleton ready={ready}>
+						<ReadyReveal ready={ready} placeholder={<AvatarSkeleton />}>
 							<Avatar initials="JD" />
-						</Skeleton>
+						</ReadyReveal>
 						<div className="flex-1 space-y-1">
-							<Skeleton ready={ready}>
+							<ReadyReveal ready={ready} placeholder={<HeadingSkeleton level={3} />}>
 								<Heading level={3}>Jane Doe</Heading>
-							</Skeleton>
-							<Skeleton ready={ready}>
+							</ReadyReveal>
+							<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
 								<Text>Senior Engineer</Text>
-							</Skeleton>
+							</ReadyReveal>
 						</div>
 					</Flex>
 				</CardHeader>
 				<CardBody>
-					<Skeleton ready={ready}>
+					<ReadyReveal ready={ready} placeholder={<TextSkeleton />}>
 						<Text>Design systems & component libraries.</Text>
-					</Skeleton>
+					</ReadyReveal>
 				</CardBody>
 			</Card>
 		</>
@@ -149,7 +123,7 @@ function ProfileCardExample() {
 export function Demo() {
 	return (
 		<>
-			<DynamicExample />
+			<GalleryExample />
 
 			<Example title="Form">
 				<FormExample />

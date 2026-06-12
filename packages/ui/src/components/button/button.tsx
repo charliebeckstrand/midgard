@@ -9,14 +9,12 @@ import { useResolvedSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
-import { useSkeleton } from '../../providers/skeleton'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { useHeadless } from '../headless/context'
 import { Link } from '../link'
 import { LoadingSpinner, type LoadingSpinnerProps } from '../loading'
 import { buttonSpring, loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
-import { ButtonSkeleton } from './button-skeleton'
 import { isIconElement } from './button-utilities'
 
 type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
@@ -45,7 +43,8 @@ export type ButtonProps = ButtonBaseProps &
  * Polymorphic action control: renders a `<button>` or, when `href` is set,
  * a `<Link>` anchor. Resolves `size` against enclosing Density, swaps in a
  * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
- * and degrades to skeleton or headless output under those providers.
+ * and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
+ * in loading trees.
  */
 export function Button({
 	variant,
@@ -69,8 +68,6 @@ export function Button({
 
 	const headless = useHeadless()
 
-	const skeleton = useSkeleton()
-
 	const resolvedSize = useResolvedSize(size)
 
 	if (headless) {
@@ -86,10 +83,6 @@ export function Button({
 				{children}
 			</ButtonHeadless>
 		)
-	}
-
-	if (skeleton) {
-		return <ButtonSkeleton size={size} className={className} />
 	}
 
 	// Non-icon children count as a text label; labeled buttons use control height

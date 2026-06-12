@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Button } from '../../components/button'
+import { Button, ButtonSkeleton } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { AffixContext } from '../../primitives/affix'
@@ -116,8 +116,8 @@ describe('Button', () => {
 		expect(onClick).not.toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Button>Save</Button>, { skeleton: true })
+	it('pairs with an explicit ButtonSkeleton in loading trees', () => {
+		const { container } = renderUI(<ButtonSkeleton />)
 
 		expect(bySlot(container, 'button')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

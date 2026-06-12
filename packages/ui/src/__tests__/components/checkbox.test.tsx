@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
+import { Checkbox, CheckboxField, CheckboxGroup, CheckboxSkeleton } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -46,8 +46,8 @@ describe('Checkbox', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(<Checkbox />, { skeleton: true })
+	it('pairs with an explicit CheckboxSkeleton in loading trees', () => {
+		const { container } = renderUI(<CheckboxSkeleton />)
 
 		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()

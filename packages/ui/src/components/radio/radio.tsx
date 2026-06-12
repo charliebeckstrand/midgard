@@ -2,10 +2,8 @@
 
 import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
-import { useSkeleton } from '../../providers/skeleton'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControlToggle } from '../control/use-control-toggle'
-import { RadioSkeleton } from './radio-skeleton'
 
 export type RadioProps = RadioVariants & {
 	className?: string
@@ -32,10 +30,6 @@ export function Radio({
 		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlToggle({ id, disabled, required, size, 'aria-describedby': ariaDescribedBy })
-
-	if (useSkeleton()) {
-		return <RadioSkeleton className={className} />
-	}
 
 	return (
 		<label

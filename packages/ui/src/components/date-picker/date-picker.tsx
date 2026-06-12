@@ -2,10 +2,8 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
-import { useSkeleton } from '../../providers/skeleton'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
-import { ControlSkeleton } from '../control/control-skeleton'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerRange } from './date-picker-range'
@@ -59,14 +57,9 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
  */
 export function DatePicker(props: DatePickerProps) {
-	const skeleton = useSkeleton()
 	const inherited = useDensity()
 
 	const resolvedSize: ControlSize = props.size ?? inherited.size
-
-	if (skeleton) {
-		return <ControlSkeleton size={props.size} className={props.className} />
-	}
 
 	if (props.range) {
 		return <DatePickerRange {...props} size={resolvedSize} />

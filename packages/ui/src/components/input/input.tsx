@@ -7,11 +7,9 @@ import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { DensityScope, useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
-import { useSkeleton } from '../../providers/skeleton'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
-import { ControlSkeleton } from '../control/control-skeleton'
 import { useControlProps } from '../control/use-control-props'
 import { useHeadless } from '../headless/context'
 import { LoadingSpinner } from '../loading'
@@ -67,7 +65,6 @@ export function Input(props: InputProps) {
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()
-	const skeleton = useSkeleton()
 	const token = useControlSize(size)
 
 	const resolvedSize = token.size
@@ -128,10 +125,6 @@ export function Input(props: InputProps) {
 	const hasSuffix = resolvedSuffix != null && resolvedSuffix !== false
 
 	const hasAffix = hasPrefix || hasSuffix
-
-	if (skeleton) {
-		return <ControlSkeleton size={size} className={className} />
-	}
 
 	const affixStep = affixStepDown(resolvedSize)
 

@@ -166,18 +166,6 @@ describe('Combobox', () => {
 		expect(frame?.querySelector(':disabled')).toBe(bySlot(container, 'combobox-input'))
 	})
 
-	it('renders a placeholder in skeleton mode', () => {
-		const { container } = renderUI(
-			<Combobox>
-				<div>Option</div>
-			</Combobox>,
-			{ skeleton: true },
-		)
-
-		expect(bySlot(container, 'combobox-input')).not.toBeInTheDocument()
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	it('shows a clear button only when clearable and a value is set', () => {
 		const { container, rerender } = renderUI(
 			<Combobox<string> clearable value="v1" displayValue={(v) => v}>
