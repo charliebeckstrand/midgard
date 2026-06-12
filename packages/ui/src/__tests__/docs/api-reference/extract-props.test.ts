@@ -25,7 +25,7 @@ function propsOf(source: string): PropDef[] {
 
 	if (!fn || !param) throw new Error('No function Foo(props) in source')
 
-	return extractProps(fn, checker.getTypeAtLocation(param), null, new Map(), checker)
+	return extractProps('Foo', fn, checker.getTypeAtLocation(param), null, new Map(), checker)
 }
 
 function prop(props: PropDef[], name: string): PropDef {

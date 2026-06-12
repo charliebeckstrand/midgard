@@ -17,6 +17,12 @@ export type PropDef = {
 	 * and, when the props type is a union, present in every arm.
 	 */
 	required?: boolean
+	/**
+	 * Usage snippet applying only this prop, for props whose type alone
+	 * doesn't show the call shape (event handlers, object configs). Authored
+	 * `@example` JSDoc wins over generation.
+	 */
+	usage?: string
 }
 
 /**

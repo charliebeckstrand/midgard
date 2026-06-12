@@ -1,5 +1,6 @@
 import { ts } from 'ts-morph'
 import type { PropDef } from '../types'
+import { deriveUsage } from './derive-usage'
 import { extractReferences } from './extract-references'
 import { formatPropType } from './format-type'
 
@@ -10,9 +11,11 @@ type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[]; option
 /**
  * Resolve every project-authored prop the component accepts. `projectNames`
  * is the authoritative filter when an annotation is available; without one,
- * fall back to a per-symbol declaration-source heuristic.
+ * fall back to a per-symbol declaration-source heuristic. `component` names
+ * the tag in derived usage snippets.
  */
 export function extractProps(
+	component: string,
 	callable: ts.SignatureDeclaration,
 	propsType: ts.Type,
 	projectNames: ReadonlySet<string> | null,
@@ -32,7 +35,7 @@ export function extractProps(
 			continue
 		}
 
-		props.push(buildPropDef(collected, callable, defaults, checker))
+		props.push(buildPropDef(component, collected, callable, defaults, checker))
 	}
 
 	return props
@@ -92,6 +95,7 @@ function collectAllProperties(
 }
 
 function buildPropDef(
+	component: string,
 	collected: CollectedProp,
 	callable: ts.Node,
 	defaults: ReadonlyMap<string, string>,
@@ -123,6 +127,12 @@ function buildPropDef(
 	if (description) prop.description = description
 
 	if (!optional) prop.required = true
+
+	const firstType = propTypes[0]
+
+	const usage = firstType && deriveUsage(component, name, firstType, symbol, checker)
+
+	if (usage) prop.usage = usage
 
 	return prop
 }

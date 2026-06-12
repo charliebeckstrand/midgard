@@ -1,7 +1,15 @@
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { ts } from 'ts-morph'
 
 const PROJECT_ROOT = '/project'
+
+/**
+ * Directory holding `lib.*.d.ts`. ts-morph bundles its own compiler whose
+ * `getDefaultLibFilePath` points at a file that doesn't exist on disk, so the
+ * standard library resolves from the real `typescript` package instead.
+ */
+const TS_LIB_DIR = path.dirname(createRequire(import.meta.url).resolve('typescript'))
 
 /**
  * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
@@ -64,7 +72,11 @@ export function createInMemoryProgram(files: Record<string, string>): {
 
 			return readDiskSourceFile(filename, languageVersion)
 		},
-		getDefaultLibFileName: (opts) => ts.getDefaultLibFilePath(opts),
+		getDefaultLibFileName: (opts) => path.join(TS_LIB_DIR, ts.getDefaultLibFileName(opts)),
+		// Without this, `lib` entries resolve against a non-existent directory
+		// and the program silently loads no globals (`Cannot find global type
+		// 'Array'`).
+		getDefaultLibLocation: () => TS_LIB_DIR,
 		getCurrentDirectory: () => PROJECT_ROOT,
 		getCanonicalFileName: (filename) => filename,
 		useCaseSensitiveFileNames: () => true,

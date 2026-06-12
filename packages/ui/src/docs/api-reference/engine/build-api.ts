@@ -89,7 +89,9 @@ function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Component
 
 	const defaults = extractDefaults(callable)
 
-	const props = propsType ? extractProps(callable, propsType, projectNames, defaults, checker) : []
+	const props = propsType
+		? extractProps(decl.name, callable, propsType, projectNames, defaults, checker)
+		: []
 
 	const api: ComponentApi = { name: decl.name, props }
 
