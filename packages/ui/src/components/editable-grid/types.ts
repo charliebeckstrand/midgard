@@ -1,8 +1,10 @@
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from 'react'
 import type { DataTableColumn } from '../data-table'
 
+/** Zero-based cell position within the grid, in display order. */
 export type Coord = { row: number; col: number }
 
+/** A single committed cell write: the parsed `value` for `columnId` on the row keyed by `rowKey`. */
 export type CellChange = {
 	rowKey: string | number
 	columnId: string | number
@@ -19,6 +21,8 @@ export type EditableGridAlign = 'left' | 'center' | 'right'
  * Props passed to a column's editor slot when it mounts in the active cell.
  * The grid owns the draft buffer, commit guard, and cursor advance; the slot
  * decides how to render the editor surface.
+ *
+ * @typeParam T - The row type backing the cell under edit.
  */
 export type EditableGridEditorProps<T> = {
 	row: T
@@ -41,8 +45,22 @@ export type EditableGridEditorProps<T> = {
 	selectAllOnFocus: boolean
 }
 
+/**
+ * Render function for a column's inline editor slot, invoked with
+ * {@link EditableGridEditorProps} when its cell enters edit mode.
+ *
+ * @typeParam T - The row type the editor reads from and writes back to.
+ */
 export type EditableGridEditor<T = unknown> = (props: EditableGridEditorProps<T>) => ReactNode
 
+/**
+ * A `DataTable` column augmented for inline editing: binds to a row `field`,
+ * supplies `format`/`parse` for the display/edit round-trip, and selects the
+ * `editor` slot. Drops the `DataTable` cell-render and pinning hooks the grid
+ * manages itself.
+ *
+ * @typeParam T - The row type the column reads from and writes back to.
+ */
 export type EditableGridColumn<T> = Omit<
 	DataTableColumn<T>,
 	'cell' | 'cellProps' | 'pinned' | 'hideable'

@@ -49,6 +49,12 @@ export type A11yDisclosure = {
  * component's context provider) or, when the trigger and panel are independent
  * components, call it in each with a shared `id` plus a per-pair `key`; the
  * ids derive purely from those, and both calls produce the same pair.
+ *
+ * @returns An `A11yDisclosure`: the matched `triggerId` / `panelId` and a
+ * `triggerProps` / `panelProps` bag to spread onto each side (`aria-expanded`
+ * present on `triggerProps` only when `expanded` is supplied).
+ * @see {@link useA11yPanel}
+ * @see {@link useA11yScope}
  */
 export function useA11yDisclosure({
 	id,

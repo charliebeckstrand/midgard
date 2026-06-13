@@ -1,29 +1,22 @@
 import type { Validators } from './form-reducer'
 
+/** A single validation issue in the Zod `safeParse` shape: a `path` whose head names the field and a human-readable `message`. */
 export type ZodIssue = { path: ReadonlyArray<PropertyKey>; message: string }
 
+/** The minimal `safeParse` return this resolver reads: a success flag, and on failure an `error.issues` list of {@link ZodIssue}. */
 export type ZodParseResult =
 	| { success: true }
 	| { success: false; error: { issues: ReadonlyArray<ZodIssue> } }
 
+/** Structural minimum a schema must satisfy to be used here: a `safeParse` returning a {@link ZodParseResult}. Zod, Valibot, ArkType, or a hand-rolled object all qualify. */
 export type ZodLike = { safeParse: (input: unknown) => ZodParseResult }
 
 /**
- * Adapt a Zod-shaped schema (anything exposing `safeParse`) to the
- * `Validators<T>` map that `<Form>` consumes. The library takes no dependency
- * on `zod` itself; Valibot, ArkType, or a hand-rolled schema with the same
- * shape all plug in.
+ * Groups issues by `path[0]`, preserving schema order, de-duplicating messages,
+ * and dropping form-level issues (`path: []`).
  *
- * Parses the whole schema once per `values` identity and caches the result;
- * per-field calls inside one reducer pass hit the cache. Cross-field
- * refinements read from the same memoized parse.
- *
- * Collects every issue at `path[0] === <field>`, preserving schema order
- * and de-duplicating identical messages. Drops form-level issues
- * (`path: []`); attach them to a real field via `.refine(..., { path: ['…'] })`.
+ * @internal
  */
-// Groups issues by `path[0]`, preserving schema order, de-duplicating
-// messages, and dropping form-level issues (`path: []`).
 function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] | undefined> {
 	const next: Record<string, string[] | undefined> = {}
 
@@ -44,6 +37,25 @@ function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string
 	return next
 }
 
+/**
+ * Adapts a Zod-shaped schema (anything exposing `safeParse`) into the
+ * `Validators<T>` map that {@link Form} consumes. Takes no dependency on `zod`
+ * itself, so Valibot, ArkType, or a hand-rolled schema with the same shape all
+ * plug in.
+ *
+ * @param schema - A {@link ZodLike} schema validating the whole value record.
+ * @param defaultValues - The form's defaults; their keys determine which
+ * per-field validators are generated.
+ * @returns A `Validators<T>` map with one validator per field, suitable for
+ * `Form`'s `validate` prop.
+ * @typeParam T - The form-value record shape.
+ * @remarks Parses the whole schema once per `values` identity and caches the
+ * result, so per-field calls within one reducer pass — and any cross-field
+ * refinements — share the same memoized parse. Collects every issue at
+ * `path[0] === <field>`, preserving schema order and de-duplicating identical
+ * messages. Drops form-level issues (`path: []`); attach them to a real field
+ * via `.refine(..., { path: ['…'] })`.
+ */
 export function zodResolver<T extends Record<string, unknown>>(
 	schema: ZodLike,
 	defaultValues: T,

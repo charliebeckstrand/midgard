@@ -7,10 +7,13 @@ import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
 import { PopoverContext } from './context'
 
+/** Props for {@link Popover}: floating `placement`, controlled `open` state, and an exit-animation callback. */
 export type PopoverProps = {
+	/** @defaultValue 'bottom' */
 	placement?: Placement
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
+	/** Fires once the close animation finishes and the panel unmounts. */
 	onExitComplete?: () => void
 	className?: string
 	children: ReactNode

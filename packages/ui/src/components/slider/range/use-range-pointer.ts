@@ -8,9 +8,14 @@ import { useRangeUpdate } from './use-range-update'
 
 type ThumbRef = { current: ThumbIndex | null }
 
-// Stacked thumbs defer until the first move reveals direction. Returns the
-// thumb now being dragged, or null to keep waiting (no movement yet, or pinned
-// at a boundary).
+/**
+ * Resolves which thumb a move drives. Stacked thumbs defer until the first move
+ * reveals direction.
+ *
+ * @returns The thumb now being dragged, or null to keep waiting (no movement
+ * yet, or pinned at a boundary).
+ * @internal
+ */
 function resolveDraggingThumb(
 	clientX: number,
 	draggingRef: ThumbRef,
@@ -40,8 +45,12 @@ function resolveDraggingThumb(
 	return thumb
 }
 
-// After `useRangeUpdate` re-sorts on swap, follow `draggingRef` to the new
-// slot of the written value.
+/**
+ * After `useRangeUpdate` re-sorts on swap, follows `draggingRef` to the new
+ * slot of the written value.
+ *
+ * @internal
+ */
 function applySwapResort(
 	dragging: ThumbIndex,
 	snapped: number,
@@ -52,6 +61,13 @@ function applySwapResort(
 	else if (dragging === 1 && snapped < current[0]) draggingRef.current = 0
 }
 
+/**
+ * Pointer control for a range slider's two thumbs: pointerdown grabs the
+ * closest thumb (or, on a stack, defers to the first move's direction), drag
+ * writes the snapped value, and capture-end resets the drag.
+ *
+ * @returns Pointer handlers to spread on the track.
+ */
 export function useRangePointer(opts: {
 	min: number
 	max: number

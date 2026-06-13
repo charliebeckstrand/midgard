@@ -9,8 +9,13 @@ import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import type { ToolbarOrientation } from './types'
 
+/** Props for {@link Toolbar}. Requires `aria-label` or `aria-labelledby`. */
 export type ToolbarProps = AccessibleName &
 	Omit<ToolbarVariants, 'orientation'> & {
+		/**
+		 * Layout axis and arrow-key navigation direction.
+		 * @defaultValue 'horizontal'
+		 */
 		orientation?: ToolbarOrientation
 		className?: string
 		children?: ReactNode

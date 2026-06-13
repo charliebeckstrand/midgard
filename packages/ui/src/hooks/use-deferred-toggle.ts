@@ -28,6 +28,12 @@ type DeferredToggleOptions<T> = {
  * Read `selectionValue` for the menu's selected state and wire `flushPending` to
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly for
  * cases that stay open (e.g. multi-select), where the selection updates live.
+ *
+ * @returns `{ toggle, commit, flushPending, selectionValue }`. `toggle(v)`
+ * applies the live add/remove/clear; `commit(v)` toggles and freezes the
+ * rendered selection for the close animation; `flushPending` releases the
+ * freeze (wire to exit-complete); `selectionValue` is the frozen-or-live value
+ * the menu paints as selected.
  */
 export function useDeferredToggle<T>({
 	multiple,

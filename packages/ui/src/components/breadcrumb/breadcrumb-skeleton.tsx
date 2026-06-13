@@ -3,8 +3,9 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/breadcrumb'
 import { Placeholder } from '../placeholder'
 
+/** Props for {@link BreadcrumbSkeleton}; the placeholder crumb count. */
 export type BreadcrumbSkeletonProps = {
-	/** Crumb placeholders to render. */
+	/** Crumb placeholders to render. @defaultValue 3 */
 	items?: number
 	className?: string
 }

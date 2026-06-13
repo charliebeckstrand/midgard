@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
+/** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval`/`absolute` overrides over the `<time>` surface. */
 export type TimeAgoProps = Omit<
 	ComponentPropsWithoutRef<'time'>,
 	'dateTime' | 'children' | 'title'
@@ -16,11 +17,25 @@ export type TimeAgoProps = Omit<
 	locale?: string
 	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
 	interval?: number | 'auto'
-	/** Reveal the absolute time in a tooltip on hover/focus. @default false */
+	/**
+	 * Reveal the absolute time in a tooltip on hover/focus.
+	 * @defaultValue false
+	 */
 	absolute?: boolean
 }
 
-/** Self-refreshing relative timestamp rendered in a `<time>` element. Formats via `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and steps its refresh `interval` coarser as the value ages. */
+/**
+ * Self-refreshing relative timestamp rendered in a `<time>` element. Formats via
+ * `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and
+ * steps its refresh `interval` coarser as the value ages. Set `absolute` to reveal
+ * the full local time in a tooltip.
+ *
+ * @remarks
+ * Client-only clock: the first render on both server and client emits an empty
+ * `<time>` (no relative text), then the text appears after mount and refreshes on
+ * the resolved interval. This keeps hydration deterministic and the markup
+ * timezone-stable; lay out for the eventual text to avoid a shift on hydrate.
+ */
 export function TimeAgo({
 	date,
 	format,

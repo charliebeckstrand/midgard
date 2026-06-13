@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { type DensityLevel, densityToSize } from '../../providers/density/context'
 import { k } from '../../recipes/kata/table'
 
+/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `grid` borders, and zebra `striped` rows. */
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Explicit. The table projects the
@@ -17,11 +18,13 @@ export type TableVariants = {
 	striped?: boolean
 }
 
+/** Attributes spread onto the underlying `<table>` element, including a `ref` and arbitrary `data-*` keys. */
 export type TableElementProps = ComponentPropsWithoutRef<'table'> & {
 	ref?: Ref<HTMLTableElement>
 	[key: `data-${string}`]: string | number | boolean | undefined
 }
 
+/** Props for {@link Table}: the {@link TableVariants} modifiers plus a `tableProps` escape hatch onto the `<table>` element. */
 export type TableProps = TableVariants & {
 	className?: string
 	children?: ReactNode

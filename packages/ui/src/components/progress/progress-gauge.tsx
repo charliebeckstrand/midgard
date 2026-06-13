@@ -12,17 +12,35 @@ import { GAUGE_VIEW_BOX } from './progress-gauge-constants'
 
 type ProgressColor = keyof typeof k.color
 
+/**
+ * Props for {@link ProgressGauge}. Requires an accessible name (`aria-label` or
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ */
 // `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressGaugeProps = AccessibleName &
 	ProgressGaugeVariants & {
+		/** @defaultValue 0 */
 		value?: number
+		/** @defaultValue 100 */
 		max?: number
+		/** @defaultValue 'zinc' */
 		color?: ProgressColor
+		/** Center label; pass `true` to render the rounded percentage, or a node for custom content. */
 		label?: ReactNode | boolean
+		/**
+		 * Ring thickness in viewBox units.
+		 * @defaultValue 3.5
+		 */
 		strokeWidth?: number
 		className?: string
 	}
 
+/**
+ * Circular (radial) progress indicator rendered as a `role="progressbar"` over
+ * an SVG ring whose arc animates to the clamped percentage, with an optional
+ * center `label`. Resolves `size` against enclosing Density and respects
+ * reduced-motion.
+ */
 export function ProgressGauge({
 	value = 0,
 	max = 100,

@@ -12,6 +12,7 @@ import { TableHead, TableHeader, TableRow } from '../table'
 import { useDataTable } from './context'
 import type { DataTableColumn } from './types'
 
+/** Props for {@link DataTableHead}. @internal */
 type DataTableHeadProps<T> = {
 	columns: DataTableColumn<T>[]
 	hasRows: boolean
@@ -19,6 +20,11 @@ type DataTableHeadProps<T> = {
 	virtualized?: boolean
 }
 
+/**
+ * Header row for {@link DataTable}: a select-all checkbox in the selectable
+ * column and a sort toggle per sortable column, reading selection and sort state
+ * from {@link useDataTable}.
+ */
 export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHeadProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useDataTable()
 
@@ -68,6 +74,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 	)
 }
 
+/** Props for {@link DataTableColumnHeader}. @internal */
 type DataTableColumnHeaderProps = {
 	column: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
 	colIndex: number | undefined
@@ -77,8 +84,12 @@ type DataTableColumnHeaderProps = {
 	toggleSort: (column: string | number) => void
 }
 
-// `aria-sort` only applies to a sortable column: the active direction, or
-// 'none' when sortable but not the sort column.
+/**
+ * `aria-sort` for a column: the active direction, `'none'` when sortable but not
+ * the sort column, and `undefined` when not sortable.
+ *
+ * @internal
+ */
 function ariaSortValue(
 	sortable: boolean | undefined,
 	sorted: boolean,
@@ -91,6 +102,7 @@ function ariaSortValue(
 	return direction === 'asc' ? 'ascending' : 'descending'
 }
 
+/** Up/down arrow for the active sort column, or `null` when unsorted. @internal */
 function sortDirectionIcon(
 	sorted: boolean,
 	direction: 'asc' | 'desc' | undefined,
@@ -104,6 +116,7 @@ function sortDirectionIcon(
 	return null
 }
 
+/** Single column header cell; renders a sort-toggle button when the column is sortable. @internal */
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	column,
 	colIndex,

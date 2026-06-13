@@ -10,13 +10,16 @@ import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { LoadingSpinner } from '../loading'
 
+/** Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`) plus a loading flag and clear callback. */
 export type SearchInputProps = Omit<
 	InputProps,
 	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue'
 > & {
 	value?: string
 	defaultValue?: string
+	/** Replaces the clear button with a spinner suffix while a query is in flight. */
 	loading?: boolean
+	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
 	onClear?: () => void
 }
 

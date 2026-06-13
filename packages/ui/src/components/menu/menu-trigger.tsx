@@ -11,10 +11,17 @@ import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useMenuActions, useMenuState } from './context'
 
+/** Props for {@link MenuTrigger}: either a single child element to clone or native `<button>` attributes. */
 export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
 	| ComponentPropsWithoutRef<'button'>
 
+/**
+ * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
+ * or renders its own `<button>`, wiring `aria-haspopup="menu"`,
+ * `aria-expanded`, and `aria-controls` and toggling open state on click while
+ * composing with the consumer's own `onClick`.
+ */
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 	const { setOpen, triggerRef, setReference } = useMenuActions()

@@ -12,6 +12,7 @@ import {
 } from './credit-card-input-utilities'
 import type { CreditCardBrand } from './types'
 
+/** Props for {@link CreditCardInput}; extends Input minus the masked value, change, and prefix slots. */
 export type CreditCardInputProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'prefix'
@@ -26,7 +27,16 @@ export type CreditCardInputProps = Omit<
 	prefix?: ReactNode
 }
 
-/** Numeric Input that masks card numbers into spaced groups; detects the brand and emits Luhn validity as you type. */
+/**
+ * Numeric Input that masks card numbers into brand-aware spaced groups as you
+ * type, detecting the brand from the digits and surfacing its label as the
+ * suffix. Emits the raw value, brand, and Luhn + length + pattern validity
+ * through `onValueChange`, `onBrandChange`, and `onValidityChange`, and binds
+ * to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
+ *
+ * @see {@link CreditCardInputExpiry}
+ * @see {@link CreditCardInputCvv}
+ */
 export function CreditCardInput({
 	value,
 	defaultValue,

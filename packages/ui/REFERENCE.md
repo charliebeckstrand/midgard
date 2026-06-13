@@ -1,30 +1,20 @@
 # REFERENCE.md
 
-> **Scope:** inventory of the `ui` package surface — components, hooks, primitives, providers, and the recipe system. Authoring conventions live in [`../../CONVENTIONS.md`](../../CONVENTIONS.md).
+> **Scope:** the hub for the `ui` package surface. The per-category inventories now live as curated, quick-glance docs under [`docs/`](docs); this file maps to them and keeps the cross-cutting architecture (the server/client boundary, how to compose a new component) that doesn't belong to a single category. Authoring conventions live in [`../../CONVENTIONS.md`](../../CONVENTIONS.md).
 
-## 1. Component inventory
+## 1. Surface map
 
-**Inputs & form fields** — `input` · `textarea` · `select` · `combobox` · `checkbox` · `radio` · `switch` · `slider` · `number-input` · `currency-input` · `credit-card-input` · `phone-input` · `zipcode-input` · `address-input` · `mask-input` · `date-input` · `date-picker` · `calendar` · `file-upload` · `search-input` · `tag-input` · `signature-pad` · `password-input` · `password-confirm` · `password-strength` · `toggle-icon-button`
+| Surface | Doc | Contents |
+|---|---|---|
+| Components | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) | Every component, grouped by domain (inputs, overlays, data display, layout, …). |
+| Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks` — state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
+| Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*` — floating/overlay shells, polymorphism, the styling-context cascades. |
+| Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*` — density, glass, locale, motion, toast, and the app-root `UIProvider`. |
+| Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer — Kiso tokens → Katakana bridge → Kata, plus the recipe engine. |
+| Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
+| Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, caret, dismiss-layers, keyboard navigation). |
 
-**Form structure** — `form` · `fieldset` · `control` · `submit-button`
-
-**Buttons & actions** — `button` · `copy-button` · `hold-button`
-
-**Navigation** — `navbar` · `nav` · `sidebar` · `breadcrumb` · `menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
-
-**Overlays** — `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
-
-**Data display** — `data-table` · `table` · `editable-grid` · `pivot-table` · `query-builder` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `odometer` · `time-ago` · `status` · `badge` · `avatar` · `kbd` · `code`
-
-**Layout & surfaces** — `box` · `flex` · `grid` · `stack` · `group` · `split` · `container` · `card` · `frame` · `glass` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
-
-**Typography** — `heading` · `text` · `shiny-text` · `icon`
-
-**Feedback** — `loading` · `progress`
-
-**Domain & specialized** — `map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
-
-**Escape hatches** — `headless`
+Per-symbol behavior, props, and defaults live in each symbol's TSDoc; the docs site (`pnpm docs`) renders them alongside live demos. Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
 ## 2. Server and client boundaries
 
@@ -44,34 +34,7 @@ The boundary rule: ambient styling state crosses the server/client boundary thro
 
 Follow-up candidates that still read ambient context for styling or formatting only: `locale` (an API decision: explicit props or app wrappers, since formats can't move to CSS) and `glass` (worth migrating once a static surface grows a glass variant; today every reader is client by necessity).
 
-## 3. Hooks, primitives, providers
-
-**Hooks** (`ui/hooks`):
-
-- *State* — `useControllable` (controlled/uncontrolled value), `useDeferredToggle`, `useSelectableValueChange`
-- *Floating & overlays* — `useFloatingUI`, `useFloatingPanel`, `useFloatingDisclosure`, `useOffcanvas`, `useDismissable`, `useScrollLock`
-- *Interaction* — `useKeybindings`, `useKeyboardSettled`, `useHasHover`, `useMaskedInput`
-- *Accessibility* — `useA11yScope` (base), `useA11yPanel`, `useA11yControl`, `useA11yDisclosure` (trigger/panel pairing), `useA11yRoving` (roving tabindex), `useA11yAutoFocus`, `useA11yLiveRegion`, `useA11yAnnouncements` (declarative live narration), `useAriaIds`
-- *Measurement & layout* — `useResizeObserver`, `useMediaQuery`, `useMinWidth`, `useIsTruncated`, `useScrollWithin`, `useIdScope`
-- *Drag & drop* — `useSortableItem`, `useSortableList`, `useSortableSensors`
-
-**Primitives** (`ui/primitives/<name>`) — `panel`, `overlay`, `popover`, `floating-surface`, `offcanvas`, `control`, `density`, `polymorphic`, `touch-target`, `reduced-motion`, `ready-reveal`, `active-indicator`, `affix`, `current`, `join`, `link`, `option`, `toggle`, `virtual-options`.
-
-**Providers** (`ui/providers/<name>`) — `density`, `link`, `locale`, `motion`, `toast`. Providers configure client components; static components take explicit props (§2).
-
-The screen-reader announcer needs no provider: import the imperative `announce` from `ui/core` for one-off messages, or `useA11yAnnouncements` (hooks) to narrate a changing value. Its live region is created on `document.body` on first use.
-
-## 4. Recipes
-
-Variants flow through a layered recipe system in `packages/ui/src/recipes/`:
-
-- **Kiso** (design tokens — primitive atoms plus semantic archetype bundles)
-- **Katakana** (the bridge — wires injected tokens into recipe surfaces; never imports kiso values)
-- **Kata** (per-component recipe; the only layer that touches kiso)
-
-A component reads one curated surface (`recipes/kata/<name>`) and exposes the result as props. The three ways a kata reaches the layers below, the boundary contract (cross-layer value imports are forbidden, pinned by tests), and the per-archetype tables live in [`src/recipes/README.md`](src/recipes/README.md).
-
-## 5. Composing a new component
+## 3. Composing a new component
 
 ```
 packages/ui/src/components/<name>/
@@ -87,9 +50,9 @@ packages/ui/src/components/<name>/
 
 When the folder name is plural, the singular stem prefixes its sub-files (`tabs/` → `tab.tsx`, `tab-list.tsx`). A namespace directory that ships only a family of parts has no `<name>.tsx` main — its barrel re-exports the parts directly (`dl`, `progress`, `resizable`, `status`). Both shapes, the bare-file allowlist, and the filename-matches-export rule are pinned by `component-filename-boundary.test.ts`.
 
-Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`.
+Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a demo and a test that renders via `renderUI()` and asserts on `data-slot`. Document the new public exports and add the component to [`docs/COMPONENTS.md`](docs/COMPONENTS.md) in the same change ([CONVENTIONS.md](../../CONVENTIONS.md) §12).
 
-## 6. Commands
+## 4. Commands
 
 | Goal | Where | Command |
 |---|---|---|
@@ -99,14 +62,16 @@ Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a de
 | Tests (scoped) | `packages/ui` | `pnpm test:related` / `pnpm test:changed` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
 
-## 7. Where to look
+## 5. Where to look
 
 | Goal | Path |
 |---|---|
 | Components | `packages/ui/src/components/<name>/*` |
 | Component demos | `packages/ui/src/docs/demos/*` |
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |
+| Curated surface docs | [`docs/`](docs) |
+| Point-in-time audits | [`docs/audits/`](docs/audits) |
 
 ---
 
-**See also:** [README.md](README.md), [`src/recipes/README.md`](src/recipes/README.md).
+**See also:** [README.md](README.md), [`docs/`](docs), [`src/recipes/README.md`](src/recipes/README.md).

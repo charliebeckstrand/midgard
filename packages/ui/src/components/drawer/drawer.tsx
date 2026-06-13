@@ -12,6 +12,7 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 
+/** Props for {@link Drawer}: open-state control, surface variant, density `size` cascade, and accessible naming. */
 export type DrawerProps = DrawerPanelVariants & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -37,9 +38,19 @@ export type DrawerProps = DrawerPanelVariants & {
 }
 
 /**
- * Animated overlay panel anchored to a screen edge; controlled via
- * `open`/`onOpenChange`. Opens a density cascade sized by `size`, with optional
- * `glass` surface treatment.
+ * Bottom-sheet overlay rendered in an `Overlay` with focus trapping and backdrop dismiss.
+ * Docks full-width to the bottom edge with a rounded top, slides up via the shared bottom
+ * motion preset, and drives open state controlled (`open`/`onOpenChange`) or uncontrolled
+ * (`defaultOpen`). Resolves the surface variant against the enclosing Glass provider and opens
+ * a Density cascade at the resolved `size` so descendants scale in step. Compose
+ * `<DrawerTrigger>`, `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
+ * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
+ *
+ * @remarks
+ * A registered `<DrawerTitle>` supplies `aria-labelledby` and takes precedence over the
+ * `aria-label` fallback. The panel stops click propagation so taps inside it never reach the
+ * backdrop dismiss handler, and shares a single open-state setter with its dismiss affordances
+ * via `PanelProviders`.
  */
 export function Drawer({
 	open,

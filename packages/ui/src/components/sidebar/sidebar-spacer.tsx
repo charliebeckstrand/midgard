@@ -3,6 +3,7 @@ import { cn } from '../../core'
 
 export type SidebarSpacerProps = ComponentPropsWithoutRef<'div'>
 
+/** Decorative `margin-top: auto` filler that pushes following sidebar content to the bottom edge. */
 export function SidebarSpacer({ className, ...props }: SidebarSpacerProps) {
 	return (
 		<div

@@ -28,6 +28,12 @@ export type A11yLiveRegionProps = {
  * landmark with matching `aria-live` / `aria-atomic`, optionally visually
  * hidden. For imperative, no-visible-home announcements use `announce` /
  * `useA11yAnnouncements` instead.
+ *
+ * @returns An `A11yLiveRegionProps` bag to spread onto the region element:
+ * `role` (`'status'` polite / `'alert'` assertive), `aria-live`, `aria-atomic`,
+ * and `className` (the `sr-only` class merged with any passed `className`, or
+ * undefined).
+ * @see {@link useA11yAnnouncements}
  */
 export function useA11yLiveRegion({
 	level = 'polite',

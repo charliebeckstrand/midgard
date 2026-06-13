@@ -10,10 +10,15 @@ import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 
-// Requires an accessible name.
+/** Props for {@link TabList}. Requires an accessible name (`aria-label` or `aria-labelledby`). */
 export type TabListProps = AccessibleName &
 	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
 
+/**
+ * `role="tablist"` container for `<Tab>` children. Manages roving focus along
+ * the resolved `orientation` and keeps exactly one tab tabbable via a
+ * MutationObserver, scoping the shared `<ActiveIndicator>` animation.
+ */
 export function TabList({ className, children, ...props }: TabListProps) {
 	const tabsContext = useTabsContext()
 

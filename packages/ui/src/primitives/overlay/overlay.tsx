@@ -39,6 +39,18 @@ type OverlayProps = {
 	modal?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
+/**
+ * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
+ * Drawer). Manages focus trapping, body scroll lock, dismissal, and the
+ * dimming backdrop; consumers render the panel as `children`.
+ *
+ * @remarks Client-only: returns `null` during SSR. Renders into the explicit
+ * `container`, else the ambient `<UIProvider>` portal node, else
+ * `document.body`. A `container` scopes the overlay to that element
+ * (`absolute`, no scroll lock); `modal={false}` drops the backdrop and focus
+ * management for transient pointer-driven surfaces. Fires the overlay signal
+ * on open so non-modal floats (tooltips) dismiss.
+ */
 export function Overlay({
 	open,
 	onOpenChange,

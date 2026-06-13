@@ -9,6 +9,7 @@ import { PdfViewerViewport } from './pdf-viewer-viewport'
 import type { PdfViewerPage } from './types'
 import { usePdfViewer } from './use-pdf-viewer'
 
+/** Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom/rotation defaults. */
 export type PdfViewerProps = {
 	/**
 	 * Pre-rendered page images, in order. When provided, drives what's rendered.

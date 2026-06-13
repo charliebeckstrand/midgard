@@ -1,9 +1,20 @@
+/**
+ * Materializes a DOM `FileList` (or `null`) into a real array.
+ *
+ * @returns The files as an array; empty when `fileList` is `null`.
+ */
 export function fileListToArray(fileList: FileList | null): File[] {
 	if (!fileList) return []
 
 	return Array.from(fileList)
 }
 
+/**
+ * Joins file names into a comma-separated label, e.g. for an input's display
+ * value.
+ *
+ * @returns The joined names, or `undefined` when there are no files.
+ */
 export function formatFileNames(files: File[]): string | undefined {
 	if (files.length === 0) return undefined
 

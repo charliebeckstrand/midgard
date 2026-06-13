@@ -2,7 +2,12 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k, type LoadingDotsVariants } from '../../recipes/kata/loading'
 
+/** Props for {@link LoadingDots}: recipe `size`/`color` plus an `sr-only` label and native `<output>` attributes. */
 export type LoadingDotsProps = LoadingDotsVariants & {
+	/**
+	 * Accessible label announced via the visually hidden `sr-only` span.
+	 * @defaultValue 'Loading'
+	 */
 	label?: string
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>

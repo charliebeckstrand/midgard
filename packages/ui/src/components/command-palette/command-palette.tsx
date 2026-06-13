@@ -18,11 +18,14 @@ import { useCommandPaletteState } from './use-command-palette-state'
 // Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
 const IGNORE_NOTHING = () => false
 
+/** Props for {@link CommandPalette}; inherits the Dialog `size` variant. */
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** @defaultValue 'Type a command or search' */
 	placeholder?: string
 	icon?: ReactNode
+	/** Close the palette when the backdrop is clicked. @defaultValue true */
 	dismissOnBackdrop?: boolean
 	className?: string
 	/**

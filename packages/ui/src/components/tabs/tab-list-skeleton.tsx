@@ -3,8 +3,12 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tabs'
 import { Placeholder } from '../placeholder'
 
+/** Props for {@link TabListSkeleton}. */
 export type TabListSkeletonProps = {
-	/** Tab line placeholders to render. */
+	/**
+	 * Tab line placeholders to render.
+	 * @defaultValue 3
+	 */
 	tabs?: number
 	size?: Step
 	className?: string

@@ -5,6 +5,11 @@ import { useCallback, useEffect, useState } from 'react'
 /**
  * Manages offcanvas sidebar state: open/close plus auto-close
  * when the viewport crosses the `--breakpoint-lg` threshold.
+ *
+ * @remarks Reads `--breakpoint-lg` off the document element; if the token is
+ * undefined the auto-close listener is skipped.
+ * @returns `{ open, setOpen, close }` — the open flag, its setter, and a
+ * memoized `close` convenience.
  */
 export function useOffcanvas() {
 	const [open, setOpen] = useState(false)

@@ -15,6 +15,7 @@ import { usePopoverContext } from './context'
 // Surface padding scales with the resolved Density size; overridable per-instance via `p`.
 const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, BoxPadding>
 
+/** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), padding/size, and the accessible name. */
 export type PopoverContentProps = {
 	className?: string
 	autoFocus?: boolean

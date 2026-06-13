@@ -8,6 +8,7 @@ import {
 	type ReactElement,
 } from 'react'
 
+/** Props for {@link PanelTrigger}: the clickable child plus the open handler and optional open state surfaced as ARIA. */
 export type PanelTriggerProps = {
 	children: ReactElement<
 		{ onClick?: MouseEventHandler } & Pick<AriaAttributes, 'aria-haspopup' | 'aria-expanded'>

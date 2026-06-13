@@ -29,6 +29,13 @@ import { useEditableGridSelection } from './use-editable-grid-selection'
 import { useEditableGridStore } from './use-editable-grid-store'
 import { useEditableGridWrapper } from './use-editable-grid-wrapper'
 
+/**
+ * Props for {@link EditableGrid}: the `columns`/`rows`/`getKey` data binding,
+ * the `onValueChange` commit sink, optional `sort`/`selection`/`virtualize`
+ * wiring forwarded to `DataTable`, and the `TableVariants` styling surface.
+ *
+ * @typeParam T - The row type backing each table row and cell edit.
+ */
 export type EditableGridProps<T> = TableVariants & {
 	columns: EditableGridColumn<T>[]
 	rows: T[]
@@ -63,7 +70,22 @@ export type EditableGridProps<T> = TableVariants & {
 	children?: never
 }
 
-/** Spreadsheet-style grid over `DataTable`: adds inline cell editing, keyboard navigation, and batch-apply on multi-row selections. */
+/**
+ * Spreadsheet-style editable grid layered over {@link DataTable}. Adds inline
+ * per-cell editing (text by default, or a column's `editor` slot), arrow/Tab
+ * keyboard navigation with range selection, paste, and batch-apply that writes
+ * one column value across every row in a multi-row selection. Each commit emits
+ * a {@link CellChange} batch through `onValueChange`; sort, selection, and
+ * virtualization forward to the underlying table. Exposes its cursor and edit
+ * state via {@link useEditableGrid}.
+ *
+ * @remarks
+ * Client component. The `<table>` carries `role="grid"` with
+ * `aria-activedescendant` tracking the active cell; `virtualize` requires
+ * `maxHeight`.
+ *
+ * @typeParam T - Shape of a single row.
+ */
 export function EditableGrid<T>({
 	columns,
 	rows,

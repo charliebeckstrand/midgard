@@ -3,11 +3,18 @@
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from './use-mask-input'
 
+/** Props for {@link MaskInput}: {@link InputProps} with `onChange` replaced by string-valued masking callbacks. */
 export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChange'> & {
 	value?: string
 	defaultValue?: string
+	/** Fires with the formatted value after each edit. */
 	onValueChange?: (value: string) => void
+	/** Maps a raw input string to its masked display form; runs on every keystroke. */
 	format: (raw: string) => string
+	/**
+	 * Predicate marking characters that count toward caret restoration, letting
+	 * the caret skip inserted mask literals (separators, fixed punctuation).
+	 */
 	meaningful?: (char: string) => boolean
 }
 

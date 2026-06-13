@@ -15,6 +15,7 @@ import { useMapRouteLayers } from './use-map-route-layers'
 
 const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
 
+/** Props for {@link MapRoute}: the route `data` plus per-status colors, stop markers, and interaction control. */
 export type MapRouteProps = {
 	data: RouteData
 	/** Line color for each segment status. Defaults: pending=zinc-400, active=blue-600, done=green-600. */
@@ -28,6 +29,11 @@ export type MapRouteProps = {
 	onSelect?: (route: RouteData) => boolean | undefined
 }
 
+/**
+ * Polyline route drawn on the enclosing {@link Map}, colored per segment status,
+ * with optional stop markers. Clicking the line opens a {@link MapRouteTimeline}
+ * sheet unless interaction is disabled. Must render within a `Map`.
+ */
 export function MapRoute({
 	data,
 	colors,

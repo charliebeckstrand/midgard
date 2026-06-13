@@ -6,10 +6,16 @@ import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
+/** Props for {@link Description}: the native `<p>` attributes plus `className`. */
 export type DescriptionProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className'>
 
+/**
+ * Help text for a form control, rendered as a `<p>`. While mounted it registers
+ * its id with the enclosing `<Field>`/`<Control>`, which folds it into the
+ * control's `aria-describedby`; resolves type scale from the Density cascade.
+ */
 export function Description({ className, id, ...props }: DescriptionProps) {
 	const control = useControl()
 

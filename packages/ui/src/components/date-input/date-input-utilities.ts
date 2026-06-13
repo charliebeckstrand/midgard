@@ -1,7 +1,13 @@
+/**
+ * Supported date layout for {@link DateInput}: month/day/year order and the
+ * segment separator. Drives masking, parsing, and the canonical display text.
+ */
 export type DateInputFormat = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
 
+/** One of the three date components. @internal */
 type DatePart = 'month' | 'day' | 'year'
 
+/** A single segment in a date layout. @internal */
 type Segment = {
 	part: DatePart
 	length: number
@@ -19,18 +25,24 @@ const layouts: Record<DateInputFormat, { separator: string; segments: Segment[] 
 	'YYYY-MM-DD': { separator: '-', segments: [year, month, day] },
 }
 
+/** Segment separator for a format (`/` or `-`). */
 export function dateInputSeparator(format: DateInputFormat): string {
 	return layouts[format].separator
 }
 
+/** Running mask state: closed segments and the segment being typed. @internal */
 type MaskState = {
 	done: string[]
 	current: string
 }
 
-// Capped segments (month/day) carry over: a leading digit too large to start
-// the segment, or a second digit that overflows the cap, zero-pads and closes
-// it. Returns the loop action, or null when no cap rule applies.
+/**
+ * Carries over a capped segment (month/day): a leading digit too large to start
+ * it, or a second digit that overflows the cap, zero-pads and closes it.
+ *
+ * @returns The loop action, or `null` when no cap rule applies.
+ * @internal
+ */
 function applyCapRule(
 	pending: string,
 	digit: number,
@@ -60,9 +72,14 @@ function applyCapRule(
 	return null
 }
 
-// Applies one character to the current segment. 'retry' re-runs the same
-// character against the next segment (a cap carry), 'stop' ends this
-// character, 'consumed' means it filled into the segment.
+/**
+ * Applies one character to the current segment.
+ *
+ * @returns `'retry'` to re-run the same character against the next segment (a
+ * cap carry), `'stop'` to end this character, `'consumed'` once it fills the
+ * segment.
+ * @internal
+ */
 function consumeMaskChar(
 	pending: string,
 	segment: Segment,
@@ -99,8 +116,12 @@ function consumeMaskChar(
 	return 'consumed'
 }
 
-// Joins the masked segments, appending a trailing separator to seat the caret
-// for the next one when a segment was just closed.
+/**
+ * Joins the masked segments, appending a trailing separator to seat the caret
+ * for the next one when a segment was just closed.
+ *
+ * @internal
+ */
 function joinMaskedSegments(state: MaskState, separator: string, segmentCount: number): string {
 	const { done, current } = state
 
@@ -162,6 +183,7 @@ export function formatDateValue(date: Date, format: DateInputFormat): string {
 
 const THIRTY_DAY_MONTHS = new Set([4, 6, 9, 11])
 
+/** Day count for a 1-based month, accounting for leap years. @internal */
 function daysInMonth(year: number, month: number): number {
 	if (month !== 2) return THIRTY_DAY_MONTHS.has(month) ? 30 : 31
 
@@ -218,6 +240,7 @@ export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
 	)
 }
 
+/** Comparable integer key for a date's calendar day, ignoring time. @internal */
 function dayKey(date: Date): number {
 	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
 }

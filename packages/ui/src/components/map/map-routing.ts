@@ -6,6 +6,7 @@ const DEFAULT_VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
 type Profile = 'driving' | 'walking' | 'cycling'
 
+/** Options for {@link fetchOsrmRoute}: the OSRM server, travel profile, and an abort signal. */
 export type FetchOsrmRouteOptions = {
 	/**
 	 * OSRM-compatible base URL. Defaults to the OSRM public demo server,
@@ -17,6 +18,7 @@ export type FetchOsrmRouteOptions = {
 	signal?: AbortSignal
 }
 
+/** Options for {@link fetchValhallaRoute}: the Valhalla server, travel profile, and an abort signal. */
 export type FetchValhallaRouteOptions = {
 	/**
 	 * Valhalla base URL. Defaults to the OSM community server, which has

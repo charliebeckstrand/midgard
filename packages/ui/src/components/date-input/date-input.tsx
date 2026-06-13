@@ -17,6 +17,11 @@ import {
 	parseDateText,
 } from './date-input-utilities'
 
+/**
+ * Props for {@link DateInput}. Extends {@link InputProps} but takes over the
+ * native `value`/`defaultValue`/`onChange`/`min`/`max` with `Date`-typed,
+ * masking-aware equivalents and fixes `type`/`inputMode`.
+ */
 export type DateInputProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange' | 'min' | 'max'

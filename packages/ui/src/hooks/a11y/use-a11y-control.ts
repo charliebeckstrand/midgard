@@ -38,6 +38,12 @@ export type A11yControl = {
  * tracks whether each slot is rendered, and composes `aria-describedby` /
  * `aria-labelledby` from only the registered ids. Id shape: `${id}-label`,
  * `${id}-description`, `${id}-error`.
+ *
+ * @returns An `A11yControl`: the composed `describedBy` / `labelledBy`
+ * references, the derived `labelId` / `descriptionId` / `messageId`, the
+ * `messageRegistered` flag for `aria-invalid`, and the `registerLabel` /
+ * `registerDescription` / `registerMessage` slot registrars.
+ * @see {@link useA11yScope}
  */
 export function useA11yControl(id: string): A11yControl {
 	const scope = useA11yScope({ id, slots: CONTROL_SLOTS })

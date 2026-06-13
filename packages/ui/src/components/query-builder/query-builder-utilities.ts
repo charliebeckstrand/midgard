@@ -16,6 +16,13 @@ function nextId(): string {
 	return `q${counter}_${Math.random().toString(36).slice(2, 8)}`
 }
 
+/**
+ * Creates a fresh {@link QueryRule} with a unique id, defaulting its operator to
+ * the field's first and its value to the type-appropriate empty value.
+ *
+ * @param field - Seeds the rule's field, operator, and value; omit for an empty rule.
+ * @param combinator - How the rule joins its preceding sibling. @defaultValue 'and'
+ */
 export function createRule(field?: QueryField, combinator: QueryCombinator = 'and'): QueryRule {
 	const operators = field ? getOperators(field) : []
 
@@ -29,6 +36,12 @@ export function createRule(field?: QueryField, combinator: QueryCombinator = 'an
 	}
 }
 
+/**
+ * Creates a fresh {@link QueryGroup} with a unique id.
+ *
+ * @param combinator - How the group joins its preceding sibling. @defaultValue 'and'
+ * @param children - Initial child nodes. @defaultValue `[]`
+ */
 export function createGroup(
 	combinator: QueryCombinator = 'and',
 	children: QueryNode[] = [],
@@ -81,6 +94,7 @@ const defaultOperators = {
 	],
 } satisfies Record<QueryFieldType, QueryOperator[]>
 
+/** Resolves the operators available for a field: its explicit `operators`, else the defaults for its type. */
 export function getOperators(field: QueryField): QueryOperator[] {
 	return field.operators ?? defaultOperators[field.type] ?? []
 }
@@ -128,6 +142,11 @@ export function mapNode(
 	return tree
 }
 
+/**
+ * Returns a new tree with `node` appended to the group identified by
+ * `parentId`. Returns the same `tree` reference when `parentId` is not found,
+ * keeping unrelated subtrees referentially equal for memoized descendants.
+ */
 export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): QueryGroup {
 	if (tree.id === parentId) return { ...tree, children: [...tree.children, node] }
 
@@ -150,6 +169,11 @@ export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): Q
 	return tree
 }
 
+/**
+ * Returns a new tree with the node identified by `id` removed, searching
+ * recursively. Returns the same `tree` reference when `id` is not found,
+ * keeping unrelated subtrees referentially equal for memoized descendants.
+ */
 export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 	const { children } = tree
 

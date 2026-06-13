@@ -12,6 +12,7 @@ import type { JsonValue } from './types'
 
 type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
+/** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize`/`maxHeight` windowing. */
 export type JsonTreeProps = {
 	/** The JSON value to render. */
 	data: JsonValue
@@ -37,7 +38,18 @@ export type JsonTreeProps = {
 	className?: string
 }
 
-/** Collapsible tree view for arbitrary JSON; supports search highlighting, controlled expansion, and optional row virtualization. */
+/**
+ * Collapsible `role="tree"` view for an arbitrary {@link JsonValue}. Expands to
+ * `defaultExpandDepth` by default, or runs controlled via `expanded` /
+ * `onExpandedChange`; `search` highlights and auto-expands matching nodes (and
+ * hides non-matches in filter mode). Roving-focus keyboard navigation moves
+ * between tree items. Under `virtualize`, flattens the visible tree to a linear
+ * list and renders only the viewport slice plus overscan.
+ *
+ * @remarks
+ * Client component. `virtualize` requires `maxHeight` (omitting it throws) and
+ * disables expand/collapse animation.
+ */
 export function JsonTree({
 	data,
 	rootKey,

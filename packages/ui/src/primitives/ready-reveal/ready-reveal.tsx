@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { ReducedMotion } from '../reduced-motion'
 
+/** Props for {@link ReadyReveal}. */
 export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
@@ -23,8 +24,15 @@ const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 const GRID_CELL = { gridArea: '1 / 1' } as const
 
 /**
- * Crossfades between a placeholder and real content.
- * The placeholder mirrors the content layout, keeping dimensions stable.
+ * Gates content on a `ready` flag, crossfading (opacity plus blur) from
+ * `placeholder` to `children` to avoid a flash of unready content. The two
+ * layers share one grid cell so the placeholder mirrors the content layout and
+ * dimensions stay stable across the swap.
+ *
+ * @remarks
+ * Wraps its layers in {@link ReducedMotion}, so the crossfade honours
+ * `prefers-reduced-motion`. The inactive layer is `inert` and `aria-hidden`,
+ * keeping it out of the tab order and accessibility tree.
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	return (

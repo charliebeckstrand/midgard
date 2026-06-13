@@ -17,6 +17,21 @@ type FileHandlersOptions = {
 	onReject?: (rejected: FileRejection[]) => void
 }
 
+/**
+ * Drives a hidden `<input type="file">`: opens the native picker, tracks the
+ * accepted selection, and wires drag-and-drop. Incoming files (picker or drop)
+ * are split through `partitionFiles` against `maxSize`/`maxCount`; accepted
+ * files fire `onFiles`, rejected ones fire `onReject`, and the accepted set is
+ * announced to a live region. Drag highlight uses a depth counter so nested
+ * children don't flicker `dragOver`; `disabled` short-circuits the picker and
+ * drop handling.
+ *
+ * @param options - Constraints (`maxSize`, `maxCount`), the `disabled` flag, and
+ * the `onFiles`/`onReject` callbacks.
+ * @returns The hidden input `ref`, current `dragOver` flag and accepted `files`,
+ * plus the `openPicker`, `handleChange`, and drag/drop event handlers to spread
+ * onto the trigger and dropzone.
+ */
 export function useFileUploadHandlers({
 	disabled,
 	maxSize,

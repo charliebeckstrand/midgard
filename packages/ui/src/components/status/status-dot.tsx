@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k, type StatusDotVariants } from '../../recipes/kata/status'
 
+/** Props for {@link StatusDot}: recipe variants (`variant`, `status`, `size`, `pulse`) plus an optional accessible `label` and `<span>` attributes. */
 export type StatusDotProps = StatusDotVariants & {
 	className?: string
 	/**
@@ -15,9 +16,17 @@ export type StatusDotProps = StatusDotVariants & {
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
 
 /**
- * Static leaf: renders in React Server Components. `size` is explicit and
- * defaults to `md`; hosts that render the dot (Avatar) pass their resolved
- * size.
+ * Colored status indicator dot: a `currentColor`-filled (`solid`) or
+ * `currentColor`-bordered (`outline`) circle whose hue encodes `status`
+ * (inactive/active/info/warning/error), optionally `pulse`-animated. A static
+ * leaf with no client hooks, so it renders in React Server Components.
+ *
+ * @remarks
+ * `size` is explicit and defaults to `md`; hosts that render the dot (Avatar)
+ * pass their resolved Density size rather than relying on the default. Color
+ * alone conveys status, so pass `label` for a standalone dot to name it via
+ * `role="img"` (WCAG 1.4.1 / 1.1.1) and omit it when the dot is decorative
+ * beside visible text.
  */
 export function StatusDot({
 	variant,

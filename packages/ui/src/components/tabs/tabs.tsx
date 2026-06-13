@@ -6,6 +6,7 @@ import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
+/** Props for {@link Tabs}: selection state plus the `variant`/`orientation`/`size` context broadcast to its list and panels. */
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	value?: string
 	defaultValue?: string

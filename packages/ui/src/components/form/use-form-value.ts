@@ -11,6 +11,7 @@ type FormValueOptions<T> = {
 	onValueChange?: (value: T | undefined) => void
 }
 
+/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, a `setTouched` for blur, and an `invalid` flag from any bound field's errors. */
 export type FormValueResult<T> = {
 	value: T | undefined
 	setValue: (value: SetValue<T>) => void
@@ -21,14 +22,23 @@ export type FormValueResult<T> = {
 }
 
 /**
- * `useControllable` bound to an enclosing Form field by `name`: the
- * value-typed analogue of `useFormText` / `useFormToggle` for controls that
- * emit `onValueChange` instead of change events.
+ * Binds `useControllable` to an enclosing Form field by `name`: the
+ * value-typed analogue of {@link useFormText} / {@link useFormToggle} for
+ * controls that emit `onValueChange` rather than DOM change events.
  *
- * Resolution mirrors Input's cascade: an explicit `value` prop wins; otherwise
- * a form field with this `name` drives the state (the store is the single
- * source of truth; `defaultValue` is ignored); otherwise the hook is plain
- * controlled / uncontrolled state.
+ * @param name - Field key to bind; undefined leaves the hook unbound (plain
+ * controlled/uncontrolled state).
+ * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
+ * may be a lazy initializer), and `onValueChange`.
+ * @returns A {@link FormValueResult} with `value`, `setValue`, `setTouched`,
+ * and `invalid`.
+ * @typeParam T - The control's value type.
+ * @remarks Resolution mirrors Input's cascade: an explicit `value` prop wins;
+ * otherwise a field with this `name` drives the state (the store is the single
+ * source of truth and `defaultValue` is ignored, with writes chaining
+ * `onValueChange`); otherwise the hook is plain controlled/uncontrolled state.
+ * Subscribes through {@link useFormField}, re-rendering only on this field's
+ * change.
  */
 export function useFormValue<T>(
 	name: string | undefined,

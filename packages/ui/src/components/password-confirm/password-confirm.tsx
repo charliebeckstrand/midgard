@@ -8,7 +8,9 @@ import { PasswordConfirmContext } from './context'
 import { handlePasswordInput } from './password-confirm-utilities'
 import { usePasswordConfirmState } from './use-password-confirm-state'
 
+/** Props for {@link PasswordConfirm}. */
 export type PasswordConfirmProps = {
+	/** Message shown while the two fields disagree (and the password has no form error). */
 	warning?: ReactNode
 	className?: string
 	children?: ReactNode

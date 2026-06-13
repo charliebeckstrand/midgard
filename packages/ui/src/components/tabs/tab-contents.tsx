@@ -6,9 +6,19 @@ import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 
+/** Props for {@link TabContents}; the `tab`-slotted `CurrentContents` surface. */
 export type TabContentsProps = Omit<ComponentPropsWithoutRef<typeof CurrentContents>, 'slotPrefix'>
+/** Props for {@link TabContent}; the `tab`-slotted `CurrentContent` surface. */
 export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
 
+/**
+ * Container that swaps `<TabContent>` panels by active value. In `fade` mode
+ * (default) inactive panels stay mounted and the container registers that with
+ * the Tabs context so every tab keeps its `aria-controls`; otherwise inactive
+ * panels unmount.
+ *
+ * @defaultValue fade - true
+ */
 export function TabContents({ fade = true, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 

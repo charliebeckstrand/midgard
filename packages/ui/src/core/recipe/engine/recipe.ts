@@ -1,24 +1,9 @@
 /**
- * defineRecipe: the recipe primitive.
+ * The recipe primitive: {@link defineRecipe} and its config expansion.
  *
- * Builds a callable recipe from a `RecipeConfig`:
- *
- *   - `base`, `variants`, `compound`, `defaults` apply in that order per
- *     call. Composition runs through `clsx` (conditional input) and
- *     `tailwind-merge` (conflict resolution).
- *   - `slots` are pre-merged at creation time and attached to the recipe
- *     as direct properties (`recipe.title`, `recipe.body`).
- *   - `palette` expands at creation time into an implicit `color` axis
- *     plus compound rules. See `palette.ts`.
- *   - `skeleton` is reserved at the config root and attaches to the
- *     recipe as `k.skeleton` with its caller-inferred type.
- *   - `extras` (optional second argument) attaches arbitrary kata-shaped
- *     siblings to the recipe: `motion`, sub-recipes, fragment maps.
- *     The returned recipe stays callable as `k({...})` and gains the
- *     extras as direct properties (`k.motion`).
- *
- * The kata exports the recipe as `k`; callers use `k(...)` for the variant
- * call and `k.title` for slot classes; one binding per kata.
+ * @remarks Per-call composition order is `base` → matching `variants` →
+ * `compound` rules; `slots` pre-merge at creation, `palette` expands into the
+ * `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
  */
 
 import type { ClassValue } from 'clsx'
@@ -45,6 +30,21 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 	'skeleton',
 ])
 
+/**
+ * Builds a callable recipe from a `RecipeConfig`: `base`, `variants`,
+ * `compound`, and `defaults` apply per call through `clsx` + `tailwind-merge`,
+ * `slots` pre-merge onto the recipe as direct properties, `palette` expands
+ * into an implicit `color` axis, and `extras` attach arbitrary kata-shaped
+ * siblings. The kata binds the result as `k`: `k(...)` for the variant call,
+ * `k.title` for slot classes.
+ *
+ * @param config - Recipe definition; reserved fields (`base`, `palette`,
+ * `compound`, `slots`, `defaults`, `skeleton`) are special-cased, every other
+ * top-level field becomes a variant axis.
+ * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
+ * fragment maps) attached as direct properties; the recipe stays callable.
+ * @see {@link expandPalette}
+ */
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
 export function defineRecipe<C extends RecipeConfig, X extends Record<string, unknown>>(
 	config: C,
@@ -81,6 +81,7 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	return recipe as Recipe<C> & X
 }
 
+/** True when every keyed condition in `rule` (ignoring `class`) equals the resolved value. @internal */
 function matches(rule: CompoundRule, values: Record<string, string | undefined>): boolean {
 	for (const [key, required] of Object.entries(rule)) {
 		if (key === 'class') continue
@@ -91,8 +92,12 @@ function matches(rule: CompoundRule, values: Record<string, string | undefined>)
 	return true
 }
 
-// Merges defaults with props (skipping null/undefined), coercing booleans and
-// numbers to strings for axis lookup.
+/**
+ * Merges defaults with props (skipping null / undefined), coercing booleans and
+ * numbers to strings for axis lookup.
+ *
+ * @internal
+ */
 function buildRecipeValues(
 	resolved: ResolvedConfig,
 	props: Record<string, unknown> | undefined,
@@ -114,7 +119,11 @@ function buildRecipeValues(
 	return values
 }
 
-// Composes base + matching variant axes + compound rules into the class list.
+/**
+ * Composes base + matching variant axes + compound rules into the class list.
+ *
+ * @internal
+ */
 function collectRecipeClasses(
 	resolved: ResolvedConfig,
 	values: Record<string, string | undefined>,

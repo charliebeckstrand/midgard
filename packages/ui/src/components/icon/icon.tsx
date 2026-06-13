@@ -3,6 +3,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/icon'
 import type { Size } from '../../types/size'
 
+/** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
 	icon: ReactElement
 	size?: Size | number

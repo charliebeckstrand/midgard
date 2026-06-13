@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/stepper'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
+/** Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content. */
 export type StepperStepProps = {
 	value: number
 	disabled?: boolean
@@ -58,6 +59,19 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
 	return [<StepperIndicator key="__auto-stepper-indicator" />, ...items]
 }
 
+/**
+ * A single step within a {@link Stepper}, identified by its `value` index.
+ * Derives its `completed`/`current`/`upcoming` state from the stepper's current
+ * value and exposes it to descendant indicator, title, and description slots.
+ * Injects a default `<StepperIndicator>` when none is supplied.
+ *
+ * @remarks
+ * Renders as a `<button>` (with `aria-current`, and `aria-controls` wiring to the
+ * matching `<StepperPanel>`) when the stepper has an `onValueChange` handler,
+ * otherwise a display-only `<div>`. In `linear` steppers, upcoming steps are
+ * disabled. In `vertical` orientation it splits children into an indicator column
+ * and a content column to align the title baseline with the indicator.
+ */
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
 	const {
 		value: currentValue,

@@ -100,14 +100,33 @@ type ComboboxMultipleProps<T> = {
 	onValueChange?: (value: T[]) => void
 }
 
+/**
+ * Props for {@link Combobox}, discriminated on `multiple` so `value`,
+ * `defaultValue`, and `onValueChange` resolve to single or array shapes.
+ *
+ * @typeParam T - The option value type.
+ */
 export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 /**
- * Type-ahead select pairing a text input with a floating option panel:
- * single or `multiple` selection, controlled or uncontrolled `value`, and an
- * optional `clearable` affordance. Children read the live and deferred query
- * through `useComboboxQuery()` for client-side filtering.
+ * Type-ahead select pairing a text input with a floating option panel.
+ * Supports single or `multiple` selection, controlled or uncontrolled `value`,
+ * and `clearable`/`nullable` affordances; resolves `size`, `disabled`,
+ * `readOnly`, and `required` against an enclosing `<Control>`/Density and
+ * registers with `<Form>` under `name`. Tracks the highlight as a virtual
+ * active-descendant (APG editable combobox) with DOM focus held on the input,
+ * re-anchoring across filter and async option changes. Filtering is
+ * consumer-driven: `children` read the live and deferred query via
+ * {@link useComboboxQuery} and render matching {@link ComboboxOption}s,
+ * supporting both synchronous lists and async option sources.
+ *
+ * @remarks
+ * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the
+ * placeholder is not a programmatic name. Composes `<ComboboxOption>` with
+ * optional `<ComboboxLabel>`/`<ComboboxDescription>` inside.
+ *
+ * @typeParam T - The option value type.
  */
 export function Combobox<T>({
 	id,

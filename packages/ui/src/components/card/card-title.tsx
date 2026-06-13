@@ -4,6 +4,7 @@ import type { Step } from '../../recipes'
 import { titleSize } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 
+/** Props for {@link CardTitle}: title-scale `size`, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {
 	className?: string
 	/** Step on the title type scale. Defaults to `md`; match a non-md `<Card size>` explicitly. */
@@ -12,7 +13,11 @@ export type CardTitleProps = {
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 } & Omit<ComponentPropsWithoutRef<'h3'>, 'className'>
 
-/** Static leaf: renders in React Server Components. */
+/**
+ * Heading for a card, rendered through `<Heading>` at `level` (default 3) with
+ * a title-scale `size` (default `md`). Static leaf: renders in React Server
+ * Components.
+ */
 export function CardTitle({ className, size, level = 3, children, ...props }: CardTitleProps) {
 	return (
 		<Heading

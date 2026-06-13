@@ -12,15 +12,23 @@ type CommandPaletteItemBaseProps = {
 	className?: string
 	children?: ReactNode
 	onAction?: () => void
-	/** Closes the palette after the action. Defaults to true. */
+	/** Close the palette after the action. @defaultValue true */
 	closeOnAction?: boolean
 }
 
 // Href discrimination comes from the shared PolymorphicProps. Rendered custom:
 // carries `role="option"`, roving tabindex, and palette-close on activation.
+/** Props for {@link CommandPaletteItem}; polymorphic over `<button>` and, when `href` is set, the configured Link. */
 export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
 	PolymorphicProps<'button', keyof CommandPaletteItemBaseProps>
 
+/**
+ * Selectable palette entry (`role="option"`): renders a `<button>` or, when
+ * `href` is set, a Link anchor, with roving tabindex and the input's
+ * active-descendant pointing at it. Runs the consumer `onClick` then
+ * `onAction`, closing the palette afterward unless `closeOnAction` is false;
+ * `disabled` items are inert on every input path.
+ */
 export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { close } = useCommandPaletteContext()
 

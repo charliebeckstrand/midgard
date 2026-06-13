@@ -28,6 +28,8 @@
 
 3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs scoped checks pre-commit and the full gate pre-push; CI gates merges.
 
+3.5 Touching a public `ui` export updates its TSDoc and the matching `packages/ui/docs/*` surface index in the same change ([CONVENTIONS.md](CONVENTIONS.md) §12).
+
 ## 4. Version Control
 
 4.1 For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)

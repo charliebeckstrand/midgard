@@ -6,13 +6,22 @@ import { k, type ToolbarGroupVariants } from '../../recipes/kata/toolbar'
 import { useToolbarContext } from './context'
 import type { ToolbarOrientation } from './types'
 
+/** Props for {@link ToolbarGroup}. */
 export type ToolbarGroupProps = Omit<ToolbarGroupVariants, 'orientation'> & {
+	/**
+	 * Cluster axis; inherits the enclosing `<Toolbar>` orientation when unset.
+	 * @defaultValue the parent toolbar's orientation
+	 */
 	orientation?: ToolbarOrientation
 	'aria-label'?: string
 	className?: string
 	children?: ReactNode
 }
 
+/**
+ * Visual cluster of related controls within a `<Toolbar>`, rendered as a
+ * `role="group"`. Inherits orientation from toolbar context unless overridden.
+ */
 export function ToolbarGroup({
 	orientation: orientationProp,
 	'aria-label': ariaLabel,

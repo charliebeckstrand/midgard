@@ -13,6 +13,7 @@ import { QueryBuilderRule } from './query-builder-rule'
 import { focusKeys } from './query-builder-utilities'
 import type { QueryCombinator, QueryGroup } from './types'
 
+/** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
 export type QueryBuilderGroupProps = {
 	group: QueryGroup
 	/** When true, the group is the root and omits its "remove" button. */
@@ -20,6 +21,12 @@ export type QueryBuilderGroupProps = {
 	className?: string
 }
 
+/**
+ * Renders one query group: its child rules and nested groups, each joined by an
+ * AND/OR combinator segment, plus "add rule"/"add group" actions. The root
+ * renders as a plain `<div>`; nested groups render as a labelled `<fieldset>`
+ * with a hold-to-remove control.
+ */
 export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
 	const { disabled } = useQueryBuilderState()
 

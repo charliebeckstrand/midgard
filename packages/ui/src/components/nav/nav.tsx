@@ -3,6 +3,7 @@
 import { type ComponentPropsWithoutRef, useMemo } from 'react'
 import { CurrentContext, type CurrentContextValue } from '../../primitives/current'
 
+/** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange`). */
 export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
 	value?: string
 	onValueChange?: (value: string | undefined) => void

@@ -18,6 +18,7 @@ import { ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'
 import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
+/** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName & {
 	/**
 	 * Controls icon size and text size for all items.

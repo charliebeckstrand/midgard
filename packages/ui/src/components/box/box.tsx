@@ -42,6 +42,13 @@ type BoxBaseProps = {
 	className?: string
 }
 
+/**
+ * Props for {@link Box}: spacing, radius, background, and outline tokens plus
+ * the polymorphic `as` / `render` surface. `Omitted` drops keys for consumers
+ * that fix a dimension (e.g. Card omits `radius`).
+ *
+ * @typeParam Omitted - Prop keys to remove from the public surface.
+ */
 export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, Omitted> &
 	PolymorphicStaticProps<'div', Omitted>
 

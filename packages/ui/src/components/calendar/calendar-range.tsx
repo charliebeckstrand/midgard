@@ -18,13 +18,18 @@ import {
 	toCalendarDate,
 } from './calendar-utilities'
 
+/** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
 	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date
+	/** Controlled first range endpoint; the band is painted from here to the effective end. */
 	rangeStart?: Date | null
+	/** Controlled second range endpoint; superseded by `hoverDate` while one is set for the in-progress preview. */
 	rangeEnd?: Date | null
+	/** Day under the pointer, used as the provisional end of the band before the second click commits `rangeEnd`. */
 	hoverDate?: Date | null
+	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
@@ -37,8 +42,12 @@ export type CalendarRangeProps = {
 	className?: string
 }
 
-// Range-painting flags for a single day cell: which endpoint it is, whether it
-// sits inside the range, and which visual edge (honoring reversed ranges).
+/**
+ * Range-painting flags for a single day cell: which endpoint it is, whether it
+ * sits inside the range, and which visual edge (honoring reversed ranges).
+ *
+ * @internal
+ */
 function computeRangeDayFlags(
 	date: Date,
 	rangeStart: Date | null | undefined,
@@ -62,7 +71,18 @@ function computeRangeDayFlags(
 	return { isEdge, isInnerRange: inRange && !isEdge, isLeftEdge, isRightEdge }
 }
 
-/** Range-aware variant of `Calendar`; paints the active range and tracks a hover date for the in-progress endpoint. */
+/**
+ * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
+ * per-day styling through `getDayProps`: paints the band between `rangeStart`
+ * and the effective end (the `hoverDate` preview when set, else `rangeEnd`),
+ * marks both endpoints selected, and rounds the leading/trailing edges in
+ * either selection order. Hover over a day reports it through `onHoverDate`
+ * for live in-progress feedback. Endpoint state is fully controlled by the
+ * parent; forwards `locale`, `size`, bounds, and the imperative `ref` to
+ * `Calendar`.
+ *
+ * @remarks Client component (`'use client'`).
+ */
 export function CalendarRange({
 	onValueChange,
 	min,

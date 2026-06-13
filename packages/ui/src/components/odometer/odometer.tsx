@@ -5,9 +5,18 @@ import { cn } from '../../core'
 import { formatInteger } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
+/** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */
 export type OdometerProps = {
 	value: number
+	/**
+	 * Tween length in milliseconds.
+	 * @defaultValue 800
+	 */
 	duration?: number
+	/**
+	 * Formats the numeric value for display.
+	 * @defaultValue rounds to an integer and applies locale grouping
+	 */
 	format?: (value: number) => string
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>

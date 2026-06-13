@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/placeholder'
 
+/** Props for {@link Placeholder}: native `<div>` attributes. */
 export type PlaceholderProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>

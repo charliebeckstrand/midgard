@@ -6,6 +6,7 @@ import type { DataTableColumnManagerConfig } from './data-table'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
 import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
+/** Element-wise reference equality between two arrays. @internal */
 function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	if (a === b) return true
 
@@ -18,16 +19,24 @@ function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	return true
 }
 
-// A column shows unless it's a hideable data column the user has hidden;
-// non-data and pinned columns always show.
+/**
+ * True unless `col` is a hideable data column the user has hidden; non-data and
+ * pinned columns always show.
+ *
+ * @internal
+ */
 function isColumnVisible<T>(col: DataTableColumn<T>, hiddenColumns: Set<string | number>): boolean {
 	if (!isDataColumn(col) || col.pinned) return true
 
 	return !hiddenColumns.has(col.id)
 }
 
-// Orders columns by the stored order, then appends any not represented (e.g.
-// added after mount), dropping hidden columns from both passes.
+/**
+ * Orders columns by the stored order, then appends any not represented (e.g.
+ * added after mount), dropping hidden columns from both passes.
+ *
+ * @internal
+ */
 function buildVisibleColumns<T>(
 	columns: DataTableColumn<T>[],
 	columnOrder: (string | number)[],
@@ -58,11 +67,13 @@ function buildVisibleColumns<T>(
 	return ordered
 }
 
+/** Options for {@link useDataTableColumns}. @internal */
 type DataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
 }
 
+/** Column slice returned by {@link useDataTableColumns}. @internal */
 type DataTableColumnsResult<T> = {
 	columnOrder: (string | number)[]
 	setColumnOrder: (next: (string | number)[]) => void

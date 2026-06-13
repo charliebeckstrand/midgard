@@ -4,6 +4,7 @@ import { headingScale, k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 import type { HeadingLevel } from './heading'
 
+/** Props for {@link HeadingSkeleton}: mirrors {@link HeadingProps} `level` and `size` to match the placeholder height. */
 export type HeadingSkeletonProps = {
 	level?: HeadingLevel
 	size?: Step

@@ -31,6 +31,13 @@ export type A11yPanel = {
  * Description ids, and only wires `aria-labelledby` / `aria-describedby` once
  * those slots register. Non-modal panels omit `aria-modal` so AT keeps the
  * rest of the page reachable, matching the surface's actual focus behavior.
+ *
+ * @returns An `A11yPanel`: `ariaProps` to spread onto the panel root (role,
+ * `aria-modal`, labelling refs) and `a11y`, the `A11yPanelProviderValue` to
+ * feed `PanelProviders` so the Title / Description slots register and adopt
+ * their ids.
+ * @see {@link useA11yScope}
+ * @see {@link useA11yDisclosure}
  */
 export function useA11yPanel(role: A11yPanelRole = 'dialog', modal = true): A11yPanel {
 	const scope = useA11yScope({ slots: PANEL_SLOTS })

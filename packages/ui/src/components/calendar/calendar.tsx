@@ -32,11 +32,13 @@ import {
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
 
+/** Identifies the currently active (roving-focus) cell across the calendar's header, grid, or footer zones. */
 export type CalendarActive =
 	| { zone: 'header'; index: 0 | 1 | 2 }
 	| { zone: 'grid'; date: Date }
 	| { zone: 'footer'; index: number }
 
+/** Imperative handle exposed via {@link Calendar}'s `ref`: month navigation, picker, and footer key routing for parent-driven control. */
 export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
@@ -44,6 +46,7 @@ export type CalendarHandle = {
 	footerKeyDown: (e: KeyboardEvent) => void
 }
 
+/** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */
 export type CalendarDayContextValue = {
 	date: Date
 	disabled: boolean
@@ -52,6 +55,7 @@ export type CalendarDayContextValue = {
 	active: boolean
 }
 
+/** Per-day overrides returned from {@link CalendarProps.getDayProps}: selection, button variant/color, hover handlers, and classes. */
 export type CalendarDayProps = {
 	selected?: boolean
 	variant?: ButtonVariants['variant']
@@ -61,6 +65,7 @@ export type CalendarDayProps = {
 	onMouseLeave?: () => void
 }
 
+/** Props for {@link Calendar}: value binding, range bounds, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
 export type CalendarProps = {
 	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` should seed `Date | null`. */
 	name?: string
@@ -69,9 +74,12 @@ export type CalendarProps = {
 	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date
+	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
 	active?: CalendarActive | null
 	onPickerOpenChange?: (open: boolean) => void
+	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
+	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/**
@@ -90,7 +98,21 @@ export type CalendarProps = {
 	className?: string
 }
 
-/** Single-date month-grid picker; exposes navigation, focus, and picker handles to a parent via `ref` for embedded use. */
+/**
+ * Single-date month-grid picker. Binds to an enclosing Form field by `name`
+ * (value-typed cascade) or falls back to controlled/uncontrolled `value`;
+ * `min`/`max` bound the selectable range. Resolves `size` and `locale` against
+ * enclosing Density and Locale providers, re-broadcasting the size to the
+ * header, grid, and day cells. Roving focus spans header, grid, and footer
+ * zones (tracked via `active`), and month changes are announced to screen
+ * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
+ * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
+ *
+ * @remarks
+ * Client component (`'use client'`). "Today" is resolved after mount only, so
+ * a server-rendered today can never mismatch the client across a day boundary
+ * or timezone offset. Use {@link CalendarRange} for two-endpoint selection.
+ */
 export function Calendar({
 	name,
 	value: valueProp,

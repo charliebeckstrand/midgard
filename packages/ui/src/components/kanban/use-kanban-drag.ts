@@ -5,6 +5,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { KanbanColumnBase } from './types'
 
+/** Dependencies threaded to {@link applyKanbanDragOver}. @internal */
 type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
 	onValueChange: ((next: C[]) => void) | undefined
 	columns: C[]
@@ -13,8 +14,12 @@ type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
 	findColumn: (id: string) => C | undefined
 }
 
-// Cross-column move during drag-over: pull the card from its column and splice
-// it into the column under the pointer. Same-column reorders wait for dragEnd.
+/**
+ * Cross-column move during drag-over: pulls the card from its column and splices
+ * it into the column under the pointer. Same-column reorders wait for dragEnd.
+ *
+ * @internal
+ */
 function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 	event: DragOverEvent,
 	deps: KanbanDragDeps<T, C>,
@@ -75,6 +80,13 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 	onValueChange(next)
 }
 
+/**
+ * Pointer drag-and-drop for the {@link Kanban} board via `@dnd-kit`. Tracks the
+ * `activeId` and overlay, applies cross-column moves live on drag-over and
+ * commits same-column reorders on drag-end, emitting the next columns through
+ * `onValueChange`. Returns the active id, overlay map, per-column item ids, and
+ * the dnd-kit drag handlers.
+ */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,

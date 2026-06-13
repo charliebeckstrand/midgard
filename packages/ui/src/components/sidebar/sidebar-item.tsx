@@ -20,9 +20,13 @@ export type SidebarItemProps = NavItemProps & {
 	size?: Step
 }
 
-// Current-state attributes and class for the inner button. With an affix the
-// row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
-// square via the button recipe.
+/**
+ * Current-state attributes and class for the inner button. With an affix the
+ * row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
+ * square via the button recipe.
+ *
+ * @internal
+ */
 function sidebarItemButtonProps(
 	item: ReturnType<typeof useNavItem>,
 	hasAffix: boolean,
@@ -40,6 +44,15 @@ function sidebarItemButtonProps(
 	}
 }
 
+/**
+ * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
+ * `href` is set) marked `aria-current="page"` while `current`. Wraps in an
+ * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
+ * flips the row to a flex layout whose slots join the cross-axis roving model
+ * and sit inside the shared hover tint and focus ring. Under the parent's mini
+ * rail the label is hidden in place (preserving the accessible name) and echoed
+ * into a hover tooltip.
+ */
 export function SidebarItem({
 	icon,
 	current,

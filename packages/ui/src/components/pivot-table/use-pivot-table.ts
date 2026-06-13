@@ -11,18 +11,27 @@ import {
 } from './pivot-table-pivot'
 import type { PivotAggregation } from './types'
 
+/**
+ * The fields naming the pivot's row dimension, column dimension, and aggregated
+ * value, as keys of `T`.
+ *
+ * @typeParam T - The shape of each source row.
+ */
 export type PivotTableKeys<T> = {
 	row: keyof T & string
 	column: keyof T & string
 	value: keyof T & string
 }
 
+/** Options for {@link usePivotTable}: aggregation and explicit axis ordering. */
 export type PivotTableOptions = {
+	/** @defaultValue 'sum' */
 	aggregation?: PivotAggregation
 	rowOrder?: readonly string[]
 	columnOrder?: readonly string[]
 }
 
+/** Computed pivot: the resolved axis keys plus lookup functions for cell, row-total, column-total, and grand-total values. */
 export type PivotTableResult = {
 	rowKeys: string[]
 	columnKeys: string[]
@@ -32,6 +41,14 @@ export type PivotTableResult = {
 	grandTotal: number | undefined
 }
 
+/**
+ * Headless aggregation for {@link PivotTable}: groups `rows` by the row/column
+ * `keys`, reduces the value field per group, and memoizes the cell matrix and
+ * totals into O(1) lookups. Powers `PivotTable`, but usable standalone for a
+ * custom layout.
+ *
+ * @typeParam T - The shape of each source row.
+ */
 export function usePivotTable<T>(
 	rows: readonly T[],
 	keys: PivotTableKeys<T>,

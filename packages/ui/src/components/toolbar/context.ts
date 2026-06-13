@@ -3,6 +3,7 @@
 import { createContext } from '../../core'
 import type { ToolbarOrientation } from './types'
 
+/** Shared by `<Toolbar>` to its `<ToolbarGroup>`/`<ToolbarSeparator>` descendants. */
 export type ToolbarContextValue = {
 	orientation: ToolbarOrientation
 }

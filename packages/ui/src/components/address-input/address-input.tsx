@@ -11,22 +11,49 @@ import { photonProvider } from './address-input-photon'
 import type { AddressProvider, AddressSuggestion } from './types'
 import { useAddressInputSuggestions } from './use-address-input-suggestions'
 
+/** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, controlled via `value` or uncontrolled via `defaultValue`. */
 export type AddressInputProps = {
 	id?: string
 	value?: AddressSuggestion
 	defaultValue?: AddressSuggestion
 	onValueChange?: (value: AddressSuggestion | undefined) => void
+	/**
+	 * Geocoding strategy resolving the query to suggestions.
+	 * @defaultValue {@link photonProvider}
+	 */
 	provider?: AddressProvider
+	/** @defaultValue 'Enter an address' */
 	placeholder?: string
+	/**
+	 * Delay before the typed query triggers a provider fetch.
+	 * @defaultValue 500
+	 */
 	debounceMs?: number
+	/**
+	 * Shortest query length that triggers a fetch; below it the menu stays empty.
+	 * @defaultValue 3
+	 */
 	minQueryLength?: number
 	className?: string
+	/** @defaultValue 'off' */
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/** Accessible name for the field. Defaults to the placeholder. */
 	'aria-label'?: string
 }
 
-/** Address autocomplete over a pluggable geocoding `provider`. Built on Combobox; debounces the query and fetches once `minQueryLength` is reached. */
+/**
+ * Address autocomplete over a pluggable geocoding `provider`. Built on
+ * `<Combobox>`: debounces the query by `debounceMs`, fetches once the query
+ * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
+ * labeled option with optional description. The suffix tracks selection state,
+ * showing a `<LoadingSpinner>` while fetching, a `<MapPin>` when empty or
+ * disabled, and otherwise ceding the slot to the Combobox clear button.
+ *
+ * @remarks
+ * Client component. Defaults to {@link photonProvider}. In-flight requests are
+ * aborted on query change or close. Reads enclosing Density/Control context
+ * for disabled state and accessible name (falls back to `placeholder`).
+ */
 export function AddressInput({
 	value,
 	defaultValue,

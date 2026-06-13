@@ -7,6 +7,7 @@ import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
 
+/** Props for {@link Switch}: recipe variants (`color`, `size`), an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
 	className?: string
 	ref?: Ref<HTMLInputElement>

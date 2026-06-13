@@ -11,6 +11,8 @@ import type { EditableGridEditorProps } from './types'
  * Default inline editor. Renders a bare `Input` (via `Headless`) that fills
  * the cell, mirrors the cell's draft buffer, and routes Enter / Tab / Escape /
  * blur through the grid's commit and cancel callbacks.
+ *
+ * @typeParam T - The row type backing the cell under edit.
  */
 export function EditableGridTextEditor<T>({
 	draft,

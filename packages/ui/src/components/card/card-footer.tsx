@@ -2,6 +2,7 @@ import { cn } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/card'
 
+/** Props for {@link CardFooter}; a slotted `<div>` that accepts `render` for composition. */
 export type CardFooterProps = SlotProps<'div'>
 
 /**

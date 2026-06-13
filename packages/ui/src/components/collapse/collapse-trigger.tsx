@@ -5,8 +5,15 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
+/** Props for {@link CollapseTrigger}; extends native `<button>` attributes. */
 export type CollapseTriggerProps = ComponentPropsWithoutRef<'button'>
 
+/**
+ * Button that toggles the enclosing {@link Collapse} for the compound API.
+ * Spreads consumer props first, then overlays the context-driven toggle and
+ * a11y wiring (`aria-expanded`, plus `aria-controls` only while the panel is
+ * mounted), preserving any supplied `onClick`.
+ */
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
 	const { open, toggle, triggerProps } = useCollapseContext()
 

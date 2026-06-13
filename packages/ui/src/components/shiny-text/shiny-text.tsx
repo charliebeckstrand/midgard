@@ -5,6 +5,7 @@ import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/r
 import { type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 
+/** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
 export type ShinyTextProps = {
 	/** Halt the sweep, leaving the shine parked off-screen so only the base color shows. */
 	disabled?: boolean

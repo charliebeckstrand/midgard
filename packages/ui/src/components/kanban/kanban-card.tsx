@@ -6,6 +6,7 @@ import { useSortableItem } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
 
+/** Props for {@link KanbanCard}: the `cardId` matching a parent-column item, with an optional accessible-name override. */
 export type KanbanCardProps = {
 	/** Stable id matching an entry in the parent column's `items`. */
 	cardId: string
@@ -20,6 +21,17 @@ export type KanbanCardProps = {
 	className?: string
 }
 
+/**
+ * Draggable card within a {@link KanbanColumn}, keyed by `cardId`. Wires
+ * `@dnd-kit` sortable bindings and the board's keyboard handlers when the board
+ * is interactive, and mirrors its content into the drag overlay; renders inert
+ * when the board is read-only.
+ *
+ * @remarks
+ * Client component. Drag affordances (`role`, `aria-roledescription`,
+ * keyboard instructions) come from dnd-kit; set `aria-label` only when the
+ * content yields no usable name.
+ */
 export function KanbanCard({
 	cardId,
 	'aria-label': ariaLabel,

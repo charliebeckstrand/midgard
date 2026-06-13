@@ -8,6 +8,7 @@ import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
 
+/** Props for {@link ListItem}: `prefix`/`suffix` slots plus polymorphic `as`/`href` host attributes. */
 export type ListItemProps = {
 	/** Content rendered before the main content; replaces the auto-inserted `<ListHandle>` when provided. */
 	prefix?: ReactNode
@@ -19,6 +20,15 @@ export type ListItemProps = {
 	// RDFa global we repurpose as a slot; `ref` is owned by the dnd-kit `<li>`.
 } & PolymorphicProps<'div', 'prefix' | 'ref'>
 
+/**
+ * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
+ * around a polymorphic content area that switches to the app's router link when
+ * `href` is set. In an interactive list it wires the drag/keyboard reorder
+ * bindings and auto-inserts a {@link ListHandle} as the prefix unless one is
+ * supplied. Density-scaled.
+ *
+ * @remarks Client component.
+ */
 export function ListItem({ prefix, suffix, children, className, href, ...props }: ListItemProps) {
 	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 

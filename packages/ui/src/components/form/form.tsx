@@ -15,6 +15,7 @@ import {
 
 export type { FormHelpers, FormSubmitHandler, SubmitOutcome, SubmitResult }
 
+/** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
 export type FormProps<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
@@ -40,7 +41,20 @@ export type FormProps<T extends Record<string, unknown>> = {
 /**
  * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,
  * errors, and submitting state, validates on the `validateOn` trigger, and
- * disables its `<Fieldset>` while submitting.
+ * disables its `<Fieldset>` while submitting. Renders a layout-neutral
+ * (`display: contents`) `<form>`, so it imposes no box; fields read and mutate
+ * state through the context hooks ({@link useFormField}, {@link useFormStatus},
+ * {@link useFormActions}) rather than props.
+ *
+ * @remarks
+ * Uncontrolled by default from `defaultValues`; pass a stable `values`
+ * reference to drive it as a controlled re-sync source. Field components
+ * subscribe to their own slice through an external store, so a keystroke
+ * re-renders only the touched field, not the whole tree. Submit awaits
+ * `onSubmit`, surfaces a returned `{ fieldErrors }` or thrown error, and
+ * guards against superseding resets/unmounts via a monotonic token.
+ *
+ * @typeParam T - Shape of the form-value record.
  */
 export function Form<T extends Record<string, unknown>>({
 	defaultValues,

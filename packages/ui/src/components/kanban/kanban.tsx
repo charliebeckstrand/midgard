@@ -10,6 +10,13 @@ import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
 
+/**
+ * Props for {@link Kanban}: the ordered `columns`, an item `getKey`, the
+ * `onValueChange` reorder sink, and the `disabled` interaction flag.
+ *
+ * @typeParam T - Item datum carried by each column.
+ * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
+ */
 export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 	/** Ordered columns. Each column must have a stable `id` and an `items` array. */
 	columns: C[]
@@ -24,7 +31,21 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 	'aria-label'?: string
 }
 
-/** Multi-column board with drag-and-drop and keyboard reordering both within and across columns. */
+/**
+ * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
+ * by pointer drag (with a drag overlay) or keyboard lift, emitting the next
+ * `columns` array through `onValueChange`; the board is read-only when
+ * `onValueChange` is omitted or `disabled` is set. Shares drag/keyboard state
+ * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
+ * Compose the column header/body slots within.
+ *
+ * @remarks
+ * Client component. The board is a named `role="region"` (`<section>`); pass
+ * `aria-label`.
+ *
+ * @typeParam T - Item datum carried by each column.
+ * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
+ */
 export function Kanban<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
