@@ -6,7 +6,7 @@ export const k = {
 	base: [
 		// Secondary body tone; first/last child margins collapse so the block sits
 		// flush in its container (API-reference rows, Example previews).
-		'text-sm/6 text-zinc-600 dark:text-zinc-400',
+		'text-zinc-600 dark:text-zinc-400',
 		'[&>:first-child]:mt-0 [&>:last-child]:mb-0',
 
 		// Headings
@@ -35,7 +35,7 @@ export const k = {
 		// Fenced code blocks sit a shade lighter than their surface: zinc-900 over
 		// the zinc-950 mobile content area, and zinc-800 on desktop, where the
 		// sidebar layout's dark content surface elevates to zinc-900.
-		'[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900 dark:lg:[&_pre]:bg-zinc-800 [&_pre]:p-4 [&_pre]:text-sm/6 [&_pre]:text-zinc-100',
+		'[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900 dark:lg:[&_pre]:bg-zinc-800 [&_pre]:p-4 [&_pre]:text-sm [&_pre]:text-zinc-100',
 		// Reset the inline-code chrome on the nested `<code>`.
 		'[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit',
 

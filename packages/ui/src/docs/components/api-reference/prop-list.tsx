@@ -36,26 +36,28 @@ function PropRow({ prop }: { prop: PropDef }) {
 	return (
 		<Stack gap="sm" className="py-4 first:pt-0 last:pb-0">
 			<Flex align="center" gap="sm" wrap>
-				<span
-					className={cn(
-						'font-mono font-medium text-zinc-900 dark:text-white',
-						deprecated && 'line-through decoration-zinc-400',
+				<div className="flex items-center gap-1">
+					<span
+						className={cn(
+							'font-mono font-medium text-zinc-900 dark:text-white',
+							deprecated && 'line-through decoration-zinc-400',
+						)}
+					>
+						{prop.name}
+					</span>
+					{prop.description && (
+						<Tooltip>
+							<TooltipTrigger>
+								<Button variant="bare" size="sm" aria-label={`${prop.name} description`}>
+									<Icon icon={<Info />} />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<Markdown>{prop.description}</Markdown>
+							</TooltipContent>
+						</Tooltip>
 					)}
-				>
-					{prop.name}
-				</span>
-				{prop.description && (
-					<Tooltip>
-						<TooltipTrigger>
-							<Button variant="bare" size="sm" aria-label={`${prop.name} description`}>
-								<Icon icon={<Info />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>
-							<Markdown>{prop.description}</Markdown>
-						</TooltipContent>
-					</Tooltip>
-				)}
+				</div>
 				{prop.required && (
 					<Badge variant="soft" color="amber">
 						required
