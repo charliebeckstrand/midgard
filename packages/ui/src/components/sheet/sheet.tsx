@@ -10,6 +10,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
+/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`size`/`surface` variants. */
 export type SheetProps = SheetPanelVariants & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -17,6 +18,7 @@ export type SheetProps = SheetPanelVariants & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
 	className?: string
 	children: ReactNode

@@ -2,6 +2,7 @@ import { cn } from '../../core'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { Placeholder } from '../placeholder'
 
+/** Props for {@link AvatarSkeleton}; `size` matches the avatar it stands in for. */
 export type AvatarSkeletonProps = {
 	size?: AvatarVariants['size']
 	className?: string

@@ -3,12 +3,22 @@
 import { digitsOnly } from '../../utilities'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
+/** Postal-code locale selecting the mask, `inputMode`, and placeholder. */
 export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
 
+/**
+ * Props for {@link ZipcodeInput}. Inherits `<MaskInput>` props except
+ * `format`, `type`, `inputMode`, and `autoComplete`, which are derived from
+ * `country`.
+ */
 export type ZipcodeInputProps = Omit<
 	MaskInputProps,
 	'format' | 'type' | 'inputMode' | 'autoComplete'
 > & {
+	/**
+	 * Postal-code locale.
+	 * @defaultValue 'US'
+	 */
 	country?: ZipcodeInputCountry
 }
 
@@ -64,7 +74,13 @@ const placeholders = {
 	international: '',
 } satisfies Record<ZipcodeInputCountry, string>
 
-/** Postal-code MaskInput: formats, sets `inputMode`, and supplies a placeholder per `country` (`'US'`, `'CA'`, `'GB'`, `'international'`). */
+/**
+ * Postal-code field built on `<MaskInput>`. Selects a live formatting mask
+ * from `country` (US ZIP/ZIP+4, Canadian FSA/LDU, UK outward/inward, or a
+ * loose international fallback) and matches the keyboard (`inputMode`) and
+ * placeholder to it. Forwards `autoComplete="postal-code"`; an explicit
+ * `placeholder` overrides the locale default.
+ */
 export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
 	return (
 		<MaskInput

@@ -5,10 +5,22 @@ import { useAriaIds } from '../../hooks'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { usePasswordConfirm } from './context'
 
+/** Props for {@link PasswordConfirmInput}: {@link PasswordInputProps} with an `onChange` that runs after the coordinator records the value. */
 export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
 	onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }
 
+/**
+ * Confirmation field for {@link PasswordConfirm}: a {@link PasswordInput} that
+ * feeds its value to the enclosing coordinator and reflects mismatch state.
+ *
+ * @remarks
+ * Marks itself `invalid` and wires `aria-describedby` to the coordinator's
+ * warning while the fields disagree (unless the field already has a form
+ * error, or the caller passes an explicit `invalid`). On unmount it clears the
+ * coordinator so a removed field stops reporting a stale mismatch. Must render
+ * within a {@link PasswordConfirm}.
+ */
 export function PasswordConfirmInput({
 	onChange,
 	invalid,

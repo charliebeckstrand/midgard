@@ -9,6 +9,7 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 
 export type { SignaturePadHandle }
 
+/** Props for {@link SignaturePad}; controls the bound field value, stroke styling, and the optional clear affordance. */
 export type SignaturePadProps = {
 	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` should seed `string | null`. */
 	name?: string

@@ -10,6 +10,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
+/** Props for {@link Dialog}: open-state control, surface/sizing variants, placement, dismissal, and accessible naming. */
 export type DialogProps = DialogPanelVariants & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -17,8 +18,11 @@ export type DialogProps = DialogPanelVariants & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
 	placement?: 'center' | 'top'
+	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
 	dismissOnBackdrop?: boolean
+	/** Opt into the glass surface treatment, overriding the resolved `surface` variant. */
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -44,9 +48,17 @@ const placementClasses = {
 } as const
 
 /**
- * Modal surface rendered in an Overlay with focus trapping and backdrop dismiss.
- * Animates as a bottom sheet on mobile and a centered panel on desktop; a
- * registered `<DialogTitle>` or the `aria-label` fallback names it.
+ * Modal surface rendered in an `Overlay` with focus trapping and backdrop dismiss.
+ * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`),
+ * animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on desktop,
+ * and resolves the surface variant against the enclosing Glass provider. Compose
+ * `<DialogTrigger>`, `<DialogClose>`, and the slot family (`<DialogContent>`, `<DialogHeader>`,
+ * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within.
+ *
+ * @remarks
+ * A registered `<DialogTitle>` supplies `aria-labelledby` and takes precedence over the
+ * `aria-label` fallback. Set `role='alertdialog'` for prompts that demand a response. The
+ * panel and its dismiss affordances share a single open-state setter via `PanelProviders`.
  */
 export function Dialog({
 	open,

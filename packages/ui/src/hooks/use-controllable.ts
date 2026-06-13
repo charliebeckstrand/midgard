@@ -12,7 +12,14 @@ type ControllableOptions<T> = {
 	onValueChange?: (value: T | undefined) => void
 }
 
-/** Manages controlled / uncontrolled value state with a unified setter. */
+/**
+ * Manages controlled / uncontrolled value state with a unified setter.
+ *
+ * @typeParam T - The value type; the hook stores and emits `T | undefined`.
+ * @returns A `[value, setValue]` tuple. `setValue` accepts a next value or a
+ * functional updater, writes the shadow state, and fires `onValueChange`;
+ * controlled-ness is decided per render from the `value` prop.
+ */
 export function useControllable<T>({
 	value,
 	defaultValue,

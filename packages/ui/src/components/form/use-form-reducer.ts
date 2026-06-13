@@ -40,6 +40,7 @@ export type SubmitResult<T> = {
  */
 export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
 
+/** Second argument to a {@link FormSubmitHandler}: imperatively set field errors (e.g. from a server response) or reset the form, optionally to new defaults. */
 export type FormHelpers<T> = {
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
 	reset: (nextDefaults?: T) => void

@@ -1,5 +1,7 @@
+/** Boolean operator joining sibling nodes in a query group. */
 export type QueryCombinator = 'and' | 'or'
 
+/** A single leaf condition: a `field`/`operator`/`value` triple, joined to preceding siblings by `combinator`. */
 export type QueryRule = {
 	id: string
 	type: 'rule'
@@ -9,6 +11,7 @@ export type QueryRule = {
 	value: unknown
 }
 
+/** A node grouping `children` (rules or nested groups) under one `combinator`. */
 export type QueryGroup = {
 	id: string
 	type: 'group'
@@ -16,10 +19,13 @@ export type QueryGroup = {
 	children: QueryNode[]
 }
 
+/** Any node in the query tree: a {@link QueryRule} or a {@link QueryGroup}. */
 export type QueryNode = QueryRule | QueryGroup
 
+/** Data type of a queryable field; selects the rule's operator set and value input. */
 export type QueryFieldType = 'text' | 'number' | 'date' | 'select' | 'boolean'
 
+/** A comparison operator offered for a field. */
 export type QueryOperator = {
 	/** Machine value emitted into the query. */
 	value: string
@@ -29,6 +35,7 @@ export type QueryOperator = {
 	noValue?: boolean
 }
 
+/** A queryable field definition: its `name`, display `label`, type, and optional operator/option overrides. */
 export type QueryField = {
 	name: string
 	label: string

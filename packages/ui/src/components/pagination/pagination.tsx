@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
 
+/** Props for {@link Pagination}: native `<nav>` attributes. */
 export type PaginationProps = ComponentPropsWithoutRef<'nav'>
 
 /**

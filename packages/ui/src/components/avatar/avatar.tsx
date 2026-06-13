@@ -6,6 +6,7 @@ import { StatusDot, type StatusDotProps } from '../status'
 // The StatusDot union is the single source of truth for status values.
 type Status = NonNullable<StatusDotProps['status']>
 
+/** Props for {@link Avatar}; merges recipe variants with image/initials sources and optional status. */
 export type AvatarProps = AvatarVariants & {
 	src?: string | null
 	alt?: string

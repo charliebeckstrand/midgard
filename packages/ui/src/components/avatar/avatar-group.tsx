@@ -4,6 +4,7 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/avatar'
 import { Avatar } from './avatar'
 
+/** Props for {@link AvatarGroup}; `size` projects onto children and `extra` appends an overflow count avatar. */
 export type AvatarGroupProps = {
 	size?: Step
 	extra?: number

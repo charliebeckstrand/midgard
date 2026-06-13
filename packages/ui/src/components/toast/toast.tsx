@@ -10,7 +10,12 @@ import type { ToastPosition } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
 import { ToastAlert } from './toast-alert'
 
+/** Props for {@link Toast}. */
 export type ToastProps = {
+	/**
+	 * Viewport corner/edge the toast stack anchors to.
+	 * @defaultValue 'bottom-right'
+	 */
 	position?: ToastPosition
 }
 
@@ -19,6 +24,12 @@ export type ToastProps = {
  * portal at the configured viewport position. Drop one anywhere inside the
  * provider's subtree (e.g. the app shell); it need not sit next to
  * `useToast()` callers.
+ *
+ * @remarks The viewport is not itself a live region. Each toast maps its
+ * severity to politeness via its own `role`: `warning`/`error` interrupt as
+ * `alert`, everything else queues as `status` and is mirrored through a
+ * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
+ * pointer or focus is inside a toast (WCAG 2.2.1).
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()

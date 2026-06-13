@@ -9,5 +9,12 @@ type CommandPaletteContextValue = {
 	close: () => void
 }
 
+/**
+ * Provides the enclosing {@link CommandPalette}'s `close` callback. Items read
+ * only `close` here; the query lives in a separate context so keystrokes don't
+ * re-render every item.
+ *
+ * @returns The palette context with its `close` function.
+ */
 export const [CommandPaletteContext, useCommandPaletteContext] =
 	createContext<CommandPaletteContextValue>('CommandPalette')

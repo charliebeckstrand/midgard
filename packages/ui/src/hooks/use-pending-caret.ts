@@ -9,6 +9,11 @@ import { useComposedRef } from './use-composed-ref'
  * with the caret index measured against the *formatted* value; a layout effect
  * re-applies it after render, keeping the cursor in place when formatting
  * inserts separators. Restores only while the input holds focus.
+ *
+ * @param externalRef - Optional input ref composed with the internal one.
+ * @returns `{ ref, setCaret }`. Spread `ref` onto the input; `setCaret(pos)`
+ * queues a caret restore to `pos` against the formatted value (pass `null` to
+ * cancel).
  */
 export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	const inputRef = useRef<HTMLInputElement | null>(null)

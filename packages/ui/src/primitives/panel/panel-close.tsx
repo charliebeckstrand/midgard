@@ -3,6 +3,7 @@
 import { cloneElement, type MouseEvent, type MouseEventHandler, type ReactElement } from 'react'
 import { usePanelCloseContext } from './panel-close-context'
 
+/** Props for {@link PanelClose}: a single clickable child whose `onClick` is augmented to dismiss the panel. */
 export type PanelCloseProps = {
 	children: ReactElement<{ onClick?: MouseEventHandler }>
 }

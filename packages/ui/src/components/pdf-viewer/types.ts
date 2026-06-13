@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 
+/** A pre-rendered page supplied to {@link PdfViewer}: its image source plus optional thumbnail, label, and intrinsic size. */
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */
 	id?: string | number

@@ -165,6 +165,11 @@ type RovingOptions = NavigationConfig & {
  * Composes `nextIndexForKey` (key → index math) and `useTypeahead` with the
  * DOM choreography: focus or virtual active-state moves, single-Tab-stop
  * `tabIndex` ownership, and row cross-axis roving.
+ *
+ * @returns A stable `onKeyDown` handler to attach to the container; it reads
+ * items from `containerRef` on each press, so the item set may change between
+ * presses. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
+ * `aria-activedescendant` mirroring run as effects, independent of the handler.
  */
 export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,

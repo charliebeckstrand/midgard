@@ -3,6 +3,7 @@ import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ShinyText } from '../shiny-text'
 
+/** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
@@ -15,10 +16,15 @@ export type ChatMessageProps = ChatMessageVariants & {
 }
 
 /**
- * Conversational message bubble sided and colored by `type` (`user` or
- * `assistant`), with an optional `timestamp`, `actions` rail, and a
- * `streaming` shimmer. A visually hidden author label announces the speaker
- * to assistive tech.
+ * Conversational message bubble sided and colored by `type` (`user`,
+ * `assistant`, or `system`; defaults to `assistant`), with an optional
+ * `timestamp`, `actions` rail, and a `streaming` ShinyText shimmer over its
+ * content.
+ *
+ * @remarks
+ * Side and color alone convey the speaker visually, so a visually hidden author
+ * label ("You said", "Assistant said", or "System") announces it to assistive
+ * tech.
  */
 export function ChatMessage({
 	type,

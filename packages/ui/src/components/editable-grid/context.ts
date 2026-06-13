@@ -6,6 +6,11 @@ import { createContext } from '../../core'
 import type { Coord, EditableGridCommitAdvance } from './types'
 import { cellKey } from './use-editable-grid-navigation'
 
+/**
+ * Full grid interaction state exposed to consumers: the active/anchor cursor,
+ * extra selected cells, the live edit-session draft, and the move/edit/commit
+ * actions that drive them. Returned by {@link useEditableGrid}.
+ */
 export type EditableGridContextValue = {
 	active: Coord | null
 	anchor: Coord | null

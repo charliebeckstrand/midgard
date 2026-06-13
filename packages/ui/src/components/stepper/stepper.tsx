@@ -9,6 +9,7 @@ import { Stack } from '../stack'
 import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
+/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, recipe variants, and step children. */
 export type StepperProps = StepperVariants & {
 	value: number
 	onValueChange?: (value: number) => void
@@ -39,7 +40,21 @@ function partitionStepperChildren(children: ReactNode): {
 	return { rowChildren, panelsChildren }
 }
 
-/** Indexed multi-step flow. Partitions its children into a step row and a panels group, with roving arrow-key navigation across steps. */
+/**
+ * Controlled, indexed multi-step flow keyed by a numeric `value`. Partitions
+ * its children into a `role="toolbar"` step row and a `<StepperPanels>` group,
+ * scopes an `ActiveIndicator` for the current-step marker, and shares step state
+ * via context. Each `<StepperStep>` derives its completed/current/upcoming state
+ * by comparing its own index against `value`.
+ *
+ * @remarks
+ * Client component (`'use client'`) — it tracks viewport width. `orientation`
+ * defaults to `horizontal` on viewports >= 640px and `vertical` below, since a
+ * horizontal row overflows narrow screens. When `onValueChange` is set, steps
+ * render as buttons and the row is a single Tab stop with roving arrow-key
+ * navigation; `linear` then disables upcoming steps. Compose `<StepperSkeleton>`
+ * in loading trees.
+ */
 export function Stepper({
 	value,
 	onValueChange,

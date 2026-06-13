@@ -10,6 +10,7 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
+/** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
 	/**
 	 * Size step that drives padding and text size. Overrides any `size` passed
@@ -23,6 +24,14 @@ export type TooltipContentProps = {
 	children: ReactNode
 }
 
+/**
+ * Floating panel rendered when the enclosing `<Tooltip>` is open. Positions
+ * via `<FloatingSurface>`, animates in, and adopts the glass surface when a
+ * `<GlassProvider>` is active.
+ *
+ * @remarks Pointer events are disabled unless the tooltip is `interactive`,
+ * so a non-interactive panel never intercepts hover.
+ */
 export function TooltipContent({ size, className, children }: TooltipContentProps) {
 	const {
 		open,

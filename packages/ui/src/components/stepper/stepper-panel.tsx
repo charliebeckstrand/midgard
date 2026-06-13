@@ -4,11 +4,18 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useStepper } from './context'
 
+/** Props for {@link StepperPanel}: the step `value` it belongs to, plus `<div>` attributes. */
 export type StepperPanelProps = {
 	value: number
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
+/**
+ * Content region for a single step, shown only while its `value` matches the
+ * stepper's current value (otherwise renders nothing). Emits a `<section>` whose
+ * disclosure ids match the corresponding {@link StepperStep} for `aria-controls`
+ * wiring. Place inside {@link StepperPanels}.
+ */
 export function StepperPanel({ value, className, children, ...props }: StepperPanelProps) {
 	const { value: currentValue, baseId } = useStepper()
 

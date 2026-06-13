@@ -9,8 +9,14 @@ import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
 export type { PivotTableKeys } from './use-pivot-table'
 
+/** Which totals a {@link PivotTable} renders: row totals, column totals, both, or none. */
 export type PivotTotals = 'row' | 'col' | 'both' | 'none'
 
+/**
+ * Props for {@link PivotTable}.
+ *
+ * @typeParam T - The shape of each source row.
+ */
 export type PivotTableProps<T> = {
 	/** Source rows to pivot. */
 	rows: readonly T[]
@@ -40,7 +46,14 @@ export type PivotTableProps<T> = {
 	'aria-label'?: string
 }
 
-/** Two-axis aggregation table: groups rows by `(row × column)` keys and aggregates a value field into each cell. */
+/**
+ * Two-axis aggregation table: groups `rows` by `(row × column)` `keys` and
+ * aggregates the value field into each cell, optionally rendering row/column
+ * totals. Renders over {@link Table}.
+ *
+ * @typeParam T - The shape of each source row.
+ * @see {@link usePivotTable} for the headless aggregation hook.
+ */
 export function PivotTable<T>({
 	rows,
 	keys,

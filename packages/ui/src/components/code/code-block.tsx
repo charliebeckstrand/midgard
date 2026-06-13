@@ -26,6 +26,13 @@ function cacheSet(key: string, value: string) {
 // Lazy-load shiki on first use.
 let shikiPromise: Promise<typeof import('shiki')> | null = null
 
+/**
+ * Dynamically imports the Shiki highlighter on first call, memoizing the
+ * in-flight promise so the heavy module is fetched at most once per session.
+ *
+ * @returns The resolved `shiki` module exports.
+ * @remarks Call to warm the highlighter ahead of rendering a {@link CodeBlock}.
+ */
 export function loadShiki() {
 	if (!shikiPromise) {
 		shikiPromise = import('shiki')
@@ -34,14 +41,32 @@ export function loadShiki() {
 	return shikiPromise
 }
 
+/** Props for {@link CodeBlock}. */
 export type CodeBlockProps = {
+	/** Source to highlight; surrounding whitespace is trimmed before tokenizing. */
 	code: string
+	/** Shiki language grammar. @defaultValue `'tsx'` */
 	lang?: BundledLanguage
+	/** Shiki color theme. @defaultValue `'github-dark-default'` */
 	theme?: BundledTheme
+	/** Renders a CopyButton overlay. @defaultValue `true` */
 	copy?: boolean
 	className?: string
 }
 
+/**
+ * Syntax-highlighted code block. Lazily loads Shiki via {@link loadShiki},
+ * tokenizes `code` for the given `lang` and `theme`, and renders an unstyled
+ * `<pre>` fallback during the async pass; an optional CopyButton overlays the
+ * snippet.
+ *
+ * @remarks
+ * Client-only (`'use client'`): highlighting runs in an effect. Results are
+ * memoized in a process-wide LRU cache (max 200 entries) keyed by theme,
+ * language, and code, so repeat snippets paint synchronously. The highlighted
+ * `<pre>` is made non-focusable (`tabindex="-1"`) to keep scroll containers out
+ * of the tab order.
+ */
 export function CodeBlock({
 	code: rawCode,
 	lang = 'tsx',

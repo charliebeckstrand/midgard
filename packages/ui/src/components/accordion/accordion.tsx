@@ -21,6 +21,11 @@ type MultipleProps = {
 	onValueChange?: (value: string[]) => void
 }
 
+/**
+ * Props for {@link Accordion}. The `type` discriminant selects single- vs
+ * multiple-open semantics and the matching `value`/`defaultValue`/`onValueChange`
+ * shapes.
+ */
 export type AccordionProps = (SingleProps | MultipleProps) &
 	AccordionVariants & {
 		className?: string

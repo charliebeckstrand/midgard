@@ -12,6 +12,7 @@ import {
 	resolveJustify,
 } from './variants'
 
+/** Props for {@link Flex}: responsive direction/gap/alignment plus wrap, fill, and inline modifiers atop native `<div>` attributes. */
 export type FlexProps = {
 	/** Flex direction. Supports responsive breakpoints. */
 	direction?: ResponsiveDirection
@@ -36,9 +37,16 @@ export type FlexProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * Horizontal flex container. Use Flex for rows, Stack for columns. Static
- * leaf: renders in React Server Components. `gap` is explicit; omitted, it
- * stays unset.
+ * Flex container with responsive `direction`, `gap`, `align`, and `justify`,
+ * plus `wrap`, `inline`, `full`-width, `flex`-fill, and `equal` (stretch
+ * children) modifiers. Use Flex for rows, Stack for columns; cross-axis
+ * `align` defaults from `direction` when unset.
+ *
+ * @remarks
+ * Static leaf with no client boundary: renders in React Server Components.
+ * `gap` is explicit; omitted, it stays unset.
+ *
+ * @defaultValue direction 'row'
  */
 export function Flex({
 	direction = 'row',

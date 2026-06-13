@@ -6,14 +6,28 @@ import { k, type TimelineVariants } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
 
+/** Props for {@link Timeline}. */
 export type TimelineProps = TimelineVariants & {
+	/**
+	 * Layout axis shared with descendant items via context.
+	 * @defaultValue 'vertical'
+	 */
 	orientation?: TimelineOrientation
+	/**
+	 * Marker/line treatment shared with descendant items; `<TimelineItem>` may override per row.
+	 * @defaultValue 'solid'
+	 */
 	variant?: TimelineVariant
 	className?: string
 	children?: ReactNode
 }
 
-/** Ordered list of timeline items rendered as an `<ol>`; propagates `orientation` and `variant` to its `<TimelineItem>` children via context. */
+/**
+ * Ordered sequence of events rendered as an `<ol>` of `<TimelineItem>` rows.
+ * Lays out along `orientation` (vertical or horizontal) and propagates both
+ * `orientation` and `variant` to its items via context, so markers and
+ * connector lines stay consistent across the run.
+ */
 export function Timeline({
 	orientation = 'vertical',
 	variant = 'solid',

@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
 
+/** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
 export type CurrentContextValue = {
 	value: string | undefined
 	onValueChange: ((value: string | undefined) => void) | undefined

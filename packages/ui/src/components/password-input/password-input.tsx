@@ -8,11 +8,20 @@ import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
+/** Props for {@link PasswordInput}: {@link InputProps} (less `type`/`suffix`) plus configuration for the visibility toggle. */
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
+	/** Configures the suffix visibility toggle. */
 	toggleButton?: {
+		/**
+		 * Renders the show/hide toggle.
+		 * @defaultValue true
+		 */
 		visible?: boolean
+		/** Accessible labels for the toggle's two states. */
 		label?: {
+			/** @defaultValue 'Show password' */
 			show?: string
+			/** @defaultValue 'Hide password' */
 			hide?: string
 		}
 	}

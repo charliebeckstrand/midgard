@@ -7,15 +7,21 @@ import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
 
+/** Props for {@link AccordionTrigger}. */
 export type AccordionTriggerProps = ComponentPropsWithoutRef<'button'> & {
 	/**
 	 * Heading level (1-6) of the element wrapping the trigger button. The
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
-	 * heading. @default 3
+	 * heading. @defaultValue 3
 	 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 }
 
+/**
+ * Header button that toggles its {@link AccordionItem}. Wraps itself in an
+ * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
+ * accordion pattern. Participates in the parent's roving tabindex.
+ */
 export function AccordionTrigger({
 	className,
 	children,

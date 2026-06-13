@@ -3,6 +3,11 @@
 import { type ReactNode, useRef } from 'react'
 import { useVirtualWindow } from '../../hooks'
 
+/**
+ * Props for {@link VirtualOptions}.
+ *
+ * @typeParam T - Item type; flows through to the `children` render function.
+ */
 export type VirtualOptionsProps<T> = {
 	/** Items to render. The current filtered/sorted set, in order. */
 	items: T[]
@@ -23,6 +28,8 @@ export type VirtualOptionsProps<T> = {
  *
  * Assumes uniform item heights. Keyboard arrow-key navigation only traverses
  * options currently in the DOM; users of large lists should filter by typing.
+ *
+ * @typeParam T - Item type passed to `children`.
  */
 export function VirtualOptions<T>({
 	items,

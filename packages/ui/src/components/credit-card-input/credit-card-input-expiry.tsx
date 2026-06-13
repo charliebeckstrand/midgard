@@ -5,6 +5,7 @@ import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
+/** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
 export type CreditCardInputExpiryProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
@@ -17,6 +18,14 @@ export type CreditCardInputExpiryProps = Omit<
 	onValidityChange?: (validity: CardValidity) => void
 }
 
+/**
+ * Numeric Input for a card expiry that masks digits into "MM/YY", auto-inserting
+ * the slash and handling backspace across it. Emits the month-range + not-in-past
+ * verdict through `onValidityChange`. Sets `autoComplete="cc-exp"` and defaults an
+ * "Expiration date" aria-label, yielding to a registered Field `<Label>`.
+ *
+ * @see {@link CreditCardInput}
+ */
 export function CreditCardInputExpiry({
 	value,
 	defaultValue,

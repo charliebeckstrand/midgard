@@ -15,9 +15,14 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
+/** Props for {@link PopoverTrigger}. */
 export type PopoverTriggerProps = {
 	children: ReactNode
 	className?: string
+	/**
+	 * Suppresses the auto-wired toggle interactions, leaving open/close control
+	 * to the caller while still merging refs and ARIA wiring.
+	 */
 	manual?: boolean
 }
 
@@ -26,6 +31,12 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
 	else if (ref != null) (ref as { current: T | null }).current = node
 }
 
+/**
+ * Disclosure trigger for {@link Popover}. Clones a single child element to
+ * adopt the floating reference ref and toggle interactions, or renders its own
+ * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
+ * `aria-controls`. Clicks within a `[data-popover-ignore]` subtree are ignored.
+ */
 export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
 	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 

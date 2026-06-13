@@ -5,6 +5,12 @@ import { useCallback, useEffect, useRef } from 'react'
 /**
  * Defers a callback until the virtual keyboard has settled. Fires
  * immediately on desktop or when the keyboard is already visible.
+ *
+ * @remarks Polls `visualViewport` height per frame, firing after ~5 stable
+ * frames once it starts moving and bailing after ~1s. The pending frame is
+ * cancelled on unmount and on each new call (only the latest callback runs).
+ * @returns A stable scheduler `(callback) => void`; the callback runs once the
+ * viewport settles, or synchronously when no virtual keyboard is involved.
  */
 export function useKeyboardSettled() {
 	const rafRef = useRef<number | null>(null)

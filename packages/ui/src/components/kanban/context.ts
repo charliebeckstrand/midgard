@@ -3,6 +3,7 @@
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
 
+/** Board-wide drag/keyboard state shared with columns and cards: interactivity, active/lifted card ids, per-column ordering, the overlay map, and card event handlers. */
 export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
 	interactive: boolean
@@ -22,6 +23,7 @@ export type KanbanContextValue = {
 
 export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
 
+/** Per-column state shared with its cards and title: the column `id` and the title-slot registrar driving `aria-labelledby`. */
 export type KanbanColumnContextValue = {
 	columnId: string
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */

@@ -6,6 +6,7 @@ import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 
+/** List-wide state shared with items: variant, interactivity/disabled flags, active/lifted ids, item count, the sortable flag, and item event handlers. */
 export type ListContextValue = {
 	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
@@ -29,6 +30,7 @@ export type ListContextValue = {
 
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
+/** Per-item drag bindings shared with an item and its handle: the item `id`, sortable refs/attributes/listeners, transform `style`, and the `dragging` flag. */
 export type ListItemContextValue = {
 	id: string
 	/** Ref for the draggable `<li>` element. */

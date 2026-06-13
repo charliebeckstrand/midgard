@@ -8,8 +8,10 @@ import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 
+/** Tone of a `<Message>`: an assertive `error` or a polite `success`. */
 export type MessageVariant = 'error' | 'success'
 
+/** Props for {@link Message}: `variant`, optional form-field `name` binding, and the `all`-errors flag atop native `<p>` attributes. */
 export type MessageProps = {
 	variant?: MessageVariant
 	className?: string
@@ -18,6 +20,17 @@ export type MessageProps = {
 	all?: boolean
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
 
+/**
+ * Validation or status feedback for a form control. The `error` variant renders
+ * `role="alert"`, registers its id into the field's `aria-describedby`, and —
+ * when bound to a form field by `name` — auto-renders that field's first error
+ * (or every error as a `<ul>` with `all`), suppressing itself when there are
+ * none. The `success` variant renders `role="status"` from its children and
+ * does not register as a description.
+ *
+ * @remarks Resolves type scale from the Density cascade.
+ * @defaultValue variant `'error'`
+ */
 export function Message({
 	variant = 'error',
 	className,

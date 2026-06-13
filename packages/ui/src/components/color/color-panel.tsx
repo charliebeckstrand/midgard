@@ -30,13 +30,18 @@ type ColorPanelBaseProps = {
 	className?: string
 }
 
+/** Props for {@link ColorPanel}: presentation options plus format-discriminated value props. */
 export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
- * Inline colour picker: a saturation/brightness field with hue (and optional
- * alpha) sliders, hex / RGB inputs, preset swatches, and an eyedropper. Holds
- * HSVA internally, keeping drags lossless, and speaks either a hex string
- * (default) or an HSVA object through `value` / `onValueChange` per `format`.
+ * Inline color picker: a saturation/brightness field with hue and optional
+ * alpha sliders, hex and RGB channel inputs, preset swatches, and an eyedropper
+ * where the platform `EyeDropper` API exists. Holds HSVA internally so drags
+ * stay lossless, speaks a hex string (default) or an HSVA object through
+ * `value`/`onValueChange` per `format`, and resolves `size` against enclosing
+ * Density. Controlled or uncontrolled.
+ *
+ * @see {@link ColorPicker} for the popover variant.
  */
 export function ColorPanel(props: ColorPanelProps) {
 	const inherited = useDensity()

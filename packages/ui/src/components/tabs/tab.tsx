@@ -11,6 +11,7 @@ import { Button } from '../button'
 import { Headless } from '../headless'
 import { useTabsContext } from './context'
 
+/** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
 export type TabProps = {
 	value?: string
 	current?: boolean
@@ -21,6 +22,13 @@ export type TabProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
 
+/**
+ * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
+ * `tabIndex`, and an `<ActiveIndicator>` while selected. Resolves `size` against
+ * the Tabs context (or the Density cascade à la carte), and in the `tab` variant
+ * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id + `value`;
+ * `segment` tabs have no panels. Clicking sets the enclosing selection state.
+ */
 export function Tab({
 	value,
 	current: currentProp,

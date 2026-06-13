@@ -14,6 +14,9 @@ type SortableSensorsOptions = {
  * Standard sensor configuration for dnd-kit powered sortable UIs.
  * Pairs a low-threshold pointer sensor with a keyboard sensor using
  * `sortableKeyboardCoordinates` for arrow-key reordering.
+ *
+ * @returns dnd-kit's `SensorDescriptor[]` to pass to `<DndContext sensors>`;
+ * the keyboard sensor is omitted when `keyboard` is false.
  */
 export function useSortableSensors({
 	activationDistance = 3,

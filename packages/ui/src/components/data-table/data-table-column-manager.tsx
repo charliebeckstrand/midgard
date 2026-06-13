@@ -14,6 +14,7 @@ import { List, ListItem } from '../list'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
+/** Props for {@link DataTableColumnManager}. */
 export type DataTableColumnManagerProps = {
 	columns: DataTableColumnManagerItem[]
 
@@ -25,7 +26,12 @@ export type DataTableColumnManagerProps = {
 	defaultHidden?: Set<string | number>
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
+	/** Called with the current order and hidden ids when the save-preset button is pressed; presence of the handler also shows the button. */
 	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
+	/**
+	 * Label on the save-preset button.
+	 * @defaultValue 'Save as preset'
+	 */
 	savePresetLabel?: ReactNode
 
 	className?: string
@@ -35,6 +41,19 @@ function titleText(title: ReactNode, id: string | number): string {
 	return typeof title === 'string' ? title : String(id)
 }
 
+/**
+ * Standalone column-visibility editor: a drag-sortable list of checkbox fields,
+ * one per orderable column, that toggles each column's hidden state and
+ * reorders the rest. Pinned columns list first in a separate, fixed group
+ * (checked and disabled); columns with `hideable: false` show but cannot be
+ * unchecked. With `onSavePreset`, a footer button captures the current order
+ * and hidden ids as a {@link DataTableColumnManagerPreset}. Order and hidden
+ * set are each controllable.
+ *
+ * @remarks Client component. {@link DataTable} renders this inside its own
+ * dialog when `columnManager` is configured; use this directly to host the
+ * editor elsewhere (e.g. a settings panel).
+ */
 export function DataTableColumnManager({
 	columns,
 	order: orderProp,

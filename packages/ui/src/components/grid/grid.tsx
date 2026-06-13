@@ -11,6 +11,7 @@ import {
 	resolveRows,
 } from './variants'
 
+/** Props for {@link Grid}: responsive `columns`/`rows`/`gap` plus `flow`, `align`, and `justify` atop native `<div>` attributes. */
 export type GridProps = {
 	columns?: Responsive<number>
 	rows?: Responsive<number>
@@ -24,9 +25,14 @@ export type GridProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children' | 'style'>
 
 /**
- * CSS grid container with responsive `columns`, `rows`, and `gap`. Static
- * leaf: renders in React Server Components. `gap` is explicit and defaults
- * to `'md'`.
+ * CSS grid container with responsive `columns`, `rows`, and `gap`, plus
+ * `flow`, item `align`, and `justify`. Numeric tracks thread through CSS
+ * custom properties so arbitrary counts work without a Tailwind safelist.
+ *
+ * @remarks
+ * Static leaf with no client boundary: renders in React Server Components.
+ *
+ * @defaultValue gap 'md'
  */
 export function Grid({
 	columns,

@@ -1,5 +1,9 @@
+/** Options for {@link announce}. */
 export type AnnounceOptions = {
-	/** Announce assertively (interrupts the user) rather than politely. @default false */
+	/**
+	 * Announce assertively (interrupts the user) rather than politely.
+	 * @defaultValue false
+	 */
 	assertive?: boolean
 }
 

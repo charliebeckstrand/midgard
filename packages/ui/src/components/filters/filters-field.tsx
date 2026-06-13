@@ -54,17 +54,34 @@ function expectsClearCallback(child: ReactElement): boolean {
 	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
+/** Slot value and setter passed to a {@link FiltersField} render-prop child. */
 export type FiltersFieldRenderProps = {
 	value: unknown
 	onValueChange: (value: unknown) => void
 }
 
+/** Props for {@link FiltersField}. */
 export type FiltersFieldProps = {
+	/** Key this field owns within the {@link Filters} value record. */
 	name: string
+	/** A control element, or a render function receiving {@link FiltersFieldRenderProps}. */
 	children: ReactNode | ((field: FiltersFieldRenderProps) => ReactNode)
 	className?: string
 }
 
+/**
+ * Binds a single named slot of the enclosing {@link Filters} value to a control.
+ * Given a render function, supplies `{ value, onValueChange }`; given elements,
+ * clones the first non-decoration child (passing `Label`/`Description`/`Message`
+ * through untouched) and wires its value and change handler.
+ *
+ * @remarks
+ * Adapts the child's contract automatically: event-based controls (Input,
+ * SearchInput, Textarea, Checkbox, Switch, Radio) receive `onChange` with a DOM
+ * event; others receive value-shaped `onValueChange`. Checkbox/Switch bind
+ * `checked` to the boolean slot, a Radio is checked when its `value` matches the
+ * slot, and SearchInput's `onClear` clears the slot. Must render inside a `Filters`.
+ */
 export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	const { value: filterValue, setValue } = useFilters()
 

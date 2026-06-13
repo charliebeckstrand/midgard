@@ -8,6 +8,7 @@ import { useFileUploadHandlers } from '../file-upload'
 import { Icon } from '../icon'
 import { Textarea } from '../textarea'
 
+/** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
 	/** Controlled value of the textarea. */
 	value: string

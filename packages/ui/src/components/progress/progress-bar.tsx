@@ -11,15 +11,27 @@ import { clamp, pct } from '../../utilities'
 
 type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
 
+/**
+ * Props for {@link ProgressBar}. Requires an accessible name (`aria-label` or
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ */
 // `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressBarProps = AccessibleName & {
+	/** Current progress; omit (or pass `NaN`) for an indeterminate bar. */
 	value?: number
+	/** @defaultValue 100 */
 	max?: number
 	size?: Step
 	color?: ProgressColor
 	className?: string
 }
 
+/**
+ * Linear progress indicator rendered as a `role="progressbar"`. Determinate
+ * when `value` is a usable number, animating the fill width to its clamped
+ * percentage; otherwise indeterminate. Resolves `size` against enclosing
+ * Density and respects reduced-motion.
+ */
 export function ProgressBar({
 	value,
 	max = 100,

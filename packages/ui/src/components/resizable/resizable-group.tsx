@@ -9,13 +9,22 @@ import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import type { PanelConfig, ResizableOrientation } from './types'
 import { useResizablePanel } from './use-resizable-panel'
 
+/** Props for {@link ResizableGroup}: layout `orientation` and a size-change callback. */
 export type ResizableGroupProps = {
+	/** @defaultValue 'horizontal' */
 	orientation?: ResizableOrientation
+	/** Fires with the panels' sizes (percentages summing to 100) after each resize. */
 	onSizesChange?: (sizes: number[]) => void
 	className?: string
 	children?: ReactNode
 }
 
+/**
+ * Container for a row or column of {@link ResizablePanel}s separated by
+ * {@link ResizableHandle}s. Reads each panel's size constraints from its props,
+ * tracks live sizes, and supplies drag/resize actions and per-child index to
+ * descendants via context.
+ */
 export function ResizableGroup({
 	orientation = 'horizontal',
 	onSizesChange,

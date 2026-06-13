@@ -63,6 +63,11 @@ export type DatePickerBaseProps = {
 	'data-group-orientation'?: string
 }
 
+/**
+ * Props for {@link DatePicker}: the shared base (`name`, `min`/`max`, `placement`,
+ * `size`, `truncate`, …) discriminated on `range` into single-`Date` or
+ * `[Date, Date]` value/handler shapes.
+ */
 export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | DatePickerRangeProps)
 
 /**

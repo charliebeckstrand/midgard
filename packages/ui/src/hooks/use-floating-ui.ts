@@ -116,6 +116,10 @@ export type FloatingPanelOptions = {
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
+ *
+ * @returns `{ refs, floatingStyles, context }`: floating-ui's reference /
+ * floating refs, the positioning styles for the floating element, and the
+ * shared `FloatingRootContext` interaction hooks attach to.
  */
 export function useFloatingPanel({
 	placement,
@@ -204,6 +208,11 @@ type FloatingUIOptions = FloatingPanelOptions & {
  * Outside-press uses a custom document-level pointerdown listener that checks
  * the press target directly against the floating panel and reference, with no
  * false positives from sibling portals inside a `Sheet`/`Dialog`.
+ *
+ * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context }` plus
+ * `getReferenceProps` / `getFloatingProps` prop-getters that fold in the
+ * dismiss + role interactions; spread them on the reference and floating
+ * elements respectively.
  */
 export function useFloatingUI({
 	role: roleProp = 'listbox',

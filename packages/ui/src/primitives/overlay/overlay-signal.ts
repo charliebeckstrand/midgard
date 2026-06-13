@@ -13,6 +13,11 @@ export function notifyOverlaySignal(): void {
 	for (const listener of listeners) listener()
 }
 
+/**
+ * Subscribes to the overlay-lifecycle signal; the listener fires whenever any
+ * surface opens. Returns an unsubscribe function. Non-modal floats (tooltips)
+ * use it to close when a modal surface takes over.
+ */
 export function subscribeOverlaySignal(listener: Listener): () => void {
 	listeners.add(listener)
 

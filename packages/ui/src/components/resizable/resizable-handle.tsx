@@ -5,12 +5,19 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
+/** Props for {@link ResizableHandle}: an optional accessible name. */
 export type ResizableHandleProps = {
 	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @default 'Resize' */
 	'aria-label'?: string
 	className?: string
 }
 
+/**
+ * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
+ * `role="separator"` whose `aria-orientation` is perpendicular to the group
+ * axis; drag or arrow keys (Shift for a larger step, Home/End for the extremes)
+ * adjust the adjacent panel within its min/max bounds.
+ */
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { 'aria-label': ariaLabel = 'Resize', className } = props
 

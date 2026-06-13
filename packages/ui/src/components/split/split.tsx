@@ -10,6 +10,7 @@ import {
 	type SplitRatio,
 } from './variants'
 
+/** Props for {@link Split}: layout knobs (`orientation`, `ratio`, `gap`, `align`) plus `<div>` attributes. */
 export type SplitProps = {
 	/** Split orientation. @default 'horizontal' (two columns) */
 	orientation?: SplitOrientation
@@ -24,7 +25,13 @@ export type SplitProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
-/** Two-pane grid layout. `orientation` chooses rows or columns and `ratio` sizes the first pane against the second. */
+/**
+ * Two-pane CSS-grid layout. `orientation` chooses columns or rows, `ratio`
+ * sizes the first pane against the second via `fr` tracks, and `gap` (explicit,
+ * defaulting to `lg`) and `align` tune spacing and cross-axis placement.
+ * Expects exactly two children. A static leaf with no client hooks, so it
+ * renders in React Server Components.
+ */
 export function Split({
 	orientation = 'horizontal',
 	ratio = '1/2',

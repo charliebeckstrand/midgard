@@ -18,6 +18,7 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
 
+/** Semantic kind of an alert; selects its default color, icon, and ARIA live role. */
 export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 
 type AlertColor = NonNullable<AlertVariants['color']>
@@ -54,6 +55,7 @@ function renderChildren(children: ReactNode): ReactNode {
 	return hasSlot ? children : <AlertBody>{children}</AlertBody>
 }
 
+/** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
 export type AlertProps = AlertVariants & {
 	/**
 	 * Semantic kind: drives the default color, an icon, and the ARIA role
@@ -65,9 +67,10 @@ export type AlertProps = AlertVariants & {
 	title?: ReactNode
 	description?: ReactNode
 	actions?: ReactNode
+	/** Stretch to fill the available inline width rather than shrink to content. */
 	block?: boolean
 	closable?: boolean
-	/** Initial open state (uncontrolled). @default true */
+	/** Initial open state (uncontrolled). @defaultValue true */
 	defaultOpen?: boolean
 	/** Controlled open state. */
 	open?: boolean
@@ -88,8 +91,16 @@ export type AlertProps = AlertVariants & {
 
 /**
  * Dismissible message bar with severity-driven color, icon, and ARIA role;
- * accepts `title`/`description`/`actions` props or slotted children, and runs
- * controlled or uncontrolled via `open`/`defaultOpen`.
+ * accepts `title`/`description`/`actions` props or slotted children
+ * ({@link AlertTitle}/{@link AlertDescription}/{@link AlertBody}), and runs
+ * controlled or uncontrolled via `open`/`defaultOpen`. A `closable` close
+ * button can return focus to `returnFocusTo` on dismiss.
+ *
+ * @remarks
+ * Client component. Polite severities (`info`/`success`, `role="status"`) are
+ * re-announced through the persistent announcer on appear, since screen
+ * readers can miss a live region inserted together with its text (WCAG 4.1.3);
+ * `warning`/`error` use `role="alert"` and announce on insertion.
  */
 export function Alert({
 	severity,

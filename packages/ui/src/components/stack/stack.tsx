@@ -1,5 +1,6 @@
 import { Flex, type FlexProps } from '../flex'
 
+/** Props for {@link Stack}: identical to {@link FlexProps}, with `direction` fixed to `col`. */
 export type StackProps = FlexProps
 
 /**

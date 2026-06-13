@@ -18,6 +18,14 @@ import { type NavItemProps, useNavItem } from './use-nav-item'
  */
 export type NavMenuItemProps = NavItemProps & { value?: string }
 
+/**
+ * Navigation link/button within a {@link NavList}. Renders a polymorphic
+ * {@link Button} as a list item, marking itself `aria-current="page"` and
+ * mounting the scope's active indicator when current (resolved from `current`
+ * or selection binding via `value`). Hosts `prefix`/`suffix` affix slots
+ * outside the inner button and closes an enclosing offcanvas on click unless
+ * `preventClose`.
+ */
 export function NavItem({
 	icon,
 	value,

@@ -7,6 +7,7 @@ import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
+/** Props for {@link CreditCardInputCvv}; extends Input minus the masked value and change slots. */
 export type CreditCardInputCvvProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
@@ -47,6 +48,15 @@ function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
 	return brand.cvvLength
 }
 
+/**
+ * Numeric Input for a card security code, masked to digits and capped at the
+ * brand-derived length (Amex 4, others 3; 4 until a brand is known). When the
+ * brand shrinks the length it re-truncates the stored value and re-reports
+ * validity. Sets `autoComplete="cc-csc"` and defaults an "Security code"
+ * aria-label, yielding to a registered Field `<Label>`.
+ *
+ * @see {@link CreditCardInput}
+ */
 export function CreditCardInputCvv({
 	value,
 	defaultValue,

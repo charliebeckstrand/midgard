@@ -9,6 +9,7 @@ import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuState } from './context'
 
+/** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
 export type MenuContentProps = {
 	className?: string
 	/** Accessible name for a `static` menu, which has no trigger to name it. */
@@ -18,6 +19,12 @@ export type MenuContentProps = {
 	children: ReactNode
 }
 
+/**
+ * The menu panel: a `role="menu"` surface with roving focus and typeahead over
+ * its items. A `static` menu renders inline as part of the page (no autofocus);
+ * otherwise it mounts as a floating overlay that closes on `Escape`. Resolves
+ * size and spacing from the enclosing {@link Menu}.
+ */
 export function MenuContent({
 	className,
 	'aria-label': ariaLabel,

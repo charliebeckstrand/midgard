@@ -10,7 +10,9 @@ import { QueryBuilderGroup } from './query-builder-group'
 import type { QueryField, QueryGroup as QueryGroupNode } from './types'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
+/** Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree. */
 export type QueryBuilderProps = {
+	/** Fields available to rules, each with a type and operator set. */
 	fields: QueryField[]
 	value?: QueryGroupNode
 	defaultValue?: QueryGroupNode
@@ -19,7 +21,12 @@ export type QueryBuilderProps = {
 	className?: string
 }
 
-/** Nested group / rule editor for boolean queries; produces a tree of `and` / `or` groups over typed field rules. */
+/**
+ * Nested group/rule editor for boolean queries. Produces a tree of `and`/`or`
+ * groups over typed field rules, controlled or uncontrolled through
+ * `value`/`onValueChange`, and supplies field config and tree-edit actions to
+ * its descendants via context.
+ */
 export function QueryBuilder({
 	fields,
 	value,

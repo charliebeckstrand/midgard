@@ -71,6 +71,11 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
  * Returns a function that scrolls a node into view within its nearest
  * scrollable ancestor, without affecting any outer scroll containers.
  * Mirrors the `block`/`behavior` options of native `scrollIntoView`.
+ *
+ * @returns A stable `(node, { block?, behavior? }?) => void`. It walks up to
+ * the first overflowing ancestor and stops at any clipping (`overflow:
+ * hidden`/`clip`) boundary, so a node in a non-overflowing wrapper never
+ * scrolls the page.
  */
 export function useScrollWithin() {
 	return scrollWithin

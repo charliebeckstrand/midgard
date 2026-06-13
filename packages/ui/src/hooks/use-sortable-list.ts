@@ -29,6 +29,13 @@ type SortableListOptions<T> = {
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
  * `<SortableContext>` to the caller.
+ *
+ * @returns `{ itemIds, strategy, interactive, activeId, orientation,
+ * dndContextProps }`: the keyed id list and sorting `strategy` for
+ * `<SortableContext>`, `interactive` (false when disabled or read-only),
+ * `activeId` of the item being dragged (or `null`), the resolved `orientation`,
+ * and `dndContextProps` (sensors, collision detection, drag handlers) to spread
+ * onto `<DndContext>`.
  */
 export function useSortableList<T>({
 	items,

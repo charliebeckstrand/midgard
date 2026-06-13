@@ -56,6 +56,12 @@ type FloatingDisclosureResult = {
  * layer their own interaction hooks (hover, click, clientPoint, …) over
  * the returned `context` and combine them with `dismiss` + `role` via
  * `useInteractions`.
+ *
+ * @returns `{ open, setOpen, close, triggerRef, refs, floatingStyles, context,
+ * dismiss, role }`: the resolved open flag and its gated setter / `close`
+ * shortcut, the trigger ref focus restores to, floating-ui's `refs` /
+ * `floatingStyles` / `context`, and the pre-built `dismiss` and `role`
+ * `ElementProps` to merge with the consumer's own interaction hooks.
  */
 export function useFloatingDisclosure({
 	open: openProp,

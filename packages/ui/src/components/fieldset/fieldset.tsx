@@ -2,6 +2,7 @@ import { createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/fieldset'
 
+/** Props for {@link Fieldset}: the native `<fieldset>` attributes via `SlotProps`. */
 export type FieldsetProps = SlotProps<'fieldset'>
 
 /**

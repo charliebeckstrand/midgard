@@ -1,3 +1,7 @@
+/**
+ * Supported date layout for {@link DateInput}: month/day/year order and the
+ * segment separator. Drives masking, parsing, and the canonical display text.
+ */
 export type DateInputFormat = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD'
 
 type DatePart = 'month' | 'day' | 'year'

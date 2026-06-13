@@ -2,6 +2,7 @@ import type { Ma } from '../../recipes'
 import { k } from '../../recipes/kata/flex'
 import { type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
+/** Spacing scale for the gap between flex children; a `Ma` step or `0`. */
 export type FlexGap = Ma | 0
 
 const gapMap = k.gap
@@ -30,13 +31,20 @@ const justifyMap = {
 	evenly: 'justify-evenly',
 } as const
 
+/** Main-axis orientation: `row`, `col`, or their reversed variants. */
 export type FlexDirection = keyof typeof directionMap
+/** Cross-axis alignment (`align-items`): start, center, end, stretch, baseline. */
 export type FlexAlign = keyof typeof alignMap
+/** Main-axis distribution (`justify-content`): start, center, end, between, around, evenly. */
 export type FlexJustify = keyof typeof justifyMap
 
+/** {@link FlexDirection} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveDirection = Responsive<FlexDirection>
+/** {@link FlexAlign} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveAlign = Responsive<FlexAlign>
+/** {@link FlexGap} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveGap = Responsive<FlexGap>
+/** {@link FlexJustify} per breakpoint, or a single value applied at all sizes. */
 export type ResponsiveJustify = Responsive<FlexJustify>
 
 // Mobile-first (min-width) maps spelled out as literals; Tailwind's scanner

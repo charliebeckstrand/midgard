@@ -7,6 +7,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, kanbanColumnTitleId, useKanbanContext } from './context'
 
+/** Props for {@link KanbanColumn}: the `columnId` matching a board column, with an optional accessible-name override. */
 export type KanbanColumnProps = {
 	/** Stable id matching an entry in the `columns` prop. */
 	columnId: string
@@ -16,6 +17,15 @@ export type KanbanColumnProps = {
 	'aria-label'?: string
 }
 
+/**
+ * Drop target and sortable context for one board column, keyed by `columnId`.
+ * Highlights while a card hovers over it, provides column context to its cards
+ * and title, and names its `<section>` from a mounted {@link KanbanColumnTitle}
+ * (or an explicit `aria-label`). Compose {@link KanbanColumnHeader} and
+ * {@link KanbanColumnBody} within.
+ *
+ * @remarks Client component.
+ */
 export function KanbanColumn({
 	columnId,
 	children,

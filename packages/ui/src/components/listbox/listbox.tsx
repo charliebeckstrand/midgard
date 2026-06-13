@@ -86,6 +86,13 @@ type ListboxMultipleProps<T> = {
 	onValueChange?: (value: T[]) => void
 }
 
+/**
+ * Props for {@link Listbox}: the shared base (`name`, sizing, `clearable`,
+ * `nullable`, open-state control, …) and an optional `displayValue` formatter,
+ * discriminated on `multiple` into single- or array-valued value/handler shapes.
+ *
+ * @typeParam T - The option value type.
+ */
 export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)

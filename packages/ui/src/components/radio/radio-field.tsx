@@ -6,6 +6,7 @@ import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/radio'
 import { ControlField } from '../control/control-field'
 
+/** Props for {@link RadioField}: native `<div>` attributes plus an optional `htmlFor` to pin the generated id. */
 export type RadioFieldProps = {
 	htmlFor?: string
 } & ComponentPropsWithoutRef<'div'>

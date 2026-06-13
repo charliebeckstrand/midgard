@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { type KbdVariants, k } from '../../recipes/kata/kbd'
 
+/** Props for {@link Kbd}: optional `size` and Command/Control modifier flags atop native `<kbd>` attributes. */
 export type KbdProps = ComponentPropsWithoutRef<'kbd'> & {
 	size?: KbdVariants['size']
 	/** Prepend the Command (⌘) modifier glyph. */

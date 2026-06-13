@@ -15,7 +15,15 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	containerRef?: RefObject<T | null>
 }
 
-/** Dismiss behavior for overlays: Escape and click-outside. Use `useScrollLock` for body-scroll locking. */
+/**
+ * Dismiss behavior for overlays: closes on Escape (routed through the shared
+ * dismiss-layer stack via `useEscapeLayer`) and on pointer-down outside the
+ * boundary, both gated on `open`. Use `useScrollLock` for body-scroll locking.
+ *
+ * @returns The container ref defining the outside-pointer boundary. Attach it
+ * to the overlay root, or pass your own via `containerRef` and ignore the
+ * return.
+ */
 export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 	open,
 	onDismiss,

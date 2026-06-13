@@ -14,6 +14,7 @@ import {
 	useControl,
 } from './context'
 
+/** Props for {@link Control}; the shared form-field state broadcast to control-aware descendants. */
 export type ControlProps = {
 	id?: string
 	autoComplete?: string
@@ -28,10 +29,12 @@ export type ControlProps = {
 }
 
 /**
- * Generates a stable id and broadcasts `disabled`, `invalid`, `readOnly`,
- * `required`, `size`, and `variant` to control-aware descendants. Nests:
- * `disabled` / `readOnly` cascade through inner Controls, `size` / `variant`
- * inherit unless overridden.
+ * Form-field context provider: generates a stable id and broadcasts
+ * `disabled`, `invalid`, `readOnly`, `required`, `size`, and `variant` to
+ * control-aware descendants (input, textarea, switch, listbox, combobox,
+ * datepicker, checkbox, radio). Nests: `disabled` / `readOnly` cascade through
+ * inner Controls, `size` / `variant` inherit unless overridden. Wraps its
+ * subtree in a Density scope when `size` resolves.
  */
 export function Control({
 	id: idProp,

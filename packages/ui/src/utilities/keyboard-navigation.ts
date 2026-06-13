@@ -1,5 +1,6 @@
 import type { Orientation } from '../types'
 
+/** Navigation mode for {@link nextIndexForKey}: 2D grid when `cols` is set, else single-axis along `orientation`. */
 export type NavigationConfig = {
 	/** Column count for 2D grid navigation. Omit for single-axis mode. */
 	cols?: number

@@ -14,6 +14,7 @@ import { TagInputBadge } from './tag-input-badge'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
+/** Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, and `<Form>` binding via `name`. */
 export type TagInputProps = {
 	id?: string
 	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
@@ -42,8 +43,14 @@ export type TagInputProps = {
 /**
  * Token-entry field rendering its tags as removable badges in the `<Input>`
  * prefix; controlled or uncontrolled via `value`/`defaultValue`, committing
- * on Enter, removing with Backspace, and gating additions through `validate`
- * and `max`.
+ * on Enter or comma, removing the trailing tag with Backspace, and gating
+ * additions through `validate` and `max`.
+ *
+ * @remarks
+ * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
+ * nameless). Announces each add/remove/duplicate/limit outcome to the live
+ * region and returns focus to the input after a removal releases the at-max
+ * state (WCAG 4.1.3, 2.4.3).
  */
 export function TagInput({
 	id,
