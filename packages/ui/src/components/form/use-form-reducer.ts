@@ -251,30 +251,30 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			setSubmitting(true)
 
-			try {
-				const raw = await onSubmit(valuesRef.current, {
-					setErrors: setErrorsExternal,
-					reset,
-				})
-
-				// Superseded by a reset, unmount, or newer submit; discard this result.
+			// Superseded by a reset, unmount, or newer submit; discard the result.
+			const applyOutcome = (raw: unknown) => {
 				if (submitTokenRef.current !== token) return
 
 				const fieldErrors = extractFieldErrors(raw)
 
-				if (fieldErrors) {
-					// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
-					setErrorsExternal(fieldErrors)
-				} else {
-					onSettledRef.current?.({ ok: true, values: valuesRef.current })
-				}
-			} catch (err) {
+				// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
+				if (fieldErrors) setErrorsExternal(fieldErrors)
+				else onSettledRef.current?.({ ok: true, values: valuesRef.current })
+			}
+
+			const applyError = (err: unknown) => {
 				if (submitTokenRef.current !== token) return
 
 				onSettledRef.current?.({
 					ok: false,
 					error: err instanceof Error ? err : new Error(String(err)),
 				})
+			}
+
+			try {
+				applyOutcome(await onSubmit(valuesRef.current, { setErrors: setErrorsExternal, reset }))
+			} catch (err) {
+				applyError(err)
 			} finally {
 				// Clear `submitting` only for the un-superseded submit.
 				if (submitTokenRef.current === token) setSubmitting(false)
