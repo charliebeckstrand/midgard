@@ -51,6 +51,12 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 	if (type.isUnion()) {
 		const filtered = type.types.filter((t) => !(t.flags & ts.TypeFlags.Undefined))
 
+		// `'literal' | (string & {})` escape hatch: the union accepts any string,
+		// so its literals are editor hints, not a constraint. React's
+		// `HTMLInputAutoCompleteAttribute` is the canonical case — render `string`
+		// instead of expanding every DOM autofill token.
+		if (filtered.some(isStringEscapeHatch)) return 'string'
+
 		if (filtered.length !== type.types.length) {
 			if (filtered.length === 1 && filtered[0]) return formatType(filtered[0], checker, location)
 
@@ -230,6 +236,27 @@ function typeParameterFallback(
 /** TS emits double quotes; the rest of the docs use single. */
 function toSingleQuotes(s: string): string {
 	return s.replace(/"([^"\\]*)"/g, "'$1'")
+}
+
+/**
+ * Detects the `string & {}` member of a "string literal with autocomplete"
+ * union: an intersection of the `string` primitive with an empty object type.
+ * The empty-object brand keeps TS from widening the union to `string`, but for
+ * display the whole union is just `string`. A branded string (`string & { … }`
+ * with members) is a real distinct type and does not match.
+ */
+function isStringEscapeHatch(type: ts.Type): boolean {
+	if (!(type.flags & ts.TypeFlags.Intersection)) return false
+
+	const parts = (type as ts.IntersectionType).types
+
+	const hasString = parts.some((p) => (p.flags & ts.TypeFlags.String) !== 0)
+
+	const hasEmptyObject = parts.some(
+		(p) => (p.flags & ts.TypeFlags.Object) !== 0 && p.getProperties().length === 0,
+	)
+
+	return hasString && hasEmptyObject
 }
 
 /**
