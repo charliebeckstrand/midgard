@@ -3,6 +3,7 @@ import path from 'node:path'
 import { Node, Project, SyntaxKind, type ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { extractDefaults } from './extract-defaults'
+import { extractDocFromText, type LinkResolver } from './extract-doc'
 import { extractPassThrough } from './extract-passthrough'
 import { extractProjectPropNames } from './extract-project-props'
 import { extractProps } from './extract-props'
@@ -13,6 +14,7 @@ import {
 	readPublicExports,
 	unwrapFunctionLike,
 } from './find-components'
+import { createLinkResolver } from './link-resolver'
 
 /**
  * Extract API reference data for every component under `<srcDir>/components`,
@@ -27,6 +29,8 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 	const project = openProject(srcDir)
 
 	const checker = project.getTypeChecker().compilerObject
+
+	const resolveLink = createLinkResolver(project)
 
 	const result: Record<string, ComponentApi[]> = {}
 
@@ -54,7 +58,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 				continue
 			}
 
-			apis.push(buildComponent(decl, checker))
+			apis.push(buildComponent(decl, checker, resolveLink))
 		}
 
 		if (apis.length > 0) result[dir.name] = apis
@@ -74,7 +78,11 @@ function openProject(srcDir: string): Project {
 }
 
 /** Assemble the `ComponentApi` for one component from the focused extractors. */
-function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): ComponentApi {
+function buildComponent(
+	decl: ComponentDecl,
+	checker: ts.TypeChecker,
+	resolveLink: LinkResolver,
+): ComponentApi {
 	const inner = unwrapFunctionLike(decl.callable) ?? decl.callable
 
 	const callable = inner.compilerNode as ts.SignatureDeclaration
@@ -89,13 +97,21 @@ function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Component
 
 	const defaults = extractDefaults(callable)
 
-	const props = propsType ? extractProps(callable, propsType, projectNames, defaults, checker) : []
+	const props = propsType
+		? extractProps(callable, propsType, projectNames, defaults, checker, resolveLink)
+		: []
 
 	const api: ComponentApi = { name: decl.name, props }
 
-	const description = componentDescription(decl)
+	const summary = componentDescription(decl)
 
-	if (description) api.description = description
+	if (summary) {
+		const { description, links } = extractDocFromText(summary, resolveLink)
+
+		if (description) api.description = description
+
+		if (links) api.links = links
+	}
 
 	if (passThrough.length > 0) api.passThrough = passThrough
 

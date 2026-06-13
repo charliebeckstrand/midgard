@@ -1,9 +1,23 @@
+/**
+ * A resolved `{@link}` target lifted out of a TSDoc description, keyed in
+ * `links` by the target name written in the comment. Backs the hover card
+ * behind the rendered reference, mirroring an editor's quick-info popover.
+ */
+export type DocLink = {
+	/** One-line signature header, e.g. `type KbdProps` or `function Item(…): …`. */
+	signature?: string
+	/** The target's own TSDoc summary. */
+	summary?: string
+}
+
 export type PropDef = {
 	name: string
 	/** Type expression as written in source, e.g. `DataTableColumn<T>[]`. */
 	type: string
-	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. */
+	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
 	description?: string
+	/** Resolved `{@link}` targets referenced in `description`, keyed by target name. */
+	links?: Record<string, DocLink>
 	/** Present and `true` only for required props; absent reads as optional. */
 	required?: boolean
 	/**
@@ -31,8 +45,10 @@ export type PassThrough = {
 
 export type ComponentApi = {
 	name: string
-	/** Component-level TSDoc summary: the `/** … *\/` above the function. */
+	/** Component-level TSDoc summary: the `/** … *\/` above the function. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
 	description?: string
+	/** Resolved `{@link}` targets referenced in `description`, keyed by target name. */
+	links?: Record<string, DocLink>
 	props: PropDef[]
 	passThrough?: PassThrough[]
 }
