@@ -9,6 +9,11 @@
       "command": "node",
       "args": [".mcp-servers/documentation/index.mjs"],
       "env": {}
+    },
+    "vitest": {
+      "command": "node",
+      "args": [".mcp-servers/vitest/index.mjs"],
+      "env": {}
     }
   }
 }
