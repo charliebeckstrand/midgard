@@ -2,9 +2,10 @@
 
 import { useCallback } from 'react'
 import { announce } from '../../core'
-import { useControllable } from '../../hooks'
+import { useFormValue } from '../form/use-form-value'
 
 type TagInputOptions = {
+	name?: string
 	value?: string[]
 	defaultValue?: string[]
 	onValueChange?: (value: string[] | undefined) => void
@@ -15,6 +16,7 @@ type TagInputOptions = {
 }
 
 export function useTagInput({
+	name,
 	value,
 	defaultValue,
 	onValueChange,
@@ -22,11 +24,21 @@ export function useTagInput({
 	validate,
 	onMaxReleased,
 }: TagInputOptions) {
-	const [tags = [], setTags] = useControllable<string[]>({
+	// Binds the tag list to an enclosing Form field by `name` (the value-typed
+	// cascade); falls back to controlled/uncontrolled state. The inner text
+	// `<Input>` stays nameless — the array is the bound value, not the draft.
+	const {
+		value: current,
+		setValue: setTags,
+		setTouched,
+		invalid,
+	} = useFormValue<string[]>(name, {
 		value,
 		defaultValue: defaultValue ?? [],
 		onValueChange,
 	})
+
+	const tags = current ?? []
 
 	const atMax = max !== undefined && tags.length >= max
 
@@ -78,5 +90,5 @@ export function useTagInput({
 		[tags, setTags, atMax, onMaxReleased],
 	)
 
-	return { tags, atMax, addTag, removeTag }
+	return { tags, atMax, addTag, removeTag, setTouched, invalid }
 }
