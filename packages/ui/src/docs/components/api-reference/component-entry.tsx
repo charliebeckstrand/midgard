@@ -2,7 +2,6 @@
 
 import { Fragment } from 'react'
 import { Code } from '../../../components/code'
-import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Markdown } from '../../../components/markdown'
 import { Text } from '../../../components/text'
@@ -68,7 +67,7 @@ function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
 	if (entries.length === 0) return null
 
 	return (
-		<Flex align="center" gap="sm" className="text-sm text-zinc-600 dark:text-zinc-400" wrap>
+		<Text variant="muted" className="flex items-center gap-1">
 			<span>Also accepts all</span>
 			{entries.map((pt, i) => (
 				<Fragment key={pt.element}>
@@ -77,6 +76,6 @@ function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
 				</Fragment>
 			))}
 			<span>HTML attributes.</span>
-		</Flex>
+		</Text>
 	)
 }

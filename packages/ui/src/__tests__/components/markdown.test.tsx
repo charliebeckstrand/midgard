@@ -9,7 +9,9 @@ describe('Markdown', () => {
 		const el = bySlot(container, 'markdown')
 
 		expect(el).toBeInTheDocument()
+
 		expect(el?.tagName).toBe('DIV')
+
 		expect(el?.querySelector('h1')?.textContent).toBe('Title')
 	})
 
@@ -21,7 +23,9 @@ describe('Markdown', () => {
 		const el = bySlot(container, 'markdown')
 
 		expect(el?.querySelector('strong')?.textContent).toBe('bold')
+
 		expect(el?.querySelector('code')?.textContent).toBe('code')
+
 		expect(el?.querySelector('a')).toHaveAttribute('href', 'https://example.com')
 	})
 
