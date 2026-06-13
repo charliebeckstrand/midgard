@@ -246,11 +246,13 @@ export function useFloatingUI({
 
 			const floating = refs.floating.current
 
-			if (!floating) return
+			const insideFloating = !!floating && floating.contains(target)
 
-			if (floating.contains(target)) return
-			if (refs.domReference.current?.contains(target)) return
-			if (target instanceof HTMLElement && isScrollbarPress(event, target)) return
+			const insideReference = !!refs.domReference.current?.contains(target)
+
+			const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
+
+			if (!floating || insideFloating || insideReference || onScrollbar) return
 
 			onOpenChangeRef.current(false, event, 'outside-press')
 		}
