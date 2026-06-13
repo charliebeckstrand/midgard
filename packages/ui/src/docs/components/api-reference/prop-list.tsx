@@ -6,11 +6,11 @@ import { Button } from '../../../components/button'
 import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
 import { Icon } from '../../../components/icon'
-import { Markdown } from '../../../components/markdown'
 import { Stack } from '../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import type { PropDef } from '../../api-reference/types'
+import { DocDescription } from './doc-description'
 import { TypeCell } from './type-cell'
 
 /**
@@ -53,7 +53,7 @@ function PropRow({ prop }: { prop: PropDef }) {
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
-								<Markdown>{prop.description}</Markdown>
+								<DocDescription description={prop.description} links={prop.links} card={false} />
 							</TooltipContent>
 						</Tooltip>
 					)}

@@ -3,9 +3,9 @@
 import { Fragment } from 'react'
 import { Code } from '../../../components/code'
 import { Heading } from '../../../components/heading'
-import { Markdown } from '../../../components/markdown'
 import { Text } from '../../../components/text'
 import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
+import { DocDescription } from './doc-description'
 import { PropList } from './prop-list'
 
 /** React-style event handlers: `onClick`, `onChange`, … */
@@ -39,7 +39,7 @@ export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 
 	return (
 		<div className="space-y-4">
-			{entry.description && <Markdown>{entry.description}</Markdown>}
+			{entry.description && <DocDescription description={entry.description} links={entry.links} />}
 			{hasAny ? (
 				<div className="space-y-6">
 					{props.length > 0 && <Section title="Props" rows={props} />}

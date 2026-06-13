@@ -1,5 +1,6 @@
 import { ts } from 'ts-morph'
 import type { PropDef } from '../types'
+import { extractDocFromParts, type LinkResolver } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
@@ -19,6 +20,7 @@ export function extractProps(
 	projectNames: ReadonlySet<string> | null,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
+	resolveLink: LinkResolver,
 ): PropDef[] {
 	const props: PropDef[] = []
 
@@ -31,7 +33,7 @@ export function extractProps(
 			continue
 		}
 
-		props.push(buildPropDef(name, symbol, types, callable, defaults, checker))
+		props.push(buildPropDef(name, symbol, types, callable, defaults, checker, resolveLink))
 	}
 
 	return props
@@ -88,6 +90,7 @@ function buildPropDef(
 	callable: ts.Node,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
+	resolveLink: LinkResolver,
 ): PropDef {
 	const authored = authoredTypeText(symbol, checker)
 
@@ -104,9 +107,14 @@ function buildPropDef(
 
 	if (externalFrom) prop.externalFrom = externalFrom
 
-	const description = jsDocSummary(symbol, checker)
+	const { description, links } = extractDocFromParts(
+		symbol.getDocumentationComment(checker),
+		resolveLink,
+	)
 
 	if (description) prop.description = description
+
+	if (links) prop.links = links
 
 	const tags = jsDocTags(symbol, checker)
 
@@ -124,13 +132,6 @@ function buildPropDef(
 	else if (tags.default !== undefined) prop.default = tags.default
 
 	return prop
-}
-
-/** Prose summary of a symbol's TSDoc (the leading `/** … *\/`, tags stripped). */
-export function jsDocSummary(symbol: ts.Symbol, checker: ts.TypeChecker): string | undefined {
-	const text = ts.displayPartsToString(symbol.getDocumentationComment(checker)).trim()
-
-	return text.length > 0 ? text : undefined
 }
 
 type PropTags = { default?: string; example?: string; deprecated?: string | true }
