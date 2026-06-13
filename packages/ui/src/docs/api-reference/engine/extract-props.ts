@@ -89,14 +89,24 @@ function buildPropDef(
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
 ): PropDef {
-	const authored = authoredTypeText(symbol, checker)
+	// An enum-like prop — a pure union of string/number literals, whether
+	// authored inline or behind an alias (`ContainerPadding = keyof typeof
+	// k.padding`) — renders its values directly. The resolved set *is* the
+	// useful information; an alias name plus a `View references` card only adds
+	// indirection over a handful of badges. This takes precedence over the
+	// authored alias text below.
+	const literalUnion = literalUnionType(propTypes, callable, checker)
+
+	const authored = literalUnion ?? authoredTypeText(symbol, checker)
 
 	const prop: PropDef = {
 		name,
 		type: authored ?? formatPropTypes(propTypes, callable, checker),
 	}
 
-	const references = extractReferences(prop.type, callable, checker)
+	// Inlined literal unions carry no named references; skip resolution so they
+	// surface no card.
+	const references = literalUnion ? undefined : extractReferences(prop.type, callable, checker)
 
 	if (references) prop.references = references
 
@@ -188,6 +198,43 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 	}
 
 	return rendered.join(' | ')
+}
+
+/**
+ * When a prop's single resolved type is a pure union of string- or
+ * number-literal members, render those values inline (e.g. `'none' | 'sm' |
+ * 'md' | 'lg'`) rather than an enum-like alias name. Returns null for anything
+ * else — object shapes, functions, generics, `boolean`, and mixed unions
+ * (`boolean | keyof typeof k.outline`) — which keep their alias name and a
+ * reference card. Boolean literals are excluded so `boolean` never expands to
+ * `true | false`.
+ *
+ * Props collected across multiple union/intersection arms (length ≠ 1) keep
+ * their existing rendering; the inline case targets a single, self-contained
+ * literal set.
+ */
+function literalUnionType(
+	propTypes: ts.Type[],
+	location: ts.Node,
+	checker: ts.TypeChecker,
+): string | null {
+	if (propTypes.length !== 1) return null
+
+	const type = propTypes[0]
+
+	if (!type) return null
+
+	const members = type.isUnion()
+		? type.types.filter((t) => !(t.flags & ts.TypeFlags.Undefined))
+		: [type]
+
+	if (members.length === 0) return null
+
+	const LITERAL = ts.TypeFlags.StringLiteral | ts.TypeFlags.NumberLiteral
+
+	if (!members.every((t) => (t.flags & LITERAL) !== 0)) return null
+
+	return formatPropType(type, checker, location)
 }
 
 /**
