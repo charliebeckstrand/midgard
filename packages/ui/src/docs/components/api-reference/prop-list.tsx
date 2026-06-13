@@ -3,6 +3,7 @@
 import { Badge } from '../../../components/badge'
 import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
+import { Markdown } from '../../../components/markdown'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -66,7 +67,7 @@ function PropRow({ prop }: { prop: PropDef }) {
 					</Tooltip>
 				)}
 			</Flex>
-			{prop.description && <Text className="text-sm">{prop.description}</Text>}
+			{prop.description && <Markdown>{prop.description}</Markdown>}
 			<Flex align="center" gap="md" wrap className="text-sm">
 				<TypeCell prop={prop} />
 			</Flex>
