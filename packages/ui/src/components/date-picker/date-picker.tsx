@@ -145,7 +145,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	if (input) {
 		return (
-			<div className="contents">
+			<>
 				<div
 					data-slot="control"
 					ref={state.setReference}
@@ -175,12 +175,12 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					/>
 				</div>
 				{content}
-			</div>
+			</>
 		)
 	}
 
 	return (
-		<div className="contents">
+		<>
 			<DatePickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -202,6 +202,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				data-group-orientation={dataGroupOrientation}
 			/>
 			{content}
-		</div>
+		</>
 	)
 }
