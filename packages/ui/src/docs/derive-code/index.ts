@@ -23,7 +23,7 @@ import type { Context } from './types'
  * to use the components on display.
  *
  * - Styling wrappers (divs, spans, Fragments) flatten away.
- * - Pure text/number children collapse to `…`.
+ * - Pure text/number children collapse to `...`.
  * - Runs of 3+ identical sibling renders collapse to a single representative.
  * - Imports come from build-time component tags; external components (e.g.
  *   lucide icons) resolve by `displayName` against the demos' package imports.
@@ -197,8 +197,8 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 
 /**
  * Renders the children of a recognized component via `renderNodes`. When
- * children exist but nothing renders, substitutes a `…` placeholder; the
- * parent stays `<Foo>…</Foo>`.
+ * children exist but nothing renders, substitutes a `...` placeholder; the
+ * parent stays `<Foo>...</Foo>`.
  */
 function renderChildrenContent(nodes: ReactNode[], context: Context, indent: string): string {
 	if (nodes.length === 0) return ''
