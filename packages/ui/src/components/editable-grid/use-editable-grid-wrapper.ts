@@ -15,10 +15,15 @@ import type {
 	EditableGridRowsApi,
 } from './types'
 
+/** The grid's active cell, non-null. @internal */
 type GridActiveCell = NonNullable<EditableGridNavigationApi['active']>
 
-// Dependencies threaded to the module-level key handlers. Bundled so the
-// handlers keep flat signatures and are scored at base nesting depth.
+/**
+ * Dependencies threaded to the module-level key handlers. Bundled so the
+ * handlers keep flat signatures and are scored at base nesting depth.
+ *
+ * @internal
+ */
 type GridKeyDeps<T> = {
 	active: EditableGridNavigationApi['active']
 	anchor: EditableGridNavigationApi['anchor']
@@ -39,6 +44,7 @@ type GridKeyDeps<T> = {
 	formatCell: EditableGridRowsApi<T>['formatCell']
 }
 
+/** Dependencies for the matrix-paste path. @internal */
 type GridPasteDeps<T> = {
 	editableCols: EditableGridRowsApi<T>['editableCols']
 	rowsRef: EditableGridRowsApi<T>['rowsRef']
@@ -46,6 +52,7 @@ type GridPasteDeps<T> = {
 	parseValue: EditableGridRowsApi<T>['parseValue']
 }
 
+/** True when `target` is a selection checkbox inside the grid wrapper. @internal */
 function isGridCheckbox(
 	target: EventTarget | null,
 	wrapper: HTMLTableElement,
@@ -58,8 +65,12 @@ function isGridCheckbox(
 	)
 }
 
-// Bridge a Tab from a selection checkbox into the cell cursor by resolving the
-// data-row the checkbox belongs to.
+/**
+ * Bridges a Tab from a selection checkbox into the cell cursor by resolving the
+ * data-row the checkbox belongs to.
+ *
+ * @internal
+ */
 function bridgeFromCheckbox<T>(
 	e: KeyboardEvent<HTMLTableElement>,
 	checkbox: HTMLInputElement,
@@ -102,6 +113,7 @@ function bridgeFromCheckbox<T>(
 	table.focus()
 }
 
+/** Tab/Shift+Tab between cells; Shift+Tab from column 0 hands off to the row's selection checkbox. @internal */
 function handleTab<T>(
 	e: KeyboardEvent<HTMLTableElement>,
 	wrapper: HTMLTableElement | null,
@@ -136,6 +148,7 @@ function handleTab<T>(
 	if (deps.moveActiveTab(e.shiftKey ? -1 : 1)) e.preventDefault()
 }
 
+/** Moves the active cell to `col` in the current row (Home/End), extending selection on Shift. @internal */
 function moveToEdge<T>(e: KeyboardEvent<HTMLTableElement>, col: number, deps: GridKeyDeps<T>) {
 	e.preventDefault()
 
@@ -144,6 +157,7 @@ function moveToEdge<T>(e: KeyboardEvent<HTMLTableElement>, col: number, deps: Gr
 	deps.moveActiveTo({ row: prev.row, col }, e.shiftKey)
 }
 
+/** Enters edit mode on the active cell seeded with its current formatted value. @internal */
 function beginCellEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, rowsRef, editableCols, formatCell, beginEdit } = deps
 
@@ -160,6 +174,7 @@ function beginCellEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<
 	beginEdit(active, formatCell(row, col))
 }
 
+/** Clears the active cell, or the whole selection under a multi-selection (Delete/Backspace). @internal */
 function clearCells<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, hasMultiSelection, applyBulkFill, applyCellWrite } = deps
 
@@ -171,6 +186,7 @@ function clearCells<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>)
 	else applyCellWrite(active.row, active.col, '')
 }
 
+/** Escape: collapses a multi-selection to the active cell, or clears the active cell. @internal */
 function clearSelection<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, hasMultiSelection, anchor, extraCells, setActive, setAnchor, setExtraCells } =
 		deps
@@ -188,8 +204,12 @@ function clearSelection<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps
 	}
 }
 
-// Returns true once a key is consumed so the caller skips the printable
-// fallback.
+/**
+ * Dispatches a non-printable grid key (arrows, Tab, Home/End, edit, clear).
+ *
+ * @returns `true` once a key is consumed so the caller skips the printable fallback.
+ * @internal
+ */
 function handleEditableGridKey<T>(
 	e: KeyboardEvent<HTMLTableElement>,
 	wrapper: HTMLTableElement | null,
@@ -252,7 +272,7 @@ function handleEditableGridKey<T>(
 	}
 }
 
-// Printable single character starts edit and replaces the value.
+/** A printable single character starts edit and replaces the active cell's value. @internal */
 function tryPrintableEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, rowsRef, editableCols, formatCell, beginEdit } = deps
 
@@ -269,6 +289,7 @@ function tryPrintableEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDe
 	beginEdit(active, e.key, formatCell(row, col))
 }
 
+/** Parses tab/newline-delimited clipboard text into a cell matrix, dropping a spurious trailing empty row. @internal */
 function parseClipboard(text: string): string[][] {
 	const rows = text
 		.replace(/\r\n/g, '\n')
@@ -285,7 +306,7 @@ function parseClipboard(text: string): string[][] {
 	return rows
 }
 
-// Matrix paste: fill from the active cell, row-major, without bulk-fill.
+/** Matrix paste: fills from the active cell, row-major, without bulk-fill. @internal */
 function collectMatrixChanges<T>(
 	matrix: string[][],
 	activeCell: GridActiveCell,
@@ -316,6 +337,14 @@ function collectMatrixChanges<T>(
 	return changes
 }
 
+/**
+ * Wires the editable grid's wrapper-level interaction: `keydown` (cell
+ * navigation, edit entry, clear, and checkbox bridging), `paste` (single-cell
+ * and matrix writes), and focus/blur (seeding and clearing the active cell).
+ * Returns the four handlers to spread onto the grid's `<table>` wrapper.
+ *
+ * @returns `onWrapperKeyDown` / `onWrapperPaste` / `onWrapperFocus` / `onWrapperBlur`.
+ */
 export function useEditableGridWrapper<T>({
 	nav: {
 		active,

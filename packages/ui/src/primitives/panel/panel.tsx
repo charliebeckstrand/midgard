@@ -14,11 +14,17 @@ const DEFAULT_BODY = k.body
 const DEFAULT_FOOTER = k.footer
 const DEFAULT_CONTENT = k.content
 
+/** Props for a panel `Title` slot (`<h2>`). */
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
+/** Props for a panel `Description` slot (`<p>`). */
 export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
+/** Props for a panel `Header` slot (`<div>`). */
 export type PanelHeaderProps = ComponentPropsWithoutRef<'div'>
+/** Props for a panel `Body` slot (`<div>`); scroll region. */
 export type PanelBodyProps = ComponentPropsWithoutRef<'div'>
+/** Props for a panel `Footer` slot (`<div>`). */
 export type PanelFooterProps = ComponentPropsWithoutRef<'div'>
+/** Props for a panel `Content` slot (`<div>`). */
 export type PanelContentProps = ComponentPropsWithoutRef<'div'>
 
 type PanelA11yContextValue = {
@@ -28,10 +34,16 @@ type PanelA11yContextValue = {
 	registerDescription?: (renderedId?: string) => () => void
 }
 
+/**
+ * Broadcasts the panel's accessible-name ids and registration callbacks from
+ * `useA11yPanel` to the Title / Description slots, which adopt the ids and
+ * register their presence.
+ */
 export const [PanelA11yContext, usePanelA11y] = createContext<PanelA11yContextValue>('PanelA11y', {
 	default: {},
 })
 
+/** Props for {@link PanelProviders}: the panel root's `onOpenChange` and a11y descriptor wired into the slot contexts. */
 export type PanelProvidersProps = {
 	/** The panel root's `onOpenChange`; powers the Close context. */
 	onOpenChange: (open: boolean) => void
@@ -55,7 +67,7 @@ export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersP
 	)
 }
 
-/** Creates Title, Description, Header, Body, Footer, and Content slot components for a panel prefix. */
+/** Optional per-slot class overrides for `createPanel`; each defaults to the panel recipe. */
 type PanelSlots = {
 	title?: string | string[]
 	description?: string | string[]
@@ -65,6 +77,12 @@ type PanelSlots = {
 	content?: string | string[]
 }
 
+/**
+ * Builds the Title, Description, Header, Body, Footer, and Content slot
+ * components for a panel surface, each stamping `data-slot="<slotPrefix>-*"`.
+ * Title and Description adopt the ambient `PanelA11yContext` ids; Body is the
+ * scroll region. Pass `slots` to override individual slot classes.
+ */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const titleClass = slots?.title ?? DEFAULT_TITLE
 	const descriptionClass = slots?.description ?? DEFAULT_DESCRIPTION

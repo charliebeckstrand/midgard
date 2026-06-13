@@ -3,8 +3,10 @@ import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { headingScale, k } from '../../recipes/kata/heading'
 
+/** Semantic heading level, `1`-`6`, selecting the rendered `h1`-`h6` tag. */
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
+/** Props for {@link Heading}: `level`, optional type-scale `size` shift, plus native heading attributes. */
 export type HeadingProps = {
 	level?: HeadingLevel
 	/**

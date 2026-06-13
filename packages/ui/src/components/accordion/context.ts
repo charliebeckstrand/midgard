@@ -21,5 +21,9 @@ type AccordionItemContextValue = {
 	panelProps: A11yDisclosure['panelProps']
 }
 
+/**
+ * Reads the enclosing {@link AccordionItem} context: open state, toggle, and the
+ * disclosure a11y props for wiring a custom trigger/panel. Throws outside an item.
+ */
 export const [AccordionItemContext, useAccordionItem] =
 	createContext<AccordionItemContextValue>('AccordionItem')

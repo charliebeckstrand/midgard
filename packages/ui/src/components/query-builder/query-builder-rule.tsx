@@ -14,11 +14,17 @@ import { QueryBuilderRuleValue } from './query-builder-rule-value'
 import { focusKeys, getOperators } from './query-builder-utilities'
 import type { QueryRule } from './types'
 
+/** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
 	rule: QueryRule
 	className?: string
 }
 
+/**
+ * Renders one query rule: field and operator {@link Select}s plus a type-aware
+ * value input (suppressed for `noValue` operators) and a remove button.
+ * Changing the field resets the operator and value. Memoized.
+ */
 function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled } = useQueryBuilderState()
 
@@ -131,4 +137,9 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	)
 }
 
+/**
+ * Renders one query rule within a {@link QueryBuilderGroup}: field and operator
+ * {@link Select}s plus a type-aware value input (suppressed for `noValue`
+ * operators) and a remove button.
+ */
 export const QueryBuilderRule = memo(QueryBuilderRuleImpl)

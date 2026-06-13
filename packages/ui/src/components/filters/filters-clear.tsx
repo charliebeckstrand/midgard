@@ -5,11 +5,19 @@ import { cn } from '../../core'
 import { Button } from '../button'
 import { useFilters } from './context'
 
+/** Props for {@link FiltersClear}. */
 export type FiltersClearProps = {
 	children: ReactNode
 	className?: string
 }
 
+/**
+ * Wires its child to the enclosing {@link Filters} clear action. A single valid
+ * element child is cloned with a merged `onClick` (the child's own handler runs
+ * first); any other children fall back to a default `<Button>` trigger.
+ *
+ * @remarks Must render inside a `Filters`.
+ */
 export function FiltersClear({ children, className }: FiltersClearProps) {
 	const { clear: handleClear } = useFilters()
 

@@ -8,6 +8,7 @@ import {
 	resolveSpan,
 } from './variants'
 
+/** Props for {@link GridCell}: responsive column/row `span` and `start` placement, or a named grid `area`, atop native `<div>` attributes. */
 export type GridCellProps = {
 	span?: Responsive<number | 'full'>
 	rowSpan?: Responsive<number>
@@ -19,6 +20,14 @@ export type GridCellProps = {
 	children?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children' | 'style'>
 
+/**
+ * Grid item that places itself within a {@link Grid} via responsive column/row
+ * `span` and `start` lines, or a named template `area`. `span` accepts `'full'`
+ * to span the whole row; placement threads through CSS custom properties.
+ *
+ * @remarks
+ * Static leaf with no client boundary: renders in React Server Components.
+ */
 export function GridCell({
 	span,
 	rowSpan,

@@ -6,6 +6,11 @@ import { drawSnapshot } from './signature-pad-utilities'
 import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
 import { useSignaturePadDrawing } from './use-signature-pad-drawing'
 
+/**
+ * Imperative handle exposed via `ref`: clear the pad, read its current image
+ * as a data URL (passing through the canvas `type`/`quality`), or test whether
+ * any stroke has been drawn.
+ */
 export type SignaturePadHandle = {
 	clear: () => void
 	toDataURL: (type?: string, quality?: number) => string | null

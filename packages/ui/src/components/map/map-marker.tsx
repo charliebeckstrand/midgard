@@ -7,8 +7,13 @@ import { useMapContext } from './context'
 import { loadMapLibre } from './map-loader'
 import type { LngLat } from './types'
 
+/** Props for {@link MapMarker}: the `position`, anchor alignment, and an optional click handler. */
 export type MapMarkerProps = {
 	position: LngLat
+	/**
+	 * Which point of the marker element pins to `position`.
+	 * @defaultValue 'center'
+	 */
 	anchor?:
 		| 'center'
 		| 'top'
@@ -30,6 +35,11 @@ export type MapMarkerProps = {
 	children?: ReactNode
 }
 
+/**
+ * Pin anchored to a geographic `position` on the enclosing {@link Map}. Renders
+ * a default pin or arbitrary `children` (portaled into a MapLibre marker), and
+ * becomes interactive when `onClick` is set. Must render within a `Map`.
+ */
 export function MapMarker({
 	position,
 	anchor = 'center',

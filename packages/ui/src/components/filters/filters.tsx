@@ -18,20 +18,39 @@ function isActive(v: unknown): boolean {
 	return true
 }
 
+/** Props for {@link Filters}. Generic over the filter-value record `T`. */
 export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName & {
 	value?: T
 	defaultValue?: T
 	onValueChange?: (value: T) => void
 	onClear?: () => void
+	/** Clear control rendered at the bar's trailing edge, typically a {@link FiltersClear}. */
 	clear?: ReactNode
+	/** Content placed above the control row. */
 	prefix?: ReactNode
+	/** Content placed below the control row. */
 	suffix?: ReactNode
+	/** Stretch each field to equal width. */
 	equal?: boolean
 	children: ReactNode
 	className?: string
 }
 
-/** Coordinator for a row of filter controls over a `Record` value. Shares set/clear and an active-count via context, dropping empty fields from the payload. The bar is a named `role="group"`; pass `aria-label` or `aria-labelledby`. */
+/**
+ * Coordinator for a row of filter controls over a `Record` value. Shares
+ * set/clear and an active-count through context to enclosed {@link FiltersField}
+ * and {@link FiltersClear}, dropping empty fields (undefined, null, `''`, empty
+ * array) from the payload so the value stays minimal.
+ *
+ * @remarks
+ * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
+ * Clearing restores `defaultValue` when set, else empties the record. The bar
+ * is a named `role="group"` (a `<fieldset>` would impose unwanted field
+ * semantics) — pass `aria-label` or `aria-labelledby`. The active count is
+ * announced to assistive tech on change (WCAG 4.1.3).
+ *
+ * @typeParam T - Shape of the filter-value record.
+ */
 export function Filters<T extends FilterValue = FilterValue>({
 	value: valueProp,
 	defaultValue,

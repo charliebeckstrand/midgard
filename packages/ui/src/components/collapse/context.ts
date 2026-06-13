@@ -13,4 +13,12 @@ type CollapseContextValue = {
 	panelProps: A11yDisclosure['panelProps']
 }
 
+/**
+ * Reads the enclosing {@link Collapse} state: `open`, a `toggle` callback, the
+ * resolved `animate` setting, and the a11y `triggerProps`/`panelProps` wiring.
+ *
+ * @remarks
+ * Must be called inside `<Collapse>`; throws otherwise. Powers `<CollapseTrigger>`
+ * and `<CollapsePanel>`, and is exposed for custom trigger/panel compositions.
+ */
 export const [CollapseContext, useCollapseContext] = createContext<CollapseContextValue>('Collapse')

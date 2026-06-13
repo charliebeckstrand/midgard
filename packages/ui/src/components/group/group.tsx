@@ -22,6 +22,7 @@ type GroupBaseProps = {
 	children?: ReactNode
 }
 
+/** Props for {@link Group}: `orientation` and `size` plus polymorphic `as`/`href` host attributes. */
 export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 
 /**

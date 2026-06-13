@@ -29,6 +29,11 @@ type ButtonBaseProps = ButtonVariants & {
 	className?: string
 }
 
+/**
+ * Props for {@link Button}: visual `variant`/`color`/`size`, the
+ * `block`/`spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
+ * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
+ */
 export type ButtonProps = ButtonBaseProps &
 	(
 		| (Extract<PolymorphicProps<'button', 'prefix'>, { href?: never }> & {

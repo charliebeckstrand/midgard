@@ -32,8 +32,12 @@ type RouteLayerHandlers = {
 	leave: () => void
 }
 
-// Detaches handlers and removes the route's hit layer, line layer, and source,
-// tolerating a map that's already torn down.
+/**
+ * Detaches handlers and removes the route's hit layer, line layer, and source,
+ * tolerating a map that's already torn down.
+ *
+ * @internal
+ */
 function teardownRouteLayers(
 	map: MapLibreMap,
 	ids: { sourceId: string; layerId: string; hitLayerId: string },
@@ -59,6 +63,12 @@ function teardownRouteLayers(
 	}
 }
 
+/**
+ * Adds and maintains a route's MapLibre source, line layer, and hit layer:
+ * wires click / hover handlers on ready, keeps geometry and paint in sync as
+ * `data` / `resolvedColors` / `width` change, and tears everything down on
+ * unmount.
+ */
 export function useMapRouteLayers({
 	sourceId,
 	layerId,

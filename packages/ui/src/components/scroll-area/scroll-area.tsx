@@ -10,8 +10,13 @@ import {
 import type { ScrollbarMode } from './types'
 import { useScrollAreaScrollbar } from './use-scroll-area-scrollbar'
 
+/** Props for {@link ScrollArea}: wrapper/viewport recipe variants, the `scrollbar` mode, and native `<div>` attributes. */
 export type ScrollAreaProps = ScrollAreaWrapperVariants &
 	ScrollAreaViewportVariants & {
+		/**
+		 * Scrollbar visibility behavior.
+		 * @defaultValue 'auto'
+		 */
 		scrollbar?: ScrollbarMode
 		className?: string
 	} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>

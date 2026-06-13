@@ -7,6 +7,15 @@ import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
 
+/**
+ * Animated listbox-style panel for floating dropdowns (Select, Combobox,
+ * Menu). Wires up roving keyboard navigation, optional type-ahead, and
+ * autofocus of the selected (or first) item on open.
+ *
+ * @remarks Defaults to `role="listbox"`; override `role` for menus and the
+ * like. `aria-multiselectable` is honored only on listbox roles. Pass `glass`
+ * for the translucent surface variant.
+ */
 export function PopoverPanel({
 	id,
 	className,

@@ -111,6 +111,14 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
+## 12. Documentation
+
+12.1 Public-surface symbols carry TSDoc. Every symbol a barrel re-exports (a component and its `*Props`, each hook, primitive, provider, and `ui/core` / `ui/types` export) opens with a summary-first doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2): the first sentence states what it is, then `@param` / `@returns` where the signature isn't self-evident, `@defaultValue` on defaulted optional fields, `@remarks` for caveats, `@see {@link …}` to cross-link, and `@internal` on a documented non-exported helper. Don't restate the type or document self-evident fields. Standard: [TSDoc](https://tsdoc.org).
+
+12.2 The curated surface docs in [`packages/ui/docs/`](packages/ui/docs) — `COMPONENTS` · `HOOKS` · `PRIMITIVES` · `PROVIDERS` · `RECIPES` · `CORE` · `UTILITIES` — are the quick-glance index of the public surface. Adding, removing, or renaming a public export updates the matching doc in the same change: a new component lands in `COMPONENTS.md` under its domain bucket; a new hook / primitive / provider / core / utility lands in its doc with a one-line summary. [`REFERENCE.md`](packages/ui/REFERENCE.md) is the hub — keep its surface map and the §2 boundary current.
+
+12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`, edited as living records (resolve rows in place with the commit). A documentation sweep is a `{date}-DOC-AUDIT.md`.
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md).

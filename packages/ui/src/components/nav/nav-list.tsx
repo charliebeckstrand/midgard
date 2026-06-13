@@ -6,10 +6,21 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
 import { useNavbar } from '../navbar/context'
 
+/** Props for {@link NavList}: an optional `orientation` plus native `<ul>` attributes. */
 export type NavListProps = ComponentPropsWithoutRef<'ul'> & {
+	/**
+	 * Layout axis for the items.
+	 * @defaultValue `'horizontal'` inside a {@link Navbar}, otherwise `'vertical'`
+	 */
 	orientation?: 'vertical' | 'horizontal'
 }
 
+/**
+ * `<ul>` of navigation links; establishes an active-indicator scope so the
+ * current item animates between siblings. Each link is individually
+ * Tab-focusable (a link list, not a roving menubar) with the current one marked
+ * `aria-current="page"`.
+ */
 export function NavList({ orientation, className, children, ...props }: NavListProps) {
 	const inNavbar = useNavbar()
 

@@ -3,8 +3,10 @@
 import { createContext } from '../../core'
 import type { Orientation } from '../../types'
 
+/** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation
 
+/** A step's position relative to the stepper's current `value`: already passed, active, or not yet reached. */
 export type StepState = 'completed' | 'current' | 'upcoming'
 
 type StepperContextValue = {

@@ -6,6 +6,7 @@ import { ListboxOption } from '../listbox'
 import { Select } from '../select'
 import type { QueryField } from './types'
 
+/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
 export type QueryBuilderRuleValueProps = {
 	field: QueryField
 	value: unknown
@@ -37,6 +38,12 @@ function fromIsoDate(value: string): Date | undefined {
 	return date
 }
 
+/**
+ * Value input for a query rule, chosen by the field's type: a {@link Select}
+ * for `select`, a numeric {@link Input} for `number`, a {@link DatePicker}
+ * (round-tripped as a local-wall-clock ISO date) for `date`, and a text
+ * {@link Input} otherwise.
+ */
 export function QueryBuilderRuleValue({
 	field,
 	value,

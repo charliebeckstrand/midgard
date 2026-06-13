@@ -14,8 +14,11 @@ import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
 
+/** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {
+	/** Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`. */
 	indeterminate?: boolean
+	/** Replaces the default check/minus glyph with custom content. */
 	icon?: ReactNode
 	className?: string
 	ref?: Ref<HTMLInputElement>

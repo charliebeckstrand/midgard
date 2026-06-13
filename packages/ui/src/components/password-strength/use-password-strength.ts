@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 
+/** A single password requirement: a stable `id`, a display `label`, and a `test` predicate evaluated against the current value. */
 export type PasswordRule = {
 	id: string
 	label: ReactNode
@@ -10,6 +11,7 @@ export type PasswordRule = {
 
 export type StrengthLevel = 'empty' | 'weak' | 'fair' | 'good' | 'strong'
 
+/** Strength snapshot reported on change: rules `passed` count (`score`) out of `max`, the derived `level`, and the passing rule ids. */
 export type PasswordStrengthChange = {
 	score: number
 	max: number

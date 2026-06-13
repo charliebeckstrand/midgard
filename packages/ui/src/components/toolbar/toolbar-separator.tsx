@@ -4,10 +4,15 @@ import { cn } from '../../core'
 import { Divider } from '../divider'
 import { useToolbarContext } from './context'
 
+/** Props for {@link ToolbarSeparator}. */
 export type ToolbarSeparatorProps = {
 	className?: string
 }
 
+/**
+ * Soft `<Divider>` between toolbar clusters, drawn perpendicular to the
+ * toolbar's orientation (vertical rule in a horizontal toolbar, and vice versa).
+ */
 export function ToolbarSeparator({ className }: ToolbarSeparatorProps) {
 	const { orientation } = useToolbarContext()
 

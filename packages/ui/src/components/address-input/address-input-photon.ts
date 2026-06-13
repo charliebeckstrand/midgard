@@ -53,6 +53,14 @@ function isPhotonResponse(value: unknown): value is PhotonResponse {
 
 const PHOTON_ENDPOINT = 'https://photon.komoot.io/api/'
 
+/**
+ * Default {@link AddressProvider} backed by the public Photon (Komoot)
+ * geocoder. Queries the endpoint for up to five matches, validates the
+ * response shape, and maps each feature to an {@link AddressSuggestion} with
+ * `latitude`/`longitude` and the raw feature retained.
+ *
+ * @remarks Throws on a non-OK status or an unexpected response shape.
+ */
 export const photonProvider: AddressProvider = async (query, { signal }) => {
 	const url = `${PHOTON_ENDPOINT}?q=${encodeURIComponent(query)}&limit=5`
 

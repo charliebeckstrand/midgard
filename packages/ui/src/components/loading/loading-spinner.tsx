@@ -2,7 +2,12 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k, type LoadingSpinnerVariants } from '../../recipes/kata/loading'
 
+/** Props for {@link LoadingSpinner}: recipe `size`/`color` plus an `sr-only` label and native `<output>` attributes. */
 export type LoadingSpinnerProps = LoadingSpinnerVariants & {
+	/**
+	 * Accessible label announced via the visually hidden `sr-only` span.
+	 * @defaultValue 'Loading'
+	 */
 	label?: string
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>

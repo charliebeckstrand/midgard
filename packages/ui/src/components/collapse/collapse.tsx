@@ -9,6 +9,7 @@ import { CollapsePanel } from './collapse-panel'
 import { CollapseTrigger } from './collapse-trigger'
 import { CollapseContext } from './context'
 
+/** Props for {@link Collapse}. */
 export type CollapseProps = {
 	/** Initial open state (uncontrolled). */
 	defaultOpen?: boolean
@@ -28,9 +29,15 @@ export type CollapseProps = {
 }
 
 /**
- * Animated show/hide region for a single panel; controlled via `open` or
- * uncontrolled via `defaultOpen`. Pass `trigger` for the convenience layout,
- * or omit it and supply <CollapseTrigger>/<CollapsePanel> for the compound API.
+ * Disclosure container that animates a single panel open and closed. Drives
+ * state controllably via `open`/`onOpenChange` or uncontrolled via `defaultOpen`,
+ * wires `aria-expanded`/`aria-controls` through {@link useCollapseContext}, and
+ * honors reduced-motion. Pass `trigger` for the built-in trigger-over-panel
+ * layout, or omit it and compose `<CollapseTrigger>`/`<CollapsePanel>` for full
+ * control over placement.
+ *
+ * @see {@link CollapseTrigger}
+ * @see {@link CollapsePanel}
  */
 export function Collapse({
 	defaultOpen = false,

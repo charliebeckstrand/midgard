@@ -1,10 +1,15 @@
 import { formatFraction, formatInteger } from '../../utilities'
 import type { PivotAggregation } from './types'
 
+/** Formats a cell value: whole numbers as integers, the rest as fractions. */
 export function defaultFormat(value: number): string {
 	return Number.isInteger(value) ? formatInteger(value) : formatFraction(value)
 }
 
+/**
+ * Distinct axis values for `key`: any `explicit` ordering first, then remaining
+ * values in row order, deduplicated.
+ */
 export function resolveAxis<T>(
 	rows: readonly T[],
 	key: keyof T & string,
@@ -36,6 +41,10 @@ export function resolveAxis<T>(
 	return result
 }
 
+/**
+ * Buckets each row's numeric `valueKey` into a `row → column → values` map,
+ * skipping non-finite values.
+ */
 export function groupValues<T>(
 	rows: readonly T[],
 	rowKey: keyof T & string,
@@ -68,7 +77,7 @@ export function groupValues<T>(
 	return groups
 }
 
-// Returns the most extreme value per `isMoreExtreme`, or 0 for an empty list.
+/** Most extreme value per `isMoreExtreme`, or 0 for an empty list. @internal */
 function extremum(
 	values: readonly number[],
 	isMoreExtreme: (candidate: number, current: number) => boolean,
@@ -86,6 +95,7 @@ function extremum(
 	return result
 }
 
+/** Reduces `values` by `op`; `count` returns the length, the rest return 0 when empty. */
 export function aggregate(values: readonly number[], op: PivotAggregation): number {
 	if (op === 'count') return values.length
 
@@ -103,6 +113,7 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 	}
 }
 
+/** Aggregates one row across `columnKeys`; `undefined` when the row holds no values. */
 export function aggregateRow(
 	groups: Map<string, Map<string, number[]>>,
 	row: string,
@@ -120,6 +131,7 @@ export function aggregateRow(
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
 
+/** Aggregates one column across `rowKeys`; `undefined` when the column holds no values. */
 export function aggregateColumn(
 	groups: Map<string, Map<string, number[]>>,
 	rowKeys: readonly string[],
@@ -137,6 +149,7 @@ export function aggregateColumn(
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
 
+/** Aggregates every value in the grid; `undefined` when it holds none. */
 export function aggregateAll(
 	groups: Map<string, Map<string, number[]>>,
 	op: PivotAggregation,

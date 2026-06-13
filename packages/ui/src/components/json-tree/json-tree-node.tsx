@@ -12,14 +12,19 @@ import { filterEntries, getEntries, isBranch, matchesSearch } from './json-tree-
 import type { JsonValue } from './types'
 import { toggleExpandedSet } from './use-json-tree-expansion'
 
+/** Props for {@link JsonTreeNode}. @internal */
 type JsonNodeProps = {
 	keyName?: string | number
 	value: JsonValue
 }
 
-// Precedence for a branch's open state: a filtered-out empty branch stays
-// closed, then the user's explicit toggle, then the search auto-open, then the
-// depth default. Controlled trees defer entirely to the expanded set.
+/**
+ * Resolves a branch's open state by precedence: a filtered-out empty branch
+ * stays closed, then the user's explicit toggle, then the search auto-open, then
+ * the depth default. Controlled trees defer entirely to the expanded set.
+ *
+ * @internal
+ */
 function resolveNodeOpen(opts: {
 	controlled: boolean
 	expandedHas: boolean
@@ -42,6 +47,13 @@ function resolveNodeOpen(opts: {
 	return opts.depth < opts.defaultExpandDepth
 }
 
+/**
+ * Renders one node of a {@link JsonTree}: a leaf row for scalars, or a branch
+ * header plus its (collapsible) children, recursing per entry. Reads tree config
+ * from {@link useJsonTreeContext} and resolves open state through
+ * {@link resolveNodeOpen}, honoring controlled `expanded`, search filtering, and
+ * the depth default.
+ */
 export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonNodeProps) {
 	const {
 		depth,

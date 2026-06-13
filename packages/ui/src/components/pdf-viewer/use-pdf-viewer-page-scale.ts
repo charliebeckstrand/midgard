@@ -21,9 +21,13 @@ export type PageScaleResult = {
 	aspectRatio: string | undefined
 }
 
-// CSS `aspect-ratio` for the viewport: the page's intrinsic ratio (swapped
-// when rotated), `8.5 / 11` (US Letter) before load, or undefined when the
-// viewer reserves no space.
+/**
+ * CSS `aspect-ratio` for the viewport: the page's intrinsic ratio (swapped
+ * when rotated), `8.5 / 11` (US Letter) before load, or undefined when the
+ * viewer reserves no space.
+ *
+ * @internal
+ */
 function resolvePageAspectRatio(
 	hasContent: boolean,
 	pageSize: { width: number; height: number } | null,

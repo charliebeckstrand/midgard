@@ -3,6 +3,7 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext } from '../../core'
 
+/** Props passed to the registered link component: a required `href` plus the standard anchor attributes. */
 export type LinkProps = {
 	href: string
 	ref?: Ref<HTMLAnchorElement>
@@ -10,8 +11,10 @@ export type LinkProps = {
 	className?: string
 } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>
 
+/** The framework link component an app registers, or the `'a'` fallback. */
 export type LinkComponent = ComponentType<LinkProps> | 'a'
 
+/** Value carried by `LinkContext`: the registered link component. */
 export type LinkContextValue = {
 	component: LinkComponent
 }

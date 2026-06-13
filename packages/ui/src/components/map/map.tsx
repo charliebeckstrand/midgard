@@ -9,6 +9,7 @@ import { type MapPreset, mapPresets } from './map-styles'
 import type { LngLat } from './types'
 import { useMapInstance } from './use-map-instance'
 
+/** Camera position for a {@link Map}: center, zoom, bearing, and pitch. */
 export type MapCamera = {
 	center?: LngLat
 	zoom?: number
@@ -16,6 +17,7 @@ export type MapCamera = {
 	pitch?: number
 }
 
+/** Props for {@link Map}: initial `camera`, visual `preset` or `style`, interactivity, and accessible name. */
 export type MapProps = {
 	/** Initial camera position. Defaults to `{ center: [0, 0], zoom: 2, bearing: 0, pitch: 0 }`. */
 	camera?: MapCamera

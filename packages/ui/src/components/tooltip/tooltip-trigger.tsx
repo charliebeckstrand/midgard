@@ -14,7 +14,13 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
+/** Props for {@link TooltipTrigger}. */
 export type TooltipTriggerProps = {
+	/**
+	 * The element the tooltip describes. A single valid element receives the
+	 * floating ref and interaction props directly; anything else is wrapped in
+	 * a `<div>`.
+	 */
 	children: ReactNode
 }
 

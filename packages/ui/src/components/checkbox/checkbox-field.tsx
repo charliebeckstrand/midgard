@@ -6,7 +6,9 @@ import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
 import { ControlField } from '../control/control-field'
 
+/** Props for {@link CheckboxField}. */
 export type CheckboxFieldProps = {
+	/** Pins the generated control id instead of auto-generating one. */
 	htmlFor?: string
 } & ComponentPropsWithoutRef<'div'>
 

@@ -32,7 +32,21 @@ export type PolymorphicStaticProps<
 	  >)
 	| ({ href: string; render?: ReactElement<LinkProps> } & Omit<LinkProps, 'className' | Omitted>)
 
-/** Renders `render` (cloned with the anchor props) or a plain `<a>` when `href` is present, the `as` element otherwise. */
+/**
+ * Renders an `href`-driven element switch: with `href`, clones `render` (the
+ * call-site router link) with the resolved anchor props or falls back to a
+ * plain `<a>`; without `href`, renders the `as` element. Forwards `ref`,
+ * `data-slot`, `className`, and remaining props to the chosen element.
+ *
+ * @typeParam Fallback - Element type rendered when no `href` is given; its
+ *   props type constrains the fallback arm.
+ * @remarks
+ * Server-safe counterpart of {@link Polymorphic}: it reads no LinkContext, so
+ * the router link must be supplied per call site via `render`. Suits static
+ * leaf components that render in React Server Components.
+ *
+ * @see {@link Polymorphic}
+ */
 export function PolymorphicStatic<Fallback extends ElementType>({
 	as,
 	href,

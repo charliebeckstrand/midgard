@@ -4,6 +4,13 @@ import { NumberInput, type NumberInputProps } from '../number-input'
 import type { EditableGridEditorProps } from './types'
 import { useEditableGridNumericEditor } from './use-editable-grid-numeric-editor'
 
+/**
+ * Props for {@link EditableGridNumberEditor}: the {@link EditableGridEditorProps}
+ * edit-slot contract plus the `min`/`max`/`step` constraints forwarded to the
+ * underlying `NumberInput`.
+ *
+ * @typeParam T - The row type backing the cell under edit.
+ */
 export type EditableGridNumberEditorProps<T> = EditableGridEditorProps<T> &
 	Pick<NumberInputProps, 'min' | 'max' | 'step'>
 
@@ -12,6 +19,8 @@ export type EditableGridNumberEditorProps<T> = EditableGridEditorProps<T> &
  * from `column.field` and routes Enter / Tab / Escape / blur through the
  * grid's commit and cancel callbacks. Pair with a numeric `parse` on the
  * column to round-trip the value as a number.
+ *
+ * @typeParam T - The row type backing the cell under edit.
  */
 export function EditableGridNumberEditor<T>(props: EditableGridNumberEditorProps<T>) {
 	const bindings = useEditableGridNumericEditor(props)

@@ -34,6 +34,11 @@ type SelectTriggerProps = {
  * are supplied by the caller.
  *
  * A presentational primitive; it owns no state.
+ *
+ * @remarks
+ * Wraps its subtree in `AffixContext` set to `affixStepDown(size)`, so
+ * affix-aware descendants (the chevron and prefix/suffix icons) render one
+ * notch tighter than the trigger. Client component (`'use client'`).
  */
 export function SelectTrigger({
 	open,

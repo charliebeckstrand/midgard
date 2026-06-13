@@ -14,6 +14,7 @@ import {
 
 export type { PasswordRule, PasswordStrengthChange } from './use-password-strength'
 
+/** Default rule set: at least 8 characters and at least one uppercase letter, digit, and symbol. */
 export const defaultPasswordRules: readonly PasswordRule[] = [
 	{ id: 'length', label: 'At least 8 characters', test: (v) => v.length >= 8 },
 	{ id: 'uppercase', label: 'One uppercase letter', test: (v) => /[A-Z]/.test(v) },
@@ -28,11 +29,25 @@ const strengthLevels = [
 	{ id: 'strong', label: 'Strong' },
 ] as const
 
+/** Props for {@link PasswordStrength}. */
 export type PasswordStrengthProps = {
 	value: string
+	/**
+	 * Rules evaluated against `value`; their pass ratio sets the level.
+	 * @defaultValue {@link defaultPasswordRules}
+	 */
 	rules?: readonly PasswordRule[]
+	/**
+	 * Renders the per-rule checklist below the meter.
+	 * @defaultValue true
+	 */
 	showRules?: boolean
+	/**
+	 * Renders the textual strength label.
+	 * @defaultValue true
+	 */
 	showLabel?: boolean
+	/** Overrides the default level labels (Weak/Fair/Good/Strong). */
 	labels?: Partial<Record<StrengthLevel, string>>
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 	className?: string

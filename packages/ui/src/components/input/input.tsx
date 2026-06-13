@@ -15,6 +15,7 @@ import { LoadingSpinner } from '../loading'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
+/** Props for {@link Input}: `size`/`variant`/`loading`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'

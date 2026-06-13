@@ -26,6 +26,11 @@ type KeybindingsOptions = {
  * Subscribe to tinykeys keybindings for the lifetime of the component.
  * Reads handlers fresh on each event; the bindings map closes over changing
  * state without re-subscribing.
+ *
+ * @param bindings - tinykeys map of key/chord pattern (e.g. `'$mod+k'`) to
+ * handler. Only the set of keys is tracked for re-subscription; handler
+ * identity may change freely between renders.
+ * @remarks SSR-safe: the subscription effect no-ops when `window` is absent.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
 	const { enabled = true, target, event, capture, timeout, ignore } = options

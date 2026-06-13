@@ -2,8 +2,12 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/textarea'
 import { Placeholder } from '../placeholder'
 
+/** Props for {@link TextareaSkeleton}. */
 export type TextareaSkeletonProps = {
-	/** Visible rows the control reserves; drives the placeholder height. */
+	/**
+	 * Visible rows the control reserves; drives the placeholder height.
+	 * @defaultValue 3
+	 */
 	rows?: number
 	className?: string
 }

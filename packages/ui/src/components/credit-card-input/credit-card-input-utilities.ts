@@ -20,6 +20,7 @@ const brands: ReadonlyArray<{
 	{ type: 'unionpay', brand: 'unionpay', label: 'UnionPay' },
 ]
 
+/** Resolves a digit string to its {@link CreditCardBrandInfo}, or `undefined` when no supported brand matches. */
 export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined {
 	const { card } = number(digits)
 
@@ -38,6 +39,7 @@ export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined
 	}
 }
 
+/** Strips a raw string to digits, truncates to the brand's max length, and spaces it into brand-aware groups; returns the formatted text, digits, and detected brand. */
 export function formatCardNumber(raw: string): {
 	formatted: string
 	digits: string
@@ -64,6 +66,7 @@ export function formatCardNumber(raw: string): {
 	return { formatted, digits, brand }
 }
 
+/** Strips a raw string to at most four digits and masks them into "MM/YY", inserting the slash after the month. */
 export function formatExpiry(raw: string): string {
 	const d = digitsOnly(raw).slice(0, 4)
 
@@ -76,21 +79,25 @@ export function formatExpiry(raw: string): string {
 	return `${month}/${d.slice(2)}`
 }
 
+/** Strips a raw string to digits and truncates to `maxLength`. */
 export function formatCvv(raw: string, maxLength: number): string {
 	return digitsOnly(raw).slice(0, maxLength)
 }
 
+/** Validity verdict for a card field: `isValid` is the final pass, `isPotentiallyValid` allows in-progress input. */
 export type CardValidity = {
 	isValid: boolean
 	isPotentiallyValid: boolean
 }
 
+/** Validates a card number via card-validator (brand pattern, length, and Luhn checksum). */
 export function validateCardNumber(value: string): CardValidity {
 	const { isValid, isPotentiallyValid } = number(digitsOnly(value))
 
 	return { isValid, isPotentiallyValid }
 }
 
+/** Validates a CVV against the brand-derived length (Amex 4, others 3; 3 or 4 when `brand` is omitted). */
 export function validateCardCvv(value: string, brand?: CreditCardBrand): CardValidity {
 	// Without a brand, both 3- and 4-digit CVVs pass (matching the 4-digit
 	// max that resolveCvvLength allows before the brand is known).

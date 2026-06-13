@@ -7,11 +7,16 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordionItem } from './context'
 
+/** Props for {@link AccordionPanel}. */
 export type AccordionPanelProps = {
 	className?: string
 	children: ReactNode
 }
 
+/**
+ * Collapsible region revealed by its {@link AccordionTrigger}. Mounts only while
+ * open and animates height/opacity via `AnimatePresence`, honoring reduced-motion.
+ */
 export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	const { open, panelProps } = useAccordionItem()
 

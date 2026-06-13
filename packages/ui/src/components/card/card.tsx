@@ -4,6 +4,7 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
 
+/** Props for {@link Card}: Box surface props (radius is fixed per `size`) plus the section/density `size` step. */
 export type CardProps = BoxProps<'radius'> & {
 	/**
 	 * Step for the card's own padding, its sections, and its radius, broadcast

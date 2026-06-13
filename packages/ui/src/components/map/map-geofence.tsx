@@ -7,6 +7,7 @@ import type { GeofenceShape, LngLat } from './types'
 
 const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
 
+/** Props for {@link MapGeofence}: the `shape` to draw plus fill and stroke styling. */
 export type MapGeofenceProps = {
 	shape: GeofenceShape
 	/** Fill color. Defaults to translucent blue. */
@@ -19,6 +20,11 @@ export type MapGeofenceProps = {
 	strokeWidth?: number
 }
 
+/**
+ * Filled, outlined region (circle or polygon) drawn on the enclosing
+ * {@link Map} as a GeoJSON fill plus line layer. A circle is approximated as a
+ * polygon. Must render within a `Map`.
+ */
 export function MapGeofence({
 	shape,
 	color = '#2563eb',

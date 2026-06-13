@@ -2,6 +2,7 @@ import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/breadcrumb'
 
+/** Props for {@link BreadcrumbLink}: the `current` flag plus the polymorphic `span`/anchor surface. */
 export type BreadcrumbLinkProps = {
 	current?: boolean
 	className?: string

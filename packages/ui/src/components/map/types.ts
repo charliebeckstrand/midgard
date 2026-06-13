@@ -1,6 +1,7 @@
 /** `[longitude, latitude]`: MapLibre / GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
 
+/** One waypoint along a {@link RouteData}: its name, geographic position, and optional timing/status. */
 export type RouteStop = {
 	id: string
 	name: string
@@ -10,6 +11,7 @@ export type RouteStop = {
 	status?: 'pending' | 'active' | 'done'
 }
 
+/** A route for {@link MapRoute}: an ordered list of stops and an optional pre-computed path. */
 export type RouteData = {
 	id: string
 	stops: RouteStop[]
@@ -17,6 +19,7 @@ export type RouteData = {
 	path?: LngLat[]
 }
 
+/** A geofence region for {@link MapGeofence}: a circle (center + radius) or a polygon (coordinate ring). */
 export type GeofenceShape =
 	| { type: 'circle'; center: LngLat; radiusMeters: number }
 	| { type: 'polygon'; coordinates: LngLat[] }
@@ -29,6 +32,7 @@ export type ChatMessage = {
 	timestamp?: string | Date
 }
 
+/** A shipment for {@link MapShipment}: its label and position plus optional status, ETA, info rows, and chat messages. */
 export type ShipmentData = {
 	id: string
 	label: string

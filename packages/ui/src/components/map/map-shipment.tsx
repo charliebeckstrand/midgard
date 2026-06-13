@@ -12,6 +12,7 @@ import { MapMarker } from './map-marker'
 import { MapShipmentChat } from './map-shipment-chat'
 import type { ShipmentData } from './types'
 
+/** Props for {@link MapShipment}: the shipment `data` plus chat and selection callbacks. */
 export type MapShipmentProps = {
 	data: ShipmentData
 	/** Called when the user sends a chat message. If omitted and `data.messages` is empty, the chat tab is hidden. */
@@ -20,6 +21,11 @@ export type MapShipmentProps = {
 	onSelect?: (shipment: ShipmentData) => boolean | undefined
 }
 
+/**
+ * Shipment marker on the enclosing {@link Map}. Renders a truck pin that opens a
+ * detail {@link Dialog} with shipment info and, when chat is available, a chat
+ * thread tab. Must render within a `Map`.
+ */
 export function MapShipment({ data, onSendMessage, onSelect }: MapShipmentProps) {
 	const [open, setOpen] = useState(false)
 

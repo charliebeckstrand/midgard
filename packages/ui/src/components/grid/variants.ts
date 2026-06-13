@@ -5,6 +5,7 @@ import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from
 
 export type { Responsive }
 
+/** Spacing scale for the gap between grid tracks; a `Ma` step. */
 export type GridGap = Ma
 
 // Numeric grid props (`columns`, `rows`, `span`, `rowSpan`, `start`,

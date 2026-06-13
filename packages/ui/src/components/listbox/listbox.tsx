@@ -86,12 +86,18 @@ type ListboxMultipleProps<T> = {
 	onValueChange?: (value: T[]) => void
 }
 
+/**
+ * Props for {@link Listbox}: the shared base (`name`, sizing, `clearable`,
+ * `nullable`, open-state control, …) and an optional `displayValue` formatter,
+ * discriminated on `multiple` into single- or array-valued value/handler shapes.
+ *
+ * @typeParam T - The option value type.
+ */
 export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
-// Resolves field-level state from explicit props, falling back to an enclosing
-// <Control>.
+/** Resolves field-level state from explicit props, falling back to an enclosing `<Control>`. @internal */
 function resolveControlState(
 	control:
 		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
@@ -112,6 +118,7 @@ function resolveControlState(
 	}
 }
 
+/** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */
 function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): boolean {
 	return multiple
 		? Array.isArray(value) && value.length > 0

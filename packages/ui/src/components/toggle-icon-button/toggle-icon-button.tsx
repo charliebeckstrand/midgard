@@ -5,12 +5,26 @@ import type { AccessibleName, Size } from '../../types'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-// Icon-only by design. AccessibleName requires one of aria-label /
-// aria-labelledby; the button always has an accessible name.
+/**
+ * Props for {@link ToggleIconButton}. Icon-only by design: `AccessibleName`
+ * requires `aria-label` or `aria-labelledby`, so the button always has an
+ * accessible name. Inherits `<button>` attributes except `children`, `type`,
+ * `color`, and the label attributes.
+ */
 export type ToggleIconButtonProps = AccessibleName & {
+	/** Pressed state, reflected as `aria-pressed`. */
 	pressed: boolean
+	/** Icon shown in the unpressed state. */
 	icon: ReactElement
+	/**
+	 * Icon shown in the pressed state.
+	 * @defaultValue `icon`
+	 */
 	pressedIcon?: ReactElement
+	/**
+	 * Cross-fade between `icon` and `pressedIcon` on toggle; set false for an instant swap.
+	 * @defaultValue true
+	 */
 	animate?: boolean
 	size?: Size
 	className?: string

@@ -6,6 +6,7 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type NavbarVariants } from '../../recipes/kata/navbar'
 import { NavbarContext } from './context'
 
+/** Props for {@link Navbar}: recipe `variant` plus native `<nav>` attributes. */
 export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
 
 /** Horizontal top-level navigation landmark; establishes an active-indicator scope for its child items. */

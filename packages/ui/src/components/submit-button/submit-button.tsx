@@ -3,6 +3,10 @@
 import { Button, type ButtonProps } from '../button'
 import { useFormStatus } from '../form'
 
+/**
+ * Props for {@link SubmitButton}: the non-anchor {@link ButtonProps} branch
+ * minus `type` and `loading`, which the component owns.
+ */
 // `ButtonProps` distributes over `href` (button vs. anchor). Narrow to the
 // button branch first so native props like `disabled` survive the `Omit`.
 export type SubmitButtonProps = Omit<Extract<ButtonProps, { href?: never }>, 'type' | 'loading'>

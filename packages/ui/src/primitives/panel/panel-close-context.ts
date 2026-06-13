@@ -7,6 +7,11 @@ type PanelCloseContextValue = {
 	close: () => void
 }
 
+/**
+ * Carries the panel's `close()` callback to `PanelClose` and slot dismiss
+ * controls; `usePanelCloseContext` reads it. Throws when consumed outside a
+ * Dialog, Sheet, or Drawer.
+ */
 export const [PanelCloseContext, usePanelCloseContext] = createContext<PanelCloseContextValue>(
 	'PanelClose',
 	{ error: 'PanelClose must be rendered inside a Dialog, Sheet, or Drawer' },

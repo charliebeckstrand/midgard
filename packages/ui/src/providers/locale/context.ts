@@ -21,6 +21,7 @@ export type LocaleConfig = {
 	timeZone?: string
 }
 
+/** Reads the ambient {@link LocaleConfig} from the nearest `<LocaleProvider>`; returns `{}` outside one. */
 export const [LocaleContext, useLocale] = createContext<LocaleConfig>('Locale', {
 	default: {},
 })

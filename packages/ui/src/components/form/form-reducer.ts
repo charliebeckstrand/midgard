@@ -29,6 +29,14 @@ export type FormAction<T> =
 	| { type: 'reset'; defaults: T }
 	| { type: 'submit-validate'; touched: Touched; errors: Errors }
 
+/**
+ * Runs the applicable field validators and returns their normalized issues.
+ * Runs a field when `fields` forces it, when `validateOn` is `'change'`, or when
+ * `'touched'` and the field is touched.
+ *
+ * @param fields - Restricts to (and forces) these field keys; omit to consider every validator.
+ * @internal
+ */
 export function runValidators<T extends Record<string, unknown>>(
 	validate: Validators<T> | undefined,
 	values: T,
@@ -59,6 +67,7 @@ export function runValidators<T extends Record<string, unknown>>(
 	return result
 }
 
+/** Normalizes a validator return to a non-empty issue array or `undefined`. @internal */
 export function normalizeIssues(out: string | string[] | undefined): string[] | undefined {
 	if (out === undefined) return undefined
 
@@ -67,6 +76,7 @@ export function normalizeIssues(out: string | string[] | undefined): string[] | 
 	return out.length > 0 ? out : undefined
 }
 
+/** True for a `null`-proto or `Object.prototype` object, excluding class instances. @internal */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
 	if (value === null || typeof value !== 'object') return false
 
@@ -75,6 +85,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return proto === null || proto === Object.prototype
 }
 
+/** Element-wise {@link valuesEqual} over two arrays. @internal */
 function arraysEqual(a: unknown[], b: unknown[]): boolean {
 	if (a.length !== b.length) return false
 
@@ -85,6 +96,7 @@ function arraysEqual(a: unknown[], b: unknown[]): boolean {
 	return true
 }
 
+/** Key-wise {@link valuesEqual} over two plain objects. @internal */
 function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
 	const ak = Object.keys(a)
 	const bk = Object.keys(b)
@@ -117,6 +129,7 @@ export function valuesEqual(a: unknown, b: unknown): boolean {
 	return false
 }
 
+/** Reducer for {@link Form} state: applies value/touched/error/sync/reset/submit actions, re-validating per `validateOn`. @internal */
 export function formReducer<T extends Record<string, unknown>>(
 	state: FormState<T>,
 	action: FormAction<T>,

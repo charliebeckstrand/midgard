@@ -20,19 +20,26 @@ import { Switch } from '../switch'
 import { Textarea } from '../textarea'
 import { useFilters } from './context'
 
+/** True when a change argument is a DOM event rather than a value. @internal */
 function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
 }
 
+/** Fieldset decoration types passed through untouched rather than wired as the control. @internal */
 const DECORATION_TYPES = new Set<ElementType>([Label, Description, Message])
 
+/** True when `child` is a fieldset decoration. @internal */
 function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
 }
 
-// Children that receive a DOM ChangeEvent on `onChange`; everything else
-// receives the value-shaped `onValueChange`. The same dispatcher handles both
-// at runtime; only the prop name differs.
+/**
+ * Children that receive a DOM `ChangeEvent` on `onChange`; everything else
+ * receives the value-shaped `onValueChange`. The same dispatcher handles both
+ * at runtime; only the prop name differs.
+ *
+ * @internal
+ */
 const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Input,
 	SearchInput,
@@ -42,21 +49,31 @@ const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Radio,
 ])
 
+/** True when `child` is wired through `onChange` with a DOM event. @internal */
 function expectsEventCallback(child: ReactElement): boolean {
 	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// Children that expose an `onClear` callback (e.g. SearchInput's X button);
-// wired to clear the filter slot.
+/**
+ * Children that expose an `onClear` callback (e.g. SearchInput's X button),
+ * wired to clear the filter slot.
+ *
+ * @internal
+ */
 const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
 
+/** True when `child` exposes an `onClear` callback. @internal */
 function expectsClearCallback(child: ReactElement): boolean {
 	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// The slot value as control props: toggles read `checked` (Radio compares its
-// own option value; Checkbox/Switch reflect the boolean), others read `value`
-// (null, not undefined, to stay controlled).
+/**
+ * Maps the slot value to control props: toggles read `checked` (Radio compares
+ * its own option value; Checkbox/Switch reflect the boolean), others read
+ * `value` (`null`, not `undefined`, to stay controlled).
+ *
+ * @internal
+ */
 function controlValueProps(child: ReactElement, fieldValue: unknown): Record<string, unknown> {
 	if (child.type === Radio) {
 		return { checked: fieldValue === (child.props as { value?: unknown }).value }
@@ -67,17 +84,34 @@ function controlValueProps(child: ReactElement, fieldValue: unknown): Record<str
 	return { value: fieldValue ?? null }
 }
 
+/** Slot value and setter passed to a {@link FiltersField} render-prop child. */
 export type FiltersFieldRenderProps = {
 	value: unknown
 	onValueChange: (value: unknown) => void
 }
 
+/** Props for {@link FiltersField}. */
 export type FiltersFieldProps = {
+	/** Key this field owns within the {@link Filters} value record. */
 	name: string
+	/** A control element, or a render function receiving {@link FiltersFieldRenderProps}. */
 	children: ReactNode | ((field: FiltersFieldRenderProps) => ReactNode)
 	className?: string
 }
 
+/**
+ * Binds a single named slot of the enclosing {@link Filters} value to a control.
+ * Given a render function, supplies `{ value, onValueChange }`; given elements,
+ * clones the first non-decoration child (passing `Label`/`Description`/`Message`
+ * through untouched) and wires its value and change handler.
+ *
+ * @remarks
+ * Adapts the child's contract automatically: event-based controls (Input,
+ * SearchInput, Textarea, Checkbox, Switch, Radio) receive `onChange` with a DOM
+ * event; others receive value-shaped `onValueChange`. Checkbox/Switch bind
+ * `checked` to the boolean slot, a Radio is checked when its `value` matches the
+ * slot, and SearchInput's `onClear` clears the slot. Must render inside a `Filters`.
+ */
 export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	const { value: filterValue, setValue } = useFilters()
 

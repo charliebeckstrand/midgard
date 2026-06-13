@@ -8,6 +8,7 @@ import { useTreeContext } from './context'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
+/** Props for {@link TreeItem}. */
 export type TreeItemProps = {
 	/** The item label. */
 	label: ReactNode
@@ -30,6 +31,14 @@ export type TreeItemProps = {
 	className?: string
 }
 
+/**
+ * A `role="treeitem"` row within a `<Tree>`: renders a chevron when it has
+ * children, the optional `icon` and `label`, and `prefix`/`suffix` slots
+ * whose clicks don't toggle expansion. Tracks expanded state controllably
+ * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
+ * `children` as a collapsible group, and inherits depth, size, and indent
+ * from tree context.
+ */
 export function TreeItem({
 	label,
 	icon,

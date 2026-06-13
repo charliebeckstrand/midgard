@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/switch'
 import { ControlField } from '../control/control-field'
 
+/** Props for {@link SwitchField}: an optional `htmlFor` to pin the shared id, plus `<div>` attributes. */
 export type SwitchFieldProps = {
 	className?: string
 	htmlFor?: string

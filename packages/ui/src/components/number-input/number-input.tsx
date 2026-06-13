@@ -18,15 +18,21 @@ const padding = {
 	lg: 'pr-20',
 } satisfies Record<ControlSize, string>
 
+/** Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a number-valued change callback. */
 export type NumberInputProps = Omit<
 	InputProps,
 	'type' | 'value' | 'defaultValue' | 'onChange' | 'suffix' | 'prefix' | 'min' | 'max' | 'step'
 > & {
 	value?: number | null
 	defaultValue?: number
+	/** Fires with the parsed value, or `undefined` when the field is cleared. */
 	onValueChange?: (value: number | undefined) => void
 	min?: number
 	max?: number
+	/**
+	 * Stepper increment; also sets the rounding precision applied on blur.
+	 * @defaultValue 1
+	 */
 	step?: number
 }
 

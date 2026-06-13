@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { clamp } from '../../utilities'
 import type { PdfViewerPage } from './types'
 
+/** Sets pdf.js's worker source once, resolving the Vite `?url` worker import lazily. @internal */
 async function configureWorker() {
 	const pdfjs = await import('pdfjs-dist')
 
@@ -26,8 +27,10 @@ type PdfDocumentResult = {
 	error: Error | null
 }
 
-// Mutable state shared between the async load and the effect cleanup. Cleanup
-// flips `cancelled` and frees whatever the load has allocated so far.
+/**
+ * Mutable state shared between the async load and the effect cleanup. Cleanup
+ * flips `cancelled` and frees whatever the load has allocated so far.
+ */
 type PdfLoadController = {
 	cancelled: boolean
 	createdUrls: string[]
@@ -36,6 +39,7 @@ type PdfLoadController = {
 	renderTask: RenderTask | null
 }
 
+/** State setters the load drives as pages rasterize and the request resolves or fails. */
 type PdfLoadHandlers = {
 	setPages: (pages: PdfViewerPage[]) => void
 	setDocumentUrl: (url: string | null) => void
@@ -43,8 +47,13 @@ type PdfLoadHandlers = {
 	setError: (error: Error | null) => void
 }
 
-// Idempotent: cancels the in-flight render task and destroys the document,
-// nulling what it frees so the async path and cleanup can both call it.
+/**
+ * Cancels the in-flight render task and destroys the document, nulling what it
+ * frees so the async path and cleanup can both call it.
+ *
+ * @remarks Idempotent.
+ * @internal
+ */
 function releasePdf(controller: PdfLoadController) {
 	controller.renderTask?.cancel()
 	controller.renderTask = null
@@ -53,8 +62,13 @@ function releasePdf(controller: PdfLoadController) {
 	controller.doc = null
 }
 
-// Rasterize one page to a blob URL and append it. Returns 'cancelled' when the
-// load was torn down mid-flight so the caller can release and bail.
+/**
+ * Rasterizes one page to a blob URL and appends it to `pages`.
+ *
+ * @returns `'cancelled'` when the load was torn down mid-flight so the caller
+ * can release and bail, else `'ok'`.
+ * @internal
+ */
 async function appendRenderedPage(
 	controller: PdfLoadController,
 	pageNum: number,
@@ -111,6 +125,12 @@ async function appendRenderedPage(
 	return 'ok'
 }
 
+/**
+ * Fetches the PDF at `src`, rasterizes every page in order, and drives the
+ * handlers; releases the document on completion, cancellation, or error.
+ *
+ * @internal
+ */
 async function loadPdfDocument(
 	src: string,
 	controller: PdfLoadController,
@@ -177,6 +197,16 @@ async function loadPdfDocument(
 	}
 }
 
+/**
+ * Loads a PDF from `src` and rasterizes its pages to blob-URL images for the
+ * viewer.
+ *
+ * @returns `{ pages, documentUrl, loading, error }`: the rendered pages, a
+ * same-origin blob URL for the source document (download / print), plus load
+ * progress and failure state.
+ * @remarks Aborts any in-flight load and revokes every blob URL when `src`
+ * changes or the component unmounts.
+ */
 export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult {
 	const [pages, setPages] = useState<PdfViewerPage[]>([])
 

@@ -1,17 +1,25 @@
 # `packages/ui` docs
 
-Long-form documentation for the `ui` package. Authoring conventions and the
-component/hook/primitive inventory live one level up, in
-[`../REFERENCE.md`](../REFERENCE.md) and the repo-root
-[`CONVENTIONS.md`](../../../CONVENTIONS.md); this folder holds the material that
-doesn't belong in either — audits, design notes, and investigations that record
-a point-in-time assessment of the package.
+Documentation for the `ui` package. Authoring conventions live in the repo-root
+[`CONVENTIONS.md`](../../../CONVENTIONS.md); the package hub is
+[`../REFERENCE.md`](../REFERENCE.md). This folder holds two kinds of material:
+**curated surface references** (the always-current, quick-glance inventory of
+the public API) and **audits** (point-in-time sweeps).
 
 ## Structure
 
+- **Curated surface references** — one per public surface, kept current with the
+  code: [`COMPONENTS.md`](COMPONENTS.md), [`HOOKS.md`](HOOKS.md),
+  [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
+  [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`UTILITIES.md`](UTILITIES.md).
+  Each lists its surface for quick glance; every category but components carries a
+  one-line summary per item. [`../REFERENCE.md`](../REFERENCE.md) is the hub that
+  maps to them. These are derived from the public API surface — when an export
+  is added, removed, or renamed, update the matching doc in the same change
+  ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12).
 - **`audits/`** — dated, full-surface sweeps of the package against a single
-  lens (accessibility, correctness, API surface, …). Each audit is a standalone
-  record of what was found and, where applicable, what was resolved.
+  lens (accessibility, correctness, API surface, documentation, …). Each audit is
+  a standalone record of what was found and, where applicable, what was resolved.
 
 New top-level subjects get their own folder here as they appear; keep
 single-lens, point-in-time sweeps under `audits/`.

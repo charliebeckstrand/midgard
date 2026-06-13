@@ -4,6 +4,7 @@ import { k } from '../../recipes/kata/sidebar'
 
 export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
+/** Trailing controls inside a `SidebarItem` row; hidden when the parent collapses to the mini rail. */
 export function SidebarItemActions({ className, ...props }: SidebarItemActionsProps) {
 	return (
 		<div

@@ -49,7 +49,17 @@ type BaseOptionProps = {
 	| 'tabIndex'
 >
 
-/** Shared option row for select-like components. */
+/**
+ * Shared option row for select-like components: stamps `role="option"` with
+ * `aria-selected`/`aria-disabled`, renders a Density-sized selected-state check
+ * icon (overridable via `icon`), and handles Enter/Space activation.
+ *
+ * @remarks
+ * For active-descendant lists it mints a stable `id` and `preventDefault`s
+ * mousedown to keep DOM focus on the owning input; an explicit `id` always
+ * wins. With `commitOnTab`, an unselected option commits on Tab before the
+ * keystroke leaves the widget. Reads ambient Density via `useDensity`.
+ */
 export function BaseOption({
 	children,
 	className,
@@ -131,6 +141,7 @@ export function OptionDescription({
 	)
 }
 
+/** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
 export type OptionProps<TValue = unknown> = {
 	value: TValue
 	disabled?: boolean
@@ -139,8 +150,10 @@ export type OptionProps<TValue = unknown> = {
 	children?: ReactNode
 }
 
+/** Props for `OptionLabel`. */
 export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
 
+/** Props for `OptionDescription`. */
 export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /**

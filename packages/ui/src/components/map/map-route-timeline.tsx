@@ -26,6 +26,7 @@ type MapRouteTimelineProps = {
 	stops: RouteStop[]
 }
 
+/** Per-stop timeline visuals derived by {@link routeStopVisuals}. */
 type RouteStopVisuals = {
 	current: boolean
 	variant: 'solid' | 'outline'
@@ -35,9 +36,13 @@ type RouteStopVisuals = {
 	lineAfter: 'green' | undefined
 }
 
-// Timeline styling for one stop relative to the current position: reached stops
-// are solid with a green connector; the current stop pulses unless it's the
-// final one.
+/**
+ * Timeline styling for one stop relative to the current position: reached stops
+ * are solid with a green connector; the current stop pulses unless it's the
+ * final one.
+ *
+ * @internal
+ */
 function routeStopVisuals(
 	index: number,
 	currentIndex: number,
@@ -61,6 +66,7 @@ function routeStopVisuals(
 	}
 }
 
+/** Sheet listing a route's stops as a timeline, marking progress against the current position. */
 export function MapRouteTimeline({ open, onOpenChange, stops }: MapRouteTimelineProps) {
 	const currentIndex = resolveCurrentIndex(stops)
 

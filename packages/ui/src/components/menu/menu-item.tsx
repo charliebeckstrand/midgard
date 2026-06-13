@@ -13,14 +13,22 @@ type MenuItemBaseProps = {
 	disabled?: boolean
 	className?: string
 	children?: ReactNode
+	/** Runs on selection (click or Enter/Space), then closes the menu. */
 	onAction?: () => void
 }
 
+/** Props for {@link MenuItem}: a base set plus polymorphic `<button>`/anchor attributes; `href` switches it to a link. */
 // Href discrimination comes from the shared PolymorphicProps. Rendered custom:
 // carries role, roving tabindex, and keyboard activation; renders disabled
 // items as a non-anchor `<span>`.
 export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof MenuItemBaseProps>
 
+/**
+ * Selectable `role="menuitem"`. Renders an anchor when `href` is set (keeping
+ * middle-click and open-in-new-tab working), a `<button>` otherwise, or an
+ * inert `<span>` when `disabled`. Fires `onAction` and closes the menu on
+ * click or Enter/Space.
+ */
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 

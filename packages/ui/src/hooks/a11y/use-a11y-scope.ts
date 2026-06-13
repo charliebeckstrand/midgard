@@ -40,8 +40,12 @@ export type A11yScope<Slot extends string = never> = {
 	registered: Record<Slot, boolean>
 }
 
-// Composes `aria-labelledby` / `aria-describedby` id lists from the slots
-// currently registered (those with a positive reference count).
+/**
+ * Composes `aria-labelledby` / `aria-describedby` id lists from the slots
+ * currently registered (those with a positive reference count).
+ *
+ * @internal
+ */
 function bucketAriaIds(
 	present: Record<string, Record<string, number>>,
 	slots: Record<string, A11yRelation> | undefined,
@@ -70,6 +74,14 @@ function bucketAriaIds(
  * the matching part registers on mount and the composed attributes reference
  * only the slots present in the DOM, never a dangling id. Specialized hooks
  * (`useA11yPanel`, `useA11yControl`) layer their slot vocabulary over this base.
+ *
+ * @typeParam Slot - Union of declared slot names; keys `ids`, `register`, and
+ * `registered`.
+ * @returns An `A11yScope`: the stable `id` and `sub` deriver, per-slot `ids`,
+ * the per-slot `register` mount registrars, the composed `ariaProps`, and
+ * per-slot `registered` presence flags.
+ * @see {@link useA11yPanel}
+ * @see {@link useA11yControl}
  */
 export function useA11yScope<Slot extends string = never>(
 	options: A11yScopeOptions<Slot> = {},

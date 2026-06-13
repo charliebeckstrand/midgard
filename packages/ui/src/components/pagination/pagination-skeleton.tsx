@@ -2,8 +2,12 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
 import { Placeholder } from '../placeholder'
 
+/** Props for {@link PaginationSkeleton}: the count of page-button placeholders. */
 export type PaginationSkeletonProps = {
-	/** Page-button placeholders to render, previous and next included. */
+	/**
+	 * Page-button placeholders to render, previous and next included.
+	 * @defaultValue 7
+	 */
 	pages?: number
 	className?: string
 }

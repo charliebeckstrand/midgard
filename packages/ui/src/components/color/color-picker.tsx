@@ -26,13 +26,18 @@ type ColorPickerBaseProps = {
 	'data-group-orientation'?: string
 }
 
+/** Props for {@link ColorPicker}: presentation and placement options plus format-discriminated value props. */
 export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 
 /**
- * Popover colour picker: a Control-integrated swatch trigger that opens a
- * floating `ColorPanel`. Controlled or uncontrolled, speaking a hex string
- * (default) or an HSVA object per `format`; `size` resolves through the
- * explicit prop, then `<Control>`, then Density, then `'md'`.
+ * Popover color picker: a Control-integrated swatch trigger that opens a
+ * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
+ * the current color in the trigger swatch, speaks a hex string (default) or an
+ * HSVA object per `format`, positions via Floating UI (`placement`), and
+ * resolves `size` through the explicit prop, then `<Control>`, then Density,
+ * then `'md'`. Controlled or uncontrolled.
+ *
+ * @see {@link ColorPanel} for the inline variant.
  */
 export function ColorPicker(props: ColorPickerProps) {
 	const inherited = useDensity()

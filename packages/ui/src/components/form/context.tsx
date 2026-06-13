@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 
+/** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
 export type FormStateValue = {
 	values: Record<string, unknown>
 	errors: Record<string, string[] | undefined>
@@ -13,6 +14,7 @@ export type FormStateValue = {
 	submitting: boolean
 }
 
+/** Imperative form mutators. Stable across renders, so reading them never forces a re-render. */
 export type FormActions = {
 	getValue: (name: string) => unknown
 	setValue: (name: string, value: unknown) => void
@@ -43,6 +45,15 @@ const [FormActionsContext, useFormActions] = createContext<FormActions | undefin
 	default: undefined,
 })
 
+/**
+ * Returns the enclosing form's {@link FormActions} (imperative mutators), or
+ * undefined outside a `Form`. The actions object is referentially stable, so
+ * subscribing to it never triggers a re-render — the preferred way to mutate a
+ * form without reading its state.
+ *
+ * @see {@link useFormField} for per-field value/error subscription.
+ * @see {@link useFormContext} for state and actions together.
+ */
 export { useFormActions }
 
 const noopSubscribe = () => () => {}
@@ -65,8 +76,12 @@ export function FormProvider({
 }
 
 /**
- * Whole form state. Re-renders on ANY state change; prefer `useFormField`
- * (per-field) or `useFormStatus` (form-level booleans) for slices.
+ * Subscribes to the entire form state via the external store.
+ *
+ * @returns The current {@link FormStateValue}, or undefined outside a `Form`.
+ * @remarks Re-renders on ANY state change. Prefer {@link useFormField}
+ * (per-field) or {@link useFormStatus} (form-level booleans) to subscribe to a
+ * narrower slice. SSR-safe: server and initial-client snapshots match.
  */
 export function useFormState(): FormStateValue | undefined {
 	const store = useFormStoreContext()
@@ -99,6 +114,7 @@ type FieldSlice = {
 	dirty: boolean
 }
 
+/** One field's slice of form state plus its bound `setValue`/`setTouched` mutators. */
 export type FormFieldState = {
 	value: unknown
 	setValue: (value: unknown) => void
@@ -108,7 +124,18 @@ export type FormFieldState = {
 	dirty: boolean
 }
 
-/** Returns form-bound state for a named field, or undefined if not inside a Form or name is absent. */
+/**
+ * Subscribes to a single named field's slice (value, errors, touched, dirty)
+ * and returns it alongside bound mutators.
+ *
+ * @param name - Field key to track; pass undefined to opt out (returns undefined).
+ * @returns The field's {@link FormFieldState}, or undefined when `name` is
+ * absent or there is no enclosing `Form`.
+ * @remarks Re-renders only when this field's slice changes by content — the
+ * snapshot is cached and returned by reference when unchanged, so typing in one
+ * field does not re-render its siblings. Used by the binding hooks
+ * ({@link useFormText}, {@link useFormToggle}, {@link useFormValue}).
+ */
 export function useFormField(name: string | undefined): FormFieldState | undefined {
 	const store = useFormStoreContext()
 	const actions = useFormActions()
@@ -176,13 +203,25 @@ export function useFormField(name: string | undefined): FormFieldState | undefin
 	}
 }
 
+/** The three form-level booleans: whether a submit is in flight, whether any field diverges from its baseline, and whether the error map is empty. */
 export type FormStatus = {
 	submitting: boolean
 	dirty: boolean
 	valid: boolean
 }
 
-/** Returns form-level status, or undefined outside a Form. Re-renders only when a status flag flips. */
+/**
+ * Subscribes to the form's derived `submitting`/`dirty`/`valid` flags without
+ * pulling in field-level state.
+ *
+ * @returns The current {@link FormStatus}, or undefined outside a `Form`.
+ * @remarks Re-renders only when one of the three flags flips — the snapshot is
+ * cached and returned by reference while they hold, so per-keystroke value
+ * changes do not re-render status consumers (submit buttons, dirty guards).
+ * SSR-safe.
+ * @see {@link useFormField} for per-field subscription.
+ * @see {@link useFormActions} for the imperative mutators.
+ */
 export function useFormStatus(): FormStatus | undefined {
 	const store = useFormStoreContext()
 
@@ -222,7 +261,16 @@ export function useFormStatus(): FormStatus | undefined {
 	return slice ?? undefined
 }
 
-/** Returns combined state + actions. Re-renders on any state change; prefer `useFormActions`/`useFormField`/`useFormStatus`. */
+/**
+ * Returns the enclosing form's full state merged with its actions.
+ *
+ * @returns A {@link FormContextValue} (state + mutators), or undefined outside
+ * a `Form`.
+ * @remarks Re-renders on ANY state change since it composes {@link useFormState}.
+ * Prefer the narrower {@link useFormActions} (no re-render),
+ * {@link useFormField} (per-field), or {@link useFormStatus} (form-level flags)
+ * unless a consumer genuinely needs everything.
+ */
 export function useFormContext(): FormContextValue | undefined {
 	const state = useFormState()
 	const actions = useFormActions()

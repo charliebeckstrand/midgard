@@ -11,6 +11,7 @@ import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
 
+/** Props for {@link Textarea}: density `size`, `variant`, an `actions` slot, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'

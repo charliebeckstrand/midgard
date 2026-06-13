@@ -10,8 +10,12 @@ import type {
 	EditableGridSelectionApi,
 } from './types'
 
-// Cells to fill: the active cell, the active-to-anchor rectangle, and any
-// ctrl-clicked extras, de-duplicated.
+/**
+ * Cells to fill: the active cell, the active-to-anchor rectangle, and any
+ * ctrl-clicked extras, de-duplicated.
+ *
+ * @internal
+ */
 function collectFillCoords(active: Coord, anchor: Coord | null, extras: Iterable<string>): Coord[] {
 	const seen = new Set<string>()
 
@@ -49,6 +53,13 @@ function collectFillCoords(active: Coord, anchor: Coord | null, extras: Iterable
 	return coords
 }
 
+/**
+ * Cell-write operations for the editable grid: `applyCellWrite` parses and
+ * writes a single cell (filling the whole column when the row is part of a
+ * multi-row selection), and `applyBulkFill` writes one raw value across the
+ * active cell, the anchored rectangle, and any ctrl-clicked extras. Both emit
+ * the resulting {@link CellChange}s through `onValueChange`.
+ */
 export function useEditableGridMutations<T>({
 	nav: { activeRef, anchorRef, extraCellsRef },
 	rows: { rowsRef, editableCols, getKey, parseValue },
