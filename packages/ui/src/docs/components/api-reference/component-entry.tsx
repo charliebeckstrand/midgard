@@ -6,7 +6,7 @@ import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Text } from '../../../components/text'
 import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
-import { PropsTable } from './props-table'
+import { PropList } from './prop-list'
 
 /** React-style event handlers: `onClick`, `onChange`, … */
 const EVENT_PROP = /^on[A-Z]/
@@ -39,6 +39,7 @@ export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 
 	return (
 		<div className="space-y-4">
+			{entry.description && <Text variant="muted">{entry.description}</Text>}
 			{hasAny ? (
 				<div className="space-y-6">
 					{props.length > 0 && <Section title="Props" rows={props} />}
@@ -56,7 +57,7 @@ function Section({ title, rows }: { title: string; rows: PropDef[] }) {
 	return (
 		<div className="space-y-4">
 			<Heading level={3}>{title}</Heading>
-			<PropsTable rows={rows} />
+			<PropList rows={rows} />
 		</div>
 	)
 }

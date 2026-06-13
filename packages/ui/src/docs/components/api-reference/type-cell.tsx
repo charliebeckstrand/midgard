@@ -87,7 +87,7 @@ function TypeBadges({ type }: { type: string }) {
 
 /**
  * Each entry is titled by the type name it resolves. Multi-line definitions
- * render as `<CodeBlock>`; single-line definitions reuse the props-table
+ * render as `<CodeBlock>`; single-line definitions reuse the prop-list
  * badges.
  */
 function ReferencesPanel({ references }: { references: Record<string, string> }) {

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { Project, type ts } from 'ts-morph'
+import { Node, Project, SyntaxKind, type ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { extractDefaults } from './extract-defaults'
 import { extractPassThrough } from './extract-passthrough'
@@ -93,9 +93,31 @@ function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): Component
 
 	const api: ComponentApi = { name: decl.name, props }
 
+	const description = componentDescription(decl)
+
+	if (description) api.description = description
+
 	if (passThrough.length > 0) api.passThrough = passThrough
 
 	return api
+}
+
+/**
+ * Component-level TSDoc. `export function` components carry the comment on the
+ * declaration itself; `forwardRef` / `memo` wrappers document at the exported
+ * variable statement (`decl.callable` is the unwrapped inner function), so walk
+ * up to it when the callable isn't a function declaration.
+ */
+function componentDescription(decl: ComponentDecl): string | undefined {
+	const node = decl.callable
+
+	const host = Node.isFunctionDeclaration(node)
+		? node
+		: (node.getFirstAncestorByKind(SyntaxKind.VariableStatement) ?? node)
+
+	const text = host.getJsDocs().at(-1)?.getDescription().trim()
+
+	return text ? text : undefined
 }
 
 function resolvePropsType(callable: ts.Node, checker: ts.TypeChecker): ts.Type | null {
