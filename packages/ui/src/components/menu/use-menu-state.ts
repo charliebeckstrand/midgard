@@ -7,12 +7,20 @@ import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 
 type MenuStateOptions = {
+	open?: boolean
 	defaultOpen?: boolean
+	onOpenChange?: (open: boolean) => void
 	placement?: Placement
 	size?: Step
 }
 
-export function useMenuState({ defaultOpen = false, placement, size }: MenuStateOptions) {
+export function useMenuState({
+	open: openProp,
+	defaultOpen = false,
+	onOpenChange,
+	placement,
+	size,
+}: MenuStateOptions) {
 	const inherited = useDensity()
 	// An explicit `size` prop sets both density axes uniformly; otherwise each
 	// axis inherits independently from the ambient Density token.
@@ -33,7 +41,9 @@ export function useMenuState({ defaultOpen = false, placement, size }: MenuState
 
 	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
+			open: openProp,
 			defaultOpen,
+			onOpenChange,
 			role: null,
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,

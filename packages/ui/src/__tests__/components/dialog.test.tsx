@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { Dialog, DialogHeader, DialogTitle } from '../../components/dialog'
+import { describe, expect, it, vi } from 'vitest'
+import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Dialog', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -28,6 +28,42 @@ describe('Dialog', () => {
 		)
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('opens uncontrolled from defaultOpen', () => {
+		renderUI(<Dialog defaultOpen>Auto-open</Dialog>)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByText('Auto-open')).toBeInTheDocument()
+	})
+
+	it('stays closed when uncontrolled with neither open nor defaultOpen', () => {
+		renderUI(<Dialog>Hidden</Dialog>)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('closes itself when uncontrolled and a DialogClose is activated', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Dialog defaultOpen onOpenChange={onOpenChange}>
+				<DialogClose>
+					<button type="button">Done</button>
+				</DialogClose>
+			</Dialog>,
+		)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		fireEvent.click(screen.getByText('Done'))
+
+		// Uncontrolled: the panel unmounts on its own, and the optional
+		// onOpenChange still observes the transition.
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('renders with placement="top"', () => {

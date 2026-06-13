@@ -209,3 +209,39 @@ describe('Drawer size context', () => {
 		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
 	})
 })
+
+describe('Drawer uncontrolled', () => {
+	it('opens from defaultOpen', () => {
+		renderUI(<Drawer defaultOpen>Drawer body</Drawer>)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByText('Drawer body')).toBeInTheDocument()
+	})
+
+	it('stays closed with neither open nor defaultOpen', () => {
+		renderUI(<Drawer>Hidden</Drawer>)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('closes itself when uncontrolled and a DrawerClose is activated', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Drawer defaultOpen onOpenChange={onOpenChange}>
+				<DrawerClose>
+					<button type="button">Done</button>
+				</DrawerClose>
+			</Drawer>,
+		)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		fireEvent.click(screen.getByText('Done'))
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+})

@@ -583,3 +583,45 @@ describe('MenuItem density inheritance', () => {
 		expect(cls).toContain('text-lg')
 	})
 })
+
+describe('Menu controlled', () => {
+	it('reflects a controlled open prop on the trigger', () => {
+		renderUI(
+			<Menu open placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		expect(screen.getByText('Open')).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('reports open requests through onOpenChange without self-opening while controlled', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Menu open={false} onOpenChange={onOpenChange} placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByText('Open')
+
+		fireEvent.click(trigger)
+
+		// Controlled: the request is reported, but the parent owns the state, so
+		// the menu stays closed until `open` flips.
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+	})
+})

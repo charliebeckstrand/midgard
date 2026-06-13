@@ -4,14 +4,19 @@ import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
 export type SheetProps = SheetPanelVariants & {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	/** Controlled open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial open state when uncontrolled. */
+	defaultOpen?: boolean
+	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+	onOpenChange?: (open: boolean) => void
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -47,6 +52,7 @@ export type SheetProps = SheetPanelVariants & {
  */
 export function Sheet({
 	open,
+	defaultOpen,
 	onOpenChange,
 	side = 'right',
 	size,
@@ -59,14 +65,21 @@ export function Sheet({
 	modal,
 	'aria-label': ariaLabel,
 }: SheetProps) {
+	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
+	const [resolvedOpen = false, setOpen] = useControllable<boolean>({
+		value: open,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
+
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
 	return (
 		<Overlay
-			open={open}
-			onOpenChange={onOpenChange}
+			open={resolvedOpen}
+			onOpenChange={setOpen}
 			container={container}
 			initialFocus={initialFocus}
 			modal={modal}
@@ -86,7 +99,7 @@ export function Sheet({
 					className,
 				)}
 			>
-				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
+				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{children}
 				</PanelProviders>
 			</motion.div>

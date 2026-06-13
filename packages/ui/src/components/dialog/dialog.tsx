@@ -4,14 +4,19 @@ import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
 export type DialogProps = DialogPanelVariants & {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	/** Controlled open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial open state when uncontrolled. */
+	defaultOpen?: boolean
+	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+	onOpenChange?: (open: boolean) => void
 	placement?: 'center' | 'top'
 	dismissOnBackdrop?: boolean
 	glass?: boolean
@@ -45,6 +50,7 @@ const placementClasses = {
  */
 export function Dialog({
 	open,
+	defaultOpen,
 	onOpenChange,
 	placement = 'center',
 	dismissOnBackdrop = true,
@@ -58,6 +64,14 @@ export function Dialog({
 	'aria-label': ariaLabel,
 	'data-slot': slot = 'dialog',
 }: DialogProps) {
+	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
+	// The single setter drives the Overlay and the close affordances either way.
+	const [resolvedOpen = false, setOpen] = useControllable<boolean>({
+		value: open,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
+
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const isDesktop = useMinWidth(640)
@@ -69,8 +83,8 @@ export function Dialog({
 
 	return (
 		<Overlay
-			open={open}
-			onOpenChange={onOpenChange}
+			open={resolvedOpen}
+			onOpenChange={setOpen}
 			dismissOnBackdrop={dismissOnBackdrop}
 			glass={resolvedSurface === 'glass'}
 			initialFocus={initialFocus}
@@ -92,7 +106,7 @@ export function Dialog({
 						className,
 					)}
 				>
-					<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
+					<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 						{children}
 					</PanelProviders>
 				</motion.div>
