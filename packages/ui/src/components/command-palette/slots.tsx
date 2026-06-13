@@ -4,8 +4,8 @@ import { k } from '../../recipes/kata/command-palette'
 import { Alert, type AlertProps } from '../alert'
 import { Kbd, type KbdProps } from '../kbd'
 
-/** Props for {@link CommandPaletteGroup}; extends native `<div>` attributes with an optional `title`. */
-export type CommandPaletteGroupProps = ComponentPropsWithoutRef<'div'> & {
+/** Props for {@link CommandPaletteGroup}; extends native `<div>` attributes, widening `title` to a `ReactNode`. */
+export type CommandPaletteGroupProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
 	title?: ReactNode
 }
 
