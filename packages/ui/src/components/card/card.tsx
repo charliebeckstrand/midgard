@@ -7,7 +7,7 @@ import { Box, type BoxProps } from '../box'
 export type CardProps = BoxProps<'radius'> & {
 	/**
 	 * Step for the card's own padding, its sections, and its radius, broadcast
-	 * to children through the density cascade. Defaults to `md`.
+	 * to children through the density cascade. @default 'md'
 	 */
 	size?: Step
 }

@@ -6,9 +6,9 @@ export type ContainerSize = keyof typeof k.size
 export type ContainerPadding = keyof typeof k.padding
 
 export type ContainerProps = {
-	/** Max-width constraint. Defaults to `md`. */
+	/** Max-width constraint. @default 'md' */
 	size?: ContainerSize
-	/** Responsive horizontal padding. Defaults to `md`. Pass `none` to disable. */
+	/** Responsive horizontal padding. Pass `none` to disable. @default 'md' */
 	padding?: ContainerPadding
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>

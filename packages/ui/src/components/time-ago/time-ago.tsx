@@ -16,7 +16,7 @@ export type TimeAgoProps = Omit<
 	locale?: string
 	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
 	interval?: number | 'auto'
-	/** Reveal the absolute time in a tooltip on hover/focus. Defaults to `false`. */
+	/** Reveal the absolute time in a tooltip on hover/focus. @default false */
 	absolute?: boolean
 }
 

@@ -36,7 +36,7 @@ type BoxBaseProps = {
 	bg?: BoxBg
 	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	outline?: BoxOutline
-	/** Overrides the data-slot attribute. Defaults to "box". */
+	/** Overrides the data-slot attribute. @default 'box' */
 	'data-slot'?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string

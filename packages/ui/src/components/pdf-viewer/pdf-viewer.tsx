@@ -27,7 +27,7 @@ export type PdfViewerProps = {
 	/** Initial page in uncontrolled mode (1-based). */
 	defaultPage?: number
 	onPageChange?: (page: number) => void
-	/** Initial zoom scale. Defaults to 1. */
+	/** Initial zoom scale. @default 1 */
 	defaultZoom?: number
 	/** Discrete zoom levels, ascending. Zoom in/out steps through this list. */
 	zoomLevels?: number[]

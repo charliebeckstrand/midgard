@@ -11,14 +11,13 @@ import {
 } from './variants'
 
 export type SplitProps = {
-	/** Split orientation. Defaults to `horizontal` (two columns). */
+	/** Split orientation. @default 'horizontal' (two columns) */
 	orientation?: SplitOrientation
 	/**
-	 * Ratio of the first pane to the second pane. Defaults to `1/2`
-	 * (equal split).
+	 * Ratio of the first pane to the second pane. @default '1/2' (equal split)
 	 */
 	ratio?: SplitRatio
-	/** Gap between the two panes. Explicit; defaults to `'lg'`. */
+	/** Gap between the two panes. Explicit. @default 'lg' */
 	gap?: SplitGap
 	/** Cross-axis alignment. */
 	align?: SplitAlign
