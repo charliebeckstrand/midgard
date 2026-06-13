@@ -17,6 +17,31 @@ type JsonNodeProps = {
 	value: JsonValue
 }
 
+// Precedence for a branch's open state: a filtered-out empty branch stays
+// closed, then the user's explicit toggle, then the search auto-open, then the
+// depth default. Controlled trees defer entirely to the expanded set.
+function resolveNodeOpen(opts: {
+	controlled: boolean
+	expandedHas: boolean
+	search: string | undefined
+	filter: boolean | undefined
+	empty: boolean
+	userOpen: boolean | undefined
+	hasMatch: boolean
+	depth: number
+	defaultExpandDepth: number
+}): boolean {
+	if (opts.controlled) return opts.expandedHas
+
+	if (opts.search && opts.filter && opts.empty) return false
+
+	if (opts.userOpen !== undefined) return opts.userOpen
+
+	if (opts.search && opts.hasMatch && !opts.empty) return true
+
+	return opts.depth < opts.defaultExpandDepth
+}
+
 export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonNodeProps) {
 	const {
 		depth,
@@ -51,17 +76,17 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const empty = visibleEntries.length === 0
 
-	// Precedence: a filtered-out empty branch stays closed, then the user's
-	// explicit toggle, then the search auto-open, then the depth default.
-	const open = controlled
-		? expanded.has(nodePath)
-		: search && filter && empty
-			? false
-			: userOpen !== undefined
-				? userOpen
-				: search && hasMatch && !empty
-					? true
-					: depth < defaultExpandDepth
+	const open = resolveNodeOpen({
+		controlled,
+		expandedHas: controlled ? expanded.has(nodePath) : false,
+		search,
+		filter,
+		empty,
+		userOpen,
+		hasMatch,
+		depth,
+		defaultExpandDepth,
+	})
 
 	const childContextValue = useMemo(
 		() => ({

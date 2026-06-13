@@ -5,6 +5,76 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { KanbanColumnBase } from './types'
 
+type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
+	onValueChange: ((next: C[]) => void) | undefined
+	columns: C[]
+	getKey: (item: T) => string
+	findColumnByCardId: (id: string) => C | undefined
+	findColumn: (id: string) => C | undefined
+}
+
+// Cross-column move during drag-over: pull the card from its column and splice
+// it into the column under the pointer. Same-column reorders wait for dragEnd.
+function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
+	event: DragOverEvent,
+	deps: KanbanDragDeps<T, C>,
+): void {
+	const { onValueChange, columns, getKey, findColumnByCardId, findColumn } = deps
+
+	if (!onValueChange) return
+
+	const { active, over } = event
+
+	if (!over) return
+
+	const activeCardId = String(active.id)
+
+	const overId = String(over.id)
+
+	if (activeCardId === overId) return
+
+	const activeCol = findColumnByCardId(activeCardId)
+
+	const overCol = findColumn(overId)
+
+	if (!activeCol || !overCol) return
+
+	// Same-column reorders commit in dragEnd, not dragOver.
+	if (activeCol.id === overCol.id) return
+
+	const activeIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
+
+	if (activeIdx === -1) return
+
+	const item = activeCol.items[activeIdx]
+
+	if (item === undefined) return
+
+	const overIsColumn = columns.some((c) => c.id === overId)
+
+	const overCardIdx = overCol.items.findIndex((i) => getKey(i) === overId)
+
+	const insertIdx = overIsColumn || overCardIdx === -1 ? overCol.items.length : overCardIdx
+
+	const next = columns.map((col) => {
+		if (col.id === activeCol.id) {
+			return { ...col, items: col.items.filter((_, i) => i !== activeIdx) }
+		}
+
+		if (col.id === overCol.id) {
+			const nextItems = [...col.items]
+
+			nextItems.splice(insertIdx, 0, item)
+
+			return { ...col, items: nextItems }
+		}
+
+		return col
+	}) as C[]
+
+	onValueChange(next)
+}
+
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
@@ -52,57 +122,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
-		if (!onValueChange) return
-
-		const { active, over } = event
-
-		if (!over) return
-
-		const activeCardId = String(active.id)
-
-		const overId = String(over.id)
-
-		if (activeCardId === overId) return
-
-		const activeCol = findColumnByCardId(activeCardId)
-
-		const overCol = findColumn(overId)
-
-		if (!activeCol || !overCol) return
-
-		// Same-column reorders commit in dragEnd, not dragOver.
-		if (activeCol.id === overCol.id) return
-
-		const activeIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
-
-		if (activeIdx === -1) return
-
-		const item = activeCol.items[activeIdx]
-
-		if (item === undefined) return
-
-		const overIsColumn = columns.some((c) => c.id === overId)
-
-		const overCardIdx = overCol.items.findIndex((i) => getKey(i) === overId)
-
-		const insertIdx = overIsColumn || overCardIdx === -1 ? overCol.items.length : overCardIdx
-
-		const next = columns.map((col) => {
-			if (col.id === activeCol.id) {
-				return { ...col, items: col.items.filter((_, i) => i !== activeIdx) }
-			}
-			if (col.id === overCol.id) {
-				const nextItems = [...col.items]
-
-				nextItems.splice(insertIdx, 0, item)
-
-				return { ...col, items: nextItems }
-			}
-
-			return col
-		}) as C[]
-
-		onValueChange(next)
+		applyKanbanDragOver(event, { onValueChange, columns, getKey, findColumnByCardId, findColumn })
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {

@@ -6,6 +6,52 @@ import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
+type ThumbButtonRefs = [RefObject<HTMLButtonElement | null>, RefObject<HTMLButtonElement | null>]
+
+// New raw value for an arrow / page / home / end key, or null when the key is
+// not a range key.
+function rangeKeyValue(
+	key: string,
+	index: ThumbIndex,
+	current: [number, number],
+	step: number,
+	min: number,
+	max: number,
+): number | null {
+	switch (key) {
+		case 'ArrowRight':
+		case 'ArrowUp':
+			return current[index] + step
+		case 'ArrowLeft':
+		case 'ArrowDown':
+			return current[index] - step
+		// APG slider pattern: Page keys take a large step.
+		case 'PageUp':
+			return current[index] + step * 10
+		case 'PageDown':
+			return current[index] - step * 10
+		case 'Home':
+			return min
+		case 'End':
+			return max
+		default:
+			return null
+	}
+}
+
+// In swap mode a cross-thumb key flips the value's index; move focus to the
+// button that now holds the moving value.
+function focusSwappedThumb(
+	index: ThumbIndex,
+	snapped: number,
+	current: [number, number],
+	thumbRefs: ThumbButtonRefs,
+): void {
+	const willSwap = (index === 0 && snapped > current[1]) || (index === 1 && snapped < current[0])
+
+	if (willSwap) thumbRefs[index === 0 ? 1 : 0].current?.focus()
+}
+
 export function useRangeKeyboard(opts: {
 	min: number
 	max: number
@@ -13,7 +59,7 @@ export function useRangeKeyboard(opts: {
 	current: [number, number]
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
 	overlap: OverlapMode
-	thumbRefs: [RefObject<HTMLButtonElement | null>, RefObject<HTMLButtonElement | null>]
+	thumbRefs: ThumbButtonRefs
 }) {
 	const { min, max, step, current, setRange, overlap, thumbRefs } = opts
 
@@ -21,35 +67,18 @@ export function useRangeKeyboard(opts: {
 
 	return useCallback(
 		(index: ThumbIndex) => (event: KeyboardEvent) => {
-			const actions: Record<string, (i: ThumbIndex) => number> = {
-				ArrowRight: (i) => current[i] + step,
-				ArrowUp: (i) => current[i] + step,
-				ArrowLeft: (i) => current[i] - step,
-				ArrowDown: (i) => current[i] - step,
-				// APG slider pattern: Page keys take a large step.
-				PageUp: (i) => current[i] + step * 10,
-				PageDown: (i) => current[i] - step * 10,
-				Home: () => min,
-				End: () => max,
-			}
+			const raw = rangeKeyValue(event.key, index, current, step, min, max)
 
-			const action = actions[event.key]
-
-			if (!action) return
+			if (raw === null) return
 
 			event.preventDefault()
-
-			const raw = action(index)
 
 			// In swap mode, a cross-thumb key flips the value's index; focus
 			// follows to the button that now holds the moving value.
 			if (overlap === 'swap') {
 				const snapped = clamp(snapToStep(raw, min, step), min, max)
 
-				const willSwap =
-					(index === 0 && snapped > current[1]) || (index === 1 && snapped < current[0])
-
-				if (willSwap) thumbRefs[index === 0 ? 1 : 0].current?.focus()
+				focusSwappedThumb(index, snapped, current, thumbRefs)
 			}
 
 			update(index, raw)

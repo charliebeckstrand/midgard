@@ -30,6 +30,28 @@ export type ZodLike = { safeParse: (input: unknown) => ZodParseResult }
  * messages. Drops form-level issues (`path: []`); attach them to a real field
  * via `.refine(..., { path: ['…'] })`.
  */
+// Groups issues by `path[0]`, preserving schema order, de-duplicating
+// messages, and dropping form-level issues (`path: []`).
+function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] | undefined> {
+	const next: Record<string, string[] | undefined> = {}
+
+	for (const issue of issues) {
+		const head = issue.path[0]
+
+		if (head === undefined) continue
+
+		const key = String(head)
+
+		const bucket = next[key]
+
+		if (bucket) {
+			if (!bucket.includes(issue.message)) bucket.push(issue.message)
+		} else next[key] = [issue.message]
+	}
+
+	return next
+}
+
 export function zodResolver<T extends Record<string, unknown>>(
 	schema: ZodLike,
 	defaultValues: T,
@@ -42,23 +64,7 @@ export function zodResolver<T extends Record<string, unknown>>(
 
 		const result = schema.safeParse(values)
 
-		const next: Record<string, string[] | undefined> = {}
-
-		if (!result.success) {
-			for (const issue of result.error.issues) {
-				const head = issue.path[0]
-
-				if (head === undefined) continue
-
-				const key = String(head)
-
-				const bucket = next[key]
-
-				if (bucket) {
-					if (!bucket.includes(issue.message)) bucket.push(issue.message)
-				} else next[key] = [issue.message]
-			}
-		}
+		const next = result.success ? {} : bucketZodIssues(result.error.issues)
 
 		cachedValues = values
 		cachedErrors = next

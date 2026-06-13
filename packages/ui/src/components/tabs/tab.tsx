@@ -22,6 +22,32 @@ export type TabProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
 
+// Resolves the tab's current state plus its auto-wired tab/panel id pair (an
+// explicit `id` overrides; segments never auto-wire `aria-controls`).
+function resolveTabState(opts: {
+	id: string | undefined
+	value: string | undefined
+	currentProp: boolean | undefined
+	contextValue: string | undefined
+	baseId: string | undefined
+	isSegment: boolean
+	disclosure: { triggerId: string; panelId: string }
+}): { current: boolean; tabId: string | undefined; controlsId: string | undefined } {
+	const current = opts.currentProp ?? (opts.value !== undefined && opts.contextValue === opts.value)
+
+	const auto =
+		!opts.isSegment &&
+		opts.id === undefined &&
+		opts.value !== undefined &&
+		opts.baseId !== undefined
+
+	const tabId = opts.id ?? (auto ? opts.disclosure.triggerId : undefined)
+
+	const controlsId = opts.id ? `${opts.id}-panel` : auto ? opts.disclosure.panelId : undefined
+
+	return { current, tabId, controlsId }
+}
+
 /**
  * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Resolves `size` against
@@ -56,20 +82,21 @@ export function Tab({
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
-	const current = currentProp ?? (value !== undefined && context?.value === value)
-
 	// Derives a matched tab/panel id pair from the Tabs base id + value,
 	// auto-wiring <TabContent value>. An explicit `id` prop overrides this
 	// for manual <TabPanel id> linkage. Segments have no panels and never
 	// auto-wire `aria-controls`.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
-	const auto =
-		!isSegment && id === undefined && value !== undefined && tabsContext?.baseId !== undefined
-
-	const tabId = id ?? (auto ? disclosure.triggerId : undefined)
-
-	const controlsId = id ? `${id}-panel` : auto ? disclosure.panelId : undefined
+	const { current, tabId, controlsId } = resolveTabState({
+		id,
+		value,
+		currentProp,
+		contextValue: context?.value,
+		baseId: tabsContext?.baseId,
+		isSegment,
+		disclosure,
+	})
 
 	function handleClick(e: MouseEvent<HTMLButtonElement>) {
 		onClick?.(e)

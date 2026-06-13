@@ -2,6 +2,54 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
+// Polls the visual viewport until its height stabilizes after the keyboard
+// starts moving (5 stable frames, ~83 ms at 60 fps), bailing after ~1s. Fires
+// the callback once settled.
+function startSettlePoll(
+	viewport: VisualViewport,
+	rafRef: { current: number | null },
+	callback: () => void,
+): void {
+	const initialHeight = viewport.height
+
+	let lastHeight = initialHeight
+
+	let heightChanged = false
+
+	let stableFrames = 0
+
+	let totalFrames = 0
+
+	const check = () => {
+		totalFrames++
+
+		const currentHeight = viewport.height
+
+		if (!heightChanged && currentHeight !== initialHeight) heightChanged = true
+
+		if (currentHeight === lastHeight) {
+			// Only count stable frames after the keyboard has started moving.
+			if (heightChanged) stableFrames++
+		} else {
+			stableFrames = 0
+
+			lastHeight = currentHeight
+		}
+
+		if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {
+			rafRef.current = null
+
+			callback()
+
+			return
+		}
+
+		rafRef.current = requestAnimationFrame(check)
+	}
+
+	rafRef.current = requestAnimationFrame(check)
+}
+
 /**
  * Defers a callback until the virtual keyboard has settled. Fires
  * immediately on desktop or when the keyboard is already visible.
@@ -43,47 +91,6 @@ export function useKeyboardSettled() {
 			return
 		}
 
-		// Poll until the viewport height stabilises after the keyboard starts appearing
-		const initialHeight = viewport.height
-
-		let lastHeight = initialHeight
-
-		let heightChanged = false
-
-		let stableFrames = 0
-
-		let totalFrames = 0
-
-		const check = () => {
-			totalFrames++
-
-			const currentHeight = viewport.height
-
-			if (!heightChanged && currentHeight !== initialHeight) {
-				heightChanged = true
-			}
-
-			if (currentHeight === lastHeight) {
-				// Only count stable frames after the keyboard has started moving
-				if (heightChanged) stableFrames++
-			} else {
-				stableFrames = 0
-
-				lastHeight = currentHeight
-			}
-
-			// 5 stable frames (~83 ms at 60 fps) after keyboard moves, bail after 1s
-			if ((heightChanged && stableFrames >= 5) || totalFrames >= 60) {
-				rafRef.current = null
-
-				callback()
-
-				return
-			}
-
-			rafRef.current = requestAnimationFrame(check)
-		}
-
-		rafRef.current = requestAnimationFrame(check)
+		startSettlePoll(viewport, rafRef, callback)
 	}, [])
 }

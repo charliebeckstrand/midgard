@@ -133,6 +133,24 @@ export type DataTableProps<T> = TableVariants & {
 	children?: never
 }
 
+// Collapses the `virtualize` prop (boolean or options object) into resolved
+// enabled flag and sizing.
+function resolveVirtualization(virtualize: DataTableVirtualize | undefined): {
+	enabled: boolean
+	estimateSize: number
+	overscan: number
+} {
+	const enabled = virtualize != null && virtualize !== false
+
+	const opts = typeof virtualize === 'object' ? virtualize : null
+
+	return {
+		enabled,
+		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
+		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
+	}
+}
+
 /**
  * Data-driven {@link Table} over a flat `rows` source: maps each row through
  * `columns`, sorts and selects by the key from `getKey`, and shares that state
@@ -175,13 +193,7 @@ export function DataTable<T>({
 		)
 	}
 
-	const virtualizeEnabled = virtualize != null && virtualize !== false
-
-	const virtOpts = typeof virtualize === 'object' ? virtualize : null
-
-	const estimateSize = virtOpts?.estimateSize ?? DEFAULT_ROW_HEIGHT
-
-	const overscan = virtOpts?.overscan ?? DEFAULT_OVERSCAN
+	const { enabled: virtualizeEnabled, estimateSize, overscan } = resolveVirtualization(virtualize)
 
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortConfig?.value,

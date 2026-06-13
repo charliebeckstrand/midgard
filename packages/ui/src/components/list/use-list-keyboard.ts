@@ -18,6 +18,92 @@ type Options<T> = {
 	containerRef: RefObject<HTMLElement | null>
 }
 
+type ListKeyDeps = {
+	liftedId: string | null
+	setLiftedId: (id: string | null) => void
+	containerRef: RefObject<HTMLElement | null>
+	locate: (id: string) => { position: number; count: number } | null
+	focusNeighbor: (id: string, direction: -1 | 1 | 'start' | 'end') => boolean
+	moveByDirection: (id: string, direction: -1 | 1) => void
+	primaryKey: string
+	secondaryKey: string
+}
+
+// Space toggles the lifted state and announces the pick-up / drop.
+function handleSpaceToggle(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
+	event.preventDefault()
+
+	const lifting = deps.liftedId !== id
+
+	deps.setLiftedId(lifting ? id : null)
+
+	const loc = deps.locate(id)
+
+	const where = loc ? `, position ${loc.position} of ${loc.count}` : ''
+
+	announce(
+		lifting
+			? `Picked up ${itemName(deps.containerRef.current, id)}${where}. Use arrow keys to move, Enter to drop.`
+			: `Dropped ${itemName(deps.containerRef.current, id)}${where}.`,
+		{ assertive: true },
+	)
+}
+
+// Not lifted: arrows/Home/End move focus between items.
+function handleNeighborNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
+	switch (event.key) {
+		case deps.primaryKey:
+			if (deps.focusNeighbor(id, 1)) event.preventDefault()
+
+			break
+		case deps.secondaryKey:
+			if (deps.focusNeighbor(id, -1)) event.preventDefault()
+
+			break
+		case 'Home':
+			if (deps.focusNeighbor(id, 'start')) event.preventDefault()
+
+			break
+		case 'End':
+			if (deps.focusNeighbor(id, 'end')) event.preventDefault()
+
+			break
+	}
+}
+
+// Lifted: Escape/Enter drops, arrows reorder the lifted item.
+function handleLiftedNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
+	switch (event.key) {
+		case 'Escape':
+		case 'Enter': {
+			event.preventDefault()
+
+			deps.setLiftedId(null)
+
+			const loc = deps.locate(id)
+
+			announce(
+				`Dropped ${itemName(deps.containerRef.current, id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
+				{ assertive: true },
+			)
+
+			break
+		}
+		case deps.primaryKey:
+			event.preventDefault()
+
+			deps.moveByDirection(id, 1)
+
+			break
+		case deps.secondaryKey:
+			event.preventDefault()
+
+			deps.moveByDirection(id, -1)
+
+			break
+	}
+}
+
 /**
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
@@ -113,79 +199,30 @@ export function useListKeyboard<T>({
 			const primaryKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
 			const secondaryKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp'
 
+			const deps: ListKeyDeps = {
+				liftedId,
+				setLiftedId,
+				containerRef,
+				locate,
+				focusNeighbor,
+				moveByDirection,
+				primaryKey,
+				secondaryKey,
+			}
+
 			if (event.key === ' ') {
-				event.preventDefault()
-
-				const lifting = liftedId !== id
-
-				setLiftedId(lifting ? id : null)
-
-				const loc = locate(id)
-
-				const where = loc ? `, position ${loc.position} of ${loc.count}` : ''
-
-				announce(
-					lifting
-						? `Picked up ${itemName(containerRef.current, id)}${where}. Use arrow keys to move, Enter to drop.`
-						: `Dropped ${itemName(containerRef.current, id)}${where}.`,
-					{ assertive: true },
-				)
+				handleSpaceToggle(id, event, deps)
 
 				return
 			}
 
 			if (liftedId !== id) {
-				switch (event.key) {
-					case primaryKey:
-						if (focusNeighbor(id, 1)) event.preventDefault()
-
-						break
-					case secondaryKey:
-						if (focusNeighbor(id, -1)) event.preventDefault()
-
-						break
-					case 'Home':
-						if (focusNeighbor(id, 'start')) event.preventDefault()
-
-						break
-					case 'End':
-						if (focusNeighbor(id, 'end')) event.preventDefault()
-
-						break
-				}
+				handleNeighborNav(id, event, deps)
 
 				return
 			}
 
-			switch (event.key) {
-				case 'Escape':
-				case 'Enter': {
-					event.preventDefault()
-
-					setLiftedId(null)
-
-					const loc = locate(id)
-
-					announce(
-						`Dropped ${itemName(containerRef.current, id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
-						{ assertive: true },
-					)
-
-					break
-				}
-				case primaryKey:
-					event.preventDefault()
-
-					moveByDirection(id, 1)
-
-					break
-				case secondaryKey:
-					event.preventDefault()
-
-					moveByDirection(id, -1)
-
-					break
-			}
+			handleLiftedNav(id, event, deps)
 		},
 		[liftedId, setLiftedId, orientation, focusNeighbor, moveByDirection, locate, containerRef],
 	)

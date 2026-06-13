@@ -42,6 +42,31 @@ export type CalendarRangeProps = {
 	className?: string
 }
 
+// Range-painting flags for a single day cell: which endpoint it is, whether it
+// sits inside the range, and which visual edge (honoring reversed ranges).
+function computeRangeDayFlags(
+	date: Date,
+	rangeStart: Date | null | undefined,
+	effectiveEnd: Date | null | undefined,
+): { isEdge: boolean; isInnerRange: boolean; isLeftEdge: boolean; isRightEdge: boolean } {
+	const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
+	const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+
+	const isEdge = isRangeStart || isRangeEnd
+
+	const hasRange = rangeStart != null && effectiveEnd != null
+
+	const inRange = hasRange && isBetween(date, rangeStart, effectiveEnd)
+
+	const startBeforeEnd = hasRange && isBeforeDay(rangeStart, effectiveEnd)
+	const endBeforeStart = hasRange && isBeforeDay(effectiveEnd, rangeStart)
+
+	const isLeftEdge = (startBeforeEnd && isRangeStart) || (endBeforeStart && isRangeEnd)
+	const isRightEdge = (startBeforeEnd && isRangeEnd) || (endBeforeStart && isRangeStart)
+
+	return { isEdge, isInnerRange: inRange && !isEdge, isLeftEdge, isRightEdge }
+}
+
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
  * per-day styling through `getDayProps`: paints the band between `rangeStart`
@@ -76,22 +101,11 @@ export function CalendarRange({
 		(context: CalendarDayContextValue) => {
 			const { date } = context
 
-			const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
-			const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
-
-			const isEdge = isRangeStart || isRangeEnd
-
-			const hasRange = rangeStart != null && effectiveEnd != null
-
-			const inRange = hasRange && isBetween(date, rangeStart, effectiveEnd)
-
-			const startBeforeEnd = hasRange && isBeforeDay(rangeStart, effectiveEnd)
-			const endBeforeStart = hasRange && isBeforeDay(effectiveEnd, rangeStart)
-
-			const isLeftEdge = (startBeforeEnd && isRangeStart) || (endBeforeStart && isRangeEnd)
-			const isRightEdge = (startBeforeEnd && isRangeEnd) || (endBeforeStart && isRangeStart)
-
-			const isInnerRange = inRange && !isEdge
+			const { isEdge, isInnerRange, isLeftEdge, isRightEdge } = computeRangeDayFlags(
+				date,
+				rangeStart,
+				effectiveEnd,
+			)
 
 			return {
 				selected: isEdge,

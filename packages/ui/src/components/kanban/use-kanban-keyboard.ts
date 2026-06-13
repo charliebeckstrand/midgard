@@ -12,6 +12,151 @@ const cardName = (container: ParentNode | null, cardId: string) =>
 const columnName = (container: ParentNode | null, columnId: string) =>
 	accessibleName(querySlot(container, 'kanban-column', 'column-id', columnId))
 
+type NeighborKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End'
+
+// Skip empty columns to the next populated one in the travel direction; the
+// landing row clamps to the target column's length.
+function resolveCrossColumn<T, C extends KanbanColumnBase<T>>(
+	columns: C[],
+	colIdx: number,
+	itemIdx: number,
+	key: 'ArrowLeft' | 'ArrowRight',
+): { col: C; idx: number } | null {
+	const dir = key === 'ArrowLeft' ? -1 : 1
+
+	let nextColIdx = colIdx + dir
+
+	while (nextColIdx >= 0 && nextColIdx < columns.length) {
+		const nextCol = columns[nextColIdx]
+
+		if (nextCol && nextCol.items.length > 0) {
+			return { col: nextCol, idx: Math.min(itemIdx, nextCol.items.length - 1) }
+		}
+
+		nextColIdx += dir
+	}
+
+	return null
+}
+
+// Target column + row for a neighbor move. Out-of-range rows fall out at the
+// caller's lookup, mirroring the previous bounds guard.
+function resolveNeighborTarget<T, C extends KanbanColumnBase<T>>(
+	columns: C[],
+	colIdx: number,
+	col: C,
+	itemIdx: number,
+	key: NeighborKey,
+): { col: C; idx: number } | null {
+	switch (key) {
+		case 'ArrowUp':
+			return { col, idx: itemIdx - 1 }
+		case 'ArrowDown':
+			return { col, idx: itemIdx + 1 }
+		case 'Home':
+			return { col, idx: 0 }
+		case 'End':
+			return { col, idx: col.items.length - 1 }
+		default:
+			return resolveCrossColumn<T, C>(columns, colIdx, itemIdx, key)
+	}
+}
+
+type KanbanKeyDeps = {
+	liftedCardId: string | null
+	setLiftedCardId: (id: string | null) => void
+	containerRef: RefObject<HTMLElement | null>
+	locate: (cardId: string) => { columnId: string; position: number; count: number } | null
+	focusNeighbor: (cardId: string, key: NeighborKey) => boolean
+	moveWithinColumn: (cardId: string, direction: -1 | 1) => void
+	moveToColumn: (cardId: string, direction: -1 | 1) => void
+}
+
+// Space toggles the lifted state and announces the pick-up / drop.
+function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
+	event.preventDefault()
+
+	const lifting = deps.liftedCardId !== cardId
+
+	deps.setLiftedCardId(lifting ? cardId : null)
+
+	const loc = deps.locate(cardId)
+
+	const where = loc
+		? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
+		: ''
+
+	announce(
+		lifting
+			? `Picked up ${cardName(deps.containerRef.current, cardId)}${where}. Use arrow keys to move, Enter to drop.`
+			: `Dropped ${cardName(deps.containerRef.current, cardId)}${where}.`,
+		{ assertive: true },
+	)
+}
+
+// Not lifted: arrows/Home/End move focus between cards.
+function handleCardNeighborNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
+	switch (event.key) {
+		case 'ArrowUp':
+		case 'ArrowDown':
+		case 'ArrowLeft':
+		case 'ArrowRight':
+		case 'Home':
+		case 'End':
+			if (deps.focusNeighbor(cardId, event.key)) event.preventDefault()
+
+			break
+	}
+}
+
+// Lifted: Escape/Enter drops, arrows reorder the lifted card across columns.
+function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
+	switch (event.key) {
+		case 'Escape':
+		case 'Enter': {
+			event.preventDefault()
+
+			deps.setLiftedCardId(null)
+
+			const loc = deps.locate(cardId)
+
+			const where = loc
+				? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
+				: ''
+
+			announce(`Dropped ${cardName(deps.containerRef.current, cardId)}${where}.`, {
+				assertive: true,
+			})
+
+			break
+		}
+		case 'ArrowUp':
+			event.preventDefault()
+
+			deps.moveWithinColumn(cardId, -1)
+
+			break
+		case 'ArrowDown':
+			event.preventDefault()
+
+			deps.moveWithinColumn(cardId, 1)
+
+			break
+		case 'ArrowLeft':
+			event.preventDefault()
+
+			deps.moveToColumn(cardId, -1)
+
+			break
+		case 'ArrowRight':
+			event.preventDefault()
+
+			deps.moveToColumn(cardId, 1)
+
+			break
+	}
+}
+
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
@@ -60,10 +205,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	)
 
 	const focusNeighbor = useCallback(
-		(
-			cardId: string,
-			key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End',
-		) => {
+		(cardId: string, key: NeighborKey) => {
 			const colIdx = columns.findIndex((c) => c.items.some((i) => getKey(i) === cardId))
 
 			if (colIdx === -1) return false
@@ -74,58 +216,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			const itemIdx = col.items.findIndex((i) => getKey(i) === cardId)
 
-			let targetCol: C = col
+			const target = resolveNeighborTarget(columns, colIdx, col, itemIdx, key)
 
-			let targetIdx = itemIdx
+			if (!target) return false
 
-			switch (key) {
-				case 'ArrowUp':
-					targetIdx = itemIdx - 1
-
-					break
-				case 'ArrowDown':
-					targetIdx = itemIdx + 1
-
-					break
-				case 'Home':
-					targetIdx = 0
-
-					break
-				case 'End':
-					targetIdx = col.items.length - 1
-
-					break
-				case 'ArrowLeft':
-				case 'ArrowRight': {
-					const dir = key === 'ArrowLeft' ? -1 : 1
-
-					// Skip empty columns to the next populated one in the travel
-					// direction.
-					let nextColIdx = colIdx + dir
-
-					while (nextColIdx >= 0 && nextColIdx < columns.length) {
-						const nextCol = columns[nextColIdx]
-
-						if (nextCol && nextCol.items.length > 0) {
-							targetCol = nextCol
-
-							targetIdx = Math.min(itemIdx, targetCol.items.length - 1)
-
-							break
-						}
-
-						nextColIdx += dir
-					}
-
-					if (targetCol === col) return false
-
-					break
-				}
-			}
-
-			if (targetIdx < 0 || targetIdx >= targetCol.items.length) return false
-
-			const targetItem = targetCol.items[targetIdx]
+			const targetItem = target.col.items[target.idx]
 
 			if (targetItem === undefined) return false
 
@@ -217,89 +312,29 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		(cardId: string, event: KeyboardEvent) => {
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
+			const deps: KanbanKeyDeps = {
+				liftedCardId,
+				setLiftedCardId,
+				containerRef,
+				locate,
+				focusNeighbor,
+				moveWithinColumn,
+				moveToColumn,
+			}
+
 			if (event.key === ' ') {
-				event.preventDefault()
-
-				const lifting = liftedCardId !== cardId
-
-				setLiftedCardId(lifting ? cardId : null)
-
-				const loc = locate(cardId)
-
-				const where = loc
-					? `, position ${loc.position} of ${loc.count} in ${columnName(containerRef.current, loc.columnId)}`
-					: ''
-
-				announce(
-					lifting
-						? `Picked up ${cardName(containerRef.current, cardId)}${where}. Use arrow keys to move, Enter to drop.`
-						: `Dropped ${cardName(containerRef.current, cardId)}${where}.`,
-					{ assertive: true },
-				)
+				handleCardSpaceToggle(cardId, event, deps)
 
 				return
 			}
 
 			if (liftedCardId !== cardId) {
-				switch (event.key) {
-					case 'ArrowUp':
-					case 'ArrowDown':
-					case 'ArrowLeft':
-					case 'ArrowRight':
-					case 'Home':
-					case 'End':
-						if (focusNeighbor(cardId, event.key)) event.preventDefault()
-
-						break
-				}
+				handleCardNeighborNav(cardId, event, deps)
 
 				return
 			}
 
-			switch (event.key) {
-				case 'Escape':
-				case 'Enter': {
-					event.preventDefault()
-
-					setLiftedCardId(null)
-
-					const loc = locate(cardId)
-
-					const where = loc
-						? `, position ${loc.position} of ${loc.count} in ${columnName(containerRef.current, loc.columnId)}`
-						: ''
-
-					announce(`Dropped ${cardName(containerRef.current, cardId)}${where}.`, {
-						assertive: true,
-					})
-
-					break
-				}
-				case 'ArrowUp':
-					event.preventDefault()
-
-					moveWithinColumn(cardId, -1)
-
-					break
-				case 'ArrowDown':
-					event.preventDefault()
-
-					moveWithinColumn(cardId, 1)
-
-					break
-				case 'ArrowLeft':
-					event.preventDefault()
-
-					moveToColumn(cardId, -1)
-
-					break
-				case 'ArrowRight':
-					event.preventDefault()
-
-					moveToColumn(cardId, 1)
-
-					break
-			}
+			handleCardLiftedNav(cardId, event, deps)
 		},
 		[
 			liftedCardId,

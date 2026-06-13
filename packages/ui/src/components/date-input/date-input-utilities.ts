@@ -27,6 +27,94 @@ export function dateInputSeparator(format: DateInputFormat): string {
 	return layouts[format].separator
 }
 
+type MaskState = {
+	done: string[]
+	current: string
+}
+
+// Capped segments (month/day) carry over: a leading digit too large to start
+// the segment, or a second digit that overflows the cap, zero-pads and closes
+// it. Returns the loop action, or null when no cap rule applies.
+function applyCapRule(
+	pending: string,
+	digit: number,
+	cap: number,
+	segmentLength: number,
+	state: MaskState,
+): 'stop' | 'retry' | null {
+	if (state.current.length === 0 && digit * 10 > cap) {
+		state.done.push(`0${pending}`)
+
+		state.current = ''
+
+		return 'stop'
+	}
+
+	if (state.current.length === 1 && Number(state.current + pending) > cap) {
+		state.done.push(state.current.padStart(segmentLength, '0'))
+
+		state.current = ''
+
+		return 'retry'
+	}
+
+	// No month or day starts with 00; drop the second zero.
+	if (state.current === '0' && digit === 0) return 'stop'
+
+	return null
+}
+
+// Applies one character to the current segment. 'retry' re-runs the same
+// character against the next segment (a cap carry), 'stop' ends this
+// character, 'consumed' means it filled into the segment.
+function consumeMaskChar(
+	pending: string,
+	segment: Segment,
+	state: MaskState,
+): 'stop' | 'retry' | 'consumed' {
+	if (!/\d/.test(pending)) {
+		// A separator zero-pads and closes a short month or day; it does nothing
+		// on an empty, zero-only, or year segment.
+		if (state.current.length > 0 && Number(state.current) > 0 && segment.part !== 'year') {
+			state.done.push(state.current.padStart(segment.length, '0'))
+
+			state.current = ''
+		}
+
+		return 'stop'
+	}
+
+	const digit = Number(pending)
+
+	if (segment.cap !== undefined) {
+		const capResult = applyCapRule(pending, digit, segment.cap, segment.length, state)
+
+		if (capResult) return capResult
+	}
+
+	state.current += pending
+
+	if (state.current.length === segment.length) {
+		state.done.push(state.current)
+
+		state.current = ''
+	}
+
+	return 'consumed'
+}
+
+// Joins the masked segments, appending a trailing separator to seat the caret
+// for the next one when a segment was just closed.
+function joinMaskedSegments(state: MaskState, separator: string, segmentCount: number): string {
+	const { done, current } = state
+
+	if (current) return done.length > 0 ? `${done.join(separator)}${separator}${current}` : current
+
+	if (done.length === 0) return ''
+
+	return done.length === segmentCount ? done.join(separator) : `${done.join(separator)}${separator}`
+}
+
 /**
  * Masks raw text into the format's `MM`/`DD`/`YYYY` segments. Digits fill the
  * current segment. A digit that would push a capped segment past its cap
@@ -38,72 +126,29 @@ export function dateInputSeparator(format: DateInputFormat): string {
 export function maskDateText(raw: string, format: DateInputFormat): string {
 	const { separator, segments } = layouts[format]
 
-	const done: string[] = []
-
-	let current = ''
-
-	const commit = (text: string) => {
-		done.push(text)
-
-		current = ''
-	}
+	const state: MaskState = { done: [], current: '' }
 
 	for (const char of raw) {
 		// A digit the capped segment cannot take re-enters the loop against the
 		// next segment.
 		let pending: string | null = char
 
-		while (pending !== null && done.length < segments.length) {
-			const segment = segments[done.length]
+		while (pending !== null && state.done.length < segments.length) {
+			const segment = segments[state.done.length]
 
 			if (!segment) break
 
-			if (!/\d/.test(pending)) {
-				// A separator zero-pads and closes a short month or day; it does
-				// nothing on an empty, zero-only, or year segment.
-				if (current.length > 0 && Number(current) > 0 && segment.part !== 'year') {
-					commit(current.padStart(segment.length, '0'))
-				}
+			const result = consumeMaskChar(pending, segment, state)
 
-				break
-			}
+			if (result === 'stop') break
 
-			const digit = Number(pending)
-
-			if (segment.cap !== undefined) {
-				if (current.length === 0 && digit * 10 > segment.cap) {
-					commit(`0${pending}`)
-
-					break
-				}
-
-				if (current.length === 1 && Number(current + pending) > segment.cap) {
-					commit(current.padStart(segment.length, '0'))
-
-					continue
-				}
-
-				// No month or day starts with 00; drop the second zero.
-				if (current === '0' && digit === 0) break
-			}
-
-			current += pending
+			if (result === 'retry') continue
 
 			pending = null
-
-			if (current.length === segment.length) commit(current)
 		}
 	}
 
-	if (current) return done.length > 0 ? `${done.join(separator)}${separator}${current}` : current
-
-	if (done.length === 0) return ''
-
-	// A trailing separator marks the closed segment and seats the caret for
-	// the next one.
-	return done.length === segments.length
-		? done.join(separator)
-		: `${done.join(separator)}${separator}`
+	return joinMaskedSegments(state, separator, segments.length)
 }
 
 /** Formats a Date as the canonical zero-padded text for the format. */

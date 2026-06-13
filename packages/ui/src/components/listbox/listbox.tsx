@@ -97,6 +97,34 @@ export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
+// Resolves field-level state from explicit props, falling back to an enclosing
+// <Control>.
+function resolveControlState(
+	control:
+		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
+		| null
+		| undefined,
+	overrides: { inputId?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
+): {
+	id: string | undefined
+	disabled: boolean | undefined
+	readOnly: boolean | undefined
+	required: boolean | undefined
+} {
+	return {
+		id: overrides.inputId ?? control?.id,
+		disabled: overrides.disabled ?? control?.disabled,
+		readOnly: overrides.readOnly ?? control?.readOnly,
+		required: overrides.required ?? control?.required,
+	}
+}
+
+function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): boolean {
+	return multiple
+		? Array.isArray(value) && value.length > 0
+		: value !== undefined && !Array.isArray(value)
+}
+
 /**
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
  * `multiple` selection, controlled or uncontrolled, with an optional clear
@@ -139,13 +167,12 @@ export function Listbox<T>({
 	const control = useControl()
 	const token = useControlSize(size)
 
-	const resolvedId = inputId ?? control?.id
-
-	const resolvedDisabled = disabled ?? control?.disabled
-
-	const resolvedReadOnly = readOnly ?? control?.readOnly
-
-	const resolvedRequired = required ?? control?.required
+	const {
+		id: resolvedId,
+		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
+		required: resolvedRequired,
+	} = resolveControlState(control, { inputId, disabled, readOnly, required })
 
 	// Merges a consumer aria-describedby with the field's registered ids,
 	// matching Input/Textarea/Checkbox.
@@ -232,9 +259,7 @@ export function Listbox<T>({
 
 	const label = resolveLabel({ value, displayValue, multiple })
 
-	const hasValue = multiple
-		? Array.isArray(value) && value.length > 0
-		: value !== undefined && !Array.isArray(value)
+	const hasValue = hasListboxValue(value, multiple)
 
 	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
 

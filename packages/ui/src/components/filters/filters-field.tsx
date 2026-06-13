@@ -54,6 +54,19 @@ function expectsClearCallback(child: ReactElement): boolean {
 	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
+// The slot value as control props: toggles read `checked` (Radio compares its
+// own option value; Checkbox/Switch reflect the boolean), others read `value`
+// (null, not undefined, to stay controlled).
+function controlValueProps(child: ReactElement, fieldValue: unknown): Record<string, unknown> {
+	if (child.type === Radio) {
+		return { checked: fieldValue === (child.props as { value?: unknown }).value }
+	}
+
+	if (child.type === Checkbox || child.type === Switch) return { checked: !!fieldValue }
+
+	return { value: fieldValue ?? null }
+}
+
 /** Slot value and setter passed to a {@link FiltersField} render-prop child. */
 export type FiltersFieldRenderProps = {
 	value: unknown
@@ -136,12 +149,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		// Toggles read `checked`, not `value`: a Checkbox/Switch reflects the
 		// boolean slot; a Radio keeps its own option `value`, checked when it
 		// matches the slot.
-		const cloned: Record<string, unknown> =
-			child.type === Radio
-				? { checked: fieldValue === (child.props as { value?: unknown }).value }
-				: child.type === Checkbox || child.type === Switch
-					? { checked: !!fieldValue }
-					: { value: fieldValue ?? null }
+		const cloned = controlValueProps(child, fieldValue)
 
 		cloned[handlerProp] = handleChange
 

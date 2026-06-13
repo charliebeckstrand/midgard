@@ -19,6 +19,74 @@ type ScrollbarOptions = {
 	scrollbar: ScrollbarMode
 }
 
+type ScrollbarDragContext = {
+	viewportRef: { current: HTMLDivElement | null }
+	verticalTrackRef: { current: HTMLDivElement | null }
+	horizontalTrackRef: { current: HTMLDivElement | null }
+	verticalThumb: ThumbState
+	horizontalThumb: ThumbState
+	dragCleanupRef: { current: (() => void) | null }
+}
+
+// Pointer drag-to-scroll for one scrollbar thumb: maps thumb travel to scroll
+// offset and wires global move/up/cancel listeners until release.
+function beginScrollbarDrag(
+	axis: 'x' | 'y',
+	event: ReactPointerEvent<HTMLDivElement>,
+	ctx: ScrollbarDragContext,
+): void {
+	const el = ctx.viewportRef.current
+
+	const track = axis === 'y' ? ctx.verticalTrackRef.current : ctx.horizontalTrackRef.current
+
+	if (!el || !track) return
+
+	event.preventDefault()
+	event.stopPropagation()
+
+	const startClient = axis === 'y' ? event.clientY : event.clientX
+	const startScroll = axis === 'y' ? el.scrollTop : el.scrollLeft
+	const trackSize = axis === 'y' ? track.clientHeight : track.clientWidth
+	const viewportSize = axis === 'y' ? el.clientHeight : el.clientWidth
+	const contentSize = axis === 'y' ? el.scrollHeight : el.scrollWidth
+	const thumbSize = axis === 'y' ? ctx.verticalThumb.size : ctx.horizontalThumb.size
+
+	const maxOffset = trackSize - thumbSize
+	const maxScroll = contentSize - viewportSize
+
+	const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
+
+	// Cleans up any prior drag (defensive; pointerup handles the usual path).
+	ctx.dragCleanupRef.current?.()
+
+	const onMove = (ev: PointerEvent) => {
+		const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
+
+		const next = startScroll + delta * scale
+
+		if (axis === 'y') el.scrollTop = next
+		else el.scrollLeft = next
+	}
+
+	const cleanup = () => {
+		window.removeEventListener('pointermove', onMove)
+		window.removeEventListener('pointerup', onUp)
+		window.removeEventListener('pointercancel', onUp)
+
+		ctx.dragCleanupRef.current = null
+	}
+
+	const onUp = () => cleanup()
+
+	window.addEventListener('pointermove', onMove)
+	window.addEventListener('pointerup', onUp)
+	// A cancelled pointer (OS gesture, pen leaving range) never fires pointerup;
+	// without this the drag keeps scrolling on buttonless moves.
+	window.addEventListener('pointercancel', onUp)
+
+	ctx.dragCleanupRef.current = cleanup
+}
+
 /**
  * Custom scrollbar state: thumb geometry, visibility fade, and drag-to-scroll.
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
@@ -140,58 +208,15 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 	const dragCleanupRef = useRef<(() => void) | null>(null)
 
-	const startDrag = (axis: 'x' | 'y') => (event: ReactPointerEvent<HTMLDivElement>) => {
-		const el = viewportRef.current
-
-		const track = axis === 'y' ? verticalTrackRef.current : horizontalTrackRef.current
-
-		if (!el || !track) return
-
-		event.preventDefault()
-		event.stopPropagation()
-
-		const startClient = axis === 'y' ? event.clientY : event.clientX
-		const startScroll = axis === 'y' ? el.scrollTop : el.scrollLeft
-		const trackSize = axis === 'y' ? track.clientHeight : track.clientWidth
-		const viewportSize = axis === 'y' ? el.clientHeight : el.clientWidth
-		const contentSize = axis === 'y' ? el.scrollHeight : el.scrollWidth
-		const thumbSize = axis === 'y' ? verticalThumb.size : horizontalThumb.size
-
-		const maxOffset = trackSize - thumbSize
-		const maxScroll = contentSize - viewportSize
-
-		const scale = maxOffset > 0 ? maxScroll / maxOffset : 0
-
-		// Cleans up any prior drag (defensive; pointerup handles the usual path).
-		dragCleanupRef.current?.()
-
-		const onMove = (ev: PointerEvent) => {
-			const delta = (axis === 'y' ? ev.clientY : ev.clientX) - startClient
-
-			const next = startScroll + delta * scale
-
-			if (axis === 'y') el.scrollTop = next
-			else el.scrollLeft = next
-		}
-
-		const cleanup = () => {
-			window.removeEventListener('pointermove', onMove)
-			window.removeEventListener('pointerup', onUp)
-			window.removeEventListener('pointercancel', onUp)
-
-			dragCleanupRef.current = null
-		}
-
-		const onUp = () => cleanup()
-
-		window.addEventListener('pointermove', onMove)
-		window.addEventListener('pointerup', onUp)
-		// A cancelled pointer (OS gesture, pen leaving range) never fires
-		// pointerup; without this the drag keeps scrolling on buttonless moves.
-		window.addEventListener('pointercancel', onUp)
-
-		dragCleanupRef.current = cleanup
-	}
+	const startDrag = (axis: 'x' | 'y') => (event: ReactPointerEvent<HTMLDivElement>) =>
+		beginScrollbarDrag(axis, event, {
+			viewportRef,
+			verticalTrackRef,
+			horizontalTrackRef,
+			verticalThumb,
+			horizontalThumb,
+			dragCleanupRef,
+		})
 
 	// Cleans up global listeners when the component unmounts mid-drag
 	// (e.g. modal close or route change), when pointerup never fires.
