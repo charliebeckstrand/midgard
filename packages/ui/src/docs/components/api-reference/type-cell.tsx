@@ -87,7 +87,7 @@ function TypeBadges({ type }: { type: string }) {
 
 /**
  * Each entry is titled by the type name it resolves. Multi-line definitions
- * render as `<CodeBlock>`; single-line definitions reuse the props-table
+ * render as `<CodeBlock>`; single-line definitions reuse the prop-list
  * badges.
  */
 function ReferencesPanel({ references }: { references: Record<string, string> }) {
@@ -140,8 +140,8 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 	return (
 		<>
 			<Flex gap="md" direction={{ initial: 'col', xl: 'row' }} wrap>
-				<Badge className="text-sm">{prop.type}</Badge>
-				<Button variant="plain" size="sm" onClick={() => setOpen(true)}>
+				<Badge>{prop.type}</Badge>
+				<Button variant="plain" onClick={() => setOpen(true)}>
 					View references
 					<Icon icon={<ChevronRight />} />
 				</Button>

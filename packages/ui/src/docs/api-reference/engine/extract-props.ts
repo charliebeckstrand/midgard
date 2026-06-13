@@ -2,6 +2,7 @@ import { ts } from 'ts-morph'
 import type { PropDef } from '../types'
 import { extractReferences } from './extract-references'
 import { formatPropType } from './format-type'
+import { unaliasSymbol } from './ts-utils'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 
@@ -88,11 +89,11 @@ function buildPropDef(
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
 ): PropDef {
-	const inline = inlineSourceType(symbol)
+	const authored = authoredTypeText(symbol, checker)
 
 	const prop: PropDef = {
 		name,
-		type: inline ?? formatPropTypes(propTypes, callable, checker),
+		type: authored ?? formatPropTypes(propTypes, callable, checker),
 	}
 
 	const references = extractReferences(prop.type, callable, checker)
@@ -103,11 +104,77 @@ function buildPropDef(
 
 	if (externalFrom) prop.externalFrom = externalFrom
 
+	const description = jsDocSummary(symbol, checker)
+
+	if (description) prop.description = description
+
+	const tags = jsDocTags(symbol, checker)
+
+	if (tags.example) prop.example = tags.example
+
+	if (tags.deprecated !== undefined) prop.deprecated = tags.deprecated
+
+	if (isRequired(symbol)) prop.required = true
+
+	// The destructured default is the value the component actually applies;
+	// `@default` documents props that aren't destructured, so it only fills in.
 	const defaultVal = defaults.get(name)
 
 	if (defaultVal !== undefined) prop.default = defaultVal
+	else if (tags.default !== undefined) prop.default = tags.default
 
 	return prop
+}
+
+/** Prose summary of a symbol's TSDoc (the leading `/** … *\/`, tags stripped). */
+export function jsDocSummary(symbol: ts.Symbol, checker: ts.TypeChecker): string | undefined {
+	const text = ts.displayPartsToString(symbol.getDocumentationComment(checker)).trim()
+
+	return text.length > 0 ? text : undefined
+}
+
+type PropTags = { default?: string; example?: string; deprecated?: string | true }
+
+/** `@default` / `@defaultValue`, `@example`, and `@deprecated` from a symbol's TSDoc. */
+export function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags {
+	const out: PropTags = {}
+
+	for (const tag of symbol.getJsDocTags(checker)) {
+		const text = ts.displayPartsToString(tag.text ?? []).trim()
+
+		switch (tag.name) {
+			case 'default':
+			case 'defaultValue':
+				if (text) out.default = text
+
+				break
+			case 'example':
+				if (text) out.example = text
+
+				break
+			case 'deprecated':
+				out.deprecated = text.length > 0 ? text : true
+
+				break
+		}
+	}
+
+	return out
+}
+
+/**
+ * Whether a prop must be supplied. Trusts `SymbolFlags.Optional`; falls back to
+ * the authored `?` token so a prop optional in any union/intersection arm reads
+ * as optional (you may omit it), mirroring `collectAllProperties`.
+ */
+export function isRequired(symbol: ts.Symbol): boolean {
+	if (symbol.flags & ts.SymbolFlags.Optional) return false
+
+	const declarations = symbol.getDeclarations() ?? []
+
+	if (declarations.length === 0) return false
+
+	return !declarations.some((d) => ts.isPropertySignature(d) && d.questionToken !== undefined)
 }
 
 /** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
@@ -124,12 +191,15 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 }
 
 /**
- * Returns the source text for mapped-type prop declarations instead of the
- * formatter's expansion (`{ [K in keyof T]?: Validator<T, K> | undefined }`).
- * Type references and primitives still flow through the formatter for alias
- * resolution.
+ * Prefer the author's source text over the formatter's expansion when the
+ * declared type is either a mapped type (`{ [K in keyof T]?: … }`) or a
+ * reference to a project-source alias / interface (`Responsive<number>`,
+ * `GridGap`, `ButtonVariants`). The optional `?` lives on the property name,
+ * not the type node, so `getText()` is already clean. Everything else — inline
+ * unions, primitives, external and built-in references — returns null and
+ * flows through `formatPropType` for alias resolution.
  */
-function inlineSourceType(symbol: ts.Symbol): string | null {
+function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | null {
 	const decl = symbol.getDeclarations()?.[0]
 
 	if (!decl || !ts.isPropertySignature(decl) || !decl.type) return null
@@ -138,7 +208,35 @@ function inlineSourceType(symbol: ts.Symbol): string | null {
 
 	if (ts.isMappedTypeNode(node)) return node.getText()
 
+	if (ts.isTypeReferenceNode(node) && referencesProjectType(node.typeName, checker)) {
+		return node.getText()
+	}
+
 	return null
+}
+
+/**
+ * True when a type-reference name resolves to a type alias or interface
+ * declared in project source. Type parameters, primitives, and node_modules
+ * types (React, DOM, libraries) return false, so they fall through to the
+ * formatter and keep their existing rendering.
+ */
+function referencesProjectType(typeName: ts.EntityName, checker: ts.TypeChecker): boolean {
+	const id = ts.isIdentifier(typeName) ? typeName : typeName.right
+
+	const symbol = checker.getSymbolAtLocation(id)
+
+	if (!symbol) return false
+
+	const declarations = unaliasSymbol(symbol, checker).getDeclarations() ?? []
+
+	const aliasOrInterface = declarations.some(
+		(d) => ts.isTypeAliasDeclaration(d) || ts.isInterfaceDeclaration(d),
+	)
+
+	if (!aliasOrInterface) return false
+
+	return declarations.some((d) => !d.getSourceFile().fileName.includes('/node_modules/'))
 }
 
 /**
