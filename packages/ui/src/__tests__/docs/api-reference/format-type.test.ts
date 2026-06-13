@@ -124,6 +124,24 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 
 		expect(out).toContain('number')
 	})
+
+	it('collapses a `literal | (string & {})` autocomplete union to `string`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: 'on' | 'off' | (string & {}) | undefined`,
+		})
+
+		expect(formatPropType(type, checker, location)).toBe('string')
+	})
+
+	it('keeps a branded `string & { … }` union rather than collapsing it', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: 'on' | (string & { __brand: 'x' })`,
+		})
+
+		const out = formatPropType(type, checker, location)
+
+		expect(out).not.toBe('string')
+	})
 })
 
 describe('formatType — function types', () => {

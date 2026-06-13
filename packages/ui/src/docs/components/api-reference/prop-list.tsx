@@ -41,14 +41,14 @@ function PropRow({ prop }: { prop: PropDef }) {
 					{prop.name}
 				</span>
 				{prop.required && (
-					<Badge size="xs" variant="soft" color="amber">
+					<Badge size="sm" variant="soft" color="amber">
 						required
 					</Badge>
 				)}
 				{prop.default && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge size="xs" variant="soft" color="zinc">
+							<Badge size="sm" variant="soft" color="zinc">
 								{prop.default}
 							</Badge>
 						</TooltipTrigger>
