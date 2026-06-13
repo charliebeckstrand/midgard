@@ -1,8 +1,11 @@
 'use client'
 
+import { Info } from 'lucide-react'
 import { Badge } from '../../../components/badge'
+import { Button } from '../../../components/button'
 import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
+import { Icon } from '../../../components/icon'
 import { Markdown } from '../../../components/markdown'
 import { Stack } from '../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -11,10 +14,11 @@ import type { PropDef } from '../../api-reference/types'
 import { TypeCell } from './type-cell'
 
 /**
- * Description-first prop entries. Each row leads with the prop name and its
- * required / default / deprecated badges, then the prose summary, then the
- * technical metadata (type via `TypeCell`, `@example`). Descriptions and meta
- * are omitted when absent, so undocumented props collapse to name + type.
+ * Prop entries. Each row leads with the prop name, an optional info button whose
+ * tooltip carries the prose summary, then the required / default / deprecated
+ * badges, then the technical metadata (type via `TypeCell`, `@example`). The
+ * info button and meta are omitted when absent, so undocumented props collapse
+ * to name + type.
  */
 export function PropList({ rows }: { rows: PropDef[] }) {
 	return (
@@ -40,6 +44,18 @@ function PropRow({ prop }: { prop: PropDef }) {
 				>
 					{prop.name}
 				</span>
+				{prop.description && (
+					<Tooltip>
+						<TooltipTrigger>
+							<Button variant="bare" size="sm" aria-label={`${prop.name} description`}>
+								<Icon icon={<Info />} />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>
+							<Markdown>{prop.description}</Markdown>
+						</TooltipContent>
+					</Tooltip>
+				)}
 				{prop.required && (
 					<Badge variant="soft" color="amber">
 						required
@@ -66,7 +82,6 @@ function PropRow({ prop }: { prop: PropDef }) {
 					</Tooltip>
 				)}
 			</Flex>
-			{prop.description && <Markdown>{prop.description}</Markdown>}
 			<Flex align="center" gap="md" wrap className="text-sm">
 				<TypeCell prop={prop} />
 			</Flex>
