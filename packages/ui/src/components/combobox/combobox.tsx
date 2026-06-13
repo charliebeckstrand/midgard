@@ -46,6 +46,10 @@ type ComboboxBaseProps<T> = {
 	suffix?: ReactNode
 	size?: ControlSize
 	disabled?: boolean
+	/** Keeps the input focusable and the value submitted, but blocks typing and opening. */
+	readOnly?: boolean
+	/** Marks the field required; surfaces `required`/`aria-required` on the input. */
+	required?: boolean
 	className?: string
 	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
@@ -119,6 +123,8 @@ export function Combobox<T>({
 	suffix,
 	size,
 	disabled,
+	readOnly,
+	required,
 	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
@@ -143,6 +149,10 @@ export function Combobox<T>({
 	const resolvedSize = token.size
 
 	const resolvedDisabled = disabled ?? control?.disabled
+
+	const resolvedReadOnly = readOnly ?? control?.readOnly
+
+	const resolvedRequired = required ?? control?.required
 
 	const handleValueChange = useSelectableValueChange<T>(
 		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
@@ -199,6 +209,18 @@ export function Combobox<T>({
 		onValueChange: onValueChange as ((value: T) => void) | undefined,
 		setValue,
 	})
+
+	// readOnly keeps the input focusable and the value submitted but blocks
+	// every open path (input focus/typing, suffix toggle, floating-ui); closing
+	// stays allowed. Typing is also stopped natively by the input's readOnly.
+	const setOpenGuarded = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpen(next)
+		},
+		[resolvedReadOnly, setOpen],
+	)
 
 	// Keeps the virtual highlight anchored to a real option: clears
 	// `aria-activedescendant` while the menu is closed, and on each filter
@@ -260,7 +282,7 @@ export function Combobox<T>({
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange: setOpen,
+		onOpenChange: setOpenGuarded,
 		matchReferenceWidth: true,
 		// The input and panel carry their own roles + popup wiring; `role: null`
 		// suppresses floating-ui's wrapper roles.
@@ -278,14 +300,14 @@ export function Combobox<T>({
 		setValue,
 		setEditing,
 		setQuery,
-		setOpen,
+		setOpen: setOpenGuarded,
 		close,
 		onTouched: setTouched,
 		keyboardSettled,
 		rovingKeyDown: handleKeyDown,
 	})
 
-	const triggerHandlers = useComboboxTrigger({ open, close, setOpen, inputRef })
+	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
 
 	const scrollWithin = useScrollWithin()
 
@@ -304,7 +326,7 @@ export function Combobox<T>({
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
 
-	const showClear = clearable && hasValue && !resolvedDisabled
+	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
 
 	const clearSuffix = showClear ? (
 		<Button
@@ -355,7 +377,8 @@ export function Combobox<T>({
 						// LoadingSpinner) owns its own semantics. Interactive suffix
 						// content (the clear button) stops propagation to opt out.
 						'aria-hidden': suffix || showClear ? undefined : true,
-						onMouseDown: resolvedDisabled ? undefined : triggerHandlers.onMouseDown,
+						onMouseDown:
+							resolvedDisabled || resolvedReadOnly ? undefined : triggerHandlers.onMouseDown,
 					}}
 				>
 					<ComboboxInput
@@ -367,6 +390,8 @@ export function Combobox<T>({
 						open={open}
 						controlsId={comboboxId}
 						disabled={resolvedDisabled}
+						readOnly={resolvedReadOnly}
+						required={resolvedRequired}
 						value={inputDisplay}
 						placeholder={placeholder}
 						density={token.space}

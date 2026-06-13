@@ -8,7 +8,12 @@ import { MenuActionsContext, MenuStateContext } from './context'
 import { useMenuState } from './use-menu-state'
 
 export type MenuProps = {
+	/** Controlled open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial open state when uncontrolled. */
 	defaultOpen?: boolean
+	/** Fires when the open state changes. */
+	onOpenChange?: (open: boolean) => void
 	placement?: Placement
 	/**
 	 * Size step that drives menu item padding and text size.
@@ -24,9 +29,19 @@ export type MenuProps = {
  * and items via context. With a `placement` it acts as a floating dropdown;
  * without one the wrapper opens as a context menu on right-click.
  */
-export function Menu({ defaultOpen, placement, size, className, children }: MenuProps) {
+export function Menu({
+	open,
+	defaultOpen,
+	onOpenChange,
+	placement,
+	size,
+	className,
+	children,
+}: MenuProps) {
 	const { state, actions, handleContextMenu, isDropdown } = useMenuState({
+		open,
 		defaultOpen,
+		onOpenChange,
 		placement,
 		size,
 	})

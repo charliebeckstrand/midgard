@@ -16,6 +16,8 @@ type ListboxButtonProps = {
 	ariaLabelledby?: string
 	describedBy?: string
 	disabled?: boolean
+	readOnly?: boolean
+	required?: boolean
 	invalid?: boolean
 	label: ReactNode
 	onBlur?: FocusEventHandler<HTMLButtonElement>
@@ -42,6 +44,8 @@ export function ListboxButton({
 	ariaLabelledby,
 	describedBy,
 	disabled,
+	readOnly,
+	required,
 	invalid,
 	label,
 	onBlur,
@@ -63,8 +67,11 @@ export function ListboxButton({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				aria-describedby={describedBy}
+				aria-readonly={readOnly || undefined}
+				aria-required={required || undefined}
 				data-slot="listbox-button"
 				disabled={disabled}
+				data-readonly={readOnly || undefined}
 				onBlur={onBlur}
 				{...invalidAttrs(invalid)}
 				className={cn(k({ density, size }))}

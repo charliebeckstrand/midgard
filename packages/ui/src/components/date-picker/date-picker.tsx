@@ -37,6 +37,8 @@ export type DatePickerRangeProps = {
 }
 
 export type DatePickerBaseProps = {
+	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single) or `[Date, Date]` (range). */
+	name?: string
 	min?: Date
 	max?: Date
 	placeholder?: string

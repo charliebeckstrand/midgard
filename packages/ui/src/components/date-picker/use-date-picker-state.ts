@@ -4,16 +4,17 @@ import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
+import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { addDays, addMonths, clampDate, formatDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 export function useDatePickerState({
+	name,
 	value: valueProp,
 	defaultValue,
 	onValueChange,
@@ -28,7 +29,14 @@ export function useDatePickerState({
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
-	const [value, setValue] = useControllable({
+	// Binds the selected date to an enclosing Form field by `name` (value-typed
+	// cascade); the field error merges with Control's invalid below.
+	const {
+		value,
+		setValue,
+		setTouched,
+		invalid: fieldInvalid,
+	} = useFormValue<Date>(name, {
 		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
@@ -77,7 +85,11 @@ export function useDatePickerState({
 		setOpen(false)
 
 		setActive(null)
-	}, [])
+
+		// Closing the popover (select, clear, dismiss, or Escape) is the field's
+		// "blur" — mark it touched so validateOn="touched" rules can fire.
+		setTouched()
+	}, [setTouched])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
@@ -181,7 +193,7 @@ export function useDatePickerState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid,
+		invalid: control?.invalid || fieldInvalid,
 		value,
 		setValue,
 		displayValue: value ? formatDate(value) : '',

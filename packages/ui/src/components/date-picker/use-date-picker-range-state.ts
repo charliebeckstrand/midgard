@@ -4,10 +4,10 @@ import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
 import { useIdScope } from '../../hooks/use-id-scope'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
+import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, addMonths, clampDate, formatRange } from './date-picker-utilities'
@@ -15,6 +15,7 @@ import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 export function useDatePickerRangeState({
+	name,
 	value: valueProp,
 	defaultValue,
 	onValueChange,
@@ -29,7 +30,15 @@ export function useDatePickerRangeState({
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
-	const [value, setValue] = useControllable({
+	// Binds the committed range to an enclosing Form field by `name`. The
+	// reducer holds only the in-progress selection; the final `[Date, Date]`
+	// still commits through this cascade.
+	const {
+		value,
+		setValue,
+		setTouched,
+		invalid: fieldInvalid,
+	} = useFormValue<[Date, Date]>(name, {
 		value: useDatePickerControlled(valueProp),
 		defaultValue,
 		onValueChange,
@@ -98,7 +107,11 @@ export function useDatePickerRangeState({
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
-	}, [])
+
+		// Closing the popover is the field's "blur" — mark it touched so
+		// validateOn="touched" rules can fire.
+		setTouched()
+	}, [setTouched])
 
 	const handleClear = useCallback(() => {
 		pendingRef.current = { value: undefined }
@@ -204,7 +217,7 @@ export function useDatePickerRangeState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid,
+		invalid: control?.invalid || fieldInvalid,
 		displayValue: value ? formatRange(value[0], value[1]) : '',
 		open,
 		onOpenChange,

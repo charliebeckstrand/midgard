@@ -1,8 +1,9 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { createRef } from 'react'
+import { act, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
+import { Form } from '../../components/form'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import {
 	configureStroke,
@@ -228,5 +229,58 @@ describe('SignaturePad + Control', () => {
 		expect(describedBy).toContain('sig-description')
 
 		expect(describedBy).toContain('sig-error')
+	})
+})
+
+describe('SignaturePad + Form', () => {
+	const DATA_URL = 'data:image/png;base64,iVBORw0KGgo='
+
+	it('seeds from Form.defaultValues, rendering a non-empty pad', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ sig: DATA_URL }}>
+				<SignaturePad name="sig" />
+			</Form>,
+		)
+
+		// A seeded value starts non-empty: the clear action renders and the root
+		// is not flagged empty.
+		expect(bySlot(container, 'signature-pad')).not.toHaveAttribute('data-empty')
+
+		expect(bySlot(container, 'signature-pad-clear')).toBeInTheDocument()
+	})
+
+	it('lets an explicit null value override a seeded bound field', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ sig: DATA_URL }}>
+				{/* null = controlled with no value; wins over the bound field. */}
+				<SignaturePad name="sig" value={null} onValueChange={() => {}} />
+			</Form>,
+		)
+
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', 'true')
+	})
+
+	it('merges a field-level error into the canvas invalid state once touched', () => {
+		const ref = createRef<SignaturePadHandle>()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ sig: DATA_URL as string | null }}
+				validate={{ sig: (v) => (v == null ? 'Signature required' : undefined) }}
+				validateOn="touched"
+			>
+				<SignaturePad name="sig" ref={ref} />
+			</Form>,
+		)
+
+		const canvas = bySlot(container, 'signature-pad-canvas') as HTMLElement
+
+		expect(canvas).not.toHaveAttribute('aria-invalid')
+
+		// clear() empties the value and marks the field touched; the rule then
+		// fails and the error surfaces on the canvas.
+		act(() => ref.current?.clear())
+
+		expect(canvas).toHaveAttribute('aria-invalid', 'true')
 	})
 })

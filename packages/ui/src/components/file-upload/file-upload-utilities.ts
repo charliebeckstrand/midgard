@@ -9,3 +9,47 @@ export function formatFileNames(files: File[]): string | undefined {
 
 	return files.map((f) => f.name).join(', ')
 }
+
+/** A file excluded from a selection, paired with the constraint it tripped. */
+export type FileRejection = {
+	file: File
+	/** `'size'` exceeds `maxSize`; `'count'` overflows `maxCount`. */
+	reason: 'size' | 'count'
+}
+
+type FileConstraints = {
+	/** Maximum size per file, in bytes. */
+	maxSize?: number
+	/** Maximum number of files accepted; overflow is rejected. */
+	maxCount?: number
+}
+
+/**
+ * Splits a selection into accepted files and rejections. Oversized files are
+ * dropped first (reason `'size'`); `maxCount` then caps the survivors in
+ * selection order, rejecting the overflow (reason `'count'`). Both constraints
+ * are optional — an unset limit never rejects.
+ */
+export function partitionFiles(
+	files: File[],
+	{ maxSize, maxCount }: FileConstraints,
+): { accepted: File[]; rejected: FileRejection[] } {
+	const rejected: FileRejection[] = []
+	const withinSize: File[] = []
+
+	for (const file of files) {
+		if (maxSize != null && file.size > maxSize) {
+			rejected.push({ file, reason: 'size' })
+		} else {
+			withinSize.push(file)
+		}
+	}
+
+	if (maxCount != null && withinSize.length > maxCount) {
+		for (const file of withinSize.slice(maxCount)) rejected.push({ file, reason: 'count' })
+
+		return { accepted: withinSize.slice(0, maxCount), rejected }
+	}
+
+	return { accepted: withinSize, rejected }
+}

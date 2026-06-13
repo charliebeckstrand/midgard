@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
@@ -12,8 +13,12 @@ import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 
 export type DrawerProps = DrawerPanelVariants & {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	/** Controlled open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial open state when uncontrolled. */
+	defaultOpen?: boolean
+	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+	onOpenChange?: (open: boolean) => void
 	/**
 	 * Size step that propagates to descendants via the Density context.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
@@ -38,6 +43,7 @@ export type DrawerProps = DrawerPanelVariants & {
  */
 export function Drawer({
 	open,
+	defaultOpen,
 	onOpenChange,
 	surface,
 	size,
@@ -47,6 +53,13 @@ export function Drawer({
 	initialFocus,
 	'aria-label': ariaLabel,
 }: DrawerProps) {
+	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
+	const [resolvedOpen = false, setOpen] = useControllable<boolean>({
+		value: open,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
+
 	const resolvedSurface = useResolvedSurface(surface, glass)
 
 	const { ariaProps, a11y } = useA11yPanel()
@@ -57,8 +70,8 @@ export function Drawer({
 
 	return (
 		<Overlay
-			open={open}
-			onOpenChange={onOpenChange}
+			open={resolvedOpen}
+			onOpenChange={setOpen}
 			initialFocus={initialFocus}
 			className={k.backdrop({ surface: resolvedSurface })}
 		>
@@ -71,7 +84,7 @@ export function Drawer({
 				onClick={(e) => e.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
-				<PanelProviders onOpenChange={onOpenChange} a11y={a11y}>
+				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					<Density scale={resolvedSize}>{children}</Density>
 				</PanelProviders>
 			</motion.div>

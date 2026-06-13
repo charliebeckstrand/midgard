@@ -10,6 +10,8 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 export type { SignaturePadHandle }
 
 export type SignaturePadProps = {
+	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` should seed `string | null`. */
+	name?: string
 	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
 	value?: string | null
 	/** Initial value for uncontrolled mode. */
@@ -33,6 +35,7 @@ export type SignaturePadProps = {
 
 /** Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio. */
 export function SignaturePad({
+	name,
 	value,
 	defaultValue,
 	onValueChange,
@@ -51,17 +54,26 @@ export function SignaturePad({
 	// cascade's description/error ids.
 	const control = useControl()
 
-	const { containerRef, canvasRef, empty, handlePointerDown, handlePointerMove, commit, clear } =
-		useSignaturePadState({
-			value,
-			defaultValue,
-			onValueChange,
-			disabled,
-			readOnly,
-			strokeColor,
-			strokeWidth,
-			ref,
-		})
+	const {
+		containerRef,
+		canvasRef,
+		empty,
+		invalid,
+		handlePointerDown,
+		handlePointerMove,
+		commit,
+		clear,
+	} = useSignaturePadState({
+		name,
+		value,
+		defaultValue,
+		onValueChange,
+		disabled,
+		readOnly,
+		strokeColor,
+		strokeWidth,
+		ref,
+	})
 
 	const handleClear = useCallback(() => {
 		clear()
@@ -91,7 +103,9 @@ export function SignaturePad({
 				// Programmatically focusable (not in the tab order); receives focus
 				// when the clear button unmounts.
 				tabIndex={-1}
-				{...invalidAttrs(control?.invalid)}
+				// A Form field error (from `name`) forces invalid; an ambient
+				// `<Field invalid>` via Control still applies too.
+				{...invalidAttrs(control?.invalid || invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}

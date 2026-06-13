@@ -9,7 +9,7 @@ import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { formatFileNames } from './file-upload-utilities'
+import { type FileRejection, formatFileNames } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
 type FileUploadSharedProps = {
@@ -18,10 +18,16 @@ type FileUploadSharedProps = {
 	/** Allow selecting multiple files. */
 	multiple?: boolean
 	disabled?: boolean
-	/** Fires with the selected files. */
+	/** Maximum size per file, in bytes. Oversized files are routed to `onReject`. */
+	maxSize?: number
+	/** Maximum number of accepted files. Overflow (in selection order) is routed to `onReject`. */
+	maxCount?: number
 	className?: string
 	children?: ReactNode
+	/** Fires with the accepted files (after `maxSize`/`maxCount` filtering). */
 	onFiles?: (files: File[]) => void
+	/** Fires with files excluded by `maxSize`/`maxCount`, each tagged with its reason. */
+	onReject?: (rejected: FileRejection[]) => void
 }
 
 type FileUploadAreaProps = FileUploadSharedProps & {
@@ -55,7 +61,8 @@ export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileU
  * onto the real input.
  */
 export function FileUpload(props: FileUploadProps) {
-	const { accept, multiple, disabled, className, children, onFiles } = props
+	const { accept, multiple, disabled, maxSize, maxCount, className, children, onFiles, onReject } =
+		props
 
 	// Mirrors Control/Field invalid + required + error-message wiring onto the
 	// hidden `<input type="file">`, the real control in every variant. The
@@ -72,7 +79,7 @@ export function FileUpload(props: FileUploadProps) {
 		handleDragOver,
 		handleDragLeave,
 		handleDrop,
-	} = useFileUploadHandlers({ disabled, onFiles })
+	} = useFileUploadHandlers({ disabled, maxSize, maxCount, onFiles, onReject })
 
 	// The visually-hidden `<input>` still needs an accessible name; screen
 	// readers can reach it even at `tabIndex -1`. Each variant passes a name

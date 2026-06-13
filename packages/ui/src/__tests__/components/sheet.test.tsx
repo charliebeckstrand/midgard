@@ -125,3 +125,39 @@ describe('SheetClose', () => {
 		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
 	})
 })
+
+describe('Sheet uncontrolled', () => {
+	it('opens from defaultOpen', () => {
+		renderUI(<Sheet defaultOpen>Sheet body</Sheet>)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByText('Sheet body')).toBeInTheDocument()
+	})
+
+	it('stays closed with neither open nor defaultOpen', () => {
+		renderUI(<Sheet>Hidden</Sheet>)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('closes itself when uncontrolled and a SheetClose is activated', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Sheet defaultOpen onOpenChange={onOpenChange}>
+				<SheetClose>
+					<button type="button">Done</button>
+				</SheetClose>
+			</Sheet>,
+		)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		fireEvent.click(screen.getByText('Done'))
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+})

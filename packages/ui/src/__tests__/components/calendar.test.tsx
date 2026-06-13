@@ -2,7 +2,11 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle, CalendarSkeleton } from '../../components/calendar'
+import { Form } from '../../components/form'
 import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
+
+const selectedDay = () =>
+	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
 
 describe('Calendar', () => {
 	it('pairs with an explicit CalendarSkeleton in loading trees', () => {
@@ -459,5 +463,54 @@ describe('Calendar keyboard navigation', () => {
 		await user.keyboard('{ArrowUp}')
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: /June 2025/ }))
+	})
+})
+
+describe('Calendar + Form', () => {
+	it('seeds the selected day from Form.defaultValues', () => {
+		renderUI(
+			<Form defaultValues={{ date: new Date(2025, 5, 15) }}>
+				<Calendar name="date" />
+			</Form>,
+		)
+
+		expect(selectedDay()?.textContent).toBe('15')
+	})
+
+	it('writes the picked day back to the bound field on submit', async () => {
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ date: new Date(2025, 5, 15) }} onSubmit={onSubmit}>
+				<Calendar name="date" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const user = userEvent.setup()
+
+		const day20 = screen.getAllByRole('option').find((o) => o.textContent === '20')
+
+		await user.click(day20 as HTMLElement)
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		const submitted = onSubmit.mock.calls[0]?.[0].date as Date
+
+		expect(submitted.getFullYear()).toBe(2025)
+
+		expect(submitted.getMonth()).toBe(5)
+
+		expect(submitted.getDate()).toBe(20)
+	})
+
+	it('lets an explicit value prop override the bound field', () => {
+		renderUI(
+			<Form defaultValues={{ date: new Date(2025, 5, 15) }}>
+				<Calendar name="date" value={new Date(2025, 5, 20)} onValueChange={() => {}} />
+			</Form>,
+		)
+
+		expect(selectedDay()?.textContent).toBe('20')
 	})
 })

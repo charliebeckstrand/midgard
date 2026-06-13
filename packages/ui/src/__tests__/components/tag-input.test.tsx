@@ -1,5 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
 import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
@@ -493,5 +494,68 @@ describe('TagInput announcements', () => {
 		await user.type(getInput(container), 'x{Enter}')
 
 		await waitFor(() => expect(politeRegion()).toHaveTextContent('x is not a valid tag'))
+	})
+})
+
+describe('TagInput + Form', () => {
+	it('seeds from Form.defaultValues and submits the bound tag array', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ topics: ['react'] }} onSubmit={onSubmit}>
+				<TagInput name="topics" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		// The default value renders as a badge.
+		expect(getBadges(container).map((b) => b.textContent)).toContain('react')
+
+		const user = userEvent.setup()
+
+		await user.type(getInput(container), 'vue{Enter}')
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ topics: ['react', 'vue'] }),
+			expect.anything(),
+		)
+	})
+
+	it('lets an explicit value prop override the bound field', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ topics: ['fromForm'] }}>
+				<TagInput name="topics" value={['explicit']} onValueChange={() => {}} />
+			</Form>,
+		)
+
+		const labels = getBadges(container).map((b) => b.textContent)
+
+		expect(labels).toContain('explicit')
+
+		expect(labels).not.toContain('fromForm')
+	})
+
+	it('merges a field-level error from the Form into the invalid state', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ topics: [] as string[] }}
+				validate={{ topics: (v) => ((v as string[]).length === 0 ? 'Add a topic' : undefined) }}
+				validateOn="touched"
+			>
+				<TagInput name="topics" />
+			</Form>,
+		)
+
+		const input = getInput(container)
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		// Blur marks the field touched (TagInput.handleBlur → setTouched); the
+		// empty-array rule then fails and the error merges into invalid.
+		fireEvent.blur(input)
+
+		await waitFor(() => expect(input).toHaveAttribute('aria-invalid', 'true'))
 	})
 })

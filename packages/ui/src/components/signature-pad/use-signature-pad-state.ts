@@ -1,7 +1,7 @@
 'use client'
 
 import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useFormValue } from '../form/use-form-value'
 import { drawSnapshot } from './signature-pad-utilities'
 import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
 import { useSignaturePadDrawing } from './use-signature-pad-drawing'
@@ -13,6 +13,7 @@ export type SignaturePadHandle = {
 }
 
 export type SignaturePadStateOptions = {
+	name?: string
 	value?: string | null
 	defaultValue?: string | null
 	onValueChange?: (value: string | null) => void
@@ -24,6 +25,7 @@ export type SignaturePadStateOptions = {
 }
 
 export function useSignaturePadState({
+	name,
 	value,
 	defaultValue,
 	onValueChange,
@@ -33,11 +35,21 @@ export function useSignaturePadState({
 	strokeWidth,
 	ref,
 }: SignaturePadStateOptions) {
-	const [current, setCurrent] = useControllable<string | null>({
+	// Binds the data-URL value to an enclosing Form field by `name`. Keeps the
+	// `string | null` shape (§7.3): the cascade coerces a missing store value to
+	// `null`, and onValueChange never emits `undefined`.
+	const {
+		value: currentValue,
+		setValue: setCurrent,
+		setTouched,
+		invalid,
+	} = useFormValue<string | null>(name, {
 		value,
 		defaultValue: defaultValue ?? null,
 		onValueChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
 	})
+
+	const current = currentValue ?? null
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -77,7 +89,11 @@ export function useSignaturePadState({
 		lastEmittedRef.current = current
 	}, [current])
 
-	const { handlePointerDown, handlePointerMove, commit } = useSignaturePadDrawing({
+	const {
+		handlePointerDown,
+		handlePointerMove,
+		commit: commitStroke,
+	} = useSignaturePadDrawing({
 		canvasRef,
 		disabled,
 		readOnly,
@@ -88,6 +104,14 @@ export function useSignaturePadState({
 		lastEmittedRef,
 		setCurrent,
 	})
+
+	// A stroke ending or a clear is the field's "blur" — the user has acted on
+	// the pad, so mark the bound Form field touched (no-op outside a Form).
+	const commit = useCallback(() => {
+		commitStroke()
+
+		setTouched()
+	}, [commitStroke, setTouched])
 
 	const clear = useCallback(() => {
 		const canvas = canvasRef.current
@@ -103,7 +127,9 @@ export function useSignaturePadState({
 		lastEmittedRef.current = null
 
 		setCurrent(null)
-	}, [setCurrent])
+
+		setTouched()
+	}, [setCurrent, setTouched])
 
 	useImperativeHandle(
 		ref,
@@ -119,6 +145,7 @@ export function useSignaturePadState({
 		containerRef,
 		canvasRef,
 		empty,
+		invalid,
 		handlePointerDown,
 		handlePointerMove,
 		commit,

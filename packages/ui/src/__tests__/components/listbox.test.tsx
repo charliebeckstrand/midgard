@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+
+const option = (
+	<div role="option" tabIndex={-1} aria-selected="false">
+		Option
+	</div>
+)
 
 function FieldProbe({ name }: { name: string }) {
 	const field = useFormField(name)
@@ -476,5 +483,92 @@ describe('Listbox in a Form', () => {
 		fireEvent.blur(screen.getByRole('combobox'))
 
 		expect(bySlot(container, 'probe')?.dataset.touched).toBe('true')
+	})
+})
+
+describe('Listbox required', () => {
+	it('surfaces aria-required on the trigger from the prop', () => {
+		const { container } = renderUI(
+			<Listbox required aria-label="Fruit">
+				{option}
+			</Listbox>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toHaveAttribute('aria-required', 'true')
+	})
+
+	it('resolves required from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toHaveAttribute('aria-required', 'true')
+	})
+})
+
+describe('Listbox readOnly', () => {
+	it('marks the trigger read-only without disabling it', () => {
+		const { container } = renderUI(
+			<Listbox readOnly aria-label="Fruit">
+				{option}
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLButtonElement
+
+		expect(button).toHaveAttribute('aria-readonly', 'true')
+
+		// Read-only stays focusable and in the tab order (unlike disabled).
+		expect(button).not.toBeDisabled()
+	})
+
+	it('does not open the menu on click while read-only', () => {
+		const { container } = renderUI(
+			<Listbox readOnly aria-label="Fruit">
+				{option}
+			</Listbox>,
+		)
+
+		const button = bySlot(container, 'listbox-button') as HTMLElement
+
+		fireEvent.click(button)
+
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('resolves readOnly from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control readOnly>
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'listbox-button')).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('still submits the bound value through a Form', async () => {
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ fruit: 'apple' }} onSubmit={onSubmit}>
+				<Listbox readOnly name="fruit" aria-label="Fruit" displayValue={(v) => String(v)}>
+					{option}
+				</Listbox>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+
+		await vi.waitFor(() =>
+			expect(onSubmit).toHaveBeenCalledWith(
+				expect.objectContaining({ fruit: 'apple' }),
+				expect.anything(),
+			),
+		)
 	})
 })

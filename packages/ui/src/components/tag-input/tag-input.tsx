@@ -16,6 +16,8 @@ import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
 export type TagInputProps = {
 	id?: string
+	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
+	name?: string
 	size?: ControlSize
 	/** Tag appearance. */
 	tag?: { color?: Color }
@@ -45,6 +47,7 @@ export type TagInputProps = {
  */
 export function TagInput({
 	id,
+	name,
 	size,
 	tag,
 	value,
@@ -65,7 +68,8 @@ export function TagInput({
 	// once the re-enabling render has committed.
 	const refocusOnMaxRelease = useRef(false)
 
-	const { tags, atMax, addTag, removeTag } = useTagInput({
+	const { tags, atMax, addTag, removeTag, setTouched, invalid } = useTagInput({
+		name,
 		value,
 		defaultValue,
 		onValueChange,
@@ -105,10 +109,12 @@ export function TagInput({
 	})
 
 	const handleBlur = useCallback(() => {
+		setTouched()
+
 		if (addTag(inputValue)) {
 			setInputValue('')
 		}
-	}, [addTag, inputValue])
+	}, [addTag, inputValue, setTouched])
 
 	const handleSubmit = useCallback(() => {
 		if (addTag(inputValue)) {
@@ -151,6 +157,9 @@ export function TagInput({
 			id={id}
 			size={size}
 			disabled={disabled || atMax}
+			// Field error forces invalid; otherwise the Input inherits ambient
+			// Control/Field state. The inner Input is intentionally nameless.
+			invalid={invalid || undefined}
 			placeholder={tags.length === 0 ? placeholder : undefined}
 			aria-label={placeholder ?? 'Add tags'}
 			value={inputValue}

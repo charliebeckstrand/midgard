@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
+import { Form } from '../../components/form'
 import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function findDay(day: number) {
@@ -752,5 +753,94 @@ describe('DatePicker input', () => {
 		expect(input).toHaveFocus()
 
 		expect(input.value).toBe('12/25/2026')
+	})
+})
+
+describe('DatePicker + Form', () => {
+	it('binds a single date: seeds from defaultValues and submits the picked date', async () => {
+		const onSubmit = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ when: new Date(2025, 5, 15) }} onSubmit={onSubmit}>
+				<DatePicker name="when" aria-label="When" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		// Seeded from the form store: the trigger shows a formatted date.
+		expect(trigger).not.toHaveTextContent('Select a date')
+
+		// Single selection commits synchronously (setValue then close), so the
+		// bound field holds the pick by submit time.
+		await user.click(trigger)
+
+		await user.click(findDay(20) as HTMLElement)
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		const submitted = onSubmit.mock.calls[0]?.[0].when as Date
+
+		expect(submitted.getMonth()).toBe(5)
+
+		expect(submitted.getDate()).toBe(20)
+	})
+
+	it('binds a date range: seeds from defaultValues', () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ span: [new Date(2025, 5, 10), new Date(2025, 5, 15)] as [Date, Date] }}
+			>
+				<DatePicker range name="span" aria-label="Span" />
+			</Form>,
+		)
+
+		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		expect(trigger).not.toHaveTextContent('Select a date')
+	})
+
+	it('binds a date range: writes the picked range back to the field', async () => {
+		const onSubmit = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ span: undefined as [Date, Date] | undefined }} onSubmit={onSubmit}>
+				<DatePicker
+					range
+					name="span"
+					aria-label="Span"
+					defaultValue={[new Date(2025, 5, 1), new Date(2025, 5, 2)]}
+				/>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(trigger)
+
+		// Two endpoints stage a pending range and close the popover.
+		await user.click(findDay(12) as HTMLElement)
+
+		await user.click(findDay(18) as HTMLElement)
+
+		// Reopening flushes the pending range synchronously (openCalendar →
+		// flushPending → setValue), avoiding the exit-animation commit path.
+		await user.click(trigger)
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		const submitted = onSubmit.mock.calls[0]?.[0].span as [Date, Date]
+
+		expect(submitted).toHaveLength(2)
+
+		expect(submitted[0].getDate()).toBe(12)
+
+		expect(submitted[1].getDate()).toBe(18)
 	})
 })
