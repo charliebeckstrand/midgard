@@ -2,21 +2,33 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
-const { pauseSpy, playSpy } = vi.hoisted(() => ({ pauseSpy: vi.fn(), playSpy: vi.fn() }))
+const { animateSpy, pauseSpy, playSpy } = vi.hoisted(() => {
+	const pauseSpy = vi.fn()
+	const playSpy = vi.fn()
 
-// Stubs the imperative sweep so hover pause/resume is observable in jsdom.
+	return {
+		animateSpy: vi.fn(() => ({ pause: pauseSpy, play: playSpy, stop: vi.fn() })),
+		pauseSpy,
+		playSpy,
+	}
+})
+
+// Stubs the imperative sweep so the gate can observe whether a sweep starts at
+// all (animateSpy) and hover pause/resume (pause/playSpy) in jsdom.
 vi.mock('motion', async (importOriginal) => {
 	const mod = await importOriginal<typeof import('motion')>()
 
 	return {
 		...mod,
-		animate: vi.fn(() => ({ pause: pauseSpy, play: playSpy, stop: vi.fn() })),
+		animate: animateSpy,
 	}
 })
 
 describe('ShinyText', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
+
+		animateSpy.mockClear()
 
 		pauseSpy.mockClear()
 
@@ -51,12 +63,31 @@ describe('ShinyText', () => {
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('still renders the text under reduced motion', () => {
+	it('starts the sweep when motion is allowed', () => {
+		renderUI(<ShinyText>Shine</ShinyText>)
+
+		// Positive control: anchors the negative assertions below.
+		expect(animateSpy).toHaveBeenCalled()
+	})
+
+	it('renders static text and starts no sweep under reduced motion', () => {
 		stubMatchMedia((query) => query.includes('prefers-reduced-motion'))
 
 		const { container } = renderUI(<ShinyText>Shine</ShinyText>)
 
 		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Shine')
+
+		// WCAG 2.3.3: the OS preference parks the sweep before it ever starts —
+		// the text must remain, but no animation is allowed to run.
+		expect(animateSpy).not.toHaveBeenCalled()
+	})
+
+	it('renders static text and starts no sweep when disabled', () => {
+		const { container } = renderUI(<ShinyText disabled>Shine</ShinyText>)
+
+		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Shine')
+
+		expect(animateSpy).not.toHaveBeenCalled()
 	})
 
 	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {
