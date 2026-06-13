@@ -5,7 +5,6 @@ import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
 import { Markdown } from '../../../components/markdown'
 import { Stack } from '../../../components/stack'
-import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import type { PropDef } from '../../api-reference/types'
@@ -42,14 +41,14 @@ function PropRow({ prop }: { prop: PropDef }) {
 					{prop.name}
 				</span>
 				{prop.required && (
-					<Badge size="sm" variant="soft" color="amber">
+					<Badge variant="soft" color="amber">
 						required
 					</Badge>
 				)}
 				{prop.default && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge size="sm" variant="soft" color="zinc">
+							<Badge variant="soft" color="zinc">
 								{prop.default}
 							</Badge>
 						</TooltipTrigger>
@@ -59,7 +58,7 @@ function PropRow({ prop }: { prop: PropDef }) {
 				{deprecated && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge size="xs" variant="soft" color="red">
+							<Badge variant="soft" color="red">
 								deprecated
 							</Badge>
 						</TooltipTrigger>
