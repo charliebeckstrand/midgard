@@ -10,6 +10,45 @@ import type {
 	EditableGridSelectionApi,
 } from './types'
 
+// Cells to fill: the active cell, the active-to-anchor rectangle, and any
+// ctrl-clicked extras, de-duplicated.
+function collectFillCoords(active: Coord, anchor: Coord | null, extras: Iterable<string>): Coord[] {
+	const seen = new Set<string>()
+
+	const coords: Coord[] = []
+
+	const push = (row: number, col: number) => {
+		const key = `${row},${col}`
+
+		if (seen.has(key)) return
+
+		seen.add(key)
+
+		coords.push({ row, col })
+	}
+
+	push(active.row, active.col)
+
+	if (anchor) {
+		const r0 = Math.min(anchor.row, active.row)
+		const r1 = Math.max(anchor.row, active.row)
+		const c0 = Math.min(anchor.col, active.col)
+		const c1 = Math.max(anchor.col, active.col)
+
+		for (let r = r0; r <= r1; r++) {
+			for (let c = c0; c <= c1; c++) push(r, c)
+		}
+	}
+
+	for (const key of extras) {
+		const [rs, cs] = key.split(',')
+
+		push(Number(rs), Number(cs))
+	}
+
+	return coords
+}
+
 export function useEditableGridMutations<T>({
 	nav: { activeRef, anchorRef, extraCellsRef },
 	rows: { rowsRef, editableCols, getKey, parseValue },
@@ -69,38 +108,7 @@ export function useEditableGridMutations<T>({
 
 			if (!a) return false
 
-			const seen = new Set<string>()
-
-			const coords: Coord[] = []
-
-			const push = (row: number, col: number) => {
-				const key = `${row},${col}`
-
-				if (seen.has(key)) return
-
-				seen.add(key)
-
-				coords.push({ row, col })
-			}
-
-			push(a.row, a.col)
-
-			if (anc) {
-				const r0 = Math.min(anc.row, a.row)
-				const r1 = Math.max(anc.row, a.row)
-				const c0 = Math.min(anc.col, a.col)
-				const c1 = Math.max(anc.col, a.col)
-
-				for (let r = r0; r <= r1; r++) {
-					for (let c = c0; c <= c1; c++) push(r, c)
-				}
-			}
-
-			for (const key of extras) {
-				const [rs, cs] = key.split(',')
-
-				push(Number(rs), Number(cs))
-			}
+			const coords = collectFillCoords(a, anc, extras)
 
 			const changes: CellChange[] = []
 
