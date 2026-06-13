@@ -91,6 +91,17 @@ export function Button({
 
 	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
 
+	// Shared across the anchor and button renders; consumer `props` spread later
+	// can still override.
+	const sharedProps = {
+		'data-slot': slot,
+		'data-variant': variant,
+		'data-size': resolvedSize,
+		'data-has-prefix': !!prefix || undefined,
+		'data-has-suffix': !!suffix || undefined,
+		'data-has-label': hasLabel || undefined,
+	}
+
 	const content = (
 		<AffixContext value={resolvedSize}>
 			{/* LoadingSpinner reads no context; `loadingOptions.size` wins when set. */}
@@ -106,12 +117,7 @@ export function Button({
 				<motion.span {...(spring && buttonSpring)}>
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
-						data-slot={slot}
-						data-variant={variant}
-						data-size={resolvedSize}
-						data-has-prefix={!!prefix || undefined}
-						data-has-suffix={!!suffix || undefined}
-						data-has-label={hasLabel || undefined}
+						{...sharedProps}
 						href={href}
 						className={classes}
 						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
@@ -134,12 +140,7 @@ export function Button({
 			<motion.button
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
-				data-slot={slot}
-				data-variant={variant}
-				data-size={resolvedSize}
-				data-has-prefix={!!prefix || undefined}
-				data-has-suffix={!!suffix || undefined}
-				data-has-label={hasLabel || undefined}
+				{...sharedProps}
 				type="button"
 				className={classes}
 				{...buttonProps}

@@ -21,6 +21,23 @@ export type PageScaleResult = {
 	aspectRatio: string | undefined
 }
 
+// CSS `aspect-ratio` for the viewport: the page's intrinsic ratio (swapped
+// when rotated), `8.5 / 11` (US Letter) before load, or undefined when the
+// viewer reserves no space.
+function resolvePageAspectRatio(
+	hasContent: boolean,
+	pageSize: { width: number; height: number } | null,
+	isTransposed: boolean,
+): string | undefined {
+	if (!hasContent) return undefined
+
+	if (!pageSize) return '8.5 / 11'
+
+	return isTransposed
+		? `${pageSize.height} / ${pageSize.width}`
+		: `${pageSize.width} / ${pageSize.height}`
+}
+
 /**
  * Derives the page image size, the rotated frame size, and the viewport aspect
  * ratio from the measured viewport, the intrinsic page size, the rotation, and
@@ -49,13 +66,7 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 		const frameWidth = isTransposed ? imageHeight : imageWidth
 		const frameHeight = isTransposed ? imageWidth : imageHeight
 
-		const aspectRatio = !hasContent
-			? undefined
-			: pageSize
-				? isTransposed
-					? `${pageSize.height} / ${pageSize.width}`
-					: `${pageSize.width} / ${pageSize.height}`
-				: '8.5 / 11'
+		const aspectRatio = resolvePageAspectRatio(hasContent, pageSize, isTransposed)
 
 		return { imageWidth, imageHeight, frameWidth, frameHeight, aspectRatio }
 	}, [viewportSize, pageSize, isTransposed, zoom, hasContent])

@@ -86,6 +86,58 @@ export type AlertProps = AlertVariants & {
 	'data-slot'?: string
 }
 
+function resolveAlertPresentation(
+	severity: AlertSeverity | undefined,
+	politeSeverity: boolean,
+	color: AlertColor | undefined,
+	icon: ReactElement | undefined,
+): {
+	resolvedColor: AlertColor
+	resolvedIcon: ReactElement | undefined
+	role: 'status' | 'alert' | undefined
+} {
+	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
+
+	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
+
+	const role = severity ? (politeSeverity ? 'status' : 'alert') : undefined
+
+	return { resolvedColor, resolvedIcon, role }
+}
+
+function AlertContent({
+	resolvedIcon,
+	title,
+	description,
+	actions,
+	children,
+}: {
+	resolvedIcon: ReactElement | undefined
+	title: ReactNode
+	description: ReactNode
+	actions: ReactNode
+	children: ReactNode
+}) {
+	return (
+		<div
+			className={cn(
+				k.content,
+				resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
+			)}
+		>
+			{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
+
+			{title && <div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>}
+
+			{description && <div className={cn(k.description)}>{description}</div>}
+
+			{renderChildren(children)}
+
+			{actions && <div className={cn(k.actions, resolvedIcon && 'col-start-2')}>{actions}</div>}
+		</div>
+	)
+}
+
 /**
  * Dismissible message bar with severity-driven color, icon, and ARIA role;
  * accepts `title`/`description`/`actions` props or slotted children, and runs
@@ -154,11 +206,12 @@ export function Alert({
 
 	if (!open || (controlledWithoutHandler && locallyDismissed)) return null
 
-	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
-
-	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
-
-	const role = severity ? (politeSeverity ? 'status' : 'alert') : undefined
+	const { resolvedColor, resolvedIcon, role } = resolveAlertPresentation(
+		severity,
+		politeSeverity,
+		color,
+		icon,
+	)
 
 	return (
 		<div
@@ -172,22 +225,14 @@ export function Alert({
 				className,
 			)}
 		>
-			<div
-				className={cn(
-					k.content,
-					resolvedIcon ? 'grid grid-cols-[auto_minmax(0,1fr)] gap-x-2' : 'flex flex-col',
-				)}
+			<AlertContent
+				resolvedIcon={resolvedIcon}
+				title={title}
+				description={description}
+				actions={actions}
 			>
-				{resolvedIcon && <Icon icon={resolvedIcon} className={cn(k.icon)} />}
-
-				{title && <div className={cn(k.title, resolvedIcon && 'self-center')}>{title}</div>}
-
-				{description && <div className={cn(k.description)}>{description}</div>}
-
-				{renderChildren(children)}
-
-				{actions && <div className={cn(k.actions, resolvedIcon && 'col-start-2')}>{actions}</div>}
-			</div>
+				{children}
+			</AlertContent>
 
 			{closable && (
 				<Button

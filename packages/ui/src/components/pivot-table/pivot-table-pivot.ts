@@ -68,6 +68,24 @@ export function groupValues<T>(
 	return groups
 }
 
+// Returns the most extreme value per `isMoreExtreme`, or 0 for an empty list.
+function extremum(
+	values: readonly number[],
+	isMoreExtreme: (candidate: number, current: number) => boolean,
+): number {
+	let result = values[0]
+
+	if (result === undefined) return 0
+
+	for (let i = 1; i < values.length; i++) {
+		const v = values[i]
+
+		if (v !== undefined && isMoreExtreme(v, result)) result = v
+	}
+
+	return result
+}
+
 export function aggregate(values: readonly number[], op: PivotAggregation): number {
 	if (op === 'count') return values.length
 
@@ -78,32 +96,10 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 			return values.reduce((a, b) => a + b, 0)
 		case 'avg':
 			return values.reduce((a, b) => a + b, 0) / values.length
-		case 'min': {
-			let min = values[0]
-
-			if (min === undefined) return 0
-
-			for (let i = 1; i < values.length; i++) {
-				const v = values[i]
-
-				if (v !== undefined && v < min) min = v
-			}
-
-			return min
-		}
-		case 'max': {
-			let max = values[0]
-
-			if (max === undefined) return 0
-
-			for (let i = 1; i < values.length; i++) {
-				const v = values[i]
-
-				if (v !== undefined && v > max) max = v
-			}
-
-			return max
-		}
+		case 'min':
+			return extremum(values, (candidate, current) => candidate < current)
+		case 'max':
+			return extremum(values, (candidate, current) => candidate > current)
 	}
 }
 

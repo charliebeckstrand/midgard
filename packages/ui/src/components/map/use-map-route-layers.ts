@@ -1,6 +1,6 @@
 'use client'
 
-import type { MapLayerMouseEvent } from 'maplibre-gl'
+import type { MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl'
 import { type RefObject, useEffect } from 'react'
 import { useMapContext } from './context'
 import { HIT_LAYER_WIDTH } from './map-route-constants'
@@ -26,6 +26,39 @@ type MapRouteLayersArgs = {
 	handleSelectRef: RefObject<() => void>
 }
 
+type RouteLayerHandlers = {
+	click: (event: MapLayerMouseEvent) => void
+	enter: () => void
+	leave: () => void
+}
+
+// Detaches handlers and removes the route's hit layer, line layer, and source,
+// tolerating a map that's already torn down.
+function teardownRouteLayers(
+	map: MapLibreMap,
+	ids: { sourceId: string; layerId: string; hitLayerId: string },
+	handlers: RouteLayerHandlers | null,
+): void {
+	try {
+		if (handlers) {
+			map.off('click', ids.hitLayerId, handlers.click)
+			map.off('mouseenter', ids.hitLayerId, handlers.enter)
+			map.off('mouseleave', ids.hitLayerId, handlers.leave)
+		}
+
+		// Reset the cursor in case the component unmounts while hovered.
+		map.getCanvas().style.cursor = ''
+
+		if (map.getLayer(ids.hitLayerId)) map.removeLayer(ids.hitLayerId)
+
+		if (map.getLayer(ids.layerId)) map.removeLayer(ids.layerId)
+
+		if (map.getSource(ids.sourceId)) map.removeSource(ids.sourceId)
+	} catch {
+		// Map may already be torn down.
+	}
+}
+
 export function useMapRouteLayers({
 	sourceId,
 	layerId,
@@ -39,11 +72,7 @@ export function useMapRouteLayers({
 	const { getMap, onReady } = useMapContext()
 
 	useEffect(() => {
-		let handlers: {
-			click: (event: MapLayerMouseEvent) => void
-			enter: () => void
-			leave: () => void
-		} | null = null
+		let handlers: RouteLayerHandlers | null = null
 
 		const cleanup = onReady((map) => {
 			map.addSource(sourceId, {
@@ -102,24 +131,7 @@ export function useMapRouteLayers({
 
 			if (!map) return
 
-			try {
-				if (handlers) {
-					map.off('click', hitLayerId, handlers.click)
-					map.off('mouseenter', hitLayerId, handlers.enter)
-					map.off('mouseleave', hitLayerId, handlers.leave)
-				}
-
-				// Reset the cursor in case the component unmounts while hovered.
-				map.getCanvas().style.cursor = ''
-
-				if (map.getLayer(hitLayerId)) map.removeLayer(hitLayerId)
-
-				if (map.getLayer(layerId)) map.removeLayer(layerId)
-
-				if (map.getSource(sourceId)) map.removeSource(sourceId)
-			} catch {
-				// Map may already be torn down.
-			}
+			teardownRouteLayers(map, { sourceId, layerId, hitLayerId }, handlers)
 		}
 	}, [onReady, getMap, sourceId, layerId, hitLayerId, latestRef, handleSelectRef])
 

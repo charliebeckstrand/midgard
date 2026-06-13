@@ -40,6 +40,30 @@ export type A11yScope<Slot extends string = never> = {
 	registered: Record<Slot, boolean>
 }
 
+// Composes `aria-labelledby` / `aria-describedby` id lists from the slots
+// currently registered (those with a positive reference count).
+function bucketAriaIds(
+	present: Record<string, Record<string, number>>,
+	slots: Record<string, A11yRelation> | undefined,
+): { labelledby: string[]; describedby: string[] } {
+	const labelledby: string[] = []
+	const describedby: string[] = []
+
+	for (const key of Object.keys(slots ?? {})) {
+		const slotCounts = present[key]
+
+		if (!slotCounts) continue
+
+		const target = slots?.[key] === 'labelledby' ? labelledby : describedby
+
+		for (const [idValue, count] of Object.entries(slotCounts)) {
+			if (count > 0) target.push(idValue)
+		}
+	}
+
+	return { labelledby, describedby }
+}
+
 /**
  * Universal accessibility scope: a stable id plus slot-driven `aria-labelledby`
  * / `aria-describedby` wiring. Declare named slots and the relation each feeds;
@@ -96,24 +120,7 @@ export function useA11yScope<Slot extends string = never>(
 		return out
 	}, [slots, ids])
 
-	const buckets = useMemo(() => {
-		const labelledby: string[] = []
-		const describedby: string[] = []
-
-		for (const key of Object.keys(slots ?? {}) as Slot[]) {
-			const slotCounts = present[key]
-
-			if (!slotCounts) continue
-
-			const target = slots?.[key] === 'labelledby' ? labelledby : describedby
-
-			for (const [idValue, count] of Object.entries(slotCounts)) {
-				if (count > 0) target.push(idValue)
-			}
-		}
-
-		return { labelledby, describedby }
-	}, [present, slots])
+	const buckets = useMemo(() => bucketAriaIds(present, slots), [present, slots])
 
 	// `useAriaIds` is a hook; it cannot run inside the bucketing loop above.
 	const labelledby = useAriaIds(...buckets.labelledby)

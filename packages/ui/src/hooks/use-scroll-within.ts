@@ -5,12 +5,13 @@ type ScrollWithinOptions = {
 	block?: 'start' | 'center' | 'end' | 'nearest'
 }
 
-function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
-	if (!node) return
-
-	const { behavior = 'auto', block = 'nearest' } = options
-
-	let scroller: HTMLElement | null = node.parentElement
+// Nearest scrollable ancestor that actually overflows. Stops at a clipping
+// ancestor (overflow: hidden/clip): nothing outside it can bring the node into
+// view, so walking further would scroll an outer container the caller never
+// meant to touch (e.g. a short sidebar inside a clipped frame scrolling the
+// whole page on mount).
+function findScrollAncestor(node: HTMLElement): HTMLElement | null {
+	let scroller = node.parentElement
 
 	while (scroller) {
 		const { overflowY } = getComputedStyle(scroller)
@@ -19,18 +20,22 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
 
 		// Require the ancestor to overflow, not merely declare a scroll style;
 		// scrollTo no-ops on a non-overflowing wrapper.
-		if (scrollable && scroller.scrollHeight > scroller.clientHeight) break
+		if (scrollable && scroller.scrollHeight > scroller.clientHeight) return scroller
 
-		// A clipping ancestor (overflow: hidden/clip) bounds the node's scroll
-		// context: nothing outside it can bring the node into view, so stop here
-		// rather than walk up and scroll an outer page container the caller never
-		// meant to touch. Without this, a nav item whose own scroller doesn't
-		// overflow (e.g. a short sidebar inside a clipped frame) scrolls the
-		// whole page on mount.
-		if (overflowY === 'hidden' || overflowY === 'clip') return
+		if (overflowY === 'hidden' || overflowY === 'clip') return null
 
 		scroller = scroller.parentElement
 	}
+
+	return null
+}
+
+function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
+	if (!node) return
+
+	const { behavior = 'auto', block = 'nearest' } = options
+
+	const scroller = findScrollAncestor(node)
 
 	if (!scroller) return
 

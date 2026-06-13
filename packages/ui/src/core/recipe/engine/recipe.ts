@@ -63,34 +63,9 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	}
 
 	function recipe(props?: ComputedProps<C>): string {
-		// Merges defaults with props, skipping undefined/null values.
-		const values: Record<string, string | undefined> = {}
+		const values = buildRecipeValues(resolved, props as Record<string, unknown> | undefined)
 
-		for (const [key, value] of Object.entries(resolved.defaults)) {
-			values[key] = value === undefined || value === null ? undefined : String(value)
-		}
-
-		if (props) {
-			for (const [key, value] of Object.entries(props as Record<string, unknown>)) {
-				if (value === undefined || value === null) continue
-				// Coerces booleans and numbers to strings for axis lookup.
-				values[key] = String(value)
-			}
-		}
-
-		const acc: ClassValue[] = [resolved.base]
-
-		for (const [axis, axisMap] of Object.entries(resolved.variants)) {
-			const value = values[axis]
-
-			if (value !== undefined && value in axisMap) acc.push(axisMap[value])
-		}
-
-		for (const rule of resolved.compound) {
-			if (matches(rule, values)) acc.push(rule.class)
-		}
-
-		return twMerge(clsx(acc))
+		return twMerge(clsx(collectRecipeClasses(resolved, values)))
 	}
 
 	Object.assign(recipe, slotCache)
@@ -114,6 +89,49 @@ function matches(rule: CompoundRule, values: Record<string, string | undefined>)
 	}
 
 	return true
+}
+
+// Merges defaults with props (skipping null/undefined), coercing booleans and
+// numbers to strings for axis lookup.
+function buildRecipeValues(
+	resolved: ResolvedConfig,
+	props: Record<string, unknown> | undefined,
+): Record<string, string | undefined> {
+	const values: Record<string, string | undefined> = {}
+
+	for (const [key, value] of Object.entries(resolved.defaults)) {
+		values[key] = value === undefined || value === null ? undefined : String(value)
+	}
+
+	if (props) {
+		for (const [key, value] of Object.entries(props)) {
+			if (value === undefined || value === null) continue
+
+			values[key] = String(value)
+		}
+	}
+
+	return values
+}
+
+// Composes base + matching variant axes + compound rules into the class list.
+function collectRecipeClasses(
+	resolved: ResolvedConfig,
+	values: Record<string, string | undefined>,
+): ClassValue[] {
+	const acc: ClassValue[] = [resolved.base]
+
+	for (const [axis, axisMap] of Object.entries(resolved.variants)) {
+		const value = values[axis]
+
+		if (value !== undefined && value in axisMap) acc.push(axisMap[value])
+	}
+
+	for (const rule of resolved.compound) {
+		if (matches(rule, values)) acc.push(rule.class)
+	}
+
+	return acc
 }
 
 /**

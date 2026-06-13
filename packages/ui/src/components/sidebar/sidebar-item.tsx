@@ -20,6 +20,26 @@ export type SidebarItemProps = NavItemProps & {
 	size?: Step
 }
 
+// Current-state attributes and class for the inner button. With an affix the
+// row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
+// square via the button recipe.
+function sidebarItemButtonProps(
+	item: ReturnType<typeof useNavItem>,
+	hasAffix: boolean,
+	className: string | undefined,
+): { 'data-current': true | undefined; 'aria-current': 'page' | undefined; className: string } {
+	return {
+		'data-current': item.current || undefined,
+		'aria-current': item.current ? 'page' : undefined,
+		className: cn(
+			k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
+			'relative z-10',
+			hasAffix && 'min-w-0 flex-1',
+			className,
+		),
+	}
+}
+
 export function SidebarItem({
 	icon,
 	current,
@@ -61,14 +81,7 @@ export function SidebarItem({
 	const inner = (
 		<Button
 			data-slot="sidebar-item-inner"
-			data-current={item.current || undefined}
-			aria-current={item.current ? 'page' : undefined}
-			className={cn(
-				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
-				'relative z-10',
-				hasAffix && 'min-w-0 flex-1',
-				className,
-			)}
+			{...sidebarItemButtonProps(item, hasAffix, className)}
 			onClick={item.handleClick}
 			{...props}
 		>

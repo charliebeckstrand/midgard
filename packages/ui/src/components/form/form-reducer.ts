@@ -75,6 +75,31 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return proto === null || proto === Object.prototype
 }
 
+function arraysEqual(a: unknown[], b: unknown[]): boolean {
+	if (a.length !== b.length) return false
+
+	for (let i = 0; i < a.length; i++) {
+		if (!valuesEqual(a[i], b[i])) return false
+	}
+
+	return true
+}
+
+function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+	const ak = Object.keys(a)
+	const bk = Object.keys(b)
+
+	if (ak.length !== bk.length) return false
+
+	for (const key of ak) {
+		if (!Object.hasOwn(b, key)) return false
+
+		if (!valuesEqual(a[key], b[key])) return false
+	}
+
+	return true
+}
+
 /**
  * Equality for the `dirty` derivation. Reference first, then structural over
  * `Date`, plain arrays, and plain objects; reference equality for `File`,
@@ -85,30 +110,9 @@ export function valuesEqual(a: unknown, b: unknown): boolean {
 
 	if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
 
-	if (Array.isArray(a) && Array.isArray(b)) {
-		if (a.length !== b.length) return false
+	if (Array.isArray(a) && Array.isArray(b)) return arraysEqual(a, b)
 
-		for (let i = 0; i < a.length; i++) {
-			if (!valuesEqual(a[i], b[i])) return false
-		}
-
-		return true
-	}
-
-	if (isPlainObject(a) && isPlainObject(b)) {
-		const ak = Object.keys(a)
-		const bk = Object.keys(b)
-
-		if (ak.length !== bk.length) return false
-
-		for (const key of ak) {
-			if (!Object.hasOwn(b, key)) return false
-
-			if (!valuesEqual(a[key], b[key])) return false
-		}
-
-		return true
-	}
+	if (isPlainObject(a) && isPlainObject(b)) return plainObjectsEqual(a, b)
 
 	return false
 }
