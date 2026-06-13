@@ -13,12 +13,12 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
 import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import type { ButtonVariants } from '../button'
+import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import {
@@ -62,6 +62,8 @@ export type CalendarDayProps = {
 }
 
 export type CalendarProps = {
+	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` should seed `Date | null`. */
+	name?: string
 	value?: Date | null
 	defaultValue?: Date
 	onValueChange?: (date: Date) => void
@@ -90,6 +92,7 @@ export type CalendarProps = {
 
 /** Single-date month-grid picker; exposes navigation, focus, and picker handles to a parent via `ref` for embedded use. */
 export function Calendar({
+	name,
 	value: valueProp,
 	defaultValue,
 	onValueChange,
@@ -119,7 +122,11 @@ export function Calendar({
 		[onValueChange],
 	)
 
-	const [value, setValue] = useControllable({
+	// Binds the selected date to an enclosing Form field by `name` (value-typed
+	// cascade); falls back to controlled/uncontrolled state. No invalid wiring:
+	// a bare Calendar has no Control/error surface (it gains one inside
+	// DatePicker, which binds separately).
+	const { value, setValue, setTouched } = useFormValue<Date>(name, {
 		value: valueProp,
 		defaultValue,
 		onValueChange: handleValueChange,
@@ -185,8 +192,12 @@ export function Calendar({
 	const handleSelect = useCallback(
 		(date: Date) => {
 			setValue(date)
+
+			// Selecting a day is the field's interaction point — mark it touched
+			// (no-op outside a Form) so validateOn="touched" rules can fire.
+			setTouched()
 		},
-		[setValue],
+		[setValue, setTouched],
 	)
 
 	const weekdays = useMemo(() => getWeekdayLabels(localeTag), [localeTag])
