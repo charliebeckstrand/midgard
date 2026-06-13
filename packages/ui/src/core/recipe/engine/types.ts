@@ -11,8 +11,6 @@
 
 import type { ClassValue } from 'clsx'
 
-import type { Color } from '../colors'
-
 import type { PaletteConfig } from './palette'
 
 /** A single variant axis: maps each variant value to its class set. */
@@ -83,10 +81,10 @@ type AxisValue<A> = 'true' extends keyof A ? ('false' extends keyof A ? boolean 
 /** Computed prop shape for a given config; used internally and by `VariantProps`. */
 export type ComputedProps<C> = {
 	[K in keyof AxesOf<C> as K extends 'variant' ? never : K]?: AxisValue<AxesOf<C>[K]>
-} & (C extends { palette: PaletteConfig<infer E, infer M> }
+} & (C extends { palette: PaletteConfig<infer E, infer M, infer Col> }
 	? {
 			variant?: (M & string) | ExplicitVariantKeys<C>
-			color?: Color | (E & string)
+			color?: Col | (E & string)
 		}
 	: C extends { variant: VariantAxis }
 		? { variant?: ExplicitVariantKeys<C> }

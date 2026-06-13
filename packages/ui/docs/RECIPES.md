@@ -18,7 +18,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 
 | Token | Concern |
 |---|---|
-| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. |
+| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `spectrum` is the opt-in wide palette (standard + rose / sky / teal / violet). |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
 | `ma` 間 | Named spacing scale projected as Tailwind utilities, plus the raw `--spacing` numerals. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
@@ -73,14 +73,15 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | Export | Summary |
 |---|---|
 | `defineRecipe` | The recipe primitive. Builds a callable recipe from a `RecipeConfig` — `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge); `slots` pre-merge and attach as properties; `palette` expands into an implicit `color` axis; `extras` attach arbitrary siblings (`motion`, sub-recipes). |
-| `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. |
+| `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys, so a kata handed the wide `iro.spectrum` bundle gains the extended colours with no engine change. |
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config / extras, preserving key-type inference, then hands the result to `defineRecipe`. |
 | `merge` | Concatenates per-key class records into one — pre-merged variant × colour bundles outside the engine's compound expansion. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) / dark (`yoru`) values into the flat `string[]` the engine consumes — `mode` for a scalar pair, `defineColors` across a multi-key map. The dark class carries its own `dark:` prefix. |
-| `shades` | Builds a `Record<Color, string[]>` from per-colour light/dark shade pairs. |
+| `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/spectrum`. |
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
-| `Color` *(type)* | The palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
+| `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
+| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `rose` · `sky` · `teal` · `violet` — and the union of standard + extended a kata surfaces by reading `iro.spectrum`. |
 
 ## Boundary
 

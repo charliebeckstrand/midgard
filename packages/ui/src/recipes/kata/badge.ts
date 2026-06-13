@@ -2,7 +2,7 @@ import { definePalette, defineRecipe, type VariantProps } from '../../core/recip
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
-const { palette } = iro
+const { spectrum } = iro
 const { size, weight } = ji
 const { gap, padding, rounded } = kasane
 const { badge } = kokkaku
@@ -28,7 +28,9 @@ export const k = defineRecipe({
 		lg: [size.lg, icon.lg, gap.g('1.25'), padding.py('1'), padding.px('2.5')],
 	},
 	rounded,
-	palette: definePalette({ ...basePalette(palette), plain: palette.plain.text }),
+	// Opt into the wide palette: Badge's `color` axis carries the standard set
+	// plus the extended hues (rose / sky / teal / violet).
+	palette: definePalette({ ...basePalette(spectrum), plain: spectrum.plain.text }),
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 	skeleton: badge,
 })
