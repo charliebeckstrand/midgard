@@ -239,7 +239,7 @@ function ItemActionsSidebarExample() {
 							<SidebarLabel>Search</SidebarLabel>
 							<Spacer />
 							<SidebarItemActions>
-								<Badge color="zinc" size="sm">
+								<Badge color="zinc" size="md">
 									⌘K
 								</Badge>
 							</SidebarItemActions>
@@ -248,7 +248,7 @@ function ItemActionsSidebarExample() {
 							<SidebarLabel>Inbox</SidebarLabel>
 							<Spacer />
 							<SidebarItemActions>
-								<Badge color="blue" size="sm">
+								<Badge color="blue" size="md">
 									12
 								</Badge>
 							</SidebarItemActions>

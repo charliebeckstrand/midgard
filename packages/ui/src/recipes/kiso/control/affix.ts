@@ -4,14 +4,17 @@
  * Affix padding equals `density.px`; a text affix's content aligns with
  * the input text in an affix-less control. When the slot hosts an element
  * with its own outer chrome (a non-bare `<Button>` or a `<Badge>`,
- * matched on `data-slot`), the affix padding shrinks to a constant `1.5`
- * spacing-units at every density step. `affixStepDown`
- * (`primitives/affix/affix.ts`) reduces the slot's child one notch per
- * density step; both `density.px` and the stepped-down child padding grow
- * 0.5 per notch, and the per-step deltas cancel, holding the constant at
- * every step. The boundary test at
+ * matched on `data-slot`), the affix padding shrinks to a per-chip
+ * constant at every density step: `1.5` for a `<Button>`, `2` for a
+ * `<Badge>`. `affixStepDown` (`primitives/affix/affix.ts`) reduces the
+ * slot's child one notch per density step; both `density.px` and the
+ * stepped-down child padding grow 0.5 per notch, and the per-step deltas
+ * cancel, holding each constant at every step. The two differ because a
+ * `<Badge>` sits one notch below a same-size `<Button>` on the shared `px`
+ * scale, so its stepped-down padding is 0.5 smaller and the slot pads 0.5
+ * more to compensate. The boundary test at
  * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
- * this against the live recipes.
+ * both against the live recipes.
  *
  * An icon-only bare `<Button>` carries no outer chrome, so its glyph
  * aligns to the text line rather than the chip-content line: the override
@@ -69,7 +72,7 @@ export const affix = {
 			padding.pl('2.5'),
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(1.75)-1px)]',
 		],
@@ -77,7 +80,7 @@ export const affix = {
 			padding.pl('3'),
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2)-1px)]',
 		],
@@ -85,7 +88,7 @@ export const affix = {
 			padding.pl('3.5'),
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2.25)-1px)]',
 		],
@@ -95,7 +98,7 @@ export const affix = {
 			padding.pr('2.5'),
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(1.75)-1px)]',
 		],
@@ -103,7 +106,7 @@ export const affix = {
 			padding.pr('3'),
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2)-1px)]',
 		],
@@ -111,7 +114,7 @@ export const affix = {
 			padding.pr('3.5'),
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
 			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2.25)-1px)]',
 		],
