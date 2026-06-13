@@ -39,6 +39,7 @@ const severityIconMap = {
 
 const SLOT_DISPLAY_NAMES = new Set(['alert-title', 'alert-description', 'alert-body'])
 
+/** True when `node` is one of the alert's content slots. @internal */
 function isSlotChild(node: ReactNode): boolean {
 	if (!isValidElement(node)) return false
 
@@ -47,6 +48,7 @@ function isSlotChild(node: ReactNode): boolean {
 	return typeof type !== 'string' && SLOT_DISPLAY_NAMES.has(type.displayName ?? '')
 }
 
+/** Wraps loose children in {@link AlertBody}; passes explicit slot children through. @internal */
 function renderChildren(children: ReactNode): ReactNode {
 	if (children === undefined || children === null || children === false) return null
 
@@ -89,6 +91,7 @@ export type AlertProps = AlertVariants & {
 	'data-slot'?: string
 }
 
+/** Resolves color, icon, and ARIA role from severity, falling back to the explicit `color`/`icon` props. @internal */
 function resolveAlertPresentation(
 	severity: AlertSeverity | undefined,
 	politeSeverity: boolean,
@@ -108,6 +111,7 @@ function resolveAlertPresentation(
 	return { resolvedColor, resolvedIcon, role }
 }
 
+/** Inner grid that lays out the resolved icon, title, description, body, and actions. @internal */
 function AlertContent({
 	resolvedIcon,
 	title,

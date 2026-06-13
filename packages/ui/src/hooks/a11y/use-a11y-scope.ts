@@ -40,8 +40,12 @@ export type A11yScope<Slot extends string = never> = {
 	registered: Record<Slot, boolean>
 }
 
-// Composes `aria-labelledby` / `aria-describedby` id lists from the slots
-// currently registered (those with a positive reference count).
+/**
+ * Composes `aria-labelledby` / `aria-describedby` id lists from the slots
+ * currently registered (those with a positive reference count).
+ *
+ * @internal
+ */
 function bucketAriaIds(
 	present: Record<string, Record<string, number>>,
 	slots: Record<string, A11yRelation> | undefined,

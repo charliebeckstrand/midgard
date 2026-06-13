@@ -90,16 +90,20 @@ function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): voi
 	}
 }
 
-// Row actions never hold the resting stop; cross-axis arrows reach them.
+/** Pins every row action at `tabIndex=-1`; they never hold the resting stop, but cross-axis arrows reach them. @internal */
 function pinRowActions(container: HTMLElement, actionSelector: string): void {
 	for (const action of queryItems(container, actionSelector)) {
 		if (action.tabIndex !== -1) action.tabIndex = -1
 	}
 }
 
-// Resolve which item holds the focus-mode resting stop: the focused item if
-// any, else the single existing stop (the user has roved), else the
-// `activeSelector` match, else the first item.
+/**
+ * Resolves which item holds the focus-mode resting stop: the focused item if
+ * any, else the single existing stop (the user has roved), else the
+ * `activeSelector` match, else the first item.
+ *
+ * @internal
+ */
 function resolveRestingStop(
 	items: HTMLElement[],
 	activeSelector: string | undefined,
@@ -119,8 +123,10 @@ function resolveRestingStop(
 
 type ScrollWithin = ReturnType<typeof useScrollWithin>
 
-// Per-keystroke dependencies for the move handlers, resolved once in the
-// callback so each helper keeps a flat signature.
+/**
+ * Per-keystroke dependencies for the move handlers, resolved once in the
+ * callback so each helper keeps a flat signature.
+ */
 type RovingKeyContext = {
 	items: HTMLElement[]
 	isVirtual: boolean
@@ -131,6 +137,7 @@ type RovingKeyContext = {
 	scrollWithin: ScrollWithin
 }
 
+/** Inputs to {@link processRowContext} for resolving row cross-axis navigation. */
 type RowContextOptions = {
 	items: HTMLElement[]
 	itemSelector: string
@@ -141,8 +148,12 @@ type RowContextOptions = {
 	isVirtual: boolean
 }
 
-// Move to `items[index]`: real focus in focus mode, the virtual marker (plus
-// optional scroll) in virtual mode.
+/**
+ * Moves to `items[index]`: real focus in focus mode, the virtual marker (plus
+ * optional scroll) in virtual mode.
+ *
+ * @internal
+ */
 function moveTo(index: number, ctx: RovingKeyContext): void {
 	if (!ctx.isVirtual) {
 		const next = ctx.items[index]
@@ -169,10 +180,15 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 	}
 }
 
-// Focus sitting on a row's action control: cross-axis arrows move through the
-// row's own controls; main-axis moves anchor to the row's item so Up/Down
-// reach the adjacent row. Returns `handled` plus the (possibly anchored)
-// current index for the main-axis fallthrough.
+/**
+ * Routes a keypress when focus sits on a row's action control: cross-axis
+ * arrows move through the row's own controls; main-axis moves anchor to the
+ * row's item so Up / Down reach the adjacent row.
+ *
+ * @returns `handled` plus the (possibly anchored) current index for the
+ * main-axis fallthrough.
+ * @internal
+ */
 function processRowContext(
 	e: KeyboardEvent,
 	container: HTMLElement | null,
@@ -209,8 +225,12 @@ function processRowContext(
 	return { handled: true, currentIndex: index }
 }
 
-// Virtual mode: the activation key clicks the active item. Returns true once
-// the key belongs to activation so the caller stops.
+/**
+ * Virtual mode: the activation key clicks the active item.
+ *
+ * @returns True once the key belongs to activation so the caller stops.
+ * @internal
+ */
 function handleActivationKey(
 	e: KeyboardEvent,
 	ctx: RovingKeyContext,
@@ -228,9 +248,13 @@ function handleActivationKey(
 	return true
 }
 
-// Type-ahead jump; runs ahead of the focus-empty guard so a letter can enter
-// the list even when nothing is active yet. Returns true once the key is a
-// type-ahead key.
+/**
+ * Type-ahead jump; runs ahead of the focus-empty guard so a letter can enter
+ * the list even when nothing is active yet.
+ *
+ * @returns True once the key is a type-ahead key.
+ * @internal
+ */
 function handleTypeahead(
 	e: KeyboardEvent,
 	ctx: RovingKeyContext,
@@ -251,7 +275,7 @@ function handleTypeahead(
 	return true
 }
 
-// Main-axis arrow / Home / End navigation, after the focus-empty guard.
+/** Main-axis arrow / Home / End navigation, after the focus-empty guard. @internal */
 function handleMainAxisNav(
 	e: KeyboardEvent,
 	currentIndex: number,

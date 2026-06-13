@@ -20,9 +20,13 @@ export type SidebarItemProps = NavItemProps & {
 	size?: Step
 }
 
-// Current-state attributes and class for the inner button. With an affix the
-// row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
-// square via the button recipe.
+/**
+ * Current-state attributes and class for the inner button. With an affix the
+ * row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
+ * square via the button recipe.
+ *
+ * @internal
+ */
 function sidebarItemButtonProps(
 	item: ReturnType<typeof useNavItem>,
 	hasAffix: boolean,

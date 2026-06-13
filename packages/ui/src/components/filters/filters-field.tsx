@@ -20,19 +20,26 @@ import { Switch } from '../switch'
 import { Textarea } from '../textarea'
 import { useFilters } from './context'
 
+/** True when a change argument is a DOM event rather than a value. @internal */
 function isSyntheticEvent(v: unknown): v is SyntheticEvent<HTMLInputElement> {
 	return v !== null && typeof v === 'object' && 'target' in v && 'nativeEvent' in v
 }
 
+/** Fieldset decoration types passed through untouched rather than wired as the control. @internal */
 const DECORATION_TYPES = new Set<ElementType>([Label, Description, Message])
 
+/** True when `child` is a fieldset decoration. @internal */
 function isDecoration(child: ReactElement): boolean {
 	return DECORATION_TYPES.has(child.type as ElementType)
 }
 
-// Children that receive a DOM ChangeEvent on `onChange`; everything else
-// receives the value-shaped `onValueChange`. The same dispatcher handles both
-// at runtime; only the prop name differs.
+/**
+ * Children that receive a DOM `ChangeEvent` on `onChange`; everything else
+ * receives the value-shaped `onValueChange`. The same dispatcher handles both
+ * at runtime; only the prop name differs.
+ *
+ * @internal
+ */
 const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Input,
 	SearchInput,
@@ -42,21 +49,31 @@ const EVENT_CALLBACK_TYPES = new Set<ElementType>([
 	Radio,
 ])
 
+/** True when `child` is wired through `onChange` with a DOM event. @internal */
 function expectsEventCallback(child: ReactElement): boolean {
 	return EVENT_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// Children that expose an `onClear` callback (e.g. SearchInput's X button);
-// wired to clear the filter slot.
+/**
+ * Children that expose an `onClear` callback (e.g. SearchInput's X button),
+ * wired to clear the filter slot.
+ *
+ * @internal
+ */
 const CLEAR_CALLBACK_TYPES = new Set<ElementType>([SearchInput])
 
+/** True when `child` exposes an `onClear` callback. @internal */
 function expectsClearCallback(child: ReactElement): boolean {
 	return CLEAR_CALLBACK_TYPES.has(child.type as ElementType)
 }
 
-// The slot value as control props: toggles read `checked` (Radio compares its
-// own option value; Checkbox/Switch reflect the boolean), others read `value`
-// (null, not undefined, to stay controlled).
+/**
+ * Maps the slot value to control props: toggles read `checked` (Radio compares
+ * its own option value; Checkbox/Switch reflect the boolean), others read
+ * `value` (`null`, not `undefined`, to stay controlled).
+ *
+ * @internal
+ */
 function controlValueProps(child: ReactElement, fieldValue: unknown): Record<string, unknown> {
 	if (child.type === Radio) {
 		return { checked: fieldValue === (child.props as { value?: unknown }).value }

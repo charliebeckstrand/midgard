@@ -12,8 +12,12 @@ export type ResizableHandleProps = {
 	className?: string
 }
 
-// Keyboard step for the handle: arrows move by `step` along the panel axis,
-// Home/End jump to the bounds. Returns 0 for keys that don't resize.
+/**
+ * Resize delta for a key press: arrows move by `step` along the panel axis,
+ * Home / End jump to the bounds. Returns 0 for keys that don't resize.
+ *
+ * @internal
+ */
 function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): number {
 	const increase = isHorizontal ? 'ArrowRight' : 'ArrowDown'
 	const decrease = isHorizontal ? 'ArrowLeft' : 'ArrowUp'

@@ -133,8 +133,12 @@ export type DataTableProps<T> = TableVariants & {
 	children?: never
 }
 
-// Collapses the `virtualize` prop (boolean or options object) into resolved
-// enabled flag and sizing.
+/**
+ * Collapses the `virtualize` prop (boolean or options object) into a resolved
+ * enabled flag and sizing.
+ *
+ * @internal
+ */
 function resolveVirtualization(virtualize: DataTableVirtualize | undefined): {
 	enabled: boolean
 	estimateSize: number

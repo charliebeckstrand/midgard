@@ -6,16 +6,23 @@ import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { KanbanColumnBase } from './types'
 
+/** Accessible name of a card, for announcements. @internal */
 const cardName = (container: ParentNode | null, cardId: string) =>
 	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId))
 
+/** Accessible name of a column, for announcements. @internal */
 const columnName = (container: ParentNode | null, columnId: string) =>
 	accessibleName(querySlot(container, 'kanban-column', 'column-id', columnId))
 
+/** Keys that move focus or the lifted card between cards. @internal */
 type NeighborKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End'
 
-// Skip empty columns to the next populated one in the travel direction; the
-// landing row clamps to the target column's length.
+/**
+ * Skips empty columns to the next populated one in the travel direction; the
+ * landing row clamps to the target column's length.
+ *
+ * @internal
+ */
 function resolveCrossColumn<T, C extends KanbanColumnBase<T>>(
 	columns: C[],
 	colIdx: number,
@@ -39,8 +46,12 @@ function resolveCrossColumn<T, C extends KanbanColumnBase<T>>(
 	return null
 }
 
-// Target column + row for a neighbor move. Out-of-range rows fall out at the
-// caller's lookup, mirroring the previous bounds guard.
+/**
+ * Target column + row for a neighbor move. Out-of-range rows fall out at the
+ * caller's lookup, mirroring the previous bounds guard.
+ *
+ * @internal
+ */
 function resolveNeighborTarget<T, C extends KanbanColumnBase<T>>(
 	columns: C[],
 	colIdx: number,
@@ -62,6 +73,7 @@ function resolveNeighborTarget<T, C extends KanbanColumnBase<T>>(
 	}
 }
 
+/** Dependencies threaded to the module-level card key handlers. @internal */
 type KanbanKeyDeps = {
 	liftedCardId: string | null
 	setLiftedCardId: (id: string | null) => void
@@ -72,7 +84,7 @@ type KanbanKeyDeps = {
 	moveToColumn: (cardId: string, direction: -1 | 1) => void
 }
 
-// Space toggles the lifted state and announces the pick-up / drop.
+/** Space toggles the lifted state and announces the pick-up / drop. @internal */
 function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
 	event.preventDefault()
 
@@ -94,7 +106,7 @@ function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: Kanba
 	)
 }
 
-// Not lifted: arrows/Home/End move focus between cards.
+/** Not lifted: arrows/Home/End move focus between cards. @internal */
 function handleCardNeighborNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
 	switch (event.key) {
 		case 'ArrowUp':
@@ -109,7 +121,7 @@ function handleCardNeighborNav(cardId: string, event: KeyboardEvent, deps: Kanba
 	}
 }
 
-// Lifted: Escape/Enter drops, arrows reorder the lifted card across columns.
+/** Lifted: Escape/Enter drops, arrows reorder the lifted card across columns. @internal */
 function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
 	switch (event.key) {
 		case 'Escape':
@@ -157,6 +169,14 @@ function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanK
 	}
 }
 
+/**
+ * Keyboard reordering and an accessible drag alternative for the {@link Kanban}
+ * board (APG grabbed-element pattern). Space lifts/drops a card with live-region
+ * announcements; while lifted, arrows move it within and across columns; while
+ * not lifted, arrows/Home/End move focus between cards. Emits the next columns
+ * through `onValueChange`. Returns the lifted-card state and the card
+ * `keydown`/`blur` handlers.
+ */
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,

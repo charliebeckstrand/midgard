@@ -42,8 +42,12 @@ export type CalendarRangeProps = {
 	className?: string
 }
 
-// Range-painting flags for a single day cell: which endpoint it is, whether it
-// sits inside the range, and which visual edge (honoring reversed ranges).
+/**
+ * Range-painting flags for a single day cell: which endpoint it is, whether it
+ * sits inside the range, and which visual edge (honoring reversed ranges).
+ *
+ * @internal
+ */
 function computeRangeDayFlags(
 	date: Date,
 	rangeStart: Date | null | undefined,

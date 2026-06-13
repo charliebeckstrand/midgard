@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
-// Polls the visual viewport until its height stabilizes after the keyboard
-// starts moving (5 stable frames, ~83 ms at 60 fps), bailing after ~1s. Fires
-// the callback once settled.
+/**
+ * Polls the visual viewport until its height stabilizes after the keyboard
+ * starts moving (5 stable frames, ~83 ms at 60 fps), bailing after ~1s. Fires
+ * the callback once settled.
+ *
+ * @internal
+ */
 function startSettlePoll(
 	viewport: VisualViewport,
 	rafRef: { current: number | null },

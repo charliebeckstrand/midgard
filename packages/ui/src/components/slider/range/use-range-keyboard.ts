@@ -8,8 +8,12 @@ import { useRangeUpdate } from './use-range-update'
 
 type ThumbButtonRefs = [RefObject<HTMLButtonElement | null>, RefObject<HTMLButtonElement | null>]
 
-// New raw value for an arrow / page / home / end key, or null when the key is
-// not a range key.
+/**
+ * Raw value for an arrow / page / home / end key, or null when the key is not a
+ * range key.
+ *
+ * @internal
+ */
 function rangeKeyValue(
 	key: string,
 	index: ThumbIndex,
@@ -39,8 +43,12 @@ function rangeKeyValue(
 	}
 }
 
-// In swap mode a cross-thumb key flips the value's index; move focus to the
-// button that now holds the moving value.
+/**
+ * In swap mode a cross-thumb key flips the value's index; moves focus to the
+ * button that now holds the moving value.
+ *
+ * @internal
+ */
 function focusSwappedThumb(
 	index: ThumbIndex,
 	snapped: number,
@@ -52,6 +60,13 @@ function focusSwappedThumb(
 	if (willSwap) thumbRefs[index === 0 ? 1 : 0].current?.focus()
 }
 
+/**
+ * Keyboard control for a range slider's two thumbs: arrows / Page / Home / End
+ * move the thumb by `step`, clamped and snapped; in `swap` overlap, focus
+ * follows a thumb that crosses past its partner.
+ *
+ * @returns A factory `(index) => onKeyDown` for the thumb at `index`.
+ */
 export function useRangeKeyboard(opts: {
 	min: number
 	max: number

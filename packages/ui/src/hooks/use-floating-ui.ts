@@ -29,9 +29,14 @@ import {
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { useEscapeLayer } from './use-escape-layer'
 
-// Explicit return types: `useFloating`'s shape references `@floating-ui/react-dom`,
-// a transitive dep that TS can't express in a portable `.d.ts` (TS2742).
-// Stays local; the barrel does not re-export it.
+/**
+ * Explicit return shape for {@link useFloatingPanel}.
+ *
+ * @remarks `useFloating`'s inferred shape references `@floating-ui/react-dom`,
+ * a transitive dep TS can't express in a portable `.d.ts` (TS2742); declaring
+ * it locally avoids the error. The barrel does not re-export it.
+ * @internal
+ */
 type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
@@ -43,6 +48,7 @@ type FloatingUIResult = FloatingPanelResult & {
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
 
+/** Sizes the floating element's min-width to the reference width. @internal */
 const matchReferenceWidthMiddleware = size({
 	apply({ rects, elements }) {
 		Object.assign(elements.floating.style, {
@@ -51,6 +57,7 @@ const matchReferenceWidthMiddleware = size({
 	},
 })
 
+/** Default middleware chain: offset / flip / shift, plus the match-reference-width size middleware when requested. @internal */
 function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middleware[] {
 	const middleware: Middleware[] = [offset(offsetPx), flip(), shift({ padding: 8 })]
 
@@ -61,6 +68,7 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 
 const SCROLLABLE_RE = /auto|scroll/
 
+/** True when a pointerdown landed on `target`'s own scrollbar gutter; such presses don't dismiss the panel. @internal */
 function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 	const style = getComputedStyle(target)
 

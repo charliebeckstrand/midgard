@@ -29,7 +29,7 @@ type ListKeyDeps = {
 	secondaryKey: string
 }
 
-// Space toggles the lifted state and announces the pick-up / drop.
+/** Toggles the lifted state and announces the pick-up / drop. @internal */
 function handleSpaceToggle(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
 	event.preventDefault()
 
@@ -49,7 +49,7 @@ function handleSpaceToggle(id: string, event: KeyboardEvent, deps: ListKeyDeps) 
 	)
 }
 
-// Not lifted: arrows/Home/End move focus between items.
+/** Not lifted: arrows / Home / End move focus between items. @internal */
 function handleNeighborNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
 	switch (event.key) {
 		case deps.primaryKey:
@@ -71,7 +71,7 @@ function handleNeighborNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) 
 	}
 }
 
-// Lifted: Escape/Enter drops, arrows reorder the lifted item.
+/** Lifted: Escape / Enter drops, arrows reorder the lifted item. @internal */
 function handleLiftedNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
 	switch (event.key) {
 		case 'Escape':
@@ -182,7 +182,7 @@ export function useListKeyboard<T>({
 		[items, getKey, onReorder, refocusItem, containerRef],
 	)
 
-	// Item's 1-based position, for announcements.
+	/** Item's 1-based position and the total count, for announcements. */
 	const locate = useCallback(
 		(id: string) => {
 			const index = items.findIndex((i) => getKey(i) === id)

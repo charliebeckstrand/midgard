@@ -22,8 +22,12 @@ export type TabProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
 
-// Resolves the tab's current state plus its auto-wired tab/panel id pair (an
-// explicit `id` overrides; segments never auto-wire `aria-controls`).
+/**
+ * Resolves the tab's current state plus its auto-wired tab/panel id pair (an
+ * explicit `id` overrides; segments never auto-wire `aria-controls`).
+ *
+ * @internal
+ */
 function resolveTabState(opts: {
 	id: string | undefined
 	value: string | undefined

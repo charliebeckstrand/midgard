@@ -20,8 +20,12 @@ export type MessageProps = {
 	all?: boolean
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
 
-// The error variant auto-renders when form-bound with errors, or (unbound)
-// when given children. Other variants render their children verbatim.
+/**
+ * True when the error variant should auto-render: form-bound with errors, or
+ * (unbound) given children. Other variants render their children verbatim.
+ *
+ * @internal
+ */
 function shouldRenderError(
 	variant: MessageVariant,
 	isFormBoundError: boolean,
@@ -33,8 +37,13 @@ function shouldRenderError(
 	return isFormBoundError ? (issues?.length ?? 0) > 0 : children != null
 }
 
-// Explicit `id` wins; otherwise the error variant borrows the control's
-// messageId, and other variants derive a `${control.id}-${variant}` id.
+/**
+ * Resolves the element id: explicit `id` wins; otherwise the error variant
+ * borrows the control's `messageId`, and other variants derive
+ * `${control.id}-${variant}`.
+ *
+ * @internal
+ */
 function resolveMessageElementId(
 	id: string | undefined,
 	variant: MessageVariant,

@@ -2,10 +2,13 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import type { CalendarActive, CalendarHandle } from '../calendar'
 
+/** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
 
+/** Activates a footer button. @internal */
 type FooterAction = (kind: FooterButton) => void
 
+/** Options for {@link useDatePickerKeyboard}. @internal */
 type DatePickerKeyDownParams = {
 	disabled: boolean
 	open: boolean
@@ -22,8 +25,12 @@ type DatePickerKeyDownParams = {
 	onFooterActivate: FooterAction
 }
 
-// Shared dependencies threaded to the per-zone handlers below. Bundled into one
-// object so each handler keeps a flat signature instead of a dozen parameters.
+/**
+ * Shared dependencies threaded to the per-zone handlers below. Bundled into one
+ * object so each handler keeps a flat signature instead of a dozen parameters.
+ *
+ * @internal
+ */
 type DatePickerKeyContext = {
 	setActive: (next: CalendarActive | null) => void
 	closeCalendar: () => void
@@ -36,14 +43,19 @@ type DatePickerKeyContext = {
 	onFooterActivate: FooterAction
 }
 
+/** Active state narrowed to the grid zone. @internal */
 type GridActive = Extract<CalendarActive, { zone: 'grid' }>
+/** Active state narrowed to the header zone. @internal */
 type HeaderActive = Extract<CalendarActive, { zone: 'header' }>
+/** Active state narrowed to the footer zone. @internal */
 type FooterActive = Extract<CalendarActive, { zone: 'footer' }>
 
+/** True for any of the four arrow keys. @internal */
 function isArrowKey(key: string): boolean {
 	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
 }
 
+/** While closed, ArrowDown/ArrowUp/Enter/Space open the calendar. @internal */
 function handleClosedKey(e: KeyboardEvent<HTMLElement>, openCalendar: () => void) {
 	if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
 		e.preventDefault()
@@ -52,8 +64,13 @@ function handleClosedKey(e: KeyboardEvent<HTMLElement>, openCalendar: () => void
 	}
 }
 
-// Keys that apply in any zone while the calendar is open. Returns true once a
-// key is consumed so the caller can skip zone dispatch.
+/**
+ * Handles keys that apply in any zone while the calendar is open (Escape,
+ * Shift+Arrow jumps, PageUp/PageDown month/year paging).
+ *
+ * @returns `true` once a key is consumed so the caller can skip zone dispatch.
+ * @internal
+ */
 function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext): boolean {
 	if (e.key === 'Escape') {
 		e.preventDefault()
@@ -98,8 +115,12 @@ function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCo
 	return false
 }
 
-// No highlight yet: the first arrow seeds the grid, Enter/Space selects the
-// initial date, everything else is inert.
+/**
+ * Handles keys with no highlight yet: the first arrow seeds the grid,
+ * Enter/Space selects the initial date, everything else is inert.
+ *
+ * @internal
+ */
 function handleNoActiveKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext) {
 	if (isArrowKey(e.key)) {
 		e.preventDefault()
@@ -116,6 +137,7 @@ function handleNoActiveKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCont
 	}
 }
 
+/** Grid-zone keys: arrows move the highlight by day/week, Enter/Space selects. @internal */
 function handleGridKey(
 	e: KeyboardEvent<HTMLElement>,
 	active: GridActive,
@@ -160,6 +182,7 @@ function handleGridKey(
 	}
 }
 
+/** Header-zone keys: Left/Right cycle the three controls, Down enters the grid, Enter/Space activates. @internal */
 function handleHeaderKey(
 	e: KeyboardEvent<HTMLElement>,
 	active: HeaderActive,
@@ -208,6 +231,7 @@ function handleHeaderKey(
 	}
 }
 
+/** Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid, Enter/Space activates. @internal */
 function handleFooterKey(
 	e: KeyboardEvent<HTMLElement>,
 	active: FooterActive,
@@ -252,6 +276,13 @@ function handleFooterKey(
 	}
 }
 
+/**
+ * Builds the date picker's `keydown` handler, dispatching to the closed,
+ * global, and per-zone (grid/header/footer) key handlers by current `open` and
+ * `active` state.
+ *
+ * @returns A memoized `keydown` handler for the picker root.
+ */
 export function useDatePickerKeyboard({
 	disabled,
 	open,

@@ -70,6 +70,7 @@ function extractFieldErrors(
 	return fieldErrors as Record<string, string | string[] | undefined>
 }
 
+/** Options for {@link useFormReducer}. @internal */
 type FormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
 	/**
@@ -86,6 +87,7 @@ type FormReducerOptions<T extends Record<string, unknown>> = {
 	onReset?: () => void
 }
 
+/** State, store, actions, and form-element handlers returned by {@link useFormReducer}. @internal */
 type FormReducerResult = {
 	formState: FormStateValue
 	store: FormStore
@@ -94,6 +96,16 @@ type FormReducerResult = {
 	handleReset: (e: SyntheticEvent<HTMLFormElement>) => void
 }
 
+/**
+ * Drives {@link Form}'s state via {@link formReducer}: derives `dirty`/`valid`,
+ * exposes value/touched/error setters and `reset`, and builds the submit and
+ * reset handlers. Submits validate every field, run `onSubmit`, and route a
+ * `{ fieldErrors }` return back into the error map or settle through
+ * `onSettled`; a monotonic token discards superseded in-flight submits. Syncs
+ * the controlled `values` prop before paint and re-anchors the dirty baseline.
+ *
+ * @returns The {@link FormReducerResult} consumed by the `Form` provider.
+ */
 export function useFormReducer<T extends Record<string, unknown>>({
 	defaultValues,
 	values: controlledValues,

@@ -5,11 +5,15 @@ type ScrollWithinOptions = {
 	block?: 'start' | 'center' | 'end' | 'nearest'
 }
 
-// Nearest scrollable ancestor that actually overflows. Stops at a clipping
-// ancestor (overflow: hidden/clip): nothing outside it can bring the node into
-// view, so walking further would scroll an outer container the caller never
-// meant to touch (e.g. a short sidebar inside a clipped frame scrolling the
-// whole page on mount).
+/**
+ * Nearest scrollable ancestor that actually overflows. Stops at a clipping
+ * ancestor (`overflow: hidden`/`clip`): nothing outside it can bring the node
+ * into view, so walking further would scroll an outer container the caller
+ * never meant to touch (e.g. a short sidebar inside a clipped frame scrolling
+ * the whole page on mount).
+ *
+ * @internal
+ */
 function findScrollAncestor(node: HTMLElement): HTMLElement | null {
 	let scroller = node.parentElement
 
@@ -30,6 +34,7 @@ function findScrollAncestor(node: HTMLElement): HTMLElement | null {
 	return null
 }
 
+/** Scrolls `node` into view within its nearest overflowing ancestor per `block`, leaving outer scrollers untouched. @internal */
 function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
 	if (!node) return
 

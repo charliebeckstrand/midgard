@@ -4,14 +4,23 @@ import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useA11yRoving } from '../../hooks'
 
-// Out-of-range day cells render as `<button disabled>`, which can't take
-// focus. Every query here scopes to focusable buttons and roving skips
-// disabled cells; `.focus()` on a disabled element is a no-op that would
-// freeze the active index at the edge of a disabled range (WCAG 2.1.1).
+/**
+ * Selector for focusable day cells. Out-of-range cells render as
+ * `<button disabled>`, which can't take focus, so every query scopes to enabled
+ * buttons and roving skips disabled cells; `.focus()` on a disabled element is a
+ * no-op that would freeze the active index at the edge of a disabled range
+ * (WCAG 2.1.1).
+ *
+ * @internal
+ */
 const FOCUSABLE = 'button:not(:disabled)'
 
-// Sealed surfaces swallow these even when no move applies, so a dead key
-// neither scrolls the page nor reaches an outer keyboard model.
+/**
+ * Navigation keys a sealed surface swallows even when no move applies, so a dead
+ * key neither scrolls the page nor reaches an outer keyboard model.
+ *
+ * @internal
+ */
 const NAVIGATION_KEYS = new Set([
 	'ArrowUp',
 	'ArrowDown',
@@ -23,6 +32,7 @@ const NAVIGATION_KEYS = new Set([
 	'PageDown',
 ])
 
+/** Options for {@link useCalendarFocus}: the three zone refs, grid column count, and the seal flag. @internal */
 type CalendarFocusOptions = {
 	headerRef: RefObject<HTMLElement | null>
 	gridRef: RefObject<HTMLElement | null>
@@ -37,16 +47,19 @@ type CalendarFocusOptions = {
 	stopPropagation?: boolean
 }
 
+/** First focusable button within `container`. @internal */
 function firstButton(container: HTMLElement | null): HTMLElement | null {
 	return container?.querySelector<HTMLElement>(FOCUSABLE) ?? null
 }
 
+/** Middle focusable button within `container`, used to seat focus on a calendar header. @internal */
 function middleButton(container: HTMLElement | null): HTMLElement | null {
 	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
 	return buttons[Math.floor(buttons.length / 2)] ?? null
 }
 
+/** Last focusable button within `container`. @internal */
 function lastButton(container: HTMLElement | null): HTMLElement | null {
 	const buttons = container?.querySelectorAll<HTMLElement>(FOCUSABLE)
 
@@ -55,6 +68,7 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 	return buttons.item(buttons.length - 1)
 }
 
+/** True when the active button sits in the grid's first row. @internal */
 function isTopRow(container: HTMLElement | null, cols: number): boolean {
 	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
@@ -63,6 +77,7 @@ function isTopRow(container: HTMLElement | null, cols: number): boolean {
 	return index >= 0 && index < cols
 }
 
+/** True when the active button sits in the grid's last row. @internal */
 function isBottomRow(container: HTMLElement | null, cols: number): boolean {
 	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
 
@@ -82,15 +97,19 @@ function seal(e: KeyboardEvent, stopPropagation: boolean): void {
 	if (e.defaultPrevented) e.stopPropagation()
 }
 
-// A handled cross-surface move: always prevents default, and on a sealed
-// surface also stops propagation.
+/**
+ * Marks a handled cross-surface move: always prevents default, and on a sealed
+ * surface also stops propagation.
+ *
+ * @internal
+ */
 function preventAndStop(e: KeyboardEvent, stopPropagation: boolean): void {
 	e.preventDefault()
 
 	if (stopPropagation) e.stopPropagation()
 }
 
-// Left/Right wraps focus between the footer's own buttons.
+/** Wraps focus between the footer's own buttons on Left/Right. @internal */
 function focusAdjacentFooterButton(
 	e: KeyboardEvent,
 	footer: HTMLElement | null,
@@ -114,6 +133,16 @@ function focusAdjacentFooterButton(
 	next.focus()
 }
 
+/**
+ * Wires roving-tabindex keyboard navigation across a calendar's header, grid,
+ * and footer zones, bridging focus between them at the edges (ArrowDown from the
+ * header enters the grid, ArrowUp/Down at the grid's top/bottom row crosses into
+ * header/footer). Returns the three zones' `keydown` handlers.
+ *
+ * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
+ * @remarks Set `stopPropagation` to seal a surface nested inside another
+ * keyboard model, where a leaked arrow would drive the outer model.
+ */
 export function useCalendarFocus({
 	headerRef,
 	gridRef,

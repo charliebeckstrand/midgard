@@ -28,8 +28,12 @@ type ScrollbarDragContext = {
 	dragCleanupRef: { current: (() => void) | null }
 }
 
-// Pointer drag-to-scroll for one scrollbar thumb: maps thumb travel to scroll
-// offset and wires global move/up/cancel listeners until release.
+/**
+ * Pointer drag-to-scroll for one scrollbar thumb: maps thumb travel to scroll
+ * offset and wires global move / up / cancel listeners until release.
+ *
+ * @internal
+ */
 function beginScrollbarDrag(
 	axis: 'x' | 'y',
 	event: ReactPointerEvent<HTMLDivElement>,
