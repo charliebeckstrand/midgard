@@ -1,3 +1,32 @@
+import type { KeyboardEvent, ReactNode } from 'react'
+
+/**
+ * Resolves the hidden input's accessible name from a variant's visible
+ * trigger: string children become the label directly, anything else falls back
+ * to a variant default.
+ *
+ * @returns The trigger label.
+ */
+export function triggerLabel(children: ReactNode, fallback: string): string {
+	return typeof children === 'string' ? children : fallback
+}
+
+/**
+ * Builds a keydown handler that activates a non-button control (the readonly
+ * file `input`) on Enter / Space, matching native button keyboard behavior.
+ *
+ * @returns A keydown handler that activates on Enter / Space.
+ */
+export function activateOnEnterSpace(onActivate: () => void) {
+	return (event: KeyboardEvent) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault()
+
+			onActivate()
+		}
+	}
+}
+
 /**
  * Materializes a DOM `FileList` (or `null`) into a real array.
  *

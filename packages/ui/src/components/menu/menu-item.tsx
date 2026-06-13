@@ -7,6 +7,7 @@ import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
+import { handleMenuItemClick, handleMenuItemKeyDown } from './menu-item-utilities'
 
 type MenuItemBaseProps = {
 	disabled?: boolean
@@ -41,6 +42,7 @@ export function MenuItem(props: MenuItemProps) {
 		if (disabled) return
 
 		onAction?.()
+
 		close()
 	}
 
@@ -83,10 +85,9 @@ export function MenuItem(props: MenuItemProps) {
 				{...rest}
 				// Composed after the spread: runs the consumer onClick, then
 				// selection (onAction/close).
-				onClick={(e: MouseEvent<HTMLAnchorElement>) => {
-					consumerOnClick?.(e)
-					handleSelect()
-				}}
+				onClick={(e: MouseEvent<HTMLAnchorElement>) =>
+					handleMenuItemClick(e, consumerOnClick, handleSelect)
+				}
 			>
 				{children}
 			</LinkComponent>
@@ -116,24 +117,12 @@ export function MenuItem(props: MenuItemProps) {
 			// Composed after the spread: runs consumer handlers, then selection
 			// (onAction/close). The disabled guard precedes both so disabled
 			// items are inert on every input path.
-			onClick={(e: MouseEvent<HTMLButtonElement>) => {
-				if (disabled) return
-
-				consumerOnClick?.(e)
-				handleSelect()
-			}}
-			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
-				if (disabled) return
-
-				consumerOnKeyDown?.(e)
-
-				if (e.defaultPrevented) return
-
-				if (e.key === 'Enter' || e.key === ' ') {
-					e.preventDefault()
-					handleSelect()
-				}
-			}}
+			onClick={(e: MouseEvent<HTMLButtonElement>) =>
+				handleMenuItemClick(e, consumerOnClick, handleSelect, disabled)
+			}
+			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) =>
+				handleMenuItemKeyDown(e, consumerOnKeyDown, handleSelect, disabled)
+			}
 		>
 			{children}
 		</button>

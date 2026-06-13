@@ -3,9 +3,8 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
-import { ControlFrame } from '../../primitives/control'
-import { DensityScope, useControlSize } from '../../primitives/density'
+import { affixStepDown } from '../../primitives/affix'
+import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
@@ -13,6 +12,7 @@ import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useHeadless } from '../headless/context'
 import { LoadingSpinner } from '../loading'
+import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
 /** Props for {@link Input}: `size`/`variant`/`loading`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
@@ -115,45 +115,21 @@ export function Input(props: InputProps) {
 	if (headless) return inputEl
 
 	const resolvedPrefix = prefix
+
 	// LoadingSpinner reads no context; it gets the slot's stepped-down size.
 	const resolvedSuffix = loading ? <LoadingSpinner size={affixStepDown(resolvedSize)} /> : suffix
 
-	// One definition of "present" for both the wrapper class and the render
-	// guards: a null/false affix styles the frame while rendering nothing,
-	// and `0` leaks as a bare text node through a plain `&&`.
-	const hasPrefix = resolvedPrefix != null && resolvedPrefix !== false
-	const hasSuffix = resolvedSuffix != null && resolvedSuffix !== false
-
-	const hasAffix = hasPrefix || hasSuffix
-
-	const affixStep = affixStepDown(resolvedSize)
-
 	return (
-		<DensityScope scale={size}>
-			<AffixContext value={affixStep}>
-				<ControlFrame
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(
-						k.inputControl({ variant: resolvedVariant }),
-						hasAffix && 'group/control flex flex-wrap items-center',
-					)}
-				>
-					{hasPrefix && (
-						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[token.space])}>
-							{resolvedPrefix}
-						</span>
-					)}
-
-					{inputEl}
-
-					{hasSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[token.space])}>
-							{resolvedSuffix}
-						</span>
-					)}
-				</ControlFrame>
-			</AffixContext>
-		</DensityScope>
+		<InputFrame
+			inputEl={inputEl}
+			prefix={resolvedPrefix}
+			suffix={resolvedSuffix}
+			variant={resolvedVariant}
+			space={token.space}
+			size={token.size}
+			scale={size}
+			dataGroup={dataGroup}
+			dataGroupOrientation={dataGroupOrientation}
+		/>
 	)
 }

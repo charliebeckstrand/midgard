@@ -2,14 +2,20 @@
 
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
-import { type FileRejection, formatFileNames } from './file-upload-utilities'
+import { FileUploadHiddenInput } from './file-upload-hidden-input'
+import {
+	activateOnEnterSpace,
+	type FileRejection,
+	formatFileNames,
+	triggerLabel,
+} from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
 type FileUploadSharedProps = {
@@ -81,29 +87,6 @@ export function FileUpload(props: FileUploadProps) {
 		handleDrop,
 	} = useFileUploadHandlers({ disabled, maxSize, maxCount, onFiles, onReject })
 
-	// The visually-hidden `<input>` still needs an accessible name; screen
-	// readers can reach it even at `tabIndex -1`. Each variant passes a name
-	// drawn from its visible trigger.
-	const renderHiddenInput = (ariaLabel: string) => (
-		<input
-			ref={inputRef}
-			type="file"
-			aria-label={ariaLabel}
-			aria-describedby={control?.describedBy}
-			accept={accept}
-			multiple={multiple}
-			disabled={disabled}
-			// handleChange clears the input value, emptying the FileList; native
-			// `required` validation then fails despite a valid pick. Tracks the
-			// selection separately and drops the constraint once files are held.
-			required={control?.required && files.length === 0}
-			onChange={handleChange}
-			className="sr-only"
-			tabIndex={-1}
-			{...invalidAttrs(control?.invalid)}
-		/>
-	)
-
 	if (props.variant === 'input') {
 		const { size, placeholder } = props
 
@@ -111,7 +94,16 @@ export function FileUpload(props: FileUploadProps) {
 
 		return (
 			<div data-slot="file-upload" className={cn('relative', className)}>
-				{renderHiddenInput(placeholder ?? 'Choose a file')}
+				<FileUploadHiddenInput
+					ariaLabel={placeholder ?? 'Choose a file'}
+					control={control}
+					inputRef={inputRef}
+					accept={accept}
+					multiple={multiple}
+					disabled={disabled}
+					filesEmpty={files.length === 0}
+					onChange={handleChange}
+				/>
 				<Input
 					readOnly
 					size={size}
@@ -121,13 +113,7 @@ export function FileUpload(props: FileUploadProps) {
 					onClick={openPicker}
 					// The readOnly field opens the picker on activation; responds to
 					// keyboard activation like a button.
-					onKeyDown={(event) => {
-						if (event.key === 'Enter' || event.key === ' ') {
-							event.preventDefault()
-
-							openPicker()
-						}
-					}}
+					onKeyDown={activateOnEnterSpace(openPicker)}
 					className={cn('file:hidden', k.cursor)}
 					suffix={<Icon icon={<Upload />} />}
 				/>
@@ -140,7 +126,16 @@ export function FileUpload(props: FileUploadProps) {
 
 		return (
 			<div data-slot="file-upload" className={cn('inline-flex', className)}>
-				{renderHiddenInput(typeof children === 'string' ? children : 'Upload')}
+				<FileUploadHiddenInput
+					ariaLabel={triggerLabel(children, 'Upload')}
+					control={control}
+					inputRef={inputRef}
+					accept={accept}
+					multiple={multiple}
+					disabled={disabled}
+					filesEmpty={files.length === 0}
+					onChange={handleChange}
+				/>
 				<Button
 					size={size}
 					color={color}
@@ -162,7 +157,16 @@ export function FileUpload(props: FileUploadProps) {
 		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
 			{/* Sibling of the button, not nested inside it: a focusable `<input>`
 			    inside an interactive control produces nested-interactive markup. */}
-			{renderHiddenInput(typeof children === 'string' ? children : 'Upload file')}
+			<FileUploadHiddenInput
+				ariaLabel={triggerLabel(children, 'Upload file')}
+				control={control}
+				inputRef={inputRef}
+				accept={accept}
+				multiple={multiple}
+				disabled={disabled}
+				filesEmpty={files.length === 0}
+				onChange={handleChange}
+			/>
 			<button
 				type="button"
 				data-slot="file-upload"
