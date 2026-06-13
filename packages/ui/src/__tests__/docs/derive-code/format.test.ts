@@ -76,19 +76,43 @@ describe('formatProps value handling', () => {
 	it('placeholders a Date-valued prop (no recoverable source literal)', () => {
 		const result = formatProps({ min: new Date('2026-06-07T00:00:00Z') }, makeContext())
 
-		expect(result).toEqual(['min={…}'])
+		expect(result).toEqual(['min={...}'])
 	})
 
-	it('placeholders a plain-object-valued prop', () => {
+	it('serializes a flat object of primitives as an object literal', () => {
 		const result = formatProps({ config: { a: 1 } }, makeContext())
 
-		expect(result).toEqual(['config={…}'])
+		expect(result).toEqual(['config={{ a: 1 }}'])
+	})
+
+	it('serializes a responsive object preserving authored key order', () => {
+		const result = formatProps({ columns: { initial: 1, sm: 2, lg: 3 } }, makeContext())
+
+		expect(result).toEqual(['columns={{ initial: 1, sm: 2, lg: 3 }}'])
+	})
+
+	it('double-quotes string values and quotes non-identifier breakpoint keys', () => {
+		const result = formatProps({ gap: { initial: 'sm', '2xl': 'lg' } }, makeContext())
+
+		expect(result).toEqual(['gap={{ initial: "sm", "2xl": "lg" }}'])
+	})
+
+	it('placeholders an object with a non-primitive value (no clean inline form)', () => {
+		const result = formatProps({ config: { nested: { x: 1 } } }, makeContext())
+
+		expect(result).toEqual(['config={...}'])
+	})
+
+	it('placeholders an empty object', () => {
+		const result = formatProps({ config: {} }, makeContext())
+
+		expect(result).toEqual(['config={...}'])
 	})
 
 	it('placeholders arrays containing non-primitive values', () => {
 		const result = formatProps({ items: [{ id: 1 }] }, makeContext())
 
-		expect(result).toEqual(['items={…}'])
+		expect(result).toEqual(['items={...}'])
 	})
 
 	it('renders an element-valued prop using the registry tag and records its import', () => {

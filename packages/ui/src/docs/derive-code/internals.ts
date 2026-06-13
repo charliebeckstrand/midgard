@@ -118,8 +118,8 @@ export function getElementName(element: ReactElement, context: Context): string 
 export const INDENT = '  '
 
 // Stand-in for content that's present but has no clean literal form: an
-// unrenderable child subtree, or a prop value like a Date or config object.
-export const PLACEHOLDER = '…'
+// unrenderable child subtree, or a prop value like a Date or class instance.
+export const PLACEHOLDER = '...'
 
 // Props that never belong in derived code: either structural (children, key,
 // ref) or styling noise (className).
@@ -167,10 +167,60 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 		return `${key}={[${value.map(formatLiteral).join(', ')}]}`
 	}
 
-	// Present but unserializable: a Date, a config object, an array of objects.
-	// The source identifier (`min={min}`) is unavailable at render time; emit
-	// a `…` placeholder.
+	// Flat object of primitives — responsive props (`columns={{ initial: 1,
+	// sm: 2, lg: 3 }}`), inline `style`, etc. — serialize as an object literal
+	// so the snippet shows the real shape, not an opaque placeholder.
+	if (isPlainObject(value)) {
+		const literal = formatObjectLiteral(value)
+
+		if (literal !== null) return `${key}={${literal}}`
+	}
+
+	// Present but unserializable: a Date, a class instance, a nested config
+	// object, an array of objects. The source identifier (`min={min}`) is
+	// unavailable at render time; emit a placeholder.
 	return `${key}={${PLACEHOLDER}}`
+}
+
+/**
+ * A plain object literal (a responsive config like `{ initial: 1, sm: 2 }`),
+ * as opposed to a class instance, Date, Map, or React element. Elements and
+ * arrays are handled by earlier `formatProp` branches.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	if (typeof value !== 'object' || value === null) return false
+
+	const proto = Object.getPrototypeOf(value)
+
+	return proto === Object.prototype || proto === null
+}
+
+/**
+ * Serialize a flat object of primitives as a JS object literal
+ * (`{ initial: 1, sm: 2, lg: 3 }`), preserving authored key order. Returns
+ * null when any value is non-primitive (nested objects, elements, Dates have
+ * no clean inline form) so the caller falls back to the placeholder.
+ */
+function formatObjectLiteral(value: Record<string, unknown>): string | null {
+	const entries = Object.entries(value)
+
+	if (entries.length === 0) return null
+
+	const parts: string[] = []
+
+	for (const [key, v] of entries) {
+		if (!isPrimitive(v)) return null
+
+		parts.push(`${formatObjectKey(key)}: ${formatLiteral(v)}`)
+	}
+
+	return `{ ${parts.join(', ')} }`
+}
+
+// Identifier keys stay bare (`initial`, `sm`, `lg`); breakpoints like `2xl`
+// that aren't valid identifiers get quoted.
+function formatObjectKey(key: string): string {
+	return /^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key)
 }
 
 // Double-quoted JSX attribute; falls back to braces + JSON when the value
