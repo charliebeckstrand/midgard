@@ -26,14 +26,6 @@ Audit files are named `{date}-{LENS}-AUDIT.md`, where:
   prior pass.
 - `{LENS}` is the upper-case subject of the sweep: `ARIA`, `BUG`, `PROP`, etc.
 
-Current audits:
-
-| File | Lens |
-|---|---|
-| `audits/2026-06-08-ARIA-AUDIT.md` | WAI-ARIA / APG conformance |
-| `audits/2026-06-10-BUG-AUDIT.md` | Logic, React correctness, races, leaks, SSR |
-| `audits/2026-06-13-PROP-AUDIT.md` | Component prop API gaps |
-
 An audit is a living record: as findings are resolved, mark the row or pattern
 resolved in place (with the resolving commit) rather than deleting it, so the
 document keeps its history.
