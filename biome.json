@@ -32,6 +32,25 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": [
+				"packages/ui/**",
+				"!packages/ui/**/__tests__/**",
+				"!packages/ui/**/*.test.ts",
+				"!packages/ui/**/*.test.tsx",
+				"!packages/ui/**/*.bench.ts",
+				"!packages/ui/src/docs/**"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "warn"
+					}
+				}
+			}
+		}
+	],
 	"files": {
 		"includes": ["**/*.ts", "**/*.tsx", "!**/dist", "!**/.next", "!**/next-env.d.ts"],
 		"ignoreUnknown": true
