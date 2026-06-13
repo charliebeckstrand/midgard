@@ -11,21 +11,25 @@ function fromFunction(text: string): ts.SignatureDeclaration {
 		ts.ScriptKind.TSX,
 	)
 
-	const stmt = sf.statements[0]
+	// Scan rather than assume statement 0, so a preceding `const` (the source of a
+	// resolved default) can sit beside the function the way real components do.
+	for (const stmt of sf.statements) {
+		if (ts.isFunctionDeclaration(stmt)) return stmt
 
-	if (!stmt) throw new Error('no statements parsed from source')
+		if (ts.isVariableStatement(stmt)) {
+			const init = stmt.declarationList.declarations[0]?.initializer
 
-	if (ts.isFunctionDeclaration(stmt)) return stmt
+			if (!init) continue
 
-	if (ts.isVariableStatement(stmt)) {
-		const init = stmt.declarationList.declarations[0]?.initializer
-
-		if (!init) throw new Error('variable declaration has no initializer')
-
-		return findFirstFunctionLike(init)
+			try {
+				return findFirstFunctionLike(init)
+			} catch {
+				/* not function-like; keep scanning */
+			}
+		}
 	}
 
-	throw new Error('unsupported statement shape for callable extraction')
+	throw new Error('no function-like statement parsed from source')
 }
 
 function findFirstFunctionLike(node: ts.Node): ts.SignatureDeclaration {
@@ -103,5 +107,56 @@ describe('extractDefaults — inline destructured defaults', () => {
 		const fn = fromFunction(`const Foo = forwardRef(({ size = 'md' }, ref) => null)`)
 
 		expect(extractDefaults(fn).get('size')).toBe(`'md'`)
+	})
+})
+
+describe('extractDefaults — identifier defaults resolved to same-file const literals', () => {
+	it('resolves an identifier default to its same-file const string literal', () => {
+		const fn = fromFunction(
+			`const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'\n` +
+				`function Foo({ triggerShortcut = DEFAULT_TRIGGER_SHORTCUT }) { return null }`,
+		)
+
+		expect(extractDefaults(fn).get('triggerShortcut')).toBe(`'$mod+KeyK'`)
+	})
+
+	it('resolves identifiers that name array and numeric const literals', () => {
+		const fn = fromFunction(
+			`const ZOOM = [0.5, 1, 2]\nconst DELAY = 200\n` +
+				`function Foo({ zoom = ZOOM, delay = DELAY }) { return null }`,
+		)
+
+		const defaults = extractDefaults(fn)
+
+		expect(defaults.get('zoom')).toBe('[0.5, 1, 2]')
+		expect(defaults.get('delay')).toBe('200')
+	})
+
+	it('unwraps `as const` when resolving a const literal', () => {
+		const fn = fromFunction(
+			`const SIZES = ['sm', 'lg'] as const\n` + `function Foo({ sizes = SIZES }) { return null }`,
+		)
+
+		expect(extractDefaults(fn).get('sizes')).toBe(`['sm', 'lg']`)
+	})
+
+	it('keeps the identifier text when no same-file const resolves it', () => {
+		const fn = fromFunction(`function Foo({ swatches = DEFAULT_SWATCHES }) { return null }`)
+
+		expect(extractDefaults(fn).get('swatches')).toBe('DEFAULT_SWATCHES')
+	})
+
+	it('does not resolve identifiers that name non-literal consts', () => {
+		const fn = fromFunction(
+			`const DEFAULT_ICON = makeIcon()\nfunction Foo({ icon = DEFAULT_ICON }) { return null }`,
+		)
+
+		expect(extractDefaults(fn).get('icon')).toBe('DEFAULT_ICON')
+	})
+
+	it('does not resolve identifiers that name a mutable (let) binding', () => {
+		const fn = fromFunction(`let MUTABLE = 'x'\nfunction Foo({ value = MUTABLE }) { return null }`)
+
+		expect(extractDefaults(fn).get('value')).toBe('MUTABLE')
 	})
 })
