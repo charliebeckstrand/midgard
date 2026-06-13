@@ -14,6 +14,11 @@
       "command": "node",
       "args": [".mcp-servers/vitest/index.mjs"],
       "env": {}
+    },
+    "a11y": {
+      "command": "node",
+      "args": [".mcp-servers/a11y/index.mjs"],
+      "env": {}
     }
   }
 }
