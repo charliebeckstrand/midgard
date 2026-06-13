@@ -82,7 +82,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	} as ColorPanelProps
 
 	return (
-		<div className="contents">
+		<>
 			<ColorPickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -110,6 +110,6 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 			>
 				<ColorPanel {...panelProps} />
 			</ColorPickerContent>
-		</div>
+		</>
 	)
 }

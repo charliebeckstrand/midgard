@@ -21,7 +21,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 	const state = useDatePickerRangeState(props)
 
 	return (
-		<div className="contents">
+		<>
 			<DatePickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -66,6 +66,6 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				/>
 				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
-		</div>
+		</>
 	)
 }
