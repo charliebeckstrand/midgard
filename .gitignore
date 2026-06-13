@@ -35,6 +35,10 @@ npm-debug.log*
 
 .claude/launch.json
 
+# MCP servers (dev-suite documentation runtime caches)
+.kb-cache/
+.dev-suite-analytics/
+
 # Skill outputs
 council-transcript-*.md
 council-report-*.html
