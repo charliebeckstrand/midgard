@@ -2,14 +2,28 @@
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { announce } from '../../core'
-import { fileListToArray, formatFileNames } from './file-upload-utilities'
+import {
+	type FileRejection,
+	fileListToArray,
+	formatFileNames,
+	partitionFiles,
+} from './file-upload-utilities'
 
 type FileHandlersOptions = {
 	disabled?: boolean
+	maxSize?: number
+	maxCount?: number
 	onFiles?: (files: File[]) => void
+	onReject?: (rejected: FileRejection[]) => void
 }
 
-export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions) {
+export function useFileUploadHandlers({
+	disabled,
+	maxSize,
+	maxCount,
+	onFiles,
+	onReject,
+}: FileHandlersOptions) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	// Counter rather than boolean: `dragleave` bubbles on every child boundary
@@ -28,21 +42,30 @@ export function useFileUploadHandlers({ disabled, onFiles }: FileHandlersOptions
 		(fileList: FileList | null) => {
 			if (!fileList) return
 
-			const arr = fileListToArray(fileList)
+			const { accepted, rejected } = partitionFiles(fileListToArray(fileList), {
+				maxSize,
+				maxCount,
+			})
 
-			setFiles(arr)
+			setFiles(accepted)
 
-			onFiles?.(arr)
+			onFiles?.(accepted)
+
+			if (rejected.length > 0) onReject?.(rejected)
 
 			// The selection lands on a visually-hidden input with no audible
 			// feedback; announces through the live region (WCAG 4.1.3).
-			if (arr.length > 0) {
-				const names = formatFileNames(arr)
+			if (accepted.length > 0) {
+				const names = formatFileNames(accepted)
 
-				announce(arr.length === 1 ? `Selected ${names}` : `Selected ${arr.length} files: ${names}`)
+				announce(
+					accepted.length === 1
+						? `Selected ${names}`
+						: `Selected ${accepted.length} files: ${names}`,
+				)
 			}
 		},
-		[onFiles],
+		[maxSize, maxCount, onFiles, onReject],
 	)
 
 	const handleChange = useCallback(

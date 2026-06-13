@@ -148,6 +148,58 @@ describe('FileUpload disabled dropzone', () => {
 	})
 })
 
+describe('FileUpload constraints', () => {
+	const dropzone = (container: HTMLElement) =>
+		container.querySelector('[data-slot="file-upload"]') as HTMLElement
+
+	const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)
+
+	it('splits a drop into accepted onFiles and rejected onReject by maxSize', () => {
+		const onFiles = vi.fn()
+
+		const onReject = vi.fn()
+
+		const small = fileOfSize('small.txt', 50)
+
+		const big = fileOfSize('big.txt', 500)
+
+		const { container } = renderUI(
+			<FileUpload multiple maxSize={100} onFiles={onFiles} onReject={onReject}>
+				Upload
+			</FileUpload>,
+		)
+
+		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([small, big]) } })
+
+		expect(onFiles).toHaveBeenCalledWith([small])
+
+		expect(onReject).toHaveBeenCalledWith([{ file: big, reason: 'size' }])
+	})
+
+	it('does not fire onReject when every file satisfies the constraints', () => {
+		const onFiles = vi.fn()
+
+		const onReject = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload multiple maxCount={2} onFiles={onFiles} onReject={onReject}>
+				Upload
+			</FileUpload>,
+		)
+
+		fireEvent.drop(dropzone(container), {
+			dataTransfer: { files: makeFileList([fileOfSize('a.txt', 1), fileOfSize('b.txt', 1)]) },
+		})
+
+		expect(onFiles).toHaveBeenCalledWith([
+			expect.objectContaining({ name: 'a.txt' }),
+			expect.objectContaining({ name: 'b.txt' }),
+		])
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+})
+
 describe('FileUpload announcements', () => {
 	const politeRegion = () =>
 		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
