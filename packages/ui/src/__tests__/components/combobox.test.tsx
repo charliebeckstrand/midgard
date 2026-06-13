@@ -709,3 +709,103 @@ describe('Combobox + Control', () => {
 		expect(describedBy).toContain('status-error')
 	})
 })
+
+describe('Combobox required', () => {
+	it('surfaces required and aria-required on the input from the prop', () => {
+		const { container } = renderUI(
+			<Combobox required aria-label="City">
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		expect(input).toBeRequired()
+
+		expect(input).toHaveAttribute('aria-required', 'true')
+	})
+
+	it('resolves required from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Combobox aria-label="City">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-required', 'true')
+	})
+})
+
+describe('Combobox readOnly', () => {
+	const chevron = (container: HTMLElement) =>
+		bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]') as HTMLElement
+
+	it('marks the input read-only without disabling it', () => {
+		const { container } = renderUI(
+			<Combobox readOnly aria-label="City">
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		expect(input).toHaveAttribute('readonly')
+
+		expect(input).toHaveAttribute('aria-readonly', 'true')
+
+		// Read-only stays focusable (unlike disabled).
+		expect(input).not.toBeDisabled()
+	})
+
+	it('does not open the menu via the chevron or keyboard while read-only', () => {
+		const { container } = renderUI(
+			<Combobox readOnly aria-label="City">
+				<ComboboxOption value="a">A</ComboboxOption>
+			</Combobox>,
+		)
+
+		fireEvent.mouseDown(chevron(container))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		fireEvent.keyDown(bySlot(container, 'combobox-input') as HTMLElement, { key: 'ArrowDown' })
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('resolves readOnly from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control readOnly>
+				<Combobox aria-label="City">
+					<ComboboxOption value="a">A</ComboboxOption>
+				</Combobox>
+			</Control>,
+		)
+
+		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('still submits the bound value through a Form', async () => {
+		const onSubmit = vi.fn()
+
+		renderUI(
+			<Form defaultValues={{ city: 'paris' }} onSubmit={onSubmit}>
+				<Combobox readOnly name="city" aria-label="City" displayValue={(v) => String(v)}>
+					<ComboboxOption value="paris">Paris</ComboboxOption>
+				</Combobox>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+
+		await waitFor(() =>
+			expect(onSubmit).toHaveBeenCalledWith(
+				expect.objectContaining({ city: 'paris' }),
+				expect.anything(),
+			),
+		)
+	})
+})

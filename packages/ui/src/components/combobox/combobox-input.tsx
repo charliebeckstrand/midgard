@@ -29,6 +29,8 @@ type ComboboxInputProps = {
 	open: boolean
 	controlsId: string
 	disabled?: boolean
+	readOnly?: boolean
+	required?: boolean
 	value: string
 	placeholder?: string
 	density: ControlSize
@@ -52,6 +54,8 @@ export function ComboboxInput({
 	open,
 	controlsId,
 	disabled,
+	readOnly,
+	required,
 	value,
 	placeholder,
 	density,
@@ -70,9 +74,16 @@ export function ComboboxInput({
 				aria-controls={open ? controlsId : undefined}
 				aria-autocomplete="list"
 				aria-label={ariaLabel}
+				// role="combobox" overrides the native textbox semantics, so the
+				// required/readOnly host-language attributes need explicit ARIA to
+				// reach assistive tech.
+				aria-readonly={readOnly || undefined}
+				aria-required={required || undefined}
 				data-slot="combobox-input"
 				autoComplete={autoComplete}
 				disabled={disabled}
+				readOnly={readOnly}
+				required={required}
 				value={value}
 				placeholder={placeholder}
 				className={cn(k({ density, size }))}

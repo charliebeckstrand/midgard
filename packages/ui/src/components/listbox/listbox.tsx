@@ -33,6 +33,10 @@ type ListboxBaseProps = {
 	suffix?: ReactNode
 	size?: ControlSize
 	disabled?: boolean
+	/** Keeps the trigger focusable and the value submitted, but blocks opening and selection. */
+	readOnly?: boolean
+	/** Marks the field required; surfaces `aria-required` on the trigger. */
+	required?: boolean
 	className?: string
 	inputId?: string
 	/**
@@ -107,6 +111,8 @@ export function Listbox<T>({
 	suffix,
 	size,
 	disabled,
+	readOnly,
+	required,
 	className,
 	inputId,
 	tabularNums,
@@ -129,6 +135,10 @@ export function Listbox<T>({
 	const resolvedId = inputId ?? control?.id
 
 	const resolvedDisabled = disabled ?? control?.disabled
+
+	const resolvedReadOnly = readOnly ?? control?.readOnly
+
+	const resolvedRequired = required ?? control?.required
 
 	// Merges a consumer aria-describedby with the field's registered ids,
 	// matching Input/Textarea/Checkbox.
@@ -160,10 +170,22 @@ export function Listbox<T>({
 		setValue,
 	})
 
+	// readOnly keeps the trigger focusable and the value submitted but blocks
+	// every open path (frame click, floating-ui keyboard/typeahead); closing
+	// stays allowed so an externally-opened menu can still dismiss.
+	const setOpenGuarded = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpen(next)
+		},
+		[resolvedReadOnly, setOpen],
+	)
+
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange: setOpen,
+		onOpenChange: setOpenGuarded,
 		matchReferenceWidth: true,
 		returnFocusTo: triggerRef,
 		// The trigger button (`role="combobox"`) and the panel (`role="listbox"`)
@@ -207,7 +229,7 @@ export function Listbox<T>({
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
 
-	const showClear = clearable && hasValue && !resolvedDisabled
+	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
 
 	const clearSuffix = showClear ? (
 		<Button
@@ -250,7 +272,7 @@ export function Listbox<T>({
 				data-group-orientation={dataGroupOrientation}
 				data-slot={slot}
 				frameProps={{
-					onClick: () => setOpen(!open),
+					onClick: () => setOpenGuarded(!open),
 					// While open, focus lives on the active option in the portalled panel. A
 					// mousedown would pull it onto the button; if released off-target, no click
 					// fires, stranding focus on the trigger and killing keyboard navigation.
@@ -279,6 +301,8 @@ export function Listbox<T>({
 					ariaLabelledby={ariaLabelledby}
 					describedBy={describedBy}
 					disabled={resolvedDisabled}
+					readOnly={resolvedReadOnly}
+					required={resolvedRequired}
 					invalid={control?.invalid}
 					label={label}
 					onBlur={handleTriggerBlur}
