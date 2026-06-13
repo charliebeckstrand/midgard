@@ -4,6 +4,7 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/chec
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { CreditCardInput } from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
+import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { FileUpload } from '../../../components/file-upload'
@@ -142,6 +143,21 @@ export const inputCases: readonly Case[] = [
 		<Field key="dp">
 			<Label>Start date</Label>
 			<DatePicker />
+		</Field>,
+	],
+	[
+		// Bare masked date entry: self-labels with a default aria-label="Date" and
+		// advertises numeric input mode; the calendar suffix icon is decorative.
+		'date input',
+		<DateInput key="di" />,
+	],
+	[
+		// Same masked input wired to a Field: the Label names it and the default
+		// aria-label steps aside.
+		'date input in field',
+		<Field key="dif">
+			<Label>Due date</Label>
+			<DateInput />
 		</Field>,
 	],
 	[

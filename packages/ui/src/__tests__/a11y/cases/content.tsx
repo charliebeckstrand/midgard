@@ -2,6 +2,7 @@ import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Heading } from '../../../components/heading'
 import { HoldButton } from '../../../components/hold-button'
+import { ShinyText } from '../../../components/shiny-text'
 import { Text } from '../../../components/text'
 import type { Case } from './types'
 
@@ -14,6 +15,13 @@ export const contentCases: readonly Case[] = [
 			<Heading level={1}>Title</Heading>
 			<Text>Body copy.</Text>
 		</div>,
+	],
+	[
+		// Gradient-masked typography (bg-clip-text + transparent text). Structure is
+		// asserted here; the swept highlight's contrast is the browser geometry gate's
+		// concern.
+		'shiny text',
+		<ShinyText key="sh">Premium</ShinyText>,
 	],
 	[
 		// Icon-only copy control; ships its own accessible name and a status live

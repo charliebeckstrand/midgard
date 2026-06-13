@@ -18,7 +18,7 @@
 
 **Layout & surfaces** — `box` · `flex` · `grid` · `stack` · `group` · `split` · `container` · `card` · `frame` · `glass` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
-**Typography** — `heading` · `text` · `icon`
+**Typography** — `heading` · `text` · `shiny-text` · `icon`
 
 **Feedback** — `loading` · `progress`
 
