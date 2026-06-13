@@ -2,6 +2,8 @@
 
 import { Marked } from 'marked'
 import type { ReactNode } from 'react'
+import { Badge } from '../../../components/badge'
+import { Link } from '../../../components/link'
 import { Markdown } from '../../../components/markdown'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
@@ -13,16 +15,6 @@ import type { DocLink } from '../../api-reference/types'
 // the Markdown component's GFM config but parses inline so a fragment is not
 // wrapped in its own block `<p>`.
 const md = new Marked({ gfm: true })
-
-// Inline-code chrome matching the markdown kata, recolored rose so a resolved
-// `{@link}` reads as an editor-style symbol reference. The chip is a sibling of
-// the prose runs, never nested inside a `k.base` wrapper, so the kata's
-// `[&_code]` rule cannot reclaim its color.
-const CHIP = cn(
-	'rounded border-0 bg-zinc-100 px-1.5 py-0.5 align-baseline font-mono text-[0.85em] dark:bg-white/10',
-	'text-rose-600 dark:text-rose-400',
-	'underline-offset-2 hover:underline',
-)
 
 /**
  * Renders an API-reference description, resolving the `{@link}` tokens the
@@ -72,7 +64,7 @@ function renderSegments(text: string, links: Record<string, DocLink>, card: bool
 
 		const token = parseLinkToken(match[1] ?? '')
 
-		nodes.push(<LinkChip key={key++} token={token} link={links[token.target]} card={card} />)
+		nodes.push(<LinkBadge key={key++} token={token} link={links[token.target]} card={card} />)
 
 		last = index + match[0].length
 	}
@@ -93,41 +85,41 @@ function Prose({ text }: { text: string }) {
 	)
 }
 
-/** A resolved reference rendered as a rose code chip; the hover card is suppressed when `card` is false. */
-function LinkChip({ token, link, card }: { token: LinkToken; link?: DocLink; card: boolean }) {
+/** Props for {@link DocDescription}; the API description text, plus the resolved links for any `{@link}` tokens it contains. */
+function LinkBadge({ token, link, card }: { token: LinkToken; link?: DocLink; card: boolean }) {
 	const label = token.label ?? token.target
 
 	if (token.url) {
 		return (
-			<a href={token.url} target="_blank" rel="noreferrer" className={CHIP}>
+			<Link color="blue" underline href={token.url} target="_blank" rel="noreferrer">
 				{label}
-			</a>
+			</Link>
 		)
 	}
 
 	if (!link || !card) {
 		return (
-			<code className={CHIP} title={link ? quickInfo(link) : undefined}>
+			<Badge variant="soft" title={link ? quickInfo(link) : undefined}>
 				{label}
-			</code>
+			</Badge>
 		)
 	}
 
 	return (
 		<Tooltip placement="top">
 			<TooltipTrigger>
-				<button type="button" className={cn(CHIP, 'cursor-help')}>
+				<Badge variant="soft" data-has-info={!!(link.signature || link.summary) || undefined}>
 					{label}
-				</button>
+				</Badge>
 			</TooltipTrigger>
 			<TooltipContent>
-				<div className="max-w-xs space-y-1">
+				<div className="max-w-xs space-y-2">
 					{link.signature && (
-						<div className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
+						<div className="font-mono text-sm text-zinc-700 dark:text-zinc-300">
 							{link.signature}
 						</div>
 					)}
-					{link.summary && <Markdown>{link.summary}</Markdown>}
+					{link.summary && <Markdown className="text-sm">{link.summary}</Markdown>}
 				</div>
 			</TooltipContent>
 		</Tooltip>

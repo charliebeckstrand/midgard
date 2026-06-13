@@ -11,7 +11,7 @@ describe('DocDescription', () => {
 		expect(bySlot(container, 'doc-description')).not.toBeInTheDocument()
 	})
 
-	it('renders a resolved `{@link}` as a chip carrying the target name', () => {
+	it('renders a resolved `{@link}` as a badge carrying the target name', () => {
 		const { container } = renderUI(
 			<DocDescription
 				description="Hint for a {@link CommandPaletteItem}, built on Kbd."
@@ -21,8 +21,11 @@ describe('DocDescription', () => {
 
 		expect(bySlot(container, 'doc-description')).toBeInTheDocument()
 
-		// The chip is the interactive tooltip trigger when a card is available.
-		expect(screen.getByRole('button', { name: 'CommandPaletteItem' })).toBeInTheDocument()
+		// The badge is the interactive tooltip trigger when a card is available;
+		// `data-has-info` marks that the hover card carries a signature or summary.
+		const badge = screen.getByText('CommandPaletteItem')
+
+		expect(badge).toHaveAttribute('data-has-info', 'true')
 
 		expect(container.textContent).toContain('built on Kbd.')
 	})
@@ -35,10 +38,10 @@ describe('DocDescription', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'the kbd props' })).toBeInTheDocument()
+		expect(screen.getByText('the kbd props')).toBeInTheDocument()
 	})
 
-	it('drops the hover card when `card` is false, keeping the reference as inline code', () => {
+	it('drops the hover card when `card` is false, keeping the reference as a plain badge', () => {
 		const { container } = renderUI(
 			<DocDescription
 				description="See {@link KbdProps}."
@@ -49,11 +52,11 @@ describe('DocDescription', () => {
 
 		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 
-		const code = container.querySelector('code')
+		const badge = bySlot(container, 'badge')
 
-		expect(code?.textContent).toBe('KbdProps')
+		expect(badge?.textContent).toBe('KbdProps')
 
-		expect(code).toHaveAttribute('title', 'type KbdProps')
+		expect(badge).toHaveAttribute('title', 'type KbdProps')
 	})
 
 	it('renders an external URL link as an anchor even with no resolved links', () => {
