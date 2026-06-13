@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDown, ArrowUp } from 'lucide-react'
-import { memo } from 'react'
+import { memo, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Button } from '../button'
@@ -77,6 +77,33 @@ type DataTableColumnHeaderProps = {
 	toggleSort: (column: string | number) => void
 }
 
+// `aria-sort` only applies to a sortable column: the active direction, or
+// 'none' when sortable but not the sort column.
+function ariaSortValue(
+	sortable: boolean | undefined,
+	sorted: boolean,
+	direction: 'asc' | 'desc' | undefined,
+): 'ascending' | 'descending' | 'none' | undefined {
+	if (!sortable) return undefined
+
+	if (!sorted) return 'none'
+
+	return direction === 'asc' ? 'ascending' : 'descending'
+}
+
+function sortDirectionIcon(
+	sorted: boolean,
+	direction: 'asc' | 'desc' | undefined,
+): ReactElement | null {
+	if (!sorted) return null
+
+	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
+
+	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
+
+	return null
+}
+
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	column,
 	colIndex,
@@ -88,15 +115,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
-			aria-sort={
-				column.sortable
-					? sorted
-						? direction === 'asc'
-							? 'ascending'
-							: 'descending'
-						: 'none'
-					: undefined
-			}
+			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
 			className={cn(stickyHeader && k.sticky.head, column.headerClassName)}
 			style={column.width ? { width: column.width } : undefined}
 		>
@@ -109,11 +128,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 						aria-label={`Sort by ${typeof column.title === 'string' ? column.title : column.id}`}
 					>
 						{column.title}
-						{sorted && direction === 'asc' ? (
-							<Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
-						) : sorted && direction === 'desc' ? (
-							<Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
-						) : null}
+						{sortDirectionIcon(sorted, direction)}
 					</Button>
 				</Headless>
 			) : (

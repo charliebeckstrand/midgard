@@ -18,6 +18,46 @@ function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 	return true
 }
 
+// A column shows unless it's a hideable data column the user has hidden;
+// non-data and pinned columns always show.
+function isColumnVisible<T>(col: DataTableColumn<T>, hiddenColumns: Set<string | number>): boolean {
+	if (!isDataColumn(col) || col.pinned) return true
+
+	return !hiddenColumns.has(col.id)
+}
+
+// Orders columns by the stored order, then appends any not represented (e.g.
+// added after mount), dropping hidden columns from both passes.
+function buildVisibleColumns<T>(
+	columns: DataTableColumn<T>[],
+	columnOrder: (string | number)[],
+	columnById: Map<string | number, DataTableColumn<T>>,
+	hiddenColumns: Set<string | number>,
+): DataTableColumn<T>[] {
+	const ordered: DataTableColumn<T>[] = []
+
+	const seen = new Set<string | number>()
+
+	for (const id of columnOrder) {
+		const col = columnById.get(id)
+
+		if (!col) continue
+
+		seen.add(col.id)
+
+		if (isColumnVisible(col, hiddenColumns)) ordered.push(col)
+	}
+
+	// Append any column not represented in the stored order (e.g. added after mount).
+	for (const col of columns) {
+		if (seen.has(col.id)) continue
+
+		if (isColumnVisible(col, hiddenColumns)) ordered.push(col)
+	}
+
+	return ordered
+}
+
 type DataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
@@ -66,40 +106,10 @@ export function useDataTableColumns<T>({
 
 	const manageColumnsLabel = columnManagerConfig?.label ?? 'Columns'
 
-	const visibleColumnsCandidate = useMemo(() => {
-		const ordered: DataTableColumn<T>[] = []
-
-		const seen = new Set<string | number>()
-
-		for (const id of columnOrder) {
-			const col = columnById.get(id)
-
-			if (!col) continue
-
-			seen.add(col.id)
-
-			if (!isDataColumn(col) || col.pinned) {
-				ordered.push(col)
-
-				continue
-			}
-
-			if (hiddenColumns.has(col.id)) continue
-
-			ordered.push(col)
-		}
-
-		// Append any column not represented in the stored order (e.g. added after mount).
-		for (const col of columns) {
-			if (seen.has(col.id)) continue
-
-			if (isDataColumn(col) && !col.pinned && hiddenColumns.has(col.id)) continue
-
-			ordered.push(col)
-		}
-
-		return ordered
-	}, [columns, columnById, columnOrder, hiddenColumns])
+	const visibleColumnsCandidate = useMemo(
+		() => buildVisibleColumns(columns, columnOrder, columnById, hiddenColumns),
+		[columns, columnById, columnOrder, hiddenColumns],
+	)
 
 	// Reuse the previous array reference when contents are element-wise identical.
 	const visibleColumnsRef = useRef(visibleColumnsCandidate)
