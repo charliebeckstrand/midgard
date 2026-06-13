@@ -1,3 +1,23 @@
+import type { KeyboardEvent, ReactNode } from 'react'
+
+// A variant's visible trigger names the hidden input: string children become
+// the label directly, anything else falls back to a variant default.
+export function triggerLabel(children: ReactNode, fallback: string): string {
+	return typeof children === 'string' ? children : fallback
+}
+
+// Enter / Space activate a non-button control (the readonly file `input`),
+// matching native button keyboard behavior.
+export function activateOnEnterSpace(onActivate: () => void) {
+	return (event: KeyboardEvent) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault()
+
+			onActivate()
+		}
+	}
+}
+
 export function fileListToArray(fileList: FileList | null): File[] {
 	if (!fileList) return []
 
