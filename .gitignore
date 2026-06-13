@@ -34,6 +34,7 @@ npm-debug.log*
 .claude/worktrees
 
 .claude/launch.json
+.claude/settings.local.json
 
 # MCP servers (dev-suite documentation runtime caches)
 .kb-cache/
