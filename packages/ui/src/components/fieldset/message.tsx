@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -17,6 +17,33 @@ export type MessageProps = {
 	/** When form-bound and the field has multiple errors, render every one as a list. Defaults to the first error only. */
 	all?: boolean
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
+
+// The error variant auto-renders when form-bound with errors, or (unbound)
+// when given children. Other variants render their children verbatim.
+function shouldRenderError(
+	variant: MessageVariant,
+	isFormBoundError: boolean,
+	issues: string[] | undefined,
+	children: ReactNode,
+): boolean {
+	if (variant !== 'error') return false
+
+	return isFormBoundError ? (issues?.length ?? 0) > 0 : children != null
+}
+
+// Explicit `id` wins; otherwise the error variant borrows the control's
+// messageId, and other variants derive a `${control.id}-${variant}` id.
+function resolveMessageElementId(
+	id: string | undefined,
+	variant: MessageVariant,
+	control: { id: string; messageId?: string } | null | undefined,
+): string | undefined {
+	if (id !== undefined) return id
+
+	if (variant === 'error') return control?.messageId
+
+	return control ? `${control.id}-${variant}` : undefined
+}
 
 export function Message({
 	variant = 'error',
@@ -42,8 +69,7 @@ export function Message({
 	// Error messages register; aria-describedby references the id only while
 	// the message renders. Registration precedes the early return; hook order
 	// stays stable. Success messages are not field descriptions and don't register.
-	const rendersError =
-		variant === 'error' && (isFormBoundError ? (issues?.length ?? 0) > 0 : children != null)
+	const rendersError = shouldRenderError(variant, isFormBoundError, issues, children)
 
 	const registerMessage = control?.registerMessage
 
@@ -57,9 +83,7 @@ export function Message({
 
 	if (isFormBoundError && (!issues || issues.length === 0)) return null
 
-	const elementId =
-		id ??
-		(variant === 'error' ? control?.messageId : control ? `${control.id}-${variant}` : undefined)
+	const elementId = resolveMessageElementId(id, variant, control)
 
 	const className_ = cn(k.message({ size, variant }), className)
 
