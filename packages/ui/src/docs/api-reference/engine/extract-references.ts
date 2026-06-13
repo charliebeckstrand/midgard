@@ -1,5 +1,5 @@
 import { ts } from 'ts-morph'
-import { formatPropType } from './format-type'
+import { formatPropType, formatType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
 
 const TYPE_NAME_RE = /\b([A-Z][A-Za-z0-9_]*)\b/g
@@ -138,6 +138,10 @@ function resolveAliasDefinition(
 
 			if (shape) return { text: dedent(shape), declaration: decl }
 
+			const resolved = computedLiteralUnion(decl, checker)
+
+			if (resolved) return { text: resolved, declaration: decl }
+
 			const params = typeParameterList(decl.typeParameters)
 
 			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
@@ -155,6 +159,34 @@ function resolveAliasDefinition(
 	}
 
 	return null
+}
+
+/**
+ * Resolved values for an enum-like alias whose body is a *computed* literal
+ * union — `keyof typeof map`, an indexed access, etc. — rendered as
+ * `'start' | 'center' | …` instead of the opaque source text (`keyof typeof
+ * alignMap`). Aliases written as a literal union directly (`'a' | 'b'`) already
+ * read well as source and keep their authored order, so they fall through to
+ * the caller's `getText()` path. Returns null for generic aliases and any body
+ * that is not a pure string/number-literal union.
+ */
+function computedLiteralUnion(
+	decl: ts.TypeAliasDeclaration,
+	checker: ts.TypeChecker,
+): string | null {
+	if (decl.typeParameters && decl.typeParameters.length > 0) return null
+
+	if (ts.isUnionTypeNode(decl.type)) return null
+
+	const bodyType = checker.getTypeFromTypeNode(decl.type)
+
+	if (!bodyType.isUnion()) return null
+
+	const LITERAL = ts.TypeFlags.StringLiteral | ts.TypeFlags.NumberLiteral
+
+	if (!bodyType.types.every((t) => (t.flags & LITERAL) !== 0)) return null
+
+	return formatType(bodyType, checker, decl)
 }
 
 /**

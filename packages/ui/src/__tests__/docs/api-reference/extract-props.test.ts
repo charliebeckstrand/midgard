@@ -156,6 +156,54 @@ describe('extractProps — type display', () => {
 		expect(p.references?.Responsive).toContain('initial?:')
 	})
 
+	it('inlines an enum-like `keyof typeof` alias to its values with no reference', () => {
+		const p = prop(
+			propsOf(
+				[
+					`const k = { none: 0, sm: 1, md: 2, lg: 3 } as const`,
+					`type ContainerPadding = keyof typeof k`,
+					`function Foo(props: { padding?: ContainerPadding }) { return null }`,
+				].join('\n'),
+			),
+			'padding',
+		)
+
+		expect(p.type).toBe(`'none' | 'sm' | 'md' | 'lg'`)
+		expect(p.references).toBeUndefined()
+	})
+
+	it('inlines a direct literal-union alias to its values with no reference', () => {
+		const p = prop(
+			propsOf(
+				[
+					`type Size = 'xs' | 'sm' | 'md' | 'lg'`,
+					`function Foo(props: { size?: Size }) { return null }`,
+				].join('\n'),
+			),
+			'size',
+		)
+
+		expect(p.type).toBe(`'xs' | 'sm' | 'md' | 'lg'`)
+		expect(p.references).toBeUndefined()
+	})
+
+	it('keeps a `boolean`-mixed union as an alias with a reference card', () => {
+		const p = prop(
+			propsOf(
+				[
+					`const k = { default: 0, subtle: 1, strong: 2 } as const`,
+					`type BoxOutline = boolean | keyof typeof k`,
+					`function Foo(props: { outline?: BoxOutline }) { return null }`,
+				].join('\n'),
+			),
+			'outline',
+		)
+
+		// Not a pure literal union — boolean is present — so it is not inlined.
+		expect(p.type).toBe('BoxOutline')
+		expect(p.references?.BoxOutline).toBeDefined()
+	})
+
 	it('leaves inline anonymous unions to the formatter (no references)', () => {
 		const p = prop(
 			propsOf(`function Foo(props: { align?: 'start' | 'center' | 'end' }) { return null }`),

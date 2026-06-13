@@ -34,6 +34,20 @@ describe('extractReferences', () => {
 		expect(refs?.Size).toBe(`'sm' | 'md' | 'lg'`)
 	})
 
+	it('resolves a `keyof typeof` alias to its literal values, not the source text', () => {
+		const { location, checker } = callableLocation({
+			'index.ts': [
+				`const alignMap = { start: 0, center: 1, end: 2 } as const`,
+				`type FlexAlign = keyof typeof alignMap`,
+				`function Foo(props: { align: FlexAlign }) { return null }`,
+			].join('\n'),
+		})
+
+		const refs = extractReferences('FlexAlign', location, checker)
+
+		expect(refs?.FlexAlign).toBe(`'start' | 'center' | 'end'`)
+	})
+
 	it('renders the apparent shape of an interface (one member per line)', () => {
 		const { location, checker } = callableLocation({
 			'index.ts': [
