@@ -11,6 +11,23 @@ export type ResizableHandleProps = {
 	className?: string
 }
 
+// Keyboard step for the handle: arrows move by `step` along the panel axis,
+// Home/End jump to the bounds. Returns 0 for keys that don't resize.
+function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): number {
+	const increase = isHorizontal ? 'ArrowRight' : 'ArrowDown'
+	const decrease = isHorizontal ? 'ArrowLeft' : 'ArrowUp'
+
+	if (key === increase) return step
+
+	if (key === decrease) return -step
+
+	if (key === 'Home') return -100
+
+	if (key === 'End') return 100
+
+	return 0
+}
+
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { 'aria-label': ariaLabel = 'Resize', className } = props
 
@@ -29,19 +46,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 		(e: KeyboardEvent) => {
 			const step = e.shiftKey ? 10 : 5
 
-			let delta = 0
-
-			if (isHorizontal) {
-				if (e.key === 'ArrowRight') delta = step
-				else if (e.key === 'ArrowLeft') delta = -step
-			} else {
-				if (e.key === 'ArrowDown') delta = step
-				else if (e.key === 'ArrowUp') delta = -step
-			}
-
-			if (e.key === 'Home') delta = -100
-
-			if (e.key === 'End') delta = 100
+			const delta = resizeDeltaForKey(e.key, isHorizontal, step)
 
 			if (delta !== 0) {
 				e.preventDefault()
