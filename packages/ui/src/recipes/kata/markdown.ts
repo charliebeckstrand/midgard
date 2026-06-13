@@ -32,8 +32,11 @@ export const k = {
 		// Inline code
 		'[&_code]:rounded [&_code]:bg-zinc-100 dark:[&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-zinc-900 dark:[&_code]:text-zinc-100',
 
-		// Fenced code blocks — reset the inline-code chrome on the nested `<code>`.
-		'[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900 [&_pre]:p-4 [&_pre]:text-sm/6 [&_pre]:text-zinc-100',
+		// Fenced code blocks sit a shade lighter than their surface: zinc-900 over
+		// the zinc-950 mobile content area, and zinc-800 on desktop, where the
+		// sidebar layout's dark content surface elevates to zinc-900.
+		'[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900 dark:lg:[&_pre]:bg-zinc-800 [&_pre]:p-4 [&_pre]:text-sm/6 [&_pre]:text-zinc-100',
+		// Reset the inline-code chrome on the nested `<code>`.
 		'[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit',
 
 		// Blockquote, rule
