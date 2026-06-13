@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { affixStepDown } from '../../../primitives/affix/affix'
 import type { Ma, Step } from '../../../recipes'
+import { k as badge } from '../../../recipes/kata/badge'
 import { k as button } from '../../../recipes/kata/button'
 import { control } from '../../../recipes/kiso/control'
 
@@ -21,8 +22,9 @@ import { control } from '../../../recipes/kiso/control'
 // The test parses live recipe values rather than the literal `1.5`; if
 // any of (input.px, button.p, affixStepDown, or the 0.5 inset) drifts,
 // the assertion fails with the calculated delta and points at the source.
-// Button's `p` stands in for any chip's `p`; Button and Badge share the
-// same per-step horizontal padding scale (kasane.p).
+// Badge sits one notch below Button on the shared `px` scale, so its
+// override resolves to a different constant (`2`); the has-badge arm
+// below pins it directly off `badge.px`.
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 
@@ -86,6 +88,57 @@ describe('control affix has-button compensation', () => {
 			const buttonPx = findSpacing(buttonClasses, 'p-[')
 
 			return hostPx - buttonPx
+		})
+
+		expect(new Set(deltas).size).toBe(1)
+	})
+})
+
+// Affix `data-slot=badge` compensation invariant.
+//
+// Same geometry as the has-button arm, but Badge sits one notch below
+// Button on the shared `px` scale (`kata/badge.ts`), so its stepped-down
+// padding is 0.5 smaller and the slot pads 0.5 more — the constant lands
+// at `2`, not `1.5`. The test reads `badge.px` directly; if the badge
+// scale drifts back into step with Button, the constant moves and the
+// assertion names the step.
+
+describe('control affix has-badge compensation', () => {
+	for (const step of STEPS) {
+		const badgeSize = affixStepDown(step)
+
+		const hostPx = findSpacing(control.density[step], 'px-[')
+
+		const badgeClasses = badge.config.variants.size?.[badgeSize] as readonly unknown[]
+
+		const badgePx = findSpacing(badgeClasses, 'px-[')
+
+		const expected = hostPx - badgePx + CHIP_INSET
+
+		it(`${step}: affix.prefix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
+			const actual = findSpacing(control.affix.prefix[step], 'has-[[data-slot=badge]]:pl-[')
+
+			expect(actual).toBe(expected)
+		})
+
+		it(`${step}: affix.suffix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
+			const actual = findSpacing(control.affix.suffix[step], 'has-[[data-slot=badge]]:pr-[')
+
+			expect(actual).toBe(expected)
+		})
+	}
+
+	it('the badge compensation collapses to a constant across all density steps (the lockstep guarantee)', () => {
+		const deltas = STEPS.map((step) => {
+			const badgeSize = affixStepDown(step)
+
+			const hostPx = findSpacing(control.density[step], 'px-[')
+
+			const badgeClasses = badge.config.variants.size?.[badgeSize] as readonly unknown[]
+
+			const badgePx = findSpacing(badgeClasses, 'px-[')
+
+			return hostPx - badgePx
 		})
 
 		expect(new Set(deltas).size).toBe(1)

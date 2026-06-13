@@ -48,7 +48,7 @@ function ColumnTotalBadge({ items }: { items: Load[] }) {
 	const total = items.length
 
 	return (
-		<Badge variant="outline" size="sm" className="tabular-nums">
+		<Badge variant="outline" size="md" className="tabular-nums">
 			{total}
 		</Badge>
 	)
