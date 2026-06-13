@@ -5,7 +5,7 @@ import { k } from '../../recipes/kata/aspect-ratio'
 export type AspectRatioPreset = keyof typeof k.ratio
 
 export type AspectRatioProps = {
-	/** Preset name or numeric ratio. Defaults to square. */
+	/** Preset name or numeric ratio. @default 'square' */
 	ratio?: AspectRatioPreset | number
 	className?: string
 	children?: ReactNode

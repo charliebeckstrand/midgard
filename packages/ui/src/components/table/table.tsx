@@ -8,9 +8,8 @@ import { k } from '../../recipes/kata/table'
 
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. Explicit; defaults to `'snug'`
-	 * (the md step). The table projects the resolved padding onto its
-	 * descendant cells.
+	 * Density level driving cell padding. Explicit. The table projects the
+	 * resolved padding onto its descendant cells. @default 'snug' (the md step)
 	 */
 	density?: DensityLevel
 	bleed?: boolean

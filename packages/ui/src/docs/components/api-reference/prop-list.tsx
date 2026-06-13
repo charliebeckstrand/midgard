@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '../../../components/badge'
-import { Code, CodeBlock } from '../../../components/code'
+import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
 import { Markdown } from '../../../components/markdown'
 import { Stack } from '../../../components/stack'
@@ -13,8 +13,8 @@ import { TypeCell } from './type-cell'
 
 /**
  * Description-first prop entries. Each row leads with the prop name and its
- * required / deprecated status, then the prose summary, then the technical
- * metadata (type via `TypeCell`, default, `@example`). Descriptions and meta
+ * required / default / deprecated badges, then the prose summary, then the
+ * technical metadata (type via `TypeCell`, `@example`). Descriptions and meta
  * are omitted when absent, so undocumented props collapse to name + type.
  */
 export function PropList({ rows }: { rows: PropDef[] }) {
@@ -42,9 +42,19 @@ function PropRow({ prop }: { prop: PropDef }) {
 					{prop.name}
 				</span>
 				{prop.required && (
-					<Badge size="xs" variant="soft" color="amber">
+					<Badge size="sm" variant="soft" color="amber">
 						required
 					</Badge>
+				)}
+				{prop.default && (
+					<Tooltip>
+						<TooltipTrigger>
+							<Badge size="sm" variant="soft" color="zinc">
+								{prop.default}
+							</Badge>
+						</TooltipTrigger>
+						<TooltipContent>Default</TooltipContent>
+					</Tooltip>
 				)}
 				{deprecated && (
 					<Tooltip>
@@ -60,11 +70,6 @@ function PropRow({ prop }: { prop: PropDef }) {
 			{prop.description && <Markdown>{prop.description}</Markdown>}
 			<Flex align="center" gap="md" wrap className="text-sm">
 				<TypeCell prop={prop} />
-				{prop.default && (
-					<Text variant="muted" className="text-sm">
-						default <Code size="sm">{prop.default}</Code>
-					</Text>
-				)}
 			</Flex>
 			{prop.example && <CodeBlock code={prop.example} />}
 		</Stack>

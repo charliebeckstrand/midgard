@@ -22,9 +22,9 @@ export type SignaturePadProps = {
 	readOnly?: boolean
 	/** Placeholder rendered over an empty pad. */
 	placeholder?: string
-	/** Stroke colour. Defaults to `#18181b` (zinc-900). */
+	/** Stroke colour. @default '#18181b' (zinc-900) */
 	strokeColor?: string
-	/** Stroke width in CSS pixels. Defaults to 2. */
+	/** Stroke width in CSS pixels. @default 2 */
 	strokeWidth?: number
 	/** Render the built-in clear button. @default true */
 	clearable?: boolean

@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/group'
 import { useGroup } from './use-group'
 
 type GroupBaseProps = {
-	/** Axis the group lays out on. Defaults to horizontal. */
+	/** Axis the group lays out on. @default 'horizontal' */
 	orientation?: GroupOrientation
 	/**
 	 * Size step that drives end-cap radii on participating children. Resolution
