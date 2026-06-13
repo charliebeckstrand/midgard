@@ -9,7 +9,7 @@ const bg = omote.bg.code
 
 export const k = defineRecipe(
 	{
-		base: [...mark.base],
+		base: mark.base,
 		size: mark.size,
 		defaults: { size: 'md' },
 	},

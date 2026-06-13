@@ -1,7 +1,6 @@
 'use client'
 
 import { Fragment } from 'react'
-import { Code } from '../../../components/code'
 import { Heading } from '../../../components/heading'
 import { Text } from '../../../components/text'
 import type { ComponentApi, PassThrough, PropDef } from '../../api-reference/types'
@@ -71,7 +70,7 @@ function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
 			<span>Also accepts all</span>
 			{entries.map((pt, i) => (
 				<Fragment key={pt.element}>
-					<Code className="font-mono dark:text-white">{`<${pt.element}>`}</Code>
+					<code>{`<${pt.element}>`}</code>
 					{i < entries.length - 1 && <span>,</span>}
 				</Fragment>
 			))}

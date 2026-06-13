@@ -79,7 +79,9 @@ function TypeBadges({ type }: { type: string }) {
 	return (
 		<Flex gap="sm" align="center" wrap>
 			{splitUnion(type).map((part) => (
-				<Badge key={part}>{unquote(part)}</Badge>
+				<Badge key={part} variant="soft">
+					{unquote(part)}
+				</Badge>
 			))}
 		</Flex>
 	)
@@ -140,7 +142,7 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 	return (
 		<>
 			<Flex gap="sm" direction={{ initial: 'col', xl: 'row' }} wrap>
-				<Badge>{prop.type}</Badge>
+				<Badge variant="soft">{prop.type}</Badge>
 				<Button size="sm" variant="bare" onClick={() => setOpen(true)}>
 					View references
 					<Icon icon={<ChevronRight />} />

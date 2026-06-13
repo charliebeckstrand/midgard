@@ -58,20 +58,20 @@ function PropRow({ prop }: { prop: PropDef }) {
 						</Tooltip>
 					)}
 				</div>
-				{prop.required && (
-					<Badge color="amber" variant="soft">
-						required
-					</Badge>
-				)}
 				{prop.default && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge color="zinc" variant="soft">
+							<Badge color="zinc" variant="solid">
 								{prop.default}
 							</Badge>
 						</TooltipTrigger>
 						<TooltipContent>Default</TooltipContent>
 					</Tooltip>
+				)}
+				{prop.required && (
+					<Badge color="amber" variant="soft">
+						required
+					</Badge>
 				)}
 				{deprecated && (
 					<Tooltip>

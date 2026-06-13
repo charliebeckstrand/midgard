@@ -11,10 +11,10 @@ import { VariantListbox } from '../components/variant-listbox'
 const directions = ['left', 'right'] as const
 
 const palettes = [
-	{ name: 'Zinc', color: 'var(--color-zinc-500)', shineColor: 'var(--color-white)' },
-	{ name: 'Amber', color: 'var(--color-amber-500)', shineColor: 'var(--color-amber-200)' },
-	{ name: 'Violet', color: 'var(--color-violet-500)', shineColor: 'var(--color-violet-200)' },
-	{ name: 'Sky', color: 'var(--color-sky-500)', shineColor: 'var(--color-sky-200)' },
+	{ name: 'Zinc', color: 'var(--color-zinc-600)', shineColor: 'var(--color-white)' },
+	{ name: 'Amber', color: 'var(--color-amber-600)', shineColor: 'var(--color-amber-200)' },
+	{ name: 'Violet', color: 'var(--color-violet-600)', shineColor: 'var(--color-violet-200)' },
+	{ name: 'Sky', color: 'var(--color-sky-600)', shineColor: 'var(--color-sky-200)' },
 ] as const
 
 const spreads = [40, 120, 200] as const
