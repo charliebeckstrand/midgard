@@ -6,6 +6,52 @@ import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
+type ThumbRef = { current: ThumbIndex | null }
+
+// Stacked thumbs defer until the first move reveals direction. Returns the
+// thumb now being dragged, or null to keep waiting (no movement yet, or pinned
+// at a boundary).
+function resolveDraggingThumb(
+	clientX: number,
+	draggingRef: ThumbRef,
+	pendingStackedRef: { current: number | null },
+	bounds: { stacked: number; min: number; max: number },
+): ThumbIndex | null {
+	if (draggingRef.current !== null) return draggingRef.current
+
+	if (pendingStackedRef.current === null) return null
+
+	const dx = clientX - pendingStackedRef.current
+
+	if (dx === 0) return null
+
+	// At the min/max boundary the matching thumb has nowhere to go; keep
+	// waiting for a direction reversal.
+	if (dx < 0 && bounds.stacked <= bounds.min) return null
+
+	if (dx > 0 && bounds.stacked >= bounds.max) return null
+
+	const thumb: ThumbIndex = dx < 0 ? 0 : 1
+
+	draggingRef.current = thumb
+
+	pendingStackedRef.current = null
+
+	return thumb
+}
+
+// After `useRangeUpdate` re-sorts on swap, follow `draggingRef` to the new
+// slot of the written value.
+function applySwapResort(
+	dragging: ThumbIndex,
+	snapped: number,
+	current: [number, number],
+	draggingRef: ThumbRef,
+): void {
+	if (dragging === 0 && snapped > current[1]) draggingRef.current = 1
+	else if (dragging === 1 && snapped < current[0]) draggingRef.current = 0
+}
+
 export function useRangePointer(opts: {
 	min: number
 	max: number
@@ -97,35 +143,21 @@ export function useRangePointer(opts: {
 
 	const onPointerMove = useCallback(
 		(event: PointerEvent) => {
-			if (draggingRef.current === null) {
-				if (pendingStackedRef.current === null) return
+			const dragging = resolveDraggingThumb(event.clientX, draggingRef, pendingStackedRef, {
+				stacked: current[0],
+				min,
+				max,
+			})
 
-				const dx = event.clientX - pendingStackedRef.current
-
-				if (dx === 0) return
-
-				// At the min/max boundary the matching thumb has nowhere to go;
-				// keep waiting for a direction reversal.
-				const stacked = current[0]
-
-				if (dx < 0 && stacked <= min) return
-				if (dx > 0 && stacked >= max) return
-
-				draggingRef.current = dx < 0 ? 0 : 1
-				pendingStackedRef.current = null
-			}
+			if (dragging === null) return
 
 			const raw = valueFromPointer(event.clientX)
-			const dragging = draggingRef.current
 
-			// Passes the index active when this move began. After `useRangeUpdate`
-			// re-sorts on swap, `draggingRef` follows to the new slot of the
-			// written value.
+			// Passes the index active when this move began.
 			if (overlap === 'swap') {
 				const snapped = snapToStep(clamp(raw, min, max), min, step)
 
-				if (dragging === 0 && snapped > current[1]) draggingRef.current = 1
-				else if (dragging === 1 && snapped < current[0]) draggingRef.current = 0
+				applySwapResort(dragging, snapped, current, draggingRef)
 			}
 
 			update(dragging, raw)
