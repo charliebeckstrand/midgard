@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PivotTable } from '../../components/pivot-table'
-import { bySlot, renderUI, screen, within } from '../helpers'
+import { bySlot, present, renderUI, screen, within } from '../helpers'
 
 type Row = { lane: string; period: string; loads: number }
 
@@ -11,6 +11,9 @@ const data: Row[] = [
 	{ lane: 'ORD → ATL', period: 'Jan', loads: 4 },
 	{ lane: 'ORD → ATL', period: 'Feb', loads: 11 },
 ]
+
+/** The data `<tr>` whose header cell renders `label`. */
+const rowOf = (label: string) => present(screen.getByText(label).closest('tr'), `row "${label}"`)
 
 describe('PivotTable', () => {
 	it('renders a table with row and column dimensions', () => {
@@ -69,14 +72,9 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = screen.getByText('LAX → DFW').closest('tr')
+		const laxRow = rowOf('LAX → DFW')
 
-		const ordRow = screen.getByText('ORD → ATL').closest('tr')
-
-		expect(laxRow).not.toBeNull()
-		expect(ordRow).not.toBeNull()
-
-		if (!laxRow || !ordRow) return
+		const ordRow = rowOf('ORD → ATL')
 
 		expect(within(laxRow).getByText('15')).toBeInTheDocument()
 
@@ -97,11 +95,9 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = screen.getByText('LAX → DFW').closest('tr')
+		const laxRow = rowOf('LAX → DFW')
 
-		const ordRow = screen.getByText('ORD → ATL').closest('tr')
-
-		if (!laxRow || !ordRow) return
+		const ordRow = rowOf('ORD → ATL')
 
 		expect(within(laxRow).getByText('24')).toBeInTheDocument()
 
@@ -120,13 +116,10 @@ describe('PivotTable', () => {
 
 		const totalCells = screen.getAllByText('Total')
 
-		const totalRow = totalCells.find((el) => el.getAttribute('scope') === 'row')?.closest('tr')
-
-		// The totals row label is a <th scope="row">; fail loudly if it's missing
-		// rather than silently skipping the assertions below.
-		expect(totalRow).toBeTruthy()
-
-		if (!totalRow) return
+		const totalRow = present(
+			totalCells.find((el) => el.getAttribute('scope') === 'row')?.closest('tr'),
+			'totals row',
+		)
 
 		expect(within(totalRow).getByText('19')).toBeInTheDocument()
 
@@ -145,9 +138,7 @@ describe('PivotTable', () => {
 			/>,
 		)
 
-		const laxRow = screen.getByText('LAX → DFW').closest('tr')
-
-		if (!laxRow) return
+		const laxRow = rowOf('LAX → DFW')
 
 		expect(within(laxRow).getByText('2')).toBeInTheDocument()
 	})

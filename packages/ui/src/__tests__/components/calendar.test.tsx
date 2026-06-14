@@ -137,11 +137,11 @@ describe('Calendar', () => {
 
 		const disabledDay = days.find((b) => b.textContent === '5')
 
-		if (disabledDay) {
-			await user.click(disabledDay)
+		expect(disabledDay, 'a day labeled 5 to be present').toBeDefined()
 
-			expect(onChange).not.toHaveBeenCalled()
-		}
+		await user.click(disabledDay as HTMLElement)
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	// Regression: the bare `Date(year, month, day)` constructor maps years 0–99
