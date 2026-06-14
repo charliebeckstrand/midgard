@@ -7,6 +7,6 @@
  */
 
 import { hover } from './hover'
-import { text } from './text'
+import { onTint } from './ramp'
 
-export const plain = { text, hover }
+export const plain = { text: onTint, hover }

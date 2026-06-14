@@ -110,7 +110,7 @@ const extendedSoft = {
 	}),
 }
 
-/** Shared low-alpha hover wash for the plain / soft / outline variants. */
+/** Shared low-alpha hover wash for the outline and plain variants. */
 const extendedHover = shades<ExtendedColor>({
 	mist: ['not-disabled:hover:bg-mist-600/15', 'dark:not-disabled:hover:bg-mist-500/15'],
 	rose: ['not-disabled:hover:bg-rose-600/15', 'dark:not-disabled:hover:bg-rose-500/15'],

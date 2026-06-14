@@ -9,7 +9,7 @@
 import { shades } from '../../../core/recipe'
 
 import { hover } from './hover'
-import { text } from './text'
+import { onTint } from './ramp'
 
 export const outline = {
 	border: shades({
@@ -26,6 +26,6 @@ export const outline = {
 		green: ['ring-green-600', 'dark:ring-green-700'],
 		blue: ['ring-blue-600', 'dark:ring-blue-700'],
 	}),
-	text,
+	text: onTint,
 	hover,
 }
