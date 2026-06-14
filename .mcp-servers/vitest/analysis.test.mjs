@@ -24,7 +24,7 @@ async function withFixtures(files, fn) {
 		paths[name] = p
 	}
 	try {
-		return await fn(paths)
+		return await fn(paths, dir)
 	} finally {
 		await rm(dir, { recursive: true, force: true })
 	}
@@ -97,6 +97,20 @@ test('findOverlaps clusters duplicate sibling tests within scope', async () => {
 			const res = await analysis.findOverlaps({ files: [paths['dup.test.ts']], threshold: 0.5 })
 			assert.equal(res.files, 1)
 			assert.ok(res.clusters.length >= 1)
+		},
+	)
+})
+
+test('walker fallback discovers tests when no explicit scope is given', async () => {
+	// No `files` passed → loadTests falls back to the filesystem walk (the path
+	// used when vitest can't resolve scope). cwd is absolute, so it resolves to
+	// the fixture dir rather than the repo root.
+	await withFixtures(
+		{ 'walk.test.ts': "import { it, expect } from 'vitest'\nit.only('x', () => { expect(1).toBe(1) })\n" },
+		async (_paths, dir) => {
+			const res = await analysis.auditTests({ cwd: dir })
+			assert.ok(res.files >= 1)
+			assert.ok(res.findings.some((f) => f.rule === 'focused-test'))
 		},
 	)
 })
