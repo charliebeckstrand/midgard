@@ -49,7 +49,7 @@ on a codemod rule. That is what keeps a rule from golfing code below readability
 a codemod fires only where the idiom is unambiguously equivalent; everything else
 routes to `cadence_diagnose`.
 
-v1 ships three React 19 rules:
+v1 ships five React 19 rules:
 
 - `react19/use-context` — `useContext(Ctx)` → `use(Ctx)` (codemod).
 - `react19/ref-as-prop` — `forwardRef` → `ref` as a prop. Codemod when props are
@@ -57,6 +57,10 @@ v1 ships three React 19 rules:
   `useImperativeHandle` or a non-destructured props parameter.
 - `react19/use-for-async` — fetch-in-`useEffect` → `use()` under Suspense
   (escalation).
+- `react19/use-action-state` — manual pending/error state around a form submit →
+  `useActionState` with a `<form action>` (escalation).
+- `react19/use-optimistic` — manual optimistic update with catch-block rollback →
+  `useOptimistic` (escalation).
 
 ## Tested morals
 

@@ -230,7 +230,119 @@ const refAsPropRule = {
 	},
 }
 
-export const RULES = [useContextRule, useForAsyncRule, refAsPropRule]
+// Manual pending/error state around an async form submit is the React 18 way;
+// React 19 moves the submit into useActionState with a <form action>. Escalation:
+// adopting it changes how the form reads its inputs (FormData, not the event).
+const useActionStateRule = {
+	id: 'react19/use-action-state',
+	title: 'manual form-submit state → useActionState',
+	category: 'over-granular',
+	authority: 'framework',
+	severity: 'info',
+	kind: 'escalation',
+	source: { technology: 'react', version: '19', topic: 'react-19', anchor: 'useActionState / Key Changes — Form handling: Manual state → useActionState' },
+	rationale: 'Tracking pending/error state by hand around a form submit is the React 18 way; React 19 uses useActionState with a form action.',
+	fix: 'Move the submit into useActionState(action, initial) and drive it from <form action>.',
+	fixtureDir: 'react19/use-action-state',
+
+	detect(sf, tsm) {
+		const { SyntaxKind } = tsm
+		const out = []
+		const fns = [
+			...sf.getDescendantsOfKind(SyntaxKind.ArrowFunction),
+			...sf.getDescendantsOfKind(SyntaxKind.FunctionExpression),
+			...sf.getDescendantsOfKind(SyntaxKind.FunctionDeclaration),
+		]
+		for (const fn of fns) {
+			if (!fn.isAsync?.()) continue
+			const calls = fn.getDescendantsOfKind(SyntaxKind.CallExpression)
+			const prevents = calls.some((c) => /\.preventDefault$/.test(c.getExpression().getText()))
+			const setsState = calls.some((c) => /^set[A-Z]/.test(c.getExpression().getText()))
+			const awaits = fn.getDescendantsOfKind(SyntaxKind.AwaitExpression).length > 0
+			if (prevents && setsState && awaits) {
+				out.push({ line: fn.getStartLineNumber(), message: 'Async form-submit handler toggling state by hand — React 19 expresses this with useActionState + <form action>.' })
+			}
+		}
+		return out
+	},
+
+	diagnose(sf, tsm) {
+		const matches = this.detect(sf, tsm)
+		if (matches.length === 0) return 'No manual form-submit state found.'
+		return [
+			`This component submits a form and tracks pending/error state by hand (${matches.map((m) => `line ${m.line}`).join(', ')}).`,
+			'React 19 expresses it with useActionState:',
+			'',
+			'  const [state, action, isPending] = useActionState(async (prev, formData) => { ... }, initial)',
+			'',
+			'driven by `<form action={action}>`, reading `isPending` from the hook instead of a manual flag. Before adopting it, resolve:',
+			'',
+			'1. Is this a real <form> with form controls? The action is fired by the form, not an arbitrary click handler.',
+			'2. Can the handler read its inputs from the passed FormData instead of the event/refs? The action receives FormData, not the event.',
+			'3. Does the handler do non-submit work (navigation, analytics, optimistic updates)? Keep that out of the action reducer.',
+			'',
+			'If it is a straightforward submit-and-reflect-status form, move the body into the action and drop the manual loading/error state. If it does more, split the submit concern out first.',
+		].join('\n')
+	},
+}
+
+// A manual optimistic update — set the optimistic value, await, revert in catch —
+// is the React 18 way; React 19 uses useOptimistic and reverts automatically when
+// the action settles. Escalation: the base mutation must run inside an action.
+const useOptimisticRule = {
+	id: 'react19/use-optimistic',
+	title: 'manual optimistic update → useOptimistic',
+	category: 'over-granular',
+	authority: 'framework',
+	severity: 'info',
+	kind: 'escalation',
+	source: { technology: 'react', version: '19', topic: 'react-19', anchor: 'useOptimistic / Key Changes — Optimistic UI: Manual → useOptimistic' },
+	rationale: 'Setting an optimistic value and rolling it back in catch by hand is the React 18 way; React 19 uses useOptimistic.',
+	fix: 'Replace the manual set/rollback with useOptimistic and run the mutation in an action.',
+	fixtureDir: 'react19/use-optimistic',
+
+	detect(sf, tsm) {
+		const { SyntaxKind } = tsm
+		const out = []
+		const settersIn = (node) =>
+			node
+				.getDescendantsOfKind(SyntaxKind.CallExpression)
+				.map((c) => c.getExpression().getText())
+				.filter((t) => /^set[A-Z]/.test(t))
+		for (const tryStmt of sf.getDescendantsOfKind(SyntaxKind.TryStatement)) {
+			const catchClause = tryStmt.getCatchClause()
+			if (!catchClause) continue
+			const inTry = new Set(settersIn(tryStmt.getTryBlock()))
+			const rollback = settersIn(catchClause.getBlock()).find((s) => inTry.has(s))
+			const awaits = tryStmt.getTryBlock().getDescendantsOfKind(SyntaxKind.AwaitExpression).length > 0
+			if (rollback && awaits) {
+				out.push({ line: tryStmt.getStartLineNumber(), message: `Optimistic \`${rollback}\` set in try and reverted in catch — React 19 does this with useOptimistic.` })
+			}
+		}
+		return out
+	},
+
+	diagnose(sf, tsm) {
+		const matches = this.detect(sf, tsm)
+		if (matches.length === 0) return 'No manual optimistic-update pattern found.'
+		return [
+			`This component applies an optimistic update and reverts it on failure by hand (${matches.map((m) => `line ${m.line}`).join(', ')}).`,
+			'React 19 expresses it with useOptimistic:',
+			'',
+			'  const [optimistic, addOptimistic] = useOptimistic(state, (current, next) => ...)',
+			'',
+			'React reverts the optimistic value automatically when the action settles, so the catch-block rollback goes away. Before adopting it, resolve:',
+			'',
+			'1. Does the base mutation run inside a transition or form action? useOptimistic only reverts when the wrapping action completes.',
+			'2. Is the catch a plain revert, or custom error recovery? Recovery beyond reverting still needs explicit handling.',
+			'3. Is the optimistic value derived from the submitted input? The reducer receives the current state and that input.',
+			'',
+			'If the mutation already runs in an action and the catch only reverts, replace the manual set/rollback with useOptimistic. Otherwise wrap the mutation in an action first.',
+		].join('\n')
+	},
+}
+
+export const RULES = [useContextRule, useForAsyncRule, refAsPropRule, useActionStateRule, useOptimisticRule]
 
 export const RULE_IDS_FOR_SCHEMA = RULES.map((r) => r.id)
 

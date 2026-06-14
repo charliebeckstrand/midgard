@@ -69,6 +69,30 @@ test('react19/ref-as-prop: useImperativeHandle is an escalation, not a codemod',
 	assert.match(report, /imperative handle/i)
 })
 
+test('react19/use-action-state: manual form-submit state escalates', async () => {
+	const input = read('react19/use-action-state/input.tsx')
+
+	const findings = await reviewSource(repoRoot, 'SignupForm.tsx', input)
+	const finding = findings.find((f) => f.ruleId === 'react19/use-action-state')
+	assert.ok(finding, 'expected react19/use-action-state to be detected')
+	assert.equal(finding.kind, 'escalation')
+
+	const report = await diagnoseSource(repoRoot, 'SignupForm.tsx', input, 'react19/use-action-state')
+	assert.match(report, /useActionState/)
+})
+
+test('react19/use-optimistic: manual optimistic update + rollback escalates', async () => {
+	const input = read('react19/use-optimistic/input.tsx')
+
+	const findings = await reviewSource(repoRoot, 'TodoList.tsx', input)
+	const finding = findings.find((f) => f.ruleId === 'react19/use-optimistic')
+	assert.ok(finding, 'expected react19/use-optimistic to be detected')
+	assert.equal(finding.kind, 'escalation')
+
+	const report = await diagnoseSource(repoRoot, 'TodoList.tsx', input, 'react19/use-optimistic')
+	assert.match(report, /useOptimistic/)
+})
+
 test('react19/use-for-async: detected as an escalation with a diagnosis', async () => {
 	const input = read('react19/use-for-async/input.tsx')
 
