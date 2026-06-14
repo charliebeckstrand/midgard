@@ -27,7 +27,7 @@
  * `__tests__/recipes/boundary/recipe-boundary.test.ts`.
  */
 
-export type { Color } from '../core/recipe'
+export type { Color, ExtendedColor, PaletteColor } from '../core/recipe'
 export type { Ma } from './kiso/ma'
 export type { Step } from './kiso/sun'
 export type { GroupOrientation, GroupPosition } from './kiso/tsunagi'

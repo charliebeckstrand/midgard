@@ -15,14 +15,19 @@
 
 import type { Color } from './colors'
 
-type ShadeSpec = Record<Color, string | readonly [light: string, dark: string]>
+type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, dark: string]>
 
-export function shades(spec: ShadeSpec): Record<Color, string[]> {
+/**
+ * Generic over the colour set: defaults to {@link Color} (the standard
+ * palette) and widens to the extended set when called with an extended-keyed
+ * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/spectrum`.
+ */
+export function shades<C extends string = Color>(spec: ShadeSpec<C>): Record<C, string[]> {
 	const out: Record<string, string[]> = {}
 
-	for (const [color, value] of Object.entries(spec)) {
+	for (const [color, value] of Object.entries(spec) as [C, ShadeSpec<C>[C]][]) {
 		out[color] = typeof value === 'string' ? [value] : [...value]
 	}
 
-	return out as Record<Color, string[]>
+	return out as Record<C, string[]>
 }

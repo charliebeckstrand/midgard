@@ -82,7 +82,7 @@ const decode = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) /
 
 const luminance = ([r, g, b]: RGB): number => 0.2126 * r + 0.7152 * g + 0.0722 * b
 
-const SHADE = /(zinc|red|amber|green|blue)-(\d{2,3})(?:\/(\d{1,3}))?/
+const SHADE = /(zinc|red|amber|green|blue|mist|rose|sky|teal|violet)-(\d{2,3})(?:\/(\d{1,3}))?/
 
 /** Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring its utility + state prefixes. */
 function tokenOf(cls: string): { token: string; alpha: number } {

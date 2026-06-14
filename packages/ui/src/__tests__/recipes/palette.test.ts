@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { definePalette, defineRecipe } from '../../core/recipe'
+import { k as badge } from '../../recipes/kata/badge'
 
 describe('palette', () => {
 	it('exposes the matrix unchanged on the returned config', () => {
@@ -66,5 +67,41 @@ describe('palette', () => {
 		expect(recipe({ variant: 'solid' })).toContain('solid-zinc')
 
 		expect(recipe({ variant: 'outline' })).toContain('has-ring')
+	})
+
+	it('derives the colour axis from the matrix keys, scaffolding extended colours', () => {
+		// A wide-keyed matrix (the `iro.spectrum` shape) expands the `color` axis
+		// to the extended set; the engine reads keys, not a fixed list.
+		const recipe = defineRecipe({
+			palette: definePalette({
+				solid: {
+					zinc: ['z'],
+					red: ['r'],
+					amber: ['a'],
+					green: ['g'],
+					blue: ['b'],
+					rose: ['solid-rose'],
+					violet: ['solid-violet'],
+					sky: ['solid-sky'],
+				},
+			}),
+			defaults: { variant: 'solid' },
+		})
+
+		expect(recipe({ color: 'rose' })).toContain('solid-rose')
+
+		expect(recipe({ color: 'violet' })).toContain('solid-violet')
+
+		// Standard colours stay intact alongside the extended ones.
+		expect(recipe({ color: 'blue' })).toContain('b')
+	})
+
+	it('Badge opts into the wide palette: extended colours resolve to their classes', () => {
+		expect(badge({ variant: 'solid', color: 'rose' })).toContain('bg-rose-600')
+
+		expect(badge({ variant: 'soft', color: 'violet' })).toContain('bg-violet-600/15')
+
+		// The standard palette is unaffected by the opt-in.
+		expect(badge({ variant: 'solid', color: 'zinc' })).toContain('bg-zinc-600')
 	})
 })
