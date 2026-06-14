@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PivotTable } from '../../components/pivot-table'
-import { bySlot, renderUI, screen, within } from '../helpers'
+import { bySlot, present, renderUI, screen, within } from '../helpers'
 
 type Row = { lane: string; period: string; loads: number }
 
@@ -11,14 +11,6 @@ const data: Row[] = [
 	{ lane: 'ORD → ATL', period: 'Jan', loads: 4 },
 	{ lane: 'ORD → ATL', period: 'Feb', loads: 11 },
 ]
-
-/** Asserts a node is present and returns it narrowed, so a missing row fails
- *  loudly here instead of silently skipping the assertions that follow it. */
-function present(el: Element | null | undefined, what: string): HTMLElement {
-	if (!el) throw new Error(`expected ${what} to be present`)
-
-	return el as HTMLElement
-}
 
 /** The data `<tr>` whose header cell renders `label`. */
 const rowOf = (label: string) => present(screen.getByText(label).closest('tr'), `row "${label}"`)
