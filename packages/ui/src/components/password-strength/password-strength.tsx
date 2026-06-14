@@ -106,9 +106,9 @@ export function PasswordStrength({
 						>
 							<Icon
 								icon={passed ? <Check /> : <Dot />}
-								className={cn(k.rule.icon, passed ? k.rule.iconPass : k.rule.iconFail)}
+								className={cn(k.rule.icon.base, passed ? k.rule.icon.pass : k.rule.icon.fail)}
 							/>
-							<span className={cn(passed ? k.rule.textPass : k.rule.text)}>{rule.label}</span>
+							<span className={cn(passed ? k.rule.text.pass : k.rule.text.base)}>{rule.label}</span>
 							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
 							<span className="sr-only">{passed ? ' — met' : ' — not met'}</span>
 						</li>
