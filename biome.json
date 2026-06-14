@@ -52,7 +52,14 @@
 		}
 	],
 	"files": {
-		"includes": ["**/*.ts", "**/*.tsx", "!**/dist", "!**/.next", "!**/next-env.d.ts"],
+		"includes": [
+			"**/*.ts",
+			"**/*.tsx",
+			"!**/dist",
+			"!**/.next",
+			"!**/next-env.d.ts",
+			"!.mcp-servers"
+		],
 		"ignoreUnknown": true
 	},
 	"vcs": {
