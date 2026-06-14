@@ -109,9 +109,11 @@ function sortDirectionIcon(
 ): ReactElement | null {
 	if (!sorted) return null
 
-	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={cn(k.sort.iconActive)} />
+	const className = cn(k.sort.icon({ active: true }))
 
-	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={cn(k.sort.iconActive)} />
+	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={className} />
+
+	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={className} />
 
 	return null
 }
