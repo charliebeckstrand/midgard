@@ -4,6 +4,7 @@ import { DataTableRow } from './data-table-row'
 import { DataTableVirtualizedBody } from './data-table-virtualized-body'
 import type { DataTableColumn } from './types'
 
+/** Props for {@link DataTableBody}. @internal */
 type DataTableBodyProps<T> = {
 	loading: boolean
 	rows: T[]
@@ -23,6 +24,13 @@ type DataTableBodyProps<T> = {
 	} | null
 }
 
+/**
+ * Body for {@link DataTable}: branches between the loading skeleton, the `empty`
+ * slot, the virtualized window, and the plain row map, threading per-row state
+ * to each {@link DataTableRow}.
+ *
+ * @internal
+ */
 export function DataTableBody<T>({
 	loading,
 	rows,

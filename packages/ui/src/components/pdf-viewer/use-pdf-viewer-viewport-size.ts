@@ -7,8 +7,10 @@ type ViewportSize = { width: number; height: number }
 /**
  * Tracks the content-box size of `ref.current` (`clientWidth`/`Height` minus padding).
  *
- * Re-measures synchronously when `invalidationKey` changes, before paint;
- * e.g. a rotation flip changes the viewport's aspect ratio.
+ * @returns The current `{ width, height }`, or `null` before the first measure.
+ * @remarks Re-measures synchronously when `invalidationKey` changes, before
+ * paint; e.g. a rotation flip changes the viewport's aspect ratio.
+ * @internal
  */
 export function usePdfViewerViewportSize(
 	ref: RefObject<HTMLElement | null>,

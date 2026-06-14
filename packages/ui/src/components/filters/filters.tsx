@@ -10,6 +10,7 @@ import { FiltersContext, type FiltersContextValue } from './context'
 
 type FilterValue = Record<string, unknown>
 
+/** True when a field value counts as set: not `undefined`, `null`, `''`, or an empty array. @internal */
 function isActive(v: unknown): boolean {
 	if (v === undefined || v === null || v === '') return false
 

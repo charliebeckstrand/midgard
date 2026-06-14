@@ -10,6 +10,10 @@ export type TabListSkeletonProps = {
 	 * @defaultValue 3
 	 */
 	tabs?: number
+	/**
+	 * Size step driving placeholder dimensions.
+	 * @defaultValue 'md'
+	 */
 	size?: Step
 	className?: string
 }

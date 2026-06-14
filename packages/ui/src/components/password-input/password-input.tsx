@@ -14,14 +14,14 @@ export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
 	toggleButton?: {
 		/**
 		 * Renders the show/hide toggle.
-		 * @defaultValue true
+		 * @defaultValue `true`
 		 */
 		visible?: boolean
 		/** Accessible labels for the toggle's two states. */
 		label?: {
-			/** @defaultValue 'Show password' */
+			/** @defaultValue `'Show password'` */
 			show?: string
-			/** @defaultValue 'Hide password' */
+			/** @defaultValue `'Hide password'` */
 			hide?: string
 		}
 	}
@@ -35,6 +35,16 @@ type ToggleProps = {
 	disabled?: boolean
 }
 
+/**
+ * Suffix button for {@link PasswordInput} that toggles plaintext visibility.
+ *
+ * @remarks
+ * Keeps a fixed `aria-label` (the show label) and signals state via
+ * `aria-pressed`, per the APG toggle-button pattern: screen readers don't
+ * reliably announce a name swap on the same control. The visible tooltip text
+ * still swaps between show/hide.
+ * @internal
+ */
 function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }: ToggleProps) {
 	const text = visible ? hideLabel : showLabel
 

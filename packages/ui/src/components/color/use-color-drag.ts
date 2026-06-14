@@ -6,6 +6,7 @@ import { clamp } from '../../utilities'
 /** Pointer position within the tracked element, each axis normalised to `0-1`. */
 export type DragPosition = { x: number; y: number }
 
+/** Pointer-event bindings for a draggable track; spread onto the tracked element. */
 export type ColorDragHandlers = {
 	onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void
 	onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void
@@ -19,6 +20,19 @@ export type ColorDragHandlers = {
  * Captures the pointer on press; drags that leave the element keep tracking.
  * Press also focuses the element, handing off to keyboard control.
  * Shared by the 2D saturation/value area and the 1D hue/alpha tracks.
+ *
+ * @param ref - The tracked element; its bounding rect normalises pointer coordinates.
+ * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
+ * @param disabled - When set, press is ignored and no drag begins.
+ * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.
+ * @remarks
+ * `onPointerDown` calls `preventDefault` and focuses `ref` synchronously, so the
+ * primary-button press doubles as the keyboard-focus path (WAI-ARIA slider). It
+ * fires `onPosition` immediately on press, before any move. Tracking persists
+ * past the element's bounds via pointer capture; `lostpointercapture` is the
+ * authoritative reset, covering normal release, browser-claimed gestures
+ * (`pointercancel`), and node removal mid-drag. Non-primary buttons are ignored.
+ * @internal
  */
 export function useColorDrag(
 	ref: RefObject<HTMLElement | null>,

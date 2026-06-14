@@ -4,6 +4,10 @@ import { k } from '../../recipes/kata/breadcrumb'
 
 /** Props for {@link BreadcrumbLink}: the `current` flag plus the polymorphic `span`/anchor surface. */
 export type BreadcrumbLinkProps = {
+	/**
+	 * Marks this crumb as the current page (`aria-current="page"`).
+	 * @defaultValue false
+	 */
 	current?: boolean
 	className?: string
 } & PolymorphicStaticProps<'span'>

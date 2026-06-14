@@ -31,8 +31,9 @@ export function LabeledRow({ label, children }: { label: ReactNode; children: Re
 }
 
 /**
- * Vertical showcase cell: the component above, a small caption beneath.
- * Like {@link LabeledRow}, the wrapper is transparent to the code walker.
+ * Vertical showcase cell: the component above, a small caption beneath. Unlike
+ * the `div`-based {@link LabeledRow}, the `Stack` wrapper is a recognized UI
+ * component, so it surfaces in derived snippets rather than flattening away.
  */
 export function LabeledColumn({ label, children }: { label: ReactNode; children: ReactNode }) {
 	return (

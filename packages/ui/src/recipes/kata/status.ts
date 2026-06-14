@@ -40,4 +40,5 @@ export const k = defineRecipe({
 	},
 })
 
+/** Recipe variant props for {@link StatusDot} — the styling axes its kata exposes (`variant`, `status`, `pulse`, `size`), for consumers composing custom slots. */
 export type StatusDotVariants = VariantProps<typeof k>

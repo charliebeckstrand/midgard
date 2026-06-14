@@ -21,6 +21,9 @@ type ControlToggleResult = ControlPropsResult & {
  *
  * `Checkbox`, `Radio`, and `Switch` each wrap their input in a label whose
  * recipe takes both. Resolution order: explicit prop > Density cascade.
+ *
+ * @returns The {@link useControlProps} result extended with a resolved `size`
+ * step (explicit prop, else the inherited Density scale).
  */
 export function useControlToggle({
 	size,

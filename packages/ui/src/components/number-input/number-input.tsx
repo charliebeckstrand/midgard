@@ -36,7 +36,21 @@ export type NumberInputProps = Omit<
 	step?: number
 }
 
-/** Numeric Input with stepper buttons. Clamps to `min`/`max` and rounds to `step` precision on blur rather than mid-entry, and binds to an enclosing Form field by `name`. */
+/**
+ * Numeric Input with stepper buttons. Clamps to `min`/`max` and rounds to `step`
+ * precision on blur rather than mid-entry, and binds to an enclosing Form field
+ * by `name`.
+ *
+ * @remarks Stays controlled whenever a `value` prop is present; binds to the
+ * Form field named `name` otherwise. Raw input is stored verbatim while typing
+ * and only clamped/rounded on blur, so an out-of-range value can briefly display
+ * mid-entry. The stepper buttons are `tabIndex={-1}` and mutate silently, so
+ * each step mirrors the new value through the live-region announcer (WCAG 4.1.3).
+ * Clamp/round-on-blur and the form's touched tracking compose with — rather than
+ * replace — the consumer's `onBlur`.
+ * @see {@link Input}
+ * @see {@link CurrencyInput}
+ */
 export function NumberInput({
 	value,
 	defaultValue,
@@ -165,6 +179,9 @@ export function NumberInput({
  * Decimal places implied by `step`, robust to scientific notation.
  * `(1e-7).toString()` is `'1e-7'`, which a naive `split('.')` reads as
  * precision 0, rounding every entry to an integer.
+ *
+ * @returns Count of fraction digits to round to; `0` for integer steps.
+ * @internal
  */
 function stepPrecision(step: number): number {
 	const s = step.toString()

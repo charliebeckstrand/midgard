@@ -16,4 +16,5 @@ export const k = defineRecipe({
 	defaults: { orientation: 'horizontal', soft: false },
 })
 
+/** Recipe variant props for {@link Divider} — the styling axes its kata exposes (`orientation`, `soft`), for consumers composing custom slots. */
 export type DividerVariants = VariantProps<typeof k>

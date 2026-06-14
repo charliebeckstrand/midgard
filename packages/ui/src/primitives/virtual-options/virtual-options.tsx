@@ -11,9 +11,17 @@ import { useVirtualWindow } from '../../hooks'
 export type VirtualOptionsProps<T> = {
 	/** Items to render. The current filtered/sorted set, in order. */
 	items: T[]
-	/** Row height in pixels. Assumes uniform heights. Defaults to 36. */
+	/**
+	 * Row height in pixels. Assumes uniform heights.
+	 *
+	 * @defaultValue 36
+	 */
 	estimateSize?: number
-	/** How many rows to render outside the viewport. Defaults to 10. */
+	/**
+	 * How many rows to render outside the viewport.
+	 *
+	 * @defaultValue 10
+	 */
 	overscan?: number
 	/** Render function for each item. */
 	children: (item: T, index: number) => ReactNode

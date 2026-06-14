@@ -15,13 +15,13 @@ type ProgressColor = NonNullable<ProgressBarFillVariants['color']>
  * Props for {@link ProgressBar}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`), enforced at the type level by `AccessibleName`.
  */
-// `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressBarProps = AccessibleName & {
 	/** Current progress; omit (or pass `NaN`) for an indeterminate bar. */
 	value?: number
 	/** @defaultValue 100 */
 	max?: number
 	size?: Step
+	/** @defaultValue 'zinc' */
 	color?: ProgressColor
 	className?: string
 }
@@ -31,6 +31,11 @@ export type ProgressBarProps = AccessibleName & {
  * when `value` is a usable number, animating the fill width to its clamped
  * percentage; otherwise indeterminate. Resolves `size` against enclosing
  * Density and respects reduced-motion.
+ *
+ * @remarks
+ * Exposes `aria-valuenow`/`aria-valuemin`/`aria-valuemax` when determinate and
+ * drops `aria-valuenow` when indeterminate. The accessible name is required by
+ * {@link ProgressBarProps}.
  */
 export function ProgressBar({
 	value,

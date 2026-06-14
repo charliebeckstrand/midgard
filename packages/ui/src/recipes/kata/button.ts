@@ -113,4 +113,5 @@ export const k = defineRecipe(
 	},
 )
 
+/** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`, `size`), for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k>

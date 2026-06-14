@@ -25,7 +25,7 @@ const layouts: Record<DateInputFormat, { separator: string; segments: Segment[] 
 	'YYYY-MM-DD': { separator: '-', segments: [year, month, day] },
 }
 
-/** Segment separator for a format (`/` or `-`). */
+/** Segment separator for a format (`/` or `-`). @internal */
 export function dateInputSeparator(format: DateInputFormat): string {
 	return layouts[format].separator
 }
@@ -139,6 +139,8 @@ function joinMaskedSegments(state: MaskState, separator: string, segmentCount: n
  * `152026` lands as `01/05/2026`. A typed separator zero-pads and closes a
  * short month or day (`1/` → `01/`), and a completed segment appends the
  * canonical separator for the next.
+ *
+ * @internal
  */
 export function maskDateText(raw: string, format: DateInputFormat): string {
 	const { separator, segments } = layouts[format]
@@ -168,7 +170,7 @@ export function maskDateText(raw: string, format: DateInputFormat): string {
 	return joinMaskedSegments(state, separator, segments.length)
 }
 
-/** Formats a Date as the canonical zero-padded text for the format. */
+/** Formats a Date as the canonical zero-padded text for the format. @internal */
 export function formatDateValue(date: Date, format: DateInputFormat): string {
 	const { separator, segments } = layouts[format]
 
@@ -196,6 +198,8 @@ function daysInMonth(year: number, month: number): number {
  * Parses masked text back to a Date at local midnight. Returns `undefined`
  * unless every segment is complete and the result is a real calendar date
  * (`02/31/2025` fails, as does year `0000`).
+ *
+ * @internal
  */
 export function parseDateText(text: string, format: DateInputFormat): Date | undefined {
 	const { separator, segments } = layouts[format]
@@ -229,7 +233,7 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 	return date
 }
 
-/** Same calendar day in local time; two empty values count as the same. */
+/** Same calendar day in local time; two empty values count as the same. @internal */
 export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
 	if (a === undefined || b === undefined) return a === b
 
@@ -245,7 +249,7 @@ function dayKey(date: Date): number {
 	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
 }
 
-/** Day-resolution bounds check; ignores time of day on `min`/`max`. */
+/** Day-resolution bounds check; ignores time of day on `min`/`max`. @internal */
 export function isDayInRange(date: Date, min?: Date, max?: Date): boolean {
 	if (min && dayKey(date) < dayKey(min)) return false
 

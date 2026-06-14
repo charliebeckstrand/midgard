@@ -14,8 +14,8 @@ export type PortalContainer = HTMLElement | null
  * `<UIProvider>` (which registers it) lives in `providers/ui`; primitives and
  * components consume `usePortalContainer` here without depending on it.
  *
- * Defaults to `null` outside any provider, leaving each portal to fall back to
- * its own default.
+ * @defaultValue `null` outside any provider, leaving each portal to fall back to
+ * its own default
  */
 export const [PortalContext, usePortalContext] = createContext<PortalContainer>('Portal', {
 	default: null,

@@ -1,3 +1,9 @@
+/**
+ * Code kata: serves both inline `<Code>` (the size-axed `mark` surface) and
+ * the block `<CodeBlock>` (the `wrapper` / `block` / `copy` slots attached as
+ * extras). One kata, two units — the inline mark recipe is the callable `k`;
+ * the block chrome rides as sibling slot fragments.
+ */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ji, kasane, omote, shaku } from '../kiso'
 
@@ -29,5 +35,7 @@ export const k = defineRecipe(
 	},
 )
 
+/** Recipe variant props for inline {@link Code} — its styling axes (`size`), for consumers composing custom slots. */
 export type CodeVariants = VariantProps<typeof k>
+/** Recipe variant props for {@link CodeBlock} — the styling axes its kata exposes (`size`), for consumers composing custom slots. */
 export type CodeBlockVariants = VariantProps<typeof k>

@@ -3,15 +3,22 @@
 import type { ReactNode } from 'react'
 import { HeadlessContext } from './context'
 
+/** Props for {@link Headless}. */
 export type HeadlessProps = {
 	children: ReactNode
 }
 
 /**
- * Strips chrome from headless-aware descendants; they render the bare
- * semantic element. Renders as a pass-through (no host element), keeping the
- * disabled child a direct child of any surrounding `ControlFrame` and
- * `kasane`'s `has-[>:disabled]` selectors intact.
+ * Escape-hatch provider that strips chrome from headless-aware descendants so
+ * they render the bare semantic element.
+ *
+ * @remarks
+ * Renders as a pass-through (no host element), keeping the disabled child a
+ * direct child of any surrounding `ControlFrame` and `kasane`'s
+ * `has-[>:disabled]` selectors intact. Only components that read
+ * {@link useHeadless} respond; others are unaffected.
+ *
+ * @see {@link useHeadless} — the flag descendants read.
  */
 export function Headless({ children }: HeadlessProps) {
 	return <HeadlessContext value={true}>{children}</HeadlessContext>

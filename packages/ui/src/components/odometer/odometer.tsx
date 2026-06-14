@@ -25,7 +25,18 @@ function defaultFormat(value: number) {
 	return formatInteger(Math.round(value))
 }
 
-/** Numeric readout that tweens between values over `duration`; announces only the settled target via `aria-label`. */
+/**
+ * Numeric readout that tweens between values over `duration`; announces only the
+ * settled target via `aria-label`.
+ *
+ * @remarks
+ * Client-only (`'use client'`): the tween runs in an effect, so server and first
+ * client render show the raw `value` and animation begins after mount. Exposed as
+ * `role="img"` with the settled target as `aria-label`, never a live region, so
+ * assistive tech hears the final figure rather than every intermediate frame.
+ * Honors reduced motion by snapping (see {@link useOdometerAnimatedValue}).
+ * @see {@link useOdometerAnimatedValue}
+ */
 export function Odometer({
 	value,
 	duration = 800,

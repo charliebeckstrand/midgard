@@ -30,4 +30,5 @@ export const k = {
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 }
 
+/** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `size`), for consumers composing custom slots. */
 export type DialogPanelVariants = VariantProps<typeof k.panel>

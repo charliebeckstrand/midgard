@@ -1,5 +1,13 @@
 import { OPTION_SELECTOR } from './combobox-constants'
 
+/**
+ * Resolves the input's displayed string. While editing, shows the live `query`.
+ * Otherwise, for single selection with a `displayValue` resolver, shows the
+ * formatted value; multiple selection and unresolved values show empty.
+ *
+ * @returns The string to render in the input.
+ * @internal
+ */
 export function resolveInputDisplay<T>({
 	editing,
 	query,
@@ -26,6 +34,9 @@ export function resolveInputDisplay<T>({
  * Enter convenience: when the list has narrowed to a single option, selects it
  * even if nothing is highlighted. The roving hook's activation key, not this
  * function, selects the *active* (highlighted) option.
+ *
+ * @returns `true` when a sole option was found and clicked, else `false`.
+ * @internal
  */
 export function selectSoleOption(container: HTMLElement): boolean {
 	const items = container.querySelectorAll<HTMLElement>(OPTION_SELECTOR)

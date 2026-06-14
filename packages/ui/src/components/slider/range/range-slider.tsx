@@ -9,6 +9,7 @@ import { pct } from '../../../utilities'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 
+/** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
 	value?: [number, number]
 	defaultValue?: [number, number]
@@ -22,13 +23,16 @@ export type RangeSliderProps = {
 	/**
 	 * Whether moving a thumb past the other swaps their roles. When `false`,
 	 * each thumb is clamped at the other's value. On a keyboard swap, focus
-	 * follows the moving value to the other thumb button. Defaults to `true`.
+	 * follows the moving value to the other thumb button.
+	 *
+	 * @defaultValue `true`
 	 */
 	allowCross?: boolean
 	/**
 	 * Accessible names for the `[start, end]` thumbs; name what each thumb
-	 * bounds (e.g. `['Min price', 'Max price']`). Defaults to
-	 * `['Range start', 'Range end']`.
+	 * bounds (e.g. `['Min price', 'Max price']`).
+	 *
+	 * @defaultValue `['Range start', 'Range end']`
 	 */
 	labels?: [string, string]
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */

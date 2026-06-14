@@ -7,9 +7,9 @@ import { useEscapeLayer } from './use-escape-layer'
 type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
-	/** Escape key closes. @default true */
+	/** Escape key closes. @defaultValue true */
 	escape?: boolean
-	/** Pointer down outside the container closes. @default true */
+	/** Pointer down outside the container closes. @defaultValue true */
 	outsidePointer?: boolean
 	/** External ref for the outside-pointer boundary. If omitted, attach the returned ref. */
 	containerRef?: RefObject<T | null>

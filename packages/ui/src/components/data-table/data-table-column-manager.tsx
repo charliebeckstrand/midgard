@@ -37,6 +37,7 @@ export type DataTableColumnManagerProps = {
 	className?: string
 }
 
+/** A column's display string for ARIA labels: its `title` when a string, else the stringified id. @internal */
 function titleText(title: ReactNode, id: string | number): string {
 	return typeof title === 'string' ? title : String(id)
 }

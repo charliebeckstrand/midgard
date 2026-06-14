@@ -6,16 +6,28 @@ import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
+/** Dialing locale selecting the formatting mask: NANP for `'US'`/`'CA'`, loose digit-and-`+` for `'international'`. */
 export type PhoneInputCountry = 'US' | 'CA' | 'international'
 
+/**
+ * Props for {@link PhoneInput}. Inherits `<MaskInput>` props except `format`,
+ * `type`, `inputMode`, `autoComplete`, and `prefix`, which are derived from
+ * `country` or defaulted here.
+ */
 export type PhoneInputProps = Omit<
 	MaskInputProps,
 	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
 > & {
+	/**
+	 * Dialing locale driving the mask.
+	 * @defaultValue 'US'
+	 */
 	country?: PhoneInputCountry
+	/** Overrides the leading phone-icon affix. */
 	prefix?: ReactNode
 }
 
+/** @internal North American Numbering Plan mask: strips a leading country `1`, caps at 10 digits, and formats as `(NXX) NXX-XXXX` as they arrive. */
 function formatNANP(raw: string) {
 	const digits = digitsOnly(raw)
 

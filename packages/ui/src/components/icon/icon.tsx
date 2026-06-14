@@ -6,6 +6,12 @@ import type { Size } from '../../types/size'
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
 	icon: ReactElement
+	/**
+	 * Named scale step or a raw pixel value. Inside a sized host (Button, Badge,
+	 * Sidebar, control affix slots) the host's `data-slot=icon` projection owns
+	 * the size and overrides this.
+	 * @defaultValue `'md'`
+	 */
 	size?: Size | number
 	className?: string
 	/**
@@ -18,11 +24,11 @@ export type IconProps = {
 
 /**
  * Sizing and accessibility wrapper that clones a Lucide-style `icon` element.
- * Static leaf: renders in React Server Components. `size` is explicit with a
- * default of `md`; inside a sized host (Button, Badge, Sidebar, control affix
- * slots) the host's `data-slot=icon` projection owns the size and overrides
- * these classes. A `label` exposes the icon as `role="img"` instead of hiding
- * it.
+ *
+ * @remarks
+ * Static leaf: renders in React Server Components. A `label` exposes the icon
+ * as `role="img"` with that accessible name; without one the icon is
+ * decorative and stays `aria-hidden`.
  */
 export function Icon({ icon, size, className, label }: IconProps) {
 	const resolvedSize = size ?? 'md'

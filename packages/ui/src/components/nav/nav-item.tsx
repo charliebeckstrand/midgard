@@ -12,19 +12,24 @@ import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
 /**
- * Props for `<NavItem>`, a navigation link/button. Extends the canonical
- * `NavItemProps` with `value` for binding to the surrounding `<Nav>`'s
- * selection state.
+ * Props for {@link NavItem}: the canonical {@link NavItemProps} plus `value` to
+ * bind the item to the surrounding {@link Nav}'s selection state.
  */
 export type NavMenuItemProps = NavItemProps & { value?: string }
 
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic
- * {@link Button} as a list item, marking itself `aria-current="page"` and
- * mounting the scope's active indicator when current (resolved from `current`
- * or selection binding via `value`). Hosts `prefix`/`suffix` affix slots
- * outside the inner button and closes an enclosing offcanvas on click unless
- * `preventClose`.
+ * {@link Button} as an `<li>`, marking itself `aria-current="page"` and mounting
+ * the scope's active indicator when current (resolved from `current`, else the
+ * `value` selection binding). Hosts `prefix`/`suffix` affix slots outside the
+ * inner button and closes an enclosing offcanvas on click unless `preventClose`.
+ *
+ * @remarks
+ * `aria-current="page"` marks the current link for assistive tech; the visual
+ * active indicator animates between siblings within the enclosing
+ * {@link NavList}'s active-indicator scope.
+ *
+ * @see {@link useNavItem} for the shared current-resolution and click wiring.
  */
 export function NavItem({
 	icon,

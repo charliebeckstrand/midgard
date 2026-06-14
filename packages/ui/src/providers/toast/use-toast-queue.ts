@@ -3,6 +3,15 @@
 import { type RefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
+/**
+ * Drives the staggered exit queue for {@link ToastProvider}: `start` snapshots
+ * the non-persistent toasts and removes them one at a time, advancing on each
+ * `handleExitComplete` so their leave animations don't overlap.
+ *
+ * @returns The queue controls (`start`, `stop`, `next`, `handleExitComplete`)
+ * plus a `runningRef` flag.
+ * @internal
+ */
 export function useToastQueue(toastsRef: RefObject<ToastData[]>, sync: () => void) {
 	const queueRef = useRef<string[]>([])
 

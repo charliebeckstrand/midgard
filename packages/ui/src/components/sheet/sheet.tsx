@@ -26,10 +26,13 @@ export type SheetProps = SheetPanelVariants & {
 	 * Optional element to portal into. When provided, the sheet is scoped to this
 	 * element (rendered with `absolute` positioning, no body scroll lock). The
 	 * container must establish a positioning context (e.g. `position: relative`).
-	 * Defaults to `document.body` with full-viewport `fixed` positioning.
+	 * @defaultValue `document.body` with full-viewport `fixed` positioning
 	 */
 	container?: HTMLElement | null
-	/** Element to receive initial focus when the sheet opens. Defaults to the first tabbable child. */
+	/**
+	 * Element to receive initial focus when the sheet opens.
+	 * @defaultValue the first tabbable child
+	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Modal sheets (the default) trap focus, move it into the panel on open,
@@ -38,6 +41,7 @@ export type SheetProps = SheetPanelVariants & {
 	 * peek) that must not steal focus or block the page: no backdrop renders
 	 * and the page behind stays interactive; Escape or a pointer press outside
 	 * the panel dismisses.
+	 * @defaultValue true
 	 */
 	modal?: boolean
 	/**
@@ -48,9 +52,22 @@ export type SheetProps = SheetPanelVariants & {
 }
 
 /**
- * Edge-anchored overlay panel sliding in from `side`; controlled via
- * `open`/`onOpenChange`. Portals to `document.body` by default, or scopes to a
- * `container` with absolute positioning and no scroll lock.
+ * Edge-anchored overlay panel sliding in from `side` (default `'right'`),
+ * controlled via `open`/`onOpenChange` or uncontrolled via `defaultOpen`.
+ * Portals to `document.body` by default, or scopes to a `container` with
+ * absolute positioning and no scroll lock. Resolves the surface variant against
+ * the enclosing Glass provider. Compose `<SheetTrigger>`, `<SheetClose>`, and
+ * the slot family (`<SheetHeader>`, `<SheetTitle>`, `<SheetDescription>`,
+ * `<SheetBody>`, `<SheetFooter>`) within.
+ *
+ * @remarks
+ * A registered `<SheetTitle>` supplies `aria-labelledby` and takes precedence
+ * over the `aria-label` fallback. Modal sheets (the default) trap focus, lock
+ * body scroll, and render a blocking backdrop; `modal={false}` keeps the page
+ * interactive and disables the full-viewport wrapper's pointer events so only
+ * the panel captures them. The panel stops click propagation so taps inside it
+ * never reach the backdrop dismiss handler, and shares a single open-state
+ * setter with its dismiss affordances via `PanelProviders`.
  */
 export function Sheet({
 	open,

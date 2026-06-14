@@ -14,6 +14,16 @@ type MenuStateOptions = {
 	size?: Step
 }
 
+/**
+ * Disclosure, positioning, and density state for {@link Menu}, split into a
+ * `state`/`actions` pair plus the right-click `handleContextMenu` and an
+ * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`),
+ * right-click context menu (`useClientPoint` anchored to the cursor), and
+ * static inline (`defaultOpen` with no `placement`).
+ *
+ * @internal
+ * @see {@link useFloatingDisclosure}
+ */
 export function useMenuState({
 	open: openProp,
 	defaultOpen = false,

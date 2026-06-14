@@ -24,6 +24,11 @@ export type TooltipTriggerProps = {
 	children: ReactNode
 }
 
+/**
+ * Writes a node into a callback or object ref, tolerating either form.
+ *
+ * @internal
+ */
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
 	if (typeof ref === 'function') ref(node)
 	else if (ref != null) (ref as { current: T | null }).current = node

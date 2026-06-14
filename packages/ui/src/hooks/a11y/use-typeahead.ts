@@ -5,7 +5,7 @@ import { type KeyboardEvent, useCallback, useEffect, useRef } from 'react'
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500
 
-/** Whether a key event should drive type-ahead: a lone printable character. */
+/** Whether a key event should drive type-ahead: a lone printable character. @internal */
 export function isTypeaheadKey(e: KeyboardEvent): boolean {
 	return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
 }
@@ -15,7 +15,7 @@ function itemLabel(el: HTMLElement): string {
 	return (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().toLowerCase()
 }
 
-/** Mutable buffer backing one type-ahead instance. */
+/** Mutable buffer backing one type-ahead instance. @internal */
 export type TypeaheadState = { query: string; timer: number }
 
 /**
@@ -24,6 +24,8 @@ export type TypeaheadState = { query: string; timer: number }
  * items that start with it (search resumes past `currentIndex`); distinct
  * characters build a prefix matched from `currentIndex` onward. The buffer
  * self-clears after a 500 ms idle window.
+ *
+ * @internal
  */
 export function matchTypeahead(
 	state: TypeaheadState,
@@ -63,6 +65,8 @@ export function matchTypeahead(
  * characters). Owns one instance's buffer and its idle-reset timer, cleared on
  * unmount; returns a stable matcher with `matchTypeahead` semantics. Labels
  * come from each item's `aria-label`, falling back to trimmed `textContent`.
+ *
+ * @internal
  */
 export function useTypeahead() {
 	const stateRef = useRef<TypeaheadState>({ query: '', timer: 0 })

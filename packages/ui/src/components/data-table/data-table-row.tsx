@@ -8,6 +8,7 @@ import { TableCell, TableRow } from '../table'
 import { DataTableRowContext, type DataTableRowContextValue } from './context'
 import type { DataTableColumn } from './types'
 
+/** Props for {@link DataTableRow}. @internal */
 type DataTableRowProps<T> = {
 	row: T
 	rowKey: string | number
@@ -38,6 +39,12 @@ type DataTableRowProps<T> = {
 	dataRowIndex: number
 }
 
+/**
+ * One data row: maps `columns` to cells (selection checkbox, actions, or `cell`
+ * content) and publishes its datum and flags through {@link DataTableRowContext}.
+ *
+ * @internal
+ */
 function DataTableRowImpl<T>({
 	row,
 	rowKey,
@@ -114,4 +121,5 @@ function DataTableRowImpl<T>({
 	)
 }
 
+/** Memoized {@link DataTableRowImpl}; re-renders a row only when its own props change. @internal */
 export const DataTableRow = memo(DataTableRowImpl) as typeof DataTableRowImpl

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 
+/** Inputs to {@link usePdfViewerPageScale}. @internal */
 type PageScaleOptions = {
 	viewportSize: { width: number; height: number } | null
 	pageSize: { width: number; height: number } | null
@@ -12,6 +13,7 @@ type PageScaleOptions = {
 	hasContent: boolean
 }
 
+/** Computed layout returned by {@link usePdfViewerPageScale}: the scaled image size, the rotated frame size, and the viewport aspect ratio. @internal */
 export type PageScaleResult = {
 	imageWidth: number | undefined
 	imageHeight: number | undefined
@@ -46,6 +48,9 @@ function resolvePageAspectRatio(
  * Derives the page image size, the rotated frame size, and the viewport aspect
  * ratio from the measured viewport, the intrinsic page size, the rotation, and
  * the user zoom.
+ *
+ * @returns The {@link PageScaleResult} layout for the active page.
+ * @internal
  */
 export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult {
 	const { viewportSize, pageSize, isTransposed, zoom, hasContent } = input

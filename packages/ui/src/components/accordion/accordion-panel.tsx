@@ -16,6 +16,12 @@ export type AccordionPanelProps = {
 /**
  * Collapsible region revealed by its {@link AccordionTrigger}. Mounts only while
  * open and animates height/opacity via `AnimatePresence`, honoring reduced-motion.
+ *
+ * @remarks
+ * Carries `role="region"` for assistive tech. `className` lands on the inner body
+ * element, not the animated wrapper.
+ *
+ * @see {@link AccordionTrigger}
  */
 export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	const { open, panelProps } = useAccordionItem()

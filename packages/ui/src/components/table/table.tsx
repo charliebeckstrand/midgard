@@ -9,8 +9,9 @@ import { k } from '../../recipes/kata/table'
 /** Visual modifiers for {@link Table}: `density`, full-`bleed`, `grid` borders, and zebra `striped` rows. */
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. Explicit. The table projects the
-	 * resolved padding onto its descendant cells. @default 'snug' (the md step)
+	 * Density level driving cell padding. Explicit: the table projects the
+	 * resolved padding onto its descendant cells.
+	 * @defaultValue 'snug'
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -41,6 +42,14 @@ export type TableProps = TableVariants & {
  * The table owns `density`, `grid`, and `striped` and projects them onto
  * descendant rows and cells, so TableBody, TableCell, and TableHeader read
  * no context.
+ *
+ * @remarks
+ * Projection reaches descendant cells through DOM selectors, not React
+ * context, so the native table semantics (`<thead>`/`<tbody>`/`<th scope>`)
+ * stay intact for assistive tech. Pass `role="grid"` via `tableProps` only
+ * for composite-widget tables that add a roving keyboard model.
+ * @see {@link TableVariants} for the modifier axes.
+ * @see {@link TableLoading} and {@link TableEmpty} for the loading and empty bodies.
  */
 export function Table({
 	bleed,

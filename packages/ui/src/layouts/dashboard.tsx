@@ -11,9 +11,20 @@ import { useOffcanvas } from '../hooks/use-offcanvas'
 import { StackedLayout } from './stacked'
 
 type DashboardLayoutProps = PropsWithChildren<{
+	/**
+	 * Optional filter controls. Render inline as a desktop `aside`; on mobile
+	 * they collapse behind a "Filters" button that opens them in a {@link Drawer}.
+	 */
 	filters?: ReactNode
 }>
 
+/**
+ * Stacked content layout with a responsive filter rail. Wraps {@link StackedLayout}
+ * and, when `filters` is given, shows them beside the main column on desktop and
+ * inside an offcanvas drawer on mobile.
+ *
+ * @remarks Client component: drives the mobile filter drawer via {@link useOffcanvas}.
+ */
 export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
 	const { open, setOpen } = useOffcanvas()
 

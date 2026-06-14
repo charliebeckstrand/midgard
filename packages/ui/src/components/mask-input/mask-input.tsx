@@ -14,11 +14,22 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	/**
 	 * Predicate marking characters that count toward caret restoration, letting
 	 * the caret skip inserted mask literals (separators, fixed punctuation).
+	 * @defaultValue ASCII alphanumerics and `+`
 	 */
 	meaningful?: (char: string) => boolean
 }
 
-/** Input that reformats its value through `format` as the user types, preserving caret position. Controlled or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form field by `name`. */
+/**
+ * Input that reformats its value through `format` as the user types, preserving
+ * caret position. Controlled or uncontrolled via `value`/`defaultValue`, and
+ * bound to an enclosing Form field by `name`.
+ *
+ * @remarks Wraps {@link Input}; `onChange` is replaced by string-valued
+ * `onValueChange`, fired with the formatted text after each edit. The bound
+ * value is the formatted string, so seed Form defaults pre-formatted. The
+ * caret-preserving reformat and Form binding run through {@link useMaskInput}.
+ * @see {@link useMaskInput}
+ */
 export function MaskInput({
 	value,
 	defaultValue,

@@ -14,7 +14,11 @@ import {
 
 /** Props for {@link Flex}: responsive direction/gap/alignment plus wrap, fill, and inline modifiers atop native `<div>` attributes. */
 export type FlexProps = {
-	/** Flex direction. Supports responsive breakpoints. */
+	/**
+	 * Flex direction. Supports responsive breakpoints.
+	 *
+	 * @defaultValue 'row'
+	 */
 	direction?: ResponsiveDirection
 	/** Gap between children. Supports responsive breakpoints. */
 	gap?: ResponsiveGap
@@ -46,7 +50,7 @@ export type FlexProps = {
  * Static leaf with no client boundary: renders in React Server Components.
  * `gap` is explicit; omitted, it stays unset.
  *
- * @defaultValue direction 'row'
+ * @see {@link Stack} for the column-direction shorthand.
  */
 export function Flex({
 	direction = 'row',

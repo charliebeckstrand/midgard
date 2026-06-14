@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { firstOfMonth } from './calendar-utilities'
 
+/** Options for {@link useCalendarMonth}: the bound `value`, initial `defaultValue` seed, and the roving-focus grid date that pulls the view along. @internal */
 type CalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
@@ -15,6 +16,12 @@ type CalendarMonthOptions = {
  * rules that re-anchor it when `value` or the `active` grid date moves to a
  * different month. The re-anchor happens during render via prev-ref tracking,
  * not in a `useEffect`; it costs no extra render cycle.
+ *
+ * @returns `viewDate` (first of the rendered month), its `year`/`month`
+ * (0-based), and the `prevMonth`/`nextMonth`/`navigateTo` view steppers.
+ * @remarks A clock-seeded view (no `value`/`defaultValue`) renders a
+ * server-safe month synchronously, then a mount effect corrects any
+ * day-boundary or timezone drift once after hydration.
  */
 export function useCalendarMonth({ value, defaultValue, activeGridDate }: CalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {

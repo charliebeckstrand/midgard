@@ -46,4 +46,5 @@ export const k = {
 	motion: ugoki.panel.bottom,
 }
 
+/** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`), for consumers composing custom slots. */
 export type DrawerPanelVariants = VariantProps<typeof k.panel>

@@ -6,6 +6,8 @@ import { type RefObject, useEffect, useState } from 'react'
  * Tracks the height of the `[data-current]` child of `ref` via `ResizeObserver`,
  * re-attaching when the data-current target changes. Returns `undefined` until
  * the first measurement, and stops observing when `enabled` is false.
+ *
+ * @internal
  */
 export function useCurrentContentsHeight(
 	ref: RefObject<HTMLElement | null>,

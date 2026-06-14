@@ -20,6 +20,21 @@ type ComboboxStateParams<T> = {
 	inputRef: RefObject<HTMLInputElement | null>
 }
 
+/**
+ * Query, open, editing, and selection state for the combobox root.
+ *
+ * @returns `{ query, deferredQuery, setQuery, open, setOpen, editing,
+ *   setEditing, close, select, flushPending, selectionValue }`. `query` tracks
+ *   every keystroke; `deferredQuery` lags for filtering but snaps to empty
+ *   immediately so clearing the filter is instant. `open` is controllable via
+ *   the `open` prop. `select` routes through `useSelectableValueChange` semantics:
+ *   notify-only when `!selectable`, otherwise commit or toggle; closes or resets
+ *   the query and refocuses the input depending on `closeOnSelect` (defaults to
+ *   single-selection). `selectionValue`/`flushPending` come from the deferred
+ *   toggle so the menu reads a value frozen until the panel finishes closing.
+ * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
+ * @internal
+ */
 export function useComboboxState<T>({
 	multiple,
 	nullable,

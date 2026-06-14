@@ -36,9 +36,17 @@ export function PopoverPanel({
 	role?: string
 	itemSelector?: string
 	autoFocus?: boolean
-	/** Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys. */
+	/**
+	 * Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys.
+	 *
+	 * @defaultValue false
+	 */
 	typeahead?: boolean
-	/** Apply glass surface chrome instead of the default popover surface. */
+	/**
+	 * Apply glass surface chrome instead of the default popover surface.
+	 *
+	 * @defaultValue false
+	 */
 	glass?: boolean
 	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
 	multiselectable?: boolean

@@ -6,11 +6,11 @@ import { cn } from '../../core'
 export type A11yLiveLevel = 'polite' | 'assertive'
 
 export type A11yLiveRegionOptions = {
-	/** Announcement urgency. `'assertive'` interrupts; `'polite'` waits. */
+	/** Announcement urgency. `'assertive'` interrupts; `'polite'` waits. @defaultValue 'polite' */
 	level?: A11yLiveLevel
-	/** Read the region as a whole on change rather than only the diff. */
+	/** Read the region as a whole on change rather than only the diff. @defaultValue true */
 	atomic?: boolean
-	/** Visually hide the region (`sr-only`) while keeping it in the a11y tree. */
+	/** Visually hide the region (`sr-only`) while keeping it in the a11y tree. @defaultValue false */
 	srOnly?: boolean
 	/** Extra classes merged after the visibility class. */
 	className?: string

@@ -12,13 +12,20 @@ import {
 
 /** Props for {@link Split}: layout knobs (`orientation`, `ratio`, `gap`, `align`) plus `<div>` attributes. */
 export type SplitProps = {
-	/** Split orientation. @default 'horizontal' (two columns) */
+	/**
+	 * Split orientation: two columns (`horizontal`) or two rows (`vertical`).
+	 * @defaultValue 'horizontal'
+	 */
 	orientation?: SplitOrientation
 	/**
-	 * Ratio of the first pane to the second pane. @default '1/2' (equal split)
+	 * Size of the first pane relative to the second; `'1/2'` is an equal split.
+	 * @defaultValue '1/2'
 	 */
 	ratio?: SplitRatio
-	/** Gap between the two panes. Explicit. @default 'lg' */
+	/**
+	 * Gap between the two panes.
+	 * @defaultValue 'lg'
+	 */
 	gap?: SplitGap
 	/** Cross-axis alignment. */
 	align?: SplitAlign

@@ -67,7 +67,11 @@ export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersP
 	)
 }
 
-/** Optional per-slot class overrides for `createPanel`; each defaults to the panel recipe. */
+/**
+ * Optional per-slot class overrides for `createPanel`; each defaults to the panel recipe.
+ *
+ * @internal
+ */
 type PanelSlots = {
 	title?: string | string[]
 	description?: string | string[]
@@ -82,6 +86,10 @@ type PanelSlots = {
  * components for a panel surface, each stamping `data-slot="<slotPrefix>-*"`.
  * Title and Description adopt the ambient `PanelA11yContext` ids; Body is the
  * scroll region. Pass `slots` to override individual slot classes.
+ *
+ * @returns The `{ Title, Description, Header, Body, Footer, Content }` slot
+ * family bound to `slotPrefix`.
+ * @see {@link PanelProviders}
  */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 	const titleClass = slots?.title ?? DEFAULT_TITLE

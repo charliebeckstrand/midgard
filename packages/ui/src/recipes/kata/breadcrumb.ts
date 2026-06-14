@@ -42,5 +42,7 @@ export const k = {
 	skeleton: kokkaku.breadcrumb,
 } as const
 
+/** Recipe variant props for a {@link Breadcrumb} item — its styling axes (`current`), for consumers composing custom slots. */
 export type BreadcrumbItemVariants = VariantProps<typeof item>
+/** Recipe variant props for a {@link Breadcrumb} link — its styling axes (`current`), for consumers composing custom slots. */
 export type BreadcrumbLinkVariants = VariantProps<typeof link>

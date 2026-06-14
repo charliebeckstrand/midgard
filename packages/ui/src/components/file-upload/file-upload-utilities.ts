@@ -5,7 +5,7 @@ import type { KeyboardEvent, ReactNode } from 'react'
  * trigger: string children become the label directly, anything else falls back
  * to a variant default.
  *
- * @returns The trigger label.
+ * @internal
  */
 export function triggerLabel(children: ReactNode, fallback: string): string {
 	return typeof children === 'string' ? children : fallback
@@ -15,7 +15,7 @@ export function triggerLabel(children: ReactNode, fallback: string): string {
  * Builds a keydown handler that activates a non-button control (the readonly
  * file `input`) on Enter / Space, matching native button keyboard behavior.
  *
- * @returns A keydown handler that activates on Enter / Space.
+ * @internal
  */
 export function activateOnEnterSpace(onActivate: () => void) {
 	return (event: KeyboardEvent) => {
@@ -69,6 +69,9 @@ type FileConstraints = {
  * dropped first (reason `'size'`); `maxCount` then caps the survivors in
  * selection order, rejecting the overflow (reason `'count'`). Both constraints
  * are optional — an unset limit never rejects.
+ *
+ * @returns `{ accepted, rejected }` — the kept files and the `FileRejection`s,
+ * each tagged with the constraint it tripped.
  */
 export function partitionFiles(
 	files: File[],

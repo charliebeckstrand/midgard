@@ -7,6 +7,7 @@
 import { clamp } from '../../utilities'
 import type { ColorFormat, Hsva, Rgba } from './types'
 
+/** @internal Round to the nearest integer; the shared rounding primitive for channel output. */
 const round = (n: number) => Math.round(n)
 
 /** Clamp an HSVA into its canonical ranges (`h 0-360`, `s/v 0-100`, `a 0-1`) at full precision. */
@@ -23,6 +24,8 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
  * Clamp and round an HSVA for output / comparison: integers for `h`/`s`/`v`,
  * two decimals for `a`. Full precision stays internal; rounding happens only
  * at these edges.
+ *
+ * @internal
  */
 function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
@@ -45,6 +48,7 @@ export function equalHsva(a: Hsva, b: Hsva): boolean {
 	return sameHue && ca.s === cb.s && ca.v === cb.v && Math.abs(ca.a - cb.a) < 0.005
 }
 
+/** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */
 export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	const S = clamp(s, 0, 100) / 100
 	const V = clamp(v, 0, 100) / 100
@@ -74,6 +78,7 @@ export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	}
 }
 
+/** Convert RGBA to HSVA at full precision; rounding defers to the output edges. Hue is `0` for greys. */
 export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 	const R = clamp(r, 0, 255) / 255
 	const G = clamp(g, 0, 255) / 255
@@ -101,6 +106,7 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 	return { h, s: s * 100, v: max * 100, a: clamp(a, 0, 1) }
 }
 
+/** @internal Format one `0-255` channel as a zero-padded two-digit lowercase hex pair. */
 const toHex2 = (n: number) => clamp(round(n), 0, 255).toString(16).padStart(2, '0')
 
 /** Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (leading `#` optional). Returns `null` for anything else. */
@@ -124,12 +130,24 @@ export function hexToRgba(input: string): Rgba | null {
 	}
 }
 
+/**
+ * Serialise RGBA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
+ *
+ * @param alpha - Append the alpha pair.
+ * @defaultValue `false`
+ */
 export function rgbaToHex({ r, g, b, a }: Rgba, alpha = false): string {
 	const base = `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`
 
 	return alpha ? base + toHex2(clamp(a, 0, 1) * 255) : base
 }
 
+/**
+ * Serialise HSVA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
+ *
+ * @param alpha - Append the alpha pair.
+ * @defaultValue `false`
+ */
 export function hsvaToHex(hsva: Hsva, alpha = false): string {
 	return rgbaToHex(hsvaToRgba(hsva), alpha)
 }
@@ -141,6 +159,7 @@ export function hsvaToCss(hsva: Hsva, alpha = false): string {
 	return `rgba(${r}, ${g}, ${b}, ${alpha ? a : 1})`
 }
 
+/** Parse a hex string to HSVA, or `null` when {@link hexToRgba} rejects it. */
 export function hexToHsva(input: string): Hsva | null {
 	const rgba = hexToRgba(input)
 

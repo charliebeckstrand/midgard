@@ -88,7 +88,14 @@ function isBottomRow(container: HTMLElement | null, cols: number): boolean {
 	return index + cols >= buttons.length
 }
 
-/** Sealed surfaces consume every navigation key, moved or not. */
+/**
+ * Sealed surfaces consume every navigation key, moved or not: prevents default
+ * on an unhandled navigation key, then stops propagation once the event is
+ * defaultPrevented (by this call or an earlier handler). No-op when
+ * `stopPropagation` is false.
+ *
+ * @internal
+ */
 function seal(e: KeyboardEvent, stopPropagation: boolean): void {
 	if (!stopPropagation) return
 

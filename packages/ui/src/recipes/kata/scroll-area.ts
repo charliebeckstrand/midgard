@@ -100,5 +100,7 @@ export const k = {
 	thumb,
 } as const
 
+/** Recipe variant props for the {@link ScrollArea} wrapper — its styling axes (`rounded`, `bare`, `orientation`, `size`), for consumers composing custom slots. */
 export type ScrollAreaWrapperVariants = VariantProps<typeof wrapper>
+/** Recipe variant props for the {@link ScrollArea} viewport — its styling axes (`orientation`, `bare`), for consumers composing custom slots. */
 export type ScrollAreaViewportVariants = VariantProps<typeof viewport>

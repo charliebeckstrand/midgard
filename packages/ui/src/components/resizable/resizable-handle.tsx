@@ -7,7 +7,7 @@ import { useResizable, useResizableIndex } from './context'
 
 /** Props for {@link ResizableHandle}: an optional accessible name. */
 export type ResizableHandleProps = {
-	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @default 'Resize' */
+	/** Accessible name; distinguishes multiple handles ("Resize sidebar"). @defaultValue 'Resize' */
 	'aria-label'?: string
 	className?: string
 }

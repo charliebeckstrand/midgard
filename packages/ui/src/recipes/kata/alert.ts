@@ -25,4 +25,5 @@ export const k = defineRecipe({
 	defaults: { variant: 'soft', color: 'zinc' },
 })
 
+/** Recipe variant props for {@link Alert} — the styling axes its kata exposes (`variant`, `color`), for consumers composing custom slots. */
 export type AlertVariants = VariantProps<typeof k>

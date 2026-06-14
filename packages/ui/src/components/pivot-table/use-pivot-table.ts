@@ -27,17 +27,25 @@ export type PivotTableKeys<T> = {
 export type PivotTableOptions = {
 	/** @defaultValue 'sum' */
 	aggregation?: PivotAggregation
+	/** Explicit ordering of row values; values present in `rows` but absent here are appended. */
 	rowOrder?: readonly string[]
+	/** Explicit ordering of column values; values present in `rows` but absent here are appended. */
 	columnOrder?: readonly string[]
 }
 
 /** Computed pivot: the resolved axis keys plus lookup functions for cell, row-total, column-total, and grand-total values. */
 export type PivotTableResult = {
+	/** Resolved row-axis values, in render order. */
 	rowKeys: string[]
+	/** Resolved column-axis values, in render order. */
 	columnKeys: string[]
+	/** Aggregated value for one `(row, column)` cell; `undefined` when the group is empty. */
 	cellValue: (row: string, column: string) => number | undefined
+	/** Aggregate across a row's columns; `undefined` when the row holds no values. */
 	rowTotal: (row: string) => number | undefined
+	/** Per-column aggregate, aligned to {@link PivotTableResult.columnKeys}; entries are `undefined` for empty columns. */
 	colTotals: (number | undefined)[]
+	/** Aggregate over every value in the grid; `undefined` when it holds none. */
 	grandTotal: number | undefined
 }
 
@@ -48,6 +56,11 @@ export type PivotTableResult = {
  * custom layout.
  *
  * @typeParam T - The shape of each source row.
+ * @param rows - Source rows to pivot.
+ * @param keys - Fields naming the row, column, and value dimensions.
+ * @param options - Aggregation and explicit axis ordering.
+ * @returns The {@link PivotTableResult}: resolved axis keys plus cell, row-total, column-total, and grand-total lookups.
+ * @remarks Cells and totals recompute only when `rows`, `keys`, or `aggregation` change; non-finite values are dropped during grouping.
  */
 export function usePivotTable<T>(
 	rows: readonly T[],

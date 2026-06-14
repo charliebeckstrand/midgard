@@ -29,6 +29,13 @@ export type FloatingSurfaceProps = {
  * Menu surfaces. Owns the `FloatingPortal`, `AnimatePresence`, and the
  * positioned wrapper that receives the floating-ui reference; consumers
  * render the animated inner surface as `children`.
+ *
+ * @remarks
+ * Teleports through the `<UIProvider>`-resolved portal container
+ * ({@link usePortalContainer}). Passing `trapFocusContext` wraps the open
+ * surface in a modal `FloatingFocusManager` that traps Tab; it cedes initial
+ * focus and close-time restore to the consuming panel hook. Mount/unmount runs
+ * through `AnimatePresence` under {@link ReducedMotion}.
  */
 export function FloatingSurface({
 	open,

@@ -16,7 +16,6 @@ type ProgressColor = keyof typeof k.color
  * Props for {@link ProgressGauge}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`), enforced at the type level by `AccessibleName`.
  */
-// `progressbar` requires an accessible name; `AccessibleName` enforces one at the type level.
 export type ProgressGaugeProps = AccessibleName &
 	ProgressGaugeVariants & {
 		/** @defaultValue 0 */
@@ -40,6 +39,11 @@ export type ProgressGaugeProps = AccessibleName &
  * an SVG ring whose arc animates to the clamped percentage, with an optional
  * center `label`. Resolves `size` against enclosing Density and respects
  * reduced-motion.
+ *
+ * @remarks
+ * Always determinate: exposes `aria-valuenow`/`aria-valuemin`/`aria-valuemax`,
+ * with `value` clamped to `[0, max]`. The decorative SVG is `aria-hidden`. The
+ * accessible name is required by {@link ProgressGaugeProps}.
  */
 export function ProgressGauge({
 	value = 0,

@@ -1,15 +1,28 @@
+/** Per-field issue map: field key to its issue list, or `undefined` when the field is clean. */
 export type Errors = Record<string, string[] | undefined>
+/** Per-field touched map: field key to whether the user has blurred it. */
 export type Touched = Record<string, boolean>
+/** Validates one field against its value and the whole record; returns an issue (or issues), or `undefined` when valid. @internal */
 type Validator<T, K extends keyof T> = (value: T[K], values: T) => string | string[] | undefined
+/** Optional {@link Validator} per field of `T`; the map {@link Form} consumes via its `validate` prop. Build one from a schema with {@link zodResolver}. */
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
+/** When the reducer runs validators: on a field's first blur (`'touched'`), on every keystroke (`'change'`), or only on submit (`'submit'`). */
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
+/** Reducer state for one form: current `values` plus the {@link Errors} and {@link Touched} maps. @internal */
 export type FormState<T> = {
 	values: T
 	errors: Errors
 	touched: Touched
 }
 
+/**
+ * Discriminated action set for {@link formReducer}: write a value, mark a field
+ * touched, merge external errors, re-sync controlled values, reset to defaults,
+ * or commit a full-field submit validation.
+ *
+ * @internal
+ */
 export type FormAction<T> =
 	| {
 			type: 'set-value'
@@ -116,6 +129,8 @@ function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown
  * Equality for the `dirty` derivation. Reference first, then structural over
  * `Date`, plain arrays, and plain objects; reference equality for `File`,
  * `Map`, `Set`, and class instances.
+ *
+ * @internal
  */
 export function valuesEqual(a: unknown, b: unknown): boolean {
 	if (Object.is(a, b)) return true

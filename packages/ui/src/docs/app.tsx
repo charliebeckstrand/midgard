@@ -13,6 +13,11 @@ import { useHash } from './hooks/use-hash'
 import { useTheme } from './hooks/use-theme'
 import { demos } from './registry'
 
+/**
+ * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
+ * wired to the persisted theme and density preferences. Defers the route during
+ * navigation so the previous demo stays on screen while the next chunk loads.
+ */
 export function App() {
 	const route = useHash()
 

@@ -24,6 +24,11 @@ export type ToastViewportContextValue = {
  */
 export const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')
 
-/** Internal: viewport state the `<Toast>` viewport consumes. */
+/**
+ * Viewport state the `<Toast>` viewport consumes: the live toast list plus the
+ * dismiss / pause / resume / reset / exit-complete handlers.
+ *
+ * @internal
+ */
 export const [ToastViewportContext, useToastViewport] =
 	createContext<ToastViewportContextValue>('ToastViewport')

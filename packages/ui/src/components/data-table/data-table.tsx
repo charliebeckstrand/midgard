@@ -54,9 +54,15 @@ export type DataTableSelection = {
  * toolbar button and holds controlled/uncontrolled order and visibility state.
  */
 export type DataTableColumnManagerConfig = {
-	/** Render the toolbar button that opens the manage-columns dialog. */
+	/**
+	 * Render the toolbar button that opens the manage-columns dialog.
+	 * @defaultValue false
+	 */
 	enabled?: boolean
-	/** Label on the toolbar button (and dialog title). */
+	/**
+	 * Label on the toolbar button (and dialog title).
+	 * @defaultValue 'Columns'
+	 */
 	label?: ReactNode
 
 	order?: (string | number)[]
@@ -96,15 +102,25 @@ export type DataTableProps<T> = TableVariants & {
 	 */
 	rowLabel?: (row: T) => string
 
+	/**
+	 * Pins the header row while the body scrolls; forces a scroll wrapper around
+	 * the table.
+	 * @defaultValue false
+	 */
 	stickyHeader?: boolean
 	maxHeight?: string
 
+	/**
+	 * Replaces the body with a loading skeleton and marks the table `aria-busy`.
+	 * @defaultValue false
+	 */
 	loading?: boolean
 	rowLoading?: (row: T) => boolean
 
 	/**
 	 * Content shown in place of the body when `rows` is empty and `loading` is
-	 * false. Defaults to a "No items" message.
+	 * false.
+	 * @defaultValue A "No items" message.
 	 */
 	empty?: ReactNode
 

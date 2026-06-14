@@ -1,9 +1,9 @@
 import { Tabs, type TabsProps } from '../tabs'
 
 /**
- * Segmented control: a thin preset over `<Tabs variant="segment">`.
- * The segment variant pins orientation to horizontal; orientation is not
- * part of the surface.
+ * Props for {@link Segment}: {@link TabsProps} without `variant` or
+ * `orientation`. The segment variant pins orientation to horizontal, so
+ * neither is part of the surface.
  */
 export type SegmentProps = Omit<TabsProps, 'variant' | 'orientation'>
 

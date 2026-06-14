@@ -13,7 +13,10 @@ import { StepperPanels } from './stepper-panels'
 export type StepperProps = StepperVariants & {
 	value: number
 	onValueChange?: (value: number) => void
-	/** Restricts navigation to completed and current steps. */
+	/**
+	 * Restricts navigation to completed and current steps.
+	 * @defaultValue false
+	 */
 	linear?: boolean
 	orientation?: StepperOrientation
 	className?: string

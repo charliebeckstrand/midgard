@@ -55,7 +55,7 @@ export type FormHelpers<T> = {
  */
 export type FormSubmitHandler<T> = (values: T, helpers: FormHelpers<T>) => unknown
 
-/** Narrows the loosely-typed handler return to a `fieldErrors` shape, if present. */
+/** Narrows the loosely-typed handler return to a `fieldErrors` shape, if present. @internal */
 function extractFieldErrors(
 	raw: unknown,
 ): Record<string, string | string[] | undefined> | undefined {

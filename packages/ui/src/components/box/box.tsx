@@ -36,7 +36,11 @@ type BoxBaseProps = {
 	bg?: BoxBg
 	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	outline?: BoxOutline
-	/** Overrides the data-slot attribute. @default 'box' */
+	/**
+	 * Overrides the `data-slot` attribute.
+	 *
+	 * @defaultValue 'box'
+	 */
 	'data-slot'?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string
@@ -52,6 +56,12 @@ type BoxBaseProps = {
 export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, Omitted> &
 	PolymorphicStaticProps<'div', Omitted>
 
+/**
+ * Maps an `outline` prop to its kata class(es): `true` selects the default
+ * weight, a named weight indexes the outline map, falsy emits nothing.
+ *
+ * @internal
+ */
 function resolveOutline(outline: BoxOutline | undefined): string | readonly string[] | undefined {
 	if (!outline) return undefined
 

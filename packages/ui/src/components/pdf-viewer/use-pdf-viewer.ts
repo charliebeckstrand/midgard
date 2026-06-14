@@ -11,6 +11,7 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
+/** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
 type PdfViewerOptions = {
 	pages?: PdfViewerPage[]
 	src?: string
@@ -23,23 +24,31 @@ type PdfViewerOptions = {
 	defaultRotation?: number
 }
 
+/** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */
 export type PdfViewerResult = {
+	/** Resolved pages: consumer `pages`, or the set rasterized from `src`. */
 	pages: PdfViewerPage[]
 	total: number
 	activePage: PdfViewerPage | undefined
+	/** Current page clamped to `[1, total]`, or `0` when empty. */
 	safePage: number
 	goToPage: (page: number) => void
 	zoom: PdfViewerZoom
+	/** Raw rotation in degrees for the active page; may be ≥ 360. */
 	rotation: number
 	rotate: () => void
 	scale: PageScaleResult
+	/** Source for download / print: the same-origin blob URL when loaded from `src`, else the raw `src`. */
 	documentSrc: string | undefined
 	filename: string | undefined
 	loading: boolean
 	error: Error | null
+	/** True at the desktop breakpoint (≥ 1024px): pins the thumbnail sidebar instead of the Sheet. */
 	isDesktop: boolean
+	/** Mobile thumbnail Sheet open state. */
 	thumbsOpen: boolean
 	setThumbsOpen: (open: boolean) => void
+	/** True once the viewport and page are measured; gates the image from painting unsized. */
 	visible: boolean
 	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
 	rootRef: RefObject<HTMLElement | null>
@@ -48,6 +57,17 @@ export type PdfViewerResult = {
 
 const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
 
+/**
+ * Composes the PDF viewer's state — document loading, pagination, per-page
+ * rotation, zoom, and the measured viewport/page scale — into one memoized
+ * value for {@link PdfViewerContext}.
+ *
+ * @returns The {@link PdfViewerResult} consumed by every viewer sub-component.
+ * @remarks When `pages` is omitted but `src` is set, pages are rasterized
+ * asynchronously via pdf.js ({@link usePdfViewerDocument}); `loading` and
+ * `error` track that lifecycle.
+ * @internal
+ */
 export function usePdfViewer({
 	pages: pagesProp,
 	src,

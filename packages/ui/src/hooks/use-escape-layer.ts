@@ -6,13 +6,14 @@ import { subscribeDocumentEvent } from '../utilities/document-listener'
 
 type EscapeLayerOptions = {
 	open: boolean
-	/** @default true */
+	/** Gate dismissal without unmounting the hook. @defaultValue true */
 	enabled?: boolean
 	/**
 	 * Layered surfaces (the default) occupy a slot on the shared dismiss stack,
 	 * and Escape dismisses only the topmost open surface. Pass `false` for
 	 * incidental surfaces (tooltips) that close on any Escape press without
 	 * consuming it for the surface beneath.
+	 * @defaultValue true
 	 */
 	layered?: boolean
 	onDismiss: (event: KeyboardEvent) => void

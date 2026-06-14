@@ -22,6 +22,17 @@ export type ColorPickerStateOptions = {
  * Wires the popover trigger: owns the colour shared by the swatch and the
  * inline panel, resolves id / disabled / invalid from an enclosing Control,
  * and drives the floating dialog's open state.
+ *
+ * @returns The colour state (`hsva`, `setHsva`), open state (`open`,
+ * `onOpenChange`), Control-derived field metadata (`triggerId`, `describedBy`,
+ * `disabled`, `required`, `invalid`), and the Floating UI plumbing
+ * (`setReference`, `setFloating`, `floatingStyles`, `getReferenceProps`,
+ * `getFloatingProps`, `context`).
+ * @remarks
+ * `disabled` merges the prop with the enclosing Control's; `setReference`
+ * captures the trigger node for `useFloatingUI`'s `returnFocusTo` alongside
+ * Floating UI's own reference setter.
+ * @internal
  */
 export function useColorPickerState({
 	value,

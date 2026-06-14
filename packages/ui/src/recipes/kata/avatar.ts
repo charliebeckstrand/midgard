@@ -53,4 +53,5 @@ export const k = defineRecipe(
 	},
 )
 
+/** Recipe variant props for {@link Avatar} — the styling axes its kata exposes (`variant`, `color`, `size`), for consumers composing custom slots. */
 export type AvatarVariants = VariantProps<typeof k>

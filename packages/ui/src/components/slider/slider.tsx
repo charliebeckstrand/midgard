@@ -21,13 +21,27 @@ type SliderBaseProps = SliderVariants & {
 	ref?: Ref<HTMLInputElement>
 }
 
+/** Props for {@link Slider}: the controllable value triad, `min`/`max`/`step` bounds, `getValueText` for assistive tech, plus `size`/`color` variants atop native range-`<input>` attributes. */
 export type SliderProps = SliderBaseProps &
 	Omit<
 		ComponentPropsWithoutRef<'input'>,
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 
-/** Range input for a single value; controlled or uncontrolled, resolving `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an enclosing Form field by `name`, `size` from the Density cascade, and exposing fill position as a `--slider-value` CSS variable. */
+/**
+ * Range input for a single value; controlled or uncontrolled, resolving
+ * `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an
+ * enclosing Form field by `name`, `size` from the Density cascade, and exposing
+ * fill position as a `--slider-value` CSS variable.
+ *
+ * @remarks Renders a native `<input type="range">`, so screen-reader semantics
+ * and arrow-key stepping come from the platform; only `aria-valuetext` is
+ * augmented via `getValueText`. `defaultValue` falls back to `min` (an
+ * uncontrolled slider with no default sits at the low end). `required` is
+ * intentionally not resolved from context: a range input always carries a value
+ * and HTML constraint validation ignores the attribute.
+ * @see {@link RangeSlider} for the dual-thumb variant.
+ */
 export function Slider({
 	value,
 	defaultValue,

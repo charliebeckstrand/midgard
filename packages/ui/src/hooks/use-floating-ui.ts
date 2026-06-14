@@ -98,9 +98,9 @@ export type FloatingPanelOptions = {
 	placement: Placement
 	open: boolean
 	onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
-	/** Offset (px) between reference and floating element. @default 4 */
+	/** Offset (px) between reference and floating element. @defaultValue 4 */
 	offset?: number
-	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @default false */
+	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @defaultValue false */
 	matchReferenceWidth?: boolean
 	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
@@ -204,7 +204,7 @@ type FloatingUIOptions = FloatingPanelOptions & {
 	 * `null` when the component hand-rolls its own roles on inner elements (the
 	 * trigger button and the panel); a role here also stamps the positioning
 	 * wrapper, nesting a duplicate widget around the real one
-	 * (combobox-in-combobox, listbox-in-listbox). @default 'listbox'
+	 * (combobox-in-combobox, listbox-in-listbox). @defaultValue 'listbox'
 	 */
 	role?: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
 }

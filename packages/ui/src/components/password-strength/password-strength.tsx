@@ -31,6 +31,7 @@ const strengthLevels = [
 
 /** Props for {@link PasswordStrength}. */
 export type PasswordStrengthProps = {
+	/** Password evaluated against `rules`; read-only, the meter never writes back. */
 	value: string
 	/**
 	 * Rules evaluated against `value`; their pass ratio sets the level.
@@ -39,16 +40,24 @@ export type PasswordStrengthProps = {
 	rules?: readonly PasswordRule[]
 	/**
 	 * Renders the per-rule checklist below the meter.
-	 * @defaultValue true
+	 * @defaultValue `true`
 	 */
 	showRules?: boolean
 	/**
 	 * Renders the textual strength label.
-	 * @defaultValue true
+	 * @defaultValue `true`
 	 */
 	showLabel?: boolean
 	/** Overrides the default level labels (Weak/Fair/Good/Strong). */
 	labels?: Partial<Record<StrengthLevel, string>>
+	/**
+	 * Fires on every strength transition, including first render. See
+	 * {@link PasswordStrengthChange} for the payload.
+	 *
+	 * @remarks
+	 * Fired from an effect after commit, gated so an unchanged level doesn't
+	 * re-fire; see {@link usePasswordStrength}.
+	 */
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 	className?: string
 }

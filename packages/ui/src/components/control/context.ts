@@ -2,9 +2,19 @@
 
 import { createContext } from '../../core'
 
+/** Control density step: `sm`, `md`, or `lg`. Feeds the Density cascade and each field's recipe size. */
 export type ControlSize = 'sm' | 'md' | 'lg'
+
+/** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
 export type ControlVariant = 'default' | 'outline'
 
+/**
+ * Shape of the form-field cascade carried by {@link ControlContext}: the shared
+ * inherited props plus the `<Field>` a11y wiring (slot ids, registrars, composed
+ * `aria-labelledby` / `aria-describedby`).
+ *
+ * @see {@link useControl} for the consumer hook.
+ */
 export type ControlContextValue = {
 	id: string
 	autoComplete?: string
@@ -44,6 +54,10 @@ export type ControlContextValue = {
  *
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
  * radio.
+ *
+ * @returns The enclosing {@link ControlContextValue}, or `undefined` when no
+ * `<Control>` / `<Field>` is mounted above the caller.
+ * @see {@link useControlProps} for the shared resolution helper.
  */
 export const [ControlContext, useControl] = createContext<ControlContextValue | undefined>(
 	'Control',

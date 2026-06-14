@@ -24,8 +24,12 @@ type DataTableColumnVisibilityOptions<T extends ColumnLike> = {
  * Controllable column order + hidden-set state shared by the data table and
  * the standalone column manager. Owns the default-order derivation (the
  * columns' own order), the two `useControllable` bindings with their
- * undefined-coalescing, and the id → column lookup map. The setters are the
- * raw `useControllable` setters; they accept a value or an updater.
+ * undefined-coalescing, and the id → column lookup map.
+ *
+ * @returns `order` (resolved id list), `setOrder`, `hidden` (resolved id set),
+ * `setHidden`, and `byId` (id → column map). The setters are the raw
+ * `useControllable` setters; they accept a value or an updater.
+ * @internal
  */
 export function useDataTableColumnVisibility<T extends ColumnLike>({
 	columns,

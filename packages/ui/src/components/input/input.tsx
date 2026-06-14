@@ -19,6 +19,7 @@ import { useInputValue } from './use-input-value'
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'
+	/** Replaces `suffix` with a stepped-down {@link LoadingSpinner} while truthy. */
 	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode
@@ -32,8 +33,17 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 
 /**
  * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner.
- * Resolves variant, size, and invalid state from enclosing Control, Form, GlassProvider,
- * and Density context, and drops to a bare `<input>` under headless context.
+ * Resolves variant, size, and invalid state from enclosing Control, Form,
+ * GlassProvider, and Density context, and drops to a bare `<input>` under
+ * headless context.
+ *
+ * @remarks Stays controlled whenever a `value` prop is present, even `null` or
+ * `undefined`; binds to the Form field named `name` otherwise. Value resolution
+ * (explicit prop > bound field > internal state) runs through
+ * {@link useInputValue}, and `invalid` OR's the prop, the bound field, and any
+ * ambient Control error. Under headless context the affix frame, loading
+ * spinner, and recipe classes are all skipped.
+ * @see {@link InputFrame}
  */
 export function Input(props: InputProps) {
 	const hasValueProp = 'value' in props

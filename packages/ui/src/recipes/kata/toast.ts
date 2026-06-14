@@ -32,4 +32,5 @@ export const k = {
 	gap: 8,
 }
 
+/** Recipe variant props for the {@link Toast} viewport — its styling axes (`position`), for consumers composing custom slots. */
 export type ToastViewportVariants = VariantProps<typeof viewport>

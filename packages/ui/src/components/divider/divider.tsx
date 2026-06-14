@@ -8,14 +8,14 @@ export type DividerProps = DividerVariants & {
 } & Omit<ComponentPropsWithoutRef<'hr'>, 'className'>
 
 /**
- * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top border when
- * `horizontal` and a left border when `vertical`, and lightens the line under `soft`.
+ * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top
+ * border when `horizontal` (default) and a left border when `vertical`, and
+ * lightens the line under `soft` (default false).
  *
  * @remarks
- * The `vertical` orientation adds `role="separator"` and `aria-orientation="vertical"` for
- * assistive tech; the default horizontal rule relies on the native `<hr>` semantics.
- *
- * @defaultValue orientation 'horizontal', soft false
+ * The `vertical` orientation adds `role="separator"` and
+ * `aria-orientation="vertical"` for assistive tech; the default horizontal
+ * rule relies on the native `<hr>` semantics.
  */
 export function Divider({ orientation, soft, className, ...props }: DividerProps) {
 	return (

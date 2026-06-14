@@ -7,12 +7,14 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 
+/** Props for {@link Sidebar}: `mini` rail toggle and render-prop `children`, plus native `<nav>` attributes (less `children`). */
 export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
 	/**
 	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
 	 * affixes and item actions hide, and items gain a hover tooltip naming the
 	 * label. Below the breakpoint the sidebar keeps its full layout, so the
 	 * mobile drawer is unaffected.
+	 * @defaultValue `false`
 	 */
 	mini?: boolean
 	/**

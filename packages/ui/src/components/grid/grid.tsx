@@ -15,6 +15,7 @@ import {
 export type GridProps = {
 	columns?: Responsive<number>
 	rows?: Responsive<number>
+	/** @defaultValue 'md' */
 	gap?: Responsive<GridGap>
 	flow?: 'row' | 'column' | 'dense'
 	align?: 'start' | 'center' | 'end' | 'stretch'
@@ -31,8 +32,6 @@ export type GridProps = {
  *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
- *
- * @defaultValue gap 'md'
  */
 export function Grid({
 	columns,

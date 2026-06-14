@@ -14,6 +14,7 @@ import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
 
+/** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the controllable open state. @internal */
 type CalendarPickerOptions = {
 	year: number
 	month: number
@@ -24,6 +25,7 @@ type CalendarPickerOptions = {
 	onOpenChange?: (open: boolean) => void
 }
 
+/** Per-view render config for {@link CalendarPickerGrid}: toolbar labels/handlers, center label, the cell list, and whether cells render full-width. @internal */
 type CalendarPickerViewConfig = {
 	gridLabel: string
 	prevLabel: string
@@ -36,6 +38,7 @@ type CalendarPickerViewConfig = {
 	cellBlock: boolean
 }
 
+/** Return shape of {@link useCalendarPicker}: open state and setter, the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
 type CalendarPickerResult = {
 	pickerOpen: boolean | undefined
 	handlePickerOpen: (open: boolean) => void
@@ -46,6 +49,18 @@ type CalendarPickerResult = {
 	viewConfig: CalendarPickerViewConfig
 }
 
+/**
+ * Drives the month/year picker behind {@link CalendarPicker}: owns the
+ * controllable open state, the month/decade view reducer, and the sealed
+ * roving-focus wiring, deriving the per-view cell list and toolbar config.
+ *
+ * @returns A {@link CalendarPickerResult}: `pickerOpen` and `handlePickerOpen`,
+ * the `pickerHeaderRef`/`pickerGridRef` zone refs, their `handleHeaderKeyDown`/
+ * `handleGridKeyDown` handlers, and the active-view `viewConfig`.
+ * @remarks Opening reseeds the view to the current year and focuses the grid
+ * (selected cell first) after a frame; the focus model is sealed
+ * (`stopPropagation`) so arrows don't leak to the calendar underneath.
+ */
 export function useCalendarPicker({
 	year,
 	month,

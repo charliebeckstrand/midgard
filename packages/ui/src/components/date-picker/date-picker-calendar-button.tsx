@@ -5,13 +5,19 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
+/** Props for {@link DatePickerCalendarButton}. @internal */
 type DatePickerCalendarButtonProps = {
 	open: boolean
 	disabled?: boolean
+	/** Toggles the popover open/closed. */
 	onActivate: () => void
 }
 
-/** Calendar-icon suffix button that opens an `input`-enabled picker's popover. */
+/**
+ * Calendar-icon suffix button that opens an `input`-enabled picker's popover.
+ *
+ * @internal
+ */
 export function DatePickerCalendarButton({
 	open,
 	disabled,

@@ -13,6 +13,8 @@ type MotionProps = {
 	 *
 	 * There is no "force animate" mode; an app cannot override a user's OS
 	 * reduced-motion preference.
+	 *
+	 * @defaultValue 'user'
 	 */
 	reducedMotion?: 'user' | 'always'
 	children: ReactNode

@@ -88,7 +88,11 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	)
 }
 
-/** Drop the item's own props, leaving the host element's attributes to forward. */
+/**
+ * Drops the item's own props, leaving the host element's attributes to forward.
+ *
+ * @internal
+ */
 function forwardedProps<T extends CommandPaletteItemBaseProps & { onClick?: unknown }>({
 	disabled: _disabled,
 	className: _className,

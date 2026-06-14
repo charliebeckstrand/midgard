@@ -12,7 +12,8 @@ export type AccordionTriggerProps = ComponentPropsWithoutRef<'button'> & {
 	/**
 	 * Heading level (1-6) of the element wrapping the trigger button. The
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
-	 * heading. @defaultValue 3
+	 * heading.
+	 * @defaultValue 3
 	 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 }
@@ -21,6 +22,9 @@ export type AccordionTriggerProps = ComponentPropsWithoutRef<'button'> & {
  * Header button that toggles its {@link AccordionItem}. Wraps itself in an
  * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
  * accordion pattern. Participates in the parent's roving tabindex.
+ *
+ * @see {@link Accordion}
+ * @see {@link AccordionPanel}
  */
 export function AccordionTrigger({
 	className,

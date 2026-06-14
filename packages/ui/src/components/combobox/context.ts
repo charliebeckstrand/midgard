@@ -11,4 +11,10 @@ type ComboboxContextValue<T = unknown> = {
 	onSelect: (value: T) => void
 }
 
+/**
+ * Selection state shared from the {@link Combobox} root to its options:
+ * the frozen `value`, the `multiple` flag, and the `onSelect` callback.
+ *
+ * @internal
+ */
 export const [ComboboxContext] = createContext<ComboboxContextValue>('Combobox')

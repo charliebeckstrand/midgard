@@ -24,8 +24,8 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 /**
  * Scrollable viewport with custom overlay scrollbars and draggable thumbs.
  * `scrollbar` toggles between `auto` (fade in while scrolling), `visible`, and
- * `hidden`. The viewport becomes keyboard-focusable only while actually
- * scrollable.
+ * `hidden`. The viewport is keyboard-focusable on every axis its `orientation`
+ * enables.
  */
 export function ScrollArea({
 	orientation = 'vertical',
@@ -61,8 +61,8 @@ export function ScrollArea({
 			data-slot="scroll-area"
 			className={cn(k.wrapper({ rounded, orientation, size, bare }), className)}
 		>
-			{/* Keyboard-focusable when scrollable (axe scrollable-region-focusable).
-			    tabIndex is omitted on non-scrolling viewports; consumers can override
+			{/* Keyboard-focusable on any enabled axis (axe scrollable-region-focusable).
+			    tabIndex is omitted when no axis is enabled; consumers can override
 			    via props (e.g. tabIndex={-1} with role="region" + aria-label). */}
 			<div
 				data-slot="scroll-area-viewport"

@@ -10,6 +10,11 @@ import { usePdfViewerContext } from './context'
  * page image, an error message, a loading placeholder, or an empty state.
  * The `scale` input drives the viewport's aspect ratio; the container
  * reserves space before the image paints.
+ *
+ * @remarks A visually hidden live region announces "Page X of Y" on
+ * navigation. Errors render in a `role="alert"`; loading shows an
+ * `aria-label`'d placeholder.
+ * @internal
  */
 export function PdfViewerViewport() {
 	const {

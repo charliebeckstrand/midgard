@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/markdown'
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 
+/** Props for {@link Markdown}: the Markdown source string to render as prose. */
 export type MarkdownProps = {
 	/** Markdown source to render. Must be trusted — the output is not sanitized. */
 	children: string
@@ -14,15 +15,16 @@ export type MarkdownProps = {
 }
 
 /**
- * Renders Markdown to HTML with [marked](https://marked.js.org) and styles the
- * result as prose. GitHub-flavored Markdown is enabled, so tables, task lists,
+ * Markdown source rendered to HTML with [marked](https://marked.js.org) and
+ * styled as prose. GitHub-flavored Markdown is enabled, so tables, task lists,
  * `~~strikethrough~~`, and autolinks all parse.
  *
- * A static, server-renderable leaf: parsing is synchronous, so it composes
- * inside React Server Components.
+ * @remarks
+ * Static, server-renderable leaf: parsing is synchronous, so it composes inside
+ * React Server Components.
  *
- * **Security:** the parsed HTML is injected with `dangerouslySetInnerHTML` and
- * is **not** sanitized — `marked` passes any raw HTML in the source straight
+ * Security: the parsed HTML is injected with `dangerouslySetInnerHTML` and is
+ * **not** sanitized — `marked` passes any raw HTML in the source straight
  * through. Render only trusted Markdown (authored docs, this library's API
  * descriptions). For untrusted input, sanitize the output first (e.g. with
  * DOMPurify) before handing it to this component.

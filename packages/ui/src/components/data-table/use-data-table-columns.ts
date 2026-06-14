@@ -92,6 +92,12 @@ type DataTableColumnsResult<T> = {
  * column-manager dialog. `manageColumns` / `manageColumnsLabel` collapse the
  * config's enabled flag and label into plain values for the dialog's render
  * gate.
+ *
+ * @returns A {@link DataTableColumnsResult}: the controllable `columnOrder` /
+ * `setColumnOrder` and `hiddenColumns` / `setHiddenColumns`, the ordered +
+ * filtered `visibleColumns`, the `managerItems` for the dialog, and the
+ * `manageColumns` / `manageColumnsLabel` render-gate values.
+ * @internal
  */
 export function useDataTableColumns<T>({
 	columns,

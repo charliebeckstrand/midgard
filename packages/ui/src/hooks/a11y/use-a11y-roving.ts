@@ -306,7 +306,7 @@ type RovingOptions = NavigationConfig & {
 	/**
 	 * `focus` moves real DOM focus to the active item; `virtual` marks it with
 	 * `data-active` while a separate input retains focus.
-	 * @default 'focus'
+	 * @defaultValue 'focus'
 	 */
 	mode?: 'focus' | 'virtual'
 	/** Focus mode: move to the first / last item even when nothing in the container has focus. */
@@ -316,20 +316,20 @@ type RovingOptions = NavigationConfig & {
 	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
 	 * not for text inputs that own their own typing. Reads the label from each
 	 * item's `aria-label`, falling back to its trimmed `textContent`.
-	 * @default false
+	 * @defaultValue false
 	 */
 	typeahead?: boolean
-	/** Virtual mode: scroll the active item into view after each move. @default true */
+	/** Virtual mode: scroll the active item into view after each move. @defaultValue true */
 	scrollIntoView?: boolean
 	/**
 	 * Virtual mode: mirror the highlight onto each item's `aria-selected`. Leave
 	 * on when the highlight *is* the selection (command palette); turn off when
 	 * the items own `aria-selected` for a stored value (combobox), where moving
 	 * the highlight only repoints `aria-activedescendant`.
-	 * @default true
+	 * @defaultValue true
 	 */
 	manageAriaSelected?: boolean
-	/** Virtual mode: key that clicks the active item. Pass null to disable. @default 'Enter' */
+	/** Virtual mode: key that clicks the active item. Pass null to disable. @defaultValue 'Enter' */
 	activationKey?: string | null
 	/**
 	 * Focus mode: own the roving `tabIndex` so the widget is a single Tab stop.
@@ -338,7 +338,7 @@ type RovingOptions = NavigationConfig & {
 	 * moves the `0` with focus on each arrow press. Leave off for widgets whose
 	 * items already drive their own `tabIndex` (e.g. `Tab`'s `tabIndex={current?0:-1}`)
 	 * or that must stay individually Tab-focusable (plain site-nav links).
-	 * @default false
+	 * @defaultValue false
 	 */
 	manageTabIndex?: boolean
 	/**

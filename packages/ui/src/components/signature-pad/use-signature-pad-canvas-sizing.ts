@@ -15,6 +15,17 @@ type CanvasSizingOptions = {
 /**
  * Keeps the canvas sized to its container, accounting for devicePixelRatio.
  * Restores the existing drawing after each resize.
+ *
+ * @internal
+ * @param options - The `containerRef`/`canvasRef`, the `empty` flag, and the
+ * current stroke styling.
+ * @remarks
+ * A `ResizeObserver` resizes the backing store to `width * dpr` and scales the
+ * context so strokes stay crisp on HiDPI displays; the non-empty canvas is
+ * snapshotted to a data URL and repainted afterward, since resizing the backing
+ * store clears it. Stroke styling flows through a mutable ref to keep the resize
+ * callback identity-stable; a separate effect re-applies styling when
+ * `strokeColor`/`strokeWidth` change without a resize.
  */
 export function useSignaturePadCanvasSizing({
 	containerRef,

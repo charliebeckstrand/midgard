@@ -74,11 +74,27 @@ type RelativeTimeOptions = {
 }
 
 type RelativeTimeResult = {
+	/** The parsed target date. */
 	then: Date
+	/** Whether `date` parsed to a real timestamp. */
 	valid: boolean
+	/** Formatted relative string; empty before mount or for an invalid date. */
 	text: string
 }
 
+/**
+ * Resolves a relative-time string for {@link TimeAgo}, re-rendering on a refresh
+ * cadence that steps coarser as the timestamp ages (or a fixed `interval`).
+ *
+ * @returns The parsed date, a validity flag, and the formatted relative text.
+ * @remarks
+ * Client-only clock: `now` is `null` until a post-mount effect establishes it,
+ * so the first render on both server and client emits empty `text` and hydration
+ * matches at unit boundaries. Picks the display unit by the rounded magnitude,
+ * caches one `Intl.RelativeTimeFormat` per locale, and floors an explicit
+ * `interval` at {@link MIN_REFRESH_MS}.
+ * @internal
+ */
 export function useTimeAgoRelativeTime({
 	date,
 	format,

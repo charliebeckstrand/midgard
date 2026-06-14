@@ -14,7 +14,9 @@ export type PasswordConfirmProps = {
 	warning?: ReactNode
 	className?: string
 	children?: ReactNode
+	/** Fires when both fields become non-empty and equal; on transition only, not while the password has a form error. */
 	onPasswordMatch?: () => void
+	/** Fires when the fields transition to a confirmed mismatch (both non-empty, unequal, confirm caught up). */
 	onPasswordMismatch?: () => void
 }
 

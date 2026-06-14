@@ -77,5 +77,7 @@ export const k = defineRecipe(
 	},
 )
 
+/** Recipe variant props for {@link StatValue} — its styling axes (`size`), for consumers composing custom slots. */
 export type StatValueVariants = VariantProps<typeof value>
+/** Recipe variant props for {@link StatDelta} — its styling axes (`trend`), for consumers composing custom slots. */
 export type StatDeltaVariants = VariantProps<typeof delta>

@@ -77,7 +77,11 @@ export const k = {
 	skeleton: kokkaku.stepper,
 } as const
 
+/** Recipe variant props for {@link Stepper} — its styling axes (`orientation`), for consumers composing custom slots. */
 export type StepperVariants = VariantProps<typeof root>
+/** Recipe variant props for {@link StepperStep} — its styling axes (`orientation`), for consumers composing custom slots. */
 export type StepperStepVariants = VariantProps<typeof step>
+/** Recipe variant props for {@link StepperTitle} — its styling axes (`orientation`, `interactive`), for consumers composing custom slots. */
 export type StepperTitleVariants = VariantProps<typeof title>
+/** Recipe variant props for {@link StepperSeparator} — its styling axes (`orientation`), for consumers composing custom slots. */
 export type StepperSeparatorVariants = VariantProps<typeof separator>

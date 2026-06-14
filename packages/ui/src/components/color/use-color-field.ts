@@ -9,8 +9,13 @@ import { useState } from 'react'
  * at a time; a single slot holds it.
  *
  * Shared by the hex input and the per-channel RGB(A) inputs. `derived` is what
- * each field shows at rest; `setDraft` records keystrokes; `draftProps` binds an
- * `<Input>` to its buffered-or-derived text and clears the buffer on blur.
+ * each field shows at rest.
+ *
+ * @param derived - Resting text per field, keyed by field name.
+ * @returns `setDraft(field, value)` to record keystrokes and `draftProps(field)`
+ * to bind an `<Input>` to its buffered-or-derived `value`, seed the buffer on
+ * focus, and clear it on blur.
+ * @internal
  */
 export function useColorField<F extends string>(derived: Record<F, string>) {
 	const [edit, setEdit] = useState<{ field: F; value: string } | null>(null)

@@ -29,7 +29,9 @@ export type FormContextValue = FormStateValue & FormActions
 /**
  * External-store interface over the reducer's `formState`. Lets fields
  * subscribe to a single slice instead of the whole state. Built in
- * `useFormStore`; provided through `FormStoreContext`.
+ * {@link useFormStore}; provided through `FormStoreContext`.
+ *
+ * @internal
  */
 export type FormStore = {
 	subscribe: (listener: () => void) => () => void
@@ -58,7 +60,11 @@ export { useFormActions }
 
 const noopSubscribe = () => () => {}
 
-/** Internal; the component-level provider wires the store and actions. */
+/**
+ * Wires the form store and actions into context for descendant field hooks.
+ *
+ * @internal
+ */
 export function FormProvider({
 	store,
 	actions,
@@ -93,6 +99,7 @@ export function useFormState(): FormStateValue | undefined {
 	)
 }
 
+/** Shallow element-wise equality for two issue lists; gates the {@link useFormField} slice cache. @internal */
 function errorsEqual(a: string[] | undefined, b: string[] | undefined): boolean {
 	if (a === b) return true
 

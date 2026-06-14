@@ -11,6 +11,10 @@ type SingleProps = {
 	value?: string | null
 	defaultValue?: string | null
 	onValueChange?: (value: string | null) => void
+	/**
+	 * Allow closing the open section to leave none open.
+	 * @defaultValue true
+	 */
 	collapsible?: boolean
 }
 
@@ -32,6 +36,11 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		children: ReactNode
 	}
 
+/**
+ * Normalizes single-mode `value`/`defaultValue` to the array shape the shared
+ * open-set state uses; `null`/`undefined` collapse to an empty array.
+ * @internal
+ */
 function toArray(value: string | string[] | null | undefined): string[] {
 	if (value == null) return []
 
@@ -41,8 +50,17 @@ function toArray(value: string | string[] | null | undefined): string[] {
 /**
  * Vertically stacked set of collapsible sections. `type='single'` keeps at
  * most one open (optionally `collapsible` to none); `type='multiple'` allows
- * any number. Controlled via `value`/`onValueChange` or uncontrolled, with
- * roving-tabindex keyboard navigation across triggers.
+ * any number. Controlled via `value`/`onValueChange` or uncontrolled. `variant`
+ * defaults to `'separated'`.
+ *
+ * @remarks
+ * Triggers share a roving tabindex: Arrow keys move focus between enabled header
+ * buttons, skipping disabled ones. The container carries no ARIA role, per the
+ * WAI-ARIA accordion pattern.
+ *
+ * @see {@link AccordionItem}
+ * @see {@link AccordionTrigger}
+ * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
 	const { variant, className, children } = props

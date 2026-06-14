@@ -18,12 +18,17 @@ const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, B
 /** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), padding/size, and the accessible name. */
 export type PopoverContentProps = {
 	className?: string
+	/**
+	 * Moves initial focus into the panel on open.
+	 * @defaultValue false
+	 */
 	autoFocus?: boolean
 	/**
 	 * Traps focus inside the panel while open (`FloatingFocusManager`): Tab
 	 * cycles within it and focus returns to the trigger on close. For panels
 	 * that own a complete keyboard surface, e.g. the calendar's month/year
 	 * picker.
+	 * @defaultValue false
 	 */
 	modal?: boolean
 	p?: BoxPadding

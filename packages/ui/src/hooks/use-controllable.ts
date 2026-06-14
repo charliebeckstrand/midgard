@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 
+/** Argument to {@link useControllable}'s setter: a next value, `undefined` to clear, or a functional updater over the previous value. */
 export type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
 
 type ControllableOptions<T> = {

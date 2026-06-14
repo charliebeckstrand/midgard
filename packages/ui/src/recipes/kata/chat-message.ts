@@ -41,5 +41,7 @@ export const k = defineRecipe(
 	{ bubble },
 )
 
+/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`type`), for consumers composing custom slots. */
 export type ChatMessageVariants = VariantProps<typeof k>
+/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`type`), for consumers composing custom slots. */
 export type ChatMessageBubbleVariants = VariantProps<typeof bubble>

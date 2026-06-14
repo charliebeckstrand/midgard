@@ -8,10 +8,12 @@ export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /** Props for {@link Heading}: `level`, optional type-scale `size` shift, plus native heading attributes. */
 export type HeadingProps = {
+	/** @defaultValue 1 */
 	level?: HeadingLevel
 	/**
 	 * Shifts the level's natural size along the type scale: `sm` one rung down,
-	 * `lg` one up, `md` (the default) neutral.
+	 * `lg` one up, `md` neutral.
+	 * @defaultValue `'md'`
 	 */
 	size?: Step
 	className?: string

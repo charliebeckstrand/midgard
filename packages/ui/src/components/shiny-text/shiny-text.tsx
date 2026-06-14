@@ -7,23 +7,50 @@ import { cn } from '../../core'
 
 /** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
 export type ShinyTextProps = {
-	/** Halt the sweep, leaving the shine parked off-screen so only the base color shows. */
+	/**
+	 * Halt the sweep, leaving the shine parked off-screen so only the base color shows.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
-	/** Seconds per sweep. @default 2 */
+	/**
+	 * Seconds per sweep.
+	 * @defaultValue 2
+	 */
 	speed?: number
-	/** Base text color; any CSS color. @default 'var(--shiny-text-color)' (zinc-600; zinc-400 in dark mode) */
+	/**
+	 * Base text color; any CSS color.
+	 * @defaultValue `'var(--shiny-text-color)'` (zinc-600; zinc-400 in dark mode)
+	 */
 	color?: string
-	/** Highlight color swept across the text; any CSS color. @default 'var(--color-white)' */
+	/**
+	 * Highlight color swept across the text; any CSS color.
+	 * @defaultValue `'var(--color-white)'`
+	 */
 	shineColor?: string
-	/** Gradient angle in degrees. @default 120 */
+	/**
+	 * Gradient angle in degrees.
+	 * @defaultValue 120
+	 */
 	spread?: number
-	/** Reverse on each cycle instead of jumping back to the start. */
+	/**
+	 * Reverse on each cycle instead of jumping back to the start.
+	 * @defaultValue false
+	 */
 	yoyo?: boolean
-	/** Pause the sweep while the pointer is over the text. */
+	/**
+	 * Pause the sweep while the pointer is over the text.
+	 * @defaultValue false
+	 */
 	pauseOnHover?: boolean
-	/** Travel direction of the shine. @default 'left' */
+	/**
+	 * Travel direction of the shine.
+	 * @defaultValue `'left'`
+	 */
 	direction?: 'left' | 'right'
-	/** Seconds held between cycles. @default 0 */
+	/**
+	 * Seconds held between cycles.
+	 * @defaultValue 0
+	 */
 	delay?: number
 	ref?: Ref<HTMLSpanElement>
 	className?: string
@@ -34,10 +61,14 @@ const OFF_RIGHT = 150
 const OFF_LEFT = -50
 
 /**
- * Text masked by a gradient whose highlight sweeps across it on a loop. The
- * sweep is driven by an imperative `animate()` outside any `MotionConfig`, so
- * the hook reads the OS preference directly and renders static text under
- * reduced motion (WCAG 2.3.3). Compose `<ShinyTextSkeleton>` in loading trees.
+ * Text masked by a gradient whose highlight sweeps across it on a loop.
+ *
+ * @remarks
+ * The sweep is driven by an imperative `animate()` outside any `MotionConfig`,
+ * so the hook reads the OS preference directly and renders static text under
+ * reduced motion (WCAG 2.3.3).
+ *
+ * @see {@link ShinyTextSkeleton} for the loading placeholder.
  */
 export function ShinyText({
 	disabled = false,

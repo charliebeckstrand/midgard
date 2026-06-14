@@ -32,6 +32,10 @@ export type A11yPanel = {
  * those slots register. Non-modal panels omit `aria-modal` so AT keeps the
  * rest of the page reachable, matching the surface's actual focus behavior.
  *
+ * @param role - Dialog-root role; `'alertdialog'` for destructive
+ * confirmations. Defaults to `'dialog'`.
+ * @param modal - Whether the panel traps AT to its subtree (`aria-modal`); pass
+ * `false` for non-modal surfaces. Defaults to `true`.
  * @returns An `A11yPanel`: `ariaProps` to spread onto the panel root (role,
  * `aria-modal`, labelling refs) and `a11y`, the `A11yPanelProviderValue` to
  * feed `PanelProviders` so the Title / Description slots register and adopt

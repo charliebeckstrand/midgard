@@ -4,6 +4,10 @@ import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { RESET_DURATION } from './hold-button-constants'
 
+/**
+ * Options for {@link useHoldButtonGesture}.
+ * @internal
+ */
 export type HoldGestureOptions = {
 	duration: number
 	disabled: boolean | undefined
@@ -12,6 +16,22 @@ export type HoldGestureOptions = {
 	onHoldCancel?: () => void
 }
 
+/**
+ * Press-and-hold gesture engine behind {@link HoldButton}: runs the completion
+ * timer, drives the imperative fill animation, and guards against focus loss.
+ *
+ * @returns `{ fillRef, start, cancel }` — `fillRef` attaches to the fill overlay
+ * span the hook scales directly; `start` begins a hold; `cancel` aborts one in
+ * progress. Both are idempotent against the current holding state.
+ * @remarks
+ * The fill animates unconditionally (WCAG 2.3.3 essential exception, gating an
+ * irreversible action); only the decorative snap-back reset collapses to instant
+ * under prefers-reduced-motion. Window-blur and visibility-change listeners
+ * cancel a keyboard hold when focus leaves, since the keyup would otherwise route
+ * elsewhere. Toggling `disabled` mid-hold cancels. Timers and listeners are torn
+ * down on unmount.
+ * @internal
+ */
 export function useHoldButtonGesture({
 	duration,
 	disabled,

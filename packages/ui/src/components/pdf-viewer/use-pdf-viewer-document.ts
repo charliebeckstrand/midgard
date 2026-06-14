@@ -19,6 +19,7 @@ async function configureWorker() {
 	pdfjs.GlobalWorkerOptions.workerSrc = workerUrlModule.default
 }
 
+/** State returned by {@link usePdfViewerDocument}: the rasterized pages, a download/print URL, and load progress. @internal */
 type PdfDocumentResult = {
 	pages: PdfViewerPage[]
 	/** Same-origin blob URL for the fetched PDF. Use this for download / print iframes. */
@@ -206,6 +207,7 @@ async function loadPdfDocument(
  * progress and failure state.
  * @remarks Aborts any in-flight load and revokes every blob URL when `src`
  * changes or the component unmounts.
+ * @internal
  */
 export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult {
 	const [pages, setPages] = useState<PdfViewerPage[]>([])

@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react'
 type SortableItemOptions = {
 	/** Stable id matching the enclosing `SortableContext` items array. */
 	id: string
-	/** Disable pointer + keyboard interaction for this item. */
+	/** Disable pointer + keyboard interaction for this item. @defaultValue false */
 	disabled?: boolean
 }
 

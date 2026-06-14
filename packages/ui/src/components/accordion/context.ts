@@ -10,6 +10,11 @@ type AccordionContextValue = {
 	toggle: (value: string) => void
 }
 
+/**
+ * Reads the enclosing {@link Accordion} context: resolved `variant` plus the
+ * shared `isOpen`/`toggle` operating on the open set. Throws outside an accordion.
+ * @internal
+ */
 export const [AccordionContext, useAccordion] = createContext<AccordionContextValue>('Accordion')
 
 type AccordionItemContextValue = {

@@ -7,6 +7,13 @@ import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRangeState } from './use-date-picker-range-state'
 
+/**
+ * Range variant of {@link DatePicker}: a `CalendarRange` in the popover with a
+ * two-tap start/end selection, committing `[Date, Date]`. Rendered by
+ * `DatePicker` when `range` is set.
+ *
+ * @internal
+ */
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
 	const {
 		placeholder = 'Select dates',

@@ -12,6 +12,16 @@ import { Sheet, SheetBody, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
 
+/**
+ * Page thumbnail navigation: a pinned sidebar on desktop, a left-side Sheet on
+ * mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
+ * arrow-key focus across tiles.
+ *
+ * @remarks Renders nothing when there are no pages and the document isn't
+ * loading. The mobile Sheet is portaled into the viewer root so it overlays the
+ * viewer rather than the page.
+ * @internal
+ */
 export function PdfViewerThumbnails() {
 	const { pages, safePage, goToPage, loading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
 		usePdfViewerContext()

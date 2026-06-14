@@ -14,4 +14,5 @@ const divider = defineRecipe({
 
 export const k = { divider, gap: ma.gap }
 
+/** Recipe variant props for the {@link Grid} divider — its styling axes (`soft`), for consumers composing custom slots. */
 export type GridDividerVariants = VariantProps<typeof divider>

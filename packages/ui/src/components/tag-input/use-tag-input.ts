@@ -4,17 +4,40 @@ import { useCallback } from 'react'
 import { announce } from '../../core'
 import { useFormValue } from '../form/use-form-value'
 
+/**
+ * Options for {@link useTagInput}.
+ *
+ * @internal
+ */
 type TagInputOptions = {
+	/** Form field name; binds the tag list to an enclosing `<Form>`. */
 	name?: string
 	value?: string[]
 	defaultValue?: string[]
 	onValueChange?: (value: string[] | undefined) => void
+	/** Maximum number of tags. */
 	max?: number
+	/** Gates a trimmed, novel, within-limit tag before commit. Return `false` to reject. */
 	validate?: (tag: string) => boolean
 	/** Fires when a removal transitions the list out of the at-max state. */
 	onMaxReleased?: () => void
 }
 
+/**
+ * Owns {@link TagInput}'s tag-list state, add/remove transactions, and live-region
+ * announcements.
+ *
+ * @returns The tag list `tags`, the `atMax` flag, `addTag`/`removeTag` mutators,
+ * a `setTouched` form-touch signal, and the field `invalid` flag.
+ *
+ * @remarks
+ * Layers over {@link useFormValue}: a bound `name` wins, else controlled `value`,
+ * else uncontrolled state seeded from `defaultValue`. Mutators announce every
+ * outcome — add, duplicate, limit, rejection — to the live region (WCAG 4.1.3,
+ * 3.3.1); `addTag` trims and dedupes before committing and reports success.
+ *
+ * @internal
+ */
 export function useTagInput({
 	name,
 	value,

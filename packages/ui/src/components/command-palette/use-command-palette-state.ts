@@ -10,6 +10,16 @@ type CommandPaletteStateOptions = {
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 
+/**
+ * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}:
+ * the search value plus the refs and `onKeyDown` that drive
+ * `aria-activedescendant` highlighting over options while focus stays on the
+ * input. Resets the query on close and keeps the highlight on the top result as
+ * the filtered set changes.
+ *
+ * @internal
+ * @see {@link useA11yRoving}
+ */
 export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 

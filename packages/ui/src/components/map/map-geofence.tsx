@@ -10,13 +10,25 @@ const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
 /** Props for {@link MapGeofence}: the `shape` to draw plus fill and stroke styling. */
 export type MapGeofenceProps = {
 	shape: GeofenceShape
-	/** Fill color. Defaults to translucent blue. */
+	/**
+	 * Fill color.
+	 * @defaultValue `'#2563eb'` (blue-600)
+	 */
 	color?: string
-	/** Fill opacity (0-1). Defaults to 0.15. */
+	/**
+	 * Fill opacity (0-1).
+	 * @defaultValue 0.15
+	 */
 	fillOpacity?: number
-	/** Stroke color. Defaults to `color`. */
+	/**
+	 * Stroke color.
+	 * @defaultValue `color`
+	 */
 	strokeColor?: string
-	/** Stroke width. Defaults to 2. */
+	/**
+	 * Stroke width, in pixels.
+	 * @defaultValue 2
+	 */
 	strokeWidth?: number
 }
 
@@ -119,6 +131,12 @@ export function MapGeofence({
 	return null
 }
 
+/**
+ * GeoJSON Polygon Feature for a geofence shape; a circle is approximated by
+ * {@link circlePolygon} and the ring is closed if not already.
+ *
+ * @internal
+ */
 function toPolygon(shape: GeofenceShape) {
 	const coords =
 		shape.type === 'circle' ? circlePolygon(shape.center, shape.radiusMeters) : shape.coordinates
@@ -141,6 +159,12 @@ function toPolygon(shape: GeofenceShape) {
 	}
 }
 
+/**
+ * Approximate a geographic circle as a `steps`-sided polygon ring, correcting
+ * longitude spacing for latitude.
+ *
+ * @internal
+ */
 function circlePolygon(center: LngLat, radiusMeters: number, steps = 64): LngLat[] {
 	const [lng, lat] = center
 

@@ -5,13 +5,24 @@ import { cn } from '../../core'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
+/**
+ * Props for {@link HoldButton}: the non-anchor {@link ButtonProps} branch minus
+ * `href`, `onClick`, and `loading`, plus the hold-gesture hooks.
+ */
 export type HoldButtonProps = Omit<
 	ButtonProps & { href?: never },
 	'href' | 'onClick' | 'loading'
 > & {
+	/**
+	 * Press duration, in milliseconds, required to fire `onComplete`.
+	 * @defaultValue 1000
+	 */
 	duration?: number
+	/** Fires once the press is held for the full `duration`. */
 	onComplete?: () => void
+	/** Fires when a press begins (pointer down or Space/Enter keydown). */
 	onHoldStart?: () => void
+	/** Fires when a press is released or interrupted before `duration` elapses. */
 	onHoldCancel?: () => void
 }
 
@@ -19,6 +30,13 @@ export type HoldButtonProps = Omit<
  * Button that fires `onComplete` only after a sustained press of `duration` ms.
  * A fill overlay animates progress, and releasing early cancels. Responds to
  * both pointer hold and Space/Enter keydown.
+ *
+ * @remarks
+ * Only the activation key that started the hold cancels it; the other key's
+ * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
+ * the gesture hook adds window-blur and tab-visibility guards so a backgrounded
+ * tab cannot silently complete it. Left mouse button only (`button === 0`).
+ * @see {@link useHoldButtonGesture} for the timer, fill animation, and guards.
  */
 export function HoldButton({
 	duration = 1000,

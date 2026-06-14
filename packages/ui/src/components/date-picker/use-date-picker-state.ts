@@ -13,6 +13,18 @@ import { addDays, addMonths, clampDate, formatDate } from './date-picker-utiliti
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
+/**
+ * Single-date state for {@link DatePicker}: Form/Control binding, popover
+ * open/active wiring, the virtual-highlight keyboard handler, and the
+ * clear/today footer.
+ *
+ * @returns Trigger props (`triggerId`, `displayValue`, `disabled`, `invalid`,
+ * …), popover plumbing (`open`, `onOpenChange`, `setReference`, `setFloating`,
+ * `floatingStyles`, floating-ui prop getters, `context`), the keyboard handler
+ * `onTriggerKeyDown`, and the `calendar`/`footer` prop bundles for the open
+ * dialog.
+ * @internal
+ */
 export function useDatePickerState({
 	name,
 	value: valueProp,

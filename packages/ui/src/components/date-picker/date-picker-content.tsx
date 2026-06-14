@@ -23,6 +23,7 @@ const NAVIGATION_KEYS = new Set([
 	'PageDown',
 ])
 
+/** Props for {@link DatePickerContent}. @internal */
 type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
@@ -55,6 +56,19 @@ type DatePickerContentProps = {
 	children: ReactNode
 }
 
+/**
+ * Portaled, animated modal dialog shell for the picker popover: wires
+ * `FloatingFocusManager`, seeds focus on the dialog container (not its first
+ * tabbable) for the virtual-highlight model, and re-broadcasts `size` via
+ * `<Density>`.
+ *
+ * @remarks
+ * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
+ * keys so a grid move that re-anchors the month cannot drop focus to `<body>`;
+ * portaled descendants (the month/year picker) own their own keyboard.
+ *
+ * @internal
+ */
 export function DatePickerContent({
 	open,
 	setFloating,

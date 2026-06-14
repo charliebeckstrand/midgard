@@ -13,6 +13,13 @@ import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
+/**
+ * The viewer's top control bar: page navigation (plus the mobile thumbnail
+ * toggle), zoom and rotate, and the download / print actions. Reads everything
+ * from {@link PdfViewerContext}; controls disable while loading or empty.
+ *
+ * @internal
+ */
 export function PdfViewerToolbar() {
 	const {
 		pages,

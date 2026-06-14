@@ -6,8 +6,12 @@ import { k } from '../../recipes/kata/card'
 export type CardHeaderProps = SlotProps<'div'>
 
 /**
- * Static leaf: renders in React Server Components. Carries md padding; a
- * non-md `<Card size>` overrides it through the card's section projection.
+ * Header region of a {@link Card}, typically holding a {@link CardTitle} and
+ * {@link CardDescription}. Carries md padding; a non-md `<Card size>` overrides
+ * it through the card's section projection.
+ *
+ * @remarks
+ * Static leaf: renders in React Server Components.
  */
 export function CardHeader({ className, ...props }: CardHeaderProps) {
 	return (

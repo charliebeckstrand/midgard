@@ -27,6 +27,19 @@ type ComboboxInputParams<T> = {
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
 }
 
+/**
+ * Event handlers for the combobox input element.
+ *
+ * @returns `{ onChange, onFocus, onBlur, onKeyDown }` for the input. `onChange`
+ *   enters editing mode, updates the query, opens the menu, and clears the value
+ *   on empty when `clearOnEmpty`. `onFocus` opens once the keyboard has settled.
+ *   `onBlur` ignores focus moving into the floating panel, else marks touched and
+ *   closes. `onKeyDown` handles Escape/Enter, reserves Home/End and Shift+Arrow
+ *   for native caret/selection, then delegates to the roving handler.
+ * @remarks Enter selects the sole remaining option when the list has narrowed to
+ *   one; the roving handler's activation key selects the highlighted option.
+ * @internal
+ */
 export function useComboboxInput<T>({
 	value,
 	multiple,

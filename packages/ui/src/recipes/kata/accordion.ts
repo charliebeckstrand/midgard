@@ -66,5 +66,7 @@ export const k = defineRecipe(
 	{ item },
 )
 
+/** Recipe variant props for {@link Accordion} — the styling axes its kata exposes (`variant`), for consumers composing custom slots. */
 export type AccordionVariants = VariantProps<typeof k>
+/** Recipe variant props for an {@link Accordion} item — its styling axes (`variant`), for consumers composing custom slots. */
 export type AccordionItemVariants = VariantProps<typeof item>

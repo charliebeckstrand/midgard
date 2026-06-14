@@ -12,7 +12,12 @@ export type TabsProps = ComponentPropsWithoutRef<'div'> & {
 	value?: string
 	defaultValue?: string
 	onValueChange?: (value: string | undefined) => void
+	/** @defaultValue 'tab' */
 	variant?: TabsVariant
+	/**
+	 * Tab-list flow axis; the `segment` variant forces `horizontal`.
+	 * @defaultValue 'horizontal'
+	 */
 	orientation?: TabsOrientation
 	/**
 	 * Size step that drives tab text size and padding.
