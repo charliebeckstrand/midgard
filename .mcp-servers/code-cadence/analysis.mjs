@@ -18,8 +18,24 @@ const execFileAsync = promisify(execFile)
 
 const SEVERITY_RANK = { error: 3, warn: 2, info: 1 }
 const SOURCE_EXT = /\.(ts|tsx)$/
-const SKIP_DIRS = new Set(['node_modules', 'dist', '.next', '.git', 'coverage', '.turbo', '.kb-cache'])
-const isReviewable = (file) => SOURCE_EXT.test(file) && !file.endsWith('.d.ts')
+// Test/benchmark/story files and their dirs aren't product code — cadence reviews
+// what ships, not the mocks and fixtures around it.
+const SKIP_DIRS = new Set([
+	'node_modules',
+	'dist',
+	'.next',
+	'.git',
+	'coverage',
+	'.turbo',
+	'.kb-cache',
+	'__tests__',
+	'__mocks__',
+	'__benchmarks__',
+	'__stories__',
+	'.storybook',
+])
+const EXCLUDE_FILE = /\.(test|spec|bench|stories)\.tsx?$/
+const isReviewable = (file) => SOURCE_EXT.test(file) && !file.endsWith('.d.ts') && !EXCLUDE_FILE.test(file)
 
 let tsmPromise
 

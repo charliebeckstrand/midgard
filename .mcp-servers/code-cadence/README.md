@@ -49,7 +49,7 @@ on a codemod rule. That is what keeps a rule from golfing code below readability
 a codemod fires only where the idiom is unambiguously equivalent; everything else
 routes to `cadence_diagnose`.
 
-v1 ships seven React 19 rules:
+v1 ships the following React 19 rules:
 
 - `react19/use-context` — `useContext(Ctx)` → `use(Ctx)` (codemod).
 - `react19/ref-as-prop` — `forwardRef` → `ref` as a prop. Codemod when props are
