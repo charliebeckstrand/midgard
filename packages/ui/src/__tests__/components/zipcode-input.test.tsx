@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { type ComponentProps, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { ZipcodeInput } from '../../components/zipcode-input'
@@ -79,46 +79,34 @@ describe('ZipcodeInput', () => {
 		expect(input.value).toBe('K1A 0B1')
 	})
 
-	it('formats defaultValue on initial render', () => {
-		const { container } = renderUI(<ZipcodeInput defaultValue="941031234" />)
+	it.each<[string, ComponentProps<typeof ZipcodeInput>, string]>([
+		['formats defaultValue on initial render', { defaultValue: '941031234' }, '94103-1234'],
+		[
+			'uppercases GB postcodes while preserving an internal space',
+			{ country: 'GB', defaultValue: 'sw1a 1aa' },
+			'SW1A 1AA',
+		],
+		[
+			'strips invalid characters and collapses whitespace for GB',
+			{ country: 'GB', defaultValue: 'sw1a  1aa@@' },
+			'SW1A 1AA',
+		],
+		[
+			'caps GB postcodes at eight characters',
+			{ country: 'GB', defaultValue: 'abcdefghijk' },
+			'ABCDEFGH',
+		],
+		[
+			'passes international codes through, truncated to twelve characters',
+			{ country: 'international', defaultValue: 'abc-123 def/456' },
+			'abc-123 def/',
+		],
+	])('%s', (_name, props, expected) => {
+		const { container } = renderUI(<ZipcodeInput {...props} />)
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
-		expect(input.value).toBe('94103-1234')
-	})
-
-	it('uppercases GB postcodes while preserving an internal space', () => {
-		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a 1aa" />)
-
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
-
-		expect(input.value).toBe('SW1A 1AA')
-	})
-
-	it('strips invalid characters and collapses whitespace for GB', () => {
-		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="sw1a  1aa@@" />)
-
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
-
-		expect(input.value).toBe('SW1A 1AA')
-	})
-
-	it('caps GB postcodes at eight characters', () => {
-		const { container } = renderUI(<ZipcodeInput country="GB" defaultValue="abcdefghijk" />)
-
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
-
-		expect(input.value).toBe('ABCDEFGH')
-	})
-
-	it('passes international codes through, truncated to twelve characters', () => {
-		const { container } = renderUI(
-			<ZipcodeInput country="international" defaultValue="abc-123 def/456" />,
-		)
-
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
-
-		expect(input.value).toBe('abc-123 def/')
+		expect(input.value).toBe(expected)
 	})
 
 	it('uses an empty default placeholder for international codes', () => {

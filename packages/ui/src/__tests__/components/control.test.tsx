@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Label, Message } from '../../components/fieldset'
@@ -195,37 +196,53 @@ describe('Control + Textarea', () => {
 })
 
 describe('Control nesting', () => {
-	it('parent disabled propagates to child Control input', () => {
-		const { container } = renderUI(
-			<Control disabled>
-				<Control id="child">
-					<Input />
+	// OR semantics: a disabled ancestor at any depth disables a descendant input.
+	it.each<[string, () => ReactElement]>([
+		[
+			'parent disabled propagates to child Control input',
+			() => (
+				<Control disabled>
+					<Control id="child">
+						<Input />
+					</Control>
 				</Control>
-			</Control>,
-		)
-		expect(bySlot(container, 'input')).toBeDisabled()
-	})
+			),
+		],
+		[
+			'child disabled works independently when parent is not disabled',
+			() => (
+				<Control>
+					<Control disabled id="child">
+						<Input />
+					</Control>
+				</Control>
+			),
+		],
+		[
+			'parent disabled cannot be overridden by child disabled={false}',
+			() => (
+				<Control disabled>
+					<Control disabled={false} id="child">
+						<Input />
+					</Control>
+				</Control>
+			),
+		],
+		[
+			'three-level nesting: grandparent disabled propagates to leaf',
+			() => (
+				<Control disabled>
+					<Control id="mid">
+						<Control id="leaf">
+							<Input />
+						</Control>
+					</Control>
+				</Control>
+			),
+		],
+	])('%s', (_name, ui) => {
+		const { container } = renderUI(ui())
 
-	it('child disabled works independently when parent is not disabled', () => {
-		const { container } = renderUI(
-			<Control>
-				<Control disabled id="child">
-					<Input />
-				</Control>
-			</Control>,
-		)
-		expect(bySlot(container, 'input')).toBeDisabled()
-	})
-
-	it('parent disabled cannot be overridden by child disabled={false}', () => {
-		const { container } = renderUI(
-			<Control disabled>
-				<Control disabled={false} id="child">
-					<Input />
-				</Control>
-			</Control>,
-		)
-		// OR semantics: parent wins
 		expect(bySlot(container, 'input')).toBeDisabled()
 	})
 
@@ -298,106 +315,98 @@ describe('Control nesting', () => {
 		expect(controls[0]).toHaveAttribute('data-disabled')
 		expect(controls[1]).toHaveAttribute('data-disabled')
 	})
-
-	it('three-level nesting: grandparent disabled propagates to leaf', () => {
-		const { container } = renderUI(
-			<Control disabled>
-				<Control id="mid">
-					<Control id="leaf">
-						<Input />
-					</Control>
-				</Control>
-			</Control>,
-		)
-		expect(bySlot(container, 'input')).toBeDisabled()
-	})
 })
 
 describe('Control + size', () => {
-	it('Input inherits size from Control', () => {
-		const { container } = renderUI(
-			<Control size="lg">
-				<Input />
-			</Control>,
-		)
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
-	})
-
-	it('Input explicit size overrides Control size', () => {
-		const { container } = renderUI(
-			<Control size="lg">
-				<Input size="sm" />
-			</Control>,
-		)
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
-	})
-
-	it('Switch inherits size from Control', () => {
-		const { container } = renderUI(
-			<Control size="lg">
-				<Switch />
-			</Control>,
-		)
-		const sw = bySlot(container, 'switch')
-		expect(sw).toBeInTheDocument()
-	})
-
-	it('nested Control inherits parent size when not explicitly set', () => {
-		const { container } = renderUI(
-			<Control size="sm">
-				<Control id="child">
+	it.each<[string, () => ReactElement, string]>([
+		[
+			'Input inherits size from Control',
+			() => (
+				<Control size="lg">
 					<Input />
 				</Control>
-			</Control>,
-		)
-		// Child Control inherits size="sm" from parent
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
-	})
-
-	it('nested Control size overrides parent size', () => {
-		const { container } = renderUI(
-			<Control size="sm">
-				<Control size="lg" id="child">
-					<Input />
+			),
+			'input',
+		],
+		[
+			'Input explicit size overrides Control size',
+			() => (
+				<Control size="lg">
+					<Input size="sm" />
 				</Control>
-			</Control>,
-		)
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
+			),
+			'input',
+		],
+		[
+			'Switch inherits size from Control',
+			() => (
+				<Control size="lg">
+					<Switch />
+				</Control>
+			),
+			'switch',
+		],
+		[
+			'nested Control inherits parent size when not explicitly set',
+			() => (
+				<Control size="sm">
+					<Control id="child">
+						<Input />
+					</Control>
+				</Control>
+			),
+			'input',
+		],
+		[
+			'nested Control size overrides parent size',
+			() => (
+				<Control size="sm">
+					<Control size="lg" id="child">
+						<Input />
+					</Control>
+				</Control>
+			),
+			'input',
+		],
+	])('%s', (_name, ui, slot) => {
+		const { container } = renderUI(ui())
+
+		expect(bySlot(container, slot)).toBeInTheDocument()
 	})
 })
 
 describe('Control + variant', () => {
-	it('Input inherits variant from Control', () => {
-		const { container } = renderUI(
-			<Control variant="outline">
-				<Input />
-			</Control>,
-		)
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
-	})
+	it.each<[string, () => ReactElement, string]>([
+		[
+			'Input inherits variant from Control',
+			() => (
+				<Control variant="outline">
+					<Input />
+				</Control>
+			),
+			'input',
+		],
+		[
+			'Input explicit variant overrides Control variant',
+			() => (
+				<Control variant="outline">
+					<Input variant="default" />
+				</Control>
+			),
+			'input',
+		],
+		[
+			'Textarea inherits variant from Control',
+			() => (
+				<Control variant="outline">
+					<Textarea />
+				</Control>
+			),
+			'textarea',
+		],
+	])('%s', (_name, ui, slot) => {
+		const { container } = renderUI(ui())
 
-	it('Input explicit variant overrides Control variant', () => {
-		const { container } = renderUI(
-			<Control variant="outline">
-				<Input variant="default" />
-			</Control>,
-		)
-		const input = bySlot(container, 'input')
-		expect(input).toBeInTheDocument()
-	})
-
-	it('Textarea inherits variant from Control', () => {
-		const { container } = renderUI(
-			<Control variant="outline">
-				<Textarea />
-			</Control>,
-		)
-		const textarea = bySlot(container, 'textarea')
-		expect(textarea).toBeInTheDocument()
+		expect(bySlot(container, slot)).toBeInTheDocument()
 	})
 })

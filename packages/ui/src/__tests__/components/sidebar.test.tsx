@@ -181,7 +181,7 @@ describe('Sidebar mini', () => {
 				<SidebarItem>
 					<SidebarLabel>Home</SidebarLabel>
 					<SidebarItemActions>
-						<button type="button">remove</button>
+						<span>remove</span>
 					</SidebarItemActions>
 				</SidebarItem>
 			</Sidebar>,
@@ -201,7 +201,7 @@ describe('Sidebar mini', () => {
 		// must not echo non-label children (actions, affix helpers).
 		expect(tooltip).toHaveTextContent('Home')
 
-		expect(tooltip?.querySelector('button')).toBeNull()
+		expect(tooltip).not.toHaveTextContent('remove')
 	})
 
 	it('keeps plain items below the desktop breakpoint', async () => {

@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { type ComponentProps, createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
@@ -43,36 +43,6 @@ describe('NumberInput', () => {
 		expect(onBlur).toHaveBeenCalled()
 	})
 
-	it('derives step precision from scientific notation', async () => {
-		const onValueChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={0} step={1e-7} onValueChange={onValueChange} />)
-
-		const user = userEvent.setup()
-
-		// (1e-7).toString() is "1e-7"; precision derivation handles scientific
-		// notation rather than reading 0 from a split('.').
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onValueChange).toHaveBeenCalledWith(1e-7)
-	})
-
-	it('clamps after rounding so a stepped value never exceeds max', async () => {
-		const onValueChange = vi.fn()
-
-		// 9.99 + 0.1 = 10.09 → rounded to precision 1 → 10.1; clamping must run
-		// after the rounding, landing exactly on max.
-		renderUI(
-			<NumberInput defaultValue={9.99} step={0.1} max={10.05} onValueChange={onValueChange} />,
-		)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onValueChange).toHaveBeenCalledWith(10.05)
-	})
-
 	it('announces the stepped value through the polite live region', async () => {
 		renderUI(<NumberInput defaultValue={4} />)
 
@@ -93,30 +63,6 @@ describe('NumberInput', () => {
 		renderUI(<NumberInput ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
-	it('calls onValueChange when increase button is clicked', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={5} onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onChange).toHaveBeenCalledWith(6)
-	})
-
-	it('calls onValueChange when decrease button is clicked', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={5} onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Decrease'))
-
-		expect(onChange).toHaveBeenCalledWith(4)
 	})
 
 	it('disables decrease button at min value', () => {
@@ -141,64 +87,49 @@ describe('NumberInput', () => {
 		expect(screen.getByLabelText('Increase')).toBeDisabled()
 	})
 
-	it('respects step value', async () => {
-		const onChange = vi.fn()
+	// Each row renders a NumberInput, clicks a stepper button, and asserts the
+	// onValueChange payload. step=1e-7 covers scientific-notation precision
+	// derivation; 9.99 + 0.1 with max=10.05 covers clamp-after-round.
+	it.each<[string, ComponentProps<typeof NumberInput>, 'Increase' | 'Decrease', number]>([
+		[
+			'derives step precision from scientific notation',
+			{ defaultValue: 0, step: 1e-7 },
+			'Increase',
+			1e-7,
+		],
+		[
+			'clamps after rounding so a stepped value never exceeds max',
+			{ defaultValue: 9.99, step: 0.1, max: 10.05 },
+			'Increase',
+			10.05,
+		],
+		['calls onValueChange when increase button is clicked', { defaultValue: 5 }, 'Increase', 6],
+		['calls onValueChange when decrease button is clicked', { defaultValue: 5 }, 'Decrease', 4],
+		['respects step value', { defaultValue: 0, step: 5 }, 'Increase', 5],
+		['seeds the value to 0 when increase is clicked from an empty state', {}, 'Increase', 0],
+		[
+			'clamps to max when increase would overshoot',
+			{ defaultValue: 9, max: 10, step: 5 },
+			'Increase',
+			10,
+		],
+		[
+			'clamps to min when decrease would undershoot',
+			{ defaultValue: 1, min: 0, step: 5 },
+			'Decrease',
+			0,
+		],
+		['rounds at the step precision', { defaultValue: 0, step: 0.1 }, 'Increase', 0.1],
+	])('%s', async (_name, props, button, expected) => {
+		const onValueChange = vi.fn()
 
-		renderUI(<NumberInput defaultValue={0} step={5} onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onChange).toHaveBeenCalledWith(5)
-	})
-
-	it('seeds the value to 0 when increase is clicked from an empty state', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onChange).toHaveBeenCalledWith(0)
-	})
-
-	it('clamps to max when increase would overshoot', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={9} max={10} step={5} onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onChange).toHaveBeenCalledWith(10)
-	})
-
-	it('clamps to min when decrease would undershoot', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={1} min={0} step={5} onValueChange={onChange} />)
+		renderUI(<NumberInput {...props} onValueChange={onValueChange} />)
 
 		const user = userEvent.setup()
 
-		await user.click(screen.getByLabelText('Decrease'))
+		await user.click(screen.getByLabelText(button))
 
-		expect(onChange).toHaveBeenCalledWith(0)
-	})
-
-	it('rounds at the step precision', async () => {
-		const onChange = vi.fn()
-
-		renderUI(<NumberInput defaultValue={0} step={0.1} onValueChange={onChange} />)
-
-		const user = userEvent.setup()
-
-		await user.click(screen.getByLabelText('Increase'))
-
-		expect(onChange).toHaveBeenCalledWith(0.1)
+		expect(onValueChange).toHaveBeenCalledWith(expected)
 	})
 
 	it('updates the value via direct typing', async () => {
@@ -306,39 +237,38 @@ describe('NumberInput density inheritance', () => {
 	// confirms the spinbutton inherits the ambient density rather than a hardcoded default.
 	const textClassFor = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' } as const
 
-	it('inherits size from the Density context when no explicit prop is set', () => {
-		renderUI(
-			<Density scale="lg">
-				<NumberInput />
-			</Density>,
-		)
+	it.each<[string, () => ReactElement, string]>([
+		[
+			'inherits size from the Density context when no explicit prop is set',
+			() => (
+				<Density scale="lg">
+					<NumberInput />
+				</Density>
+			),
+			textClassFor.lg,
+		],
+		[
+			'reserves stepper-button padding that tracks the inherited size',
+			() => (
+				<Density scale="lg">
+					<NumberInput />
+				</Density>
+			),
+			'pr-20',
+		],
+		[
+			'explicit size prop overrides Density inheritance',
+			() => (
+				<Density scale="lg">
+					<NumberInput size="sm" />
+				</Density>
+			),
+			textClassFor.sm,
+		],
+		['falls back to "md" outside any density context', () => <NumberInput />, textClassFor.md],
+	])('%s', (_name, ui, expectedClass) => {
+		renderUI(ui())
 
-		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.lg)
-	})
-
-	it('reserves stepper-button padding that tracks the inherited size', () => {
-		renderUI(
-			<Density scale="lg">
-				<NumberInput />
-			</Density>,
-		)
-
-		expect(screen.getByRole('spinbutton').className).toContain('pr-20')
-	})
-
-	it('explicit size prop overrides Density inheritance', () => {
-		renderUI(
-			<Density scale="lg">
-				<NumberInput size="sm" />
-			</Density>,
-		)
-
-		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.sm)
-	})
-
-	it('falls back to "md" outside any density context', () => {
-		renderUI(<NumberInput />)
-
-		expect(screen.getByRole('spinbutton').className).toContain(textClassFor.md)
+		expect(screen.getByRole('spinbutton').className).toContain(expectedClass)
 	})
 })

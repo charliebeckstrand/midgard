@@ -59,40 +59,20 @@ describe('CreditCardInput', () => {
 		expect(onChange).toHaveBeenLastCalledWith('4242 4242 4242 4242')
 	})
 
-	it('formats Amex numbers in 4-6-5 groups', async () => {
+	it.each<[string, string, string]>([
+		['formats Amex numbers in 4-6-5 groups', '378282246310005', '3782 822463 10005'],
+		['strips non-digit characters', 'abc4242', '4242'],
+		['caps length at the max for the detected brand', '37828224631000599', '3782 822463 10005'],
+	])('%s', async (_name, typed, expected) => {
 		const { container } = renderUI(<CreditCardInput />)
 
 		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
-		await user.type(input, '378282246310005')
+		await user.type(input, typed)
 
-		expect(input.value).toBe('3782 822463 10005')
-	})
-
-	it('strips non-digit characters', async () => {
-		const { container } = renderUI(<CreditCardInput />)
-
-		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, 'abc4242')
-
-		expect(input.value).toBe('4242')
-	})
-
-	it('caps length at the max for the detected brand', async () => {
-		const { container } = renderUI(<CreditCardInput />)
-
-		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, '37828224631000599')
-
-		expect(input.value).toBe('3782 822463 10005')
+		expect(input.value).toBe(expected)
 	})
 
 	it('surfaces the detected brand via onBrandChange', async () => {
@@ -162,40 +142,20 @@ describe('CreditCardInputExpiry', () => {
 		expect(screen.getByRole('textbox', { name: 'Card expiry' })).toBeInTheDocument()
 	})
 
-	it('inserts a slash after the month digits', async () => {
+	it.each<[string, string, string]>([
+		['inserts a slash after the month digits', '1228', '12/28'],
+		['leaves a single digit unchanged until a second digit is typed', '5', '5'],
+		['strips non-digit characters', 'ab12cd25', '12/25'],
+	])('%s', async (_name, typed, expected) => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
-		await user.type(input, '1228')
+		await user.type(input, typed)
 
-		expect(input.value).toBe('12/28')
-	})
-
-	it('leaves a single digit unchanged until a second digit is typed', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = bySlot(container, 'input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, '5')
-
-		expect(input.value).toBe('5')
-	})
-
-	it('strips non-digit characters', async () => {
-		const { container } = renderUI(<CreditCardInputExpiry />)
-
-		const input = bySlot(container, 'input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, 'ab12cd25')
-
-		expect(input.value).toBe('12/25')
+		expect(input.value).toBe(expected)
 	})
 
 	it('deletes the auto-inserted slash and the preceding digit on backspace', async () => {
@@ -265,40 +225,20 @@ describe('CreditCardInputCvv', () => {
 		expect(screen.getByRole('textbox', { name: 'Security code' })).toBeInTheDocument()
 	})
 
-	it('caps input at 3 digits for non-Amex brands', async () => {
-		const { container } = renderUI(<CreditCardInputCvv brand="visa" />)
+	it.each<[string, 'visa' | 'amex', string, string]>([
+		['caps input at 3 digits for non-Amex brands', 'visa', '12345', '123'],
+		['allows 4 digits for Amex', 'amex', '12345', '1234'],
+		['strips non-digit characters', 'visa', 'ab12c', '12'],
+	])('%s', async (_name, brand, typed, expected) => {
+		const { container } = renderUI(<CreditCardInputCvv brand={brand} />)
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
-		await user.type(input, '12345')
+		await user.type(input, typed)
 
-		expect(input.value).toBe('123')
-	})
-
-	it('allows 4 digits for Amex', async () => {
-		const { container } = renderUI(<CreditCardInputCvv brand="amex" />)
-
-		const input = bySlot(container, 'input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, '12345')
-
-		expect(input.value).toBe('1234')
-	})
-
-	it('strips non-digit characters', async () => {
-		const { container } = renderUI(<CreditCardInputCvv brand="visa" />)
-
-		const input = bySlot(container, 'input') as HTMLInputElement
-
-		const user = userEvent.setup()
-
-		await user.type(input, 'ab12c')
-
-		expect(input.value).toBe('12')
+		expect(input.value).toBe(expected)
 	})
 })
 
@@ -379,16 +319,12 @@ describe('Credit card trio + Form', () => {
 })
 
 describe('detectCardBrand', () => {
-	it('identifies Visa numbers', () => {
-		expect(detectCardBrand('4242424242424242')?.brand).toBe('visa')
-	})
-
-	it('identifies Amex numbers', () => {
-		expect(detectCardBrand('378282246310005')?.brand).toBe('amex')
-	})
-
-	it('identifies Mastercard numbers', () => {
-		expect(detectCardBrand('5555555555554444')?.brand).toBe('mastercard')
+	it.each<[string, string, string]>([
+		['identifies Visa numbers', '4242424242424242', 'visa'],
+		['identifies Amex numbers', '378282246310005', 'amex'],
+		['identifies Mastercard numbers', '5555555555554444', 'mastercard'],
+	])('%s', (_name, number, brand) => {
+		expect(detectCardBrand(number)?.brand).toBe(brand)
 	})
 
 	it('returns undefined for unknown prefixes', () => {

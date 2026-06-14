@@ -850,13 +850,22 @@ function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
 	)
 }
 
-describe('useFormContext', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormContext())
+describe('form hooks outside a Form', () => {
+	it.each<[string, () => unknown]>([
+		['useFormContext returns undefined', () => useFormContext()],
+		['useFormActions returns undefined', () => useFormActions()],
+		['useFormState returns undefined', () => useFormState()],
+		['useFormField returns undefined', () => useFormField('name')],
+		['useFormText returns undefined', () => useFormText('name')],
+		['useFormStatus returns undefined', () => useFormStatus()],
+	])('%s', (_name, useHook) => {
+		const { result } = renderHook(useHook)
 
 		expect(result.current).toBeUndefined()
 	})
+})
 
+describe('useFormContext', () => {
 	it('returns combined state + actions inside a Form', () => {
 		const wrapper = makeWrapper({ name: 'Ada' })
 
@@ -871,12 +880,6 @@ describe('useFormContext', () => {
 })
 
 describe('useFormActions', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormActions())
-
-		expect(result.current).toBeUndefined()
-	})
-
 	it('returns a stable actions object across re-renders', () => {
 		const wrapper = makeWrapper({ name: 'Ada' })
 
@@ -891,12 +894,6 @@ describe('useFormActions', () => {
 })
 
 describe('useFormState', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormState())
-
-		expect(result.current).toBeUndefined()
-	})
-
 	it('reflects current values', () => {
 		const wrapper = makeWrapper({ name: 'Ada' })
 
@@ -907,12 +904,6 @@ describe('useFormState', () => {
 })
 
 describe('useFormField', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormField('name'))
-
-		expect(result.current).toBeUndefined()
-	})
-
 	it('returns undefined when name is missing', () => {
 		const wrapper = makeWrapper({ name: 'Ada' })
 
@@ -955,12 +946,6 @@ describe('useFormField', () => {
 })
 
 describe('useFormText', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormText('name'))
-
-		expect(result.current).toBeUndefined()
-	})
-
 	it('returns a binding that updates the form value and calls external onChange', () => {
 		const onChange = vi.fn()
 
@@ -1003,12 +988,6 @@ describe('useFormText', () => {
 })
 
 describe('useFormStatus', () => {
-	it('returns undefined outside a Form', () => {
-		const { result } = renderHook(() => useFormStatus())
-
-		expect(result.current).toBeUndefined()
-	})
-
 	it('returns form-level status flags', () => {
 		const wrapper = makeWrapper({ name: 'Ada' })
 

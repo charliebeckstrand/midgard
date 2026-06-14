@@ -1,4 +1,4 @@
-import { createRef, useState } from 'react'
+import { createRef, type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
@@ -456,14 +456,28 @@ describe('TagInput announcements', () => {
 	const politeRegion = () =>
 		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
 
-	it('announces an added tag', async () => {
-		const { container } = renderUI(<TagInput />)
+	it.each<[string, () => ReactElement, string, string]>([
+		['announces an added tag', () => <TagInput />, 'react{Enter}', 'Added react'],
+		[
+			'names the reason when a duplicate is rejected',
+			() => <TagInput defaultValue={['react']} />,
+			'react{Enter}',
+			'react is already in the list',
+		],
+		[
+			'names the reason when validation rejects a tag',
+			() => <TagInput validate={(tag) => tag.length >= 2} />,
+			'x{Enter}',
+			'x is not a valid tag',
+		],
+	])('%s', async (_name, ui, typed, announcement) => {
+		const { container } = renderUI(ui())
 
 		const user = userEvent.setup()
 
-		await user.type(getInput(container), 'react{Enter}')
+		await user.type(getInput(container), typed)
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('Added react'))
+		await waitFor(() => expect(politeRegion()).toHaveTextContent(announcement))
 	})
 
 	it('announces a removed tag', async () => {
@@ -474,26 +488,6 @@ describe('TagInput announcements', () => {
 		await user.click(getRemoveButtons(container)[0] as Element)
 
 		await waitFor(() => expect(politeRegion()).toHaveTextContent('Removed react'))
-	})
-
-	it('names the reason when a duplicate is rejected', async () => {
-		const { container } = renderUI(<TagInput defaultValue={['react']} />)
-
-		const user = userEvent.setup()
-
-		await user.type(getInput(container), 'react{Enter}')
-
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('react is already in the list'))
-	})
-
-	it('names the reason when validation rejects a tag', async () => {
-		const { container } = renderUI(<TagInput validate={(tag) => tag.length >= 2} />)
-
-		const user = userEvent.setup()
-
-		await user.type(getInput(container), 'x{Enter}')
-
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('x is not a valid tag'))
 	})
 })
 

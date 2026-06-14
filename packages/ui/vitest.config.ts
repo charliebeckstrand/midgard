@@ -1,6 +1,6 @@
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docsPlugin } from './src/docs/plugins'
-import { baseTest } from './vitest.base.config'
+import { baseTest, setupFiles } from './vitest.base.config'
 
 export default defineConfig({
 	plugins: [docsPlugin({ vitest: true })],
@@ -8,17 +8,13 @@ export default defineConfig({
 		...baseTest,
 		pool: 'vmThreads',
 		sequence: { shuffle: true },
-		setupFiles: [
-			'./src/__tests__/setup/index.ts',
-			'./src/__tests__/setup/module-mocks.ts',
-			'./src/__tests__/setup/restore-prototype-focus.ts',
-		],
+		setupFiles,
 		include: ['src/__tests__/**/*.test.{ts,tsx}'],
 		// The browser suite (vitest.browser.config.ts) verifies behaviour jsdom
 		// can't — layout/colour geometry and, in its floating-ui project,
 		// real-floating-engine focus trapping — so it may not run under this
 		// jsdom config.
-		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**'],
+		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**', 'src/__tests__/mcp/**'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',

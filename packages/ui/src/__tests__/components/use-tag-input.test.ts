@@ -13,46 +13,22 @@ describe('useTagInput', () => {
 		expect(empty.result.current.tags).toEqual([])
 	})
 
-	it('addTag appends and returns true on success', () => {
-		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'] }))
+	it.each<[string, Parameters<typeof useTagInput>[0], string, boolean, string[]]>([
+		['addTag appends and returns true on success', { defaultValue: ['a'] }, 'b', true, ['a', 'b']],
+		['addTag trims whitespace and rejects empty input', { defaultValue: [] }, '   ', false, []],
+		['addTag rejects duplicates', { defaultValue: ['a'] }, 'a', false, ['a']],
+	])('%s', (_name, options, input, expectedOk, expectedTags) => {
+		const { result } = renderHook(() => useTagInput(options))
 
 		let ok = false
 
 		act(() => {
-			ok = result.current.addTag('b')
+			ok = result.current.addTag(input)
 		})
 
-		expect(ok).toBe(true)
+		expect(ok).toBe(expectedOk)
 
-		expect(result.current.tags).toEqual(['a', 'b'])
-	})
-
-	it('addTag trims whitespace and rejects empty input', () => {
-		const { result } = renderHook(() => useTagInput({ defaultValue: [] }))
-
-		let ok = true
-
-		act(() => {
-			ok = result.current.addTag('   ')
-		})
-
-		expect(ok).toBe(false)
-
-		expect(result.current.tags).toEqual([])
-	})
-
-	it('addTag rejects duplicates', () => {
-		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'] }))
-
-		let ok = true
-
-		act(() => {
-			ok = result.current.addTag('a')
-		})
-
-		expect(ok).toBe(false)
-
-		expect(result.current.tags).toEqual(['a'])
+		expect(result.current.tags).toEqual(expectedTags)
 	})
 
 	it('addTag honors the max cap and surfaces atMax', () => {

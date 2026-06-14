@@ -1,6 +1,6 @@
-// `matchMedia`, `ResizeObserver`, `scrollIntoView`, and canvas `getContext`
-// are stubbed globally in `setup/jsdom-stubs.ts`; `stubMatchMedia` overrides
-// the global stub.
+// `matchMedia`, `ResizeObserver`, `scrollIntoView`, `window.scrollBy`, and
+// canvas `getContext` are stubbed globally in `setup/jsdom-stubs.ts`;
+// `stubMatchMedia` and `stubWindowScrollBy` are importable for per-test use.
 //
 // The browser suites also import this barrel, so it stays free of node-only
 // modules; the boundary tests import `walk-source` (node:fs) directly.
@@ -19,3 +19,4 @@ export { present } from './present'
 export { renderUI } from './render-ui'
 export { allBySlot, bySlot } from './slot-queries'
 export { stubMatchMedia } from './stub-match-media'
+export { stubWindowScrollBy } from './stub-window-scroll'

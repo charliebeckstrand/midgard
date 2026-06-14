@@ -2,16 +2,16 @@ import { writeFileSync } from 'node:fs'
 import type { UserEvent } from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 import { afterAll, describe, it } from 'vitest'
+import { baseline, interactive, overlays } from '../a11y/cases'
 import { axe, renderUI, userEvent } from '../helpers'
-import { baseline, interactive, overlays } from './cases'
 
 /**
  * MCP audit harness (a11y server, `audit` tool). Not a gate: it renders corpus
  * cases through the same `renderUI` + `axe` path as `baseline.test.tsx` and
  * writes the raw axe violations to `MCP_AUDIT_OUT` for the server to reshape.
  *
- * Inert in normal runs — only the server sets `MCP_AUDIT=1`, so `test:a11y`
- * and CI see a single skipped placeholder. Driven by env:
+ * Excluded from the default vitest project and run through `vitest.mcp.config.ts`,
+ * so `test`, `test:a11y`, and CI never collect it. Driven by env:
  *   MCP_AUDIT=1            arm the harness
  *   MCP_AUDIT_BUCKET=...   baseline | overlays | interactive (default baseline)
  *   MCP_AUDIT_FILTER=...   case-name substring (optional)
@@ -19,11 +19,15 @@ import { baseline, interactive, overlays } from './cases'
  */
 
 const ARMED = process.env.MCP_AUDIT === '1'
+
 const BUCKET = process.env.MCP_AUDIT_BUCKET ?? 'baseline'
+
 const FILTER = process.env.MCP_AUDIT_FILTER ?? ''
+
 const OUT = process.env.MCP_AUDIT_OUT
 
 type OpenStep = (user: UserEvent) => Promise<unknown>
+
 type AuditCase = readonly [name: string, element: ReactElement, open?: OpenStep]
 
 const BUCKETS: Record<string, readonly AuditCase[]> = { baseline, overlays, interactive }
@@ -62,6 +66,7 @@ if (!ARMED) {
 	const selected = (BUCKETS[BUCKET] ?? [])
 		.filter(([name]) => name.includes(FILTER))
 		.map(([name, element, open]) => ({ name, element, open }))
+
 	const results: Array<{
 		case: string
 		violations: ReturnType<typeof serialize>[]
@@ -80,10 +85,13 @@ if (!ARMED) {
 			try {
 				if (BUCKET === 'baseline') {
 					const { container } = renderUI(element)
+
 					results.push({ case: name, violations: (await axe(container)).violations.map(serialize) })
 				} else {
 					renderUI(element)
+
 					if (open) await open(userEvent.setup())
+
 					results.push({
 						case: name,
 						violations: (await axe(document.body)).violations.map(serialize),

@@ -1,4 +1,4 @@
-import { createRef, useState } from 'react'
+import { createRef, type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
@@ -47,22 +47,29 @@ describe('DateInput', () => {
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
-	it('uses the format as the default placeholder', () => {
-		const { container } = renderUI(<DateInput />)
+	it.each<[string, () => ReactElement, string, string]>([
+		[
+			'uses the format as the default placeholder',
+			() => <DateInput />,
+			'placeholder',
+			'MM/DD/YYYY',
+		],
+		[
+			'lets an explicit placeholder win',
+			() => <DateInput placeholder="Due date" />,
+			'placeholder',
+			'Due date',
+		],
+		[
+			'defaults an aria-label when no Field label wraps it',
+			() => <DateInput />,
+			'aria-label',
+			'Date',
+		],
+	])('%s', (_name, ui, attr, value) => {
+		const { container } = renderUI(ui())
 
-		expect(bySlot(container, 'date-input')).toHaveAttribute('placeholder', 'MM/DD/YYYY')
-	})
-
-	it('lets an explicit placeholder win', () => {
-		const { container } = renderUI(<DateInput placeholder="Due date" />)
-
-		expect(bySlot(container, 'date-input')).toHaveAttribute('placeholder', 'Due date')
-	})
-
-	it('defaults an aria-label when no Field label wraps it', () => {
-		const { container } = renderUI(<DateInput />)
-
-		expect(bySlot(container, 'date-input')).toHaveAttribute('aria-label', 'Date')
+		expect(bySlot(container, 'date-input')).toHaveAttribute(attr, value)
 	})
 
 	it('yields the aria-label default to a registered Field Label', () => {
@@ -233,16 +240,30 @@ describe('DateInput', () => {
 		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 
-	it('formats defaultValue on initial render', () => {
-		const { container } = renderUI(<DateInput defaultValue={new Date(2026, 5, 1)} />)
+	it.each<[string, () => ReactElement, string]>([
+		[
+			'formats defaultValue on initial render',
+			() => <DateInput defaultValue={new Date(2026, 5, 1)} />,
+			'06/01/2026',
+		],
+		[
+			'renders a controlled value through the format',
+			() => <DateInput value={new Date(2026, 5, 15)} format="YYYY-MM-DD" />,
+			'2026-06-15',
+		],
+		[
+			'renders a form-bound Date default through the format',
+			() => (
+				<Form defaultValues={{ due: new Date(2026, 5, 15) }}>
+					<DateInput name="due" />
+				</Form>
+			),
+			'06/15/2026',
+		],
+	])('%s', (_name, ui, expected) => {
+		const { container } = renderUI(ui())
 
-		expect((bySlot(container, 'date-input') as HTMLInputElement).value).toBe('06/01/2026')
-	})
-
-	it('renders a controlled value through the format', () => {
-		const { container } = renderUI(<DateInput value={new Date(2026, 5, 15)} format="YYYY-MM-DD" />)
-
-		expect((bySlot(container, 'date-input') as HTMLInputElement).value).toBe('2026-06-15')
+		expect((bySlot(container, 'date-input') as HTMLInputElement).value).toBe(expected)
 	})
 
 	it('lets an external value change override in-progress text', async () => {
@@ -317,15 +338,5 @@ describe('DateInput', () => {
 		expect(submitted.getFullYear()).toBe(2026)
 		expect(submitted.getMonth()).toBe(11)
 		expect(submitted.getDate()).toBe(25)
-	})
-
-	it('renders a form-bound Date default through the format', () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ due: new Date(2026, 5, 15) }}>
-				<DateInput name="due" />
-			</Form>,
-		)
-
-		expect((bySlot(container, 'date-input') as HTMLInputElement).value).toBe('06/15/2026')
 	})
 })

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+	type Errors,
 	type FormState,
 	formReducer,
 	runValidators,
+	type Touched,
+	type ValidateOn,
 	type Validators,
 	valuesEqual,
 } from '../../components/form/form-reducer'
@@ -19,68 +22,109 @@ const validators: Validators<Values> = {
 }
 
 describe('runValidators', () => {
-	it('returns empty when validate is undefined', () => {
-		expect(runValidators(undefined, { name: '', age: 0 }, {}, 'change')).toEqual({})
-	})
-
-	it('runs every validator when validateOn is "change"', () => {
-		const errors = runValidators(validators, { name: '', age: 10 }, {}, 'change')
-
-		expect(errors).toEqual({ name: ['required'], age: ['too young'] })
-	})
-
-	it('skips untouched fields when validateOn is "touched"', () => {
-		const errors = runValidators(validators, { name: '', age: 10 }, { name: true }, 'touched')
-
-		expect(errors).toEqual({ name: ['required'] })
-	})
-
-	it('skips every field when validateOn is "submit" and no fields are forced', () => {
-		expect(runValidators(validators, { name: '', age: 10 }, {}, 'submit')).toEqual({})
-	})
-
-	it('forces validation for the listed fields regardless of validateOn', () => {
-		const errors = runValidators(validators, { name: '', age: 10 }, {}, 'submit', ['age'])
-
-		expect(errors).toEqual({ age: ['too young'] })
-	})
-
-	it('records undefined for fields that pass validation', () => {
-		const errors = runValidators(validators, { name: 'ok', age: 30 }, {}, 'change')
-
-		expect(errors).toEqual({ name: undefined, age: undefined })
-	})
-
-	it('normalizes a string validator return into a single-element array', () => {
-		const errors = runValidators({ name: () => 'required' }, { name: '', age: 0 }, {}, 'change')
-
-		expect(errors).toEqual({ name: ['required'] })
-	})
-
-	it('keeps an array validator return as-is and collects every issue', () => {
-		const errors = runValidators(
+	it.each<
+		[
+			string,
+			Validators<Values> | undefined,
+			Values,
+			Touched,
+			ValidateOn,
+			string[] | undefined,
+			Errors,
+		]
+	>([
+		[
+			'returns empty when validate is undefined',
+			undefined,
+			{ name: '', age: 0 },
+			{},
+			'change',
+			undefined,
+			{},
+		],
+		[
+			'runs every validator when validateOn is "change"',
+			validators,
+			{ name: '', age: 10 },
+			{},
+			'change',
+			undefined,
+			{ name: ['required'], age: ['too young'] },
+		],
+		[
+			'skips untouched fields when validateOn is "touched"',
+			validators,
+			{ name: '', age: 10 },
+			{ name: true },
+			'touched',
+			undefined,
+			{ name: ['required'] },
+		],
+		[
+			'skips every field when validateOn is "submit" and no fields are forced',
+			validators,
+			{ name: '', age: 10 },
+			{},
+			'submit',
+			undefined,
+			{},
+		],
+		[
+			'forces validation for the listed fields regardless of validateOn',
+			validators,
+			{ name: '', age: 10 },
+			{},
+			'submit',
+			['age'],
+			{ age: ['too young'] },
+		],
+		[
+			'records undefined for fields that pass validation',
+			validators,
+			{ name: 'ok', age: 30 },
+			{},
+			'change',
+			undefined,
+			{ name: undefined, age: undefined },
+		],
+		[
+			'normalizes a string validator return into a single-element array',
+			{ name: () => 'required' },
+			{ name: '', age: 0 },
+			{},
+			'change',
+			undefined,
+			{ name: ['required'] },
+		],
+		[
+			'keeps an array validator return as-is and collects every issue',
 			{ name: () => ['too short', 'no digits'] },
 			{ name: '', age: 0 },
 			{},
 			'change',
-		)
-
-		expect(errors).toEqual({ name: ['too short', 'no digits'] })
-	})
-
-	it('normalizes an empty-array validator return to undefined', () => {
-		const errors = runValidators({ name: () => [] }, { name: '', age: 0 }, {}, 'change')
-
-		expect(errors).toEqual({ name: undefined })
-	})
-
-	it('skips fields without a registered validator', () => {
-		const errors = runValidators({ name: validators.name }, { name: 'ok', age: 0 }, {}, 'change', [
-			'name',
-			'age',
-		])
-
-		expect(errors).toEqual({ name: undefined })
+			undefined,
+			{ name: ['too short', 'no digits'] },
+		],
+		[
+			'normalizes an empty-array validator return to undefined',
+			{ name: () => [] },
+			{ name: '', age: 0 },
+			{},
+			'change',
+			undefined,
+			{ name: undefined },
+		],
+		[
+			'skips fields without a registered validator',
+			{ name: validators.name },
+			{ name: 'ok', age: 0 },
+			{},
+			'change',
+			['name', 'age'],
+			{ name: undefined },
+		],
+	])('%s', (_name, validate, values, touched, validateOn, fields, expected) => {
+		expect(runValidators(validate, values, touched, validateOn, fields)).toEqual(expected)
 	})
 })
 

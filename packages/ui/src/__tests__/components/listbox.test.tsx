@@ -1,10 +1,11 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const option = (
 	<div role="option" tabIndex={-1} aria-selected="false">
@@ -215,66 +216,62 @@ describe('Listbox', () => {
 		expect(screen.getByRole('listbox')).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
-	it('suppresses the trigger mousedown default while open so focus stays on the panel', () => {
-		const { container } = renderUI(
-			<Listbox open value="a" displayValue={(v) => v}>
-				<div role="option" tabIndex={-1} aria-selected="true" data-selected>
-					A
-				</div>
-			</Listbox>,
-		)
+	// The focus guard cancels mousedown only where keeping focus on the trigger
+	// matters: the open trigger (so a press released off-target stays navigable)
+	// and the default chevron in the suffix slot. A closed trigger and a
+	// caller-supplied suffix own their own pointer behavior and stay intact.
+	// `notCancelled` is false when preventDefault ran.
+	it.each<[string, () => ReactElement, string, boolean]>([
+		[
+			'suppresses the trigger mousedown default while open so focus stays on the panel',
+			() => (
+				<Listbox open value="a" displayValue={(v) => v}>
+					<div role="option" tabIndex={-1} aria-selected="true" data-selected>
+						A
+					</div>
+				</Listbox>
+			),
+			'listbox-button',
+			false,
+		],
+		[
+			'leaves the trigger mousedown default intact while closed',
+			() => (
+				<Listbox>
+					<div role="option" tabIndex={-1} aria-selected="false">
+						A
+					</div>
+				</Listbox>
+			),
+			'listbox-button',
+			true,
+		],
+		[
+			'cancels mousedown on the default chevron so the trigger keeps focus',
+			() => (
+				<Listbox>
+					<div>Option</div>
+				</Listbox>
+			),
+			'suffix',
+			false,
+		],
+		[
+			'leaves mousedown intact on a custom suffix',
+			() => (
+				<Listbox suffix={<span data-testid="suffix">USD</span>}>
+					<div>Option</div>
+				</Listbox>
+			),
+			'suffix',
+			true,
+		],
+	])('%s', (_name, ui, slot, expected) => {
+		const { container } = renderUI(ui())
 
-		const button = bySlot(container, 'listbox-button') as HTMLElement
+		const notCancelled = fireEvent.mouseDown(bySlot(container, slot) as HTMLElement)
 
-		// A cancelled mousedown keeps focus on the active option, so a press
-		// released off-target leaves the panel navigable by keyboard.
-		const notCancelled = fireEvent.mouseDown(button)
-
-		expect(notCancelled).toBe(false)
-	})
-
-	it('leaves the trigger mousedown default intact while closed', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div role="option" tabIndex={-1} aria-selected="false">
-					A
-				</div>
-			</Listbox>,
-		)
-
-		const button = bySlot(container, 'listbox-button') as HTMLElement
-
-		const notCancelled = fireEvent.mouseDown(button)
-
-		expect(notCancelled).toBe(true)
-	})
-
-	// The default chevron sits in the suffix slot beside the trigger, not inside
-	// it. Cancelling the suffix mousedown keeps focus on the trigger.
-	it('cancels mousedown on the default chevron so the trigger keeps focus', () => {
-		const { container } = renderUI(
-			<Listbox>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const notCancelled = fireEvent.mouseDown(bySlot(container, 'suffix') as HTMLElement)
-
-		expect(notCancelled).toBe(false)
-	})
-
-	// A caller-supplied suffix owns its own pointer behaviour; the focus guard is
-	// scoped to the default chevron and must not swallow a custom suffix's events.
-	it('leaves mousedown intact on a custom suffix', () => {
-		const { container } = renderUI(
-			<Listbox suffix={<span data-testid="suffix">USD</span>}>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		const notCancelled = fireEvent.mouseDown(bySlot(container, 'suffix') as HTMLElement)
-
-		expect(notCancelled).toBe(true)
+		expect(notCancelled).toBe(expected)
 	})
 
 	it('shows a clear button only when clearable and a value is selected', () => {
@@ -562,7 +559,9 @@ describe('Listbox readOnly', () => {
 			</Form>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		})
 
 		await vi.waitFor(() =>
 			expect(onSubmit).toHaveBeenCalledWith(
