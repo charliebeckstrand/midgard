@@ -43,6 +43,22 @@ function stopIndexForSegment(boundaries: number[], segmentIndex: number): number
 }
 
 /**
+ * Status of a segment from the statuses of the two stops bounding it. A
+ * done → active transition stays `done` so the completed portion still renders
+ * green up to the current position — which is why that case is resolved before
+ * the general `active` rule.
+ */
+function segmentStatus(
+	from: SegmentStatus | undefined,
+	to: SegmentStatus | undefined,
+): SegmentStatus {
+	if (from === 'done' && (to === 'done' || to === 'active')) return 'done'
+	if (from === 'active' || to === 'active') return 'active'
+	if (from === 'done') return 'done'
+	return 'pending'
+}
+
+/**
  * Build one GeoJSON LineString feature per segment between consecutive path
  * points, tagged with the status that determines its color.
  *
@@ -81,15 +97,7 @@ export function toSegmentCollection(data: RouteData) {
 
 		const stopIndex = stopIndexForSegment(boundaries, i)
 
-		const from = stops[stopIndex]?.status
-
-		const to = stops[stopIndex + 1]?.status
-
-		let status: SegmentStatus = 'pending'
-
-		if (from === 'done' && (to === 'done' || to === 'active')) status = 'done'
-		else if (from === 'active' || to === 'active') status = 'active'
-		else if (from === 'done') status = 'done'
+		const status = segmentStatus(stops[stopIndex]?.status, stops[stopIndex + 1]?.status)
 
 		segments.push({
 			type: 'Feature',
