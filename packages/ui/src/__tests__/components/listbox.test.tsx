@@ -219,7 +219,7 @@ describe('Listbox', () => {
 	// The focus guard cancels mousedown only where keeping focus on the trigger
 	// matters: the open trigger (so a press released off-target stays navigable)
 	// and the default chevron in the suffix slot. A closed trigger and a
-	// caller-supplied suffix own their own pointer behaviour and stay intact.
+	// caller-supplied suffix own their own pointer behavior and stay intact.
 	// `notCancelled` is false when preventDefault ran.
 	it.each<[string, () => ReactElement, string, boolean]>([
 		[

@@ -36,7 +36,7 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 
 // jsdom defines window.scrollBy but logs a "Not implemented" jsdomError on every
 // call; the scroll-area scrollbar track falls back to it. The shared helper
-// neutralises it here and stays importable for tests that want the spy.
+// neutralizes it here and stays importable for tests that want the spy.
 stubWindowScrollBy()
 
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
