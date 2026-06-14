@@ -56,16 +56,19 @@ async function makeSourceFile(repoRoot, name, text) {
 }
 
 function toFinding(rule, file, match) {
+	// A codemod rule can mark an individual match non-viable (e.g. a forwardRef
+	// that exposes an imperative handle); that occurrence surfaces as an escalation.
+	const kind = match.viable === false ? 'escalation' : rule.kind
 	return {
 		ruleId: rule.id,
 		title: rule.title,
 		category: rule.category,
 		authority: rule.authority,
 		severity: rule.severity,
-		kind: rule.kind,
+		kind,
 		file,
 		line: match.line,
-		message: match.message,
+		message: match.reason ? `${match.message} (${match.reason})` : match.message,
 		fix: rule.fix,
 		rationale: rule.rationale,
 		source: rule.source,

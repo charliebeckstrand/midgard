@@ -43,9 +43,20 @@ A rule is a declarative entry in [`rules.mjs`](rules.mjs):
   escalation report. They receive the `ts-morph` module so rules never resolve it.
 - `fixtureDir` — the before/after pair under `fixtures/` that pins the rule.
 
-`apply`'s anti-conditions (`viableWhen` and the readability floor) are what keep a
-rule from golfing code below readability: a codemod only fires where the idiom is
-unambiguously equivalent; everything else escalates.
+`detect` can mark an individual match non-viable (with a reason): `apply` only
+transforms the viable ones, and a non-viable match surfaces as an escalation even
+on a codemod rule. That is what keeps a rule from golfing code below readability —
+a codemod fires only where the idiom is unambiguously equivalent; everything else
+routes to `cadence_diagnose`.
+
+v1 ships three React 19 rules:
+
+- `react19/use-context` — `useContext(Ctx)` → `use(Ctx)` (codemod).
+- `react19/ref-as-prop` — `forwardRef` → `ref` as a prop. Codemod when props are
+  destructured and the ref is forwarded straight through; escalates on
+  `useImperativeHandle` or a non-destructured props parameter.
+- `react19/use-for-async` — fetch-in-`useEffect` → `use()` under Suspense
+  (escalation).
 
 ## Tested morals
 

@@ -122,7 +122,115 @@ const useForAsyncRule = {
 	},
 }
 
-export const RULES = [useContextRule, useForAsyncRule]
+// React 19 makes `ref` a regular prop; forwardRef is legacy. The swap is only
+// mechanical when props are destructured and the ref is forwarded straight
+// through; a useImperativeHandle or a non-destructured props parameter needs a
+// manual rewrite, so those occurrences are marked non-viable and escalate.
+function forwardRefMatches(sf, tsm) {
+	const { SyntaxKind } = tsm
+	const matches = []
+	for (const call of sf.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+		const callee = call.getExpression().getText()
+		if (callee !== 'forwardRef' && callee !== 'React.forwardRef') continue
+		const fn = call.getArguments()[0]
+		const isFn = fn && (fn.getKind() === SyntaxKind.ArrowFunction || fn.getKind() === SyntaxKind.FunctionExpression)
+		const params = isFn ? fn.getParameters() : []
+		const propsDestructured = params[0]?.getNameNode().getKind() === SyntaxKind.ObjectBindingPattern
+		const refIsIdent = params[1]?.getNameNode().getKind() === SyntaxKind.Identifier
+		const hasImperative =
+			isFn &&
+			fn.getDescendantsOfKind(SyntaxKind.CallExpression).some((c) => /(^|\.)useImperativeHandle$/.test(c.getExpression().getText()))
+		const viable = Boolean(isFn && params.length === 2 && propsDestructured && refIsIdent && !hasImperative)
+		let reason
+		if (!viable) {
+			if (hasImperative) reason = 'exposes an imperative handle via useImperativeHandle'
+			else if (isFn && params.length === 2 && !propsDestructured) reason = 'props parameter is not destructured'
+			else reason = 'unsupported forwardRef shape'
+		}
+		matches.push({ call, fn, line: call.getStartLineNumber(), viable, reason })
+	}
+	return matches
+}
+
+function transformForwardRef(call, fn) {
+	const typeArgs = call.getTypeArguments()
+	const [propsParam, refParam] = fn.getParameters()
+	let refType
+	let propsType
+	if (typeArgs.length >= 2) {
+		refType = typeArgs[0].getText()
+		propsType = typeArgs[1].getText()
+	} else {
+		propsType = propsParam.getTypeNode()?.getText() ?? '{}'
+		const inner = (refParam.getTypeNode()?.getText() ?? '').match(/<\s*([\s\S]+)\s*>/)
+		refType = inner ? inner[1].trim() : 'unknown'
+	}
+	const pattern = propsParam.getNameNode().getText().replace(/^\{\s*|\s*\}$/g, '').trim()
+	const binding = pattern ? `{ ref, ${pattern} }` : '{ ref }'
+	const asyncKw = fn.isAsync?.() ? 'async ' : ''
+	call.replaceWithText(`${asyncKw}(${binding}: ${propsType} & { ref?: Ref<${refType}> }) => ${fn.getBody().getText()}`)
+}
+
+function dropForwardRefImport(sf) {
+	for (const d of sf.getImportDeclarations().filter((i) => i.getModuleSpecifierValue() === 'react')) {
+		d.getNamedImports().find((n) => n.getName() === 'forwardRef')?.remove()
+		if (!d.isTypeOnly() && d.getNamedImports().length === 0 && !d.getDefaultImport() && !d.getNamespaceImport()) d.remove()
+	}
+	const hasRef = sf
+		.getImportDeclarations()
+		.some((d) => d.getModuleSpecifierValue() === 'react' && d.getNamedImports().some((n) => n.getName() === 'Ref'))
+	if (!hasRef) sf.insertImportDeclaration(0, { isTypeOnly: true, moduleSpecifier: 'react', namedImports: ['Ref'] })
+}
+
+const refAsPropRule = {
+	id: 'react19/ref-as-prop',
+	title: 'forwardRef → ref as a prop',
+	category: 'non-idiomatic',
+	authority: 'framework',
+	severity: 'info',
+	kind: 'codemod',
+	source: { technology: 'react', version: '19', topic: 'react-19', anchor: 'ref as Prop / Key Changes — forwardRef: Required → ref as prop' },
+	rationale: 'React 19 passes ref as a regular prop; forwardRef is legacy boilerplate.',
+	fix: 'Take `ref` as a prop and drop the forwardRef wrapper.',
+	fixtureDir: 'react19/ref-as-prop',
+
+	detect(sf, tsm) {
+		return forwardRefMatches(sf, tsm).map((m) => ({
+			line: m.line,
+			message: 'forwardRef wraps this component — in React 19 `ref` is a regular prop.',
+			viable: m.viable,
+			reason: m.reason,
+		}))
+	},
+
+	apply(sf, tsm) {
+		let changes = 0
+		// Re-query each pass: a manipulation can forget previously collected nodes.
+		while (changes < 1000) {
+			const match = forwardRefMatches(sf, tsm).find((m) => m.viable)
+			if (!match) break
+			transformForwardRef(match.call, match.fn)
+			changes += 1
+		}
+		if (changes > 0) dropForwardRefImport(sf)
+		return changes
+	},
+
+	diagnose(sf, tsm) {
+		const blocked = forwardRefMatches(sf, tsm).filter((m) => !m.viable)
+		if (blocked.length === 0) return 'No forwardRef usage needs a manual rewrite.'
+		const lines = ["These `forwardRef` wrappers can't be converted mechanically:", '']
+		for (const m of blocked) lines.push(`- line ${m.line}: ${m.reason}.`)
+		lines.push(
+			'',
+			'With an imperative handle: React 19 still takes `ref` as a prop, but keep `useImperativeHandle` and type the prop as the handle (`ref?: Ref<Handle>`) — convert by hand so the handle contract stays explicit.',
+			'With a non-destructured props parameter: destructure it first (`({ ref, ...props }) =>`) so ref lands as a sibling prop, then re-run cadence_implement.',
+		)
+		return lines.join('\n')
+	},
+}
+
+export const RULES = [useContextRule, useForAsyncRule, refAsPropRule]
 
 export const RULE_IDS_FOR_SCHEMA = RULES.map((r) => r.id)
 
