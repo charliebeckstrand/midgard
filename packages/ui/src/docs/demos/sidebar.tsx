@@ -229,7 +229,41 @@ function SectionedSidebarExample() {
 	)
 }
 
-function ItemActionsSidebarExample() {
+function SuffixSidebarExample() {
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarBody>
+					<SidebarList aria-label="Main">
+						<SidebarItem
+							icon={<Search />}
+							preventClose
+							suffix={
+								<Badge color="zinc" size="md">
+									⌘K
+								</Badge>
+							}
+						>
+							<SidebarLabel>Search</SidebarLabel>
+						</SidebarItem>
+						<SidebarItem
+							icon={<Inbox />}
+							suffix={
+								<Badge color="blue" size="md">
+									12
+								</Badge>
+							}
+						>
+							<SidebarLabel>Inbox</SidebarLabel>
+						</SidebarItem>
+					</SidebarList>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+function ActionsSidebarExample() {
 	return (
 		<SidebarFrame>
 			<Sidebar>
@@ -259,40 +293,6 @@ function ItemActionsSidebarExample() {
 									</MenuContent>
 								</Menu>
 							</SidebarItemActions>
-						</SidebarItem>
-					</SidebarList>
-				</SidebarBody>
-			</Sidebar>
-		</SidebarFrame>
-	)
-}
-
-function SuffixSidebarExample() {
-	return (
-		<SidebarFrame>
-			<Sidebar>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						<SidebarItem
-							icon={<Search />}
-							preventClose
-							suffix={
-								<Badge color="zinc" size="md">
-									⌘K
-								</Badge>
-							}
-						>
-							<SidebarLabel>Search</SidebarLabel>
-						</SidebarItem>
-						<SidebarItem
-							icon={<Inbox />}
-							suffix={
-								<Badge color="blue" size="md">
-									12
-								</Badge>
-							}
-						>
-							<SidebarLabel>Inbox</SidebarLabel>
 						</SidebarItem>
 					</SidebarList>
 				</SidebarBody>
@@ -360,12 +360,12 @@ export function Demo() {
 				<SectionedSidebarExample />
 			</Example>
 
-			<Example title="With item actions">
-				<ItemActionsSidebarExample />
-			</Example>
-
 			<Example title="With suffix slot">
 				<SuffixSidebarExample />
+			</Example>
+
+			<Example title="With actions">
+				<ActionsSidebarExample />
 			</Example>
 
 			<Example
