@@ -88,10 +88,10 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 					{alpha && <ColorSlider channel="alpha" />}
 				</div>
 
-				<div className={cn(k.previewRow)}>
+				<div className={cn(k.preview.row)}>
 					<span
 						data-slot="color-preview"
-						className={cn('group', k.preview({ size }), alpha && k.checkerboard)}
+						className={cn('group', k.preview.base({ size }), alpha && k.checkerboard)}
 					>
 						<span className="block size-full" style={{ backgroundColor: previewColor }} />
 					</span>

@@ -84,14 +84,18 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			tabIndex={0}
 			onPointerDown={(e) => startDrag(handleIndex, e)}
 			onKeyDown={onKeyDown}
-			className={cn(k.handle, isHorizontal ? k.handleHorizontal : k.handleVertical, className)}
+			className={cn(
+				k.handle.base,
+				isHorizontal ? k.handle.horizontal : k.handle.vertical,
+				className,
+			)}
 		>
 			<span
 				aria-hidden
 				className={cn(
-					k.grip,
-					isHorizontal ? k.gripHorizontal : k.gripVertical,
-					isDragging && k.gripDragging,
+					k.grip.base,
+					isHorizontal ? k.grip.horizontal : k.grip.vertical,
+					isDragging && k.grip.dragging,
 				)}
 			/>
 		</div>

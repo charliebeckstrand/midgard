@@ -34,13 +34,13 @@ export function PaginationPage({
 
 	return (
 		<li>
-			<span className="group relative inline-flex" {...indicator.tapHandlers}>
+			<span className={k.wrapper} {...indicator.tapHandlers}>
 				<Polymorphic
 					as="button"
 					data-slot="pagination-page"
 					href={href}
 					aria-current={current ? 'page' : undefined}
-					className={cn(k.pageButton({ current }), 'relative z-1', className)}
+					className={cn(k.pageButton({ current }), className)}
 					{...props}
 				>
 					{children}

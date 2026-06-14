@@ -710,10 +710,18 @@ export function createTestAnalysis(repoRoot) {
     return { rel, tests, hasBeforeEach };
   }
 
-  async function loadTests(cwd, filters) {
-    const files = await collectTestFiles(cwd, filters);
-    const parsed = await Promise.all(files.map(parseFile));
-    return { files, parsed };
+  // When `files` is supplied (the server resolves it from `vitest list` so the
+  // scope matches what `run_tests` would execute), analyze exactly those and skip
+  // the filesystem walk; otherwise collect from disk. Name filters still apply.
+  async function loadTests({ cwd, filters, files }) {
+    let list;
+    if (files) {
+      list = filters?.length ? files.filter((f) => filters.some((needle) => f.includes(needle))) : files;
+    } else {
+      list = await collectTestFiles(cwd, filters);
+    }
+    const parsed = await Promise.all(list.map(parseFile));
+    return { files: list, parsed };
   }
 
   // Overlap clustering, scoped to one file
@@ -777,8 +785,8 @@ export function createTestAnalysis(repoRoot) {
     });
   }
 
-  async function findOverlaps({ cwd, filters, threshold = 0.7, minAtoms = 2 }) {
-    const { files, parsed } = await loadTests(cwd, filters);
+  async function findOverlaps({ cwd, filters, files, threshold = 0.7, minAtoms = 2 }) {
+    const { files: list, parsed } = await loadTests({ cwd, filters, files });
     let testCount = 0;
     const clusters = [];
     for (const file of parsed) {
@@ -786,11 +794,11 @@ export function createTestAnalysis(repoRoot) {
       for (const c of clusterFile(file.tests, threshold, minAtoms)) clusters.push(c);
     }
     clusters.sort((a, b) => b.members.length - a.members.length);
-    return { files: files.length, tests: testCount, threshold, clusters };
+    return { files: list.length, tests: testCount, threshold, clusters };
   }
 
-  async function auditTests({ cwd, filters, rules, minSeverity = "info" }) {
-    const { files, parsed } = await loadTests(cwd, filters);
+  async function auditTests({ cwd, filters, files, rules, minSeverity = "info" }) {
+    const { files: list, parsed } = await loadTests({ cwd, filters, files });
     const active = rules?.length ? RULES.filter((r) => rules.includes(r.id)) : RULES;
     const floor = SEVERITY_RANK[minSeverity] ?? 1;
 
@@ -848,7 +856,7 @@ export function createTestAnalysis(repoRoot) {
 
     const order = { error: 0, warn: 1, info: 2 };
     findings.sort((a, b) => order[a.severity] - order[b.severity] || a.location.localeCompare(b.location));
-    return { files: files.length, tests: testCount, ruleCounts, severityCounts, findings };
+    return { files: list.length, tests: testCount, ruleCounts, severityCounts, findings };
   }
 
   return { collectTestFiles, parseFile, findOverlaps, auditTests };

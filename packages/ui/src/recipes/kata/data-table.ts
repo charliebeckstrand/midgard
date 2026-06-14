@@ -1,3 +1,4 @@
+import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -8,6 +9,12 @@ const { flex } = narabi
 const { bg } = omote
 const { border, focus } = sen
 const { css } = ugoki
+
+/** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
+const sortIcon = defineRecipe({
+	active: { true: text.default, false: text.muted },
+	defaults: { active: false },
+})
 
 export const k = {
 	wrapper: ['relative', flex.col, 'gap-2'],
@@ -31,8 +38,9 @@ export const k = {
 	},
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
-	sortButton: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
-	sortIcon: text.muted,
-	sortIconActive: text.default,
+	sort: {
+		button: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		icon: sortIcon,
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

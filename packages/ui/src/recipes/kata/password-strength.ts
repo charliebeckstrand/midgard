@@ -39,10 +39,14 @@ export const k = {
 	rules: [flex.col, 'gap-0.5'],
 	rule: {
 		base: [flex.inline, 'gap-1', size.sm],
-		icon: 'size-4 shrink-0',
-		iconPass: palette.bare.text.green,
-		iconFail: text.muted,
-		text: text.muted,
-		textPass: text.default,
+		icon: {
+			base: 'size-4 shrink-0',
+			pass: palette.bare.text.green,
+			fail: text.muted,
+		},
+		text: {
+			base: text.muted,
+			pass: text.default,
+		},
 	},
 } as const

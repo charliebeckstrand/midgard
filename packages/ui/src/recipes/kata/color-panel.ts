@@ -38,14 +38,19 @@ export const k = defineRecipe(
 		skeleton: kokkaku.colorPanel,
 	},
 	{
-		area,
+		area: {
+			base: area,
+			/** White-to-transparent wash painting the saturation axis over the hue base. */
+			saturation: 'absolute inset-0 [background-image:linear-gradient(to_right,#fff,transparent)]',
+			/** Transparent-to-black wash painting the value axis. */
+			value: 'absolute inset-0 [background-image:linear-gradient(to_top,#000,transparent)]',
+		},
 		track,
-		preview,
-		/** White-to-transparent wash painting the saturation axis over the hue base. */
-		areaSaturation:
-			'absolute inset-0 [background-image:linear-gradient(to_right,#fff,transparent)]',
-		/** Transparent-to-black wash painting the value axis. */
-		areaValue: 'absolute inset-0 [background-image:linear-gradient(to_top,#000,transparent)]',
+		preview: {
+			base: preview,
+			/** Preview swatch + hex field share a row beneath the sliders. */
+			row: 'flex items-center gap-2',
+		},
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */
 		hue: '[background-image:linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
@@ -54,8 +59,6 @@ export const k = defineRecipe(
 			'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:12px_12px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
 		/** Full-width stack for the hue (and optional alpha) tracks. */
 		sliders: 'flex flex-col gap-2',
-		/** Preview swatch + hex field share a row beneath the sliders. */
-		previewRow: 'flex items-center gap-2',
 		/** Label-above-input column for one channel input. */
 		field: 'flex min-w-0 flex-col gap-1',
 		label: 'text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400',
