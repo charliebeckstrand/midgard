@@ -13,6 +13,7 @@ import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useInSidebarList, useSidebarMini } from './context'
+import { SidebarItemActions } from './sidebar-item-actions'
 import { SidebarLabel } from './sidebar-label'
 
 export type SidebarItemProps = NavItemProps & {
@@ -49,9 +50,12 @@ function sidebarItemButtonProps(
  * `href` is set) marked `aria-current="page"` while `current`. Wraps in an
  * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
  * flips the row to a flex layout whose slots join the cross-axis roving model
- * and sit inside the shared hover tint and focus ring. Under the parent's mini
- * rail the label is hidden in place (preserving the accessible name) and echoed
- * into a hover tooltip.
+ * and sit inside the shared hover tint and focus ring; a `SidebarItemActions`
+ * child hoists into the `suffix` slot (an explicit `suffix` prop wins). Under
+ * the parent's mini rail the label is hidden in place (preserving the
+ * accessible name) and echoed into a hover tooltip.
+ *
+ * @see {@link SidebarItemActions}
  */
 export function SidebarItem({
 	icon,
@@ -73,11 +77,25 @@ export function SidebarItem({
 
 	const Wrapper = inList ? 'li' : 'span'
 
+	// A SidebarItemActions child hoists into the suffix slot so its controls
+	// render beside the button rather than nested inside it (where an
+	// interactive control would break markup); it is then dropped from the
+	// children the button renders. An explicit `suffix` prop wins.
+	const childArray = Children.toArray(children)
+
+	const actions = childArray.find(
+		(child) => isValidElement(child) && child.type === SidebarItemActions,
+	)
+
+	const resolvedSuffix = suffix ?? actions
+
+	const innerChildren = actions ? childArray.filter((child) => child !== actions) : children
+
 	// Affixes render as siblings of the inner button, not nested inside it;
 	// a slot can host its own interactive element. With an affix present the
 	// row goes flex and takes over the interaction chrome (`chrome: 'row'`),
 	// so the slots sit inside the hover tint and focus ring.
-	const hasAffix = prefix != null || suffix != null
+	const hasAffix = prefix != null || resolvedSuffix != null
 
 	// Resolved by the Sidebar root: true only when mini on a desktop viewport,
 	// so the mobile drawer keeps plain items.
@@ -86,10 +104,8 @@ export function SidebarItem({
 	// The tooltip surface portals out of the nav, where the rail's
 	// group-scoped hiding can't reach, so anything echoed into it (actions,
 	// affix helpers) would render. Surface only the SidebarLabel children;
-	// items composed without one fall back to their full children.
-	const labels = Children.toArray(children).filter(
-		(child) => isValidElement(child) && child.type === SidebarLabel,
-	)
+	// items composed without one fall back to the button's children.
+	const labels = childArray.filter((child) => isValidElement(child) && child.type === SidebarLabel)
 
 	const inner = (
 		<Button
@@ -100,7 +116,7 @@ export function SidebarItem({
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} size={item.size} />}
-				{children}
+				{innerChildren}
 			</TouchTarget>
 		</Button>
 	)
@@ -128,15 +144,15 @@ export function SidebarItem({
 					// help-cursor default.
 					<Tooltip placement="right" className="*:cursor-pointer">
 						<TooltipTrigger>{inner}</TooltipTrigger>
-						<TooltipContent>{labels.length > 0 ? labels : children}</TooltipContent>
+						<TooltipContent>{labels.length > 0 ? labels : innerChildren}</TooltipContent>
 					</Tooltip>
 				) : (
 					inner
 				)}
 			</Headless>
-			{suffix != null && (
+			{resolvedSuffix != null && (
 				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: item.size }))}>
-					<AffixContext value={affixStepDown(item.size)}>{suffix}</AffixContext>
+					<AffixContext value={affixStepDown(item.size)}>{resolvedSuffix}</AffixContext>
 				</span>
 			)}
 			{item.current && (

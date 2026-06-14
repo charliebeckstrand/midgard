@@ -229,29 +229,32 @@ function SectionedSidebarExample() {
 	)
 }
 
-function ItemActionsSidebarExample() {
+function SuffixSidebarExample() {
 	return (
 		<SidebarFrame>
 			<Sidebar>
 				<SidebarBody>
 					<SidebarList aria-label="Main">
-						<SidebarItem icon={<Search />} preventClose>
-							<SidebarLabel>Search</SidebarLabel>
-							<Spacer />
-							<SidebarItemActions>
+						<SidebarItem
+							icon={<Search />}
+							preventClose
+							suffix={
 								<Badge color="zinc" size="md">
 									⌘K
 								</Badge>
-							</SidebarItemActions>
+							}
+						>
+							<SidebarLabel>Search</SidebarLabel>
 						</SidebarItem>
-						<SidebarItem icon={<Inbox />}>
-							<SidebarLabel>Inbox</SidebarLabel>
-							<Spacer />
-							<SidebarItemActions>
+						<SidebarItem
+							icon={<Inbox />}
+							suffix={
 								<Badge color="blue" size="md">
 									12
 								</Badge>
-							</SidebarItemActions>
+							}
+						>
+							<SidebarLabel>Inbox</SidebarLabel>
 						</SidebarItem>
 					</SidebarList>
 				</SidebarBody>
@@ -260,15 +263,15 @@ function ItemActionsSidebarExample() {
 	)
 }
 
-function SuffixSidebarExample() {
+function ActionsSidebarExample() {
 	return (
 		<SidebarFrame>
 			<Sidebar>
 				<SidebarBody>
 					<SidebarList aria-label="Main">
-						<SidebarItem
-							icon={<Inbox />}
-							suffix={
+						<SidebarItem icon={<Inbox />}>
+							<SidebarLabel>Inbox</SidebarLabel>
+							<SidebarItemActions>
 								<Menu placement="bottom-end">
 									<MenuTrigger>
 										<Button variant="bare">
@@ -289,9 +292,7 @@ function SuffixSidebarExample() {
 										</MenuSection>
 									</MenuContent>
 								</Menu>
-							}
-						>
-							<SidebarLabel>Inbox</SidebarLabel>
+							</SidebarItemActions>
 						</SidebarItem>
 					</SidebarList>
 				</SidebarBody>
@@ -359,12 +360,12 @@ export function Demo() {
 				<SectionedSidebarExample />
 			</Example>
 
-			<Example title="With item actions">
-				<ItemActionsSidebarExample />
-			</Example>
-
 			<Example title="With suffix slot">
 				<SuffixSidebarExample />
+			</Example>
+
+			<Example title="With actions">
+				<ActionsSidebarExample />
 			</Example>
 
 			<Example
