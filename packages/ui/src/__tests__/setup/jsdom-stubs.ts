@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { stubWindowScrollBy } from '../helpers/stub-window-scroll'
 
 /** Browser API stubs jsdom doesn't ship. Imported for side effects from setup.ts. */
 
@@ -33,14 +34,10 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }
 
-// jsdom ships window.scrollBy but logs a "Not implemented" jsdomError on every
-// call (it has no layout engine). The scroll-area scrollbar track falls back to
-// it, so replace it with a no-op to keep the call working without the noise.
-Object.defineProperty(window, 'scrollBy', {
-	writable: true,
-	configurable: true,
-	value: vi.fn(),
-})
+// jsdom defines window.scrollBy but logs a "Not implemented" jsdomError on every
+// call; the scroll-area scrollbar track falls back to it. The shared helper
+// neutralises it here and stays importable for tests that want the spy.
+stubWindowScrollBy()
 
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
 // on every call. Returns null instead; components null-check the context.
