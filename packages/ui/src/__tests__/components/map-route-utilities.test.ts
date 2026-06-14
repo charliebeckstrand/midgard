@@ -85,6 +85,28 @@ describe('toSegmentCollection', () => {
 		expect(result.features[0]?.properties.status).toBe('active')
 	})
 
+	it('flags a segment "active" when its origin is active regardless of the destination', () => {
+		const data: RouteData = {
+			id: 'r',
+			stops: [stop('a', [0, 0], 'active'), stop('b', [1, 1], 'pending')],
+		}
+
+		const result = toSegmentCollection(data)
+
+		expect(result.features[0]?.properties.status).toBe('active')
+	})
+
+	it('keeps a segment "done" when its origin is done but the destination is unvisited', () => {
+		const data: RouteData = {
+			id: 'r',
+			stops: [stop('a', [0, 0], 'done'), stop('b', [1, 1], 'pending')],
+		}
+
+		const result = toSegmentCollection(data)
+
+		expect(result.features[0]?.properties.status).toBe('done')
+	})
+
 	it('defaults to "pending" when neither endpoint has a status', () => {
 		const data: RouteData = {
 			id: 'r',
