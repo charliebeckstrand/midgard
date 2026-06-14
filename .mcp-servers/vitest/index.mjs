@@ -249,6 +249,36 @@ async function listTests(input) {
   }
 }
 
+// Resolves the scoped test-file set from the target workspace's vitest config via
+// `vitest list --filesOnly`, so the static analyzers (find_overlaps, audit_tests)
+// see exactly the files `run_tests` would execute — no drift from a hand-rolled
+// walk that ignores the config's include/exclude. Returns absolute paths; throws
+// when vitest can't run (the caller then falls back to a filesystem scan).
+async function resolveScopedFiles(cwd) {
+  const listFile = tmpFile("scope", "json");
+  try {
+    const { stderr } = await spawnVitest(["list", "--filesOnly", `--json=${listFile}`], cwd);
+    const entries = await readJson(listFile);
+    if (!entries) throw new Error(vitestError(stderr, cwd));
+    return [...new Set(entries.map((entry) => entry.file).filter(Boolean))];
+  } finally {
+    await removePath(listFile);
+  }
+}
+
+// Static-analyzer scope with graceful fallback: prefer the vitest-resolved set; if
+// vitest can't resolve it (e.g. no config at cwd), return files:null so the
+// analyzer walks the filesystem, plus a note recording which path was taken.
+async function scopedFiles(cwd) {
+  try {
+    const files = await resolveScopedFiles(resolveCwd(cwd));
+    return { files, scope: `vitest config (${files.length} file${files.length === 1 ? "" : "s"})` };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { files: null, scope: `filesystem scan — vitest could not resolve scope (${firstLine(message)})` };
+  }
+}
+
 async function runCoverage(input) {
   const cwd = resolveCwd(input.cwd);
   const reportFile = tmpFile("report", "json");
@@ -435,6 +465,7 @@ function formatOverlapReport(data) {
     "# Vitest Overlap Report\n",
     "## Summary",
     `- Working directory: \`${relative}\``,
+    `- Scope: ${data.scope ?? "filesystem scan"}`,
     `- Test files scanned: ${data.files}`,
     `- Tests analyzed: ${data.tests}`,
     `- Similarity threshold: ${data.threshold}`,
@@ -462,6 +493,7 @@ function formatAuditReport(data) {
     "# Vitest Test Audit\n",
     "## Summary",
     `- Working directory: \`${relative}\``,
+    `- Scope: ${data.scope ?? "filesystem scan"}`,
     `- Test files scanned: ${data.files}`,
     `- Tests analyzed: ${data.tests}`,
     `- Findings: ${data.findings.length} (🔴 ${data.severityCounts.error} error, 🟠 ${data.severityCounts.warn} warn, 🔵 ${data.severityCounts.info} info)`,
@@ -581,7 +613,7 @@ const TOOLS = [
   {
     name: "find_overlaps",
     description:
-      "Statically scan test files in scope and cluster tests that overlap — same assertions over the same exercised APIs, or strongly similar titles and bodies. Each cluster reports its members (file:line), pairwise body/title similarity, and a recommendation: drop the redundant test when one is a subset of another, or merge siblings into a single it.each when they assert the same thing over differing inputs. Does not run vitest and does not edit files; it surfaces the candidates to consolidate.",
+      "Statically scan the test files vitest collects for the target config (resolved via `vitest list`, so the scope matches `run_tests` and respects the config's include/exclude; falls back to a filesystem scan when vitest is unavailable) and cluster tests that overlap — same assertions over the same exercised APIs, or strongly similar titles and bodies. Each cluster reports its members (file:line), pairwise body/title similarity, and a recommendation: drop the redundant test when one is a subset of another, or merge siblings into a single it.each when they assert the same thing over differing inputs. Does not execute tests and does not edit files; it surfaces the candidates to consolidate.",
     inputSchema: {
       type: "object",
       properties: {
@@ -599,7 +631,7 @@ const TOOLS = [
   {
     name: "audit_tests",
     description:
-      "Statically audit test files in scope for best-practice and leanness issues — the test-suite analogue of the code-quality server. Flags left-on `.only`, skipped/todo tests, assertion-free tests, weak truthiness-only assertions, control flow in test bodies, leftover console calls, real-timer waits, vague titles, oversized inline snapshots, overloaded tests, long bodies, and setup duplicated across siblings that belongs in a beforeEach. Returns findings keyed rule → file:line with a severity and a one-line fix. Does not run vitest and does not edit files.",
+      "Statically audit the test files vitest collects for the target config (resolved via `vitest list` so the scope matches `run_tests`; falls back to a filesystem scan when vitest is unavailable) for best-practice and leanness issues — the test-suite analogue of the code-quality server. Flags left-on `.only`, skipped/todo tests, assertion-free tests, weak truthiness-only assertions, control flow in test bodies, leftover console calls, real-timer waits, vague titles, oversized inline snapshots, overloaded tests, long bodies, and setup duplicated across siblings that belongs in a beforeEach. Returns findings keyed rule → file:line with a severity and a one-line fix. Does not execute tests and does not edit files.",
     inputSchema: {
       type: "object",
       properties: {
@@ -681,14 +713,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "find_overlaps": {
         const parsed = parseArgs(tool.inputSchema, args);
         if (!parsed.success) return validationError(name, parsed.issues);
-        const result = await testAnalysis.findOverlaps(parsed.data);
-        return { content: [{ type: "text", text: formatOverlapReport({ ...result, cwd: parsed.data.cwd }) }] };
+        const { files, scope } = await scopedFiles(parsed.data.cwd);
+        const result = await testAnalysis.findOverlaps({ ...parsed.data, files });
+        return { content: [{ type: "text", text: formatOverlapReport({ ...result, cwd: parsed.data.cwd, scope }) }] };
       }
       case "audit_tests": {
         const parsed = parseArgs(tool.inputSchema, args);
         if (!parsed.success) return validationError(name, parsed.issues);
-        const result = await testAnalysis.auditTests(parsed.data);
-        return { content: [{ type: "text", text: formatAuditReport({ ...result, cwd: parsed.data.cwd }) }] };
+        const { files, scope } = await scopedFiles(parsed.data.cwd);
+        const result = await testAnalysis.auditTests({ ...parsed.data, files });
+        return { content: [{ type: "text", text: formatAuditReport({ ...result, cwd: parsed.data.cwd, scope }) }] };
       }
       default:
         return {

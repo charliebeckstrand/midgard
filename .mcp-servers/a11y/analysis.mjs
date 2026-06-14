@@ -11,32 +11,59 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
+// Sibling modules a case file may import that are not themselves cases —
+// excluded when deriving a bucket's constituent files.
+const NON_CASE = new Set(['types', 'harness', 'helpers', 'index'])
+
+// Resolves a case module name to its on-disk file (tsx preferred), or null.
+function resolveCaseFile(casesDir, name) {
+	for (const ext of ['.tsx', '.ts']) {
+		if (existsSync(join(casesDir, `${name}${ext}`))) return `${name}${ext}`
+	}
+	return null
+}
+
+// The sibling case files a module pulls in via `./<name>` imports (e.g.
+// baseline.ts importing ./content, ./inputs, …), excluding non-case modules.
+function siblingCaseFiles(casesDir, file) {
+	const src = readFileSync(join(casesDir, file), 'utf8')
+	const out = new Set()
+	for (const m of src.matchAll(/from\s*['"]\.\/([\w-]+)['"]/g)) {
+		if (NON_CASE.has(m[1])) continue
+		const resolved = resolveCaseFile(casesDir, m[1])
+		if (resolved && resolved !== file) out.add(resolved)
+	}
+	return [...out]
+}
+
+// Bucket → case files, derived from the corpus barrel (cases/index.ts) rather
+// than a hardcoded list, so adding a category to baseline.ts (or a new bucket
+// export) is tracked automatically instead of silently undercounting coverage.
+// Each value re-export `export { <bucket> } from './<module>'` names a bucket; a
+// module that aggregates sibling case files (baseline.ts) expands to them, while
+// a leaf module that renders components (overlays.tsx, …) is itself the case file.
+function discoverBucketFiles(casesDir) {
+	const indexSrc = readFileSync(join(casesDir, 'index.ts'), 'utf8')
+	const buckets = {}
+	for (const m of indexSrc.matchAll(/export\s+\{\s*([A-Za-z0-9_]+)\s*\}\s*from\s*['"]\.\/([\w-]+)['"]/g)) {
+		const moduleFile = resolveCaseFile(casesDir, m[2])
+		if (!moduleFile) continue
+		const siblings = siblingCaseFiles(casesDir, moduleFile)
+		buckets[m[1]] = siblings.length ? siblings : [moduleFile]
+	}
+	return buckets
+}
+
 // Resolved once at construction from the repo root passed by the caller.
 export function createAnalysis(repoRoot) {
 	const uiSrc = join(repoRoot, 'packages', 'ui', 'src')
 	const componentsDir = join(uiSrc, 'components')
 	const casesDir = join(uiSrc, '__tests__', 'a11y', 'cases')
 
-	// Corpus buckets → the case source files that populate them. `baseline`
-	// aggregates the per-category files (see cases/baseline.ts); the rest are a
-	// single export each (cases/index.ts).
-	const BUCKET_FILES = {
-		baseline: [
-			'content.tsx',
-			'inputs.tsx',
-			'forms.tsx',
-			'navigation.tsx',
-			'data-display.tsx',
-			'data-complex.tsx',
-			'layout.tsx',
-			'feedback.tsx',
-			'specialized.tsx',
-		],
-		overlays: ['overlays.tsx'],
-		interactive: ['interactive.tsx'],
-		focus: ['focus.tsx'],
-		traps: ['traps.tsx'],
-	}
+	// Corpus buckets → the case source files that populate them, derived from the
+	// barrel (discoverBucketFiles) so the map can't drift from cases/index.ts and
+	// cases/baseline.ts as categories or buckets are added.
+	const BUCKET_FILES = discoverBucketFiles(casesDir)
 
 	// Gate metadata. `buckets` ties a gate to corpus buckets; `env` and `rules`
 	// describe what it can see (CONVENTIONS §10.5). A component is asserted by a
