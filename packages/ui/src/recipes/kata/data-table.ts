@@ -31,8 +31,10 @@ export const k = {
 	},
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
-	sortButton: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
-	sortIcon: text.muted,
-	sortIconActive: text.default,
+	sort: {
+		button: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		icon: text.muted,
+		iconActive: text.default,
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

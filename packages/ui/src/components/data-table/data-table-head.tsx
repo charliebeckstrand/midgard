@@ -109,9 +109,9 @@ function sortDirectionIcon(
 ): ReactElement | null {
 	if (!sorted) return null
 
-	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={cn(k.sortIconActive)} />
+	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={cn(k.sort.iconActive)} />
 
-	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={cn(k.sortIconActive)} />
+	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={cn(k.sort.iconActive)} />
 
 	return null
 }
@@ -136,7 +136,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 				<Headless>
 					<Button
 						type="button"
-						className={cn(k.sortButton)}
+						className={cn(k.sort.button)}
 						onClick={() => toggleSort(column.id)}
 						aria-label={`Sort by ${typeof column.title === 'string' ? column.title : column.id}`}
 					>
