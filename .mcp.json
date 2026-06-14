@@ -5,6 +5,11 @@
       "args": [".mcp-servers/code-quality/index.mjs"],
       "env": {}
     },
+    "code-cadence": {
+      "command": "node",
+      "args": [".mcp-servers/code-cadence/index.mjs"],
+      "env": {}
+    },
     "documentation": {
       "command": "node",
       "args": [".mcp-servers/documentation/index.mjs"],
