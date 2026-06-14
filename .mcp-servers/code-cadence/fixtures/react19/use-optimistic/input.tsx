@@ -7,8 +7,10 @@ export function TodoList({ initial }: { initial: Todo[] }) {
 
 	const addTodo = async (text: string) => {
 		const previous = todos
+
 		try {
 			setTodos([...todos, { id: Date.now(), text }])
+
 			await fetch('/api/todos', { method: 'POST', body: JSON.stringify({ text }) })
 		} catch {
 			setTodos(previous)

@@ -5,12 +5,17 @@ export function UserName({ id }: { id: string }) {
 
 	useEffect(() => {
 		let cancelled = false
+
 		const load = async () => {
 			const res = await fetch(`/api/users/${id}`)
+
 			const data = await res.json()
+
 			if (!cancelled) setUser(data)
 		}
+
 		load()
+
 		return () => {
 			cancelled = true
 		}
