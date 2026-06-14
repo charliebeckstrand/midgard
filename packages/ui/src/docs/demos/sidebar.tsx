@@ -235,38 +235,9 @@ function ItemActionsSidebarExample() {
 			<Sidebar>
 				<SidebarBody>
 					<SidebarList aria-label="Main">
-						<SidebarItem icon={<Search />} preventClose>
-							<SidebarLabel>Search</SidebarLabel>
-							<SidebarItemActions>
-								<Badge color="zinc" size="md">
-									⌘K
-								</Badge>
-							</SidebarItemActions>
-						</SidebarItem>
 						<SidebarItem icon={<Inbox />}>
 							<SidebarLabel>Inbox</SidebarLabel>
 							<SidebarItemActions>
-								<Badge color="blue" size="md">
-									12
-								</Badge>
-							</SidebarItemActions>
-						</SidebarItem>
-					</SidebarList>
-				</SidebarBody>
-			</Sidebar>
-		</SidebarFrame>
-	)
-}
-
-function SuffixSidebarExample() {
-	return (
-		<SidebarFrame>
-			<Sidebar>
-				<SidebarBody>
-					<SidebarList aria-label="Main">
-						<SidebarItem
-							icon={<Inbox />}
-							suffix={
 								<Menu placement="bottom-end">
 									<MenuTrigger>
 										<Button variant="bare">
@@ -287,6 +258,38 @@ function SuffixSidebarExample() {
 										</MenuSection>
 									</MenuContent>
 								</Menu>
+							</SidebarItemActions>
+						</SidebarItem>
+					</SidebarList>
+				</SidebarBody>
+			</Sidebar>
+		</SidebarFrame>
+	)
+}
+
+function SuffixSidebarExample() {
+	return (
+		<SidebarFrame>
+			<Sidebar>
+				<SidebarBody>
+					<SidebarList aria-label="Main">
+						<SidebarItem
+							icon={<Search />}
+							preventClose
+							suffix={
+								<Badge color="zinc" size="md">
+									⌘K
+								</Badge>
+							}
+						>
+							<SidebarLabel>Search</SidebarLabel>
+						</SidebarItem>
+						<SidebarItem
+							icon={<Inbox />}
+							suffix={
+								<Badge color="blue" size="md">
+									12
+								</Badge>
 							}
 						>
 							<SidebarLabel>Inbox</SidebarLabel>
