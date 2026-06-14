@@ -11,8 +11,9 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { createTestAnalysis, RULE_IDS_FOR_SCHEMA } from "./analysis.mjs";
 
-// --- Minimal MCP stdio runtime -------------------------------------------------
+// Minimal MCP stdio runtime
 // Newline-delimited JSON-RPC 2.0 over stdio. The constants and class surface
 // match the SDK so the handler code below reads like the vendored servers.
 
@@ -98,7 +99,7 @@ class Server {
   }
 }
 
-// --- Argument validation -------------------------------------------------------
+// Argument validation
 // Derives a zod-style safeParse from each tool's JSON Schema so the dispatch
 // reads like the vendored servers (`if (!parsed.success) ... parsed.data`).
 
@@ -142,9 +143,13 @@ function parseArgs(schema, rawArgs) {
   return issues.length ? { success: false, issues } : { success: true, data };
 }
 
-// --- Vitest invocation ---------------------------------------------------------
+// Vitest invocation
 
 const REPO_ROOT = process.cwd();
+
+// Static source analysis (overlap + audit) lives in analysis.mjs; the run-based
+// tools above shell out to vitest, these two only read and parse test files.
+const testAnalysis = createTestAnalysis(REPO_ROOT);
 
 function resolveCwd(cwd) {
   return path.resolve(REPO_ROOT, cwd ?? ".");
@@ -272,7 +277,7 @@ async function runRelated(input) {
   return { cwd, files: input.files, report };
 }
 
-// --- Report formatting ---------------------------------------------------------
+// Report formatting
 
 function statusLine(report) {
   return report.numFailedTests > 0 || report.numFailedTestSuites > 0
@@ -399,7 +404,80 @@ function formatListReport(data) {
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
-// --- Tool definitions ----------------------------------------------------------
+const ACTION_LABEL = {
+  "remove-redundant": "Remove redundancy",
+  "merge-parameterize": "Merge / parameterize",
+};
+
+function formatOverlapReport(data) {
+  const relative = path.relative(REPO_ROOT, resolveCwd(data.cwd)) || ".";
+  const lines = [
+    "# Vitest Overlap Report\n",
+    "## Summary",
+    `- Working directory: \`${relative}\``,
+    `- Test files scanned: ${data.files}`,
+    `- Tests analyzed: ${data.tests}`,
+    `- Similarity threshold: ${data.threshold}`,
+    `- Overlap clusters: ${data.clusters.length}`,
+    "",
+  ];
+  if (!data.clusters.length) {
+    lines.push("✅ No overlapping tests above the threshold.");
+    return `${lines.join("\n")}\n`;
+  }
+  lines.push("## Clusters\n");
+  const cap = 40;
+  data.clusters.slice(0, cap).forEach((cluster, i) => {
+    lines.push(`### Cluster ${i + 1} — ${ACTION_LABEL[cluster.recommendation.action]}`);
+    lines.push(cluster.recommendation.detail);
+    lines.push("");
+    lines.push("Members:");
+    for (const m of cluster.members) {
+      lines.push(`- \`${m.rel}\` — ${m.fullTitle} (${m.assertions} assertion${m.assertions === 1 ? "" : "s"})`);
+    }
+    lines.push("");
+    lines.push("Pairwise similarity (body / title):");
+    for (const p of cluster.pairs) lines.push(`- \`${p.a}\` ↔ \`${p.b}\`: ${p.bodySim} / ${p.titleSim}`);
+    lines.push("");
+  });
+  if (data.clusters.length > cap) lines.push(`_… ${data.clusters.length - cap} more clusters omitted._`);
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
+const SEVERITY_ICON = { error: "🔴", warn: "🟠", info: "🔵" };
+
+function formatAuditReport(data) {
+  const relative = path.relative(REPO_ROOT, resolveCwd(data.cwd)) || ".";
+  const lines = [
+    "# Vitest Test Audit\n",
+    "## Summary",
+    `- Working directory: \`${relative}\``,
+    `- Test files scanned: ${data.files}`,
+    `- Tests analyzed: ${data.tests}`,
+    `- Findings: ${data.findings.length} (🔴 ${data.severityCounts.error} error, 🟠 ${data.severityCounts.warn} warn, 🔵 ${data.severityCounts.info} info)`,
+    "",
+  ];
+  if (!data.findings.length) {
+    lines.push("✅ No findings — the tests in scope are lean.");
+    return `${lines.join("\n")}\n`;
+  }
+  lines.push("## By rule\n", "| Rule | Count |", "|------|-------|");
+  for (const [rule, count] of Object.entries(data.ruleCounts).sort((a, b) => b[1] - a[1])) {
+    lines.push(`| ${rule} | ${count} |`);
+  }
+  lines.push("");
+  lines.push("## Findings\n");
+  const cap = 200;
+  for (const f of data.findings.slice(0, cap)) {
+    lines.push(`- ${SEVERITY_ICON[f.severity]} **${f.rule}** \`${f.location}\` — ${f.message}`);
+    lines.push(`  - ${f.test}`);
+    lines.push(`  - Fix: ${f.fix}`);
+  }
+  if (data.findings.length > cap) lines.push(`\n_… ${data.findings.length - cap} more findings omitted._`);
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
+// Tool definitions
 
 const CWD_PROPERTY = {
   type: "string",
@@ -490,11 +568,53 @@ const TOOLS = [
       required: ["files"],
     },
   },
+  {
+    name: "find_overlaps",
+    description:
+      "Statically scan test files in scope and cluster tests that overlap — same assertions over the same exercised APIs, or strongly similar titles and bodies. Each cluster reports its members (file:line), pairwise body/title similarity, and a recommendation: drop the redundant test when one is a subset of another, or merge siblings into a single it.each when they assert the same thing over differing inputs. Does not run vitest and does not edit files; it surfaces the candidates to consolidate.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cwd: CWD_PROPERTY,
+        filters: FILTERS_PROPERTY,
+        threshold: {
+          type: "number",
+          description: "Minimum body (assertion + exercised-API) similarity, 0–1, for two tests to be linked. Lower to surface looser overlaps. Default: 0.7.",
+          default: 0.7,
+        },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "audit_tests",
+    description:
+      "Statically audit test files in scope for best-practice and leanness issues — the test-suite analogue of the code-quality server. Flags left-on `.only`, skipped/todo tests, assertion-free tests, weak truthiness-only assertions, control flow in test bodies, leftover console calls, real-timer waits, vague titles, oversized inline snapshots, overloaded tests, long bodies, and setup duplicated across siblings that belongs in a beforeEach. Returns findings keyed rule → file:line with a severity and a one-line fix. Does not run vitest and does not edit files.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        cwd: CWD_PROPERTY,
+        filters: FILTERS_PROPERTY,
+        rules: {
+          type: "array",
+          items: { type: "string" },
+          description: `Restrict to these rule ids. Omit for all. Available: ${RULE_IDS_FOR_SCHEMA.join(", ")}.`,
+        },
+        minSeverity: {
+          type: "string",
+          enum: ["error", "warn", "info"],
+          default: "info",
+          description: "Only report findings at or above this severity. Default: info (all).",
+        },
+      },
+      required: [],
+    },
+  },
 ];
 
 const TOOLS_BY_NAME = new Map(TOOLS.map((tool) => [tool.name, tool]));
 
-// --- Server --------------------------------------------------------------------
+// Server
 
 const server = new Server(
   {
@@ -547,6 +667,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (!parsed.success) return validationError(name, parsed.issues);
         const result = await runRelated(parsed.data);
         return { content: [{ type: "text", text: formatRelatedReport(result) }] };
+      }
+      case "find_overlaps": {
+        const parsed = parseArgs(tool.inputSchema, args);
+        if (!parsed.success) return validationError(name, parsed.issues);
+        const result = await testAnalysis.findOverlaps(parsed.data);
+        return { content: [{ type: "text", text: formatOverlapReport({ ...result, cwd: parsed.data.cwd }) }] };
+      }
+      case "audit_tests": {
+        const parsed = parseArgs(tool.inputSchema, args);
+        if (!parsed.success) return validationError(name, parsed.issues);
+        const result = await testAnalysis.auditTests(parsed.data);
+        return { content: [{ type: "text", text: formatAuditReport({ ...result, cwd: parsed.data.cwd }) }] };
       }
       default:
         return {
