@@ -1,9 +1,9 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
 
-// Composed activation for a menu item: run the consumer's handler first, then
-// selection (onAction + close). Both paths short-circuit when disabled; the
-// keyboard path additionally activates on Enter / Space once the consumer
-// hasn't already handled the event.
+/**
+ * Composed click activation for a menu item: runs the consumer's `onClick`
+ * first, then selection (`onAction` + close). A no-op when disabled.
+ */
 export function handleMenuItemClick<E extends HTMLElement>(
 	e: MouseEvent<E>,
 	consumerOnClick: ((event: MouseEvent<E>) => void) | undefined,
@@ -17,6 +17,12 @@ export function handleMenuItemClick<E extends HTMLElement>(
 	onSelect()
 }
 
+/**
+ * Keyboard counterpart to {@link handleMenuItemClick}: runs the consumer's
+ * `onKeyDown` first, then activates selection on Enter / Space unless the
+ * consumer already handled the event (`defaultPrevented`). A no-op when
+ * disabled, so disabled items stay inert on the keyboard path too.
+ */
 export function handleMenuItemKeyDown<E extends HTMLElement>(
 	e: KeyboardEvent<E>,
 	consumerOnKeyDown: ((event: KeyboardEvent<E>) => void) | undefined,
