@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from 'react'
+import { createContext, type FC, type ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Density } from '../../primitives/density'
 import { BaseOption, createSelectOption } from '../../primitives/option'
@@ -164,28 +164,36 @@ describe('BaseOption', () => {
 
 const mockSelect = vi.fn()
 
+type TestSelection = {
+	value: unknown
+	multiple: boolean
+	onSelect: (value: unknown) => void
+}
+
+const SelectionContext = createContext<TestSelection>({
+	value: undefined,
+	multiple: false,
+	onSelect: mockSelect,
+})
+
 const TestContext: FC<{ children: ReactNode; value?: unknown; multiple?: boolean }> = ({
 	children,
 	value,
 	multiple,
-}) => {
-	contextValue = { value, multiple: multiple ?? false, onSelect: mockSelect }
-
-	return <>{children}</>
-}
-
-let contextValue = { value: undefined as unknown, multiple: false, onSelect: mockSelect }
+}) => (
+	<SelectionContext value={{ value, multiple: multiple ?? false, onSelect: mockSelect }}>
+		{children}
+	</SelectionContext>
+)
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'test',
-	useContext: () => contextValue,
+	context: SelectionContext,
 })
 
 describe('createSelectOption', () => {
 	beforeEach(() => {
 		mockSelect.mockClear()
-
-		contextValue = { value: undefined, multiple: false, onSelect: mockSelect }
 	})
 
 	it('Option renders with correct data-slot', () => {

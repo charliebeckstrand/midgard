@@ -11,4 +11,4 @@ type ComboboxContextValue<T = unknown> = {
 	onSelect: (value: T) => void
 }
 
-export const [ComboboxContext, useComboboxContext] = createContext<ComboboxContextValue>('Combobox')
+export const [ComboboxContext] = createContext<ComboboxContextValue>('Combobox')
