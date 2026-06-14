@@ -15,7 +15,7 @@ const { icon } = shaku
 const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0', icon.sm]
 
 /** Shared item structure minus the interaction surface. */
-const itemCore = [
+const itemShell = [
 	'group relative',
 	flex.row,
 	'w-full',
@@ -55,7 +55,7 @@ const base = defineRecipe({
  * so the button only suppresses the UA outline and flexes to fill the row.
  */
 const button = defineRecipe({
-	base: [...itemCore, 'relative z-10'],
+	base: [...itemShell, 'relative z-10'],
 	affix: {
 		true: ['outline-none', 'min-w-0 flex-1'],
 		false: [...nav.tint, nav.focus],

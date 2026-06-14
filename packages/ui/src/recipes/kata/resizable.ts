@@ -13,9 +13,11 @@ const group = defineRecipe({
 export const k = {
 	group,
 	panel: 'relative overflow-hidden',
-	handle: ['group/handle relative', flex.row, 'shrink-0 justify-center', 'outline-none touch-none'],
-	handleHorizontal: 'px-2 cursor-col-resize',
-	handleVertical: 'py-2 cursor-row-resize',
+	handle: {
+		base: ['group/handle relative', flex.row, 'shrink-0 justify-center', 'outline-none touch-none'],
+		horizontal: 'px-2 cursor-col-resize',
+		vertical: 'py-2 cursor-row-resize',
+	},
 	grip: [
 		rounded.full,
 		...mode(
