@@ -12,101 +12,119 @@ function annotation(sources: Record<string, string>, alias: string) {
 	return { node: firstTypeAlias(sf, alias), checker: program.checker }
 }
 
+function passThroughOf(lines: string[]): ReturnType<typeof extractPassThrough> {
+	const { node, checker } = annotation({ 'index.ts': lines.join('\n') }, 'FooProps')
+
+	return extractPassThrough(node, checker)
+}
+
 describe('extractPassThrough — ComponentPropsWithoutRef-style', () => {
-	it('detects a direct ComponentPropsWithoutRef pass-through', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ComponentPropsWithoutRef } from 'react'`,
-					`type FooProps = ComponentPropsWithoutRef<'button'>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'button' }])
-	})
-
-	it('detects ComponentPropsWithRef variants too', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ComponentPropsWithRef } from 'react'`,
-					`type FooProps = ComponentPropsWithRef<'a'>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'a' }])
+	it.each<[string, string[], ReturnType<typeof extractPassThrough>]>([
+		[
+			'detects a direct ComponentPropsWithoutRef pass-through',
+			[
+				`import type { ComponentPropsWithoutRef } from 'react'`,
+				`type FooProps = ComponentPropsWithoutRef<'button'>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'button' }],
+		],
+		[
+			'detects ComponentPropsWithRef variants too',
+			[
+				`import type { ComponentPropsWithRef } from 'react'`,
+				`type FooProps = ComponentPropsWithRef<'a'>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'a' }],
+		],
+	])('%s', (_name, lines, expected) => {
+		expect(passThroughOf(lines)).toEqual(expected)
 	})
 })
 
 describe('extractPassThrough — HTMLAttributes-style', () => {
-	it('extracts the HTML tag from HTMLDivElement', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { HTMLAttributes } from 'react'`,
-					`type FooProps = HTMLAttributes<HTMLDivElement>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'div' }])
-	})
-
-	it('extracts the HTML tag from ButtonHTMLAttributes<HTMLButtonElement>', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ButtonHTMLAttributes } from 'react'`,
-					`type FooProps = ButtonHTMLAttributes<HTMLButtonElement>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'button' }])
-	})
-
-	it('maps overridden class names to their canonical tag (HTMLHeadingElement → h1)', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { HTMLAttributes } from 'react'`,
-					`type FooProps = HTMLAttributes<HTMLHeadingElement>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'h1' }])
-	})
-
-	it('maps HTMLAnchorElement → a (capital-A class, lowercased tag is "anchor" without override)', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { HTMLAttributes } from 'react'`,
-					`type FooProps = HTMLAttributes<HTMLAnchorElement>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'a' }])
+	it.each<[string, string[], ReturnType<typeof extractPassThrough>]>([
+		[
+			'extracts the HTML tag from HTMLDivElement',
+			[
+				`import type { HTMLAttributes } from 'react'`,
+				`type FooProps = HTMLAttributes<HTMLDivElement>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'div' }],
+		],
+		[
+			'extracts the HTML tag from ButtonHTMLAttributes<HTMLButtonElement>',
+			[
+				`import type { ButtonHTMLAttributes } from 'react'`,
+				`type FooProps = ButtonHTMLAttributes<HTMLButtonElement>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'button' }],
+		],
+		[
+			'maps overridden class names to their canonical tag (HTMLHeadingElement → h1)',
+			[
+				`import type { HTMLAttributes } from 'react'`,
+				`type FooProps = HTMLAttributes<HTMLHeadingElement>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'h1' }],
+		],
+		[
+			'maps HTMLAnchorElement → a (capital-A class, lowercased tag is "anchor" without override)',
+			[
+				`import type { HTMLAttributes } from 'react'`,
+				`type FooProps = HTMLAttributes<HTMLAnchorElement>`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'a' }],
+		],
+	])('%s', (_name, lines, expected) => {
+		expect(passThroughOf(lines)).toEqual(expected)
 	})
 })
 
 describe('extractPassThrough — Omit + Intersection', () => {
+	it.each<[string, string[], ReturnType<typeof extractPassThrough>]>([
+		[
+			'walks each arm of an intersection',
+			[
+				`import type { ComponentPropsWithoutRef } from 'react'`,
+				`type FooProps = ComponentPropsWithoutRef<'button'> & { size?: 'sm' | 'md' }`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'button' }],
+		],
+		[
+			'skips Pick — pass-through inside Pick is not what we want to surface',
+			[
+				`import type { ComponentPropsWithoutRef } from 'react'`,
+				`type FooProps = Pick<ComponentPropsWithoutRef<'button'>, 'id' | 'onClick'>`,
+				`export type _Use = FooProps`,
+			],
+			[],
+		],
+		[
+			'follows project type aliases through to their pass-through RHS',
+			[
+				`import type { ComponentPropsWithoutRef } from 'react'`,
+				`type ButtonHTMLProps = ComponentPropsWithoutRef<'button'>`,
+				`type FooProps = ButtonHTMLProps & { size?: 'sm' }`,
+				`export type _Use = FooProps`,
+			],
+			[{ element: 'button' }],
+		],
+		[
+			'returns an empty array when no pass-through is present',
+			[`type FooProps = { size?: 'sm' | 'md'; disabled?: boolean }`, `export type _Use = FooProps`],
+			[],
+		],
+	])('%s', (_name, lines, expected) => {
+		expect(passThroughOf(lines)).toEqual(expected)
+	})
+
 	it('records omitted keys when wrapped in Omit<…, …>', () => {
 		const { node, checker } = annotation(
 			{
@@ -126,66 +144,6 @@ describe('extractPassThrough — Omit + Intersection', () => {
 		expect(out[0]?.element).toBe('button')
 
 		expect(out[0]?.omitted?.sort()).toEqual(['onClick', 'type'].sort())
-	})
-
-	it('walks each arm of an intersection', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ComponentPropsWithoutRef } from 'react'`,
-					`type FooProps = ComponentPropsWithoutRef<'button'> & { size?: 'sm' | 'md' }`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'button' }])
-	})
-
-	it('skips Pick — pass-through inside Pick is not what we want to surface', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ComponentPropsWithoutRef } from 'react'`,
-					`type FooProps = Pick<ComponentPropsWithoutRef<'button'>, 'id' | 'onClick'>`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([])
-	})
-
-	it('follows project type aliases through to their pass-through RHS', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`import type { ComponentPropsWithoutRef } from 'react'`,
-					`type ButtonHTMLProps = ComponentPropsWithoutRef<'button'>`,
-					`type FooProps = ButtonHTMLProps & { size?: 'sm' }`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([{ element: 'button' }])
-	})
-
-	it('returns an empty array when no pass-through is present', () => {
-		const { node, checker } = annotation(
-			{
-				'index.ts': [
-					`type FooProps = { size?: 'sm' | 'md'; disabled?: boolean }`,
-					`export type _Use = FooProps`,
-				].join('\n'),
-			},
-			'FooProps',
-		)
-
-		expect(extractPassThrough(node, checker)).toEqual([])
 	})
 
 	it('dedupes repeat appearances of the same element, merging omitted keys', () => {
