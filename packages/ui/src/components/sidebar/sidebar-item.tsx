@@ -36,12 +36,7 @@ function sidebarItemButtonProps(
 	return {
 		'data-current': item.current || undefined,
 		'aria-current': item.current ? 'page' : undefined,
-		className: cn(
-			k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
-			'relative z-10',
-			hasAffix && 'min-w-0 flex-1',
-			className,
-		),
+		className: cn(k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }), className),
 	}
 }
 
@@ -125,10 +120,7 @@ export function SidebarItem({
 		<Wrapper
 			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			className={cn(
-				'group relative list-none',
-				hasAffix && ['flex items-center', k.item.row({ size: item.size })],
-			)}
+			className={k.item.row({ affix: hasAffix, size: item.size })}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (

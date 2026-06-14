@@ -4,6 +4,7 @@ import { type ComponentPropsWithoutRef, useCallback, useId, useMemo, useState } 
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
+import { k } from '../../recipes/kata/tabs'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state plus the `variant`/`orientation`/`size` context broadcast to its list and panels. */
@@ -69,15 +70,13 @@ export function Tabs({
 		[variant, resolvedOrientation, resolvedSize, baseId, panelsMounted, registerMountedPanels],
 	)
 
-	const isVertical = resolvedOrientation === 'vertical'
-
 	return (
 		<CurrentContext value={context}>
 			<TabsContext value={tabsContext}>
 				<div
 					data-slot="tab-group"
 					data-orientation={resolvedOrientation}
-					className={cn('flex gap-4', isVertical ? 'flex-row' : 'flex-col', className)}
+					className={cn(k.group({ orientation: resolvedOrientation }), className)}
 					{...props}
 				>
 					{children}

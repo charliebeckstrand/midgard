@@ -111,7 +111,7 @@ export function Tab({
 	}
 
 	return (
-		<span className={cn(stretch && 'flex-1', 'group relative')} {...indicator.tapHandlers}>
+		<span className={k.wrapper({ stretch })} {...indicator.tapHandlers}>
 			<Headless>
 				<Button
 					// Forwards the full button surface (aria-label, data-testid,
@@ -134,9 +134,8 @@ export function Tab({
 					disabled={disabled}
 					type="button"
 					className={cn(
-						'relative z-1',
+						k.trigger({ stretch }),
 						isSegment ? k.segment.item({ size }) : k.tab({ orientation, size }),
-						stretch && 'w-full justify-center',
 						className,
 					)}
 					onClick={handleClick}

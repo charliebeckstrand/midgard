@@ -29,7 +29,15 @@ const mini = {
 } as const
 
 const itemBase = defineRecipe({
-	base: [...nav.base, ...cursor, 'group relative', flex.row, 'w-full', 'text-left', mini.square],
+	base: [
+		...nav.base,
+		...cursor,
+		'group relative z-10',
+		flex.row,
+		'w-full',
+		'text-left',
+		mini.square,
+	],
 	size: {
 		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
 		md: [size.md, gap.g('2'), padding.p('2'), radius.r('2'), icon.md],
@@ -38,31 +46,39 @@ const itemBase = defineRecipe({
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
 	// slots render inside the hover tint and focus ring; the item then only
-	// suppresses the UA outline.
+	// suppresses the UA outline and flexes to fill the row.
 	chrome: {
 		item: [nav.tint, nav.focus],
-		row: 'outline-none',
+		row: ['outline-none', 'min-w-0 flex-1'],
 	},
 	defaults: { size: 'md', chrome: 'item' },
 })
 
 /**
- * Wrapper chrome for affixed items (`chrome: 'row'`): hover tints the whole
- * row, and the inner item's keyboard focus projects onto the row ring via
- * `:has`. The row-focus ring wraps the affixes; each affix control keeps its
- * own ring inside it.
+ * The `<li>`/`<span>` wrapper. Affixless it is a bare row carrying no chrome;
+ * with an affix (`affix: true`) it goes flex and takes over the interaction
+ * surface — the hover tint wraps the whole row and the inner item's keyboard
+ * focus projects onto the row ring via `:has`. The row-focus ring wraps the
+ * affixes; each affix control keeps its own ring inside it.
  */
 const itemRow = defineRecipe({
-	base: [
-		...nav.tint,
-		'ring-inset has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
-	],
-	size: {
-		sm: radius.r('1.5'),
-		md: radius.r('2'),
-		lg: radius.r('2.5'),
+	base: ['group relative list-none'],
+	affix: {
+		true: [
+			'flex items-center',
+			...nav.tint,
+			'ring-inset has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
+		],
+		false: '',
 	},
-	defaults: { size: 'md' },
+	size: { sm: '', md: '', lg: '' },
+	// The wrapper only needs a radius when it carries the affixed row chrome.
+	compound: [
+		{ affix: 'true', size: 'sm', class: radius.r('1.5') },
+		{ affix: 'true', size: 'md', class: radius.r('2') },
+		{ affix: 'true', size: 'lg', class: radius.r('2.5') },
+	],
+	defaults: { affix: false, size: 'md' },
 })
 
 /**

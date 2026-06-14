@@ -1,11 +1,17 @@
-import { mode } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { kasane, narabi } from '../kiso'
 
 const { rounded } = kasane
 const { flex } = narabi
 
+const group = defineRecipe({
+	base: ['flex h-full w-full overflow-hidden'],
+	orientation: { horizontal: 'flex-row', vertical: 'flex-col' },
+	defaults: { orientation: 'horizontal' },
+})
+
 export const k = {
-	group: 'flex h-full w-full overflow-hidden',
+	group,
 	panel: 'relative overflow-hidden',
 	handle: ['group/handle relative', flex.row, 'shrink-0 justify-center', 'outline-none touch-none'],
 	handleHorizontal: 'px-2 cursor-col-resize',

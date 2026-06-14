@@ -52,10 +52,7 @@ export function InputFrame({
 				<ControlFrame
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
-					className={cn(
-						k.inputControl({ variant }),
-						hasAffix && 'group/control flex flex-wrap items-center',
-					)}
+					className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
 				>
 					{hasPrefix && (
 						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[space])}>

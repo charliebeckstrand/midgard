@@ -1,4 +1,4 @@
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineRecipe } from '../../core/recipe'
 import { hannou, ji, kasane, narabi, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
@@ -97,5 +97,3 @@ export const k = {
 		suffix: [...affixSlot, 'mr-2'],
 	},
 } as const
-
-export type NavItemVariants = VariantProps<typeof button>
