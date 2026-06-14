@@ -342,7 +342,117 @@ const useOptimisticRule = {
 	},
 }
 
-export const RULES = [useContextRule, useForAsyncRule, refAsPropRule, useActionStateRule, useOptimisticRule]
+// Setting document.title imperatively is the React 18 way; React 19 hoists a
+// rendered <title>/<meta>/<link> to <head>. Escalation: the tag has to move into
+// the returned JSX, and an effect may do more than set the title.
+const documentMetadataRule = {
+	id: 'react19/document-metadata',
+	title: 'document.title = … → rendered <title>',
+	category: 'non-idiomatic',
+	authority: 'framework',
+	severity: 'info',
+	kind: 'escalation',
+	source: { technology: 'react', version: '19', topic: 'react-19', anchor: 'Document Metadata' },
+	rationale: 'Assigning document.title by hand is the React 18 way; React 19 hoists a rendered <title> to <head>.',
+	fix: 'Render <title>{…}</title> in the component and drop the effect that sets document.title.',
+	fixtureDir: 'react19/document-metadata',
+
+	detect(sf, tsm) {
+		const { SyntaxKind } = tsm
+		const out = []
+		for (const bin of sf.getDescendantsOfKind(SyntaxKind.BinaryExpression)) {
+			if (bin.getOperatorToken().getText() !== '=') continue
+			if (bin.getLeft().getText() !== 'document.title') continue
+			out.push({ line: bin.getStartLineNumber(), message: 'Setting `document.title` imperatively — React 19 hoists a rendered `<title>` to <head>.' })
+		}
+		return out
+	},
+
+	diagnose(sf, tsm) {
+		const matches = this.detect(sf, tsm)
+		if (matches.length === 0) return 'No imperative document.title assignment found.'
+		return [
+			`This component sets the document title imperatively (${matches.map((m) => `line ${m.line}`).join(', ')}).`,
+			'React 19 hoists metadata rendered in a component to <head>, so you can render it declaratively:',
+			'',
+			'  return (<><title>{title}</title>{/* … */}</>)',
+			'',
+			'and drop the effect that assigns document.title (the same applies to <meta> and <link>). Before adopting it, resolve:',
+			'',
+			'1. Is the title derived from render data? Then render <title> directly; no effect needed.',
+			'2. Does the effect do more than set the title (analytics, other document writes)? Keep that separate.',
+			'3. Is this server-rendered? A rendered <title> works in both, but a manual document.title only runs on the client.',
+			'',
+			'If it just mirrors render data into the title, replace the effect with a rendered <title>. Otherwise split the title concern out first.',
+		].join('\n')
+	},
+}
+
+// Drilling a pending flag into a submit button is the React 18 way; a button
+// inside a <form> can read the form's pending state with useFormStatus and take
+// no prop. Escalation: only valid when the button is nested in that form.
+const useFormStatusRule = {
+	id: 'react19/use-form-status',
+	title: 'pending prop on a submit button → useFormStatus',
+	category: 'over-granular',
+	authority: 'framework',
+	severity: 'info',
+	kind: 'escalation',
+	source: { technology: 'react', version: '19', topic: 'react-19', anchor: 'useFormStatus' },
+	rationale: 'Passing a pending flag down to a submit button is the React 18 way; React 19 reads the form status with useFormStatus.',
+	fix: 'Read const { pending } = useFormStatus() inside the button and drop the prop.',
+	fixtureDir: 'react19/use-form-status',
+
+	detect(sf, tsm) {
+		const { SyntaxKind } = tsm
+		const PENDING = new Set(['pending', 'isPending', 'isSubmitting', 'submitting'])
+		const out = []
+		const fns = [...sf.getDescendantsOfKind(SyntaxKind.ArrowFunction), ...sf.getDescendantsOfKind(SyntaxKind.FunctionDeclaration)]
+		for (const fn of fns) {
+			const nameNode = fn.getParameters()[0]?.getNameNode()
+			if (!nameNode || nameNode.getKind() !== SyntaxKind.ObjectBindingPattern) continue
+			const props = nameNode.getElements().map((e) => e.getName())
+			const pendingProp = props.find((p) => PENDING.has(p))
+			if (!pendingProp) continue
+			const rendersButton =
+				fn.getDescendantsOfKind(SyntaxKind.JsxOpeningElement).some((j) => j.getTagNameNode().getText() === 'button') ||
+				fn.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement).some((j) => j.getTagNameNode().getText() === 'button')
+			if (rendersButton) {
+				out.push({ line: fn.getStartLineNumber(), message: `\`${pendingProp}\` is prop-drilled into a submit button — React 19 reads form status with useFormStatus.` })
+			}
+		}
+		return out
+	},
+
+	diagnose(sf, tsm) {
+		const matches = this.detect(sf, tsm)
+		if (matches.length === 0) return 'No pending prop drilled into a submit button found.'
+		return [
+			`A pending flag is passed into a submit button by hand (${matches.map((m) => `line ${m.line}`).join(', ')}).`,
+			"React 19 reads the parent form's pending state with useFormStatus, so the button needs no prop:",
+			'',
+			'  const { pending } = useFormStatus()',
+			'',
+			'Before adopting it, resolve:',
+			'',
+			'1. Is the button always rendered inside the <form> whose status it reflects? useFormStatus reads the nearest enclosing form; a button outside one gets nothing.',
+			'2. Does the parent compute pending from useActionState/useTransition for other uses too? If so, keep it; useFormStatus only helps the nested-button case.',
+			'3. Is the same prop also used for non-pending styling? Separate those concerns first.',
+			'',
+			'If the button lives inside the form and only needs the form pending state, drop the prop and read useFormStatus internally. Otherwise leave the explicit prop.',
+		].join('\n')
+	},
+}
+
+export const RULES = [
+	useContextRule,
+	useForAsyncRule,
+	refAsPropRule,
+	useActionStateRule,
+	useOptimisticRule,
+	documentMetadataRule,
+	useFormStatusRule,
+]
 
 export const RULE_IDS_FOR_SCHEMA = RULES.map((r) => r.id)
 

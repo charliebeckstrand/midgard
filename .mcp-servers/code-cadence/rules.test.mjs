@@ -93,6 +93,30 @@ test('react19/use-optimistic: manual optimistic update + rollback escalates', as
 	assert.match(report, /useOptimistic/)
 })
 
+test('react19/document-metadata: imperative document.title escalates', async () => {
+	const input = read('react19/document-metadata/input.tsx')
+
+	const findings = await reviewSource(repoRoot, 'PageTitle.tsx', input)
+	const finding = findings.find((f) => f.ruleId === 'react19/document-metadata')
+	assert.ok(finding, 'expected react19/document-metadata to be detected')
+	assert.equal(finding.kind, 'escalation')
+
+	const report = await diagnoseSource(repoRoot, 'PageTitle.tsx', input, 'react19/document-metadata')
+	assert.match(report, /<title>/)
+})
+
+test('react19/use-form-status: pending prop on a submit button escalates', async () => {
+	const input = read('react19/use-form-status/input.tsx')
+
+	const findings = await reviewSource(repoRoot, 'SubmitButton.tsx', input)
+	const finding = findings.find((f) => f.ruleId === 'react19/use-form-status')
+	assert.ok(finding, 'expected react19/use-form-status to be detected')
+	assert.equal(finding.kind, 'escalation')
+
+	const report = await diagnoseSource(repoRoot, 'SubmitButton.tsx', input, 'react19/use-form-status')
+	assert.match(report, /useFormStatus/)
+})
+
 test('react19/use-for-async: detected as an escalation with a diagnosis', async () => {
 	const input = read('react19/use-for-async/input.tsx')
 
