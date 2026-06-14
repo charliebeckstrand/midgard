@@ -55,7 +55,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					password: chain(required()),
 				}}
 				onSubmit={handleSubmit}
-				className="grid gap-8 w-full sm:max-w-sm p-4"
+				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
 				<Heading className="text-center">Sign in to your account</Heading>
 

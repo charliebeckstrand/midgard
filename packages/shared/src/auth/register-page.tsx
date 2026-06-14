@@ -60,7 +60,7 @@ function RegisterForm() {
 					confirmPassword: chain(required(), matches('password', 'password')),
 				}}
 				onSubmit={handleSubmit}
-				className="grid gap-8 w-full sm:max-w-sm px-4"
+				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
 				<Heading className="text-center">Create your account</Heading>
 
