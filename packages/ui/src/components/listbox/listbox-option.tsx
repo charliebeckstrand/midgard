@@ -2,7 +2,7 @@
 
 import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
-import { useListboxContext } from './context'
+import { ListboxContext } from './context'
 
 /** Props for {@link ListboxOption}: a selectable `value` plus the shared option attributes. */
 export type ListboxOptionProps = OptionProps
@@ -15,7 +15,7 @@ export type ListboxDescriptionProps = OptionDescriptionProps
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'listbox',
-	useContext: useListboxContext,
+	context: ListboxContext,
 })
 
 export {

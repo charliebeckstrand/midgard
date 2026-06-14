@@ -8,4 +8,4 @@ type ListboxContextValue<T = unknown> = {
 	onSelect: (value: T) => void
 }
 
-export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox')
+export const [ListboxContext] = createContext<ListboxContextValue>('Listbox')

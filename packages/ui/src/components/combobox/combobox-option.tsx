@@ -2,7 +2,7 @@
 
 import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
-import { useComboboxContext } from './context'
+import { ComboboxContext } from './context'
 
 /** Props for {@link ComboboxOption}; `value` is matched against the combobox selection. */
 export type ComboboxOptionProps = OptionProps
@@ -23,7 +23,7 @@ export type ComboboxDescriptionProps = OptionDescriptionProps
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'combobox',
 	activeDescendant: true,
-	useContext: useComboboxContext,
+	context: ComboboxContext,
 })
 
 export { Description as ComboboxDescription, Label as ComboboxLabel, Option as ComboboxOption }

@@ -1,7 +1,13 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type Context as ReactContext,
+	type ReactNode,
+	use,
+	useId,
+} from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
@@ -157,27 +163,38 @@ export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
 export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /**
+ * Selection state a {@link createSelectOption} host exposes through its context:
+ * the current `value` (an array when `multiple`), the `multiple` flag, and the
+ * `onSelect` callback fired when an option is activated.
+ */
+export type OptionSelectionContext<TValue = unknown> = {
+	value: TValue | TValue[] | undefined
+	multiple?: boolean
+	onSelect: (value: TValue) => void
+}
+
+/**
  * Factory for select-like option components. Consumers supply the data-slot
- * prefix and the context hook.
+ * prefix and the host's selection {@link OptionSelectionContext}; the generated
+ * `Option` reads it with React's `use`.
  *
  * `BaseOption` owns the selected-state check icon and sizes it from the
  * ambient Density. Per-option `icon` overrides it.
  */
-export function createSelectOption<TValue = unknown>(config: {
+export function createSelectOption<
+	TValue = unknown,
+	TContext extends OptionSelectionContext<TValue> = OptionSelectionContext<TValue>,
+>(config: {
 	slotPrefix: string
 	/**
 	 * Pass for active-descendant lists (combobox); each option gets a stable
 	 * `id` the owning input references. Omit for focus-roving lists.
 	 */
 	activeDescendant?: boolean
-	useContext: () => {
-		value: TValue | TValue[] | undefined
-		multiple?: boolean
-		onSelect: (value: TValue) => void
-	}
+	context: ReactContext<TContext>
 }) {
 	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
-		const { value: selectedValue, multiple, onSelect } = config.useContext()
+		const { value: selectedValue, multiple, onSelect } = use(config.context)
 
 		const selected =
 			multiple && Array.isArray(selectedValue)
