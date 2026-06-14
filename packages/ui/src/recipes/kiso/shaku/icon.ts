@@ -2,7 +2,7 @@
  * Shaku icon: icon dimension scale. One scale, two projections:
  * `iconSize` sizes an icon element directly (the `<Icon>` self form);
  * `icon` sizes a parent's `data-slot="icon"` descendants (the slot form
- * read by Button, Badge, Sidebar). Tailwind's JIT scans for whole class
+ * read by Button, Badge, Nav, Sidebar). Tailwind's JIT scans for whole class
  * literals; the slot form can't be interpolated from `iconSize`. Keep
  * the two in step by hand; edit both rows together.
  *

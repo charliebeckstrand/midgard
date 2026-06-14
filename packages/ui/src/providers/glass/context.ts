@@ -15,6 +15,11 @@ export const [GlassContext, useGlass] = createContext<boolean>('Glass', { defaul
  * when either the `glass` shorthand prop or an enclosing `<GlassProvider>` ambient is
  * set. Returns `undefined` when no surface applies; recipe default variants
  * stay in effect.
+ *
+ * @param surface - Explicit `surface` variant; wins when set.
+ * @param glass - The `glass` shorthand prop on the consuming component.
+ * @returns The resolved surface variant, `'glass'`, or `undefined`.
+ * @see {@link useGlass}
  */
 export function useResolvedSurface<S extends string>(
 	surface: S | undefined,

@@ -32,11 +32,15 @@ type ComboboxPanelProps = {
 }
 
 /**
- * Internal: the combobox menu surface rendered through FloatingPortal.
- * Owns the entry/exit animation, the listbox role, and the Escape-to-close
- * handler; the caller supplies floating positioning and open state.
+ * The combobox menu surface rendered through `FloatingPortal`. Owns the
+ * entry/exit animation, the listbox role, and the Escape-to-close handler;
+ * the caller supplies floating positioning and open state.
  *
- * Not exported from the package barrel.
+ * @remarks The listbox holds only options (`aria-required-children`); the
+ * "No results" status is a sibling toggled by a `peer/:empty` rule.
+ * `flushPending` runs on exit-complete so the deferred selection commits after
+ * the close animation.
+ * @internal
  */
 export function ComboboxPanel({
 	id,

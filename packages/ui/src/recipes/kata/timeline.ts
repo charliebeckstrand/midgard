@@ -125,4 +125,5 @@ export const k = {
 	timestamp,
 } as const
 
+/** Recipe variant props for {@link Timeline} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
 export type TimelineVariants = VariantProps<typeof root>

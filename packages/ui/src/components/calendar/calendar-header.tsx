@@ -27,6 +27,13 @@ type CalendarHeaderProps = {
 	onNextMonth: () => void
 }
 
+/**
+ * `role="toolbar"` row of prev/next month chevrons flanking the month/year
+ * picker trigger. `activeIndex` paints the roving-focus highlight on the
+ * matching control (0 prev, 1 picker, 2 next).
+ *
+ * @internal
+ */
 export function CalendarHeader({
 	headerRef,
 	onHeaderKeyDown,

@@ -3,10 +3,16 @@
 import { createContext } from '../../core'
 
 /**
- * Ambient flag: true inside `<Headless>`. Headless-aware components (Input,
- * Button) drop their chrome and render the bare semantic element when set,
- * keeping the rest of their behavior (Control / Form wiring, disabled state,
- * `data-slot`, ref forwarding).
+ * Context tuple for the headless flag: `[HeadlessContext, useHeadless]`.
+ *
+ * The flag is `true` inside `<Headless>`. Headless-aware components (Input,
+ * Button) drop their chrome and render the bare semantic element when it is
+ * set, keeping the rest of their behavior (Control / Form wiring, disabled
+ * state, `data-slot`, ref forwarding).
+ *
+ * @returns `useHeadless()` reads the ambient flag; `false` outside any
+ * `<Headless>` (the configured default), so the hook is safe to call anywhere.
+ * @see {@link Headless} — the provider that sets the flag.
  */
 export const [HeadlessContext, useHeadless] = createContext<boolean>('Headless', {
 	default: false,

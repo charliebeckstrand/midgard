@@ -4,15 +4,15 @@ import { useEffect, useMemo, useRef } from 'react'
 import { type KeybindingFilter, type KeybindingsMap, tinykeys } from 'tinykeys'
 
 type KeybindingsOptions = {
-	/** Disable without unmounting. @default true */
+	/** Disable without unmounting. @defaultValue true */
 	enabled?: boolean
-	/** Listener target. @default window */
+	/** Listener target. @defaultValue window */
 	target?: Window | HTMLElement
-	/** @default 'keydown' */
+	/** Event phase the bindings listen on. @defaultValue 'keydown' */
 	event?: 'keydown' | 'keyup'
-	/** @default false */
+	/** Listen in the capture phase. @defaultValue false */
 	capture?: boolean
-	/** Chord timeout in ms between presses in a sequence. @default 1000 */
+	/** Chord timeout in ms between presses in a sequence. @defaultValue 1000 */
 	timeout?: number
 	/**
 	 * Predicate that returns true to skip an event. tinykeys' default skips

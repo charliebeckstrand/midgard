@@ -86,6 +86,8 @@ export type CalendarProps = {
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
 	 * month labels. Resolution order: explicit prop, then enclosing
 	 * `LocaleProvider`, then the runtime default.
+	 *
+	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
 	locale?: string
 	/**
@@ -93,6 +95,8 @@ export type CalendarProps = {
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 * Re-broadcast to descendants via the Density context; nav buttons and day
 	 * cells inherit the resolved size consistently.
+	 *
+	 * @defaultValue enclosing Density size, else `'md'`
 	 */
 	size?: Step
 	className?: string

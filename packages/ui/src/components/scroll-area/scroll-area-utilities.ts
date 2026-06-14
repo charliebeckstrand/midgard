@@ -1,6 +1,11 @@
 import { hiddenThumb, MIN_THUMB_SIZE, type ThumbState } from './scroll-area-constants'
 
-/** Computes thumb size and offset for one axis. Returns hiddenThumb when content fits. */
+/**
+ * Computes thumb size and offset for one axis. Returns {@link hiddenThumb} when
+ * content fits the viewport.
+ *
+ * @internal
+ */
 export function computeThumb(
 	scrollPos: number,
 	viewportSize: number,
@@ -18,7 +23,13 @@ export function computeThumb(
 	return { size, offset, visible: true }
 }
 
-/** Walks up the DOM to find the nearest scrollable ancestor, or null. */
+/**
+ * Walks up the DOM to find the nearest scrollable ancestor, or null. Treats
+ * `auto`, `scroll`, and `overlay` overflow as scrollable; stops at `<body>` and
+ * `<html>`.
+ *
+ * @internal
+ */
 export function findScrollableAncestor(start: HTMLElement | null): HTMLElement | null {
 	let current = start
 

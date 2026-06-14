@@ -19,7 +19,8 @@ type MaskedInputOptions = {
 	/**
 	 * Predicate identifying characters preserved across `format`. Keeps the
 	 * caret aligned with the typed character when `format` inserts or removes
-	 * separators. Defaults to ASCII alphanumerics and `+`.
+	 * separators.
+	 * @defaultValue ASCII alphanumerics and `+`
 	 */
 	meaningful?: (char: string) => boolean
 }
@@ -30,6 +31,14 @@ type MaskedInputOptions = {
  * onto an `Input`. Restores the caret to its pre-format position when the
  * returned `ref` is attached, and binds to an enclosing Form field by `name`
  * (value, touched on blur, and error state via `invalid`).
+ *
+ * @returns The `value` (formatted, never `undefined`), the composed `ref` to
+ * attach for caret restoration, the bound field's `invalid` flag, a `setValue`
+ * that formats its raw argument, an `onChange` that reformats a change event,
+ * and an `onBlur` that marks the field touched.
+ * @internal
+ * @see {@link useFormattedInput}
+ * @see {@link useFormValue}
  */
 export function useMaskInput({
 	name,

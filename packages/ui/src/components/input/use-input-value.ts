@@ -21,12 +21,19 @@ type InputValueResult<E extends HTMLInputElement | HTMLTextAreaElement> = {
 }
 
 /**
- * Resolves a text control's value / onChange / onBlur against the Form
- * binding cascade (Input; Textarea shares it via the element type param).
+ * Resolves a text control's `value` / `onChange` / `onBlur` against the Form
+ * binding cascade. The Input/Textarea cascade hook; Textarea shares it via the
+ * element type param.
  *
- * An explicit value/onChange wins; the bound field still supplies `invalid`
- * but does not override them. `value={null}` or `value={undefined}`
- * coerces to `''`; the native input stays controlled.
+ * @param options - Caller props plus `hasValueProp`, the `'value' in props`
+ * presence flag that distinguishes an absent prop from `value={undefined}`.
+ * @returns The resolved `value`, `onChange`, `onBlur`, and the field's bound
+ * `invalid` flag (to merge in `useControlProps`).
+ * @remarks Resolution: an explicit `value`/`onChange` prop wins; the bound
+ * field still supplies `invalid` but never overrides them; otherwise internal
+ * state. A present `value` prop keeps the native control controlled even when
+ * `null`/`undefined`, both of which coerce to `''`.
+ * @see {@link useFormText}
  */
 export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>({
 	hasValueProp,

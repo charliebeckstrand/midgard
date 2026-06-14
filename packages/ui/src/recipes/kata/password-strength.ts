@@ -1,3 +1,10 @@
+/**
+ * Password-strength kata: object-literal surface for the strength meter and
+ * rule checklist. Two `level`-axed sub-recipes (`segment` bar fill, `label`
+ * text) keyed by strength tier (weak / fair / good / strong / empty); the
+ * rule rows pair a pass/fail icon with pass/fail text colour. Tier colours
+ * are authored inline with `mode()` — meter-specific, not a shared palette.
+ */
 import { defineRecipe, mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, omote } from '../kiso'
 

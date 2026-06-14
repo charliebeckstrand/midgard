@@ -10,10 +10,15 @@ import { useSignaturePadDrawing } from './use-signature-pad-drawing'
  * Imperative handle exposed via `ref`: clear the pad, read its current image
  * as a data URL (passing through the canvas `type`/`quality`), or test whether
  * any stroke has been drawn.
+ *
+ * @see {@link SignaturePadProps}
  */
 export type SignaturePadHandle = {
+	/** Erase the pad, reset to empty, and emit `null`. */
 	clear: () => void
+	/** Current image as a data URL, or `null` before the canvas mounts. Forwards `type`/`quality` to the canvas. */
 	toDataURL: (type?: string, quality?: number) => string | null
+	/** Whether no stroke has been drawn. */
 	isEmpty: () => boolean
 }
 
@@ -29,6 +34,22 @@ export type SignaturePadStateOptions = {
 	ref?: Ref<SignaturePadHandle>
 }
 
+/**
+ * Core state for {@link SignaturePad}: binds the data-URL value to a Form field,
+ * tracks emptiness, drives the canvas through the sizing and drawing hooks, and
+ * exposes the imperative {@link SignaturePadHandle}.
+ *
+ * @internal
+ * @param options - Controlled-triad value, `name` binding, stroke styling, the
+ * `disabled`/`readOnly` flags, and the forwarded `ref`.
+ * @returns The `containerRef`/`canvasRef`, the `empty` and `invalid` flags, and
+ * the `handlePointerDown`/`handlePointerMove`/`commit`/`clear` handlers.
+ * @remarks
+ * `commit` (stroke end) and `clear` both mark the bound field touched — the
+ * pad's analogue of blur. A controlled `current` change that differs from the
+ * last emitted value repaints from the snapshot via an effect, so external
+ * resets stay in sync without re-emitting.
+ */
 export function useSignaturePadState({
 	name,
 	value,

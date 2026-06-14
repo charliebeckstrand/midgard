@@ -78,4 +78,5 @@ export const k = defineRecipe({
 	skeleton: kokkaku.slider,
 })
 
+/** Recipe variant props for {@link Slider} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
 export type SliderVariants = VariantProps<typeof k>

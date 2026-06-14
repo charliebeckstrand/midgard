@@ -9,6 +9,7 @@ let scrollLockPreviousOverflow = ''
 
 let scrollLockPreviousPaddingRight = ''
 
+/** Takes a lock: on the first holder hides body overflow and compensates the scrollbar gap, saving the prior inline styles to restore. @internal */
 function acquireScrollLock() {
 	if (typeof document === 'undefined') return
 
@@ -38,6 +39,7 @@ function acquireScrollLock() {
 	scrollLockCount++
 }
 
+/** Releases a lock; when the last holder drops, restores the saved overflow / padding. @internal */
 function releaseScrollLock() {
 	if (typeof document === 'undefined') return
 
@@ -50,7 +52,14 @@ function releaseScrollLock() {
 	}
 }
 
-/** Lock `document.body.style.overflow` while `active` is true. Nested locks are reference-counted. */
+/**
+ * Locks `document.body` overflow while `active` is true. Nested locks are
+ * reference-counted: the body unlocks only when the last holder releases.
+ *
+ * @remarks Compensates the removed scrollbar's width with body padding so the
+ * page doesn't shift on lock. The lock is acquired in an effect and released on
+ * cleanup or when `active` goes false; no-ops during SSR.
+ */
 export function useScrollLock(active: boolean): void {
 	useEffect(() => {
 		if (!active) return

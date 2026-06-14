@@ -17,13 +17,40 @@ import { buttonSpring, loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { isIconElement } from './button-utilities'
 
+/**
+ * Spinner overrides forwarded to the loading `<LoadingSpinner>` when `loading`
+ * is an object rather than a bare boolean.
+ *
+ * @internal
+ */
 type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
 
+/**
+ * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
+ * the behavior flags and adornments common to the button and anchor branches.
+ *
+ * @internal
+ */
 type ButtonBaseProps = ButtonVariants & {
+	/**
+	 * Stretch to fill the inline axis (`w-full`).
+	 * @defaultValue false
+	 */
 	block?: boolean
+	/**
+	 * Apply the tap-scale press spring; collapses under prefers-reduced-motion.
+	 * @defaultValue false
+	 */
 	spring?: boolean
+	/**
+	 * Swap the leading content for a spinner and gate activation. `true` uses
+	 * defaults; an object forwards `color`/`size`/`label` to the spinner.
+	 * @defaultValue false
+	 */
 	loading?: boolean | LoadingOptions
+	/** Content before the label; hidden while `loading`. */
 	prefix?: ReactNode
+	/** Content after the label. */
 	suffix?: ReactNode
 	'data-slot'?: string
 	className?: string

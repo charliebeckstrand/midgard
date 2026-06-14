@@ -28,6 +28,8 @@ type InputFrameProps = {
  * "present" for both the wrapper class and the render guards: a null/false
  * affix styles the frame while rendering nothing, and `0` would leak as a bare
  * text node through a plain `&&`.
+ *
+ * @internal
  */
 export function InputFrame({
 	inputEl,

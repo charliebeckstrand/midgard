@@ -23,10 +23,15 @@ type OverlayProps = {
 	 * Optional element to portal into. When provided, the overlay is scoped to this
 	 * element (rendered with `absolute` positioning, no body scroll lock). The container
 	 * must establish a positioning context (e.g. `position: relative`).
-	 * Defaults to `document.body` with full-viewport `fixed` positioning.
+	 *
+	 * @defaultValue `document.body` with full-viewport `fixed` positioning
 	 */
 	container?: HTMLElement | null
-	/** Element to receive initial focus when the overlay opens. Defaults to the first tabbable child. */
+	/**
+	 * Element to receive initial focus when the overlay opens.
+	 *
+	 * @defaultValue the first tabbable child
+	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Modal overlays (the default) trap focus, move it into the panel on open,

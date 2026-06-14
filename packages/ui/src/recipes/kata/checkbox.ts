@@ -42,4 +42,5 @@ export const k = bridge.check(
 	},
 )
 
+/** Recipe variant props for {@link Checkbox} — the styling axes its kata exposes (`color`, `size`), for consumers composing custom slots. */
 export type CheckboxVariants = VariantProps<typeof k>

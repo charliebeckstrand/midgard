@@ -6,9 +6,12 @@ import { k } from '../../recipes/kata/card'
 export type CardFooterProps = SlotProps<'div'>
 
 /**
- * Static leaf: renders in React Server Components. Carries md padding and
- * gap; a non-md `<Card size>` overrides them through the card's section
- * projection.
+ * Footer region of a {@link Card}, a flex row for actions or supporting
+ * controls. Carries md padding and gap; a non-md `<Card size>` overrides them
+ * through the card's section projection.
+ *
+ * @remarks
+ * Static leaf: renders in React Server Components.
  */
 export function CardFooter({ className, ...props }: CardFooterProps) {
 	return (

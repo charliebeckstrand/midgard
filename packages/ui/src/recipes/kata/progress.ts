@@ -98,6 +98,8 @@ export const k = defineRecipe(
 	},
 )
 
+/** Recipe variant props for the {@link Progress} track — its styling axes (`size`), for consumers composing custom slots. */
 export type ProgressTrackVariants = VariantProps<typeof k>
 export type ProgressBarFillVariants = VariantProps<typeof fill>
+/** Recipe variant props for the {@link Progress} gauge root — its styling axes (`size`), for consumers composing custom slots. */
 export type ProgressGaugeVariants = VariantProps<typeof root>

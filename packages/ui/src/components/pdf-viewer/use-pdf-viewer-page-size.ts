@@ -5,6 +5,7 @@ import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
 
+/** Active-page sizing returned by {@link usePdfViewerPageSize}. @internal */
 type PageSizeResult = {
 	/** Intrinsic page size: caller-supplied dimensions, the measured natural size, or `null` pre-load. */
 	pageSize: Size | null
@@ -18,6 +19,10 @@ type PageSizeResult = {
  * dimensions of the loaded `<img>`. Page change resets the measured size;
  * a new page does not inherit the previous page's aspect ratio while its
  * `<img>` loads.
+ *
+ * @returns `{ pageSize, onImageLoad }` — the resolved size and the `<img>`
+ * `onLoad` handler that measures the natural size.
+ * @internal
  */
 export function usePdfViewerPageSize(
 	activePage: PdfViewerPage | undefined,

@@ -8,6 +8,7 @@ const TABBABLE_SELECTOR =
 // Walk-and-match rather than `querySelectorAll(TABBABLE_SELECTOR)`: edge
 // handoff rides on first/last, and jsdom's selector engine returns a comma
 // list grouped per branch, not in document order.
+/** Tabbable descendants of `root`, in document order. @internal */
 function getTabbables(root: Element | null): HTMLElement[] {
 	if (!root) return []
 
@@ -16,6 +17,7 @@ function getTabbables(root: Element | null): HTMLElement[] {
 	)
 }
 
+/** Options for {@link useDatePickerInputTab}. @internal */
 type DatePickerInputTabParams = {
 	open: boolean
 	/** Reference group: the control wrapping the DateInput and its calendar button. */
@@ -31,6 +33,10 @@ type DatePickerInputTabParams = {
  * only wrap the floating element; without these handlers a Tab from the
  * calendar button walks into the aria-hidden page behind the dialog before
  * re-entering at the footer instead of the toolbar.
+ *
+ * @returns `onReferenceKeyDown` for the reference group and `onDialogKeyDown`
+ * for the floating dialog; both no-op unless the calendar is open and the Tab
+ * lands on a wrap edge.
  */
 export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePickerInputTabParams) {
 	// On the reference group: forward Tab from its last tabbable (the calendar

@@ -6,6 +6,11 @@ import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
+/**
+ * One `role="option"` cell in a picker grid (a month or a year). `selected`
+ * marks the active choice; `current` marks today's month/year for the
+ * `aria-current` ring.
+ */
 export type CalendarPickerGridCell = {
 	key: string | number
 	label: ReactNode
@@ -27,10 +32,18 @@ type CalendarPickerGridProps = {
 	onCenter: () => void
 	gridLabel: string
 	cells: CalendarPickerGridCell[]
+	/** Renders cells full-width (`block`); the month grid sets this, the year grid does not. */
 	cellBlock?: boolean
 	size: Step
 }
 
+/**
+ * View-agnostic picker layout: a `role="toolbar"` row (prev / center / next)
+ * over a `role="listbox"` cell grid. Both the month and year views render
+ * through it; the caller supplies labels, handlers, and cells per view.
+ *
+ * @internal
+ */
 export function CalendarPickerGrid({
 	headerRef,
 	gridRef,

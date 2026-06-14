@@ -9,7 +9,11 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 
 export type { SignaturePadHandle }
 
-/** Props for {@link SignaturePad}; controls the bound field value, stroke styling, and the optional clear affordance. */
+/**
+ * Props for {@link SignaturePad}; controls the bound field value, stroke styling, and the optional clear affordance.
+ *
+ * @see {@link SignaturePadHandle} for the imperative `ref` API.
+ */
 export type SignaturePadProps = {
 	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` should seed `string | null`. */
 	name?: string
@@ -21,20 +25,53 @@ export type SignaturePadProps = {
 	onValueChange?: (value: string | null) => void
 	disabled?: boolean
 	readOnly?: boolean
-	/** Placeholder rendered over an empty pad. */
+	/**
+	 * Placeholder rendered over an empty pad.
+	 *
+	 * @defaultValue `'Sign here'`
+	 */
 	placeholder?: string
-	/** Stroke colour. @default '#18181b' (zinc-900) */
+	/**
+	 * Stroke colour.
+	 *
+	 * @defaultValue `'#18181b'` (zinc-900)
+	 */
 	strokeColor?: string
-	/** Stroke width in CSS pixels. @default 2 */
+	/**
+	 * Stroke width in CSS pixels.
+	 *
+	 * @defaultValue `2`
+	 */
 	strokeWidth?: number
-	/** Render the built-in clear button. @default true */
+	/**
+	 * Render the built-in clear button.
+	 *
+	 * @defaultValue `true`
+	 */
 	clearable?: boolean
+	/**
+	 * Accessible name for the canvas; `, empty` is appended while no stroke is present.
+	 *
+	 * @defaultValue `'Signature'`
+	 */
 	'aria-label'?: string
 	ref?: Ref<SignaturePadHandle>
 	className?: string
 }
 
-/** Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio. */
+/**
+ * Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio.
+ *
+ * @remarks
+ * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field: a
+ * `name` binds the data URL to the form store, while ambient `<Control>` invalid
+ * and description ids ride onto the canvas (`role="img"`). On clear, focus moves
+ * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is
+ * `string | null`; `undefined` is never emitted.
+ *
+ * @see {@link SignaturePadProps}
+ * @see {@link SignaturePadHandle}
+ */
 export function SignaturePad({
 	name,
 	value,

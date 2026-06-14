@@ -4,10 +4,22 @@ import { type RefObject, useCallback, useRef, useState } from 'react'
 import { clamp } from '../../utilities'
 import type { Coord, EditableGridNavigationApi } from './types'
 
+/** Canonical `"row,col"` key for a cell coordinate, used by the extra-cells set. @internal */
 export function cellKey(row: number, col: number): string {
 	return `${row},${col}`
 }
 
+/**
+ * Owns the cursor and range selection: reactive `active`/`anchor`/`extraCells`
+ * for rendering, mirrored refs for event-time reads, and the move/extend
+ * actions. `moveActiveTo` plants the anchor on extend and clears it otherwise;
+ * `addCellToSelection` bakes the prior rectangle into `extraCells` (Ctrl-click);
+ * `moveActiveTab` wraps across rows and returns `false` when the move exits the
+ * grid so the caller can let the browser tab.
+ *
+ * @returns The grid's {@link EditableGridNavigationApi}.
+ * @internal
+ */
 export function useEditableGridNavigation<T>({
 	rowsRef,
 	editableColCount,

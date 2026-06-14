@@ -8,16 +8,40 @@ import type { Size } from '../../types'
 import { ToggleIconButton } from '../toggle-icon-button'
 import { useCopyButtonState } from './use-copy-button-state'
 
+/**
+ * Props for {@link CopyButton}. Inherits `<button>` attributes except
+ * `children`, `type`, and `color`.
+ */
 export type CopyButtonProps = {
+	/** Text written to the clipboard on activation. */
 	value: string
+	/**
+	 * Rest-state glyph.
+	 * @defaultValue a Clipboard icon
+	 */
 	icon?: ReactElement
 	size?: Size
+	/**
+	 * Milliseconds the copied state holds before reverting to the rest glyph.
+	 * @defaultValue 2000
+	 */
 	timeout?: number
 	className?: string
+	/** Fires on every copied-state transition, with the new value. */
 	onCopiedChange?: (copied: boolean) => void
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
-/** Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`. */
+/**
+ * Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`.
+ *
+ * @remarks
+ * Stays enabled and keeps focus through the success window so keyboard focus
+ * survives (WCAG 2.4.3); a second copy during the window is ignored. The
+ * accessible name becomes "Copied" while flipped, otherwise the caller's
+ * `aria-label` or "Copy to clipboard".
+ * @see {@link useCopyButtonState} for the clipboard write and revert timing.
+ * @see {@link ToggleIconButton} for the underlying two-state icon control.
+ */
 export function CopyButton({
 	value,
 	icon,

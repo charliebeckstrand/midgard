@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+/** Active-page rotation state returned by {@link usePdfViewerPageRotation}. @internal */
 type PageRotationResult = {
 	/** Raw rotation in degrees for the active page. May be ≥ 360. */
 	rotation: number
@@ -14,6 +15,12 @@ type PageRotationResult = {
 /**
  * Manages per-page rotation state. Each page tracks its rotation independently;
  * navigating away from a rotated page and back preserves it.
+ *
+ * @param defaultRotation - Starting rotation; rounded to the nearest 90°.
+ * @param documentKey - Identity of the current document; rotations reset when it
+ * changes, so a new document starts unrotated.
+ * @returns `{ rotation, isTransposed, rotate }` for the active page.
+ * @internal
  */
 export function usePdfViewerPageRotation(
 	page: number,

@@ -10,6 +10,7 @@ import { useColorPanelContext } from './context'
 type EyeDropperResult = { sRGBHex: string }
 type EyeDropperConstructor = new () => { open: () => Promise<EyeDropperResult> }
 
+/** @internal Resolve the platform `EyeDropper` constructor, or `undefined` on the server or where unsupported. */
 function getEyeDropper(): EyeDropperConstructor | undefined {
 	if (typeof window === 'undefined') return undefined
 
@@ -19,6 +20,14 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
 /**
  * Samples a colour from anywhere on screen via the `EyeDropper` API. Renders
  * nothing where the API is unavailable.
+ *
+ * @remarks
+ * Support is probed in a post-mount effect rather than during render: reading
+ * `window.EyeDropper` on the server yields `undefined` but yields the
+ * constructor on a supporting client, so a render-time check would mismatch
+ * hydration. The button is therefore absent on the first client paint and
+ * appears once the effect commits. A dismissed picker rejects with
+ * `AbortError`, which is swallowed.
  */
 export function ColorEyedropper({ className }: { className?: string }) {
 	const { setHsva, disabled, size } = useColorPanelContext()

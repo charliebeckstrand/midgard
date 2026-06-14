@@ -3,9 +3,19 @@ import { k } from '../../recipes/kata/control'
 import { Placeholder } from '../placeholder'
 import type { ControlSize } from './context'
 
+/** Props for {@link ControlSkeleton}: the control `size` and the `joined` group flag plus `className`. */
 export type ControlSkeletonProps = {
+	/**
+	 * Silhouette density step.
+	 *
+	 * @defaultValue `'md'`
+	 */
 	size?: ControlSize
-	/** Renders the grouped (joined) silhouette; pair with controls inside a `<Group>`. */
+	/**
+	 * Renders the grouped (joined) silhouette; pair with controls inside a `<Group>`.
+	 *
+	 * @defaultValue `false`
+	 */
 	joined?: boolean
 	className?: string
 }

@@ -27,6 +27,14 @@ type MenuActionsValue = {
 type MenuContextValue = MenuStateValue & MenuActionsValue
 
 export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('Menu')
+/**
+ * Open-state actions and refs from the enclosing {@link Menu}. Leaves that only
+ * need to dismiss the menu (e.g. {@link MenuItem}'s `close`) consume this rather
+ * than the full state context.
+ *
+ * @see {@link useMenuState}
+ * @see {@link useMenuContext}
+ */
 export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
 /** Returns combined state + actions. Prefer `useMenuActions` in leaves that only need `close`. */

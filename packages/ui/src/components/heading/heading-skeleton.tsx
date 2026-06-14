@@ -6,7 +6,9 @@ import type { HeadingLevel } from './heading'
 
 /** Props for {@link HeadingSkeleton}: mirrors {@link HeadingProps} `level` and `size` to match the placeholder height. */
 export type HeadingSkeletonProps = {
+	/** @defaultValue 1 */
 	level?: HeadingLevel
+	/** @defaultValue `'md'` */
 	size?: Step
 	className?: string
 }
@@ -15,6 +17,8 @@ export type HeadingSkeletonProps = {
  * Heading-shaped placeholder. Height tracks the type-scale rung (level
  * shifted by `size`, default `md`). Keyed off the rung rather than a size
  * step alone; it does not use the size-driven `createSkeleton` factory.
+ * @remarks Static leaf: renders in React Server Components.
+ * @see {@link Heading}
  */
 export function HeadingSkeleton({ level = 1, size, className }: HeadingSkeletonProps) {
 	const scale = headingScale(level, size ?? 'md')

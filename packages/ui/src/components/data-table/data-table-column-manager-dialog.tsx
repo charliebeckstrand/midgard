@@ -9,6 +9,7 @@ import { Toolbar } from '../toolbar'
 import { DataTableColumnManager } from './data-table-column-manager'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 
+/** Props for {@link DataTableColumnManagerDialog}. @internal */
 type DataTableColumnManagerDialogProps = {
 	label: ReactNode
 	columns: DataTableColumnManagerItem[]
@@ -19,6 +20,13 @@ type DataTableColumnManagerDialogProps = {
 	onSavePreset?: (preset: DataTableColumnManagerPreset) => void
 }
 
+/**
+ * Toolbar button that opens a {@link Dialog} hosting the
+ * {@link DataTableColumnManager}; {@link DataTable} renders it when a column
+ * manager is configured.
+ *
+ * @internal
+ */
 export function DataTableColumnManagerDialog({
 	label,
 	columns,

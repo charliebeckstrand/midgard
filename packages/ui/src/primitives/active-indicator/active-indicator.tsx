@@ -6,12 +6,28 @@ import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
 
+/**
+ * Carries the `LayoutGroup` `layoutId` an `ActiveIndicatorScope` opens, letting
+ * descendant `ActiveIndicator`s share one morph scope; `undefined` outside a
+ * scope, falling back to the global `'current-indicator'` id.
+ *
+ * @internal
+ */
 const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<string | undefined>(
 	'ActiveIndicatorScope',
 	{ default: undefined },
 )
 
-/** Scopes active indicators to a single nav / tab group. */
+/**
+ * Scopes active indicators to a single nav / tab group, wrapping children in a
+ * Motion `LayoutGroup` so descendant {@link ActiveIndicator}s morph against each
+ * other rather than against indicators in sibling groups.
+ *
+ * @param id - Explicit scope id; defaults to a generated `useId` value.
+ * @remarks Wraps the group in {@link ReducedMotion} so the morph degrades to a
+ * fade under `prefers-reduced-motion`.
+ * @see {@link useActiveIndicatorScope}
+ */
 export function ActiveIndicatorScope({ children, id }: { id?: string; children: ReactNode }) {
 	const fallbackId = useId()
 
@@ -28,7 +44,14 @@ export function ActiveIndicatorScope({ children, id }: { id?: string; children: 
 	)
 }
 
-/** Animated indicator that morphs between sibling items via layoutId spring physics. Returns a ref and tap handlers for the parent container. */
+/**
+ * Wires the press-feedback animation for an active-indicator host.
+ *
+ * @returns A `ref` to attach to the indicator span and `tapHandlers` (pointer
+ * down/up/leave) for the parent container; press dips the indicator to `0.99`
+ * scale and releases it back to `1` on the shared spring.
+ * @see {@link ActiveIndicator}
+ */
 export function useActiveIndicator() {
 	const [scope, animate] = useAnimate<HTMLSpanElement>()
 

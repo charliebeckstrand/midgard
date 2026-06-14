@@ -16,6 +16,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'
 	className?: string
+	/** Trailing control slot; its presence pins `resize: none` and a min-height floor. */
 	actions?: ReactNode
 	ref?: Ref<HTMLTextAreaElement>
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
@@ -23,8 +24,12 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.
  * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
- * `<GlassProvider>`, and Density contexts. Stays controlled when a `value` prop is
- * present, even if `null`/`undefined`.
+ * `<GlassProvider>`, and Density contexts.
+ *
+ * @remarks Stays controlled when a `value` prop is present, even `null` or
+ * `undefined`; binds to the Form field named `name` otherwise, sharing the
+ * Input value cascade through {@link useInputValue}. With `actions`,
+ * `field-sizing: content` ignores `rows`, so `rows` becomes a min-height floor.
  */
 export function Textarea(props: TextareaProps) {
 	// A wrapper that passes value={null} or value={undefined} stays controlled;

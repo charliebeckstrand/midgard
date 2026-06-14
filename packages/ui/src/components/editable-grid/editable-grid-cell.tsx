@@ -8,6 +8,7 @@ import { EditableGridCellEditor } from './editable-grid-cell-editor'
 import type { EditableGridAlign, EditableGridColumn, EditableGridEditor } from './types'
 import { useEditableGridCellAriaSelected } from './use-editable-grid-cell-aria-selected'
 
+/** Props for {@link EditableGridCell}. @internal */
 type EditableGridCellContentProps<T> = {
 	rowIdx: number
 	colIdx: number
@@ -19,6 +20,20 @@ type EditableGridCellContentProps<T> = {
 	editor: EditableGridEditor<T>
 }
 
+/**
+ * One cell shell. Subscribes to its own derived selection slice via
+ * {@link useEditableGridCellSlice} and re-renders only when its
+ * active/in-range/edit flags flip; mounts the column's inline editor when its
+ * cell holds the active edit. A keyframe flash overlay restarts whenever the
+ * rendered value changes.
+ *
+ * @remarks
+ * `aria-selected` lives on the owning `role="gridcell"` `<td>` (applied by
+ * `DataTable` through non-reactive `cellProps`); this content div mirrors it
+ * imperatively via {@link useEditableGridCellAriaSelected}.
+ *
+ * @internal
+ */
 export function EditableGridCell<T>({
 	rowIdx,
 	colIdx,

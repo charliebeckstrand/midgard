@@ -62,7 +62,11 @@ type ComboboxBaseProps<T> = {
 	selectable?: boolean
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Closes the menu on select. Defaults to true for single, false for multiple. */
+	/**
+	 * Closes the menu on select.
+	 *
+	 * @defaultValue `true` for single selection, `false` for `multiple`
+	 */
 	closeOnSelect?: boolean
 	/** Clears the value when the user empties the input while editing. */
 	clearOnEmpty?: boolean

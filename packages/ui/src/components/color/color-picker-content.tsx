@@ -23,6 +23,20 @@ type ColorPickerContentProps = {
 	children: ReactNode
 }
 
+/**
+ * Portals the picker panel into a focus-managed, animated floating dialog
+ * positioned by Floating UI, re-broadcasting `size` through `<Density>` and
+ * adopting glass styling from context.
+ *
+ * @remarks
+ * Mounts only while `open`; {@link https://floating-ui.com | Floating UI}
+ * supplies `floatingStyles` and the dismiss/role props. `returnFocus={false}`
+ * on the focus manager defers focus restoration to `useFloatingUI`'s
+ * `returnFocusTo`, so Escape returns focus to the trigger while an
+ * outside-press lets focus follow the pointer.
+ *
+ * @internal
+ */
 export function ColorPickerContent({
 	open,
 	setFloating,

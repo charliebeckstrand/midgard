@@ -45,6 +45,13 @@ export const densityPresets = {
 	lg: { space: 'lg', size: 'lg' },
 } satisfies Record<Step, DensityToken>
 
+/**
+ * Backing context for the dual-axis density token; written by {@link Density},
+ * read through {@link useDensity} / {@link useDensityNullable}. `null` outside
+ * any provider.
+ *
+ * @internal
+ */
 const [DensityTokenContext, useDensityNullable] = createContext<DensityToken | null>('Density', {
 	default: null,
 })
@@ -116,6 +123,11 @@ export type DensityProps = DensityInput & { children: ReactNode }
  * Broadcasts a density token to descendants. Each axis cascades
  * independently; `<Density size="lg">` overrides `size` while inheriting
  * `space` from the surrounding context.
+ *
+ * @remarks
+ * Client-tier context: only client descendants read it. A static host may open
+ * a scope without reading one (an explicitly sized Card wraps its children in
+ * `<Density>`), but static children still ignore it (REFERENCE §2).
  */
 export function Density({ children, scale, space: spaceProp, size: sizeProp }: DensityProps) {
 	const parent = useDensity()

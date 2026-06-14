@@ -21,9 +21,9 @@ import { useListKeyboard } from './use-list-keyboard'
 type BaseListProps<T> = {
 	/** Ordered items. */
 	items: T[]
-	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. */
+	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. @defaultValue 'separated' */
 	variant?: ListVariant
-	/** Layout axis. @default 'vertical' */
+	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean

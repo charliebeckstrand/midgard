@@ -7,9 +7,15 @@ import { Heading } from '../heading'
 /** Props for {@link CardTitle}: title-scale `size`, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {
 	className?: string
-	/** Step on the title type scale. Defaults to `md`; match a non-md `<Card size>` explicitly. */
+	/**
+	 * Step on the title type scale; match a non-md `<Card size>` explicitly.
+	 * @defaultValue 'md'
+	 */
 	size?: Step
-	/** Heading level of the rendered title. @default 3 */
+	/**
+	 * Heading level of the rendered title.
+	 * @defaultValue 3
+	 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
 } & Omit<ComponentPropsWithoutRef<'h3'>, 'className'>
 

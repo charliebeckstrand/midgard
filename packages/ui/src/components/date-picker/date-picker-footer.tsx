@@ -9,8 +9,11 @@ import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
 import type { FooterButton } from './use-date-picker-keyboard'
 
+/** Props for {@link DatePickerFooter}. @internal */
 type DatePickerFooterProps = {
+	/** Virtual highlight; a `footer`-zone entry styles the matching button active. */
 	active: CalendarActive | null
+	/** Buttons to render, in order; empty renders nothing. */
 	footerButtons: FooterButton[]
 	onClear: () => void
 	onToday?: () => void
@@ -18,6 +21,13 @@ type DatePickerFooterProps = {
 	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
 
+/**
+ * Action toolbar (Clear/Today) below the calendar grid; renders nothing when
+ * `footerButtons` is empty. The button matching the `footer`-zone virtual
+ * highlight reads as active.
+ *
+ * @internal
+ */
 export function DatePickerFooter({
 	active,
 	footerButtons,

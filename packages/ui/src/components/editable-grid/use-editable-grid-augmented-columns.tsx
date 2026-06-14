@@ -19,6 +19,19 @@ type EditableGridAugmentedColumns<T> = {
 	cellId: (suffix: string) => string
 }
 
+/**
+ * Projects {@link EditableGridColumn}s into plain `DataTableColumn`s, attaching
+ * the grid's per-cell behaviour: a `cell` renderer mounting {@link EditableGridCell}
+ * and `cellProps` carrying the `role="gridcell"` / `aria-readonly` / stable cell
+ * id plus mouse handlers (click to move or extend, Ctrl-click to add, double-click
+ * to edit). Non-data columns (select / actions) pass through untouched.
+ *
+ * @returns The augmented `DataTableColumn<T>[]` to hand to `DataTable`.
+ * @remarks `cellProps` reads `active`/`editing` through refs at event time, so
+ *   column identities stay stable across navigation and memoized `DataTable`
+ *   rows hold; only the affected cell shells re-render via context.
+ * @internal
+ */
 export function useEditableGridAugmentedColumns<T>({
 	columns,
 	rowIndexMap,

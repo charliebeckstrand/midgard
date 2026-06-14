@@ -38,9 +38,9 @@ export type EditableGridEditorProps<T> = {
 	align: EditableGridAlign
 	ariaLabel: string
 	/**
-	 * `true` when the edit was opened via Enter / F2 / double-click (draft seeded
-	 * from the cell's formatted value); `false` when it was opened by typing a
-	 * printable character into the active cell.
+	 * `true` when the edit was opened via Enter / F2 / Space / double-click (draft
+	 * seeded from the cell's formatted value); `false` when it was opened by typing
+	 * a printable character into the active cell.
 	 */
 	selectAllOnFocus: boolean
 }
@@ -67,15 +67,25 @@ export type EditableGridColumn<T> = Omit<
 > & {
 	/** Read/write field on the row. */
 	field?: keyof T
-	/** Format a cell value for display. Defaults to `String(row[field] ?? '')`. */
+	/**
+	 * Format a cell value for display.
+	 *
+	 * @defaultValue `String(row[field] ?? '')`
+	 */
 	format?: (row: T) => string
-	/** Parse the raw editor string. Defaults to the raw string. */
+	/**
+	 * Parse the raw editor string into the committed value.
+	 *
+	 * @defaultValue identity (the raw string)
+	 */
 	parse?: (raw: string, row: T) => unknown
 	/**
-	 * Inline editor mounted when the cell enters edit mode. Defaults to a plain
-	 * text input. Built-in adapters are exported alongside the grid
-	 * (`EditableGridCurrencyEditor`, `EditableGridNumberEditor`); custom editors
-	 * receive the same {@link EditableGridEditorProps} contract.
+	 * Inline editor mounted when the cell enters edit mode. Built-in adapters are
+	 * exported alongside the grid ({@link EditableGridCurrencyEditor},
+	 * {@link EditableGridNumberEditor}); custom editors receive the same
+	 * {@link EditableGridEditorProps} contract.
+	 *
+	 * @defaultValue {@link EditableGridTextEditor} (a plain text input)
 	 */
 	editor?: EditableGridEditor<T>
 	/** Cells in this column can't be edited. Nav still visits them. */
@@ -83,6 +93,13 @@ export type EditableGridColumn<T> = Omit<
 	align?: EditableGridAlign
 }
 
+/**
+ * Row/column projection shared across the grid's hooks: a live `rowsRef`, the
+ * editable (cursor-visitable) columns, and the key/format/parse helpers.
+ *
+ * @typeParam T - The row type backing each grid row.
+ * @internal
+ */
 export type EditableGridRowsApi<T> = {
 	rowsRef: RefObject<T[]>
 	editableCols: EditableGridColumn<T>[]
@@ -91,10 +108,24 @@ export type EditableGridRowsApi<T> = {
 	parseValue: (raw: string, row: T, col: EditableGridColumn<T>) => unknown
 }
 
+/**
+ * Live view of the row selection, read by the mutation path to decide whether a
+ * single-cell write fans out across a multi-row selection.
+ *
+ * @internal
+ */
 export type EditableGridSelectionApi = {
 	selectionRef: RefObject<Set<string | number>>
 }
 
+/**
+ * Cursor and range-selection state plus its move actions: reactive
+ * `active`/`anchor`/`extraCells` for rendering, matching refs for event-time
+ * reads, and the move/extend helpers. `moveActiveTab` returns `false` when the
+ * move would exit the grid.
+ *
+ * @internal
+ */
 export type EditableGridNavigationApi = {
 	active: Coord | null
 	anchor: Coord | null
@@ -111,11 +142,25 @@ export type EditableGridNavigationApi = {
 	addCellToSelection: (coord: Coord) => void
 }
 
+/**
+ * Cell-write operations: `applyCellWrite` parses and writes one cell (fanning
+ * out across a multi-row selection), `applyBulkFill` writes one raw value across
+ * the active cell, the anchored rectangle, and ctrl-clicked extras.
+ *
+ * @internal
+ */
 export type EditableGridMutationsApi = {
 	applyCellWrite: (rowIdx: number, editableColIdx: number, raw: string) => void
 	applyBulkFill: (raw: string) => boolean
 }
 
+/**
+ * In-progress edit session: the `draft` buffer with its setter and the
+ * begin/commit/cancel actions. `commitEdit` returns `false` when the advance
+ * would exit the grid.
+ *
+ * @internal
+ */
 export type EditableGridDraftApi = {
 	editing: boolean
 	draft: string

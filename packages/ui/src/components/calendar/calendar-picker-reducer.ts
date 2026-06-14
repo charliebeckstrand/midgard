@@ -1,11 +1,27 @@
+/** Which grid the picker shows: the 12-month grid or the 12-cell decade grid. @internal */
 type CalendarPickerView = 'months' | 'years'
 
+/**
+ * Picker view state: the active grid, the year whose months are shown, and the
+ * year anchoring the visible decade. `pickerYear` and `decadeYear` track
+ * independently so paging the decade grid never disturbs the chosen month-year.
+ *
+ * @internal
+ */
 export type CalendarPickerState = {
 	view: CalendarPickerView
 	pickerYear: number
 	decadeYear: number
 }
 
+/**
+ * `open` reseeds both year anchors to the calendar's current year; `stepYear`
+ * pages the month grid's year; `stepDecade` pages the year grid's decade;
+ * `showYears`/`showMonths` swap views (entering years re-anchors the decade on
+ * `pickerYear`); `selectYear` picks a year and returns to the month grid.
+ *
+ * @internal
+ */
 type CalendarPickerAction =
 	| { type: 'open'; year: number }
 	| { type: 'stepYear'; delta: number }
@@ -14,6 +30,11 @@ type CalendarPickerAction =
 	| { type: 'showMonths' }
 	| { type: 'selectYear'; year: number }
 
+/**
+ * Reduces a {@link CalendarPickerState} for one {@link CalendarPickerAction}.
+ *
+ * @internal
+ */
 export function calendarPickerReducer(
 	state: CalendarPickerState,
 	action: CalendarPickerAction,
@@ -34,6 +55,7 @@ export function calendarPickerReducer(
 	}
 }
 
+/** Seeds picker state on the month grid with both year anchors at `year`. @internal */
 export function initialCalendarPickerState(year: number): CalendarPickerState {
 	return { view: 'months', pickerYear: year, decadeYear: year }
 }

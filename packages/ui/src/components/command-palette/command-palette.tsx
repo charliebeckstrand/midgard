@@ -22,7 +22,12 @@ const IGNORE_NOTHING = () => false
 export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	/** @defaultValue 'Type a command or search' */
+	/**
+	 * Search-input placeholder text; also names the combobox input and the
+	 * listbox via `aria-label`, since the palette has no visible heading.
+	 *
+	 * @defaultValue 'Type a command or search'
+	 */
 	placeholder?: string
 	icon?: ReactNode
 	/** Close the palette when the backdrop is clicked. @defaultValue true */
@@ -31,22 +36,35 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	/**
 	 * Global shortcut that toggles the palette; tinykeys syntax, e.g.
 	 * `'$mod+KeyK'` (⌘K / Ctrl+K). Array for multiple bindings, `false` to
-	 * disable. @default '$mod+KeyK'
+	 * disable.
+	 *
+	 * @defaultValue '$mod+KeyK'
+	 * @remarks Bound document-wide and fires even while focus is inside a form
+	 * field, so the palette opens regardless of where the user is typing.
 	 */
 	triggerShortcut?: string | string[] | false
 	/**
 	 * Items to render in the palette. Read the live and deferred query with
-	 * `useCommandPaletteQuery()`; filter against `deferredQuery` to keep typing
-	 * responsive. CommandPalette does not virtualize; keep the rendered set to
-	 * a few hundred items, or wrap children in your own windowed renderer for
-	 * larger sets.
+	 * {@link useCommandPaletteQuery}; filter against `deferredQuery` to keep
+	 * typing responsive. CommandPalette does not virtualize; keep the rendered
+	 * set to a few hundred items, or wrap children in your own windowed renderer
+	 * for larger sets.
 	 */
 	children: ReactNode
 }
 
 const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
-/** Searchable command launcher in a modal dialog; items read the query via `useCommandPaletteQuery()` for client-side filtering. */
+/**
+ * Searchable command launcher in a modal dialog; items read the query via
+ * {@link useCommandPaletteQuery} for client-side filtering.
+ *
+ * @remarks Focus moves into the search input on open via the Dialog
+ * `initialFocus`; arrow keys drive a virtual roving highlight via
+ * `aria-activedescendant` while focus stays on the input. The listbox owns only
+ * options (`aria-required-children`), so the no-results message lives in a
+ * sibling live `<output>` that announces when the filtered set empties.
+ */
 export function CommandPalette({
 	open,
 	onOpenChange,

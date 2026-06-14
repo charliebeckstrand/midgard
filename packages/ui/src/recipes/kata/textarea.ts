@@ -26,4 +26,5 @@ export const k = bridge.control(control, {
 	skeleton: textarea,
 })
 
+/** Recipe variant props for {@link Textarea} — the styling axes its kata exposes (`resize`, `autoResize`), for consumers composing custom slots. */
 export type TextareaVariants = VariantProps<typeof k>

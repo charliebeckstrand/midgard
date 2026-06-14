@@ -11,7 +11,15 @@ export type RadioProps = RadioVariants & {
 	ref?: Ref<HTMLInputElement>
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
 
-/** Single radio control wrapped in its label; id, disabled, required, and invalid state resolve from the enclosing control group. */
+/**
+ * Single radio control wrapped in its label; id, disabled, required, and
+ * invalid state resolve from the enclosing Control and Density context.
+ *
+ * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
+ * field: it has no internal checked state and stays a native input controlled
+ * by `checked`/`defaultChecked` and a shared `name`. Group radios with
+ * {@link RadioGroup} and a common `name` for single-selection.
+ */
 export function Radio({
 	className,
 	color,

@@ -18,11 +18,23 @@ import type { ColorValueProps, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
 type ColorPanelBaseProps = {
-	/** Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
+	/**
+	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
+	 *
+	 * @defaultValue `false`
+	 */
 	alpha?: boolean
-	/** Preset swatches, or `false` to hide them. Defaults to a built-in palette. */
+	/**
+	 * Preset swatches, or `false` to hide them.
+	 *
+	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
+	 */
 	swatches?: readonly string[] | false
-	/** Show the eyedropper button where the `EyeDropper` API is available. @default true */
+	/**
+	 * Show the eyedropper button where the `EyeDropper` API is available.
+	 *
+	 * @defaultValue `true`
+	 */
 	eyedropper?: boolean
 	/** Size step; resolves through the explicit prop, then the Density cascade, then `'md'`. */
 	size?: ControlSize

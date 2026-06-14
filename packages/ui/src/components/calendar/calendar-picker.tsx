@@ -18,6 +18,14 @@ type CalendarPickerProps = {
 	triggerClassName?: string
 }
 
+/**
+ * Popover-housed month/year picker behind the header's center trigger. State,
+ * focus wiring, and the per-view cell config come from {@link useCalendarPicker};
+ * this renders the trigger and the {@link CalendarPickerGrid} inside a modal
+ * popover.
+ *
+ * @internal
+ */
 export function CalendarPicker({
 	year,
 	month,

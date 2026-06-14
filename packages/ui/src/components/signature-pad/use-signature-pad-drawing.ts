@@ -22,8 +22,19 @@ type SignatureDrawingOptions = {
 }
 
 /**
- * Manages pointer-driven drawing on the signature canvas.
- * Returns event handlers to wire onto the `<canvas>` element.
+ * Pointer-driven drawing on the signature canvas: strokes between successive
+ * points, a dot on a bare tap, and a commit that snapshots to a data URL.
+ *
+ * @internal
+ * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
+ * flags, and the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks.
+ * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
+ * to wire onto the `<canvas>`.
+ * @remarks
+ * `handlePointerDown` ignores non-primary mouse buttons and captures the pointer
+ * so a stroke continues past the canvas edge. `commit` writes the snapshot into
+ * `lastEmittedRef` before `setCurrent`, letting the state hook's repaint effect
+ * skip its own emission.
  */
 export function useSignaturePadDrawing({
 	canvasRef,

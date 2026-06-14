@@ -19,7 +19,10 @@ export type MapCamera = {
 
 /** Props for {@link Map}: initial `camera`, visual `preset` or `style`, interactivity, and accessible name. */
 export type MapProps = {
-	/** Initial camera position. Defaults to `{ center: [0, 0], zoom: 2, bearing: 0, pitch: 0 }`. */
+	/**
+	 * Initial camera position.
+	 * @defaultValue `{ center: [0, 0], zoom: 2, bearing: 0, pitch: 0 }`
+	 */
 	camera?: MapCamera
 	/** Preset visual style. Takes precedence over `style` when provided. */
 	preset?: MapPreset
@@ -37,7 +40,18 @@ export type MapProps = {
 	onLoad?: (map: MapLibreMap) => void
 }
 
-/** MapLibre-backed interactive map: provides the map instance to descendants (markers, routes, geofences) via context. */
+/**
+ * MapLibre-backed interactive map: provides the map instance to descendants (markers, routes, geofences) via context.
+ *
+ * @remarks
+ * MapLibre is loaded lazily on the client; `children` mount only once the map
+ * fires `load` (`data-ready`), so descendants can assume a live instance.
+ * `aria-label` attaches only with a supporting role (`application` when
+ * interactive, `group` otherwise); without it the container stays a plain
+ * presentational div.
+ * @see {@link MapMarker}
+ * @see {@link MapRoute}
+ */
 function MapView({
 	camera,
 	preset,

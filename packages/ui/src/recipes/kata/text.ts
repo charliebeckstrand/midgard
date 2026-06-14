@@ -24,4 +24,5 @@ export const k = defineRecipe({
 	skeleton: kokkaku.text,
 })
 
+/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`variant`, `color`), for consumers composing custom slots. */
 export type TextVariants = VariantProps<typeof k>

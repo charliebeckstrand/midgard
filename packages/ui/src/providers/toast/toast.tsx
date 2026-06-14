@@ -13,9 +13,17 @@ import { useToastTimer } from './use-toast-timer'
 
 type ToastProviderProps = {
 	children: ReactNode
-	/** Default lifetime (ms) for toasts that don't set `persist` or their own `duration`. */
+	/**
+	 * Default lifetime (ms) for toasts that don't set `persist` or their own `duration`.
+	 *
+	 * @defaultValue 5000
+	 */
 	duration?: number
-	/** Cap on active toasts; oldest are dismissed when exceeded. */
+	/**
+	 * Cap on active toasts; oldest are dismissed when exceeded.
+	 *
+	 * @defaultValue 5
+	 */
 	maxToasts?: number
 }
 

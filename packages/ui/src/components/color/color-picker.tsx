@@ -11,12 +11,29 @@ import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
 type ColorPickerBaseProps = {
-	/** Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`. @default false */
+	/**
+	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
+	 *
+	 * @defaultValue `false`
+	 */
 	alpha?: boolean
-	/** Preset swatches, or `false` to hide them. Defaults to a built-in palette. */
+	/**
+	 * Preset swatches, or `false` to hide them. Passed through to the inline {@link ColorPanel}.
+	 *
+	 * @defaultValue The {@link ColorPanel} default palette
+	 */
 	swatches?: readonly string[] | false
-	/** Show the eyedropper button where the `EyeDropper` API is available. @default true */
+	/**
+	 * Show the eyedropper button where the `EyeDropper` API is available.
+	 *
+	 * @defaultValue `true`
+	 */
 	eyedropper?: boolean
+	/**
+	 * Floating placement of the panel relative to the trigger.
+	 *
+	 * @defaultValue `'bottom-start'`
+	 */
 	placement?: Placement
 	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
 	size?: ControlSize

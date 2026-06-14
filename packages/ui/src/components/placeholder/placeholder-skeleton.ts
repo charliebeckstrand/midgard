@@ -26,10 +26,19 @@ type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
 	size: Record<S, ClassValue>
 }
 
+/**
+ * Props of a {@link createSkeleton} component: `className` always, plus an
+ * optional `size` when built from a sized recipe.
+ */
 export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never]
 	? { className?: string }
 	: { size?: S; className?: string }
 
+/**
+ * Resolve the shape class for `resolved`, clamping a sub-Step size (xs/xl) to
+ * the nearest key the recipe's `size` map defines, scanning lower first.
+ * @internal
+ */
 function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): ClassValue {
 	if (resolved in sizeMap) return sizeMap[resolved]
 
@@ -63,6 +72,11 @@ function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): Cl
  * placeholder (Avatar's `DensityScope`) or fold in extra state (Control's
  * join-aware classes) keep writing their skeleton inline.
  *
+ * @param skeleton - The recipe's `skeleton` surface: `{ base, size }` for a
+ *   sized silhouette or `{ base }` for a fixed one.
+ * @param name - `displayName` for the returned component.
+ * @returns A static skeleton component rendering a `<Placeholder>` with the
+ *   recipe's shape classes; it accepts a `size` prop only for a sized recipe.
  * @example
  *   export const ButtonSkeleton = createSkeleton(k.skeleton, 'ButtonSkeleton')
  *   export const RadioSkeleton = createSkeleton(k.skeleton, 'RadioSkeleton')

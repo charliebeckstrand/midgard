@@ -10,7 +10,11 @@ import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { LoadingSpinner } from '../loading'
 
-/** Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`) plus a loading flag and clear callback. */
+/**
+ * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`) plus a loading flag and clear callback.
+ *
+ * @see {@link SearchInput}
+ */
 export type SearchInputProps = Omit<
 	InputProps,
 	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue'
@@ -25,7 +29,19 @@ export type SearchInputProps = Omit<
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
-/** Search-type Input with a leading search icon. Shows a LoadingSpinner while `loading` and a clear button once non-empty, returning focus to the field on clear. Binds to an enclosing Form field by `name`. */
+/**
+ * Search-type {@link Input} with a leading search icon. Shows a {@link LoadingSpinner}
+ * while `loading` and a clear button once non-empty, binding to an enclosing
+ * `<Form>` field by `name`.
+ *
+ * @remarks
+ * Clearing drives a native `input` event so controlled and uncontrolled
+ * consumers see the same change, then returns focus to the field as the clear
+ * button unmounts (WCAG 2.4.3). `loading` suppresses the clear button: a spinner
+ * occupies the suffix while a query is in flight.
+ *
+ * @see {@link SearchInputProps}
+ */
 export function SearchInput({
 	value,
 	defaultValue,

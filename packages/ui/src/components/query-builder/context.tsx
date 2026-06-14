@@ -7,12 +7,14 @@ import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types
 /** Registers (or, with `null`, unregisters) a focusable control under `key`. */
 export type FocusRegister = (key: string, el: HTMLElement | null) => void
 
+/** Field configuration shared down the tree: the field list, a name lookup, and the disabled flag. Stable across tree edits. @internal */
 export type QueryBuilderStateValue = {
 	fields: QueryField[]
 	getField: (name: string) => QueryField | undefined
 	disabled: boolean
 }
 
+/** Tree-edit actions provided to rule/group consumers; referentially stable across edits. @internal */
 export type QueryBuilderActions = {
 	updateRule: (id: string, patch: Partial<QueryRule>) => void
 	updateCombinator: (id: string, combinator: QueryCombinator) => void

@@ -8,12 +8,15 @@ import { MenuActionsContext, MenuStateContext } from './context'
 import { useMenuState } from './use-menu-state'
 
 export type MenuProps = {
-	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
-	/** Initial open state when uncontrolled. */
 	defaultOpen?: boolean
-	/** Fires when the open state changes. */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Preferred side/alignment of the dropdown panel relative to the trigger;
+	 * flips on collision. Its presence is what selects dropdown mode: omit it and
+	 * the wrapper instead opens as a right-click context menu (or, with
+	 * `defaultOpen`, a static inline menu). Dropdowns fall back to `'bottom-start'`.
+	 */
 	placement?: Placement
 	/**
 	 * Size step that drives menu item padding and text size.
@@ -26,8 +29,13 @@ export type MenuProps = {
 
 /**
  * Composition root for menus; provides open state and actions to its trigger
- * and items via context. With a `placement` it acts as a floating dropdown;
- * without one the wrapper opens as a context menu on right-click.
+ * and items via context. A `placement` makes it a floating dropdown; without
+ * one the wrapper opens as a right-click context menu, or — when `defaultOpen`
+ * is set — renders as a static inline menu.
+ *
+ * @see {@link MenuTrigger}
+ * @see {@link MenuContent}
+ * @see {@link useMenuState}
  */
 export function Menu({
 	open,
@@ -53,8 +61,8 @@ export function Menu({
 					data-slot="menu"
 					className={cn(className)}
 					// No role: the wrapper holds arbitrary page content and implements no
-					// keyboard model of its own. role="application" suppresses AT
-					// browse-mode for everything inside it.
+					// keyboard model of its own. Stamping role="application" here would
+					// suppress AT browse-mode for everything inside it, so it is omitted.
 					{...(!isDropdown && { onContextMenu: handleContextMenu })}
 				>
 					{children}

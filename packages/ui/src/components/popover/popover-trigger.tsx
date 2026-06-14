@@ -22,10 +22,16 @@ export type PopoverTriggerProps = {
 	/**
 	 * Suppresses the auto-wired toggle interactions, leaving open/close control
 	 * to the caller while still merging refs and ARIA wiring.
+	 * @defaultValue false
 	 */
 	manual?: boolean
 }
 
+/**
+ * Writes a node into a callback or object ref, tolerating either form.
+ *
+ * @internal
+ */
 function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
 	if (typeof ref === 'function') ref(node)
 	else if (ref != null) (ref as { current: T | null }).current = node

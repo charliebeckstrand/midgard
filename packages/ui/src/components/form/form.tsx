@@ -17,6 +17,11 @@ export type { FormHelpers, FormSubmitHandler, SubmitOutcome, SubmitResult }
 
 /** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
 export type FormProps<T extends Record<string, unknown>> = {
+	/**
+	 * Seed values and field schema; keys and types define the form. Single source
+	 * of truth for bound controls' initial state — a bound control's
+	 * `defaultValue`/`defaultChecked` is ignored (CONVENTIONS §7.2).
+	 */
 	defaultValues: T
 	/**
 	 * Controlled re-sync source. Reference change → `values` replaced and the
@@ -25,11 +30,17 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 * Pass a stable reference; a new derived object each render loops the sync.
 	 */
 	values?: T
+	/** Per-field validators; compose one from a schema via {@link zodResolver}. */
 	validate?: Validators<T>
+	/**
+	 * When validators run.
+	 * @defaultValue `'touched'`
+	 */
 	validateOn?: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
 	onSettled?: (outcome: SubmitOutcome<T>) => void
 	onReset?: () => void
+	/** Disables the form's `<Fieldset>`; submitting disables it regardless. */
 	disabled?: boolean
 	className?: string
 	children: ReactNode

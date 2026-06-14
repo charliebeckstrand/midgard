@@ -23,12 +23,17 @@ export type DrawerProps = DrawerPanelVariants & {
 	/**
 	 * Size step that propagates to descendants via the Density context.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * @defaultValue inherited Density size, falling back to 'md'
 	 */
 	size?: Step
+	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
 	className?: string
 	children: ReactNode
-	/** Element to receive initial focus when the drawer opens. Defaults to the first tabbable child. */
+	/**
+	 * Element to receive initial focus when the drawer opens.
+	 * @defaultValue the first tabbable child
+	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a

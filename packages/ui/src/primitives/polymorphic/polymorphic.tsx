@@ -22,7 +22,17 @@ export type PolymorphicProps<Fallback extends ElementType, Omitted extends Prope
 	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className' | Omitted>)
 	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
 
-/** Renders the registered link component when `href` is present, the `as` element otherwise. */
+/**
+ * Renders the registered link component when `href` is present, the `as` element
+ * otherwise.
+ *
+ * @typeParam Fallback - Element type rendered when no `href` is given; its props
+ *   type constrains the fallback arm.
+ * @remarks Client-only: reads the `<UIProvider>`-registered link from
+ * {@link useLink}. Static leaves use {@link PolymorphicStatic}, which reads no
+ * context and takes the router link per call site (REFERENCE §2).
+ * @see {@link PolymorphicStatic}
+ */
 export function Polymorphic<Fallback extends ElementType>({
 	as,
 	href,

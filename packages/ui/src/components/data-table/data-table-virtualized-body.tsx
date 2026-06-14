@@ -6,6 +6,7 @@ import { TableBody } from '../table'
 import { DataTableRow } from './data-table-row'
 import type { DataTableColumn } from './types'
 
+/** Props for {@link DataTableVirtualizedBody}. @internal */
 type DataTableVirtualizedBodyProps<T> = {
 	scrollRef: RefObject<HTMLDivElement | null>
 	rows: T[]
@@ -20,6 +21,16 @@ type DataTableVirtualizedBodyProps<T> = {
 	overscan: number
 }
 
+/**
+ * Windowed body for {@link DataTable}: renders only rows in view (plus overscan)
+ * via {@link useVirtualWindow}, padding the leading and trailing gap with
+ * aria-hidden spacer `<tr>`s so scroll height matches the full row count.
+ *
+ * @remarks Drives a `@tanstack/react-virtual` measurement lifecycle; assumes
+ * uniform `estimateSize` row heights and requires a scroll container of known
+ * height (see {@link DataTableProps.maxHeight}).
+ * @internal
+ */
 export function DataTableVirtualizedBody<T>({
 	scrollRef,
 	rows,

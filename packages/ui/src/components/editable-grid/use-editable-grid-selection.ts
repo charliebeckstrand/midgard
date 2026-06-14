@@ -9,6 +9,16 @@ import type { EditableGridSelectionApi } from './types'
 // `setSelection(new Set(...))`.
 const EMPTY_SELECTION = new Set<string | number>()
 
+/**
+ * Adapts the `DataTable` selection config into the grid's selection seam:
+ * threads the controllable selection set through `useControllable` and exposes a
+ * live `selectionRef` so the mutation path can fan a single-cell write across a
+ * multi-row selection at event time.
+ *
+ * @returns `selection` (current set) / `setSelection` / `selectionApi` (the
+ *   ref-backed {@link EditableGridSelectionApi}).
+ * @internal
+ */
 export function useEditableGridSelection(config: DataTableSelection | undefined) {
 	const [selectionRaw, setSelection] = useControllable<Set<string | number>>({
 		value: config?.value,

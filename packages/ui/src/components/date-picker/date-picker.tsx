@@ -14,6 +14,7 @@ import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerInputTab } from './use-date-picker-input-tab'
 import { useDatePickerState } from './use-date-picker-state'
 
+/** Single-date arm of {@link DatePickerProps} (`range` absent or `false`). */
 export type DatePickerSingleProps = {
 	range?: false
 	value?: Date
@@ -25,10 +26,15 @@ export type DatePickerSingleProps = {
 	 * picked date writes back into the input.
 	 */
 	input?: boolean
-	/** Pattern for the typed date while `input` is set. @default 'MM/DD/YYYY' */
+	/**
+	 * Pattern for the typed date while `input` is set.
+	 *
+	 * @defaultValue 'MM/DD/YYYY'
+	 */
 	format?: DateInputFormat
 }
 
+/** Range arm of {@link DatePickerProps} (`range: true`); value is a `[Date, Date]` pair. */
 export type DatePickerRangeProps = {
 	range: true
 	value?: [Date, Date]
@@ -36,6 +42,11 @@ export type DatePickerRangeProps = {
 	onValueChange?: (value: [Date, Date] | undefined) => void
 }
 
+/**
+ * Range-agnostic {@link DatePicker} props shared by both arms (single and
+ * range); intersected with the discriminated value/handler shape in
+ * {@link DatePickerProps}.
+ */
 export type DatePickerBaseProps = {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single) or `[Date, Date]` (range). */
 	name?: string
@@ -52,7 +63,8 @@ export type DatePickerBaseProps = {
 	 * Truncates the displayed date label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
 	 * `<Group>` or another content-sized parent that collapses the label.
-	 * @default true
+	 *
+	 * @defaultValue true
 	 */
 	truncate?: boolean
 	className?: string
@@ -76,6 +88,14 @@ export type DatePickerProps = DatePickerBaseProps & (DatePickerSingleProps | Dat
  * `size` resolves through the explicit prop, then `<Control>`, then Density, then `'md'`.
  * With `input`, a typed DateInput replaces the trigger and the calendar opens
  * from its suffix button.
+ *
+ * @remarks
+ * Keyboard navigation runs on a virtual highlight rather than DOM focus: the
+ * open dialog itself holds focus and routes arrow/Page keys to the active zone.
+ * `input` mode keeps the editable reference group out of the modal trap's
+ * `aria-hidden` marking and closes its own Tab cycle.
+ *
+ * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
 export function DatePicker(props: DatePickerProps) {
 	const inherited = useDensity()

@@ -10,7 +10,8 @@ type FormattedInputOptions = {
 	/**
 	 * Predicate identifying characters preserved across `format`. Keeps the
 	 * caret aligned with the typed character when format inserts or removes
-	 * separators. Defaults to ASCII alphanumerics and `+`.
+	 * separators.
+	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
 	 */
 	meaningful?: (char: string) => boolean
 	/** External ref to compose with the engine's internal input ref. */

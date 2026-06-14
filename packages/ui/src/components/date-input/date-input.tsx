@@ -31,7 +31,11 @@ export type DateInputProps = Omit<
 	defaultValue?: Date
 	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
 	onValueChange?: (value: Date | undefined) => void
-	/** Pattern that masks and parses the typed text. @default 'MM/DD/YYYY' */
+	/**
+	 * Pattern that masks and parses the typed text.
+	 *
+	 * @defaultValue 'MM/DD/YYYY'
+	 */
 	format?: DateInputFormat
 	/** Earliest accepted day; a complete date before it marks the input invalid and emits `undefined`. */
 	min?: Date
@@ -46,6 +50,14 @@ export type DateInputProps = Omit<
  * does not parse, or when blur leaves a partial one behind. Controlled or
  * uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
  * field by `name` (the stored value is the `Date`).
+ *
+ * @remarks
+ * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
+ * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
+ * Enter blurs the input, committing or renormalizing the current entry.
+ *
+ * @see {@link maskDateText} for the masking rules.
+ * @see {@link parseDateText} for the parse/validation contract.
  */
 export function DateInput({
 	value,

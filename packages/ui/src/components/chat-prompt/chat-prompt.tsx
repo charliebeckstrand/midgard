@@ -18,9 +18,15 @@ export type ChatPromptProps = {
 	onSubmit: () => void
 	/** Called when the user stops a streaming response via the send→stop toggle. */
 	onStop?: () => void
-	/** When true, the send button renders as a stop button and invokes `onStop`. */
+	/**
+	 * When true, the send button renders as a stop button and invokes `onStop`.
+	 *
+	 * @defaultValue `false`
+	 */
 	streaming?: boolean
+	/** @defaultValue `'Ask anything'` */
 	placeholder?: string
+	/** @defaultValue `2` */
 	rows?: number
 	/** Disables send without disabling the textarea (e.g. empty input). */
 	disabled?: boolean

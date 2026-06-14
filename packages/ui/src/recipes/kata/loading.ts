@@ -71,5 +71,7 @@ export const k = defineRecipe(
 	{ dot, spinner },
 )
 
+/** Recipe variant props for {@link LoadingDots} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
 export type LoadingDotsVariants = VariantProps<typeof k>
+/** Recipe variant props for {@link LoadingSpinner} — its styling axes (`size`, `color`), for consumers composing custom slots. */
 export type LoadingSpinnerVariants = VariantProps<typeof spinner>

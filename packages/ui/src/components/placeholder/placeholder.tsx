@@ -8,11 +8,12 @@ export type PlaceholderProps = {
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
 /**
- * Pulsing skeleton shape. Defaults to a line; pass className for other
- * shapes. Static leaf: renders in React Server Components. To join adjacent
- * placeholders like grouped controls, stamp `data-group` /
- * `data-group-orientation` explicitly; they pass through to the element and
- * match the group's container-scoped `tsunagi` join selectors.
+ * Pulsing skeleton shape. Renders a line by default; pass `className` for
+ * other shapes.
+ * @remarks Static leaf: renders in React Server Components.
+ * @remarks To join adjacent placeholders like grouped controls, stamp
+ * `data-group` / `data-group-orientation` explicitly; they pass through to the
+ * element and match the group's container-scoped `tsunagi` join selectors.
  */
 export function Placeholder({ className, ...props }: PlaceholderProps) {
 	return (

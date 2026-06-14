@@ -28,10 +28,14 @@ export type DialogProps = DialogPanelVariants & {
 	children: ReactNode
 	/**
 	 * Dialog role. Use `'alertdialog'` for confirmations and other prompts that
-	 * require a response before proceeding. @default 'dialog'
+	 * require a response before proceeding.
+	 * @defaultValue 'dialog'
 	 */
 	role?: 'dialog' | 'alertdialog'
-	/** Element to receive initial focus when the dialog opens. Defaults to the first tabbable child. */
+	/**
+	 * Element to receive initial focus when the dialog opens.
+	 * @defaultValue the first tabbable child
+	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
 	 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command

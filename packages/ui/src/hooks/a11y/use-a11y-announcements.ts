@@ -4,9 +4,9 @@ import { useEffect, useRef } from 'react'
 import { announce } from '../../core'
 
 export type A11yAnnouncementsOptions = {
-	/** Announce assertively (interrupts the user) rather than politely. @default false */
+	/** Announce assertively (interrupts the user) rather than politely. @defaultValue false */
 	assertive?: boolean
-	/** Gate announcing without unmounting the hook. @default true */
+	/** Gate announcing without unmounting the hook. @defaultValue true */
 	enabled?: boolean
 }
 

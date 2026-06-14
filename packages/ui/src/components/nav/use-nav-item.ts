@@ -17,15 +17,22 @@ import type { PolymorphicProps } from '../../primitives/polymorphic'
 import type { Step } from '../../recipes'
 
 /**
- * Canonical props shared by nav-item-style components (NavItem, SidebarItem).
- * Each extends this with its own extras: `value` for selection binding,
- * `size` for an explicit step.
+ * Canonical props shared by nav-item-style components ({@link NavItem},
+ * `SidebarItem`). Each extends this with its own extras: {@link NavMenuItemProps}
+ * adds `value` for selection binding, `SidebarItemProps` adds `size`.
+ *
+ * @see {@link useNavItem} for the behavior these props drive.
  */
 export type NavItemProps = {
 	icon?: ReactElement
 	current?: boolean
 	className?: string
+	/** Keep an enclosing offcanvas drawer open on click instead of dismissing it. */
 	preventClose?: boolean
+	/**
+	 * Enable the press-spring tap animation on the active indicator.
+	 * @defaultValue `false`
+	 */
 	spring?: boolean
 	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode
@@ -34,6 +41,11 @@ export type NavItemProps = {
 	// `color` conflicts with `<Button>`'s variant union; `ref` differs between anchor/button branches; `prefix` is a string-typed RDFa global we repurpose as a slot.
 } & PolymorphicProps<'button', 'color' | 'ref' | 'prefix'>
 
+/**
+ * Inputs to {@link useNavItem}.
+ *
+ * @internal
+ */
 type NavItemOptions = {
 	current?: boolean
 	/** Binds to the surrounding selection context; when set, click reports it and `current` resolves against it. */
@@ -51,6 +63,9 @@ type NavItemOptions = {
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.
+ *
+ * @returns The scroll-target `ref`, resolved `current` and `size`, the active
+ * indicator handle, and the composed `handleClick`.
  */
 export function useNavItem({ current, value, size, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)

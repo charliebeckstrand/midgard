@@ -11,6 +11,13 @@ import { type DragPosition, useColorDrag } from './use-color-drag'
  * The 2D saturation × brightness field. X maps to saturation, Y (inverted) to
  * value, over a base painted in the current hue. Pointer-draggable and
  * arrow-key operable; `Shift` takes a coarser step.
+ *
+ * @remarks
+ * Exposed as a single `role="slider"`: `aria-valuenow` carries saturation while
+ * `aria-valuetext` announces both axes, since ARIA has no two-axis slider.
+ * Arrows nudge by `1` (`10` with `Shift`); Home/End pin saturation; Page keys
+ * step brightness. Reads colour from the panel context, so it tracks
+ * pointer-, keyboard-, and externally-driven changes alike.
  */
 export function ColorArea() {
 	const { hsva, setHsva, disabled, size } = useColorPanelContext()

@@ -22,21 +22,21 @@ export type PivotTableProps<T> = {
 	rows: readonly T[]
 	/** Fields that identify the row, column, and value dimension of the pivot. */
 	keys: PivotTableKeys<T>
-	/** How to aggregate the value field within a (row × column) group. @default 'sum' */
+	/** How to aggregate the value field within a (row × column) group. @defaultValue 'sum' */
 	aggregation?: PivotAggregation
-	/** Format cell values. Defaults to `Number(value).toLocaleString()`. */
+	/** Format cell values. @defaultValue {@link defaultFormat} — integers via `formatInteger`, the rest via `formatFraction`. */
 	format?: (value: number) => ReactNode
 	/** Label for the row-dimension column. */
 	rowHeader?: ReactNode
-	/** Label for the total row / column. @default 'Total' */
+	/** Label for the total row / column. @defaultValue 'Total' */
 	totalLabel?: string
-	/** Which totals to render. @default 'none' */
+	/** Which totals to render. @defaultValue 'none' */
 	totals?: PivotTotals
 	/** Explicit ordering of row values. Extras in `rows` are appended. */
 	rowOrder?: readonly string[]
 	/** Explicit ordering of column values. Extras in `rows` are appended. */
 	columnOrder?: readonly string[]
-	/** Rendered when no source rows match a (row × column) group. @default '—' */
+	/** Rendered when no source rows match a (row × column) group. @defaultValue '—' */
 	emptyCell?: ReactNode
 	density?: DensityLevel
 	grid?: boolean

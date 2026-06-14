@@ -3,6 +3,7 @@ import type { Ma } from '../../recipes'
 import { k } from '../../recipes/kata/grid'
 import { BREAKPOINTS, type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
+/** Per-breakpoint map of `T`, or a single `T` applied at all sizes; used by {@link Grid} and {@link GridCell} props. */
 export type { Responsive }
 
 /** Spacing scale for the gap between grid tracks; a `Ma` step. */
@@ -26,10 +27,23 @@ type ResolvedResponsive = {
 
 const EMPTY: ResolvedResponsive = { classes: [], style: {} }
 
+/**
+ * CSS custom-property name for a track prefix at a breakpoint: `--cols` at
+ * `initial`, `--cols-sm` elsewhere.
+ *
+ * @internal
+ */
 function varName(prefix: string, bp: Breakpoint): string {
 	return bp === 'initial' ? `--${prefix}` : `--${prefix}-${bp}`
 }
 
+/**
+ * Resolves a responsive numeric prop into the override classes and the
+ * custom-property style entries they read, emitting only the breakpoints with a
+ * provided value.
+ *
+ * @internal
+ */
 function resolveScalar<T>(
 	value: Responsive<T> | undefined,
 	prefix: string,
@@ -166,13 +180,16 @@ export function resolveRowStart(value: Responsive<number> | undefined): Resolved
 }
 
 /**
- * Span has two extras over a plain numeric prop:
+ * Resolves the column `span` prop, which carries two extras over a plain
+ * numeric prop:
  *   1. The literal `'full'` value, which spans the entire row
  *      (`grid-column: 1 / -1`). Composed with a `start` this clamps to the
  *      grid's last line rather than overflowing: Tailwind emits `col-start-*`
  *      after `col-span-*`, so the start class re-opens `grid-column-start`
  *      while the shorthand's `-1` end holds.
  *   2. A responsive object may mix numeric values and `'full'` per breakpoint.
+ *
+ * @internal
  */
 export function resolveSpan(value: Responsive<number | 'full'> | undefined): ResolvedResponsive {
 	if (value === undefined) return EMPTY
@@ -228,4 +245,5 @@ export const justifyMap = {
 	stretch: 'justify-items-stretch',
 } as const
 
+/** Variant props for {@link GridDivider} (the `soft` weight). */
 export type { GridDividerVariants } from '../../recipes/kata/grid'

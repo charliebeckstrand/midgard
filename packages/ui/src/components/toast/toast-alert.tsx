@@ -7,12 +7,16 @@ import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/to
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 
+/** Picks the slide-in motion preset matching the viewport edge. @internal */
 function getToastMotion(position: ToastPosition) {
 	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
-// Derive the variant/color unions from the Alert recipe; a palette change
-// there propagates here.
+/**
+ * Maps each toast severity to an {@link Alert} variant/color pair. Typed from
+ * the Alert recipe unions so a palette change there propagates here.
+ * @internal
+ */
 const severityAlertMap = {
 	default: { variant: 'solid', color: 'blue' },
 	secondary: { variant: 'solid', color: 'zinc' },
@@ -24,10 +28,12 @@ const severityAlertMap = {
 	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
 >
 
+/** Props for {@link ToastAlert}, wired by {@link Toast} from the queue. @internal */
 type ToastAlertProps = {
 	toast: ToastData
 	position: ToastPosition
 	zIndex: number
+	/** @defaultValue true */
 	closable?: boolean
 	onOpenChange: (open: boolean, id: string) => void
 	onPause: () => void
@@ -35,6 +41,18 @@ type ToastAlertProps = {
 	onReset: (id: string) => void
 }
 
+/**
+ * Single animated toast: maps severity to an {@link Alert} variant and a live
+ * `role`, slides in from the viewport edge, and drives the pause/resume/reset
+ * lifecycle on pointer and focus.
+ *
+ * @remarks `warning`/`error` use `role="alert"` (assertive, announces on
+ * insertion); other severities use `role="status"` and are mirrored through the
+ * persistent announcer on mount, since screen readers can miss a live region
+ * inserted with its text (WCAG 4.1.3). Auto-dismiss pauses while the pointer or
+ * focus is inside the toast (WCAG 2.2.1). Not exported; rendered by {@link Toast}.
+ * @internal
+ */
 export function ToastAlert({
 	toast: t,
 	position,

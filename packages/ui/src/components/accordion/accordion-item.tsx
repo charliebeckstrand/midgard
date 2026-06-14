@@ -10,6 +10,10 @@ import { AccordionItemContext, useAccordion } from './context'
 export type AccordionItemProps = {
 	/** Stable key identifying this section within the parent's open set. */
 	value: string
+	/**
+	 * Prevents toggling and removes the trigger from roving-tabindex navigation.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	className?: string
 	children: ReactNode
@@ -18,7 +22,10 @@ export type AccordionItemProps = {
 /**
  * A single accordion section. Registers its open state under `value` with the
  * enclosing {@link Accordion} and provides the trigger/panel a11y wiring to its
- * descendants via context.
+ * descendants via {@link useAccordionItem}.
+ *
+ * @see {@link AccordionTrigger}
+ * @see {@link AccordionPanel}
  */
 
 export function AccordionItem({

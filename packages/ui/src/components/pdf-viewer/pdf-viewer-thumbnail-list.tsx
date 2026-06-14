@@ -4,6 +4,7 @@ import type { Ref } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 
+/** One entry in the thumbnail rail. @internal */
 type PdfViewerThumbnailItem = {
 	key: string | number
 	pageNumber: number
@@ -15,13 +16,20 @@ type PdfViewerThumbnailItem = {
 // the length is the placeholder count.
 const PLACEHOLDER_KEYS = Array.from({ length: 6 }, (_, i) => `placeholder-${i}`)
 
+/** Props for {@link PdfViewerThumbnailList}. @internal */
 type PdfViewerThumbnailListProps = {
 	items: PdfViewerThumbnailItem[]
 	loading: boolean
 	safePage: number
 	goToPage: (page: number) => void
+	/** Ref attached to the current page's button so the rail keeps it in view. */
 	scrollCurrentIntoView: Ref<HTMLButtonElement>
+	/** Fired after a page is selected; the mobile Sheet uses it to close. */
 	onSelect?: () => void
+	/**
+	 * Rail orientation: vertical sidebar list or multi-column grid.
+	 * @defaultValue 'list'
+	 */
 	layout?: 'list' | 'grid'
 }
 
@@ -30,6 +38,8 @@ type PdfViewerThumbnailListProps = {
  * placeholders until the first thumbnail resolves, then one button per page;
  * the current page is marked `aria-current` and receives the scroll-into-view
  * ref so it stays visible as the document is paged.
+ *
+ * @internal
  */
 export function PdfViewerThumbnailList({
 	items,

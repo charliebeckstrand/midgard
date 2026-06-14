@@ -1,3 +1,10 @@
+/**
+ * JSON-tree kata: object-literal surface for the collapsible JSON viewer.
+ * Carries a per-value-type syntax-colour table (`valueColor`, keyed by
+ * {@link JsonValueType}) authored inline with `mode()` — these editor-style
+ * hues are local to this viewer, not a shared iro palette. Rows, the expand
+ * toggle, chevron, and the collapse motion config round out the surface.
+ */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, ugoki } from '../kiso'
 
@@ -8,6 +15,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { collapse, css } = ugoki
 
+/** The syntax-highlight classes a {@link JsonTree} node can take — one per primitive value kind plus `key` for object property names. */
 export type JsonValueType = 'string' | 'number' | 'boolean' | 'null' | 'key'
 
 const color = {

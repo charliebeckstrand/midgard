@@ -34,5 +34,7 @@ export const k = {
 	group,
 } as const
 
+/** Recipe variant props for {@link Toolbar} — the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
 export type ToolbarVariants = VariantProps<typeof root>
+/** Recipe variant props for a {@link Toolbar} group — its styling axes (`orientation`), for consumers composing custom slots. */
 export type ToolbarGroupVariants = VariantProps<typeof group>

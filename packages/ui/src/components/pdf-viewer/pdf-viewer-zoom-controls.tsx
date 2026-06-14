@@ -6,11 +6,19 @@ import { ToolbarGroup } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import type { PdfViewerZoom } from './types'
 
+/** Props for {@link PdfViewerZoomControls}. @internal */
 type PdfViewerZoomControlsProps = {
 	zoom: PdfViewerZoom
 	disabled: boolean
 }
 
+/**
+ * Zoom out / in / fit-to-page buttons. In and out snap to the next discrete
+ * level above or below the current scale; fit resets to 1. Buttons disable at
+ * the ends of the level range.
+ *
+ * @internal
+ */
 export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsProps) {
 	const sortedLevels = useMemo(() => [...zoom.levels].sort((a, b) => a - b), [zoom.levels])
 

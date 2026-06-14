@@ -94,6 +94,11 @@ export function extractReferences(
 	return refs
 }
 
+/**
+ * @internal Pull every candidate type name (PascalCase token) out of a rendered
+ * type, skipping built-in utility types and any token inside a string or
+ * template-literal so quoted names never trigger symbol resolution.
+ */
 function collectTypeNames(text: string): string[] {
 	const names: string[] = []
 

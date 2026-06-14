@@ -9,6 +9,7 @@ type PasswordConfirmStateOptions = {
 	/**
 	 * Suppresses match/mismatch firing and forces `status` to `'idle'` while set.
 	 * Pass when the password field itself has a higher-priority validation error.
+	 * @defaultValue `false`
 	 */
 	disabled?: boolean
 	onPasswordMatch?: () => void
@@ -24,6 +25,21 @@ type PasswordConfirmStateResult = {
 	setLastEdited: (which: LastEdited) => void
 }
 
+/**
+ * Tracks password/confirm values and derives match status for the coordinator.
+ *
+ * @returns The current `password` and `confirm` values, the derived `status`,
+ * and the setters `setPassword`, `setConfirm` (which also marks confirm as last
+ * edited), and `setLastEdited`.
+ * @remarks
+ * `onPasswordMatch`/`onPasswordMismatch` fire from an effect on transitions
+ * only (a match→match repeat won't re-fire), read through refs so a changed
+ * callback identity doesn't retrigger. `disabled` suppresses both the `'match'`
+ * and `'mismatch'` transitions — not mismatch alone — so a match fired while
+ * disabled can't pin the transition tracker and swallow the real match after
+ * re-enable.
+ * @internal
+ */
 export function usePasswordConfirmState({
 	disabled = false,
 	onPasswordMatch,

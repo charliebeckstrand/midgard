@@ -14,4 +14,5 @@ export const k = defineRecipe({
 	defaults: { variant: 'outline' },
 })
 
+/** Recipe variant props for {@link Navbar}: the `variant` style (`outline` | `plain`). */
 export type NavbarVariants = VariantProps<typeof k>

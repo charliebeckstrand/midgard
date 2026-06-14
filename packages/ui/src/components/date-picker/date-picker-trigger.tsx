@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 // Calendar icon is one step smaller than the trigger size.
 const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
+/** Props for {@link DatePickerTrigger}. @internal */
 type DatePickerTriggerProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -40,6 +41,13 @@ type DatePickerTriggerProps = {
 	'data-group-orientation'?: string
 }
 
+/**
+ * Popover reference button showing the selected date label (or placeholder).
+ * Carries the dialog ARIA wiring (`aria-haspopup`, `aria-expanded`,
+ * `aria-describedby`) and shows a Tooltip with the full label when truncated.
+ *
+ * @internal
+ */
 export function DatePickerTrigger({
 	open,
 	onOpenChange,

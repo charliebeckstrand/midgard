@@ -29,7 +29,10 @@ export type DataTableColumn<T> = {
 	width?: string
 	/** Shown in the column manager but cannot be reordered or hidden. */
 	pinned?: boolean
-	/** When false, the column cannot be hidden from the column manager. Defaults to true. */
+	/**
+	 * When false, the column cannot be hidden from the column manager.
+	 * @defaultValue true
+	 */
 	hideable?: boolean
 }
 
@@ -39,7 +42,10 @@ export type DataTableColumnManagerItem = {
 	title: ReactNode
 	/** Pinned columns cannot be reordered or hidden. */
 	pinned?: boolean
-	/** When false, the column cannot be hidden. Defaults to true. */
+	/**
+	 * When false, the column cannot be hidden.
+	 * @defaultValue true
+	 */
 	hideable?: boolean
 }
 

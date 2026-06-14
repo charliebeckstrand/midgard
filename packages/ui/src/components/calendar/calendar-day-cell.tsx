@@ -22,6 +22,13 @@ type DayCellProps = {
 	onMouseLeave?: () => void
 }
 
+/**
+ * One day-grid cell: a `role="option"` button carrying selection, today, and
+ * active state with a locale-resolved accessible name. Memoized so only cells
+ * whose props change re-render as focus or selection moves.
+ *
+ * @internal
+ */
 export const CalendarDayCell = memo(function CalendarDayCell({
 	date,
 	disabled,

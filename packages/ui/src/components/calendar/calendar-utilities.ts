@@ -12,6 +12,8 @@ import {
  * year/month/day. This mirrors the wall-clock-day semantics the calendar uses
  * everywhere (`getFullYear`/`getMonth`/`getDate`) and sidesteps the DST and
  * timezone pitfalls of comparing `Date` instances by their millisecond value.
+ *
+ * @internal
  */
 export function toCalendarDate(date: Date): CalendarDate {
 	return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
@@ -22,6 +24,8 @@ export function toCalendarDate(date: Date): CalendarDate {
  * Conversion goes through `@internationalized/date`, not the
  * `Date(year, month, day)` constructor. The constructor reads years 0–99 as
  * 1900–1999 (`0001-01-01` → `1901-01-01`).
+ *
+ * @internal
  */
 export function fromCalendarDate(date: CalendarDate): Date {
 	return date.toDate(getLocalTimeZone())
@@ -32,25 +36,31 @@ export function fromCalendarDate(date: CalendarDate): Date {
  * Out-of-range months balance into adjacent years (month 12 → January of the
  * next year). This matches `Date` constructor rollover without its
  * two-digit-year mapping.
+ *
+ * @internal
  */
 export function firstOfMonth(year: number, month: number): Date {
 	return fromCalendarDate(new CalendarDate(year, 1, 1).add({ months: month }))
 }
 
+/** Wall-clock-day equality, ignoring time-of-day and timezone. @internal */
 export function isSameDay(a: Date, b: Date): boolean {
 	return isSameCalendarDay(toCalendarDate(a), toCalendarDate(b))
 }
 
+/** True when `a`'s calendar day strictly precedes `b`'s. @internal */
 export function isBeforeDay(a: Date, b: Date): boolean {
 	return toCalendarDate(a).compare(toCalendarDate(b)) < 0
 }
 
+/** True when `date` falls strictly between the endpoints (exclusive); endpoints may be given in either order. @internal */
 export function isBetween(date: Date, start: Date, end: Date): boolean {
 	const [lo, hi] = isBeforeDay(start, end) ? [start, end] : [end, start]
 
 	return isBeforeDay(lo, date) && isBeforeDay(date, hi)
 }
 
+/** Local-midnight `Date` for every day of `year`/`month` (0-based month), in order. @internal */
 export function getCalendarDays(year: number, month: number): Date[] {
 	const first = new CalendarDate(year, month + 1, 1)
 
@@ -66,7 +76,7 @@ export function getCalendarDays(year: number, month: number): Date[] {
 }
 
 /** Coalesces an optional locale to a concrete BCP 47 tag, falling back to the
- *  runtime default. The lib's locale-aware helpers require a string. */
+ *  runtime default. The lib's locale-aware helpers require a string. @internal */
 export function resolveLocale(locale?: string): string {
 	return locale ?? new Intl.DateTimeFormat().resolvedOptions().locale
 }
@@ -74,6 +84,8 @@ export function resolveLocale(locale?: string): string {
 /**
  * 1-based grid column of the 1st of `year`/`month`, honoring the locale's
  * first day of the week (Sunday in `en-US`, Monday in most of Europe).
+ *
+ * @internal
  */
 export function getFirstDayColumn(year: number, month: number, locale: string): number {
 	return getDayOfWeek(new CalendarDate(year, month + 1, 1), locale) + 1
@@ -95,7 +107,7 @@ export function getWeekdayLabels(locale: string): string[] {
 	)
 }
 
-/** Short month labels (January through December) for the locale. */
+/** Short month labels (Jan through Dec), in calendar order, for the locale. */
 export function getMonthLabels(locale: string): string[] {
 	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
 

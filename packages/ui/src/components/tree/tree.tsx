@@ -25,7 +25,7 @@ export type TreeProps = AccessibleName & {
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: TreeSize
-	/** Indent nested items so a child's chevron lines up under its parent's prefix slot. @default false */
+	/** Indent nested items so a child's chevron lines up under its parent's prefix slot. @defaultValue false */
 	indent?: boolean
 	children: ReactNode
 	className?: string

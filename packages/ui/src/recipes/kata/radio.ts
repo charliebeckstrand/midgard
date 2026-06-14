@@ -43,4 +43,5 @@ export const k = bridge.check(
 	},
 )
 
+/** Recipe variant props for {@link Radio} — the styling axes its kata exposes (`color`, `size`), for consumers composing custom slots. */
 export type RadioVariants = VariantProps<typeof k>

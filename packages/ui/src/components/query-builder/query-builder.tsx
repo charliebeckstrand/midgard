@@ -17,6 +17,7 @@ export type QueryBuilderProps = {
 	value?: QueryGroupNode
 	defaultValue?: QueryGroupNode
 	onValueChange?: (value: QueryGroupNode) => void
+	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean
 	className?: string
 }

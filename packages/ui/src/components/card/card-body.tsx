@@ -6,8 +6,11 @@ import { k } from '../../recipes/kata/card'
 export type CardBodyProps = SlotProps<'div'>
 
 /**
- * Static leaf: renders in React Server Components. Carries md padding; a
- * non-md `<Card size>` overrides it through the card's section projection.
+ * Main content region of a {@link Card}. Carries md padding; a non-md
+ * `<Card size>` overrides it through the card's section projection.
+ *
+ * @remarks
+ * Static leaf: renders in React Server Components.
  */
 export function CardBody({ className, ...props }: CardBodyProps) {
 	return <div data-slot="card-body" className={cn(k.bodyPadding.md, className)} {...props} />

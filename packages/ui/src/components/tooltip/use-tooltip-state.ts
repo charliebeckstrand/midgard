@@ -37,6 +37,18 @@ function isReferenceDisabled(reference: unknown): boolean {
 	)
 }
 
+/**
+ * Floating, hover/focus/click interaction, and disabled-suppression state for
+ * {@link Tooltip}, returned as the value shared through context.
+ *
+ * @remarks Hover on pointer devices, click on pointer-less ones, focus always.
+ * Closes on the shared overlay-close signal and stays suppressed while the
+ * reference (or a descendant) matches `:disabled`, re-opening on hover once the
+ * disabled state clears.
+ * @internal
+ * @see {@link isReferenceDisabled}
+ * @see {@link useFloatingDisclosure}
+ */
 export function useTooltipState({
 	placement = 'top',
 	delay = 250,

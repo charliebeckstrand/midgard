@@ -11,13 +11,15 @@ import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
 export type CollapseProps = {
-	/** Initial open state (uncontrolled). */
+	/** @defaultValue false */
 	defaultOpen?: boolean
-	/** Controlled open state. */
 	open?: boolean
-	/** Called when the open state changes. */
 	onOpenChange?: (open: boolean) => void
-	/** Animation style for the panel. `true` or `'fade'` for height + opacity, `'slide'` for height only, `false` to disable. @default 'fade' */
+	/**
+	 * Animation style for the panel. `true` or `'fade'` for height + opacity,
+	 * `'slide'` for height only, `false` to disable.
+	 * @defaultValue 'fade'
+	 */
 	animate?: boolean | 'fade' | 'slide'
 	/**
 	 * Convenience trigger. Strings render as muted hover-highlighted text;

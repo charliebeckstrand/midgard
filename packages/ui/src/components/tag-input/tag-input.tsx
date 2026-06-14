@@ -14,13 +14,17 @@ import { TagInputBadge } from './tag-input-badge'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
-/** Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, and `<Form>` binding via `name`. */
+/**
+ * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, and `<Form>` binding via `name`.
+ *
+ * @see {@link TagInput}
+ */
 export type TagInputProps = {
 	id?: string
 	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
 	name?: string
 	size?: ControlSize
-	/** Tag appearance. */
+	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */
 	tag?: { color?: Color }
 	/** Current tag values (controlled). */
 	value?: string[]
@@ -28,13 +32,24 @@ export type TagInputProps = {
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
 	onValueChange?: (value: string[] | undefined) => void
-	/** Placeholder shown when empty. */
+	/**
+	 * Placeholder shown while the tag list is empty; doubles as the input's
+	 * `aria-label`.
+	 *
+	 * @defaultValue `'Add tags'` (aria-label fallback when unset)
+	 */
 	placeholder?: string
-	/** Prevent editing. */
+	/** Disables editing and removal. */
 	disabled?: boolean
-	/** Maximum number of tags. */
+	/** Maximum number of tags; further additions are rejected and the input disables at the cap. */
 	max?: number
-	/** Validates a tag before adding. Return false to reject. */
+	/**
+	 * Gates a trimmed tag before it is committed. Return `false` to reject.
+	 *
+	 * @remarks
+	 * Runs after the empty/duplicate/`max` checks, so it only sees novel,
+	 * within-limit candidates.
+	 */
 	validate?: (tag: string) => boolean
 	ref?: Ref<HTMLInputElement>
 	className?: string

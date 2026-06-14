@@ -16,6 +16,14 @@ type ButtonHeadlessProps = {
 	children?: ReactNode
 } & Omit<ComponentPropsWithoutRef<'button'>, 'href' | 'ref' | 'className' | 'children' | 'type'>
 
+/**
+ * Unstyled `Button` fallback rendered under the headless provider: a bare
+ * `<button>`, or a `<Link>` anchor when `href` is set. Drops recipe classes,
+ * motion, and density resolution; applies {@link loadingProps} to a loading
+ * anchor so it leaves the tab order.
+ *
+ * @internal
+ */
 export function ButtonHeadless({
 	href,
 	ref,

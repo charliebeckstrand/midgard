@@ -3,6 +3,15 @@
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { ToastData } from './types'
 
+/**
+ * Owns the auto-dismiss countdown for {@link ToastProvider}: arms a single
+ * timer for the remaining duration, pauses it on pointer/focus (WCAG 2.2.1) and
+ * resumes with the leftover time, and exposes reset hooks for re-armed toasts.
+ *
+ * @returns The timer controls (`startTimer`, `pause`, `resume`,
+ * `resetRemaining`, `reset`) plus the `remainingRef` countdown.
+ * @internal
+ */
 export function useToastTimer(
 	toastsRef: RefObject<ToastData[]>,
 	duration: number,

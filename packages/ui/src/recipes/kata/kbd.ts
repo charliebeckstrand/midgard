@@ -9,4 +9,5 @@ export const k = defineRecipe({
 	defaults: { size: 'md' },
 })
 
+/** Recipe variant props for {@link Kbd} — the styling axes its kata exposes (`size`), for consumers composing custom slots. */
 export type KbdVariants = VariantProps<typeof k>

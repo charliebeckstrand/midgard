@@ -2,8 +2,20 @@ import { cn } from '../../core'
 import { type JsonValueType, k } from '../../recipes/kata/json-tree'
 import type { JsonValue } from './types'
 
+/**
+ * Search input for {@link JsonTree}: a bare term, or `{ value, filter }` where
+ * `filter` also hides non-matching nodes rather than only highlighting them.
+ *
+ * @see {@link JsonTreeProps.search}
+ */
 export type Search = string | { value: string; filter?: boolean }
 
+/**
+ * Normalizes a {@link Search} into `{ value, filter }`, treating a bare string
+ * (or `null`/`undefined`) as highlight-only.
+ *
+ * @internal
+ */
 export function normalizeSearch(search: Search | undefined): { value: string; filter: boolean } {
 	if (search == null) return { value: '', filter: false }
 
@@ -12,10 +24,12 @@ export function normalizeSearch(search: Search | undefined): { value: string; fi
 	return { value: search.value, filter: search.filter ?? false }
 }
 
+/** Narrows a {@link JsonValue} to a branch (array or object); `null` is a leaf. @internal */
 export function isBranch(value: JsonValue): value is JsonValue[] | { [key: string]: JsonValue } {
 	return typeof value === 'object' && value !== null
 }
 
+/** Branch entries as `[key, value]` pairs (array indices or object keys); leaves yield none. @internal */
 export function getEntries(value: JsonValue): [string | number, JsonValue][] {
 	if (Array.isArray(value)) return value.map((v, i) => [i, v])
 
@@ -24,6 +38,7 @@ export function getEntries(value: JsonValue): [string | number, JsonValue][] {
 	return []
 }
 
+/** True when a node's key or scalar value contains `term` (case-insensitive); branch values never match directly. @internal */
 export function matchesSearch(key: string | number | undefined, value: JsonValue, term: string) {
 	if (!term) return false
 
@@ -36,6 +51,7 @@ export function matchesSearch(key: string | number | undefined, value: JsonValue
 	return false
 }
 
+/** Recursive fallback for {@link filterEntries} when no {@link SearchIndex} is supplied: true if any descendant matches. @internal */
 export function treeContainsMatch(value: JsonValue, term: string): boolean {
 	if (!term) return false
 
@@ -48,9 +64,10 @@ export function treeContainsMatch(value: JsonValue, term: string): boolean {
 	return false
 }
 
+/** Branch node → whether its subtree contains a search match; built once per term to avoid re-walking. @internal */
 export type SearchIndex = WeakMap<object, boolean>
 
-/** Walk the tree once and record which branch nodes contain a match. */
+/** Walks the tree once and records which branch nodes contain a match. @internal */
 export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 	const index: SearchIndex = new WeakMap()
 
@@ -77,6 +94,7 @@ export function buildSearchIndex(data: JsonValue, term: string): SearchIndex {
 	return index
 }
 
+/** Keeps entries that match directly or, for branches, whose subtree contains a match (via `index`, else a recursive walk). @internal */
 export function filterEntries(
 	entries: [string | number, JsonValue][],
 	term: string,

@@ -14,6 +14,21 @@ import { addDays, addMonths, clampDate, formatRange } from './date-picker-utilit
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
+/**
+ * Range state for {@link DatePicker}: a two-tap start/end selection held in a
+ * reducer, committed as `[Date, Date]` through the Form/Control binding, plus
+ * popover wiring, the virtual-highlight keyboard handler, and the clear footer.
+ *
+ * @remarks
+ * The picked range is buffered in `pendingRef` and flushed on `onExitComplete`
+ * so both endpoints stay rendered through the popover's exit animation.
+ *
+ * @returns Trigger props, popover plumbing, `onTriggerKeyDown`,
+ * `onExitComplete` (the deferred commit), and the `calendar`/`footer` prop
+ * bundles; `calendar` exposes `rangeStart`/`rangeEnd`/`hoverDate` for the
+ * in-progress selection.
+ * @internal
+ */
 export function useDatePickerRangeState({
 	name,
 	value: valueProp,

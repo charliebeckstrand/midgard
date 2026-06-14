@@ -1,3 +1,10 @@
+/**
+ * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
+ * `color` × `size` × `rounded` matrix over the signature kasane chrome.
+ * Reads `iro.spectrum` rather than `iro.palette`, so its `color` axis carries
+ * the extended hues; the rest of the surface is the shared chromatic palette
+ * wired through `basePalette`.
+ */
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
@@ -29,10 +36,11 @@ export const k = defineRecipe({
 	},
 	rounded,
 	// Opt into the wide palette: Badge's `color` axis carries the standard set
-	// plus the extended hues (rose / violet / sky).
+	// plus the extended hues (mist / rose / violet / sky).
 	palette: definePalette({ ...basePalette(spectrum), plain: spectrum.plain.text }),
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 	skeleton: badge,
 })
 
+/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `size`, `rounded`), for consumers composing custom slots. */
 export type BadgeVariants = VariantProps<typeof k>

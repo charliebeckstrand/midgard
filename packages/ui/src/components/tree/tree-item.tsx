@@ -14,7 +14,7 @@ export type TreeItemProps = {
 	label: ReactNode
 	/** Icon before the label. */
 	icon?: ReactElement
-	/** Initially expanded (uncontrolled). Ignored when `open` is provided. */
+	/** Initially expanded (uncontrolled). Ignored when `open` is provided. @defaultValue false */
 	defaultOpen?: boolean
 	/** Controlled expanded state. When provided, the item operates in controlled mode. */
 	open?: boolean
@@ -38,6 +38,14 @@ export type TreeItemProps = {
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
  * `children` as a collapsible group, and inherits depth, size, and indent
  * from tree context.
+ *
+ * @remarks
+ * Client component. Reflects expansion as `aria-expanded` and nesting as
+ * `aria-level`/`aria-posinset`/`aria-setsize`. Keyboard: Enter/Space toggle (or
+ * activate a leaf's prefix control), ArrowRight expands a collapsed branch,
+ * ArrowLeft collapses an open one; cross-item roving lives on {@link Tree}.
+ *
+ * @see {@link Tree}
  */
 export function TreeItem({
 	label,

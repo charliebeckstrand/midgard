@@ -16,8 +16,10 @@ export type PdfViewerPage = {
 	height?: number
 }
 
+/** Zoom state passed to {@link PdfViewerZoomControls}: the current scale, its setter, and the discrete levels to step through. @internal */
 export type PdfViewerZoom = {
 	value: number
 	setValue: Dispatch<SetStateAction<number>>
+	/** Discrete zoom levels; in/out steps to the next level above/below `value`. */
 	levels: number[]
 }

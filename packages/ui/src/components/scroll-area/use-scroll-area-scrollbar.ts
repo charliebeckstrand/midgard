@@ -94,6 +94,14 @@ function beginScrollbarDrag(
 /**
  * Custom scrollbar state: thumb geometry, visibility fade, and drag-to-scroll.
  * Returns viewport/track refs, per-axis thumb state, and event handlers.
+ *
+ * @remarks
+ * Re-measures via a {@link ResizeObserver} on the viewport and its children and
+ * a {@link MutationObserver} on child additions/removals. Shift+wheel over a
+ * non-horizontally-scrollable viewport forwards to the nearest scrollable
+ * ancestor.
+ *
+ * @internal
  */
 export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOptions) {
 	const viewportRef = useRef<HTMLDivElement>(null)

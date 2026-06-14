@@ -14,4 +14,5 @@ export const k = bridge.control(control, {
 	},
 })
 
+/** Recipe variant props for {@link Input} — the styling axes its kata exposes, for consumers composing custom slots. */
 export type InputVariants = VariantProps<typeof k>

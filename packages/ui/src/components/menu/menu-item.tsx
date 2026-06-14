@@ -19,15 +19,16 @@ type MenuItemBaseProps = {
 
 /** Props for {@link MenuItem}: a base set plus polymorphic `<button>`/anchor attributes; `href` switches it to a link. */
 // Href discrimination comes from the shared PolymorphicProps. Rendered custom:
-// carries role, roving tabindex, and keyboard activation; renders disabled
-// items as a non-anchor `<span>`.
+// carries role, roving tabindex, and keyboard activation; a disabled link
+// degrades to an inert non-anchor `<span>`, a disabled button to an
+// `aria-disabled` `<button>`.
 export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof MenuItemBaseProps>
 
 /**
  * Selectable `role="menuitem"`. Renders an anchor when `href` is set (keeping
- * middle-click and open-in-new-tab working), a `<button>` otherwise, or an
- * inert `<span>` when `disabled`. Fires `onAction` and closes the menu on
- * click or Enter/Space.
+ * middle-click and open-in-new-tab working), a `<button>` otherwise. A disabled
+ * link degrades to an inert `<span>`; a disabled button stays a `<button>` with
+ * `aria-disabled`. Fires `onAction` and closes the menu on click or Enter/Space.
  */
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()

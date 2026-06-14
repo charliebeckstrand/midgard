@@ -13,8 +13,13 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
 
-// Mirrors `<Icon>`'s size scale for the Density steps an option row can carry.
-// Local to this primitive; does not import `<Icon>` from `components/`.
+/**
+ * Per-Density-step Tailwind size class for the selected-state check icon,
+ * mirroring `<Icon>`'s size scale. Local to this primitive so it never imports
+ * `<Icon>` from `components/`.
+ *
+ * @internal
+ */
 const checkIconSize = {
 	sm: 'size-4',
 	md: 'size-5',
@@ -180,6 +185,10 @@ export type OptionSelectionContext<TValue = unknown> = {
  *
  * `BaseOption` owns the selected-state check icon and sizes it from the
  * ambient Density. Per-option `icon` overrides it.
+ *
+ * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
+ * the host's `data-slot` prefix and selection context.
+ * @see {@link BaseOption}
  */
 export function createSelectOption<
 	TValue = unknown,

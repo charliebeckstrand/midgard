@@ -1,3 +1,10 @@
+/**
+ * Color-panel kata: the saturation/value picking surface. Recipe-shaped with
+ * a single `size` axis on the root; the inner pieces (area, track, preview,
+ * handle, swatches) attach as slot extras. The wash gradients and the
+ * alpha/preview chequerboard are authored as raw CSS background-image literals
+ * here rather than as kiso tokens — they're picker-specific, used nowhere else.
+ */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { kasane, kokkaku, sen } from '../kiso'
 

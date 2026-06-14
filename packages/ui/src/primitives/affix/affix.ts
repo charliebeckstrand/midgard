@@ -31,6 +31,10 @@ const AFFIX_STEP_DOWN: Record<Step, Ma> = { sm: 'xs', md: 'sm', lg: 'md' }
  * `Step`, returns the size to broadcast into its prefix / suffix slot,
  * one notch tighter, going below the `Step` floor at `'sm'` (returns
  * `'xs'`). `<Input>` and `<SelectTrigger>` use it.
+ *
+ * @param hostSize - The host control's resolved Density `Step`.
+ * @returns The `Ma` size to broadcast through {@link AffixContext}.
+ * @see {@link AffixContext}
  */
 export function affixStepDown(hostSize: Step): Ma {
 	return AFFIX_STEP_DOWN[hostSize]

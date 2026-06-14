@@ -37,8 +37,17 @@ type FileUploadSharedProps = {
 }
 
 type FileUploadAreaProps = FileUploadSharedProps & {
+	/**
+	 * Selects the dropzone layout. Optional discriminant — the default variant.
+	 *
+	 * @defaultValue `'area'`
+	 */
 	variant?: 'area'
-	/** Aspect ratio of the dropzone. */
+	/**
+	 * Aspect ratio of the dropzone.
+	 *
+	 * @defaultValue `'16/9'`
+	 */
 	ratio?: AspectRatioProps['ratio']
 }
 
@@ -46,7 +55,11 @@ type FileUploadInputProps = FileUploadSharedProps & {
 	variant: 'input'
 	/** Input field size. */
 	size?: ControlSize
-	/** Placeholder when empty. */
+	/**
+	 * Placeholder when empty; also the hidden input's accessible name.
+	 *
+	 * @defaultValue `'Choose a file'`
+	 */
 	placeholder?: string
 }
 
@@ -58,6 +71,13 @@ type FileUploadButtonProps = FileUploadSharedProps & {
 	color?: ComponentProps<typeof Button>['color']
 }
 
+/**
+ * Props for {@link FileUpload}, discriminated on `variant`: `'area'` (default
+ * dropzone), `'input'` (readonly field), or `'button'`. Each variant adds its own
+ * layout props atop the shared accept/limit/callback set.
+ *
+ * @see {@link FileUpload}
+ */
 export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileUploadButtonProps
 
 /**
@@ -65,6 +85,15 @@ export type FileUploadProps = FileUploadAreaProps | FileUploadInputProps | FileU
  * `variant`s: a drag-and-drop `area` dropzone, a readonly `input` field, or a
  * `button`. Mirrors enclosing `<Control>`/`<Field>` invalid and required state
  * onto the real input.
+ *
+ * @remarks
+ * The visually-hidden input is the real control in every variant and carries the
+ * accessible name; the visible trigger is presentational. Accepted selections are
+ * announced to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
+ * `maxSize`/`maxCount` filtering live in {@link useFileUploadHandlers}.
+ *
+ * @see {@link FileUploadProps}
+ * @see {@link useFileUploadHandlers}
  */
 export function FileUpload(props: FileUploadProps) {
 	const { accept, multiple, disabled, maxSize, maxCount, className, children, onFiles, onReject } =

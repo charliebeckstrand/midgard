@@ -93,4 +93,5 @@ export const k = defineRecipe({
 	skeleton: heading,
 })
 
+/** Recipe variant props for {@link Heading} — the styling axes its kata exposes (`level`, `scale`), for consumers composing custom slots. */
 export type HeadingVariants = VariantProps<typeof k>

@@ -17,6 +17,10 @@ export type TabProps = {
 	current?: boolean
 	/** Links this tab to its panel via aria-controls. */
 	id?: string
+	/**
+	 * Fills the available cross-axis space (equal-width tabs).
+	 * @defaultValue false
+	 */
 	stretch?: boolean
 	disabled?: boolean
 	className?: string

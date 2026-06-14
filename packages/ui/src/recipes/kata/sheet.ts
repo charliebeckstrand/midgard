@@ -62,4 +62,5 @@ export const k = {
 	motion: ugoki.panel,
 }
 
+/** Recipe variant props for the {@link Sheet} panel — its styling axes (`side`, `size`, `surface`), for consumers composing custom slots. */
 export type SheetPanelVariants = VariantProps<typeof k.panel>

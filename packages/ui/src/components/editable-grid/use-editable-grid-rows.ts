@@ -4,7 +4,15 @@ import { useCallback, useMemo, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import type { EditableGridColumn, EditableGridRowsApi } from './types'
 
-/** Derives the cell-rendering primitives (`rowsApi`) and `rowIndexMap` from the grid's raw `rows` and `columns` inputs. */
+/**
+ * Derives the cell-rendering primitives from the grid's raw `rows`/`columns`:
+ * a live `rowsRef`, the editable (cursor-visitable) columns, the row→index map,
+ * and the `getKey`/`formatCell`/`parseValue` helpers.
+ *
+ * @returns `rowsApi` (the {@link EditableGridRowsApi}) and `rowIndexMap`
+ *   (row identity to display index, for O(1) lookup during cell render).
+ * @internal
+ */
 export function useEditableGridRows<T>({
 	rows,
 	columns,

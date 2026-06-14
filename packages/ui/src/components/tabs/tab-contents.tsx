@@ -13,11 +13,12 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
 
 /**
  * Container that swaps `<TabContent>` panels by active value. In `fade` mode
- * (default) inactive panels stay mounted and the container registers that with
- * the Tabs context so every tab keeps its `aria-controls`; otherwise inactive
- * panels unmount.
+ * (the default) inactive panels stay mounted and the container registers that
+ * with the Tabs context so every tab keeps its `aria-controls`; otherwise
+ * inactive panels unmount.
  *
- * @defaultValue fade - true
+ * @remarks
+ * `fade` defaults to `true`; set `fade={false}` to unmount inactive panels.
  */
 export function TabContents({ fade = true, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()

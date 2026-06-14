@@ -28,6 +28,13 @@ type CalendarGridProps = {
 	localeTag: string
 }
 
+/**
+ * Weekday header row plus the `role="listbox"` day grid. Resolves per-cell
+ * today/selected/active flags, lets `getDayProps` override styling, and offsets
+ * the 1st into its locale-aware column via `gridColumnStart`.
+ *
+ * @internal
+ */
 export function CalendarGrid({
 	gridRef,
 	onGridKeyDown,

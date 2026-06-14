@@ -9,6 +9,14 @@ type ComboboxTriggerParams = {
 	inputRef: RefObject<HTMLInputElement | null>
 }
 
+/**
+ * Mouse-toggle handler for the combobox suffix affordance.
+ *
+ * @returns `{ onMouseDown }` for the suffix slot: toggles the menu, preventing
+ *   default to keep focus on the input. When opening, focuses and selects the
+ *   input text so the next keystroke replaces the display.
+ * @internal
+ */
 export function useComboboxTrigger({ open, close, setOpen, inputRef }: ComboboxTriggerParams) {
 	const onMouseDown = useCallback(
 		(e: MouseEvent<HTMLElement>) => {

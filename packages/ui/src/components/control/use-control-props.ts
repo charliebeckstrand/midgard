@@ -41,6 +41,15 @@ export type ControlPropsResult = {
  * (input / textarea / switch / etc. compose `size ?? control?.size` against
  * the Density cascade at the call site).
  *
+ * @param input - Explicit control props from the field; each wins over the
+ * context value of the same name, except `invalid` (OR-merged) and
+ * `aria-describedby` (merged ahead of the field's own ids).
+ * @returns The resolved `id`, `autoComplete`, `disabled`, `required`,
+ * `readOnly`, `invalid`, and composed `aria-describedby`; any field is
+ * `undefined` when neither input nor context supplies it.
+ * @remarks `invalid` resolves `true` when an error Message is mounted even
+ * without a form binding, via the context's `messageRegistered` flag.
+ * @see {@link useControlToggle} for the Density-aware variant.
  * @example
  *   const { id, disabled, required, invalid } = useControlProps({
  *     id: idProp, disabled: disabledProp, required: requiredProp, invalid,

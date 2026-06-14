@@ -18,6 +18,13 @@ type DragState = {
 	availableSize: number
 }
 
+/**
+ * Redistributes a pair of adjacent panel sizes so both stay within their
+ * min/max while their sum is preserved. Falls back to the left panel's own
+ * bounds when the pair is over-constrained.
+ *
+ * @internal
+ */
 function clampPair(
 	sizes: number[],
 	leftIdx: number,
@@ -60,6 +67,14 @@ type PanelResize = {
 	onSizesChange?: (sizes: number[]) => void
 }
 
+/**
+ * Resize engine for {@link ResizableGroup}: normalized panel sizes, the active
+ * drag index, and the pointer/keyboard `startDrag`/`resize` actions. Sizes are
+ * percentages summing to 100; pointer drags attach document listeners and
+ * redistribute adjacent panels within their min/max via `clampPair`.
+ *
+ * @internal
+ */
 export function useResizablePanel({
 	groupRef,
 	orientation,

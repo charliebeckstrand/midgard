@@ -8,6 +8,7 @@ import { Input, type InputProps } from '../input'
 import { formatEditing, isMeaningful, parseEditing } from './currency-input-utilities'
 import { useCurrencyInputFormatting } from './use-currency-input-formatting'
 
+/** Props for {@link CurrencyInput}: {@link InputProps} with a numeric value, a number-valued change callback, and `currency`/`locale`/`precision` formatting controls. */
 export type CurrencyInputProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
@@ -19,7 +20,7 @@ export type CurrencyInputProps = Omit<
 	currency?: string
 	/** BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default. */
 	locale?: string
-	/** Override the number of fraction digits. Defaults to the currency's standard. */
+	/** Override the number of fraction digits. When omitted, uses the currency's standard fraction digits. */
 	precision?: number
 }
 
@@ -28,6 +29,19 @@ export type CurrencyInputProps = Omit<
  * via `onValueChange` while displaying grouped digits and the currency symbol,
  * and binds to an enclosing Form field by `name`. Resolves `currency` and
  * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
+ *
+ * @remarks Holds a raw editing buffer while focused — formatting digits down to
+ * grouped output on every keystroke through {@link useFormattedInput}, which
+ * restores the caret to the typed character across separator insertion — and
+ * falls back to the display formatter once the buffer clears on blur. The symbol
+ * renders in the `prefix` or `suffix` slot per the locale's symbol position; a
+ * caller-supplied `prefix`/`suffix` wins. `Enter` blurs to commit. Group and
+ * decimal separators are pinned to the resolved locale via Intl and digits to
+ * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized;
+ * see {@link useCurrencyInputFormatting} for the Intl caveats.
+ * @see {@link Input}
+ * @see {@link NumberInput}
+ * @see {@link useCurrencyInputFormatting}
  */
 export function CurrencyInput({
 	value,

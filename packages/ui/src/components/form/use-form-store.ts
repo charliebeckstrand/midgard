@@ -11,6 +11,10 @@ import type { FormStateValue, FormStore } from './context'
  * `formState` into the store in a layout effect (before paint) and notifies
  * subscribers. Fields whose slice is unchanged bail on the next snapshot;
  * typing in one field re-renders only that field.
+ *
+ * @returns A referentially stable {@link FormStore} (`subscribe` / `getState` /
+ * `getServerState`) wired into context by {@link FormProvider}.
+ * @internal
  */
 export function useFormStore(formState: FormStateValue): FormStore {
 	const internalRef = useRef<{

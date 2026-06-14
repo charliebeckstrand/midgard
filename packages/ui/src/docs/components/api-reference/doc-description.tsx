@@ -20,7 +20,7 @@ const md = new Marked({ gfm: true })
  * Renders an API-reference description, resolving the `{@link}` tokens the
  * extractor leaves in the text. Link-free descriptions pass straight through
  * `<Markdown>` unchanged; when links are present, prose runs render as inline
- * Markdown and each reference becomes a rose chip whose hover card carries the
+ * Markdown and each reference becomes a soft chip whose hover card carries the
  * target's signature and summary (`card`, the default). Set `card={false}`
  * inside an existing tooltip (prop rows) to drop the nested hover card.
  */
@@ -87,7 +87,7 @@ function Prose({ text }: { text: string }) {
 
 /**
  * A single resolved `{@link}` reference: an external `url` renders as a plain
- * link, a resolved symbol as a rose chip (hover card with signature + summary
+ * link, a resolved symbol as a soft chip (hover card with signature + summary
  * when `card`, otherwise a `title` fallback), and an unresolved name as a bare
  * chip with no detail.
  */

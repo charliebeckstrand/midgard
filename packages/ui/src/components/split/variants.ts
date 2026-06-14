@@ -5,13 +5,16 @@ import { alignMap, type FlexAlign } from '../flex/variants'
 
 export { alignMap }
 
+/** Cross-axis alignment of the panes; reuses Flex's alignment options. */
 export type SplitAlign = FlexAlign
 
 /** Gap step between the two panes, drawn from the shared `Ma` spacing scale. */
 export type SplitGap = Ma
 
+/** Gap step → grid-gap class map. @internal */
 export const gapMap = k.gap
 
+/** Ratio key → `[first, second]` `fr`-track tuple for the grid template. @internal */
 export const ratioTuples = {
 	'1/4': [1, 3],
 	'1/3': [1, 2],

@@ -17,11 +17,11 @@ type SortableListOptions<T> = {
 	getKey: (item: T) => string
 	/** Called with the next ordering whenever the list reorders. Omit for read-only. */
 	onReorder?: (next: T[]) => void
-	/** Layout axis. @default 'vertical' */
+	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
-	/** Disable pointer + keyboard interaction. */
+	/** Disable pointer + keyboard interaction. @defaultValue false */
 	disabled?: boolean
-	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @default true */
+	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
 	keyboardSensor?: boolean
 }
 

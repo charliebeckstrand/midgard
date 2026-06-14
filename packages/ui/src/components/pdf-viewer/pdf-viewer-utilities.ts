@@ -1,3 +1,10 @@
+/**
+ * Triggers a download of the PDF at `src` via a transient anchor click.
+ *
+ * @param filename - Suggested filename; only honored for same-origin sources.
+ * Empty when omitted, letting the browser derive a name.
+ * @internal
+ */
 export function downloadPdf(src: string, filename?: string) {
 	const link = document.createElement('a')
 
@@ -15,6 +22,15 @@ export function downloadPdf(src: string, filename?: string) {
 	link.remove()
 }
 
+/**
+ * Prints the PDF at `src` through a hidden iframe.
+ *
+ * @remarks Cleans up the iframe on `afterprint`, with a window-`focus` backstop
+ * for browsers that never fire it (e.g. older Safari) or when the dialog is
+ * dismissed. Falls back to opening the PDF in a new tab when the iframe can't be
+ * printed (e.g. a cross-origin source).
+ * @internal
+ */
 export function printPdf(src: string) {
 	const iframe = document.createElement('iframe')
 
