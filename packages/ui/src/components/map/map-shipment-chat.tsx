@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowUp } from 'lucide-react'
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { Alert, AlertTitle } from '../alert'
 import { Button } from '../button'
@@ -19,13 +19,31 @@ type MapShipmentChatProps = {
 export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 	const [draft, setDraft] = useState('')
 
-	const [pending, setPending] = useState(false)
-
 	const scrollerRef = useRef<HTMLDivElement>(null)
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const refocusRef = useRef(false)
+
+	// Submit lifecycle runs through the form action; `isPending` drives both the
+	// disabled state and the refocus effect.
+	const [, submitAction, isPending] = useActionState(async () => {
+		const body = draft.trim()
+
+		if (!body || !onSend) return null
+
+		try {
+			await onSend(body)
+
+			setDraft('')
+		} catch {
+			// Keep the draft on failure so the message can be retried.
+		} finally {
+			refocusRef.current = true
+		}
+
+		return null
+	}, null)
 
 	const lastMessageId = messages[messages.length - 1]?.id
 
@@ -38,30 +56,11 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 	}, [lastMessageId])
 
 	useEffect(() => {
-		if (pending || !refocusRef.current) return
+		if (isPending || !refocusRef.current) return
 
 		refocusRef.current = false
 		inputRef.current?.focus()
-	}, [pending])
-
-	async function handleSend(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault()
-
-		const body = draft.trim()
-
-		if (!body || !onSend) return
-
-		setPending(true)
-
-		try {
-			await onSend(body)
-
-			setDraft('')
-		} finally {
-			refocusRef.current = true
-			setPending(false)
-		}
-	}
+	}, [isPending])
 
 	return (
 		<Stack gap="lg">
@@ -91,20 +90,20 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 				)}
 			</div>
 			{onSend && (
-				<form onSubmit={handleSend} className="flex items-center gap-2">
+				<form action={submitAction} className="flex items-center gap-2">
 					<Input
 						ref={inputRef}
 						aria-label="Message"
 						placeholder="Send message"
 						value={draft}
-						disabled={pending}
+						disabled={isPending}
 						onChange={(e) => setDraft(e.target.value)}
 					/>
 					<Button
 						type="submit"
 						color="blue"
 						aria-label="Send"
-						disabled={pending || draft.trim().length === 0}
+						disabled={isPending || draft.trim().length === 0}
 					>
 						<Icon icon={<ArrowUp />} size="xs" />
 					</Button>
