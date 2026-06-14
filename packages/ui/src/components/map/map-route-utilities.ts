@@ -53,8 +53,11 @@ function segmentStatus(
 	to: SegmentStatus | undefined,
 ): SegmentStatus {
 	if (from === 'done' && (to === 'done' || to === 'active')) return 'done'
+
 	if (from === 'active' || to === 'active') return 'active'
+
 	if (from === 'done') return 'done'
+
 	return 'pending'
 }
 
