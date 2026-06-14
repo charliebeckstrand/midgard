@@ -43,22 +43,19 @@ export function NavItem({
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
 	// slot can host its own interactive element. With an affix present the row
-	// goes flex and takes over the interaction chrome (`k.item.row` + `bare`),
-	// so the slots sit inside the hover tint and focus ring.
+	// goes flex and takes over the interaction chrome (the `affix` slot on both
+	// recipes), so the slots sit inside the hover tint and focus ring.
 	const hasAffix = prefix != null || suffix != null
 
 	return (
 		<li
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={cn(
-				'group relative list-none',
-				hasAffix && ['flex items-center gap-1', k.item.row],
-			)}
+			className={k.navItem.base({ affix: hasAffix })}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
-				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>
+				<span data-slot="nav-item-prefix" className={cn(k.navItem.prefix)}>
 					{/* The item chrome is fixed at md, so slot controls step to sm. */}
 					<AffixContext value={affixStepDown('md')}>{prefix}</AffixContext>
 				</span>
@@ -68,12 +65,7 @@ export function NavItem({
 					data-slot="nav-item-inner"
 					data-current={item.current || undefined}
 					aria-current={item.current ? 'page' : undefined}
-					className={cn(
-						hasAffix ? k.item.bare : k.item.base,
-						'relative z-10',
-						hasAffix && 'min-w-0 flex-1',
-						className,
-					)}
+					className={cn(k.navItem.button({ affix: hasAffix }), className)}
 					onClick={item.handleClick}
 					{...props}
 				>
@@ -84,14 +76,14 @@ export function NavItem({
 				</Button>
 			</Headless>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" className={cn(k.item.suffix)}>
+				<span data-slot="nav-item-suffix" className={cn(k.navItem.suffix)}>
 					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>
 				</span>
 			)}
 			{item.current && (
 				<ActiveIndicator
 					ref={item.indicator.ref}
-					className={hasAffix ? cn(k.item.indicator) : undefined}
+					className={hasAffix ? cn(k.navItem.indicator) : undefined}
 				/>
 			)}
 		</li>
