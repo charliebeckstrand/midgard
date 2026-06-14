@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
 import { DensityProvider } from '../../providers/density'
@@ -7,64 +8,41 @@ import { bySlot, renderUI } from '../helpers'
 describe('createPanel', () => {
 	const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
 
-	it('Title renders with correct data-slot', () => {
-		const { container } = renderUI(<Title>My Title</Title>)
+	it.each<[string, () => ReactElement, string, string]>([
+		['Title renders with correct data-slot', () => <Title>My Title</Title>, 'dialog-title', 'H2'],
+		[
+			'Description renders with correct data-slot',
+			() => <Description>My Description</Description>,
+			'dialog-description',
+			'P',
+		],
+		[
+			'Header renders with correct data-slot',
+			() => <Header>Header content</Header>,
+			'dialog-header',
+			'DIV',
+		],
+		['Body renders with correct data-slot', () => <Body>Body content</Body>, 'dialog-body', 'DIV'],
+		[
+			'Footer renders with correct data-slot',
+			() => <Footer>footer buttons</Footer>,
+			'dialog-footer',
+			'DIV',
+		],
+		[
+			'Content renders with correct data-slot',
+			() => <Content>content area</Content>,
+			'dialog-content',
+			'DIV',
+		],
+	])('%s', (_name, ui, slot, tagName) => {
+		const { container } = renderUI(ui())
 
-		const el = bySlot(container, 'dialog-title')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('H2')
-	})
-
-	it('Description renders with correct data-slot', () => {
-		const { container } = renderUI(<Description>My Description</Description>)
-
-		const el = bySlot(container, 'dialog-description')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('P')
-	})
-
-	it('Header renders with correct data-slot', () => {
-		const { container } = renderUI(<Header>Header content</Header>)
-
-		const el = bySlot(container, 'dialog-header')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('Body renders with correct data-slot', () => {
-		const { container } = renderUI(<Body>Body content</Body>)
-
-		const el = bySlot(container, 'dialog-body')
+		const el = bySlot(container, slot)
 
 		expect(el).toBeInTheDocument()
 
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('Footer renders with correct data-slot', () => {
-		const { container } = renderUI(<Footer>footer buttons</Footer>)
-
-		const el = bySlot(container, 'dialog-footer')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
-	})
-
-	it('Content renders with correct data-slot', () => {
-		const { container } = renderUI(<Content>content area</Content>)
-
-		const el = bySlot(container, 'dialog-content')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('DIV')
+		expect(el?.tagName).toBe(tagName)
 	})
 
 	it('Title applies custom className', () => {
@@ -87,36 +65,35 @@ describe('createPanel', () => {
 		expect(el).toHaveAttribute('id', 'my-title')
 	})
 
-	it('Title holds the text-lg baseline at neutral density', () => {
-		const { container } = renderUI(<Title>Title</Title>)
+	it.each<[string, () => ReactElement, string]>([
+		['Title holds the text-lg baseline at neutral density', () => <Title>Title</Title>, 'text-lg'],
+		[
+			'Title shifts down one rung under compact density',
+			() => (
+				<DensityProvider density="compact">
+					<Title>Title</Title>
+				</DensityProvider>
+			),
+			'text-base',
+		],
+		[
+			'Title shifts up one rung under loose density',
+			() => (
+				<DensityProvider density="loose">
+					<Title>Title</Title>
+				</DensityProvider>
+			),
+			'text-xl',
+		],
+		[
+			'Title weight is sourced from the heading scale (h2 → semibold)',
+			() => <Title>Title</Title>,
+			'font-semibold',
+		],
+	])('%s', (_name, ui, className) => {
+		const { container } = renderUI(ui())
 
-		expect(bySlot(container, 'dialog-title')?.className).toContain('text-lg')
-	})
-
-	it('Title shifts down one rung under compact density', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Title>Title</Title>
-			</DensityProvider>,
-		)
-
-		expect(bySlot(container, 'dialog-title')?.className).toContain('text-base')
-	})
-
-	it('Title shifts up one rung under loose density', () => {
-		const { container } = renderUI(
-			<DensityProvider density="loose">
-				<Title>Title</Title>
-			</DensityProvider>,
-		)
-
-		expect(bySlot(container, 'dialog-title')?.className).toContain('text-xl')
-	})
-
-	it('Title weight is sourced from the heading scale (h2 → semibold)', () => {
-		const { container } = renderUI(<Title>Title</Title>)
-
-		expect(bySlot(container, 'dialog-title')?.className).toContain('font-semibold')
+		expect(bySlot(container, 'dialog-title')?.className).toContain(className)
 	})
 })
 
