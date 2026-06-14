@@ -469,34 +469,39 @@ describe('useA11yRoving — manageTabIndex', () => {
 	const tabIndices = (container: HTMLElement) =>
 		Array.from(container.querySelectorAll('button')).map((b) => b.tabIndex)
 
-	it('collapses a row of tabbable items to a single resting stop on the first item', () => {
-		const container = makeButtons(3)
-
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]', manageTabIndex: true })
-		})
-
-		expect(tabIndices(container)).toEqual([0, -1, -1])
-
-		container.remove()
-	})
-
-	it('seats the resting stop on the activeSelector match', () => {
-		const container = makeButtons(3, 2)
-
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, {
+	it.each<[string, number | undefined, Parameters<typeof useA11yRoving>[1], number[]]>([
+		[
+			'collapses a row of tabbable items to a single resting stop on the first item',
+			undefined,
+			{ itemSelector: '[data-slot="item"]', manageTabIndex: true },
+			[0, -1, -1],
+		],
+		[
+			'seats the resting stop on the activeSelector match',
+			2,
+			{
 				itemSelector: '[data-slot="item"]',
 				manageTabIndex: true,
 				activeSelector: '[aria-current="page"]',
-			})
+			},
+			[-1, -1, 0],
+		],
+		[
+			'leaves tabindex untouched when manageTabIndex is off (default)',
+			undefined,
+			{ itemSelector: '[data-slot="item"]' },
+			[0, 0, 0],
+		],
+	])('%s', (_name, current, options, expected) => {
+		const container = makeButtons(3, current)
+
+		renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, options)
 		})
 
-		expect(tabIndices(container)).toEqual([-1, -1, 0])
+		expect(tabIndices(container)).toEqual(expected)
 
 		container.remove()
 	})
@@ -541,20 +546,6 @@ describe('useA11yRoving — manageTabIndex', () => {
 		items[2]?.focus()
 
 		expect(tabIndices(container)).toEqual([-1, -1, 0])
-
-		container.remove()
-	})
-
-	it('leaves tabindex untouched when manageTabIndex is off (default)', () => {
-		const container = makeButtons(3)
-
-		renderHook(() => {
-			const ref = useRef<HTMLElement>(container)
-
-			return useA11yRoving(ref, { itemSelector: '[data-slot="item"]' })
-		})
-
-		expect(tabIndices(container)).toEqual([0, 0, 0])
 
 		container.remove()
 	})
@@ -632,47 +623,39 @@ describe('useA11yRoving — row actions', () => {
 		container.remove()
 	})
 
-	it('roves from the item into its prefix action on the cross-axis back arrow', () => {
-		const container = makeRows([{ prefix: true, suffix: true }])
+	it.each<[string, Parameters<typeof makeRows>[0], string, string, string]>([
+		[
+			'roves from the item into its prefix action on the cross-axis back arrow',
+			[{ prefix: true, suffix: true }],
+			'item-0',
+			'ArrowLeft',
+			'prefix-0',
+		],
+		[
+			'clamps at the row edges instead of wrapping',
+			[{ suffix: true }],
+			'suffix-0',
+			'ArrowRight',
+			'suffix-0',
+		],
+		[
+			// The only action is disabled, so the item is the row edge.
+			'skips disabled actions',
+			[{ suffix: true, suffixDisabled: true }],
+			'item-0',
+			'ArrowRight',
+			'item-0',
+		],
+	])('%s', (_name, rows, focusLabel, key, expectedActive) => {
+		const container = makeRows(rows)
 
 		const result = setup(container)
 
-		byText(container, 'item-0')?.focus()
+		byText(container, focusLabel)?.focus()
 
-		result.current(makeKeyEvent('ArrowLeft'))
+		result.current(makeKeyEvent(key))
 
-		expect(document.activeElement).toBe(byText(container, 'prefix-0'))
-
-		container.remove()
-	})
-
-	it('clamps at the row edges instead of wrapping', () => {
-		const container = makeRows([{ suffix: true }])
-
-		const result = setup(container)
-
-		byText(container, 'suffix-0')?.focus()
-
-		result.current(makeKeyEvent('ArrowRight'))
-
-		expect(document.activeElement).toBe(byText(container, 'suffix-0'))
-
-		container.remove()
-	})
-
-	it('skips disabled actions', () => {
-		const container = makeRows([{ suffix: true, suffixDisabled: true }])
-
-		const result = setup(container)
-
-		byText(container, 'item-0')?.focus()
-
-		const event = makeKeyEvent('ArrowRight')
-
-		result.current(event)
-
-		// The only action is disabled, so the item is the row edge.
-		expect(document.activeElement).toBe(byText(container, 'item-0'))
+		expect(document.activeElement).toBe(byText(container, expectedActive))
 
 		container.remove()
 	})
