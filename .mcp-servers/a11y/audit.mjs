@@ -1,8 +1,9 @@
 // Drives the existing vitest a11y gates and returns structured results, rather
 // than re-implementing a jsdom+React+axe environment (which would duplicate the
-// `__tests__/setup` stubs and drift from the gate). The structural path arms
-// `mcp-audit.test.tsx`, which writes raw axe violations to a temp file; the
-// geometry path runs the browser contrast/target-size gate (Playwright).
+// `__tests__/setup` stubs and drift from the gate). The structural path runs
+// `mcp/a11y-audit.test.tsx` through `vitest.mcp.config.ts`, writing raw axe
+// violations to a temp file; the geometry path runs the browser
+// contrast/target-size gate (Playwright).
 
 import { spawn } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
@@ -38,7 +39,9 @@ export async function auditStructural(repoRoot, { bucket = 'baseline', filter = 
 				'exec',
 				'vitest',
 				'run',
-				'src/__tests__/a11y/mcp-audit.test.tsx',
+				'--config',
+				'vitest.mcp.config.ts',
+				'src/__tests__/mcp/a11y-audit.test.tsx',
 				'--reporter=dot',
 			],
 			{

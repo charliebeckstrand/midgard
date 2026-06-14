@@ -24,14 +24,14 @@ trigger (a `Button` opening a dialog shows up in the overlay/focus/trap gates).
 
 ## The audit harness
 
-`audit` (structural) arms `packages/ui/src/__tests__/a11y/mcp-audit.test.tsx`
-through env vars (`MCP_AUDIT=1`, `MCP_AUDIT_BUCKET`, `MCP_AUDIT_FILTER`,
-`MCP_AUDIT_OUT`). It renders the selected corpus cases through the same
-`renderUI` + `axe` path as `baseline.test.tsx` and writes raw axe violations to
-a temp file the server reshapes. Disarmed (the normal case), the harness is a
-single skipped test, so `test:a11y` and CI are unaffected. The geometry gate
-runs in the browser pool, which has no `node:fs`, so it returns the vitest run
-summary rather than per-node structure.
+`audit` (structural) runs `packages/ui/src/__tests__/mcp/a11y-audit.test.tsx`
+through its own `vitest.mcp.config.ts`, armed by env vars (`MCP_AUDIT=1`,
+`MCP_AUDIT_BUCKET`, `MCP_AUDIT_FILTER`, `MCP_AUDIT_OUT`). It renders the selected
+corpus cases through the same `renderUI` + `axe` path as `baseline.test.tsx` and
+writes raw axe violations to a temp file the server reshapes. The default vitest
+project excludes `src/__tests__/mcp/`, so `test`, `test:a11y`, and CI never
+collect the harness. The geometry gate runs in the browser pool, which has no
+`node:fs`, so it returns the vitest run summary rather than per-node structure.
 
 ## Zero-dependency, like the other first-party server
 
