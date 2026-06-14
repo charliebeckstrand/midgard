@@ -1,3 +1,4 @@
+import type { ComponentProps, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
@@ -90,135 +91,113 @@ describe('RangeSlider', () => {
 		expect(allBySlot(container, 'slider-range-thumb')).toHaveLength(2)
 	})
 
-	it('sets aria-valuenow on each thumb to reflect the default value', () => {
-		const { container } = renderUI(<RangeSlider defaultValue={[25, 75]} />)
+	it.each<[string, () => ReactElement, string, string, string]>([
+		[
+			'sets aria-valuenow on each thumb to reflect the default value',
+			() => <RangeSlider defaultValue={[25, 75]} />,
+			'aria-valuenow',
+			'25',
+			'75',
+		],
+		[
+			'names the thumbs generically by default',
+			() => <RangeSlider />,
+			'aria-label',
+			'Range start',
+			'Range end',
+		],
+		[
+			'accepts per-thumb labels',
+			() => <RangeSlider labels={['Min price', 'Max price']} />,
+			'aria-label',
+			'Min price',
+			'Max price',
+		],
+		[
+			'announces thumb values via getValueText',
+			() => (
+				<RangeSlider
+					defaultValue={[25, 75]}
+					getValueText={(v, i) => `${i === 0 ? 'from' : 'to'} $${v}`}
+				/>
+			),
+			'aria-valuetext',
+			'from $25',
+			'to $75',
+		],
+	])('%s', (_name, ui, attr, lo, hi) => {
+		const { container } = renderUI(ui())
 
-		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+		const [loThumb, hiThumb] = allBySlot(container, 'slider-range-thumb')
 
-		expect(lo).toHaveAttribute('aria-valuenow', '25')
+		expect(loThumb).toHaveAttribute(attr, lo)
 
-		expect(hi).toHaveAttribute('aria-valuenow', '75')
+		expect(hiThumb).toHaveAttribute(attr, hi)
 	})
 
-	it('names the thumbs generically by default', () => {
-		const { container } = renderUI(<RangeSlider />)
-
-		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
-
-		expect(lo).toHaveAttribute('aria-label', 'Range start')
-
-		expect(hi).toHaveAttribute('aria-label', 'Range end')
-	})
-
-	it('accepts per-thumb labels', () => {
-		const { container } = renderUI(<RangeSlider labels={['Min price', 'Max price']} />)
-
-		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
-
-		expect(lo).toHaveAttribute('aria-label', 'Min price')
-
-		expect(hi).toHaveAttribute('aria-label', 'Max price')
-	})
-
-	it('never lands past max when snapping rounds upward (clamp after snap)', () => {
+	// Each row drives one key on one thumb (0 = low, 1 = high) and asserts the
+	// resulting onValueChange payload. min=2 max=10 step=3 + End covers the
+	// clamp-after-snap branch: a thumb must never exceed aria-valuemax.
+	it.each<[string, ComponentProps<typeof RangeSlider>, number, string, number[]]>([
+		[
+			'never lands past max when snapping rounds upward (clamp after snap)',
+			{ min: 2, max: 10, step: 3, defaultValue: [2, 8] },
+			1,
+			'End',
+			[2, 10],
+		],
+		[
+			'takes a large step on Page keys (APG slider pattern)',
+			{ defaultValue: [10, 90], step: 1 },
+			0,
+			'PageUp',
+			[20, 90],
+		],
+		[
+			'moves the low thumb right when ArrowRight is pressed',
+			{ defaultValue: [10, 90], step: 5 },
+			0,
+			'ArrowRight',
+			[15, 90],
+		],
+		[
+			'moves the high thumb left when ArrowLeft is pressed',
+			{ defaultValue: [10, 90], step: 5 },
+			1,
+			'ArrowLeft',
+			[10, 85],
+		],
+		[
+			'snaps the low thumb to min when Home is pressed',
+			{ defaultValue: [40, 90], min: 0, max: 100 },
+			0,
+			'Home',
+			[0, 90],
+		],
+		[
+			'snaps the high thumb to max when End is pressed',
+			{ defaultValue: [10, 60], min: 0, max: 100 },
+			1,
+			'End',
+			[10, 100],
+		],
+		[
+			'prevents the low thumb from crossing the high thumb when allowCross is false',
+			{ defaultValue: [48, 50], step: 5, allowCross: false },
+			0,
+			'ArrowRight',
+			[50, 50],
+		],
+	])('%s', (_name, props, thumb, key, expected) => {
 		const onChange = vi.fn()
 
-		// min=2 max=10 step=3: End snaps toward 11; clamping must run after the
-		// snap so aria-valuenow never exceeds aria-valuemax.
-		const { container } = renderUI(
-			<RangeSlider min={2} max={10} step={3} defaultValue={[2, 8]} onValueChange={onChange} />,
-		)
+		const { container } = renderUI(<RangeSlider {...props} onValueChange={onChange} />)
 
-		const [, hi] = allBySlot(container, 'slider-range-thumb')
+		const thumbs = allBySlot(container, 'slider-range-thumb')
 
-		fireEvent.keyDown(hi as HTMLElement, { key: 'End' })
+		fireEvent.keyDown(thumbs[thumb] as HTMLElement, { key })
 
-		expect(onChange).toHaveBeenCalledWith([2, 10])
-	})
-
-	it('takes a large step on Page keys (APG slider pattern)', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 90]} step={1} onValueChange={onChange} />,
-		)
-
-		const [lo] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(lo as HTMLElement, { key: 'PageUp' })
-
-		expect(onChange).toHaveBeenCalledWith([20, 90])
-	})
-
-	it('announces thumb values via getValueText', () => {
-		const { container } = renderUI(
-			<RangeSlider
-				defaultValue={[25, 75]}
-				getValueText={(v, i) => `${i === 0 ? 'from' : 'to'} $${v}`}
-			/>,
-		)
-
-		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
-
-		expect(lo).toHaveAttribute('aria-valuetext', 'from $25')
-
-		expect(hi).toHaveAttribute('aria-valuetext', 'to $75')
-	})
-
-	it('moves the low thumb right when ArrowRight is pressed', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 90]} step={5} onValueChange={onChange} />,
-		)
-
-		const [lo] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(lo as HTMLElement, { key: 'ArrowRight' })
-
-		expect(onChange).toHaveBeenCalledWith([15, 90])
-	})
-
-	it('moves the high thumb left when ArrowLeft is pressed', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 90]} step={5} onValueChange={onChange} />,
-		)
-
-		const [, hi] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(hi as HTMLElement, { key: 'ArrowLeft' })
-
-		expect(onChange).toHaveBeenCalledWith([10, 85])
-	})
-
-	it('snaps the low thumb to min when Home is pressed', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[40, 90]} min={0} max={100} onValueChange={onChange} />,
-		)
-
-		const [lo] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(lo as HTMLElement, { key: 'Home' })
-
-		expect(onChange).toHaveBeenCalledWith([0, 90])
-	})
-
-	it('snaps the high thumb to max when End is pressed', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[10, 60]} min={0} max={100} onValueChange={onChange} />,
-		)
-
-		const [, hi] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(hi as HTMLElement, { key: 'End' })
-
-		expect(onChange).toHaveBeenCalledWith([10, 100])
+		expect(onChange).toHaveBeenCalledWith(expected)
 	})
 
 	it('ignores unrelated keys', () => {
@@ -231,20 +210,6 @@ describe('RangeSlider', () => {
 		fireEvent.keyDown(lo as HTMLElement, { key: 'a' })
 
 		expect(onChange).not.toHaveBeenCalled()
-	})
-
-	it('prevents the low thumb from crossing the high thumb when allowCross is false', () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(
-			<RangeSlider defaultValue={[48, 50]} step={5} allowCross={false} onValueChange={onChange} />,
-		)
-
-		const [lo] = allBySlot(container, 'slider-range-thumb')
-
-		fireEvent.keyDown(lo as HTMLElement, { key: 'ArrowRight' })
-
-		expect(onChange).toHaveBeenCalledWith([50, 50])
 	})
 
 	it('swaps thumbs and shifts focus when the low thumb crosses the high thumb', () => {
