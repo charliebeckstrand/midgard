@@ -237,7 +237,6 @@ function ItemActionsSidebarExample() {
 					<SidebarList aria-label="Main">
 						<SidebarItem icon={<Search />} preventClose>
 							<SidebarLabel>Search</SidebarLabel>
-							<Spacer />
 							<SidebarItemActions>
 								<Badge color="zinc" size="md">
 									⌘K
@@ -246,7 +245,6 @@ function ItemActionsSidebarExample() {
 						</SidebarItem>
 						<SidebarItem icon={<Inbox />}>
 							<SidebarLabel>Inbox</SidebarLabel>
-							<Spacer />
 							<SidebarItemActions>
 								<Badge color="blue" size="md">
 									12

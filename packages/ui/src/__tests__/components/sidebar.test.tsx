@@ -518,6 +518,53 @@ describe('SidebarItem', () => {
 
 		expect(bySlot(container, 'sidebar-item-suffix')).toBeNull()
 	})
+
+	it('hoists a SidebarItemActions child into the suffix slot, outside the button', () => {
+		const { container } = renderUI(
+			<Sidebar>
+				<SidebarItem>
+					<SidebarLabel>Home</SidebarLabel>
+					<SidebarItemActions>
+						<button type="button">remove</button>
+					</SidebarItemActions>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		const suffix = bySlot(container, 'sidebar-item-suffix')
+
+		const actions = bySlot(container, 'sidebar-item-actions')
+
+		const inner = bySlot(container, 'sidebar-item-inner')
+
+		// Actions render through the suffix slot rather than nested in the button.
+		expect(suffix?.contains(actions ?? null)).toBe(true)
+
+		// The interactive control is hoisted out of the <button>, keeping markup
+		// valid, and the affix flips the row to its chrome.
+		expect(inner?.querySelector('button')).toBeNull()
+
+		expect(suffix?.contains(screen.getByRole('button', { name: 'remove' }))).toBe(true)
+
+		expect(bySlot(container, 'sidebar-item')?.className).toContain('hover:bg-zinc-950/5')
+	})
+
+	it('lets an explicit suffix prop win over a SidebarItemActions child', () => {
+		renderUI(
+			<Sidebar>
+				<SidebarItem suffix={<button type="button">from-prop</button>}>
+					<SidebarLabel>Home</SidebarLabel>
+					<SidebarItemActions>
+						<button type="button">from-child</button>
+					</SidebarItemActions>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		expect(screen.getByRole('button', { name: 'from-prop' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'from-child' })).toBeNull()
+	})
 })
 
 describe('SidebarList', () => {
