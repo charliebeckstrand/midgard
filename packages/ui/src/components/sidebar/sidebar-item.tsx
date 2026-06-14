@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, type Ref } from 'react'
+import { Children, isValidElement, type ReactNode, type Ref } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
@@ -22,22 +22,28 @@ export type SidebarItemProps = NavItemProps & {
 }
 
 /**
- * Current-state attributes and class for the inner button. With an affix the
- * row owns the interaction chrome (`chrome: 'row'`); icon-only items stay
- * square via the button recipe.
+ * Partitions a `SidebarItem`'s children. A `SidebarItemActions` child hoists
+ * into the `suffix` slot — rendering beside the button rather than nested
+ * inside it, where an interactive control would break markup — and drops out
+ * of the inner content; an explicit `suffix` prop wins. The mini-rail tooltip
+ * (portaled past the rail's group-scoped hiding) carries only the
+ * `SidebarLabel` children, falling back to the inner content when composed
+ * without one.
  *
  * @internal
  */
-function sidebarItemButtonProps(
-	item: ReturnType<typeof useNavItem>,
-	hasAffix: boolean,
-	className: string | undefined,
-): { 'data-current': true | undefined; 'aria-current': 'page' | undefined; className: string } {
-	return {
-		'data-current': item.current || undefined,
-		'aria-current': item.current ? 'page' : undefined,
-		className: cn(k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }), className),
-	}
+function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
+	const childArray = Children.toArray(children)
+
+	const actions = childArray.find(
+		(child) => isValidElement(child) && child.type === SidebarItemActions,
+	)
+
+	const inner = actions ? childArray.filter((child) => child !== actions) : children
+
+	const labels = childArray.filter((child) => isValidElement(child) && child.type === SidebarLabel)
+
+	return { suffix: suffix ?? actions, inner, tooltip: labels.length > 0 ? labels : inner }
 }
 
 /**
@@ -72,19 +78,13 @@ export function SidebarItem({
 
 	const Wrapper = inList ? 'li' : 'span'
 
-	// A SidebarItemActions child hoists into the suffix slot so its controls
-	// render beside the button rather than nested inside it (where an
-	// interactive control would break markup); it is then dropped from the
-	// children the button renders. An explicit `suffix` prop wins.
-	const childArray = Children.toArray(children)
-
-	const actions = childArray.find(
-		(child) => isValidElement(child) && child.type === SidebarItemActions,
-	)
-
-	const resolvedSuffix = suffix ?? actions
-
-	const innerChildren = actions ? childArray.filter((child) => child !== actions) : children
+	// A SidebarItemActions child hoists into the suffix slot, the rest renders
+	// inside the button, and the mini-rail tooltip surfaces only the labels.
+	const {
+		suffix: resolvedSuffix,
+		inner: innerChildren,
+		tooltip,
+	} = resolveItemChildren(children, suffix)
 
 	// Affixes render as siblings of the inner button, not nested inside it;
 	// a slot can host its own interactive element. With an affix present the
@@ -96,16 +96,12 @@ export function SidebarItem({
 	// so the mobile drawer keeps plain items.
 	const mini = useSidebarMini()
 
-	// The tooltip surface portals out of the nav, where the rail's
-	// group-scoped hiding can't reach, so anything echoed into it (actions,
-	// affix helpers) would render. Surface only the SidebarLabel children;
-	// items composed without one fall back to the button's children.
-	const labels = childArray.filter((child) => isValidElement(child) && child.type === SidebarLabel)
-
 	const inner = (
 		<Button
 			data-slot="sidebar-item-inner"
-			{...sidebarItemButtonProps(item, hasAffix, className)}
+			data-current={item.current || undefined}
+			aria-current={item.current ? 'page' : undefined}
+			className={cn(k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }), className)}
 			onClick={item.handleClick}
 			{...props}
 		>
@@ -136,7 +132,7 @@ export function SidebarItem({
 					// help-cursor default.
 					<Tooltip placement="right" className="*:cursor-pointer">
 						<TooltipTrigger>{inner}</TooltipTrigger>
-						<TooltipContent>{labels.length > 0 ? labels : innerChildren}</TooltipContent>
+						<TooltipContent>{tooltip}</TooltipContent>
 					</Tooltip>
 				) : (
 					inner
@@ -148,10 +144,9 @@ export function SidebarItem({
 				</span>
 			)}
 			{item.current && (
-				<ActiveIndicator
-					ref={item.indicator.ref}
-					className={hasAffix ? cn(k.item.indicator) : undefined}
-				/>
+				// A current affixed row re-draws its focus ring on the active indicator,
+				// the topmost full-row surface; a plain row keeps the default.
+				<ActiveIndicator ref={item.indicator.ref} className={cn(hasAffix && k.item.indicator)} />
 			)}
 		</Wrapper>
 	)

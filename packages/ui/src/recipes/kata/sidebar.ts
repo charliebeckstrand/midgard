@@ -107,7 +107,6 @@ const itemSuffix = defineRecipe({
 
 export const k = {
 	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
-	mini,
 	item: {
 		base: itemBase,
 		/** Wrapper-row surface for affixed items; pairs with `base({ chrome: 'row' })`. */
