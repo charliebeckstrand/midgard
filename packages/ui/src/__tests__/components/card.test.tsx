@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
@@ -20,16 +21,23 @@ describe('Card', () => {
 })
 
 describe('Card size system', () => {
-	it('defaults to md and exposes data-size for descendants', () => {
-		const { container } = renderUI(<Card>content</Card>)
+	it.each<[string, () => ReactElement, string]>([
+		['defaults to md and exposes data-size for descendants', () => <Card>content</Card>, 'md'],
+		['reflects an explicit size prop on data-size', () => <Card size="lg">content</Card>, 'lg'],
+		[
+			// Static leaf: ambient density reaches client components only.
+			'ignores an ambient Density provider',
+			() => (
+				<DensityProvider density="compact">
+					<Card>content</Card>
+				</DensityProvider>
+			),
+			'md',
+		],
+	])('%s', (_name, ui, expected) => {
+		const { container } = renderUI(ui())
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'md')
-	})
-
-	it('reflects an explicit size prop on data-size', () => {
-		const { container } = renderUI(<Card size="lg">content</Card>)
-
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'lg')
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', expected)
 	})
 
 	it('renders an inner-radius class matching the resolved size', () => {
@@ -148,17 +156,6 @@ describe('Card size system', () => {
 		// No explicit size, no scope of its own: the ambient cascade reaches
 		// the client Button untouched.
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
-	})
-
-	it('ignores an ambient Density provider', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Card>content</Card>
-			</DensityProvider>,
-		)
-
-		// Static leaf: ambient density reaches client components only.
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'md')
 	})
 
 	it('renders nested cards at their own size', () => {
