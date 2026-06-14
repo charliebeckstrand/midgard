@@ -404,13 +404,33 @@ function formatListReport(data) {
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
-const ACTION_LABEL = {
-  "remove-redundant": "Remove redundancy",
-  "merge-parameterize": "Merge / parameterize",
-};
+// A cluster's members/pairwise list can be long for generic-idiom groups; cap
+// both so a 26-member blob does not bury the actionable clusters.
+const MEMBER_CAP = 12;
+const PAIR_CAP = 12;
+
+function overlapSection(clusters) {
+  const lines = [];
+  clusters.forEach((cluster, i) => {
+    lines.push(`### ${i + 1}. ${cluster.recommendation.detail}`, "");
+    lines.push("Members:");
+    for (const m of cluster.members.slice(0, MEMBER_CAP)) {
+      lines.push(`- \`${m.rel}\` — ${m.fullTitle} (${m.assertions} assertion${m.assertions === 1 ? "" : "s"})`);
+    }
+    if (cluster.members.length > MEMBER_CAP) lines.push(`- _… ${cluster.members.length - MEMBER_CAP} more._`);
+    lines.push("");
+    lines.push("Pairwise similarity (body / title):");
+    for (const p of cluster.pairs.slice(0, PAIR_CAP)) lines.push(`- \`${p.a}\` ↔ \`${p.b}\`: ${p.bodySim} / ${p.titleSim}`);
+    if (cluster.pairs.length > PAIR_CAP) lines.push(`- _… ${cluster.pairs.length - PAIR_CAP} more pairs._`);
+    lines.push("");
+  });
+  return lines;
+}
 
 function formatOverlapReport(data) {
   const relative = path.relative(REPO_ROOT, resolveCwd(data.cwd)) || ".";
+  const redundant = data.clusters.filter((c) => c.recommendation.action === "remove-redundant");
+  const parameterize = data.clusters.filter((c) => c.recommendation.action === "merge-parameterize");
   const lines = [
     "# Vitest Overlap Report\n",
     "## Summary",
@@ -418,29 +438,19 @@ function formatOverlapReport(data) {
     `- Test files scanned: ${data.files}`,
     `- Tests analyzed: ${data.tests}`,
     `- Similarity threshold: ${data.threshold}`,
-    `- Overlap clusters: ${data.clusters.length}`,
+    `- Redundant clusters: ${redundant.length}; parameterize candidates: ${parameterize.length}`,
     "",
   ];
   if (!data.clusters.length) {
     lines.push("✅ No overlapping tests above the threshold.");
     return `${lines.join("\n")}\n`;
   }
-  lines.push("## Clusters\n");
-  const cap = 40;
-  data.clusters.slice(0, cap).forEach((cluster, i) => {
-    lines.push(`### Cluster ${i + 1} — ${ACTION_LABEL[cluster.recommendation.action]}`);
-    lines.push(cluster.recommendation.detail);
-    lines.push("");
-    lines.push("Members:");
-    for (const m of cluster.members) {
-      lines.push(`- \`${m.rel}\` — ${m.fullTitle} (${m.assertions} assertion${m.assertions === 1 ? "" : "s"})`);
-    }
-    lines.push("");
-    lines.push("Pairwise similarity (body / title):");
-    for (const p of cluster.pairs) lines.push(`- \`${p.a}\` ↔ \`${p.b}\`: ${p.bodySim} / ${p.titleSim}`);
-    lines.push("");
-  });
-  if (data.clusters.length > cap) lines.push(`_… ${data.clusters.length - cap} more clusters omitted._`);
+  if (redundant.length) {
+    lines.push("## Redundant — drop the covered test\n", ...overlapSection(redundant));
+  }
+  if (parameterize.length) {
+    lines.push("## Parameterize — same shape, differing inputs → one `it.each`\n", ...overlapSection(parameterize));
+  }
   return `${lines.join("\n").trimEnd()}\n`;
 }
 

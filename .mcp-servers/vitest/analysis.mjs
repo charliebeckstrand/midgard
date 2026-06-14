@@ -305,39 +305,46 @@ const CONTROL_KEYWORDS = new Set(["if", "for", "while", "switch"]);
 const WEAK_MATCHERS = new Set(["toBeTruthy", "toBeFalsy", "toBeDefined", "toBeUndefined", "toBeNull"]);
 const ASSERT_MODIFIERS = new Set(["resolves", "rejects"]);
 
-// First meaningful operand inside expect(...) — coarse, but enough to tell
-// `expect(el.className)` from `expect(bySlot(...))`.
-function expectTarget(tokens, openParen, close) {
+// First meaningful operand inside expect(...), plus the first literal it carries.
+// The shape (`call:bySlot`) feeds coarse clustering; the literal (`stack`)
+// sharpens the redundancy check so `expect(queryByText('A'))` and
+// `expect(queryByText('B'))` are not treated as the same assertion.
+function expectInfo(tokens, openParen, close) {
+  let target = "expr";
+  let lit = "";
   for (let k = openParen + 1; k < close; k += 1) {
     const t = tokens[k];
-    if (t.t === "id") {
-      const nxt = tokens[k + 1];
-      return nxt?.t === "punc" && nxt.v === "(" ? `call:${t.v}` : `id:${t.v}`;
+    if (target === "expr") {
+      if (t.t === "id") {
+        const nxt = tokens[k + 1];
+        target = nxt?.t === "punc" && nxt.v === "(" ? `call:${t.v}` : `id:${t.v}`;
+      } else if (t.t === "str" || t.t === "tmpl") target = "lit";
+      else if (t.t === "num") target = "num";
     }
-    if (t.t === "str" || t.t === "tmpl") return "lit";
-    if (t.t === "num") return "num";
+    if (!lit && (t.t === "str" || t.t === "tmpl")) lit = t.v;
   }
-  return "expr";
+  return { target, lit };
 }
 
-// Walks the `.not.resolves.toBe(...)` chain after an expect's closing paren.
+// Walks the `.not.resolves.toBe(...)` chain after an expect's closing paren,
+// capturing the matcher, negation, its first literal argument, and snapshot size.
 function readMatchers(tokens, argClose) {
   let k = argClose + 1;
   const names = [];
   let negated = false;
   let snapshotLines = 0;
+  let argLit = "";
   while (tokens[k]?.t === "punc" && tokens[k].v === "." && tokens[k + 1]?.t === "id") {
     const name = tokens[k + 1].v;
     k += 2;
     if (tokens[k]?.t === "punc" && tokens[k].v === "(") {
       const callClose = matchParen(tokens, k);
       if (callClose !== -1) {
-        if (name === "toMatchInlineSnapshot" || name === "toThrowErrorMatchingInlineSnapshot") {
-          for (let m = k + 1; m < callClose; m += 1) {
-            if (tokens[m].t === "tmpl") {
-              snapshotLines = tokens[m].v.split("\n").length;
-              break;
-            }
+        for (let m = k + 1; m < callClose; m += 1) {
+          const a = tokens[m];
+          if (!argLit && (a.t === "str" || a.t === "tmpl" || a.t === "num")) argLit = a.v;
+          if ((name === "toMatchInlineSnapshot" || name === "toThrowErrorMatchingInlineSnapshot") && a.t === "tmpl") {
+            snapshotLines = a.v.split("\n").length;
           }
         }
         k = callClose + 1;
@@ -348,12 +355,33 @@ function readMatchers(tokens, argClose) {
   }
   const meaningful = names.filter((n) => !ASSERT_MODIFIERS.has(n));
   const matcher = meaningful[meaningful.length - 1] ?? names[0] ?? "assert";
-  return { matcher, negated, snapshotLines, endIdx: k - 1 };
+  return { matcher, negated, snapshotLines, argLit, endIdx: k - 1 };
+}
+
+// Whether the keyword at index k is a flaggable control-flow construct. Idiomatic
+// `if (...) throw` narrowing guards and `for...of`/`for...in` assertion loops are
+// not flagged; branching if/else, switch, while, and classic `for(;;)` are.
+function controlFlowAt(tokens, k) {
+  const kw = tokens[k].v;
+  const open = k + 1;
+  const close = matchParen(tokens, open);
+  if (close === -1) return false;
+  if (kw === "while" || kw === "switch") return true;
+  if (kw === "if") {
+    let after = tokens[close + 1];
+    if (after?.t === "punc" && after.v === "{") after = tokens[close + 2];
+    return !(after?.t === "id" && after.v === "throw");
+  }
+  for (let m = open + 1; m < close; m += 1) {
+    if (tokens[m].t === "id" && (tokens[m].v === "of" || tokens[m].v === "in")) return false;
+  }
+  return true;
 }
 
 // Single pass over a test body collecting both overlap signatures and audit traits.
 function analyzeBody(tokens, src, start, end) {
-  const asserts = []; // multiset of `[!]matcher@target`
+  const asserts = []; // coarse multiset of `[!]matcher@target` — drives clustering
+  const sharpAsserts = []; // same, with literal args folded in — drives redundancy
   const matchers = []; // matcher names, for the weak-assertion rule
   const calls = new Set();
   const strings = new Set();
@@ -373,16 +401,18 @@ function analyzeBody(tokens, src, start, end) {
     if (t.t !== "id") continue;
     const nxt = tokens[k + 1];
     const isCall = nxt?.t === "punc" && nxt.v === "(";
-    if (CONTROL_KEYWORDS.has(t.v)) hasControlFlow = true;
+    if (!hasControlFlow && CONTROL_KEYWORDS.has(t.v) && isCall) hasControlFlow = controlFlowAt(tokens, k);
     if (t.v === "console" && nxt?.t === "punc" && nxt.v === ".") hasConsole = true;
     if (t.v === "setTimeout" && isCall) hasTimer = true;
 
     if (t.v === "expect" && isCall) {
       const argClose = matchParen(tokens, k + 1);
       if (argClose === -1) continue;
-      const target = expectTarget(tokens, k + 1, argClose);
+      const { target, lit } = expectInfo(tokens, k + 1, argClose);
       const m = readMatchers(tokens, argClose);
-      asserts.push(`${m.negated ? "!" : ""}${m.matcher}@${target}`);
+      const head = `${m.negated ? "!" : ""}${m.matcher}@${target}`;
+      asserts.push(head);
+      sharpAsserts.push(`${head}(${m.argLit})~${lit}`);
       matchers.push(m.matcher);
       if (m.snapshotLines > snapshotLines) snapshotLines = m.snapshotLines;
       assertionCount += 1;
@@ -400,7 +430,7 @@ function analyzeBody(tokens, src, start, end) {
     }
   }
   return {
-    asserts, matchers, calls, strings, assertionCount,
+    asserts, sharpAsserts, matchers, calls, strings, assertionCount,
     hasControlFlow, hasConsole, hasTimer, snapshotLines, firstSetup,
   };
 }
@@ -436,15 +466,17 @@ function jaccard(a, b) {
   return inter / (a.size + b.size - inter);
 }
 
-// Multiset-subset: is every assertion and call of `a` present in `b`?
+// Multiset-subset over sharp (value-aware) assertions and calls: is every check
+// `a` makes also made by `b`? Using sharp atoms keeps tests that share only a
+// generic assertion shape (same matcher, different value) from looking redundant.
 function isSubset(a, b) {
   const counts = new Map();
-  for (const x of b.features.asserts) counts.set(x, (counts.get(x) ?? 0) + 1);
+  for (const x of b.features.sharpAsserts) counts.set(x, (counts.get(x) ?? 0) + 1);
   const need = new Map();
-  for (const x of a.features.asserts) need.set(x, (need.get(x) ?? 0) + 1);
+  for (const x of a.features.sharpAsserts) need.set(x, (need.get(x) ?? 0) + 1);
   for (const [x, c] of need) if ((counts.get(x) ?? 0) < c) return false;
   for (const c of a.features.calls) if (!b.features.calls.has(c)) return false;
-  return a.features.asserts.length > 0 || a.features.calls.size > 0;
+  return a.features.sharpAsserts.length > 0 || a.features.calls.size > 0;
 }
 
 // Every literal `a` uses (matcher args, selectors, expected values) also appears
