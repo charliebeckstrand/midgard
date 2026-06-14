@@ -8,7 +8,7 @@
  *
  * `palette` is the standard five-colour set. `spectrum` is the opt-in wide
  * palette — the same shape keyed by every standard colour plus the extended
- * set (rose / sky / teal / violet); a kata reads it in place of `palette`
+ * set (rose / violet / sky); a kata reads it in place of `palette`
  * to offer the broader `color` axis.
  *
  * Surfaces live in `omote`. Interaction-state text colours live in

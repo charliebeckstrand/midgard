@@ -18,7 +18,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 
 | Token | Concern |
 |---|---|
-| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `spectrum` is the opt-in wide palette (standard + rose / sky / teal / violet). |
+| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `spectrum` is the opt-in wide palette (standard + mist / rose / violet / sky). |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
 | `ma` 間 | Named spacing scale projected as Tailwind utilities, plus the raw `--spacing` numerals. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
@@ -81,7 +81,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
 | `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
-| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `rose` · `sky` · `teal` · `violet` — and the union of standard + extended a kata surfaces by reading `iro.spectrum`. |
+| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `mist` · `rose` · `violet` · `sky` — and the union of standard + extended a kata surfaces by reading `iro.spectrum`. |
 
 ## Boundary
 

@@ -1,7 +1,7 @@
 @theme {
 	--color-white: hsla(0, 0%, 98%, 1);
 	--color-black: var(--color-black-500);
-	--color-grey: var(--color-grey-500);
+	--color-grey: var(--color-grey-600);
 	--color-blue: var(--color-blue-600);
 	--color-red: var(--color-red-600);
 	--color-amber: var(--color-amber-600);

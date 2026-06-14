@@ -22,7 +22,7 @@ export type Color = (typeof colors)[number]
  * `iro.spectrum`. Not part of the {@link Color standard set}; a component
  * offers these only when its kata declares the wider palette (e.g. Badge).
  */
-export const extendedColors = ['rose', 'sky', 'teal', 'violet'] as const
+export const extendedColors = ['mist', 'rose', 'violet', 'sky'] as const
 
 /** An extended palette colour. @see {@link extendedColors} */
 export type ExtendedColor = (typeof extendedColors)[number]

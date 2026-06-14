@@ -81,9 +81,8 @@ describe('palette', () => {
 					green: ['g'],
 					blue: ['b'],
 					rose: ['solid-rose'],
-					sky: ['solid-sky'],
-					teal: ['solid-teal'],
 					violet: ['solid-violet'],
+					sky: ['solid-sky'],
 				},
 			}),
 			defaults: { variant: 'solid' },
@@ -98,9 +97,9 @@ describe('palette', () => {
 	})
 
 	it('Badge opts into the wide palette: extended colours resolve to their classes', () => {
-		expect(badge({ variant: 'soft', color: 'teal' })).toContain('bg-teal-600/15')
-
 		expect(badge({ variant: 'solid', color: 'rose' })).toContain('bg-rose-600')
+
+		expect(badge({ variant: 'soft', color: 'violet' })).toContain('bg-violet-600/15')
 
 		// The standard palette is unaffected by the opt-in.
 		expect(badge({ variant: 'solid', color: 'zinc' })).toContain('bg-zinc-600')

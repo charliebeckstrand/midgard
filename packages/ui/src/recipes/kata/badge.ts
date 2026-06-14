@@ -29,7 +29,7 @@ export const k = defineRecipe({
 	},
 	rounded,
 	// Opt into the wide palette: Badge's `color` axis carries the standard set
-	// plus the extended hues (rose / sky / teal / violet).
+	// plus the extended hues (rose / violet / sky).
 	palette: definePalette({ ...basePalette(spectrum), plain: spectrum.plain.text }),
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 	skeleton: badge,
