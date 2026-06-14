@@ -5,7 +5,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const option = (
 	<div role="option" tabIndex={-1} aria-selected="false">
@@ -559,7 +559,9 @@ describe('Listbox readOnly', () => {
 			</Form>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+		})
 
 		await vi.waitFor(() =>
 			expect(onSubmit).toHaveBeenCalledWith(
