@@ -90,26 +90,14 @@ describe('useDatePickerKeyboard: closed calendar', () => {
 		expect(e.preventDefault).toHaveBeenCalled()
 	})
 
-	it('opens the calendar on ArrowUp', () => {
+	it.each([
+		['opens the calendar on ArrowUp', 'ArrowUp'],
+		['opens the calendar on Enter', 'Enter'],
+		['opens the calendar on Space', ' '],
+	])('%s', (_name, key) => {
 		const { handler, openCalendar } = setup({ open: false })
 
-		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
-
-		expect(openCalendar).toHaveBeenCalled()
-	})
-
-	it('opens the calendar on Enter', () => {
-		const { handler, openCalendar } = setup({ open: false })
-
-		handler(makeKeyEvent<HTMLElement>('Enter'))
-
-		expect(openCalendar).toHaveBeenCalled()
-	})
-
-	it('opens the calendar on Space', () => {
-		const { handler, openCalendar } = setup({ open: false })
-
-		handler(makeKeyEvent<HTMLElement>(' '))
+		handler(makeKeyEvent<HTMLElement>(key))
 
 		expect(openCalendar).toHaveBeenCalled()
 	})
@@ -222,28 +210,16 @@ describe('useDatePickerKeyboard: grid zone', () => {
 		expect(setActive).toHaveBeenCalled()
 	})
 
-	it('moves grid date forward one day on ArrowRight', () => {
+	it.each<[string, string, number]>([
+		['moves grid date forward one day on ArrowRight', 'ArrowRight', 1],
+		['moves grid date backward one week on ArrowUp', 'ArrowUp', -7],
+		['moves grid date forward one week on ArrowDown', 'ArrowDown', 7],
+	])('%s', (_name, key, delta) => {
 		const { handler, moveGridDate } = setup({ active: gridActive })
 
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(moveGridDate).toHaveBeenCalledWith(1)
-	})
-
-	it('moves grid date backward one week on ArrowUp', () => {
-		const { handler, moveGridDate } = setup({ active: gridActive })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowUp'))
-
-		expect(moveGridDate).toHaveBeenCalledWith(-7)
-	})
-
-	it('moves grid date forward one week on ArrowDown', () => {
-		const { handler, moveGridDate } = setup({ active: gridActive })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowDown'))
-
-		expect(moveGridDate).toHaveBeenCalledWith(7)
+		expect(moveGridDate).toHaveBeenCalledWith(delta)
 	})
 
 	it('selects the active grid date on Enter', () => {
@@ -344,20 +320,17 @@ describe('useDatePickerKeyboard: header zone', () => {
 })
 
 describe('useDatePickerKeyboard: footer zone', () => {
-	it('wraps footer index backward on ArrowLeft', () => {
-		const { handler, setActive } = setup({ active: { zone: 'footer', index: 0 } })
+	it.each<[string, number, string, number]>([
+		['wraps footer index backward on ArrowLeft', 0, 'ArrowLeft', 1],
+		['wraps footer index forward on ArrowRight', 1, 'ArrowRight', 0],
+		['decrements the footer index on ArrowLeft when not at index 0', 1, 'ArrowLeft', 0],
+		['increments the footer index on ArrowRight when not at the last index', 0, 'ArrowRight', 1],
+	])('%s', (_name, index, key, expected) => {
+		const { handler, setActive } = setup({ active: { zone: 'footer', index } })
 
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
+		handler(makeKeyEvent<HTMLElement>(key))
 
-		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 1 })
-	})
-
-	it('wraps footer index forward on ArrowRight', () => {
-		const { handler, setActive } = setup({ active: { zone: 'footer', index: 1 } })
-
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 0 })
+		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: expected })
 	})
 
 	it('moves from footer to grid on ArrowUp', () => {
@@ -399,28 +372,6 @@ describe('useDatePickerKeyboard: footer zone', () => {
 		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
 
 		expect(setActive).not.toHaveBeenCalled()
-	})
-
-	it('decrements the footer index on ArrowLeft when not at index 0', () => {
-		const { handler, setActive } = setup({
-			active: { zone: 'footer', index: 1 },
-			footerButtons: ['clear', 'today'],
-		})
-
-		handler(makeKeyEvent<HTMLElement>('ArrowLeft'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 0 })
-	})
-
-	it('increments the footer index on ArrowRight when not at the last index', () => {
-		const { handler, setActive } = setup({
-			active: { zone: 'footer', index: 0 },
-			footerButtons: ['clear', 'today'],
-		})
-
-		handler(makeKeyEvent<HTMLElement>('ArrowRight'))
-
-		expect(setActive).toHaveBeenCalledWith({ zone: 'footer', index: 1 })
 	})
 
 	it('swallows ArrowDown in the footer zone', () => {
