@@ -29,6 +29,7 @@
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
+		"test": "node --test",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write ."
@@ -40,6 +41,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.6",
 		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
 		"next": "^16.1.0",
 		"react": "^19.1.0",
 		"tsup": "^8.5.1",
