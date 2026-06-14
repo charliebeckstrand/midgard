@@ -33,6 +33,15 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }
 
+// jsdom ships window.scrollBy but logs a "Not implemented" jsdomError on every
+// call (it has no layout engine). The scroll-area scrollbar track falls back to
+// it, so replace it with a no-op to keep the call working without the noise.
+Object.defineProperty(window, 'scrollBy', {
+	writable: true,
+	configurable: true,
+	value: vi.fn(),
+})
+
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
 // on every call. Returns null instead; components null-check the context.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']
