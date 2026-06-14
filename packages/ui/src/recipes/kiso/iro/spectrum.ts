@@ -23,10 +23,9 @@ import { type Color, type ExtendedColor, type PaletteColor, shades } from '../..
 import { bare } from './bare'
 import { outline } from './outline'
 import { plain } from './plain'
+import { type Pair, roleShades } from './ramp'
 import { soft } from './soft'
 import { solid } from './solid'
-
-type Pair = readonly [light: string, dark: string]
 
 type Ramp = { onSurface: Pair; onTint: Pair }
 
@@ -49,28 +48,29 @@ const RAMP = {
 	},
 } satisfies Record<ExtendedColor, Ramp>
 
-/** Project one role across the extended colours into the engine's `[light, dark]` map. */
-function project(role: keyof Ramp): Record<ExtendedColor, [light: string, dark: string]> {
-	return Object.fromEntries(
-		(Object.entries(RAMP) as [ExtendedColor, Ramp][]).map(([color, rung]) => [
-			color,
-			[...rung[role]],
-		]),
-	) as Record<ExtendedColor, [light: string, dark: string]>
-}
-
 /** Extended foreground on the page / card surface; bare text and the future intent of these hues. */
-export const onSurface = project('onSurface')
+export const onSurface = roleShades(RAMP, 'onSurface')
 
 /** Extended foreground on the 15% soft fill; plain / soft / outline text. */
-export const onTint = project('onTint')
+export const onTint = roleShades(RAMP, 'onTint')
 
-/** Merge a standard per-colour slot with its extended counterpart into the wide-keyed map. */
-function wide(
-	standard: Record<Color, string[]>,
-	extended: Record<ExtendedColor, string[]>,
-): Record<PaletteColor, string[]> {
-	return { ...standard, ...extended } as Record<PaletteColor, string[]>
+/**
+ * Widen each slot of a standard variant with its extended-colour rows: spread
+ * standard then extended per slot, keyed across the full palette. Requiring the
+ * same slot keys on both sides means a standard slot can't silently lack its
+ * extended counterpart.
+ */
+function widen<S extends Record<string, Record<Color, string[]>>>(
+	standard: S,
+	extended: { [K in keyof S]: Record<ExtendedColor, string[]> },
+): { [K in keyof S]: Record<PaletteColor, string[]> } {
+	const out: Record<string, Record<PaletteColor, string[]>> = {}
+
+	for (const slot of Object.keys(standard) as (keyof S)[]) {
+		out[slot as string] = { ...standard[slot], ...extended[slot] } as Record<PaletteColor, string[]>
+	}
+
+	return out as { [K in keyof S]: Record<PaletteColor, string[]> }
 }
 
 const extendedSolid = {
@@ -101,6 +101,7 @@ const extendedSoft = {
 		violet: 'bg-violet-600/15',
 		sky: 'bg-sky-600/15',
 	}),
+	text: onTint,
 	hover: shades<ExtendedColor>({
 		mist: ['not-disabled:hover:bg-mist-600/30', 'dark:not-disabled:hover:bg-mist-500/30'],
 		rose: ['not-disabled:hover:bg-rose-600/30', 'dark:not-disabled:hover:bg-rose-500/30'],
@@ -130,7 +131,11 @@ const extendedOutline = {
 		violet: ['ring-violet-600', 'dark:ring-violet-700'],
 		sky: ['ring-sky-600', 'dark:ring-sky-700'],
 	}),
+	text: onTint,
+	hover: extendedHover,
 }
+
+const extendedPlain = { text: onTint, hover: extendedHover }
 
 /** Bare hover: the muted foreground steps to the stronger `onTint` shade. */
 const extendedBareHover = shades<ExtendedColor>({
@@ -140,29 +145,12 @@ const extendedBareHover = shades<ExtendedColor>({
 	sky: ['not-disabled:hover:text-sky-700', 'dark:not-disabled:hover:text-sky-400'],
 })
 
+const extendedBare = { text: onSurface, hover: extendedBareHover }
+
 export const spectrum = {
-	solid: {
-		bg: wide(solid.bg, extendedSolid.bg),
-		text: wide(solid.text, extendedSolid.text),
-		hover: wide(solid.hover, extendedSolid.hover),
-	},
-	soft: {
-		bg: wide(soft.bg, extendedSoft.bg),
-		text: wide(soft.text, onTint),
-		hover: wide(soft.hover, extendedSoft.hover),
-	},
-	outline: {
-		border: wide(outline.border, extendedOutline.border),
-		ring: wide(outline.ring, extendedOutline.ring),
-		text: wide(outline.text, onTint),
-		hover: wide(outline.hover, extendedHover),
-	},
-	plain: {
-		text: wide(plain.text, onTint),
-		hover: wide(plain.hover, extendedHover),
-	},
-	bare: {
-		text: wide(bare.text, onSurface),
-		hover: wide(bare.hover, extendedBareHover),
-	},
+	solid: widen(solid, extendedSolid),
+	soft: widen(soft, extendedSoft),
+	outline: widen(outline, extendedOutline),
+	plain: widen(plain, extendedPlain),
+	bare: widen(bare, extendedBare),
 } as const

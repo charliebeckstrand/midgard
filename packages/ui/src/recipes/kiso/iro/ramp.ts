@@ -26,7 +26,28 @@
 
 import type { Color } from '../../../core/recipe'
 
-type Pair = readonly [light: string, dark: string]
+export type Pair = readonly [light: string, dark: string]
+
+/**
+ * The shades one role plays across every colour, lifted from the color-major
+ * ramp into the `[light, dark]` map the engine consumes. Generic over the
+ * colour set and role keys, so the standard ramp here and the extended ramp in
+ * `spectrum.ts` share one projector.
+ */
+export function roleShades<C extends string, R extends Record<string, Pair>>(
+	ramp: Record<C, R>,
+	role: keyof R,
+): Record<C, [light: string, dark: string]> {
+	const out: Record<string, [light: string, dark: string]> = {}
+
+	for (const [color, rung] of Object.entries(ramp) as [C, R][]) {
+		const [light, dark] = rung[role] as Pair
+
+		out[color] = [light, dark]
+	}
+
+	return out as Record<C, [light: string, dark: string]>
+}
 
 type ColorRamp = {
 	onSurface: Pair
@@ -62,16 +83,9 @@ const RAMP = {
 	},
 } satisfies Record<Color, ColorRamp>
 
-/** Project one role across every color into the `[light, dark]` map the engine consumes. */
-function project(role: keyof ColorRamp): Record<Color, [light: string, dark: string]> {
-	return Object.fromEntries(
-		(Object.entries(RAMP) as [Color, ColorRamp][]).map(([color, rung]) => [color, [...rung[role]]]),
-	) as Record<Color, [light: string, dark: string]>
-}
-
-export const onSurface = project('onSurface')
-export const onTint = project('onTint')
-export const marker = project('marker')
+export const onSurface = roleShades(RAMP, 'onSurface')
+export const onTint = roleShades(RAMP, 'onTint')
+export const marker = roleShades(RAMP, 'marker')
 
 /** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */
 export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']
