@@ -14,7 +14,8 @@ const list = defineRecipe({
 
 const button = defineRecipe({
 	base: [
-		'relative',
+		// `z-1` lifts the button above its sibling active indicator.
+		'relative z-1',
 		flex.inline,
 		'justify-center',
 		'min-w-9',
@@ -45,6 +46,8 @@ export const k = defineRecipe(
 		list,
 		pageButton: button,
 		gap,
+		/** Positioning wrapper around each page button; hosts the active indicator. */
+		wrapper: 'group relative inline-flex',
 	},
 )
 

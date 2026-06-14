@@ -69,12 +69,7 @@ export function Group({
 			href={href}
 			data-size={resolvedSize}
 			data-group-orientation={orientation}
-			className={cn(
-				'inline-flex',
-				orientation === 'vertical' ? 'flex-col' : 'flex-row',
-				k.join(orientation),
-				className,
-			)}
+			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
 			<Density scale={resolvedSize}>{stamped}</Density>

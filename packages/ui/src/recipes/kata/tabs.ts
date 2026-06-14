@@ -10,6 +10,16 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
 
+/** Tab-group root: stacks the list and panels, swapping axis with orientation. */
+const group = defineRecipe({
+	base: ['flex gap-4'],
+	orientation: {
+		horizontal: 'flex-col',
+		vertical: 'flex-row',
+	},
+	defaults: { orientation: 'horizontal' },
+})
+
 const list = defineRecipe({
 	base: ['flex', ...border.subtleColor],
 	orientation: {
@@ -69,9 +79,26 @@ const indicator = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
+/** Positioning wrapper around each trigger; hosts the active indicator. */
+const wrapper = defineRecipe({
+	base: ['group relative'],
+	stretch: { true: 'flex-1', false: '' },
+	defaults: { stretch: false },
+})
+
+/** Shared trigger chrome layered over the `tab` / `segment.item` surface. */
+const trigger = defineRecipe({
+	base: ['relative z-1'],
+	stretch: { true: 'w-full justify-center', false: '' },
+	defaults: { stretch: false },
+})
+
 export const k = {
+	group,
 	list,
 	tab,
+	wrapper,
+	trigger,
 	indicator,
 	segment: bridge.segment(segment),
 	// Two units flow through this kata: the underline tab list and the

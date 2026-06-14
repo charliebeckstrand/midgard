@@ -93,7 +93,7 @@ export function ResizableGroup({
 				ref={groupRef}
 				data-slot="resizable-group"
 				data-orientation={orientation}
-				className={cn(k.group, orientation === 'horizontal' ? 'flex-row' : 'flex-col', className)}
+				className={cn(k.group({ orientation }), className)}
 			>
 				{wrapped}
 			</div>

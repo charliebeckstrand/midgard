@@ -116,14 +116,14 @@ export function TreeItemContent({
 				)}
 			</span>
 			{prefix != null && (
-				<span data-slot="tree-item-prefix" className="flex flex-none items-center">
+				<span data-slot="tree-item-prefix" className={k.affix}>
 					{prefix}
 				</span>
 			)}
 			{icon && <Icon icon={icon} size={size} />}
 			<span className={k.label}>{label}</span>
 			{suffix != null && (
-				<span data-slot="tree-item-suffix" className="flex flex-none items-center">
+				<span data-slot="tree-item-suffix" className={k.affix}>
 					{suffix}
 				</span>
 			)}
