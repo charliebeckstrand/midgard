@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types",
     "knip": "knip",
     "test": "turbo run test",
+    "test:mcp": "node --test .mcp-servers/a11y/analysis.test.mjs .mcp-servers/vitest/analysis.test.mjs",
     "prepare": "lefthook install"
   },
   "devDependencies": {

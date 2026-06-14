@@ -51,6 +51,13 @@ function discoverBucketFiles(casesDir) {
 		const siblings = siblingCaseFiles(casesDir, moduleFile)
 		buckets[m[1]] = siblings.length ? siblings : [moduleFile]
 	}
+	// Fail loudly rather than silently reporting every component as a gap if the
+	// barrel's export shape changes out from under the deriver.
+	if (Object.keys(buckets).length === 0) {
+		throw new Error(
+			`a11y corpus: no buckets derived from ${join(casesDir, 'index.ts')} — expected \`export { <bucket> } from './<module>'\` re-exports.`,
+		)
+	}
 	return buckets
 }
 

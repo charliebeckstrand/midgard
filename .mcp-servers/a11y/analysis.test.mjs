@@ -5,6 +5,8 @@
 
 import assert from 'node:assert/strict'
 import { existsSync } from 'node:fs'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -61,5 +63,18 @@ test('coverage derives from the corpus and every gap is a real component', () =>
 	const components = new Set(analysis.listComponents())
 	for (const gap of cov.gaps) {
 		assert.ok(components.has(gap), `reported gap ${gap} is not a component`)
+	}
+})
+
+test('createAnalysis throws when the corpus barrel yields no buckets', async () => {
+	const root = await mkdtemp(join(tmpdir(), 'a11y-mcp-barrel-'))
+	const cases = join(root, 'packages', 'ui', 'src', '__tests__', 'a11y', 'cases')
+	await mkdir(cases, { recursive: true })
+	// A barrel the deriver can't read (no `export { x } from './y'` re-exports).
+	await writeFile(join(cases, 'index.ts'), "export * from './baseline'\n")
+	try {
+		assert.throws(() => createAnalysis(root), /no buckets derived/)
+	} finally {
+		await rm(root, { recursive: true, force: true })
 	}
 })
