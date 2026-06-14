@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { bifrost } from './fetch'
 
 export type User = {
@@ -9,14 +10,22 @@ export type User = {
 	updated_at: string
 }
 
-export async function getUser(): Promise<User | undefined> {
+export const getUser = cache(async (): Promise<User | undefined> => {
 	try {
 		const res = await bifrost('/auth/user')
 
-		if (!res.ok) return undefined
+		if (res.status === 401) return undefined
+
+		if (!res.ok) {
+			console.error(`auth: GET /auth/user failed (${res.status})`)
+
+			return undefined
+		}
 
 		return (await res.json()) as User
-	} catch {
+	} catch (error) {
+		console.error('auth: GET /auth/user threw', error)
+
 		return undefined
 	}
-}
+})

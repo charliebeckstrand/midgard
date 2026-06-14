@@ -21,6 +21,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 |---|---|
 | Build | `pnpm --filter auth build` |
 | Watch build | `pnpm --filter auth dev` |
+| Test | `pnpm --filter auth test` |
 | Lint | `pnpm --filter auth lint` |
 | Format | `pnpm --filter auth format` |
 
