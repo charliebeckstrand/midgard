@@ -210,20 +210,34 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 		expect(e.preventDefault).not.toHaveBeenCalled()
 	})
 
-	it('Home jumps to column 0 in the current row', () => {
-		const { api, moveActiveTo } = setup({ active: { row: 1, col: 1 } })
+	// `activeRef.current` may be null before the first focus lands; the Home/End
+	// handlers then default `prev` to { row: 0, col: 0 }.
+	it.each<[string, Coord | null, string, Coord]>([
+		['Home jumps to column 0 in the current row', { row: 1, col: 1 }, 'Home', { row: 1, col: 0 }],
+		[
+			'End jumps to the last editable column in the current row',
+			{ row: 1, col: 0 },
+			'End',
+			{ row: 1, col: cols.length - 1 },
+		],
+		[
+			'Home falls back to {row: 0, col: 0} when activeRef is empty',
+			null,
+			'Home',
+			{ row: 0, col: 0 },
+		],
+		[
+			'End falls back to {row: 0, col: lastEditable} when activeRef is empty',
+			null,
+			'End',
+			{ row: 0, col: cols.length - 1 },
+		],
+	])('%s', (_name, active, key, expected) => {
+		const { api, moveActiveTo } = setup({ active })
 
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Home'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(key))
 
-		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: 0 }, false)
-	})
-
-	it('End jumps to the last editable column in the current row', () => {
-		const { api, moveActiveTo } = setup({ active: { row: 1, col: 0 } })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('End'))
-
-		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: cols.length - 1 }, false)
+		expect(moveActiveTo).toHaveBeenCalledWith(expected, false)
 	})
 
 	it('is a no-op while editing', () => {
@@ -241,33 +255,27 @@ describe('useEditableGridWrapper: onWrapperKeyDown arrow navigation', () => {
 
 		expect(moveActive).not.toHaveBeenCalled()
 	})
-
-	it('Home falls back to {row: 0, col: 0} when activeRef is empty', () => {
-		// `activeRef.current` may be null before the first focus lands; the
-		// Home/End handlers default `prev` to `{ row: 0, col: 0 }` for that case.
-		const { api, moveActiveTo } = setup({ active: null })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Home'))
-
-		expect(moveActiveTo).toHaveBeenCalledWith({ row: 0, col: 0 }, false)
-	})
-
-	it('End falls back to {row: 0, col: lastEditable} when activeRef is empty', () => {
-		const { api, moveActiveTo } = setup({ active: null })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('End'))
-
-		expect(moveActiveTo).toHaveBeenCalledWith({ row: 0, col: cols.length - 1 }, false)
-	})
 })
 
 describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
-	it('Enter begins edit with the formatted cell value', () => {
+	it.each<[string, string, unknown[]]>([
+		['Enter begins edit with the formatted cell value', 'Enter', [{ row: 0, col: 0 }, 'a1']],
+		[
+			'Space begins edit with the formatted value rather than typing a space',
+			' ',
+			[{ row: 0, col: 0 }, 'a1'],
+		],
+		[
+			'printable characters begin edit with the typed value replacing the original',
+			'x',
+			[{ row: 0, col: 0 }, 'x', 'a1'],
+		],
+	])('%s', (_name, key, expectedArgs) => {
 		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
 
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(key))
 
-		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'a1')
+		expect(beginEdit).toHaveBeenCalledWith(...expectedArgs)
 	})
 
 	it('F2 also begins edit', () => {
@@ -276,22 +284,6 @@ describe('useEditableGridWrapper: onWrapperKeyDown editing entry', () => {
 		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('F2'))
 
 		expect(beginEdit).toHaveBeenCalled()
-	})
-
-	it('Space begins edit with the formatted value rather than typing a space', () => {
-		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(' '))
-
-		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'a1')
-	})
-
-	it('printable characters begin edit with the typed value replacing the original', () => {
-		const { api, beginEdit } = setup({ active: { row: 0, col: 0 } })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('x'))
-
-		expect(beginEdit).toHaveBeenCalledWith({ row: 0, col: 0 }, 'x', 'a1')
 	})
 
 	it('ignores printable characters combined with a modifier', () => {
@@ -396,26 +388,22 @@ describe('useEditableGridWrapper: onWrapperKeyDown delete and escape', () => {
 		expect(setAnchor).not.toHaveBeenCalled()
 	})
 
-	it('Enter is a no-op when no active cell', () => {
-		const { api, beginEdit } = setup({ active: null })
+	it.each<[string, Coord | null, string]>([
+		['Enter is a no-op when no active cell', null, 'Enter'],
+		[
+			'Enter is a no-op when the active cell points past the row range',
+			{ row: 99, col: 0 },
+			'Enter',
+		],
+		[
+			'printable characters are ignored when active points past the row range',
+			{ row: 99, col: 0 },
+			'x',
+		],
+	])('%s', (_name, active, key) => {
+		const { api, beginEdit } = setup({ active })
 
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
-
-		expect(beginEdit).not.toHaveBeenCalled()
-	})
-
-	it('Enter is a no-op when the active cell points past the row range', () => {
-		const { api, beginEdit } = setup({ active: { row: 99, col: 0 } })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('Enter'))
-
-		expect(beginEdit).not.toHaveBeenCalled()
-	})
-
-	it('printable characters are ignored when active points past the row range', () => {
-		const { api, beginEdit } = setup({ active: { row: 99, col: 0 } })
-
-		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('x'))
+		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>(key))
 
 		expect(beginEdit).not.toHaveBeenCalled()
 	})
