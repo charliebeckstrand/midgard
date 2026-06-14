@@ -85,7 +85,12 @@ function Prose({ text }: { text: string }) {
 	)
 }
 
-/** Props for {@link DocDescription}; the API description text, plus the resolved links for any `{@link}` tokens it contains. */
+/**
+ * A single resolved `{@link}` reference: an external `url` renders as a plain
+ * link, a resolved symbol as a rose chip (hover card with signature + summary
+ * when `card`, otherwise a `title` fallback), and an unresolved name as a bare
+ * chip with no detail.
+ */
 function LinkBadge({ token, link, card }: { token: LinkToken; link?: DocLink; card: boolean }) {
 	const label = token.label ?? token.target
 
