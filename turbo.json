@@ -24,7 +24,7 @@
       "persistent": true
     },
     "lint": {
-      "inputs": ["src/**", "app/**", "$TURBO_ROOT$/biome.json"]
+      "inputs": ["src/**", "app/**", "*.config.ts", "$TURBO_ROOT$/biome.json"]
     },
     "test": {
       "dependsOn": ["^build"],
