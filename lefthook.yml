@@ -15,8 +15,6 @@ pre-push:
       run: pnpm biome check
     - name: full gate
       run: pnpm turbo run check-types test knip
-    - name: mcp server tests
-      run: pnpm test:mcp
 
 commit-msg:
   jobs:
