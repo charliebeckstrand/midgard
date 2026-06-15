@@ -1,20 +1,12 @@
 'use client'
 
-import { Marked } from 'marked'
 import type { ReactNode } from 'react'
 import { Badge } from '../../../components/badge'
 import { Link } from '../../../components/link'
 import { Markdown } from '../../../components/markdown'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { cn } from '../../../core'
-import { k } from '../../../recipes/kata/markdown'
 import { LINK_RE, type LinkToken, parseLinkToken } from '../../api-reference/link-syntax'
 import type { DocLink } from '../../api-reference/types'
-
-// Local marked instance for the inline prose runs between link chips; mirrors
-// the Markdown component's GFM config but parses inline so a fragment is not
-// wrapped in its own block `<p>`.
-const md = new Marked({ gfm: true })
 
 /**
  * Renders an API-reference description, resolving the `{@link}` tokens the
@@ -76,13 +68,7 @@ function renderSegments(text: string, links: Record<string, DocLink>, card: bool
 
 /** An inline prose run, GFM-parsed so backtick code and emphasis render in flow. */
 function Prose({ text }: { text: string }) {
-	return (
-		<span
-			className={cn(k.base)}
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: renders this library's trusted API descriptions; see the Markdown component's security note
-			dangerouslySetInnerHTML={{ __html: md.parseInline(text, { async: false }) }}
-		/>
-	)
+	return <Markdown inline>{text}</Markdown>
 }
 
 /**

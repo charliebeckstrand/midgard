@@ -1,54 +1,67 @@
-// Prose styling for the HTML that `marked` emits. The Markdown component drops
-// the parsed HTML into a single wrapper `<div>`; these descendant utilities
-// style the generated elements. There is no top-level variants axis — one
-// curated prose surface — so the kata is a plain object literal (kata README §2).
+// Per-element prose styling for the Markdown component. The renderer walks
+// marked's tokens to a React element tree and pulls each element's classes from
+// the matching slot below, so styling rides on the element it targets rather
+// than projecting onto the wrapper through descendant selectors. One curated
+// prose surface, no variants axis — a plain object literal (kata README §2).
+// Tone, sizing, code chrome, link colour, and borders compose kiso tokens; only
+// prose-specific rhythm (margins, list markers) stays as bespoke utilities.
+import { iro, ji, kasane, omote, sen, shaku } from '../kiso'
+
+const { palette, text } = iro
+const { size, weight } = ji
+const { rounded } = kasane
+const { mark } = shaku
+
+const headingBase = [...text.default, weight.semibold]
+
 export const k = {
-	base: [
-		// Secondary body tone; first/last child margins collapse so the block sits
-		// flush in its container (API-reference rows, Example previews).
-		'text-zinc-600 dark:text-zinc-400',
-		'[&>:first-child]:mt-0 [&>:last-child]:mb-0',
+	// Body tone, plus a first/last-child margin collapse so the prose sits flush
+	// in its container (API-reference rows, Example previews).
+	root: [...text.muted, '[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
+	// The `inline` prop: body tone, no block rhythm.
+	inline: [...text.muted],
 
-		// Headings
-		'[&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-xl [&_h1]:font-semibold [&_h1]:text-zinc-900 dark:[&_h1]:text-white',
-		'[&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-zinc-900 dark:[&_h2]:text-white',
-		'[&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-zinc-900 dark:[&_h3]:text-white',
-		'[&_h4]:mt-4 [&_h4]:mb-2 [&_h4]:text-sm [&_h4]:font-semibold [&_h4]:text-zinc-900 dark:[&_h4]:text-white',
+	heading: {
+		1: [...headingBase, size.xl, 'mt-6 mb-3'],
+		2: [...headingBase, size.lg, 'mt-6 mb-3'],
+		3: [...headingBase, size.md, 'mt-5 mb-2'],
+		4: [...headingBase, size.sm, 'mt-4 mb-2'],
+		5: [...headingBase, size.sm, 'mt-4 mb-2'],
+		6: [...headingBase, size.sm, 'mt-4 mb-2'],
+	},
 
-		// Paragraphs, emphasis, links
-		'[&_p]:my-3',
-		'[&_strong]:font-semibold [&_strong]:text-zinc-900 dark:[&_strong]:text-white',
-		'[&_em]:italic',
-		'[&_del]:line-through',
-		'[&_a]:font-medium [&_a]:text-blue-600 dark:[&_a]:text-blue-400 [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-blue-500',
-
-		// Lists; nested lists and task-list items tighten up.
-		'[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5',
-		'[&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5',
-		'[&_li]:my-1',
-		'[&_li>ul]:my-1 [&_li>ol]:my-1',
-		'[&_li:has(input)]:list-none [&_li_input]:mr-2',
-
-		// Inline code
-		'[&_code]:rounded [&_code]:bg-zinc-100 dark:[&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-zinc-900 dark:[&_code]:text-zinc-100',
-
-		// Fenced code blocks sit a shade lighter than their surface: zinc-900 over
-		// the zinc-950 mobile content area, and zinc-800 on desktop, where the
-		// sidebar layout's dark content surface elevates to zinc-900.
-		'[&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-zinc-900 dark:lg:[&_pre]:bg-zinc-800 [&_pre]:p-4 [&_pre]:text-sm [&_pre]:text-zinc-100',
-		// Reset the inline-code chrome on the nested `<code>`.
-		'[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit',
-
-		// Blockquote, rule
-		'[&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-zinc-300 dark:[&_blockquote]:border-zinc-700 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-zinc-500 dark:[&_blockquote]:text-zinc-400',
-		'[&_hr]:my-6 [&_hr]:border-zinc-200 dark:[&_hr]:border-zinc-800',
-
-		// Tables (GFM)
-		'[&_table]:my-4 [&_table]:w-full [&_table]:text-left',
-		'[&_th]:border-b [&_th]:border-zinc-300 dark:[&_th]:border-zinc-700 [&_th]:px-3 [&_th]:py-2 [&_th]:font-semibold [&_th]:text-zinc-900 dark:[&_th]:text-white',
-		'[&_td]:border-b [&_td]:border-zinc-200 dark:[&_td]:border-zinc-800 [&_td]:px-3 [&_td]:py-2',
-
-		// Images
-		'[&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg',
+	paragraph: 'my-3',
+	strong: [...text.default, weight.semibold],
+	em: 'italic',
+	del: 'line-through',
+	link: [
+		...palette.bare.text.blue,
+		...palette.bare.hover.blue,
+		weight.medium,
+		'underline underline-offset-2',
 	],
+
+	// A list item tightens any nested list and drops its marker for a task item.
+	ul: 'my-3 list-disc pl-5',
+	ol: 'my-3 list-decimal pl-5',
+	li: 'my-1 [&>ul]:my-1 [&>ol]:my-1',
+	task: 'list-none',
+	checkbox: 'mr-2',
+
+	// Inline code reuses the shared `mark` chrome; fenced blocks sit on the kiso
+	// code canvas with light text, and the nested `<code>` inherits both.
+	code: [...mark.base, ...mark.size.md, ...text.default],
+	pre: [omote.bg.code, rounded.lg, 'my-4 overflow-x-auto p-4', size.sm, 'text-zinc-100'],
+	preCode: 'font-mono text-inherit',
+
+	blockquote: [...text.muted, 'my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700'],
+	hr: ['border-0 border-t', ...sen.border.defaultColor, 'my-6'],
+
+	// Emphasis rule under the header, default rule under cells.
+	table: 'my-4 w-full text-left',
+	th: [...text.default, weight.semibold, 'border-b px-3 py-2', ...sen.border.emphasisColor],
+	td: ['border-b px-3 py-2', ...sen.border.defaultColor],
+	align: { left: 'text-left', right: 'text-right', center: 'text-center' },
+
+	img: 'my-4 max-w-full rounded-lg',
 } as const
