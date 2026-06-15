@@ -19,7 +19,7 @@ export const k = {
 	// in its container (API-reference rows, Example previews).
 	root: [...text.muted, '[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
 	// The `inline` prop: body tone, no block rhythm.
-	inline: [...text.muted, 'leading-relaxed'],
+	inline: [...text.muted],
 
 	heading: {
 		1: [...headingBase, size.xl, 'mt-6 mb-3'],
@@ -50,7 +50,7 @@ export const k = {
 
 	// Inline code reuses the shared `mark` chrome; fenced blocks sit on the kiso
 	// code canvas with light text, and the nested `<code>` inherits both.
-	code: [...mark.base, ...mark.size.md, ...text.default],
+	code: [...mark.base, ...mark.size.sm, ...text.default],
 	pre: [omote.bg.code, rounded.lg, 'my-4 overflow-x-auto p-4', size.sm, 'text-zinc-100'],
 	preCode: 'font-mono text-inherit',
 
