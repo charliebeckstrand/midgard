@@ -5,14 +5,14 @@ pre-commit:
       run: pnpm biome check --staged --no-errors-on-unmatched
     - name: ui related tests
       root: packages/ui/
-      glob: '*.{ts,tsx}'
+      glob: '**/*.{ts,tsx}'
       run: pnpm test:related --passWithNoTests {staged_files}
 
 pre-push:
   parallel: true
   jobs:
     - name: biome check
-      run: pnpm biome check
+      run: pnpm biome check .
     - name: full gate
       run: pnpm turbo run check-types test knip
 
