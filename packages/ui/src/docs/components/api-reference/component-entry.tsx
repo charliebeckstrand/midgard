@@ -38,7 +38,7 @@ export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 
 	return (
 		<div className="space-y-4">
-			{entry.description && <DocDescription description={entry.description} links={entry.links} />}
+			{entry.description && <DocDescription description={entry.description} />}
 			{hasAny ? (
 				<div className="space-y-6">
 					{props.length > 0 && <Section title="Props" rows={props} />}
