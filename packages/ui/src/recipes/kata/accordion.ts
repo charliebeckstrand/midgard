@@ -3,7 +3,7 @@ import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, divider } = sen
@@ -43,7 +43,6 @@ export const k = defineRecipe(
 				text.muted,
 				fg.hover,
 				'text-left',
-				weight.medium,
 				...mode(
 					'group-data-[open]/accordion-item:text-zinc-950',
 					'dark:group-data-[open]/accordion-item:text-white',

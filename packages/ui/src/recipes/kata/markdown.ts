@@ -30,7 +30,7 @@ export const k = {
 		'[&_li:has(input)]:list-none [&_li_input]:mr-2',
 
 		// Inline code
-		'[&_code]:rounded [&_code]:bg-zinc-100 dark:[&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-zinc-900 dark:[&_code]:text-zinc-100',
+		'[&_code]:rounded [&_code]:bg-zinc-100 dark:[&_code]:bg-white/10 [&_code]:px-1.5 [&_code]:py-1 [&_code]:font-mono [&_code]:text-sm [&_code]:text-zinc-900 dark:[&_code]:text-zinc-100',
 
 		// Fenced code blocks sit a shade lighter than their surface: zinc-900 over
 		// the zinc-950 mobile content area, and zinc-800 on desktop, where the
