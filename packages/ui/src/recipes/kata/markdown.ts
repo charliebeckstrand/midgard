@@ -19,7 +19,7 @@ export const k = {
 	// in its container (API-reference rows, Example previews).
 	root: [...text.muted, '[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
 	// The `inline` prop: body tone, no block rhythm.
-	inline: [...text.muted],
+	inline: [...text.muted, 'leading-relaxed'],
 
 	heading: {
 		1: [...headingBase, size.xl, 'mt-6 mb-3'],

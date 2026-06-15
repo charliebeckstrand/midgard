@@ -90,16 +90,20 @@ function LinkBadge({ token, link, card }: { token: LinkToken; link?: DocLink; ca
 
 	if (!link || !card) {
 		return (
-			<Badge variant="soft" title={link ? quickInfo(link) : undefined}>
+			<Badge variant="outline" size="sm" title={link ? quickInfo(link) : undefined}>
 				{label}
 			</Badge>
 		)
 	}
 
 	return (
-		<Tooltip placement="top">
+		<Tooltip placement="top" interactive>
 			<TooltipTrigger>
-				<Badge variant="soft" data-has-info={!!(link.signature || link.summary) || undefined}>
+				<Badge
+					variant="outline"
+					size="sm"
+					data-has-info={!!(link.signature || link.summary) || undefined}
+				>
 					{label}
 				</Badge>
 			</TooltipTrigger>
@@ -110,7 +114,7 @@ function LinkBadge({ token, link, card }: { token: LinkToken; link?: DocLink; ca
 							{link.signature}
 						</div>
 					)}
-					{link.summary && <Markdown className="text-sm">{link.summary}</Markdown>}
+					{link.summary && <Markdown className="text-sm leading-6.5">{link.summary}</Markdown>}
 				</div>
 			</TooltipContent>
 		</Tooltip>
