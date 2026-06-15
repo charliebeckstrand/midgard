@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
@@ -25,6 +25,14 @@ vi.mock('motion', async (importOriginal) => {
 })
 
 describe('ShinyText', () => {
+	// The mocked useReducedMotion reads matchMedia on every render. Under the vmThreads
+	// pool, a concurrent reduced-motion test can leave its stub active here. These
+	// motion-allowed cases would then skip the sweep. Pin matchMedia non-reduced before
+	// each test; the reduced-motion case re-stubs it.
+	beforeEach(() => {
+		stubMatchMedia(() => false)
+	})
+
 	afterEach(() => {
 		vi.unstubAllGlobals()
 
