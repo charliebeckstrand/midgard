@@ -31,7 +31,19 @@ export const k = defineRecipe(
 		// text-sm line by 2px each side; `-my-0.5` cancels the overhang so the row
 		// stays one line tall, the glyph centres on the first code line, and a
 		// single-line block reads as vertically centred.
-		copy: ['-my-0.5', 'text-zinc-400', 'hover:not-disabled:text-white'],
+		//
+		// The canvas is the fixed-dark shiki theme, so the bare button's light-mode
+		// foreground (zinc-500 rest, zinc-950 hover) is too dark to read here; force
+		// its dark-mode values in light mode too. Gate on `aria-[pressed=false]` so
+		// the override paints only the rest (clipboard) state and yields to the
+		// copied state's `color="green"` palette. Unscoped, the unprefixed
+		// `text-zinc-400` clobbers green's light rest shade (dark is spared only
+		// because its green is `dark:`-prefixed, a separate tailwind-merge group).
+		copy: [
+			'-my-0.5',
+			'aria-[pressed=false]:text-zinc-400',
+			'aria-[pressed=false]:hover:not-disabled:text-white',
+		],
 	},
 )
 
