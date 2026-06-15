@@ -1,17 +1,9 @@
 'use client'
 
-import { Marked } from 'marked'
-import { Fragment, type ReactNode } from 'react'
-import { Link } from '../../../components/link'
+import type { ReactNode } from 'react'
 import { Markdown } from '../../../components/markdown'
-import { cn } from '../../../core'
-import { k } from '../../../recipes/kata/markdown'
-import { LINK_RE, type LinkToken, parseLinkToken } from '../../api-reference/link-syntax'
-
-// Local marked instance for the inline prose runs between link references; mirrors
-// the Markdown component's GFM config but parses inline so a fragment is not
-// wrapped in its own block `<p>`.
-const md = new Marked({ gfm: true })
+import { LINK_RE, parseLinkToken } from '../../api-reference/link-syntax'
+import { LinkText, Prose } from './doc-inline'
 
 /**
  * Renders an API-reference description, resolving the `{@link}` tokens the
@@ -25,9 +17,7 @@ export function DocDescription({ description }: { description?: string }) {
 	if (!description) return null
 
 	// Link-free descriptions keep their original block-Markdown rendering; only
-	// those carrying a `{@link}` token take the segmented path. Keyed on the
-	// token so URL and symbol references parse out of the raw syntax instead of
-	// leaking through.
+	// those carrying a `{@link}` token take the segmented path.
 	if (!new RegExp(LINK_RE.source).test(description)) return <Markdown>{description}</Markdown>
 
 	return <div data-slot="doc-description">{renderSegments(description)}</div>
@@ -51,7 +41,7 @@ function renderSegments(text: string): ReactNode[] {
 			nodes.push(<Prose key={key++} text={text.slice(last, index)} />)
 		}
 
-		nodes.push(renderLink(parseLinkToken(match[1] ?? ''), key++))
+		nodes.push(<LinkText key={key++} token={parseLinkToken(match[1] ?? '')} />)
 
 		last = index + match[0].length
 	}
@@ -59,34 +49,4 @@ function renderSegments(text: string): ReactNode[] {
 	if (last < text.length) nodes.push(<Prose key={key++} text={text.slice(last)} />)
 
 	return nodes
-}
-
-/** An inline prose run, GFM-parsed so backtick code and emphasis render in flow. */
-function Prose({ text }: { text: string }) {
-	return (
-		<span
-			className={cn(k.base)}
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: renders this library's trusted API descriptions; see the Markdown component's security note
-			dangerouslySetInnerHTML={{ __html: md.parseInline(text, { async: false }) }}
-		/>
-	)
-}
-
-/**
- * A single `{@link}` reference rendered as just its name: an external `url` stays
- * a plain anchor, every symbol reference collapses to its bare target (or
- * pipe-form label) as inline text — no chip, no hover card.
- */
-function renderLink(token: LinkToken, key: number): ReactNode {
-	const label = token.label ?? token.target
-
-	if (token.url) {
-		return (
-			<Link key={key} color="blue" underline href={token.url} target="_blank" rel="noreferrer">
-				{label}
-			</Link>
-		)
-	}
-
-	return <Fragment key={key}>{label}</Fragment>
 }

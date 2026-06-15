@@ -39,22 +39,25 @@ describe('DefaultValue', () => {
 		expect(value).toHaveClass(hue)
 	})
 
-	it('renders a descriptive default as Markdown with `{@link}` resolved to a name', () => {
+	it('renders a descriptive default as prose, colouring literals and resolving links', () => {
 		const { container } = renderUI(
 			<DefaultValue value="`'horizontal'` inside a {@link Navbar}, otherwise `'vertical'`" />,
 		)
 
-		// A descriptive default is prose, not a single coloured literal.
-		expect(bySlot(container, 'default-value')).not.toBeInTheDocument()
+		const value = bySlot(container, 'default-value')
 
-		expect(bySlot(container, 'doc-description')).toBeInTheDocument()
+		expect(value).toBeInTheDocument()
 
-		expect(container.textContent).toContain('Navbar')
+		// The `{@link}` collapses to the bare name; the prose renders in flow.
+		expect(value).toHaveTextContent("'horizontal' inside a Navbar, otherwise 'vertical'")
 
 		expect(container.textContent).not.toContain('{@link')
 
-		expect(container.textContent).toContain('horizontal')
+		// Each backtick literal renders bare in the string hue.
+		const literals = Array.from(value?.querySelectorAll('code') ?? [])
 
-		expect(container.textContent).toContain('vertical')
+		expect(literals.map((el) => el.textContent)).toEqual(["'horizontal'", "'vertical'"])
+
+		for (const literal of literals) expect(literal).toHaveClass('text-emerald-700')
 	})
 })
