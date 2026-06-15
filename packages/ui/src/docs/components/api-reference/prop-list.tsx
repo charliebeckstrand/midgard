@@ -10,6 +10,7 @@ import { Stack } from '../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import type { PropDef } from '../../api-reference/types'
+import { DefaultValue } from './default-value'
 import { DocDescription } from './doc-description'
 import { TypeCell } from './type-cell'
 
@@ -53,30 +54,21 @@ function PropRow({ prop }: { prop: PropDef }) {
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent>
-								<DocDescription description={prop.description} links={prop.links} card={false} />
+								<DocDescription description={prop.description} />
 							</TooltipContent>
 						</Tooltip>
 					)}
 				</div>
-				{prop.default && (
-					<Tooltip>
-						<TooltipTrigger>
-							<Badge color="zinc" variant="solid">
-								{prop.default}
-							</Badge>
-						</TooltipTrigger>
-						<TooltipContent>Default</TooltipContent>
-					</Tooltip>
-				)}
+				{prop.default && <DefaultValue value={prop.default} />}
 				{prop.required && (
-					<Badge color="amber" variant="soft">
+					<Badge color="amber" variant="soft" size="sm">
 						required
 					</Badge>
 				)}
 				{deprecated && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge color="red" variant="soft">
+							<Badge color="red" variant="soft" size="sm">
 								deprecated
 							</Badge>
 						</TooltipTrigger>

@@ -11,55 +11,35 @@ describe('DocDescription', () => {
 		expect(bySlot(container, 'doc-description')).not.toBeInTheDocument()
 	})
 
-	it('renders a resolved `{@link}` as a badge carrying the target name', () => {
+	it('renders a resolved `{@link}` as the bare component name, not a badge', () => {
 		const { container } = renderUI(
-			<DocDescription
-				description="Hint for a {@link CommandPaletteItem}, built on Kbd."
-				links={{ CommandPaletteItem: { signature: 'function CommandPaletteItem(): Element' } }}
-			/>,
+			<DocDescription description="Hint for a {@link CommandPaletteItem}, built on Kbd." />,
 		)
 
 		expect(bySlot(container, 'doc-description')).toBeInTheDocument()
 
-		// The badge is the interactive tooltip trigger when a card is available;
-		// `data-has-info` marks that the hover card carries a signature or summary.
-		const badge = screen.getByText('CommandPaletteItem')
-
-		expect(badge).toHaveAttribute('data-has-info', 'true')
-
-		expect(container.textContent).toContain('built on Kbd.')
-	})
-
-	it('prefers the pipe-form label over the target name', () => {
-		renderUI(
-			<DocDescription
-				description="Same as {@link KbdProps|the kbd props}."
-				links={{ KbdProps: { signature: 'type KbdProps' } }}
-			/>,
-		)
-
-		expect(screen.getByText('the kbd props')).toBeInTheDocument()
-	})
-
-	it('drops the hover card when `card` is false, keeping the reference as a plain badge', () => {
-		const { container } = renderUI(
-			<DocDescription
-				description="See {@link KbdProps}."
-				links={{ KbdProps: { signature: 'type KbdProps' } }}
-				card={false}
-			/>,
-		)
+		// The reference collapses to plain text in flow — no badge chip, no hover
+		// card trigger.
+		expect(bySlot(container, 'badge')).not.toBeInTheDocument()
 
 		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 
-		const badge = bySlot(container, 'badge')
+		expect(container.textContent).toContain('Hint for a CommandPaletteItem, built on Kbd.')
 
-		expect(badge?.textContent).toBe('KbdProps')
-
-		expect(badge).toHaveAttribute('title', 'type KbdProps')
+		expect(container.textContent).not.toContain('{@link')
 	})
 
-	it('renders an external URL link as an anchor even with no resolved links', () => {
+	it('prefers the pipe-form label over the target name', () => {
+		const { container } = renderUI(
+			<DocDescription description="Same as {@link KbdProps|the kbd props}." />,
+		)
+
+		expect(container.textContent).toContain('the kbd props')
+
+		expect(container.textContent).not.toContain('KbdProps')
+	})
+
+	it('renders an external URL link as an anchor', () => {
 		renderUI(<DocDescription description="See {@link https://example.com}." />)
 
 		const anchor = screen.getByRole('link', { name: 'https://example.com' })
