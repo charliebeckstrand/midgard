@@ -14,15 +14,15 @@ export const setupFiles = [
 	'./src/__tests__/setup/restore-prototype-focus.ts',
 ]
 
-// Per-test isolation, shared by the same two projects. The vmThreads pool gives
-// each test file a fresh module graph, but within a file a vi.spyOn or
-// vi.stubGlobal persists across siblings unless restored — and sequence.shuffle
-// makes that sibling order nondeterministic, so an unrestored spy/stub leaks
-// into whichever test runs next. restoreMocks reverts every spy to its original
-// before each test; unstubGlobals reverts vi.stubGlobal. Both run before
-// beforeEach, so beforeEach-configured mocks are reapplied and unaffected. (The
-// global jsdom stubs in setup/jsdom-stubs.ts use Object.defineProperty, not
-// vi.stubGlobal, so unstubGlobals leaves them intact.)
+// Per-test isolation, shared by the default and MCP harness projects so the two
+// can't drift. The vmThreads pool resets the module graph per file, but within a
+// file a vi.spyOn or vi.stubGlobal outlives its test unless restored, and
+// sequence.shuffle randomizes sibling order — so an unrestored spy/stub leaks
+// into whichever test runs next. restoreMocks runs vi.restoreAllMocks() before
+// each test and unstubGlobals runs vi.unstubAllGlobals(), both ahead of
+// beforeEach so beforeEach/test-body setup is reapplied untouched. mockRestore
+// only reverts vi.spyOn() spies, so the plain vi.fn() and Object.defineProperty
+// jsdom stubs in setup/ are left intact.
 export const testIsolation = {
 	restoreMocks: true,
 	unstubGlobals: true,
