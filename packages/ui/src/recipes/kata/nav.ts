@@ -2,7 +2,7 @@ import { defineRecipe } from '../../core/recipe'
 import { hannou, ji, kasane, narabi, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
-const { size, weight } = ji
+const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { icon } = shaku
@@ -25,7 +25,6 @@ const itemShell = [
 	'gap-2',
 	size.md,
 	'text-left',
-	weight.medium,
 	rounded.lg,
 ]
 
