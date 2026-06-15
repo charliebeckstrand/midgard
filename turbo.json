@@ -8,11 +8,13 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "check-types": {
-      "dependsOn": ["^build"],
       "inputs": [
         "src/**",
         "app/**",
+        "*.config.ts",
         "tsconfig.json",
+        "tsconfig.scripts.json",
+        "tsconfig.docs.json",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.nextjs.json"
       ]
