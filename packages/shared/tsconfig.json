@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
-		"lib": ["ES2023", "DOM", "DOM.Iterable"]
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"incremental": true,
+		"tsBuildInfoFile": ".tsbuildinfo/shared.tsbuildinfo"
 	},
 	"include": ["src"]
 }

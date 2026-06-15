@@ -19,6 +19,7 @@
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
+		"check-types": "tsc --noEmit",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write ."
