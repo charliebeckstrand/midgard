@@ -26,6 +26,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 * @defaultValue true
 	 */
 	animate?: boolean
+	color?: 'success' | undefined
 	size?: Size
 	className?: string
 	ref?: Ref<HTMLButtonElement>
@@ -44,6 +45,7 @@ export function ToggleIconButton({
 	icon,
 	pressedIcon = icon,
 	animate = true,
+	color,
 	size,
 	className,
 	...props
@@ -53,6 +55,7 @@ export function ToggleIconButton({
 			<Button
 				{...props}
 				variant="bare"
+				color={pressed ? 'green' : undefined}
 				size={size}
 				data-slot="toggle-icon-button"
 				aria-pressed={pressed}
@@ -70,6 +73,7 @@ export function ToggleIconButton({
 		<Button
 			{...props}
 			variant="bare"
+			color={pressed ? 'green' : undefined}
 			size={size}
 			data-slot="toggle-icon-button"
 			aria-pressed={pressed}

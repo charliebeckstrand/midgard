@@ -40,4 +40,66 @@ describe('Markdown', () => {
 
 		expect(bySlot(container, 'markdown')).toHaveClass('custom-class')
 	})
+
+	it('styles each element directly instead of projecting from the wrapper', () => {
+		const { container } = renderUI(<Markdown>{'# Title'}</Markdown>)
+
+		const el = bySlot(container, 'markdown')
+
+		// The heading carries its own type-scale class...
+		expect(el?.querySelector('h1')).toHaveClass('text-xl')
+
+		// ...and the wrapper no longer pours descendant-projection utilities
+		// (`[&_h1]:…`) into its own class attribute.
+		expect(el?.className).not.toMatch(/\[&_/)
+	})
+
+	it('renders inline mode into a span without block wrapping', () => {
+		const { container } = renderUI(<Markdown inline>{'Some **bold** text'}</Markdown>)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.tagName).toBe('SPAN')
+
+		expect(el?.querySelector('strong')?.textContent).toBe('bold')
+
+		expect(el?.querySelector('p')).toBeNull()
+	})
+
+	it('renders GFM task lists with a disabled checkbox', () => {
+		const { container } = renderUI(<Markdown>{'- [x] done\n- [ ] todo'}</Markdown>)
+
+		const boxes = bySlot(container, 'markdown')?.querySelectorAll('input[type="checkbox"]')
+
+		expect(boxes).toHaveLength(2)
+
+		expect((boxes?.[0] as HTMLInputElement).checked).toBe(true)
+
+		expect((boxes?.[1] as HTMLInputElement).checked).toBe(false)
+
+		expect(boxes?.[0]).toBeDisabled()
+	})
+
+	it('renders GFM tables', () => {
+		const { container } = renderUI(<Markdown>{'| a | b |\n|---|---|\n| 1 | 2 |'}</Markdown>)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelectorAll('th')).toHaveLength(2)
+
+		expect(el?.querySelector('tbody td')?.textContent).toBe('1')
+	})
+
+	it('drops raw HTML in the source instead of injecting it', () => {
+		const { container } = renderUI(
+			<Markdown>{'<script>alert(1)</script>\n\nSafe **text**.'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('script')).toBeNull()
+
+		// Surrounding Markdown still renders.
+		expect(el?.querySelector('strong')?.textContent).toBe('text')
+	})
 })

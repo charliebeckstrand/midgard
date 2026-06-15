@@ -16,8 +16,8 @@ const KIND_COLOR: Record<LiteralKind, string> = {
 	string: 'text-emerald-700 dark:text-emerald-400',
 	number: 'text-amber-700 dark:text-amber-400',
 	boolean: 'text-violet-600 dark:text-violet-400',
-	nullish: 'text-zinc-500 dark:text-zinc-400',
-	array: 'text-sky-700 dark:text-sky-400',
+	nullish: 'text-mist-600 dark:text-mist-400',
+	array: 'text-sky-600 dark:text-sky-400',
 	object: 'text-rose-600 dark:text-rose-400',
 }
 
@@ -35,7 +35,7 @@ export function DefaultValue({ value }: { value: string }) {
 	return (
 		<span
 			data-slot="default-value"
-			className={cn('text-sm', kind && 'font-mono', kind ? KIND_COLOR[kind] : undefined)}
+			className={cn(kind && 'font-mono', kind ? KIND_COLOR[kind] : undefined)}
 		>
 			{kind ? literalText(value) : renderProse(value)}
 		</span>

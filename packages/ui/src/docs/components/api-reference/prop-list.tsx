@@ -1,8 +1,7 @@
 'use client'
 
-import { Info } from 'lucide-react'
+import { Asterisk } from 'lucide-react'
 import { Badge } from '../../../components/badge'
-import { Button } from '../../../components/button'
 import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
 import { Icon } from '../../../components/icon'
@@ -37,48 +36,44 @@ function PropRow({ prop }: { prop: PropDef }) {
 	return (
 		<Stack gap="sm" className="py-4 first:pt-0 last:pb-0">
 			<Flex align="center" gap="sm" wrap>
-				<div className="flex items-center gap-1">
-					<span
-						className={cn(
-							'font-mono font-medium text-zinc-900 dark:text-white',
-							deprecated && 'line-through decoration-zinc-400',
-						)}
-					>
-						{prop.name}
-					</span>
-					{prop.description && (
-						<Tooltip>
-							<TooltipTrigger>
-								<Button variant="bare" size="sm" aria-label={`${prop.name} description`}>
-									<Icon icon={<Info />} />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<DocDescription description={prop.description} />
-							</TooltipContent>
-						</Tooltip>
-					)}
+				<div className="flex items-center gap-2">
+					<div className="flex flex-col gap-2">
+						<span
+							className={cn(
+								'flex items-center gap-2 font-mono font-medium text-zinc-900 dark:text-white',
+								deprecated && 'line-through decoration-zinc-400',
+							)}
+						>
+							<div className="flex items-center gap-1">
+								<span>{prop.name}</span>
+								{prop.required && (
+									<Tooltip>
+										<TooltipTrigger>
+											<span className="text-red-600 dark:text-red-500">
+												<Icon icon={<Asterisk />} />
+											</span>
+										</TooltipTrigger>
+										<TooltipContent>Required</TooltipContent>
+									</Tooltip>
+								)}
+							</div>
+							{prop.default && <DefaultValue value={prop.default} />}
+							{deprecated && (
+								<Tooltip>
+									<TooltipTrigger>
+										<Badge color="red" variant="soft">
+											deprecated
+										</Badge>
+									</TooltipTrigger>
+									{typeof deprecated === 'string' && <TooltipContent>{deprecated}</TooltipContent>}
+								</Tooltip>
+							)}
+						</span>
+					</div>
 				</div>
-				{prop.default && <DefaultValue value={prop.default} />}
-				{prop.required && (
-					<Badge color="amber" variant="soft" size="sm">
-						required
-					</Badge>
-				)}
-				{deprecated && (
-					<Tooltip>
-						<TooltipTrigger>
-							<Badge color="red" variant="soft" size="sm">
-								deprecated
-							</Badge>
-						</TooltipTrigger>
-						{typeof deprecated === 'string' && <TooltipContent>{deprecated}</TooltipContent>}
-					</Tooltip>
-				)}
 			</Flex>
-			<Flex align="center" gap="md" wrap className="text-sm">
-				<TypeCell prop={prop} />
-			</Flex>
+			<TypeCell prop={prop} />
+			{prop.description && <DocDescription description={prop.description} />}
 			{prop.example && <CodeBlock code={prop.example} />}
 		</Stack>
 	)

@@ -2,8 +2,6 @@
 
 import { Check, Clipboard } from 'lucide-react'
 import { type ComponentPropsWithoutRef, type ReactElement, useCallback } from 'react'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/copy-button'
 import type { Size } from '../../types'
 import { ToggleIconButton } from '../toggle-icon-button'
 import { useCopyButtonState } from './use-copy-button-state'
@@ -83,7 +81,7 @@ export function CopyButton({
 			// In the copied state, the label is always "Copied"; at rest, the caller's
 			// label wins over the generic default.
 			aria-label={copied ? 'Copied' : (ariaLabel ?? 'Copy to clipboard')}
-			className={cn(k({ copied }).base, className)}
+			className={className}
 		/>
 	)
 }

@@ -26,8 +26,8 @@ describe('DefaultValue', () => {
 	it.each([
 		['true', 'boolean', 'text-violet-600'],
 		['42', 'number', 'text-amber-700'],
-		['null', 'nullish', 'text-zinc-500'],
-		['[]', 'array', 'text-sky-700'],
+		['null', 'nullish', 'text-mist-600'],
+		['[]', 'array', 'text-sky-600'],
 		['{}', 'object', 'text-rose-600'],
 	])('colours %s as a %s', (input, _kind, hue) => {
 		const { container } = renderUI(<DefaultValue value={input} />)

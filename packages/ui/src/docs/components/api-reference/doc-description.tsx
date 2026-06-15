@@ -13,14 +13,25 @@ import { LinkText, Prose } from './doc-inline'
  * a plain anchor, a symbol reference renders as the component name in flow with
  * no chip or hover card.
  */
-export function DocDescription({ description }: { description?: string }) {
+export function DocDescription({
+	description,
+	className,
+}: {
+	description?: string
+	className?: string
+}) {
 	if (!description) return null
 
 	// Link-free descriptions keep their original block-Markdown rendering; only
 	// those carrying a `{@link}` token take the segmented path.
-	if (!new RegExp(LINK_RE.source).test(description)) return <Markdown>{description}</Markdown>
+	if (!new RegExp(LINK_RE.source).test(description))
+		return <Markdown className={className}>{description}</Markdown>
 
-	return <div data-slot="doc-description">{renderSegments(description)}</div>
+	return (
+		<div data-slot="doc-description" className={className}>
+			{renderSegments(description)}
+		</div>
+	)
 }
 
 /** Split the description on `{@link}` tokens into alternating prose runs and bare references. */
