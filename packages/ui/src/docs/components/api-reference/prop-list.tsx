@@ -1,10 +1,8 @@
 'use client'
 
-import { Asterisk } from 'lucide-react'
 import { Badge } from '../../../components/badge'
 import { CodeBlock } from '../../../components/code'
 import { Flex } from '../../../components/flex'
-import { Icon } from '../../../components/icon'
 import { Stack } from '../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
@@ -44,24 +42,15 @@ function PropRow({ prop }: { prop: PropDef }) {
 								deprecated && 'line-through decoration-zinc-400',
 							)}
 						>
-							<div className="flex items-center gap-1">
-								<span>{prop.name}</span>
-								{prop.required && (
-									<Tooltip>
-										<TooltipTrigger>
-											<span className="text-red-600 dark:text-red-500">
-												<Icon icon={<Asterisk />} />
-											</span>
-										</TooltipTrigger>
-										<TooltipContent>Required</TooltipContent>
-									</Tooltip>
-								)}
+							<div>
+								{prop.name}{' '}
+								{prop.required && <span className="text-red-600 dark:text-red-500">*</span>}
+								{prop.default && <DefaultValue value={prop.default} />}
 							</div>
-							{prop.default && <DefaultValue value={prop.default} />}
 							{deprecated && (
 								<Tooltip>
 									<TooltipTrigger>
-										<Badge color="red" variant="soft">
+										<Badge color="red" variant="soft" size="sm">
 											deprecated
 										</Badge>
 									</TooltipTrigger>
