@@ -8,7 +8,6 @@ import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 // pool). The gate watches whether a sweep starts (animate) and hover
 // pause/resume (pause/playSpy).
 const pauseSpy = vi.fn()
-
 const playSpy = vi.fn()
 
 describe('ShinyText', () => {
@@ -28,7 +27,8 @@ describe('ShinyText', () => {
 	afterEach(() => {
 		vi.unstubAllGlobals()
 
-		vi.mocked(animate).mockClear()
+		// Restore animate's call-through default.
+		vi.mocked(animate).mockRestore()
 
 		pauseSpy.mockClear()
 
@@ -60,7 +60,6 @@ describe('ShinyText', () => {
 		const { container } = renderUI(<ShinyTextSkeleton />)
 
 		expect(bySlot(container, 'shiny-text')).not.toBeInTheDocument()
-
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -93,7 +92,6 @@ describe('ShinyText', () => {
 
 	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {
 		const onMouseEnter = vi.fn()
-
 		const onMouseLeave = vi.fn()
 
 		const { container } = renderUI(
@@ -109,13 +107,11 @@ describe('ShinyText', () => {
 		await user.hover(el)
 
 		expect(onMouseEnter).toHaveBeenCalled()
-
 		expect(pauseSpy).toHaveBeenCalled()
 
 		await user.unhover(el)
 
 		expect(onMouseLeave).toHaveBeenCalled()
-
 		expect(playSpy).toHaveBeenCalled()
 	})
 })
