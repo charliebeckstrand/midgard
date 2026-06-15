@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import { docsPlugin } from './src/docs/plugins'
-import { baseTest, setupFiles } from './vitest.base.config'
+import { baseTest, setupFiles, testIsolation } from './vitest.base.config'
 
 // Project for MCP-server-backing harnesses under src/__tests__/mcp. The default
 // project (vitest.config.ts) excludes that directory, so these never surface in
@@ -11,6 +11,7 @@ export default defineConfig({
 	plugins: [docsPlugin({ vitest: true })],
 	test: {
 		...baseTest,
+		...testIsolation,
 		setupFiles,
 		include: ['src/__tests__/mcp/**/*.test.{ts,tsx}'],
 	},
