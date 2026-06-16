@@ -32,24 +32,22 @@ export function ColorChannelInputs() {
 
 	const { draftProps, setDraft } = useColorField(derived)
 
-	const commitChannel = (channel: 'r' | 'g' | 'b', raw: string) => {
+	// Alpha enters as a 0–100 percentage and writes `hsva.a` directly; RGB
+	// channels clamp to 0–255 and round-trip through rgba to recompute hue.
+	const commit = (channel: Channel, raw: string) => {
 		if (raw.trim() === '') return
 
 		const n = Number(raw)
 
 		if (Number.isNaN(n)) return
+
+		if (channel === 'a') {
+			setHsva((prev) => ({ ...prev, a: clamp(Math.round(n), 0, 100) / 100 }))
+
+			return
+		}
 
 		setHsva(rgbaToHsva({ ...rgba, [channel]: clamp(Math.round(n), 0, 255) }))
-	}
-
-	const commitAlpha = (raw: string) => {
-		if (raw.trim() === '') return
-
-		const n = Number(raw)
-
-		if (Number.isNaN(n)) return
-
-		setHsva((prev) => ({ ...prev, a: clamp(Math.round(n), 0, 100) / 100 }))
 	}
 
 	const onChange = (channel: Channel) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -57,8 +55,7 @@ export function ColorChannelInputs() {
 
 		setDraft(channel, raw)
 
-		if (channel === 'a') commitAlpha(raw)
-		else commitChannel(channel, raw)
+		commit(channel, raw)
 	}
 
 	const field = (channel: Channel) => (
