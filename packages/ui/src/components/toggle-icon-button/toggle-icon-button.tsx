@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName, Size } from '../../types'
-import { Button } from '../button'
+import { Button, type ButtonVariants } from '../button'
 import { Icon } from '../icon'
 
 /**
@@ -26,7 +26,8 @@ export type ToggleIconButtonProps = AccessibleName & {
 	 * @defaultValue true
 	 */
 	animate?: boolean
-	color?: 'success' | undefined
+	/** Recipe color forwarded to the underlying {@link Button}. */
+	color?: ButtonVariants['color']
 	size?: Size
 	className?: string
 	ref?: Ref<HTMLButtonElement>
@@ -45,7 +46,6 @@ export function ToggleIconButton({
 	icon,
 	pressedIcon = icon,
 	animate = true,
-	color,
 	size,
 	className,
 	...props
@@ -55,7 +55,6 @@ export function ToggleIconButton({
 			<Button
 				{...props}
 				variant="bare"
-				color={pressed ? 'green' : undefined}
 				size={size}
 				data-slot="toggle-icon-button"
 				aria-pressed={pressed}
@@ -73,7 +72,6 @@ export function ToggleIconButton({
 		<Button
 			{...props}
 			variant="bare"
-			color={pressed ? 'green' : undefined}
 			size={size}
 			data-slot="toggle-icon-button"
 			aria-pressed={pressed}
