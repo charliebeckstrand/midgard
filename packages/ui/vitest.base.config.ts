@@ -6,16 +6,15 @@ export const baseTest = {
 	css: false,
 }
 
-// Setup files shared by the default project (vitest.config.ts) and the MCP
-// harness project (vitest.mcp.config.ts) so the two can't drift apart.
+// Setup files for the default project (vitest.config.ts).
 export const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/module-mocks.ts',
 	'./src/__tests__/setup/restore-prototype-focus.ts',
 ]
 
-// Per-test isolation, shared by the default and MCP harness projects so the two
-// can't drift. The vmThreads pool resets the module graph per file, but within a
+// Per-test isolation for the default project (vitest.config.ts). The vmThreads
+// pool resets the module graph per file, but within a
 // file a vi.spyOn or vi.stubGlobal outlives its test unless restored, and
 // sequence.shuffle randomizes sibling order — so an unrestored spy/stub leaks
 // into whichever test runs next. restoreMocks runs vi.restoreAllMocks() before

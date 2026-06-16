@@ -18,8 +18,7 @@
 		"packages/ui": {
 			"entry": [
 				"src/**/index.ts",
-				"src/__tests__/**/setup/*.ts",
-				"vitest.mcp.config.ts"
+				"src/__tests__/**/setup/*.ts"
 			]
 		}
 	}

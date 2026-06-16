@@ -15,7 +15,7 @@ export default defineConfig({
 		// can't — layout/colour geometry and, in its floating-ui project,
 		// real-floating-engine focus trapping — so it may not run under this
 		// jsdom config.
-		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**', 'src/__tests__/mcp/**'],
+		exclude: [...configDefaults.exclude, 'src/__tests__/browser/**'],
 		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
