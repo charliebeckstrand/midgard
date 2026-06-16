@@ -28,8 +28,8 @@ export type PanelTriggerProps = {
  */
 export function PanelTrigger({ children, onClick, open }: PanelTriggerProps) {
 	return cloneElement(children, {
-		onClick: (e: MouseEvent) => {
-			children.props.onClick?.(e)
+		onClick: (event: MouseEvent) => {
+			children.props.onClick?.(event)
 			onClick?.()
 		},
 		'aria-haspopup': children.props['aria-haspopup'] ?? 'dialog',

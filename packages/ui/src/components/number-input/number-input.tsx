@@ -103,8 +103,8 @@ export function NumberInput({
 	const decrease = () => change(-step)
 	const increase = () => change(step)
 
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-		const v = e.target.value
+	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+		const v = event.target.value
 
 		if (v === '') {
 			setCurrent(undefined)
@@ -120,14 +120,14 @@ export function NumberInput({
 		setCurrent(n)
 	}
 
-	const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+	const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
 		setTouched()
 
 		setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
 
 		// Composed, not clobbered: clamp/round-on-blur and the form's touched
 		// tracking run before the consumer's onBlur.
-		onBlur?.(e)
+		onBlur?.(event)
 	}
 
 	return (

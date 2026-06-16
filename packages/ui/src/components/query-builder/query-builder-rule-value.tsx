@@ -78,8 +78,8 @@ export function QueryBuilderRuleValue({
 				value={value == null ? '' : String(value)}
 				placeholder="Value"
 				aria-label={label}
-				onChange={(e) => {
-					const next = e.target.value
+				onChange={(event) => {
+					const next = event.target.value
 					onValueChange(next === '' ? '' : Number(next))
 				}}
 			/>
@@ -105,7 +105,7 @@ export function QueryBuilderRuleValue({
 			value={(value as string | undefined) ?? ''}
 			placeholder="Value"
 			aria-label={label}
-			onChange={(e) => onValueChange(e.target.value)}
+			onChange={(event) => onValueChange(event.target.value)}
 		/>
 	)
 }

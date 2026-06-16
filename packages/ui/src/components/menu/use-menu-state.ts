@@ -72,10 +72,10 @@ export function useMenuState({
 	])
 
 	const handleContextMenu = useCallback(
-		(e: MouseEvent) => {
-			e.preventDefault()
+		(event: MouseEvent) => {
+			event.preventDefault()
 
-			setPoint({ x: e.clientX, y: e.clientY })
+			setPoint({ x: event.clientX, y: event.clientY })
 
 			setOpen(true)
 		},

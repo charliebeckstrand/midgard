@@ -48,10 +48,10 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 	useEffect(() => {
 		if (!open || !outsidePointer) return
 
-		const onPointerDown = (e: PointerEvent) => {
+		const onPointerDown = (event: PointerEvent) => {
 			const el = ref.current
 
-			if (el && !el.contains(e.target as Node)) onDismissRef.current()
+			if (el && !el.contains(event.target as Node)) onDismissRef.current()
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

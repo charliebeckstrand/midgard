@@ -55,10 +55,10 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 					<Button
 						aria-label={`Remove ${label}`}
 						variant="bare"
-						onMouseDown={(e) => e.preventDefault()}
+						onMouseDown={(event) => event.preventDefault()}
 						tabIndex={-1}
-						onClick={(e) => {
-							e.stopPropagation()
+						onClick={(event) => {
+							event.stopPropagation()
 
 							onRemove()
 						}}
@@ -70,10 +70,10 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 			// Disabled badges drop out of the tab order and ignore removal keys;
 			// the remove button above is already suppressed.
 			tabIndex={disabled ? undefined : 0}
-			onKeyDown={(e) => {
+			onKeyDown={(event) => {
 				if (disabled) return
 
-				if (e.key === 'Backspace' || e.key === 'Delete') {
+				if (event.key === 'Backspace' || event.key === 'Delete') {
 					onRemove()
 				}
 			}}

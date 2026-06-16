@@ -81,10 +81,10 @@ export function ChatPrompt({
 		: { 'aria-label': ariaLabel ?? 'Message' }
 
 	const handleKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLTextAreaElement>) => {
-			if (e.key !== 'Enter' || e.shiftKey || e.nativeEvent.isComposing) return
+		(event: KeyboardEvent<HTMLTextAreaElement>) => {
+			if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
 
-			e.preventDefault()
+			event.preventDefault()
 
 			if (streaming) {
 				onStop?.()
@@ -100,7 +100,7 @@ export function ChatPrompt({
 			ref={ref}
 			data-slot="chat-prompt"
 			value={value}
-			onChange={(e) => onValueChange(e.target.value)}
+			onChange={(event) => onValueChange(event.target.value)}
 			onKeyDown={handleKeyDown}
 			autoResize
 			rows={rows}

@@ -72,12 +72,12 @@ function isGridCheckbox(
  * @internal
  */
 function bridgeFromCheckbox<T>(
-	e: KeyboardEvent<HTMLTableElement>,
+	event: KeyboardEvent<HTMLTableElement>,
 	checkbox: HTMLInputElement,
 	table: HTMLTableElement,
 	deps: GridKeyDeps<T>,
 ) {
-	if (e.key !== 'Tab' || e.shiftKey) return
+	if (event.key !== 'Tab' || event.shiftKey) return
 
 	const tr = checkbox.closest('tr')
 
@@ -106,7 +106,7 @@ function bridgeFromCheckbox<T>(
 	if (!Number.isInteger(targetRow) || targetRow < 0 || targetRow >= deps.rowsRef.current.length)
 		return
 
-	e.preventDefault()
+	event.preventDefault()
 
 	deps.moveActiveTo({ row: targetRow, col: 0 })
 
@@ -115,7 +115,7 @@ function bridgeFromCheckbox<T>(
 
 /** Tab/Shift+Tab between cells; Shift+Tab from column 0 hands off to the row's selection checkbox. @internal */
 function handleTab<T>(
-	e: KeyboardEvent<HTMLTableElement>,
+	event: KeyboardEvent<HTMLTableElement>,
 	wrapper: HTMLTableElement | null,
 	deps: GridKeyDeps<T>,
 ) {
@@ -123,7 +123,7 @@ function handleTab<T>(
 
 	// Shift+Tab from the leftmost editable column moves focus to the row's
 	// selection checkbox (when present) and clears active state.
-	if (e.shiftKey && active?.col === 0 && wrapper) {
+	if (event.shiftKey && active?.col === 0 && wrapper) {
 		// Look up the row by `data-row-index`, not DOM position, which is
 		// unreliable under virtualization.
 		const tr = wrapper.querySelector(`tbody tr[data-row-index="${active.row}"]`)
@@ -131,7 +131,7 @@ function handleTab<T>(
 		const cb = tr?.querySelector<HTMLInputElement>('input[type="checkbox"]')
 
 		if (cb) {
-			e.preventDefault()
+			event.preventDefault()
 
 			deps.setActive(null)
 
@@ -145,20 +145,20 @@ function handleTab<T>(
 		}
 	}
 
-	if (deps.moveActiveTab(e.shiftKey ? -1 : 1)) e.preventDefault()
+	if (deps.moveActiveTab(event.shiftKey ? -1 : 1)) event.preventDefault()
 }
 
 /** Moves the active cell to `col` in the current row (Home/End), extending selection on Shift. @internal */
-function moveToEdge<T>(e: KeyboardEvent<HTMLTableElement>, col: number, deps: GridKeyDeps<T>) {
-	e.preventDefault()
+function moveToEdge<T>(event: KeyboardEvent<HTMLTableElement>, col: number, deps: GridKeyDeps<T>) {
+	event.preventDefault()
 
 	const prev = deps.activeRef.current ?? { row: 0, col: 0 }
 
-	deps.moveActiveTo({ row: prev.row, col }, e.shiftKey)
+	deps.moveActiveTo({ row: prev.row, col }, event.shiftKey)
 }
 
 /** Enters edit mode on the active cell seeded with its current formatted value. @internal */
-function beginCellEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
+function beginCellEdit<T>(event: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, rowsRef, editableCols, formatCell, beginEdit } = deps
 
 	if (!active) return
@@ -169,31 +169,31 @@ function beginCellEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<
 
 	if (!row || !col) return
 
-	e.preventDefault()
+	event.preventDefault()
 
 	beginEdit(active, formatCell(row, col))
 }
 
 /** Clears the active cell, or the whole selection under a multi-selection (Delete/Backspace). @internal */
-function clearCells<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
+function clearCells<T>(event: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, hasMultiSelection, applyBulkFill, applyCellWrite } = deps
 
 	if (!active) return
 
-	e.preventDefault()
+	event.preventDefault()
 
 	if (hasMultiSelection) applyBulkFill('')
 	else applyCellWrite(active.row, active.col, '')
 }
 
 /** Escape: collapses a multi-selection to the active cell, or clears the active cell. @internal */
-function clearSelection<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
+function clearSelection<T>(event: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, hasMultiSelection, anchor, extraCells, setActive, setAnchor, setExtraCells } =
 		deps
 
 	if (!active) return
 
-	e.preventDefault()
+	event.preventDefault()
 
 	if (hasMultiSelection) {
 		if (anchor) setAnchor(null)
@@ -211,60 +211,60 @@ function clearSelection<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps
  * @internal
  */
 function handleEditableGridKey<T>(
-	e: KeyboardEvent<HTMLTableElement>,
+	event: KeyboardEvent<HTMLTableElement>,
 	wrapper: HTMLTableElement | null,
 	deps: GridKeyDeps<T>,
 ): boolean {
-	switch (e.key) {
+	switch (event.key) {
 		case 'ArrowUp':
-			e.preventDefault()
+			event.preventDefault()
 
-			deps.moveActive(-1, 0, e.shiftKey)
+			deps.moveActive(-1, 0, event.shiftKey)
 
 			return true
 		case 'ArrowDown':
-			e.preventDefault()
+			event.preventDefault()
 
-			deps.moveActive(1, 0, e.shiftKey)
+			deps.moveActive(1, 0, event.shiftKey)
 
 			return true
 		case 'ArrowLeft':
-			e.preventDefault()
+			event.preventDefault()
 
-			deps.moveActive(0, -1, e.shiftKey)
+			deps.moveActive(0, -1, event.shiftKey)
 
 			return true
 		case 'ArrowRight':
-			e.preventDefault()
+			event.preventDefault()
 
-			deps.moveActive(0, 1, e.shiftKey)
+			deps.moveActive(0, 1, event.shiftKey)
 
 			return true
 		case 'Tab':
-			handleTab(e, wrapper, deps)
+			handleTab(event, wrapper, deps)
 
 			return true
 		case 'Home':
-			moveToEdge(e, 0, deps)
+			moveToEdge(event, 0, deps)
 
 			return true
 		case 'End':
-			moveToEdge(e, deps.editableCols.length - 1, deps)
+			moveToEdge(event, deps.editableCols.length - 1, deps)
 
 			return true
 		case 'Enter':
 		case 'F2':
 		case ' ':
-			beginCellEdit(e, deps)
+			beginCellEdit(event, deps)
 
 			return true
 		case 'Delete':
 		case 'Backspace':
-			clearCells(e, deps)
+			clearCells(event, deps)
 
 			return true
 		case 'Escape':
-			clearSelection(e, deps)
+			clearSelection(event, deps)
 
 			return true
 		default:
@@ -273,10 +273,10 @@ function handleEditableGridKey<T>(
 }
 
 /** A printable single character starts edit and replaces the active cell's value. @internal */
-function tryPrintableEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
+function tryPrintableEdit<T>(event: KeyboardEvent<HTMLTableElement>, deps: GridKeyDeps<T>) {
 	const { active, rowsRef, editableCols, formatCell, beginEdit } = deps
 
-	if (!active || e.key.length !== 1 || e.metaKey || e.ctrlKey || e.altKey) return
+	if (!active || event.key.length !== 1 || event.metaKey || event.ctrlKey || event.altKey) return
 
 	const row = rowsRef.current[active.row]
 
@@ -284,9 +284,9 @@ function tryPrintableEdit<T>(e: KeyboardEvent<HTMLTableElement>, deps: GridKeyDe
 
 	if (!row || !col) return
 
-	e.preventDefault()
+	event.preventDefault()
 
-	beginEdit(active, e.key, formatCell(row, col))
+	beginEdit(active, event.key, formatCell(row, col))
 }
 
 /** Parses tab/newline-delimited clipboard text into a cell matrix, dropping a spurious trailing empty row. @internal */
@@ -374,7 +374,7 @@ export function useEditableGridWrapper<T>({
 	const hasMultiSelection = !!anchor || extraCells.size > 0
 
 	const onWrapperKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLTableElement>) => {
+		(event: KeyboardEvent<HTMLTableElement>) => {
 			if (editing) return
 
 			if (rowsRef.current.length === 0 || editableCols.length === 0) return
@@ -404,15 +404,15 @@ export function useEditableGridWrapper<T>({
 			// Events bubbled from an in-grid selection checkbox: only Tab forward
 			// bridges into the cell cursor; Shift+Tab, Space, and all other keys
 			// pass through to the checkbox.
-			if (wrapper && isGridCheckbox(e.target, wrapper)) {
-				bridgeFromCheckbox(e, e.target, wrapper, deps)
+			if (wrapper && isGridCheckbox(event.target, wrapper)) {
+				bridgeFromCheckbox(event, event.target, wrapper, deps)
 
 				return
 			}
 
-			if (handleEditableGridKey(e, wrapper, deps)) return
+			if (handleEditableGridKey(event, wrapper, deps)) return
 
-			tryPrintableEdit(e, deps)
+			tryPrintableEdit(event, deps)
 		},
 		[
 			editing,
@@ -438,14 +438,14 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperPaste = useCallback(
-		(e: ClipboardEvent<HTMLTableElement>) => {
+		(event: ClipboardEvent<HTMLTableElement>) => {
 			if (editing || !active) return
 
-			const text = e.clipboardData.getData('text/plain')
+			const text = event.clipboardData.getData('text/plain')
 
 			if (!text) return
 
-			e.preventDefault()
+			event.preventDefault()
 
 			const activeCell = active
 
@@ -486,14 +486,14 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperFocus = useCallback(
-		(e: FocusEvent<HTMLTableElement>) => {
+		(event: FocusEvent<HTMLTableElement>) => {
 			const wrapper = wrapperRef.current
 
-			if (!wrapper || e.target !== wrapper) return
+			if (!wrapper || event.target !== wrapper) return
 
 			if (activeRef.current) return
 
-			const rel = e.relatedTarget
+			const rel = event.relatedTarget
 
 			if (rel instanceof Node && wrapper.contains(rel)) return
 
@@ -513,8 +513,8 @@ export function useEditableGridWrapper<T>({
 	)
 
 	const onWrapperBlur = useCallback(
-		(e: FocusEvent<HTMLTableElement>) => {
-			const next = e.relatedTarget
+		(event: FocusEvent<HTMLTableElement>) => {
+			const next = event.relatedTarget
 
 			if (next instanceof Node && wrapperRef.current?.contains(next)) return
 

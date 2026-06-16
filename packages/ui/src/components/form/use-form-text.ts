@@ -6,8 +6,8 @@ import { useFormField } from './context'
 /** DOM-event binding for a string-valued control: a coerced `value`, `onChange`/`onBlur` wired to the field, and an `invalid` flag derived from its errors. */
 export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
 	value: string
-	onChange: (e: ChangeEvent<E>) => void
-	onBlur: (e: FocusEvent<E>) => void
+	onChange: (event: ChangeEvent<E>) => void
+	onBlur: (event: FocusEvent<E>) => void
 	invalid: boolean
 }
 
@@ -33,8 +33,8 @@ export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = H
 export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>(
 	name: string | undefined,
 	handlers?: {
-		onChange?: (e: ChangeEvent<E>) => void
-		onBlur?: (e: FocusEvent<E>) => void
+		onChange?: (event: ChangeEvent<E>) => void
+		onBlur?: (event: FocusEvent<E>) => void
 	},
 ): FormTextBinding<E> | undefined {
 	const field = useFormField(name)
@@ -43,13 +43,13 @@ export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = H
 
 	return {
 		value: typeof field.value === 'string' ? field.value : '',
-		onChange: (e) => {
-			field.setValue(e.target.value)
-			handlers?.onChange?.(e)
+		onChange: (event) => {
+			field.setValue(event.target.value)
+			handlers?.onChange?.(event)
 		},
-		onBlur: (e) => {
+		onBlur: (event) => {
 			field.setTouched()
-			handlers?.onBlur?.(e)
+			handlers?.onBlur?.(event)
 		},
 		invalid: field.errors !== undefined && field.errors.length > 0,
 	}

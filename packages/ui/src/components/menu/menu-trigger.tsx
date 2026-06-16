@@ -35,13 +35,13 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	if (isValidElement(children)) {
 		const child = children as ReactElement<Record<string, unknown>>
 
-		const childOnClick = child.props.onClick as ((e: MouseEvent) => void) | undefined
+		const childOnClick = child.props.onClick as ((event: MouseEvent) => void) | undefined
 
 		return cloneElement(child, {
 			...getReferenceProps({
 				...child.props,
-				onClick: (e: MouseEvent) => {
-					childOnClick?.(e)
+				onClick: (event: MouseEvent) => {
+					childOnClick?.(event)
 					setOpen(!open)
 				},
 			}),
@@ -67,8 +67,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			className={cn(className)}
 			{...getReferenceProps({
 				...rest,
-				onClick: (e: MouseEvent<HTMLButtonElement>) => {
-					consumerOnClick?.(e)
+				onClick: (event: MouseEvent<HTMLButtonElement>) => {
+					consumerOnClick?.(event)
 					setOpen(!open)
 				},
 			})}

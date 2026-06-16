@@ -57,7 +57,7 @@ function SearchExample() {
 				placeholder="Search tree"
 				autoComplete="off"
 				value={search}
-				onChange={(e) => setSearch(e.target.value)}
+				onChange={(event) => setSearch(event.target.value)}
 				onClear={() => setSearch('')}
 			/>
 
@@ -78,7 +78,7 @@ function FilterExample() {
 				placeholder="Filter tree"
 				autoComplete="off"
 				value={search}
-				onChange={(e) => setSearch(e.target.value)}
+				onChange={(event) => setSearch(event.target.value)}
 				onClear={() => setSearch('')}
 			/>
 			<JsonTree

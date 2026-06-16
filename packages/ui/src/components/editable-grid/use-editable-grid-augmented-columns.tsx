@@ -89,7 +89,7 @@ export function useEditableGridAugmentedColumns<T>({
 						id: cellId(`cell-${rowIdx}-${colIdx}`),
 						role: 'gridcell',
 						'aria-readonly': readOnly || undefined,
-						onMouseDown: (e: MouseEvent<HTMLTableCellElement>) => {
+						onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
 							const activeNow = activeRef.current
 
 							const isActive = activeNow?.row === rowIdx && activeNow?.col === colIdx
@@ -98,14 +98,14 @@ export function useEditableGridAugmentedColumns<T>({
 
 							if (showInput) return
 
-							e.preventDefault()
+							event.preventDefault()
 
-							e.currentTarget.closest<HTMLElement>('[role=grid]')?.focus()
+							event.currentTarget.closest<HTMLElement>('[role=grid]')?.focus()
 
 							const coord = { row: rowIdx, col: colIdx }
 
-							if (e.metaKey || e.ctrlKey) addCellToSelection(coord)
-							else moveActiveTo(coord, e.shiftKey)
+							if (event.metaKey || event.ctrlKey) addCellToSelection(coord)
+							else moveActiveTo(coord, event.shiftKey)
 						},
 						onDoubleClick: () => {
 							if (readOnly) return

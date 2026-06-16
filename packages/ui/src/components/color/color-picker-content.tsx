@@ -74,7 +74,7 @@ export function ColorPickerContent({
 									data-slot="color-picker-content"
 									data-size={size}
 									className={cn('z-50', k.content.text, glass && k.content.glass)}
-									onMouseDown={(e) => e.preventDefault()}
+									onMouseDown={(event) => event.preventDefault()}
 								>
 									<Density scale={size}>
 										<Box

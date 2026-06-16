@@ -15,10 +15,10 @@ export const buttonSpring = {
 // A loading anchor blocks navigation (`defaultPrevented` stops next/link) and
 // swallows the event; the consumer's `onClick` does not fire.
 /** @internal */
-function cancelActivation(e: MouseEvent<HTMLAnchorElement>) {
-	e.preventDefault()
+function cancelActivation(event: MouseEvent<HTMLAnchorElement>) {
+	event.preventDefault()
 
-	e.stopPropagation()
+	event.stopPropagation()
 }
 
 /**

@@ -70,12 +70,12 @@ export function SearchInput({
 	const currentValue = current ?? ''
 
 	const handleChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			setCurrentValue(e.target.value)
+		(event: ChangeEvent<HTMLInputElement>) => {
+			setCurrentValue(event.target.value)
 
-			onChange?.(e)
+			onChange?.(event)
 
-			if (e.target.value === '') onClear?.()
+			if (event.target.value === '') onClear?.()
 		},
 		[onChange, onClear, setCurrentValue],
 	)
@@ -120,10 +120,10 @@ export function SearchInput({
 			name={name}
 			value={currentValue}
 			onChange={handleChange}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				setTouched()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
 			prefix={SEARCH_PREFIX}
 			suffix={suffix}

@@ -43,7 +43,7 @@ export type CalendarHandle = {
 	prevMonth: () => void
 	nextMonth: () => void
 	openPicker: () => void
-	footerKeyDown: (e: KeyboardEvent) => void
+	footerKeyDown: (event: KeyboardEvent) => void
 }
 
 /** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */

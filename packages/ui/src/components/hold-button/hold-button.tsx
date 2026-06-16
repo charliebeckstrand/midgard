@@ -73,52 +73,52 @@ export function HoldButton({
 			disabled={disabled}
 			data-slot="hold-button"
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
-			onPointerDown={(e: PointerEvent<HTMLButtonElement>) => {
-				if (e.button === 0) start()
+			onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+				if (event.button === 0) start()
 
-				onPointerDown?.(e)
+				onPointerDown?.(event)
 			}}
-			onPointerUp={(e: PointerEvent<HTMLButtonElement>) => {
+			onPointerUp={(event: PointerEvent<HTMLButtonElement>) => {
 				cancel()
 
-				onPointerUp?.(e)
+				onPointerUp?.(event)
 			}}
-			onPointerCancel={(e: PointerEvent<HTMLButtonElement>) => {
+			onPointerCancel={(event: PointerEvent<HTMLButtonElement>) => {
 				cancel()
 
-				onPointerCancel?.(e)
+				onPointerCancel?.(event)
 			}}
-			onPointerLeave={(e: PointerEvent<HTMLButtonElement>) => {
+			onPointerLeave={(event: PointerEvent<HTMLButtonElement>) => {
 				cancel()
 
-				onPointerLeave?.(e)
+				onPointerLeave?.(event)
 			}}
-			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => {
-				if (!e.repeat && (e.key === ' ' || e.key === 'Enter')) {
-					heldKeyRef.current ??= e.key
+			onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+				if (!event.repeat && (event.key === ' ' || event.key === 'Enter')) {
+					heldKeyRef.current ??= event.key
 
 					start()
 				}
 
-				onKeyDown?.(e)
+				onKeyDown?.(event)
 			}}
-			onKeyUp={(e: KeyboardEvent<HTMLButtonElement>) => {
-				if (e.key === heldKeyRef.current) {
+			onKeyUp={(event: KeyboardEvent<HTMLButtonElement>) => {
+				if (event.key === heldKeyRef.current) {
 					heldKeyRef.current = null
 
 					cancel()
 				}
 
-				onKeyUp?.(e)
+				onKeyUp?.(event)
 			}}
-			onBlur={(e: FocusEvent<HTMLButtonElement>) => {
+			onBlur={(event: FocusEvent<HTMLButtonElement>) => {
 				// Tab-away routes the keyup elsewhere; an unfocused button does not
 				// complete the hold. The gesture hook guards window/visibility loss.
 				heldKeyRef.current = null
 
 				cancel()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
 		>
 			<span

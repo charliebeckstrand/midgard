@@ -151,8 +151,8 @@ export function DateInput({
 			invalid={invalid ?? (typedInvalid || undefined)}
 			name={name}
 			value={text}
-			onChange={(e) => {
-				const raw = e.target.value
+			onChange={(event) => {
+				const raw = event.target.value
 
 				let next: string
 
@@ -160,13 +160,13 @@ export function DateInput({
 					// The mask re-appends a deleted trailing separator and traps the
 					// caret; backspace over it deletes the preceding digit instead.
 					next = maskDateText(raw.slice(0, -1), format)
-				} else if ((e.target.selectionStart ?? raw.length) >= raw.length) {
+				} else if ((event.target.selectionStart ?? raw.length) >= raw.length) {
 					// Typing at the end: let the value swap put the caret at the end.
 					// The meaningful-count restore would pin it before a digit the
 					// mask pads in (`1/` → `01/`).
 					next = maskDateText(raw, format)
 				} else {
-					next = reformat(e)
+					next = reformat(event)
 				}
 
 				setEditingText(next)
@@ -175,7 +175,7 @@ export function DateInput({
 
 				setTypedInvalid(next.length === format.length && !parsed)
 			}}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				if (editingText !== null) {
 					const parsed = parse(editingText)
 
@@ -188,12 +188,12 @@ export function DateInput({
 
 				setTouched()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
-			onKeyDown={(e) => {
-				onKeyDown?.(e)
+			onKeyDown={(event) => {
+				onKeyDown?.(event)
 
-				if (!e.defaultPrevented && e.key === 'Enter') e.currentTarget.blur()
+				if (!event.defaultPrevented && event.key === 'Enter') event.currentTarget.blur()
 			}}
 			{...props}
 		/>

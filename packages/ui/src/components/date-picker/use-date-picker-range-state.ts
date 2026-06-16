@@ -259,7 +259,8 @@ export function useDatePickerRangeState({
 			footerButtons,
 			onClear: handleClear,
 			footerRef,
-			onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => calendarRef.current?.footerKeyDown(e),
+			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
+				calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

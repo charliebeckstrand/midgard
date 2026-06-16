@@ -56,8 +56,8 @@ export function useComboboxInput<T>({
 	rovingKeyDown,
 }: ComboboxInputParams<T>) {
 	const onChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			const next = e.target.value
+		(event: ChangeEvent<HTMLInputElement>) => {
+			const next = event.target.value
 
 			setEditing(true)
 
@@ -77,10 +77,10 @@ export function useComboboxInput<T>({
 	}, [setOpen, keyboardSettled])
 
 	const onBlur = useCallback(
-		(e: FocusEvent<HTMLInputElement>) => {
+		(event: FocusEvent<HTMLInputElement>) => {
 			const floating = floatingRef.current
 
-			if (floating?.contains(e.relatedTarget as Node)) return
+			if (floating?.contains(event.relatedTarget as Node)) return
 
 			onTouched?.()
 
@@ -90,18 +90,18 @@ export function useComboboxInput<T>({
 	)
 
 	const onKeyDown = useCallback(
-		(e: KeyboardEvent<HTMLInputElement>) => {
-			if (e.key === 'Escape') {
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === 'Escape') {
 				close()
 
 				return
 			}
 
-			if (e.key === 'Enter') {
+			if (event.key === 'Enter') {
 				const container = optionsRef.current
 
 				if (container && selectSoleOption(container)) {
-					e.preventDefault()
+					event.preventDefault()
 
 					return
 				}
@@ -110,14 +110,14 @@ export function useComboboxInput<T>({
 			// Home/End belong to the editable textbox and move the caret; routed
 			// to roving they would preventDefault and snap to the first/last
 			// option.
-			if (e.key === 'Home' || e.key === 'End') return
+			if (event.key === 'Home' || event.key === 'End') return
 
 			// Shift+Arrow extends the input's text selection; the roving
 			// handler would preventDefault and move the menu highlight
 			// instead.
-			if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return
+			if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) return
 
-			rovingKeyDown(e)
+			rovingKeyDown(event)
 		},
 		[close, optionsRef, rovingKeyDown],
 	)

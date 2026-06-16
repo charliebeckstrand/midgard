@@ -45,18 +45,18 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 	// focused prefix/suffix control inside an item also reads as "empty"
 	// (indexOf === -1). Roving runs only for the tree container itself or a
 	// treeitem; arrows/Home/End on an inner control stay with the control.
-	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-		const target = e.target
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		const target = event.target
 
 		if (
 			target instanceof HTMLElement &&
-			target !== e.currentTarget &&
+			target !== event.currentTarget &&
 			!target.matches(ITEM_SELECTOR)
 		) {
 			return
 		}
 
-		rovingKeyDown(e)
+		rovingKeyDown(event)
 	}
 
 	const inherited = useDensity()
@@ -84,10 +84,10 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 		return () => observer.disconnect()
 	}, [])
 
-	const handleFocus = (e: FocusEvent<HTMLDivElement>) => {
-		if (!(e.target instanceof Element)) return
+	const handleFocus = (event: FocusEvent<HTMLDivElement>) => {
+		if (!(event.target instanceof Element)) return
 
-		const target = e.target.closest<HTMLElement>(ITEM_SELECTOR)
+		const target = event.target.closest<HTMLElement>(ITEM_SELECTOR)
 
 		if (!target || !ref.current) return
 

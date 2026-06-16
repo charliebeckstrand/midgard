@@ -41,8 +41,8 @@ export function TreeItemContent({
 		if (hasChildren) onOpenChange(!open)
 	}
 
-	const handleClick = (e: MouseEvent<HTMLDivElement>) => {
-		if (e.target instanceof Element && e.target.closest(AFFIX_SELECTOR)) return
+	const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+		if (event.target instanceof Element && event.target.closest(AFFIX_SELECTOR)) return
 
 		if (hasChildren) {
 			toggle()
@@ -52,16 +52,16 @@ export function TreeItemContent({
 
 		// Leaf row: forwards the click to the first interactive control in the
 		// prefix slot (e.g. a Checkbox); the label acts as its hit area.
-		const target = e.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
+		const target = event.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
 
 		target?.click()
 	}
 
-	const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-		if (e.target !== e.currentTarget) return
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.target !== event.currentTarget) return
 
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault()
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault()
 
 			if (hasChildren) {
 				toggle()
@@ -69,21 +69,21 @@ export function TreeItemContent({
 				return
 			}
 
-			const target = e.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
+			const target = event.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
 
 			target?.click()
 
 			return
 		}
-		if (e.key === 'ArrowRight' && hasChildren && !open) {
-			e.preventDefault()
+		if (event.key === 'ArrowRight' && hasChildren && !open) {
+			event.preventDefault()
 
 			onOpenChange(true)
 
 			return
 		}
-		if (e.key === 'ArrowLeft' && hasChildren && open) {
-			e.preventDefault()
+		if (event.key === 'ArrowLeft' && hasChildren && open) {
+			event.preventDefault()
 
 			onOpenChange(false)
 		}

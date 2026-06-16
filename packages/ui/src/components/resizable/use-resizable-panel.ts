@@ -154,12 +154,12 @@ export function useResizablePanel({
 	}, [])
 
 	const startDrag = useCallback(
-		(handleIndex: number, e: ReactPointerEvent) => {
+		(handleIndex: number, event: ReactPointerEvent) => {
 			const group = groupRef.current
 
-			if (!group || e.button !== 0) return
+			if (!group || event.button !== 0) return
 
-			e.preventDefault()
+			event.preventDefault()
 
 			const orient = orientationRef.current
 
@@ -180,7 +180,7 @@ export function useResizablePanel({
 
 			if (availableSize <= 0) return
 
-			const startPos = orient === 'horizontal' ? e.clientX : e.clientY
+			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
 
 			dragRef.current = {
 				handleIndex,

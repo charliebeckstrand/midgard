@@ -71,8 +71,8 @@ export function MenuContent({
 					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}
-					onKeyDown={(e) => {
-						if (e.key === 'Escape') close()
+					onKeyDown={(event) => {
+						if (event.key === 'Escape') close()
 					}}
 				>
 					{children}

@@ -67,7 +67,7 @@ export function useMaskInput({
 		ref,
 		invalid,
 		setValue: (raw: string) => setValue(format(raw)),
-		onChange: (e: ChangeEvent<HTMLInputElement>) => setValue(reformat(e)),
+		onChange: (event: ChangeEvent<HTMLInputElement>) => setValue(reformat(event)),
 		onBlur: () => setTouched(),
 	}
 }

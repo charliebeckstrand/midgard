@@ -621,10 +621,10 @@ describe('EditableGrid', () => {
 				<input
 					data-slot="custom-editor"
 					value={draft}
-					onChange={(e) => setDraft(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') {
-							e.preventDefault()
+					onChange={(event) => setDraft(event.target.value)}
+					onKeyDown={(event) => {
+						if (event.key === 'Enter') {
+							event.preventDefault()
 
 							commit('down')
 						}

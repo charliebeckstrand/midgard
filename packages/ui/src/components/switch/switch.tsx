@@ -57,10 +57,10 @@ export function Switch({
 
 	const setRef = useComposedRef(inputRef, ref)
 
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setOn(e.target.checked)
+	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+		setOn(event.target.checked)
 
-		resolvedOnChange?.(e)
+		resolvedOnChange?.(event)
 	}
 
 	// A native form reset reverts the uncontrolled input without firing onChange;

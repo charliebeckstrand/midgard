@@ -74,15 +74,15 @@ export function CreditCardInput({
 			suffix={suffix ?? (brand ? brand.label : undefined)}
 			name={name}
 			value={masked.value}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				masked.onBlur()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
-			onChange={(e) => {
-				masked.onChange(e)
+			onChange={(event) => {
+				masked.onChange(event)
 
-				const next = formatCardNumber(e.target.value)
+				const next = formatCardNumber(event.target.value)
 
 				onBrandChange?.(next.brand?.brand)
 

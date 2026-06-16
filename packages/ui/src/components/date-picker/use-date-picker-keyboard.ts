@@ -56,9 +56,9 @@ function isArrowKey(key: string): boolean {
 }
 
 /** While closed, ArrowDown/ArrowUp/Enter/Space open the calendar. @internal */
-function handleClosedKey(e: KeyboardEvent<HTMLElement>, openCalendar: () => void) {
-	if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
-		e.preventDefault()
+function handleClosedKey(event: KeyboardEvent<HTMLElement>, openCalendar: () => void) {
+	if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) {
+		event.preventDefault()
 
 		openCalendar()
 	}
@@ -71,9 +71,12 @@ function handleClosedKey(e: KeyboardEvent<HTMLElement>, openCalendar: () => void
  * @returns `true` once a key is consumed so the caller can skip zone dispatch.
  * @internal
  */
-function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext): boolean {
-	if (e.key === 'Escape') {
-		e.preventDefault()
+function handleOpenGlobalKey(
+	event: KeyboardEvent<HTMLElement>,
+	ctx: DatePickerKeyContext,
+): boolean {
+	if (event.key === 'Escape') {
+		event.preventDefault()
 
 		ctx.closeCalendar()
 
@@ -81,16 +84,16 @@ function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCo
 	}
 
 	// Shift+ArrowUp jumps to the toolbar from anywhere; Shift+ArrowDown jumps to the footer.
-	if (e.shiftKey && e.key === 'ArrowUp') {
-		e.preventDefault()
+	if (event.shiftKey && event.key === 'ArrowUp') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'header', index: 1 })
 
 		return true
 	}
 
-	if (e.shiftKey && e.key === 'ArrowDown') {
-		e.preventDefault()
+	if (event.shiftKey && event.key === 'ArrowDown') {
+		event.preventDefault()
 
 		if (ctx.footerButtons.length > 0) ctx.setActive({ zone: 'footer', index: 0 })
 
@@ -100,12 +103,12 @@ function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCo
 	// APG date-grid: PageUp/PageDown move a month, Shift+Page a year. The
 	// highlight materializes on the moved date when none exists yet, and the
 	// calendar view re-anchors to follow it.
-	if (e.key === 'PageUp' || e.key === 'PageDown') {
-		e.preventDefault()
+	if (event.key === 'PageUp' || event.key === 'PageDown') {
+		event.preventDefault()
 
-		const direction = e.key === 'PageUp' ? -1 : 1
+		const direction = event.key === 'PageUp' ? -1 : 1
 
-		const next = ctx.moveGridMonths(e.shiftKey ? direction * 12 : direction)
+		const next = ctx.moveGridMonths(event.shiftKey ? direction * 12 : direction)
 
 		ctx.setActive({ zone: 'grid', date: next })
 
@@ -121,17 +124,17 @@ function handleOpenGlobalKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCo
  *
  * @internal
  */
-function handleNoActiveKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext) {
-	if (isArrowKey(e.key)) {
-		e.preventDefault()
+function handleNoActiveKey(event: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext) {
+	if (isArrowKey(event.key)) {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
 
 		return
 	}
 
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault()
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
 
 		ctx.handleSelect(ctx.getInitialActiveDate())
 	}
@@ -139,44 +142,44 @@ function handleNoActiveKey(e: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyCont
 
 /** Grid-zone keys: arrows move the highlight by day/week, Enter/Space selects. @internal */
 function handleGridKey(
-	e: KeyboardEvent<HTMLElement>,
+	event: KeyboardEvent<HTMLElement>,
 	active: GridActive,
 	ctx: DatePickerKeyContext,
 ) {
-	if (e.key === 'ArrowLeft') {
-		e.preventDefault()
+	if (event.key === 'ArrowLeft') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(-1) })
 
 		return
 	}
 
-	if (e.key === 'ArrowRight') {
-		e.preventDefault()
+	if (event.key === 'ArrowRight') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(1) })
 
 		return
 	}
 
-	if (e.key === 'ArrowUp') {
-		e.preventDefault()
+	if (event.key === 'ArrowUp') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(-7) })
 
 		return
 	}
 
-	if (e.key === 'ArrowDown') {
-		e.preventDefault()
+	if (event.key === 'ArrowDown') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(7) })
 
 		return
 	}
 
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault()
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
 
 		ctx.handleSelect(active.date)
 	}
@@ -184,12 +187,12 @@ function handleGridKey(
 
 /** Header-zone keys: Left/Right cycle the three controls, Down enters the grid, Enter/Space activates. @internal */
 function handleHeaderKey(
-	e: KeyboardEvent<HTMLElement>,
+	event: KeyboardEvent<HTMLElement>,
 	active: HeaderActive,
 	ctx: DatePickerKeyContext,
 ) {
-	if (e.key === 'ArrowLeft') {
-		e.preventDefault()
+	if (event.key === 'ArrowLeft') {
+		event.preventDefault()
 
 		const nextIndex = active.index === 0 ? 2 : ((active.index - 1) as 0 | 1 | 2)
 
@@ -198,8 +201,8 @@ function handleHeaderKey(
 		return
 	}
 
-	if (e.key === 'ArrowRight') {
-		e.preventDefault()
+	if (event.key === 'ArrowRight') {
+		event.preventDefault()
 
 		const nextIndex = active.index === 2 ? 0 : ((active.index + 1) as 0 | 1 | 2)
 
@@ -208,22 +211,22 @@ function handleHeaderKey(
 		return
 	}
 
-	if (e.key === 'ArrowDown') {
-		e.preventDefault()
+	if (event.key === 'ArrowDown') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
 
 		return
 	}
 
-	if (e.key === 'ArrowUp') {
-		e.preventDefault()
+	if (event.key === 'ArrowUp') {
+		event.preventDefault()
 
 		return
 	}
 
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault()
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
 
 		if (active.index === 0) ctx.calendarRef.current?.prevMonth()
 		else if (active.index === 1) ctx.calendarRef.current?.openPicker()
@@ -233,7 +236,7 @@ function handleHeaderKey(
 
 /** Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid, Enter/Space activates. @internal */
 function handleFooterKey(
-	e: KeyboardEvent<HTMLElement>,
+	event: KeyboardEvent<HTMLElement>,
 	active: FooterActive,
 	ctx: DatePickerKeyContext,
 ) {
@@ -241,34 +244,34 @@ function handleFooterKey(
 
 	// Left/Right wrap symmetrically; `(index + delta + count) % count` covers
 	// both edges (0 → count-1 going left, count-1 → 0 going right).
-	if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-		e.preventDefault()
+	if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+		event.preventDefault()
 
 		if (count === 0) return
 
-		const delta = e.key === 'ArrowLeft' ? -1 : 1
+		const delta = event.key === 'ArrowLeft' ? -1 : 1
 
 		ctx.setActive({ zone: 'footer', index: (active.index + delta + count) % count })
 
 		return
 	}
 
-	if (e.key === 'ArrowUp') {
-		e.preventDefault()
+	if (event.key === 'ArrowUp') {
+		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
 
 		return
 	}
 
-	if (e.key === 'ArrowDown') {
-		e.preventDefault()
+	if (event.key === 'ArrowDown') {
+		event.preventDefault()
 
 		return
 	}
 
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault()
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
 
 		const kind = ctx.footerButtons[active.index]
 
@@ -299,11 +302,11 @@ export function useDatePickerKeyboard({
 	onFooterActivate,
 }: DatePickerKeyDownParams) {
 	return useCallback(
-		(e: KeyboardEvent<HTMLElement>) => {
+		(event: KeyboardEvent<HTMLElement>) => {
 			if (disabled) return
 
 			if (!open) {
-				handleClosedKey(e, openCalendar)
+				handleClosedKey(event, openCalendar)
 
 				return
 			}
@@ -320,27 +323,27 @@ export function useDatePickerKeyboard({
 				onFooterActivate,
 			}
 
-			if (handleOpenGlobalKey(e, ctx)) return
+			if (handleOpenGlobalKey(event, ctx)) return
 
 			if (active === null) {
-				handleNoActiveKey(e, ctx)
+				handleNoActiveKey(event, ctx)
 
 				return
 			}
 
 			if (active.zone === 'grid') {
-				handleGridKey(e, active, ctx)
+				handleGridKey(event, active, ctx)
 
 				return
 			}
 
 			if (active.zone === 'header') {
-				handleHeaderKey(e, active, ctx)
+				handleHeaderKey(event, active, ctx)
 
 				return
 			}
 
-			handleFooterKey(e, active, ctx)
+			handleFooterKey(event, active, ctx)
 		},
 		[
 			disabled,

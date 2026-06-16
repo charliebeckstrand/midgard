@@ -116,10 +116,10 @@ export function Slider({
 			aria-valuetext={getValueText?.(current)}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				setTouched()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
 			className={cn(k({ size: resolvedSize, color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}

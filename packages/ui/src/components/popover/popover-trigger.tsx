@@ -76,8 +76,8 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 		[triggerRef, setReference, childRef],
 	)
 
-	const shouldIgnore = useCallback((e: SyntheticEvent<HTMLElement>): boolean => {
-		return e.target instanceof Element && e.target.closest('[data-popover-ignore]') !== null
+	const shouldIgnore = useCallback((event: SyntheticEvent<HTMLElement>): boolean => {
+		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null
 	}, [])
 
 	const wrapReferenceProps = useCallback(
@@ -92,10 +92,10 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 				const original = refProps[key]
 
 				if (typeof original === 'function') {
-					wrapped[key] = (e: SyntheticEvent<HTMLElement>) => {
-						if (shouldIgnore(e)) return
+					wrapped[key] = (event: SyntheticEvent<HTMLElement>) => {
+						if (shouldIgnore(event)) return
 
-						return original(e)
+						return original(event)
 					}
 				}
 			}

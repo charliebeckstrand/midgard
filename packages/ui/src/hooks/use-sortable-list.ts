@@ -56,17 +56,17 @@ export function useSortableList<T>({
 	const strategy =
 		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
 
-	const handleDragStart = useCallback((e: DragStartEvent) => {
-		setActiveId(String(e.active.id))
+	const handleDragStart = useCallback((event: DragStartEvent) => {
+		setActiveId(String(event.active.id))
 	}, [])
 
 	const handleDragEnd = useCallback(
-		(e: DragEndEvent) => {
+		(event: DragEndEvent) => {
 			setActiveId(null)
 
 			if (!onReorder) return
 
-			const { active, over } = e
+			const { active, over } = event
 
 			if (!over || active.id === over.id) return
 

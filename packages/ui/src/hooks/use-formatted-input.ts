@@ -38,10 +38,10 @@ export function useFormattedInput({
 }: FormattedInputOptions) {
 	const { ref, setCaret } = usePendingCaret(externalRef)
 
-	const reformat = (e: ChangeEvent<HTMLInputElement>) => {
-		const raw = e.target.value
+	const reformat = (event: ChangeEvent<HTMLInputElement>) => {
+		const raw = event.target.value
 
-		const cursor = e.target.selectionStart ?? raw.length
+		const cursor = event.target.selectionStart ?? raw.length
 
 		const meaningfulBefore = countMeaningful(raw, cursor, meaningful)
 

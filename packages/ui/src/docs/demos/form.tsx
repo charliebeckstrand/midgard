@@ -263,7 +263,7 @@ function OnSettledExample() {
 		<Stack gap="lg">
 			<Control>
 				<SwitchField>
-					<Switch checked={failNext} onChange={(e) => setFailNext(e.target.checked)} />
+					<Switch checked={failNext} onChange={(event) => setFailNext(event.target.checked)} />
 					<Label>Simulate server failure</Label>
 				</SwitchField>
 			</Control>

@@ -123,7 +123,7 @@ describe('FiltersField', () => {
 						<input
 							data-slot="raw-input"
 							value={(value as string) ?? ''}
-							onChange={(e) => fieldOnValueChange(e.target.value)}
+							onChange={(event) => fieldOnValueChange(event.target.value)}
 						/>
 					)}
 				</FiltersField>

@@ -190,7 +190,7 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
  * @internal
  */
 function processRowContext(
-	e: KeyboardEvent,
+	event: KeyboardEvent,
 	container: HTMLElement | null,
 	active: HTMLElement | null,
 	currentIndex: number,
@@ -207,7 +207,7 @@ function processRowContext(
 
 	const index = currentIndex === -1 ? items.findIndex((it) => rowEl.contains(it)) : currentIndex
 
-	const crossDelta = crossAxisDelta(e.key, orientation ?? 'vertical')
+	const crossDelta = crossAxisDelta(event.key, orientation ?? 'vertical')
 
 	if (crossDelta === null || !actionSelector) return { handled: false, currentIndex: index }
 
@@ -217,7 +217,7 @@ function processRowContext(
 
 	if (controlIndex === -1) return { handled: false, currentIndex: index }
 
-	e.preventDefault()
+	event.preventDefault()
 
 	// Clamped at the row edges, unlike the wrapping main axis.
 	controls[controlIndex + crossDelta]?.focus()
@@ -232,16 +232,16 @@ function processRowContext(
  * @internal
  */
 function handleActivationKey(
-	e: KeyboardEvent,
+	event: KeyboardEvent,
 	ctx: RovingKeyContext,
 	currentIndex: number,
 	activationKey: string | null,
 ): boolean {
-	if (!ctx.isVirtual || !activationKey || e.key !== activationKey) return false
+	if (!ctx.isVirtual || !activationKey || event.key !== activationKey) return false
 
 	if (currentIndex === -1) return true
 
-	e.preventDefault()
+	event.preventDefault()
 
 	ctx.items[currentIndex]?.click()
 
@@ -256,18 +256,18 @@ function handleActivationKey(
  * @internal
  */
 function handleTypeahead(
-	e: KeyboardEvent,
+	event: KeyboardEvent,
 	ctx: RovingKeyContext,
 	currentIndex: number,
 	matchTypeahead: ReturnType<typeof useTypeahead>,
 	typeahead: boolean,
 ): boolean {
-	if (!typeahead || !isTypeaheadKey(e)) return false
+	if (!typeahead || !isTypeaheadKey(event)) return false
 
-	const index = matchTypeahead(ctx.items, e.key, currentIndex)
+	const index = matchTypeahead(ctx.items, event.key, currentIndex)
 
 	if (index !== null) {
-		e.preventDefault()
+		event.preventDefault()
 
 		moveTo(index, ctx)
 	}
@@ -277,7 +277,7 @@ function handleTypeahead(
 
 /** Main-axis arrow / Home / End navigation, after the focus-empty guard. @internal */
 function handleMainAxisNav(
-	e: KeyboardEvent,
+	event: KeyboardEvent,
 	currentIndex: number,
 	ctx: RovingKeyContext,
 	opts: {
@@ -288,14 +288,14 @@ function handleMainAxisNav(
 ): void {
 	if (!ctx.isVirtual && currentIndex === -1 && !opts.focusOnEmpty) return
 
-	const nextIndex = nextIndexForKey(e.key, currentIndex, ctx.items.length, {
+	const nextIndex = nextIndexForKey(event.key, currentIndex, ctx.items.length, {
 		cols: opts.cols,
 		orientation: opts.orientation,
 	})
 
 	if (nextIndex === null) return
 
-	e.preventDefault()
+	event.preventDefault()
 
 	moveTo(nextIndex, ctx)
 }
@@ -436,10 +436,10 @@ export function useA11yRoving(
 		// Carry the resting stop to any item that takes focus by click or script;
 		// arrow roving already seats it in `moveTo`. `focusin` bubbles where `focus`
 		// doesn't; one container listener covers every item.
-		const onFocusIn = (e: FocusEvent) => {
+		const onFocusIn = (event: FocusEvent) => {
 			const items = queryItems(el, itemSelector)
 
-			const target = items.find((it) => it === e.target)
+			const target = items.find((it) => it === event.target)
 
 			if (target) {
 				seatTabStop(items, target)
@@ -450,8 +450,8 @@ export function useA11yRoving(
 			// Focus moving elsewhere inside a row (to an affix action) keeps the
 			// resting stop on the row's item: Tab re-enters on an item, never an
 			// action.
-			if (rowSelector && e.target instanceof HTMLElement) {
-				const rowEl = e.target.closest(rowSelector)
+			if (rowSelector && event.target instanceof HTMLElement) {
+				const rowEl = event.target.closest(rowSelector)
 
 				const anchor = rowEl ? items.find((it) => rowEl.contains(it)) : undefined
 
@@ -486,7 +486,7 @@ export function useA11yRoving(
 	])
 
 	return useCallback(
-		(e: KeyboardEvent) => {
+		(event: KeyboardEvent) => {
 			const items = queryItems(containerRef.current, itemSelector)
 
 			if (!items.length) return
@@ -509,7 +509,7 @@ export function useA11yRoving(
 				scrollWithin,
 			}
 
-			const rowResult = processRowContext(e, containerRef.current, active, currentIndex, {
+			const rowResult = processRowContext(event, containerRef.current, active, currentIndex, {
 				items,
 				itemSelector,
 				actionSelector,
@@ -521,11 +521,11 @@ export function useA11yRoving(
 
 			if (rowResult.handled) return
 
-			if (handleActivationKey(e, ctx, rowResult.currentIndex, activationKey)) return
+			if (handleActivationKey(event, ctx, rowResult.currentIndex, activationKey)) return
 
-			if (handleTypeahead(e, ctx, rowResult.currentIndex, matchTypeahead, typeahead)) return
+			if (handleTypeahead(event, ctx, rowResult.currentIndex, matchTypeahead, typeahead)) return
 
-			handleMainAxisNav(e, rowResult.currentIndex, ctx, { cols, orientation, focusOnEmpty })
+			handleMainAxisNav(event, rowResult.currentIndex, ctx, { cols, orientation, focusOnEmpty })
 		},
 		[
 			containerRef,

@@ -7,7 +7,7 @@ import { usePasswordConfirm } from './context'
 
 /** Props for {@link PasswordConfirmInput}: {@link PasswordInputProps} with an `onChange` that runs after the coordinator records the value. */
 export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
-	onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+	onChange?: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 /**
@@ -56,10 +56,10 @@ export function PasswordConfirmInput({
 			invalid={invalid ?? (showWarning || undefined)}
 			aria-describedby={describedBy}
 			{...props}
-			onChange={(e) => {
-				setConfirm(e.target.value)
+			onChange={(event) => {
+				setConfirm(event.target.value)
 
-				onChange?.(e)
+				onChange?.(event)
 			}}
 		/>
 	)

@@ -39,7 +39,7 @@ describe('Form', () => {
 				<input
 					data-slot={`field-${name}`}
 					value={(field?.value as string) ?? ''}
-					onChange={(e) => field?.setValue(e.target.value)}
+					onChange={(event) => field?.setValue(event.target.value)}
 				/>
 			)
 		}

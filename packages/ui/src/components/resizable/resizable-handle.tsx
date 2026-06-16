@@ -54,13 +54,13 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	const isDragging = dragging === handleIndex
 
 	const onKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			const step = e.shiftKey ? 10 : 5
+		(event: KeyboardEvent) => {
+			const step = event.shiftKey ? 10 : 5
 
-			const delta = resizeDeltaForKey(e.key, isHorizontal, step)
+			const delta = resizeDeltaForKey(event.key, isHorizontal, step)
 
 			if (delta !== 0) {
-				e.preventDefault()
+				event.preventDefault()
 
 				resize(handleIndex, delta)
 			}
@@ -82,7 +82,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			aria-valuemin={panelMinSize}
 			aria-valuemax={panelMaxSize}
 			tabIndex={0}
-			onPointerDown={(e) => startDrag(handleIndex, e)}
+			onPointerDown={(event) => startDrag(handleIndex, event)}
 			onKeyDown={onKeyDown}
 			className={cn(
 				k.handle.base,

@@ -93,8 +93,8 @@ export function CommandPalette({
 
 		const keys = Array.isArray(triggerShortcut) ? triggerShortcut : [triggerShortcut]
 
-		const toggle = (e: KeyboardEvent) => {
-			e.preventDefault()
+		const toggle = (event: KeyboardEvent) => {
+			event.preventDefault()
 
 			onOpenChange(!open)
 		}
@@ -133,7 +133,7 @@ export function CommandPalette({
 							data-slot="command-palette-input"
 							placeholder={placeholder}
 							value={query}
-							onChange={(e) => setQuery(e.target.value)}
+							onChange={(event) => setQuery(event.target.value)}
 							onKeyDown={onKeyDown}
 						/>
 						<Button variant="plain" aria-label="Close" onClick={close}>

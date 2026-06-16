@@ -84,12 +84,12 @@ export function useFileUploadHandlers({
 	)
 
 	const handleChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			handleFiles(e.target.files)
+		(event: ChangeEvent<HTMLInputElement>) => {
+			handleFiles(event.target.files)
 
 			// Resets the native input value; the browser suppresses `change` when
 			// the value is unchanged (re-selecting the same file).
-			e.target.value = ''
+			event.target.value = ''
 		},
 		[handleFiles],
 	)
@@ -98,12 +98,12 @@ export function useFileUploadHandlers({
 	// valid drop target, `data-drag-over` is never set, and the browser
 	// handles the drop natively.
 	const handleDragEnter = useCallback(
-		(e: DragEvent) => {
+		(event: DragEvent) => {
 			if (disabled) return
 
-			e.preventDefault()
+			event.preventDefault()
 
-			e.stopPropagation()
+			event.stopPropagation()
 
 			setDragDepth((d) => d + 1)
 		},
@@ -113,26 +113,26 @@ export function useFileUploadHandlers({
 	// `preventDefault` on `dragover` marks the element a valid drop target;
 	// `dragenter`/`dragleave` own the depth counter.
 	const handleDragOver = useCallback(
-		(e: DragEvent) => {
+		(event: DragEvent) => {
 			if (disabled) return
 
-			e.preventDefault()
+			event.preventDefault()
 
-			e.stopPropagation()
+			event.stopPropagation()
 		},
 		[disabled],
 	)
 
-	const handleDragLeave = useCallback((e: DragEvent) => {
-		e.preventDefault()
+	const handleDragLeave = useCallback((event: DragEvent) => {
+		event.preventDefault()
 
-		e.stopPropagation()
+		event.stopPropagation()
 
 		setDragDepth((d) => Math.max(0, d - 1))
 	}, [])
 
 	const handleDrop = useCallback(
-		(e: DragEvent) => {
+		(event: DragEvent) => {
 			// Defensive: with `dragover` unprevented the browser shouldn't target
 			// a disabled dropzone, but after a mid-drag `disabled` flip a drop
 			// event can still fire here; clear the highlight, ignore the files.
@@ -142,13 +142,13 @@ export function useFileUploadHandlers({
 				return
 			}
 
-			e.preventDefault()
+			event.preventDefault()
 
-			e.stopPropagation()
+			event.stopPropagation()
 
 			setDragDepth(0)
 
-			handleFiles(e.dataTransfer.files)
+			handleFiles(event.dataTransfer.files)
 		},
 		[disabled, handleFiles],
 	)

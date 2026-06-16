@@ -5,14 +5,14 @@ import type { KeyboardEvent, MouseEvent } from 'react'
  * first, then selection (`onAction` + close). A no-op when disabled.
  */
 export function handleMenuItemClick<E extends HTMLElement>(
-	e: MouseEvent<E>,
+	event: MouseEvent<E>,
 	consumerOnClick: ((event: MouseEvent<E>) => void) | undefined,
 	onSelect: () => void,
 	disabled?: boolean,
 ): void {
 	if (disabled) return
 
-	consumerOnClick?.(e)
+	consumerOnClick?.(event)
 
 	onSelect()
 }
@@ -24,19 +24,19 @@ export function handleMenuItemClick<E extends HTMLElement>(
  * disabled, so disabled items stay inert on the keyboard path too.
  */
 export function handleMenuItemKeyDown<E extends HTMLElement>(
-	e: KeyboardEvent<E>,
+	event: KeyboardEvent<E>,
 	consumerOnKeyDown: ((event: KeyboardEvent<E>) => void) | undefined,
 	onSelect: () => void,
 	disabled?: boolean,
 ): void {
 	if (disabled) return
 
-	consumerOnKeyDown?.(e)
+	consumerOnKeyDown?.(event)
 
-	if (e.defaultPrevented) return
+	if (event.defaultPrevented) return
 
-	if (e.key === 'Enter' || e.key === ' ') {
-		e.preventDefault()
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
 
 		onSelect()
 	}

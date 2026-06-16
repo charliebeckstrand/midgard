@@ -100,21 +100,21 @@ export function CurrencyInput({
 			name={name}
 			value={text}
 			onFocus={onFocus}
-			onKeyDown={(e) => {
-				onKeyDown?.(e)
+			onKeyDown={(event) => {
+				onKeyDown?.(event)
 
-				if (!e.defaultPrevented && e.key === 'Enter') {
-					e.currentTarget.blur()
+				if (!event.defaultPrevented && event.key === 'Enter') {
+					event.currentTarget.blur()
 				}
 			}}
-			onChange={(e) => {
-				const formatted = reformat(e)
+			onChange={(event) => {
+				const formatted = reformat(event)
 
 				setEditingText(formatted)
 
 				setNum(parseEditing(formatted, group, decimal))
 			}}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				if (editingText !== null) {
 					const parsed = parseEditing(editingText, group, decimal)
 
@@ -125,7 +125,7 @@ export function CurrencyInput({
 
 				setTouched()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
 			{...props}
 		/>
