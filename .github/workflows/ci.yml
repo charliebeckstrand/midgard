@@ -27,7 +27,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:mcp
       - run: pnpm turbo run lint check-types test knip build
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.

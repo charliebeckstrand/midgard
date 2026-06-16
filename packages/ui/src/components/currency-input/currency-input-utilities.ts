@@ -36,47 +36,47 @@ export function isMeaningful(c: string, decimal: string) {
 	return (c >= '0' && c <= '9') || c === '-' || c === decimal
 }
 
+// Collapses every decimal separator after the first, keeping a single split
+// point between the integer and fraction segments.
+function collapseExtraDecimals(value: string, decimal: string) {
+	const firstDecimal = value.indexOf(decimal)
+
+	if (firstDecimal < 0) return value
+
+	const split = firstDecimal + decimal.length
+
+	return value.slice(0, split) + value.slice(split).replace(separatorRe(decimal), '')
+}
+
+// Strips redundant leading zeros and applies locale digit grouping. An empty
+// integer part renders as '0' only when a fraction follows, else stays empty.
+function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string | undefined) {
+	const trimmed = intPart.replace(/^0+(?=\d)/, '')
+
+	if (trimmed === '') return hasFraction ? '0' : ''
+
+	const n = Number(trimmed)
+
+	return Number.isFinite(n)
+		? n.toLocaleString(locale, { useGrouping: true, maximumFractionDigits: 0 })
+		: trimmed
+}
+
 export function formatEditing(
 	raw: string,
 	locale: string | undefined,
 	decimal: string,
 	maxFractionDigits: number,
 ) {
-	const decRe = separatorRe(decimal)
+	const withoutDisallowed = raw.replace(disallowedRe(decimal), '')
 
-	const allowed = disallowedRe(decimal)
+	const negative = withoutDisallowed.startsWith('-')
 
-	let cleaned = raw.replace(allowed, '')
+	const cleaned = collapseExtraDecimals(withoutDisallowed.replace(/-/g, ''), decimal)
 
-	const negative = cleaned.startsWith('-')
+	const [intPart = '', fracPart] = cleaned.split(decimal)
 
-	cleaned = cleaned.replace(/-/g, '')
-
-	const firstDec = cleaned.indexOf(decimal)
-
-	if (firstDec >= 0) {
-		cleaned =
-			cleaned.slice(0, firstDec + decimal.length) +
-			cleaned.slice(firstDec + decimal.length).replace(decRe, '')
-	}
-
-	let [intPart = '', fracPart] = cleaned.split(decimal)
-
-	intPart = intPart.replace(/^0+(?=\d)/, '')
-
-	let formattedInt: string
-
-	if (intPart === '') {
-		formattedInt = fracPart !== undefined ? '0' : ''
-	} else {
-		const n = Number(intPart)
-
-		formattedInt = Number.isFinite(n)
-			? n.toLocaleString(locale, { useGrouping: true, maximumFractionDigits: 0 })
-			: intPart
-	}
-
-	let result = (negative ? '-' : '') + formattedInt
+	let result = (negative ? '-' : '') + groupIntegerPart(intPart, fracPart !== undefined, locale)
 
 	if (fracPart !== undefined && maxFractionDigits > 0) {
 		result += decimal + fracPart.slice(0, maxFractionDigits)
