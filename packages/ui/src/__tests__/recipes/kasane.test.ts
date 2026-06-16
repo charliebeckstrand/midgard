@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { kasane } from '../../recipes/kiso/kasane'
 
-const { gap, radius } = kasane
+const { gap, radius, layers } = kasane
 
 // Pins the class-string contract for kasane spacing/radius helpers; expected
 // values are derived from the stop, so a typo in a literal class fails here.
@@ -39,5 +39,27 @@ describe('kasane.radius', () => {
 
 	it.each(stops)('all(%s) returns the coordinated outer / inset / overlay trio', (v) => {
 		expect(radius.all(v)).toEqual([radius.r(v), radius.ri(v), radius.ro(v)])
+	})
+})
+
+describe('kasane.layers', () => {
+	// Both decorative pseudo-element layers sit absolutely over the frame and must
+	// stay transparent to pointer events; otherwise the `::before`/`::after`
+	// (which belong to the frame) intercept clicks and cursors meant for the
+	// non-positioned affix slots below them. The leak is light-mode only because
+	// `surface.default` hides `::before` in dark mode — see layers.ts.
+	it('keeps the inset fill from capturing pointer events', () => {
+		expect(layers.inset.join(' ')).toContain('before:pointer-events-none')
+	})
+
+	it('keeps the overlay ring from capturing pointer events', () => {
+		expect(layers.overlay.join(' ')).toContain('after:pointer-events-none')
+	})
+
+	it('carries both pointer-events guards through the bundled all stack', () => {
+		const all = layers.all.join(' ')
+
+		expect(all).toContain('before:pointer-events-none')
+		expect(all).toContain('after:pointer-events-none')
 	})
 })
