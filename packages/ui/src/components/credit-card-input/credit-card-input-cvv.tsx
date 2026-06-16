@@ -126,15 +126,15 @@ export function CreditCardInputCvv({
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}
 			value={masked.value}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				masked.onBlur()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
-			onChange={(e) => {
-				masked.onChange(e)
+			onChange={(event) => {
+				masked.onChange(event)
 
-				onValidityChange?.(validateCardCvv(e.target.value, resolvedBrand))
+				onValidityChange?.(validateCardCvv(event.target.value, resolvedBrand))
 			}}
 			{...props}
 		/>

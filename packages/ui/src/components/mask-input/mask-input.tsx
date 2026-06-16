@@ -58,10 +58,10 @@ export function MaskInput({
 			name={name}
 			value={masked.value}
 			onChange={masked.onChange}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				masked.onBlur()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
 			{...props}
 		/>

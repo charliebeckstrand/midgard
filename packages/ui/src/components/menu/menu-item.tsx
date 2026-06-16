@@ -86,8 +86,8 @@ export function MenuItem(props: MenuItemProps) {
 				{...rest}
 				// Composed after the spread: runs the consumer onClick, then
 				// selection (onAction/close).
-				onClick={(e: MouseEvent<HTMLAnchorElement>) =>
-					handleMenuItemClick(e, consumerOnClick, handleSelect)
+				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
+					handleMenuItemClick(event, consumerOnClick, handleSelect)
 				}
 			>
 				{children}
@@ -118,11 +118,11 @@ export function MenuItem(props: MenuItemProps) {
 			// Composed after the spread: runs consumer handlers, then selection
 			// (onAction/close). The disabled guard precedes both so disabled
 			// items are inert on every input path.
-			onClick={(e: MouseEvent<HTMLButtonElement>) =>
-				handleMenuItemClick(e, consumerOnClick, handleSelect, disabled)
+			onClick={(event: MouseEvent<HTMLButtonElement>) =>
+				handleMenuItemClick(event, consumerOnClick, handleSelect, disabled)
 			}
-			onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) =>
-				handleMenuItemKeyDown(e, consumerOnKeyDown, handleSelect, disabled)
+			onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) =>
+				handleMenuItemKeyDown(event, consumerOnKeyDown, handleSelect, disabled)
 			}
 		>
 			{children}

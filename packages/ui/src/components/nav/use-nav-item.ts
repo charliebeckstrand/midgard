@@ -101,8 +101,8 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 		scrollWithin(ref.current, { block: 'nearest' })
 	}, [isCurrent, scrollWithin])
 
-	function handleClick(e: MouseEvent<HTMLElement>) {
-		onClick?.(e as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
+	function handleClick(event: MouseEvent<HTMLElement>) {
+		onClick?.(event as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
 			context?.onValueChange?.(value)

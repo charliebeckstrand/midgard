@@ -97,7 +97,7 @@ export function MapShipmentChat({ messages, onSend }: MapShipmentChatProps) {
 						placeholder="Send message"
 						value={draft}
 						disabled={isPending}
-						onChange={(e) => setDraft(e.target.value)}
+						onChange={(event) => setDraft(event.target.value)}
 					/>
 					<Button
 						type="submit"

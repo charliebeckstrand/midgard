@@ -35,12 +35,12 @@ export function deriveStatus(password: string, confirm: string, lastEdited: Last
  * @internal
  */
 export function handlePasswordInput(
-	e: SyntheticEvent<HTMLDivElement>,
+	event: SyntheticEvent<HTMLDivElement>,
 	setPassword: (value: string) => void,
 	setPasswordName: (name: string | undefined) => void,
 	setLastEdited: (value: LastEdited) => void,
 ) {
-	const target = e.target
+	const target = event.target
 
 	if (!(target instanceof HTMLInputElement)) return
 

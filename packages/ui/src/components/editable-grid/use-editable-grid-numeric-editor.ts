@@ -9,7 +9,7 @@ type NumericEditorBindings = {
 	value: number | undefined
 	onValueChange: (next: number | undefined) => void
 	onBlur: () => void
-	onKeyDown: (e: KeyboardEvent<HTMLElement>) => void
+	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 }
 
 /**

@@ -66,8 +66,8 @@ export function useMapInstance({
 		// Require Shift+wheel to zoom; plain wheel passes through to page scroll.
 		// Capture phase fires before MapLibre's handler on the inner canvas
 		// container; stopImmediatePropagation keeps the event from reaching it.
-		const wheelHandler = (e: WheelEvent) => {
-			if (!e.shiftKey) e.stopImmediatePropagation()
+		const wheelHandler = (event: WheelEvent) => {
+			if (!event.shiftKey) event.stopImmediatePropagation()
 		}
 
 		container.addEventListener('wheel', wheelHandler, { capture: true, passive: true })

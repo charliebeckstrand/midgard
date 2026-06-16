@@ -62,13 +62,13 @@ export function CreditCardInputExpiry({
 			placeholder={placeholder ?? 'MM/YY'}
 			name={name}
 			value={masked.value}
-			onBlur={(e) => {
+			onBlur={(event) => {
 				masked.onBlur()
 
-				onBlur?.(e)
+				onBlur?.(event)
 			}}
-			onChange={(e) => {
-				const raw = e.target.value
+			onChange={(event) => {
+				const raw = event.target.value
 
 				// The formatter re-appends a deleted trailing "/" and traps the
 				// caret; backspace over it deletes the preceding digit instead.
@@ -82,7 +82,7 @@ export function CreditCardInputExpiry({
 					return
 				}
 
-				masked.onChange(e)
+				masked.onChange(event)
 
 				onValidityChange?.(validateCardExpiry(formatExpiry(raw)))
 			}}

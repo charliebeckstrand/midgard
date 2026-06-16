@@ -75,11 +75,11 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 		<SidebarItem
 			href={`#${demo.id}`}
 			current={current}
-			onClick={(e) => {
+			onClick={(event) => {
 				// Prevent the browser's default hash-link scroll;
 				// the deferredRoute effect scrolls to top after
 				// the new demo commits.
-				e.preventDefault()
+				event.preventDefault()
 
 				prefetch()
 

@@ -109,7 +109,7 @@ export function Sheet({
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"
-				onClick={(e) => e.stopPropagation()}
+				onClick={(event) => event.stopPropagation()}
 				className={cn(
 					k.panel({ side, size, surface: resolvedSurface }),
 					// Non-modal overlays disable pointer events on the full-viewport

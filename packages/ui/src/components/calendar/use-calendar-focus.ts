@@ -96,12 +96,12 @@ function isBottomRow(container: HTMLElement | null, cols: number): boolean {
  *
  * @internal
  */
-function seal(e: KeyboardEvent, stopPropagation: boolean): void {
+function seal(event: KeyboardEvent, stopPropagation: boolean): void {
 	if (!stopPropagation) return
 
-	if (!e.defaultPrevented && NAVIGATION_KEYS.has(e.key)) e.preventDefault()
+	if (!event.defaultPrevented && NAVIGATION_KEYS.has(event.key)) event.preventDefault()
 
-	if (e.defaultPrevented) e.stopPropagation()
+	if (event.defaultPrevented) event.stopPropagation()
 }
 
 /**
@@ -110,15 +110,15 @@ function seal(e: KeyboardEvent, stopPropagation: boolean): void {
  *
  * @internal
  */
-function preventAndStop(e: KeyboardEvent, stopPropagation: boolean): void {
-	e.preventDefault()
+function preventAndStop(event: KeyboardEvent, stopPropagation: boolean): void {
+	event.preventDefault()
 
-	if (stopPropagation) e.stopPropagation()
+	if (stopPropagation) event.stopPropagation()
 }
 
 /** Wraps focus between the footer's own buttons on Left/Right. @internal */
 function focusAdjacentFooterButton(
-	e: KeyboardEvent,
+	event: KeyboardEvent,
 	footer: HTMLElement | null,
 	stopPropagation: boolean,
 ): void {
@@ -129,13 +129,13 @@ function focusAdjacentFooterButton(
 	if (index < 0) return
 
 	const next =
-		e.key === 'ArrowRight'
+		event.key === 'ArrowRight'
 			? buttons[(index + 1) % buttons.length]
 			: buttons[(index - 1 + buttons.length) % buttons.length]
 
 	if (!next) return
 
-	preventAndStop(e, stopPropagation)
+	preventAndStop(event, stopPropagation)
 
 	next.focus()
 }
@@ -168,37 +168,37 @@ export function useCalendarFocus({
 	})
 
 	const handleHeaderKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowDown') {
-				preventAndStop(e, stopPropagation)
+		(event: KeyboardEvent) => {
+			if (event.key === 'ArrowDown') {
+				preventAndStop(event, stopPropagation)
 
 				firstButton(gridRef.current)?.focus()
 
 				return
 			}
 
-			headerRoving(e)
+			headerRoving(event)
 
-			seal(e, stopPropagation)
+			seal(event, stopPropagation)
 		},
 		[gridRef, headerRoving, stopPropagation],
 	)
 
 	const handleGridKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowUp' && isTopRow(gridRef.current, cols)) {
-				preventAndStop(e, stopPropagation)
+		(event: KeyboardEvent) => {
+			if (event.key === 'ArrowUp' && isTopRow(gridRef.current, cols)) {
+				preventAndStop(event, stopPropagation)
 
 				middleButton(headerRef.current)?.focus()
 
 				return
 			}
 
-			if (e.key === 'ArrowDown' && isBottomRow(gridRef.current, cols)) {
+			if (event.key === 'ArrowDown' && isBottomRow(gridRef.current, cols)) {
 				const target = firstButton(footerRef?.current ?? null)
 
 				if (target) {
-					preventAndStop(e, stopPropagation)
+					preventAndStop(event, stopPropagation)
 
 					target.focus()
 
@@ -206,28 +206,28 @@ export function useCalendarFocus({
 				}
 			}
 
-			gridRoving(e)
+			gridRoving(event)
 
-			seal(e, stopPropagation)
+			seal(event, stopPropagation)
 		},
 		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation],
 	)
 
 	const handleFooterKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'ArrowUp') {
-				preventAndStop(e, stopPropagation)
+		(event: KeyboardEvent) => {
+			if (event.key === 'ArrowUp') {
+				preventAndStop(event, stopPropagation)
 
 				lastButton(gridRef.current)?.focus()
 
 				return
 			}
 
-			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-				focusAdjacentFooterButton(e, footerRef?.current ?? null, stopPropagation)
+			if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+				focusAdjacentFooterButton(event, footerRef?.current ?? null, stopPropagation)
 			}
 
-			seal(e, stopPropagation)
+			seal(event, stopPropagation)
 		},
 		[gridRef, footerRef, stopPropagation],
 	)

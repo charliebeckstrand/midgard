@@ -133,10 +133,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	// With `input`, the dialog's Tab edges hand focus back to the reference
 	// group before the virtual model sees the key.
 	const onContentKeyDown = input
-		? (e: KeyboardEvent<HTMLElement>) => {
-				inputTab.onDialogKeyDown(e)
+		? (event: KeyboardEvent<HTMLElement>) => {
+				inputTab.onDialogKeyDown(event)
 
-				if (!e.defaultPrevented) state.onTriggerKeyDown(e)
+				if (!event.defaultPrevented) state.onTriggerKeyDown(event)
 			}
 		: state.onTriggerKeyDown
 

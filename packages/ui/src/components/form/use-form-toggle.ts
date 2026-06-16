@@ -39,12 +39,12 @@ export function useFormToggle({ name, checked, onChange }: FormToggleOptions): F
 
 	const bound = checked === undefined && field !== undefined
 
-	const handleBoundChange = (e: ChangeEvent<HTMLInputElement>) => {
-		field?.setValue(e.target.checked)
+	const handleBoundChange = (event: ChangeEvent<HTMLInputElement>) => {
+		field?.setValue(event.target.checked)
 
 		field?.setTouched()
 
-		onChange?.(e)
+		onChange?.(event)
 	}
 
 	return {

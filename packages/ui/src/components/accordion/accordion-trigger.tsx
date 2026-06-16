@@ -52,9 +52,9 @@ export function AccordionTrigger({
 				// is set only while its target id exists.
 				aria-controls={open ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
-				onClick={(e) => {
+				onClick={(event) => {
 					toggle()
-					onClick?.(e)
+					onClick?.(event)
 				}}
 				className={cn(k.trigger, className)}
 			>

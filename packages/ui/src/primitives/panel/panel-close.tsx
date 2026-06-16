@@ -16,8 +16,8 @@ export function PanelClose({ children }: PanelCloseProps) {
 	const { close } = usePanelCloseContext()
 
 	return cloneElement(children, {
-		onClick: (e: MouseEvent) => {
-			children.props.onClick?.(e)
+		onClick: (event: MouseEvent) => {
+			children.props.onClick?.(event)
 			close()
 		},
 	})

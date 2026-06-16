@@ -92,8 +92,8 @@ type FormReducerResult = {
 	formState: FormStateValue
 	store: FormStore
 	actions: FormActions
-	handleSubmit: (e: SyntheticEvent<HTMLFormElement>) => Promise<void>
-	handleReset: (e: SyntheticEvent<HTMLFormElement>) => void
+	handleSubmit: (event: SyntheticEvent<HTMLFormElement>) => Promise<void>
+	handleReset: (event: SyntheticEvent<HTMLFormElement>) => void
 }
 
 /**
@@ -238,8 +238,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	}, [controlledValues])
 
 	const handleSubmit = useCallback(
-		async (e: SyntheticEvent<HTMLFormElement>) => {
-			e.preventDefault()
+		async (event: SyntheticEvent<HTMLFormElement>) => {
+			event.preventDefault()
 
 			const current = valuesRef.current
 
@@ -297,8 +297,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	)
 
 	const handleReset = useCallback(
-		(e: SyntheticEvent<HTMLFormElement>) => {
-			e.preventDefault()
+		(event: SyntheticEvent<HTMLFormElement>) => {
+			event.preventDefault()
 
 			reset()
 		},

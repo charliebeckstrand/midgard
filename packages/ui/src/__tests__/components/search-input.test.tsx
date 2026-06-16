@@ -55,7 +55,7 @@ describe('SearchInput', () => {
 		function Controlled() {
 			const [value, setValue] = useState('query')
 
-			return <SearchInput value={value} onChange={(e) => setValue(e.target.value)} />
+			return <SearchInput value={value} onChange={(event) => setValue(event.target.value)} />
 		}
 
 		renderUI(<Controlled />)

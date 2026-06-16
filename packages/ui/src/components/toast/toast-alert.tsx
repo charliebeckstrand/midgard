@@ -112,11 +112,11 @@ export function ToastAlert({
 				ref={contentRef}
 				role={assertive ? 'alert' : 'status'}
 				onMouseEnter={onPause}
-				onMouseLeave={(e) => {
+				onMouseLeave={(event) => {
 					// Don't resume while focus is still inside the toast (keyboard user);
 					// mirrors the onBlur guard. Auto-dismiss stays paused under focus
 					// (WCAG 2.2.1).
-					if (e.currentTarget.contains(document.activeElement)) return
+					if (event.currentTarget.contains(document.activeElement)) return
 
 					onResume()
 				}}
@@ -124,8 +124,8 @@ export function ToastAlert({
 				// (WCAG 2.2.1). `onFocus`/`onBlur` bubble (focusin/focusout); resumes
 				// only once focus leaves the subtree.
 				onFocus={onPause}
-				onBlur={(e) => {
-					if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onResume()
+				onBlur={(event) => {
+					if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onResume()
 				}}
 				onClick={() => onReset(t.id)}
 			>

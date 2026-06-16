@@ -48,8 +48,8 @@ export function PasswordConfirm({
 	})
 
 	const handleInput = useCallback(
-		(e: SyntheticEvent<HTMLDivElement>) =>
-			handlePasswordInput(e, setPassword, setPasswordName, setLastEdited),
+		(event: SyntheticEvent<HTMLDivElement>) =>
+			handlePasswordInput(event, setPassword, setPasswordName, setLastEdited),
 		[setPassword, setLastEdited],
 	)
 

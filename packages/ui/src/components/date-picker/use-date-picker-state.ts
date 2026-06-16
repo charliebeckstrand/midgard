@@ -233,7 +233,8 @@ export function useDatePickerState({
 			onClear: handleClear,
 			onToday: handleSelectToday,
 			footerRef,
-			onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => calendarRef.current?.footerKeyDown(e),
+			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
+				calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

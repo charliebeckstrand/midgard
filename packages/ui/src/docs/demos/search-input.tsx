@@ -13,7 +13,7 @@ function ControlledExample() {
 			<Label>Search</Label>
 			<SearchInput
 				value={value}
-				onChange={(e) => setValue(e.target.value)}
+				onChange={(event) => setValue(event.target.value)}
 				onClear={() => setValue('')}
 				placeholder={placeholder}
 			/>

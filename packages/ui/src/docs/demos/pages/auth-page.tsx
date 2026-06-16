@@ -23,8 +23,8 @@ const Form = ({
 export function Demo() {
 	const [submitting, setSubmitting] = useState(false)
 
-	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (e) => {
-		e.preventDefault()
+	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (event) => {
+		event.preventDefault()
 
 		setSubmitting(true)
 

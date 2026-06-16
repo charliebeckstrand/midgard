@@ -6,8 +6,10 @@ import { type KeyboardEvent, useCallback, useEffect, useRef } from 'react'
 const TYPEAHEAD_TIMEOUT_MS = 500
 
 /** Whether a key event should drive type-ahead: a lone printable character. @internal */
-export function isTypeaheadKey(e: KeyboardEvent): boolean {
-	return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.metaKey && !e.altKey
+export function isTypeaheadKey(event: KeyboardEvent): boolean {
+	return (
+		event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey
+	)
 }
 
 /** Label that matches an item during type-ahead: `aria-label`, else text. */

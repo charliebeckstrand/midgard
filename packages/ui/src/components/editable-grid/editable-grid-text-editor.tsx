@@ -48,7 +48,7 @@ export function EditableGridTextEditor<T>({
 				aria-label={ariaLabel}
 				className={k.editInput({ align })}
 				value={draft}
-				onChange={(e) => setDraft(e.target.value)}
+				onChange={(event) => setDraft(event.target.value)}
 				onBlur={() => commit('none')}
 				onKeyDown={editorKeyHandler(commit, cancel)}
 			/>

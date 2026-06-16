@@ -19,7 +19,7 @@ function BasicExample() {
 				<PasswordInput
 					id="password-strength-basic"
 					value={value}
-					onChange={(e) => setValue(e.target.value)}
+					onChange={(event) => setValue(event.target.value)}
 					placeholder="Enter password"
 					autoComplete="new-password"
 				/>
@@ -39,7 +39,7 @@ function MeterOnlyExample() {
 				<PasswordInput
 					id="password-strength-meter"
 					value={value}
-					onChange={(e) => setValue(e.target.value)}
+					onChange={(event) => setValue(event.target.value)}
 					placeholder="Enter password"
 					autoComplete="new-password"
 				/>
@@ -64,7 +64,7 @@ function CustomRulesExample() {
 				<PasswordInput
 					id="password-strength-custom"
 					value={value}
-					onChange={(e) => setValue(e.target.value)}
+					onChange={(event) => setValue(event.target.value)}
 					placeholder="Enter password"
 					autoComplete="new-password"
 				/>

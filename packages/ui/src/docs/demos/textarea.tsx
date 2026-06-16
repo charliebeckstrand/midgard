@@ -22,7 +22,7 @@ function WithActionsExample() {
 			<Textarea
 				id={id}
 				value={withActionsValue}
-				onChange={(e) => setWithActionsValue(e.target.value)}
+				onChange={(event) => setWithActionsValue(event.target.value)}
 				autoResize
 				rows={1}
 				placeholder="Ask anything"

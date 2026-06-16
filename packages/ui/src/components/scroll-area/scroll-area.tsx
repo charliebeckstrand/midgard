@@ -71,10 +71,10 @@ export function ScrollArea({
 				className={k.viewport({ orientation, bare })}
 				// Composed, not clobbered: thumb tracking and the auto-fade run
 				// before the consumer's onScroll.
-				onScroll={(e: UIEvent<HTMLDivElement>) => {
+				onScroll={(event: UIEvent<HTMLDivElement>) => {
 					handleScroll()
 
-					onScroll?.(e)
+					onScroll?.(event)
 				}}
 				{...props}
 			>

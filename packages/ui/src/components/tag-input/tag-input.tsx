@@ -185,7 +185,7 @@ export function TagInput({
 			placeholder={tags.length === 0 ? placeholder : undefined}
 			aria-label={placeholder ?? 'Add tags'}
 			value={inputValue}
-			onChange={(e) => setInputValue(e.target.value)}
+			onChange={(event) => setInputValue(event.target.value)}
 			onKeyDown={handleKeyDown}
 			onBlur={handleBlur}
 			prefix={badges}
@@ -194,7 +194,7 @@ export function TagInput({
 					aria-label="Add tag"
 					variant="bare"
 					disabled={disabled || atMax || inputValue.trim() === ''}
-					onMouseDown={(e) => e.preventDefault()}
+					onMouseDown={(event) => event.preventDefault()}
 					onClick={handleSubmit}
 				>
 					<Icon icon={<CornerLeftDown />} />

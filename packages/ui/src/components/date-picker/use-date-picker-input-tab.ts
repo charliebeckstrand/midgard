@@ -43,20 +43,20 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 	// button) enters the dialog at its first; backward Tab from its first (the
 	// DateInput) wraps to the dialog's last.
 	const onReferenceKeyDown = useCallback(
-		(e: KeyboardEvent<Element>) => {
-			if (e.key !== 'Tab' || !open) return
+		(event: KeyboardEvent<Element>) => {
+			if (event.key !== 'Tab' || !open) return
 
-			const group = getTabbables(e.currentTarget)
+			const group = getTabbables(event.currentTarget)
 			const dialog = getTabbables(floatingRef.current)
 
 			if (dialog.length === 0) return
 
-			if (!e.shiftKey && e.target === group[group.length - 1]) {
-				e.preventDefault()
+			if (!event.shiftKey && event.target === group[group.length - 1]) {
+				event.preventDefault()
 
 				dialog[0]?.focus()
-			} else if (e.shiftKey && e.target === group[0]) {
-				e.preventDefault()
+			} else if (event.shiftKey && event.target === group[0]) {
+				event.preventDefault()
 
 				dialog[dialog.length - 1]?.focus()
 			}
@@ -67,20 +67,20 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 	// On the dialog: forward Tab past its last tabbable returns to the
 	// DateInput; backward Tab from its first lands on the calendar button.
 	const onDialogKeyDown = useCallback(
-		(e: KeyboardEvent<Element>) => {
-			if (e.key !== 'Tab' || !open) return
+		(event: KeyboardEvent<Element>) => {
+			if (event.key !== 'Tab' || !open) return
 
 			const group = getTabbables(triggerRef.current)
-			const dialog = getTabbables(e.currentTarget)
+			const dialog = getTabbables(event.currentTarget)
 
 			if (group.length === 0 || dialog.length === 0) return
 
-			if (!e.shiftKey && e.target === dialog[dialog.length - 1]) {
-				e.preventDefault()
+			if (!event.shiftKey && event.target === dialog[dialog.length - 1]) {
+				event.preventDefault()
 
 				group[0]?.focus()
-			} else if (e.shiftKey && e.target === dialog[0]) {
-				e.preventDefault()
+			} else if (event.shiftKey && event.target === dialog[0]) {
+				event.preventDefault()
 
 				group[group.length - 1]?.focus()
 			}

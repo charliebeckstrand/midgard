@@ -49,12 +49,12 @@ export function ListItem({ prefix, suffix, children, className, href, ...props }
 			tabIndex={interactive ? (tabIndex ?? 0) : undefined}
 			onKeyDown={
 				interactive
-					? (e: KeyboardEvent) => {
+					? (event: KeyboardEvent) => {
 							// Keys bubbling from focusable descendants (buttons, inputs)
 							// belong to them, not the reorder gestures.
-							if (e.target !== e.currentTarget) return
+							if (event.target !== event.currentTarget) return
 
-							onItemKeyDown(id, e)
+							onItemKeyDown(id, event)
 						}
 					: undefined
 			}

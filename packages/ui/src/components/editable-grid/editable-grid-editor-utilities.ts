@@ -10,16 +10,16 @@ type Commit = (advance: EditableGridCommitAdvance) => boolean
  * compatible with the built-in ones.
  */
 export const editorKeyHandler =
-	(commit: Commit, cancel: () => void) => (e: KeyboardEvent<HTMLElement>) => {
-		if (e.key === 'Enter') {
-			e.preventDefault()
+	(commit: Commit, cancel: () => void) => (event: KeyboardEvent<HTMLElement>) => {
+		if (event.key === 'Enter') {
+			event.preventDefault()
 
 			commit('down')
-		} else if (e.key === 'Escape') {
-			e.preventDefault()
+		} else if (event.key === 'Escape') {
+			event.preventDefault()
 
 			cancel()
-		} else if (e.key === 'Tab') {
-			if (commit(e.shiftKey ? 'left' : 'right')) e.preventDefault()
+		} else if (event.key === 'Tab') {
+			if (commit(event.shiftKey ? 'left' : 'right')) event.preventDefault()
 		}
 	}

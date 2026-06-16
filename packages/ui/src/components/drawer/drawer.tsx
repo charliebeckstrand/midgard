@@ -97,7 +97,7 @@ export function Drawer({
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-size={resolvedSize}
-				onClick={(e) => e.stopPropagation()}
+				onClick={(event) => event.stopPropagation()}
 				className={cn(k.panel({ surface: resolvedSurface }), className)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>

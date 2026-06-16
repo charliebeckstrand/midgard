@@ -106,8 +106,8 @@ export function Tab({
 		disclosure,
 	})
 
-	function handleClick(e: MouseEvent<HTMLButtonElement>) {
-		onClick?.(e)
+	function handleClick(event: MouseEvent<HTMLButtonElement>) {
+		onClick?.(event)
 
 		if (value !== undefined) {
 			context?.onValueChange?.(value)

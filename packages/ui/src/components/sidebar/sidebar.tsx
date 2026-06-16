@@ -75,9 +75,9 @@ export function Sidebar({
 					data-mini={mini || undefined}
 					aria-label={ariaLabel}
 					className={cn(k.base, className)}
-					onKeyDown={(e) => {
-						handleKeyDown(e)
-						onKeyDown?.(e)
+					onKeyDown={(event) => {
+						handleKeyDown(event)
+						onKeyDown?.(event)
 					}}
 					{...props}
 				>

@@ -43,7 +43,7 @@ type DatePickerContentProps = {
 	 * focus lands on the dialog, not its first tabbable button, and the model
 	 * keeps working once a real browser moves focus into the modal trap.
 	 */
-	onKeyDown?: (e: KeyboardEvent<HTMLElement>) => void
+	onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void
 	/**
 	 * Elements spared from the modal trap's outside marking. While open,
 	 * `FloatingFocusManager` stamps `aria-hidden` on everything outside the
@@ -121,28 +121,33 @@ export function DatePickerContent({
 								{...getFloatingProps({
 									// Composed through floating-ui; its own handlers merge
 									// rather than clobber.
-									onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
+									onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
 										// Keys from portaled descendants (the month/year picker
 										// popover) bubble here through the React tree, not the
 										// DOM. That surface owns its keyboard; acting here would
 										// drive the calendar underneath it.
-										if (e.target instanceof Node && !e.currentTarget.contains(e.target)) return
+										if (event.target instanceof Node && !event.currentTarget.contains(event.target))
+											return
 
 										// Activation keys on a DOM-focused control (the user Tabbed
 										// to a header/footer button) belong to that control; only
 										// the dialog itself routes them to the virtual model.
-										if ((e.key === 'Enter' || e.key === ' ') && e.target !== e.currentTarget) return
+										if (
+											(event.key === 'Enter' || event.key === ' ') &&
+											event.target !== event.currentTarget
+										)
+											return
 
 										// Navigation keys belong to the virtual model even when the
 										// user has Tabbed onto a control inside. Reclaim DOM focus
 										// for the dialog first: a grid move can re-anchor the month
 										// and unmount the focused day button, dropping focus to
 										// <body>.
-										if (NAVIGATION_KEYS.has(e.key) && e.target !== e.currentTarget) {
-											e.currentTarget.focus()
+										if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
+											event.currentTarget.focus()
 										}
 
-										onKeyDown?.(e)
+										onKeyDown?.(event)
 									},
 								})}
 							>
@@ -151,7 +156,7 @@ export function DatePickerContent({
 									data-slot="datepicker-content"
 									data-size={size}
 									className={cn('z-50', k.content.text, glass && k.content.glass)}
-									onMouseDown={(e) => e.preventDefault()}
+									onMouseDown={(event) => event.preventDefault()}
 								>
 									<Density scale={size}>
 										<Box

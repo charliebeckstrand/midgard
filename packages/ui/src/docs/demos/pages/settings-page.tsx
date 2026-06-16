@@ -23,8 +23,8 @@ export function Demo() {
 	const [password, setPassword] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 
-	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (e) => {
-		e.preventDefault()
+	const handleSubmit: ComponentProps<'form'>['onSubmit'] = (event) => {
+		event.preventDefault()
 
 		setSubmitting(true)
 
@@ -150,7 +150,7 @@ export function Demo() {
 													<Label>New password</Label>
 													<PasswordInput
 														value={password}
-														onChange={(e) => setPassword(e.target.value)}
+														onChange={(event) => setPassword(event.target.value)}
 														placeholder="Enter new password"
 													/>
 													<PasswordStrength value={password} />

@@ -29,9 +29,9 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			// The panel unmounts while closed (AnimatePresence); the reference
 			// is set only while its target id exists.
 			aria-controls={open ? triggerProps['aria-controls'] : undefined}
-			onClick={(e) => {
+			onClick={(event) => {
 				toggle()
-				onClick?.(e)
+				onClick?.(event)
 			}}
 			className={cn(k.trigger, className)}
 		>

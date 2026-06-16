@@ -61,7 +61,7 @@ export function KanbanCard({
 			style={interactive ? style : undefined}
 			{...(interactive ? attributes : {})}
 			{...(interactive ? listeners : {})}
-			onKeyDown={interactive ? (e) => onCardKeyDown(cardId, e) : undefined}
+			onKeyDown={interactive ? (event) => onCardKeyDown(cardId, event) : undefined}
 			onBlur={interactive ? onCardBlur : undefined}
 			aria-label={interactive ? ariaLabel : undefined}
 			data-slot="kanban-card"

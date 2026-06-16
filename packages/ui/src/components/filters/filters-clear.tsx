@@ -24,11 +24,13 @@ export function FiltersClear({ children, className }: FiltersClearProps) {
 	const child = Children.only(children)
 
 	if (isValidElement<Record<string, unknown>>(child)) {
-		const childOnClick = child.props.onClick as ((e: MouseEvent<HTMLElement>) => void) | undefined
+		const childOnClick = child.props.onClick as
+			| ((event: MouseEvent<HTMLElement>) => void)
+			| undefined
 
 		return cloneElement(child, {
-			onClick: (e: MouseEvent<HTMLElement>) => {
-				childOnClick?.(e)
+			onClick: (event: MouseEvent<HTMLElement>) => {
+				childOnClick?.(event)
 
 				handleClear()
 			},

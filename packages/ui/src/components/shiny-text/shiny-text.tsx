@@ -143,13 +143,13 @@ export function ShinyText({
 			>)}
 			// Composed after the spread so a consumer handler can't clobber
 			// `pauseOnHover`; both run.
-			onMouseEnter={(e) => {
-				onMouseEnter?.(e)
+			onMouseEnter={(event) => {
+				onMouseEnter?.(event)
 
 				if (pauseOnHover) controlsRef.current?.pause()
 			}}
-			onMouseLeave={(e) => {
-				onMouseLeave?.(e)
+			onMouseLeave={(event) => {
+				onMouseLeave?.(event)
 
 				if (pauseOnHover) controlsRef.current?.play()
 			}}

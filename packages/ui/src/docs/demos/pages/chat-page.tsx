@@ -207,7 +207,7 @@ export function Demo() {
 					<Textarea
 						id="textarea-actions"
 						value={input}
-						onChange={(e) => setInput(e.target.value)}
+						onChange={(event) => setInput(event.target.value)}
 						autoResize
 						rows={3}
 						className="max-h-48"

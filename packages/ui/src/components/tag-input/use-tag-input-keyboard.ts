@@ -40,16 +40,16 @@ export function useTagInputKeyboard({
 	clearInput,
 	tagCount,
 }: KeyboardOptions) {
-	return (e: KeyboardEvent<HTMLInputElement>) => {
-		if ((e.key === 'Enter' || e.key === ',') && !e.nativeEvent.isComposing) {
-			e.preventDefault()
+	return (event: KeyboardEvent<HTMLInputElement>) => {
+		if ((event.key === 'Enter' || event.key === ',') && !event.nativeEvent.isComposing) {
+			event.preventDefault()
 
 			if (addTag(inputValue)) {
 				clearInput()
 			}
 		}
 
-		if (e.key === 'Backspace' && inputValue === '' && tagCount > 0) {
+		if (event.key === 'Backspace' && inputValue === '' && tagCount > 0) {
 			removeTag(tagCount - 1)
 		}
 	}

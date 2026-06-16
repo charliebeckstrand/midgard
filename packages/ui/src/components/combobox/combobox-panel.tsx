@@ -85,8 +85,8 @@ export function ComboboxPanel({
 									autoFocus={false}
 									glass={glass}
 									className={cn('relative', k.options)}
-									onKeyDown={(e) => {
-										if (e.key === 'Escape') onClose()
+									onKeyDown={(event) => {
+										if (event.key === 'Escape') onClose()
 									}}
 								>
 									{/* The listbox owns only options, per aria-required-children. The
