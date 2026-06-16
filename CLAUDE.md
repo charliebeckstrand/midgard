@@ -34,6 +34,8 @@
 
 4.1 For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
 
+4.2 For branching, commit, and pull-request workflow guidance, see the [`git-workflow`](.claude/skills/git-workflow/SKILL.md) skill.
+
 ---
 
 **See also:** [CONVENTIONS.md](CONVENTIONS.md), [REFERENCE.md](REFERENCE.md).
