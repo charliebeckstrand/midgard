@@ -1,11 +1,12 @@
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docsPlugin } from './src/docs/plugins'
-import { baseTest, setupFiles } from './vitest.base.config'
+import { baseTest, setupFiles, testIsolation } from './vitest.base.config'
 
 export default defineConfig({
 	plugins: [docsPlugin({ vitest: true })],
 	test: {
 		...baseTest,
+		...testIsolation,
 		pool: 'vmThreads',
 		sequence: { shuffle: true },
 		setupFiles,

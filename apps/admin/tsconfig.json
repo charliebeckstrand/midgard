@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"paths": {
 			"@/*": ["./app/*"]
-		}
+		},
+		"incremental": true,
+		"tsBuildInfoFile": ".tsbuildinfo/admin.tsbuildinfo"
 	},
 	"include": ["next-env.d.ts", "app", "**/*.ts", "**/*.tsx"]
 }

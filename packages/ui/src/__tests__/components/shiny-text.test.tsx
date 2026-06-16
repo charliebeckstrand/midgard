@@ -1,34 +1,34 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { animate } from 'motion'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
-const { animateSpy, pauseSpy, playSpy } = vi.hoisted(() => {
-	const pauseSpy = vi.fn()
-	const playSpy = vi.fn()
-
-	return {
-		animateSpy: vi.fn(() => ({ pause: pauseSpy, play: playSpy, stop: vi.fn() })),
-		pauseSpy,
-		playSpy,
-	}
-})
-
-// Stubs the imperative sweep so the gate can observe whether a sweep starts at
-// all (animateSpy) and hover pause/resume (pause/playSpy) in jsdom.
-vi.mock('motion', async (importOriginal) => {
-	const mod = await importOriginal<typeof import('motion')>()
-
-	return {
-		...mod,
-		animate: animateSpy,
-	}
-})
+// `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts
+// (a per-file vi.mock('motion') resolves inconsistently under the vmThreads
+// pool). The gate watches whether a sweep starts (animate) and hover
+// pause/resume (pause/playSpy).
+const pauseSpy = vi.fn()
+const playSpy = vi.fn()
 
 describe('ShinyText', () => {
+	beforeEach(() => {
+		// Motion-allowed baseline; the reduced-motion case re-stubs it.
+		stubMatchMedia(() => false)
+
+		// Stub the controls so the sweep never runs in jsdom while hover
+		// pause/resume stays observable.
+		vi.mocked(animate).mockReturnValue({
+			pause: pauseSpy,
+			play: playSpy,
+			stop: vi.fn(),
+		} as unknown as ReturnType<typeof animate>)
+	})
+
 	afterEach(() => {
 		vi.unstubAllGlobals()
 
-		animateSpy.mockClear()
+		// Restore animate's call-through default.
+		vi.mocked(animate).mockRestore()
 
 		pauseSpy.mockClear()
 
@@ -67,7 +67,7 @@ describe('ShinyText', () => {
 		renderUI(<ShinyText>Shine</ShinyText>)
 
 		// Positive control: anchors the negative assertions below.
-		expect(animateSpy).toHaveBeenCalled()
+		expect(animate).toHaveBeenCalled()
 	})
 
 	it('renders static text and starts no sweep under reduced motion', () => {
@@ -79,7 +79,7 @@ describe('ShinyText', () => {
 
 		// WCAG 2.3.3: the OS preference parks the sweep before it ever starts —
 		// the text must remain, but no animation is allowed to run.
-		expect(animateSpy).not.toHaveBeenCalled()
+		expect(animate).not.toHaveBeenCalled()
 	})
 
 	it('renders static text and starts no sweep when disabled', () => {
@@ -87,7 +87,7 @@ describe('ShinyText', () => {
 
 		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Shine')
 
-		expect(animateSpy).not.toHaveBeenCalled()
+		expect(animate).not.toHaveBeenCalled()
 	})
 
 	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {

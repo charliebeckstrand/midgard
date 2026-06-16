@@ -1,6 +1,7 @@
+import { animate } from 'motion'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('Odometer', () => {
 	afterEach(() => {
@@ -29,14 +30,25 @@ describe('Odometer', () => {
 		expect(bySlot(container, 'odometer')).toHaveTextContent('500')
 	})
 
-	it('animates toward the new value', async () => {
+	it('animates toward the new value', () => {
+		// Stub the single `animate` call to invoke `onUpdate(to)` synchronously
+		// and return controls with a no-op `stop`; `mockImplementationOnce` keeps
+		// the call-through default for the unmount case below.
+		vi.mocked(animate).mockImplementationOnce(((
+			_from: number,
+			to: number,
+			options: { onUpdate?: (latest: number) => void },
+		) => {
+			options.onUpdate?.(to)
+
+			return { stop: vi.fn() }
+		}) as unknown as typeof animate)
+
 		const { container, rerender } = renderUI(<Odometer value={0} duration={50} />)
 
 		rerender(<Odometer value={100} duration={50} />)
 
-		await waitFor(() => {
-			expect(bySlot(container, 'odometer')).toHaveTextContent('100')
-		})
+		expect(bySlot(container, 'odometer')).toHaveTextContent('100')
 	})
 
 	it('exposes the settled value as an image label, not a live region', () => {

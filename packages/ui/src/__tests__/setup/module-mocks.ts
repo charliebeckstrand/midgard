@@ -11,6 +11,8 @@ import { vi } from 'vitest'
 
 vi.mock('@floating-ui/react', async () => (await import('../mocks/floating-ui')).default)
 
+vi.mock('motion', async () => (await import('../mocks/motion')).default)
+
 vi.mock('motion/react', async () => (await import('../mocks/motion-react')).default)
 
 vi.mock('maplibre-gl', async () => (await import('../mocks/maplibre-gl')).default)

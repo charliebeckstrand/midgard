@@ -1,7 +1,8 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"noEmit": true
+		"noEmit": true,
+		"tsBuildInfoFile": ".tsbuildinfo/scripts.tsbuildinfo"
 	},
 	"include": ["src/__benchmarks__/docs", "*.config.ts"],
 	"exclude": []
