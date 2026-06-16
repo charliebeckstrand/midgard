@@ -217,7 +217,14 @@ describe('flattenTree', () => {
 	it('emits a single branch-open row for a collapsed root', () => {
 		const tree = { a: 1 }
 
-		const nodes = flattenTree(tree, undefined, new Set(), '', false, new WeakMap())
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(),
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
 
 		expect(nodes).toHaveLength(1)
 
@@ -227,7 +234,14 @@ describe('flattenTree', () => {
 	it('emits open / leaf / close rows for an expanded branch', () => {
 		const tree = { a: 1 }
 
-		const nodes = flattenTree(tree, undefined, new Set(['$']), '', false, new WeakMap())
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(['$']),
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
 
 		const types = nodes.map((n) => n.type)
 
@@ -237,7 +251,14 @@ describe('flattenTree', () => {
 	it('flags leaves matching the search term as highlighted', () => {
 		const tree = { name: 'Alice' }
 
-		const nodes = flattenTree(tree, undefined, new Set(['$']), 'alice', false, new WeakMap())
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(['$']),
+			search: 'alice',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
 
 		const leaf = nodes.find((n) => n.type === 'leaf')
 
@@ -247,14 +268,14 @@ describe('flattenTree', () => {
 	it('recurses into open nested branches', () => {
 		const tree = { outer: { inner: { leaf: 1 } } }
 
-		const nodes = flattenTree(
-			tree,
-			undefined,
-			new Set(['$', '$.outer', '$.outer.inner']),
-			'',
-			false,
-			new WeakMap(),
-		)
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(['$', '$.outer', '$.outer.inner']),
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
 
 		expect(nodes.map((n) => n.type)).toEqual([
 			'branch-open',
@@ -270,14 +291,14 @@ describe('flattenTree', () => {
 	it('tracks depth as it descends into nested branches', () => {
 		const tree = { outer: { inner: { leaf: 1 } } }
 
-		const nodes = flattenTree(
-			tree,
-			undefined,
-			new Set(['$', '$.outer', '$.outer.inner']),
-			'',
-			false,
-			new WeakMap(),
-		)
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(['$', '$.outer', '$.outer.inner']),
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
 
 		expect(nodes.find((n) => n.type === 'leaf')?.depth).toBe(3)
 	})
@@ -287,7 +308,14 @@ describe('flattenTree', () => {
 
 		const index = buildSearchIndex(tree, 'yes')
 
-		const nodes = flattenTree(tree, undefined, new Set(['$']), 'yes', true, index)
+		const nodes = flattenTree({
+			data: tree,
+			rootKey: undefined,
+			expanded: new Set(['$']),
+			search: 'yes',
+			filter: true,
+			searchIndex: index,
+		})
 
 		expect(nodes.filter((n) => n.type === 'leaf')).toHaveLength(1)
 	})

@@ -199,6 +199,16 @@ export type FlatNode =
 			value: JsonValue[] | { [key: string]: JsonValue }
 	  }
 
+/** Inputs to {@link flattenTree}. */
+type FlattenTreeOptions = {
+	data: JsonValue
+	rootKey: string | undefined
+	expanded: Set<string>
+	search: string
+	filter: boolean
+	searchIndex: SearchIndex
+}
+
 /**
  * Walk a tree following `expanded` paths and return a flat list of rows in
  * render order. Each open branch emits a `branch-open` row, its (possibly
@@ -208,14 +218,14 @@ export type FlatNode =
  * and branches that don't contain a match collapse to a single `branch-open`
  * row with `open=false` (caller can render a summary).
  */
-export function flattenTree(
-	data: JsonValue,
-	rootKey: string | undefined,
-	expanded: Set<string>,
-	search: string,
-	filter: boolean,
-	searchIndex: SearchIndex,
-): FlatNode[] {
+export function flattenTree({
+	data,
+	rootKey,
+	expanded,
+	search,
+	filter,
+	searchIndex,
+}: FlattenTreeOptions): FlatNode[] {
 	const out: FlatNode[] = []
 
 	function walk(

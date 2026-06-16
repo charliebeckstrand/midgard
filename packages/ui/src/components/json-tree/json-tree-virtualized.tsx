@@ -66,7 +66,7 @@ export function JsonTreeVirtualized({
 	}, [searchValue, data, rootKey, searchIndex, expand])
 
 	const flatNodes = useMemo(
-		() => flattenTree(data, rootKey, expanded, searchValue, filter, searchIndex),
+		() => flattenTree({ data, rootKey, expanded, search: searchValue, filter, searchIndex }),
 		[data, rootKey, expanded, searchValue, filter, searchIndex],
 	)
 
