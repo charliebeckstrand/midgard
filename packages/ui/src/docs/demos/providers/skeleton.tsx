@@ -6,16 +6,29 @@ import { Button, ButtonSkeleton } from '../../../components/button'
 import { CalendarSkeleton } from '../../../components/calendar'
 import { Card, CardBody, CardHeader } from '../../../components/card'
 import { CheckboxSkeleton } from '../../../components/checkbox'
+import { ColorPanelSkeleton } from '../../../components/color'
+import {
+	Combobox,
+	ComboboxLabel,
+	ComboboxOption,
+	useComboboxQuery,
+} from '../../../components/combobox'
 import { ControlSkeleton } from '../../../components/control/control-skeleton'
 import { Flex } from '../../../components/flex'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { PaginationSkeleton } from '../../../components/pagination'
 import { ProgressBarSkeleton, ProgressGaugeSkeleton } from '../../../components/progress'
 import { RadioSkeleton } from '../../../components/radio'
 import { SegmentSkeleton } from '../../../components/segment'
+import { ShinyTextSkeleton } from '../../../components/shiny-text'
 import { SliderSkeleton } from '../../../components/slider'
+import {
+	StatDeltaSkeleton,
+	StatDescriptionSkeleton,
+	StatLabelSkeleton,
+	StatValueSkeleton,
+} from '../../../components/stat'
 import { StepperSkeleton } from '../../../components/stepper'
 import { SwitchSkeleton } from '../../../components/switch'
 import { TabListSkeleton } from '../../../components/tabs'
@@ -37,6 +50,7 @@ const skeletonVariants = [
 	{ name: 'Button', skeleton: <ButtonSkeleton /> },
 	{ name: 'Calendar', skeleton: <CalendarSkeleton /> },
 	{ name: 'Checkbox', skeleton: <CheckboxSkeleton /> },
+	{ name: 'Color panel', skeleton: <ColorPanelSkeleton /> },
 	{ name: 'Control', skeleton: <ControlSkeleton /> },
 	{ name: 'Heading', skeleton: <HeadingSkeleton level={3} /> },
 	{ name: 'Pagination', skeleton: <PaginationSkeleton /> },
@@ -44,7 +58,12 @@ const skeletonVariants = [
 	{ name: 'Progress gauge', skeleton: <ProgressGaugeSkeleton /> },
 	{ name: 'Radio', skeleton: <RadioSkeleton /> },
 	{ name: 'Segment', skeleton: <SegmentSkeleton /> },
+	{ name: 'Shiny text', skeleton: <ShinyTextSkeleton /> },
 	{ name: 'Slider', skeleton: <SliderSkeleton /> },
+	{ name: 'Stat delta', skeleton: <StatDeltaSkeleton /> },
+	{ name: 'Stat description', skeleton: <StatDescriptionSkeleton /> },
+	{ name: 'Stat label', skeleton: <StatLabelSkeleton /> },
+	{ name: 'Stat value', skeleton: <StatValueSkeleton /> },
 	{ name: 'Stepper', skeleton: <StepperSkeleton /> },
 	{ name: 'Switch', skeleton: <SwitchSkeleton /> },
 	{ name: 'Tab list', skeleton: <TabListSkeleton /> },
@@ -52,6 +71,20 @@ const skeletonVariants = [
 	{ name: 'Textarea', skeleton: <TextareaSkeleton /> },
 	{ name: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
 ]
+
+// Combobox filtering is consumer-driven: read the deferred query from context
+// (§3.6) and narrow the option list against the variant name.
+function FilteredVariants() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return skeletonVariants
+		.filter((v) => !deferredQuery || v.name.toLowerCase().includes(deferredQuery.toLowerCase()))
+		.map((v) => (
+			<ComboboxOption key={v.name} value={v.name}>
+				<ComboboxLabel>{v.name}</ComboboxLabel>
+			</ComboboxOption>
+		))
+}
 
 function VariantExample() {
 	const [selected, setSelected] = useState('Button')
@@ -62,18 +95,15 @@ function VariantExample() {
 		<Example
 			title="Skeleton variants"
 			actions={
-				<Listbox<string>
+				<Combobox<string>
 					value={selected}
 					onValueChange={(value) => setSelected(value ?? 'Button')}
 					displayValue={(v: string) => v}
-					placeholder="Select component"
+					placeholder="Search component"
+					aria-label="Skeleton variant"
 				>
-					{skeletonVariants.map((v) => (
-						<ListboxOption key={v.name} value={v.name}>
-							<ListboxLabel>{v.name}</ListboxLabel>
-						</ListboxOption>
-					))}
-				</Listbox>
+					<FilteredVariants />
+				</Combobox>
 			}
 		>
 			{/* Block flow on purpose: the line-shaped variants (Text, Heading)
