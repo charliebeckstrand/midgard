@@ -10,7 +10,7 @@ const { ring } = sen
 const { tooltip } = ugoki
 
 const content = defineRecipe({
-	base: ['max-w-sm', text.default, weight.medium],
+	base: ['max-w-sm', 'text-pretty', text.default, weight.medium],
 	size: {
 		sm: [padding.p('1'), radius.r('1'), size.sm],
 		md: [padding.p('2'), radius.r('2'), size.md],
