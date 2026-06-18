@@ -57,4 +57,16 @@ export const k = {
 		glass: panel.glass,
 		body,
 	},
+	// Period variant: the three labeled toggle groups in the popover and the
+	// chip row inside the trigger. Colour comes from the Button/Badge recipes;
+	// these are layout-only.
+	period: {
+		// Flex gap (not space-y): the fieldsets carry an `m-0` reset that would
+		// override space-y's margins, collapsing the gap between groups.
+		root: 'flex flex-col gap-4',
+		section: 'space-y-1.5',
+		label: [text.muted, 'text-xs font-medium uppercase tracking-wide select-none'],
+		options: 'flex flex-wrap gap-1.5',
+		chips: 'flex items-center gap-1 min-w-0',
+	},
 }

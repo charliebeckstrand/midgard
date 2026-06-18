@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DatePicker } from '../../components/date-picker'
+import { DatePicker, type DatePickerPeriodValue } from '../../components/date-picker'
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
 
@@ -7,6 +7,7 @@ export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
 	const [typed, setTyped] = useState<Date | undefined>(undefined)
+	const [period, setPeriod] = useState<DatePickerPeriodValue | undefined>(undefined)
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
 	return (
@@ -17,6 +18,16 @@ export function Demo() {
 
 			<Example title="Range">
 				<DatePicker range value={range} onValueChange={setRange} placeholder="Select date range" />
+			</Example>
+
+			<Example title="Period">
+				<DatePicker
+					period
+					years={[2024, 2025, 2026]}
+					value={period}
+					onValueChange={setPeriod}
+					placeholder="Select period"
+				/>
 			</Example>
 
 			<Example title="With input">

@@ -53,6 +53,12 @@ type DatePickerContentProps = {
 	 */
 	getInsideElements?: () => Element[]
 	onExitComplete?: () => void
+	/**
+	 * Accessible name for the dialog.
+	 *
+	 * @defaultValue 'Choose date'
+	 */
+	label?: string
 	children: ReactNode
 }
 
@@ -79,6 +85,7 @@ export function DatePickerContent({
 	onKeyDown,
 	getInsideElements,
 	onExitComplete,
+	label = 'Choose date',
 	children,
 }: DatePickerContentProps) {
 	const glass = useGlass()
@@ -114,7 +121,7 @@ export function DatePickerContent({
 								}}
 								role="dialog"
 								aria-modal="true"
-								aria-label="Choose date"
+								aria-label={label}
 								style={floatingStyles}
 								className={cn(k.content.portal)}
 								tabIndex={-1}
