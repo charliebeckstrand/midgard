@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, useRef } from 'react'
+import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { cn, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
@@ -25,11 +25,18 @@ type DatePickerTriggerProps = {
 	describedBy?: string
 	setReference: (node: HTMLElement | null) => void
 	getReferenceProps: () => Record<string, unknown>
-	displayValue: string
+	/** Text label for the selected value; ignored when `children` is provided. */
+	displayValue?: string
 	placeholder: string
 	size: ControlSize
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
+	/**
+	 * Custom value content rendered in place of the text label + truncation
+	 * Tooltip — e.g. the period variant's selection chips. The caller owns the
+	 * empty/placeholder rendering and the `min-w-0 flex-1` layout.
+	 */
+	children?: ReactNode
 	disabled?: boolean
 	required?: boolean
 	invalid?: boolean
@@ -45,6 +52,8 @@ type DatePickerTriggerProps = {
  * Popover reference button showing the selected date label (or placeholder).
  * Carries the dialog ARIA wiring (`aria-haspopup`, `aria-expanded`,
  * `aria-describedby`) and shows a Tooltip with the full label when truncated.
+ * Pass `children` to render custom value content (the period variant's chips)
+ * in place of the text label.
  *
  * @internal
  */
@@ -55,7 +64,7 @@ export function DatePickerTrigger({
 	describedBy,
 	setReference,
 	getReferenceProps,
-	displayValue,
+	displayValue = '',
 	placeholder,
 	size,
 	'aria-label': ariaLabel,
@@ -65,6 +74,7 @@ export function DatePickerTrigger({
 	invalid = false,
 	onKeyDown,
 	className,
+	children,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 }: DatePickerTriggerProps) {
@@ -104,13 +114,15 @@ export function DatePickerTrigger({
 						onKeyDown={onKeyDown}
 						className={cn(k.button({ density: size, size }))}
 					>
-						<Tooltip
-							enabled={truncate && isTruncated && Boolean(displayValue)}
-							className={truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1'}
-						>
-							<TooltipTrigger>{valueNode}</TooltipTrigger>
-							<TooltipContent>{displayValue}</TooltipContent>
-						</Tooltip>
+						{children ?? (
+							<Tooltip
+								enabled={truncate && isTruncated && Boolean(displayValue)}
+								className={truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1'}
+							>
+								<TooltipTrigger>{valueNode}</TooltipTrigger>
+								<TooltipContent>{displayValue}</TooltipContent>
+							</Tooltip>
+						)}
 						<span className={cn(k.icon)}>
 							<Icon icon={<CalendarIcon />} size={iconSize[size]} />
 						</span>
