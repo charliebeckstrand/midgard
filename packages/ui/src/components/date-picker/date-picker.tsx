@@ -102,11 +102,25 @@ export function DatePicker(props: DatePickerProps) {
 
 	const resolvedSize: ControlSize = props.size ?? inherited.size
 
-	if (props.range) {
-		return <DatePickerRange {...props} size={resolvedSize} />
-	}
+	const picker = props.range ? (
+		<DatePickerRange {...props} size={resolvedSize} />
+	) : (
+		<DatePickerSingle {...props} size={resolvedSize} />
+	)
 
-	return <DatePickerSingle {...props} size={resolvedSize} />
+	// `display: contents` wrapper: while open, floating-ui's modal focus manager
+	// imperatively inserts a hidden return-focus span as the reference's next
+	// sibling (`domReference.insertAdjacentElement('afterend', …)`). Scoping that
+	// span under this wrapper keeps the picker a single DOM child of its parent,
+	// so a `space-y` container's `> :not(:last-child)` margin doesn't shift the
+	// layout when the popover opens. `contents` adds no box of its own, so
+	// flex/grid/block layout sees straight through to the control as before. One
+	// wrapper here covers all three render paths (trigger, input, range).
+	return (
+		<div data-slot="datepicker" className="contents">
+			{picker}
+		</div>
+	)
 }
 
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
