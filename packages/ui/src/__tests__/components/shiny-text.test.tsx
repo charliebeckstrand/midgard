@@ -15,6 +15,15 @@ describe('ShinyText', () => {
 		// Motion-allowed baseline; the reduced-motion case re-stubs it.
 		stubMatchMedia(() => false)
 
+		// `animate` is the shared module spy. `restoreMocks` only reverts
+		// vi.spyOn implementations, not a plain vi.fn's call history, so nothing
+		// global zeroes it between tests — only this file's afterEach does, which
+		// leaves a window after it runs. Clear it here for a per-test baseline:
+		// without one, a sweep recorded on the spy after a sibling's afterEach (a
+		// deferred effect, surfaced when sequence.shuffle reorders siblings) leaks
+		// into the negative `not.toHaveBeenCalled()` assertions below.
+		vi.mocked(animate).mockClear()
+
 		// Stub the controls so the sweep never runs in jsdom while hover
 		// pause/resume stays observable.
 		vi.mocked(animate).mockReturnValue({
