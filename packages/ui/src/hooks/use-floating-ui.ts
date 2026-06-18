@@ -215,7 +215,10 @@ type FloatingUIOptions = FloatingPanelOptions & {
  *
  * Outside-press uses a custom document-level pointerdown listener that checks
  * the press target directly against the floating panel and reference, with no
- * false positives from sibling portals inside a `Sheet`/`Dialog`.
+ * false positives from sibling portals inside a `Sheet`/`Dialog`. A press
+ * inside a nested floating-ui portal (an overlay opened from within this
+ * panel, e.g. the calendar's month/year picker) counts as inside, mirroring
+ * floating-ui's own node-tree handling.
  *
  * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context }` plus
  * `getReferenceProps` / `getFloatingProps` prop-getters that fold in the
@@ -269,7 +272,21 @@ export function useFloatingUI({
 
 			const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
 
-			if (!floating || insideFloating || insideReference || onScrollbar) return
+			// A press inside a *different* floating-ui portal than this panel's own
+			// is a nested overlay opened from within it (e.g. the calendar's
+			// month/year picker popover inside the DatePicker dialog). Those portals
+			// teleport outside this panel's DOM subtree, so `insideFloating` misses
+			// them; floating-ui's native outsidePress spares them via its node tree,
+			// which this custom listener stands in for. Treat them as inside.
+			const targetPortal =
+				target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
+
+			const ownPortal = floating?.closest('[data-floating-ui-portal]') ?? null
+
+			const insideNestedFloating = !!targetPortal && targetPortal !== ownPortal
+
+			if (!floating || insideFloating || insideReference || onScrollbar || insideNestedFloating)
+				return
 
 			onOpenChangeRef.current(false, event, 'outside-press')
 		}
