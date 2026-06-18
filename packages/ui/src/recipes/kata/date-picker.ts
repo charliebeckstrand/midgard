@@ -63,7 +63,13 @@ export const k = {
 	period: {
 		// Flex gap (not space-y): the fieldsets carry an `m-0` reset that would
 		// override space-y's margins, collapsing the gap between groups.
-		root: 'flex flex-col gap-4',
+		//
+		// The popover is content-sized, so the 12 fixed `sm` month toggles would
+		// otherwise sprawl onto a single row. Capping the width here is what makes
+		// `options`' flex-wrap fold the month group to two rows (six per row); the
+		// shorter year/quarter groups still fit. Width-only, so it scopes to the
+		// period popover without touching the single/range calendars.
+		root: 'flex max-w-72 flex-col gap-4',
 		section: 'space-y-1.5',
 		label: [text.muted, 'text-xs font-medium uppercase tracking-wide select-none'],
 		options: 'flex flex-wrap gap-1.5',
