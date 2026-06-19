@@ -63,7 +63,7 @@ export function DatePickerPeriod(props: DatePickerBaseProps & DatePickerPeriodPr
 				) : (
 					<span className={cn(k.period.chips, truncate ? 'flex-1 overflow-hidden' : 'flex-wrap')}>
 						{state.chips.map((chip) => (
-							<Badge key={chip.key} size={chipSize[size]} variant="soft" color="zinc">
+							<Badge key={chip.key} size={chipSize[size]}>
 								{chip.label}
 							</Badge>
 						))}
