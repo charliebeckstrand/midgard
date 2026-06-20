@@ -110,9 +110,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.6)
-      auth:
-        specifier: workspace:*
-        version: link:../auth
       eventsource-parser:
         specifier: ^3.0.6
         version: 3.1.0

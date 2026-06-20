@@ -1,11 +1,17 @@
 'use client'
 
-import { UsersIcon } from '@heroicons/react/20/solid'
+import {
+	ArrowRightStartOnRectangleIcon,
+	ChevronUpDownIcon,
+	Cog8ToothIcon,
+	UsersIcon,
+} from '@heroicons/react/20/solid'
 import type { User } from 'auth/user'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { SidebarUserMenu } from 'shared/auth'
+import { Avatar } from 'ui/avatar'
 import { SidebarLayout } from 'ui/layouts'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { Navbar } from 'ui/navbar'
 import {
 	Sidebar,
@@ -60,5 +66,45 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 		>
 			{children}
 		</SidebarLayout>
+	)
+}
+
+function SidebarUserMenu({ user }: { user?: User }) {
+	const router = useRouter()
+
+	async function signOut() {
+		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+
+		router.push('/login')
+	}
+
+	const displayName = user?.email ?? 'Account'
+
+	const initials = user?.email?.[0]?.toUpperCase() ?? 'U'
+
+	return (
+		<Menu placement="top-start">
+			<MenuTrigger>
+				<SidebarItem>
+					<Avatar
+						initials={initials}
+						className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+					/>
+					<SidebarLabel>{displayName}</SidebarLabel>
+					<ChevronUpDownIcon />
+				</SidebarItem>
+			</MenuTrigger>
+			<MenuContent>
+				<MenuItem href="/settings">
+					<Cog8ToothIcon />
+					<MenuLabel>Settings</MenuLabel>
+				</MenuItem>
+				<MenuSeparator />
+				<MenuItem onClick={signOut}>
+					<ArrowRightStartOnRectangleIcon />
+					<MenuLabel>Sign out</MenuLabel>
+				</MenuItem>
+			</MenuContent>
+		</Menu>
 	)
 }
