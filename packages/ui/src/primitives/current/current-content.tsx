@@ -2,6 +2,7 @@
 
 import { type HTMLMotionProps, motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, Ref } from 'react'
+import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { useCurrent, useCurrentFade } from './current'
 
@@ -57,7 +58,7 @@ export function CurrentContent({
 			// sidesteps motion's redefined animation/drag handler signatures.
 			{...(props as HTMLMotionProps<'div'>)}
 			data-slot={`${slotPrefix}-content`}
-			data-current={current || undefined}
+			data-current={dataAttr(current)}
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
 			initial={false}
 			transition={k.transition}

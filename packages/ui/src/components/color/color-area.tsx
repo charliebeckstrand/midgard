@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
 import { useColorPanelContext } from './context'
@@ -84,7 +84,7 @@ export function ColorArea() {
 			aria-valuemax={100}
 			aria-valuenow={Math.round(hsva.s)}
 			aria-valuetext={`Saturation ${Math.round(hsva.s)}%, brightness ${Math.round(hsva.v)}%`}
-			aria-disabled={disabled || undefined}
+			aria-disabled={ariaAttr(disabled)}
 			className={cn(k.area.base({ size }), disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
 			onPointerDown={drag.onPointerDown}

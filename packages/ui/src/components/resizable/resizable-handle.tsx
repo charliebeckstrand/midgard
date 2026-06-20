@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
@@ -72,7 +72,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 		// biome-ignore lint/a11y/useSemanticElements: a focusable separator is the correct role for a resize handle
 		<div
 			data-slot="resizable-handle"
-			data-dragging={isDragging || undefined}
+			data-dragging={dataAttr(isDragging)}
 			role="separator"
 			// A separator's orientation is its own, not the group's flex axis: the
 			// handle between side-by-side panels is a vertical bar.

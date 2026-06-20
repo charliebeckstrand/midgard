@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { k } from '../../recipes/kata/accordion'
 import { AccordionItemContext, useAccordion } from './context'
@@ -54,7 +54,7 @@ export function AccordionItem({
 		<AccordionItemContext value={context}>
 			<div
 				data-slot="accordion-item"
-				data-open={open || undefined}
+				data-open={dataAttr(open)}
 				className={cn(k.item({ variant: accordion.variant }), className)}
 			>
 				{children}

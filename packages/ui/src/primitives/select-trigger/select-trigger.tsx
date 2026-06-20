@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
 import { AffixContext, affixStepDown } from '../affix'
@@ -60,7 +60,7 @@ export function SelectTrigger({
 		<AffixContext value={affixStepDown(size)}>
 			<div data-slot={slot} ref={setReference} className={cn(className)} {...getReferenceProps()}>
 				<ControlFrame
-					data-open={open || undefined}
+					data-open={dataAttr(open)}
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
 					className={cn(!glass && k.surface.default)}

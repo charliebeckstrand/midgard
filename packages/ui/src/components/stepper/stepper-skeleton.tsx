@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stepper'
+import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link StepperSkeleton}; the placeholder step count. */
@@ -26,7 +27,7 @@ export type StepperSkeletonProps = {
  * @see {@link Stepper}
  */
 export function StepperSkeleton({ steps = 3, className }: StepperSkeletonProps) {
-	const stepKeys = Array.from({ length: steps }, (_, i) => `step-${i}`)
+	const stepKeys = rangeKeys(steps, 'step')
 
 	return (
 		<div className={cn(k.root({ orientation: 'horizontal' }), className)}>

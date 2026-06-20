@@ -1,7 +1,7 @@
 'use client'
 
 import { type CSSProperties, useRef } from 'react'
-import { cn } from '../../../core'
+import { cn, dataAttr } from '../../../core'
 import { useControllable } from '../../../hooks/use-controllable'
 import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
@@ -118,7 +118,7 @@ export function RangeSlider({
 	return (
 		<div
 			data-slot="slider-range"
-			data-disabled={disabled || undefined}
+			data-disabled={dataAttr(disabled)}
 			className={cn(k.root({ size: resolvedSize, color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}

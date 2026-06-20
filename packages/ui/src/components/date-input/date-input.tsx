@@ -2,6 +2,7 @@
 
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -200,11 +201,9 @@ export function DateInput({
 
 				onBlur?.(event)
 			}}
-			onKeyDown={(event) => {
-				onKeyDown?.(event)
-
-				if (!event.defaultPrevented && event.key === 'Enter') event.currentTarget.blur()
-			}}
+			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
+				if (event.key === 'Enter') event.currentTarget.blur()
+			})}
 			{...props}
 		/>
 	)

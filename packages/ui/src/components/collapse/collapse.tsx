@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/collapse'
@@ -69,7 +69,7 @@ export function Collapse({
 
 	return (
 		<CollapseContext value={value}>
-			<div data-slot="collapse" data-open={open || undefined} className={cn(k.base, className)}>
+			<div data-slot="collapse" data-open={dataAttr(open)} className={cn(k.base, className)}>
 				{trigger !== undefined ? (
 					<>
 						<CollapseTrigger>{trigger}</CollapseTrigger>

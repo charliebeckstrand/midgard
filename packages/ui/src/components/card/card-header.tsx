@@ -1,4 +1,4 @@
-import { cn } from '../../core'
+import { createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/card'
 
@@ -13,12 +13,4 @@ export type CardHeaderProps = SlotProps<'div'>
  * @remarks
  * Static leaf: renders in React Server Components.
  */
-export function CardHeader({ className, ...props }: CardHeaderProps) {
-	return (
-		<div
-			data-slot="card-header"
-			className={cn(k.headerPadding.md, k.header, className)}
-			{...props}
-		/>
-	)
-}
+export const CardHeader = createSlot('div', 'card-header', k.headerPadding.md, k.header)

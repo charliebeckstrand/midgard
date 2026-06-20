@@ -2,7 +2,7 @@
 
 import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl'
 import { type ReactNode, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MapContext } from './context'
 import { type MapPreset, mapPresets } from './map-styles'
@@ -91,7 +91,7 @@ function MapView({
 		<div
 			ref={containerRef}
 			data-slot="map"
-			data-ready={ready || undefined}
+			data-ready={dataAttr(ready)}
 			{...regionProps}
 			className={cn(k.base, className)}
 		>

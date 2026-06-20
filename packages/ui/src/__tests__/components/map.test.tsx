@@ -48,7 +48,7 @@ describe('Map', () => {
 	it('flags itself ready once the underlying map loads', async () => {
 		const { container } = renderUI(<MapView />)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 	})
 
 	it('mounts children only after the map is ready', async () => {
@@ -227,7 +227,7 @@ describe('MapRoute', () => {
 		)
 
 		// Wait a tick for the map to load.
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 
 		expect(allBySlot(container, 'map-marker').length).toBe(0)
 	})
@@ -582,7 +582,7 @@ describe('MapGeofence', () => {
 			</MapView>,
 		)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 	})
 
 	it('renders a polygon shape', async () => {
@@ -602,7 +602,7 @@ describe('MapGeofence', () => {
 			</MapView>,
 		)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 	})
 
 	it('renders a polygon whose first and last coordinates already match', async () => {
@@ -624,7 +624,7 @@ describe('MapGeofence', () => {
 			</MapView>,
 		)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 	})
 
 	it('cleans up its source and layers on unmount', async () => {
@@ -634,7 +634,7 @@ describe('MapGeofence', () => {
 			</MapView>,
 		)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 
 		expect(() => unmount()).not.toThrow()
 	})
@@ -655,6 +655,6 @@ describe('MapGeofence', () => {
 			</MapView>,
 		)
 
-		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', 'true'))
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
 	})
 })

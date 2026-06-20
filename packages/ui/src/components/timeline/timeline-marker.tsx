@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/timeline'
 import { StatusDot, type StatusDotProps } from '../status'
@@ -55,7 +55,7 @@ export function TimelineMarker({
 			data-slot="timeline-marker"
 			// `current` is a styling hook only. ARIA stays on the TimelineItem <li>,
 			// which announces aria-current; the marker carries none.
-			data-current={current || undefined}
+			data-current={dataAttr(current)}
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,

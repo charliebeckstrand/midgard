@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
@@ -66,9 +66,9 @@ export function KanbanCard({
 			aria-label={interactive ? ariaLabel : undefined}
 			data-slot="kanban-card"
 			data-card-id={cardId}
-			data-active={dragging || undefined}
-			data-lifted={lifted || undefined}
-			data-disabled={!interactive || undefined}
+			data-active={dataAttr(dragging)}
+			data-lifted={dataAttr(lifted)}
+			data-disabled={dataAttr(!interactive)}
 			className={cn(
 				k.card.base,
 				interactive && k.card.draggable,

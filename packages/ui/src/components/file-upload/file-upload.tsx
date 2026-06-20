@@ -2,7 +2,7 @@
 
 import { Upload } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
@@ -199,7 +199,7 @@ export function FileUpload(props: FileUploadProps) {
 			<button
 				type="button"
 				data-slot="file-upload"
-				data-drag-over={dragOver || undefined}
+				data-drag-over={dataAttr(dragOver)}
 				disabled={disabled}
 				onClick={openPicker}
 				onDragOver={handleDragOver}

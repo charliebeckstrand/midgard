@@ -1,7 +1,7 @@
 'use client'
 
 import { type Ref, useCallback } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
 import { useControl } from '../control/context'
@@ -124,9 +124,9 @@ export function SignaturePad({
 		<div
 			ref={containerRef}
 			data-slot="signature-pad"
-			data-empty={empty || undefined}
-			data-disabled={disabled || undefined}
-			data-readonly={readOnly || undefined}
+			data-empty={dataAttr(empty)}
+			data-disabled={dataAttr(disabled)}
+			data-readonly={dataAttr(readOnly)}
 			className={cn(k.base, 'h-40', className)}
 		>
 			<canvas
@@ -137,7 +137,7 @@ export function SignaturePad({
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
-				aria-disabled={disabled || readOnly || undefined}
+				aria-disabled={ariaAttr(disabled || readOnly)}
 				// Programmatically focusable (not in the tab order); receives focus
 				// when the clear button unmounts.
 				tabIndex={-1}

@@ -1,20 +1,12 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableHead}: native `<thead>` attributes. */
-export type TableHeadProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'thead'>, 'className'>
+export type TableHeadProps = SlotProps<'thead'>
 
 /**
  * The `<thead>` of a {@link Table}, grouping its header row(s). Static leaf:
  * renders in React Server Components.
  */
-export function TableHead({ className, children, ...props }: TableHeadProps) {
-	return (
-		<thead data-slot="table-head" className={cn(k.head, className)} {...props}>
-			{children}
-		</thead>
-	)
-}
+export const TableHead = createSlot('thead', 'table-head', k.head)

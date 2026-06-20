@@ -1,6 +1,7 @@
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tabs'
+import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link TabListSkeleton}. */
@@ -24,7 +25,7 @@ export type TabListSkeletonProps = {
  * alone; it does not use the size-driven `createSkeleton` factory.
  */
 export function TabListSkeleton({ tabs = 3, size, className }: TabListSkeletonProps) {
-	const tabKeys = Array.from({ length: tabs }, (_, i) => `tab-${i}`)
+	const tabKeys = rangeKeys(tabs, 'tab')
 
 	return (
 		<div className={cn(k.list({ orientation: 'horizontal' }), className)}>

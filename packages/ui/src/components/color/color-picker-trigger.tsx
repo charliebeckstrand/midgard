@@ -1,6 +1,6 @@
 'use client'
 
-import { cn, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
@@ -55,7 +55,7 @@ export function ColorPickerTrigger({
 	return (
 		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
 			<ControlFrame
-				data-open={open || undefined}
+				data-open={dataAttr(open)}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				className={cn(k.surface[glass ? 'glass' : 'default'])}
@@ -67,7 +67,7 @@ export function ColorPickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
-						aria-required={required || undefined}
+						aria-required={ariaAttr(required)}
 						data-slot="color-picker-button"
 						disabled={disabled}
 						{...invalidAttrs(invalid)}

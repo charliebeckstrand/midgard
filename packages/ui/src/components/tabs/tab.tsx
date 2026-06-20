@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
@@ -123,7 +123,7 @@ export function Tab({
 					// colliding consumer prop.
 					{...rest}
 					data-slot="tab"
-					data-current={current || undefined}
+					data-current={dataAttr(current)}
 					role="tab"
 					id={tabId}
 					aria-selected={current ?? false}

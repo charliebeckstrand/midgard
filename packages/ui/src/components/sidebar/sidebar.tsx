@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, type ReactNode, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
@@ -72,7 +72,7 @@ export function Sidebar({
 				<nav
 					ref={ref}
 					data-slot="sidebar"
-					data-mini={mini || undefined}
+					data-mini={dataAttr(mini)}
 					aria-label={ariaLabel}
 					className={cn(k.base, className)}
 					onKeyDown={(event) => {

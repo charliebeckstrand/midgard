@@ -13,9 +13,13 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `createSlot` | Builds a thin slot component rendering an intrinsic element with `data-slot`, composed classes, and prop spread. |
 | `querySlot` | Finds the `data-slot` / `data-<attr>=id` element within a container, scoped to avoid cross-instance matches. |
 | `invalidAttrs` | Returns the `data-invalid` / `aria-invalid` pair when invalid, else `undefined` (spread-safe no-op). |
+| `dataAttr` | Coerces a boolean flag to `''` / `undefined` for a spread-safe `data-*` presence attribute. |
+| `ariaAttr` | Coerces a boolean flag to `true` / `undefined` for a spread-safe ARIA boolean attribute. |
+| `composeEventHandlers` | Composes a caller's forwarded handler with the library's; theirs first, then ours unless they prevented default. |
 | `accessibleName` | Best-effort accessible name of an element: `aria-label`, `aria-labelledby` target text, else own text. |
 | `announce` | Imperative screen-reader announcement via a shared visually-hidden `aria-live` region on `document.body`. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
+| `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |
 
 > For declarative announcements that track a changing value, prefer `useA11yAnnouncements` ([`HOOKS.md`](HOOKS.md)) over calling `announce` directly.
 

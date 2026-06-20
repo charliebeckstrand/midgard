@@ -27,7 +27,7 @@ describe('Badge', () => {
 
 		const badge = bySlot(container, 'badge')
 
-		expect(badge).toHaveAttribute('data-has-prefix', 'true')
+		expect(badge).toHaveAttribute('data-has-prefix', '')
 
 		expect(screen.getByText('icon')).toBeInTheDocument()
 	})
@@ -37,7 +37,7 @@ describe('Badge', () => {
 
 		const badge = bySlot(container, 'badge')
 
-		expect(badge).toHaveAttribute('data-has-suffix', 'true')
+		expect(badge).toHaveAttribute('data-has-suffix', '')
 
 		expect(screen.getByText('×')).toBeInTheDocument()
 	})

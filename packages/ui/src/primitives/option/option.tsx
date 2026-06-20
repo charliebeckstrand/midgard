@@ -8,7 +8,7 @@ import {
 	use,
 	useId,
 } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
@@ -108,9 +108,9 @@ export function BaseOption({
 			id={optionId}
 			role="option"
 			aria-selected={selected}
-			aria-disabled={disabled || undefined}
-			data-selected={selected || undefined}
-			data-disabled={disabled || undefined}
+			aria-disabled={ariaAttr(disabled)}
+			data-selected={dataAttr(selected)}
+			data-disabled={dataAttr(disabled)}
 			tabIndex={-1}
 			// Active-descendant lists keep DOM focus on the owning input;
 			// `preventDefault` stops mousedown from transferring focus.

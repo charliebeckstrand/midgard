@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
@@ -65,7 +65,7 @@ function DataTableRowImpl<T>({
 	return (
 		<DataTableRowContext value={rowContext}>
 			<TableRow
-				data-selected={selected || undefined}
+				data-selected={dataAttr(selected)}
 				data-row-index={dataRowIndex}
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}

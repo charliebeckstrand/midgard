@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { Children } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
 import { useResolvedSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -177,7 +177,7 @@ export function Button({
 				className={classes}
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}
-				aria-busy={loading || undefined}
+				aria-busy={ariaAttr(loading)}
 			>
 				<TouchTarget>{content}</TouchTarget>
 			</motion.button>

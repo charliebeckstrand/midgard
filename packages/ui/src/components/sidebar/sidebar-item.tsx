@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, isValidElement, type ReactNode, type Ref } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -99,7 +99,7 @@ export function SidebarItem({
 	const inner = (
 		<Button
 			data-slot="sidebar-item-inner"
-			data-current={item.current || undefined}
+			data-current={dataAttr(item.current)}
 			aria-current={item.current ? 'page' : undefined}
 			className={cn(k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }), className)}
 			onClick={item.handleClick}

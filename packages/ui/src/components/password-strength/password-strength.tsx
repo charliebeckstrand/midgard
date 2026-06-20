@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Dot } from 'lucide-react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/password-strength'
 import { Icon } from '../icon'
@@ -96,7 +96,7 @@ export function PasswordStrength({
 					<div
 						key={strengthLevel.id}
 						data-slot="password-strength-segment"
-						data-active={i < activeCount || undefined}
+						data-active={dataAttr(i < activeCount)}
 						className={k.segment({
 							level: i < activeCount ? level : 'empty',
 						})}
@@ -110,7 +110,7 @@ export function PasswordStrength({
 						<li
 							key={rule.id}
 							data-slot="password-strength-rule"
-							data-passed={passed || undefined}
+							data-passed={dataAttr(passed)}
 							className={cn(k.rule.base)}
 						>
 							<Icon

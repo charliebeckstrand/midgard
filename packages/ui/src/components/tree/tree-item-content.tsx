@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
@@ -93,13 +93,13 @@ export function TreeItemContent({
 		<div
 			role="treeitem"
 			aria-expanded={hasChildren ? open : undefined}
-			aria-current={current || undefined}
+			aria-current={ariaAttr(current)}
 			aria-level={depth + 1}
 			aria-posinset={posinset}
 			aria-setsize={setsize}
 			tabIndex={-1}
 			data-slot="tree-item-content"
-			data-open={open || undefined}
+			data-open={dataAttr(open)}
 			className={cn(
 				'group/tree-item',
 				k.itemContent({ size }),

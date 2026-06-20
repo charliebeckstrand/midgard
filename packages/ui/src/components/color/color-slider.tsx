@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp, pct } from '../../utilities'
 import { hsvaToHex } from './color-utilities'
@@ -86,7 +86,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			aria-valuemax={max}
 			aria-valuenow={isHue ? Math.round(value) : Math.round(value * 100) / 100}
 			aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
-			aria-disabled={disabled || undefined}
+			aria-disabled={ariaAttr(disabled)}
 			className={cn(
 				k.track({ size }),
 				isHue ? k.hue : k.checkerboard,

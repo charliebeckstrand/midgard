@@ -1,7 +1,7 @@
 'use client'
 
 import type { FocusEventHandler, ReactNode, Ref } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -67,11 +67,11 @@ export function ListboxButton({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				aria-describedby={describedBy}
-				aria-readonly={readOnly || undefined}
-				aria-required={required || undefined}
+				aria-readonly={ariaAttr(readOnly)}
+				aria-required={ariaAttr(required)}
 				data-slot="listbox-button"
 				disabled={disabled}
-				data-readonly={readOnly || undefined}
+				data-readonly={dataAttr(readOnly)}
 				onBlur={onBlur}
 				{...invalidAttrs(invalid)}
 				className={cn(k({ density, size }))}
