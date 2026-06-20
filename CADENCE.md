@@ -1,14 +1,14 @@
 # Cadence
 
-> **The project's writing-and-structure rhythm.** Cadence is the uniform spacing and shape of every authored statement — its cornerstone a single blank line between statements — so structured documents and code stay scannable, diff-clean, and consistent. Verify cadence before committing ([`CLAUDE.md`](CLAUDE.md) §3.6).
+> **The project's writing-and-structure rhythm.** Cadence is the uniform spacing and shape of authored statements — its cornerstone a single blank line between them — so documents and code stay scannable, diff-clean, and consistent. Verify cadence before committing ([`CLAUDE.md`](CLAUDE.md) §3.6).
 
 ## What cadence means
 
 A *statement* is one self-contained unit of authored text: a numbered clause in a structured document ([`CLAUDE.md`](CLAUDE.md), [`CONVENTIONS.md`](CONVENTIONS.md)), a paragraph of prose, an item in a list, or a logical block of code.
 
-Cadence governs how those statements are spaced and shaped relative to one another — rhythm and consistency, not wording. The content is the author's; the cadence is fixed.
+Cadence governs how those statements are spaced and shaped — rhythm and consistency, not wording. The content is the author's; the cadence is fixed.
 
-This document obeys the cadence it defines; read its own spacing as the reference.
+This document obeys the cadence it defines; read its spacing as the reference.
 
 ## Rules
 
@@ -20,11 +20,11 @@ This document obeys the cadence it defines; read its own spacing as the referenc
 
 4. **Terminal punctuation.** End every statement with sentence punctuation.
 
-5. **House voice.** Write terse, technical, imperative prose, answer-first and without filler — per [`CLAUDE.md`](CLAUDE.md) §2.
+5. **House voice.** Write terse, technical, imperative prose — answer-first, no filler — per [`CLAUDE.md`](CLAUDE.md) §2.
 
 6. **Deliberate joinery.** Use semicolons to join related independent clauses and em-dashes (`—`) to set off asides; reserve lists for genuinely enumerable items ([`CLAUDE.md`](CLAUDE.md) §2.2).
 
-7. **Consistent links.** Cross-reference with descriptive link text, relative paths, and `§` markers for sections, matching the surrounding document's link form.
+7. **Consistent links.** Cross-reference with descriptive link text, relative paths, and `§` section markers, matching the surrounding document's link form.
 
 8. **File hygiene.** End the file with exactly one trailing newline; leave no trailing whitespace and no stacked blank lines.
 
