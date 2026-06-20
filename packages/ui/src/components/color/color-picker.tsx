@@ -103,8 +103,15 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		disabled,
 	} as ColorPanelProps
 
+	// `display: contents` wrapper: while open, floating-ui's modal focus manager
+	// inserts a hidden return-focus span as the reference's next sibling
+	// (`domReference.insertAdjacentElement('afterend', …)`). Scoping it under this
+	// wrapper keeps the picker a single DOM child of its parent, so a `space-y`/
+	// `gap` container doesn't shift when the popover opens. `contents` adds no box
+	// of its own, so flex/grid/block layout sees straight through to the control.
+	// Mirrors `DatePicker`.
 	return (
-		<>
+		<div data-slot="color-picker" className="contents">
 			<ColorPickerTrigger
 				open={state.open}
 				onOpenChange={state.onOpenChange}
@@ -132,6 +139,6 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 			>
 				<ColorPanel {...panelProps} />
 			</ColorPickerContent>
-		</>
+		</div>
 	)
 }

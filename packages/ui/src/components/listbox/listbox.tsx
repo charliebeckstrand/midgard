@@ -293,79 +293,87 @@ export function Listbox<T>({
 
 	return (
 		<ListboxContext value={contextValue}>
-			<SelectTrigger
-				open={open}
-				setReference={refs.setReference}
-				getReferenceProps={getReferenceProps}
-				glass={glass}
-				size={resolvedSize}
-				className={className}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				data-slot={slot}
-				frameProps={{
-					onClick: () => setOpenGuarded(!open),
-					// While open, focus lives on the active option in the portalled panel. A
-					// mousedown would pull it onto the button; if released off-target, no click
-					// fires, stranding focus on the trigger and killing keyboard navigation.
-					onMouseDown: open ? (event) => event.preventDefault() : undefined,
-				}}
-				prefix={prefix}
-				suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
-				suffixProps={
-					suffix || showClear || resolvedDisabled
-						? undefined
-						: {
-								// The default chevron is a sibling of the trigger, not part of
-								// it; a bare mousedown blurs the focused trigger (focus only
-								// returns on the click that follows). preventDefault keeps focus
-								// on the trigger; the frame's onClick still toggles the menu.
-								onMouseDown: (event) => event.preventDefault(),
-							}
-				}
-			>
-				<ListboxButton
-					id={resolvedId}
-					ref={triggerRef}
+			{/* `display: contents` wrapper: while open, `FloatingFocusManager` inserts a
+			    hidden return-focus span as the reference's next sibling
+			    (`domReference.insertAdjacentElement('afterend', …)`). Scoping the trigger
+			    and panel under it keeps the control a single DOM child of its parent, so a
+			    `space-y`/`gap` container doesn't shift when the panel opens; `contents`
+			    leaves the trigger the flex/grid item it was. Mirrors `DatePicker`. */}
+			<div className="contents">
+				<SelectTrigger
 					open={open}
-					controlsId={listboxId}
-					ariaLabel={ariaLabel}
-					ariaLabelledby={ariaLabelledby}
-					describedBy={describedBy}
-					disabled={resolvedDisabled}
-					readOnly={resolvedReadOnly}
-					required={resolvedRequired}
-					invalid={control?.invalid}
-					label={label}
-					onBlur={handleTriggerBlur}
-					placeholder={placeholder}
-					truncate={truncate}
-					tabularNums={tabularNums}
+					setReference={refs.setReference}
+					getReferenceProps={getReferenceProps}
+					glass={glass}
+					size={resolvedSize}
+					className={className}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
+					data-slot={slot}
+					frameProps={{
+						onClick: () => setOpenGuarded(!open),
+						// While open, focus lives on the active option in the portalled panel. A
+						// mousedown would pull it onto the button; if released off-target, no click
+						// fires, stranding focus on the trigger and killing keyboard navigation.
+						onMouseDown: open ? (event) => event.preventDefault() : undefined,
+					}}
+					prefix={prefix}
+					suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
+					suffixProps={
+						suffix || showClear || resolvedDisabled
+							? undefined
+							: {
+									// The default chevron is a sibling of the trigger, not part of
+									// it; a bare mousedown blurs the focused trigger (focus only
+									// returns on the click that follows). preventDefault keeps focus
+									// on the trigger; the frame's onClick still toggles the menu.
+									onMouseDown: (event) => event.preventDefault(),
+								}
+					}
+				>
+					<ListboxButton
+						id={resolvedId}
+						ref={triggerRef}
+						open={open}
+						controlsId={listboxId}
+						ariaLabel={ariaLabel}
+						ariaLabelledby={ariaLabelledby}
+						describedBy={describedBy}
+						disabled={resolvedDisabled}
+						readOnly={resolvedReadOnly}
+						required={resolvedRequired}
+						invalid={control?.invalid}
+						label={label}
+						onBlur={handleTriggerBlur}
+						placeholder={placeholder}
+						truncate={truncate}
+						tabularNums={tabularNums}
+						density={token.space}
+						size={token.size}
+					/>
+				</SelectTrigger>
+
+				<ListboxPanel
+					id={listboxId}
+					open={open}
+					glass={glass}
+					multiple={multiple}
 					density={token.space}
 					size={token.size}
-				/>
-			</SelectTrigger>
-
-			<ListboxPanel
-				id={listboxId}
-				open={open}
-				glass={glass}
-				multiple={multiple}
-				density={token.space}
-				size={token.size}
-				ariaLabel={ariaLabel}
-				// Names the listbox from the trigger's name: an explicit aria-label
-				// wins, else aria-labelledby, else the field's Label (via Control).
-				ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
-				floatingStyles={floatingStyles}
-				context={context}
-				getFloatingProps={getFloatingProps}
-				setFloating={refs.setFloating}
-				flushPending={flushPending}
-				onTabOut={handleTabOut}
-			>
-				{children}
-			</ListboxPanel>
+					ariaLabel={ariaLabel}
+					// Names the listbox from the trigger's name: an explicit aria-label
+					// wins, else aria-labelledby, else the field's Label (via Control).
+					ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
+					floatingStyles={floatingStyles}
+					context={context}
+					getFloatingProps={getFloatingProps}
+					setFloating={refs.setFloating}
+					flushPending={flushPending}
+					onTabOut={handleTabOut}
+				>
+					{children}
+				</ListboxPanel>
+			</div>
 		</ListboxContext>
 	)
 }
