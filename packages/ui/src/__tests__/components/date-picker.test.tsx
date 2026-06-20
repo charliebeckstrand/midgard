@@ -681,7 +681,15 @@ describe('DatePicker input', () => {
 
 		await user.type(input, '06152027')
 
-		expect(bySlot(container, 'message')).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+		const message = bySlot(container, 'message')
+
+		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+
+		// The message sits in the control wrapper directly after the input frame,
+		// so the field adjacency carried on the wrapper spaces it like a <Field>.
+		expect(message?.parentElement).toBe(bySlot(container, 'control'))
+
+		expect(message?.previousElementSibling).toHaveAttribute('data-slot', 'control-frame')
 	})
 
 	// Tab-cycle seam (`useDatePickerInputTab`): the handlers redirect focus at

@@ -6,7 +6,7 @@
  * layout-only toggle groups and trigger chip row.
  */
 import { defineRecipe } from '../../core/recipe'
-import { hannou, iro, sen } from '../kiso'
+import { hannou, iro, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
@@ -14,6 +14,7 @@ const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
 const { affix, reset, density, size, surface } = control
+const { field } = narabi
 const { portal, panel } = popover
 
 const button = defineRecipe({
@@ -51,6 +52,11 @@ export const k = {
 	},
 	button,
 	value,
+	// Input mode wraps the DateInput — its frame plus the error Message — in the
+	// floating reference, so the Field's child-combinator adjacency can't reach
+	// the nested message. Reuse that same adjacency here to space the message
+	// from the input exactly as a <Field> would.
+	control: field,
 	icon: ['flex items-center', 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	affix: {

@@ -2,8 +2,9 @@
 
 import type { Placement } from '@floating-ui/react'
 import type { ReactElement } from 'react'
-import { composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
+import { k } from '../../recipes/kata/date-picker'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
@@ -221,7 +222,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				<div
 					data-slot="control"
 					ref={state.setReference}
-					className={className}
+					className={cn(k.control, className)}
 					{...state.getReferenceProps({ onKeyDown: inputTab.onReferenceKeyDown })}
 				>
 					<DateInput
