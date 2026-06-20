@@ -62,7 +62,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit the same-origin proxy at `api/[...path]`. They never call the gateway or handle tokens directly.
+6.3 Client fetches hit same-origin `/api/*` paths; the `withAuth` rewrites proxy them to the gateway and the app's `proxy.ts` gates the session. They never call the gateway or handle tokens directly.
 
 6.4 Shared client fetches use the data-hook pattern: a module-scoped cache and a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, keyed by a serialized input; `setState` is guarded by an `active` flag.
 
@@ -82,7 +82,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 ## 9. Imports
 
-9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains. 
+9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains.
 
 From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
 
@@ -107,7 +107,7 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 ## 11. Environment
 
-11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to the config edge (`apps/<app>/src/api/config.ts`), not scattered through features.
+11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge — today the sole reader is the `auth` package's `env.ts` (`BIFROST_URL`); apps reach env through `auth`, not scattered through features.
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 

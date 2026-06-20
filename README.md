@@ -7,6 +7,8 @@ pnpm install
 pnpm dev
 ```
 
+`pnpm dev` launches [`hlidskjalf`](https://www.npmjs.com/package/hlidskjalf), a terminal UI for monitoring the Turborepo dev tasks.
+
 ## 2. Commands
 
 | Goal | Command |
