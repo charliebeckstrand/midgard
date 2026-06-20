@@ -73,6 +73,7 @@ describe('useDatePickerRangeState', () => {
 
 			// Committed on the closing click, not deferred to the exit animation.
 			expect(onChange).toHaveBeenCalledTimes(1)
+
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
 
 			// The exit-complete reset only clears in-progress state; it must not
