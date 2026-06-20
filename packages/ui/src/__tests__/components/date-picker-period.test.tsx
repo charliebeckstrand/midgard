@@ -15,10 +15,9 @@ function ControlledPeriodPicker({
 
 	return (
 		<DatePicker
-			period
-			years={[2025, 2026]}
+			period={{ years: [2025, 2026], quarters: true }}
 			value={value}
-			onValueChange={(next) => {
+			onValueChange={(next: DatePickerPeriodValue | undefined) => {
 				setValue(next)
 
 				onChange?.(next)
@@ -37,7 +36,10 @@ describe('DatePicker (period)', () => {
 
 	it('renders the selection as chips in the trigger', () => {
 		const { container } = renderUI(
-			<DatePicker period years={[2025]} value={{ years: [2025], quarters: [2], months: [1] }} />,
+			<DatePicker
+				period={{ years: [2025] }}
+				value={{ years: [2025], quarters: [2], months: [1] }}
+			/>,
 		)
 
 		const trigger = bySlot(container, 'datepicker-button')
@@ -50,7 +52,9 @@ describe('DatePicker (period)', () => {
 	it('opens the popover with year, quarter, and month groups', async () => {
 		const user = userEvent.setup()
 
-		const { container } = renderUI(<DatePicker period years={[2025, 2026]} aria-label="Period" />)
+		const { container } = renderUI(
+			<DatePicker period={{ years: [2025, 2026], quarters: true }} aria-label="Period" />,
+		)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
@@ -59,6 +63,49 @@ describe('DatePicker (period)', () => {
 		expect(screen.getByRole('button', { name: '2026' })).toBeInTheDocument()
 		expect(screen.getByRole('button', { name: 'Q3' })).toBeInTheDocument()
 		expect(screen.getByRole('button', { name: 'Jul' })).toBeInTheDocument()
+	})
+
+	it('hides the quarter group by default', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker period aria-label="Period" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		// Years and months stay on by default; quarters opt in.
+		expect(screen.getByRole('button', { name: 'Jan' })).toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Q1' })).not.toBeInTheDocument()
+	})
+
+	it('hides a facet set to false', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker period={{ months: false }} aria-label="Period" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		const currentYear = new Date().getFullYear()
+
+		expect(screen.getByRole('button', { name: String(currentYear) })).toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Jan' })).not.toBeInTheDocument()
+	})
+
+	it('renders only the explicit options supplied for a facet', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<DatePicker period={{ quarters: [1, 3], months: [6, 12] }} aria-label="Period" />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.getByRole('button', { name: 'Q1' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Q3' })).toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Q2' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Jun' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Dec' })).toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Jan' })).not.toBeInTheDocument()
 	})
 
 	it('toggles a month and commits a populated value', async () => {
@@ -122,8 +169,7 @@ describe('DatePicker (period)', () => {
 
 		const { container } = renderUI(
 			<DatePicker
-				period
-				years={[2025]}
+				period={{ years: [2025] }}
 				value={{ years: [2025], quarters: [], months: [1] }}
 				onValueChange={onChange}
 				aria-label="Period"
@@ -141,7 +187,7 @@ describe('DatePicker (period)', () => {
 	it('omits the clear footer when the selection is empty', async () => {
 		const user = userEvent.setup()
 
-		const { container } = renderUI(<DatePicker period years={[2025]} aria-label="Period" />)
+		const { container } = renderUI(<DatePicker period={{ years: [2025] }} aria-label="Period" />)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
@@ -152,7 +198,7 @@ describe('DatePicker (period)', () => {
 		const user = userEvent.setup()
 
 		const { container } = renderUI(
-			<DatePicker period years={[2031, 2029, 2031, 2030]} aria-label="Period" />,
+			<DatePicker period={{ years: [2031, 2029, 2031, 2030] }} aria-label="Period" />,
 		)
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)

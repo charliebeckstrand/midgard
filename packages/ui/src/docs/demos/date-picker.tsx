@@ -22,8 +22,7 @@ export function Demo() {
 
 			<Example title="Period">
 				<DatePicker
-					period
-					years={[2024, 2025, 2026]}
+					period={{ years: [2024, 2025, 2026] }}
 					value={period}
 					onValueChange={setPeriod}
 					placeholder="Select period"

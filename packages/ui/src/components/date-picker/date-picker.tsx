@@ -10,7 +10,7 @@ import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerPeriod } from './date-picker-period'
-import type { DatePickerPeriodValue } from './date-picker-period-utilities'
+import type { DatePickerPeriodConfig, DatePickerPeriodValue } from './date-picker-period-utilities'
 import { DatePickerRange } from './date-picker-range'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerInputTab } from './use-date-picker-input-tab'
@@ -47,22 +47,25 @@ export type DatePickerRangeProps = {
 }
 
 /**
- * Period arm of {@link DatePickerProps} (`period: true`); value is a multi-select
+ * Period arm of {@link DatePickerProps}; value is a multi-select
  * {@link DatePickerPeriodValue} of independent year / quarter / month sets.
+ *
+ * Pass `period` (bare `true`) for the defaults — selectable years of the prior
+ * and current calendar year, all twelve months, quarters hidden — or a
+ * {@link DatePickerPeriodConfig} to tune each facet. A facet takes an explicit
+ * option list, `true` for its default set, or `false` to hide it.
+ *
+ * @example
+ * ```tsx
+ * <DatePicker period={{ years: [2024, 2025, 2026], quarters: false, months: true }} />
+ * ```
  */
 export type DatePickerPeriodProps = {
-	period: true
+	period: true | DatePickerPeriodConfig
 	range?: false
 	value?: DatePickerPeriodValue
 	defaultValue?: DatePickerPeriodValue
 	onValueChange?: (value: DatePickerPeriodValue | undefined) => void
-	/**
-	 * Selectable years offered in the picker. Supersedes the default; the
-	 * picker dedupes and sorts the list ascending, so order doesn't matter.
-	 *
-	 * @defaultValue the prior and current calendar year
-	 */
-	years?: number[]
 }
 
 /**

@@ -1,2 +1,6 @@
 export { DatePicker, type DatePickerProps } from './date-picker'
-export type { DatePickerPeriodValue } from './date-picker-period-utilities'
+export type {
+	DatePickerPeriodConfig,
+	DatePickerPeriodValue,
+	PeriodFacetOption,
+} from './date-picker-period-utilities'

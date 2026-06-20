@@ -11,11 +11,11 @@ import type { DatePickerBaseProps, DatePickerPeriodProps } from './date-picker'
 import {
 	type DatePickerPeriodValue,
 	isPeriodEmpty,
-	normalizeYears,
 	type PeriodChip,
 	type PeriodFacet,
 	periodChips,
 	periodMonthLabels,
+	resolvePeriodFacets,
 	togglePeriodFacet,
 } from './date-picker-period-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
@@ -56,7 +56,7 @@ export function useDatePickerPeriodState({
 	value: valueProp,
 	defaultValue,
 	onValueChange,
-	years,
+	period,
 	placement = 'bottom-start',
 	disabled = false,
 }: DatePickerBaseProps & DatePickerPeriodProps) {
@@ -179,7 +179,9 @@ export function useDatePickerPeriodState({
 
 	const monthLabels = useMemo(() => periodMonthLabels(), [])
 
-	const resolvedYears = useMemo(() => normalizeYears(years ?? defaultYears()), [years])
+	// Cheap and consumed directly in the child's render, so resolve inline rather
+	// than memoize: `period` is usually a fresh literal, defeating an identity memo.
+	const facets = resolvePeriodFacets(period)
 
 	const chips = useMemo<PeriodChip[]>(() => periodChips(value, monthLabels), [value, monthLabels])
 
@@ -195,7 +197,7 @@ export function useDatePickerPeriodState({
 		invalid: control?.invalid || fieldInvalid,
 		value,
 		chips,
-		years: resolvedYears,
+		facets,
 		monthLabels,
 		open,
 		onOpenChange,
@@ -231,12 +233,4 @@ function rovingTargetIndex(key: string, currentIndex: number, count: number): nu
 	if (currentIndex === -1) return forward ? 0 : count - 1
 
 	return (currentIndex + (forward ? 1 : -1) + count) % count
-}
-
-// Default selectable years when the caller passes none: the prior and current
-// calendar year (e.g. 2025–2026).
-function defaultYears(): number[] {
-	const currentYear = new Date().getFullYear()
-
-	return [currentYear - 1, currentYear]
 }
