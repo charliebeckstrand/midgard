@@ -824,14 +824,11 @@ describe('DatePicker + Form', () => {
 
 		await user.click(trigger)
 
-		// Two endpoints stage a pending range and close the popover.
+		// Two endpoints commit the range and close the popover; the value lands on
+		// the closing click, with no dependence on the exit animation firing.
 		await user.click(findDay(12) as HTMLElement)
 
 		await user.click(findDay(18) as HTMLElement)
-
-		// Reopening flushes the pending range synchronously (openCalendar →
-		// flushPending → setValue), avoiding the exit-animation commit path.
-		await user.click(trigger)
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 
