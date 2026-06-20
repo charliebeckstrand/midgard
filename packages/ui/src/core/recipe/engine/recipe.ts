@@ -164,6 +164,7 @@ function applyPaletteToVariants(
 	}
 
 	variants.variant = variantAxis
+
 	variants.color = ex.colorScaffold
 
 	return ex.compound
