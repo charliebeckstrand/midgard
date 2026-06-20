@@ -27,11 +27,10 @@ const root = defineRecipe({
 	defaults: { variant: 'separated', orientation: 'vertical' },
 })
 
-// Card-like variants share the uniform `ma.p` scale across the density axis;
-// `plain` uses a tighter px/py ratio.
-const cardLikeVariants = ['separated', 'outline', 'solid'] as const
+// The card-like variants share the uniform `ma.p` scale across the density
+// axis; `plain` uses a tighter px/py ratio, inline below.
+const variants = ['separated', 'outline', 'solid'] as const
 const densities = ['sm', 'md', 'lg'] as const
-const plainPadding = { sm: 'px-1.5 py-1', md: 'px-2 py-1.5', lg: 'px-2.5 py-2' } as const
 
 const item = defineRecipe({
 	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
@@ -54,14 +53,12 @@ const item = defineRecipe({
 		false: '',
 	},
 	compound: [
-		...cardLikeVariants.flatMap((variant) =>
+		...variants.flatMap((variant) =>
 			densities.map((density) => ({ variant, density, class: p[density] })),
 		),
-		...densities.map((density) => ({
-			variant: 'plain' as const,
-			density,
-			class: plainPadding[density],
-		})),
+		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
+		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
+		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },
 	],
 	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
 })

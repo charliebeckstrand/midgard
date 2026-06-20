@@ -25,7 +25,7 @@ The genuine improvements are therefore **structural and idiomatic**, and they cl
 
 **B. Size-driven `compound` matrices written out by hand (Medium). ✅ resolved (`6eeee4d`).** `kata/scroll-area.ts:16-22` already showed the idiom (`orientations.flatMap(o => sizes.map(s => …))`). Only one kata had the repetition the idiom targets:
 
-- **`kata/list.ts:51-64`** ✅ generated — nine of its twelve variant × density compounds were the *same* `class: p.{sm,md,lg}` token across three variants; now built from `cardLikeVariants × densities → ma.p`, with the three `plain` exceptions kept explicit.
+- **`kata/list.ts:51-64`** ✅ generated — nine of its twelve variant × density compounds were the *same* `class: p.{sm,md,lg}` token across three variants; now built from `variants × densities → ma.p`, with the three `plain` rows (distinct px/py per density) kept explicit.
 - **`kata/button.ts`**, **`kata/tabs.ts:69-76`**, **`kata/sidebar.ts:76-80`** ◯ reviewed, kept explicit — each cell is a *distinct* value per size (button `p-0.75 / 1 / 1.25 / 1.5`; tabs `px-1 pb-3 … px-5 py-2.5`; sidebar three `radius.r(step)` rows), so there is no repeated token to fold. `button` was briefly generated via a single-use size→padding map and reverted: generating distinct cells reshapes rather than dedupes and hides the structure behind a name. The explicit rules read clearer and match the codebase's literal ethos.
 - **`kata/nav.ts`** ✖ withdrawn — it has no `compound` block at all (the audit conflated it with `sidebar.ts`).
 
