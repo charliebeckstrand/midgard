@@ -1,10 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/sidebar'
 
-export type SidebarDividerProps = ComponentPropsWithoutRef<'hr'>
+export type SidebarDividerProps = SlotProps<'hr'>
 
 /** Horizontal rule separating groups of items within a `Sidebar`. */
-export function SidebarDivider({ className, ...props }: SidebarDividerProps) {
-	return <hr data-slot="sidebar-divider" className={cn(k.divider, className)} {...props} />
-}
+export const SidebarDivider = createSlot('hr', 'sidebar-divider', k.divider)

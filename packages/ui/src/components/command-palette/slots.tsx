@@ -1,5 +1,5 @@
 import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
-import { cn } from '../../core'
+import { cn, createSlot } from '../../core'
 import { k } from '../../recipes/kata/command-palette'
 import { Alert, type AlertProps } from '../alert'
 import { Kbd, type KbdProps } from '../kbd'
@@ -53,23 +53,17 @@ export function CommandPaletteEmpty({ children, ...props }: CommandPaletteEmptyP
 export type CommandPaletteLabelProps = ComponentPropsWithoutRef<'span'>
 
 /** Primary text slot for a {@link CommandPaletteItem}. */
-export function CommandPaletteLabel({ className, ...props }: CommandPaletteLabelProps) {
-	return <span data-slot="command-palette-label" className={cn(k.label, className)} {...props} />
-}
+export const CommandPaletteLabel = createSlot('span', 'command-palette-label', k.label)
 
 /** Props for {@link CommandPaletteDescription}; extends native `<span>` attributes. */
 export type CommandPaletteDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /** Secondary text slot for a {@link CommandPaletteItem}. */
-export function CommandPaletteDescription({ className, ...props }: CommandPaletteDescriptionProps) {
-	return (
-		<span
-			data-slot="command-palette-description"
-			className={cn(k.description, className)}
-			{...props}
-		/>
-	)
-}
+export const CommandPaletteDescription = createSlot(
+	'span',
+	'command-palette-description',
+	k.description,
+)
 
 /** Props for {@link CommandPaletteShortcut}; same as {@link KbdProps}. */
 export type CommandPaletteShortcutProps = KbdProps

@@ -1,11 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react'
-import { cn } from '../../core'
+import { createSlot } from '../../core'
+import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/dl'
 
 /** Props for {@link DescriptionTerm}: native `<dt>` attributes. */
-export type DescriptionTermProps = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<'dt'>, 'className'>
+export type DescriptionTermProps = SlotProps<'dt'>
 
 /**
  * Term cell (`<dt>`) for a `<DescriptionList>` term/details pair. Carries text styling only;
@@ -14,6 +12,4 @@ export type DescriptionTermProps = {
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
  */
-export function DescriptionTerm({ className, ...props }: DescriptionTermProps) {
-	return <dt data-slot="dl-term" className={cn(k.term, className)} {...props} />
-}
+export const DescriptionTerm = createSlot('dt', 'dl-term', k.term)
