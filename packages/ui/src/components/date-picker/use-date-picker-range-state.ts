@@ -20,13 +20,17 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
  * popover wiring, the virtual-highlight keyboard handler, and the clear footer.
  *
  * @remarks
- * The picked range is buffered in `pendingRef` and flushed on `onExitComplete`
- * so both endpoints stay rendered through the popover's exit animation.
+ * Selection commits the `[Date, Date]` immediately, so the trigger label and
+ * any `onValueChange` update on the click that closes the popover rather than
+ * after its exit animation. The in-progress reducer state (the pinned start
+ * and previewed end) is reset on `onExitComplete` so both endpoints stay
+ * rendered through the exit animation instead of snapping to the freshly
+ * committed value mid-fade.
  *
  * @returns Trigger props, popover plumbing, `onTriggerKeyDown`,
- * `onExitComplete` (the deferred commit), and the `calendar`/`footer` prop
- * bundles; `calendar` exposes `rangeStart`/`rangeEnd`/`hoverDate` for the
- * in-progress selection.
+ * `onExitComplete` (resets the in-progress selection after the exit
+ * animation), and the `calendar`/`footer` prop bundles; `calendar` exposes
+ * `rangeStart`/`rangeEnd`/`hoverDate` for the in-progress selection.
  * @internal
  */
 export function useDatePickerRangeState({
@@ -67,21 +71,16 @@ export function useDatePickerRangeState({
 
 	const { rangeStart, hoverDate, active } = state
 
-	const pendingRef = useRef<{ value: [Date, Date] | undefined } | null>(null)
-
 	const calendarRef = useRef<CalendarHandle>(null)
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
-	const flushPending = useCallback(() => {
-		if (pendingRef.current) {
-			setValue(pendingRef.current.value)
-
-			pendingRef.current = null
-		}
-
+	// Clears the in-progress selection. Deferred to `onExitComplete` (and re-run
+	// on the next open) so the pinned start and previewed end survive the exit
+	// animation rather than collapsing onto the committed value mid-fade.
+	const resetSelection = useCallback(() => {
 		dispatch({ type: 'reset' })
-	}, [setValue])
+	}, [])
 
 	const getInitialActiveDate = useCallback(
 		() => clampDate(rangeStart ?? value?.[0] ?? min ?? new Date(), min, max),
@@ -115,10 +114,10 @@ export function useDatePickerRangeState({
 	)
 
 	const openCalendar = useCallback(() => {
-		flushPending()
+		resetSelection()
 
 		setOpen(true)
-	}, [flushPending])
+	}, [resetSelection])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
@@ -129,10 +128,10 @@ export function useDatePickerRangeState({
 	}, [setTouched])
 
 	const handleClear = useCallback(() => {
-		pendingRef.current = { value: undefined }
+		setValue(undefined)
 
 		closeCalendar()
-	}, [closeCalendar])
+	}, [closeCalendar, setValue])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
@@ -145,15 +144,17 @@ export function useDatePickerRangeState({
 
 				const range: [Date, Date] = start.getTime() <= end.getTime() ? [start, end] : [end, start]
 
-				// Pins both endpoints; the range stays stable through the exit animation.
+				// Pin the end so the span stays rendered through the exit animation,
+				// then commit now — the trigger and `onValueChange` update on this
+				// click instead of waiting for `onExitComplete`.
 				dispatch({ type: 'pinEndpoint', date: end })
 
-				pendingRef.current = { value: range }
+				setValue(range)
 
 				closeCalendar()
 			}
 		},
-		[closeCalendar, rangeStart],
+		[closeCalendar, rangeStart, setValue],
 	)
 
 	const handleOpenChange = useCallback(
@@ -237,7 +238,7 @@ export function useDatePickerRangeState({
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
-		onExitComplete: flushPending,
+		onExitComplete: resetSelection,
 		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,

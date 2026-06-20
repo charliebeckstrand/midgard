@@ -56,7 +56,7 @@ describe('useDatePickerRangeState', () => {
 			expect(result.current.open).toBe(true)
 		})
 
-		it('second click stages the range and closes; commit happens on exit', () => {
+		it('second click commits the range immediately and closes', () => {
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -71,13 +71,16 @@ describe('useDatePickerRangeState', () => {
 
 			expect(result.current.open).toBe(false)
 
-			// Pending, not yet committed.
-			expect(onChange).not.toHaveBeenCalled()
+			// Committed on the closing click, not deferred to the exit animation.
+			expect(onChange).toHaveBeenCalledTimes(1)
 
+			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
+
+			// The exit-complete reset only clears in-progress state; it must not
+			// re-commit.
 			act(() => result.current.onExitComplete())
 
 			expect(onChange).toHaveBeenCalledTimes(1)
-			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
 		})
 
 		it('swaps endpoints when the second click is earlier than the first', () => {
@@ -92,8 +95,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.calendar.onValueChange(Jan20))
 
 			act(() => result.current.calendar.onValueChange(Jan10))
-
-			act(() => result.current.onExitComplete())
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
 		})
@@ -110,8 +111,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.calendar.onValueChange(Jan10))
-
-			act(() => result.current.onExitComplete())
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan10])
 		})
@@ -153,7 +152,7 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('clear', () => {
-		it('stages an undefined value and closes', () => {
+		it('commits an undefined value immediately and closes', () => {
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -169,10 +168,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.footer.onClear())
 
 			expect(result.current.open).toBe(false)
-			expect(onChange).not.toHaveBeenCalled()
-
-			act(() => result.current.onExitComplete())
-
 			expect(onChange).toHaveBeenCalledWith(undefined)
 		})
 	})
@@ -248,8 +243,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.calendar.onValueChange(Jan10))
 
 			act(() => result.current.calendar.onValueChange(Jan20))
-
-			act(() => result.current.onExitComplete())
 
 			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
 		})
@@ -333,8 +326,6 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
 
 			expect(result.current.open).toBe(false)
-
-			act(() => result.current.onExitComplete())
 
 			expect(onChange).toHaveBeenCalledWith(undefined)
 		})
