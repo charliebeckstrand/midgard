@@ -30,7 +30,7 @@
 
 3.5 Touching a public `ui` export updates its TSDoc and the matching `packages/ui/docs/*` surface index in the same change ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
-3.6 Before committing anything, verify the code cadence. For reference, see [CADENCE](packages/ui/docs/CADENCE.md).
+3.6 Before committing anything, verify the code cadence. For reference, see [CADENCE.md](packages/ui/docs/CADENCE.md).
 
 ## 4. Version Control
 
