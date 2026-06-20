@@ -81,7 +81,7 @@ export const k = defineRecipe(
 		),
 		// Icon-only floor: a square pad per size keeps an icon-only bare button
 		// even-sided; `not-data-[has-label]` yields to the size axis's padding once
-		// a label is present. Values are distinct per size, so kept explicit.
+		// a label is present.
 		compound: [
 			{ variant: 'bare', size: 'xs', class: ['not-data-[has-label]:p-0.75'] },
 			{ variant: 'bare', size: 'sm', class: ['not-data-[has-label]:p-1'] },
