@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { useFormValue } from '../form/use-form-value'
@@ -100,13 +101,9 @@ export function CurrencyInput({
 			name={name}
 			value={text}
 			onFocus={onFocus}
-			onKeyDown={(event) => {
-				onKeyDown?.(event)
-
-				if (!event.defaultPrevented && event.key === 'Enter') {
-					event.currentTarget.blur()
-				}
-			}}
+			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
+				if (event.key === 'Enter') event.currentTarget.blur()
+			})}
 			onChange={(event) => {
 				const formatted = reformat(event)
 

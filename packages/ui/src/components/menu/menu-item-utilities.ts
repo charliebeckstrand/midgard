@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
+import { composeEventHandlers } from '../../core'
 
 /**
  * Composed click activation for a menu item: runs the consumer's `onClick`
@@ -12,9 +13,7 @@ export function handleMenuItemClick<E extends HTMLElement>(
 ): void {
 	if (disabled) return
 
-	consumerOnClick?.(event)
-
-	onSelect()
+	composeEventHandlers(consumerOnClick, onSelect, { checkForDefaultPrevented: false })(event)
 }
 
 /**
@@ -31,13 +30,11 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
 ): void {
 	if (disabled) return
 
-	consumerOnKeyDown?.(event)
+	composeEventHandlers(consumerOnKeyDown, (keyEvent) => {
+		if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+			keyEvent.preventDefault()
 
-	if (event.defaultPrevented) return
-
-	if (event.key === 'Enter' || event.key === ' ') {
-		event.preventDefault()
-
-		onSelect()
-	}
+			onSelect()
+		}
+	})(event)
 }

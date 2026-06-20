@@ -1,12 +1,7 @@
 'use client'
 
-import {
-	type AriaAttributes,
-	cloneElement,
-	type MouseEvent,
-	type MouseEventHandler,
-	type ReactElement,
-} from 'react'
+import { type AriaAttributes, cloneElement, type MouseEventHandler, type ReactElement } from 'react'
+import { composeEventHandlers } from '../../core'
 
 /** Props for {@link PanelTrigger}: the clickable child plus the open handler and optional open state surfaced as ARIA. */
 export type PanelTriggerProps = {
@@ -28,10 +23,9 @@ export type PanelTriggerProps = {
  */
 export function PanelTrigger({ children, onClick, open }: PanelTriggerProps) {
 	return cloneElement(children, {
-		onClick: (event: MouseEvent) => {
-			children.props.onClick?.(event)
-			onClick?.()
-		},
+		onClick: composeEventHandlers(children.props.onClick, () => onClick?.(), {
+			checkForDefaultPrevented: false,
+		}),
 		'aria-haspopup': children.props['aria-haspopup'] ?? 'dialog',
 		'aria-expanded': children.props['aria-expanded'] ?? open,
 	})

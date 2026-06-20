@@ -1,7 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import type { KeyboardEvent, ReactElement } from 'react'
+import type { ReactElement } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
@@ -181,11 +182,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	// With `input`, the dialog's Tab edges hand focus back to the reference
 	// group before the virtual model sees the key.
 	const onContentKeyDown = input
-		? (event: KeyboardEvent<HTMLElement>) => {
-				inputTab.onDialogKeyDown(event)
-
-				if (!event.defaultPrevented) state.onTriggerKeyDown(event)
-			}
+		? composeEventHandlers(inputTab.onDialogKeyDown, state.onTriggerKeyDown)
 		: state.onTriggerKeyDown
 
 	const content = (
