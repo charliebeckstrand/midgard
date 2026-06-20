@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 
@@ -48,8 +48,8 @@ export function Badge({
 			as="span"
 			data-slot="badge"
 			data-size={resolvedSize}
-			data-has-prefix={!!prefix || undefined}
-			data-has-suffix={!!suffix || undefined}
+			data-has-prefix={dataAttr(!!prefix)}
+			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
 			className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}

@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
@@ -46,8 +46,8 @@ export function TimelineItem(props: TimelineItemProps) {
 	return (
 		<li
 			data-slot="timeline-item"
-			data-current={current || undefined}
-			aria-current={current || undefined}
+			data-current={dataAttr(current)}
+			aria-current={ariaAttr(current)}
 			className={cn(k.item({ orientation }), className)}
 		>
 			<TimelineContext value={providerValue}>

@@ -32,7 +32,7 @@ describe('SignaturePad', () => {
 	it('marks the root as empty by default', () => {
 		const { container } = renderUI(<SignaturePad />)
 
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', 'true')
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', '')
 	})
 
 	it('hides the placeholder when disabled', () => {
@@ -44,13 +44,13 @@ describe('SignaturePad', () => {
 	it('sets data-disabled when disabled', () => {
 		const { container } = renderUI(<SignaturePad disabled />)
 
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-disabled', 'true')
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-disabled', '')
 	})
 
 	it('sets data-readonly when readOnly', () => {
 		const { container } = renderUI(<SignaturePad readOnly />)
 
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-readonly', 'true')
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-readonly', '')
 	})
 
 	it('does not render the clear action when empty', () => {
@@ -257,7 +257,7 @@ describe('SignaturePad + Form', () => {
 			</Form>,
 		)
 
-		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', 'true')
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', '')
 	})
 
 	it('merges a field-level error into the canvas invalid state once touched', () => {

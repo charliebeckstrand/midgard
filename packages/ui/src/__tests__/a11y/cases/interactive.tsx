@@ -157,7 +157,7 @@ export const interactive: readonly InteractiveCase[] = [
 			await waitFor(() => {
 				const el = document.querySelector('[data-slot="map"]')
 
-				if (el?.getAttribute('data-ready') !== 'true') throw new Error('map not ready')
+				if (!el?.hasAttribute('data-ready')) throw new Error('map not ready')
 			})
 		},
 	],

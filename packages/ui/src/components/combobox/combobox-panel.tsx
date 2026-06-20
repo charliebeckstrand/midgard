@@ -3,7 +3,7 @@
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
@@ -74,7 +74,7 @@ export function ComboboxPanel({
 
 								scrollToSelected(node)
 							}}
-							data-editing={editing || undefined}
+							data-editing={dataAttr(editing)}
 							style={floatingStyles}
 							className={cn('group/combobox', k.portal)}
 							{...getFloatingProps()}
@@ -98,7 +98,7 @@ export function ComboboxPanel({
 										id={id}
 										aria-label={ariaLabel}
 										aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
-										aria-multiselectable={multiple || undefined}
+										aria-multiselectable={ariaAttr(multiple)}
 										className={cn(k.list)}
 									>
 										{children}

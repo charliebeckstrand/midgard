@@ -2,7 +2,7 @@
 
 import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/list'
 import { Icon } from '../icon'
 import { useListContext, useListItemContext } from './context'
@@ -32,8 +32,8 @@ export function ListHandle({ children, className }: ListHandleProps) {
 		<span
 			aria-hidden="true"
 			data-slot="list-handle"
-			data-disabled={disabled || undefined}
-			data-readonly={(!interactive && !disabled) || undefined}
+			data-disabled={dataAttr(disabled)}
+			data-readonly={dataAttr(!interactive && !disabled)}
 			className={cn(k.handle, className)}
 			{...(interactive ? listeners : {})}
 		>

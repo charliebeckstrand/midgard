@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { k } from '../../recipes/kata/stepper'
 import { StepperStepContext, type StepState, useStepper } from './context'
@@ -130,7 +130,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 			data-slot="stepper-step"
 			data-state={state}
 			aria-current={state === 'current' ? 'step' : undefined}
-			data-disabled={disabled || undefined}
+			data-disabled={dataAttr(disabled)}
 			className={classes}
 		>
 			{inner}

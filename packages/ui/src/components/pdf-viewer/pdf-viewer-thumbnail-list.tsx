@@ -1,8 +1,9 @@
 'use client'
 
 import type { Ref } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { rangeKeys } from '../../utilities'
 
 /** One entry in the thumbnail rail. @internal */
 type PdfViewerThumbnailItem = {
@@ -14,7 +15,7 @@ type PdfViewerThumbnailItem = {
 
 // Stable keys for the skeleton tiles shown before the first thumbnail resolves;
 // the length is the placeholder count.
-const PLACEHOLDER_KEYS = Array.from({ length: 6 }, (_, i) => `placeholder-${i}`)
+const PLACEHOLDER_KEYS = rangeKeys(6, 'placeholder')
 
 /** Props for {@link PdfViewerThumbnailList}. @internal */
 type PdfViewerThumbnailListProps = {
@@ -76,7 +77,7 @@ export function PdfViewerThumbnailList({
 							ref={isCurrent ? scrollCurrentIntoView : undefined}
 							type="button"
 							data-slot="pdf-viewer-thumbnail"
-							data-current={isCurrent || undefined}
+							data-current={dataAttr(isCurrent)}
 							aria-label={`Go to ${item.label}`}
 							aria-current={isCurrent ? 'page' : undefined}
 							className={cn(k.thumbnail.base)}

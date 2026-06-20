@@ -3,7 +3,7 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
-import { cn, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -93,7 +93,7 @@ export function DatePickerTrigger({
 	return (
 		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
 			<ControlFrame
-				data-open={open || undefined}
+				data-open={dataAttr(open)}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				className={cn('', k.surface[glass ? 'glass' : 'default'])}
@@ -106,7 +106,7 @@ export function DatePickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
-						aria-required={required || undefined}
+						aria-required={ariaAttr(required)}
 						data-slot="datepicker-button"
 						disabled={disabled}
 						{...invalidAttrs(invalid)}

@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -110,9 +110,9 @@ export function MenuItem(props: MenuItemProps) {
 			type="button"
 			role="menuitem"
 			tabIndex={-1}
-			aria-disabled={disabled || undefined}
+			aria-disabled={ariaAttr(disabled)}
 			data-slot="menu-item"
-			data-disabled={disabled || undefined}
+			data-disabled={dataAttr(disabled)}
 			className={classes}
 			{...rest}
 			// Composed after the spread: runs consumer handlers, then selection

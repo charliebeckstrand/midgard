@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
 import { INDENT_REM } from './json-tree-constants'
@@ -43,7 +43,7 @@ export function JsonTreeBranchHeader({
 				aria-level={depth + 1}
 				tabIndex={(tabbable ?? depth === 0) ? 0 : -1}
 				data-slot="json-node-toggle"
-				data-open={open || undefined}
+				data-open={dataAttr(open)}
 				className={cn(k.toggle)}
 				onClick={onToggle}
 			>

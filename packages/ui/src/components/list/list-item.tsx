@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
@@ -62,8 +62,8 @@ export function ListItem({ prefix, suffix, children, className, href, ...props }
 			{...(interactive ? dragAttrs : {})}
 			data-slot="list-item"
 			data-item-id={id}
-			data-active={dragging || undefined}
-			data-lifted={lifted || undefined}
+			data-active={dataAttr(dragging)}
+			data-lifted={dataAttr(lifted)}
 			className={cn(k.item({ variant, density: space, active: dragging, lifted }), className)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}

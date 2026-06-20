@@ -1,5 +1,6 @@
 'use client'
 
+import { dataAttr } from '../../core'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
@@ -37,7 +38,7 @@ export function JsonTreeNodeRow({ node, onToggle, tabbable }: JsonNodeRowProps) 
 	}
 
 	return (
-		<div data-slot="json-node" data-highlighted={node.highlighted || undefined}>
+		<div data-slot="json-node" data-highlighted={dataAttr(node.highlighted)}>
 			<JsonTreeBranchHeader
 				depth={node.depth}
 				keyName={node.keyName}

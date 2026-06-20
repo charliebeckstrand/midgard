@@ -7,7 +7,7 @@ import type {
 	KeyboardEventHandler,
 	Ref,
 } from 'react'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
 import { Headless } from '../headless'
@@ -77,8 +77,8 @@ export function ComboboxInput({
 				// role="combobox" overrides the native textbox semantics, so the
 				// required/readOnly host-language attributes need explicit ARIA to
 				// reach assistive tech.
-				aria-readonly={readOnly || undefined}
-				aria-required={required || undefined}
+				aria-readonly={ariaAttr(readOnly)}
+				aria-required={ariaAttr(required)}
 				data-slot="combobox-input"
 				autoComplete={autoComplete}
 				disabled={disabled}

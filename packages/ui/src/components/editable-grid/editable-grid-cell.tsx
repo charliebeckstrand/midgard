@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/editable-grid'
 import { useEditableGridCellSlice } from './context'
 import { EditableGridCellEditor } from './editable-grid-cell-editor'
@@ -70,8 +70,8 @@ export function EditableGridCell<T>({
 		<div
 			ref={cellRef}
 			data-slot="editable-grid-cell"
-			data-active={isActive || undefined}
-			data-in-range={inRange || undefined}
+			data-active={dataAttr(isActive)}
+			data-in-range={dataAttr(inRange)}
 			className={cn(
 				k.cell({ align }),
 				readOnly && k.cellReadOnly,

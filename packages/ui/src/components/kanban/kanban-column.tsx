@@ -3,7 +3,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { KanbanColumnContext, kanbanColumnTitleId, useKanbanContext } from './context'
 
@@ -57,7 +57,7 @@ export function KanbanColumn({
 					ref={setNodeRef}
 					data-slot="kanban-column"
 					data-column-id={columnId}
-					data-over={over || undefined}
+					data-over={dataAttr(over)}
 					// Names the column from its rendered title; an explicit aria-label
 					// wins, and the reference appears only while a title is mounted.
 					aria-label={ariaLabel}

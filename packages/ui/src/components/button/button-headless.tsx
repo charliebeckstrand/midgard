@@ -1,6 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import { ariaAttr } from '../../core'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
 
@@ -58,7 +59,7 @@ export function ButtonHeadless({
 			className={className}
 			{...bareButtonProps}
 			disabled={loading || bareButtonProps.disabled}
-			aria-busy={loading || undefined}
+			aria-busy={ariaAttr(loading)}
 		>
 			{children}
 		</button>

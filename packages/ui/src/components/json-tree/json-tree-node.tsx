@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useMemo, useState } from 'react'
+import { dataAttr } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/json-tree'
 import { JsonTreeContext, useJsonTreeContext } from './context'
@@ -145,7 +146,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 	}
 
 	return (
-		<div data-slot="json-node" data-highlighted={highlighted || undefined}>
+		<div data-slot="json-node" data-highlighted={dataAttr(highlighted)}>
 			<JsonTreeBranchHeader
 				depth={depth}
 				keyName={keyName}
