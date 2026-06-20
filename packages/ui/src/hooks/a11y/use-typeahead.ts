@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useCallback, useEffect, useRef } from 'react'
+import { accessibleName } from '../../core'
 
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500
@@ -12,9 +13,9 @@ export function isTypeaheadKey(event: KeyboardEvent): boolean {
 	)
 }
 
-/** Label that matches an item during type-ahead: `aria-label`, else text. */
+/** Label that matches an item during type-ahead: its accessible name, lowercased. */
 function itemLabel(el: HTMLElement): string {
-	return (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().toLowerCase()
+	return accessibleName(el).toLowerCase()
 }
 
 /** Mutable buffer backing one type-ahead instance. @internal */
@@ -66,7 +67,8 @@ export function matchTypeahead(
  * WAI-ARIA type-ahead (jump to the item whose label starts with recently typed
  * characters). Owns one instance's buffer and its idle-reset timer, cleared on
  * unmount; returns a stable matcher with `matchTypeahead` semantics. Labels
- * come from each item's `aria-label`, falling back to trimmed `textContent`.
+ * come from each item's accessible name (`aria-label`, an `aria-labelledby`
+ * target, else trimmed `textContent`).
  *
  * @internal
  */
