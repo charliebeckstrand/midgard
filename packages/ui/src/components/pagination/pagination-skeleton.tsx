@@ -1,5 +1,6 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
+import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
 
 /** Props for {@link PaginationSkeleton}: the count of page-button placeholders. */
@@ -18,7 +19,7 @@ export type PaginationSkeletonProps = {
  * size-driven `createSkeleton` factory.
  */
 export function PaginationSkeleton({ pages = 7, className }: PaginationSkeletonProps) {
-	const pageKeys = Array.from({ length: pages }, (_, i) => `page-${i}`)
+	const pageKeys = rangeKeys(pages, 'page')
 
 	return (
 		<div className={cn(k(), className)}>

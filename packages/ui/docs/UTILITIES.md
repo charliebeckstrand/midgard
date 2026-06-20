@@ -46,6 +46,7 @@
 |---|---|
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id, suffixing repeats by occurrence index. |
+| `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |
 | `noop` | No-op function. |
 
