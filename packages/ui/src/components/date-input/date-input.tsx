@@ -44,13 +44,11 @@ export type DateInputProps = Omit<
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
 	/**
-	 * Error message rendered when the typed entry fails validation — a complete
-	 * date that does not parse, one outside `min`/`max`, or a partial entry left
-	 * on blur. Shown as an error `<Message>` wired into the field's
-	 * `aria-describedby`; pass `null` (or `false`) to suppress it and supply your
-	 * own.
+	 * Error message shown while the typed entry is invalid, as an error
+	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
+	 * `false`) to suppress it and supply your own.
 	 *
-	 * @defaultValue ``Enter a valid date (${format})``
+	 * @defaultValue `Enter a valid date (${format})`
 	 */
 	invalidMessage?: ReactNode
 }
@@ -67,9 +65,7 @@ export type DateInputProps = Omit<
  * @remarks
  * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
  * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
- * Enter blurs the input, committing or renormalizing the current entry. The
- * built-in error Message registers into the field's `aria-describedby`; pass
- * `invalidMessage={null}` to suppress it and supply your own.
+ * Enter blurs the input, committing or renormalizing the current entry.
  *
  * @see {@link maskDateText} for the masking rules.
  * @see {@link parseDateText} for the parse/validation contract.
@@ -213,9 +209,8 @@ export function DateInput({
 				{...props}
 			/>
 
-			{/* The component's own format/validation error; registers into the
-			    field's aria-describedby and marks the input invalid while shown.
-			    Suppressed when invalidMessage is null/false. */}
+			{/* Gated on the component's own detection, not the external `invalid`
+			    prop; a mounted Message also flips the input to aria-invalid. */}
 			{typedInvalid && invalidMessage ? <Message variant="error">{invalidMessage}</Message> : null}
 		</>
 	)
