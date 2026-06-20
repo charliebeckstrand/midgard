@@ -28,6 +28,14 @@ export const k = {
 		...hannou.item,
 		...narabi.item,
 		...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
+		// Deepen the wash when the active row is also hovered, so the
+		// keyboard-roved item stays distinguishable under the pointer. The
+		// `not-disabled:not-data-disabled` guards mirror `hannou.tint` to
+		// out-specify its hover rule (otherwise the shared /5 wash wins).
+		...mode(
+			'not-disabled:not-data-disabled:data-active:hover:bg-zinc-950/10',
+			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10',
+		),
 	],
 	label: 'truncate',
 	description: [description, size.xs, text.muted],
