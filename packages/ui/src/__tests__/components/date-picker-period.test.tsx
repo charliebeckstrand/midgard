@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerPeriodValue } from '../../components/date-picker'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent, within } from '../helpers'
 
 // Controlled period picker: the parent holds the value so toggles round-trip
 // back into the chips. A fixed `years` keeps the option labels deterministic.
@@ -178,10 +178,36 @@ describe('DatePicker (period)', () => {
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
-		await user.click(screen.getByLabelText('Clear selection'))
+		// Scope to the popover toolbar: the trigger now carries its own clear button
+		// (clearable defaults on), which shares the "Clear selection" name.
+		await user.click(
+			within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole('button', {
+				name: 'Clear selection',
+			}),
+		)
 
 		expect(onChange).toHaveBeenCalledWith(undefined)
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+	})
+
+	it('clears the selection from the trigger clear button', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		renderUI(
+			<DatePicker
+				period={{ years: [2025] }}
+				value={{ years: [2025], quarters: [], months: [1] }}
+				onValueChange={onChange}
+				aria-label="Period"
+			/>,
+		)
+
+		// The trigger clear (closed popover) is the only "Clear selection" button.
+		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenCalledWith(undefined)
 	})
 
 	it('omits the clear footer when the selection is empty', async () => {

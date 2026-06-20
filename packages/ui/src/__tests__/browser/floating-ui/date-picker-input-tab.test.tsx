@@ -7,9 +7,9 @@ import { renderUI, screen, waitFor } from '../../helpers'
 /**
  * `input`-mode Tab cycle (real floating engine). The editable DateInput and
  * its calendar button stay outside `FloatingFocusManager`'s modal guards, so
- * `useDatePickerInputTab` must close the loop itself: DateInput → calendar
- * button → dialog content → back to the DateInput, never out into the
- * aria-hidden page behind the dialog (WCAG 2.4.3 / 2.1.2). Only this project
+ * `useDatePickerInputTab` must close the loop itself: DateInput → clear button
+ * → calendar button → dialog content → back to the DateInput, never out into
+ * the aria-hidden page behind the dialog (WCAG 2.4.3 / 2.1.2). Only this project
  * can assert it: the jsdom suite mocks `@floating-ui/react`, and real Tab
  * keystrokes are what engage (or leak past) the trap.
  */
@@ -39,8 +39,13 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		await waitFor(() => expect(input).toHaveFocus())
 
-		// Forward: input → calendar button → into the dialog at its first
-		// tabbable, not out into the page behind it.
+		// Forward: input → clear button → calendar button → into the dialog at its
+		// first tabbable, not out into the page behind it. The clearable clear
+		// button sits in the editable group ahead of the calendar button.
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Clear date' })).toHaveFocus())
+
 		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(calendarButton).toHaveFocus())
@@ -55,10 +60,14 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		expect(dialog.contains(document.activeElement)).toBe(true)
 
-		// Backward: dialog's first tabbable → calendar button → input.
+		// Backward: dialog's first tabbable → calendar button → clear button → input.
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
 		await waitFor(() => expect(calendarButton).toHaveFocus())
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		await waitFor(() => expect(screen.getByRole('button', { name: 'Clear date' })).toHaveFocus())
 
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 

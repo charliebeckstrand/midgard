@@ -94,6 +94,14 @@ export type DatePickerBaseProps = {
 	 * @defaultValue true
 	 */
 	truncate?: boolean
+	/**
+	 * Renders a clear button in place of the calendar icon once a value is set,
+	 * matching the `clearable` affordance on Listbox/Combobox. In `input` mode the
+	 * typed {@link DateInput} owns the clear button instead.
+	 *
+	 * @defaultValue true
+	 */
+	clearable?: boolean
 	className?: string
 	disabled?: boolean
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
@@ -116,7 +124,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * prop, and supports controlled or uncontrolled `value`. `size` resolves through
  * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button.
+ * button. A `clearable` clear button (default on) replaces the calendar icon once
+ * a value is set, mirroring Listbox/Combobox.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight
@@ -165,6 +174,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		truncate = true,
 		input = false,
 		format = 'MM/DD/YYYY',
+		clearable = true,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -233,6 +243,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						max={props.max}
 						size={size}
 						disabled={state.disabled}
+						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}
 						suffix={
@@ -269,6 +280,9 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
+				clearable={clearable}
+				hasValue={state.hasValue}
+				onClear={state.onClear}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

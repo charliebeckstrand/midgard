@@ -1,10 +1,11 @@
 'use client'
 
-import { Calendar as CalendarIcon } from 'lucide-react'
+import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
@@ -41,6 +42,12 @@ type DatePickerTriggerProps = {
 	required?: boolean
 	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+	/** Renders a clear button in place of the calendar icon while `hasValue`. */
+	clearable?: boolean
+	/** Whether a value is set; gates the clear button alongside `clearable`. */
+	hasValue?: boolean
+	/** Clears the value; fired by the clear button. */
+	onClear?: () => void
 	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
 	className?: string
@@ -73,6 +80,9 @@ export function DatePickerTrigger({
 	required = false,
 	invalid = false,
 	onKeyDown,
+	clearable = false,
+	hasValue = false,
+	onClear,
 	className,
 	children,
 	'data-group': dataGroup,
@@ -82,7 +92,14 @@ export function DatePickerTrigger({
 
 	const valueRef = useRef<HTMLSpanElement>(null)
 
+	const triggerButtonRef = useRef<HTMLButtonElement>(null)
+
 	const isTruncated = useIsTruncated(valueRef, displayValue)
+
+	// Mirrors the Listbox/Combobox affordance: the clear button stands in for the
+	// calendar icon while a value is set, clearing on click and returning focus
+	// to the trigger as it unmounts (WCAG 2.4.3).
+	const showClear = clearable && hasValue && !disabled
 
 	const valueNode = (
 		<span ref={valueRef} className={k.value({ truncate })}>
@@ -100,6 +117,7 @@ export function DatePickerTrigger({
 			>
 				<Headless>
 					<Button
+						ref={triggerButtonRef}
 						type="button"
 						id={triggerId}
 						aria-label={ariaLabel}
@@ -123,11 +141,34 @@ export function DatePickerTrigger({
 								<TooltipContent>{displayValue}</TooltipContent>
 							</Tooltip>
 						)}
-						<span className={cn(k.icon)}>
-							<Icon icon={<CalendarIcon />} size={iconSize[size]} />
-						</span>
+						{!showClear && (
+							<span className={cn(k.icon)}>
+								<Icon icon={<CalendarIcon />} size={iconSize[size]} />
+							</span>
+						)}
 					</Button>
 				</Headless>
+				{showClear && (
+					<AffixContext value={affixStepDown(size)}>
+						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
+							<Button
+								variant="bare"
+								className="pointer-events-auto"
+								aria-label="Clear selection"
+								onMouseDown={(event) => event.stopPropagation()}
+								onClick={(event) => {
+									event.stopPropagation()
+
+									onClear?.()
+
+									triggerButtonRef.current?.focus()
+								}}
+							>
+								<Icon icon={<X />} />
+							</Button>
+						</span>
+					</AffixContext>
+				)}
 			</ControlFrame>
 		</div>
 	)

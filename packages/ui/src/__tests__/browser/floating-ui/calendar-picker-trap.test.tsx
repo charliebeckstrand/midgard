@@ -14,7 +14,8 @@ describe('a11y focus trap (real browser) — calendar month picker', () => {
 	it('cycles Tab inside the open month picker', async () => {
 		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		await userEvent.click(screen.getByRole('button'))
+		// The trigger carries aria-expanded; the clearable clear button does not.
+		await userEvent.click(screen.getByRole('button', { expanded: false }))
 
 		await userEvent.click(await screen.findByRole('button', { name: /June 2025/ }))
 

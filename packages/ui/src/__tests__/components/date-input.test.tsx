@@ -83,6 +83,47 @@ describe('DateInput', () => {
 		expect(bySlot(container, 'date-input')).not.toHaveAttribute('aria-label')
 	})
 
+	it('clears the date from the clear button and returns focus to the input', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DateInput clearable defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
+		)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		expect(input.value).toBe('06/15/2026')
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Clear date' }))
+
+		expect(input.value).toBe('')
+
+		expect(onChange).toHaveBeenLastCalledWith(undefined)
+
+		// Focus returns to the input as the clear button unmounts (WCAG 2.4.3).
+		expect(input).toHaveFocus()
+	})
+
+	it('omits the clear button without clearable', () => {
+		renderUI(<DateInput defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
+	it('omits the clear button when clearable but empty', () => {
+		renderUI(<DateInput clearable />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
+	it('omits the clear button when clearable and set but disabled', () => {
+		renderUI(<DateInput clearable disabled defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
 	it('renders a calendar icon suffix by default and removes it with suffix={false}', () => {
 		const { container } = renderUI(<DateInput />)
 

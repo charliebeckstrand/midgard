@@ -33,14 +33,18 @@ describe('layout stability (real browser) — date picker in space-y container',
 			)
 
 			const stack = container.querySelector('[data-testid="stack"]') as HTMLElement
+
 			const control = stack.querySelector('[data-slot="control"]') as HTMLElement
 
 			const closedHeight = Math.round(stack.getBoundingClientRect().height)
+
 			const closedChildren = stack.children.length
 
-			// Each variant exposes exactly one button: the trigger/range display
-			// button, or input mode's suffix "Open calendar" button.
-			await userEvent.click(screen.getByRole('button'))
+			// Open via the collapsed-state button: the trigger/range display button,
+			// or input mode's suffix "Open calendar" button. Each carries
+			// aria-expanded, which the clearable clear button does not.
+			await userEvent.click(screen.getByRole('button', { expanded: false }))
+
 			await screen.findByRole('dialog')
 
 			// The fallback span is scoped under the `display: contents` wrapper, so
@@ -48,6 +52,7 @@ describe('layout stability (real browser) — date picker in space-y container',
 			await waitFor(() => expect(getComputedStyle(control).marginBottom).toBe('0px'))
 
 			expect(stack.children.length).toBe(closedChildren)
+
 			expect(Math.round(stack.getBoundingClientRect().height)).toBe(closedHeight)
 		})
 	}

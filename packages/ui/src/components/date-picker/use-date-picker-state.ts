@@ -221,6 +221,8 @@ export function useDatePickerState({
 		invalid: control?.invalid || fieldInvalid,
 		value,
 		setValue,
+		hasValue: value != null,
+		onClear: handleClear,
 		displayValue: value ? formatDate(value) : '',
 		open,
 		onOpenChange,

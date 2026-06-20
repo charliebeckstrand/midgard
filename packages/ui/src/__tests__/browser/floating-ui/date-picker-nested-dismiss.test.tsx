@@ -15,7 +15,8 @@ describe('nested overlay dismiss (real browser) — date picker month/year picke
 	it('keeps the dialog open when selecting a year inside the picker', async () => {
 		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		await userEvent.click(screen.getByRole('button'))
+		// The trigger carries aria-expanded; the clearable clear button does not.
+		await userEvent.click(screen.getByRole('button', { expanded: false }))
 
 		await screen.findByRole('dialog')
 

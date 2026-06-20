@@ -5,7 +5,16 @@ import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { Form } from '../../components/form'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
+
+// The footer Clear and the trigger clear share the "Clear selection" name; scope
+// footer-clear queries to the popover toolbar so the closed trigger's clear (now
+// on by default) doesn't make the match ambiguous.
+function footerClear() {
+	return within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole('button', {
+		name: 'Clear selection',
+	})
+}
 
 function findDay(day: number) {
 	const days = screen.getAllByRole('option')
@@ -186,7 +195,7 @@ describe('DatePicker', () => {
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
-		await user.click(screen.getByLabelText('Clear selection'))
+		await user.click(footerClear())
 
 		expect(onChange).toHaveBeenCalledWith(undefined)
 	})
@@ -210,7 +219,7 @@ describe('DatePicker', () => {
 
 		await user.click(button)
 
-		await user.click(screen.getByLabelText('Clear selection'))
+		await user.click(footerClear())
 
 		expect(button).toHaveTextContent('Select a date')
 	})
@@ -318,6 +327,69 @@ describe('DatePicker', () => {
 	})
 })
 
+describe('DatePicker clearable', () => {
+	it('shows a trigger clear button only when clearable and a value is set', () => {
+		const { rerender } = renderUI(<DatePicker value={new Date(2025, 0, 15)} />)
+
+		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
+
+		// No value → no clear affordance; the calendar icon keeps the slot.
+		rerender(<DatePicker value={undefined} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+	})
+
+	it('clears the value from the trigger and returns focus to the trigger', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 0, 15)} onValueChange={onChange} />,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenCalledWith(undefined)
+
+		// The clear button unmounts once empty; focus returns to the trigger
+		// instead of falling to <body> (WCAG 2.4.3), and the calendar stays closed.
+		expect(bySlot(container, 'datepicker-button')).toHaveFocus()
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+	})
+
+	it('omits the trigger clear button with clearable={false}', () => {
+		renderUI(<DatePicker clearable={false} value={new Date(2025, 0, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+	})
+
+	it('omits the trigger clear button when disabled', () => {
+		renderUI(<DatePicker disabled value={new Date(2025, 0, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+	})
+
+	it('clears a range from the trigger clear button', async () => {
+		const user = userEvent.setup()
+
+		const onChange = vi.fn()
+
+		renderUI(
+			<DatePicker
+				range
+				defaultValue={[new Date(2025, 5, 1), new Date(2025, 5, 3)]}
+				onValueChange={onChange}
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenCalledWith(undefined)
+	})
+})
+
 // Focus stays on the trigger while an aria-activedescendant model drives the
 // grid. Covers the keyboard path: opening, moving the highlight, and committing.
 describe('DatePicker keyboard', () => {
@@ -364,9 +436,9 @@ describe('DatePicker keyboard', () => {
 		const user = userEvent.setup()
 
 		// June 2025; the initial highlight lands on the 15th.
-		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		const button = screen.getByRole('button')
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
 
 		button.focus()
 
@@ -392,9 +464,9 @@ describe('DatePicker keyboard', () => {
 	it('keeps focus inside the dialog when an arrow move crosses months with a day cell focused', async () => {
 		const user = userEvent.setup()
 
-		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		const button = screen.getByRole('button')
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
 
 		button.focus()
 
@@ -417,9 +489,9 @@ describe('DatePicker keyboard', () => {
 	it('keeps arrow keys inside the open month picker', async () => {
 		const user = userEvent.setup()
 
-		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		const button = screen.getByRole('button')
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
 
 		button.focus()
 
@@ -455,9 +527,11 @@ describe('DatePicker keyboard', () => {
 		const onChange = vi.fn()
 
 		// June 2025; the initial highlight lands on the 15th.
-		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
+		)
 
-		const button = screen.getByRole('button')
+		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
 
 		button.focus()
 
@@ -564,7 +638,7 @@ describe('DatePicker range', () => {
 
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
-		expect(screen.getByLabelText('Clear selection')).toBeInTheDocument()
+		expect(footerClear()).toBeInTheDocument()
 	})
 })
 

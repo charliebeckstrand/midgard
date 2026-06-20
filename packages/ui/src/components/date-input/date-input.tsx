@@ -1,9 +1,11 @@
 'use client'
 
-import { Calendar as CalendarIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Calendar as CalendarIcon, X } from 'lucide-react'
+import { type ReactNode, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { Button } from '../button'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -43,6 +45,14 @@ export type DateInputProps = Omit<
 	min?: Date
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
+	/**
+	 * Renders a clear button before the suffix once a date is set; clearing emits
+	 * `undefined` and returns focus to the input. In a `DatePicker`'s `input` mode
+	 * this clears the picker itself through the bound `onValueChange`.
+	 *
+	 * @defaultValue false
+	 */
+	clearable?: boolean
 }
 
 /**
@@ -74,6 +84,9 @@ export function DateInput({
 	placeholder,
 	invalid,
 	suffix,
+	clearable = false,
+	disabled,
+	readOnly,
 	name,
 	ref,
 	onBlur,
@@ -82,6 +95,10 @@ export function DateInput({
 	...props
 }: DateInputProps) {
 	const control = useControl()
+
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setExternalRef = useComposedRef(inputRef, ref)
 
 	const {
 		value: date,
@@ -123,8 +140,12 @@ export function DateInput({
 
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
-		ref,
+		ref: setExternalRef,
 	})
+
+	const resolvedDisabled = disabled ?? control?.disabled
+
+	const resolvedReadOnly = readOnly ?? control?.readOnly
 
 	const commit = (next: string): Date | undefined => {
 		const parsed = parse(next)
@@ -152,7 +173,16 @@ export function DateInput({
 			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
 			placeholder={placeholder ?? format}
 			autoComplete="off"
-			suffix={suffix ?? <Icon icon={<CalendarIcon />} />}
+			disabled={disabled}
+			readOnly={readOnly}
+			suffix={dateInputSuffix({
+				clearable,
+				hasValue: date !== undefined,
+				disabled: resolvedDisabled,
+				readOnly: resolvedReadOnly,
+				suffix,
+				onClear: () => clearDateInput(inputRef.current),
+			})}
 			invalid={invalid ?? (typedInvalid || undefined)}
 			name={name}
 			value={text}
@@ -206,5 +236,65 @@ export function DateInput({
 			})}
 			{...props}
 		/>
+	)
+}
+
+/**
+ * Clears `input` through a native input event, so controlled and uncontrolled
+ * consumers both observe the change (committing `undefined`), then returns focus
+ * to it as the clear button unmounts (WCAG 2.4.3). Mirrors SearchInput.
+ *
+ * @internal
+ */
+function clearDateInput(input: HTMLInputElement | null) {
+	if (!input) return
+
+	const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+
+	setter?.call(input, '')
+
+	input.dispatchEvent(new Event('input', { bubbles: true }))
+
+	input.focus()
+}
+
+/**
+ * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
+ * suffix while `clearable` and a date is set, else the suffix unchanged — so an
+ * absent suffix (`undefined`/`false`) leaves no empty affix slot.
+ *
+ * @internal
+ */
+function dateInputSuffix({
+	clearable,
+	hasValue,
+	disabled,
+	readOnly,
+	suffix,
+	onClear,
+}: {
+	clearable: boolean
+	hasValue: boolean
+	disabled?: boolean
+	readOnly?: boolean
+	suffix: ReactNode
+	onClear: () => void
+}): ReactNode {
+	const resolved = suffix ?? <Icon icon={<CalendarIcon />} />
+
+	if (!clearable || !hasValue || disabled || readOnly) return resolved
+
+	return (
+		<>
+			<Button
+				variant="bare"
+				className="pointer-events-auto"
+				aria-label="Clear date"
+				onClick={onClear}
+			>
+				<Icon icon={<X />} />
+			</Button>
+			{resolved}
+		</>
 	)
 }

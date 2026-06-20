@@ -19,6 +19,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		placeholder = 'Select dates',
 		size = 'md',
 		truncate = true,
+		clearable = true,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -45,6 +46,9 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
+				clearable={clearable}
+				hasValue={state.hasValue}
+				onClear={state.onClear}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
