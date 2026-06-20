@@ -391,6 +391,31 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
 
+	it('reopens the closed menu on ArrowDown while the input stays focused', async () => {
+		const user = userEvent.setup()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		// Escape closes the menu but leaves focus on the input.
+		await user.keyboard('{Escape}')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		expect(document.activeElement).toBe(input)
+
+		// ArrowDown reopens it (APG: Down Arrow opens the listbox) without the
+		// chevron, the only prior reopen affordance.
+		await user.keyboard('{ArrowDown}')
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+	})
+
 	// Clicking an option must not pull focus off the input; otherwise single-select
 	// (which closes on select) would drop focus to <body> when the panel unmounts.
 	it('keeps focus on the input when an option is clicked', async () => {

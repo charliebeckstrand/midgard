@@ -320,6 +320,7 @@ export function Combobox<T>({
 		value,
 		floatingRef: refs.floating,
 		optionsRef,
+		open,
 		setValue,
 		setEditing,
 		setQuery,
