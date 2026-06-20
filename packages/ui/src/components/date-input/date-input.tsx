@@ -1,17 +1,17 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useControl } from '../control/context'
+import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import {
 	type DateInputFormat,
 	dateInputSeparator,
-	expandTwoDigitYear,
 	formatDateValue,
 	isDayInRange,
 	isSameDay,
@@ -43,26 +43,32 @@ export type DateInputProps = Omit<
 	min?: Date
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
+	/**
+	 * Error message shown while the typed entry is invalid, as an error
+	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
+	 * `false`) to suppress it and supply your own.
+	 *
+	 * @defaultValue `Enter a valid date (${format})`
+	 */
+	invalidMessage?: ReactNode
 }
 
 /**
  * Text Input that masks typed digits into a date pattern (`format`, default
  * `MM/DD/YYYY`). Emits a `Date` via `onValueChange` once the text is a
- * complete, real, in-range date. Marks itself invalid when a complete entry
- * does not parse, or when blur leaves a partial one behind. Controlled or
- * uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
+ * complete, real, in-range date. Marks itself invalid — and renders the
+ * `invalidMessage` — when a complete entry does not parse, when it falls
+ * outside `min`/`max`, or when blur leaves a partial entry behind. Controlled
+ * or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
  * field by `name` (the stored value is the `Date`).
  *
  * @remarks
  * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
  * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
- * Enter blurs the input, committing or renormalizing the current entry. On
- * blur, a year-last entry left with a two-digit year fills into the 2000s
- * (`12/25/26` → `12/25/2026`) before it commits.
+ * Enter blurs the input, committing or renormalizing the current entry.
  *
  * @see {@link maskDateText} for the masking rules.
  * @see {@link parseDateText} for the parse/validation contract.
- * @see {@link expandTwoDigitYear} for the two-digit-year fill applied on blur.
  */
 export function DateInput({
 	value,
@@ -71,6 +77,7 @@ export function DateInput({
 	format = 'MM/DD/YYYY',
 	min,
 	max,
+	invalidMessage = `Enter a valid date (${format})`,
 	placeholder,
 	invalid,
 	suffix,
@@ -141,70 +148,70 @@ export function DateInput({
 	}
 
 	return (
-		<Input
-			ref={setRefs}
-			data-slot="date-input"
-			type="text"
-			inputMode="numeric"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-			// defaults an aria-label, yielding to a registered Field <Label>
-			// (aria-labelledby outranks aria-label in the accname computation).
-			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
-			placeholder={placeholder ?? format}
-			autoComplete="off"
-			suffix={suffix ?? <Icon icon={<CalendarIcon />} />}
-			invalid={invalid ?? (typedInvalid || undefined)}
-			name={name}
-			value={text}
-			onChange={(event) => {
-				const raw = event.target.value
+		<>
+			<Input
+				ref={setRefs}
+				data-slot="date-input"
+				type="text"
+				inputMode="numeric"
+				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
+				// defaults an aria-label, yielding to a registered Field <Label>
+				// (aria-labelledby outranks aria-label in the accname computation).
+				aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
+				placeholder={placeholder ?? format}
+				autoComplete="off"
+				suffix={suffix ?? <Icon icon={<CalendarIcon />} />}
+				invalid={invalid ?? (typedInvalid || undefined)}
+				name={name}
+				value={text}
+				onChange={(event) => {
+					const raw = event.target.value
 
-				let next: string
+					let next: string
 
-				if (text.endsWith(separator) && raw === text.slice(0, -1)) {
-					// The mask re-appends a deleted trailing separator and traps the
-					// caret; backspace over it deletes the preceding digit instead.
-					next = maskDateText(raw.slice(0, -1), format)
-				} else if ((event.target.selectionStart ?? raw.length) >= raw.length) {
-					// Typing at the end: let the value swap put the caret at the end.
-					// The meaningful-count restore would pin it before a digit the
-					// mask pads in (`1/` → `01/`).
-					next = maskDateText(raw, format)
-				} else {
-					next = reformat(event)
-				}
+					if (text.endsWith(separator) && raw === text.slice(0, -1)) {
+						// The mask re-appends a deleted trailing separator and traps the
+						// caret; backspace over it deletes the preceding digit instead.
+						next = maskDateText(raw.slice(0, -1), format)
+					} else if ((event.target.selectionStart ?? raw.length) >= raw.length) {
+						// Typing at the end: let the value swap put the caret at the end.
+						// The meaningful-count restore would pin it before a digit the
+						// mask pads in (`1/` → `01/`).
+						next = maskDateText(raw, format)
+					} else {
+						next = reformat(event)
+					}
 
-				setEditingText(next)
+					setEditingText(next)
 
-				const parsed = commit(next)
+					const parsed = commit(next)
 
-				setTypedInvalid(next.length === format.length && !parsed)
-			}}
-			onBlur={(event) => {
-				if (editingText !== null) {
-					// A year-last entry left with a two-digit year fills into the 2000s
-					// (12/25/26 → 12/25/2026) before it commits.
-					const expanded = expandTwoDigitYear(editingText, format)
+					setTypedInvalid(next.length === format.length && !parsed)
+				}}
+				onBlur={(event) => {
+					if (editingText !== null) {
+						const parsed = commit(editingText)
 
-					const parsed = commit(expanded)
+						// A parsed entry renormalizes to the canonical zero-padded text; a
+						// partial one stays as typed and reads invalid.
+						if (parsed || editingText === '') setEditingText(null)
 
-					// A parsed entry renormalizes to the canonical zero-padded text; an
-					// expanded-but-unparseable one shows what it was read as; a bare
-					// partial stays put. None reads valid unless it parsed.
-					if (parsed || editingText === '') setEditingText(null)
-					else if (expanded !== editingText) setEditingText(expanded)
+						setTypedInvalid(editingText !== '' && !parsed)
+					}
 
-					setTypedInvalid(editingText !== '' && !parsed)
-				}
+					setTouched()
 
-				setTouched()
+					onBlur?.(event)
+				}}
+				onKeyDown={composeEventHandlers(onKeyDown, (event) => {
+					if (event.key === 'Enter') event.currentTarget.blur()
+				})}
+				{...props}
+			/>
 
-				onBlur?.(event)
-			}}
-			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-				if (event.key === 'Enter') event.currentTarget.blur()
-			})}
-			{...props}
-		/>
+			{/* Gated on the component's own detection, not the external `invalid`
+			    prop; a mounted Message also flips the input to aria-invalid. */}
+			{typedInvalid && invalidMessage ? <Message variant="error">{invalidMessage}</Message> : null}
+		</>
 	)
 }
