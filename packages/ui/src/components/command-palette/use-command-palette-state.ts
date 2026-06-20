@@ -1,6 +1,15 @@
 'use client'
 
-import { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
+import {
+	type KeyboardEvent,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 
 type CommandPaletteStateOptions = {
@@ -35,11 +44,26 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	const listRef = useRef<HTMLDivElement>(null)
 
-	const onKeyDown = useA11yRoving(listRef, {
+	const rovingKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: ITEM_SELECTOR,
 		activeDescendantRef: inputRef,
 	})
+
+	// The roving handler drives an `aria-activedescendant` highlight while focus
+	// stays in the search textbox. Reserve the keys that belong to the textbox
+	// itself — Home/End move the caret, Shift+Arrow extends the selection — so
+	// they aren't swallowed to move the option highlight (mirrors Combobox).
+	const onKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === 'Home' || event.key === 'End') return
+
+			if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) return
+
+			rovingKeyDown(event)
+		},
+		[rovingKeyDown],
+	)
 
 	// On each filter change, moves the keyboard highlight to the top result so
 	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
