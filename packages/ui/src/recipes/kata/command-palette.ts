@@ -12,7 +12,7 @@ const { size, weight } = ji
 const { flex, description } = narabi
 
 export const k = {
-	group: 'py-1 first:pt-0 last:pb-0',
+	group: 'flex flex-col gap-0.5 first:pt-0 last:pb-0',
 	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot below.
 	list: ['peer', 'empty:hidden'],
 	// Sibling no-results status: a persistent `<output>` (role=status) shown
