@@ -22,6 +22,8 @@ type ComboboxInputParams<T> = {
 	setEditing: (editing: boolean) => void
 	setQuery: (query: string) => void
 	setOpen: (open: boolean) => void
+	/** Opens the closed menu from an arrow key; the root seats the highlight on any selection. */
+	openByArrowKey: () => void
 	close: () => void
 	/** Fires when focus leaves the combobox entirely; binds Form touched state. */
 	onTouched?: () => void
@@ -66,6 +68,7 @@ export function useComboboxInput<T>({
 	setEditing,
 	setQuery,
 	setOpen,
+	openByArrowKey,
 	close,
 	onTouched,
 	keyboardSettled,
@@ -130,20 +133,21 @@ export function useComboboxInput<T>({
 
 			// A closed menu holds no options for the roving handler to act on.
 			// ArrowDown opens it (APG editable combobox: Down Arrow opens the
-			// listbox), matching the focus and chevron open paths; a second press
-			// then highlights the first option. preventDefault holds the caret, as
+			// listbox), matching the focus and chevron open paths; the root then
+			// seats the highlight on any current selection, else a second press
+			// highlights the first option. preventDefault holds the caret, as
 			// roving navigation does.
 			if (!open && event.key === 'ArrowDown') {
 				event.preventDefault()
 
-				setOpen(true)
+				openByArrowKey()
 
 				return
 			}
 
 			rovingKeyDown(event)
 		},
-		[close, open, optionsRef, rovingKeyDown, setOpen],
+		[close, open, openByArrowKey, optionsRef, rovingKeyDown],
 	)
 
 	return { onChange, onFocus, onBlur, onKeyDown }

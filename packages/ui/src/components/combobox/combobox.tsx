@@ -245,11 +245,31 @@ export function Combobox<T>({
 		[resolvedReadOnly, setOpen],
 	)
 
+	// Set when an arrow-key open should seat the highlight on the current
+	// selection rather than leave it empty; consumed by the highlight-anchoring
+	// effect below once the panel's options mount.
+	const anchorSelectedOnOpenRef = useRef(false)
+
+	const openByArrowKey = useCallback(() => {
+		if (resolvedReadOnly) return
+
+		// Release any selection frozen for an in-flight close animation so the
+		// reopened panel paints `data-selected` this render; otherwise the
+		// snapshot lags the live value by a render and the effect below, reading
+		// the DOM, would miss it.
+		flushPending()
+
+		anchorSelectedOnOpenRef.current = true
+
+		setOpen(true)
+	}, [resolvedReadOnly, flushPending, setOpen])
+
 	// Keeps the virtual highlight anchored to a real option: clears
-	// `aria-activedescendant` while the menu is closed, and on each filter
-	// change jumps it to the top match (or clears it when nothing matches).
-	// Skips the initial query; the first arrow key then picks the first option.
-	// Passes `ariaSelected: false`; options own their selection state.
+	// `aria-activedescendant` while the menu is closed, on each filter change
+	// jumps it to the top match (or clears it when nothing matches), and on an
+	// arrow-key open seats it on the current single-mode selection. Skips the
+	// initial query; the first arrow key then picks the first option. Passes
+	// `ariaSelected: false`; options own their selection state.
 	//
 	// Under `VirtualOptions` only windowed rows are in the DOM; the active row
 	// stays within the rendered window.
@@ -258,6 +278,30 @@ export function Combobox<T>({
 	useEffect(() => {
 		if (!open) {
 			setVirtualActive([], -1, inputRef, { ariaSelected: false })
+
+			lastQueryRef.current = deferredQuery
+
+			anchorSelectedOnOpenRef.current = false
+
+			return
+		}
+
+		const anchorSelected = anchorSelectedOnOpenRef.current
+
+		anchorSelectedOnOpenRef.current = false
+
+		// An arrow-key open seats the highlight on the current selection so the
+		// menu opens with the active value rather than the empty highlight a plain
+		// open leaves; with nothing selected it falls through to that empty
+		// highlight. Single mode only — `multiple` carries no single selection.
+		if (anchorSelected) {
+			const items = queryItems(optionsRef.current, OPTION_SELECTOR)
+
+			const selectedIndex = multiple
+				? -1
+				: items.findIndex((item) => item.matches('[data-selected]'))
+
+			setVirtualActive(items, selectedIndex, inputRef, { ariaSelected: false })
 
 			lastQueryRef.current = deferredQuery
 
@@ -271,7 +315,7 @@ export function Combobox<T>({
 		const items = queryItems(optionsRef.current, OPTION_SELECTOR)
 
 		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
-	}, [open, deferredQuery])
+	}, [open, deferredQuery, multiple])
 
 	// Async option swaps for an unchanged query (e.g. address suggestions
 	// resolving) unmount the highlighted option while `deferredQuery`, the key
@@ -325,6 +369,7 @@ export function Combobox<T>({
 		setEditing,
 		setQuery,
 		setOpen: setOpenGuarded,
+		openByArrowKey,
 		close,
 		onTouched: setTouched,
 		keyboardSettled,

@@ -12,6 +12,8 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 
 	const setOpen = vi.fn()
 
+	const openByArrowKey = vi.fn()
+
 	const close = vi.fn()
 
 	const rovingKeyDown = vi.fn()
@@ -34,6 +36,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 			setEditing,
 			setQuery,
 			setOpen,
+			openByArrowKey,
 			close,
 			keyboardSettled,
 			rovingKeyDown,
@@ -47,6 +50,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 		setEditing,
 		setQuery,
 		setOpen,
+		openByArrowKey,
 		close,
 		rovingKeyDown,
 		floatingRef,
@@ -238,13 +242,13 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	it('opens the menu on ArrowDown while it is closed, without delegating to roving', () => {
-		const { result, setOpen, rovingKeyDown } = setup<string>({ open: false })
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
 
 		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
 
 		result.current.onKeyDown(event)
 
-		expect(setOpen).toHaveBeenCalledWith(true)
+		expect(openByArrowKey).toHaveBeenCalled()
 
 		expect(event.preventDefault).toHaveBeenCalled()
 
@@ -252,25 +256,25 @@ describe('useComboboxInput onKeyDown', () => {
 	})
 
 	it('forwards ArrowDown to roving navigation once the menu is open', () => {
-		const { result, setOpen, rovingKeyDown } = setup<string>({ open: true })
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: true })
 
 		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
 
 		result.current.onKeyDown(event)
 
-		expect(setOpen).not.toHaveBeenCalled()
+		expect(openByArrowKey).not.toHaveBeenCalled()
 
 		expect(rovingKeyDown).toHaveBeenCalledWith(event)
 	})
 
 	it('leaves Shift+ArrowDown to the textbox even while the menu is closed', () => {
-		const { result, setOpen, rovingKeyDown } = setup<string>({ open: false })
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
 
 		const event = makeKeyEvent<HTMLInputElement>('ArrowDown', { shiftKey: true })
 
 		result.current.onKeyDown(event)
 
-		expect(setOpen).not.toHaveBeenCalled()
+		expect(openByArrowKey).not.toHaveBeenCalled()
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
