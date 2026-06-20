@@ -19,4 +19,20 @@ describe('clamp', () => {
 
 		expect(clamp(10, 0, 10)).toBe(10)
 	})
+
+	it('pins to the single bound when lo equals hi', () => {
+		expect(clamp(5, 3, 3)).toBe(3)
+		expect(clamp(1, 3, 3)).toBe(3)
+	})
+
+	// With an inverted range (lo > hi) `Math.min(hi, …)` wins, so the result
+	// collapses to hi regardless of the value. Pinned because callers must pass
+	// an ordered range; this documents the surprising fallback.
+	it('collapses to hi when the range is inverted', () => {
+		expect(clamp(5, 10, 0)).toBe(0)
+	})
+
+	it('propagates NaN', () => {
+		expect(clamp(Number.NaN, 0, 10)).toBeNaN()
+	})
 })

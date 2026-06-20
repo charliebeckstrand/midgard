@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextIndexForKey } from '../../utilities/keyboard-navigation'
+import { crossAxisDelta, nextIndexForKey } from '../../utilities/keyboard-navigation'
 
 describe('nextIndexForKey', () => {
 	it('returns null for empty item count', () => {
@@ -109,5 +109,33 @@ describe('nextIndexForKey', () => {
 
 	it('grid with a non-arrow non-Home/End key returns null', () => {
 		expect(nextIndexForKey('a', 0, 6, { cols: 3 })).toBeNull()
+	})
+})
+
+describe('crossAxisDelta', () => {
+	// Returns the delta for the axis the main orientation does NOT consume, so a
+	// vertical list still reacts to horizontal arrows and vice versa.
+	it('reads horizontal arrows for a vertical orientation', () => {
+		expect(crossAxisDelta('ArrowRight', 'vertical')).toBe(1)
+		expect(crossAxisDelta('ArrowLeft', 'vertical')).toBe(-1)
+	})
+
+	it('ignores vertical arrows for a vertical orientation', () => {
+		expect(crossAxisDelta('ArrowDown', 'vertical')).toBeNull()
+		expect(crossAxisDelta('ArrowUp', 'vertical')).toBeNull()
+	})
+
+	it('reads vertical arrows for a horizontal orientation', () => {
+		expect(crossAxisDelta('ArrowDown', 'horizontal')).toBe(1)
+		expect(crossAxisDelta('ArrowUp', 'horizontal')).toBe(-1)
+	})
+
+	it('ignores horizontal arrows for a horizontal orientation', () => {
+		expect(crossAxisDelta('ArrowRight', 'horizontal')).toBeNull()
+		expect(crossAxisDelta('ArrowLeft', 'horizontal')).toBeNull()
+	})
+
+	it('returns null for an unrelated key', () => {
+		expect(crossAxisDelta('Enter', 'vertical')).toBeNull()
 	})
 })
