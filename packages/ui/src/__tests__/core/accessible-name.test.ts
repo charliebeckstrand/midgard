@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { accessibleName } from '../../core/accessible-name'
 
-// aria-labelledby is resolved through ownerDocument.getElementById, so labelled
-// fixtures must live in the document; mounted hosts are removed after each test
-// to stay isolated under the shuffled pool.
+// aria-labelledby resolves through ownerDocument.getElementById, so labelled
+// fixtures must live in the document; hosts are removed after each test for
+// isolation.
 const hosts: HTMLElement[] = []
 
 function mount(html: string): HTMLElement {

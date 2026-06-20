@@ -24,8 +24,8 @@ describe('pct', () => {
 		expect(pct(0, -10, 10)).toBe(50)
 	})
 
-	// `pct` is a linear map, not a clamp: out-of-range values extrapolate past
-	// 0–100. Pinned because callers that need a bounded result must clamp.
+	// `pct` is a linear map, not a clamp: out-of-range values extrapolate
+	// past 0–100.
 	it('extrapolates beyond the range without clamping', () => {
 		expect(pct(150, 0, 100)).toBe(150)
 

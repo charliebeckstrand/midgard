@@ -17,9 +17,8 @@ describe('formatInteger', () => {
 	})
 
 	// The bare `new Intl.NumberFormat()` keeps up to three fraction digits, so
-	// despite its "no fraction digits" doc `formatInteger` does NOT round to an
-	// integer. Pinned so adding `maximumFractionDigits: 0` is a conscious,
-	// reviewed change rather than a silent regression in callers.
+	// despite its "no fraction digits" doc `formatInteger` does not round to an
+	// integer.
 	it('does not strip fraction digits (documents current behavior)', () => {
 		expect(formatInteger(1.5)).toBe('1.5')
 	})

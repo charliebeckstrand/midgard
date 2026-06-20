@@ -113,8 +113,8 @@ describe('nextIndexForKey', () => {
 })
 
 describe('crossAxisDelta', () => {
-	// Returns the delta for the axis the main orientation does NOT consume, so a
-	// vertical list still reacts to horizontal arrows and vice versa.
+	// The delta for the axis the orientation does not consume: a vertical list
+	// reacts to horizontal arrows, and vice versa.
 	it('reads horizontal arrows for a vertical orientation', () => {
 		expect(crossAxisDelta('ArrowRight', 'vertical')).toBe(1)
 

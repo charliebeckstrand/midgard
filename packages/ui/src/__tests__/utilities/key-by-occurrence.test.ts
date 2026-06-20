@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 
-// The source suffixes repeats with a NUL separator + occurrence index; build the
-// expected key the same way rather than embedding a literal control character.
+// Repeats are suffixed with a NUL separator + occurrence index; build the
+// expected key the same way instead of embedding a control character.
 const SEP = String.fromCharCode(0)
 
 describe('keyByOccurrence', () => {

@@ -18,8 +18,7 @@ describe('digitsOnly', () => {
 		expect(digitsOnly('')).toBe('')
 	})
 
-	// `\d` is ASCII-only without the `u` flag, so non-Latin digit glyphs are
-	// dropped as non-digits — pinned because formatted inputs can receive them.
+	// `\d` is ASCII-only, so non-Latin digit glyphs count as non-digits.
 	it('strips non-ASCII digit glyphs', () => {
 		expect(digitsOnly('4٤2')).toBe('42')
 	})

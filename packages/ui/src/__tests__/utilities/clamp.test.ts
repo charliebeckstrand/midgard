@@ -26,9 +26,7 @@ describe('clamp', () => {
 		expect(clamp(1, 3, 3)).toBe(3)
 	})
 
-	// With an inverted range (lo > hi) `Math.min(hi, …)` wins, so the result
-	// collapses to hi regardless of the value. Pinned because callers must pass
-	// an ordered range; this documents the surprising fallback.
+	// An inverted range (lo > hi) collapses to hi: `Math.min(hi, …)` wins.
 	it('collapses to hi when the range is inverted', () => {
 		expect(clamp(5, 10, 0)).toBe(0)
 	})
