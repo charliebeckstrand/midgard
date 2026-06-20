@@ -5,6 +5,7 @@ const { toast } = ugoki
 
 const viewport = defineRecipe({
 	base: [
+		// `z-[100]`: toasts are the topmost layer, above app chrome and overlays.
 		'fixed z-[100] top-0 bottom-0 flex flex-col',
 		'max-sm:inset-x-0 max-sm:justify-end',
 		'p-4',

@@ -1,3 +1,9 @@
+/**
+ * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
+ * The `item` sub-recipe carries the density- and size-axed option row; the rest
+ * are static slots — `content` (the panel box), `section`, `heading`, `label`,
+ * `description`, `shortcut`, and the `separator` divider.
+ */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 

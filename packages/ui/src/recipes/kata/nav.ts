@@ -1,3 +1,10 @@
+/**
+ * Nav kata: object-literal surface for `<Nav>` sidebar lists. `list` sets the
+ * orientation-keyed axis; `navItem` groups the row's parts — the `affix`-axed
+ * `base` `<li>` wrapper and inner `button` (which trade off the interaction
+ * chrome), the focus-projection `indicator`, and the `prefix`/`suffix` slot
+ * wrappers.
+ */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, ji, kasane, narabi, shaku } from '../kiso'
 

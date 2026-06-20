@@ -1,3 +1,9 @@
+/**
+ * Toolbar kata: object-literal surface for `<Toolbar>` and its button groups.
+ * The `root` sub-recipe axes on `orientation` and `variant` (plain / outline /
+ * solid); the `group` sub-recipe axes on `orientation` to cluster related
+ * controls.
+ */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { kasane, narabi, omote, sen } from '../kiso'
 

@@ -1,3 +1,10 @@
+/**
+ * Table kata: object-literal surface for the bare `<Table>` element and its
+ * cells. The `cell` and `header` sub-recipes carry the density/grid leaf
+ * styling; `projection` holds the density-, grid-, and stripe-varying child
+ * selectors the `<table>` casts onto descendants so cells read no context and
+ * the family renders in RSC. `head`, `row`, and `empty` are static slots.
+ */
 import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
 

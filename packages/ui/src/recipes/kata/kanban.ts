@@ -1,3 +1,9 @@
+/**
+ * Kanban kata: object-literal surface for the `<Kanban>` board, its columns, and
+ * cards. No variants axis — the `column` group nests `base` / `header` / `title`
+ * / `body` / `empty` slots, and `card` nests `base` plus the drag-state classes
+ * (`draggable`, `dragging`, `lifted`, `active`).
+ */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 

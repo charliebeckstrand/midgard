@@ -26,6 +26,11 @@ type SegmentTokens = {
 	indicator: ClassValue
 }
 
+/**
+ * Build the kata `k` surface for a segmented control: the `control` chrome
+ * recipe and per-segment `item` recipe (both size-axed) plus the sliding
+ * `indicator` fragment.
+ */
 export function segment(t: SegmentTokens) {
 	const control = defineRecipe({ ...t.control, defaults: { size: 'md' } })
 

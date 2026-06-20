@@ -1,10 +1,10 @@
-// Per-element prose styling for the Markdown component. The renderer walks
-// marked's tokens to a React element tree and pulls each element's classes from
-// the matching slot below, so styling rides on the element it targets rather
-// than projecting onto the wrapper through descendant selectors. One curated
-// prose surface, no variants axis — a plain object literal (kata README §2).
-// Tone, sizing, code chrome, link colour, and borders compose kiso tokens; only
-// prose-specific rhythm (margins, list markers) stays as bespoke utilities.
+/**
+ * Markdown kata: per-element prose surface for `<Markdown>`. The renderer walks
+ * marked's tokens to a React tree and pulls each element's classes from the
+ * matching slot, so styling rides on the target element, not the wrapper. No
+ * variants axis — one slot per prose element: `root`/`inline`, the `heading`
+ * level map, block text, lists, `code`/`pre`, table parts, and `img`.
+ */
 import { iro, ji, kasane, omote, sen, shaku } from '../kiso'
 
 const { palette, text } = iro

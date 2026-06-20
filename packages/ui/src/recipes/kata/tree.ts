@@ -1,3 +1,10 @@
+/**
+ * Tree kata: object-literal surface for the `<Tree>` treeview. Size-axed
+ * sub-recipes carry the `itemContent` row and its `chevron`; the static slots
+ * cover the `base` container, `item`, `affix`, `label`, and `group`. The
+ * `indentStep` map sets per-depth indent in rem, and `motion` is the collapse
+ * transition.
+ */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
 
