@@ -44,6 +44,13 @@ export function Demo() {
 				</Field>
 			</Example>
 
+			<Example title="Validation">
+				<Field>
+					<Label>Due date</Label>
+					<DateInput invalidMessage="Enter the date as MM/DD/YYYY." />
+				</Field>
+			</Example>
+
 			<ControlledExample />
 
 			<Example title="Disabled">

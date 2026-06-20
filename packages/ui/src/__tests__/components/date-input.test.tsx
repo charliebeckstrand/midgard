@@ -217,7 +217,7 @@ describe('DateInput', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
-	it('fills a two-digit year into the 2000s on blur and emits it', async () => {
+	it('keeps a two-digit year as typed on blur and marks it invalid', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
@@ -235,20 +235,16 @@ describe('DateInput', () => {
 
 		await user.tab()
 
-		expect(input.value).toBe('12/25/2026')
+		// The two-digit year is no longer expanded; the entry stays as typed and
+		// reads invalid.
+		expect(input.value).toBe('12/25/26')
 
-		expect(input).not.toHaveAttribute('aria-invalid')
+		expect(input).toHaveAttribute('aria-invalid', 'true')
 
-		const emitted = onChange.mock.lastCall?.[0] as Date
-
-		expect(emitted.getFullYear()).toBe(2026)
-
-		expect(emitted.getMonth()).toBe(11)
-
-		expect(emitted.getDate()).toBe(25)
+		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
 	})
 
-	it('does not fill the year mid-typing while a four-digit year is entered', async () => {
+	it('commits a four-digit year typed past a two-digit state', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
@@ -274,27 +270,79 @@ describe('DateInput', () => {
 		expect((onChange.mock.lastCall?.[0] as Date).getFullYear()).toBe(2026)
 	})
 
-	it('marks an impossible filled year invalid and shows the four-digit form', async () => {
-		const onChange = vi.fn()
-
-		const { container } = renderUI(<DateInput onValueChange={onChange} />)
+	it('renders the invalid-format message for a complete impossible date', async () => {
+		const { container } = renderUI(<DateInput />)
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
 		const user = userEvent.setup()
 
-		// 26 fills to 2026, which is not a leap year.
-		await user.type(input, '022926')
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
-		expect(input.value).toBe('02/29/26')
+		await user.type(input, '02312025')
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toBeInTheDocument()
+
+		expect(message).toHaveAttribute('role', 'alert')
+
+		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+	})
+
+	it('renders the message on blur for a partial entry and wires aria-describedby', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Due date</Label>
+				<DateInput />
+			</Field>,
+		)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '12/3')
 
 		await user.tab()
 
-		expect(input.value).toBe('02/29/2026')
+		const message = bySlot(container, 'message')
+
+		expect(message).toBeInTheDocument()
+
+		expect(input.getAttribute('aria-describedby')).toBe(message?.id)
+	})
+
+	it('uses a custom invalid message and clears it once valid', async () => {
+		const { container } = renderUI(<DateInput invalidMessage="Bad date" />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '02312025')
+
+		expect(bySlot(container, 'message')).toHaveTextContent('Bad date')
+
+		await user.clear(input)
+
+		await user.type(input, '02282025')
+
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+	})
+
+	it('suppresses the built-in message when invalidMessage is null', async () => {
+		const { container } = renderUI(<DateInput invalidMessage={null} />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '02312025')
 
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 
-		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 	})
 
 	it('clears the invalid mark once edited back to valid', async () => {
