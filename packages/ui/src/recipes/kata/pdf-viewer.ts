@@ -1,3 +1,9 @@
+/**
+ * PDF-viewer kata: object-literal surface for the `<PdfViewer>` chrome. No
+ * variants axis — nested slot groups for the `toolbar`, the collapsible
+ * `sidebar`, the `thumbnails` rail and each `thumbnail`, and the `viewport`
+ * with its per-`page` frame and skeleton placeholders.
+ */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen } from '../kiso'
 

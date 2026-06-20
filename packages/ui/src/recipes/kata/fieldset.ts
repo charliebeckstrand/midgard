@@ -1,3 +1,9 @@
+/**
+ * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
+ * primitives. Size-axed sub-recipes carry `legend`, `label`, and `description`;
+ * `message` adds an error/success variant axis. The `base` and `field` slots
+ * are static, threading the disabled state down through the group.
+ */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
 

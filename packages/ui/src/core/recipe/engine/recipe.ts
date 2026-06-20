@@ -144,10 +144,36 @@ function collectRecipeClasses(
 }
 
 /**
- * Collects each non-reserved top-level field as a variant axis, then expands
- * `palette` into the `color` axis plus per-(variant × colour) compounds.
- * Palette-matrix keys missing from `variant:` become empty entries (valid
- * values with no structural class).
+ * Splices a palette into the `variant` and `color` axes (mutating `variants`)
+ * and returns its compound rules. Palette-matrix variant keys absent from an
+ * explicit `variant:` axis join it as empty entries — valid values with no
+ * structural class; the `color` axis becomes the palette's colour scaffold.
+ *
+ * @internal
+ */
+function applyPaletteToVariants(
+	variants: Record<string, Record<string, ClassValue>>,
+	palette: NonNullable<RecipeConfig['palette']>,
+): CompoundRule[] {
+	const ex = expandPalette(palette)
+
+	const variantAxis = variants.variant ?? {}
+
+	for (const variantValue of Object.keys(palette.matrix)) {
+		if (!(variantValue in variantAxis)) variantAxis[variantValue] = ''
+	}
+
+	variants.variant = variantAxis
+
+	variants.color = ex.colorScaffold
+
+	return ex.compound
+}
+
+/**
+ * Collects each non-reserved top-level field as a variant axis, then splices
+ * `palette` into the `variant` / `color` axes and compounds via
+ * {@link applyPaletteToVariants}.
  */
 function expand(config: RecipeConfig): ResolvedConfig {
 	const variants: Record<string, Record<string, ClassValue>> = {}
@@ -158,24 +184,7 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		variants[key] = { ...(value as VariantAxis) }
 	}
 
-	const compound: CompoundRule[] = []
-
-	if (config.palette) {
-		const ex = expandPalette(config.palette)
-
-		// Unions palette-matrix keys into the `variant` axis as empty entries.
-		const variantAxis = variants.variant ?? {}
-
-		for (const variantValue of Object.keys(config.palette.matrix)) {
-			if (!(variantValue in variantAxis)) variantAxis[variantValue] = ''
-		}
-
-		variants.variant = variantAxis
-
-		variants.color = ex.colorScaffold
-
-		compound.push(...ex.compound)
-	}
+	const compound = config.palette ? applyPaletteToVariants(variants, config.palette) : []
 
 	// User compounds follow palette compounds; later rules take precedence.
 	compound.push(...(config.compound ?? []))

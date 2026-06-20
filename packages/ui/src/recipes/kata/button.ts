@@ -79,31 +79,14 @@ export const k = defineRecipe(
 			// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
 			{ inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'] },
 		),
-		// Compound variants ensure the palette is correct when a variant and size combo triggers the
-		// icon-only bare button floor. The `not-data-[has-label]` selector is repeated here to
-		// override the size styles with the floor styles when the button is icon-only, but defer to
-		// the size styles when a label is present.
+		// Icon-only floor: a square pad per size keeps an icon-only bare button
+		// even-sided; `not-data-[has-label]` yields to the size axis's padding once
+		// a label is present.
 		compound: [
-			{
-				variant: 'bare',
-				size: 'xs',
-				class: ['not-data-[has-label]:p-0.75'],
-			},
-			{
-				variant: 'bare',
-				size: 'sm',
-				class: ['not-data-[has-label]:p-1'],
-			},
-			{
-				variant: 'bare',
-				size: 'md',
-				class: ['not-data-[has-label]:p-1.25'],
-			},
-			{
-				variant: 'bare',
-				size: 'lg',
-				class: ['not-data-[has-label]:p-1.5'],
-			},
+			{ variant: 'bare', size: 'xs', class: ['not-data-[has-label]:p-0.75'] },
+			{ variant: 'bare', size: 'sm', class: ['not-data-[has-label]:p-1'] },
+			{ variant: 'bare', size: 'md', class: ['not-data-[has-label]:p-1.25'] },
+			{ variant: 'bare', size: 'lg', class: ['not-data-[has-label]:p-1.5'] },
 		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
 		skeleton: button,

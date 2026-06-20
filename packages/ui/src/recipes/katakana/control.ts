@@ -74,6 +74,12 @@ function controlStandard(t: ControlTokens) {
 	}
 }
 
+/**
+ * Wire a text-input control from its `control` tokens: a `defineRecipe`
+ * callable (`variant` / `density` / `size`) carrying the kasane chrome, plus
+ * `k.inputControl`, `k.number`, and the density-keyed `k.prefix` / `k.suffix`
+ * affix tables. `overlay` adds kata-specific axes; `extras` adds siblings.
+ */
 export function control<
 	Overlay extends RecipeConfig = Empty,
 	Extras extends Record<string, unknown> = Empty,
@@ -81,6 +87,12 @@ export function control<
 	return applyRecipe(controlStandard(t), overlay, extras)
 }
 
+/**
+ * Wire the check-input branch (`checkbox`, `radio`): a visually-hidden native
+ * `<input>` (`k.input`) over the `check.surface` chrome, plus the shared
+ * `k.disabled` text class. `switch` reads `check.hidden` and uses
+ * `defineRecipe` directly instead.
+ */
 export function check<
 	Overlay extends RecipeConfig = Empty,
 	Extras extends Record<string, unknown> = Empty,

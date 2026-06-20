@@ -1,3 +1,9 @@
+/**
+ * Query-builder kata: object-literal surface for the `<QueryBuilder>` rule
+ * editor. No variants axis — flat slots for the `base` container, the `group`
+ * and `groupNested` condition boxes, a `rule` row, its `rowRemove` control, the
+ * AND/OR `separator`, and the `actions` cluster.
+ */
 import { mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, sen } from '../kiso'
 

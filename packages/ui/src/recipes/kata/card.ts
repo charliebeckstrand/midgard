@@ -46,7 +46,10 @@ const radius = {
  * the card overrides the step-varying properties from outside. Direct-child
  * selectors keep nested cards independent. md has no row: at the default
  * step the section's own classes already match, and a consumer `className`
- * on a section keeps overriding them.
+ * on a section keeps overriding them. The `px`/`pt`/`p`/`gap` values mirror
+ * the `ma`-derived header/footer/body maps above; they're written as literals
+ * (not projected from `ma`) because Tailwind emits a `*:data-[slot=…]:`
+ * variant only where it scans the full class.
  */
 const sections = {
 	sm: [

@@ -1,3 +1,10 @@
+/**
+ * Calendar kata: object-literal surface for `<Calendar>`'s month grid and its
+ * month/year `picker`. Size-axed sub-recipes (`base`, `header`, `footer`,
+ * `weekday`, `picker.grid`) move with the `<Calendar>` size; the `grid`,
+ * `day` (with active/range-edge state classes), and `skeleton` slots are
+ * static.
+ */
 import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kokkaku, narabi, sen } from '../kiso'
 

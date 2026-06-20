@@ -12,7 +12,7 @@ Composition flows downward only. Within kiso, semantic bundles compose primitive
 
 Every module is a sub-folder. One file per concern; `index.ts` assembles the named bundle. The bundle name matches the folder so consumers reach a finished surface by name; the sub-files are the internal structure of each axis. The two exceptions are `sun.ts` and `tsunagi.ts` — each a single coherent concern small enough that splitting would add files without adding clarity.
 
-Every file opens with a `Layer: kiso · Concern: <concern>` (or `Layer: kiso · Archetype: <archetype> · Concern: <part>`) docblock that pins the axis the module owns. Bodies emit Tailwind utility strings and class fragments — `defineRecipe()` is never invoked here. The recipe engine lives in [`core/recipe/`](../../core/recipe) and is called at the katakana bridge or the kata surface, where the variants axis is declared.
+Every concern file opens with a `Layer: kiso · Concern: <concern>` (or `Layer: kiso · Archetype: <archetype> · Concern: <part>`) docblock that pins the axis the module owns; the `index.ts` barrel instead opens with a prose summary of the bundle it assembles, since it owns no single concern. Bodies emit Tailwind utility strings and class fragments — `defineRecipe()` is never invoked here. The recipe engine lives in [`core/recipe/`](../../core/recipe) and is called at the katakana bridge or the kata surface, where the variants axis is declared.
 
 ## 3. Primitive tier — atomic concerns
 

@@ -22,6 +22,9 @@ export const control = {
 		md: 'flex-1 min-w-24',
 		lg: 'flex-1 min-w-32',
 	},
+	// Heights match the live control outer box (ring-inclusive): sm 30px · md
+	// 38px · lg 46px, so the placeholder fills the same space as the resolved
+	// control.
 	size: {
 		sm: 'h-7.5',
 		md: 'h-9.5',
