@@ -22,6 +22,7 @@ describe('clamp', () => {
 
 	it('pins to the single bound when lo equals hi', () => {
 		expect(clamp(5, 3, 3)).toBe(3)
+
 		expect(clamp(1, 3, 3)).toBe(3)
 	})
 

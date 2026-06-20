@@ -117,21 +117,25 @@ describe('crossAxisDelta', () => {
 	// vertical list still reacts to horizontal arrows and vice versa.
 	it('reads horizontal arrows for a vertical orientation', () => {
 		expect(crossAxisDelta('ArrowRight', 'vertical')).toBe(1)
+
 		expect(crossAxisDelta('ArrowLeft', 'vertical')).toBe(-1)
 	})
 
 	it('ignores vertical arrows for a vertical orientation', () => {
 		expect(crossAxisDelta('ArrowDown', 'vertical')).toBeNull()
+
 		expect(crossAxisDelta('ArrowUp', 'vertical')).toBeNull()
 	})
 
 	it('reads vertical arrows for a horizontal orientation', () => {
 		expect(crossAxisDelta('ArrowDown', 'horizontal')).toBe(1)
+
 		expect(crossAxisDelta('ArrowUp', 'horizontal')).toBe(-1)
 	})
 
 	it('ignores horizontal arrows for a horizontal orientation', () => {
 		expect(crossAxisDelta('ArrowRight', 'horizontal')).toBeNull()
+
 		expect(crossAxisDelta('ArrowLeft', 'horizontal')).toBeNull()
 	})
 

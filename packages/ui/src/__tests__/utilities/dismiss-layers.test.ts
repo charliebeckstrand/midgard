@@ -37,6 +37,7 @@ describe('dismiss layers', () => {
 		const inner = open()
 
 		expect(isTopDismissLayer(inner.layer)).toBe(true)
+
 		expect(isTopDismissLayer(outer.layer)).toBe(false)
 	})
 

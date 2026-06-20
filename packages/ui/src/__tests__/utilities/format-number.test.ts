@@ -6,11 +6,13 @@ import { formatFraction, formatInteger } from '../../utilities/format-number'
 describe('formatInteger', () => {
 	it('groups thousands', () => {
 		expect(formatInteger(1234)).toBe('1,234')
+
 		expect(formatInteger(1000000)).toBe('1,000,000')
 	})
 
 	it('formats zero and negatives', () => {
 		expect(formatInteger(0)).toBe('0')
+
 		expect(formatInteger(-1234)).toBe('-1,234')
 	})
 
@@ -30,6 +32,7 @@ describe('formatFraction', () => {
 
 	it('rounds to two fraction digits', () => {
 		expect(formatFraction(1.2345)).toBe('1.23')
+
 		expect(formatFraction(1.236)).toBe('1.24')
 	})
 

@@ -16,6 +16,7 @@ describe('toggleItem', () => {
 		const result = toggleItem(input, 'b')
 
 		expect(input).toEqual(new Set(['a']))
+
 		expect(result).not.toBe(input)
 	})
 
@@ -31,6 +32,7 @@ describe('toggleItem', () => {
 		const added = toggleItem(new Set<object>(), item)
 
 		expect(added.has(item)).toBe(true)
+
 		expect(toggleItem(added, item).has(item)).toBe(false)
 	})
 })
