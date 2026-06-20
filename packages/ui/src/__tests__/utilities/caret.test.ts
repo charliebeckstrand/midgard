@@ -17,6 +17,18 @@ describe('countMeaningful', () => {
 	it('returns 0 when the cursor is at the start', () => {
 		expect(countMeaningful('1,234.56', 0, keep)).toBe(0)
 	})
+
+	it('returns 0 for an empty string', () => {
+		expect(countMeaningful('', 5, keep)).toBe(0)
+	})
+
+	it('returns 0 for a negative cursor', () => {
+		expect(countMeaningful('1,234', -1, keep)).toBe(0)
+	})
+
+	it('returns 0 when no character is meaningful', () => {
+		expect(countMeaningful(',,,', 3, keep)).toBe(0)
+	})
 })
 
 describe('cursorForCount', () => {
@@ -31,5 +43,17 @@ describe('cursorForCount', () => {
 
 	it('returns the string length when target exceeds meaningful count', () => {
 		expect(cursorForCount('1,234.56', 99, keep)).toBe('1,234.56'.length)
+	})
+
+	it('returns 0 for a negative target', () => {
+		expect(cursorForCount('1,234', -1, keep)).toBe(0)
+	})
+
+	it('returns 0 for an empty string when the target is 0', () => {
+		expect(cursorForCount('', 0, keep)).toBe(0)
+	})
+
+	it('returns the string length when no character is meaningful', () => {
+		expect(cursorForCount(',,,', 1, keep)).toBe(3)
 	})
 })
