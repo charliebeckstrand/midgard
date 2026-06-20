@@ -10,6 +10,7 @@ import { Input, type InputProps } from '../input'
 import {
 	type DateInputFormat,
 	dateInputSeparator,
+	expandTwoDigitYear,
 	formatDateValue,
 	isDayInRange,
 	isSameDay,
@@ -54,10 +55,13 @@ export type DateInputProps = Omit<
  * @remarks
  * Falls back to an `aria-label` of `'Date'` only when no Field `<Label>` is
  * registered; `placeholder` is not a programmatic name (WCAG 3.3.2 / 4.1.2).
- * Enter blurs the input, committing or renormalizing the current entry.
+ * Enter blurs the input, committing or renormalizing the current entry. On
+ * blur, a year-last entry left with a two-digit year fills into the 2000s
+ * (`12/25/26` → `12/25/2026`) before it commits.
  *
  * @see {@link maskDateText} for the masking rules.
  * @see {@link parseDateText} for the parse/validation contract.
+ * @see {@link expandTwoDigitYear} for the two-digit-year fill applied on blur.
  */
 export function DateInput({
 	value,
@@ -177,11 +181,17 @@ export function DateInput({
 			}}
 			onBlur={(event) => {
 				if (editingText !== null) {
-					const parsed = parse(editingText)
+					// A year-last entry left with a two-digit year fills into the 2000s
+					// (12/25/26 → 12/25/2026) before it commits.
+					const expanded = expandTwoDigitYear(editingText, format)
 
-					// A parsed entry renormalizes to the canonical zero-padded text;
-					// a partial one stays put and reads as invalid.
+					const parsed = commit(expanded)
+
+					// A parsed entry renormalizes to the canonical zero-padded text; an
+					// expanded-but-unparseable one shows what it was read as; a bare
+					// partial stays put. None reads valid unless it parsed.
 					if (parsed || editingText === '') setEditingText(null)
+					else if (expanded !== editingText) setEditingText(expanded)
 
 					setTypedInvalid(editingText !== '' && !parsed)
 				}
