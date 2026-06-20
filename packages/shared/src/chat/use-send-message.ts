@@ -3,6 +3,7 @@
 import { EventSourceParserStream } from 'eventsource-parser/stream'
 import { useRouter } from 'next/navigation'
 import { useCallback, useState } from 'react'
+import { useToast } from 'ui/providers/toast'
 
 import type { ChatContent } from './types'
 
@@ -17,6 +18,8 @@ export function useSendMessage(
 	options?: UseSendMessageOptions,
 ) {
 	const router = useRouter()
+
+	const { toast } = useToast()
 
 	const [messages, setMessages] = useState<ChatContent[]>(() =>
 		(initialMessages ?? []).map((m) => ({ ...m, id: crypto.randomUUID() })),
@@ -39,6 +42,13 @@ export function useSendMessage(
 
 			setMessages((prev) => [...prev, userMessage])
 
+			const notifyFailure = () =>
+				toast({
+					title: 'Message failed',
+					description: 'Your message could not be sent. Please try again.',
+					severity: 'error',
+				})
+
 			try {
 				const response = await fetch(`/api/chat/${chatId}`, {
 					method: 'POST',
@@ -46,8 +56,8 @@ export function useSendMessage(
 					body: JSON.stringify({ content }),
 				})
 
-				if (!response?.ok || !response.body) {
-					setSending(false)
+				if (!response.ok || !response.body) {
+					notifyFailure()
 
 					return
 				}
@@ -80,11 +90,17 @@ export function useSendMessage(
 
 					options?.onChatCreated?.()
 				}
+			} catch {
+				// Network or stream failure: drop the empty agent placeholder so no
+				// blank bubble lingers; the user's message stays.
+				setMessages((prev) => prev.filter((m) => !(m.role === 'agent' && m.content === '')))
+
+				notifyFailure()
 			} finally {
 				setSending(false)
 			}
 		},
-		[chatId, isDraft, router, options],
+		[chatId, isDraft, router, options, toast],
 	)
 
 	return { messages, sending, isDraft, sendMessage }

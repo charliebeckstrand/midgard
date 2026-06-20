@@ -14,7 +14,7 @@ type ChatLayoutProps = {
 export function ChatLayout({ messages, sending, isDraft, onSend }: ChatLayoutProps) {
 	return (
 		<div className="flex flex-col gap-6 h-full justify-center">
-			{!isDraft && <>{messages.length > 0 && <ChatMessages messages={messages} />}</>}
+			{!isDraft && messages.length > 0 && <ChatMessages messages={messages} streaming={sending} />}
 
 			<div className={`w-full ${isDraft ? 'lg:max-w-md mx-auto' : ''}`}>
 				<ChatComposer onSend={onSend} disabled={sending} />

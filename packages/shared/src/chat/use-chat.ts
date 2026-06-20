@@ -17,7 +17,9 @@ export function useChat(options?: UseChatOptions) {
 	}
 
 	async function deleteChat(id: string) {
-		await fetch(`/api/chat/${id}`, { method: 'DELETE' }).catch(() => null)
+		const res = await fetch(`/api/chat/${id}`, { method: 'DELETE' }).catch(() => null)
+
+		if (!res?.ok) return
 
 		if (pathname === `/${id}`) {
 			router.push('/')

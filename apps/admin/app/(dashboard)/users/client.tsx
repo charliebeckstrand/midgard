@@ -10,6 +10,7 @@ import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
+import { Text } from 'ui/text'
 
 type UsersClientProps = {
 	users: User[]
@@ -18,18 +19,41 @@ type UsersClientProps = {
 
 type EditUserDialogProps = {
 	user: User | null
-	onOpenChange: (open: boolean) => void
+	onClose: () => void
+	onSave: (userId: string, email: string) => Promise<boolean>
 }
 
-function EditUserDialog({ user, onOpenChange }: EditUserDialogProps) {
+function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
 	const [email, setEmail] = useState(user?.email ?? '')
+	const [saving, setSaving] = useState(false)
+	const [failed, setFailed] = useState(false)
 
 	useEffect(() => {
-		if (user) setEmail(user.email)
+		if (user) {
+			setEmail(user.email)
+			setFailed(false)
+		}
 	}, [user])
 
+	const handleSave = async () => {
+		if (!user) return
+
+		setSaving(true)
+		setFailed(false)
+
+		const ok = await onSave(user.id, email)
+
+		setSaving(false)
+
+		if (ok) {
+			onClose()
+		} else {
+			setFailed(true)
+		}
+	}
+
 	return (
-		<Dialog open={user !== null} onOpenChange={onOpenChange}>
+		<Dialog open={user !== null} onOpenChange={(open) => !open && onClose()}>
 			<DialogTitle>Edit User</DialogTitle>
 			<DialogBody>
 				<Fieldset className="space-y-4">
@@ -71,20 +95,49 @@ function EditUserDialog({ user, onOpenChange }: EditUserDialogProps) {
 							readOnly
 						/>
 					</Field>
+					{failed && <Text className="text-red-600">Couldn't save changes. Please try again.</Text>}
 				</Fieldset>
 			</DialogBody>
 			<DialogFooter>
-				<Button variant="plain" onClick={() => onOpenChange(false)}>
+				<Button variant="plain" onClick={onClose} disabled={saving}>
 					Cancel
 				</Button>
-				<Button color="blue">Save</Button>
+				<Button color="blue" onClick={handleSave} disabled={saving}>
+					{saving ? 'Saving…' : 'Save'}
+				</Button>
 			</DialogFooter>
 		</Dialog>
 	)
 }
 
-export function UsersClient({ users, currentUser }: UsersClientProps) {
+export function UsersClient({ users: initialUsers, currentUser }: UsersClientProps) {
+	const [users, setUsers] = useState(initialUsers)
 	const [editingUser, setEditingUser] = useState<User | null>(null)
+	const [confirmDeleteUser, setConfirmDeleteUser] = useState<User | null>(null)
+
+	const saveUser = async (userId: string, email: string): Promise<boolean> => {
+		const res = await fetch(`/api/users/${userId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email }),
+		}).catch(() => null)
+
+		if (!res?.ok) return false
+
+		setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, email } : user)))
+
+		return true
+	}
+
+	const deleteUser = async (userId: string) => {
+		const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' }).catch(() => null)
+
+		if (res?.ok) {
+			setUsers((prev) => prev.filter((user) => user.id !== userId))
+		}
+
+		setConfirmDeleteUser(null)
+	}
 
 	return (
 		<>
@@ -128,7 +181,11 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 									<Button variant="outline" onClick={() => setEditingUser(user)}>
 										Edit
 									</Button>
-									<Button variant="outline" disabled={user.id === currentUser?.id}>
+									<Button
+										variant="outline"
+										disabled={user.id === currentUser?.id}
+										onClick={() => setConfirmDeleteUser(user)}
+									>
 										Delete
 									</Button>
 								</Flex>
@@ -138,7 +195,28 @@ export function UsersClient({ users, currentUser }: UsersClientProps) {
 				</TableBody>
 			</Table>
 
-			<EditUserDialog user={editingUser} onOpenChange={(open) => !open && setEditingUser(null)} />
+			<EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} onSave={saveUser} />
+
+			<Dialog
+				open={confirmDeleteUser !== null}
+				onOpenChange={(open) => !open && setConfirmDeleteUser(null)}
+			>
+				<DialogTitle>Delete User</DialogTitle>
+				<DialogBody>
+					Are you sure you want to delete{' '}
+					<div>
+						"<strong>{confirmDeleteUser?.email}</strong>"?
+					</div>
+				</DialogBody>
+				<DialogFooter>
+					<Button variant="outline" onClick={() => setConfirmDeleteUser(null)}>
+						Cancel
+					</Button>
+					<Button color="red" onClick={() => confirmDeleteUser && deleteUser(confirmDeleteUser.id)}>
+						Delete
+					</Button>
+				</DialogFooter>
+			</Dialog>
 		</>
 	)
 }

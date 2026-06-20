@@ -1,15 +1,19 @@
 import { bifrost } from 'auth'
+import type { User } from 'auth/user'
+import type { Chat } from 'shared/chat'
 import { UserDetailsClient } from './client'
 
-async function getUserDetails(userId: string) {
+async function getUserDetails(
+	userId: string,
+): Promise<{ details: User | null; chats: Chat[] | null }> {
 	const [details, chats] = await Promise.all([
 		bifrost(`/api/users/${userId}`),
 		bifrost(`/api/users/${userId}/chats`),
 	])
 
 	return {
-		details: details.ok ? await details.json() : null,
-		chats: chats.ok ? await chats.json() : null,
+		details: details.ok ? ((await details.json()) as User) : null,
+		chats: chats.ok ? ((await chats.json()) as Chat[]) : null,
 	}
 }
 

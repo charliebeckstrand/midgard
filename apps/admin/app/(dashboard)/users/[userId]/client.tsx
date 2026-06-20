@@ -36,7 +36,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 		const res = await fetch(`/api/chat/${chatId}`).catch(() => null)
 
 		if (res?.ok) {
-			const { messages } = await res.json()
+			const { messages } = (await res.json()) as { messages: ChatContent[] }
 
 			setChatMessages(messages ?? [])
 		}
@@ -51,9 +51,11 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 	}, [viewChat, fetchChatMessages])
 
 	const deleteChat = async (chatId: string) => {
-		await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
+		const res = await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
 
-		setChats((prev) => prev?.filter((chat) => chat.id !== chatId) ?? null)
+		if (res?.ok) {
+			setChats((prev) => prev?.filter((chat) => chat.id !== chatId) ?? null)
+		}
 
 		setConfirmDeleteChat(null)
 	}
