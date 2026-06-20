@@ -58,7 +58,14 @@ function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string 
 	const n = Number(trimmed)
 
 	return Number.isFinite(n)
-		? n.toLocaleString(locale, { useGrouping: true, maximumFractionDigits: 0 })
+		? // `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
+			// editing parser (which only recognizes 0-9) and the caret restore stay
+			// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
+			n.toLocaleString(locale, {
+				useGrouping: true,
+				maximumFractionDigits: 0,
+				numberingSystem: 'latn',
+			})
 		: trimmed
 }
 

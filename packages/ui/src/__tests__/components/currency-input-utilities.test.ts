@@ -80,6 +80,16 @@ describe('formatEditing', () => {
 	it('honors a comma decimal separator', () => {
 		expect(formatEditing('1234,5', 'de-DE', ',', 2)).toMatch(/^1.234,5$/)
 	})
+
+	it('keeps grouped digits ASCII in non-latn-default locales', () => {
+		// ar-EG defaults to Arabic-Indic digits; the editing parser only reads
+		// 0-9, so grouped output must stay latn (digits 0-9, no native separator).
+		const formatted = formatEditing('1234567', 'ar-EG', '.', 2)
+
+		expect(formatted).toMatch(/^[\d,]+$/)
+
+		expect(parseEditing(formatted, ',', '.')).toBe(1234567)
+	})
 })
 
 describe('parseEditing', () => {

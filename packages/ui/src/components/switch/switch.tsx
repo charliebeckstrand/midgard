@@ -74,11 +74,19 @@ export function Switch({
 
 		if (!form) return
 
-		const handleReset = () => requestAnimationFrame(() => setOn(input.checked))
+		let frame = 0
+
+		const handleReset = () => {
+			frame = requestAnimationFrame(() => setOn(input.checked))
+		}
 
 		form.addEventListener('reset', handleReset)
 
-		return () => form.removeEventListener('reset', handleReset)
+		return () => {
+			form.removeEventListener('reset', handleReset)
+
+			cancelAnimationFrame(frame)
+		}
 	}, [isControlled, setOn])
 
 	const {

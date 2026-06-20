@@ -97,23 +97,29 @@ export function CodeBlock({
 
 		let cancelled = false
 
-		loadShiki().then(({ codeToHtml }) =>
-			codeToHtml(code, {
-				lang,
-				theme,
-				transformers: [
-					{
-						pre(node) {
-							node.properties.tabindex = '-1'
+		loadShiki()
+			.then(({ codeToHtml }) =>
+				codeToHtml(code, {
+					lang,
+					theme,
+					transformers: [
+						{
+							pre(node) {
+								node.properties.tabindex = '-1'
+							},
 						},
-					},
-				],
-			}).then((result) => {
-				cacheSet(key, result)
+					],
+				}).then((result) => {
+					cacheSet(key, result)
 
-				if (!cancelled) setHtml(result)
-			}),
-		)
+					if (!cancelled) setHtml(result)
+				}),
+			)
+			// Shiki can fail to load (offline chunk fetch, post-deploy 404) or to
+			// tokenize (a lang/theme outside the bundled set). Keep the plain
+			// fallback that `setHtml(null)` already shows rather than leaking an
+			// unhandled rejection and stranding the component with no recovery.
+			.catch(() => {})
 
 		return () => {
 			cancelled = true
