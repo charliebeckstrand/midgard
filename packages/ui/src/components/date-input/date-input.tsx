@@ -46,11 +46,12 @@ export type DateInputProps = Omit<
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
 	/**
-	 * Renders a clear button before the suffix once a date is set; clearing emits
-	 * `undefined` and returns focus to the input. In a `DatePicker`'s `input` mode
-	 * this clears the picker itself through the bound `onValueChange`.
+	 * Renders a clear button before the suffix whenever the field holds any text —
+	 * including a partial, not-yet-complete entry; clearing empties the field,
+	 * emits `undefined`, and returns focus to the input. In a `DatePicker`'s
+	 * `input` mode this clears the picker itself through the bound `onValueChange`.
 	 *
-	 * @defaultValue false
+	 * @defaultValue true
 	 */
 	clearable?: boolean
 }
@@ -84,7 +85,7 @@ export function DateInput({
 	placeholder,
 	invalid,
 	suffix,
-	clearable = false,
+	clearable = true,
 	disabled,
 	readOnly,
 	name,
@@ -177,7 +178,9 @@ export function DateInput({
 			readOnly={readOnly}
 			suffix={dateInputSuffix({
 				clearable,
-				hasValue: date !== undefined,
+				// Any text counts, including a partial entry that hasn't committed a
+				// complete `Date` yet — clearable tracks the field, not the value.
+				hasValue: text !== '',
 				disabled: resolvedDisabled,
 				readOnly: resolvedReadOnly,
 				suffix,
@@ -260,8 +263,8 @@ function clearDateInput(input: HTMLInputElement | null) {
 
 /**
  * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
- * suffix while `clearable` and a date is set, else the suffix unchanged — so an
- * absent suffix (`undefined`/`false`) leaves no empty affix slot.
+ * suffix while `clearable` and the field holds text, else the suffix unchanged —
+ * so an absent suffix (`undefined`/`false`) leaves no empty affix slot.
  *
  * @internal
  */
@@ -290,6 +293,9 @@ function dateInputSuffix({
 				variant="bare"
 				className="pointer-events-auto"
 				aria-label="Clear date"
+				// Keep focus on the input: a blur here would run the field's
+				// commit-on-blur over a partial entry before the clear lands.
+				onMouseDown={(event) => event.preventDefault()}
 				onClick={onClear}
 			>
 				<Icon icon={<X />} />

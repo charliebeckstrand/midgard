@@ -83,11 +83,31 @@ describe('DateInput', () => {
 		expect(bySlot(container, 'date-input')).not.toHaveAttribute('aria-label')
 	})
 
-	it('clears the date from the clear button and returns focus to the input', async () => {
+	it('shows the clear button by default for any entered text and clears partial input', async () => {
+		const { container } = renderUI(<DateInput />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		// Partial entry: no complete date has committed, but the field holds text.
+		await user.type(input, '122')
+
+		expect(input.value).toBe('12/2')
+
+		await user.click(screen.getByRole('button', { name: 'Clear date' }))
+
+		expect(input.value).toBe('')
+
+		// Focus returns to the input as the clear button unmounts (WCAG 2.4.3).
+		expect(input).toHaveFocus()
+	})
+
+	it('clears a committed date from the clear button and emits undefined', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<DateInput clearable defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
+			<DateInput defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
 		)
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
@@ -101,25 +121,22 @@ describe('DateInput', () => {
 		expect(input.value).toBe('')
 
 		expect(onChange).toHaveBeenLastCalledWith(undefined)
-
-		// Focus returns to the input as the clear button unmounts (WCAG 2.4.3).
-		expect(input).toHaveFocus()
 	})
 
-	it('omits the clear button without clearable', () => {
-		renderUI(<DateInput defaultValue={new Date(2026, 5, 15)} />)
+	it('omits the clear button with clearable={false}', () => {
+		renderUI(<DateInput clearable={false} defaultValue={new Date(2026, 5, 15)} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
 	})
 
-	it('omits the clear button when clearable but empty', () => {
-		renderUI(<DateInput clearable />)
+	it('omits the clear button when the field is empty', () => {
+		renderUI(<DateInput />)
 
 		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
 	})
 
-	it('omits the clear button when clearable and set but disabled', () => {
-		renderUI(<DateInput clearable disabled defaultValue={new Date(2026, 5, 15)} />)
+	it('omits the clear button when set but disabled', () => {
+		renderUI(<DateInput disabled defaultValue={new Date(2026, 5, 15)} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
 	})
