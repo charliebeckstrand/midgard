@@ -244,3 +244,59 @@ describe('extractProps — type display', () => {
 		expect(p.references).toBeUndefined()
 	})
 })
+
+describe('extractProps — discriminated unions', () => {
+	// A prop shared by every arm is collected both as the parent union's merged
+	// property and as each arm's slice; the merged superset must not double the
+	// rendering (`false | true | Config | false | true | Config`).
+	const SRC = [
+		`type Config = { years?: number[] | boolean }`,
+		`type Base = { name?: string }`,
+		`type Single = { kind?: false; value?: number }`,
+		`type Range = { kind?: false; value?: [number, number] }`,
+		`type Period = {`,
+		`  /** Config or bare true. */`,
+		`  kind: true | Config`,
+		`  value?: Config`,
+		`}`,
+		`type Props = Base & (Single | Range | Period)`,
+		`function Foo(props: Props) { return null }`,
+	].join('\n')
+
+	it('folds an all-arm prop into a single union without restating the merge', () => {
+		const p = prop(propsOf(SRC), 'kind')
+
+		expect(p.type).toBe('false | true | Config')
+	})
+
+	it('keeps the documented arm description and the alias reference card', () => {
+		const p = prop(propsOf(SRC), 'kind')
+
+		expect(p.description).toBe('Config or bare true.')
+		expect(p.references?.Config).toContain('years?:')
+	})
+
+	it('unions the distinct per-arm value types once each', () => {
+		const p = prop(propsOf(SRC), 'value')
+
+		expect(p.type).toBe('number | [number, number] | Config')
+	})
+
+	it('keeps a wider arm when a narrower arm is a strict subset', () => {
+		const p = prop(
+			propsOf(
+				[
+					`type Wide = { tone?: number | string }`,
+					`type Narrow = { tone?: number }`,
+					`type Props = Wide | Narrow`,
+					`function Foo(props: Props) { return null }`,
+				].join('\n'),
+			),
+			'tone',
+		)
+
+		// Dropping the merged union must not strip `string`: the wider arm carries
+		// a member the narrow arm doesn't, so both survive (order is TS's).
+		expect(p.type.split(' | ').sort()).toEqual(['number', 'string'])
+	})
+})
