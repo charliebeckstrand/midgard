@@ -16,7 +16,9 @@ function ClosableExample() {
 	if (!visible) {
 		return (
 			<div className="px-4">
-				<Button onClick={() => setVisible(true)}>Show banner</Button>
+				<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+					Reset
+				</Button>
 			</div>
 		)
 	}

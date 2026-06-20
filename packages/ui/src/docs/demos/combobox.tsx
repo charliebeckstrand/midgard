@@ -67,6 +67,25 @@ function MultiComboboxExample() {
 	)
 }
 
+function ClearableExample() {
+	const [selected, setSelected] = useState<string | undefined>('Tom Cook')
+
+	return (
+		<Field>
+			<Label>Assignee</Label>
+			<Combobox
+				value={selected}
+				onValueChange={setSelected}
+				displayValue={(v: string) => v}
+				placeholder="Select a person"
+				clearable
+			>
+				<FilteredPeople />
+			</Combobox>
+		</Field>
+	)
+}
+
 export function Demo() {
 	return (
 		<>
@@ -75,6 +94,9 @@ export function Demo() {
 			</Example>
 			<Example title="Multiple">
 				<MultiComboboxExample />
+			</Example>
+			<Example title="Clearable">
+				<ClearableExample />
 			</Example>
 		</>
 	)

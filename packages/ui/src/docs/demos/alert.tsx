@@ -18,7 +18,11 @@ function ClosableExample() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
-		return <Button onClick={() => setVisible(true)}>Show alert</Button>
+		return (
+			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+				Reset
+			</Button>
+		)
 	}
 
 	return (
@@ -36,7 +40,11 @@ function ClosableBlockExample() {
 	const [visible, setVisible] = useState(true)
 
 	if (!visible) {
-		return <Button onClick={() => setVisible(true)}>Show alert</Button>
+		return (
+			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+				Reset
+			</Button>
+		)
 	}
 
 	return (
