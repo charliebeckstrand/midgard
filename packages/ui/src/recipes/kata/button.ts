@@ -11,16 +11,6 @@ const { focus } = sen
 const { icon } = shaku
 const { spring } = ugoki
 
-// Icon-only "floor" padding per size for the bare variant (a square pad keeps
-// an icon-only button even-sided). `not-data-[has-label]` defers to the size
-// axis's padding when a label is present. Literals so Tailwind scans them.
-const bareFloor = {
-	xs: 'not-data-[has-label]:p-0.75',
-	sm: 'not-data-[has-label]:p-1',
-	md: 'not-data-[has-label]:p-1.25',
-	lg: 'not-data-[has-label]:p-1.5',
-} as const
-
 export const k = defineRecipe(
 	{
 		base: [
@@ -89,14 +79,15 @@ export const k = defineRecipe(
 			// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
 			{ inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'] },
 		),
-		// Compound variants apply the icon-only bare floor: with no label, override
-		// the size padding with the square floor; with a label present,
-		// `not-data-[has-label]` defers to the size axis.
-		compound: (['xs', 'sm', 'md', 'lg'] as const).map((size) => ({
-			variant: 'bare' as const,
-			size,
-			class: [bareFloor[size]],
-		})),
+		// Icon-only floor: a square pad per size keeps an icon-only bare button
+		// even-sided; `not-data-[has-label]` yields to the size axis's padding once
+		// a label is present. Values are distinct per size, so kept explicit.
+		compound: [
+			{ variant: 'bare', size: 'xs', class: ['not-data-[has-label]:p-0.75'] },
+			{ variant: 'bare', size: 'sm', class: ['not-data-[has-label]:p-1'] },
+			{ variant: 'bare', size: 'md', class: ['not-data-[has-label]:p-1.25'] },
+			{ variant: 'bare', size: 'lg', class: ['not-data-[has-label]:p-1.5'] },
+		],
 		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
 		skeleton: button,
 	},
