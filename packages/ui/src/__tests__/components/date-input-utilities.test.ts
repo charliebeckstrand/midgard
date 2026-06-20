@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+	expandTwoDigitYear,
 	formatDateValue,
 	isDayInRange,
 	isSameDay,
@@ -151,6 +152,42 @@ describe('parseDateText', () => {
 
 	it('keeps low four-digit years instead of mapping them to 19xx', () => {
 		expect(parseDateText('06/15/0050', 'MM/DD/YYYY')?.getFullYear()).toBe(50)
+	})
+})
+
+describe('expandTwoDigitYear', () => {
+	it('fills a trailing two-digit year into the 2000s', () => {
+		expect(expandTwoDigitYear('12/25/26', 'MM/DD/YYYY')).toBe('12/25/2026')
+
+		expect(expandTwoDigitYear('12/25/00', 'MM/DD/YYYY')).toBe('12/25/2000')
+
+		expect(expandTwoDigitYear('12/25/99', 'MM/DD/YYYY')).toBe('12/25/2099')
+	})
+
+	it('fills the day-first format the same way', () => {
+		expect(expandTwoDigitYear('25/12/26', 'DD/MM/YYYY')).toBe('25/12/2026')
+	})
+
+	it('leaves a complete four-digit year untouched', () => {
+		expect(expandTwoDigitYear('12/25/2026', 'MM/DD/YYYY')).toBe('12/25/2026')
+	})
+
+	it('leaves a one- or three-digit year untouched', () => {
+		expect(expandTwoDigitYear('12/25/2', 'MM/DD/YYYY')).toBe('12/25/2')
+
+		expect(expandTwoDigitYear('12/25/202', 'MM/DD/YYYY')).toBe('12/25/202')
+	})
+
+	it('leaves an entry missing a later segment untouched', () => {
+		expect(expandTwoDigitYear('12/25/', 'MM/DD/YYYY')).toBe('12/25/')
+
+		expect(expandTwoDigitYear('12/', 'MM/DD/YYYY')).toBe('12/')
+	})
+
+	it('leaves the year-first format untouched, whose short year cannot separate', () => {
+		expect(expandTwoDigitYear('26', 'YYYY-MM-DD')).toBe('26')
+
+		expect(expandTwoDigitYear('2026-06-15', 'YYYY-MM-DD')).toBe('2026-06-15')
 	})
 })
 

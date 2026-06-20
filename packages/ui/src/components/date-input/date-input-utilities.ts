@@ -233,6 +233,33 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 	return date
 }
 
+/**
+ * Fills a trailing two-digit year into the 2000s (`12/25/26` → `12/25/2026`)
+ * once every other segment is complete, so a year-last entry resolves on blur.
+ * Leaves anything else untouched: a still-partial entry, a one- or three-digit
+ * year mid-typing, an already four-digit year, or a year-first format whose
+ * short year cannot be separated from the rest.
+ *
+ * @internal
+ */
+export function expandTwoDigitYear(text: string, format: DateInputFormat): string {
+	const { separator, segments } = layouts[format]
+
+	const pieces = text.split(separator)
+
+	if (pieces.length !== segments.length) return text
+
+	const yearIndex = segments.findIndex((segment) => segment.part === 'year')
+
+	const filled = segments.every(
+		(segment, index) => pieces[index]?.length === (index === yearIndex ? 2 : segment.length),
+	)
+
+	if (!filled) return text
+
+	return pieces.map((piece, index) => (index === yearIndex ? `20${piece}` : piece)).join(separator)
+}
+
 /** Same calendar day in local time; two empty values count as the same. @internal */
 export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
 	if (a === undefined || b === undefined) return a === b

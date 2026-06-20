@@ -217,6 +217,86 @@ describe('DateInput', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('fills a two-digit year into the 2000s on blur and emits it', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValueChange={onChange} />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '122526')
+
+		expect(input.value).toBe('12/25/26')
+
+		// Still partial while typing: no Date emitted yet.
+		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+
+		await user.tab()
+
+		expect(input.value).toBe('12/25/2026')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		const emitted = onChange.mock.lastCall?.[0] as Date
+
+		expect(emitted.getFullYear()).toBe(2026)
+
+		expect(emitted.getMonth()).toBe(11)
+
+		expect(emitted.getDate()).toBe(25)
+	})
+
+	it('does not fill the year mid-typing while a four-digit year is entered', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValueChange={onChange} />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		// The four-digit year passes through a two-digit state; it must not commit
+		// as 2020 before the full year is typed.
+		await user.type(input, '122520')
+
+		expect(input.value).toBe('12/25/20')
+
+		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+
+		await user.type(input, '26')
+
+		expect(input.value).toBe('12/25/2026')
+
+		expect(onChange.mock.lastCall?.[0]).toBeInstanceOf(Date)
+
+		expect((onChange.mock.lastCall?.[0] as Date).getFullYear()).toBe(2026)
+	})
+
+	it('marks an impossible filled year invalid and shows the four-digit form', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValueChange={onChange} />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		// 26 fills to 2026, which is not a leap year.
+		await user.type(input, '022926')
+
+		expect(input.value).toBe('02/29/26')
+
+		await user.tab()
+
+		expect(input.value).toBe('02/29/2026')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+	})
+
 	it('clears the invalid mark once edited back to valid', async () => {
 		const { container } = renderUI(<DateInput />)
 
