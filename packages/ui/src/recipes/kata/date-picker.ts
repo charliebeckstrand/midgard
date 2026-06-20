@@ -73,6 +73,12 @@ export const k = {
 		section: 'space-y-1.5',
 		label: [text.muted, 'text-xs font-medium uppercase tracking-wide select-none'],
 		options: 'flex flex-wrap gap-1.5',
-		chips: 'flex items-center gap-1 min-w-0',
+		// A chip stands a hair taller than the trigger's text line, so the chip row
+		// would otherwise drive the control ~1px taller per side than the placeholder
+		// state. The negative block margin lets that overflow bleed into the button's
+		// vertical padding (≥6px at every size) instead of growing the box, holding
+		// the trigger height steady across states without pinning a min-height. The
+		// badge keeps its natural box, so `overflow-hidden` truncation is unaffected.
+		chips: 'flex items-center gap-1 min-w-0 -my-px',
 	},
 }

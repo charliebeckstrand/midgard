@@ -18,8 +18,40 @@ export type PeriodFacet = keyof DatePickerPeriodValue
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
 export type PeriodChip = { key: string; label: string }
 
+/**
+ * Per-facet option set for the period {@link DatePicker}: an explicit list of
+ * selectable values, `true` for the facet's default set, or `false` to hide the
+ * facet entirely.
+ */
+export type PeriodFacetOption = number[] | boolean
+
+/**
+ * Per-facet configuration for the period {@link DatePicker}. Each facet accepts
+ * an explicit option list, `true` for its default set, or `false` to hide it; an
+ * omitted facet falls back to its default — years and months on, quarters off.
+ *
+ * @example
+ * ```tsx
+ * <DatePicker period={{ years: [2024, 2025, 2026], quarters: false, months: true }} />
+ * ```
+ */
+export type DatePickerPeriodConfig = {
+	/** @defaultValue the prior and current calendar year */
+	years?: PeriodFacetOption
+	/** @defaultValue `false` (hidden) */
+	quarters?: PeriodFacetOption
+	/** @defaultValue `true` (all twelve months) */
+	months?: PeriodFacetOption
+}
+
+/** Resolved option list per facet; `null` marks a facet hidden from the popover. @internal */
+export type ResolvedPeriodFacets = Record<PeriodFacet, number[] | null>
+
 /** The four quarters, in order. @internal */
 export const QUARTERS = [1, 2, 3, 4] as const
+
+/** The twelve months (1–12), in order. @internal */
+const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const
 
 const EMPTY: DatePickerPeriodValue = { years: [], quarters: [], months: [] }
 
@@ -58,14 +90,53 @@ export function quarterLabel(quarter: number): string {
 }
 
 /**
- * Deduped, ascending copy of the selectable `years`, so the picker's option
+ * Deduped, ascending copy of a facet's selectable values, so the picker's option
  * order matches the (sorted) chip order and repeated input can't collide React
  * keys.
  *
  * @internal
  */
-export function normalizeYears(years: readonly number[]): number[] {
-	return Array.from(new Set(years)).sort((a, b) => a - b)
+export function normalizePeriodValues(values: readonly number[]): number[] {
+	return Array.from(new Set(values)).sort((a, b) => a - b)
+}
+
+/**
+ * Default selectable years when a caller opts the facet in without a list: the
+ * prior and current calendar year (e.g. 2025–2026).
+ *
+ * @internal
+ */
+export function defaultPeriodYears(): number[] {
+	const currentYear = new Date().getFullYear()
+
+	return [currentYear - 1, currentYear]
+}
+
+/**
+ * Resolves a {@link DatePickerPeriodConfig} (or bare `true`) into the per-facet
+ * option lists the popover renders. Each facet is its explicit list, its default
+ * set when `true`, or `null` when `false`/hidden; an omitted facet falls back to
+ * its default — years and months on, quarters off. Bare `true` takes every
+ * default.
+ *
+ * @internal
+ */
+export function resolvePeriodFacets(period: true | DatePickerPeriodConfig): ResolvedPeriodFacets {
+	const config = period === true ? {} : period
+
+	return {
+		years: resolveFacet(config.years ?? true, defaultPeriodYears),
+		quarters: resolveFacet(config.quarters ?? false, () => [...QUARTERS]),
+		months: resolveFacet(config.months ?? true, () => [...MONTHS]),
+	}
+}
+
+// Maps one facet's option to its resolved list: `false` hides it (`null`), `true`
+// expands to the facet's default set, an array is taken as-is — all normalized.
+function resolveFacet(option: PeriodFacetOption, defaultSet: () => number[]): number[] | null {
+	if (option === false) return null
+
+	return normalizePeriodValues(option === true ? defaultSet() : option)
 }
 
 /** Short, locale-aware month labels indexed by month number minus one (January = index 0). @internal */

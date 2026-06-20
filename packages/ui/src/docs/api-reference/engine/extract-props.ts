@@ -2,7 +2,7 @@ import { ts } from 'ts-morph'
 import type { PropDef } from '../types'
 import { extractDocFromParts, type LinkResolver } from './extract-doc'
 import { extractReferences } from './extract-references'
-import { formatPropType } from './format-type'
+import { formatPropType, formatType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
 
 const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
@@ -192,13 +192,62 @@ export function isRequired(symbol: ts.Symbol): boolean {
 function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
 	const rendered: string[] = []
 
-	for (const t of types) {
+	for (const t of dropMergedArmUnions(types, location, checker)) {
 		const text = formatPropType(t, checker, location)
 
 		if (!rendered.includes(text)) rendered.push(text)
 	}
 
 	return rendered.join(' | ')
+}
+
+/**
+ * Drops a collected arm-type that merely re-states the union of the others. A
+ * prop present in every discriminated-union arm is collected twice over: once as
+ * the synthetic *merged* property TS exposes on the parent union (the full
+ * `false | true | Config`), and again as each arm's own slice (`false`,
+ * `true | Config`). Whole-string dedupe can't fold the superset into its parts,
+ * so it renders both (`false | true | Config | false | true | Config`).
+ *
+ * A type is redundant when every (non-`undefined`) member it contributes is
+ * already contributed by another *kept* collected type. Members are compared by
+ * rendered text; the kept arms are still emitted through `formatPropType`, so
+ * named aliases (`Config`, `ReactNode`) survive intact. The merged superset is
+ * collected first, so it is the one evaluated against — and dropped in favour
+ * of — the arm slices; a narrower arm whose members aren't covered elsewhere is
+ * always kept.
+ */
+function dropMergedArmUnions(
+	types: ts.Type[],
+	location: ts.Node,
+	checker: ts.TypeChecker,
+): ts.Type[] {
+	if (types.length < 2) return types
+
+	const memberTexts = types.map((t) => unionMembers(t).map((m) => formatType(m, checker, location)))
+
+	const keep = types.map(() => true)
+
+	types.forEach((_, i) => {
+		const own = memberTexts[i]
+
+		if (!own || own.length === 0) return
+
+		const coveredElsewhere = own.every((text) =>
+			memberTexts.some((other, j) => j !== i && keep[j] && other.includes(text)),
+		)
+
+		if (coveredElsewhere) keep[i] = false
+	})
+
+	return types.filter((_, i) => keep[i])
+}
+
+/** A union's non-`undefined` members, or the type itself when it isn't a union. */
+function unionMembers(type: ts.Type): ts.Type[] {
+	const members = type.isUnion() ? type.types : [type]
+
+	return members.filter((m) => !(m.flags & ts.TypeFlags.Undefined))
 }
 
 /**

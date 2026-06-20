@@ -7,7 +7,7 @@ import { Button } from '../button'
 import type { DatePickerBaseProps, DatePickerPeriodProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
-import { type PeriodFacet, QUARTERS, quarterLabel } from './date-picker-period-utilities'
+import { type PeriodFacet, quarterLabel } from './date-picker-period-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerPeriodState } from './use-date-picker-period-state'
 
@@ -63,7 +63,7 @@ export function DatePickerPeriod(props: DatePickerBaseProps & DatePickerPeriodPr
 				) : (
 					<span className={cn(k.period.chips, truncate ? 'flex-1 overflow-hidden' : 'flex-wrap')}>
 						{state.chips.map((chip) => (
-							<Badge key={chip.key} size={chipSize[size]} variant="soft" color="zinc">
+							<Badge key={chip.key} size={chipSize[size]}>
 								{chip.label}
 							</Badge>
 						))}
@@ -81,24 +81,36 @@ export function DatePickerPeriod(props: DatePickerBaseProps & DatePickerPeriodPr
 				label="Select period"
 			>
 				<div className={cn(k.period.root)}>
-					<PeriodGroup
-						state={state}
-						facet="years"
-						label="Year"
-						options={state.years.map((year) => ({ value: year, label: String(year) }))}
-					/>
-					<PeriodGroup
-						state={state}
-						facet="quarters"
-						label="Quarter"
-						options={QUARTERS.map((quarter) => ({ value: quarter, label: quarterLabel(quarter) }))}
-					/>
-					<PeriodGroup
-						state={state}
-						facet="months"
-						label="Month"
-						options={state.monthLabels.map((label, index) => ({ value: index + 1, label }))}
-					/>
+					{state.facets.years && (
+						<PeriodGroup
+							state={state}
+							facet="years"
+							label="Year"
+							options={state.facets.years.map((year) => ({ value: year, label: String(year) }))}
+						/>
+					)}
+					{state.facets.quarters && (
+						<PeriodGroup
+							state={state}
+							facet="quarters"
+							label="Quarter"
+							options={state.facets.quarters.map((quarter) => ({
+								value: quarter,
+								label: quarterLabel(quarter),
+							}))}
+						/>
+					)}
+					{state.facets.months && (
+						<PeriodGroup
+							state={state}
+							facet="months"
+							label="Month"
+							options={state.facets.months.map((month) => ({
+								value: month,
+								label: state.monthLabels[month - 1] ?? String(month),
+							}))}
+						/>
+					)}
 				</div>
 				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
