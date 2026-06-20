@@ -12,6 +12,8 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 
 	const setOpen = vi.fn()
 
+	const openByArrowKey = vi.fn()
+
 	const close = vi.fn()
 
 	const rovingKeyDown = vi.fn()
@@ -29,10 +31,12 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 			clearOnEmpty: false,
 			floatingRef,
 			optionsRef,
+			open: true,
 			setValue,
 			setEditing,
 			setQuery,
 			setOpen,
+			openByArrowKey,
 			close,
 			keyboardSettled,
 			rovingKeyDown,
@@ -46,6 +50,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxInput<T>>[0]> 
 		setEditing,
 		setQuery,
 		setOpen,
+		openByArrowKey,
 		close,
 		rovingKeyDown,
 		floatingRef,
@@ -229,11 +234,51 @@ describe('useComboboxInput onKeyDown', () => {
 	it('forwards other keys to roving navigation', () => {
 		const { result, rovingKeyDown } = setup<string>()
 
-		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
+		const event = makeKeyEvent<HTMLInputElement>('ArrowUp')
 
 		result.current.onKeyDown(event)
 
 		expect(rovingKeyDown).toHaveBeenCalledWith(event)
+	})
+
+	it('opens the menu on ArrowDown while it is closed, without delegating to roving', () => {
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
+
+		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
+
+		result.current.onKeyDown(event)
+
+		expect(openByArrowKey).toHaveBeenCalled()
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
+	})
+
+	it('forwards ArrowDown to roving navigation once the menu is open', () => {
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: true })
+
+		const event = makeKeyEvent<HTMLInputElement>('ArrowDown')
+
+		result.current.onKeyDown(event)
+
+		expect(openByArrowKey).not.toHaveBeenCalled()
+
+		expect(rovingKeyDown).toHaveBeenCalledWith(event)
+	})
+
+	it('leaves Shift+ArrowDown to the textbox even while the menu is closed', () => {
+		const { result, openByArrowKey, rovingKeyDown } = setup<string>({ open: false })
+
+		const event = makeKeyEvent<HTMLInputElement>('ArrowDown', { shiftKey: true })
+
+		result.current.onKeyDown(event)
+
+		expect(openByArrowKey).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 
 	it('leaves Shift+Arrow to the textbox so it extends the text selection', () => {
