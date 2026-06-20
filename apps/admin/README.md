@@ -21,15 +21,15 @@ pnpm --filter admin dev
 
 | Path | Role |
 |---|---|
-| `app/(app)/*` | Authenticated product surface. |
-| `app/(auth)/*` | Sign-in. |
+| `app/(dashboard)/*` | Authenticated product surface (dashboard, settings, users). |
+| `app/login/`, `app/register/` | Unauthenticated sign-in and registration pages. |
+| `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
-| `app/api/[...path]/*` | Same-origin proxy to the gateway. |
-| `src/components/<name>/` | App-local components; route-specific UI co-locates with the owning segment. |
+| `proxy.ts` | Same-origin proxy to the gateway; re-exports [`auth/proxy`](../../packages/auth/README.md). |
 
 ## 4. Environment
 
-See ([CONVENTIONS](../../CONVENTIONS.md) §12).
+See ([CONVENTIONS](../../CONVENTIONS.md) §11).
 
 ## 5. Dependencies
 

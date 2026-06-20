@@ -10,8 +10,8 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `auth` | Public API entry point. |
-| `auth/config` | Config schema and accessors. |
+| `auth` | Package barrel — `bifrost` (gateway fetch) and `getUser`. |
+| `auth/config` | `withAuth` — wraps a Next config with the gateway rewrites. |
 | `auth/proxy` | Gateway proxy handler for same-origin API routes. |
 | `auth/user` | Current-user accessor for Server Components and route handlers. |
 
