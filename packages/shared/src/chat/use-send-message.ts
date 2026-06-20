@@ -80,6 +80,11 @@ export function useSendMessage(
 
 					options?.onChatCreated?.()
 				}
+			} catch {
+				// Network or stream failure: drop the empty agent placeholder so no
+				// blank bubble lingers; the user's message stays. Surfacing the error
+				// to the user is handled separately.
+				setMessages((prev) => prev.filter((m) => !(m.role === 'agent' && m.content === '')))
 			} finally {
 				setSending(false)
 			}
