@@ -11,7 +11,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
-import { chain, email, required } from './use-form-validation'
+import { chain, email, required } from './form-validators'
 
 type LoginValues = { email: string; password: string }
 

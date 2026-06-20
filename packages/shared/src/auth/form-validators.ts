@@ -1,5 +1,3 @@
-'use client'
-
 export type Validator = (value: string, values: Record<string, string>) => string | null
 
 export const required =
