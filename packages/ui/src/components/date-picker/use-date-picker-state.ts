@@ -9,7 +9,7 @@ import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
-import { addDays, addMonths, clampDate, formatDate } from './date-picker-utilities'
+import { addDays, addMonths, clampDate, formatDate, startOfDay } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
@@ -119,8 +119,10 @@ export function useDatePickerState({
 	}, [closeCalendar, setValue])
 
 	const handleSelectToday = useCallback(() => {
-		handleSelect(new Date())
-	}, [handleSelect])
+		// Clamp so the footer Today action can never commit a date outside the
+		// min/max bounds (every other entry path is already bounds-checked).
+		handleSelect(clampDate(new Date(), min, max))
+	}, [handleSelect, min, max])
 
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
@@ -138,10 +140,21 @@ export function useDatePickerState({
 		[handleClear, handleSelectToday],
 	)
 
-	const footerButtons = useMemo<FooterButton[]>(
-		() => (value != null ? ['clear', 'today'] : ['today']),
-		[value],
-	)
+	const footerButtons = useMemo<FooterButton[]>(() => {
+		const today = new Date()
+
+		// Offer Today only when today is selectable; out of range it would commit
+		// a clamped boundary day, not today, so suppress it instead.
+		const todayInRange = clampDate(today, min, max).getTime() === startOfDay(today).getTime()
+
+		const buttons: FooterButton[] = []
+
+		if (value != null) buttons.push('clear')
+
+		if (todayInRange) buttons.push('today')
+
+		return buttons
+	}, [value, min, max])
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,

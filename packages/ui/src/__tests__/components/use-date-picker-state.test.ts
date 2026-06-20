@@ -102,6 +102,22 @@ describe('useDatePickerState', () => {
 			expect(onChange.mock.calls[0]?.[0]).toBeInstanceOf(Date)
 			expect(result.current.open).toBe(false)
 		})
+
+		it('clamps the today selection to max when today is out of range', () => {
+			const onChange = vi.fn()
+
+			const max = new Date(2020, 0, 1)
+
+			const { result } = renderHook(() => useDatePickerState({ max, onValueChange: onChange }))
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.footer.onToday())
+
+			const committed = onChange.mock.calls[0]?.[0] as Date
+
+			expect(committed.getTime()).toBe(max.getTime())
+		})
 	})
 
 	describe('selection in controlled mode', () => {
@@ -236,6 +252,12 @@ describe('useDatePickerState', () => {
 			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(result.current.footer.footerButtons).toEqual(['clear', 'today'])
+		})
+
+		it('omits "today" when today is outside the min/max range', () => {
+			const { result } = renderHook(() => useDatePickerState({ max: new Date(2020, 0, 1) }))
+
+			expect(result.current.footer.footerButtons).toEqual([])
 		})
 	})
 })
