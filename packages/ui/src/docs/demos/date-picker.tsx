@@ -33,10 +33,6 @@ export function Demo() {
 				<DatePicker input value={typed} onValueChange={setTyped} />
 			</Example>
 
-			<Example title="Not clearable">
-				<DatePicker clearable={false} defaultValue={new Date()} />
-			</Example>
-
 			<Example title="Disabled">
 				<DatePicker disabled placeholder="Cannot select" />
 			</Example>
