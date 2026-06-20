@@ -235,9 +235,6 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						disabled={state.disabled}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}
-						// DatePicker owns its own invalid cascade and anchors the calendar
-						// off this control; keep DateInput's built-in message out of it.
-						invalidMessage={null}
 						suffix={
 							<DatePickerCalendarButton
 								open={state.open}
