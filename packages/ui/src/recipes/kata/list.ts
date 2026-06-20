@@ -27,6 +27,12 @@ const root = defineRecipe({
 	defaults: { variant: 'separated', orientation: 'vertical' },
 })
 
+// Card-like variants share the uniform `ma.p` scale across the density axis;
+// `plain` uses a tighter px/py ratio.
+const cardLikeVariants = ['separated', 'outline', 'solid'] as const
+const densities = ['sm', 'md', 'lg'] as const
+const plainPadding = { sm: 'px-1.5 py-1', md: 'px-2 py-1.5', lg: 'px-2.5 py-2' } as const
+
 const item = defineRecipe({
 	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
@@ -36,9 +42,8 @@ const item = defineRecipe({
 		solid: [...bg.tint, border.default, rounded.lg],
 	},
 	// Row padding is applied via the variant × density compound rules below.
-	// Card-like variants use the uniform `ma.p` scale; `plain` uses a tighter
-	// px/py ratio. Padding utilities live on this compound axis, not the density
-	// axis: tailwind-merge keeps a later `px`/`py` alongside an earlier `p`.
+	// Padding utilities live on this compound axis, not the density axis:
+	// tailwind-merge keeps a later `px`/`py` alongside an earlier `p`.
 	density: { sm: '', md: '', lg: '' },
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],
@@ -49,18 +54,14 @@ const item = defineRecipe({
 		false: '',
 	},
 	compound: [
-		{ variant: 'separated', density: 'sm', class: p.sm },
-		{ variant: 'separated', density: 'md', class: p.md },
-		{ variant: 'separated', density: 'lg', class: p.lg },
-		{ variant: 'outline', density: 'sm', class: p.sm },
-		{ variant: 'outline', density: 'md', class: p.md },
-		{ variant: 'outline', density: 'lg', class: p.lg },
-		{ variant: 'solid', density: 'sm', class: p.sm },
-		{ variant: 'solid', density: 'md', class: p.md },
-		{ variant: 'solid', density: 'lg', class: p.lg },
-		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
-		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
-		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },
+		...cardLikeVariants.flatMap((variant) =>
+			densities.map((density) => ({ variant, density, class: p[density] })),
+		),
+		...densities.map((density) => ({
+			variant: 'plain' as const,
+			density,
+			class: plainPadding[density],
+		})),
 	],
 	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
 })

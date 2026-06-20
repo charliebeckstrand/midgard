@@ -26,7 +26,7 @@
 
 import type { Color } from '../../../core/recipe'
 
-type Pair = readonly [light: string, dark: string]
+import { type Pair, project } from './project'
 
 type ColorRamp = {
 	onSurface: Pair
@@ -62,16 +62,9 @@ const RAMP = {
 	},
 } satisfies Record<Color, ColorRamp>
 
-/** Project one role across every color into the `[light, dark]` map the engine consumes. */
-function project(role: keyof ColorRamp): Record<Color, [light: string, dark: string]> {
-	return Object.fromEntries(
-		(Object.entries(RAMP) as [Color, ColorRamp][]).map(([color, rung]) => [color, [...rung[role]]]),
-	) as Record<Color, [light: string, dark: string]>
-}
-
-export const onSurface = project('onSurface')
-export const onTint = project('onTint')
-export const marker = project('marker')
+export const onSurface = project(RAMP, 'onSurface')
+export const onTint = project(RAMP, 'onTint')
+export const marker = project(RAMP, 'marker')
 
 /** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */
 export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']

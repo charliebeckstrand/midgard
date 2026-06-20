@@ -23,10 +23,9 @@ import { type Color, type ExtendedColor, type PaletteColor, shades } from '../..
 import { bare } from './bare'
 import { outline } from './outline'
 import { plain } from './plain'
+import { type Pair, project } from './project'
 import { soft } from './soft'
 import { solid } from './solid'
-
-type Pair = readonly [light: string, dark: string]
 
 type Ramp = { onSurface: Pair; onTint: Pair }
 
@@ -49,21 +48,11 @@ const RAMP = {
 	},
 } satisfies Record<ExtendedColor, Ramp>
 
-/** Project one role across the extended colours into the engine's `[light, dark]` map. */
-function project(role: keyof Ramp): Record<ExtendedColor, [light: string, dark: string]> {
-	return Object.fromEntries(
-		(Object.entries(RAMP) as [ExtendedColor, Ramp][]).map(([color, rung]) => [
-			color,
-			[...rung[role]],
-		]),
-	) as Record<ExtendedColor, [light: string, dark: string]>
-}
-
 /** Extended foreground on the page / card surface; bare text and the future intent of these hues. */
-export const onSurface = project('onSurface')
+export const onSurface = project(RAMP, 'onSurface')
 
 /** Extended foreground on the 15% soft fill; plain / soft / outline text. */
-export const onTint = project('onTint')
+export const onTint = project(RAMP, 'onTint')
 
 /** Merge a standard per-colour slot with its extended counterpart into the wide-keyed map. */
 function wide(
