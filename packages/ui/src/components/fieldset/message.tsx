@@ -107,7 +107,7 @@ export function Message({
 
 	const elementId = resolveMessageElementId(id, variant, control)
 
-	const className_ = cn(k.message({ size, variant }), className)
+	const classes = cn(k.message({ size, variant }), className)
 
 	// Errors use `role="alert"` (assertive); success feedback uses `role="status"` (polite).
 	const role = variant === 'error' ? 'alert' : 'status'
@@ -118,13 +118,7 @@ export function Message({
 		const keyed = keyByOccurrence(issues)
 
 		return (
-			<ul
-				data-slot="message"
-				data-variant={variant}
-				id={elementId}
-				role={role}
-				className={className_}
-			>
+			<ul data-slot="message" data-variant={variant} id={elementId} role={role} className={classes}>
 				{keyed.map(({ key, value }) => (
 					<li key={key}>{value}</li>
 				))}
@@ -140,7 +134,7 @@ export function Message({
 			data-variant={variant}
 			id={elementId}
 			role={role}
-			className={className_}
+			className={classes}
 			{...props}
 		>
 			{content}

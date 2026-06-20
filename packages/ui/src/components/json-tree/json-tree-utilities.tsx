@@ -38,6 +38,24 @@ export function getEntries(value: JsonValue): [string | number, JsonValue][] {
 	return []
 }
 
+/**
+ * Escape a node-path segment so the `.` join separator is unambiguous: a key
+ * that literally contains `.` (or the `\` escape char) can no longer masquerade
+ * as a deeper path. A no-op for ordinary keys, so existing path strings are
+ * unchanged. Without this, `{ "a.b": 1 }` and `{ a: { b: 1 } }` collide on the
+ * same path, cross-wiring their expand state and React keys.
+ *
+ * @internal
+ */
+export function encodePathSegment(key: string | number): string {
+	return String(key).replace(/[\\.]/g, '\\$&')
+}
+
+/** Compose a child node path from its parent path and (escaped) key. @internal */
+export function joinPath(parentPath: string, childKey: string | number): string {
+	return `${parentPath}.${encodePathSegment(childKey)}`
+}
+
 /** True when a node's key or scalar value contains `term` (case-insensitive); branch values never match directly. @internal */
 export function matchesSearch(key: string | number | undefined, value: JsonValue, term: string) {
 	if (!term) return false
@@ -125,11 +143,11 @@ export function collectMatchPaths(
 		paths.add(path)
 
 		for (const [childKey, childValue] of getEntries(value)) {
-			walk(childValue, `${path}.${childKey}`)
+			walk(childValue, joinPath(path, childKey))
 		}
 	}
 
-	if (isBranch(data)) walk(data, String(rootKey ?? '$'))
+	if (isBranch(data)) walk(data, encodePathSegment(rootKey ?? '$'))
 
 	return paths
 }
@@ -148,12 +166,12 @@ export function collectPaths(
 		paths.add(path)
 
 		for (const [childKey, childValue] of getEntries(value)) {
-			walk(childValue, `${path}.${childKey}`, depth + 1)
+			walk(childValue, joinPath(path, childKey), depth + 1)
 		}
 	}
 
 	if (isBranch(data)) {
-		const rootPath = String(rootKey ?? '$')
+		const rootPath = encodePathSegment(rootKey ?? '$')
 
 		walk(data, rootPath, 0)
 	}
@@ -265,7 +283,7 @@ export function flattenTree({
 		if (!open) return
 
 		for (const [childKey, childValue] of entries) {
-			const childPath = `${path}.${childKey}`
+			const childPath = joinPath(path, childKey)
 
 			walk(childValue, childKey, childPath, depth + 1)
 		}
@@ -273,7 +291,7 @@ export function flattenTree({
 		out.push({ type: 'branch-close', path, depth, value })
 	}
 
-	walk(data, rootKey, String(rootKey ?? '$'), 0)
+	walk(data, rootKey, encodePathSegment(rootKey ?? '$'), 0)
 
 	return out
 }

@@ -3,10 +3,12 @@ import {
 	buildSearchIndex,
 	collectMatchPaths,
 	collectPaths,
+	encodePathSegment,
 	filterEntries,
 	flattenTree,
 	getEntries,
 	isBranch,
+	joinPath,
 	matchesSearch,
 	normalizeSearch,
 	treeContainsMatch,
@@ -198,6 +200,36 @@ describe('collectPaths', () => {
 
 	it('uses the supplied root key', () => {
 		expect(collectPaths({ a: 1 }, 'data').has('data')).toBe(true)
+	})
+
+	it('does not collide a dotted key with a genuine nested path', () => {
+		// The nested branch $.a.b and the sibling whose key is literally "a.b"
+		// must resolve to distinct paths, or their expand state cross-wires.
+		const paths = collectPaths({ a: { b: { x: 1 } }, 'a.b': { y: 2 } })
+
+		expect(paths.has('$.a.b')).toBe(true) // a → b nested branch
+
+		expect(paths.has('$.a\\.b')).toBe(true) // the "a.b" sibling branch
+
+		expect(paths.size).toBe(4) // $, $.a, $.a.b, $.a\.b
+	})
+})
+
+describe('joinPath / encodePathSegment', () => {
+	it('joins ordinary keys without escaping', () => {
+		expect(joinPath('$', 'a')).toBe('$.a')
+
+		expect(joinPath('$.a', 'b')).toBe('$.a.b')
+
+		expect(encodePathSegment('a')).toBe('a')
+	})
+
+	it('escapes the separator so a dotted key cannot masquerade as a nested path', () => {
+		expect(joinPath('$', 'a.b')).toBe('$.a\\.b')
+
+		expect(joinPath('$', 'a.b')).not.toBe(joinPath(joinPath('$', 'a'), 'b'))
+
+		expect(encodePathSegment('a\\b')).toBe('a\\\\b')
 	})
 })
 

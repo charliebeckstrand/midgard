@@ -1,6 +1,6 @@
 # shared
 
-Cross-app utilities and CSS.
+Cross-app auth and chat UI, plus CSS themes.
 
 ## 0. Prerequisites
 
@@ -10,8 +10,8 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `shared/auth` | App-level auth helpers built on `auth`. |
-| `shared/chat` | Chat client utilities (event-stream parser, textarea autosize wiring). |
+| `shared/auth` | Auth UI built on `auth`: `LoginPage`, `RegisterPage`. |
+| `shared/chat` | Chat client: `ChatLayout`, `ChatMessages`, `useChat` / `useSendMessage` (SSE stream parser), `Chat` / `ChatContent` types. |
 | `shared/theme.css` | Theme tokens. |
 | `shared/globals.css` | Global resets and base styles. |
 

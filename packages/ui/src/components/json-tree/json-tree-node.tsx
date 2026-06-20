@@ -8,7 +8,14 @@ import { JsonTreeContext, useJsonTreeContext } from './context'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
-import { filterEntries, getEntries, isBranch, matchesSearch } from './json-tree-utilities'
+import {
+	encodePathSegment,
+	filterEntries,
+	getEntries,
+	isBranch,
+	joinPath,
+	matchesSearch,
+} from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { toggleExpandedSet } from './use-json-tree-expansion'
 
@@ -66,7 +73,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 		onExpandedChange,
 	} = useJsonTreeContext()
 
-	const nodePath = path ? `${path}.${keyName ?? '$'}` : String(keyName ?? '$')
+	const nodePath = path ? joinPath(path, keyName ?? '$') : encodePathSegment(keyName ?? '$')
 
 	const controlled = expanded !== undefined
 

@@ -9,7 +9,7 @@ the public API) and **audits** (point-in-time sweeps).
 ## Structure
 
 - **Curated surface references** — one per public surface, kept current with the
-  code: [`COMPONENTS.md`](COMPONENTS.md), [`HOOKS.md`](HOOKS.md),
+  code: [`COMPONENTS.md`](COMPONENTS.md), [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
   [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`UTILITIES.md`](UTILITIES.md).
   Each lists its surface for quick glance; every category but components carries a

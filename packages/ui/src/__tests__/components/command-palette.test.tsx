@@ -96,6 +96,31 @@ describe('CommandPalette active descendant', () => {
 		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
+	it('reserves End for the input caret instead of jumping the highlight to the last option', async () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const input = screen.getByRole('combobox') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.keyboard('{ArrowDown}')
+
+		const options = screen.getAllByRole('option')
+
+		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+
+		await user.keyboard('{End}')
+
+		// End belongs to the textbox caret; routed to roving it would move the
+		// highlight to the last option (Beta). The guard keeps it on Alpha.
+		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+	})
+
 	it('moves the active item to the top result when the filter changes', async () => {
 		renderUI(<FilteredPalette />)
 
