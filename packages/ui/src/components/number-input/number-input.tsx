@@ -149,7 +149,7 @@ export function NumberInput({
 			suffix={
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
-						variant="plain"
+						variant="bare"
 						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMin}
@@ -159,7 +159,7 @@ export function NumberInput({
 						<Icon icon={<Minus />} />
 					</Button>
 					<Button
-						variant="plain"
+						variant="bare"
 						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMax}

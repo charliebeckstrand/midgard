@@ -9,27 +9,12 @@ export function Demo() {
 		<>
 			<Example title="Variants">
 				<Field>
-					<Label htmlFor="password-default">Password</Label>
+					<Label htmlFor="password-default">Default</Label>
 					<PasswordInput id="password-default" placeholder="Enter password" />
 				</Field>
 				<Field>
 					<Label htmlFor="password-outline">Outline</Label>
 					<PasswordInput id="password-outline" variant="outline" placeholder="Enter password" />
-				</Field>
-			</Example>
-
-			<Example title="Sizes">
-				<Field>
-					<Label>Small</Label>
-					<PasswordInput size="sm" placeholder="Small input" />
-				</Field>
-				<Field>
-					<Label>Medium</Label>
-					<PasswordInput size="md" placeholder="Medium input" />
-				</Field>
-				<Field>
-					<Label>Large</Label>
-					<PasswordInput size="lg" placeholder="Large input" />
 				</Field>
 			</Example>
 
@@ -61,14 +46,21 @@ export function Demo() {
 			<Example title="Invalid">
 				<Field>
 					<Label>Invalid</Label>
-					<PasswordInput data-invalid placeholder="Invalid input" />
+					<PasswordInput data-invalid placeholder="Enter password" />
 				</Field>
 			</Example>
 
 			<Example title="Valid">
 				<Field>
 					<Label>Valid</Label>
-					<PasswordInput data-valid placeholder="Valid input" />
+					<PasswordInput data-valid placeholder="Enter password" />
+				</Field>
+			</Example>
+
+			<Example title="Warning">
+				<Field>
+					<Label>Warning</Label>
+					<PasswordInput data-warning placeholder="Enter password" />
 				</Field>
 			</Example>
 		</>

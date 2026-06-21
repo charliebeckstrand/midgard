@@ -1,4 +1,4 @@
-import { Check, Command, Hash, Lock, Search, Share } from 'lucide-react'
+import { Check, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -6,6 +6,7 @@ import { Example } from '../components/example'
 import { capitalize } from '../components/format'
 
 const variants = ['default', 'outline'] as const
+const sizes = ['sm', 'md', 'lg'] as const
 
 export function Demo() {
 	return (
@@ -14,28 +15,18 @@ export function Demo() {
 				{variants.map((variant) => (
 					<Field key={variant}>
 						<Label htmlFor={`input-${variant}`}>{capitalize(variant)}</Label>
-						<Input
-							id={`input-${variant}`}
-							variant={variant}
-							placeholder={`This is a ${variant} input`}
-						/>
+						<Input id={`input-${variant}`} variant={variant} />
 					</Field>
 				))}
 			</Example>
 
 			<Example title="Sizes">
-				<Field>
-					<Label>Small</Label>
-					<Input size="sm" placeholder="Small input" />
-				</Field>
-				<Field>
-					<Label>Medium</Label>
-					<Input size="md" placeholder="Medium input" />
-				</Field>
-				<Field>
-					<Label>Large</Label>
-					<Input size="lg" placeholder="Large input" />
-				</Field>
+				{sizes.map((size) => (
+					<Field key={size}>
+						<Label htmlFor={`input-size-${size}`}>{capitalize(size)}</Label>
+						<Input id={`input-size-${size}`} size={size} />
+					</Field>
+				))}
 			</Example>
 
 			<Example title="Prefix">
@@ -47,27 +38,6 @@ export function Demo() {
 			<Example title="Suffix">
 				<Input suffix={<Icon icon={<Check />} />} placeholder="Verified" />
 				<Input suffix={<Icon icon={<Share />} />} placeholder="Share" />
-			</Example>
-
-			<Example title="Prefix and suffix">
-				<Input
-					size="sm"
-					prefix={<Icon icon={<Search />} />}
-					suffix={<Icon icon={<Command />} />}
-					placeholder="Small"
-				/>
-				<Input
-					size="md"
-					prefix={<Icon icon={<Search />} />}
-					suffix={<Icon icon={<Command />} />}
-					placeholder="Medium"
-				/>
-				<Input
-					size="lg"
-					prefix={<Icon icon={<Search />} />}
-					suffix={<Icon icon={<Command />} />}
-					placeholder="Large"
-				/>
 			</Example>
 
 			<Example title="Disabled">
@@ -87,14 +57,21 @@ export function Demo() {
 			<Example title="Invalid">
 				<Field>
 					<Label>Invalid</Label>
-					<Input data-invalid placeholder="Invalid input" />
+					<Input data-invalid placeholder="Something went wrong" />
 				</Field>
 			</Example>
 
 			<Example title="Valid">
 				<Field>
 					<Label>Valid</Label>
-					<Input data-valid placeholder="Valid input" />
+					<Input data-valid placeholder="Everything is fine" />
+				</Field>
+			</Example>
+
+			<Example title="Warning">
+				<Field>
+					<Label>Warning</Label>
+					<Input data-warning placeholder="Something might be wrong" />
 				</Field>
 			</Example>
 		</>

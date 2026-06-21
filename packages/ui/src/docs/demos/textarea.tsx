@@ -45,23 +45,11 @@ function WithActionsExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="Default">
-				<Field>
-					<Label htmlFor="textarea-message">Message</Label>
-					<Textarea id="textarea-message" resize="vertical" placeholder="Write your message" />
-				</Field>
-			</Example>
-
 			<Example title="Variants">
 				{variants.map((variant) => (
 					<Field key={variant}>
 						<Label htmlFor={`textarea-${variant}`}>{capitalize(variant)}</Label>
-						<Textarea
-							id={`textarea-${variant}`}
-							variant={variant}
-							resize="vertical"
-							placeholder={`This is a ${variant} textarea`}
-						/>
+						<Textarea id={`textarea-${variant}`} variant={variant} resize="vertical" />
 					</Field>
 				))}
 			</Example>
@@ -70,20 +58,9 @@ export function Demo() {
 				{sizes.map((size) => (
 					<Field key={size}>
 						<Label htmlFor={`textarea-size-${size}`}>{capitalize(size)}</Label>
-						<Textarea
-							id={`textarea-size-${size}`}
-							size={size}
-							placeholder={`This is a ${size} textarea`}
-						/>
+						<Textarea id={`textarea-size-${size}`} size={size} />
 					</Field>
 				))}
-			</Example>
-
-			<Example title="Non-resizable">
-				<Field>
-					<Label htmlFor="textarea-non-resizable">Non-resizable</Label>
-					<Textarea id="textarea-non-resizable" placeholder="Cannot resize" />
-				</Field>
 			</Example>
 
 			<Example title="Auto resize">
@@ -101,6 +78,24 @@ export function Demo() {
 				<Field>
 					<Label htmlFor="textarea-invalid">Invalid</Label>
 					<Textarea id="textarea-invalid" data-invalid={true} placeholder="Something went wrong" />
+				</Field>
+			</Example>
+
+			<Example title="Valid">
+				<Field>
+					<Label htmlFor="textarea-valid">Valid</Label>
+					<Textarea id="textarea-valid" data-valid={true} placeholder="Everything is fine" />
+				</Field>
+			</Example>
+
+			<Example title="Warning">
+				<Field>
+					<Label htmlFor="textarea-warning">Warning</Label>
+					<Textarea
+						id="textarea-warning"
+						data-warning={true}
+						placeholder="Something might be wrong"
+					/>
 				</Field>
 			</Example>
 		</>

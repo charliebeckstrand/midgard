@@ -54,6 +54,7 @@ function ComposedExample() {
 						initial: 'col',
 						sm: 'row',
 					}}
+					align="start"
 				>
 					<Field className="w-full">
 						<Label>Expiry</Label>
@@ -100,21 +101,6 @@ export function Demo() {
 
 			<ControlledExample />
 
-			<Example title="Sizes">
-				<Field>
-					<Label>Small</Label>
-					<CreditCardInput size="sm" />
-				</Field>
-				<Field>
-					<Label>Medium</Label>
-					<CreditCardInput size="md" />
-				</Field>
-				<Field>
-					<Label>Large</Label>
-					<CreditCardInput size="lg" />
-				</Field>
-			</Example>
-
 			<Example title="Disabled">
 				<Field>
 					<Label>Disabled</Label>
@@ -126,7 +112,7 @@ export function Demo() {
 				<Field>
 					<Label>Card number</Label>
 					<CreditCardInput defaultValue="4242424242424241" />
-					<Message variant="error">Enter a valid card number.</Message>
+					<Message variant="error">Enter a valid card number</Message>
 				</Field>
 			</Example>
 		</>

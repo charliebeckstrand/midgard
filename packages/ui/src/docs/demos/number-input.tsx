@@ -30,21 +30,6 @@ export function Demo() {
 				</Field>
 			</Example>
 
-			<Example title="Sizes">
-				<Field>
-					<Label>Small</Label>
-					<NumberInput size="sm" defaultValue={1} />
-				</Field>
-				<Field>
-					<Label>Medium</Label>
-					<NumberInput size="md" defaultValue={1} />
-				</Field>
-				<Field>
-					<Label>Large</Label>
-					<NumberInput size="lg" defaultValue={1} />
-				</Field>
-			</Example>
-
 			<ControlledExample />
 
 			<Example title="Disabled">
@@ -65,6 +50,13 @@ export function Demo() {
 				<Field>
 					<Label>Valid</Label>
 					<NumberInput data-valid defaultValue={1} />
+				</Field>
+			</Example>
+
+			<Example title="Warning">
+				<Field>
+					<Label>Warning</Label>
+					<NumberInput data-warning defaultValue={1} />
 				</Field>
 			</Example>
 		</>

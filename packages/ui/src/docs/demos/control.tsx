@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { Fieldset, Label, Legend, Message } from '../../components/fieldset'
+import { Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
-import { Textarea } from '../../components/textarea'
 import { Example } from '../components/example'
 
 function RequiredExample() {
@@ -32,8 +31,6 @@ function RequiredExample() {
 }
 
 export function Demo() {
-	const [disabled, setDisabled] = useState(false)
-
 	return (
 		<>
 			<Alert severity="info" variant="soft" closable>
@@ -66,35 +63,6 @@ export function Demo() {
 					<Label>Email</Label>
 					<Input placeholder="jane@example.com" />
 				</Control>
-			</Example>
-
-			<Example title="Disabled fieldset">
-				<Fieldset>
-					<Legend>Profile</Legend>
-					<Stack gap="lg">
-						<Control disabled={disabled}>
-							<Label>Name</Label>
-							<Input placeholder="Jane Smith" />
-						</Control>
-						<Control disabled={disabled}>
-							<Label>Email</Label>
-							<Input type="email" placeholder="jane@example.com" />
-						</Control>
-						<Control disabled={disabled}>
-							<Label>Bio</Label>
-							<Textarea placeholder="Tell us about yourself" />
-						</Control>
-						<div>
-							<Button
-								variant="soft"
-								color={disabled ? 'green' : 'red'}
-								onClick={() => setDisabled((d) => !d)}
-							>
-								{disabled ? 'Enable' : 'Disable'} fields
-							</Button>
-						</div>
-					</Stack>
-				</Fieldset>
 			</Example>
 
 			<Example title="Read-only">
