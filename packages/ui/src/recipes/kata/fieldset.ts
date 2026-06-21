@@ -1,8 +1,8 @@
 /**
  * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
  * primitives. Size-axed sub-recipes carry `legend`, `label`, and `description`;
- * `message` adds an error/success variant axis. The `base` and `field` slots
- * are static, threading the disabled state down through the group.
+ * `message` adds an error/warning/success severity axis. The `base` and `field`
+ * slots are static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi } from '../kiso'
@@ -46,12 +46,12 @@ const message = defineRecipe({
 		md: size.md,
 		lg: size.lg,
 	},
-	variant: {
+	severity: {
 		error: text.error,
 		warning: text.warning,
 		success: text.success,
 	},
-	defaults: { size: 'md', variant: 'error' },
+	defaults: { size: 'md', severity: 'error' },
 })
 
 const legend = defineRecipe({
