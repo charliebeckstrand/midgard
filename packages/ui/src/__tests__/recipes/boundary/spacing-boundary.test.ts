@@ -46,7 +46,11 @@ const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
  * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) must appear
  * in source; Tailwind variants can't move behind the kasane helpers.
  */
-const RAW_CALC_ALLOWLIST = new Set(['recipes/kiso/control/affix.ts', 'recipes/kata/button.ts'])
+const RAW_CALC_ALLOWLIST = new Set([
+	'recipes/kiso/control/affix.ts',
+	'recipes/kata/button.ts',
+	'recipes/kata/tag-input.ts',
+])
 
 describe('spacing boundary', () => {
 	it('no file outside the allowlist uses the legacy renamed spacing utilities', () => {

@@ -3,7 +3,9 @@
 import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useRef, useState } from 'react'
 import { useComposedRef } from '../../hooks'
+import { useControlSize } from '../../primitives/density'
 import type { Color } from '../../recipes'
+import { k } from '../../recipes/kata/tag-input'
 import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
@@ -87,6 +89,9 @@ export function TagInput({
 
 	const setRefs = useComposedRef(inputRef, ref)
 
+	// The tag row rides the control's density; resolve the step to pad it.
+	const { space } = useControlSize(size)
+
 	const { tags, atMax, addTag, removeTag, setTouched, invalid } = useTagInput({
 		name,
 		value,
@@ -133,7 +138,7 @@ export function TagInput({
 
 	const badges =
 		tags.length > 0 ? (
-			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap>
+			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap className={k.tags[space]}>
 				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge
 						key={key}
