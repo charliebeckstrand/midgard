@@ -74,10 +74,10 @@ export const k = defineRecipe(
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 			...mode(
-				'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300',
-				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15',
+				'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300 not-has-[:disabled]:not-has-[:checked]:group-hover/field:bg-zinc-300',
+				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15 dark:not-has-[:disabled]:not-has-[:checked]:group-hover/field:bg-white/15',
 			),
-			'not-has-[:disabled]:has-checked:hover:opacity-90',
+			'not-has-[:disabled]:has-checked:hover:opacity-90 not-has-[:disabled]:has-checked:group-hover/field:opacity-90',
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 		],
 		color,
