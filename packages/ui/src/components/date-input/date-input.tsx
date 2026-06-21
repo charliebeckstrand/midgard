@@ -294,20 +294,33 @@ function dateInputSuffix({
 
 	if (!clearable || !hasValue || disabled || readOnly) return resolved
 
-	return (
+	const clear = (
+		<Button
+			variant="bare"
+			className="pointer-events-auto"
+			aria-label="Clear date"
+			// Keep focus on the input: a blur here would run the field's
+			// commit-on-blur over a partial entry before the clear lands.
+			onMouseDown={(event) => event.preventDefault()}
+			onClick={onClear}
+		>
+			<Icon icon={<X />} />
+		</Button>
+	)
+
+	// The default decorative calendar icon yields to the clear (mirroring
+	// Listbox/Combobox), so the trailing glyph holds its place rather than the
+	// icon sliding over to make room for the clear. A consumer-provided suffix —
+	// the DatePicker's calendar button in `input` mode — stays alongside instead;
+	// both being bare buttons, the affix slot's padding is unchanged either way.
+	const ownSuffix = suffix != null && suffix !== false
+
+	return ownSuffix ? (
 		<>
-			<Button
-				variant="bare"
-				className="pointer-events-auto"
-				aria-label="Clear date"
-				// Keep focus on the input: a blur here would run the field's
-				// commit-on-blur over a partial entry before the clear lands.
-				onMouseDown={(event) => event.preventDefault()}
-				onClick={onClear}
-			>
-				<Icon icon={<X />} />
-			</Button>
-			{resolved}
+			{clear}
+			{suffix}
 		</>
+	) : (
+		clear
 	)
 }
