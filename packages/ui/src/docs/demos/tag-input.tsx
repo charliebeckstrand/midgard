@@ -14,25 +14,6 @@ function DefaultTagInputExample() {
 	)
 }
 
-function SizedTagInputsExample() {
-	return (
-		<>
-			<Field>
-				<Label>Small</Label>
-				<TagInput size="sm" defaultValue={['Alpha', 'Beta']} placeholder="Add a tag" />
-			</Field>
-			<Field>
-				<Label>Medium</Label>
-				<TagInput size="md" defaultValue={['Alpha', 'Beta']} placeholder="Add a tag" />
-			</Field>
-			<Field>
-				<Label>Large</Label>
-				<TagInput size="lg" defaultValue={['Alpha', 'Beta']} placeholder="Add a tag" />
-			</Field>
-		</>
-	)
-}
-
 function MaxTagInputExample() {
 	const [tags, setTags] = useState<string[]>(['One', 'Two', 'Three'])
 
@@ -54,10 +35,6 @@ export function Demo() {
 		<>
 			<Example title="Default">
 				<DefaultTagInputExample />
-			</Example>
-
-			<Example title="Sizes">
-				<SizedTagInputsExample />
 			</Example>
 
 			<Example title="Max tags">

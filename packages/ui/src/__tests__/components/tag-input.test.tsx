@@ -1,4 +1,4 @@
-import { createRef, type ReactElement, useState } from 'react'
+import { createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
@@ -177,52 +177,19 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
-		// At max the input is disabled; removing a tag re-enables it and the
-		// onMaxReleased path restores focus once it can hold focus again.
-		expect(input).toBeDisabled()
+		// At the cap the field is read-only, not disabled, so it stays focusable;
+		// removing a tag clears the cap and returns focus to the input.
+		expect(input).not.toBeDisabled()
+
+		expect(input).toHaveAttribute('readonly')
 
 		const user = userEvent.setup()
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
 		await waitFor(() => expect(document.activeElement).toBe(getInput(container)))
-	})
 
-	it('does not steal focus on a later release after a controlled parent rejects a removal', async () => {
-		function RejectingParent() {
-			const [value, setValue] = useState(['a', 'b'])
-
-			return (
-				<>
-					{/* The parent rejects the removal: it re-commits the same tags, so
-					    atMax never releases and the refocus flag must die on that render,
-					    not survive to the next release. */}
-					<TagInput value={value} max={2} onValueChange={() => setValue((prev) => [...prev])} />
-					<button type="button" onClick={() => setValue(['b'])}>
-						release
-					</button>
-				</>
-			)
-		}
-
-		const { container } = renderUI(<RejectingParent />)
-
-		const user = userEvent.setup()
-
-		await user.click(getRemoveButtons(container)[0] as Element)
-
-		// Rejected removal: still at max, input still disabled.
-		expect(getInput(container)).toBeDisabled()
-
-		// An unrelated later release re-enables the input; focus stays where the
-		// user put it instead of being stolen by the stale flag.
-		const release = screen.getByRole('button', { name: 'release' })
-
-		await user.click(release)
-
-		expect(getInput(container)).toBeEnabled()
-
-		expect(document.activeElement).toBe(release)
+		expect(getInput(container)).not.toHaveAttribute('readonly')
 	})
 
 	it('makes each tag badge focusable', () => {
@@ -322,7 +289,7 @@ describe('TagInput', () => {
 		expect(onChange).toHaveBeenCalledWith(['react'])
 	})
 
-	it('respects max tag limit', async () => {
+	it('goes read-only at the cap, keeping the control enabled and tags removable', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
@@ -331,11 +298,21 @@ describe('TagInput', () => {
 
 		const input = getInput(container)
 
+		// At the cap the field is read-only rather than disabled, so the control
+		// isn't greyed and the tags stay removable; the Add button is disabled.
+		expect(input).toHaveAttribute('readonly')
+
+		expect(input).not.toBeDisabled()
+
+		const addButton = bySlot(container, 'suffix')?.querySelector('button') as HTMLButtonElement
+
+		expect(addButton).toBeDisabled()
+
 		const user = userEvent.setup()
 
-		await user.type(input, 'c{Enter}')
+		await user.click(getRemoveButtons(container)[0] as Element)
 
-		expect(onChange).not.toHaveBeenCalled()
+		expect(onChange).toHaveBeenCalledWith(['b'])
 	})
 
 	it('respects validate function', async () => {
