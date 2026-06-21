@@ -5,7 +5,7 @@ import { ZipcodeInput } from '../../components/zipcode-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('ZipcodeInput', () => {
-	it('renders an input with data-slot="zipcode-input"', () => {
+	it('renders an input with data-slot="zipcode-input" and a map-pin icon prefix by default', () => {
 		const { container } = renderUI(<ZipcodeInput />)
 
 		const input = bySlot(container, 'zipcode-input')
@@ -13,6 +13,16 @@ describe('ZipcodeInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input?.tagName).toBe('INPUT')
+
+		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+	})
+
+	it('renders a custom prefix in place of the default map-pin icon', () => {
+		const { container } = renderUI(
+			<ZipcodeInput prefix={<span data-testid="custom-prefix">ZIP</span>} />,
+		)
+
+		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
 	})
 
 	it('forwards ref', () => {
