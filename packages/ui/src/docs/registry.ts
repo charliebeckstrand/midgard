@@ -2,10 +2,9 @@ import apiData from 'virtual:api-reference'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
+import type { DemoMeta } from './demo-meta'
 
 // Lazy demo loaders (no demo code loaded until navigated to)
-
-type DemoMeta = { name?: string }
 
 /** Which sidebar list a demo belongs to, derived from its `demos/` subfolder. */
 export type DemoCategory = 'component' | 'page' | 'provider'

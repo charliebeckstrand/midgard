@@ -13,7 +13,9 @@ declare module 'virtual:component-modules' {
 }
 
 declare module 'virtual:demo-metas' {
-	const data: Record<string, { name?: string }>
+	import type { DemoMeta } from './demo-meta'
+
+	const data: Record<string, DemoMeta>
 
 	export default data
 }

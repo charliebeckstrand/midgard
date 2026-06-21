@@ -136,7 +136,7 @@ describe('collectSnippetImports', () => {
 		expect(context.imports.get('react')).toEqual(new Set(['useState']))
 	})
 
-	it('collects React 19 hooks (use, useActionState, useOptimistic, useFormStatus)', () => {
+	it('collects React 19 hooks, attributing react-dom hooks to react-dom', () => {
 		const context = makeContext({ byName: new Map() })
 
 		const body = [
@@ -156,7 +156,10 @@ describe('collectSnippetImports', () => {
 
 		expect(reactImports).toContain('useOptimistic')
 
-		expect(reactImports).toContain('useFormStatus')
+		// `useFormStatus` is a react-dom export, not react.
+		expect(context.imports.get('react-dom')).toContain('useFormStatus')
+
+		expect(reactImports).not.toContain('useFormStatus')
 	})
 
 	it('does not mistake method calls for React hooks (lookbehind on `.`)', () => {
