@@ -32,6 +32,8 @@
 
 3.6 Before committing anything, verify the cadence. For reference, see [CADENCE.md](CADENCE.md).
 
+3.7 When writing comments, consult the [`documentation`](.claude/skills/documentation/SKILL.md) skill, and the [`jsdoc-tsdoc`](.claude/skills/jsdoc-tsdoc/SKILL.md) (TypeScript) or [`jsdoc`](.claude/skills/jsdoc/SKILL.md) (JavaScript) skill.
+
 ## 4. Version Control
 
 4.1 For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
