@@ -17,8 +17,11 @@ import {
 	SidebarSection,
 } from '../../components/sidebar'
 import { Text } from '../../components/text'
+import { cn } from '../../core'
 import { useScrollWithin } from '../../hooks'
+import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import { k } from '../../recipes/kata/sidebar'
 import { navigate } from '../hooks/use-hash'
 import { type Demo, type DemoCategory, demos, preloadDemo } from '../registry'
 
@@ -111,6 +114,9 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const scrollWithin = useScrollWithin()
 
+	// Aligns each section label with item text at the active density.
+	const { size } = useDensity()
+
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
 	const [direction, setDirection] = useState<SortDirection>('desc')
@@ -184,7 +190,10 @@ export function SidebarContent({ route }: { route: string }) {
 
 					return (
 						<SidebarSection key={category}>
-							<Text severity="muted" className="text-xs uppercase tracking-wide">
+							<Text
+								severity="muted"
+								className={cn('mb-2 text-xs uppercase tracking-wide', k.sectionLabel[size])}
+							>
 								{label}
 							</Text>
 							<SidebarList aria-label={label}>
