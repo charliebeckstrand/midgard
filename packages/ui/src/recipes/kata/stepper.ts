@@ -38,7 +38,12 @@ const title = defineRecipe({
 				'group-data-[state=current]:text-zinc-950',
 				'dark:group-data-[state=current]:text-white',
 			),
-			'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-500',
+			// Non-current titles brighten on hover, mirroring the dot. The resting
+			// shade stays AA-legible (the dot's dimmer shade would fail text contrast).
+			...mode(
+				'group-enabled:group-hover:group-not-data-[state=current]:text-zinc-600',
+				'dark:group-enabled:group-hover:group-not-data-[state=current]:text-zinc-300',
+			),
 		],
 		false: '',
 	},
