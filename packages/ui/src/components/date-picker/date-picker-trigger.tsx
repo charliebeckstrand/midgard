@@ -8,10 +8,10 @@ import { useIsTruncated } from '../../hooks'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
@@ -115,7 +115,7 @@ export function DatePickerTrigger({
 				data-group-orientation={dataGroupOrientation}
 				className={cn('', k.surface[glass ? 'glass' : 'default'])}
 			>
-				<Headless>
+				<HeadlessProvider>
 					<Button
 						ref={triggerButtonRef}
 						type="button"
@@ -147,7 +147,7 @@ export function DatePickerTrigger({
 							</span>
 						)}
 					</Button>
-				</Headless>
+				</HeadlessProvider>
 				{showClear && (
 					<AffixContext value={affixStepDown(size)}>
 						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>

@@ -3,10 +3,10 @@
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { Headless } from '../headless'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -60,7 +60,7 @@ export function ColorPickerTrigger({
 				data-group-orientation={dataGroupOrientation}
 				className={cn(k.surface[glass ? 'glass' : 'default'])}
 			>
-				<Headless>
+				<HeadlessProvider>
 					<Button
 						type="button"
 						id={triggerId}
@@ -84,7 +84,7 @@ export function ColorPickerTrigger({
 							{label}
 						</span>
 					</Button>
-				</Headless>
+				</HeadlessProvider>
 			</ControlFrame>
 		</div>
 	)

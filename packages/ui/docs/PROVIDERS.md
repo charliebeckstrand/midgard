@@ -41,6 +41,17 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |
 | `useResolvedSurface` | Resolves a chrome panel's `surface` variant, falling back to `'glass'` when the prop or ambient flag is set. |
 
+## `ui/providers/headless`
+
+Escape hatch that strips chrome from headless-aware descendants so they render the bare semantic element.
+
+| Export | Summary |
+|---|---|
+| `HeadlessProvider` | Escape-hatch provider that strips chrome from headless-aware descendants so they render the bare semantic element. |
+| `HeadlessProviderProps` *(type)* | Props for `HeadlessProvider`. |
+| `HeadlessContext` | Ambient headless-mode context (default `false`); read via `useHeadless()` at the leaf. |
+| `useHeadless` | Reads the ambient headless flag; `false` outside a `<HeadlessProvider>`. |
+
 ## `ui/providers/locale`
 
 Broadcasts i18n defaults; explicit component props still win.

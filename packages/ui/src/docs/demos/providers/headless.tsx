@@ -1,9 +1,9 @@
 import { Button } from '../../../components/button'
 import { Field, Label } from '../../../components/fieldset'
 import { Flex } from '../../../components/flex'
-import { Headless } from '../../../components/headless'
 import { Input } from '../../../components/input'
 import { Stack } from '../../../components/stack'
+import { HeadlessProvider } from '../../../providers/headless'
 import { Example } from '../../components/example'
 
 export const meta = { name: 'Headless Provider' }
@@ -19,9 +19,9 @@ export function Demo() {
 					</Field>
 					<Field>
 						<Label>Bare element</Label>
-						<Headless>
+						<HeadlessProvider>
 							<Input placeholder="Bare input" />
-						</Headless>
+						</HeadlessProvider>
 					</Field>
 				</Stack>
 			</Example>
@@ -29,9 +29,9 @@ export function Demo() {
 			<Example title="Button">
 				<Flex gap="md" align="center">
 					<Button>With chrome</Button>
-					<Headless>
+					<HeadlessProvider>
 						<Button>Bare element</Button>
-					</Headless>
+					</HeadlessProvider>
 				</Flex>
 			</Example>
 		</>

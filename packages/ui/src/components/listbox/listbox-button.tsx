@@ -2,10 +2,10 @@
 
 import type { FocusEventHandler, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
-import { Headless } from '../headless'
 
 type ListboxButtonProps = {
 	id?: string
@@ -29,7 +29,7 @@ type ListboxButtonProps = {
 }
 
 /**
- * Internal: the listbox trigger button wrapped in <Headless>, deferring
+ * Internal: the listbox trigger button wrapped in <HeadlessProvider>, deferring
  * appearance to the surrounding <SelectTrigger> chrome. Carries combobox
  * role + popup wiring and the truncated/placeholdered label slot.
  *
@@ -56,7 +56,7 @@ export function ListboxButton({
 	size,
 }: ListboxButtonProps) {
 	return (
-		<Headless>
+		<HeadlessProvider>
 			<Button
 				id={id}
 				ref={ref}
@@ -80,6 +80,6 @@ export function ListboxButton({
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
 				</span>
 			</Button>
-		</Headless>
+		</HeadlessProvider>
 	)
 }

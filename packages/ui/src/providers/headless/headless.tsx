@@ -3,8 +3,8 @@
 import type { ReactNode } from 'react'
 import { HeadlessContext } from './context'
 
-/** Props for {@link Headless}. */
-export type HeadlessProps = {
+/** Props for {@link HeadlessProvider}. */
+export type HeadlessProviderProps = {
 	children: ReactNode
 }
 
@@ -20,6 +20,6 @@ export type HeadlessProps = {
  *
  * @see {@link useHeadless} — the flag descendants read.
  */
-export function Headless({ children }: HeadlessProps) {
+export function HeadlessProvider({ children }: HeadlessProviderProps) {
 	return <HeadlessContext value={true}>{children}</HeadlessContext>
 }

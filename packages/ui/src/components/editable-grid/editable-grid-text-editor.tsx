@@ -1,14 +1,14 @@
 'use client'
 
 import { useLayoutEffect, useRef } from 'react'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/editable-grid'
-import { Headless } from '../headless'
 import { Input } from '../input'
 import { editorKeyHandler } from './editable-grid-editor-utilities'
 import type { EditableGridEditorProps } from './types'
 
 /**
- * Default inline editor. Renders a bare `Input` (via `Headless`) that fills
+ * Default inline editor. Renders a bare `Input` (via `HeadlessProvider`) that fills
  * the cell, mirrors the cell's draft buffer, and routes Enter / Tab / Escape /
  * blur through the grid's commit and cancel callbacks.
  *
@@ -41,7 +41,7 @@ export function EditableGridTextEditor<T>({
 	}, [selectAllOnMount])
 
 	return (
-		<Headless>
+		<HeadlessProvider>
 			<Input
 				ref={inputRef}
 				data-slot="editable-grid-input"
@@ -52,6 +52,6 @@ export function EditableGridTextEditor<T>({
 				onBlur={() => commit('none')}
 				onKeyDown={editorKeyHandler(commit, cancel)}
 			/>
-		</Headless>
+		</HeadlessProvider>
 	)
 }
