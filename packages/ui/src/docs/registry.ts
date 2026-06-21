@@ -7,6 +7,20 @@ import type { ComponentApi } from './api-reference'
 
 type DemoMeta = { name?: string }
 
+/** Which sidebar list a demo belongs to, derived from its `demos/` subfolder. */
+export type DemoCategory = 'component' | 'page' | 'provider'
+
+// Subfolder demos namespace their id (`pages/x` → `pages-x`, `providers/x` →
+// `providers-x`); top-level demos are components. Same prefix the label strip
+// in `demos` removes.
+function categoryOf(id: string): DemoCategory {
+	if (id.startsWith('pages-')) return 'page'
+
+	if (id.startsWith('providers-')) return 'provider'
+
+	return 'component'
+}
+
 // Each demo exports a `Demo` component; the glob's `import` option resolves
 // loaders directly to that symbol.
 const loaders = import.meta.glob<ComponentType>(
@@ -101,7 +115,7 @@ export const demos = [...loaderById.keys()]
 
 		const name = meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
-		return { id, name }
+		return { id, name, category: categoryOf(id) }
 	})
 	.sort((a, b) => a.name.localeCompare(b.name))
 

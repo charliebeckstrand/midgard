@@ -3,9 +3,8 @@ import type { LinkProps } from '../../../primitives/link'
 import { UIProvider } from '../../../providers/ui'
 import { Example } from '../../components/example'
 
-// `name` disambiguates from the Link *component* demo (also "Link"); the root
-// `UIProvider` is where an app registers its framework link component.
-export const meta = { name: 'UI Provider' }
+// Force the "UI" capitalization the filename-derived title ("Ui") would miss.
+export const meta = { name: 'UI' }
 
 function RegisteredLinkExample() {
 	const RouterLink = ({ children, ...props }: LinkProps) => <a {...props}>{children}</a>

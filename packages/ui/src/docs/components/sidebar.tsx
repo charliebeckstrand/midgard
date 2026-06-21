@@ -13,14 +13,23 @@ import {
 	SidebarHeader,
 	SidebarItem,
 	SidebarLabel,
+	SidebarList,
 	SidebarSection,
 } from '../../components/sidebar'
+import { Text } from '../../components/text'
 import { useScrollWithin } from '../../hooks'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
-import { type Demo, demos, preloadDemo } from '../registry'
+import { type Demo, type DemoCategory, demos, preloadDemo } from '../registry'
 
 const SEARCH_PAGE_SIZE = 20
+
+// Sidebar lists, rendered top to bottom. Empty groups are skipped.
+const CATEGORIES: ReadonlyArray<{ category: DemoCategory; label: string }> = [
+	{ category: 'component', label: 'Components' },
+	{ category: 'page', label: 'Pages' },
+	{ category: 'provider', label: 'Providers' },
+]
 
 function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -122,13 +131,13 @@ export function SidebarContent({ route }: { route: string }) {
 	return (
 		<Sidebar>
 			<SidebarHeader>
-				<Heading level={2}>Components</Heading>
+				<Heading level={2}>Docs</Heading>
 			</SidebarHeader>
 			<Flex gap="sm">
 				<div className="flex-1">
 					<Combobox<string>
-						id={`${id}-search-components`}
-						placeholder="Search components"
+						id={`${id}-search-docs`}
+						placeholder="Search docs"
 						autoComplete="off"
 						selectable={false}
 						onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
@@ -168,11 +177,24 @@ export function SidebarContent({ route }: { route: string }) {
 			    scroll anchoring follows a visible item to its mirrored position
 			    instead of keeping the scroller where it is. */}
 			<SidebarBody className="[overflow-anchor:none]">
-				<SidebarSection>
-					{sorted.map((demo) => (
-						<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
-					))}
-				</SidebarSection>
+				{CATEGORIES.map(({ category, label }) => {
+					const items = sorted.filter((demo) => demo.category === category)
+
+					if (items.length === 0) return null
+
+					return (
+						<SidebarSection key={category}>
+							<Text severity="muted" className="text-xs uppercase tracking-wide">
+								{label}
+							</Text>
+							<SidebarList aria-label={label}>
+								{items.map((demo) => (
+									<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+								))}
+							</SidebarList>
+						</SidebarSection>
+					)
+				})}
 			</SidebarBody>
 		</Sidebar>
 	)
