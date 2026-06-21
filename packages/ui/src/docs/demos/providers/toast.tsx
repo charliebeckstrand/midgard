@@ -152,8 +152,12 @@ const SEVERITY_CODE = code`
 
 	const { toast } = useToast()
 
-	// severity defaults to 'default'; also 'secondary' | 'success' | 'warning' | 'error'
+	// severity defaults to 'default'; other options are 'secondary', 'success', 'warning', and 'error'.
+	toast({ title: 'Event created' })
+	toast({ title: 'Draft saved', description: 'Your draft has been saved locally.', severity: 'secondary' })
 	toast({ title: 'Saved', description: 'Your changes have been saved.', severity: 'success' })
+	toast({ title: 'Warning', description: 'Storage is almost full.', severity: 'warning' })
+	toast({ title: 'Error', description: 'Something went wrong.', severity: 'error' })
 `
 
 const PERSIST_CODE = code`
