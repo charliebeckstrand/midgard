@@ -208,6 +208,145 @@ describe('CreditCardInputExpiry', () => {
 
 		expect(onValidityChange).toHaveBeenLastCalledWith(expect.objectContaining({ isValid: false }))
 	})
+
+	it('marks a complete impossible expiry invalid while typing', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '1330')
+
+		expect(input.value).toBe('13/30')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('leaves a still-growing entry unmarked while typing', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '12')
+
+		expect(input.value).toBe('12/')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('keeps a partial entry on blur and marks it invalid', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '12')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		await user.tab()
+
+		expect(input.value).toBe('12/')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('does not mark an untouched-but-blurred empty field invalid', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.click(input)
+
+		await user.tab()
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('renders the default invalid-format message for a complete impossible expiry', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+
+		await user.type(input, '1330')
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toBeInTheDocument()
+
+		expect(message).toHaveAttribute('role', 'alert')
+
+		expect(message).toHaveTextContent('Enter a valid expiration date (MM/YY)')
+	})
+
+	it('renders the message on blur for a partial entry and wires aria-describedby', async () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Expiry</Label>
+				<CreditCardInputExpiry />
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '12')
+
+		await user.tab()
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toBeInTheDocument()
+
+		expect(input.getAttribute('aria-describedby')).toBe(message?.id)
+	})
+
+	it('uses a custom invalid message and clears it once valid', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry invalidMessage="Bad expiry" />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '1330')
+
+		expect(bySlot(container, 'message')).toHaveTextContent('Bad expiry')
+
+		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
+
+		await user.clear(input)
+
+		await user.type(input, `12${yy}`)
+
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('suppresses the built-in message when invalidMessage is null', async () => {
+		const { container } = renderUI(<CreditCardInputExpiry invalidMessage={null} />)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		await user.type(input, '1330')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+	})
 })
 
 describe('CreditCardInputCvv', () => {
