@@ -7,7 +7,7 @@ import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-card-input-utilities'
 
-/** The "MM/YY" pattern the field masks to, sizes its complete entry against, and names in the default message. */
+/** The "MM/YY" expiry pattern; a value of its length is a complete entry. */
 const EXPIRY_PATTERN = 'MM/YY'
 
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
@@ -69,8 +69,8 @@ export function CreditCardInputExpiry({
 		ref,
 	})
 
-	// Reports the change's validity and, mirroring DateInput, flags a complete
-	// entry that can't be valid while leaving a still-growing one unmarked.
+	// Reports validity and, mirroring DateInput, flags only a complete entry
+	// that isn't valid; a still-growing one stays unmarked until blur.
 	const report = (next: string) => {
 		const validity = validateCardExpiry(next)
 
