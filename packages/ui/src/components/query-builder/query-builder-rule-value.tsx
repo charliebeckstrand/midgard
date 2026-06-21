@@ -78,6 +78,7 @@ export function QueryBuilderRuleValue({
 				value={value == null ? '' : String(value)}
 				placeholder="Value"
 				aria-label={label}
+				className={className}
 				onChange={(event) => {
 					const next = event.target.value
 					onValueChange(next === '' ? '' : Number(next))
@@ -94,6 +95,7 @@ export function QueryBuilderRuleValue({
 				value={dateValue}
 				placeholder="Value"
 				aria-label={label}
+				className={className}
 				onValueChange={(d) => onValueChange(d ? toIsoDate(d) : '')}
 			/>
 		)
@@ -105,6 +107,7 @@ export function QueryBuilderRuleValue({
 			value={(value as string | undefined) ?? ''}
 			placeholder="Value"
 			aria-label={label}
+			className={className}
 			onChange={(event) => onValueChange(event.target.value)}
 		/>
 	)
