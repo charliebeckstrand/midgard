@@ -535,13 +535,13 @@ describe('DataTable', () => {
 			expect(screen.getByText('Name')).toBeInTheDocument()
 		})
 
-		it('reorders columns when columnManager.order is provided', () => {
+		it('reorders columns when columnOrder.value is provided', () => {
 			const { container } = renderUI(
 				<DataTable
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, order: ['age', 'name'] }}
+					columnOrder={{ value: ['age', 'name'] }}
 				/>,
 			)
 
@@ -588,7 +588,7 @@ describe('DataTable', () => {
 					columns={[columns[0] as (typeof columns)[number]]}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, defaultOrder: ['name'] }}
+					columnOrder={{ defaultValue: ['name'] }}
 				/>,
 			)
 
@@ -599,7 +599,7 @@ describe('DataTable', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, defaultOrder: ['name'] }}
+					columnOrder={{ defaultValue: ['name'] }}
 				/>,
 			)
 
@@ -608,8 +608,8 @@ describe('DataTable', () => {
 			expect(headers).toContain('Age')
 		})
 
-		it('forwards onOrderChange and onHiddenChange to the manager dialog', async () => {
-			const onOrderChange = vi.fn()
+		it('forwards columnOrder.onValueChange and onHiddenChange to the manager dialog', async () => {
+			const onValueChange = vi.fn()
 
 			const onHiddenChange = vi.fn()
 
@@ -618,7 +618,8 @@ describe('DataTable', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, onOrderChange, onHiddenChange }}
+					columnOrder={{ onValueChange }}
+					columnManager={{ enabled: true, onHiddenChange }}
 				/>,
 			)
 
@@ -629,6 +630,83 @@ describe('DataTable', () => {
 			await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
 			expect(onHiddenChange).toHaveBeenCalled()
+		})
+	})
+
+	describe('reorder', () => {
+		// The dnd-kit drag lifecycle is a third-party async seam (testing rule
+		// 10.3); these assert the rendered handle affordances, while the splice
+		// that a committed drag produces is covered in use-data-table-columns.
+
+		it('renders a reorder handle on every data column when reorder is set', () => {
+			renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} reorder />)
+
+			expect(screen.getByRole('button', { name: 'Reorder Name' })).toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Reorder Age' })).toBeInTheDocument()
+		})
+
+		it('renders no reorder handles when reorder is unset', () => {
+			renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} />)
+
+			expect(screen.queryByRole('button', { name: /^Reorder / })).not.toBeInTheDocument()
+		})
+
+		it('skips the selection and actions columns', () => {
+			const mixed = [
+				{ id: 'select', selectable: true },
+				...columns,
+				{
+					id: 'actions',
+					actions: (row: Row) => <button type="button">Edit {row.name}</button>,
+				},
+			]
+
+			renderUI(<DataTable columns={mixed} rows={rows} getKey={getKey} reorder />)
+
+			// Only the two data columns are draggable; select/actions get no handle.
+			expect(screen.getAllByRole('button', { name: /^Reorder / })).toHaveLength(2)
+		})
+
+		it('skips pinned columns', () => {
+			const pinnedCols = [
+				{ id: 'name', title: 'Name', cell: (r: Row) => r.name, pinned: true },
+				{ id: 'age', title: 'Age', cell: (r: Row) => r.age },
+				{ id: 'role', title: 'Role', cell: () => 'Member' },
+			]
+
+			renderUI(<DataTable columns={pinnedCols} rows={rows} getKey={getKey} reorder />)
+
+			// Two non-pinned data columns remain draggable; the pinned one is held.
+			expect(screen.queryByRole('button', { name: 'Reorder Name' })).not.toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Reorder Age' })).toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Reorder Role' })).toBeInTheDocument()
+		})
+
+		it('renders no handles when fewer than two columns are reorderable', () => {
+			const single = [{ id: 'name', title: 'Name', cell: (r: Row) => r.name }]
+
+			renderUI(<DataTable columns={single} rows={rows} getKey={getKey} reorder />)
+
+			expect(screen.queryByRole('button', { name: /^Reorder / })).not.toBeInTheDocument()
+
+			// The header itself still renders.
+			expect(screen.getByText('Name')).toBeInTheDocument()
+		})
+
+		it('keeps the sort button alongside the reorder handle on a sortable column', () => {
+			const sortable = [
+				{ id: 'name', title: 'Name', cell: (r: Row) => r.name, sortable: true },
+				{ id: 'age', title: 'Age', cell: (r: Row) => r.age },
+			]
+
+			renderUI(<DataTable columns={sortable} rows={rows} getKey={getKey} reorder />)
+
+			expect(screen.getByRole('button', { name: 'Reorder Name' })).toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
 	})
 

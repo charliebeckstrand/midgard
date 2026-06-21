@@ -48,5 +48,19 @@ export const k = {
 		button: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 		icon: sortIcon,
 	},
+	reorder: {
+		// Soften the header cell while it is the actively dragged column.
+		cell: 'data-[dragging]:opacity-70',
+		// Keeps the grip, title, and any sort control on one baseline.
+		layout: [flex.inline, 'items-center gap-1'],
+		handle: [
+			flex.inline,
+			'shrink-0',
+			text.muted,
+			fg.hover,
+			focus.ring,
+			'cursor-grab touch-none select-none active:cursor-grabbing',
+		],
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

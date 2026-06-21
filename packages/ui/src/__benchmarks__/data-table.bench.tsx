@@ -93,7 +93,8 @@ describe('DataTable · column-order logic (visibleColumns memo)', () => {
 				columns={manyColumns}
 				rows={rows100}
 				getKey={getKey}
-				columnManager={{ hidden, order }}
+				columnOrder={{ value: order }}
+				columnManager={{ hidden }}
 			/>,
 		)
 

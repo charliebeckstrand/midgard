@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest'
+import { applyColumnReorder } from '../../components/data-table/data-table-reorder'
+
+describe('applyColumnReorder', () => {
+	it('repermutes only the reorderable slots, holding the rest in place', () => {
+		const order = ['select', 'name', 'age', 'status', 'actions']
+
+		const reorderable = new Set<string | number>(['name', 'age', 'status'])
+
+		// New order of the reorderable subset: status, name, age.
+		const next = applyColumnReorder(order, ['status', 'name', 'age'], (id) => reorderable.has(id))
+
+		expect(next).toEqual(['select', 'status', 'name', 'age', 'actions'])
+	})
+
+	it('returns the order unchanged when nothing is reorderable', () => {
+		const order = ['select', 'actions']
+
+		expect(applyColumnReorder(order, [], () => false)).toEqual(['select', 'actions'])
+	})
+
+	it('applies the full reordering when every id is reorderable', () => {
+		const order = ['a', 'b', 'c']
+
+		expect(applyColumnReorder(order, ['c', 'a', 'b'], () => true)).toEqual(['c', 'a', 'b'])
+	})
+
+	it('holds a hidden reorderable id in place between visible ones', () => {
+		const order = ['name', 'hidden', 'age']
+
+		// "hidden" is excluded from the reorderable set, so a swap of the two
+		// visible columns leaves it pinned to its middle slot.
+		const next = applyColumnReorder(order, ['age', 'name'], (id) => id !== 'hidden')
+
+		expect(next).toEqual(['age', 'hidden', 'name'])
+	})
+})

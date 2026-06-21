@@ -1,5 +1,7 @@
 'use client'
 
+import { DndContext } from '@dnd-kit/core'
+import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
@@ -14,6 +16,7 @@ import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './data-table-constants'
 import { DataTableHead } from './data-table-head'
 import type { DataTableColumn, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumns } from './use-data-table-columns'
+import { useDataTableReorder } from './use-data-table-reorder'
 import { useDataTableSelection } from './use-data-table-selection'
 
 /**
@@ -29,6 +32,18 @@ export type DataTableSort = {
 	value?: SortState
 	defaultValue?: SortState
 	onValueChange?: (sort: SortState | undefined) => void
+}
+
+/**
+ * Controlled/uncontrolled column-order binding for
+ * {@link DataTableProps.columnOrder}: the column ids in display order. Drives
+ * both the column-manager dialog and the `reorder` header drag handles, so the
+ * two stay in lockstep over one source of truth.
+ */
+export type DataTableColumnOrder = {
+	value?: (string | number)[]
+	defaultValue?: (string | number)[]
+	onValueChange?: (order: (string | number)[]) => void
 }
 
 /**
@@ -51,7 +66,9 @@ export type DataTableSelection = {
 
 /**
  * Column-manager binding for {@link DataTableProps.columnManager}: gates the
- * toolbar button and holds controlled/uncontrolled order and visibility state.
+ * toolbar button and holds controlled/uncontrolled column-visibility state.
+ * Column order lives on the top-level {@link DataTableProps.columnOrder}
+ * binding, which the manager dialog reads and writes.
  */
 export type DataTableColumnManagerConfig = {
 	/**
@@ -64,10 +81,6 @@ export type DataTableColumnManagerConfig = {
 	 * @defaultValue 'Columns'
 	 */
 	label?: ReactNode
-
-	order?: (string | number)[]
-	defaultOrder?: (string | number)[]
-	onOrderChange?: (order: (string | number)[]) => void
 
 	hidden?: Set<string | number>
 	defaultHidden?: Set<string | number>
@@ -84,7 +97,7 @@ export type DataTableColumnManagerConfig = {
  * @typeParam T - Shape of a single row.
  */
 export type DataTableProps<T> = TableVariants & {
-	/** Column definitions, in declaration order; the column manager can reorder and hide a subset. */
+	/** Column definitions, in declaration order; `columnOrder`, `reorder`, and the column manager can reorder and hide a subset. */
 	columns: DataTableColumn<T>[]
 	rows: T[]
 	/** Derives a stable, unique key per row; backs selection, sort, and virtualization identity. */
@@ -92,7 +105,18 @@ export type DataTableProps<T> = TableVariants & {
 
 	sort?: DataTableSort
 	selection?: DataTableSelection
+	columnOrder?: DataTableColumnOrder
 	columnManager?: DataTableColumnManagerConfig
+
+	/**
+	 * Adds a drag handle to each reorderable column header — every visible,
+	 * non-pinned data column — letting the user reorder columns by pointer or
+	 * keyboard. Commits through `columnOrder`; `select`, `actions`, and `pinned`
+	 * columns hold their position. No handles render until at least two columns
+	 * are reorderable.
+	 * @defaultValue false
+	 */
+	reorder?: boolean
 
 	rowClassName?: (row: T) => string | undefined
 
@@ -174,12 +198,13 @@ function resolveVirtualization(virtualize: DataTableVirtualize | undefined): {
 /**
  * Data-driven {@link Table} over a flat `rows` source: maps each row through
  * `columns`, sorts and selects by the key from `getKey`, and shares that state
- * with head and cells via {@link useDataTable}/{@link useDataTableRow}. Sort and
- * selection are controllable; selecting rows surfaces a batch-action
- * {@link Toolbar}, and a column manager dialog reorders and hides columns.
- * Renders a loading skeleton (`aria-busy`), an `empty` slot when there are no
- * rows, a sticky header, and — under `virtualize` — windowed rows with full
- * `role="grid"` row/column counts.
+ * with head and cells via {@link useDataTable}/{@link useDataTableRow}. Sort,
+ * selection, and `columnOrder` are controllable; selecting rows surfaces a
+ * batch-action {@link Toolbar}, a column manager dialog reorders and hides
+ * columns, and `reorder` adds header drag handles for in-place column
+ * reordering. Renders a loading skeleton (`aria-busy`), an `empty` slot when
+ * there are no rows, a sticky header, and — under `virtualize` — windowed rows
+ * with full `role="grid"` row/column counts.
  *
  * @remarks Client component. `virtualize` requires `maxHeight`; omitting it
  * throws, since virtualization needs a scroll container of known size.
@@ -191,7 +216,9 @@ export function DataTable<T>({
 	getKey,
 	sort: sortConfig,
 	selection: selectionConfig,
+	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
+	reorder = false,
 	rowClassName,
 	rowLabel,
 	stickyHeader = false,
@@ -229,10 +256,11 @@ export function DataTable<T>({
 		hiddenColumns,
 		setHiddenColumns,
 		visibleColumns,
+		reorderColumns,
 		managerItems,
 		manageColumns,
 		manageColumnsLabel,
-	} = useDataTableColumns<T>({ columns, columnManagerConfig })
+	} = useDataTableColumns<T>({ columns, columnOrderConfig, columnManagerConfig })
 
 	const rowKeys = useMemo<(string | number)[]>(
 		() => rows.map((row, i) => getKey(row, i)),
@@ -272,6 +300,15 @@ export function DataTable<T>({
 		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
 	)
 
+	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
+	// the whole table region (see `useDataTableReorder`), and the header reads
+	// `canReorder` to register each draggable cell against it.
+	const { canReorder, itemIds, strategy, dndContextProps } = useDataTableReorder<T>({
+		reorder,
+		visibleColumns,
+		reorderColumns,
+	})
+
 	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
@@ -304,6 +341,7 @@ export function DataTable<T>({
 				columns={visibleColumns}
 				hasRows={rows.length > 0}
 				virtualized={virtualizeEnabled}
+				reorderable={canReorder}
 			/>
 
 			<DataTableBody<T>
@@ -323,6 +361,18 @@ export function DataTable<T>({
 		</Table>
 	)
 
+	const tableRegion = needsScrollWrapper ? (
+		<div
+			ref={scrollRef}
+			className={cn(k.sticky.wrapper)}
+			style={maxHeight ? { maxHeight } : undefined}
+		>
+			{tableContent}
+		</div>
+	) : (
+		tableContent
+	)
+
 	return (
 		<DataTableContext value={context}>
 			<div data-slot="data-table" className={cn(k.wrapper)}>
@@ -339,21 +389,17 @@ export function DataTable<T>({
 				)}
 
 				{batchActions && someSelected && (
-					<Toolbar aria-label="Batch actions">
-						{someSelected && batchActions({ selection, setSelection })}
-					</Toolbar>
+					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>
 				)}
 
-				{needsScrollWrapper ? (
-					<div
-						ref={scrollRef}
-						className={cn(k.sticky.wrapper)}
-						style={maxHeight ? { maxHeight } : undefined}
-					>
-						{tableContent}
-					</div>
+				{canReorder ? (
+					<DndContext {...dndContextProps}>
+						<SortableContext items={itemIds} strategy={strategy}>
+							{tableRegion}
+						</SortableContext>
+					</DndContext>
 				) : (
-					tableContent
+					tableRegion
 				)}
 			</div>
 		</DataTableContext>

@@ -179,6 +179,20 @@ const ColumnManagerExample = () => {
 	)
 }
 
+const ReorderExample = () => {
+	const [order, setOrder] = useState<(string | number)[]>(['name', 'email', 'role', 'status'])
+
+	return (
+		<DataTable
+			reorder
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			columnOrder={{ value: order, onValueChange: setOrder }}
+		/>
+	)
+}
+
 export function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
@@ -239,6 +253,13 @@ export function Demo() {
 
 			<Example title="Column manager">
 				<ColumnManagerExample />
+			</Example>
+
+			<Example
+				title="Reorder"
+				code={code`<DataTable reorder columnOrder={{ value, onValueChange }} />`}
+			>
+				<ReorderExample />
 			</Example>
 		</>
 	)

@@ -47,11 +47,12 @@ describe('useDataTableColumns', () => {
 		expect(result.current.manageColumns).toBe(true)
 	})
 
-	it('honors a controlled order from columnManagerConfig.order', () => {
+	it('honors a controlled order from columnOrderConfig.value', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
 				columns,
-				columnManagerConfig: { order: ['age', 'name', 'status'] },
+				columnOrderConfig: { value: ['age', 'name', 'status'] },
+				columnManagerConfig: undefined,
 			}),
 		)
 
@@ -60,11 +61,12 @@ describe('useDataTableColumns', () => {
 		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'name', 'status'])
 	})
 
-	it('uses defaultOrder when no controlled order is supplied', () => {
+	it('uses columnOrderConfig.defaultValue when no controlled order is supplied', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
 				columns,
-				columnManagerConfig: { defaultOrder: ['status', 'name', 'age'] },
+				columnOrderConfig: { defaultValue: ['status', 'name', 'age'] },
+				columnManagerConfig: undefined,
 			}),
 		)
 
@@ -103,13 +105,14 @@ describe('useDataTableColumns', () => {
 		expect(onHiddenChange).toHaveBeenCalledWith(new Set(['age']))
 	})
 
-	it('fires onOrderChange when setColumnOrder is called', () => {
-		const onOrderChange = vi.fn()
+	it('fires columnOrderConfig.onValueChange when setColumnOrder is called', () => {
+		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
 				columns,
-				columnManagerConfig: { onOrderChange },
+				columnOrderConfig: { onValueChange },
+				columnManagerConfig: undefined,
 			}),
 		)
 
@@ -117,7 +120,34 @@ describe('useDataTableColumns', () => {
 			result.current.setColumnOrder(['status', 'age', 'name'])
 		})
 
-		expect(onOrderChange).toHaveBeenCalledWith(['status', 'age', 'name'])
+		expect(onValueChange).toHaveBeenCalledWith(['status', 'age', 'name'])
+	})
+
+	it('reorderColumns splices the reordered visible data columns into the full order', () => {
+		const onValueChange = vi.fn()
+
+		const cols: DataTableColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (r) => r.name },
+			{ id: 'age', title: 'Age', cell: (r) => r.age },
+			{ id: 'status', title: 'Status', cell: (r) => r.status },
+		]
+
+		const { result } = renderHook(() =>
+			useDataTableColumns<Row>({
+				columns: cols,
+				columnOrderConfig: { onValueChange },
+				columnManagerConfig: undefined,
+			}),
+		)
+
+		// Drag swaps the first and last visible data columns ("name" and
+		// "status"); the selection column holds its slot.
+		act(() => {
+			result.current.reorderColumns(['status', 'age', 'name'])
+		})
+
+		expect(onValueChange).toHaveBeenCalledWith(['select', 'status', 'age', 'name'])
 	})
 
 	it('preserves selectable, actions, and pinned columns even when listed as hidden', () => {
@@ -196,7 +226,8 @@ describe('useDataTableColumns', () => {
 		const { result } = renderHook(() =>
 			useDataTableColumns<Row>({
 				columns,
-				columnManagerConfig: { order: ['name'] },
+				columnOrderConfig: { value: ['name'] },
+				columnManagerConfig: undefined,
 			}),
 		)
 

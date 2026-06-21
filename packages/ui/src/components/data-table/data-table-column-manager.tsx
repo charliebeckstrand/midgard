@@ -11,6 +11,7 @@ import { Control } from '../control'
 import { Label } from '../fieldset'
 import { Icon } from '../icon'
 import { List, ListItem } from '../list'
+import { applyColumnReorder } from './data-table-reorder'
 import type { DataTableColumnManagerItem, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
@@ -100,25 +101,15 @@ export function DataTableColumnManager({
 		(items: DataTableColumnManagerItem[]) => {
 			const reorderedIds = items.map((i) => i.id)
 
-			const next: (string | number)[] = []
+			// Ids outside the manager's set (select/actions) and pinned columns keep
+			// their position; only the orderable data columns are repermuted.
+			setOrder(
+				applyColumnReorder(order, reorderedIds, (id) => {
+					const col = byId.get(id)
 
-			let idx = 0
-
-			for (const id of order) {
-				const col = byId.get(id)
-
-				// Ids outside the manager's set (select/actions columns) keep their
-				// position.
-				if (!col || col.pinned) {
-					next.push(id)
-				} else {
-					next.push(reorderedIds[idx] as string | number)
-
-					idx++
-				}
-			}
-
-			setOrder(next)
+					return !!col && !col.pinned
+				}),
+			)
 		},
 		[order, byId, setOrder],
 	)

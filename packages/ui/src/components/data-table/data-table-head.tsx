@@ -1,10 +1,13 @@
 'use client'
 
-import { ArrowDown, ArrowUp } from 'lucide-react'
-import { memo, type ReactElement } from 'react'
-import { cn } from '../../core'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
+import { type CSSProperties, memo, type ReactElement, type ReactNode } from 'react'
+import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/data-table'
+import { isDataColumn } from '../../utilities'
 import { Button } from '../button'
 import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
@@ -18,14 +21,27 @@ type DataTableHeadProps<T> = {
 	hasRows: boolean
 	/** When the body is virtualized, the header is row 1 of the full aria-rowcount set. */
 	virtualized?: boolean
+	/**
+	 * Renders each visible non-pinned data column with a drag handle and
+	 * registers it as a sortable item. The enclosing {@link DataTable} owns the
+	 * dnd context and commits the reorder.
+	 * @defaultValue false
+	 */
+	reorderable?: boolean
 }
 
 /**
  * Header row for {@link DataTable}: a select-all checkbox in the selectable
  * column and a sort toggle per sortable column, reading selection and sort state
- * from {@link useDataTable}.
+ * from {@link useDataTable}. When `reorderable`, visible non-pinned data columns
+ * also carry a drag handle backed by the data table's column-reorder sortable.
  */
-export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHeadProps<T>) {
+export function DataTableHead<T>({
+	columns,
+	hasRows,
+	virtualized,
+	reorderable = false,
+}: DataTableHeadProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useDataTable()
 
 	return (
@@ -57,13 +73,29 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 
 					const sorted = sort?.column === col.id
 
+					const direction = sorted ? sort?.direction : undefined
+
+					if (reorderable && isDataColumn(col) && !col.pinned) {
+						return (
+							<DataTableReorderableColumnHeader
+								key={col.id}
+								column={col}
+								colIndex={colIndex}
+								sorted={sorted}
+								direction={direction}
+								stickyHeader={stickyHeader}
+								toggleSort={toggleSort}
+							/>
+						)
+					}
+
 					return (
 						<DataTableColumnHeader
 							key={col.id}
 							column={col}
 							colIndex={colIndex}
 							sorted={sorted}
-							direction={sorted ? sort?.direction : undefined}
+							direction={direction}
 							stickyHeader={stickyHeader}
 							toggleSort={toggleSort}
 						/>
@@ -74,7 +106,7 @@ export function DataTableHead<T>({ columns, hasRows, virtualized }: DataTableHea
 	)
 }
 
-/** Props for {@link DataTableColumnHeader}. @internal */
+/** Props for the column header cells. @internal */
 type DataTableColumnHeaderProps = {
 	column: Pick<DataTableColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
 	colIndex: number | undefined
@@ -82,6 +114,11 @@ type DataTableColumnHeaderProps = {
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean
 	toggleSort: (column: string | number) => void
+}
+
+/** A column's accessible name: its `title` when a string, else the stringified id. @internal */
+function headerLabel(column: Pick<DataTableColumn<unknown>, 'id' | 'title'>): string {
+	return typeof column.title === 'string' ? column.title : String(column.id)
 }
 
 /**
@@ -118,6 +155,30 @@ function sortDirectionIcon(
 	return null
 }
 
+/** Title text, wrapped in a sort-toggle button when the column is sortable. @internal */
+function ColumnHeaderLabel({
+	column,
+	sorted,
+	direction,
+	toggleSort,
+}: Omit<DataTableColumnHeaderProps, 'colIndex' | 'stickyHeader'>): ReactNode {
+	if (!column.sortable) return column.title
+
+	return (
+		<HeadlessProvider>
+			<Button
+				type="button"
+				className={cn(k.sort.button)}
+				onClick={() => toggleSort(column.id)}
+				aria-label={`Sort by ${headerLabel(column)}`}
+			>
+				{column.title}
+				{sortDirectionIcon(sorted, direction)}
+			</Button>
+		</HeadlessProvider>
+	)
+}
+
 /** Single column header cell; renders a sort-toggle button when the column is sortable. @internal */
 const DataTableColumnHeader = memo(function DataTableColumnHeader({
 	column,
@@ -134,21 +195,74 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 			className={cn(stickyHeader && k.sticky.head, column.headerClassName)}
 			style={column.width ? { width: column.width } : undefined}
 		>
-			{column.sortable ? (
-				<HeadlessProvider>
-					<Button
-						type="button"
-						className={cn(k.sort.button)}
-						onClick={() => toggleSort(column.id)}
-						aria-label={`Sort by ${typeof column.title === 'string' ? column.title : column.id}`}
-					>
-						{column.title}
-						{sortDirectionIcon(sorted, direction)}
-					</Button>
-				</HeadlessProvider>
-			) : (
-				column.title
-			)}
+			<ColumnHeaderLabel
+				column={column}
+				sorted={sorted}
+				direction={direction}
+				toggleSort={toggleSort}
+			/>
+		</TableHeader>
+	)
+})
+
+/**
+ * Reorderable column header cell: registers the `<th>` as a horizontal sortable
+ * item and prefixes the title (and any sort control) with a grip drag handle
+ * that carries the pointer/keyboard activator.
+ *
+ * @internal
+ */
+const DataTableReorderableColumnHeader = memo(function DataTableReorderableColumnHeader({
+	column,
+	colIndex,
+	sorted,
+	direction,
+	stickyHeader,
+	toggleSort,
+}: DataTableColumnHeaderProps) {
+	const {
+		setNodeRef,
+		setActivatorNodeRef,
+		attributes,
+		listeners,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: String(column.id) })
+
+	const style: CSSProperties = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		...(column.width ? { width: column.width } : null),
+	}
+
+	return (
+		<TableHeader
+			ref={setNodeRef}
+			aria-colindex={colIndex}
+			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
+			data-dragging={dataAttr(isDragging)}
+			className={cn(stickyHeader && k.sticky.head, k.reorder.cell, column.headerClassName)}
+			style={style}
+		>
+			<span className={cn(k.reorder.layout)}>
+				<button
+					type="button"
+					ref={setActivatorNodeRef}
+					className={cn(k.reorder.handle)}
+					aria-label={`Reorder ${headerLabel(column)}`}
+					{...attributes}
+					{...listeners}
+				>
+					<Icon icon={<GripVertical />} />
+				</button>
+				<ColumnHeaderLabel
+					column={column}
+					sorted={sorted}
+					direction={direction}
+					toggleSort={toggleSort}
+				/>
+			</span>
 		</TableHeader>
 	)
 })
