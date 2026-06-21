@@ -36,6 +36,22 @@ const list = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
+/**
+ * Overflow viewport around the underline list: an over-long tab row scrolls
+ * within it instead of widening the page. The cross axis stays clipped (the
+ * active-indicator/focus rail sits flush with the content edge, so nothing is
+ * lost), and the native scrollbar is hidden so it never crosses the rail — the
+ * active tab scrolls into view and roving keeps every tab reachable.
+ */
+const scroll = defineRecipe({
+	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
+	orientation: {
+		horizontal: 'overflow-x-auto overflow-y-hidden',
+		vertical: 'overflow-y-auto overflow-x-hidden',
+	},
+	defaults: { orientation: 'horizontal' },
+})
+
 const tab = defineRecipe({
 	base: [
 		'relative',
@@ -103,6 +119,7 @@ const trigger = defineRecipe({
 export const k = {
 	group,
 	list,
+	scroll,
 	tab,
 	wrapper,
 	trigger,
