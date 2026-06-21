@@ -10,6 +10,7 @@ import {
 	TabPanels,
 	Tabs,
 } from '../../components/tabs'
+import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
@@ -84,6 +85,55 @@ describe('TabList', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el).toHaveAttribute('role', 'tablist')
+	})
+
+	it('wraps the underline list in a horizontal scroll viewport', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const viewport = bySlot(container, 'tab-list-scroll')
+
+		// The viewport is the scroll-region wrapper around the role="tablist", so an
+		// over-long tab row scrolls in place instead of widening the page.
+		expect(viewport).toBeInTheDocument()
+
+		expect(viewport).toHaveAttribute('data-scroll-region')
+
+		expect(viewport?.className).toContain('overflow-x-auto')
+
+		expect(viewport).toContainElement(bySlot(container, 'tab-list'))
+	})
+
+	it('scrolls along the cross axis for a vertical list', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a" orientation="vertical">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		expect(bySlot(container, 'tab-list-scroll')?.className).toContain('overflow-y-auto')
+	})
+
+	it('omits the scroll viewport for the segment variant', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a" variant="segment">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		// The segment box is a fixed pill control with no overflow viewport.
+		expect(bySlot(container, 'tab-list-scroll')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'tab-list')).toBeInTheDocument()
 	})
 
 	it('reflects vertical orientation on tab-group and tab-list', () => {
@@ -468,5 +518,28 @@ describe('Tabs keyboard navigation', () => {
 		await user.keyboard('{Home}')
 
 		expect(tab('A')).toHaveFocus()
+	})
+})
+
+describe('scrollIntoViewOffset', () => {
+	it('leaves the offset unchanged when the tab already fits', () => {
+		expect(scrollIntoViewOffset({ current: 10, leading: 20, itemSize: 30, viewport: 100 })).toBe(10)
+	})
+
+	it('scrolls back when the tab starts before the viewport', () => {
+		expect(scrollIntoViewOffset({ current: 50, leading: -15, itemSize: 30, viewport: 100 })).toBe(
+			35,
+		)
+	})
+
+	it('scrolls forward the minimum to reveal a tab past the trailing edge', () => {
+		// leading 80 + size 40 overruns the 100 viewport by 20; align the trailing edge.
+		expect(scrollIntoViewOffset({ current: 0, leading: 80, itemSize: 40, viewport: 100 })).toBe(20)
+	})
+
+	it('treats a tab flush with either edge as already visible', () => {
+		expect(scrollIntoViewOffset({ current: 0, leading: 0, itemSize: 40, viewport: 100 })).toBe(0)
+
+		expect(scrollIntoViewOffset({ current: 0, leading: 60, itemSize: 40, viewport: 100 })).toBe(0)
 	})
 })

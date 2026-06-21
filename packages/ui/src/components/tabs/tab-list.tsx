@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/tabs'
 import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
+import { useTabListScroll } from './use-tab-list-scroll'
 
 /** Props for {@link TabList}. Requires an accessible name (`aria-label` or `aria-labelledby`). */
 export type TabListProps = AccessibleName &
@@ -17,7 +18,10 @@ export type TabListProps = AccessibleName &
 /**
  * `role="tablist"` container for `<Tab>` children. Manages roving focus along
  * the resolved `orientation` and keeps exactly one tab tabbable via a
- * MutationObserver, scoping the shared `<ActiveIndicator>` animation.
+ * MutationObserver, scoping the shared `<ActiveIndicator>` animation. The
+ * underline variant sits in an overflow viewport so an over-long tab row
+ * scrolls in place rather than widening the page; the active tab is scrolled
+ * into view on mount and as focus roves.
  */
 export function TabList({ className, children, ...props }: TabListProps) {
 	const tabsContext = useTabsContext()
@@ -34,10 +38,16 @@ export function TabList({ className, children, ...props }: TabListProps) {
 
 	const ref = useRef<HTMLDivElement>(null)
 
+	const scrollRef = useRef<HTMLDivElement>(null)
+
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: TAB_SELECTOR,
 		orientation,
 	})
+
+	// The segment variant is a fixed pill control; only the underline list
+	// scrolls, so the viewport (and its scroll-into-view) is gated off for it.
+	useTabListScroll(scrollRef, orientation, !isSegment)
 
 	useEffect(() => {
 		const el = ref.current
@@ -68,20 +78,35 @@ export function TabList({ className, children, ...props }: TabListProps) {
 		return () => observer.disconnect()
 	}, [])
 
+	const list = (
+		<div
+			ref={ref}
+			data-slot="tab-list"
+			data-orientation={orientation}
+			role="tablist"
+			aria-orientation={orientation}
+			onKeyDown={handleKeyDown}
+			className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}
+			{...props}
+		>
+			{children}
+		</div>
+	)
+
 	return (
 		<ActiveIndicatorScope>
-			<div
-				ref={ref}
-				data-slot="tab-list"
-				data-orientation={orientation}
-				role="tablist"
-				aria-orientation={orientation}
-				onKeyDown={handleKeyDown}
-				className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}
-				{...props}
-			>
-				{children}
-			</div>
+			{isSegment ? (
+				list
+			) : (
+				<div
+					ref={scrollRef}
+					data-slot="tab-list-scroll"
+					data-scroll-region
+					className={k.scroll({ orientation })}
+				>
+					{list}
+				</div>
+			)}
 		</ActiveIndicatorScope>
 	)
 }
