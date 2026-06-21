@@ -7,6 +7,8 @@ import { createContext } from '../../core'
 export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
 	interactive: boolean
+	/** Whether the board is explicitly disabled (vs. merely non-interactive / read-only). */
+	disabled: boolean
 	/** Card id currently being dragged, if any. */
 	activeId: string | null
 	/** Card id currently lifted via keyboard, if any. */

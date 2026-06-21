@@ -7,7 +7,7 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
 
-const { cursor, disabled } = hannou
+const { disabled } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -47,7 +47,7 @@ export const k = {
 			'transition-shadow',
 			focus.inset,
 			...disabled,
-			...cursor,
+			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
 		draggable: 'cursor-grab touch-none select-none',
 		dragging: '',

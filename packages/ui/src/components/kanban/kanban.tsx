@@ -90,6 +90,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const contextValue = useMemo(
 		() => ({
 			interactive,
+			disabled: !!disabled,
 			activeId,
 			liftedCardId,
 			columnItemIds,
@@ -97,7 +98,16 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 			onCardKeyDown,
 			onCardBlur,
 		}),
-		[interactive, activeId, liftedCardId, columnItemIds, overlayMap, onCardKeyDown, onCardBlur],
+		[
+			interactive,
+			disabled,
+			activeId,
+			liftedCardId,
+			columnItemIds,
+			overlayMap,
+			onCardKeyDown,
+			onCardBlur,
+		],
 	)
 
 	return (

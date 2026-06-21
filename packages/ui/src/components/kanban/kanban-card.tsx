@@ -38,7 +38,8 @@ export function KanbanCard({
 	children,
 	className,
 }: KanbanCardProps) {
-	const { interactive, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } = useKanbanContext()
+	const { interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } =
+		useKanbanContext()
 
 	// Surfaces the column context for use within this card.
 	useKanbanColumnContext()
@@ -68,7 +69,8 @@ export function KanbanCard({
 			data-card-id={cardId}
 			data-active={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
-			data-disabled={dataAttr(!interactive)}
+			data-disabled={dataAttr(disabled)}
+			data-readonly={dataAttr(!interactive && !disabled)}
 			className={cn(
 				k.card.base,
 				interactive && k.card.draggable,

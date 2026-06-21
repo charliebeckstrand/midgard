@@ -170,7 +170,7 @@ describe('KanbanCard', () => {
 		expect(allBySlot(container, 'kanban-card')).toHaveLength(2)
 	})
 
-	it('marks cards as disabled and omits the aria-label when the board is non-interactive', () => {
+	it('marks cards read-only (not disabled) and omits the aria-label when onValueChange is absent', () => {
 		const { container } = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id}>
 				<KanbanColumn columnId="todo">
@@ -183,9 +183,29 @@ describe('KanbanCard', () => {
 
 		const card = bySlot(container, 'kanban-card')
 
-		expect(card).toHaveAttribute('data-disabled')
+		expect(card).toHaveAttribute('data-readonly')
+
+		expect(card).not.toHaveAttribute('data-disabled')
 
 		expect(card).not.toHaveAttribute('aria-label')
+	})
+
+	it('marks cards disabled (not read-only) when the board is disabled', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} onValueChange={() => {}} disabled>
+				<KanbanColumn columnId="todo">
+					<KanbanColumnBody>
+						<KanbanCard cardId="1">One</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).toHaveAttribute('data-disabled')
+
+		expect(card).not.toHaveAttribute('data-readonly')
 	})
 
 	it('marks cards interactive and lets their content name them when onValueChange is supplied', () => {
@@ -194,6 +214,8 @@ describe('KanbanCard', () => {
 		const card = bySlot(container, 'kanban-card')
 
 		expect(card).not.toHaveAttribute('data-disabled')
+
+		expect(card).not.toHaveAttribute('data-readonly')
 
 		// No forced aria-label: the card is named by its content; dnd-kit supplies
 		// the draggable role and its keyboard-instructions description.
