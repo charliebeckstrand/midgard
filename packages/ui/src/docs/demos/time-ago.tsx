@@ -54,19 +54,19 @@ function CustomLocaleExample() {
 	return (
 		<Stack gap="xs">
 			<Flex gap="sm">
-				<Text variant="muted" className="font-mono">
+				<Text severity="muted" className="font-mono">
 					fr-FR
 				</Text>
 				<TimeAgo date={new Date(now - 5 * MIN)} locale="fr-FR" />
 			</Flex>
 			<Flex gap="sm">
-				<Text variant="muted" className="font-mono">
+				<Text severity="muted" className="font-mono">
 					it-IT
 				</Text>
 				<TimeAgo date={new Date(now - 5 * MIN)} locale="it-IT" />
 			</Flex>
 			<Flex gap="sm">
-				<Text variant="muted" className="font-mono">
+				<Text severity="muted" className="font-mono">
 					en-US
 				</Text>
 				<TimeAgo date={new Date(now - 5 * MIN)} locale="en-US" />

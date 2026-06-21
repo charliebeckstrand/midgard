@@ -45,7 +45,7 @@ export function ComponentEntry({ entry }: { entry: ComponentApi }) {
 					{events.length > 0 && <Section title="Events" rows={events} />}
 				</div>
 			) : (
-				<Text variant="muted">This component accepts no explicit props.</Text>
+				<Text severity="muted">This component accepts no explicit props.</Text>
 			)}
 			<PassThroughNote entries={passThrough} />
 		</div>
@@ -66,7 +66,7 @@ function PassThroughNote({ entries }: { entries: readonly PassThrough[] }) {
 	if (entries.length === 0) return null
 
 	return (
-		<Text variant="muted" className="flex items-center gap-1">
+		<Text severity="muted" className="flex items-center gap-1">
 			<span>Also accepts all</span>
 			{entries.map((pt, i) => (
 				<Fragment key={pt.element}>

@@ -59,9 +59,11 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 			>
 				<Heading className="text-center">Sign in to your account</Heading>
 
-				{serverError && <Text variant="error">{serverError}</Text>}
+				{serverError && <Text severity="error">{serverError}</Text>}
 
-				{registered && <Text variant="success">Account created successfully. Please sign in.</Text>}
+				{registered && (
+					<Text severity="success">Account created successfully. Please sign in.</Text>
+				)}
 
 				<Field>
 					<Label>Email</Label>

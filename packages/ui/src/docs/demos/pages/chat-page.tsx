@@ -159,7 +159,7 @@ export function Demo() {
 								<Stack direction="row" align="center" full>
 									<Stack full className="gap-0 min-w-0">
 										<SidebarLabel>{conv.title}</SidebarLabel>
-										<Text className="text-xs truncate" variant="muted">
+										<Text className="text-xs truncate" severity="muted">
 											{conv.preview}
 										</Text>
 									</Stack>

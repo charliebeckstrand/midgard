@@ -181,7 +181,7 @@ export function Demo() {
 										</TableBody>
 									</Table>
 								) : (
-									<Text variant="warning">No orders match your filters.</Text>
+									<Text severity="warning">No orders match your filters.</Text>
 								)}
 							</Stack>
 						</SidebarLayoutBody>

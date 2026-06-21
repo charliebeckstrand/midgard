@@ -4,7 +4,7 @@ import { iro, kokkaku } from '../kiso'
 const { text } = iro
 
 export const k = defineRecipe({
-	variant: {
+	severity: {
 		default: [...text.default],
 		primary: [...text.primary],
 		success: [...text.success],
@@ -20,9 +20,9 @@ export const k = defineRecipe({
 		green: mode('text-green-600', 'dark:text-green-500'),
 		blue: mode('text-blue-600', 'dark:text-blue-500'),
 	},
-	defaults: { variant: 'default' },
+	defaults: { severity: 'default' },
 	skeleton: kokkaku.text,
 })
 
-/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`variant`, `color`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`severity`, `color`), for consumers composing custom slots. */
 export type TextVariants = VariantProps<typeof k>

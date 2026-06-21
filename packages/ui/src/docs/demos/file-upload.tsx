@@ -18,7 +18,7 @@ function AreaExample() {
 			<Stack gap="md">
 				<FileUpload accept="image/*" onFiles={setFiles} />
 				{files.length > 0 && (
-					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 				)}
 			</Stack>
 		</Sizer>
@@ -34,10 +34,10 @@ function CustomContentExample() {
 				<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
 					<Icon icon={<Upload />} size="lg" />
 					<Text>Upload documents</Text>
-					<Text variant="muted">PDF, DOC up to 10MB</Text>
+					<Text severity="muted">PDF, DOC up to 10MB</Text>
 				</FileUpload>
 				{files.length > 0 && (
-					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 				)}
 			</Stack>
 		</Sizer>
@@ -52,7 +52,7 @@ function InputExample() {
 			<Stack gap="md">
 				<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
 				{files.length > 0 && (
-					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 				)}
 			</Stack>
 		</Sizer>
@@ -67,7 +67,7 @@ function ButtonExample() {
 			<Stack gap="md">
 				<FileUpload variant="button" onFiles={setFiles} />
 				{files.length > 0 && (
-					<Text variant="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
 				)}
 			</Stack>
 		</Sizer>

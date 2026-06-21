@@ -64,7 +64,7 @@ function RegisterForm() {
 			>
 				<Heading className="text-center">Create your account</Heading>
 
-				{serverError && <Text variant="error">{serverError}</Text>}
+				{serverError && <Text severity="error">{serverError}</Text>}
 
 				<Field>
 					<Label>Email</Label>
