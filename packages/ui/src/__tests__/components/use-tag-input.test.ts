@@ -75,36 +75,6 @@ describe('useTagInput', () => {
 		expect(result.current.tags).toEqual(['a', 'c'])
 	})
 
-	it('fires onMaxReleased when removal pulls the list back below max', () => {
-		const onMaxReleased = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInput({ defaultValue: ['a', 'b'], max: 2, onMaxReleased }),
-		)
-
-		act(() => {
-			result.current.removeTag(0)
-		})
-
-		expect(onMaxReleased).toHaveBeenCalledOnce()
-	})
-
-	it('does not fire onMaxReleased when removing from a list that was not at max', () => {
-		const onMaxReleased = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInput({ defaultValue: ['a', 'b'], max: 5, onMaxReleased }),
-		)
-
-		expect(result.current.atMax).toBe(false)
-
-		act(() => {
-			result.current.removeTag(0)
-		})
-
-		expect(onMaxReleased).not.toHaveBeenCalled()
-	})
-
 	it('calls onValueChange with the next tags when a tag is added', () => {
 		const onValueChange = vi.fn()
 

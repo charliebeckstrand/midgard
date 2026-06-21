@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type Ref, useCallback, useEffect, useRef, useState } from 'react'
+import { type Ref, useCallback, useRef, useState } from 'react'
 import { useComposedRef } from '../../hooks'
 import type { Color } from '../../recipes'
 import { keyByOccurrence } from '../../utilities'
@@ -41,7 +41,7 @@ export type TagInputProps = {
 	placeholder?: string
 	/** Disables editing and removal. */
 	disabled?: boolean
-	/** Maximum number of tags; further additions are rejected and the input disables at the cap. */
+	/** Maximum number of tags; at the cap the field goes read-only (further additions are rejected) while existing tags stay removable. */
 	max?: number
 	/**
 	 * Gates a trimmed tag before it is committed. Return `false` to reject.
@@ -63,9 +63,10 @@ export type TagInputProps = {
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
- * nameless). Announces each add/remove/duplicate/limit outcome to the live
- * region and returns focus to the input after a removal releases the at-max
- * state (WCAG 4.1.3, 2.4.3).
+ * nameless). At the cap the field switches to read-only rather than disabled,
+ * so the tags stay removable and the control isn't greyed. Announces each
+ * add/remove/duplicate/limit outcome to the live region and returns focus to
+ * the input after a removal (WCAG 4.1.3, 2.4.3).
  */
 export function TagInput({
 	id,
@@ -86,10 +87,6 @@ export function TagInput({
 
 	const setRefs = useComposedRef(inputRef, ref)
 
-	// Set when a removal releases the at-max state; consumed by the effect below
-	// once the re-enabling render has committed.
-	const refocusOnMaxRelease = useRef(false)
-
 	const { tags, atMax, addTag, removeTag, setTouched, invalid } = useTagInput({
 		name,
 		value,
@@ -97,23 +94,6 @@ export function TagInput({
 		onValueChange,
 		max,
 		validate,
-		onMaxReleased: () => {
-			refocusOnMaxRelease.current = true
-		},
-	})
-
-	// Returns focus to the input once it can hold focus again (WCAG 2.4.3). At
-	// max the input is disabled and re-enables only on the releasing render; a
-	// synchronous focus in onMaxReleased can race the commit and land on the
-	// still-disabled input.
-	useEffect(() => {
-		// Consumes the flag on every committed render, including when a
-		// controlled parent rejects the removal (atMax never released).
-		const shouldRefocus = refocusOnMaxRelease.current
-
-		refocusOnMaxRelease.current = false
-
-		if (shouldRefocus && !atMax) inputRef.current?.focus()
 	})
 
 	const [inputValue, setInputValue] = useState('')
@@ -164,8 +144,8 @@ export function TagInput({
 							removeTag(i)
 
 							// Returns focus to the input after badge removal (WCAG 2.4.3).
-							// At max the input is still disabled here and this no-ops; the
-							// effect above re-focuses once the releasing render commits.
+							// The field stays focusable at the cap (read-only, not disabled),
+							// so this lands even when the removal is what clears the cap.
 							inputRef.current?.focus()
 						}}
 					/>
@@ -178,7 +158,11 @@ export function TagInput({
 			ref={setRefs}
 			id={id}
 			size={size}
-			disabled={disabled || atMax}
+			disabled={disabled}
+			// At the cap the field is read-only, not disabled: a disabled child trips
+			// the frame's has-[>:disabled] chrome and greys the whole control, so
+			// read-only blocks new entries while existing tags stay removable.
+			readOnly={atMax || undefined}
 			// Field error forces invalid; otherwise the Input inherits ambient
 			// Control/Field state. The inner Input is intentionally nameless.
 			invalid={invalid || undefined}

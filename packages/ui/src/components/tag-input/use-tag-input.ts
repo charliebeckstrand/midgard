@@ -19,8 +19,6 @@ type TagInputOptions = {
 	max?: number
 	/** Gates a trimmed, novel, within-limit tag before commit. Return `false` to reject. */
 	validate?: (tag: string) => boolean
-	/** Fires when a removal transitions the list out of the at-max state. */
-	onMaxReleased?: () => void
 }
 
 /**
@@ -45,7 +43,6 @@ export function useTagInput({
 	onValueChange,
 	max,
 	validate,
-	onMaxReleased,
 }: TagInputOptions) {
 	// Binds the tag list to an enclosing Form field by `name` (the value-typed
 	// cascade); falls back to controlled/uncontrolled state. The inner text
@@ -107,10 +104,8 @@ export function useTagInput({
 			setTags(tags.filter((_, i) => i !== index))
 
 			if (removed) announce(`Removed ${removed}`)
-
-			if (atMax) onMaxReleased?.()
 		},
-		[tags, setTags, atMax, onMaxReleased],
+		[tags, setTags],
 	)
 
 	return { tags, atMax, addTag, removeTag, setTouched, invalid }
