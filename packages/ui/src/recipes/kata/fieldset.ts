@@ -48,6 +48,7 @@ const message = defineRecipe({
 	},
 	variant: {
 		error: text.error,
+		warning: text.warning,
 		success: text.success,
 	},
 	defaults: { size: 'md', variant: 'error' },

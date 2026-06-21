@@ -151,6 +151,40 @@ describe('Control + Input', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('treats severity="error" as invalid on a nested input', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<Input />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toHaveAttribute('data-invalid')
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('broadcasts severity="warning" as data-warning without aria-invalid', () => {
+		const { container } = renderUI(
+			<Control severity="warning">
+				<Input />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toHaveAttribute('data-warning')
+		expect(input).not.toHaveAttribute('aria-invalid')
+		expect(input).not.toHaveAttribute('data-invalid')
+	})
+
+	it('broadcasts severity="success" as data-valid without aria-invalid', () => {
+		const { container } = renderUI(
+			<Control severity="success">
+				<Input />
+			</Control>,
+		)
+		const input = bySlot(container, 'input')
+		expect(input).toHaveAttribute('data-valid')
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
 	it('explicit disabled={false} overrides control disabled', () => {
 		const { container } = renderUI(
 			<Control disabled>

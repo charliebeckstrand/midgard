@@ -13,6 +13,9 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `createSlot` | Builds a thin slot component rendering an intrinsic element with `data-slot`, composed classes, and prop spread. |
 | `querySlot` | Finds the `data-slot` / `data-<attr>=id` element within a container, scoped to avoid cross-instance matches. |
 | `invalidAttrs` | Returns the `data-invalid` / `aria-invalid` pair when invalid, else `undefined` (spread-safe no-op). |
+| `validationAttrs` | Maps a `Severity` to its spread-safe validation attributes: `error` → the `invalidAttrs` pair, `warning` → `data-warning`, `success` → `data-valid`, else `undefined`. |
+| `Severity` *(type)* | Field validation / status severity: `'error' \| 'warning' \| 'success'`. |
+| `ValidationAttrs` *(type)* | Return shape of `validationAttrs`: the severity attribute object, or `undefined`. |
 | `dataAttr` | Coerces a boolean flag to `''` / `undefined` for a spread-safe `data-*` presence attribute. |
 | `ariaAttr` | Coerces a boolean flag to `true` / `undefined` for a spread-safe ARIA boolean attribute. |
 | `composeEventHandlers` | Composes a caller's forwarded handler with the library's; theirs first, then ours unless they prevented default. |

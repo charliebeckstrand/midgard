@@ -1,7 +1,7 @@
 'use client'
 
 import { type ChangeEvent, type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef, useControllable } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -93,7 +93,7 @@ export function Switch({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
-		invalid: resolvedInvalid,
+		validation,
 		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlToggle({
@@ -128,7 +128,7 @@ export function Switch({
 				aria-checked={on ?? false}
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
-				{...invalidAttrs(resolvedInvalid)}
+				{...validation}
 				className={k.input()}
 			/>
 			<span data-slot="switch-thumb" aria-hidden="true" className={k.thumb()} />

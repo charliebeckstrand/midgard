@@ -50,6 +50,20 @@ export const inputCases: readonly Case[] = [
 		</Field>,
 	],
 	[
+		'input in field (warning)',
+		<Field key="f" severity="warning" message="Double-check this value">
+			<Label htmlFor="axe-warn">Warning</Label>
+			<Input id="axe-warn" />
+		</Field>,
+	],
+	[
+		'input in field (success)',
+		<Field key="f" severity="success" message="Looks good">
+			<Label htmlFor="axe-ok">Success</Label>
+			<Input id="axe-ok" />
+		</Field>,
+	],
+	[
 		'textarea in field',
 		<Field key="f">
 			<Label htmlFor="axe-bio">Bio</Label>

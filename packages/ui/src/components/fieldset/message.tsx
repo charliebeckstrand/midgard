@@ -8,8 +8,8 @@ import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 
-/** Tone of a `<Message>`: an assertive `error` or a polite `success`. */
-export type MessageVariant = 'error' | 'success'
+/** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. */
+export type MessageVariant = 'error' | 'warning' | 'success'
 
 /** Props for {@link Message}: `variant`, optional form-field `name` binding, and the `all`-errors flag atop native `<p>` attributes. */
 export type MessageProps = {

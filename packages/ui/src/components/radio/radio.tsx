@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, Ref } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControlToggle } from '../control/use-control-toggle'
 
@@ -35,7 +35,7 @@ export function Radio({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
-		invalid: resolvedInvalid,
+		validation,
 		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlToggle({ id, disabled, required, size, 'aria-describedby': ariaDescribedBy })
@@ -54,7 +54,7 @@ export function Radio({
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				aria-describedby={resolvedDescribedBy}
-				{...invalidAttrs(resolvedInvalid)}
+				{...validation}
 				className={k.input()}
 				{...props}
 			/>

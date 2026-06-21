@@ -43,6 +43,7 @@ describe('useControlProps', () => {
 			required: true,
 			readOnly: true,
 			invalid: true,
+			validation: { 'data-invalid': '', 'aria-invalid': true },
 		})
 	})
 
@@ -94,5 +95,41 @@ describe('useControlProps', () => {
 		})
 
 		expect(result.current.invalid).toBeUndefined()
+	})
+
+	it('resolves severity="error" to invalid plus the invalid attribute pair', () => {
+		const { result } = renderHook(() => useControlProps({}), {
+			wrapper: withControl({ id: 'x', severity: 'error' }),
+		})
+
+		expect(result.current.invalid).toBe(true)
+		expect(result.current.validation).toEqual({ 'data-invalid': '', 'aria-invalid': true })
+	})
+
+	it('resolves severity="warning" to data-warning without marking invalid', () => {
+		const { result } = renderHook(() => useControlProps({}), {
+			wrapper: withControl({ id: 'x', severity: 'warning' }),
+		})
+
+		expect(result.current.invalid).toBeUndefined()
+		expect(result.current.validation).toEqual({ 'data-warning': '' })
+	})
+
+	it('resolves severity="success" to data-valid without marking invalid', () => {
+		const { result } = renderHook(() => useControlProps({}), {
+			wrapper: withControl({ id: 'x', severity: 'success' }),
+		})
+
+		expect(result.current.invalid).toBeUndefined()
+		expect(result.current.validation).toEqual({ 'data-valid': '' })
+	})
+
+	it('lets invalid win over a warning severity', () => {
+		const { result } = renderHook(() => useControlProps({ invalid: true }), {
+			wrapper: withControl({ id: 'x', severity: 'warning' }),
+		})
+
+		expect(result.current.invalid).toBe(true)
+		expect(result.current.validation).toEqual({ 'data-invalid': '', 'aria-invalid': true })
 	})
 })

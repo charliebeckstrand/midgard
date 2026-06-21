@@ -1,12 +1,15 @@
 'use client'
 
-import { createContext } from '../../core'
+import { createContext, type Severity } from '../../core'
 
 /** Control density step: `sm`, `md`, or `lg`. Feeds the Density cascade and each field's recipe size. */
 export type ControlSize = 'sm' | 'md' | 'lg'
 
 /** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
 export type ControlVariant = 'default' | 'outline'
+
+/** Control-level validation / status severity broadcast by `<Control severity>` / `<Field severity>`: an `error`, `warning`, or `success`. */
+export type ControlSeverity = Severity
 
 /**
  * Shape of the form-field cascade carried by {@link ControlContext}: the shared
@@ -22,6 +25,8 @@ export type ControlContextValue = {
 	invalid?: boolean
 	readOnly?: boolean
 	required?: boolean
+	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
+	severity?: ControlSeverity
 	size?: ControlSize
 	variant?: ControlVariant
 	/** Composed `aria-describedby` for fields: registered Description / error Message ids, or undefined when none are rendered. */

@@ -49,6 +49,120 @@ describe('Field', () => {
 
 		expect(bySlot(container, 'field')).toHaveAttribute('data-disabled')
 	})
+
+	it('auto-renders an error Message and marks the control invalid for severity="error"', () => {
+		const { container } = renderUI(
+			<Field severity="error" message="Enter a valid email">
+				<Label>Email</Label>
+				<Input />
+			</Field>,
+		)
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toHaveAttribute('data-variant', 'error')
+
+		expect(message).toHaveAttribute('role', 'alert')
+
+		expect(message?.textContent).toBe('Enter a valid email')
+
+		const input = bySlot(container, 'input')
+
+		expect(input).toHaveAttribute('data-invalid')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('auto-renders a polite warning Message and data-warning without aria-invalid', () => {
+		const { container } = renderUI(
+			<Field severity="warning" message="Double-check this value">
+				<Label>Field</Label>
+				<Input />
+			</Field>,
+		)
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toHaveAttribute('data-variant', 'warning')
+
+		expect(message).toHaveAttribute('role', 'status')
+
+		const input = bySlot(container, 'input')
+
+		expect(input).toHaveAttribute('data-warning')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		expect(input).not.toHaveAttribute('data-invalid')
+	})
+
+	it('auto-renders a success Message and data-valid without aria-invalid', () => {
+		const { container } = renderUI(
+			<Field severity="success" message="Looks good">
+				<Label>Field</Label>
+				<Input />
+			</Field>,
+		)
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toHaveAttribute('data-variant', 'success')
+
+		expect(message).toHaveAttribute('role', 'status')
+
+		const input = bySlot(container, 'input')
+
+		expect(input).toHaveAttribute('data-valid')
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('does not reference a success auto-Message in aria-describedby', () => {
+		const { container } = renderUI(
+			<Field severity="success" message="Looks good">
+				<Input />
+			</Field>,
+		)
+
+		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('renders no auto-Message without a message or name prop', () => {
+		const { container } = renderUI(
+			<Field>
+				<Input />
+			</Field>,
+		)
+
+		expect(bySlot(container, 'message')).toBeNull()
+	})
+
+	it('auto-renders the bound form field error from the name prop', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ email: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+					helpers.setErrors({ email: 'required' })
+				}}
+			>
+				<Field name="email">
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		expect(bySlot(container, 'message')).toBeNull()
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		expect((bySlot(container, 'message') as HTMLElement).textContent).toBe('required')
+
+		expect(bySlot(container, 'input')).toHaveAttribute('aria-invalid', 'true')
+	})
 })
 
 describe('Label', () => {
@@ -90,6 +204,18 @@ describe('Message', () => {
 		expect(bySlot(container, 'message')).toHaveAttribute('data-variant', 'success')
 
 		expect(screen.getByText('Looks good')).toBeInTheDocument()
+	})
+
+	it('renders the warning variant politely', () => {
+		const { container } = renderUI(<Message variant="warning">Heads up</Message>)
+
+		const el = bySlot(container, 'message')
+
+		expect(el).toHaveAttribute('data-variant', 'warning')
+
+		expect(el).toHaveAttribute('role', 'status')
+
+		expect(screen.getByText('Heads up')).toBeInTheDocument()
 	})
 
 	it('flips the control aria-invalid while an error Message is mounted', () => {

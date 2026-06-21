@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
@@ -75,7 +75,7 @@ export function Textarea(props: TextareaProps) {
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
-		invalid: resolvedInvalid,
+		validation,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlProps({
 		id,
@@ -100,7 +100,7 @@ export function Textarea(props: TextareaProps) {
 		onChange: valueState.onChange,
 		onBlur: valueState.onBlur,
 		'aria-describedby': resolvedDescribedBy,
-		...invalidAttrs(resolvedInvalid),
+		...validation,
 	}
 
 	const hasActions = actions !== undefined
