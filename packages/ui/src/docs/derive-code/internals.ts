@@ -1,4 +1,6 @@
+import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
+import * as ReactDOM from 'react-dom'
 import type { ComponentInfo, Context } from './types'
 
 /**
@@ -346,12 +348,29 @@ function leadingSpace(line: string): number {
 	return line.length - line.trimStart().length
 }
 
-// Curated alternation matching React's own hooks. The `(?<!\.)` lookbehind
-// excludes method calls (`router.use(...)`, `app.useState(...)`) from matching
-// as React hooks. Keep in sync with the React `use*` export surface; missing
-// entries produce unresolved identifiers in the emitted snippet.
-const HOOK_RE =
-	/(?<!\.)\b(use|useActionState|useCallback|useContext|useDebugValue|useDeferredValue|useEffect|useFormStatus|useHostTransitionStatus|useId|useImperativeHandle|useInsertionEffect|useLayoutEffect|useMemo|useOptimistic|useReducer|useRef|useState|useSyncExternalStore|useTransition)\b/g
+// `use` (the React 19 API) or a `use<Capital>` hook name.
+function isHookName(name: string): boolean {
+	return name === 'use' || /^use[A-Z]/.test(name)
+}
+
+// Hook → owning package, derived from the installed React and ReactDOM export
+// surfaces so the set never drifts from the version in use. React entries are
+// spread last and win any name collision, keeping `react` the canonical
+// specifier. Replaces a hand-curated alternation that had already drifted: it
+// omitted `useEffectEvent` and attributed react-dom's `useFormStatus` to `react`.
+export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
+	...Object.keys(ReactDOM)
+		.filter(isHookName)
+		.map((name) => [name, 'react-dom'] as const),
+	...Object.keys(React)
+		.filter(isHookName)
+		.map((name) => [name, 'react'] as const),
+])
+
+// Match any known hook used as a bare identifier. The `(?<!\.)` lookbehind
+// excludes method calls (`router.use(...)`); the `\b` anchors keep a short name
+// from matching inside a longer one, so alternation order is immaterial.
+const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b`, 'g')
 
 const TAG_RE = /<([A-Z][\w]*)/g
 
@@ -372,6 +391,10 @@ export function collectSnippetImports(snippet: string, context: Context): void {
 	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
 		if (!hook) continue
 
-		addImport(context, 'react', hook)
+		const module = HOOK_MODULES.get(hook)
+
+		// `react` is rendered bare by `assemble` already; flag any other package
+		// (e.g. `react-dom`) external so its specifier stays bare too.
+		if (module) addImport(context, module, hook, module !== 'react')
 	}
 }

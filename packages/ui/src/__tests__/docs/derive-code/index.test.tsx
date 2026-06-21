@@ -232,7 +232,7 @@ describe('deriveCode + __code', () => {
 		expect(result).toMatch(/import \{.*useState.*\} from 'react'/)
 	})
 
-	it('infers React 19 hook imports (use, useActionState, useOptimistic, useFormStatus)', () => {
+	it('infers React 19 hook imports, sourcing react-dom hooks from react-dom', () => {
 		const FormDemo = Object.assign(
 			function FormDemo() {
 				return null
@@ -258,7 +258,7 @@ describe('deriveCode + __code', () => {
 
 		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
 
-		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react'/)
+		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react-dom'/)
 	})
 
 	it('does not mistake method calls for React hooks', () => {
