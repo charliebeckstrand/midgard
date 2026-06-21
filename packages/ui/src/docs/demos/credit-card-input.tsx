@@ -5,7 +5,7 @@ import {
 	CreditCardInputCvv,
 	CreditCardInputExpiry,
 } from '../../components/credit-card-input'
-import { Field, Label } from '../../components/fieldset'
+import { Field, Label, Message } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { code } from '../code'
@@ -124,8 +124,9 @@ export function Demo() {
 
 			<Example title="Invalid">
 				<Field>
-					<Label>Invalid</Label>
-					<CreditCardInput data-invalid />
+					<Label>Card number</Label>
+					<CreditCardInput defaultValue="4242424242424241" />
+					<Message variant="error">Enter a valid card number.</Message>
 				</Field>
 			</Example>
 		</>
