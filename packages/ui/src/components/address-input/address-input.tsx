@@ -2,9 +2,7 @@
 
 import { MapPin } from 'lucide-react'
 import { type InputHTMLAttributes, useState } from 'react'
-import { useControllable } from '../../hooks'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
-import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import { LoadingSpinner } from '../loading'
 import { photonProvider } from './address-input-photon'
@@ -41,13 +39,17 @@ export type AddressInputProps = {
 	'aria-label'?: string
 }
 
+// Leading location pin; static and decorative, hoisted for a stable identity.
+const ADDRESS_PREFIX = <Icon icon={<MapPin />} />
+
 /**
  * Address autocomplete over a pluggable geocoding `provider`. Built on
  * `<Combobox>`: debounces the query by `debounceMs`, fetches once the query
  * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
- * labeled option with optional description. The suffix tracks selection state,
- * showing a `<LoadingSpinner>` while fetching, a `<MapPin>` when empty or
- * disabled, and otherwise ceding the slot to the Combobox clear button.
+ * labeled option with optional description. A leading `<MapPin>` marks the
+ * prefix; the suffix shows a `<LoadingSpinner>` while fetching and otherwise
+ * cedes the slot to the Combobox clear button (when an address is selected) or
+ * chevron.
  *
  * @remarks
  * Client component. Defaults to {@link photonProvider}. In-flight requests are
@@ -78,24 +80,9 @@ export function AddressInput({
 		minQueryLength,
 	})
 
-	// Mirrors the Combobox selection (controlled or not) so the suffix can
-	// react to it: an undefined suffix lets the Combobox's `clearable` button
-	// take the slot while an address is selected.
-	const [selected, setSelected] = useControllable<AddressSuggestion>({
-		value,
-		defaultValue,
-		onValueChange,
-	})
-
-	// Disabled suppresses the clear button; keep the pin rather than letting
-	// the slot fall back to the Combobox chevron.
-	const disabled = useControl()?.disabled
-
-	const suffix = loading ? (
-		<LoadingSpinner />
-	) : selected === undefined || disabled ? (
-		<Icon icon={<MapPin />} />
-	) : undefined
+	// A spinner owns the suffix while fetching; otherwise the slot falls to the
+	// Combobox's clear button (when an address is selected) or chevron.
+	const suffix = loading ? <LoadingSpinner /> : undefined
 
 	return (
 		<Combobox<AddressSuggestion>
@@ -104,12 +91,13 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
-			onValueChange={setSelected}
+			onValueChange={onValueChange}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}
 			autoComplete={autoComplete}
 			clearOnEmpty
 			clearable
+			prefix={ADDRESS_PREFIX}
 			suffix={suffix}
 			open={ready && menuRequested}
 			onOpenChange={setMenuRequested}

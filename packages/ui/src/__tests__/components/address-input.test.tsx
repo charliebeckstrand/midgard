@@ -216,7 +216,7 @@ describe('AddressInput', () => {
 		expect(input.value).toBe('')
 	})
 
-	it('swaps the pin for a clear button while an address is selected', async () => {
+	it('keeps the pin in the prefix and shows a clear suffix while an address is selected', async () => {
 		const onValueChange = vi.fn()
 
 		const { container } = renderUI(
@@ -229,6 +229,9 @@ describe('AddressInput', () => {
 		)
 
 		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		// The location pin sits in the prefix slot, independent of selection.
+		expect(bySlot(container, 'prefix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
@@ -251,8 +254,8 @@ describe('AddressInput', () => {
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
-		// The pin returns once the selection is cleared.
-		expect(bySlot(container, 'suffix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+		// The pin stays in the prefix after the selection is cleared.
+		expect(bySlot(container, 'prefix')?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
 	it('shows the clear button for a controlled initial value', () => {
