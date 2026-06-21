@@ -65,12 +65,12 @@ export function Demo() {
 					<Field>
 						<Label>Email</Label>
 						<Input defaultValue="not-an-email" />
-						<Message variant="error">Enter a valid email address.</Message>
+						<Message severity="error">Enter a valid email address.</Message>
 					</Field>
 					<Field>
 						<Label>Username</Label>
 						<Input defaultValue="jane" />
-						<Message variant="success">Username is available.</Message>
+						<Message severity="success">Username is available.</Message>
 					</Field>
 				</Stack>
 			</Example>

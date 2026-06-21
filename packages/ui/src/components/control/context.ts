@@ -39,8 +39,6 @@ export type ControlContextValue = {
 	descriptionId?: string
 	/** Id the error Message slot renders with. */
 	messageId?: string
-	/** `true` while an error Message is mounted; fields OR this into `aria-invalid`. */
-	messageRegistered?: boolean
 	/** Slot registration: Label / Description / error Message call these on mount, passing the id they render; `labelledBy` / `describedBy` only reference ids of rendered slots. */
 	registerLabel?: (renderedId?: string) => () => void
 	registerDescription?: (renderedId?: string) => () => void

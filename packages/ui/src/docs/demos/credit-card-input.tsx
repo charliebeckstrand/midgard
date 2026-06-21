@@ -109,10 +109,10 @@ export function Demo() {
 			</Example>
 
 			<Example title="Invalid">
-				<Field>
+				<Field severity="error">
 					<Label>Card number</Label>
 					<CreditCardInput defaultValue="4242424242424241" />
-					<Message variant="error">Enter a valid card number</Message>
+					<Message severity="error">Enter a valid card number</Message>
 				</Field>
 			</Example>
 		</>

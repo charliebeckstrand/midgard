@@ -60,7 +60,7 @@ describe('Field', () => {
 
 		const message = bySlot(container, 'message')
 
-		expect(message).toHaveAttribute('data-variant', 'error')
+		expect(message).toHaveAttribute('data-severity', 'error')
 
 		expect(message).toHaveAttribute('role', 'alert')
 
@@ -83,7 +83,7 @@ describe('Field', () => {
 
 		const message = bySlot(container, 'message')
 
-		expect(message).toHaveAttribute('data-variant', 'warning')
+		expect(message).toHaveAttribute('data-severity', 'warning')
 
 		expect(message).toHaveAttribute('role', 'status')
 
@@ -106,7 +106,7 @@ describe('Field', () => {
 
 		const message = bySlot(container, 'message')
 
-		expect(message).toHaveAttribute('data-variant', 'success')
+		expect(message).toHaveAttribute('data-severity', 'success')
 
 		expect(message).toHaveAttribute('role', 'status')
 
@@ -186,43 +186,65 @@ describe('Description', () => {
 })
 
 describe('Message', () => {
-	it('renders with data-slot="message" and defaults to the error variant', () => {
+	it('renders with data-slot="message" and defaults to the error severity', () => {
 		const { container } = renderUI(<Message>Required</Message>)
 
 		const el = bySlot(container, 'message')
 
 		expect(el).toBeInTheDocument()
 
-		expect(el).toHaveAttribute('data-variant', 'error')
+		expect(el).toHaveAttribute('data-severity', 'error')
 
 		expect(screen.getByText('Required')).toBeInTheDocument()
 	})
 
-	it('renders the success variant', () => {
-		const { container } = renderUI(<Message variant="success">Looks good</Message>)
+	it('renders the success severity', () => {
+		const { container } = renderUI(<Message severity="success">Looks good</Message>)
 
-		expect(bySlot(container, 'message')).toHaveAttribute('data-variant', 'success')
+		expect(bySlot(container, 'message')).toHaveAttribute('data-severity', 'success')
 
 		expect(screen.getByText('Looks good')).toBeInTheDocument()
 	})
 
-	it('renders the warning variant politely', () => {
-		const { container } = renderUI(<Message variant="warning">Heads up</Message>)
+	it('renders the warning severity politely', () => {
+		const { container } = renderUI(<Message severity="warning">Heads up</Message>)
 
 		const el = bySlot(container, 'message')
 
-		expect(el).toHaveAttribute('data-variant', 'warning')
+		expect(el).toHaveAttribute('data-severity', 'warning')
 
 		expect(el).toHaveAttribute('role', 'status')
 
 		expect(screen.getByText('Heads up')).toBeInTheDocument()
 	})
 
-	it('flips the control aria-invalid while an error Message is mounted', () => {
-		// A non-form-bound Field with a rendered error Message marks its control
-		// invalid, not only described-by.
-		const { container, rerender } = renderUI(
+	it('does not mark the control invalid for a manually nested error Message', () => {
+		// A nested <Message> is presentational: it links to the control via
+		// aria-describedby but never drives the ring or aria-invalid. The invalid
+		// state comes from <Field severity>, an explicit invalid, or a form binding.
+		const { container } = renderUI(
 			<Field>
+				<Label>Name</Label>
+				<Input />
+				<Message>Required</Message>
+			</Field>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLElement
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		expect(input).not.toHaveAttribute('data-invalid')
+
+		expect(input.getAttribute('aria-describedby')).toBe(message.id)
+	})
+
+	it('rings via severity even with a manually nested Message', () => {
+		// <Field severity> drives the chrome; a custom nested <Message> supplies
+		// the text. The two compose without the Message touching the ring.
+		const { container } = renderUI(
+			<Field severity="error">
 				<Label>Name</Label>
 				<Input />
 				<Message>Required</Message>
@@ -231,16 +253,9 @@ describe('Message', () => {
 
 		const input = bySlot(container, 'input')
 
+		expect(input).toHaveAttribute('data-invalid')
+
 		expect(input).toHaveAttribute('aria-invalid', 'true')
-
-		rerender(
-			<Field>
-				<Label>Name</Label>
-				<Input />
-			</Field>,
-		)
-
-		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 
 	it('does not mark the control invalid for a success Message', () => {
@@ -248,7 +263,7 @@ describe('Message', () => {
 			<Field>
 				<Label>Name</Label>
 				<Input />
-				<Message variant="success">Looks good</Message>
+				<Message severity="success">Looks good</Message>
 			</Field>,
 		)
 
@@ -356,7 +371,7 @@ describe('Message', () => {
 	it('renders verbatim children for the success variant inside a form', () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }}>
-				<Message variant="success" name="name">
+				<Message severity="success" name="name">
 					Looks good
 				</Message>
 			</Form>,
@@ -417,7 +432,7 @@ describe('Field aria-describedby', () => {
 		const { container } = renderUI(
 			<Field>
 				<Input />
-				<Message variant="success">Looks good</Message>
+				<Message severity="success">Looks good</Message>
 			</Field>,
 		)
 

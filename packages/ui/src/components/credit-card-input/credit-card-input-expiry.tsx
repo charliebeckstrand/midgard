@@ -125,9 +125,10 @@ export function CreditCardInputExpiry({
 				{...props}
 			/>
 
-			{/* Gated on the component's own detection, not the external `invalid`
-			    prop; a mounted Message also flips the input to aria-invalid. */}
-			{typedInvalid && invalidMessage ? <Message variant="error">{invalidMessage}</Message> : null}
+			{/* Visible feedback gated on the component's own detection, not the
+			    external `invalid` prop; the input's aria-invalid comes from the
+			    `invalid` prop above, never from this Message. */}
+			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
 		</>
 	)
 }

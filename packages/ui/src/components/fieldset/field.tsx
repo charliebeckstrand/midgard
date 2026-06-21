@@ -79,10 +79,10 @@ export function Field({
 	)
 
 	// Controlled `message` wins; otherwise a `name` binding renders the form
-	// field's error. The error variant's registration drives `aria-invalid`.
+	// field's error. The control's ring follows `severity`, not the Message.
 	const autoMessage =
 		message != null ? (
-			<Message variant={resolvedSeverity ?? 'error'}>{message}</Message>
+			<Message severity={resolvedSeverity ?? 'error'}>{message}</Message>
 		) : name !== undefined ? (
 			<Message name={name} />
 		) : null

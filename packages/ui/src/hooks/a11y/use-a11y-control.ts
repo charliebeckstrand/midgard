@@ -20,8 +20,6 @@ export type A11yControl = {
 	descriptionId: string
 	/** Id the error Message slot renders with. */
 	messageId: string
-	/** `true` while an error Message is mounted; fields OR this into `aria-invalid`. */
-	messageRegistered: boolean
 	/**
 	 * Slot registration: Label / Description / error Message call these on
 	 * mount, passing the id they render; the composed `aria-*` references only
@@ -40,9 +38,8 @@ export type A11yControl = {
  * `${id}-description`, `${id}-error`.
  *
  * @returns An `A11yControl`: the composed `describedBy` / `labelledBy`
- * references, the derived `labelId` / `descriptionId` / `messageId`, the
- * `messageRegistered` flag for `aria-invalid`, and the `registerLabel` /
- * `registerDescription` / `registerMessage` slot registrars.
+ * references, the derived `labelId` / `descriptionId` / `messageId`, and the
+ * `registerLabel` / `registerDescription` / `registerMessage` slot registrars.
  * @see {@link useA11yScope}
  */
 export function useA11yControl(id: string): A11yControl {
@@ -55,7 +52,6 @@ export function useA11yControl(id: string): A11yControl {
 			labelId: scope.ids.label,
 			descriptionId: scope.ids.description,
 			messageId: scope.ids.error,
-			messageRegistered: scope.registered.error,
 			registerLabel: scope.register.label,
 			registerDescription: scope.register.description,
 			registerMessage: scope.register.error,
@@ -66,7 +62,6 @@ export function useA11yControl(id: string): A11yControl {
 			scope.ids.label,
 			scope.ids.description,
 			scope.ids.error,
-			scope.registered.error,
 			scope.register.label,
 			scope.register.description,
 			scope.register.error,

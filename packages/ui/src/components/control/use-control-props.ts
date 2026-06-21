@@ -50,11 +50,12 @@ export type ControlPropsResult = {
  * @returns The resolved `id`, `autoComplete`, `disabled`, `required`,
  * `readOnly`, `invalid`, and composed `aria-describedby`; any field is
  * `undefined` when neither input nor context supplies it.
- * @remarks `invalid` resolves `true` when an error Message is mounted even
- * without a form binding (via the context's `messageRegistered` flag) or when
- * the Control `severity` is `error`. `validation` collapses the resolved state
- * into a single spreadable attribute object — invalid wins, then a `warning` /
- * `success` severity — so the three validation rings stay mutually exclusive.
+ * @remarks `invalid` resolves `true` from an explicit `invalid` (prop, ambient
+ * `<Control invalid>`, or form binding) or when the Control `severity` is
+ * `error`; a nested `<Message>` is presentational and never marks the control
+ * invalid. `validation` collapses the resolved state into a single spreadable
+ * attribute object — invalid wins, then a `warning` / `success` severity — so
+ * the three validation rings stay mutually exclusive.
  * @see {@link useControlToggle} for the Density-aware variant.
  * @example
  *   const { id, disabled, required, invalid, validation } = useControlProps({
@@ -70,14 +71,10 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 
 	const severity = control?.severity
 
-	// A mounted error Message, or an `error` severity, marks the control invalid
-	// even without a form binding.
-	const invalid =
-		control?.invalid ||
-		input.invalid ||
-		control?.messageRegistered ||
-		severity === 'error' ||
-		undefined
+	// An explicit `invalid` (prop, ambient `<Control invalid>`, or form binding)
+	// or an `error` severity marks the control invalid. A nested `<Message>` is
+	// presentational: it never drives the chrome — the ring comes from severity.
+	const invalid = control?.invalid || input.invalid || severity === 'error' || undefined
 
 	// Invalid wins the validation chrome; otherwise reflect a warning / success
 	// severity. The three states are mutually exclusive.
