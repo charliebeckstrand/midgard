@@ -54,7 +54,7 @@ export function Demo() {
 	const context = (
 		<Menu>
 			<Box className="flex items-center justify-center border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg p-20">
-				<Text variant="muted" className="select-none">
+				<Text severity="muted" className="select-none">
 					Right-click here
 				</Text>
 			</Box>

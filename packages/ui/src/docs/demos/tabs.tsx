@@ -19,7 +19,7 @@ export function Demo() {
 					<TabContents>
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
-								<Text variant="muted">{tab} settings would go here.</Text>
+								<Text severity="muted">{tab} settings would go here.</Text>
 							</TabContent>
 						))}
 					</TabContents>
@@ -37,7 +37,7 @@ export function Demo() {
 					<TabContents>
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
-								<Text variant="muted">{tab} settings would go here.</Text>
+								<Text severity="muted">{tab} settings would go here.</Text>
 							</TabContent>
 						))}
 					</TabContents>
@@ -55,7 +55,7 @@ export function Demo() {
 					<TabContents>
 						{tabs.map((tab) => (
 							<TabContent key={tab} value={tab}>
-								<Text variant="muted">{tab} settings would go here.</Text>
+								<Text severity="muted">{tab} settings would go here.</Text>
 							</TabContent>
 						))}
 					</TabContents>

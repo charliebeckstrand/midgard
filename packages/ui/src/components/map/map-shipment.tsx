@@ -109,7 +109,7 @@ function ShipmentInfo({ data }: { data: ShipmentData }) {
 	if (data.info) rows.push(...data.info)
 
 	if (rows.length === 0) {
-		return <Text variant="muted">No shipment details available.</Text>
+		return <Text severity="muted">No shipment details available.</Text>
 	}
 
 	return (
