@@ -1,5 +1,6 @@
-import { sen } from '../kiso'
+import { kasane, sen } from '../kiso'
 
+const { padding } = kasane
 const { focus } = sen
 
 export const k = {
@@ -18,4 +19,15 @@ export const k = {
 		'data-[has-suffix]:data-[size=sm]:pl-[calc(--spacing(2.5)-1px)]',
 		'data-[has-suffix]:data-[size=md]:pl-[calc(--spacing(3.25)-1px)]',
 	],
+	// Vertical padding for the tag row, keyed by density.
+	//
+	// A chip nearly fills the host Input's text-line box, so centred against
+	// the bare input it clears the frame by only the centring gap and reads
+	// squished. Padding the row one step above the control's `py` insets the
+	// chips and lets the frame grow to fit the row.
+	tags: {
+		sm: padding.py('2'),
+		md: padding.py('2.5'),
+		lg: padding.py('3'),
+	},
 } as const
