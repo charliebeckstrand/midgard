@@ -1,6 +1,9 @@
 'use client'
 
+import { MapPinned } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { digitsOnly } from '../../utilities'
+import { Icon } from '../icon'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
 /** Postal-code locale selecting the mask, `inputMode`, and placeholder. */
@@ -8,18 +11,20 @@ export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
 
 /**
  * Props for {@link ZipcodeInput}. Inherits `<MaskInput>` props except
- * `format`, `type`, `inputMode`, and `autoComplete`, which are derived from
- * `country`.
+ * `format`, `type`, `inputMode`, `autoComplete`, and `prefix`, which are
+ * derived from `country` or defaulted here.
  */
 export type ZipcodeInputProps = Omit<
 	MaskInputProps,
-	'format' | 'type' | 'inputMode' | 'autoComplete'
+	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
 > & {
 	/**
 	 * Postal-code locale.
 	 * @defaultValue 'US'
 	 */
 	country?: ZipcodeInputCountry
+	/** Overrides the leading map-pin-icon affix. */
+	prefix?: ReactNode
 }
 
 function formatUS(raw: string) {
@@ -78,10 +83,11 @@ const placeholders = {
  * Postal-code field built on `<MaskInput>`. Selects a live formatting mask
  * from `country` (US ZIP/ZIP+4, Canadian FSA/LDU, UK outward/inward, or a
  * loose international fallback) and matches the keyboard (`inputMode`) and
- * placeholder to it. Forwards `autoComplete="postal-code"`; an explicit
- * `placeholder` overrides the locale default.
+ * placeholder to it. Forwards `autoComplete="postal-code"` and a leading
+ * map-pin-icon `prefix`; an explicit `placeholder` overrides the locale
+ * default.
  */
-export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeInputProps) {
+export function ZipcodeInput({ country = 'US', placeholder, prefix, ...props }: ZipcodeInputProps) {
 	return (
 		<MaskInput
 			data-slot="zipcode-input"
@@ -89,6 +95,7 @@ export function ZipcodeInput({ country = 'US', placeholder, ...props }: ZipcodeI
 			inputMode={inputModes[country]}
 			autoComplete="postal-code"
 			placeholder={placeholder ?? placeholders[country]}
+			prefix={prefix ?? <Icon icon={<MapPinned />} />}
 			format={formatters[country]}
 			{...props}
 		/>
