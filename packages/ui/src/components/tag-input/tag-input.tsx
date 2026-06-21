@@ -2,6 +2,7 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { type Ref, useCallback, useRef, useState } from 'react'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import type { Color } from '../../recipes'
@@ -189,7 +190,7 @@ export function TagInput({
 					<Icon icon={<CornerLeftDown />} />
 				</Button>
 			}
-			className={className}
+			className={cn(className, atMax && 'cursor-not-allowed')}
 		/>
 	)
 }
