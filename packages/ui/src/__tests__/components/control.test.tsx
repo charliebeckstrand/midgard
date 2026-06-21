@@ -157,8 +157,11 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		const input = bySlot(container, 'input')
+
 		expect(input).toHaveAttribute('data-invalid')
+
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
@@ -168,9 +171,13 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		const input = bySlot(container, 'input')
+
 		expect(input).toHaveAttribute('data-warning')
+
 		expect(input).not.toHaveAttribute('aria-invalid')
+
 		expect(input).not.toHaveAttribute('data-invalid')
 	})
 
@@ -180,8 +187,11 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		const input = bySlot(container, 'input')
+
 		expect(input).toHaveAttribute('data-valid')
+
 		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 

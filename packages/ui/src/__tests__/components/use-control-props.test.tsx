@@ -103,6 +103,7 @@ describe('useControlProps', () => {
 		})
 
 		expect(result.current.invalid).toBe(true)
+
 		expect(result.current.validation).toEqual({ 'data-invalid': '', 'aria-invalid': true })
 	})
 
@@ -112,6 +113,7 @@ describe('useControlProps', () => {
 		})
 
 		expect(result.current.invalid).toBeUndefined()
+
 		expect(result.current.validation).toEqual({ 'data-warning': '' })
 	})
 
@@ -121,6 +123,7 @@ describe('useControlProps', () => {
 		})
 
 		expect(result.current.invalid).toBeUndefined()
+
 		expect(result.current.validation).toEqual({ 'data-valid': '' })
 	})
 
@@ -130,6 +133,7 @@ describe('useControlProps', () => {
 		})
 
 		expect(result.current.invalid).toBe(true)
+
 		expect(result.current.validation).toEqual({ 'data-invalid': '', 'aria-invalid': true })
 	})
 })
