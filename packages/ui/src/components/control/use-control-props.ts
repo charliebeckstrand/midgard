@@ -1,5 +1,6 @@
 'use client'
 
+import { type ValidationAttrs, validationAttrs } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { useControl } from './context'
 
@@ -27,6 +28,8 @@ export type ControlPropsResult = {
 	readOnly: boolean | undefined
 	invalid: boolean | undefined
 	'aria-describedby': string | undefined
+	/** Spreadable `data-*` / `aria-invalid` attributes for the resolved validation state: `error`/invalid, else the Control `severity` (`warning` / `success`), else none. */
+	validation: ValidationAttrs
 }
 
 /**
@@ -48,10 +51,13 @@ export type ControlPropsResult = {
  * `readOnly`, `invalid`, and composed `aria-describedby`; any field is
  * `undefined` when neither input nor context supplies it.
  * @remarks `invalid` resolves `true` when an error Message is mounted even
- * without a form binding, via the context's `messageRegistered` flag.
+ * without a form binding (via the context's `messageRegistered` flag) or when
+ * the Control `severity` is `error`. `validation` collapses the resolved state
+ * into a single spreadable attribute object — invalid wins, then a `warning` /
+ * `success` severity — so the three validation rings stay mutually exclusive.
  * @see {@link useControlToggle} for the Density-aware variant.
  * @example
- *   const { id, disabled, required, invalid } = useControlProps({
+ *   const { id, disabled, required, invalid, validation } = useControlProps({
  *     id: idProp, disabled: disabledProp, required: requiredProp, invalid,
  *   })
  */
@@ -62,15 +68,31 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 	// error ids. Omitted when neither is present.
 	const describedBy = useAriaIds(input['aria-describedby'], control?.describedBy)
 
+	const severity = control?.severity
+
+	// A mounted error Message, or an `error` severity, marks the control invalid
+	// even without a form binding.
+	const invalid =
+		control?.invalid ||
+		input.invalid ||
+		control?.messageRegistered ||
+		severity === 'error' ||
+		undefined
+
+	// Invalid wins the validation chrome; otherwise reflect a warning / success
+	// severity. The three states are mutually exclusive.
+	const validation = validationAttrs(
+		invalid ? 'error' : severity === 'warning' || severity === 'success' ? severity : undefined,
+	)
+
 	return {
 		id: input.id ?? control?.id,
 		autoComplete: input.autoComplete ?? control?.autoComplete,
 		disabled: input.disabled ?? control?.disabled,
 		required: input.required ?? control?.required,
 		readOnly: input.readOnly ?? control?.readOnly,
-		// A mounted error Message marks the control invalid even without a form
-		// binding.
-		invalid: control?.invalid || input.invalid || control?.messageRegistered || undefined,
+		invalid,
 		'aria-describedby': describedBy,
+		validation,
 	}
 }

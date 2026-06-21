@@ -1,5 +1,6 @@
 export {
 	type ControlContextValue,
+	type ControlSeverity,
 	type ControlSize,
 	type ControlVariant,
 	useControl,

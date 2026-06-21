@@ -19,7 +19,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 `form` · `fieldset` · `control` · `submit-button`
 
-> `control` provides the `Field` / `Label` / `Description` / `Message` family; `fieldset` provides `Legend`.
+> `control` provides the `Field` / `Label` / `Description` / `Message` family; `Field` takes `severity` (`error` / `warning` / `success`) + `message` (or a form-bound `name`) to broadcast validation state to the nested control and auto-render the matching `Message`. `fieldset` provides `Legend`.
 
 ## Buttons & actions
 

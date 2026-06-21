@@ -96,6 +96,11 @@ export function Input(props: InputProps) {
 
 	const resolvedInvalid = invalid ?? sharedAttrs.invalid
 
+	// An explicit `invalid` prop fully controls the validation chrome (forcing it
+	// on or off); otherwise reflect the Control cascade's resolved state, which
+	// includes a warning / success severity broadcast by <Field>.
+	const validation = invalid === undefined ? sharedAttrs.validation : invalidAttrs(resolvedInvalid)
+
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const inputEl = (
@@ -117,7 +122,7 @@ export function Input(props: InputProps) {
 				!headless && k({ variant: resolvedVariant, density: token.space, size: token.size }),
 				className,
 			)}
-			{...invalidAttrs(resolvedInvalid)}
+			{...validation}
 			{...rest}
 		/>
 	)

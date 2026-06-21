@@ -8,7 +8,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -55,7 +55,7 @@ export function Checkbox({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
-		invalid: resolvedInvalid,
+		validation,
 		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
 	} = useControlToggle({
@@ -100,7 +100,7 @@ export function Checkbox({
 				checked={resolvedChecked}
 				onChange={resolvedOnChange}
 				aria-describedby={resolvedDescribedBy}
-				{...invalidAttrs(resolvedInvalid)}
+				{...validation}
 				className={k.input()}
 				{...props}
 			/>

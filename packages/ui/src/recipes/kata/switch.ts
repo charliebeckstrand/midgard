@@ -78,6 +78,9 @@ export const k = defineRecipe(
 				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15 dark:not-has-[:disabled]:not-has-[:checked]:group-hover/field:bg-white/15',
 			),
 			'not-has-[:disabled]:has-checked:hover:opacity-90 not-has-[:disabled]:has-checked:group-hover/field:opacity-90',
+			// Validation ring overrides the resting / checked track ring when the
+			// input carries a data-* severity attribute.
+			...check.validation,
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 		],
 		color,

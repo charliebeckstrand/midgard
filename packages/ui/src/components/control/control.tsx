@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/fieldset'
 import {
 	ControlContext,
 	type ControlContextValue,
+	type ControlSeverity,
 	type ControlSize,
 	type ControlVariant,
 	useControl,
@@ -22,6 +23,8 @@ export type ControlProps = {
 	invalid?: boolean
 	readOnly?: boolean
 	required?: boolean
+	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. */
+	severity?: ControlSeverity
 	size?: ControlSize
 	variant?: ControlVariant
 	className?: string
@@ -30,11 +33,11 @@ export type ControlProps = {
 
 /**
  * Form-field context provider: generates a stable id and broadcasts
- * `disabled`, `invalid`, `readOnly`, `required`, `size`, and `variant` to
- * control-aware descendants (input, textarea, switch, listbox, combobox,
- * datepicker, checkbox, radio). Nests: `disabled` / `readOnly` cascade through
- * inner Controls, `size` / `variant` inherit unless overridden. Wraps its
- * subtree in a Density scope when `size` resolves.
+ * `disabled`, `invalid`, `readOnly`, `required`, `severity`, `size`, and
+ * `variant` to control-aware descendants (input, textarea, switch, listbox,
+ * combobox, datepicker, checkbox, radio). Nests: `disabled` / `readOnly`
+ * cascade through inner Controls, `severity` / `size` / `variant` inherit
+ * unless overridden. Wraps its subtree in a Density scope when `size` resolves.
  */
 export function Control({
 	id: idProp,
@@ -43,6 +46,7 @@ export function Control({
 	invalid,
 	readOnly,
 	required,
+	severity,
 	size,
 	variant,
 	className,
@@ -52,9 +56,11 @@ export function Control({
 
 	const scope = useIdScope({ id: idProp })
 
-	// disabled/readOnly OR-merge with parent; size/variant inherit unless overridden.
+	// disabled/readOnly OR-merge with parent; severity/size/variant inherit unless overridden.
 	const mergedDisabled = disabled || parent?.disabled
 	const mergedReadOnly = readOnly || parent?.readOnly
+
+	const mergedSeverity = severity ?? parent?.severity
 
 	const mergedSize = size ?? parent?.size
 
@@ -72,6 +78,7 @@ export function Control({
 			invalid,
 			readOnly: mergedReadOnly,
 			required,
+			severity: mergedSeverity,
 			size: mergedSize,
 			variant: mergedVariant,
 			// Spreads the a11y bundle wholesale: label / description / error ids,
@@ -85,6 +92,7 @@ export function Control({
 			invalid,
 			mergedReadOnly,
 			required,
+			mergedSeverity,
 			mergedSize,
 			mergedVariant,
 			a11y,

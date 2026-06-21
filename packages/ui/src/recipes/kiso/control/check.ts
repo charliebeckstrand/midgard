@@ -23,6 +23,18 @@ const { focus, forced } = sen
 /** Visually hidden native input overlaying the custom check surface. */
 const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
 
+/**
+ * Validation ring keyed off the overlaid input's `data-*` state: red / amber /
+ * green, mirroring the framed-control kasane layers. The native input sits
+ * inside the surface, so the box / circle / track `has` the attribute. Literal
+ * class strings; Tailwind's scanner extracts them statically.
+ */
+const validation = [
+	'has-[[data-invalid]]:ring-2 has-[[data-invalid]]:ring-red-600',
+	'has-[[data-warning]]:ring-2 has-[[data-warning]]:ring-amber-500',
+	'has-[[data-valid]]:ring-2 has-[[data-valid]]:ring-green-600',
+]
+
 /** Custom check surface (the visible box / circle). */
 const surface = [
 	...mode(
@@ -38,6 +50,7 @@ const surface = [
 		],
 	),
 	'has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50',
+	...validation,
 ]
 
 /** Layout shell: position, inline-flex centering, focus outline, cursor. */
@@ -69,6 +82,8 @@ export const check = {
 	shell,
 	base,
 	color,
+	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track, already folded into `surface` for checkbox / radio. */
+	validation,
 	/** Disabled-state text class for the surrounding field wrapper. */
 	disabled: fg.disabled,
 } as const
