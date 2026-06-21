@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
+import { Alert } from '../alert'
 import { TableBody } from './table-body'
 import { TableCell } from './table-cell'
 import { TableRow } from './table-row'
@@ -11,6 +12,9 @@ export type TableEmptyProps = {
 	children?: ReactNode
 }
 
+/** @internal A default empty-state alert for {@link TableEmpty}. */
+const TableEmptyAlert = () => <Alert variant="soft" title="No items" block />
+
 /**
  * Empty-state body for a {@link Table}: a single row whose cell spans all
  * `columns` and shows the empty message. Render in place of {@link TableBody}
@@ -18,7 +22,7 @@ export type TableEmptyProps = {
  *
  * @defaultValue children `'No items'`
  */
-export function TableEmpty({ columns, children = 'No items' }: TableEmptyProps) {
+export function TableEmpty({ columns, children = <TableEmptyAlert /> }: TableEmptyProps) {
 	return (
 		<TableBody>
 			<TableRow>

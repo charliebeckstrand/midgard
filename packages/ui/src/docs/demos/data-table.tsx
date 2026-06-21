@@ -94,33 +94,62 @@ const SelectionExample = () => {
 const BatchActionsExample = () => {
 	const [rows, setRows] = useState(people)
 
-	return rows.length ? (
-		<DataTable
-			columns={[{ id: 'select', selectable: true }, ...columns]}
-			rows={rows}
-			getKey={(row) => row.id}
-			selection={{
-				batchActions: ({ selection, setSelection }) => (
-					<HoldButton
-						size="sm"
-						color="red"
-						variant="soft"
-						onComplete={() => {
-							setRows((prev) => prev.filter((row) => !selection.has(row.id)))
+	return (
+		<>
+			{!rows.length && (
+				<Button color="red" variant="soft" onClick={() => setRows(people)}>
+					Reset
+				</Button>
+			)}
 
-							setSelection(new Set())
-						}}
-					>
-						Delete {selection.size} items
-					</HoldButton>
-				),
-			}}
-		/>
-	) : (
-		<Button color="red" variant="soft" onClick={() => setRows(people)}>
-			Reset
-		</Button>
+			<DataTable
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				rows={rows}
+				getKey={(row) => row.id}
+				selection={{
+					batchActions: ({ selection, setSelection }) => (
+						<HoldButton
+							color="red"
+							variant="soft"
+							onComplete={() => {
+								setRows((prev) => prev.filter((row) => !selection.has(row.id)))
+
+								setSelection(new Set())
+							}}
+						>
+							Delete {selection.size} items
+						</HoldButton>
+					),
+				}}
+			/>
+		</>
 	)
+	// return rows.length ? (
+	// 	<DataTable
+	// 		columns={[{ id: 'select', selectable: true }, ...columns]}
+	// 		rows={rows}
+	// 		getKey={(row) => row.id}
+	// 		selection={{
+	// 			batchActions: ({ selection, setSelection }) => (
+	// 				<HoldButton
+	// 					color="red"
+	// 					variant="soft"
+	// 					onComplete={() => {
+	// 						setRows((prev) => prev.filter((row) => !selection.has(row.id)))
+
+	// 						setSelection(new Set())
+	// 					}}
+	// 				>
+	// 					Delete {selection.size} items
+	// 				</HoldButton>
+	// 			),
+	// 		}}
+	// 	/>
+	// ) : (
+	// 	<Button color="red" variant="soft" onClick={() => setRows(people)}>
+	// 		Reset
+	// 	</Button>
+	// )
 }
 
 const RowActionsExample = () => {

@@ -41,7 +41,7 @@ export function DataTableColumnManagerDialog({
 	return (
 		<>
 			<Toolbar aria-label="Column management">
-				<Button variant="plain" size="sm" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+				<Button variant="plain" aria-haspopup="dialog" onClick={() => setOpen(true)}>
 					<Icon icon={<SlidersHorizontal />} />
 					{label}
 				</Button>
