@@ -38,6 +38,18 @@ export const k = defineRecipe({
 	// Opt into the wide palette: Badge's `color` axis carries the standard set
 	// plus the extended hues (mist / rose / violet / sky).
 	palette: definePalette({ ...basePalette(spectrum), plain: spectrum.plain.text }),
+	// `rounded-full` caps swallow horizontal space, so pills read tighter than
+	// the base `px` (tuned for the default `rounded-md`) — most visibly at small
+	// sizes. Bump every pill one `px` step; the shift stays uniform because the
+	// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
+	// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
+	// base scale — and the affix `px` lockstep keyed off it — stays put.
+	compound: [
+		{ rounded: 'full', size: 'xs', class: padding.px('1.5') },
+		{ rounded: 'full', size: 'sm', class: padding.px('2') },
+		{ rounded: 'full', size: 'md', class: padding.px('2.5') },
+		{ rounded: 'full', size: 'lg', class: padding.px('3') },
+	],
 	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
 	skeleton: badge,
 })
