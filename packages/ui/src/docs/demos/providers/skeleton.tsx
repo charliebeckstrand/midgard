@@ -38,7 +38,7 @@ import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button
 import { ReadyReveal } from '../../../primitives/ready-reveal'
 import { Example } from '../../components/example'
 
-export const meta = { name: 'Skeletons' }
+export const meta = { name: 'Skeleton Provider' }
 
 // Compose loading trees explicitly: each component ships a `<XSkeleton>`
 // counterpart mirroring its silhouette. The variants are static leaves, so

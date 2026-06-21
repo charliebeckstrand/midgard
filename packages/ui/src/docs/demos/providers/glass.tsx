@@ -11,7 +11,6 @@ import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../componen
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../../components/drawer'
 import { Field, Label } from '../../../components/fieldset'
 import { Flex } from '../../../components/flex'
-import { Input } from '../../../components/input'
 import {
 	Menu,
 	MenuContent,
@@ -25,9 +24,10 @@ import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/sheet'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
-import { Textarea } from '../../../components/textarea'
 import { GlassProvider } from '../../../providers/glass'
 import { Example } from '../../components/example'
+
+export const meta = { name: 'Glass Provider' }
 
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
@@ -118,25 +118,6 @@ export function Demo() {
 
 	return (
 		<>
-			<Example title="Wrapper">
-				<GlassProvider>
-					<Stack gap="md">
-						<Field>
-							<Label>Input</Label>
-							<Input placeholder="Glass input" />
-						</Field>
-						<Field>
-							<Label>Textarea</Label>
-							<Textarea placeholder="Glass textarea" />
-						</Field>
-						<Field>
-							<Label>Number</Label>
-							<NumberInput defaultValue={1} />
-						</Field>
-					</Stack>
-				</GlassProvider>
-			</Example>
-
 			<Example title="Form controls">
 				<GlassProvider>
 					<Stack gap="md">
@@ -164,6 +145,10 @@ export function Demo() {
 						<Field>
 							<Label>Date</Label>
 							<DatePicker value={date} onValueChange={setDate} />
+						</Field>
+						<Field>
+							<Label>Number</Label>
+							<NumberInput defaultValue={1} />
 						</Field>
 					</Stack>
 				</GlassProvider>

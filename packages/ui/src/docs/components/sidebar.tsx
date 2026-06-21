@@ -192,7 +192,7 @@ export function SidebarContent({ route }: { route: string }) {
 						<SidebarSection key={category}>
 							<Text
 								severity="muted"
-								className={cn('mb-2 text-xs uppercase tracking-wide', k.sectionLabel[size])}
+								className={cn('mb-2 text-sm uppercase tracking-wide', k.sectionLabel[size])}
 							>
 								{label}
 							</Text>
