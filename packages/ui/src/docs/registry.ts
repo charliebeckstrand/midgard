@@ -2,10 +2,9 @@ import apiData from 'virtual:api-reference'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
+import type { DemoMeta } from './demo-meta'
 
 // Lazy demo loaders (no demo code loaded until navigated to)
-
-type DemoMeta = { name?: string }
 
 // Each demo exports a `Demo` component; the glob's `import` option resolves
 // loaders directly to that symbol.

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
+import { IGNORED_PROPS } from '../reserved-props'
 import type { ComponentInfo, Context } from './types'
 
 /**
@@ -122,10 +123,6 @@ export const INDENT = '  '
 // Stand-in for content that's present but has no clean literal form: an
 // unrenderable child subtree, or a prop value like a Date or class instance.
 export const PLACEHOLDER = '...'
-
-// Props that never belong in derived code: either structural (children, key,
-// ref) or styling noise (className).
-const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
 
 export function formatProps(props: Record<string, unknown>, context: Context): string[] {
 	const parts: string[] = []

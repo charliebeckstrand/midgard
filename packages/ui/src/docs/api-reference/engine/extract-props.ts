@@ -1,11 +1,10 @@
 import { ts } from 'ts-morph'
+import { IGNORED_PROPS } from '../../reserved-props'
 import type { PropDef } from '../types'
 import { extractDocFromParts, type LinkResolver } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
-
-const IGNORED_PROPS = new Set(['className', 'children', 'ref', 'key'])
 
 type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
 

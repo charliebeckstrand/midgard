@@ -4,6 +4,7 @@ import { Node, Project, SyntaxKind } from 'ts-morph'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
 import { buildApi } from '../api-reference'
+import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
 
@@ -11,12 +12,8 @@ import { virtualJsonModules } from './virtual-json'
 // Demo metadata parsed for `virtual:demo-metas`
 // ---------------------------------------------------------------------------
 
-type DemoMeta = { name?: string }
-
-const META_KEYS: ReadonlySet<string> = new Set(['name'])
-
 function isMetaKey(key: string): key is keyof DemoMeta {
-	return META_KEYS.has(key)
+	return (META_KEYS as readonly string[]).includes(key)
 }
 
 /**
