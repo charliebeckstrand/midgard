@@ -213,6 +213,38 @@ describe('SidebarLayout floating mode', () => {
 		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
 	})
 
+	it('blurs the page behind the floating peek once it opens', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
+				body
+			</SidebarLayout>,
+		)
+
+		// No backdrop until the peek opens.
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+
+		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+
+		fireEvent.pointerEnter(hotZone)
+
+		// The sheet paints its own blurred backdrop — no hand-rolled scrim.
+		const backdrop = document.querySelector('[data-slot="overlay-backdrop"]')
+
+		expect(backdrop).toBeInTheDocument()
+		expect(backdrop?.className).toContain('backdrop-blur')
+
+		// The wrapper stays non-interactive so the blurred page is still usable.
+		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+
+		expect(overlay.className).toContain('pointer-events-none')
+	})
+
+	it('renders no backdrop when the sidebar is locked (not floating)', () => {
+		renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+	})
+
 	it('does not trap focus or lock scroll when the hover-peek opens', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<a href="/a">nav-link</a>} floating>

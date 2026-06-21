@@ -37,11 +37,21 @@ type OverlayProps = {
 	 * Modal overlays (the default) trap focus, move it into the panel on open,
 	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
 	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
-	 * sheet) that must not steal focus or block the page: no backdrop renders,
-	 * the page behind stays interactive (the panel re-enables its own pointer
-	 * events), and Escape or a pointer press outside the panel dismisses.
+	 * sheet) that must not steal focus or block the page: no backdrop renders
+	 * (unless `backdrop` is set), the page behind stays interactive (the panel
+	 * re-enables its own pointer events), and Escape or a pointer press outside
+	 * the panel dismisses.
 	 */
 	modal?: boolean
+	/**
+	 * Paint the dimming backdrop independently of modality. A non-modal surface
+	 * (e.g. a hover-revealed sheet) can opt in to blur and dim the page while
+	 * staying interactive: the backdrop inherits the wrapper's
+	 * `pointer-events-none`, so it never intercepts a press.
+	 *
+	 * @defaultValue `modal`
+	 */
+	backdrop?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 /**
@@ -52,9 +62,10 @@ type OverlayProps = {
  * @remarks Client-only: returns `null` during SSR. Renders into the explicit
  * `container`, else the ambient `<UIProvider>` portal node, else
  * `document.body`. A `container` scopes the overlay to that element
- * (`absolute`, no scroll lock); `modal={false}` drops the backdrop and focus
- * management for transient pointer-driven surfaces. Fires the overlay signal
- * on open so non-modal floats (tooltips) dismiss.
+ * (`absolute`, no scroll lock); for transient pointer-driven surfaces
+ * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
+ * `backdrop` is set). Fires the overlay signal on open so non-modal floats
+ * (tooltips) dismiss.
  */
 export function Overlay({
 	open,
@@ -66,6 +77,7 @@ export function Overlay({
 	container,
 	initialFocus,
 	modal = true,
+	backdrop = modal,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -108,7 +120,7 @@ export function Overlay({
 			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
 		>
-			{modal && (
+			{backdrop && (
 				<motion.div
 					{...k.motion}
 					data-slot="overlay-backdrop"

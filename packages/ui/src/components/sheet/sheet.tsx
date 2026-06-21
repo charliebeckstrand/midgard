@@ -39,11 +39,19 @@ export type SheetProps = SheetPanelVariants & {
 	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
 	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
 	 * peek) that must not steal focus or block the page: no backdrop renders
-	 * and the page behind stays interactive; Escape or a pointer press outside
-	 * the panel dismisses.
+	 * (unless `backdrop` is set) and the page behind stays interactive; Escape
+	 * or a pointer press outside the panel dismisses.
 	 * @defaultValue true
 	 */
 	modal?: boolean
+	/**
+	 * Paint the dimming backdrop even when `modal={false}`. A non-modal sheet
+	 * renders none by default; opt in to blur and dim the page behind a
+	 * hover-revealed peek. The scrim stays non-interactive, so the page remains
+	 * usable.
+	 * @defaultValue `modal`
+	 */
+	backdrop?: boolean
 	/**
 	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 	 * `SheetTitle` registers.
@@ -82,6 +90,7 @@ export function Sheet({
 	container,
 	initialFocus,
 	modal,
+	backdrop,
 	'aria-label': ariaLabel,
 }: SheetProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
@@ -102,6 +111,7 @@ export function Sheet({
 			container={container}
 			initialFocus={initialFocus}
 			modal={modal}
+			backdrop={backdrop}
 			className={k.backdrop({ surface: resolvedSurface })}
 		>
 			<motion.div
