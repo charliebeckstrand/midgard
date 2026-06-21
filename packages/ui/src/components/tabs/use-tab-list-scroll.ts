@@ -10,26 +10,26 @@ const CURRENT_TAB_SELECTOR = '[data-slot="tab"][data-current]'
 /**
  * Least scroll offset that brings an item fully into a viewport along one axis,
  * returning the current offset unchanged when the item already fits (the
- * `nearest` policy). Every input shares the axis: the viewport's current scroll
- * position, the item's leading edge relative to the viewport's content start,
- * the item size, and the viewport size.
+ * `nearest` policy). Every input shares the axis: the viewport size, its
+ * current scroll position, the item's extent, and the item's leading edge
+ * relative to the viewport's content start.
  *
  * @internal
  */
 export function scrollIntoViewOffset({
-	current,
-	leading,
-	itemSize,
 	viewport,
+	current,
+	extent,
+	leading,
 }: {
-	current: number
-	leading: number
-	itemSize: number
 	viewport: number
+	current: number
+	extent: number
+	leading: number
 }): number {
 	if (leading < 0) return current + leading
 
-	if (leading + itemSize > viewport) return current + leading - (viewport - itemSize)
+	if (leading + extent > viewport) return current + leading - (viewport - extent)
 
 	return current
 }
@@ -47,10 +47,10 @@ function scrollTabIntoView(scroller: HTMLElement, tab: HTMLElement, axis: 'x' | 
 		const leading = tabRect.left - scrollerRect.left - scroller.clientLeft
 
 		const next = scrollIntoViewOffset({
-			current: scroller.scrollLeft,
-			leading,
-			itemSize: tabRect.width,
 			viewport: scroller.clientWidth,
+			current: scroller.scrollLeft,
+			extent: tabRect.width,
+			leading,
 		})
 
 		if (next !== scroller.scrollLeft) scroller.scrollTo({ left: next })
@@ -61,10 +61,10 @@ function scrollTabIntoView(scroller: HTMLElement, tab: HTMLElement, axis: 'x' | 
 	const leading = tabRect.top - scrollerRect.top - scroller.clientTop
 
 	const next = scrollIntoViewOffset({
-		current: scroller.scrollTop,
-		leading,
-		itemSize: tabRect.height,
 		viewport: scroller.clientHeight,
+		current: scroller.scrollTop,
+		extent: tabRect.height,
+		leading,
 	})
 
 	if (next !== scroller.scrollTop) scroller.scrollTo({ top: next })
