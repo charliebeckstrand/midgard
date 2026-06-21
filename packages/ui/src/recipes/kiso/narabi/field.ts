@@ -8,11 +8,10 @@
 
 export const field = [
 	'*:data-[slot=label]:font-medium',
-	'[&>[data-slot=label]+[data-slot]:not([data-slot=description])]:mt-1',
-	// A `display:contents` control wrapper (Listbox/Select, DatePicker) generates
-	// no box of its own, so the label→control rule above can't sit a margin on it;
-	// carry the gap to the real trigger nested one level inside instead.
-	'[&>[data-slot=label]+.contents>*:first-child]:mt-1',
+	// The label hugs its control. Anchoring the gap under the label — always a
+	// real box — rather than on the control lets it survive a `display:contents`
+	// control wrapper (Listbox/Select, DatePicker), whose own margin is dropped.
+	'[&>[data-slot=label]:has(+*:not([data-slot=description]))]:mb-1',
 	'[&>[data-slot=description]+[data-slot]]:mt-1',
 	'[&>[data-slot=control]+[data-slot]]:mt-2',
 	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
