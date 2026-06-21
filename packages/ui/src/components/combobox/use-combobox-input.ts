@@ -44,6 +44,24 @@ function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
 }
 
 /**
+ * Whether an arrow key on a closed menu should open it rather than move the
+ * caret. With no caret to traverse — a selectionless input type (`selectionStart`
+ * is `null`) or an empty value — either key opens. Otherwise the menu opens only
+ * from the far edge of the text in the key's direction (ArrowDown at the end,
+ * ArrowUp at the start) with a collapsed caret; a mid-value caret or an active
+ * selection moves or collapses natively first, and the next press opens.
+ */
+function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
+	const { selectionStart, selectionEnd, value } = event.currentTarget
+
+	if (selectionStart === null || selectionEnd === null || value === '') return true
+
+	if (selectionStart !== selectionEnd) return false
+
+	return event.key === 'ArrowDown' ? selectionEnd === value.length : selectionStart === 0
+}
+
+/**
  * Event handlers for the combobox input element.
  *
  * @returns `{ onChange, onFocus, onBlur, onKeyDown }` for the input. `onChange`
@@ -51,8 +69,9 @@ function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
  *   on empty when `clearOnEmpty`. `onFocus` opens once the keyboard has settled.
  *   `onBlur` ignores focus moving into the floating panel, else marks touched and
  *   closes. `onKeyDown` handles Escape/Enter, reserves Home/End and Shift+Arrow
- *   for native caret/selection, opens the menu on ArrowDown while it is closed,
- *   then delegates to the roving handler.
+ *   for native caret/selection, opens the closed menu on ArrowDown from the text
+ *   end and ArrowUp from the text start (either key when the value is empty or the
+ *   input reports no caret), then delegates to the roving handler.
  * @remarks Enter selects the sole remaining option when the list has narrowed to
  *   one; the roving handler's activation key selects the highlighted option.
  * @internal
@@ -131,13 +150,21 @@ export function useComboboxInput<T>({
 			// menu highlight instead.
 			if (isReservedTextboxKey(event)) return
 
-			// A closed menu holds no options for the roving handler to act on.
-			// ArrowDown opens it (APG editable combobox: Down Arrow opens the
-			// listbox), matching the focus and chevron open paths; the root then
-			// seats the highlight on any current selection, else a second press
-			// highlights the first option. preventDefault holds the caret, as
-			// roving navigation does.
-			if (!open && event.key === 'ArrowDown') {
+			// A closed menu holds no options for the roving handler to act on, so an
+			// arrow key opens it (APG editable combobox: Down Arrow opens the
+			// listbox), matching the focus and chevron open paths. It opens only once
+			// the caret reaches the far edge of the text in that direction — ArrowDown
+			// at the end, ArrowUp at the start — so a mid-value press first lands the
+			// caret on that edge natively, like a plain textbox; an empty value or a
+			// selectionless input opens on either key (see arrowOpensClosedMenu). On
+			// open the root seats the highlight on any current selection, else a
+			// second press highlights the first option. preventDefault holds the
+			// caret, as roving navigation does.
+			if (
+				!open &&
+				(event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
+				arrowOpensClosedMenu(event)
+			) {
 				event.preventDefault()
 
 				openByArrowKey()

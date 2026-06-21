@@ -457,6 +457,63 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(selected).toHaveAttribute('data-active')
 	})
 
+	it('opens the closed menu on ArrowUp once the caret sits at the text start', async () => {
+		const user = userEvent.setup()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox') as HTMLInputElement
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		// Select Apricot; the menu closes, focus stays, and the caret lands at the
+		// end of the displayed value.
+		await user.click(screen.getByRole('option', { name: 'Apricot' }))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// ArrowUp from anywhere but the start belongs to the textbox (caret to start),
+		// so the menu stays closed.
+		input.setSelectionRange(input.value.length, input.value.length)
+
+		expect(fireEvent.keyDown(input, { key: 'ArrowUp' })).toBe(true)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// From the start, ArrowUp opens the menu (APG editable combobox).
+		input.setSelectionRange(0, 0)
+
+		fireEvent.keyDown(input, { key: 'ArrowUp' })
+
+		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('leaves ArrowDown to the textbox while the caret sits mid-value', async () => {
+		const user = userEvent.setup()
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox') as HTMLInputElement
+
+		await user.click(input)
+
+		await screen.findByRole('listbox')
+
+		await user.click(screen.getByRole('option', { name: 'Apricot' }))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// Caret mid-value: ArrowDown moves it to the end natively (default not
+		// prevented) rather than opening the menu.
+		input.setSelectionRange(1, 1)
+
+		expect(fireEvent.keyDown(input, { key: 'ArrowDown' })).toBe(true)
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
 	// Clicking an option must not pull focus off the input; otherwise single-select
 	// (which closes on select) would drop focus to <body> when the panel unmounts.
 	it('keeps focus on the input when an option is clicked', async () => {
