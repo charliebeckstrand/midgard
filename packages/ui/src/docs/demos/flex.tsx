@@ -7,7 +7,7 @@ import { Example } from '../components/example'
 export function Demo() {
 	return (
 		<>
-			<Example title="Default (row)">
+			<Example title="Row">
 				<Flex gap="md">
 					<Card>One</Card>
 					<Card>Two</Card>
