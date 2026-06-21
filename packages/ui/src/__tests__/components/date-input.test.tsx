@@ -83,6 +83,93 @@ describe('DateInput', () => {
 		expect(bySlot(container, 'date-input')).not.toHaveAttribute('aria-label')
 	})
 
+	it('shows the clear button by default for any entered text and clears partial input', async () => {
+		const { container } = renderUI(<DateInput />)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		const user = userEvent.setup()
+
+		// Partial entry: no complete date has committed, but the field holds text.
+		await user.type(input, '122')
+
+		expect(input.value).toBe('12/2')
+
+		await user.click(screen.getByRole('button', { name: 'Clear date' }))
+
+		expect(input.value).toBe('')
+
+		// Focus returns to the input as the clear button unmounts (WCAG 2.4.3).
+		expect(input).toHaveFocus()
+	})
+
+	it('clears a committed date from the clear button and emits undefined', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DateInput defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
+		)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		expect(input.value).toBe('06/15/2026')
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Clear date' }))
+
+		expect(input.value).toBe('')
+
+		expect(onChange).toHaveBeenLastCalledWith(undefined)
+	})
+
+	it('omits the clear button with clearable={false}', () => {
+		renderUI(<DateInput clearable={false} defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
+	it('omits the clear button when the field is empty', () => {
+		renderUI(<DateInput />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
+	it('omits the clear button when set but disabled', () => {
+		renderUI(<DateInput disabled defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+	})
+
+	it('replaces the default calendar icon with the clear button once a value is set', () => {
+		const { container } = renderUI(<DateInput defaultValue={new Date(2026, 5, 15)} />)
+
+		expect(screen.getByRole('button', { name: 'Clear date' })).toBeInTheDocument()
+
+		// The clear stands in for the decorative calendar icon — a single trailing
+		// affix that holds its place rather than shifting to seat a second.
+		expect(bySlot(container, 'suffix')?.children).toHaveLength(1)
+	})
+
+	it('keeps a provided suffix alongside the clear button', () => {
+		const { container } = renderUI(
+			<DateInput
+				defaultValue={new Date(2026, 5, 15)}
+				suffix={
+					<button type="button" aria-label="Open">
+						x
+					</button>
+				}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Clear date' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument()
+
+		expect(bySlot(container, 'suffix')?.children).toHaveLength(2)
+	})
+
 	it('renders a calendar icon suffix by default and removes it with suffix={false}', () => {
 		const { container } = renderUI(<DateInput />)
 

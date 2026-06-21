@@ -13,11 +13,11 @@ import type { FooterButton } from './use-date-picker-keyboard'
 type DatePickerFooterProps = {
 	/** Virtual highlight; a `footer`-zone entry styles the matching button active. */
 	active: CalendarActive | null
+	footerRef: RefObject<HTMLDivElement | null>
 	/** Buttons to render, in order; empty renders nothing. */
 	footerButtons: FooterButton[]
 	onClear: () => void
 	onToday?: () => void
-	footerRef: RefObject<HTMLDivElement | null>
 	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
 

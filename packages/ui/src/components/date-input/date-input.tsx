@@ -1,9 +1,11 @@
 'use client'
 
-import { Calendar as CalendarIcon } from 'lucide-react'
+import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
@@ -44,6 +46,15 @@ export type DateInputProps = Omit<
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
 	/**
+	 * Renders a clear button before the suffix whenever the field holds any text —
+	 * including a partial, not-yet-complete entry; clearing empties the field,
+	 * emits `undefined`, and returns focus to the input. In a `DatePicker`'s
+	 * `input` mode this clears the picker itself through the bound `onValueChange`.
+	 *
+	 * @defaultValue true
+	 */
+	clearable?: boolean
+	/**
 	 * Error message shown while the typed entry is invalid, as an error
 	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
 	 * `false`) to suppress it and supply your own.
@@ -81,6 +92,9 @@ export function DateInput({
 	placeholder,
 	invalid,
 	suffix,
+	clearable = true,
+	disabled,
+	readOnly,
 	name,
 	ref,
 	onBlur,
@@ -89,6 +103,10 @@ export function DateInput({
 	...props
 }: DateInputProps) {
 	const control = useControl()
+
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	const setExternalRef = useComposedRef(inputRef, ref)
 
 	const {
 		value: date,
@@ -130,8 +148,12 @@ export function DateInput({
 
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
-		ref,
+		ref: setExternalRef,
 	})
+
+	const resolvedDisabled = disabled ?? control?.disabled
+
+	const resolvedReadOnly = readOnly ?? control?.readOnly
 
 	const commit = (next: string): Date | undefined => {
 		const parsed = parse(next)
@@ -160,7 +182,18 @@ export function DateInput({
 				aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Date')}
 				placeholder={placeholder ?? format}
 				autoComplete="off"
-				suffix={suffix ?? <Icon icon={<CalendarIcon />} />}
+				disabled={disabled}
+				readOnly={readOnly}
+				suffix={dateInputSuffix({
+					clearable,
+					// Any text counts, including a partial entry that hasn't committed a
+					// complete `Date` yet — clearable tracks the field, not the value.
+					hasValue: text !== '',
+					disabled: resolvedDisabled,
+					readOnly: resolvedReadOnly,
+					suffix,
+					onClear: () => clearDateInput(inputRef.current),
+				})}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
 				value={text}
@@ -213,5 +246,81 @@ export function DateInput({
 			    prop; a mounted Message also flips the input to aria-invalid. */}
 			{typedInvalid && invalidMessage ? <Message variant="error">{invalidMessage}</Message> : null}
 		</>
+	)
+}
+
+/**
+ * Clears `input` through a native input event, so controlled and uncontrolled
+ * consumers both observe the change (committing `undefined`), then returns focus
+ * to it as the clear button unmounts (WCAG 2.4.3). Mirrors SearchInput.
+ *
+ * @internal
+ */
+function clearDateInput(input: HTMLInputElement | null) {
+	if (!input) return
+
+	const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+
+	setter?.call(input, '')
+
+	input.dispatchEvent(new Event('input', { bubbles: true }))
+
+	input.focus()
+}
+
+/**
+ * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
+ * suffix while `clearable` and the field holds text, else the suffix unchanged —
+ * so an absent suffix (`undefined`/`false`) leaves no empty affix slot.
+ *
+ * @internal
+ */
+function dateInputSuffix({
+	clearable,
+	hasValue,
+	disabled,
+	readOnly,
+	suffix,
+	onClear,
+}: {
+	clearable: boolean
+	hasValue: boolean
+	disabled?: boolean
+	readOnly?: boolean
+	suffix: ReactNode
+	onClear: () => void
+}): ReactNode {
+	const resolved = suffix ?? <Icon icon={<CalendarIcon />} />
+
+	if (!clearable || !hasValue || disabled || readOnly) return resolved
+
+	const clear = (
+		<Button
+			variant="bare"
+			className="pointer-events-auto"
+			aria-label="Clear date"
+			// Keep focus on the input: a blur here would run the field's
+			// commit-on-blur over a partial entry before the clear lands.
+			onMouseDown={(event) => event.preventDefault()}
+			onClick={onClear}
+		>
+			<Icon icon={<X />} />
+		</Button>
+	)
+
+	// The default decorative calendar icon yields to the clear (mirroring
+	// Listbox/Combobox), so the trailing glyph holds its place rather than the
+	// icon sliding over to make room for the clear. A consumer-provided suffix —
+	// the DatePicker's calendar button in `input` mode — stays alongside instead;
+	// both being bare buttons, the affix slot's padding is unchanged either way.
+	const ownSuffix = suffix != null && suffix !== false
+
+	return ownSuffix ? (
+		<>
+			{clear}
+			{suffix}
+		</>
+	) : (
+		clear
 	)
 }

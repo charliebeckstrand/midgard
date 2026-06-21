@@ -196,6 +196,8 @@ export function useDatePickerPeriodState({
 		required: control?.required,
 		invalid: control?.invalid || fieldInvalid,
 		value,
+		hasValue: showClear,
+		onClear: handleClear,
 		chips,
 		facets,
 		monthLabels,
