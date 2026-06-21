@@ -746,6 +746,26 @@ describe('DatePicker input', () => {
 		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
 	})
 
+	it("surfaces DateInput's invalid-date message for an out-of-range typed entry", async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<DatePicker input max={new Date(2026, 11, 31)} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.type(input, '06152027')
+
+		const message = bySlot(container, 'message')
+
+		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+
+		// The message sits in the control wrapper directly after the input frame,
+		// so the field adjacency carried on the wrapper spaces it like a <Field>.
+		expect(message?.parentElement).toBe(bySlot(container, 'control'))
+
+		expect(message?.previousElementSibling).toHaveAttribute('data-slot', 'control-frame')
+	})
+
 	// Tab-cycle seam (`useDatePickerInputTab`): the handlers redirect focus at
 	// the edges of the reference group and the dialog. The full loop under real
 	// sequential focus navigation runs in the browser suite
