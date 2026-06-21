@@ -227,6 +227,24 @@ describe('ToolbarSeparator', () => {
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})
 
+	it('gives the vertical rule a stretchable height so it is visible in a horizontal toolbar', () => {
+		// Preflight pins `hr { height: 0 }`, which defeats `self-stretch` unless
+		// height is reset to auto; without it the rule collapses to nothing.
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor" orientation="horizontal">
+				<button type="button">A</button>
+				<ToolbarSeparator />
+				<button type="button">B</button>
+			</Toolbar>,
+		)
+
+		const el = bySlot(container, 'toolbar-separator')
+
+		expect(el?.className).toContain('h-auto')
+
+		expect(el?.className).toContain('self-stretch')
+	})
+
 	it('renders a horizontal separator when the toolbar is vertical', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor" orientation="vertical">
