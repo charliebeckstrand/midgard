@@ -3,8 +3,6 @@ import type { LinkProps } from '../../../primitives/link'
 import { UIProvider } from '../../../providers/ui'
 import { Example } from '../../components/example'
 
-// `name` disambiguates from the Link *component* demo (also "Link"); the root
-// `UIProvider` is where an app registers its framework link component.
 export const meta = { name: 'UI Provider' }
 
 function RegisteredLinkExample() {
