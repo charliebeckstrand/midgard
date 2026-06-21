@@ -168,6 +168,25 @@ describe('Overlay', () => {
 		expect(overlay.className).toContain('pointer-events-none')
 	})
 
+	it('renders a backdrop without modality when modal=false and backdrop is set', () => {
+		renderUI(
+			<Overlay open modal={false} backdrop onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).not.toBeNull()
+
+		// The wrapper stays pointer-events-none, so the backdrop never intercepts
+		// a press and the page behind remains interactive.
+		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+
+		expect(overlay.className).toContain('pointer-events-none')
+
+		// Backdrop is decoupled from modality: no focus trap, no scroll lock.
+		expect(document.body.style.overflow).toBe('')
+	})
+
 	it('dismisses on a pointer press outside the panel when modal=false', () => {
 		const onOpenChange = vi.fn()
 

@@ -41,6 +41,31 @@ describe('Sheet', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
+	it('paints a backdrop on a non-modal sheet when backdrop is set', () => {
+		renderUI(
+			<Sheet open modal={false} backdrop onOpenChange={() => {}} aria-label="Peek">
+				Peek content
+			</Sheet>,
+		)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).not.toBeNull()
+
+		// Backdrop without modality: still not announced modal, page not locked.
+		expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-modal')
+
+		expect(document.body.style.overflow).toBe('')
+	})
+
+	it('renders no backdrop on a non-modal sheet by default', () => {
+		renderUI(
+			<Sheet open modal={false} onOpenChange={() => {}} aria-label="Peek">
+				Peek content
+			</Sheet>,
+		)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+	})
+
 	it('names a title-less sheet via the aria-label escape hatch', () => {
 		renderUI(
 			<Sheet open onOpenChange={() => {}} aria-label="Navigation">

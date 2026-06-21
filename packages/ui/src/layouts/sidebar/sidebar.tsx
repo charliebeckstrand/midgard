@@ -86,7 +86,8 @@ export function SidebarLayout({
 			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
 
 			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
-			    peek doesn't steal focus or lock body scroll. */}
+			    peek doesn't steal focus or lock body scroll, but `backdrop` still
+			    blurs and dims the page behind it. */}
 			{floating && (
 				<Sheet
 					side="left"
@@ -94,6 +95,7 @@ export function SidebarLayout({
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
 					modal={false}
+					backdrop
 					className="sm:top-0 sm:left-0 sm:bottom-0 sm:rounded-l-none"
 				>
 					<div
