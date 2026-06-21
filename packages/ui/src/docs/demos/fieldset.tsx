@@ -1,5 +1,6 @@
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
+import { PasswordInput } from '../../components/password-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Stack } from '../../components/stack'
 import { Textarea } from '../../components/textarea'
@@ -51,7 +52,7 @@ export function Demo() {
 					</Field>
 					<Field severity="warning" message="This password is weak.">
 						<Label>Password</Label>
-						<Input type="password" defaultValue="123456" />
+						<PasswordInput defaultValue="123456" />
 					</Field>
 					<Field severity="success" message="Username is available.">
 						<Label>Username</Label>
@@ -66,6 +67,11 @@ export function Demo() {
 						<Label>Email</Label>
 						<Input defaultValue="not-an-email" />
 						<Message severity="error">Enter a valid email address.</Message>
+					</Field>
+					<Field>
+						<Label>Password</Label>
+						<PasswordInput defaultValue="123456" />
+						<Message severity="warning">This password is weak.</Message>
 					</Field>
 					<Field>
 						<Label>Username</Label>
