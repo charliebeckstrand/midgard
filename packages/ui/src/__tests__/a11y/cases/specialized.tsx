@@ -1,8 +1,8 @@
 import { ChatMessage } from '../../../components/chat-message'
 import { ChatPrompt } from '../../../components/chat-prompt'
-import { Headless } from '../../../components/headless'
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
+import { HeadlessProvider } from '../../../providers/headless'
 import type { Case } from './types'
 
 const noop = () => {}
@@ -31,9 +31,9 @@ export const specializedCases: readonly Case[] = [
 		// Escape hatch: renders its single child untouched, suppressing default
 		// control chrome. Wrapping a labelled input must stay axe-clean.
 		'headless',
-		<Headless key="hl">
+		<HeadlessProvider key="hl">
 			<Input aria-label="Raw input" />
-		</Headless>,
+		</HeadlessProvider>,
 	],
 	[
 		// Document viewer driven by pre-rendered image pages (no pdf.js): a labelled

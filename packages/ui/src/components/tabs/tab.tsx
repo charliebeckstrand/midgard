@@ -6,9 +6,9 @@ import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
 import { Button } from '../button'
-import { Headless } from '../headless'
 import { useTabsContext } from './context'
 
 /** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
@@ -116,7 +116,7 @@ export function Tab({
 
 	return (
 		<span className={k.wrapper({ stretch })} {...indicator.tapHandlers}>
-			<Headless>
+			<HeadlessProvider>
 				<Button
 					// Forwards the full button surface (aria-label, data-testid,
 					// onFocus, title, …); the tab wiring below wins over any
@@ -146,7 +146,7 @@ export function Tab({
 				>
 					{children}
 				</Button>
-			</Headless>
+			</HeadlessProvider>
 			{current && (
 				<ActiveIndicator
 					ref={indicator.ref}

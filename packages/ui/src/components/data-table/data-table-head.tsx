@@ -3,10 +3,10 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { memo, type ReactElement } from 'react'
 import { cn } from '../../core'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/data-table'
 import { Button } from '../button'
 import { Checkbox } from '../checkbox'
-import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { TableHead, TableHeader, TableRow } from '../table'
 import { useDataTable } from './context'
@@ -135,7 +135,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 			style={column.width ? { width: column.width } : undefined}
 		>
 			{column.sortable ? (
-				<Headless>
+				<HeadlessProvider>
 					<Button
 						type="button"
 						className={cn(k.sort.button)}
@@ -145,7 +145,7 @@ const DataTableColumnHeader = memo(function DataTableColumnHeader({
 						{column.title}
 						{sortDirectionIcon(sorted, direction)}
 					</Button>
-				</Headless>
+				</HeadlessProvider>
 			) : (
 				column.title
 			)}

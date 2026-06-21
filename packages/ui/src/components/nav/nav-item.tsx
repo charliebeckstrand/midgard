@@ -5,9 +5,9 @@ import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { TouchTarget } from '../../primitives/touch-target'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
 import { Button } from '../button'
-import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
 
@@ -65,7 +65,7 @@ export function NavItem({
 					<AffixContext value={affixStepDown('md')}>{prefix}</AffixContext>
 				</span>
 			)}
-			<Headless>
+			<HeadlessProvider>
 				<Button
 					data-slot="nav-item-inner"
 					data-current={dataAttr(item.current)}
@@ -79,7 +79,7 @@ export function NavItem({
 						{children}
 					</TouchTarget>
 				</Button>
-			</Headless>
+			</HeadlessProvider>
 			{suffix != null && (
 				<span data-slot="nav-item-suffix" className={cn(k.navItem.suffix)}>
 					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>

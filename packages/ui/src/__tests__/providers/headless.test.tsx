@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { Headless, useHeadless } from '../../components/headless'
+import { HeadlessProvider, useHeadless } from '../../providers/headless'
 import { renderUI, screen } from '../helpers'
 
 function Probe() {
 	return <span data-slot="probe">{String(useHeadless())}</span>
 }
 
-describe('Headless', () => {
+describe('HeadlessProvider', () => {
 	it('useHeadless defaults to false outside a provider', () => {
 		renderUI(<Probe />)
 
@@ -15,9 +15,9 @@ describe('Headless', () => {
 
 	it('sets the headless flag for descendants', () => {
 		renderUI(
-			<Headless>
+			<HeadlessProvider>
 				<Probe />
-			</Headless>,
+			</HeadlessProvider>,
 		)
 
 		expect(screen.getByText('true')).toBeInTheDocument()
@@ -25,9 +25,9 @@ describe('Headless', () => {
 
 	it('renders children without adding a host element', () => {
 		const { container } = renderUI(
-			<Headless>
+			<HeadlessProvider>
 				<span data-slot="child" />
-			</Headless>,
+			</HeadlessProvider>,
 		)
 
 		const child = container.querySelector('[data-slot="child"]')

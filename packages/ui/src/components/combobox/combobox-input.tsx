@@ -8,9 +8,9 @@ import type {
 	Ref,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
+import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
-import { Headless } from '../headless'
 import { Input } from '../input'
 
 type ComboboxInputHandlers = {
@@ -39,7 +39,7 @@ type ComboboxInputProps = {
 }
 
 /**
- * The ARIA combobox input element, wrapped in `<Headless>`; the surrounding
+ * The ARIA combobox input element, wrapped in `<HeadlessProvider>`; the surrounding
  * `<SelectTrigger>` chrome owns its appearance. Carries the combobox role and
  * popup wiring; {@link useComboboxInput} supplies behavior.
  *
@@ -63,7 +63,7 @@ export function ComboboxInput({
 	handlers,
 }: ComboboxInputProps) {
 	return (
-		<Headless>
+		<HeadlessProvider>
 			<Input
 				id={id}
 				ref={ref}
@@ -89,6 +89,6 @@ export function ComboboxInput({
 				className={cn(k({ density, size }))}
 				{...handlers}
 			/>
-		</Headless>
+		</HeadlessProvider>
 	)
 }

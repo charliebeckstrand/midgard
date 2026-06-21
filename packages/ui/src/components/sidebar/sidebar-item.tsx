@@ -5,10 +5,10 @@ import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { TouchTarget } from '../../primitives/touch-target'
+import { HeadlessProvider } from '../../providers/headless'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
 import { Button } from '../button'
-import { Headless } from '../headless'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -124,7 +124,7 @@ export function SidebarItem({
 					<AffixContext value={affixStepDown(item.size)}>{prefix}</AffixContext>
 				</span>
 			)}
-			<Headless>
+			<HeadlessProvider>
 				{mini ? (
 					// The label renders twice: visually hidden inside the rail button
 					// (keeping the accessible name) and as the tooltip surface.
@@ -137,7 +137,7 @@ export function SidebarItem({
 				) : (
 					inner
 				)}
-			</Headless>
+			</HeadlessProvider>
 			{resolvedSuffix != null && (
 				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: item.size }))}>
 					<AffixContext value={affixStepDown(item.size)}>{resolvedSuffix}</AffixContext>
