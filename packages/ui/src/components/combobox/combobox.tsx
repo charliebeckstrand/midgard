@@ -166,7 +166,9 @@ export function Combobox<T>({
 	children,
 }: ComboboxProps<T>) {
 	const glass = useGlass()
+
 	const control = useControl()
+
 	const token = useControlSize(size)
 
 	const resolvedSize = token.size
