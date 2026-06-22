@@ -1,11 +1,13 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { type HTMLAttributes, memo, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/data-table'
 import { Checkbox } from '../checkbox'
 import { TableCell, TableRow } from '../table'
 import { DataTableRowContext, type DataTableRowContextValue } from './context'
+import { columnDragStyle } from './data-table-reorder'
 import type { DataTableColumn } from './types'
 
 /** Props for {@link DataTableRow}. @internal */
@@ -24,6 +26,12 @@ type DataTableRowProps<T> = {
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */
 	toggleRow: (key: string | number) => void
+	/**
+	 * When true, each non-pinned data cell registers against the table's column
+	 * sortable (matching its header's id) so the whole column drags as one.
+	 * @defaultValue false
+	 */
+	reorderable?: boolean
 	/**
 	 * 1-based position in the full row set (header = 1). Set only when the body
 	 * is virtualized; assistive tech reads it to report position in the
@@ -54,6 +62,7 @@ function DataTableRowImpl<T>({
 	rowLabel,
 	selected,
 	toggleRow,
+	reorderable = false,
 	rowIndex,
 	dataRowIndex,
 }: DataTableRowProps<T>) {
@@ -105,6 +114,22 @@ function DataTableRowImpl<T>({
 
 					const cellExtra = col.cellProps?.(row)
 
+					const content = col.cell ? col.cell(row) : null
+
+					if (reorderable && !col.pinned) {
+						return (
+							<DataTableReorderableCell
+								key={col.id}
+								id={col.id}
+								colIndex={colIndex}
+								className={col.className}
+								cellProps={cellExtra}
+							>
+								{content}
+							</DataTableReorderableCell>
+						)
+					}
+
 					return (
 						<TableCell
 							key={col.id}
@@ -112,7 +137,7 @@ function DataTableRowImpl<T>({
 							{...cellExtra}
 							className={cn(col.className, cellExtra?.className)}
 						>
-							{col.cell ? col.cell(row) : null}
+							{content}
 						</TableCell>
 					)
 				})}
@@ -123,3 +148,43 @@ function DataTableRowImpl<T>({
 
 /** Memoized {@link DataTableRowImpl}; re-renders a row only when its own props change. @internal */
 export const DataTableRow = memo(DataTableRowImpl) as typeof DataTableRowImpl
+
+/** Props for {@link DataTableReorderableCell}. @internal */
+type DataTableReorderableCellProps = {
+	id: string | number
+	colIndex: number | undefined
+	className: string | undefined
+	cellProps: Omit<HTMLAttributes<HTMLTableCellElement>, 'children'> | undefined
+	children: ReactNode
+}
+
+/**
+ * Body cell for a reordering column: registers the `<td>` against the data
+ * table's column sortable under the same id as the column's header, so the
+ * whole column glides together while its header handle is dragged. Carries no
+ * activator of its own — the drag is initiated from the header grip.
+ *
+ * @internal
+ */
+const DataTableReorderableCell = memo(function DataTableReorderableCell({
+	id,
+	colIndex,
+	className,
+	cellProps,
+	children,
+}: DataTableReorderableCellProps) {
+	const { setNodeRef, transform, transition, isDragging } = useSortable({ id: String(id) })
+
+	return (
+		<TableCell
+			ref={setNodeRef}
+			aria-colindex={colIndex}
+			{...cellProps}
+			data-dragging={dataAttr(isDragging)}
+			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
+			style={{ ...cellProps?.style, ...columnDragStyle(transform, transition) }}
+		>
+			{children}
+		</TableCell>
+	)
+})

@@ -1,13 +1,24 @@
-import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
+import type { ComponentPropsWithRef } from 'react'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 
-/** Props for {@link TableCell}: native `<td>` attributes. */
-export type TableCellProps = SlotProps<'td'>
+/** Props for {@link TableCell}: native `<td>` attributes, including a `ref` to the cell. */
+export type TableCellProps = {
+	className?: string
+} & Omit<ComponentPropsWithRef<'td'>, 'className'>
 
 /**
  * A data cell (`<td>`) within a {@link TableRow}. Static leaf: renders in
  * React Server Components. Carries md padding; `<Table density>` and `grid`
  * override it through the table's projection.
+ *
+ * @remarks Forwards `ref` to the underlying `<td>`, so a client caller can make
+ * the cell a drag node (e.g. the data table's reorderable columns).
  */
-export const TableCell = createSlot('td', 'table-cell', k.cell())
+export function TableCell({ className, children, ref, ...props }: TableCellProps) {
+	return (
+		<td ref={ref} data-slot="table-cell" className={cn(k.cell(), className)} {...props}>
+			{children}
+		</td>
+	)
+}

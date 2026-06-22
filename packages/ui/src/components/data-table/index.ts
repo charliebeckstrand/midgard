@@ -8,6 +8,7 @@ export {
 export {
 	DataTable,
 	type DataTableColumnManagerConfig,
+	type DataTableColumnOrder,
 	type DataTableProps,
 	type DataTableSelection,
 	type DataTableSort,

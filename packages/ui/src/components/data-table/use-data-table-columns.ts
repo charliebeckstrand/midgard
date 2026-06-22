@@ -1,8 +1,9 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
-import type { DataTableColumnManagerConfig } from './data-table'
+import type { DataTableColumnManagerConfig, DataTableColumnOrder } from './data-table'
+import { applyColumnReorder } from './data-table-reorder'
 import type { DataTableColumn, DataTableColumnManagerItem } from './types'
 import { useDataTableColumnVisibility } from './use-data-table-column-visibility'
 
@@ -70,6 +71,7 @@ function buildVisibleColumns<T>(
 /** Options for {@link useDataTableColumns}. @internal */
 type DataTableColumnsOptions<T> = {
 	columns: DataTableColumn<T>[]
+	columnOrderConfig?: DataTableColumnOrder
 	columnManagerConfig: DataTableColumnManagerConfig | undefined
 }
 
@@ -80,27 +82,32 @@ type DataTableColumnsResult<T> = {
 	hiddenColumns: Set<string | number>
 	setHiddenColumns: (next: Set<string | number>) => void
 	visibleColumns: DataTableColumn<T>[]
+	/** Commits a header drag: splices the reordered visible data-column ids back into the full order. */
+	reorderColumns: (reorderedIds: (string | number)[]) => void
 	managerItems: DataTableColumnManagerItem[]
 	manageColumns: boolean
 	manageColumnsLabel: ReactNode
 }
 
 /**
- * Owns the data table's column slice: controllable `columnOrder` and
- * `hiddenColumns`, the derived `columnById` map, the ordered + filtered
- * `visibleColumns` list, and the `managerItems` shape consumed by the
- * column-manager dialog. `manageColumns` / `manageColumnsLabel` collapse the
- * config's enabled flag and label into plain values for the dialog's render
+ * Owns the data table's column slice: the controllable `columnOrder` (bound to
+ * the top-level `columnOrder` prop) and `hiddenColumns`, the derived
+ * `columnById` map, the ordered + filtered `visibleColumns` list, the
+ * `reorderColumns` header-drag committer, and the `managerItems` shape consumed
+ * by the column-manager dialog. `manageColumns` / `manageColumnsLabel` collapse
+ * the config's enabled flag and label into plain values for the dialog's render
  * gate.
  *
  * @returns A {@link DataTableColumnsResult}: the controllable `columnOrder` /
  * `setColumnOrder` and `hiddenColumns` / `setHiddenColumns`, the ordered +
- * filtered `visibleColumns`, the `managerItems` for the dialog, and the
- * `manageColumns` / `manageColumnsLabel` render-gate values.
+ * filtered `visibleColumns`, the `reorderColumns` committer for header drags,
+ * the `managerItems` for the dialog, and the `manageColumns` /
+ * `manageColumnsLabel` render-gate values.
  * @internal
  */
 export function useDataTableColumns<T>({
 	columns,
+	columnOrderConfig,
 	columnManagerConfig,
 }: DataTableColumnsOptions<T>): DataTableColumnsResult<T> {
 	const {
@@ -111,13 +118,29 @@ export function useDataTableColumns<T>({
 		byId: columnById,
 	} = useDataTableColumnVisibility({
 		columns,
-		order: columnManagerConfig?.order,
-		defaultOrder: columnManagerConfig?.defaultOrder,
-		onOrderChange: columnManagerConfig?.onOrderChange,
+		order: columnOrderConfig?.value,
+		defaultOrder: columnOrderConfig?.defaultValue,
+		onOrderChange: columnOrderConfig?.onValueChange,
 		hidden: columnManagerConfig?.hidden,
 		defaultHidden: columnManagerConfig?.defaultHidden,
 		onHiddenChange: columnManagerConfig?.onHiddenChange,
 	})
+
+	// A header drag only permutes the columns shown with a handle — visible,
+	// non-pinned data columns — so the splice predicate matches that exact set
+	// and holds every other id (selection/actions/pinned/hidden) in place.
+	const reorderColumns = useCallback(
+		(reorderedIds: (string | number)[]) => {
+			setColumnOrder(
+				applyColumnReorder(columnOrder, reorderedIds, (id) => {
+					const col = columnById.get(id)
+
+					return !!col && isDataColumn(col) && !col.pinned && !hiddenColumns.has(id)
+				}),
+			)
+		},
+		[setColumnOrder, columnOrder, columnById, hiddenColumns],
+	)
 
 	const manageColumns = columnManagerConfig?.enabled ?? false
 
@@ -154,6 +177,7 @@ export function useDataTableColumns<T>({
 		hiddenColumns,
 		setHiddenColumns,
 		visibleColumns,
+		reorderColumns,
 		managerItems,
 		manageColumns,
 		manageColumnsLabel,
