@@ -3,32 +3,32 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { k, type NavbarVariants } from '../../recipes/kata/navbar'
-import { NavbarContext } from './context'
+import { k, type NavBarVariants } from '../../recipes/kata/nav'
+import { NavBarContext } from './context'
 
-/** Props for {@link Navbar}: recipe `variant` plus native `<nav>` attributes. */
-export type NavbarProps = NavbarVariants & ComponentPropsWithoutRef<'nav'>
+/** Props for {@link NavBar}: recipe `variant` plus native `<nav>` attributes. */
+export type NavBarProps = NavBarVariants & ComponentPropsWithoutRef<'nav'>
 
 /** Horizontal top-level navigation landmark; establishes an active-indicator scope for its child items. */
-export function Navbar({
+export function NavBar({
 	variant = 'outline',
 	'aria-label': ariaLabel = 'Main',
 	className,
 	children,
 	...props
-}: NavbarProps) {
+}: NavBarProps) {
 	return (
-		<NavbarContext value={true}>
+		<NavBarContext value={true}>
 			<ActiveIndicatorScope>
 				<nav
-					data-slot="navbar"
+					data-slot="nav-bar"
 					aria-label={ariaLabel}
-					className={cn(k({ variant }), className)}
+					className={cn(k.bar({ variant }), className)}
 					{...props}
 				>
 					{children}
 				</nav>
 			</ActiveIndicatorScope>
-		</NavbarContext>
+		</NavBarContext>
 	)
 }

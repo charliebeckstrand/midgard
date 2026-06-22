@@ -7,8 +7,7 @@ import {
 } from '../../../components/breadcrumb'
 import { Button } from '../../../components/button'
 import { Link } from '../../../components/link'
-import { NavItem, NavList } from '../../../components/nav'
-import { Navbar } from '../../../components/navbar'
+import { NavBar, NavItem, NavList } from '../../../components/nav'
 import {
 	Pagination,
 	PaginationList,
@@ -50,15 +49,15 @@ export const navigationCases: readonly Case[] = [
 	],
 	[
 		// Navigation, not a menu: links with aria-current, no menubar/menuitem.
-		'navbar',
-		<Navbar key="nb">
+		'nav-bar',
+		<NavBar key="nb">
 			<NavList>
 				<NavItem href="#home" current>
 					Home
 				</NavItem>
 				<NavItem href="#about">About</NavItem>
 			</NavList>
-		</Navbar>,
+		</NavBar>,
 	],
 	[
 		// Sidebar navigation: items wrapped in a SidebarList <ul> that exposes

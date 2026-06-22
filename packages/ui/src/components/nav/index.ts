@@ -1,8 +1,10 @@
+export type { NavBarVariants } from '../../recipes/kata/nav'
 export { NavContext, type NavContextValue, useNavContext } from './context'
 export {
 	Nav,
 	type NavProps,
 } from './nav'
+export { NavBar, type NavBarProps } from './nav-bar'
 export {
 	NavContent,
 	type NavContentProps,

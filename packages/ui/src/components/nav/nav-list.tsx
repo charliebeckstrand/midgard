@@ -4,13 +4,13 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
-import { useNavbar } from '../navbar/context'
+import { useNavBar } from './context'
 
 /** Props for {@link NavList}: an optional `orientation` plus native `<ul>` attributes. */
 export type NavListProps = ComponentPropsWithoutRef<'ul'> & {
 	/**
 	 * Layout axis for the items.
-	 * @defaultValue `'horizontal'` inside a {@link Navbar}, otherwise `'vertical'`
+	 * @defaultValue `'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`
 	 */
 	orientation?: 'vertical' | 'horizontal'
 }
@@ -22,9 +22,9 @@ export type NavListProps = ComponentPropsWithoutRef<'ul'> & {
  * `aria-current="page"`.
  */
 export function NavList({ orientation, className, children, ...props }: NavListProps) {
-	const inNavbar = useNavbar()
+	const inNavBar = useNavBar()
 
-	const resolvedOrientation = orientation ?? (inNavbar ? 'horizontal' : 'vertical')
+	const resolvedOrientation = orientation ?? (inNavBar ? 'horizontal' : 'vertical')
 
 	// A `<ul>` of links inside the enclosing `<nav>` landmark. Each link is
 	// individually Tab-focusable with the current one marked
