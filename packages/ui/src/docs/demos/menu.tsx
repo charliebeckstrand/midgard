@@ -34,22 +34,18 @@ export function Demo() {
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
-				<MenuSection>
-					<MenuItem>
-						<MenuLabel>Edit</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<MenuLabel>Duplicate</MenuLabel>
-					</MenuItem>
-				</MenuSection>
-				<MenuSection>
-					<MenuItem>
-						<MenuLabel>Archive</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<MenuLabel>Delete</MenuLabel>
-					</MenuItem>
-				</MenuSection>
+				<MenuItem>
+					<MenuLabel>Edit</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<MenuLabel>Duplicate</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<MenuLabel>Archive</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<MenuLabel>Delete</MenuLabel>
+				</MenuItem>
 			</MenuContent>
 		</Menu>
 	)
@@ -62,26 +58,22 @@ export function Demo() {
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
-				<MenuSection>
-					<MenuItem>
-						<Icon icon={<SquarePen />} />
-						<MenuLabel>Edit</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<Icon icon={<Copy />} />
-						<MenuLabel>Duplicate</MenuLabel>
-					</MenuItem>
-				</MenuSection>
-				<MenuSection>
-					<MenuItem>
-						<Icon icon={<Archive />} />
-						<MenuLabel>Archive</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<Icon icon={<Trash />} />
-						<MenuLabel>Delete</MenuLabel>
-					</MenuItem>
-				</MenuSection>
+				<MenuItem>
+					<Icon icon={<SquarePen />} />
+					<MenuLabel>Edit</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<Icon icon={<Copy />} />
+					<MenuLabel>Duplicate</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<Icon icon={<Archive />} />
+					<MenuLabel>Archive</MenuLabel>
+				</MenuItem>
+				<MenuItem>
+					<Icon icon={<Trash />} />
+					<MenuLabel>Delete</MenuLabel>
+				</MenuItem>
 			</MenuContent>
 		</Menu>
 	)
