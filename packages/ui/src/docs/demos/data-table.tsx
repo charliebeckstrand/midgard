@@ -255,10 +255,7 @@ export function Demo() {
 				<ColumnManagerExample />
 			</Example>
 
-			<Example
-				title="Reorder"
-				code={code`<DataTable reorder columnOrder={{ value, onValueChange }} />`}
-			>
+			<Example title="Reorder">
 				<ReorderExample />
 			</Example>
 		</>
