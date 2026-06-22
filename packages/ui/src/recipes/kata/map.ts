@@ -1,7 +1,8 @@
-import { hannou, kasane, sen } from '../kiso'
+import { hannou, kasane, kokkaku, sen } from '../kiso'
 
 const { disabled } = hannou
 const { rounded } = kasane
+const { map } = kokkaku
 const { border } = sen
 
 export const k = {
@@ -13,4 +14,5 @@ export const k = {
 		...disabled,
 	],
 	canvas: ['absolute inset-0'],
+	skeleton: map,
 } as const
