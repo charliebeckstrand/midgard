@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { Archive, ChevronDown, Copy, SquarePen, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
@@ -12,6 +12,8 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
+import { Stack } from '../../components/stack'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Text } from '../../components/text'
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
@@ -21,6 +23,7 @@ const surfaces = ['default', 'glass'] as const
 
 export function Demo() {
 	const [dropdownSurface, setDropdownSurface] = useState<(typeof surfaces)[number]>('default')
+	const [iconsSurface, setIconsSurface] = useState<(typeof surfaces)[number]>('default')
 	const [contextSurface, setContextSurface] = useState<(typeof surfaces)[number]>('default')
 
 	const dropdown = (
@@ -44,6 +47,38 @@ export function Demo() {
 						<MenuLabel>Archive</MenuLabel>
 					</MenuItem>
 					<MenuItem>
+						<MenuLabel>Delete</MenuLabel>
+					</MenuItem>
+				</MenuSection>
+			</MenuContent>
+		</Menu>
+	)
+
+	const icons = (
+		<Menu placement="bottom-start">
+			<MenuTrigger>
+				<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+					Options
+				</Button>
+			</MenuTrigger>
+			<MenuContent>
+				<MenuSection>
+					<MenuItem>
+						<Icon icon={<SquarePen />} />
+						<MenuLabel>Edit</MenuLabel>
+					</MenuItem>
+					<MenuItem>
+						<Icon icon={<Copy />} />
+						<MenuLabel>Duplicate</MenuLabel>
+					</MenuItem>
+				</MenuSection>
+				<MenuSection>
+					<MenuItem>
+						<Icon icon={<Archive />} />
+						<MenuLabel>Archive</MenuLabel>
+					</MenuItem>
+					<MenuItem>
+						<Icon icon={<Trash />} />
 						<MenuLabel>Delete</MenuLabel>
 					</MenuItem>
 				</MenuSection>
@@ -81,32 +116,60 @@ export function Demo() {
 	)
 
 	return (
-		<>
-			<Example
-				title="Dropdown menu"
-				actions={
-					<VariantListbox
-						variants={surfaces}
-						value={dropdownSurface}
-						onValueChange={setDropdownSurface}
-					/>
-				}
-			>
-				{dropdownSurface === 'glass' ? <GlassProvider>{dropdown}</GlassProvider> : dropdown}
-			</Example>
+		<Tabs defaultValue="dropdown">
+			<Stack gap="lg">
+				<TabList aria-label="Menu type">
+					<Tab value="dropdown">Dropdown</Tab>
+					<Tab value="context">Context</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="dropdown">
+						<Stack gap="xl">
+							<Example
+								title="Default"
+								actions={
+									<VariantListbox
+										variants={surfaces}
+										value={dropdownSurface}
+										onValueChange={setDropdownSurface}
+									/>
+								}
+							>
+								{dropdownSurface === 'glass' ? <GlassProvider>{dropdown}</GlassProvider> : dropdown}
+							</Example>
 
-			<Example
-				title="Context menu"
-				actions={
-					<VariantListbox
-						variants={surfaces}
-						value={contextSurface}
-						onValueChange={setContextSurface}
-					/>
-				}
-			>
-				{contextSurface === 'glass' ? <GlassProvider>{context}</GlassProvider> : context}
-			</Example>
-		</>
+							<Example
+								title="With icons"
+								actions={
+									<VariantListbox
+										variants={surfaces}
+										value={iconsSurface}
+										onValueChange={setIconsSurface}
+									/>
+								}
+							>
+								{iconsSurface === 'glass' ? <GlassProvider>{icons}</GlassProvider> : icons}
+							</Example>
+						</Stack>
+					</TabContent>
+					<TabContent value="context">
+						<Stack gap="xl">
+							<Example
+								title="Default"
+								actions={
+									<VariantListbox
+										variants={surfaces}
+										value={contextSurface}
+										onValueChange={setContextSurface}
+									/>
+								}
+							>
+								{contextSurface === 'glass' ? <GlassProvider>{context}</GlassProvider> : context}
+							</Example>
+						</Stack>
+					</TabContent>
+				</TabContents>
+			</Stack>
+		</Tabs>
 	)
 }
