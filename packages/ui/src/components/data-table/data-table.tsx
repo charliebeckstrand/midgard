@@ -14,14 +14,24 @@ import { DataTableBody } from './data-table-body'
 import { DataTableColumnManagerDialog } from './data-table-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './data-table-constants'
 import { DataTableHead } from './data-table-head'
-import { restrictToHorizontalAxis } from './data-table-reorder'
+import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './data-table-reorder'
 import type { DataTableColumn, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumns } from './use-data-table-columns'
 import { useDataTableReorder } from './use-data-table-reorder'
 import { useDataTableSelection } from './use-data-table-selection'
 
-/** Locks column drags to the x-axis. @internal */
-const REORDER_MODIFIERS = [restrictToHorizontalAxis]
+/**
+ * Locks column drags to the x-axis and bounds them to the scroll container, so
+ * horizontal auto-scroll can reach off-screen columns without running away. @internal
+ */
+const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAncestor]
+
+/**
+ * Column-drag auto-scroll: horizontal only — a wide table scrolls sideways to
+ * reach off-screen columns (bounded by the scroll-ancestor modifier above) —
+ * with the vertical axis off so a downward drag can't scroll the body. @internal
+ */
+const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 
 /**
  * Row-virtualization setting: `true` for defaults, `false`/absent to disable,
@@ -398,10 +408,11 @@ export function DataTable<T>({
 				)}
 
 				{canReorder ? (
-					// Auto-scroll is off: the table's own `overflow-x-auto` wrapper would
-					// otherwise let a drag toward the right edge scroll away without
-					// bound (the dragged cell's transform keeps growing the scroll width).
-					<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={false}>
+					<DndContext
+						{...dndContextProps}
+						modifiers={REORDER_MODIFIERS}
+						autoScroll={REORDER_AUTO_SCROLL}
+					>
 						<SortableContext items={itemIds} strategy={strategy}>
 							{tableRegion}
 						</SortableContext>

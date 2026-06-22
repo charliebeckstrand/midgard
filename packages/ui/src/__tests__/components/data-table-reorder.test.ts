@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	applyColumnReorder,
 	columnDragStyle,
+	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
 } from '../../components/data-table/data-table-reorder'
 
@@ -79,5 +80,49 @@ describe('restrictToHorizontalAxis', () => {
 		} as unknown as ModifierArgs
 
 		expect(restrictToHorizontalAxis(args)).toEqual({ x: 24, y: 0, scaleX: 1, scaleY: 1 })
+	})
+})
+
+describe('restrictToFirstScrollableAncestor', () => {
+	const clientRect = (left: number, right: number, top = 0, bottom = 40) => ({
+		left,
+		right,
+		top,
+		bottom,
+		width: right - left,
+		height: bottom - top,
+	})
+
+	it('clamps a rightward drag so the column stops at the container edge', () => {
+		const args = {
+			transform: { x: 1000, y: 0, scaleX: 1, scaleY: 1 },
+			draggingNodeRect: clientRect(100, 200),
+			scrollableAncestorRects: [clientRect(0, 300)],
+		} as unknown as ModifierArgs
+
+		// The cell's right edge (200) + x is clamped to the container's right (300).
+		expect(restrictToFirstScrollableAncestor(args).x).toBe(100)
+	})
+
+	it('leaves an in-bounds drag unchanged', () => {
+		const args = {
+			transform: { x: 20, y: 0, scaleX: 1, scaleY: 1 },
+			draggingNodeRect: clientRect(100, 200),
+			scrollableAncestorRects: [clientRect(0, 300)],
+		} as unknown as ModifierArgs
+
+		expect(restrictToFirstScrollableAncestor(args).x).toBe(20)
+	})
+
+	it('passes the transform through when there is no scrollable ancestor', () => {
+		const transform = { x: 1000, y: 0, scaleX: 1, scaleY: 1 }
+
+		const args = {
+			transform,
+			draggingNodeRect: clientRect(100, 200),
+			scrollableAncestorRects: [],
+		} as unknown as ModifierArgs
+
+		expect(restrictToFirstScrollableAncestor(args)).toEqual(transform)
 	})
 })

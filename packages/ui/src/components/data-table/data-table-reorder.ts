@@ -1,4 +1,4 @@
-import type { Modifier } from '@dnd-kit/core'
+import type { ClientRect, Modifier } from '@dnd-kit/core'
 import { CSS, type Transform } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
@@ -14,6 +14,56 @@ export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
 	...transform,
 	y: 0,
 })
+
+/**
+ * Clamps `transform` so `rect` stays inside `bounding` on both axes. Lifted from
+ * `@dnd-kit/modifiers`' internal `restrictToBoundingRect`.
+ *
+ * @internal
+ */
+function clampToBoundingRect(
+	transform: Transform,
+	rect: ClientRect,
+	bounding: ClientRect,
+): Transform {
+	const value = { ...transform }
+
+	if (rect.top + transform.y <= bounding.top) {
+		value.y = bounding.top - rect.top
+	} else if (rect.bottom + transform.y >= bounding.top + bounding.height) {
+		value.y = bounding.top + bounding.height - rect.bottom
+	}
+
+	if (rect.left + transform.x <= bounding.left) {
+		value.x = bounding.left - rect.left
+	} else if (rect.right + transform.x >= bounding.left + bounding.width) {
+		value.x = bounding.left + bounding.width - rect.right
+	}
+
+	return value
+}
+
+/**
+ * dnd-kit modifier that keeps a column drag within its first scrollable
+ * ancestor — the table's horizontal-scroll wrapper. Bounding the dragged cell
+ * to the visible container stops its transform from extending the table's
+ * scroll width, which is what let horizontal auto-scroll run away: now
+ * auto-scroll traverses the real columns and halts at the last one. Mirrors
+ * `@dnd-kit/modifiers`' `restrictToFirstScrollableAncestor`.
+ *
+ * @internal
+ */
+export const restrictToFirstScrollableAncestor: Modifier = ({
+	draggingNodeRect,
+	transform,
+	scrollableAncestorRects,
+}) => {
+	const containerRect = scrollableAncestorRects[0]
+
+	if (!draggingNodeRect || !containerRect) return transform
+
+	return clampToBoundingRect(transform, draggingNodeRect, containerRect)
+}
 
 /**
  * Inline style for a cell that belongs to a reordering column — its header and
