@@ -14,10 +14,21 @@ import { DataTableBody } from './data-table-body'
 import { DataTableColumnManagerDialog } from './data-table-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './data-table-constants'
 import { DataTableHead } from './data-table-head'
+import { restrictToHorizontalAxis } from './data-table-reorder'
 import type { DataTableColumn, DataTableColumnManagerPreset } from './types'
 import { useDataTableColumns } from './use-data-table-columns'
 import { useDataTableReorder } from './use-data-table-reorder'
 import { useDataTableSelection } from './use-data-table-selection'
+
+/** Locks column drags to the x-axis. @internal */
+const REORDER_MODIFIERS = [restrictToHorizontalAxis]
+
+/**
+ * Auto-scroll for column drags: keep the horizontal axis (a wide table scrolls
+ * sideways to reach off-screen columns) but disable the vertical one, so a
+ * downward drag can't scroll the body. @internal
+ */
+const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 
 /**
  * Row-virtualization setting: `true` for defaults, `false`/absent to disable,
@@ -394,7 +405,11 @@ export function DataTable<T>({
 				)}
 
 				{canReorder ? (
-					<DndContext {...dndContextProps}>
+					<DndContext
+						{...dndContextProps}
+						modifiers={REORDER_MODIFIERS}
+						autoScroll={REORDER_AUTO_SCROLL}
+					>
 						<SortableContext items={itemIds} strategy={strategy}>
 							{tableRegion}
 						</SortableContext>

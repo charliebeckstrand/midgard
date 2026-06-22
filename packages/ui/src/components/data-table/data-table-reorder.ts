@@ -1,5 +1,21 @@
+import type { Modifier } from '@dnd-kit/core'
 import { CSS, type Transform } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
+
+/**
+ * dnd-kit modifier that pins a column drag to the x-axis: zeroes the vertical
+ * component of the transform so a column never drifts vertically and the
+ * collision rect stays clear of the scroll container's top/bottom edges (which
+ * stops a downward drag from auto-scrolling the body). Mirrors
+ * `@dnd-kit/modifiers`' `restrictToHorizontalAxis` without taking the
+ * dependency.
+ *
+ * @internal
+ */
+export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
+	...transform,
+	y: 0,
+})
 
 /**
  * Inline style for a cell that belongs to a reordering column — its header and

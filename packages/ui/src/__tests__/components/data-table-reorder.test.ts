@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { applyColumnReorder, columnDragStyle } from '../../components/data-table/data-table-reorder'
+import {
+	applyColumnReorder,
+	columnDragStyle,
+	restrictToHorizontalAxis,
+} from '../../components/data-table/data-table-reorder'
+
+/** dnd-kit's modifier args are broad; the modifier only reads `transform`. */
+type ModifierArgs = Parameters<typeof restrictToHorizontalAxis>[0]
 
 describe('applyColumnReorder', () => {
 	it('repermutes only the reorderable slots, holding the rest in place', () => {
@@ -62,5 +69,15 @@ describe('columnDragStyle', () => {
 		expect(style.transform).toBeUndefined()
 
 		expect(style.width).toBeUndefined()
+	})
+})
+
+describe('restrictToHorizontalAxis', () => {
+	it('zeroes the vertical component so a column drag stays on the x-axis', () => {
+		const args = {
+			transform: { x: 24, y: 80, scaleX: 1, scaleY: 1 },
+		} as unknown as ModifierArgs
+
+		expect(restrictToHorizontalAxis(args)).toEqual({ x: 24, y: 0, scaleX: 1, scaleY: 1 })
 	})
 })
