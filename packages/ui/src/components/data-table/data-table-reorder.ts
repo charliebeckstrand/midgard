@@ -4,11 +4,9 @@ import type { CSSProperties } from 'react'
 
 /**
  * dnd-kit modifier that pins a column drag to the x-axis: zeroes the vertical
- * component of the transform so a column never drifts vertically and the
- * collision rect stays clear of the scroll container's top/bottom edges (which
- * stops a downward drag from auto-scrolling the body). Mirrors
- * `@dnd-kit/modifiers`' `restrictToHorizontalAxis` without taking the
- * dependency.
+ * component of the transform so a column tracks the pointer horizontally and
+ * never drifts up or down while being reordered. Mirrors `@dnd-kit/modifiers`'
+ * `restrictToHorizontalAxis` without taking the dependency.
  *
  * @internal
  */

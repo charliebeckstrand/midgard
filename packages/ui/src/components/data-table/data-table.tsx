@@ -24,13 +24,6 @@ import { useDataTableSelection } from './use-data-table-selection'
 const REORDER_MODIFIERS = [restrictToHorizontalAxis]
 
 /**
- * Auto-scroll for column drags: keep the horizontal axis (a wide table scrolls
- * sideways to reach off-screen columns) but disable the vertical one, so a
- * downward drag can't scroll the body. @internal
- */
-const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
-
-/**
  * Row-virtualization setting: `true` for defaults, `false`/absent to disable,
  * or an object tuning `estimateSize` (row height, px) and `overscan`.
  *
@@ -405,11 +398,10 @@ export function DataTable<T>({
 				)}
 
 				{canReorder ? (
-					<DndContext
-						{...dndContextProps}
-						modifiers={REORDER_MODIFIERS}
-						autoScroll={REORDER_AUTO_SCROLL}
-					>
+					// Auto-scroll is off: the table's own `overflow-x-auto` wrapper would
+					// otherwise let a drag toward the right edge scroll away without
+					// bound (the dragged cell's transform keeps growing the scroll width).
+					<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={false}>
 						<SortableContext items={itemIds} strategy={strategy}>
 							{tableRegion}
 						</SortableContext>
