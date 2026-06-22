@@ -17,6 +17,8 @@ type DataTableVirtualizedBodyProps<T> = {
 	rowLabel?: (row: T) => string
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
+	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
+	reorderable: boolean
 	estimateSize: number
 	overscan: number
 }
@@ -41,6 +43,7 @@ export function DataTableVirtualizedBody<T>({
 	rowLabel,
 	selection,
 	toggleRow,
+	reorderable,
 	estimateSize,
 	overscan,
 }: DataTableVirtualizedBodyProps<T>) {
@@ -80,6 +83,7 @@ export function DataTableVirtualizedBody<T>({
 						rowLabel={rowLabel?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
+						reorderable={reorderable}
 						dataRowIndex={vr.index}
 						// Header occupies row 1; data rows are offset by 2.
 						rowIndex={vr.index + 2}

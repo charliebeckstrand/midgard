@@ -1,3 +1,32 @@
+import { CSS, type Transform } from '@dnd-kit/utilities'
+import type { CSSProperties } from 'react'
+
+/**
+ * Inline style for a cell that belongs to a reordering column — its header and
+ * every body cell. Applies a horizontal-only translate via
+ * `CSS.Translate.toString` (not `CSS.Transform`, whose `scaleX`/`scaleY` would
+ * stretch a cell's content when columns differ in width) plus the sortable's
+ * transition, so the whole column glides as one. The dragged column's
+ * "lifted" cue lives in the recipe's `data-dragging` hook.
+ *
+ * @param transform - The sortable transform for this column, or `null` when idle.
+ * @param transition - The sortable transition string, or `undefined`.
+ * @param width - Optional fixed column width to preserve while dragging.
+ * @returns The cell's inline style.
+ * @internal
+ */
+export function columnDragStyle(
+	transform: Transform | null,
+	transition: string | undefined,
+	width?: string,
+): CSSProperties {
+	return {
+		transform: CSS.Translate.toString(transform),
+		transition,
+		...(width ? { width } : null),
+	}
+}
+
 /**
  * Splices a reordered subset of column ids back into the full column order,
  * holding every id the `isReorderable` predicate rejects (selection, actions,

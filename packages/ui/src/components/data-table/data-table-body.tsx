@@ -17,6 +17,8 @@ type DataTableBodyProps<T> = {
 	empty: ReactNode
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
+	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
+	reorderable: boolean
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -43,6 +45,7 @@ export function DataTableBody<T>({
 	empty,
 	selection,
 	toggleRow,
+	reorderable,
 	virtualize,
 }: DataTableBodyProps<T>) {
 	if (loading) return <TableLoading columns={visibleColumns.length} />
@@ -61,6 +64,7 @@ export function DataTableBody<T>({
 				rowLabel={rowLabel}
 				selection={selection}
 				toggleRow={toggleRow}
+				reorderable={reorderable}
 				estimateSize={virtualize.estimateSize}
 				overscan={virtualize.overscan}
 			/>
@@ -83,6 +87,7 @@ export function DataTableBody<T>({
 						rowLabel={rowLabel?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
+						reorderable={reorderable}
 						dataRowIndex={index}
 					/>
 				)

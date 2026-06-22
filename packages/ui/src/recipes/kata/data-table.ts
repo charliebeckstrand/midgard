@@ -49,8 +49,13 @@ export const k = {
 		icon: sortIcon,
 	},
 	reorder: {
-		// Soften the header cell while it is the actively dragged column.
-		cell: 'data-[dragging]:opacity-70',
+		// Lift the actively dragged column above its neighbours and soften it. The
+		// z-index only bites where the cell is a positioned box — sticky headers
+		// already are; `shift` promotes the rest for the duration of the drag.
+		cell: 'data-[dragging]:z-20 data-[dragging]:opacity-70',
+		// Promotes a non-sticky reorder cell to `relative` while dragging so its
+		// lift z-index takes effect.
+		shift: 'data-[dragging]:relative',
 		// Keeps the grip, title, and any sort control on one baseline.
 		layout: [flex.inline, 'items-center gap-1'],
 		handle: [

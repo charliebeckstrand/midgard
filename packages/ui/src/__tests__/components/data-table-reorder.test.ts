@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyColumnReorder } from '../../components/data-table/data-table-reorder'
+import { applyColumnReorder, columnDragStyle } from '../../components/data-table/data-table-reorder'
 
 describe('applyColumnReorder', () => {
 	it('repermutes only the reorderable slots, holding the rest in place', () => {
@@ -33,5 +33,34 @@ describe('applyColumnReorder', () => {
 		const next = applyColumnReorder(order, ['age', 'name'], (id) => id !== 'hidden')
 
 		expect(next).toEqual(['age', 'hidden', 'name'])
+	})
+})
+
+describe('columnDragStyle', () => {
+	it('translates horizontally without the scale that would stretch cell content', () => {
+		const style = columnDragStyle(
+			{ x: 12, y: 0, scaleX: 2, scaleY: 0.5 },
+			'transform 200ms ease',
+			'120px',
+		)
+
+		expect(style.transform).toContain('translate3d')
+
+		expect(style.transform).toContain('12px')
+
+		// The scale dnd-kit packs into `transform` (the stretch) is dropped.
+		expect(style.transform).not.toContain('scale')
+
+		expect(style.transition).toBe('transform 200ms ease')
+
+		expect(style.width).toBe('120px')
+	})
+
+	it('emits no transform when idle and omits width when unset', () => {
+		const style = columnDragStyle(null, undefined)
+
+		expect(style.transform).toBeUndefined()
+
+		expect(style.width).toBeUndefined()
 	})
 })

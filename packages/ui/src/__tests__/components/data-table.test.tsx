@@ -696,6 +696,16 @@ describe('DataTable', () => {
 			expect(screen.getByText('Name')).toBeInTheDocument()
 		})
 
+		it('still renders body cell content for reorderable columns (drag-along cells)', () => {
+			renderUI(<DataTable columns={columns} rows={rows} getKey={getKey} reorder />)
+
+			// Each non-pinned data cell registers against the column sortable; its
+			// content must keep rendering through that wrapper.
+			expect(screen.getByText('Alice')).toBeInTheDocument()
+
+			expect(screen.getByText('30')).toBeInTheDocument()
+		})
+
 		it('keeps the sort button alongside the reorder handle on a sortable column', () => {
 			const sortable = [
 				{ id: 'name', title: 'Name', cell: (r: Row) => r.name, sortable: true },

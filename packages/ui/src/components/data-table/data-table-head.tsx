@@ -1,9 +1,8 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
-import { type CSSProperties, memo, type ReactElement, type ReactNode } from 'react'
+import { memo, type ReactElement, type ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/data-table'
@@ -13,6 +12,7 @@ import { Checkbox } from '../checkbox'
 import { Icon } from '../icon'
 import { TableHead, TableHeader, TableRow } from '../table'
 import { useDataTable } from './context'
+import { columnDragStyle } from './data-table-reorder'
 import type { DataTableColumn } from './types'
 
 /** Props for {@link DataTableHead}. @internal */
@@ -230,20 +230,18 @@ const DataTableReorderableColumnHeader = memo(function DataTableReorderableColum
 		isDragging,
 	} = useSortable({ id: String(column.id) })
 
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		...(column.width ? { width: column.width } : null),
-	}
-
 	return (
 		<TableHeader
 			ref={setNodeRef}
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
-			className={cn(stickyHeader && k.sticky.head, k.reorder.cell, column.headerClassName)}
-			style={style}
+			className={cn(
+				stickyHeader ? k.sticky.head : k.reorder.shift,
+				k.reorder.cell,
+				column.headerClassName,
+			)}
+			style={columnDragStyle(transform, transition, column.width)}
 		>
 			<span className={cn(k.reorder.layout)}>
 				<button

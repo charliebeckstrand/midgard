@@ -356,6 +356,7 @@ export function DataTable<T>({
 				empty={empty}
 				selection={selection}
 				toggleRow={toggleRow}
+				reorderable={canReorder}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
 		</Table>
