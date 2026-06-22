@@ -35,6 +35,7 @@ Kata that need only a subset of a semantic bundle reach `kiso/<archetype>` direc
 - **Compose, don't redefine.** A kata that reinvents a recipe already in a katakana bridge or a kiso bundle is a defect — fold it into the existing module.
 - **No sideways imports.** Kata never import from sibling kata. Shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `import { k as <name> }` in a component is a signal the archetype belongs in a bridge.
 - **Variants earn their axis.** Add a variant axis when ≥2 components or call sites need it. Single-use variants stay inline.
+- **Header when non-obvious.** Open a kata with a summary doccomment only when its structure isn't self-evident from the body — it serves more than one unit, sources a non-standard token (inline `mode()` colours rather than an `iro` palette), bridges or composes another recipe, or groups slots non-trivially. A canonical recipe-shaped matrix (`variant × color × size`) needs none; the header is the signal that something here is worth reading first.
 
 ---
 

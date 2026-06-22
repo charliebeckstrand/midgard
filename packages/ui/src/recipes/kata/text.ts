@@ -1,3 +1,10 @@
+/**
+ * Text kata: recipe-shaped surface for `<Text>` with two independent colour
+ * axes. `severity` pulls the semantic `iro.text` tokens (default / primary /
+ * success / warning / error / muted) and is the meaning-bearing axis; `color`
+ * is a separate literal-hue override authored inline with `mode()`. A consumer
+ * sets one or the other — severity for status, color for a bespoke tint.
+ */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, kokkaku } from '../kiso'
 
