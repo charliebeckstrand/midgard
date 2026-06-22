@@ -1,5 +1,4 @@
 import { Archive, ChevronDown, Copy, SquarePen, Trash } from 'lucide-react'
-import { useState } from 'react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -13,19 +12,11 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Stack } from '../../components/stack'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Text } from '../../components/text'
 import { GlassProvider } from '../../providers/glass'
 import { Example } from '../components/example'
-import { VariantListbox } from '../components/variant-listbox'
-
-const surfaces = ['default', 'glass'] as const
 
 export function Demo() {
-	const [dropdownSurface, setDropdownSurface] = useState<(typeof surfaces)[number]>('default')
-	const [iconsSurface, setIconsSurface] = useState<(typeof surfaces)[number]>('default')
-	const [contextSurface, setContextSurface] = useState<(typeof surfaces)[number]>('default')
-
 	const dropdown = (
 		<Menu placement="bottom-start">
 			<MenuTrigger>
@@ -108,60 +99,16 @@ export function Demo() {
 	)
 
 	return (
-		<Tabs defaultValue="dropdown">
-			<Stack gap="lg">
-				<TabList aria-label="Menu type">
-					<Tab value="dropdown">Dropdown</Tab>
-					<Tab value="context">Context</Tab>
-				</TabList>
-				<TabContents>
-					<TabContent value="dropdown">
-						<Stack gap="xl">
-							<Example
-								title="Default"
-								actions={
-									<VariantListbox
-										variants={surfaces}
-										value={dropdownSurface}
-										onValueChange={setDropdownSurface}
-									/>
-								}
-							>
-								{dropdownSurface === 'glass' ? <GlassProvider>{dropdown}</GlassProvider> : dropdown}
-							</Example>
+		<Stack gap="xl">
+			<Example title="Default">{dropdown}</Example>
 
-							<Example
-								title="With icons"
-								actions={
-									<VariantListbox
-										variants={surfaces}
-										value={iconsSurface}
-										onValueChange={setIconsSurface}
-									/>
-								}
-							>
-								{iconsSurface === 'glass' ? <GlassProvider>{icons}</GlassProvider> : icons}
-							</Example>
-						</Stack>
-					</TabContent>
-					<TabContent value="context">
-						<Stack gap="xl">
-							<Example
-								title="Default"
-								actions={
-									<VariantListbox
-										variants={surfaces}
-										value={contextSurface}
-										onValueChange={setContextSurface}
-									/>
-								}
-							>
-								{contextSurface === 'glass' ? <GlassProvider>{context}</GlassProvider> : context}
-							</Example>
-						</Stack>
-					</TabContent>
-				</TabContents>
-			</Stack>
-		</Tabs>
+			<Example title="With icons">{icons}</Example>
+
+			<Example title="Glass">
+				<GlassProvider>{dropdown}</GlassProvider>
+			</Example>
+
+			<Example title="Context">{context}</Example>
+		</Stack>
 	)
 }
