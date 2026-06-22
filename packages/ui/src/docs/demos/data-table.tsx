@@ -168,17 +168,6 @@ const RowActionsExample = () => {
 	)
 }
 
-const ColumnManagerExample = () => {
-	return (
-		<DataTable
-			columns={columns}
-			rows={people}
-			getKey={(row) => row.id}
-			columnManager={{ enabled: true }}
-		/>
-	)
-}
-
 const ReorderExample = () => {
 	const [order, setOrder] = useState<(string | number)[]>(['name', 'email', 'role', 'status'])
 
@@ -189,6 +178,17 @@ const ReorderExample = () => {
 			rows={people}
 			getKey={(row) => row.id}
 			columnOrder={{ value: order, onValueChange: setOrder }}
+		/>
+	)
+}
+
+const ColumnManagerExample = () => {
+	return (
+		<DataTable
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			columnManager={{ enabled: true }}
 		/>
 	)
 }
@@ -251,12 +251,12 @@ export function Demo() {
 				<DataTable columns={columns} rows={[]} getKey={(row) => row.id} />
 			</Example>
 
-			<Example title="Column manager">
-				<ColumnManagerExample />
-			</Example>
-
 			<Example title="Reorder">
 				<ReorderExample />
+			</Example>
+
+			<Example title="Column manager">
+				<ColumnManagerExample />
 			</Example>
 		</>
 	)
