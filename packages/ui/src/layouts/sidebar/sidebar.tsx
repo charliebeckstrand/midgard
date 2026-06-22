@@ -206,6 +206,7 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 
 type SidebarLayoutFooterProps = PropsWithChildren
 
+/** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
 	return (
 		<footer data-slot="footer" className={k.footer()}>

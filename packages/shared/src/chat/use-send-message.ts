@@ -66,6 +66,10 @@ export function useSendMessage(
 					severity: 'error',
 				})
 
+			// Hoisted so the catch can target this exact bubble by id rather than
+			// matching on empty content (which would also hit unrelated messages).
+			let agentId: string | undefined
+
 			try {
 				const response = await fetch(`/api/chat/${chatId}`, {
 					method: 'POST',
@@ -79,7 +83,7 @@ export function useSendMessage(
 					return
 				}
 
-				const agentId = crypto.randomUUID()
+				agentId = crypto.randomUUID()
 
 				setMessages((prev) => [...prev, { id: agentId, role: 'agent', content: '' }])
 
@@ -94,6 +98,8 @@ export function useSendMessage(
 					if (done) break
 
 					if (value.event === 'content') {
+						// `content` events carry the full cumulative reply, so each one
+						// replaces the bubble's text rather than appending to it.
 						setMessages((prev) =>
 							prev.map((m) => (m.id === agentId ? { ...m, content: value.data } : m)),
 						)
@@ -108,9 +114,11 @@ export function useSendMessage(
 					options?.onChatCreated?.()
 				}
 			} catch {
-				// Network or stream failure: drop the empty agent placeholder so no
-				// blank bubble lingers; the user's message stays.
-				setMessages((prev) => prev.filter((m) => !(m.role === 'agent' && m.content === '')))
+				// Network or stream failure: drop this send's agent placeholder if it
+				// never received content, so no blank bubble lingers; the user's
+				// message and any partial reply stay. Keyed by id so concurrent or
+				// prior empty agent messages are untouched.
+				setMessages((prev) => prev.filter((m) => !(m.id === agentId && m.content === '')))
 
 				notifyFailure()
 			} finally {

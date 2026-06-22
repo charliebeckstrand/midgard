@@ -56,6 +56,7 @@ export function StackedLayoutBody({ ref, children, className }: StackedLayoutBod
 
 type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
 
+/** Fixed-height footer slot for {@link StackedLayout} (`data-slot="footer"`). */
 export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
 	return (
 		<footer data-slot="footer" className={cn('shrink-0', className)}>
