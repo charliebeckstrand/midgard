@@ -5,6 +5,7 @@ import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { MapContext } from './context'
+import { MapSkeleton } from './map-skeleton'
 import { type MapPreset, mapPresets } from './map-styles'
 import type { LngLat } from './types'
 import { useMapInstance } from './use-map-instance'
@@ -45,7 +46,8 @@ export type MapProps = {
  *
  * @remarks
  * MapLibre is loaded lazily on the client; `children` mount only once the map
- * fires `load` (`data-ready`), so descendants can assume a live instance.
+ * fires `load` (`data-ready`), so descendants can assume a live instance. A
+ * {@link MapSkeleton} placeholder fills the container until then.
  * `aria-label` attaches only with a supporting role (`application` when
  * interactive, `group` otherwise); without it the container stays a plain
  * presentational div.
@@ -95,6 +97,9 @@ function MapView({
 			{...regionProps}
 			className={cn(k.base, className)}
 		>
+			{/* Square overlay: the bordered container's overflow clip rounds it,
+			    as it does the canvas — its own radius would seam inside the border. */}
+			{!ready && <MapSkeleton className="absolute inset-0 z-10 rounded-none" />}
 			<MapContext value={contextValue}>{ready ? children : null}</MapContext>
 		</div>
 	)

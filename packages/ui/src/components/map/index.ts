@@ -9,6 +9,7 @@ export {
 	fetchValhallaRoute,
 } from './map-routing'
 export { MapShipment, type MapShipmentProps } from './map-shipment'
+export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'
 export { type MapPreset, mapPresets } from './map-styles'
 export type {
 	ChatMessage,

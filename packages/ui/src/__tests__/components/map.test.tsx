@@ -4,6 +4,7 @@ import {
 	MapMarker,
 	MapRoute,
 	MapShipment,
+	MapSkeleton,
 	Map as MapView,
 	type RouteData,
 	type ShipmentData,
@@ -59,6 +60,25 @@ describe('Map', () => {
 		)
 
 		await waitFor(() => expect(allBySlot(container, 'map-marker').length).toBe(1))
+	})
+
+	it('fills the container with a placeholder while loading, then clears it once ready', async () => {
+		const { container } = renderUI(<MapView />)
+
+		// Before the map fires `load`, the skeleton placeholder stands in.
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
+
+		await waitFor(() => expect(bySlot(container, 'map')).toHaveAttribute('data-ready', ''))
+
+		expect(bySlot(container, 'placeholder')).toBeNull()
+	})
+})
+
+describe('MapSkeleton', () => {
+	it('renders a placeholder hidden from assistive technology', () => {
+		const { container } = renderUI(<MapSkeleton />)
+
+		expect(bySlot(container, 'placeholder')).toHaveAttribute('aria-hidden', 'true')
 	})
 })
 
