@@ -100,7 +100,7 @@ export const k = {
 			frame: ['relative shrink-0'],
 			base: ['absolute top-1/2 left-1/2 origin-center', 'shadow-lg', 'bg-white'],
 			placeholder: ['w-full h-full', skeleton],
-			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', size.sm, text.muted],
+			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', text.muted],
 		},
 	},
 } as const

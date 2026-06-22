@@ -92,8 +92,6 @@ export function PdfViewerToolbar() {
 				)}
 			</div>
 
-			<ToolbarSeparator />
-
 			<div className={cn(k.toolbar.section)}>
 				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 				<ToolbarGroup aria-label="View">
