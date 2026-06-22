@@ -182,6 +182,28 @@ describe('PdfViewer', () => {
 		expect(bySlot(container, 'pdf-viewer-viewport')).toHaveTextContent('No pages to display')
 	})
 
+	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
+		const { container } = renderUI(<PdfViewer pages={pages} />)
+
+		const sidebar = bySlot(container, 'pdf-viewer-sidebar')
+
+		expect(sidebar).not.toHaveAttribute('inert')
+
+		const toggle = screen.getByLabelText('Hide thumbnails')
+
+		expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+		const user = userEvent.setup()
+
+		await user.click(toggle)
+
+		const collapsedToggle = screen.getByLabelText('Show thumbnails')
+
+		expect(collapsedToggle).toHaveAttribute('aria-expanded', 'false')
+
+		expect(bySlot(container, 'pdf-viewer-sidebar')).toHaveAttribute('inert')
+	})
+
 	it('opens the mobile thumbnails sheet when toggled', async () => {
 		stubMatchMedia(() => false)
 
