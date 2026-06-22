@@ -8,6 +8,11 @@ import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
 import { AFFIX_SELECTOR, PREFIX_INTERACTIVE_SELECTOR } from './tree-constants'
 
+/**
+ * Props for {@link TreeItemContent}.
+ *
+ * @internal
+ */
 type TreeItemContentProps = {
 	label: ReactNode
 	icon?: ReactElement
@@ -20,6 +25,15 @@ type TreeItemContentProps = {
 	className?: string
 }
 
+/**
+ * The interactive `role="treeitem"` row rendered by {@link TreeItem}: chevron,
+ * optional `icon`, `label`, and `prefix`/`suffix` slots. Toggles expansion on a
+ * branch row, or forwards clicks and `Enter`/`Space` on a leaf row to the first
+ * interactive control in the `prefix` slot; `ArrowRight`/`ArrowLeft` expand and
+ * collapse. Reads depth, size, indent, and ARIA position from tree context.
+ *
+ * @internal
+ */
 export function TreeItemContent({
 	label,
 	icon,

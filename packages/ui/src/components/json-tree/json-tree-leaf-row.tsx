@@ -13,6 +13,13 @@ type JsonTreeLeafRowProps = {
 	tabbable?: boolean
 }
 
+/**
+ * Leaf row for a {@link JsonTree}: a non-expandable `role="treeitem"` showing a
+ * key and its scalar value. Shared by the recursive {@link JsonTreeNode} and the
+ * virtualized {@link JsonTreeNodeRow}.
+ *
+ * @internal
+ */
 export function JsonTreeLeafRow({
 	depth,
 	keyName,

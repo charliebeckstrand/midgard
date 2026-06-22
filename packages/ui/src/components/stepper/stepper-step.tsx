@@ -15,6 +15,12 @@ export type StepperStepProps = {
 	children?: ReactNode
 }
 
+/**
+ * Derives a step's display state by comparing its index to the stepper's current value.
+ *
+ * @returns `'completed'` below the current value, `'current'` at it, `'upcoming'` above.
+ * @internal
+ */
 function computeState(stepValue: number, value: number): StepState {
 	if (stepValue < value) return 'completed'
 	if (stepValue === value) return 'current'
@@ -22,6 +28,12 @@ function computeState(stepValue: number, value: number): StepState {
 	return 'upcoming'
 }
 
+/**
+ * Splits children into an indicator column and a content column for vertical layout,
+ * wrapping non-indicator nodes in a `stepper-content` slot.
+ *
+ * @internal
+ */
 function partitionVerticalChildren(children: ReactNode): ReactNode {
 	const indicators: ReactNode[] = []
 
@@ -45,8 +57,12 @@ function partitionVerticalChildren(children: ReactNode): ReactNode {
 	)
 }
 
-// Injects a default StepperIndicator when the consumer omits one.
-// Returns an array, not a Fragment, so Children.forEach can walk each item.
+/**
+ * Injects a default `<StepperIndicator>` when the consumer omits one.
+ *
+ * @remarks Returns an array, not a Fragment, so {@link Children.forEach} can walk each item.
+ * @internal
+ */
 function ensureStepperIndicator(children: ReactNode): ReactNode {
 	const items = Children.toArray(children)
 

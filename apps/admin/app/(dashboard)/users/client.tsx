@@ -23,6 +23,13 @@ type EditUserDialogProps = {
 	onSave: (userId: string, email: string) => Promise<boolean>
 }
 
+/**
+ * Modal for editing a user's email; id and timestamps shown read-only.
+ *
+ * @internal
+ * @remarks Open while `user` is non-null. Surfaces a retry message when `onSave`
+ *   resolves `false`; closes on success.
+ */
 function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
 	const [email, setEmail] = useState(user?.email ?? '')
 	const [saving, setSaving] = useState(false)
@@ -110,6 +117,13 @@ function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
 	)
 }
 
+/**
+ * Users table with edit and delete actions over the seeded user list.
+ *
+ * @remarks
+ * Mutations call `/api/users/:id` (PATCH/DELETE) and update local state
+ * optimistically on success. Deleting `currentUser` is disabled.
+ */
 export function UsersClient({ users: initialUsers, currentUser }: UsersClientProps) {
 	const [users, setUsers] = useState(initialUsers)
 	const [editingUser, setEditingUser] = useState<User | null>(null)

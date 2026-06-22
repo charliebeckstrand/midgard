@@ -31,7 +31,7 @@ export type CurrencyInputProps = Omit<
  * and binds to an enclosing Form field by `name`. Resolves `currency` and
  * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
  *
- * @remarks Holds a raw editing buffer while focused — formatting digits down to
+ * @remarks Holds a raw editing buffer once typing begins — formatting digits down to
  * grouped output on every keystroke through {@link useFormattedInput}, which
  * restores the caret to the typed character across separator insertion — and
  * falls back to the display formatter once the buffer clears on blur. The symbol

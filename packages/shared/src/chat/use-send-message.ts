@@ -8,9 +8,26 @@ import { useToast } from 'ui/providers/toast'
 import type { ChatContent } from './types'
 
 type UseSendMessageOptions = {
+	/** Called once a draft chat is committed by its first sent message. */
 	onChatCreated?: () => void
 }
 
+/**
+ * Manages a chat's message list and streams agent replies over SSE.
+ *
+ * @remarks
+ * `sendMessage` optimistically appends the user message, POSTs to
+ * `/api/chat/:chatId`, then parses the `content` SSE events into a single agent
+ * bubble. On the first send of a draft it clears draft state and `router.replace`s
+ * to the committed chat url. A failed request or stream drops the empty agent
+ * placeholder, keeps the user message, and toasts an error. No-ops without `chatId`.
+ *
+ * @param chatId - Target chat id; sends are skipped while undefined.
+ * @param initialMessages - Seed messages; each is assigned a client id.
+ * @param initialIsDraft - Whether the chat starts as an uncommitted draft. Defaults to `false`.
+ * @param options - See {@link UseSendMessageOptions}.
+ * @returns `{ messages, sending, isDraft, sendMessage }`.
+ */
 export function useSendMessage(
 	chatId?: string,
 	initialMessages?: ChatContent[],

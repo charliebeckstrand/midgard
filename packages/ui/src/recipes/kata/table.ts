@@ -49,7 +49,7 @@ const header = defineRecipe({
  *
  * Tailwind scans whole class literals; these rows can't be interpolated
  * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`,
- * the old tbody `striped` classes). Keep them in step by hand.
+ * the tbody `striped` classes below). Keep them in step by hand.
  */
 const projection = {
 	density: {

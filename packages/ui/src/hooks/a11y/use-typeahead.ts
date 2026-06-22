@@ -13,7 +13,7 @@ export function isTypeaheadKey(event: KeyboardEvent): boolean {
 	)
 }
 
-/** Label that matches an item during type-ahead: its accessible name, lowercased. */
+/** Label that matches an item during type-ahead: its accessible name, lowercased. @internal */
 function itemLabel(el: HTMLElement): string {
 	return accessibleName(el).toLowerCase()
 }

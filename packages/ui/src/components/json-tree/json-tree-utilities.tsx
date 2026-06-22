@@ -129,6 +129,8 @@ export function filterEntries(
  * Paths of every branch whose subtree contains a search match; the seed set
  * for `expanded`. Prunes on the index: a branch without a match has no
  * matching descendants.
+ *
+ * @internal
  */
 export function collectMatchPaths(
 	data: JsonValue,
@@ -179,6 +181,7 @@ export function collectPaths(
 	return paths
 }
 
+/** Classifies a scalar {@link JsonValue} into its {@link JsonValueType} for value coloring; `null` reports `'null'`. @internal */
 export function valueType(value: JsonValue): JsonValueType {
 	if (value === null) return 'null'
 
@@ -191,6 +194,12 @@ export function valueType(value: JsonValue): JsonValueType {
 	return 'boolean'
 }
 
+/**
+ * One row emitted by {@link flattenTree} for the virtualized tree: a `leaf`
+ * scalar, a `branch-open` header, or a matching `branch-close` footer.
+ *
+ * @internal
+ */
 export type FlatNode =
 	| {
 			type: 'leaf'
@@ -217,7 +226,7 @@ export type FlatNode =
 			value: JsonValue[] | { [key: string]: JsonValue }
 	  }
 
-/** Inputs to {@link flattenTree}. */
+/** Inputs to {@link flattenTree}. @internal */
 type FlattenTreeOptions = {
 	data: JsonValue
 	rootKey: string | undefined
@@ -235,6 +244,8 @@ type FlattenTreeOptions = {
  * When `search` is set and `filter` is true, non-matching leaves are omitted
  * and branches that don't contain a match collapse to a single `branch-open`
  * row with `open=false` (caller can render a summary).
+ *
+ * @internal
  */
 export function flattenTree({
 	data,
@@ -296,6 +307,7 @@ export function flattenTree({
 	return out
 }
 
+/** Renders a node's key prefix — a numeric array index or a quoted object key — followed by the `:` separator; nothing for the root (`keyName == null`). @internal */
 export function NodeKey({ keyName }: { keyName?: string | number }) {
 	if (keyName == null) return null
 
@@ -316,6 +328,7 @@ export function NodeKey({ keyName }: { keyName?: string | number }) {
 	)
 }
 
+/** Renders a scalar {@link JsonValue} in its type color, quoting strings and printing `null` literally. @internal */
 export function PrimitiveValue({ value }: { value: JsonValue }) {
 	const type = valueType(value)
 

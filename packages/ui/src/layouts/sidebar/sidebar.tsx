@@ -27,6 +27,7 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	size?: 'sm' | 'md' | 'lg'
 }>('SidebarLayout', { default: {} })
 
+/** Mobile navbar padding for a Density step: `sm` → `p-4`, `lg` → `p-8`, else `p-6`. @internal */
 function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
 	if (size === 'sm') return 'p-4'
 	if (size === 'lg') return 'p-8'
@@ -44,6 +45,16 @@ type SidebarLayoutProps = PropsWithChildren<{
 	panelClassName?: string
 }>
 
+/**
+ * App shell with a persistent sidebar: an inline desktop panel (or a
+ * hover-revealed floating {@link Sheet} when `floating`), a mobile
+ * {@link Drawer}, and a content column hosting {@link SidebarLayoutHeader},
+ * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
+ *
+ * @remarks Sizes its padding and panel from ambient Density. The floating
+ * sidebar is non-modal, so its peek never steals focus or locks body scroll,
+ * but `backdrop` still dims the page behind it.
+ */
 export function SidebarLayout({
 	navbar,
 	sidebar,
@@ -164,6 +175,10 @@ export function SidebarLayout({
 
 type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
+/**
+ * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
+ * layout's `actions` alongside its children on desktop.
+ */
 export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
 	const { actions, size } = useSidebarLayoutContext()
 
@@ -180,6 +195,7 @@ type SidebarLayoutBodyProps = PropsWithChildren<{
 	ref?: Ref<HTMLElement>
 }>
 
+/** Main content slot for {@link SidebarLayout} (`data-slot="body"`). */
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
 		<main ref={ref} data-slot="body" className={cn(k.body(), className)}>

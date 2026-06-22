@@ -2,11 +2,29 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { BIFROST_URL } from './env'
 import { isGuestRoute } from './routes'
 
+/** Options controlling {@link proxy} redirects. */
 export type ProxyOptions = {
+	/**
+	 * Where authenticated users are sent off a guest route.
+	 *
+	 * @defaultValue '/'
+	 */
 	homepage?: string
+	/**
+	 * Whether to redirect unauthenticated users away from non-guest routes to `/login`.
+	 *
+	 * @defaultValue true
+	 */
 	protect?: boolean
 }
 
+/**
+ * Resolves the session by calling the gateway's `/auth/session` with the request's cookies.
+ *
+ * @internal
+ * @returns `true` only when the gateway reports `authenticated: true`; a non-OK
+ *   status (logged unless `401`) or a thrown request yields `false`.
+ */
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
 	try {
 		const res = await fetch(`${BIFROST_URL}/auth/session`, {
@@ -29,6 +47,19 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
 	}
 }
 
+/**
+ * Gates a request by session, redirecting between guest and protected routes.
+ *
+ * @remarks
+ * Drive it from a Next middleware/proxy entry. Authenticated users on a guest
+ * route ({@link isGuestRoute}) are sent to `homepage`; unauthenticated users on
+ * a protected route are sent to `/login` when `protect` is set. All other
+ * requests pass through.
+ *
+ * @param request - The incoming request; its cookies resolve the session.
+ * @param options - See {@link ProxyOptions}.
+ * @returns A redirect `NextResponse`, or `NextResponse.next()` to continue.
+ */
 export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
 	const { homepage = '/', protect = true } = options
 

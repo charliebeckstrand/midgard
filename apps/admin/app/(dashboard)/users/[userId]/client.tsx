@@ -21,6 +21,13 @@ type UserDetailsClientProps = {
 	chats: Chat[] | null
 }
 
+/**
+ * User detail view: the user's chats, with read-only history and delete.
+ *
+ * @remarks
+ * Opening a chat lazily fetches its messages from `/api/chat/:id` into a sheet;
+ * delete calls `DELETE /api/chat/:id` and prunes local state on success.
+ */
 export function UserDetailsClient({ details, chats: initialChats }: UserDetailsClientProps) {
 	const [chats, setChats] = useState(initialChats)
 	const [confirmDeleteChat, setConfirmDeleteChat] = useState<string | null>(null)

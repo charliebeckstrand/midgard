@@ -30,6 +30,11 @@ type DashboardClientProps = {
 	children: ReactNode
 }
 
+/**
+ * Dashboard chrome: sidebar navigation and navbar around the routed content.
+ *
+ * @remarks Highlights the active nav item from the current pathname.
+ */
 export function DashboardClient({ user, children }: DashboardClientProps) {
 	const pathname = usePathname()
 
@@ -69,6 +74,13 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 	)
 }
 
+/**
+ * Sidebar footer account menu: settings link and sign-out.
+ *
+ * @internal
+ * @remarks Sign-out POSTs `/auth/logout` then routes to `/login`. Falls back to
+ *   the email initial / "Account" label when no user is resolved.
+ */
 function SidebarUserMenu({ user }: { user?: User }) {
 	const router = useRouter()
 

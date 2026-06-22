@@ -29,11 +29,11 @@ type ListboxButtonProps = {
 }
 
 /**
- * Internal: the listbox trigger button wrapped in <HeadlessProvider>, deferring
- * appearance to the surrounding <SelectTrigger> chrome. Carries combobox
- * role + popup wiring and the truncated/placeholdered label slot.
+ * The listbox trigger button wrapped in {@link HeadlessProvider}, deferring
+ * appearance to the surrounding {@link SelectTrigger} chrome. Carries the
+ * combobox role + popup wiring and the truncated/placeholdered label slot.
  *
- * Not exported from the package barrel.
+ * @internal
  */
 export function ListboxButton({
 	id,

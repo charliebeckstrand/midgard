@@ -125,7 +125,8 @@ export function useDatePickerPeriodState({
 	})
 
 	// Public open-change entry: routes through floating-ui's context so a
-	// caller-supplied close reason reaches the reason-aware focus return.
+	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
+	// focus return.
 	const onOpenChange = useCallback(
 		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
 			context.onOpenChange(nextOpen, event, reason),

@@ -3,6 +3,13 @@ import type { User } from 'auth/user'
 import type { Chat } from 'shared/chat'
 import { UserDetailsClient } from './client'
 
+/**
+ * Fetches a user's record and their chats from the gateway in parallel.
+ *
+ * @internal
+ * @param userId - Target user id.
+ * @returns `details`/`chats`, each `null` when its request fails.
+ */
 async function getUserDetails(
 	userId: string,
 ): Promise<{ details: User | null; chats: Chat[] | null }> {

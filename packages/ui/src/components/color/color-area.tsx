@@ -18,6 +18,8 @@ import { type DragPosition, useColorDrag } from './use-color-drag'
  * Arrows nudge by `1` (`10` with `Shift`); Home/End pin saturation; Page keys
  * step brightness. Reads colour from the panel context, so it tracks
  * pointer-, keyboard-, and externally-driven changes alike.
+ *
+ * @internal
  */
 export function ColorArea() {
 	const { hsva, setHsva, disabled, size } = useColorPanelContext()
