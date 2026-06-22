@@ -97,7 +97,9 @@ function MapView({
 			{...regionProps}
 			className={cn(k.base, className)}
 		>
-			{!ready && <MapSkeleton className="absolute inset-0 z-10" />}
+			{/* Square overlay: the bordered container's overflow clip rounds it,
+			    as it does the canvas — its own radius would seam inside the border. */}
+			{!ready && <MapSkeleton className="absolute inset-0 z-10 rounded-none" />}
 			<MapContext value={contextValue}>{ready ? children : null}</MapContext>
 		</div>
 	)
