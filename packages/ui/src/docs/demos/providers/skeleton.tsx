@@ -73,7 +73,7 @@ const skeletonVariants = [
 ]
 
 // Combobox filtering is consumer-driven: read the deferred query from context
-// (§3.6) and narrow the option list against the variant name.
+// via `useComboboxQuery` and narrow the option list against the variant name.
 function FilteredVariants() {
 	const { deferredQuery } = useComboboxQuery()
 

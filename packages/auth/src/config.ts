@@ -1,6 +1,18 @@
 import type { NextConfig } from 'next'
 import { BIFROST_URL } from './env'
 
+/**
+ * Wraps a Next config so `/auth/*` and `/api/*` rewrite to the gateway ({@link BIFROST_URL}).
+ *
+ * @remarks
+ * These rewrites let client code hit same-origin paths while the gateway serves
+ * them; session gating is the proxy's job (CONVENTIONS.md §6.3). An existing
+ * `rewrites` is preserved: an array form is concatenated, the object form
+ * appends to its `fallback`.
+ *
+ * @param config - The base Next config to extend.
+ * @returns The config with the gateway rewrites merged in.
+ */
 export function withAuth(config: NextConfig = {}): NextConfig {
 	const userRewrites = config.rewrites
 

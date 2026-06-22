@@ -20,7 +20,7 @@ const TableEmptyAlert = () => <Alert variant="soft" title="No items" block />
  * `columns` and shows the empty message. Render in place of {@link TableBody}
  * when there are no rows.
  *
- * @defaultValue children `'No items'`
+ * @defaultValue children a soft, block {@link Alert} titled `'No items'`
  */
 export function TableEmpty({ columns, children = <TableEmptyAlert /> }: TableEmptyProps) {
 	return (

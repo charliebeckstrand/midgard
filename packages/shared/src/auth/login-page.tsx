@@ -15,6 +15,14 @@ import { chain, email, required } from './form-validators'
 
 type LoginValues = { email: string; password: string }
 
+/**
+ * Sign-in form: posts credentials to `/auth/login`, redirects home on success.
+ *
+ * @internal
+ * @remarks
+ * Reads `?registered=true` to show the post-registration notice, so it must run
+ * inside a `Suspense` boundary (`useSearchParams`) — see {@link LoginPage}.
+ */
 function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	const router = useRouter()
 
@@ -96,6 +104,11 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 	)
 }
 
+/**
+ * Sign-in page: the login form under a `Suspense` boundary.
+ *
+ * @param showRegisterLink - Whether to show the "Create one" link to `/register`. Defaults to `true`.
+ */
 export function LoginPage({ showRegisterLink = true }: { showRegisterLink?: boolean }) {
 	return (
 		<Suspense>

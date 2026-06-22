@@ -23,6 +23,13 @@ export type KanbanContextValue = {
 	onCardBlur: () => void
 }
 
+/**
+ * Board-wide drag/keyboard cascade. Provided by `<Kanban>`; read by descendant
+ * columns and cards.
+ *
+ * @returns The enclosing {@link KanbanContextValue}.
+ * @throws When no `<Kanban>` is mounted above the caller.
+ */
 export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
 
 /** Per-column state shared with its cards and title: the column `id` and the title-slot registrar driving `aria-labelledby`. */
@@ -32,6 +39,12 @@ export type KanbanColumnContextValue = {
 	registerTitle: () => () => void
 }
 
+/**
+ * Per-column cascade. Provided by `<KanbanColumn>`; read by its cards and title.
+ *
+ * @returns The enclosing {@link KanbanColumnContextValue}.
+ * @throws When no `<KanbanColumn>` is mounted above the caller.
+ */
 export const [KanbanColumnContext, useKanbanColumnContext] =
 	createContext<KanbanColumnContextValue>('KanbanColumn')
 

@@ -20,8 +20,8 @@ export type TabListSkeletonProps = {
 }
 
 /**
- * Tab-list-shaped placeholder: the horizontal list rail with `tabs` line
- * placeholders above it. Keyed off the tab count rather than a size step
+ * Tab-list-shaped placeholder: the horizontal list rail holding `tabs` line
+ * placeholders as a row. Keyed off the tab count rather than a size step
  * alone; it does not use the size-driven `createSkeleton` factory.
  */
 export function TabListSkeleton({ tabs = 3, size, className }: TabListSkeletonProps) {

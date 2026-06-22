@@ -4,6 +4,8 @@ import { composeEventHandlers } from '../../core'
 /**
  * Composed click activation for a menu item: runs the consumer's `onClick`
  * first, then selection (`onAction` + close). A no-op when disabled.
+ *
+ * @internal
  */
 export function handleMenuItemClick<E extends HTMLElement>(
 	event: MouseEvent<E>,
@@ -21,6 +23,8 @@ export function handleMenuItemClick<E extends HTMLElement>(
  * `onKeyDown` first, then activates selection on Enter / Space unless the
  * consumer already handled the event (`defaultPrevented`). A no-op when
  * disabled, so disabled items stay inert on the keyboard path too.
+ *
+ * @internal
  */
 export function handleMenuItemKeyDown<E extends HTMLElement>(
 	event: KeyboardEvent<E>,

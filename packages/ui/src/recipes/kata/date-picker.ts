@@ -1,9 +1,10 @@
 /**
  * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
  * its popover. Density-/size-axed `button` and `body` sub-recipes drive the
- * control and popover insets; `value`, `icon`, `placeholder`, `affix`, and the
- * `content` group are slots, and `period` adds the range-period popover's
- * layout-only toggle groups and trigger chip row.
+ * control and popover insets; `surface`, `value`, `control` (the input-mode
+ * field adjacency), `icon`, `placeholder`, `affix`, and the `content` group are
+ * slots, and `period` adds the range-period popover's layout-only toggle groups
+ * and trigger chip row.
  */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, narabi, sen } from '../kiso'

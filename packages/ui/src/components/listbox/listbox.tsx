@@ -56,7 +56,7 @@ type ListboxBaseProps = {
 	 * Truncates the selected-value label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
 	 * `<Group>` or another content-sized parent that collapses the label.
-	 * @default true
+	 * @defaultValue true
 	 */
 	truncate?: boolean
 	/** Show a clear button in place of the chevron when a value is selected. */

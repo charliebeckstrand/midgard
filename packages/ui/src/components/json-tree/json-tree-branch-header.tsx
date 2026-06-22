@@ -17,6 +17,14 @@ type JsonTreeBranchHeaderProps = {
 	onToggle: () => void
 }
 
+/**
+ * Branch row for a {@link JsonTree}: a `role="treeitem"` toggle button showing
+ * the key, the open/close bracket, and — while collapsed — an item-count
+ * summary. Shared by the recursive {@link JsonTreeNode} and the virtualized
+ * {@link JsonTreeNodeRow}.
+ *
+ * @internal
+ */
 export function JsonTreeBranchHeader({
 	depth,
 	keyName,

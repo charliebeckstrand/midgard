@@ -1,9 +1,9 @@
 /**
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
  * two units through one surface. Orientation-/size-axed sub-recipes (`group`,
- * `list`, `tab`, `indicator`, `wrapper`, `trigger`) build the underline tabs;
- * `segment` bridges the shared segment recipe, and `skeleton` carries a loading
- * placeholder for each unit.
+ * `list`, `scroll`, `tab`, `indicator`, `wrapper`, `trigger`) build the
+ * underline tabs; `segment` bridges the shared segment recipe, and `skeleton`
+ * carries a loading placeholder for each unit.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { bridge } from '../katakana'

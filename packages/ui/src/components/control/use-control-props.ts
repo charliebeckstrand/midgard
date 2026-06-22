@@ -4,6 +4,7 @@ import { type ValidationAttrs, validationAttrs } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { useControl } from './context'
 
+/** Field-supplied input to {@link useControlProps}: the explicit form-field props a control passes for resolution against its `<Control>` / `<Field>` context. */
 export type ControlPropsOptions = {
 	id?: string
 	autoComplete?: string
@@ -20,6 +21,7 @@ export type ControlPropsOptions = {
 	invalid?: boolean
 }
 
+/** Resolved form-field props from {@link useControlProps}: input-over-context values for a field plus the spreadable {@link ControlPropsResult.validation} attributes. */
 export type ControlPropsResult = {
 	id: string | undefined
 	autoComplete: string | undefined

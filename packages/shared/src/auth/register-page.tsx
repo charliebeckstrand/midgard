@@ -20,6 +20,12 @@ type RegisterValues = {
 	confirmPassword: string
 }
 
+/**
+ * Registration form: posts to `/auth/register`, then redirects to `/login?registered=true`.
+ *
+ * @internal
+ * @remarks Validates that `confirmPassword` matches `password` before submit.
+ */
 function RegisterForm() {
 	const router = useRouter()
 
@@ -107,6 +113,7 @@ function RegisterForm() {
 	)
 }
 
+/** Registration page: the sign-up form under a `Suspense` boundary. */
 export function RegisterPage() {
 	return (
 		<Suspense>

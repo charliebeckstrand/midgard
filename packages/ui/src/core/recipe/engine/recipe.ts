@@ -174,6 +174,8 @@ function applyPaletteToVariants(
  * Collects each non-reserved top-level field as a variant axis, then splices
  * `palette` into the `variant` / `color` axes and compounds via
  * {@link applyPaletteToVariants}.
+ *
+ * @internal
  */
 function expand(config: RecipeConfig): ResolvedConfig {
 	const variants: Record<string, Record<string, ClassValue>> = {}

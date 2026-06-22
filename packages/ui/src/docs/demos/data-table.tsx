@@ -124,32 +124,6 @@ const BatchActionsExample = () => {
 			/>
 		</>
 	)
-	// return rows.length ? (
-	// 	<DataTable
-	// 		columns={[{ id: 'select', selectable: true }, ...columns]}
-	// 		rows={rows}
-	// 		getKey={(row) => row.id}
-	// 		selection={{
-	// 			batchActions: ({ selection, setSelection }) => (
-	// 				<HoldButton
-	// 					color="red"
-	// 					variant="soft"
-	// 					onComplete={() => {
-	// 						setRows((prev) => prev.filter((row) => !selection.has(row.id)))
-
-	// 						setSelection(new Set())
-	// 					}}
-	// 				>
-	// 					Delete {selection.size} items
-	// 				</HoldButton>
-	// 			),
-	// 		}}
-	// 	/>
-	// ) : (
-	// 	<Button color="red" variant="soft" onClick={() => setRows(people)}>
-	// 		Reset
-	// 	</Button>
-	// )
 }
 
 const RowActionsExample = () => {

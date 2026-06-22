@@ -7,10 +7,19 @@ import { Textarea } from 'ui/textarea'
 
 type ChatComposerProps = {
 	disabled?: boolean
+	/** Called with the trimmed message; the input clears after it resolves. */
 	onSend: (message: string) => Promise<void> | void
 	className?: string
 }
 
+/**
+ * Auto-resizing message input with a send button.
+ *
+ * @internal
+ * @remarks
+ * Enter sends; Shift+Enter inserts a newline. Empty/whitespace input and the
+ * `disabled` state suppress sending. Composed by {@link ChatLayout}.
+ */
 export function ChatComposer({ disabled, onSend, className }: ChatComposerProps) {
 	const [input, setInput] = useState('')
 

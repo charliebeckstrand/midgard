@@ -1,8 +1,9 @@
 /**
  * Data-table kata: object-literal surface for the table chrome that sits
- * around `kata/table` — sticky head, batch-action bar, sort controls, and the
- * row-loading pulse. No top-level variants axis; the only sub-recipe is the
- * `sort.icon`, inked or muted by whether its column is the active sort.
+ * around `kata/table` — sticky head, batch-action bar, sort controls, column
+ * drag-reorder, and the row-loading pulse. No top-level variants axis; the only
+ * sub-recipe is the `sort.icon`, inked or muted by whether its column is the
+ * active sort.
  */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'

@@ -1,6 +1,7 @@
 /**
  * Kokkaku skeleton: control. Shared by every `<ControlFrame>`
- * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker).
+ * consumer (Input, Textarea, Select, Listbox, Combobox, DatePicker,
+ * ColorPicker).
  *
  * `full` is the standalone-skeleton default; fills its parent. `group`
  * is the in-group default: grows to share the row with sibling

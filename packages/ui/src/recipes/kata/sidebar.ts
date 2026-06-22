@@ -137,5 +137,5 @@ export const k = {
 	footer: ['sticky bottom-0', flex.col, 'gap-0.5', 'mt-auto'],
 } as const
 
-/** Recipe variant props for `SidebarItem`: the `size` step and `chrome` surface (`item` | `row`). */
+/** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
 export type SidebarItemVariants = VariantProps<typeof itemBase>

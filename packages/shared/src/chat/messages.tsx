@@ -11,6 +11,14 @@ type ChatMessagesProps = {
 	streaming?: boolean
 }
 
+/**
+ * Renders a chat transcript and auto-scrolls to the newest message.
+ *
+ * @remarks
+ * Maps `role` to the `ChatMessage` `type` (`agent` → `assistant`). When
+ * `streaming`, only the last agent bubble shimmers. Scrolls to bottom on every
+ * `messages` change.
+ */
 export function ChatMessages({ messages, streaming }: ChatMessagesProps) {
 	const { ref: messagesEndRef, scrollToBottom } = useScrollToBottom()
 

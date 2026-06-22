@@ -47,7 +47,8 @@ No root barrel; the `exports` map exposes each component path.
 
 ## 4. Further reading
 
-- [`REFERENCE.md`](REFERENCE.md) — full inventory: components, hooks, primitives, providers, recipes.
+- [`REFERENCE.md`](REFERENCE.md) — the package hub: surface map, the server/client boundary, and how to compose a new component.
+- [`docs/`](docs) — curated, quick-glance surface indices (components, layouts, hooks, primitives, providers, recipes, core, utilities).
 - [`src/recipes/README.md`](src/recipes/README.md) — recipe-layer architecture.
 
 ---

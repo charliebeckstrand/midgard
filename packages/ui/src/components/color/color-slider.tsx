@@ -13,7 +13,12 @@ type ColorSliderProps = {
 	channel: 'hue' | 'alpha'
 }
 
-/** A single-axis track for either hue or alpha, sharing the panel's drag + keyboard model. */
+/**
+ * A single-axis track for either hue or alpha, sharing the panel's drag +
+ * keyboard model.
+ *
+ * @internal
+ */
 export function ColorSlider({ channel }: ColorSliderProps) {
 	const { hsva, setHsva, disabled, size } = useColorPanelContext()
 
