@@ -6,7 +6,7 @@
  * wrappers; `bar` is the `<NavBar>` landmark frame.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
+import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size } = ji
@@ -14,6 +14,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
 const { icon } = shaku
+const { bg } = omote
 
 /**
  * Shared slot-wrapper structure for the prefix/suffix entries. The item chrome
@@ -74,6 +75,7 @@ const button = defineRecipe({
 const bar = defineRecipe({
 	base: [flex.row, 'gap-4', 'overflow-x-auto', 'px-4 py-2.5', rounded.lg, 'border'],
 	variant: {
+		solid: [...border.defaultColor, ...bg.tint],
 		outline: [...border.defaultColor],
 		plain: [...border.transparent],
 	},

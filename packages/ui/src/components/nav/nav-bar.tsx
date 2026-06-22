@@ -11,7 +11,7 @@ export type NavBarProps = NavBarVariants & ComponentPropsWithoutRef<'nav'>
 
 /** Horizontal top-level navigation landmark; establishes an active-indicator scope for its child items. */
 export function NavBar({
-	variant = 'outline',
+	variant = 'solid',
 	'aria-label': ariaLabel = 'Main',
 	className,
 	children,

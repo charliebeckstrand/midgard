@@ -10,7 +10,6 @@ import {
 	NavItem,
 	NavList,
 } from '../../components/nav'
-import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Example } from '../components/example'
@@ -22,30 +21,6 @@ function NavItems() {
 			<NavItem value="about">About</NavItem>
 			<NavItem value="contact">Contact</NavItem>
 		</NavList>
-	)
-}
-
-function NavProviderDemo() {
-	const [current, setCurrent] = useState<string | undefined>('home')
-
-	return (
-		<NavContext value={{ value: current, onValueChange: setCurrent }}>
-			<NavBar>
-				<NavItems />
-				<Spacer />
-				<NavList>
-					<NavItem>Login</NavItem>
-				</NavList>
-			</NavBar>
-
-			<Card bg="surface">
-				<NavContents>
-					<NavContent value="home">Home page</NavContent>
-					<NavContent value="about">About us</NavContent>
-					<NavContent value="contact">Contact information</NavContent>
-				</NavContents>
-			</Card>
-		</NavContext>
 	)
 }
 
@@ -62,19 +37,27 @@ export function Demo() {
 			<TabContents>
 				<TabContent value="List">
 					<Stack gap="xl">
-						<Example title="Default">
+						<Example title="Horizontal">
 							<NavList orientation="horizontal">
-								<NavItem value="home">Home</NavItem>
-								<NavItem value="about">About</NavItem>
-								<NavItem value="contact">Contact</NavItem>
+								<NavItem>Home</NavItem>
+								<NavItem>About</NavItem>
+								<NavItem>Contact</NavItem>
 							</NavList>
 						</Example>
 
-						<Example title="With links">
-							<NavList>
-								<NavItem current>Dashboard</NavItem>
-								<NavItem href="#settings">Settings</NavItem>
-								<NavItem href="#docs">Documentation</NavItem>
+						<Example title="Vertical">
+							<NavList orientation="vertical">
+								<NavItem>Home</NavItem>
+								<NavItem>About</NavItem>
+								<NavItem>Contact</NavItem>
+							</NavList>
+						</Example>
+
+						<Example title="With icons">
+							<NavList orientation="horizontal">
+								<NavItem icon={<Home />}>Home</NavItem>
+								<NavItem icon={<Info />}>About</NavItem>
+								<NavItem icon={<AtSign />}>Contact</NavItem>
 							</NavList>
 						</Example>
 					</Stack>
@@ -82,15 +65,13 @@ export function Demo() {
 
 				<TabContent value="Bar">
 					<Stack gap="xl">
-						<Example title="Default">
-							<NavBar variant="outline">
+						<Example title="Variants">
+							<NavBar variant="solid">
 								<Nav value="home">
 									<NavItems />
 								</Nav>
 							</NavBar>
-						</Example>
 
-						<Example title="Variants">
 							<NavBar variant="outline">
 								<Nav value="home">
 									<NavItems />
@@ -103,28 +84,12 @@ export function Demo() {
 								</Nav>
 							</NavBar>
 						</Example>
-
-						<Example title="With icons">
-							<NavBar>
-								<NavList>
-									<NavItem value="home" icon={<Home />}>
-										Home
-									</NavItem>
-									<NavItem value="about" icon={<Info />}>
-										About
-									</NavItem>
-									<NavItem value="contact" icon={<AtSign />}>
-										Contact
-									</NavItem>
-								</NavList>
-							</NavBar>
-						</Example>
 					</Stack>
 				</TabContent>
 
 				<TabContent value="Context">
 					<Stack gap="xl">
-						<Example title="Value model with content">
+						<Example title="With content">
 							<NavContext value={{ value: current, onValueChange: setCurrent }}>
 								<NavList orientation="horizontal">
 									<NavItem value="account">Account</NavItem>
@@ -139,10 +104,6 @@ export function Demo() {
 									</NavContents>
 								</Card>
 							</NavContext>
-						</Example>
-
-						<Example title="Within a NavBar">
-							<NavProviderDemo />
 						</Example>
 					</Stack>
 				</TabContent>
