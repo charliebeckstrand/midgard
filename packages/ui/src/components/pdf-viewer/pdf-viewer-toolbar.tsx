@@ -1,6 +1,6 @@
 'use client'
 
-import { PanelLeft, RotateCw } from 'lucide-react'
+import { PanelLeft, PanelLeftDashed, RotateCw } from 'lucide-react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -14,9 +14,10 @@ import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
- * The viewer's top control bar: page navigation (plus the mobile thumbnail
- * toggle), zoom and rotate, and the download / print actions. Reads everything
- * from {@link PdfViewerContext}; controls disable while loading or empty.
+ * The viewer's top control bar: the thumbnail toggle (collapses the desktop
+ * sidebar, opens the mobile Sheet), page navigation, zoom and rotate, and the
+ * download / print actions. Reads everything from {@link PdfViewerContext};
+ * controls disable while loading or empty.
  *
  * @internal
  */
@@ -32,6 +33,8 @@ export function PdfViewerToolbar() {
 		filename,
 		loading,
 		isDesktop,
+		sidebarOpen,
+		setSidebarOpen,
 		thumbsOpen,
 		setThumbsOpen,
 	} = usePdfViewerContext()
@@ -40,11 +43,30 @@ export function PdfViewerToolbar() {
 
 	const controlsDisabled = loading || isEmpty
 
+	const sidebarToggleLabel = sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'
+
 	return (
 		<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
 			<div className={cn(k.toolbar.section)}>
 				{total > 0 && (
 					<>
+						{isDesktop && (
+							<Tooltip>
+								<TooltipTrigger>
+									<Button
+										variant="plain"
+										aria-label={sidebarToggleLabel}
+										aria-expanded={sidebarOpen}
+										disabled={loading}
+										onClick={() => setSidebarOpen(!sidebarOpen)}
+									>
+										<Icon icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />} />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>{sidebarToggleLabel}</TooltipContent>
+							</Tooltip>
+						)}
+
 						{!isDesktop && (
 							<Tooltip>
 								<TooltipTrigger>

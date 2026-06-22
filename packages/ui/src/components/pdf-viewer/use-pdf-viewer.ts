@@ -45,6 +45,9 @@ export type PdfViewerResult = {
 	error: Error | null
 	/** True at the desktop breakpoint (≥ 1024px): pins the thumbnail sidebar instead of the Sheet. */
 	isDesktop: boolean
+	/** Desktop thumbnail sidebar open state; toggled from the toolbar. Defaults to open. */
+	sidebarOpen: boolean
+	setSidebarOpen: (open: boolean) => void
 	/** Mobile thumbnail Sheet open state. */
 	thumbsOpen: boolean
 	setThumbsOpen: (open: boolean) => void
@@ -107,6 +110,7 @@ export function usePdfViewer({
 	})
 
 	const [zoomValue, setZoomValue] = useState(defaultZoom)
+	const [sidebarOpen, setSidebarOpen] = useState(true)
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
 	const rootRef = useRef<HTMLElement>(null)
@@ -165,6 +169,8 @@ export function usePdfViewer({
 			loading,
 			error,
 			isDesktop,
+			sidebarOpen,
+			setSidebarOpen,
 			thumbsOpen,
 			setThumbsOpen,
 			visible,
@@ -187,6 +193,7 @@ export function usePdfViewer({
 			loading,
 			error,
 			isDesktop,
+			sidebarOpen,
 			thumbsOpen,
 			visible,
 			onImageLoad,

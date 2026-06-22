@@ -13,18 +13,29 @@ import { usePdfViewerContext } from './context'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
 
 /**
- * Page thumbnail navigation: a pinned sidebar on desktop, a left-side Sheet on
- * mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
+ * Page thumbnail navigation: a collapsible sidebar on desktop, a left-side Sheet
+ * on mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
  * arrow-key focus across tiles.
  *
  * @remarks Renders nothing when there are no pages and the document isn't
- * loading. The mobile Sheet is portaled into the viewer root so it overlays the
- * viewer rather than the page.
+ * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
+ * sliding off-canvas while staying mounted for the transition; when collapsed it
+ * is `inert` and `aria-hidden`, off the tab order and a11y tree. The mobile Sheet
+ * is portaled into the viewer root so it overlays the viewer rather than the page.
  * @internal
  */
 export function PdfViewerThumbnails() {
-	const { pages, safePage, goToPage, loading, isDesktop, thumbsOpen, setThumbsOpen, rootRef } =
-		usePdfViewerContext()
+	const {
+		pages,
+		safePage,
+		goToPage,
+		loading,
+		isDesktop,
+		sidebarOpen,
+		thumbsOpen,
+		setThumbsOpen,
+		rootRef,
+	} = usePdfViewerContext()
 
 	const scrollCurrentIntoView = useScrollWithin()
 
@@ -58,7 +69,9 @@ export function PdfViewerThumbnails() {
 				<aside
 					ref={sidebarRef}
 					data-slot="pdf-viewer-sidebar"
-					className={cn(k.sidebar.base)}
+					aria-hidden={!sidebarOpen}
+					inert={!sidebarOpen}
+					className={cn(k.sidebar.base, !sidebarOpen && k.sidebar.closed)}
 					onKeyDown={handleSidebarKeyDown}
 				>
 					<div className={cn(k.sidebar.header)}>Pages</div>
