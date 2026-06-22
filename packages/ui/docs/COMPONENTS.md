@@ -27,7 +27,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Navigation
 
-`navbar` · `nav` · `sidebar` · `breadcrumb` · `menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
+`nav` · `sidebar` · `breadcrumb` · `menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
 
 ## Overlays
 

@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Nav, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
-import { Navbar } from '../../components/navbar'
+import { Nav, NavBar, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
@@ -32,8 +31,30 @@ describe('Nav', () => {
 	})
 })
 
+describe('NavBar', () => {
+	it('renders with data-slot="nav-bar" and a default aria-label', () => {
+		const { container } = renderUI(<NavBar>content</NavBar>)
+
+		const el = bySlot(container, 'nav-bar')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.tagName).toBe('NAV')
+
+		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Main')
+	})
+
+	it('passes through HTML attributes', () => {
+		const { container } = renderUI(<NavBar id="test">content</NavBar>)
+
+		const el = bySlot(container, 'nav-bar')
+
+		expect(el).toHaveAttribute('id', 'test')
+	})
+})
+
 describe('NavList', () => {
-	it('defaults to vertical orientation outside of a Navbar', () => {
+	it('defaults to vertical orientation outside of a NavBar', () => {
 		const { container } = renderUI(
 			<Nav>
 				<NavList>content</NavList>
@@ -53,13 +74,13 @@ describe('NavList', () => {
 		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'horizontal')
 	})
 
-	it('defaults to horizontal orientation inside a Navbar', () => {
+	it('defaults to horizontal orientation inside a NavBar', () => {
 		const { container } = renderUI(
-			<Navbar>
+			<NavBar>
 				<Nav>
 					<NavList>content</NavList>
 				</Nav>
-			</Navbar>,
+			</NavBar>,
 		)
 
 		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'horizontal')

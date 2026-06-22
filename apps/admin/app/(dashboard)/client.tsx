@@ -12,7 +12,7 @@ import type { ReactNode } from 'react'
 import { Avatar } from 'ui/avatar'
 import { SidebarLayout } from 'ui/layouts'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
-import { Navbar } from 'ui/navbar'
+import { NavBar } from 'ui/nav'
 import {
 	Sidebar,
 	SidebarBody,
@@ -41,9 +41,9 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 	return (
 		<SidebarLayout
 			navbar={
-				<Navbar>
+				<NavBar>
 					<Spacer />
-				</Navbar>
+				</NavBar>
 			}
 			sidebar={
 				<Sidebar>

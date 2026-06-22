@@ -56,11 +56,11 @@ export function NavItem({
 		<li
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
-			className={k.navItem.base({ affix: hasAffix })}
+			className={k.item.base({ affix: hasAffix })}
 			{...(spring ? item.indicator.tapHandlers : {})}
 		>
 			{prefix != null && (
-				<span data-slot="nav-item-prefix" className={cn(k.navItem.prefix)}>
+				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>
 					{/* The item chrome is fixed at md, so slot controls step to sm. */}
 					<AffixContext value={affixStepDown('md')}>{prefix}</AffixContext>
 				</span>
@@ -70,7 +70,7 @@ export function NavItem({
 					data-slot="nav-item-inner"
 					data-current={dataAttr(item.current)}
 					aria-current={item.current ? 'page' : undefined}
-					className={cn(k.navItem.button({ affix: hasAffix }), className)}
+					className={cn(k.item.button({ affix: hasAffix }), className)}
 					onClick={item.handleClick}
 					{...props}
 				>
@@ -81,14 +81,14 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" className={cn(k.navItem.suffix)}>
+				<span data-slot="nav-item-suffix" className={cn(k.item.suffix)}>
 					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>
 				</span>
 			)}
 			{item.current && (
 				<ActiveIndicator
 					ref={item.indicator.ref}
-					className={hasAffix ? cn(k.navItem.indicator) : undefined}
+					className={hasAffix ? cn(k.item.indicator) : undefined}
 				/>
 			)}
 		</li>

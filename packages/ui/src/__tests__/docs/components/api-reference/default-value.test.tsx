@@ -41,7 +41,7 @@ describe('DefaultValue', () => {
 
 	it('renders a descriptive default as prose, colouring literals and resolving links', () => {
 		const { container } = renderUI(
-			<DefaultValue value="`'horizontal'` inside a {@link Navbar}, otherwise `'vertical'`" />,
+			<DefaultValue value="`'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`" />,
 		)
 
 		const value = bySlot(container, 'default-value')
@@ -49,7 +49,7 @@ describe('DefaultValue', () => {
 		expect(value).toBeInTheDocument()
 
 		// The `{@link}` collapses to the bare name; the prose renders in flow.
-		expect(value).toHaveTextContent("'horizontal' inside a Navbar, otherwise 'vertical'")
+		expect(value).toHaveTextContent("'horizontal' inside a NavBar, otherwise 'vertical'")
 
 		expect(container.textContent).not.toContain('{@link')
 

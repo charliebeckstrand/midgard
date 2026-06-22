@@ -1,18 +1,20 @@
 /**
- * Nav kata: object-literal surface for `<Nav>` sidebar lists. `list` sets the
- * orientation-keyed axis; `navItem` groups the row's parts — the `affix`-axed
+ * Nav kata: object-literal surface for the `<Nav>` family. `list` sets the
+ * orientation-keyed axis; `item` groups the row's parts — the `affix`-axed
  * `base` `<li>` wrapper and inner `button` (which trade off the interaction
  * chrome), the focus-projection `indicator`, and the `prefix`/`suffix` slot
- * wrappers.
+ * wrappers; `bar` is the `<NavBar>` landmark frame.
  */
-import { defineRecipe } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, shaku } from '../kiso'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { border } = sen
 const { icon } = shaku
+const { bg } = omote
 
 /**
  * Shared slot-wrapper structure for the prefix/suffix entries. The item chrome
@@ -69,6 +71,17 @@ const button = defineRecipe({
 	defaults: { affix: false },
 })
 
+/** The {@link NavBar} landmark frame: a horizontal row of items with an optional border. */
+const bar = defineRecipe({
+	base: [flex.row, 'gap-4', 'overflow-x-auto', 'px-4 py-2.5', rounded.lg, 'border'],
+	variant: {
+		solid: [...border.defaultColor, ...bg.tint],
+		outline: [...border.defaultColor],
+		plain: [...border.transparent],
+	},
+	defaults: { variant: 'outline' },
+})
+
 export const k = {
 	list: {
 		base: 'flex',
@@ -77,7 +90,9 @@ export const k = {
 			horizontal: ['flex-row', 'gap-1'],
 		},
 	},
-	navItem: {
+	/** The `<NavBar>` landmark frame; pass `variant` for the `outline` | `plain` border. */
+	bar,
+	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */
 		base,
 		/** The inner button; pass `affix` to defer the chrome to the row. */
@@ -103,3 +118,6 @@ export const k = {
 		suffix: [...affixSlot, 'mr-2'],
 	},
 } as const
+
+/** Recipe variant props for {@link NavBar}: the `variant` style (`outline` | `plain`). */
+export type NavBarVariants = VariantProps<typeof k.bar>
