@@ -118,6 +118,42 @@ describe('TableBody', () => {
 		expect(bySlot(container, 'table-body')?.className).not.toContain('even:')
 	})
 
+	it('shades odd rows when striped is "odd"', () => {
+		const { container } = renderUI(
+			<Table striped="odd">
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const table = container.querySelector('table')
+
+		expect(table?.className).toContain('[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5')
+
+		expect(table?.className).not.toContain('nth-child(even)')
+	})
+
+	it('shades even rows when striped is "even", matching the boolean default', () => {
+		const { container } = renderUI(
+			<Table striped="even">
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		const table = container.querySelector('table')
+
+		expect(table?.className).toContain('[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5')
+
+		expect(table?.className).not.toContain('nth-child(odd)')
+	})
+
 	it('applies a custom className on TableBody', () => {
 		const { container } = renderUI(
 			<Table>

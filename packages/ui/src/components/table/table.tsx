@@ -16,7 +16,12 @@ export type TableVariants = {
 	density?: DensityLevel
 	bleed?: boolean
 	grid?: boolean
-	striped?: boolean
+	/**
+	 * Zebra-stripe the body rows. `true` shades even rows (equivalent to
+	 * `'even'`); pass `'odd'` to shade odd rows instead.
+	 * @defaultValue false
+	 */
+	striped?: boolean | 'odd' | 'even'
 }
 
 /** Attributes spread onto the underlying `<table>` element, including a `ref` and arbitrary `data-*` keys. */
@@ -63,6 +68,9 @@ export function Table({
 	// 'snug' maps to the md step.
 	const step = densityToSize[density ?? 'snug']
 
+	// `true` keeps the historical default of shading even rows.
+	const stripe = striped === true ? 'even' : striped
+
 	return (
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
@@ -72,7 +80,7 @@ export function Table({
 					k.base,
 					k.projection.density[step],
 					grid && k.projection.grid,
-					striped && k.projection.striped,
+					stripe && k.projection.striped[stripe],
 					className,
 					tableProps?.className,
 				)}

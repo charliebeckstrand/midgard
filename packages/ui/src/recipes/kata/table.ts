@@ -48,8 +48,9 @@ const header = defineRecipe({
  * and a consumer `className` on a cell keeps overriding them.
  *
  * Tailwind scans whole class literals; these rows can't be interpolated
- * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`,
- * the tbody `striped` classes below). Keep them in step by hand.
+ * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`)
+ * or from each other (the `odd`/`even` `striped` parity below). Keep them in
+ * step by hand.
  */
 const projection = {
 	density: {
@@ -65,10 +66,16 @@ const projection = {
 		'[&>*>tr>th]:border-zinc-950/5',
 		'dark:[&>*>tr>th]:border-white/5',
 	],
-	striped: [
-		'[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5',
-		'dark:[&>tbody>tr:nth-child(even)]:bg-white/2.5',
-	],
+	striped: {
+		odd: [
+			'[&>tbody>tr:nth-child(odd)]:bg-zinc-950/2.5',
+			'dark:[&>tbody>tr:nth-child(odd)]:bg-white/2.5',
+		],
+		even: [
+			'[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5',
+			'dark:[&>tbody>tr:nth-child(even)]:bg-white/2.5',
+		],
+	},
 } as const
 
 export const k = {
