@@ -3,6 +3,10 @@
  * control alongside its label and description. Control sits in column 1
  * row 1, label in column 2 row 1, description in column 2 row 2.
  *
+ * When disabled, the control and label adopt `cursor-not-allowed`; the
+ * description is spared and keeps the text cursor, since clicking it never
+ * toggles the control.
+ *
  * Layer: kiso · Concern: toggle-field grid
  */
 
@@ -13,5 +17,8 @@ export const toggle = [
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
-	'has-disabled:**:data-[slot]:cursor-not-allowed',
+	// Every slot but the description turns not-allowed when disabled; the
+	// description is non-interactive, so it keeps the text cursor.
+	'has-disabled:**:data-[slot]:not-data-[slot=description]:cursor-not-allowed',
+	'has-disabled:*:data-[slot=description]:cursor-text',
 ]
