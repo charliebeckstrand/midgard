@@ -33,7 +33,6 @@ function ExpandAllExample() {
 		<Stack gap="lg">
 			<div>
 				<Button
-					size="sm"
 					variant="outline"
 					onClick={() => setExpanded(allExpanded ? new Set() : allSamplePaths)}
 				>

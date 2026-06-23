@@ -2,6 +2,7 @@ import {
 	Table,
 	TableBody,
 	TableCell,
+	TableEmpty,
 	TableHead,
 	TableHeader,
 	TableLoading,
@@ -59,6 +60,27 @@ export function Demo() {
 				</Table>
 			</Example>
 
+			<Example title="Grid">
+				<Table grid>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{users.map((user) => (
+							<TableRow key={user.email}>
+								<TableCell>{user.name}</TableCell>
+								<TableCell>{user.email}</TableCell>
+								<TableCell>{user.role}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</Example>
+
 			<Example title="Loading">
 				<Table>
 					<TableHead>
@@ -69,6 +91,19 @@ export function Demo() {
 						</TableRow>
 					</TableHead>
 					<TableLoading columns={3} />
+				</Table>
+			</Example>
+
+			<Example title="Empty">
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Email</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableEmpty columns={3} />
 				</Table>
 			</Example>
 		</>

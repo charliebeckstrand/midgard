@@ -49,7 +49,7 @@ function DefaultExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<>
+		<Stack gap="lg">
 			<Form
 				defaultValues={{ name: '', email: '', age: 0 }}
 				onSubmit={async (values) => {
@@ -79,7 +79,7 @@ function DefaultExample() {
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</>
+		</Stack>
 	)
 }
 
@@ -87,7 +87,7 @@ function ValidationExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<>
+		<Stack gap="lg">
 			<Form
 				defaultValues={{ email: '', password: '', confirmPassword: '' }}
 				validate={{
@@ -135,7 +135,7 @@ function ValidationExample() {
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</>
+		</Stack>
 	)
 }
 
@@ -143,7 +143,7 @@ function DirtyTouchedExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<>
+		<Stack gap="lg">
 			<Form
 				defaultValues={{ username: 'admin', bio: '' }}
 				validate={{
@@ -178,7 +178,7 @@ function DirtyTouchedExample() {
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</>
+		</Stack>
 	)
 }
 
@@ -230,9 +230,15 @@ function ControlledValuesExample() {
 
 	return (
 		<Stack gap="lg">
-			<Button onClick={loadUser} loading={loading}>
-				Load user
-			</Button>
+			{user ? (
+				<Button variant="soft" color="red" onClick={() => setUser(undefined)}>
+					Reset
+				</Button>
+			) : (
+				<Button onClick={loadUser} loading={loading}>
+					Load user
+				</Button>
+			)}
 			<Form defaultValues={{ email: '', name: '' }} values={user} disabled={loading}>
 				<Stack gap="lg">
 					<Field autoComplete="email">
@@ -245,11 +251,6 @@ function ControlledValuesExample() {
 					</Field>
 				</Stack>
 			</Form>
-			{user && (
-				<Button variant="soft" color="red" onClick={() => setUser(undefined)}>
-					Reset
-				</Button>
-			)}
 		</Stack>
 	)
 }
@@ -303,7 +304,7 @@ function OptInExample() {
 	const [result, setResult] = useState<string>('')
 
 	return (
-		<>
+		<Stack gap="lg">
 			<Form
 				defaultValues={{ terms: false, newsletter: false, darkMode: false }}
 				validate={{
@@ -341,7 +342,7 @@ function OptInExample() {
 				</Stack>
 			</Form>
 			{result && <JsonTree data={JSON.parse(result)} />}
-		</>
+		</Stack>
 	)
 }
 
