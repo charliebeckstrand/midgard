@@ -182,6 +182,9 @@ describe('DatePicker (relative)', () => {
 			screen.getAllByRole('button', { name: 'Open calendar' })[0] as HTMLButtonElement,
 		)
 
+		// While open, the toggle button relabels to "Close calendar".
+		expect(screen.getByRole('button', { name: 'Close calendar' })).toBeInTheDocument()
+
 		const day = screen.getAllByRole('option').find((cell) => cell.textContent?.trim() === '10')
 
 		if (!day) throw new Error('calendar day cell not found')
@@ -191,6 +194,24 @@ describe('DatePicker (relative)', () => {
 		// The pick writes back into the Start input; the relative popover stays open.
 		expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).not.toBe('')
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+	})
+
+	it('shows a bound-specific error when End is typed before Start', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		await user.type(screen.getByRole('textbox', { name: 'Start' }), '06012026')
+
+		await user.type(screen.getByRole('textbox', { name: 'End' }), '07301989')
+
+		// Not the generic format message — the entry is a real date, just too early.
+		expect(bySlot(container, 'message')).toHaveTextContent('Enter a date on or after 06/01/2026')
+		expect(bySlot(container, 'message')).not.toHaveTextContent('Enter a valid date')
 	})
 
 	it('omits the footer Clear in custom mode so it cannot wipe the pills', async () => {

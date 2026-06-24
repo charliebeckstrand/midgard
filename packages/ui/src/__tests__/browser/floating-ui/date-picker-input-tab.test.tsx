@@ -108,7 +108,7 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 
 		expect(input.closest('[data-floating-ui-inert]')).toBeNull()
 
-		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Close calendar' })).toBeInTheDocument()
 
 		// Modal semantics hold for the rest of the page: the sibling button is
 		// still marked away from AT (text query — aria-hidden empties its

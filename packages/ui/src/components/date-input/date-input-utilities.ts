@@ -249,6 +249,28 @@ function dayKey(date: Date): number {
 	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
 }
 
+/**
+ * Bound-specific message for a complete date that parses but falls outside
+ * `min`/`max`, in the field's format. Returns `undefined` when neither bound is
+ * set (no range to report).
+ *
+ * @internal
+ */
+export function outOfRangeMessage(
+	format: DateInputFormat,
+	min?: Date,
+	max?: Date,
+): string | undefined {
+	if (min && max)
+		return `Enter a date between ${formatDateValue(min, format)} and ${formatDateValue(max, format)}`
+
+	if (min) return `Enter a date on or after ${formatDateValue(min, format)}`
+
+	if (max) return `Enter a date on or before ${formatDateValue(max, format)}`
+
+	return undefined
+}
+
 /** Day-resolution bounds check; ignores time of day on `min`/`max`. @internal */
 export function isDayInRange(date: Date, min?: Date, max?: Date): boolean {
 	if (min && dayKey(date) < dayKey(min)) return false
