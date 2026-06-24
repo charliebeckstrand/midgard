@@ -17,6 +17,10 @@ export function Demo() {
 				<DatePicker value={date} onValueChange={setDate} />
 			</Example>
 
+			<Example title="Input">
+				<DatePicker input value={typed} onValueChange={setTyped} />
+			</Example>
+
 			<Example title="Range">
 				<DatePicker range value={range} onValueChange={setRange} placeholder="Select date range" />
 			</Example>
@@ -37,10 +41,6 @@ export function Demo() {
 					onValueChange={setRelativeMany}
 					placeholder="Select ranges"
 				/>
-			</Example>
-
-			<Example title="With input">
-				<DatePicker input value={typed} onValueChange={setTyped} />
 			</Example>
 
 			<Example title="Disabled">
