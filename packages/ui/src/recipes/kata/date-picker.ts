@@ -3,8 +3,8 @@
  * its popover. Density-/size-axed `button` and `body` sub-recipes drive the
  * control and popover insets; `surface`, `value`, `control` (the input-mode
  * field adjacency), `icon`, `placeholder`, `affix`, and the `content` group are
- * slots, and `period` adds the range-period popover's layout-only toggle groups
- * and trigger chip row.
+ * slots, and `relative` adds the relative popover's layout-only preset list,
+ * custom-range affordance, and trigger chip row.
  */
 import { defineRecipe } from '../../core/recipe'
 import { hannou, iro, narabi, sen } from '../kiso'
@@ -71,22 +71,21 @@ export const k = {
 		glass: panel.glass,
 		body,
 	},
-	// Period variant: the three labeled toggle groups in the popover and the
-	// chip row inside the trigger. Colour comes from the Button/Badge recipes;
-	// these are layout-only.
-	period: {
-		// Flex gap (not space-y): the fieldsets carry an `m-0` reset that would
-		// override space-y's margins, collapsing the gap between groups.
-		//
-		// The popover is content-sized, so the 12 fixed `sm` month toggles would
-		// otherwise sprawl onto a single row. Capping the width here is what makes
-		// `options`' flex-wrap fold the month group to two rows (six per row); the
-		// shorter year/quarter groups still fit. Width-only, so it scopes to the
-		// period popover without touching the single/range calendars.
-		root: 'flex max-w-72 flex-col gap-4',
-		section: 'space-y-1.5',
-		label: [text.muted, 'text-xs font-medium uppercase tracking-wide select-none'],
-		options: 'flex flex-wrap gap-1.5',
+	// Relative variant: the preset list and custom-range affordance in the
+	// popover, plus the chip row inside the trigger. Colour comes from the
+	// Button/Badge recipes; these are layout-only.
+	relative: {
+		// A narrow, single-column stack of full-width preset rows; `min-w` gives
+		// the list a stable width independent of label length. Width-scoped here so
+		// it never touches the single/range calendars.
+		root: 'flex min-w-52 flex-col gap-0.5',
+		// Preset rows read as a left-aligned menu rather than centered chips.
+		preset: 'w-full justify-start',
+		// The custom row trails the presets: label left, chevron right.
+		custom: 'w-full justify-between',
+		// Calendar mode: the back affordance above the CalendarRange.
+		calendar: 'space-y-2',
+		back: 'justify-start gap-1',
 		// A chip stands a hair taller than the trigger's text line, so the chip row
 		// would otherwise drive the control ~1px taller per side than the placeholder
 		// state. The negative block margin lets that overflow bleed into the button's

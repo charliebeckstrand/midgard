@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest'
 import {
 	addDays,
 	clampDate,
+	endOfMonth,
+	endOfYear,
 	formatDate,
 	formatRange,
 	startOfDay,
+	startOfMonth,
+	startOfYear,
 } from '../../components/date-picker/date-picker-utilities'
 
 describe('formatDate', () => {
@@ -96,5 +100,31 @@ describe('clampDate', () => {
 		const result = clampDate(new Date(2024, 0, 15), new Date(2024, 0, 1), new Date(2024, 0, 31))
 
 		expect(result.getDate()).toBe(15)
+	})
+})
+
+describe('startOfMonth', () => {
+	it('returns local midnight on the first of the month', () => {
+		expect(startOfMonth(new Date(2025, 5, 15, 9, 30))).toEqual(new Date(2025, 5, 1))
+	})
+})
+
+describe('endOfMonth', () => {
+	it('returns the last day of the month', () => {
+		expect(endOfMonth(new Date(2025, 1, 10))).toEqual(new Date(2025, 1, 28))
+
+		expect(endOfMonth(new Date(2024, 1, 10))).toEqual(new Date(2024, 1, 29))
+	})
+})
+
+describe('startOfYear', () => {
+	it('returns January 1st of the year', () => {
+		expect(startOfYear(new Date(2025, 5, 15))).toEqual(new Date(2025, 0, 1))
+	})
+})
+
+describe('endOfYear', () => {
+	it('returns December 31st of the year', () => {
+		expect(endOfYear(new Date(2025, 5, 15))).toEqual(new Date(2025, 11, 31))
 	})
 })
