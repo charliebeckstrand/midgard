@@ -89,12 +89,11 @@ export const k = {
 		// Custom mode: the back affordance above the stacked Start/End inputs.
 		customPanel: 'flex flex-col gap-3',
 		back: 'justify-start gap-1',
-		// A chip stands a hair taller than the trigger's text line, so the chip row
-		// would otherwise drive the control ~1px taller per side than the placeholder
-		// state. The negative block margin lets that overflow bleed into the button's
-		// vertical padding (≥6px at every size) instead of growing the box, holding
-		// the trigger height steady across states without pinning a min-height. The
-		// badge keeps its natural box, so `overflow-hidden` truncation is unaffected.
-		chips: 'flex items-center gap-1 min-w-0 -my-px',
+		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
+		// new lines rather than scrolling or shrinking them; the gap doubles as the
+		// inter-row spacing. No height pin — the trigger grows to fit the rows, with
+		// the button's symmetric vertical padding framing the block evenly, like
+		// TagInput's tag row.
+		chips: 'flex flex-wrap items-center gap-1 min-w-0',
 	},
 }

@@ -74,9 +74,9 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				{state.chips.length === 0 ? (
 					<span className={cn('min-w-0 flex-1', k.placeholder)}>{placeholder}</span>
 				) : (
-					<span className={cn(k.relative.chips, truncate ? 'flex-1 overflow-hidden' : 'flex-wrap')}>
+					<span className={cn(k.relative.chips, 'flex-1')}>
 						{state.chips.map((chip) => (
-							<Badge key={chip.key} size={chipSize[size]}>
+							<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
 								{chip.label}
 							</Badge>
 						))}
