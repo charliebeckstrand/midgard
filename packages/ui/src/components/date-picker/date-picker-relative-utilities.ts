@@ -49,6 +49,14 @@ export type DatePickerRelativeConfig = {
 	 * @defaultValue {@link DEFAULT_RELATIVE_PRESETS}
 	 */
 	presets?: DatePickerRelativePreset[]
+	/**
+	 * Allows more than one preset selected at once; the value becomes a
+	 * {@link DatePickerRelativeValue} array instead of a single span. A custom
+	 * range stays mutually exclusive either way.
+	 *
+	 * @defaultValue false
+	 */
+	multiple?: boolean
 }
 
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
@@ -188,11 +196,13 @@ export function isCustomActive(
 }
 
 /**
- * Returns the value with `preset` toggled. Presets and a custom range are
- * mutually exclusive: toggling any preset while a custom span is active starts a
- * fresh single-preset selection. Otherwise the preset is added to or removed
- * from the selection, and the result is rebuilt in preset order so chips stay
- * stable and deduped. An empty result commits `undefined`.
+ * Returns the (always-array) value with `preset` toggled. Single-select
+ * (`multiple` false) holds one preset: picking another replaces it, re-picking
+ * the active one clears to `undefined`. Multi-select adds or removes the preset
+ * and rebuilds the result in preset order so chips stay stable and deduped.
+ * Presets and a custom range are mutually exclusive, so toggling any preset while
+ * a custom span is active starts fresh from that preset. An empty result is
+ * `undefined`.
  *
  * @internal
  */
@@ -201,7 +211,14 @@ export function togglePresetValue(
 	preset: DatePickerRelativePreset,
 	presets: DatePickerRelativePreset[],
 	now: Date,
+	multiple: boolean,
 ): DatePickerRelativeValue[] | undefined {
+	if (!multiple) {
+		const selected = selectedPresetIds(value, presets, now)
+
+		return selected.has(preset.id) ? undefined : [preset.resolve(now)]
+	}
+
 	if (isCustomActive(value, presets, now)) return [preset.resolve(now)]
 
 	const selected = selectedPresetIds(value, presets, now)

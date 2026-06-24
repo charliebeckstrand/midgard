@@ -74,6 +74,28 @@ export function useDatePickerRelativeState({
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
+	// Single-select unless `relative.multiple` opts in; drives both the toggle
+	// behavior and whether the emitted value is one span or an array.
+	const multiple = relative !== true && relative.multiple === true
+
+	// The state machine works in arrays throughout; the public value is one span
+	// (single) or an array (multiple), normalized in here and back out via
+	// `emitChange`. Memoized so a single-span prop doesn't churn a fresh array
+	// each render.
+	const controlledValue = useMemo(() => toSpanArray(valueProp), [valueProp])
+
+	const defaultArray = useMemo(() => toSpanArray(defaultValue), [defaultValue])
+
+	const emitChange = useCallback(
+		(next: DatePickerRelativeValue[] | undefined) => {
+			if (!onValueChange) return
+
+			if (multiple) (onValueChange as (v: DatePickerRelativeValue[] | undefined) => void)(next)
+			else (onValueChange as (v: DatePickerRelativeValue | undefined) => void)(next?.[0])
+		},
+		[multiple, onValueChange],
+	)
+
 	// Binds the committed spans to an enclosing Form field by `name`; the field
 	// error merges with Control's invalid below.
 	const {
@@ -82,9 +104,9 @@ export function useDatePickerRelativeState({
 		setTouched,
 		invalid: fieldInvalid,
 	} = useFormValue<DatePickerRelativeValue[]>(name, {
-		value: useDatePickerControlled(valueProp),
-		defaultValue,
-		onValueChange,
+		value: useDatePickerControlled(controlledValue),
+		defaultValue: defaultArray,
+		onValueChange: emitChange,
 	})
 
 	const [open, setOpen] = useState(false)
@@ -118,9 +140,9 @@ export function useDatePickerRelativeState({
 
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
-			setValue(togglePresetValue(value, preset, presets, nowRef.current))
+			setValue(togglePresetValue(value, preset, presets, nowRef.current, multiple))
 		},
-		[presets, setValue, value],
+		[multiple, presets, setValue, value],
 	)
 
 	const openPicker = useCallback(() => {
@@ -364,6 +386,18 @@ export function useDatePickerRelativeState({
 			onKeyDown: () => {},
 		},
 	}
+}
+
+// Normalizes the public value (one span, an array, or nothing) to the internal
+// array form the state machine works in; an empty array reads as no selection.
+function toSpanArray(
+	value: DatePickerRelativeValue | DatePickerRelativeValue[] | undefined,
+): DatePickerRelativeValue[] | undefined {
+	if (value == null) return undefined
+
+	if (Array.isArray(value)) return value.length > 0 ? value : undefined
+
+	return [value]
 }
 
 // Index list-roving focus moves to for `key`, given the focused cell index (`-1`
