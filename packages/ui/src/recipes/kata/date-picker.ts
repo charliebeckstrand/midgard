@@ -91,9 +91,11 @@ export const k = {
 		back: 'justify-start gap-1',
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the
-		// inter-row spacing. No height pin — the trigger grows to fit the rows, with
-		// the button's symmetric vertical padding framing the block evenly, like
+		// inter-row spacing. The button's `py` is one density step below its `px`
+		// (tuned for a text line, not a taller chip), so the row adds `py-1` — that
+		// constant one-step (4px) gap at every size — to even the inset all around
+		// the chips. No height pin: the trigger grows to fit the rows, like
 		// TagInput's tag row.
-		chips: 'flex flex-wrap items-center gap-1 min-w-0',
+		chips: 'flex flex-wrap items-center gap-1 min-w-0 py-1',
 	},
 }
