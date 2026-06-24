@@ -96,8 +96,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								<Button
 									key={preset.id}
 									type="button"
-									size="sm"
-									variant={selected ? 'solid' : 'soft'}
+									variant={selected ? 'solid' : 'bare'}
 									color={selected ? 'blue' : 'zinc'}
 									aria-pressed={selected}
 									data-relative-preset={preset.id}
@@ -110,8 +109,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						})}
 						<Button
 							type="button"
-							size="sm"
-							variant={state.customActive ? 'solid' : 'soft'}
+							variant={state.customActive ? 'solid' : 'bare'}
 							color={state.customActive ? 'blue' : 'zinc'}
 							aria-pressed={state.customActive}
 							data-relative-custom=""
@@ -119,7 +117,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							onClick={state.enterCalendar}
 						>
 							Custom range
-							<Icon icon={<ChevronRight />} size="xs" />
+							<Icon icon={<ChevronRight />} />
 						</Button>
 					</div>
 				) : (
@@ -127,11 +125,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						<Button
 							type="button"
 							variant="bare"
-							size="sm"
 							className={cn(k.relative.back)}
 							onClick={state.backToList}
 						>
-							<Icon icon={<ArrowLeft />} size="xs" />
+							<Icon icon={<ArrowLeft />} />
 							Back to presets
 						</Button>
 						<CalendarRange

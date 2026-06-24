@@ -78,13 +78,13 @@ export const k = {
 		// A narrow, single-column stack of full-width preset rows; `min-w` gives
 		// the list a stable width independent of label length. Width-scoped here so
 		// it never touches the single/range calendars.
-		root: 'flex min-w-52 flex-col gap-0.5',
+		root: 'grid grid-cols-2 gap-2 min-w-52',
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
 		// The custom row trails the presets: label left, chevron right.
 		custom: 'w-full justify-between',
 		// Calendar mode: the back affordance above the CalendarRange.
-		calendar: 'space-y-2',
+		calendar: 'flex flex-col gap-3',
 		back: 'justify-start gap-1',
 		// A chip stands a hair taller than the trigger's text line, so the chip row
 		// would otherwise drive the control ~1px taller per side than the placeholder
