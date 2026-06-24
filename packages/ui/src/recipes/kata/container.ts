@@ -7,6 +7,8 @@ export const k = {
 		lg: 'lg:max-w-6xl',
 		xl: 'lg:max-w-7xl',
 		full: 'lg:max-w-full',
+		// Numeric `size`: cap to the `--container-size` custom property at `lg` up.
+		custom: 'lg:max-w-[var(--container-size)]',
 	},
 	padding: {
 		none: 'lg:px-0',
