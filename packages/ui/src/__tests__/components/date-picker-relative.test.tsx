@@ -33,10 +33,6 @@ function openPicker() {
 	return userEvent.setup()
 }
 
-function findDay(day: number) {
-	return screen.getAllByRole('option').find((cell) => cell.textContent?.trim() === String(day))
-}
-
 describe('DatePicker (relative)', () => {
 	it('shows the placeholder when nothing is selected', () => {
 		const { container } = renderUI(<DatePicker relative placeholder="Select range" />)
@@ -150,7 +146,7 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('button', { name: 'Custom range' })).toBeInTheDocument()
 	})
 
-	it('swaps to the calendar for a custom range and back', async () => {
+	it('swaps to the Start/End inputs for a custom range and back', async () => {
 		const user = openPicker()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
@@ -159,17 +155,18 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
-		// Calendar mode: presets give way to the day grid + a back affordance.
+		// Custom mode: presets give way to the Start/End inputs + a back affordance.
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: 'End' })).toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
-		expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
 
 		await user.click(screen.getByRole('button', { name: 'Back to presets' }))
 
 		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
 	})
 
-	it('commits a single span from the custom calendar and returns to the list', async () => {
+	it('commits a single span from the Start/End inputs and stays open', async () => {
 		const user = openPicker()
 
 		const onChange = vi.fn()
@@ -180,17 +177,16 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
-		const start = findDay(10)
-		const end = findDay(20)
+		// A complete Start alone does not commit a half-open range.
+		await user.type(screen.getByRole('textbox', { name: 'Start' }), '06102025')
 
-		if (!start || !end) throw new Error('calendar day cells not found')
+		expect(onChange).not.toHaveBeenCalled()
 
-		await user.click(start)
-		await user.click(end)
+		await user.type(screen.getByRole('textbox', { name: 'End' }), '06202025')
 
 		expect(onChange.mock.calls.at(-1)?.[0]).toHaveLength(1)
-		// Back in list mode with the custom selection still open for editing.
-		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
+		// Still in custom mode with the popover open for further edits.
+		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
@@ -260,7 +256,7 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('button', { name: 'Today' })).toHaveFocus()
 	})
 
-	it('enters the calendar from the custom row via the keyboard', async () => {
+	it('enters the custom inputs from the custom row via the keyboard', async () => {
 		const user = openPicker()
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
@@ -274,5 +270,6 @@ describe('DatePicker (relative)', () => {
 		await user.keyboard('{Enter}')
 
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
 })

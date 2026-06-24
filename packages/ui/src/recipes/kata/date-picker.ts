@@ -75,16 +75,19 @@ export const k = {
 	// popover, plus the chip row inside the trigger. Colour comes from the
 	// Button/Badge recipes; these are layout-only.
 	relative: {
-		// A narrow, single-column stack of full-width preset rows; `min-w` gives
-		// the list a stable width independent of label length. Width-scoped here so
+		// A two-column grid filled column-major (`grid-flow-col`): the component
+		// pins the row count so the leading presets stack down the first column and
+		// the rest, trailed by the custom-range row, fill the second. `min-w` gives
+		// the grid a stable floor independent of label length. Width-scoped here so
 		// it never touches the single/range calendars.
-		root: 'grid grid-cols-2 gap-2 min-w-52',
+		root: 'grid grid-flow-col gap-2 min-w-52',
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
-		// The custom row trails the presets: label left, chevron right.
+		// The custom row trails the presets in the second column: label left,
+		// chevron right.
 		custom: 'w-full justify-between',
-		// Calendar mode: the back affordance above the CalendarRange.
-		calendar: 'flex flex-col gap-3',
+		// Custom mode: the back affordance above the stacked Start/End inputs.
+		customPanel: 'flex flex-col gap-3',
 		back: 'justify-start gap-1',
 		// A chip stands a hair taller than the trigger's text line, so the chip row
 		// would otherwise drive the control ~1px taller per side than the placeholder

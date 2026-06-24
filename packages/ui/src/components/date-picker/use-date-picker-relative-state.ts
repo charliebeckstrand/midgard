@@ -1,15 +1,13 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
-import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
-import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import {
 	type DatePickerRelativePreset,
 	type DatePickerRelativeValue,
@@ -21,12 +19,11 @@ import {
 	selectedPresetIds,
 	togglePresetValue,
 } from './date-picker-relative-utilities'
-import { addDays, addMonths, clampDate } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
-import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import type { FooterButton } from './use-date-picker-keyboard'
 
-/** The two surfaces of the relative popover: the preset list or the custom calendar. @internal */
-export type DatePickerRelativeMode = 'list' | 'calendar'
+/** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
+export type DatePickerRelativeMode = 'list' | 'custom'
 
 // Keys list-mode roving focus moves on; everything else (Tab, Enter/Space,
 // Escape) is left to the native buttons and floating-ui.
@@ -43,22 +40,22 @@ const ROVING_KEYS = new Set([
 
 /**
  * Relative state for {@link DatePicker}: a multi-select preset list plus a
- * mutually-exclusive custom calendar range, committed as a
+ * mutually-exclusive custom range typed into Start/End inputs, committed as a
  * {@link DatePickerRelativeValue}`[]` through the Form/Control binding. Holds the
- * `'list'`/`'calendar'` mode, so only one keyboard model is ever live — the
- * list's roving focus or the calendar's virtual highlight — and they never
- * collide.
+ * `'list'`/`'custom'` mode; only the list runs a keyboard model (roving focus),
+ * while custom mode leans on the native inputs, so the two never collide.
  *
  * @remarks
  * Each preset toggles immediately (no buffered pending value) and the popover
- * stays open across edits, mirroring the multi-select filter feel. Completing a
- * custom range replaces the whole selection with that single span and returns to
- * the list. The reference `now` is stamped on open so preset math and the
+ * stays open across edits, mirroring the multi-select filter feel. A custom range
+ * commits once both Start and End hold a valid date (order normalized), replacing
+ * the whole selection with that single span; custom mode stays open for further
+ * edits. The reference `now` is stamped on open so preset math and the
  * active-preset match stay stable through an interaction.
  *
  * @returns Trigger props, popover plumbing, the `chips`/`selectedIds`/
- * `customActive` derivations for display, `togglePreset`/`enterCalendar`/
- * `backToList`, the per-mode `onContentKeyDown`, and the `calendar`/`footer`
+ * `customActive` derivations for display, `togglePreset`/`enterCustom`/
+ * `backToList`, the per-mode `onContentKeyDown`, and the `custom`/`footer`
  * bundles.
  * @internal
  */
@@ -68,8 +65,6 @@ export function useDatePickerRelativeState({
 	defaultValue,
 	onValueChange,
 	relative,
-	min,
-	max,
 	placement = 'bottom-start',
 	disabled = false,
 }: DatePickerBaseProps & DatePickerRelativeProps) {
@@ -100,26 +95,25 @@ export function useDatePickerRelativeState({
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
-	const calendarRef = useRef<CalendarHandle>(null)
-
 	// Anchors all relative math to one instant per interaction; re-stamped on open
 	// so a long-lived page can't drift across midnight mid-edit.
 	const nowRef = useRef<Date>(new Date())
 
 	const presets = resolveRelativePresets(relative)
 
-	// In-progress custom-range selection (pinned start + previewed end); the
-	// committed span lives in the Form field, not here.
-	const [rangeState, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
+	// In-progress custom-range entry (the Start/End inputs); the committed span
+	// lives in the Form field, not here. A span only commits once both endpoints
+	// hold a valid date, so a half-typed range never overwrites the value. The ref
+	// mirrors the draft so an endpoint handler reads the latest other endpoint
+	// without a stale closure.
+	const [draft, setDraft] = useState<{ from?: Date; to?: Date }>({})
 
-	const { rangeStart, hoverDate, active } = rangeState
-
-	const resetSelection = useCallback(() => dispatch({ type: 'reset' }), [])
+	const draftRef = useRef<{ from?: Date; to?: Date }>({})
 
 	const customActive = isCustomActive(value, presets, nowRef.current)
 
-	// The committed custom span, if any — used to seed the calendar when the user
-	// re-enters it so an existing custom range shows pre-painted.
+	// The committed custom span, if any — used to seed the Start/End inputs when the
+	// user re-enters custom mode so an existing custom range shows pre-filled.
 	const customSpan = customActive && value && value.length > 0 ? value[0] : undefined
 
 	const togglePreset = useCallback(
@@ -132,12 +126,14 @@ export function useDatePickerRelativeState({
 	const openPicker = useCallback(() => {
 		nowRef.current = new Date()
 
-		resetSelection()
+		draftRef.current = {}
+
+		setDraft({})
 
 		setMode('list')
 
 		setOpen(true)
-	}, [resetSelection])
+	}, [])
 
 	const closePicker = useCallback(() => {
 		setOpen(false)
@@ -187,101 +183,70 @@ export function useDatePickerRelativeState({
 		[refs],
 	)
 
-	// --- Calendar (custom-range) machinery — mirrors useDatePickerRangeState ---
+	// --- Custom range (Start/End inputs) ---
 
-	const getInitialActiveDate = useCallback(
-		() => clampDate(rangeStart ?? customSpan?.from ?? min ?? nowRef.current, min, max),
-		[rangeStart, customSpan, min, max],
-	)
+	// Applies a draft change: stores it (ref + state) and, once both endpoints are
+	// valid, commits a single custom span (order normalized so `from <= to`). A
+	// partial draft leaves the committed value untouched — the chip persists until
+	// the range is complete, and the footer Clear handles a full reset. A completed
+	// custom span replaces any preset selection (they are mutually exclusive).
+	const applyDraft = useCallback(
+		(next: { from?: Date; to?: Date }) => {
+			draftRef.current = next
 
-	const moveGridDate = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
+			setDraft(next)
 
-			const next = clampDate(addDays(base, delta), min, max)
-
-			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
-
-			return next
-		},
-		[active, getInitialActiveDate, min, max, rangeStart],
-	)
-
-	const moveGridMonths = useCallback(
-		(delta: number) => {
-			const base = active?.zone === 'grid' ? active.date : getInitialActiveDate()
-
-			const next = clampDate(addMonths(base, delta), min, max)
-
-			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
-
-			return next
-		},
-		[active, getInitialActiveDate, min, max, rangeStart],
-	)
-
-	// Two-tap selection: the first tap pins the start, the second commits a single
-	// custom span (replacing any preset selection — they are mutually exclusive)
-	// and returns to the list with the popover still open.
-	const handleSelect = useCallback(
-		(date: Date) => {
-			if (rangeStart === null) {
-				dispatch({ type: 'startRange', date })
-
-				return
-			}
-
-			const start = rangeStart
-
-			const end = date
+			if (!next.from || !next.to) return
 
 			const span: DatePickerRelativeValue =
-				start.getTime() <= end.getTime() ? { from: start, to: end } : { from: end, to: start }
+				next.from.getTime() <= next.to.getTime()
+					? { from: next.from, to: next.to }
+					: { from: next.to, to: next.from }
 
 			setValue([span])
-
-			resetSelection()
-
-			setMode('list')
 		},
-		[rangeStart, resetSelection, setValue],
+		[setValue],
 	)
 
-	const setActive = useCallback(
-		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),
-		[],
+	const setCustomStart = useCallback(
+		(date: Date | undefined) => applyDraft({ ...draftRef.current, from: date }),
+		[applyDraft],
 	)
 
-	const onHoverDate = useCallback((date: Date | null) => dispatch({ type: 'hover', date }), [])
+	const setCustomEnd = useCallback(
+		(date: Date | undefined) => applyDraft({ ...draftRef.current, to: date }),
+		[applyDraft],
+	)
 
 	const showClear = !isRelativeEmpty(value)
 
 	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 
-	const onFooterActivate = useCallback(
-		(kind: FooterButton) => {
-			if (kind === 'clear') handleClear()
-		},
-		[handleClear],
-	)
-
 	// --- Mode transitions ---
 
-	const enterCalendar = useCallback(() => {
-		resetSelection()
+	// Seeds the inputs from an existing custom span (if any) so re-entering shows
+	// the current range pre-filled, then swaps to the Start/End inputs.
+	const enterCustom = useCallback(() => {
+		const seed = { from: customSpan?.from, to: customSpan?.to }
 
-		setMode('calendar')
-	}, [resetSelection])
+		draftRef.current = seed
+
+		setDraft(seed)
+
+		setMode('custom')
+	}, [customSpan])
 
 	const backToList = useCallback(() => setMode('list'), [])
 
 	// Deferred to the exit animation so the popover always reopens to the list
-	// with a clean in-progress selection.
+	// with a clean draft.
 	const onExitComplete = useCallback(() => {
-		resetSelection()
+		draftRef.current = {}
+
+		setDraft({})
 
 		setMode('list')
-	}, [resetSelection])
+	}, [])
 
 	// --- Keyboard ---
 
@@ -321,24 +286,10 @@ export function useDatePickerRelativeState({
 		cells[rovingTargetIndex(event.key, currentIndex, cells.length)]?.focus()
 	}, [])
 
-	// Calendar mode: the range variant's virtual-highlight model, verbatim.
-	const onCalendarKeyDown = useDatePickerKeyboard({
-		disabled: resolvedDisabled,
-		open,
-		active,
-		setActive,
-		openCalendar: openPicker,
-		closeCalendar: closePicker,
-		moveGridDate,
-		moveGridMonths,
-		getInitialActiveDate,
-		handleSelect,
-		calendarRef,
-		footerButtons,
-		onFooterActivate,
-	})
-
-	const onContentKeyDown = mode === 'list' ? onListKeyDown : onCalendarKeyDown
+	// Custom mode runs no virtual-highlight model: the Start/End inputs, the back
+	// affordance, and the footer Clear are native, Tab-reachable controls inside
+	// the modal trap.
+	const onContentKeyDown = mode === 'list' ? onListKeyDown : undefined
 
 	// --- Display derivations ---
 
@@ -367,7 +318,7 @@ export function useDatePickerRelativeState({
 		presets,
 		mode,
 		togglePreset,
-		enterCalendar,
+		enterCustom,
 		backToList,
 		open,
 		onOpenChange,
@@ -380,23 +331,18 @@ export function useDatePickerRelativeState({
 		getReferenceProps,
 		getFloatingProps,
 		context,
-		calendar: {
-			rangeStart: rangeStart ?? customSpan?.from ?? null,
-			rangeEnd: rangeStart === null ? (customSpan?.to ?? null) : null,
-			hoverDate: rangeStart !== null ? hoverDate : null,
-			onHoverDate,
-			onValueChange: handleSelect,
-			active: open && mode === 'calendar' ? active : null,
-			calendarRef,
-			footerRef,
+		custom: {
+			start: draft.from ?? null,
+			end: draft.to ?? null,
+			onStartChange: setCustomStart,
+			onEndChange: setCustomEnd,
 		},
 		footer: {
-			active: mode === 'calendar' ? active : null,
+			active: null,
 			footerButtons,
 			onClear: handleClear,
 			footerRef,
-			onKeyDown: (event: KeyboardEvent<HTMLDivElement>) =>
-				calendarRef.current?.footerKeyDown(event),
+			onKeyDown: () => {},
 		},
 	}
 }

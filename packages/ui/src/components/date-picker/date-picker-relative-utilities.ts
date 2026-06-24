@@ -13,8 +13,8 @@ import {
 /**
  * One committed span of the relative {@link DatePicker} variant: an absolute,
  * inclusive, day-granular range with both endpoints at local midnight. A preset
- * resolves to one of these relative to "now"; the custom calendar produces one
- * directly. The variant's value is an array of these (one per selection).
+ * resolves to one of these relative to "now"; the custom Start/End inputs produce
+ * one directly. The variant's value is an array of these (one per selection).
  */
 export type DatePickerRelativeValue = { from: Date; to: Date }
 

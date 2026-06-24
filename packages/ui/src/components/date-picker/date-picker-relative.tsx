@@ -6,7 +6,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
-import { CalendarRange } from '../calendar'
+import { DateInput } from '../date-input'
+import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
@@ -20,8 +21,8 @@ const chipSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 /**
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range
  * presets plus a mutually-exclusive "Custom range" row that swaps the popover to
- * a `CalendarRange`. The live selection shows as chips in the trigger and
- * commits an array of `{ from, to }` spans. Rendered by `DatePicker` when
+ * typed Start/End date inputs. The live selection shows as chips in the trigger
+ * and commits an array of `{ from, to }` spans. Rendered by `DatePicker` when
  * `relative` is set.
  *
  * @internal
@@ -39,6 +40,11 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	} = props
 
 	const state = useDatePickerRelativeState(props)
+
+	// Row count that splits the presets plus the trailing custom row into two
+	// balanced, column-major columns (see the `relative.root` recipe): the leading
+	// half fills the first column, the rest the second.
+	const rows = Math.ceil((state.presets.length + 1) / 2)
 
 	return (
 		<>
@@ -85,10 +91,15 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				size={size}
 				onKeyDown={state.onContentKeyDown}
 				onExitComplete={state.onExitComplete}
-				label={state.mode === 'calendar' ? 'Select dates' : 'Select range'}
+				label={state.mode === 'custom' ? 'Custom range' : 'Select range'}
 			>
 				{state.mode === 'list' ? (
-					<div className={cn(k.relative.root)}>
+					<div
+						className={cn(k.relative.root)}
+						// Pins the column-major row count; static recipe classes can't
+						// carry a data-dependent track count.
+						style={{ gridTemplateRows: `repeat(${rows}, minmax(0, auto))` }}
+					>
 						{state.presets.map((preset) => {
 							const selected = state.selectedIds.has(preset.id)
 
@@ -114,14 +125,14 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							aria-pressed={state.customActive}
 							data-relative-custom=""
 							className={cn(k.relative.custom)}
-							onClick={state.enterCalendar}
+							onClick={state.enterCustom}
 						>
 							Custom range
 							<Icon icon={<ChevronRight />} />
 						</Button>
 					</div>
 				) : (
-					<div className={cn(k.relative.calendar)}>
+					<div className={cn(k.relative.customPanel)}>
 						<Button
 							type="button"
 							variant="bare"
@@ -131,18 +142,29 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							<Icon icon={<ArrowLeft />} />
 							Back to presets
 						</Button>
-						<CalendarRange
-							ref={state.calendar.calendarRef}
-							onValueChange={state.calendar.onValueChange}
-							min={props.min}
-							max={props.max}
-							rangeStart={state.calendar.rangeStart}
-							rangeEnd={state.calendar.rangeEnd}
-							hoverDate={state.calendar.hoverDate}
-							onHoverDate={state.calendar.onHoverDate}
-							active={state.calendar.active}
-							footerRef={state.calendar.footerRef}
-						/>
+						{/* The popover preventDefaults mousedown to hold DOM focus on the
+						    dialog for the calendar variants' virtual model; these fields
+						    hold real inputs, so stop mousedown to let a click focus them. */}
+						<Field onMouseDown={(event) => event.stopPropagation()}>
+							<Label>Start</Label>
+							<DateInput
+								value={state.custom.start}
+								onValueChange={state.custom.onStartChange}
+								min={props.min}
+								max={state.custom.end ?? props.max}
+								size={size}
+							/>
+						</Field>
+						<Field onMouseDown={(event) => event.stopPropagation()}>
+							<Label>End</Label>
+							<DateInput
+								value={state.custom.end}
+								onValueChange={state.custom.onEndChange}
+								min={state.custom.start ?? props.min}
+								max={props.max}
+								size={size}
+							/>
+						</Field>
 					</div>
 				)}
 				<DatePickerFooter {...state.footer} />
