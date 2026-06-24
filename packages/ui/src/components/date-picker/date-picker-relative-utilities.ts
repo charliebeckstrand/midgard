@@ -21,8 +21,8 @@ export type DatePickerRelativeValue = { from: Date; to: Date }
 /**
  * A selectable relative-range preset. `resolve` computes the absolute span from
  * a reference `now` (always passed in, never read from the clock inside, so the
- * math stays deterministic and testable). `id` is a stable React key and the
- * value carried in the rendered button's `data-relative-preset` attribute.
+ * math stays deterministic and testable). `id` is the preset's stable identity,
+ * used as its React key and to match a committed span back to its preset.
  */
 export type DatePickerRelativePreset = {
 	id: string
@@ -34,8 +34,7 @@ export type DatePickerRelativePreset = {
 /**
  * Configuration for the relative {@link DatePicker} variant. Bare `true` takes
  * the built-in {@link DEFAULT_RELATIVE_PRESETS}; an object overrides the list
- * wholesale (presets are an open list, so there is no per-id merge). Mirrors how
- * the old `period` prop accepted `true | config`.
+ * wholesale (presets are an open list, so there is no per-id merge).
  *
  * @example
  * ```tsx

@@ -34,7 +34,7 @@ type DatePickerTriggerProps = {
 	truncate?: boolean
 	/**
 	 * Custom value content rendered in place of the text label + truncation
-	 * Tooltip — e.g. the period variant's selection chips. The caller owns the
+	 * Tooltip — e.g. the relative variant's selection chips. The caller owns the
 	 * empty/placeholder rendering and the `min-w-0 flex-1` layout.
 	 */
 	children?: ReactNode
@@ -59,7 +59,7 @@ type DatePickerTriggerProps = {
  * Popover reference button showing the selected date label (or placeholder).
  * Carries the dialog ARIA wiring (`aria-haspopup`, `aria-expanded`,
  * `aria-describedby`) and shows a Tooltip with the full label when truncated.
- * Pass `children` to render custom value content (the period variant's chips)
+ * Pass `children` to render custom value content (the relative variant's chips)
  * in place of the text label.
  *
  * @internal

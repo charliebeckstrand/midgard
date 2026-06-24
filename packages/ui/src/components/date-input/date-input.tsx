@@ -249,9 +249,8 @@ export function DateInput({
 
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop; the input's aria-invalid comes from the
-			    `invalid` prop above, never from this Message. A complete entry that
-			    parses but falls outside min/max reports the bound instead of the
-			    generic format message; `invalidMessage` falsy still suppresses both. */}
+			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
+			    picks the bound- or format-specific text. */}
 			{typedInvalid && activeMessage ? <Message severity="error">{activeMessage}</Message> : null}
 		</>
 	)
