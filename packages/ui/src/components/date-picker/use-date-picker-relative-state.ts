@@ -144,8 +144,15 @@ export function useDatePickerRelativeState({
 	}, [setTouched])
 
 	// Clears every span but keeps the popover open: a selection is still being
-	// edited after a reset, so the dialog stays put (dismiss closes it).
-	const handleClear = useCallback(() => setValue(undefined), [setValue])
+	// edited after a reset, so the dialog stays put (dismiss closes it). Also wipes
+	// the custom draft so the Start/End inputs empty alongside the committed value.
+	const handleClear = useCallback(() => {
+		draftRef.current = {}
+
+		setDraft({})
+
+		setValue(undefined)
+	}, [setValue])
 
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
@@ -218,9 +225,21 @@ export function useDatePickerRelativeState({
 		[applyDraft],
 	)
 
-	const showClear = !isRelativeEmpty(value)
+	// Both endpoints settled: the custom range is complete and Clear-able.
+	const customComplete = draft.from !== undefined && draft.to !== undefined
 
-	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
+	const hasValue = !isRelativeEmpty(value)
+
+	// The footer Clear gates per mode: custom mode requires a settled Start+End
+	// (entering custom mode alone changes nothing); list mode requires any
+	// committed span. Either way Clear runs the same `handleClear`, so one footer
+	// bundle covers both.
+	const showFooterClear = mode === 'custom' ? customComplete : hasValue
+
+	const footerButtons = useMemo<FooterButton[]>(
+		() => (showFooterClear ? ['clear'] : []),
+		[showFooterClear],
+	)
 
 	// --- Mode transitions ---
 
@@ -310,7 +329,7 @@ export function useDatePickerRelativeState({
 		required: control?.required,
 		invalid: control?.invalid || fieldInvalid,
 		value,
-		hasValue: showClear,
+		hasValue,
 		onClear: handleClear,
 		chips,
 		selectedIds,

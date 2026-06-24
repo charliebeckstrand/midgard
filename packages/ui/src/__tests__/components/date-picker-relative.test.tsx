@@ -48,9 +48,13 @@ describe('DatePicker (relative)', () => {
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
 		expect(screen.getByRole('dialog', { name: 'Select range' })).toBeInTheDocument()
+
 		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
+
 		expect(screen.getByRole('button', { name: 'Last 7 days' })).toBeInTheDocument()
+
 		expect(screen.getByRole('button', { name: 'This year' })).toBeInTheDocument()
+
 		expect(screen.getByRole('button', { name: 'Custom range' })).toBeInTheDocument()
 	})
 
@@ -62,6 +66,7 @@ describe('DatePicker (relative)', () => {
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
 		expect(screen.queryByRole('button', { name: 'Last 14 days' })).not.toBeInTheDocument()
+
 		expect(screen.getByRole('button', { name: 'Last year' })).toBeInTheDocument()
 	})
 
@@ -77,8 +82,11 @@ describe('DatePicker (relative)', () => {
 		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
 
 		expect(onChange).toHaveBeenCalledTimes(1)
+
 		expect(onChange.mock.calls[0]?.[0]).toHaveLength(1)
+
 		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Last 7 days')
+
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
@@ -99,6 +107,7 @@ describe('DatePicker (relative)', () => {
 		const trigger = bySlot(container, 'datepicker-button')
 
 		expect(trigger).toHaveTextContent('This year')
+
 		expect(trigger).toHaveTextContent('Last year')
 	})
 
@@ -141,7 +150,9 @@ describe('DatePicker (relative)', () => {
 		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
 
 		expect(screen.getByRole('button', { name: 'This sprint' })).toBeInTheDocument()
+
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
+
 		// The custom-range affordance still rides along.
 		expect(screen.getByRole('button', { name: 'Custom range' })).toBeInTheDocument()
 	})
@@ -158,9 +169,13 @@ describe('DatePicker (relative)', () => {
 		// Custom mode: presets give way to the Start/End inputs (each with a
 		// calendar-opening suffix) + a back affordance.
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
+
 		expect(screen.getByRole('textbox', { name: 'End' })).toBeInTheDocument()
+
 		expect(screen.getAllByRole('button', { name: 'Open calendar' })).toHaveLength(2)
+
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
 
 		await user.click(screen.getByRole('button', { name: 'Back to presets' }))
@@ -193,6 +208,7 @@ describe('DatePicker (relative)', () => {
 
 		// The pick writes back into the Start input; the relative popover stays open.
 		expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).not.toBe('')
+
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
 	})
 
@@ -211,13 +227,13 @@ describe('DatePicker (relative)', () => {
 
 		// Not the generic format message — the entry is a real date, just too early.
 		expect(bySlot(container, 'message')).toHaveTextContent('Enter a date on or after 06/01/2026')
+
 		expect(bySlot(container, 'message')).not.toHaveTextContent('Enter a valid date')
 	})
 
-	it('omits the footer Clear in custom mode so it cannot wipe the pills', async () => {
+	it('keeps the list and custom footers separate', async () => {
 		const user = openPicker()
 
-		// Start with a preset selected so the footer Clear shows in list mode.
 		renderUI(<ControlledRelativePicker />)
 
 		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
@@ -227,9 +243,42 @@ describe('DatePicker (relative)', () => {
 		// The footer toolbar carries the Clear in list mode (the trigger has its own).
 		expect(screen.getByRole('toolbar', { name: 'Date picker actions' })).toBeInTheDocument()
 
+		// Entering custom mode with no dates yet: no footer (nothing to clear).
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
+
+	it('shows a custom footer Clear once both dates settle and clears the range', async () => {
+		const user = openPicker()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<ControlledRelativePicker onChange={onChange} />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		// No footer until the range is complete.
+		await user.type(screen.getByRole('textbox', { name: 'Start' }), '06012026')
+
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+
+		await user.type(screen.getByRole('textbox', { name: 'End' }), '06302026')
+
+		const toolbar = screen.getByRole('toolbar', { name: 'Date picker actions' })
+
+		// Clearing empties both inputs and the committed value, staying in custom mode.
+		await user.click(within(toolbar).getByRole('button', { name: 'Clear selection' }))
+
+		expect(onChange).toHaveBeenLastCalledWith(undefined)
+
+		expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).toBe('')
+
+		expect((screen.getByRole('textbox', { name: 'End' }) as HTMLInputElement).value).toBe('')
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
 	it('commits a single span from the Start/End inputs and stays open', async () => {
@@ -251,8 +300,10 @@ describe('DatePicker (relative)', () => {
 		await user.type(screen.getByRole('textbox', { name: 'End' }), '06202025')
 
 		expect(onChange.mock.calls.at(-1)?.[0]).toHaveLength(1)
+
 		// Still in custom mode with the popover open for further edits.
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
+
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
@@ -301,6 +352,7 @@ describe('DatePicker (relative)', () => {
 		)
 
 		expect(onChange).toHaveBeenLastCalledWith(undefined)
+
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})
 
@@ -336,6 +388,7 @@ describe('DatePicker (relative)', () => {
 		await user.keyboard('{Enter}')
 
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
 })

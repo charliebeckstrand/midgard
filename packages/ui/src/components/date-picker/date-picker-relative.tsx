@@ -175,9 +175,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Field>
 					</div>
 				)}
-				{/* List only: the footer Clear empties the whole selection, which would
-				    read as clearing the pills while editing a custom range. */}
-				{state.mode === 'list' ? <DatePickerFooter {...state.footer} /> : null}
+				{/* One footer for both modes: its Clear shows on a committed span in
+				    list mode and on a settled Start+End in custom mode (gated in the
+				    state hook), and clears the whole selection either way. */}
+				<DatePickerFooter {...state.footer} />
 			</DatePickerContent>
 		</>
 	)
