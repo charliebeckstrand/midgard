@@ -18,6 +18,7 @@ import {
 	isDayInRange,
 	isSameDay,
 	maskDateText,
+	outOfRangeMessage,
 	parseDateText,
 } from './date-input-utilities'
 
@@ -56,8 +57,10 @@ export type DateInputProps = Omit<
 	clearable?: boolean
 	/**
 	 * Error message shown while the typed entry is invalid, as an error
-	 * `<Message>` wired into the field's `aria-describedby`. Pass `null` (or
-	 * `false`) to suppress it and supply your own.
+	 * `<Message>` wired into the field's `aria-describedby`. A complete entry that
+	 * parses to a real date but falls outside `min`/`max` instead shows a
+	 * bound-specific message (e.g. "Enter a date on or after 06/01/2026"). Pass
+	 * `null` (or `false`) to suppress both and supply your own.
 	 *
 	 * @defaultValue `Enter a valid date (${format})`
 	 */
@@ -145,6 +148,8 @@ export function DateInput({
 	}
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
+
+	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
 
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
@@ -244,10 +249,35 @@ export function DateInput({
 
 			{/* Visible feedback gated on the component's own detection, not the
 			    external `invalid` prop; the input's aria-invalid comes from the
-			    `invalid` prop above, never from this Message. */}
-			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
+			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
+			    picks the bound- or format-specific text. */}
+			{typedInvalid && activeMessage ? <Message severity="error">{activeMessage}</Message> : null}
 		</>
 	)
+}
+
+/**
+ * Picks the visible invalid message for the current text: a complete entry that
+ * parses to a real date but is rejected only by the bounds reports the bound
+ * (via {@link outOfRangeMessage}); everything else (incomplete, impossible) keeps
+ * the generic `invalidMessage`. A falsy `invalidMessage` suppresses both.
+ *
+ * @internal
+ */
+function resolveInvalidMessage(
+	text: string,
+	format: DateInputFormat,
+	invalidMessage: ReactNode,
+	min?: Date,
+	max?: Date,
+): ReactNode {
+	if (!invalidMessage) return invalidMessage
+
+	const completeDate = text.length === format.length ? parseDateText(text, format) : undefined
+
+	if (completeDate === undefined || isDayInRange(completeDate, min, max)) return invalidMessage
+
+	return outOfRangeMessage(format, min, max) ?? invalidMessage
 }
 
 /**

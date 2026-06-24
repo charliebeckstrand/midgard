@@ -284,6 +284,11 @@ describe('DateInput', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 
 		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
+
+		// A parseable date out of range reports the bound, not the format message.
+		expect(bySlot(container, 'message')).toHaveTextContent(
+			'Enter a date between 01/01/2026 and 12/31/2026',
+		)
 	})
 
 	it('keeps partial text on blur and marks it invalid', async () => {

@@ -11,17 +11,20 @@ import { DateInput, type DateInputFormat } from '../date-input'
 import { DatePickerCalendarButton } from './date-picker-calendar-button'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
-import { DatePickerPeriod } from './date-picker-period'
-import type { DatePickerPeriodConfig, DatePickerPeriodValue } from './date-picker-period-utilities'
 import { DatePickerRange } from './date-picker-range'
+import { DatePickerRelative } from './date-picker-relative'
+import type {
+	DatePickerRelativeConfig,
+	DatePickerRelativeValue,
+} from './date-picker-relative-utilities'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerInputTab } from './use-date-picker-input-tab'
 import { useDatePickerState } from './use-date-picker-state'
 
-/** Single-date arm of {@link DatePickerProps} (`range` and `period` absent or `false`). */
+/** Single-date arm of {@link DatePickerProps} (`range` and `relative` absent or `false`). */
 export type DatePickerSingleProps = {
 	range?: false
-	period?: false
+	relative?: false
 	value?: Date
 	defaultValue?: Date
 	onValueChange?: (value: Date | undefined) => void
@@ -42,32 +45,35 @@ export type DatePickerSingleProps = {
 /** Range arm of {@link DatePickerProps} (`range: true`); value is a `[Date, Date]` pair. */
 export type DatePickerRangeProps = {
 	range: true
-	period?: false
+	relative?: false
 	value?: [Date, Date]
 	defaultValue?: [Date, Date]
 	onValueChange?: (value: [Date, Date] | undefined) => void
 }
 
 /**
- * Period arm of {@link DatePickerProps}; value is a multi-select
- * {@link DatePickerPeriodValue} of independent year / quarter / month sets.
+ * Relative arm of {@link DatePickerProps}; value is always an array of resolved
+ * {@link DatePickerRelativeValue} spans (`{ from, to }`).
  *
- * Pass `period` (bare `true`) for the defaults — selectable years of the prior
- * and current calendar year, all twelve months, quarters hidden — or a
- * {@link DatePickerPeriodConfig} to tune each facet. A facet takes an explicit
- * option list, `true` for its default set, or `false` to hide it.
+ * The popover opens to a list of relative presets ("Last 7 days", "This year",
+ * …). Single-select by default — the array holds one span; picking another
+ * preset replaces it and re-picking clears — while `relative={{ multiple: true }}`
+ * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
+ * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
+ * presets. Pass `relative` (bare `true`) for the built-in presets, or a
+ * {@link DatePickerRelativeConfig} to override the list or enable `multiple`.
  *
  * @example
  * ```tsx
- * <DatePicker period={{ years: [2024, 2025, 2026], quarters: false, months: true }} />
+ * <DatePicker relative value={value} onValueChange={setValue} />
  * ```
  */
-export type DatePickerPeriodProps = {
-	period: true | DatePickerPeriodConfig
+export type DatePickerRelativeProps = {
+	relative: true | DatePickerRelativeConfig
 	range?: false
-	value?: DatePickerPeriodValue
-	defaultValue?: DatePickerPeriodValue
-	onValueChange?: (value: DatePickerPeriodValue | undefined) => void
+	value?: DatePickerRelativeValue[]
+	defaultValue?: DatePickerRelativeValue[]
+	onValueChange?: (value: DatePickerRelativeValue[] | undefined) => void
 }
 
 /**
@@ -76,7 +82,7 @@ export type DatePickerPeriodProps = {
  * {@link DatePickerProps}.
  */
 export type DatePickerBaseProps = {
-	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerPeriodValue} (period). */
+	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	min?: Date
 	max?: Date
@@ -113,16 +119,17 @@ export type DatePickerBaseProps = {
 
 /**
  * Props for {@link DatePicker}: the shared base (`name`, `min`/`max`, `placement`,
- * `size`, `truncate`, …) discriminated on `range`/`period` into single-`Date`,
- * `[Date, Date]`, or {@link DatePickerPeriodValue} value/handler shapes.
+ * `size`, `truncate`, …) discriminated on `range`/`relative` into single-`Date`,
+ * `[Date, Date]`, or {@link DatePickerRelativeValue}`[]` value/handler shapes.
  */
 export type DatePickerProps = DatePickerBaseProps &
-	(DatePickerSingleProps | DatePickerRangeProps | DatePickerPeriodProps)
+	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)
 
 /**
  * Popover date picker; switches between single and range calendar selection on
- * the `range` prop, or a multi-select year/quarter/month filter on the `period`
- * prop, and supports controlled or uncontrolled `value`. `size` resolves through
+ * the `range` prop, or a relative-range picker on the `relative` prop
+ * (single-select by default, multi-select with `multiple: true`), and supports
+ * controlled or uncontrolled `value`. `size` resolves through
  * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
  * button. A `clearable` clear button (default on) replaces the calendar icon once
@@ -133,8 +140,9 @@ export type DatePickerProps = DatePickerBaseProps &
  * rather than DOM focus: the open dialog itself holds focus and routes
  * arrow/Page keys to the active zone. `input` mode keeps the editable reference
  * group out of the modal trap's `aria-hidden` marking and closes its own Tab
- * cycle. The `period` variant instead uses real focusable toggle buttons shown
- * as chips in the trigger.
+ * cycle. The `relative` variant's preset list uses real focusable toggle buttons
+ * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
+ * for a custom range.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
@@ -145,8 +153,8 @@ export function DatePicker(props: DatePickerProps) {
 
 	let picker: ReactElement
 
-	if (props.period) {
-		picker = <DatePickerPeriod {...props} size={resolvedSize} />
+	if (props.relative) {
+		picker = <DatePickerRelative {...props} size={resolvedSize} />
 	} else if (props.range) {
 		picker = <DatePickerRange {...props} size={resolvedSize} />
 	} else {

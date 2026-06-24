@@ -14,7 +14,8 @@ type DatePickerCalendarButtonProps = {
 }
 
 /**
- * Calendar-icon suffix button that opens an `input`-enabled picker's popover.
+ * Calendar-icon suffix button that toggles an `input`-enabled picker's popover;
+ * its label and tooltip track the open state ("Open" / "Close calendar").
  *
  * @internal
  */
@@ -23,12 +24,14 @@ export function DatePickerCalendarButton({
 	disabled,
 	onActivate,
 }: DatePickerCalendarButtonProps) {
+	const label = open ? 'Close calendar' : 'Open calendar'
+
 	return (
 		<Tooltip>
 			<TooltipTrigger>
 				<Button
 					variant="bare"
-					aria-label="Open calendar"
+					aria-label={label}
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					disabled={disabled}
@@ -37,7 +40,7 @@ export function DatePickerCalendarButton({
 					<Icon icon={<CalendarIcon />} />
 				</Button>
 			</TooltipTrigger>
-			<TooltipContent>Open calendar</TooltipContent>
+			<TooltipContent>{label}</TooltipContent>
 		</Tooltip>
 	)
 }

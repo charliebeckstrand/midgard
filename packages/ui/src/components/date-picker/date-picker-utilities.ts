@@ -1,3 +1,4 @@
+import { endOfMonth as calendarEndOfMonth } from '@internationalized/date'
 import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
 
 /** Trigger label for a single date, in the user's locale. @internal */
@@ -39,4 +40,24 @@ export function clampDate(date: Date, min?: Date, max?: Date): Date {
 	if (max && value.compare(toCalendarDate(max)) > 0) value = toCalendarDate(max)
 
 	return fromCalendarDate(value)
+}
+
+/** Local-midnight first day of `date`'s month. @internal */
+export function startOfMonth(date: Date): Date {
+	return fromCalendarDate(toCalendarDate(date).set({ day: 1 }))
+}
+
+/** Local-midnight last day of `date`'s month (28–31). @internal */
+export function endOfMonth(date: Date): Date {
+	return fromCalendarDate(calendarEndOfMonth(toCalendarDate(date)))
+}
+
+/** Local-midnight January 1st of `date`'s year. @internal */
+export function startOfYear(date: Date): Date {
+	return fromCalendarDate(toCalendarDate(date).set({ month: 1, day: 1 }))
+}
+
+/** Local-midnight December 31st of `date`'s year. @internal */
+export function endOfYear(date: Date): Date {
+	return fromCalendarDate(toCalendarDate(date).set({ month: 12, day: 31 }))
 }

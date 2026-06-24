@@ -746,7 +746,7 @@ describe('DatePicker input', () => {
 		expect(onChange).not.toHaveBeenCalledWith(expect.any(Date))
 	})
 
-	it("surfaces DateInput's invalid-date message for an out-of-range typed entry", async () => {
+	it("surfaces DateInput's bound message for an out-of-range typed entry", async () => {
 		const user = userEvent.setup()
 
 		const { container } = renderUI(<DatePicker input max={new Date(2026, 11, 31)} />)
@@ -757,7 +757,7 @@ describe('DatePicker input', () => {
 
 		const message = bySlot(container, 'message')
 
-		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY)')
+		expect(message).toHaveTextContent('Enter a date on or before 12/31/2026')
 
 		// The message sits in the control wrapper directly after the input frame,
 		// so the field adjacency carried on the wrapper spaces it like a <Field>.
