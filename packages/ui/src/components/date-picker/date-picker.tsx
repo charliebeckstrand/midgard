@@ -52,53 +52,29 @@ export type DatePickerRangeProps = {
 }
 
 /**
- * Single-select arm of the relative {@link DatePickerProps} (the default); value
- * is one resolved {@link DatePickerRelativeValue} span (`{ from, to }`).
+ * Relative arm of {@link DatePickerProps}; value is always an array of resolved
+ * {@link DatePickerRelativeValue} spans (`{ from, to }`).
  *
  * The popover opens to a list of relative presets ("Last 7 days", "This year",
- * …); one is active at a time and commits its absolute, day-granular span
- * (re-picking it clears the selection). A "Custom range" row swaps to Start/End
- * date fields (typed or calendar-picked) for an arbitrary absolute span. Pass
- * `relative` (bare `true`) for the built-in presets, or a
- * {@link DatePickerRelativeConfig} to override the list.
+ * …). Single-select by default — the array holds one span; picking another
+ * preset replaces it and re-picking clears — while `relative={{ multiple: true }}`
+ * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
+ * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
+ * presets. Pass `relative` (bare `true`) for the built-in presets, or a
+ * {@link DatePickerRelativeConfig} to override the list or enable `multiple`.
  *
  * @example
  * ```tsx
  * <DatePicker relative value={value} onValueChange={setValue} />
  * ```
  */
-export type DatePickerRelativeSingleProps = {
-	relative: true | (DatePickerRelativeConfig & { multiple?: false })
-	range?: false
-	value?: DatePickerRelativeValue
-	defaultValue?: DatePickerRelativeValue
-	onValueChange?: (value: DatePickerRelativeValue | undefined) => void
-}
-
-/**
- * Multi-select arm of the relative {@link DatePickerProps} (`relative={{ multiple:
- * true }}`); value is an array of {@link DatePickerRelativeValue} spans, one per
- * selection. Several presets may be active at once; a custom range remains
- * mutually exclusive, replacing the whole selection with its single span.
- *
- * @example
- * ```tsx
- * // "This year" + "Last year" commit two spans.
- * <DatePicker relative={{ multiple: true }} value={value} onValueChange={setValue} />
- * ```
- */
-export type DatePickerRelativeMultipleProps = {
-	relative: DatePickerRelativeConfig & { multiple: true }
+export type DatePickerRelativeProps = {
+	relative: true | DatePickerRelativeConfig
 	range?: false
 	value?: DatePickerRelativeValue[]
 	defaultValue?: DatePickerRelativeValue[]
 	onValueChange?: (value: DatePickerRelativeValue[] | undefined) => void
 }
-
-/** Relative arm of {@link DatePickerProps}; single-select by default, multi-select with `multiple: true`. */
-export type DatePickerRelativeProps =
-	| DatePickerRelativeSingleProps
-	| DatePickerRelativeMultipleProps
 
 /**
  * Range-agnostic {@link DatePicker} props shared by both arms (single and
@@ -106,7 +82,7 @@ export type DatePickerRelativeProps =
  * {@link DatePickerProps}.
  */
 export type DatePickerBaseProps = {
-	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), a {@link DatePickerRelativeValue} (relative), or an array of them (relative `multiple`). */
+	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	min?: Date
 	max?: Date
@@ -144,8 +120,7 @@ export type DatePickerBaseProps = {
 /**
  * Props for {@link DatePicker}: the shared base (`name`, `min`/`max`, `placement`,
  * `size`, `truncate`, …) discriminated on `range`/`relative` into single-`Date`,
- * `[Date, Date]`, a single {@link DatePickerRelativeValue}, or — with `relative`
- * `multiple` — an array of them.
+ * `[Date, Date]`, or {@link DatePickerRelativeValue}`[]` value/handler shapes.
  */
 export type DatePickerProps = DatePickerBaseProps &
 	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)

@@ -4,44 +4,22 @@ import { describe, expect, it, vi } from 'vitest'
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
 import { bySlot, renderUI, screen, userEvent, within } from '../helpers'
 
-// Controlled single-select relative picker (the default): the parent holds the
-// value so a toggle round-trips back into the chip.
+// Controlled relative picker: the parent holds the (always-array) value so a
+// toggle round-trips back into the chips. `multiple` opts into multi-select.
 function ControlledRelativePicker({
 	initial,
 	onChange,
-}: {
-	initial?: DatePickerRelativeValue
-	onChange?: (value: DatePickerRelativeValue | undefined) => void
-}) {
-	const [value, setValue] = useState<DatePickerRelativeValue | undefined>(initial)
-
-	return (
-		<DatePicker
-			relative
-			value={value}
-			onValueChange={(next) => {
-				setValue(next)
-
-				onChange?.(next)
-			}}
-			aria-label="Reporting range"
-		/>
-	)
-}
-
-// Controlled multi-select relative picker (`relative={{ multiple: true }}`).
-function ControlledRelativeMultiple({
-	initial,
-	onChange,
+	multiple,
 }: {
 	initial?: DatePickerRelativeValue[]
 	onChange?: (value: DatePickerRelativeValue[] | undefined) => void
+	multiple?: boolean
 }) {
 	const [value, setValue] = useState<DatePickerRelativeValue[] | undefined>(initial)
 
 	return (
 		<DatePicker
-			relative={{ multiple: true }}
+			relative={multiple ? { multiple: true } : true}
 			value={value}
 			onValueChange={(next: DatePickerRelativeValue[] | undefined) => {
 				setValue(next)
@@ -107,11 +85,8 @@ describe('DatePicker (relative)', () => {
 
 		expect(onChange).toHaveBeenCalledTimes(1)
 
-		// Single-select commits one span, not an array.
-		expect(onChange.mock.calls[0]?.[0]).toMatchObject({
-			from: expect.any(Date),
-			to: expect.any(Date),
-		})
+		// Single-select commits a one-entry array.
+		expect(onChange.mock.calls[0]?.[0]).toHaveLength(1)
 
 		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Last 7 days')
 
@@ -144,7 +119,7 @@ describe('DatePicker (relative)', () => {
 
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<ControlledRelativeMultiple onChange={onChange} />)
+		const { container } = renderUI(<ControlledRelativePicker multiple onChange={onChange} />)
 
 		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
 
@@ -349,10 +324,7 @@ describe('DatePicker (relative)', () => {
 
 		await user.type(screen.getByRole('textbox', { name: 'End' }), '06202025')
 
-		expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
-			from: expect.any(Date),
-			to: expect.any(Date),
-		})
+		expect(onChange.mock.calls.at(-1)?.[0]).toHaveLength(1)
 
 		// Still in custom mode with the popover open for further edits.
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
@@ -368,7 +340,7 @@ describe('DatePicker (relative)', () => {
 		// A span outside any preset reads as a custom selection.
 		renderUI(
 			<ControlledRelativePicker
-				initial={{ from: new Date(2020, 0, 1), to: new Date(2020, 0, 5) }}
+				initial={[{ from: new Date(2020, 0, 1), to: new Date(2020, 0, 5) }]}
 				onChange={onChange}
 			/>,
 		)
@@ -382,10 +354,7 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
-		expect(onChange.mock.calls.at(-1)?.[0]).toMatchObject({
-			from: expect.any(Date),
-			to: expect.any(Date),
-		})
+		expect(onChange.mock.calls.at(-1)?.[0]).toHaveLength(1)
 	})
 
 	it('clears the selection from the footer but keeps the popover open', async () => {

@@ -7,7 +7,7 @@ export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
 	const [typed, setTyped] = useState<Date | undefined>(undefined)
-	const [relative, setRelative] = useState<DatePickerRelativeValue | undefined>(undefined)
+	const [relative, setRelative] = useState<DatePickerRelativeValue[] | undefined>(undefined)
 	const [relativeMany, setRelativeMany] = useState<DatePickerRelativeValue[] | undefined>(undefined)
 	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
 
