@@ -6,10 +6,11 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
-import { DateInput } from '../date-input'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
-import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
+// Sibling variant reused for the custom range's Start/End fields; safe despite the
+// import cycle since both are hoisted function declarations used only at render.
+import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerTrigger } from './date-picker-trigger'
@@ -21,9 +22,9 @@ const chipSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 /**
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range
  * presets plus a mutually-exclusive "Custom range" row that swaps the popover to
- * typed Start/End date inputs. The live selection shows as chips in the trigger
- * and commits an array of `{ from, to }` spans. Rendered by `DatePicker` when
- * `relative` is set.
+ * Start/End date fields (each an `input`-mode picker — type or pick from a
+ * calendar). The live selection shows as chips in the trigger and commits an
+ * array of `{ from, to }` spans. Rendered by `DatePicker` when `relative` is set.
  *
  * @internal
  */
@@ -142,13 +143,18 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							<Icon icon={<ArrowLeft />} />
 							Back to presets
 						</Button>
-						{/* The popover preventDefaults mousedown to hold DOM focus on the
-						    dialog for the calendar variants' virtual model; these fields
-						    hold real inputs, so stop mousedown to let a click focus them. */}
+						{/* Each field is a single-date picker in `input` mode: a typed
+						    DateInput whose suffix button opens a calendar. The popover
+						    preventDefaults mousedown to hold DOM focus on the dialog for
+						    the calendar variants' virtual model, so stop mousedown here to
+						    let a click focus the input. `clearable` is off so the suffix —
+						    and thus the field width — stays fixed as a date is entered. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>Start</Label>
-							<DateInput
-								value={state.custom.start}
+							<DatePicker
+								input
+								clearable={false}
+								value={state.custom.start ?? undefined}
 								onValueChange={state.custom.onStartChange}
 								min={props.min}
 								max={state.custom.end ?? props.max}
@@ -157,8 +163,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Field>
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>End</Label>
-							<DateInput
-								value={state.custom.end}
+							<DatePicker
+								input
+								clearable={false}
+								value={state.custom.end ?? undefined}
 								onValueChange={state.custom.onEndChange}
 								min={state.custom.start ?? props.min}
 								max={props.max}
@@ -167,7 +175,9 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Field>
 					</div>
 				)}
-				<DatePickerFooter {...state.footer} />
+				{/* List only: the footer Clear empties the whole selection, which would
+				    read as clearing the pills while editing a custom range. */}
+				{state.mode === 'list' ? <DatePickerFooter {...state.footer} /> : null}
 			</DatePickerContent>
 		</>
 	)

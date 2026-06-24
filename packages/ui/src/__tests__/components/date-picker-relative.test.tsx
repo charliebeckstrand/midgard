@@ -155,15 +155,60 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
-		// Custom mode: presets give way to the Start/End inputs + a back affordance.
+		// Custom mode: presets give way to the Start/End inputs (each with a
+		// calendar-opening suffix) + a back affordance.
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: 'End' })).toBeInTheDocument()
+		expect(screen.getAllByRole('button', { name: 'Open calendar' })).toHaveLength(2)
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
 
 		await user.click(screen.getByRole('button', { name: 'Back to presets' }))
 
 		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
+	})
+
+	it('picks a custom endpoint from the field calendar without closing the popover', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		// The Start field's suffix opens its own calendar (a nested popover).
+		await user.click(
+			screen.getAllByRole('button', { name: 'Open calendar' })[0] as HTMLButtonElement,
+		)
+
+		const day = screen.getAllByRole('option').find((cell) => cell.textContent?.trim() === '10')
+
+		if (!day) throw new Error('calendar day cell not found')
+
+		await user.click(day)
+
+		// The pick writes back into the Start input; the relative popover stays open.
+		expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).not.toBe('')
+		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
+	})
+
+	it('omits the footer Clear in custom mode so it cannot wipe the pills', async () => {
+		const user = openPicker()
+
+		// Start with a preset selected so the footer Clear shows in list mode.
+		renderUI(<ControlledRelativePicker />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
+
+		// The footer toolbar carries the Clear in list mode (the trigger has its own).
+		expect(screen.getByRole('toolbar', { name: 'Date picker actions' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
 
 	it('commits a single span from the Start/End inputs and stays open', async () => {

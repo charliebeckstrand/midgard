@@ -57,9 +57,9 @@ export type DatePickerRangeProps = {
  *
  * The popover opens to a multi-select list of relative presets ("Last 7 days",
  * "This year", …); several may be active at once and each commits its absolute,
- * day-granular span. A "Custom range" row swaps to typed Start/End date inputs
- * for an arbitrary absolute span — mutually exclusive with the presets. Pass
- * `relative` (bare `true`) for the built-in presets, or a
+ * day-granular span. A "Custom range" row swaps to Start/End date fields (typed
+ * or calendar-picked) for an arbitrary absolute span — mutually exclusive with
+ * the presets. Pass `relative` (bare `true`) for the built-in presets, or a
  * {@link DatePickerRelativeConfig} to override the list.
  *
  * @example
@@ -140,8 +140,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * arrow/Page keys to the active zone. `input` mode keeps the editable reference
  * group out of the modal trap's `aria-hidden` marking and closes its own Tab
  * cycle. The `relative` variant's preset list uses real focusable toggle buttons
- * shown as chips in the trigger, swapping to typed Start/End date inputs for a
- * custom range.
+ * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
+ * for a custom range.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
