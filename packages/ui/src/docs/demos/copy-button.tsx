@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { Copy } from 'lucide-react'
 import { CopyButton } from '../../components/copy-button'
 import { Flex } from '../../components/flex'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

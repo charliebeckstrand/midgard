@@ -1,9 +1,9 @@
+import { Example } from 'docs'
 import { useDeferredValue, useState } from 'react'
 import { Button } from '../../components/button'
 import { collectJsonTreePaths, JsonTree } from '../../components/json-tree'
 import { SearchInput } from '../../components/search-input'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 const sample = {
 	id: 42,

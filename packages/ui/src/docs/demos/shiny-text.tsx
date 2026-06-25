@@ -1,12 +1,10 @@
+import { Example, ValueStepper, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Badge } from '../../components/badge'
 import { Flex } from '../../components/flex'
 import { ShinyText } from '../../components/shiny-text'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
-import { ValueStepper } from '../components/value-stepper'
-import { VariantListbox } from '../components/variant-listbox'
 
 const directions = ['left', 'right'] as const
 

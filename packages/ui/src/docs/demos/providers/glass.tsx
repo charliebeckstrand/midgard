@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import {
@@ -25,7 +26,6 @@ import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/s
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { GlassProvider } from '../../../providers/glass'
-import { Example } from '../../components/example'
 
 export const meta = { name: 'Glass Provider' }
 

@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { CurrencyInput } from '../../components/currency-input'
 import { Field, Label } from '../../components/fieldset'
-import { Example } from '../components/example'
 
 function ControlledExample() {
 	const [value, setValue] = useState<number | undefined>(1234.56)

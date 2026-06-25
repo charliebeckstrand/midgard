@@ -1,8 +1,10 @@
+import { docsPlugin } from 'docs/plugins'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docsPlugin } from './src/docs/plugins'
 import { baseTest, setupFiles, testIsolation } from './vitest.base.config'
 
 export default defineConfig({
+	// The docs engine, pointed at ui, backs the `docs/*` integration tests under
+	// src/__tests__/docs/ (the real component-modules map + barrel tagging).
 	plugins: [docsPlugin({ vitest: true })],
 	test: {
 		...baseTest,

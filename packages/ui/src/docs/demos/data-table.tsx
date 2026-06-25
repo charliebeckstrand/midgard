@@ -1,12 +1,10 @@
+import { code, DensityListbox, Example } from 'docs'
 import { useMemo, useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { DataTable, type DataTableColumn, type SortState } from '../../components/data-table'
 import { HoldButton } from '../../components/hold-button'
 import type { DensityLevel } from '../../providers/density'
-import { code } from '../code'
-import { DensityListbox } from '../components/density-listbox'
-import { Example } from '../components/example'
 
 type Person = {
 	id: number

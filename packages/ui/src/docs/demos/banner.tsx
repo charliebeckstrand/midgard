@@ -1,10 +1,8 @@
+import { capitalize, Example, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { Banner } from '../../components/banner'
 import { Button } from '../../components/button'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { VariantListbox } from '../components/variant-listbox'
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const

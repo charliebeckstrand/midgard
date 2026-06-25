@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { PasswordInput } from '../../components/password-input'
@@ -5,7 +6,6 @@ import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

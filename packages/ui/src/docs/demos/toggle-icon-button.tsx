@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { Heart, Moon, Sun, Volume2, VolumeOff } from 'lucide-react'
 import { useState } from 'react'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { Example } from '../components/example'
 
 export function Demo() {
 	const [dark, setDark] = useState(false)

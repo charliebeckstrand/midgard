@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Card } from '../../components/card'
 import { Split } from '../../components/split'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

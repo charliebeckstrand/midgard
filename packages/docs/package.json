@@ -1,0 +1,72 @@
+{
+	"name": "docs",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"sideEffects": [
+		"*.css"
+	],
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./app": {
+			"types": "./src/host.tsx",
+			"default": "./src/host.tsx"
+		},
+		"./vite": {
+			"types": "./src/vite/index.ts",
+			"import": "./dist/vite.js",
+			"default": "./dist/vite.js"
+		},
+		"./plugins": {
+			"types": "./src/plugins/index.ts",
+			"import": "./dist/plugins.js",
+			"default": "./dist/plugins.js"
+		},
+		"./derive-code": {
+			"types": "./src/derive-code/index.ts",
+			"default": "./src/derive-code/index.ts"
+		},
+		"./app.css": "./src/app.css",
+		"./fonts.css": "./src/fonts.css"
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"check-types": "tsc --noEmit",
+		"test": "vitest run",
+		"bench": "vitest bench --run --config vitest.bench.config.ts",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write ."
+	},
+	"dependencies": {
+		"@tailwindcss/vite": "^4.2.1",
+		"@vitejs/plugin-react": "^6.0.1",
+		"lucide-react": "^1.7.0",
+		"rollup-plugin-visualizer": "^6.0.0",
+		"tailwindcss": "^4.3.0",
+		"ts-morph": "^28.0.0",
+		"typescript": "^6.0.3",
+		"ui": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"vite": "^8.0.0"
+	},
+	"devDependencies": {
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.2.3",
+		"jsdom": "^29.0.2",
+		"react": "^19.1.0",
+		"react-dom": "^19.2.4",
+		"tsup": "^8.5.1",
+		"vite": "^8.0.16",
+		"vitest": "^4.1.8"
+	}
+}

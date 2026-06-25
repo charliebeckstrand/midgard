@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -14,7 +15,6 @@ import { Stack } from '../../components/stack'
 import { SubmitButton } from '../../components/submit-button'
 import { Switch, SwitchField } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
-import { Example } from '../components/example'
 
 function ResetButton() {
 	return (

@@ -1,8 +1,8 @@
+import { Example } from 'docs'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { TimeAgo } from '../../components/time-ago'
-import { Example } from '../components/example'
 
 const SEC = 1000
 const MIN = 60 * SEC

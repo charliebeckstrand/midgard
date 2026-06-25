@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { DatePicker } from '../../components/date-picker'
@@ -8,7 +9,6 @@ import { Input } from '../../components/input'
 import { JsonTree } from '../../components/json-tree'
 import { NumberInput } from '../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Example } from '../components/example'
 
 type BasicFilters = {
 	search: string | undefined

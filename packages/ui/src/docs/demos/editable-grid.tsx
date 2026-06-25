@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { Info } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../components/alert'
@@ -27,7 +28,6 @@ import { NumberInput } from '../../components/number-input'
 import { Stack } from '../../components/stack'
 import { SubmitButton } from '../../components/submit-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { Example } from '../components/example'
 
 type LaneRate = {
 	id: number

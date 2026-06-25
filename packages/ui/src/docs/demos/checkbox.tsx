@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description, Label } from '../../components/fieldset'
-import { Example } from '../components/example'
 
 const colors = ['blue', 'green', 'red'] as const
 

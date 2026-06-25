@@ -1,9 +1,9 @@
+import { Example } from 'docs'
 import { Pencil, RotateCcw } from 'lucide-react'
 import { ChatMessage } from '../../components/chat-message'
 import { CopyButton } from '../../components/copy-button'
 import { Stack } from '../../components/stack'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

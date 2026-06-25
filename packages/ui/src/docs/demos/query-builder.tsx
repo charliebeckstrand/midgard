@@ -1,8 +1,8 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { JsonTree, type JsonValue } from '../../components/json-tree'
 import { QueryBuilder, type QueryField, type QueryGroupNode } from '../../components/query-builder'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },

@@ -15,7 +15,7 @@
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
 | Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, caret, dismiss-layers, keyboard navigation). |
 
-Per-symbol behavior, props, and defaults live in each symbol's TSDoc; the docs site (`pnpm docs`) renders them alongside live demos. Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
+Per-symbol behavior, props, and defaults live in each symbol's TSDoc; the docs site (`pnpm docs`) renders them alongside live demos via the shared [`docs`](../docs) engine. Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
 ## 2. Server and client boundaries
 
@@ -69,6 +69,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a de
 |---|---|
 | Components | `packages/ui/src/components/<name>/*` |
 | Component demos | `packages/ui/src/docs/demos/*` |
+| Docs rendering engine | [`packages/docs`](../docs) |
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |
 | Curated surface docs | [`docs/`](docs) |
 | Point-in-time audits | [`docs/audits/`](docs/audits) |

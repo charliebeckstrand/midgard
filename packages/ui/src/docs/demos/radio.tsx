@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Description, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { Example } from '../components/example'
 
 const plans = ['Starter', 'Business', 'Enterprise'] as const
 const colors = ['blue', 'green', 'red'] as const

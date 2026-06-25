@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Avatar, AvatarSkeleton } from '../../../components/avatar'
 import { BadgeSkeleton } from '../../../components/badge'
@@ -36,7 +37,6 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
-import { Example } from '../../components/example'
 
 export const meta = { name: 'Skeleton Provider' }
 

@@ -1,10 +1,10 @@
+import { Example } from 'docs'
 import { Upload } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { FileUpload } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { Example } from '../components/example'
 
 function Sizer({ children, className }: { children: ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>

@@ -1,8 +1,8 @@
+import { Example } from 'docs'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
 import { Flex } from '../../components/flex'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

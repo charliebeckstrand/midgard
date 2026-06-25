@@ -1,11 +1,9 @@
+import { Example, SizeListbox, sizeLabels, VariantListbox } from 'docs'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
-import { Example } from '../components/example'
-import { SizeListbox, sizeLabels } from '../components/size-listbox'
-import { VariantListbox } from '../components/variant-listbox'
 
 const variants = ['solid', 'soft', 'outline', 'plain', 'bare'] as const
 

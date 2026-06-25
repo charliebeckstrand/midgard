@@ -1,13 +1,10 @@
+import { capitalize, Example, LabeledColumn, SizeListbox } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { LabeledColumn } from '../components/labeled'
-import { SizeListbox } from '../components/size-listbox'
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 

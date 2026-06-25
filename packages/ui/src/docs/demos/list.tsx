@@ -1,8 +1,7 @@
+import { Example, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
-import { VariantListbox } from '../components/variant-listbox'
 
 const variants = ['separated', 'outline', 'plain', 'solid'] as const
 

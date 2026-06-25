@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Field, Label } from '../../components/fieldset'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (
