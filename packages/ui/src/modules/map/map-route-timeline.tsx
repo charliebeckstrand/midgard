@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '../button'
+import { Button } from '../../components/button'
 import {
 	Sheet,
 	SheetBody,
@@ -9,14 +9,14 @@ import {
 	SheetFooter,
 	SheetHeader,
 	SheetTitle,
-} from '../sheet'
+} from '../../components/sheet'
 import {
 	Timeline,
 	TimelineDescription,
 	TimelineItem,
 	TimelineTimestamp,
 	TimelineTitle,
-} from '../timeline'
+} from '../../components/timeline'
 import { formatTimestamp, resolveCurrentIndex } from './map-route-utilities'
 import type { RouteStop } from './types'
 

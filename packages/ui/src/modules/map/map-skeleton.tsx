@@ -1,5 +1,5 @@
+import { createSkeleton, type SkeletonProps } from '../../components/placeholder'
 import { k } from '../../recipes/kata/map'
-import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link MapSkeleton}. */
 export type MapSkeletonProps = SkeletonProps

@@ -51,7 +51,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Domain & specialized
 
-`map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
+`pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
 
 ---
 

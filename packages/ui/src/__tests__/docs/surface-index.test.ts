@@ -67,6 +67,7 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 
 	it.each([
 		['COMPONENTS.md', 'components'],
+		['MODULES.md', 'modules'],
 		['PRIMITIVES.md', 'primitives'],
 	])('%s lists every %s directory', (mdFile, dir) => {
 		const dirs = subdirectories(dir)

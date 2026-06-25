@@ -2,13 +2,13 @@
 
 import { ArrowUp } from 'lucide-react'
 import { useActionState, useEffect, useRef, useState } from 'react'
+import { Alert, AlertTitle } from '../../components/alert'
+import { Button } from '../../components/button'
+import { ChatMessage } from '../../components/chat-message'
+import { Icon } from '../../components/icon'
+import { Input } from '../../components/input'
+import { Stack } from '../../components/stack'
 import { cn } from '../../core'
-import { Alert, AlertTitle } from '../alert'
-import { Button } from '../button'
-import { ChatMessage } from '../chat-message'
-import { Icon } from '../icon'
-import { Input } from '../input'
-import { Stack } from '../stack'
 import type { ChatMessage as ChatMessageData } from './types'
 
 type MapShipmentChatProps = {

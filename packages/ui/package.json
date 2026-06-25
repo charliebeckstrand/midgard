@@ -33,6 +33,10 @@
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"
 		},
+		"./modules/*": {
+			"types": "./src/modules/*/index.ts",
+			"default": "./src/modules/*/index.ts"
+		},
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"

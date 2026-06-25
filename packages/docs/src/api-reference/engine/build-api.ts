@@ -17,9 +17,10 @@ import {
 import { createLinkResolver } from './link-resolver'
 
 /**
- * Extract API reference data for every component under `<srcDir>/components`,
- * keyed by directory name. One ts-morph Project covers the whole package;
- * the type checker resolves cross-file references in a single pass.
+ * Extract API reference data for every component under `<srcDir>/components`
+ * and `<srcDir>/modules`, keyed by directory name (modules as `modules-<name>`).
+ * One ts-morph Project covers the whole package; the type checker resolves
+ * cross-file references in a single pass.
  */
 export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 	const componentsDir = path.join(srcDir, 'components')
@@ -34,34 +35,45 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 	const result: Record<string, ComponentApi[]> = {}
 
-	for (const dir of fs.readdirSync(componentsDir, { withFileTypes: true })) {
-		if (!dir.isDirectory()) continue
+	// Components key by directory name; modules namespace their key as
+	// `modules-<name>` to match the demo id (`pathToId('demos/modules/<name>')`).
+	for (const [root, prefix] of [
+		['components', ''],
+		['modules', 'modules-'],
+	] as const) {
+		const rootDir = path.join(srcDir, root)
 
-		const indexPath = path.join(componentsDir, dir.name, 'index.ts')
+		if (!fs.existsSync(rootDir)) continue
 
-		const indexFile = project.getSourceFile(indexPath)
+		for (const dir of fs.readdirSync(rootDir, { withFileTypes: true })) {
+			if (!dir.isDirectory()) continue
 
-		if (!indexFile) continue
+			const indexPath = path.join(rootDir, dir.name, 'index.ts')
 
-		const names = readPublicExports(indexFile)
+			const indexFile = project.getSourceFile(indexPath)
 
-		if (names.length === 0) continue
+			if (!indexFile) continue
 
-		const apis: ComponentApi[] = []
+			const names = readPublicExports(indexFile)
 
-		for (const name of names) {
-			const decl = findComponent(name, indexFile)
+			if (names.length === 0) continue
 
-			if (!decl) {
-				apis.push({ name, props: [] })
+			const apis: ComponentApi[] = []
 
-				continue
+			for (const name of names) {
+				const decl = findComponent(name, indexFile)
+
+				if (!decl) {
+					apis.push({ name, props: [] })
+
+					continue
+				}
+
+				apis.push(buildComponent(decl, checker, resolveLink))
 			}
 
-			apis.push(buildComponent(decl, checker, resolveLink))
+			if (apis.length > 0) result[`${prefix}${dir.name}`] = apis
 		}
-
-		if (apis.length > 0) result[dir.name] = apis
 	}
 
 	return result

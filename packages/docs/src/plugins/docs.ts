@@ -178,6 +178,10 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 
 	if (rel[0] === 'layouts' && rel[1] === 'index.ts') return 'layouts'
 
+	// Modules carry the full `modules/<name>`, matching the nested public
+	// specifier (`ui/modules/grid`).
+	if (rel[0] === 'modules' && rel[2] === 'index.ts') return rel[1] ? `modules/${rel[1]}` : null
+
 	return null
 }
 
@@ -261,6 +265,8 @@ function buildNameMap(srcDir: string, packageName: string): ComponentModules {
 	collectDirNames(names, path.join(srcDir, 'components'), (name) => name)
 
 	collectDirNames(names, path.join(srcDir, 'providers'), (name) => `providers/${name}`)
+
+	collectDirNames(names, path.join(srcDir, 'modules'), (name) => `modules/${name}`)
 
 	collectIndexNames(names, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
 

@@ -8,7 +8,7 @@ import {
 	Map as MapView,
 	type RouteData,
 	type ShipmentData,
-} from '../../components/map'
+} from '../../modules/map'
 import { allBySlot, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 const route: RouteData = {

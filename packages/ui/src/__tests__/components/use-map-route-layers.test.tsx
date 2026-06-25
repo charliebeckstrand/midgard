@@ -2,11 +2,11 @@ import { render } from '@testing-library/react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { MapContext, type MapContextValue } from '../../components/map/context'
-import { HIT_LAYER_WIDTH } from '../../components/map/map-route-constants'
-import type { SegmentStatus } from '../../components/map/map-route-utilities'
-import type { RouteData } from '../../components/map/types'
-import { useMapRouteLayers } from '../../components/map/use-map-route-layers'
+import { MapContext, type MapContextValue } from '../../modules/map/context'
+import { HIT_LAYER_WIDTH } from '../../modules/map/map-route-constants'
+import type { SegmentStatus } from '../../modules/map/map-route-utilities'
+import type { RouteData } from '../../modules/map/types'
+import { useMapRouteLayers } from '../../modules/map/use-map-route-layers'
 
 type Handler = (...args: unknown[]) => void
 

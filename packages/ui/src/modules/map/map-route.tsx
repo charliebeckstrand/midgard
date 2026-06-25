@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useMemo, useRef, useState } from 'react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { MapMarker } from './map-marker'
 import {
 	DEFAULT_ACTIVE_COLOR,
