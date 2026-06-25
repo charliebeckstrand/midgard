@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useState } from 'react'
 import { CodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { Flex } from 'ui/flex'
@@ -8,6 +8,7 @@ import { Heading } from 'ui/heading'
 import { Spacer } from 'ui/spacer'
 import { Stack } from 'ui/stack'
 import { deriveCode } from '../derive-code'
+import { useRegisterExample } from './demo-nav'
 
 /**
  * The demo showcase frame: renders its `children` in a bordered preview with a
@@ -17,7 +18,8 @@ import { deriveCode } from '../derive-code'
  * The block derives from the rendered subtree via {@link deriveCode}; an
  * explicit `code` overrides it, and when neither yields anything the block is
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
- * slots frame the preview.
+ * slots frame the preview. A titled example registers itself with the page's
+ * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
  */
 export function Example({
 	title,
@@ -43,8 +45,12 @@ export function Example({
 
 	const [open, setOpen] = useState(false)
 
+	const anchorId = useId()
+
+	useRegisterExample(anchorId, title)
+
 	return (
-		<Stack gap="sm">
+		<Stack gap="sm" id={anchorId} data-slot="example">
 			{(title || actions) && (
 				<Flex gap="md">
 					{title && <Heading level={3}>{title}</Heading>}
