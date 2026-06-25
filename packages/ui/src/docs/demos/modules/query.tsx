@@ -31,17 +31,17 @@ const seed: QueryGroupNode = {
 	],
 }
 
-function ControlledExample() {
+function BuilderExample() {
 	const [query, setQuery] = useState<QueryGroupNode>(seed)
 
 	return (
-		<Example title="Controlled">
+		<Example title="Builder">
 			<Stack gap="md">
 				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
 				{/* QueryGroupNode declares `value: unknown` and an optional combinator; this demo
 				    feeds string values with a combinator on every node, leaving the tree
 				    JSON-shaped. */}
-				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={Infinity} />
+				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={0} />
 			</Stack>
 		</Example>
 	)
@@ -58,7 +58,7 @@ function DisabledExample() {
 export function Demo() {
 	return (
 		<>
-			<ControlledExample />
+			<BuilderExample />
 			<DisabledExample />
 		</>
 	)
