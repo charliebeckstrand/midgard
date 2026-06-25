@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback } from 'react'
-import { createContext } from '../../core'
+import { createContext } from '../../../core'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
 
 /** Registers (or, with `null`, unregisters) a focusable control under `key`. */

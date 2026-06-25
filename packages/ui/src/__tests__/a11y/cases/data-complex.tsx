@@ -12,7 +12,7 @@ import {
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridEditableColumn } from '../../../modules/grid'
-import { QueryBuilder, type QueryField } from '../../../modules/query-builder'
+import { QueryBuilder, type QueryField } from '../../../modules/query'
 import type { Case } from './types'
 
 const noop = () => {}

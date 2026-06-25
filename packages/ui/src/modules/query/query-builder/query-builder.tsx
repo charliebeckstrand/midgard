@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { Fieldset } from '../../components/fieldset'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/query-builder'
+import { Fieldset } from '../../../components/fieldset'
+import { cn } from '../../../core'
+import { k } from '../../../recipes/kata/query-builder'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'

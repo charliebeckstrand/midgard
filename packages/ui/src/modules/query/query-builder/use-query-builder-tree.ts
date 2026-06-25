@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllable } from '../../../hooks'
 import type { FocusRegister, QueryBuilderActions } from './context'
 import {
 	addChild,
