@@ -72,6 +72,10 @@ function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 // Component tagging: `virtual:component-modules` + the index-barrel transform
 // ---------------------------------------------------------------------------
 
+/**
+ * A single named re-export parsed from a barrel: its source module, the local
+ * (imported) name, the exported name, and whether the specifier is type-only.
+ */
 export type ReExport = { source: string; localName: string; exportedName: string; isType: boolean }
 
 /**
@@ -333,9 +337,11 @@ export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): st
 }
 
 /**
- * Locate the `src/` directory containing `components/` and `layouts/`.
- * Docs build runs with `root = src/docs` (so `..` is `src`); vitest runs
- * with `root = packages/ui` (so `src` is one level down). Try both.
+ * Locate the library's source root (the directory holding `components/`)
+ * relative to the Vite `root`. A docs build sets `root` to the site directory
+ * (`src/docs`, so `..` is the source root); a test run sets `root` to the
+ * package directory (so `src` is one level down). Try both. The plugin's
+ * `srcDir` option overrides this lookup.
  */
 function findSrcDir(root: string): string {
 	const candidates = [path.resolve(root, '..'), path.join(root, 'src')]

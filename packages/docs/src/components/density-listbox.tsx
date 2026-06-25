@@ -9,6 +9,7 @@ type DensityListboxProps = {
 	onValueChange: (value: DensityLevel) => void
 }
 
+/** A demo control for switching the active {@link DensityLevel}, labelled from the density scale. */
 export function DensityListbox({
 	value,
 	placement = 'bottom-end',

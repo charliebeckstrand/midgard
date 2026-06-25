@@ -10,6 +10,7 @@ type VariantListboxProps<T extends string> = {
 	onValueChange: (value: T) => void
 }
 
+/** A demo control for picking a component's `variant` from a fixed set, each option title-cased. */
 export function VariantListbox<T extends string>({
 	variants,
 	value,

@@ -2,6 +2,7 @@
 
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 
+/** Display labels for the standard size scale, keyed by token. Backs {@link SizeListbox}. */
 export const sizeLabels: Record<string, string> = {
 	xs: 'Extra small',
 	sm: 'Small',
@@ -17,6 +18,7 @@ type SizeListboxProps<T extends string> = {
 	onValueChange: (value: T) => void
 }
 
+/** A demo control for picking a component's `size` from a fixed scale, labelled via {@link sizeLabels}. */
 export function SizeListbox<T extends string>({
 	sizes,
 	value,

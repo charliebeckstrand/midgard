@@ -9,6 +9,16 @@ import { Spacer } from 'ui/spacer'
 import { Stack } from 'ui/stack'
 import { deriveCode } from '../derive-code'
 
+/**
+ * The demo showcase frame: renders its `children` in a bordered preview with a
+ * collapsible "Show code" block beneath.
+ *
+ * @remarks
+ * The block derives from the rendered subtree via {@link deriveCode}; an
+ * explicit `code` overrides it, and when neither yields anything the block is
+ * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
+ * slots frame the preview.
+ */
 export function Example({
 	title,
 	prefix,

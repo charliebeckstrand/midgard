@@ -9,6 +9,7 @@ type ThemeListboxProps = {
 	onValueChange: (value: ThemeMode) => void
 }
 
+/** A demo control for switching the docs colour mode (light, dark, or system). */
 export function ThemeListbox({
 	value,
 	placement = 'bottom-end',

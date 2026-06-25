@@ -12,6 +12,7 @@ type ValueStepperProps = {
 	step?: number
 }
 
+/** A compact −/+ stepper for driving a numeric demo control, clamped to `[min, max]`. */
 export function ValueStepper({ value, onValueChange, min = 0, max, step = 1 }: ValueStepperProps) {
 	return (
 		<div className="flex items-center gap-1">
