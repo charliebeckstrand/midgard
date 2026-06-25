@@ -99,7 +99,7 @@ export function EditableGrid<T>({
 	virtualize,
 	density,
 	bleed,
-	grid,
+	outline,
 	striped,
 	className,
 }: EditableGridProps<T>) {
@@ -211,7 +211,7 @@ export function EditableGrid<T>({
 						virtualize={virtualize}
 						density={density}
 						bleed={bleed}
-						grid={grid}
+						outline={outline}
 						striped={striped}
 						className={cn('outline-0', className)}
 						tableProps={{

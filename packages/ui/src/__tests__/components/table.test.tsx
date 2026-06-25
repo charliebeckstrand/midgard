@@ -222,9 +222,9 @@ describe('Table variants', () => {
 		expect(container.querySelector('table')?.className).toContain('extra-table')
 	})
 
-	it('renders grid borders through the Table projection when grid is set', () => {
-		const { container: gridded } = renderUI(
-			<Table grid>
+	it('renders outline borders through the Table projection when outline is set', () => {
+		const { container: outlined } = renderUI(
+			<Table outline>
 				<TableBody>
 					<TableRow>
 						<TableCell>cell</TableCell>
@@ -244,8 +244,8 @@ describe('Table variants', () => {
 		)
 
 		// The projection lives on the table element; cells stay identical.
-		expect(gridded.querySelector('table')?.className).toContain('[&>*>tr>td]:border')
-		expect(gridded.querySelector('tbody td')?.className).toBe(
+		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>td]:border')
+		expect(outlined.querySelector('tbody td')?.className).toBe(
 			plain.querySelector('tbody td')?.className,
 		)
 	})

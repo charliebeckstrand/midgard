@@ -60,8 +60,8 @@ export function Demo() {
 				</Table>
 			</Example>
 
-			<Example title="Grid">
-				<Table grid>
+			<Example title="Outline">
+				<Table outline>
 					<TableHead>
 						<TableRow>
 							<TableHeader>Name</TableHeader>

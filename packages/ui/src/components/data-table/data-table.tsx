@@ -244,7 +244,7 @@ export function DataTable<T>({
 	tableProps,
 	density,
 	bleed,
-	grid,
+	outline,
 	striped,
 	className,
 }: DataTableProps<T>) {
@@ -331,7 +331,7 @@ export function DataTable<T>({
 		<Table
 			density={density}
 			bleed={bleed}
-			grid={grid}
+			outline={outline}
 			striped={striped}
 			className={className}
 			// `aria-busy` marks the table as updating while the loading skeleton

@@ -194,8 +194,8 @@ export function Demo() {
 				<DataTable striped columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
-			<Example title="Grid">
-				<DataTable grid columns={columns} rows={people} getKey={(row) => row.id} />
+			<Example title="Outline">
+				<DataTable outline columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example

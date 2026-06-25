@@ -134,7 +134,7 @@ export function Demo() {
 
 		return (
 			<EditableGrid
-				grid
+				outline
 				columns={columns}
 				rows={rates}
 				getKey={(row) => row.id}
@@ -204,7 +204,7 @@ export function Demo() {
 		return (
 			<>
 				<EditableGrid
-					grid
+					outline
 					columns={bulkColumns}
 					rows={bulkRates}
 					getKey={(row) => row.id}
