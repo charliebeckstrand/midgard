@@ -39,7 +39,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Layout & surfaces
 
-`box` · `flex` · `grid` · `stack` · `group` · `split` · `container` · `card` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+`box` · `flex` · `stack` · `group` · `split` · `container` · `card` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
 ## Typography
 

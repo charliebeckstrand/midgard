@@ -4,7 +4,6 @@ import { Card, CardBody, CardTitle } from '../../../components/card'
 import { Container } from '../../../components/container'
 import { Divider } from '../../../components/divider'
 import { Flex } from '../../../components/flex'
-import { Grid } from '../../../components/grid'
 import { Group } from '../../../components/group'
 import { Placeholder } from '../../../components/placeholder'
 import { ScrollArea } from '../../../components/scroll-area'
@@ -26,10 +25,10 @@ export const layoutCases: readonly Case[] = [
 	],
 	[
 		'grid',
-		<Grid key="gr" columns={{ initial: 2 }} gap="md">
+		<Box key="gr" className="grid grid-cols-2 gap-3">
 			<span>One</span>
 			<span>Two</span>
-		</Grid>,
+		</Box>,
 	],
 	[
 		'stack',
