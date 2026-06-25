@@ -5,7 +5,13 @@ import './app.css'
 // tree; the shared engine wires the loaders into the site chrome.
 mount(
 	import.meta.glob<import('react').ComponentType>(
-		['./demos/*.tsx', './demos/pages/*.tsx', './demos/providers/*.tsx', './demos/modules/*.tsx'],
+		[
+			'./demos/*.tsx',
+			'./demos/pages/*.tsx',
+			'./demos/providers/*.tsx',
+			'./demos/modules/*.tsx',
+			'./demos/modules/*/index.tsx',
+		],
 		{ import: 'Demo' },
 	),
 )

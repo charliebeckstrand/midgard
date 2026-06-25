@@ -1,13 +1,14 @@
 import { code, DensityListbox, Example } from 'docs'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Badge } from '../../../components/badge'
-import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
-import { HoldButton } from '../../../components/hold-button'
-import { Icon } from '../../../components/icon'
-import { Grid, type GridColumn, type SortState } from '../../../modules/grid'
-import type { DensityLevel } from '../../../providers/density'
+import { Badge } from '../../../../components/badge'
+import { Button } from '../../../../components/button'
+import { Flex } from '../../../../components/flex'
+import { HoldButton } from '../../../../components/hold-button'
+import { Icon } from '../../../../components/icon'
+import { Grid, type GridColumn, type SortState } from '../../../../modules/grid'
+import type { DensityLevel } from '../../../../providers/density'
+import { BulkEditExample, EditableExample } from './editable'
 
 type Person = {
 	id: number
@@ -241,6 +242,14 @@ export function Demo() {
 
 			<Example title="Column manager">
 				<ColumnManagerExample />
+			</Example>
+
+			<Example title="Editable">
+				<EditableExample />
+			</Example>
+
+			<Example title="Bulk editing">
+				<BulkEditExample />
 			</Example>
 		</>
 	)
