@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../../components/card'
@@ -17,7 +18,6 @@ import {
 	TableRow,
 } from '../../../components/table'
 import { DashboardLayout, StackedLayoutBody } from '../../../layouts'
-import { Example } from '../../components/example'
 
 const stats = [
 	{ label: 'Total revenue', value: '$45,231', delta: '+20.1%', trend: 'up' as const },

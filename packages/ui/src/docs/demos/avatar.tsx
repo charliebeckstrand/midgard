@@ -1,11 +1,7 @@
+import { capitalize, Example, LabeledRow, LabeledRows, SizeListbox, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../components/avatar'
 import { Flex } from '../../components/flex'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { LabeledRow, LabeledRows } from '../components/labeled'
-import { SizeListbox } from '../components/size-listbox'
-import { VariantListbox } from '../components/variant-listbox'
 
 const groupAvatars = ['AB', 'CD', 'EF', 'GH'] as const
 

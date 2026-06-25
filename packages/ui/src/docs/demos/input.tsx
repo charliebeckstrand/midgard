@@ -1,9 +1,8 @@
+import { capitalize, Example } from 'docs'
 import { Check, Hash, Lock, Search, Share } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
 
 const variants = ['default', 'outline'] as const
 const sizes = ['sm', 'md', 'lg'] as const

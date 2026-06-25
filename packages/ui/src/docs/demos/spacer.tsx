@@ -1,9 +1,9 @@
+import { Example } from 'docs'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
 import { Heading } from '../../components/heading'
 import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

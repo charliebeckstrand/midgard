@@ -1,8 +1,8 @@
+import { Example } from 'docs'
 import { type ReactNode, useState } from 'react'
 import { AspectRatio, type AspectRatioPreset } from '../../components/aspect-ratio'
 import { Card } from '../../components/card'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { Example } from '../components/example'
 
 const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: 'Square', value: 'square' },

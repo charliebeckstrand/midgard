@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import {
 	Aperture,
 	ChartBar,
@@ -43,7 +44,6 @@ import { Spacer } from '../../components/spacer'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
-import { Example } from '../components/example'
 
 const primary = [
 	{ value: 'home', label: 'Home', icon: <Home /> },

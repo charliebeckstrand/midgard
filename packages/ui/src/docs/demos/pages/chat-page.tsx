@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { ArrowUp, CircleDashed, Paperclip, Trash } from 'lucide-react'
 import { type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
@@ -23,7 +24,6 @@ import {
 	SidebarLayoutFooter,
 	SidebarLayoutHeader,
 } from '../../../layouts'
-import { Example } from '../../components/example'
 
 type Message = {
 	id: number

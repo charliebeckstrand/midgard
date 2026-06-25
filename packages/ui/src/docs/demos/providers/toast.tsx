@@ -1,10 +1,9 @@
+import { code, Example } from 'docs'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
 import { Stack } from '../../../components/stack'
 import { Toast } from '../../../components/toast'
 import { ToastProvider, useToast } from '../../../providers/toast'
-import { code } from '../../code'
-import { Example } from '../../components/example'
 
 export const meta = { name: 'Toast Provider' }
 

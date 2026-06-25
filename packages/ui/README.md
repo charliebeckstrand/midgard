@@ -43,7 +43,7 @@ No root barrel; the `exports` map exposes each component path.
 | `src/recipes/` | Layered variant system. |
 | `src/layouts/` | Layout primitives and their variants. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
-| `src/docs/` | Vite-hosted docs site. |
+| `src/docs/` | The docs-site entry — demos, host, and Vite config wiring the shared [`docs`](../docs) engine to ui's source. |
 
 ## 4. Further reading
 

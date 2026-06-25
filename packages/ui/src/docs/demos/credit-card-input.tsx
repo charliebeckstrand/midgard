@@ -1,3 +1,4 @@
+import { code, Example } from 'docs'
 import { useState } from 'react'
 import {
 	type CreditCardBrand,
@@ -8,8 +9,6 @@ import {
 import { Field, Label, Message } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
-import { code } from '../code'
-import { Example } from '../components/example'
 
 function ControlledExample() {
 	const [value, setValue] = useState('')

@@ -1,5 +1,5 @@
+import { Example } from 'docs'
 import { Divider } from '../../components/divider'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

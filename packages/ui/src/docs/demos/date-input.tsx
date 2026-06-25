@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { DateInput } from '../../components/date-input'
 import { Field, Label } from '../../components/fieldset'
-import { Example } from '../components/example'
 
 function ControlledExample() {
 	const [value, setValue] = useState<Date | undefined>(new Date(2026, 5, 15))

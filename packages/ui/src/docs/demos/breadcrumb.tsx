@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -5,7 +6,6 @@ import {
 	BreadcrumbList,
 	BreadcrumbSeparator,
 } from '../../components/breadcrumb'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

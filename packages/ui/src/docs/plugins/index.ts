@@ -1,1 +1,0 @@
-export { docsPlugin } from './docs'

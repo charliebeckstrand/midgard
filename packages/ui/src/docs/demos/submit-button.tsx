@@ -1,10 +1,10 @@
+import { Example } from 'docs'
 import { Field, Label } from '../../components/fieldset'
 import { Flex } from '../../components/flex'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
 import { SubmitButton } from '../../components/submit-button'
-import { Example } from '../components/example'
 
 async function simulateAsyncSubmission() {
 	return new Promise<void>((r) => setTimeout(r, 1000))

@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { Archive, ChevronDown, Copy, SquarePen, Trash } from 'lucide-react'
 import { Box } from '../../components/box'
 import { Button } from '../../components/button'
@@ -14,7 +15,6 @@ import {
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { GlassProvider } from '../../providers/glass'
-import { Example } from '../components/example'
 
 export function Demo() {
 	const dropdown = (

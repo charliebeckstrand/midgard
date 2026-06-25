@@ -1,12 +1,9 @@
+import { capitalize, Example, LabeledColumn, LabeledRow, LabeledRows, ValueStepper } from 'docs'
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { LabeledColumn, LabeledRow, LabeledRows } from '../components/labeled'
-import { ValueStepper } from '../components/value-stepper'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 

@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import {
 	Archive,
 	Copy,
@@ -23,7 +24,6 @@ import {
 } from '../../components/command-palette'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
-import { Example } from '../components/example'
 
 type Command = {
 	id: string

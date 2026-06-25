@@ -1,6 +1,5 @@
+import { code, Example } from 'docs'
 import { PdfViewer } from '../../components/pdf-viewer'
-import { code } from '../code'
-import { Example } from '../components/example'
 
 function DefaultExample() {
 	return (

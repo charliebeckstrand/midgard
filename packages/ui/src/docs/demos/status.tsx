@@ -1,11 +1,8 @@
+import { capitalize, Example, SizeListbox, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { StatusDot } from '../../components/status'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { SizeListbox } from '../components/size-listbox'
-import { VariantListbox } from '../components/variant-listbox'
 
 const statuses = ['inactive', 'active', 'info', 'warning', 'error'] as const
 

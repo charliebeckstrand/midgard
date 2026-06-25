@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { AtSign, Home, Info } from 'lucide-react'
 import { useState } from 'react'
 import { Card } from '../../components/card'
@@ -12,7 +13,6 @@ import {
 } from '../../components/nav'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
-import { Example } from '../components/example'
 
 function NavItems() {
 	return (

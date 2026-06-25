@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import {
 	Table,
 	TableBody,
@@ -8,7 +9,6 @@ import {
 	TableLoading,
 	TableRow,
 } from '../../components/table'
-import { Example } from '../components/example'
 
 const users = [
 	{ name: 'Wade Cooper', email: 'wade@example.com', role: 'Admin' },

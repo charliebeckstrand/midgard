@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Card } from '../../components/card'
 import { Grid, GridCell, GridDivider } from '../../components/grid'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

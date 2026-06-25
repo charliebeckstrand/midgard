@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { SearchInput } from '../../components/search-input'
-import { Example } from '../components/example'
 
 const placeholder = 'Search'
 
