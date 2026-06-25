@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { QueryField } from '../../components/query-builder'
-import { useQueryBuilderTree } from '../../components/query-builder/use-query-builder-tree'
+import type { QueryField } from '../../modules/query-builder'
+import { useQueryBuilderTree } from '../../modules/query-builder/use-query-builder-tree'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },

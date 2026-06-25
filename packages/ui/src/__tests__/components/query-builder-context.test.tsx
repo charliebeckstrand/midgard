@@ -1,14 +1,14 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import type { QueryBuilderActions } from '../../components/query-builder/context'
+import type { QueryBuilderActions } from '../../modules/query-builder/context'
 import {
 	QueryBuilderProvider,
 	useQueryBuilderActions,
 	useQueryBuilderContext,
 	useQueryBuilderState,
-} from '../../components/query-builder/context'
-import { createGroup } from '../../components/query-builder/query-builder-utilities'
-import type { QueryField } from '../../components/query-builder/types'
+} from '../../modules/query-builder/context'
+import { createGroup } from '../../modules/query-builder/query-builder-utilities'
+import type { QueryField } from '../../modules/query-builder/types'
 
 const fields: QueryField[] = [{ name: 'title', label: 'Title', type: 'text' }]
 

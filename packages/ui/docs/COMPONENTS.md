@@ -35,7 +35,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Data display
 
-`data-table` · `table` · `editable-grid` · `pivot-table` · `query-builder` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `odometer` · `time-ago` · `status` · `badge` · `avatar` · `kbd` · `code`
+`data-table` · `table` · `editable-grid` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `odometer` · `time-ago` · `status` · `badge` · `avatar` · `kbd` · `code`
 
 ## Layout & surfaces
 

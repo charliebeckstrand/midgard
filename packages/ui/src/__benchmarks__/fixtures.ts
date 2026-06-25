@@ -5,7 +5,7 @@
  * and run-to-run variance reflects the code under test, not the data.
  */
 
-import type { QueryField, QueryGroup, QueryNode } from '../components/query-builder/types'
+import type { QueryField, QueryGroup, QueryNode } from '../modules/query-builder/types'
 
 function rng(seed = 1) {
 	let state = seed >>> 0

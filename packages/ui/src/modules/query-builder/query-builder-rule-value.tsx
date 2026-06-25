@@ -1,9 +1,9 @@
 'use client'
 
-import { DatePicker } from '../date-picker'
-import { Input } from '../input'
-import { ListboxOption } from '../listbox'
-import { Select } from '../select'
+import { DatePicker } from '../../components/date-picker'
+import { Input } from '../../components/input'
+import { ListboxOption } from '../../components/listbox'
+import { Select } from '../../components/select'
 import type { QueryField } from './types'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */

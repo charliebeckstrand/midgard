@@ -7,7 +7,7 @@ import {
 	QueryBuilderRuleValue,
 	type QueryField,
 	type QueryGroupNode,
-} from '../../components/query-builder'
+} from '../../modules/query-builder'
 import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
