@@ -12,7 +12,7 @@ export type DocLink = {
 
 export type PropDef = {
 	name: string
-	/** Type expression as written in source, e.g. `DataTableColumn<T>[]`. */
+	/** Type expression as written in source, e.g. `GridColumn<T>[]`. */
 	type: string
 	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
 	description?: string

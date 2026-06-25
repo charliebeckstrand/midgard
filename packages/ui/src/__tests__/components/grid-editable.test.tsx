@@ -473,7 +473,7 @@ describe('Grid', () => {
 			/>,
 		)
 
-		const rendered = container.querySelectorAll('tbody tr:not([data-slot="data-table-spacer"])')
+		const rendered = container.querySelectorAll('tbody tr:not([data-slot="grid-spacer"])')
 
 		expect(rendered.length).toBeLessThan(manyRows.length)
 	})

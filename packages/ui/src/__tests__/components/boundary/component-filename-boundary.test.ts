@@ -21,6 +21,8 @@ import { describe, expect, it } from 'vitest'
 
 const componentsDir = join(__dirname, '../../../components')
 
+const modulesDir = join(__dirname, '../../../modules')
+
 const BARE_ALLOWED = new Set([
 	'index.ts',
 	'index.tsx',
@@ -182,7 +184,7 @@ function checkFolder(folderPath: string): Violation[] {
 }
 
 describe('component filename boundary', () => {
-	const folders = listLeafFolders(componentsDir)
+	const folders = [...listLeafFolders(componentsDir), ...listLeafFolders(modulesDir)]
 
 	const violations = folders.flatMap(checkFolder)
 

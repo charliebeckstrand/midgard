@@ -69,6 +69,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a de
 | Goal | Path |
 |---|---|
 | Components | `packages/ui/src/components/<name>/*` |
+| Modules | `packages/ui/src/modules/<name>/*` |
 | Component demos | `packages/ui/src/docs/demos/*` |
 | Docs rendering engine | [`packages/docs`](../docs) |
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |

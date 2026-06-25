@@ -34,7 +34,7 @@ const Text = tag('Text')
 // `src/docs/demos/`:
 //   small   ~10  recognized nodes  (e.g. a single-button demo)
 //   medium  ~50  recognized nodes  (e.g. a populated card layout)
-//   heavy   ~200 recognized nodes  (e.g. data-table or query-builder demos)
+//   heavy   ~200 recognized nodes  (e.g. grid or query-builder demos)
 
 function makeSmall(): ReactNode {
 	return createElement(Stack, null, [
