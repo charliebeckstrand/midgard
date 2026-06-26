@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -88,6 +89,46 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// A short value in a wide column does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
+		await new Promise((resolve) => setTimeout(resolve, 400))
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+	})
+
+	it('stops showing the tooltip after the column widens past its content', async () => {
+		function Harness() {
+			const [name, setName] = useState(80)
+
+			return (
+				<>
+					<button type="button" onClick={() => setName(800)}>
+						Widen
+					</button>
+
+					<Grid
+						resizable
+						columns={[nameCol]}
+						columnSizing={{ value: { name } }}
+						rows={rows}
+						getKey={getKey}
+					/>
+				</>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		// Narrow column: the cell truncates and tooltips on hover.
+		await userEvent.hover(screen.getByText(longName))
+
+		await screen.findByRole('tooltip')
+
+		// Widen past the content (the click also moves the pointer off the cell).
+		await userEvent.click(screen.getByRole('button', { name: 'Widen' }))
+
+		// Re-hover: the cell now fits, so the overflow observer (still attached to
+		// the unremounted span) has cleared truncation and no tooltip surfaces.
+		await userEvent.hover(screen.getByText(longName))
+
 		await new Promise((resolve) => setTimeout(resolve, 400))
 
 		expect(screen.queryByRole('tooltip')).toBeNull()

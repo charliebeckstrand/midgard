@@ -99,29 +99,32 @@ type GridCellContentProps = {
  * Renders a data cell's content on one line, truncated to an ellipsis when it
  * overflows the column width. A truncated cell gains a hover/focus
  * {@link Tooltip} carrying the full content — or a column's `cellTooltip` node in
- * its place — while `none` suppresses it. Only truncated cells mount the
- * tooltip, so an untruncated cell pays none of its cost.
+ * its place — while `none` suppresses it.
  *
+ * @remarks The tooltip stays mounted and is gated by its `enabled` prop rather
+ * than mounted only while truncated: keeping the span in place means the overflow
+ * `ResizeObserver` never detaches, so widening a column back out re-measures and
+ * `enabled` closes the tooltip. (Remounting the span on every truncation toggle
+ * stranded the observer on the old node, leaving a stale tooltip.) The closed
+ * tooltip renders no surface, so an untruncated cell adds no DOM.
  * @internal
  */
 export function GridCellContent({ content, tooltip }: GridCellContentProps) {
 	const [ref, truncated] = useGridCellTruncated<HTMLSpanElement>()
 
-	// One element, reused in both branches: when truncation crosses its
-	// threshold the span keeps its ref (TooltipTrigger merges onto it).
-	const inner = (
+	const span = (
 		<span ref={ref} className={cn(k.cell.truncate)}>
 			{content}
 		</span>
 	)
 
-	if (tooltip.kind === 'none' || !truncated) return inner
+	if (tooltip.kind === 'none') return span
 
 	const node = tooltip.kind === 'custom' ? tooltip.node : content
 
 	return (
-		<Tooltip>
-			<TooltipTrigger>{inner}</TooltipTrigger>
+		<Tooltip enabled={truncated}>
+			<TooltipTrigger>{span}</TooltipTrigger>
 
 			<TooltipContent className={cn(k.cell.tooltip)}>{node}</TooltipContent>
 		</Tooltip>
