@@ -6,6 +6,7 @@ import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
 import { GridRow } from './grid-row'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = {
@@ -25,6 +26,8 @@ type GridVirtualizedBodyProps<T> = {
 	reorderable: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
+	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
+	pinning: GridColumnPinning | null
 	estimateSize: number
 	overscan: number
 }
@@ -52,6 +55,7 @@ export function GridVirtualizedBody<T>({
 	toggleRow,
 	reorderable,
 	truncate,
+	pinning,
 	estimateSize,
 	overscan,
 }: GridVirtualizedBodyProps<T>) {
@@ -93,6 +97,7 @@ export function GridVirtualizedBody<T>({
 						toggleRow={toggleRow}
 						reorderable={reorderable}
 						truncate={truncate}
+						pinning={pinning}
 						dataRowIndex={vr.index}
 						// Header occupies row 1; data rows are offset by 2.
 						rowIndex={vr.index + 2}

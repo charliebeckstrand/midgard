@@ -76,8 +76,15 @@ export type GridColumn<T> = {
 	minWidth?: number
 	/** Maximum width (px) the column can be resized to; unbounded when omitted. */
 	maxWidth?: number
-	/** Shown in the column manager but cannot be reordered or hidden. */
-	pinned?: boolean
+	/**
+	 * Freezes the column against a horizontal scroll, pulling it to that edge and
+	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
+	 * A pinned column is also locked — it can't be reordered or hidden, and shows
+	 * in the column manager's pinned group. Multi-column stacking needs known
+	 * widths (a `resizable`/fixed-layout grid, or a column `width`); a lone pinned
+	 * column on a side needs neither.
+	 */
+	pinned?: boolean | 'left' | 'right'
 	/**
 	 * When false, the column cannot be hidden from the column manager.
 	 * @defaultValue true

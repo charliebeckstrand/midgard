@@ -4,6 +4,7 @@ import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import { GridRow } from './grid-row'
 import { GridVirtualizedBody } from './grid-virtualized-body'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = {
@@ -25,6 +26,8 @@ type GridBodyProps<T> = {
 	reorderable: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
+	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
+	pinning: GridColumnPinning | null
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -54,6 +57,7 @@ export function GridBody<T>({
 	toggleRow,
 	reorderable,
 	truncate,
+	pinning,
 	virtualize,
 }: GridBodyProps<T>) {
 	if (loading) return <TableLoading columns={visibleColumns.length} />
@@ -75,6 +79,7 @@ export function GridBody<T>({
 				toggleRow={toggleRow}
 				reorderable={reorderable}
 				truncate={truncate}
+				pinning={pinning}
 				estimateSize={virtualize.estimateSize}
 				overscan={virtualize.overscan}
 			/>
@@ -99,6 +104,7 @@ export function GridBody<T>({
 						toggleRow={toggleRow}
 						reorderable={reorderable}
 						truncate={truncate}
+						pinning={pinning}
 						dataRowIndex={index}
 					/>
 				)

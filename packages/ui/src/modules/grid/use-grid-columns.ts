@@ -33,8 +33,35 @@ function isColumnVisible<T>(col: GridColumn<T>, hiddenColumns: Set<string | numb
 }
 
 /**
+ * Stable-partitions columns to their pinned edge: left-pinned (`true`/`'left'`)
+ * first, unpinned in the middle, right-pinned last, each group keeping its
+ * relative order. Pulling frozen columns to the edges lets the header, engine
+ * cells, and `<colgroup>` share one order while the sticky offsets stack from
+ * the edge inward.
+ *
+ * @internal
+ */
+function partitionByPin<T>(columns: GridColumn<T>[]): GridColumn<T>[] {
+	const left: GridColumn<T>[] = []
+	const center: GridColumn<T>[] = []
+	const right: GridColumn<T>[] = []
+
+	for (const col of columns) {
+		if (col.pinned === 'right') right.push(col)
+		else if (col.pinned) left.push(col)
+		else center.push(col)
+	}
+
+	// Skip the concat allocation when nothing is pinned (the common case).
+	if (left.length === 0 && right.length === 0) return columns
+
+	return [...left, ...center, ...right]
+}
+
+/**
  * Orders columns by the stored order, then appends any not represented (e.g.
- * added after mount), dropping hidden columns from both passes.
+ * added after mount), dropping hidden columns from both passes, and finally
+ * pulls pinned columns to their edges.
  *
  * @internal
  */
@@ -65,7 +92,7 @@ function buildVisibleColumns<T>(
 		if (isColumnVisible(col, hiddenColumns)) ordered.push(col)
 	}
 
-	return ordered
+	return partitionByPin(ordered)
 }
 
 /** Options for {@link useGridColumns}. @internal */
@@ -165,7 +192,8 @@ export function useGridColumns<T>({
 			columns.filter(isDataColumn).map((c) => ({
 				id: c.id,
 				title: c.title ?? String(c.id),
-				pinned: c.pinned,
+				// Either edge reads as pinned; omitted (not `false`) when the column scrolls.
+				pinned: c.pinned ? true : undefined,
 				hideable: c.hideable,
 			})),
 		[columns],

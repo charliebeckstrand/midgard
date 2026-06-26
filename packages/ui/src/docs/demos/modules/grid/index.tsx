@@ -167,6 +167,98 @@ const truncatedColumns: GridColumn<Person>[] = [
 	},
 ]
 
+type Employee = {
+	id: number
+	name: string
+	email: string
+	role: string
+	department: string
+	location: string
+	startDate: string
+	salary: string
+	status: 'active' | 'inactive'
+}
+
+const employees: Employee[] = [
+	{
+		id: 1,
+		name: 'Wade Cooper',
+		email: 'wade@example.com',
+		role: 'Developer',
+		department: 'Engineering',
+		location: 'San Francisco',
+		startDate: '2021-03-14',
+		salary: '$145,000',
+		status: 'active',
+	},
+	{
+		id: 2,
+		name: 'Arlene McCoy',
+		email: 'arlene@example.com',
+		role: 'Designer',
+		department: 'Product',
+		location: 'New York',
+		startDate: '2022-07-01',
+		salary: '$132,000',
+		status: 'active',
+	},
+	{
+		id: 3,
+		name: 'Devon Webb',
+		email: 'devon@example.com',
+		role: 'Manager',
+		department: 'Operations',
+		location: 'Austin',
+		startDate: '2019-11-23',
+		salary: '$158,000',
+		status: 'inactive',
+	},
+	{
+		id: 4,
+		name: 'Tom Cook',
+		email: 'tom@example.com',
+		role: 'Developer',
+		department: 'Engineering',
+		location: 'Seattle',
+		startDate: '2023-02-12',
+		salary: '$121,000',
+		status: 'active',
+	},
+	{
+		id: 5,
+		name: 'Tanya Fox',
+		email: 'tanya@example.com',
+		role: 'Designer',
+		department: 'Product',
+		location: 'Remote',
+		startDate: '2020-05-30',
+		salary: '$139,000',
+		status: 'inactive',
+	},
+]
+
+// `pinned` freezes a column against horizontal scroll: `'left'` (or `true`) pulls
+// it to the left edge, `'right'` to the right; the rest scroll between them. A
+// pinned column is locked — it can't be reordered or hidden. Stacking columns on
+// a side needs known widths, so this grid is `resizable` (fixed layout) and its
+// sticky header rides the same scroll container as the frozen columns.
+const employeeColumns: GridColumn<Employee>[] = [
+	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '180px', pinned: 'left' },
+	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '220px' },
+	{ id: 'role', title: 'Role', cell: (row) => row.role, width: '160px' },
+	{ id: 'department', title: 'Department', cell: (row) => row.department, width: '160px' },
+	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
+	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '140px' },
+	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '140px' },
+	{
+		id: 'status',
+		title: 'Status',
+		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
+		width: '120px',
+		pinned: 'right',
+	},
+]
+
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
@@ -347,6 +439,19 @@ const ResizableExample = () => (
 	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
 )
 
+const PinnedExample = () => (
+	// The Name column freezes to the left and Status to the right; scroll the grid
+	// sideways and they stay put while the middle columns slide beneath them.
+	<Grid
+		resizable
+		stickyHeader
+		maxHeight="320px"
+		columns={employeeColumns}
+		rows={employees}
+		getKey={(row) => row.id}
+	/>
+)
+
 const TruncationExample = () => (
 	// In a narrow grid, overflowing cells — and column titles — truncate to an
 	// ellipsis and reveal the full text in a tooltip on hover; the Role column
@@ -513,6 +618,13 @@ export function Demo() {
 
 			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
 				<ResizableExample />
+			</Example>
+
+			<Example
+				title="Pinned columns"
+				code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
+			>
+				<PinnedExample />
 			</Example>
 
 			<Example

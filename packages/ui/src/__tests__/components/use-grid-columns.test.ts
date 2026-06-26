@@ -330,3 +330,76 @@ describe('useGridColumns', () => {
 		expect(result.current.manageColumnsLabel).toBe('Anything')
 	})
 })
+
+describe('useGridColumns column pinning partition', () => {
+	type R = { a: string }
+
+	const cell = (r: R) => r.a
+
+	const ids = (cols: GridColumn<R>[]) =>
+		renderHook(() =>
+			useGridColumns<R>({ columns: cols, columnManagerConfig: undefined }),
+		).result.current.visibleColumns.map((c) => c.id)
+
+	it('pulls left-pinned columns to the front in declaration order (true is left)', () => {
+		expect(
+			ids([
+				{ id: 'a', cell },
+				{ id: 'b', cell, pinned: 'left' },
+				{ id: 'c', cell },
+				{ id: 'd', cell, pinned: true },
+			]),
+		).toEqual(['b', 'd', 'a', 'c'])
+	})
+
+	it('pushes right-pinned columns to the end in declaration order', () => {
+		expect(
+			ids([
+				{ id: 'a', cell, pinned: 'right' },
+				{ id: 'b', cell },
+				{ id: 'c', cell, pinned: 'right' },
+				{ id: 'd', cell },
+			]),
+		).toEqual(['b', 'd', 'a', 'c'])
+	})
+
+	it('orders left, then center, then right — each group keeping its order', () => {
+		expect(
+			ids([
+				{ id: 'l1', cell, pinned: 'left' },
+				{ id: 'c1', cell },
+				{ id: 'r1', cell, pinned: 'right' },
+				{ id: 'l2', cell, pinned: 'left' },
+				{ id: 'c2', cell },
+				{ id: 'r2', cell, pinned: 'right' },
+			]),
+		).toEqual(['l1', 'l2', 'c1', 'c2', 'r1', 'r2'])
+	})
+
+	it('leaves column order untouched when nothing is pinned', () => {
+		expect(
+			ids([
+				{ id: 'a', cell },
+				{ id: 'b', cell },
+				{ id: 'c', cell },
+			]),
+		).toEqual(['a', 'b', 'c'])
+	})
+
+	it('partitions after the stored order, so a reorder still resolves to the edges', () => {
+		const { result } = renderHook(() =>
+			useGridColumns<R>({
+				columns: [
+					{ id: 'a', cell },
+					{ id: 'b', cell, pinned: 'left' },
+					{ id: 'c', cell },
+				],
+				// Stored order shuffles the center columns; the pin still wins the edge.
+				columnOrderConfig: { value: ['c', 'a', 'b'] },
+				columnManagerConfig: undefined,
+			}),
+		)
+
+		expect(result.current.visibleColumns.map((col) => col.id)).toEqual(['b', 'c', 'a'])
+	})
+})

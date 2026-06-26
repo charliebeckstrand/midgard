@@ -45,6 +45,18 @@ export const k = {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		head: ['sticky top-0 z-10', bg.surface],
 	},
+	pinned: {
+		// Frozen data cell: opaque surface so the scrolling columns don't show
+		// through, lifted just above the centre cells (below the z-10 sticky head,
+		// so a vertical scroll still tucks pinned cells under it). The left/right
+		// offset is an inline style summed from the engine.
+		cell: ['sticky z-[1]', bg.surface],
+		// Frozen header cell: above the sticky head so the top corner stays on top.
+		head: ['sticky z-20', bg.surface],
+		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
+		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
+		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
+	},
 	batch: {
 		bar: [
 			flex.row,

@@ -16,9 +16,10 @@ import type { QueryGroupNode } from '../query'
 import { useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
+import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
-import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
+import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
 
 /** Props for {@link GridHead}. @internal */
@@ -44,6 +45,8 @@ type GridHeadProps<T> = {
 	resize?: GridColumnResize | null
 	/** Per-column filter controls; renders a filter row beneath the header when present. */
 	filters?: GridColumnFilter | null
+	/** Frozen-column controls; pins matching headers sticky to an edge. `null` when none. */
+	pinning?: GridColumnPinning | null
 }
 
 /**
@@ -61,6 +64,7 @@ export function GridHead<T>({
 	reorderable = false,
 	resize,
 	filters,
+	pinning,
 }: GridHeadProps<T>) {
 	return (
 		<TableHead>
@@ -76,6 +80,7 @@ export function GridHead<T>({
 						reorderable={reorderable}
 						resize={resize ?? null}
 						filters={filters ?? null}
+						pinning={pinning ?? null}
 					/>
 				))}
 			</TableRow>
@@ -94,6 +99,7 @@ type GridHeaderCellProps<T> = {
 	reorderable: boolean
 	resize: GridColumnResize | null
 	filters: GridColumnFilter | null
+	pinning: GridColumnPinning | null
 }
 
 /**
@@ -112,6 +118,7 @@ function GridHeaderCell<T>({
 	reorderable,
 	resize,
 	filters,
+	pinning,
 }: GridHeaderCellProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
 
@@ -119,8 +126,16 @@ function GridHeaderCell<T>({
 		return (
 			<TableHeader
 				aria-colindex={colIndex}
-				className={cn(k.selectCell, stickyHeader && k.sticky.head, column.headerClassName)}
-				style={column.width ? { width: column.width } : undefined}
+				className={cn(
+					k.selectCell,
+					stickyHeader && k.sticky.head,
+					pinnedClassName(pinning, column.id, { header: true }),
+					column.headerClassName,
+				)}
+				style={{
+					...(column.width ? { width: column.width } : null),
+					...pinnedOffsetStyle(pinning, column.id),
+				}}
 			>
 				{hasRows && (
 					<Checkbox
@@ -167,6 +182,8 @@ function GridHeaderCell<T>({
 		// changes) so the memoized header re-renders when it changes — the
 		// filter button's controlled QueryBuilder reads it, not `filter` live.
 		filterQuery: filters?.getQuery(column.id),
+		// Frozen-column controls; the header reads them so a pinned cell sticks.
+		pinning,
 	}
 
 	// `reorderable` already folds in the source-data gate (its caller passes
@@ -203,6 +220,8 @@ type GridColumnHeaderProps = {
 	filter: GridColumnFilter | null
 	/** The column's live query tree, passed so a filter change re-renders this memoized cell. */
 	filterQuery: QueryGroupNode | undefined
+	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
+	pinning: GridColumnPinning | null
 }
 
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
@@ -396,6 +415,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	gridCol,
 	filter,
 	filterQuery,
+	pinning,
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
@@ -408,9 +428,13 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
+				pinnedClassName(pinning, column.id, { header: true }),
 				column.headerClassName,
 			)}
-			style={width != null ? { width } : undefined}
+			style={{
+				...(width != null ? { width } : null),
+				...pinnedOffsetStyle(pinning, column.id),
+			}}
 		>
 			<span className={cn(k.filter.slot)}>
 				<ColumnHeaderLabel

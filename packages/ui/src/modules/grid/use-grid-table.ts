@@ -4,6 +4,7 @@ import {
 	type CellContext,
 	type ColumnDef,
 	type ColumnFiltersState,
+	type ColumnPinningState,
 	type ColumnSizingState,
 	type FilterFn,
 	getCoreRowModel,
@@ -285,12 +286,15 @@ function buildState(args: {
 	columnFilters: ColumnFiltersState
 	sortClient: boolean
 	sorting: SortingState
+	pinned: boolean
+	columnPinning: ColumnPinningState
 }): {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
 	sorting?: SortingState
+	columnPinning?: ColumnPinningState
 } {
 	const state: {
 		pagination?: PaginationState
@@ -298,6 +302,7 @@ function buildState(args: {
 		globalFilter?: string
 		columnFilters?: ColumnFiltersState
 		sorting?: SortingState
+		columnPinning?: ColumnPinningState
 	} = {}
 
 	if (args.paginated) state.pagination = args.pagination
@@ -309,6 +314,8 @@ function buildState(args: {
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
 
 	if (args.sortClient) state.sorting = args.sorting
+
+	if (args.pinned) state.columnPinning = args.columnPinning
 
 	return state
 }
@@ -346,6 +353,43 @@ function buildColumnResize<T>(table: Table<T>): Omit<GridColumnResize, 'sizeToFi
 
 			table.setColumnSizing((prev) => ({ ...prev, [String(id)]: next }))
 		},
+	}
+}
+
+/**
+ * Derives the engine's `columnPinning` state from each column's `pinned` flag
+ * (`true` is left), plus whether any column is pinned at all.
+ *
+ * @internal
+ */
+function toColumnPinningState<T>(columns: GridColumn<T>[]): {
+	state: ColumnPinningState
+	hasPinned: boolean
+} {
+	const left = columns
+		.filter((col) => col.pinned === true || col.pinned === 'left')
+		.map((col) => String(col.id))
+
+	const right = columns.filter((col) => col.pinned === 'right').map((col) => String(col.id))
+
+	return { state: { left, right }, hasPinned: left.length > 0 || right.length > 0 }
+}
+
+/**
+ * Assembles the {@link GridColumnPinning} controls over a table instance:
+ * each column's frozen side, its sticky offset from that edge (summed from the
+ * sizes of the columns pinned before it), and whether it sits at the inner
+ * boundary (for the separating shadow). Methods read the engine live.
+ *
+ * @internal
+ */
+function buildColumnPinning<T>(table: Table<T>): GridColumnPinning {
+	return {
+		side: (id) => table.getColumn(String(id))?.getIsPinned() || undefined,
+		leftOffset: (id) => table.getColumn(String(id))?.getStart('left') ?? 0,
+		rightOffset: (id) => table.getColumn(String(id))?.getAfter('right') ?? 0,
+		isLastLeft: (id) => table.getColumn(String(id))?.getIsLastColumn('left') ?? false,
+		isFirstRight: (id) => table.getColumn(String(id))?.getIsFirstColumn('right') ?? false,
 	}
 }
 
@@ -450,6 +494,26 @@ export type GridColumnResize = {
 }
 
 /**
+ * Frozen-column controls over the engine's column-pinning state: which edge a
+ * column is pinned to, its sticky offset from that edge, and whether it sits at
+ * the inner boundary of its frozen group (where the separating shadow draws).
+ *
+ * @internal
+ */
+export type GridColumnPinning = {
+	/** The column's frozen edge, or `undefined` when it scrolls. */
+	side: (id: string | number) => 'left' | 'right' | undefined
+	/** Sticky offset (px) from the left edge — the summed width of the columns pinned left before it. */
+	leftOffset: (id: string | number) => number
+	/** Sticky offset (px) from the right edge — the summed width of the columns pinned right after it. */
+	rightOffset: (id: string | number) => number
+	/** Whether the column is the innermost left-pinned one (its right edge borders the scroll area). */
+	isLastLeft: (id: string | number) => boolean
+	/** Whether the column is the innermost right-pinned one (its left edge borders the scroll area). */
+	isFirstRight: (id: string | number) => boolean
+}
+
+/**
  * Per-column filter controls the header filter sheets render from. Methods
  * read the engine live, so the object itself is stable across renders.
  *
@@ -517,6 +581,8 @@ type UseGridTableResult<T> = {
 	globalFilter: GridGlobalFilterView | null
 	/** Per-column filter controls, or `null` when no column is filterable. */
 	filters: GridColumnFilter | null
+	/** Frozen-column controls, or `null` when no column is pinned. */
+	pinning: GridColumnPinning | null
 }
 
 /**
@@ -678,6 +744,13 @@ export function useGridTable<T>({
 		[sort, setSort],
 	)
 
+	// Frozen columns, keyed off each column's `pinned` flag. `columns` arrives
+	// already partitioned to the edges, so these id lists are in sticky order.
+	const { state: columnPinning, hasPinned } = useMemo(
+		() => toColumnPinningState(columns),
+		[columns],
+	)
+
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
 	const table = useReactTable<T>({
@@ -698,6 +771,8 @@ export function useGridTable<T>({
 			columnFilters: resolvedColumnFilters,
 			sortClient: clientSort,
 			sorting: toSortingState(sort),
+			pinned: hasPinned,
+			columnPinning,
 		}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 		...resizeOptions<T>({ resizable, onColumnSizingChange }),
@@ -771,5 +846,10 @@ export function useGridTable<T>({
 		[hasColumnFilters, table],
 	)
 
-	return { table, renderRows, pagination, resize, globalFilter, filters }
+	const pinning = useMemo<GridColumnPinning | null>(
+		() => (hasPinned ? buildColumnPinning(table) : null),
+		[hasPinned, table],
+	)
+
+	return { table, renderRows, pagination, resize, globalFilter, filters, pinning }
 }

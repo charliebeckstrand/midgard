@@ -9,8 +9,10 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridRowContext, type GridRowContextValue } from './context'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
+import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridRow}. @internal */
 type GridRowProps<T> = {
@@ -59,6 +61,8 @@ type GridRowProps<T> = {
 	 * DOM position diverge from data order.
 	 */
 	dataRowIndex: number
+	/** Frozen-column controls; pinned cells stick to an edge over the scrolling ones. `null` when none. */
+	pinning: GridColumnPinning | null
 }
 
 /**
@@ -95,6 +99,7 @@ function GridRowImpl<T>({
 	truncate,
 	rowIndex,
 	dataRowIndex,
+	pinning,
 }: GridRowProps<T>) {
 	const rowContext = useMemo<GridRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
@@ -126,7 +131,8 @@ function GridRowImpl<T>({
 							<TableCell
 								key={col.id}
 								aria-colindex={colIndex}
-								className={cn(k.selectCell, col.className)}
+								className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
+								style={pinnedOffsetStyle(pinning, col.id)}
 							>
 								<Checkbox
 									checked={selected}
@@ -142,7 +148,8 @@ function GridRowImpl<T>({
 							<TableCell
 								key={col.id}
 								aria-colindex={colIndex}
-								className={cn(k.actionsCell, col.className)}
+								className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
+								style={pinnedOffsetStyle(pinning, col.id)}
 							>
 								{col.actions(row)}
 							</TableCell>
@@ -158,6 +165,7 @@ function GridRowImpl<T>({
 							colIndex={colIndex}
 							reorderable={reorderable}
 							truncate={truncate}
+							pinning={pinning}
 						/>
 					)
 				})}
@@ -177,6 +185,7 @@ type GridDataCellProps<T> = {
 	colIndex: number | undefined
 	reorderable: boolean
 	truncate: boolean
+	pinning: GridColumnPinning | null
 }
 
 /**
@@ -193,6 +202,7 @@ function GridDataCell<T>({
 	colIndex,
 	reorderable,
 	truncate,
+	pinning,
 }: GridDataCellProps<T>) {
 	const cellExtra = col.cellProps?.(row)
 
@@ -225,7 +235,8 @@ function GridDataCell<T>({
 			aria-colindex={colIndex}
 			{...cellExtra}
 			data-grid-col={col.id}
-			className={cn(col.className, cellExtra?.className)}
+			className={cn(pinnedClassName(pinning, col.id), col.className, cellExtra?.className)}
+			style={{ ...cellExtra?.style, ...pinnedOffsetStyle(pinning, col.id) }}
 		>
 			{content}
 		</TableCell>

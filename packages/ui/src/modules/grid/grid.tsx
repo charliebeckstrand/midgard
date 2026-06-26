@@ -654,22 +654,24 @@ function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { table, renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
-		rows,
-		// The engine sees the visible columns in display order, so its cell model
-		// (which the body renders from) matches what the header shows.
-		columns: visibleColumns,
-		getKey,
-		sort,
-		setSort,
-		sortManual: sortConfig?.manual ?? false,
-		pagination: paginationConfig,
-		resizable,
-		columnSizing: columnSizingConfig,
-		globalFilter: searchConfig,
-		columnFilters: columnFiltersConfig,
-		containerRef: wrapperRef,
-	})
+	const { table, renderRows, pagination, resize, globalFilter, filters, pinning } = useGridTable<T>(
+		{
+			rows,
+			// The engine sees the visible columns in display order, so its cell model
+			// (which the body renders from) matches what the header shows.
+			columns: visibleColumns,
+			getKey,
+			sort,
+			setSort,
+			sortManual: sortConfig?.manual ?? false,
+			pagination: paginationConfig,
+			resizable,
+			columnSizing: columnSizingConfig,
+			globalFilter: searchConfig,
+			columnFilters: columnFiltersConfig,
+			containerRef: wrapperRef,
+		},
+	)
 
 	const rowKeys = useMemo<(string | number)[]>(
 		() => renderRows.map((row, i) => getKey(row, i)),
@@ -811,6 +813,7 @@ function GridData<T>({
 				reorderable={reorderActive}
 				resize={resize}
 				filters={filters}
+				pinning={pinning}
 			/>
 
 			<GridBody<T>
@@ -828,6 +831,7 @@ function GridData<T>({
 				toggleRow={toggleRow}
 				reorderable={reorderActive}
 				truncate={truncate}
+				pinning={pinning}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
 		</Table>
