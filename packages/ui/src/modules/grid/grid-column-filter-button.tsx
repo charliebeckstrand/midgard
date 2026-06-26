@@ -91,7 +91,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</Button>
 			</PopoverTrigger>
 
-			<PopoverContent className={cn(k.filter.popover)}>
+			<PopoverContent className={cn(k.filter.popover)} autoFocus modal>
 				<QueryBuilder
 					fields={fields}
 					hideFieldSelector
