@@ -6,6 +6,7 @@ import {
 	findFocusTarget,
 	getOperators,
 	hasRules,
+	isQueryActive,
 	mapNode,
 	removeChild,
 } from '../../modules/query/query-builder/query-builder-utilities'
@@ -128,6 +129,63 @@ describe('hasRules', () => {
 
 	it('returns false when every child group is empty', () => {
 		expect(hasRules(createGroup('and', [createGroup()]))).toBe(false)
+	})
+})
+
+describe('isQueryActive', () => {
+	const fields = [textField, numberField, booleanField]
+
+	it('returns false for an empty group', () => {
+		expect(isQueryActive(createGroup(), fields)).toBe(false)
+	})
+
+	it('returns false when every rule has no value', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), operator: 'gt', value: '' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats whitespace-only values as empty', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '   ' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('returns true once a rule carries a value', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: 'a' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(true)
+	})
+
+	it('returns true for a value-less operator even with no value', () => {
+		const group = createGroup('and', [{ ...createRule(textField), operator: 'isEmpty', value: '' }])
+
+		expect(isQueryActive(group, fields)).toBe(true)
+	})
+
+	it('finds an active rule nested inside a child group', () => {
+		const inner = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: 'a' },
+		])
+
+		expect(isQueryActive(createGroup('and', [inner]), fields)).toBe(true)
+	})
+
+	it('treats a blank rule whose field is unknown as inactive', () => {
+		// The field can't be resolved, so the value-less operator isn't recognized
+		// and the rule falls back to its (empty) value — inactive.
+		const group = createGroup('and', [
+			{ ...createRule(textField), field: 'gone', operator: 'isEmpty', value: '' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
 	})
 })
 

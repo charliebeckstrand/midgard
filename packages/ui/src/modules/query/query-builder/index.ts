@@ -24,6 +24,7 @@ export {
 	createGroup,
 	createRule,
 	getOperators,
+	isQueryActive,
 	mapNode,
 	removeChild,
 } from './query-builder-utilities'

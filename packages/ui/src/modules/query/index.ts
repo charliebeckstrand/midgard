@@ -4,6 +4,7 @@ export {
 	createRule,
 	evaluateQuery,
 	getOperators,
+	isQueryActive,
 	mapNode,
 	matchQueryRule,
 	QueryBuilder,

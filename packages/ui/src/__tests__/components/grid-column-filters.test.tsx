@@ -30,6 +30,14 @@ describe('Grid per-column filters', () => {
 	const nameContains = (text: string) =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: text }])
 
+	/** A query holding one rule with no value — what a seeded or emptied builder leaves. */
+	const blankRule = () =>
+		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: '' }])
+
+	/** A value-less "is empty" rule: a real constraint that carries no value. */
+	const nameIsEmpty = () =>
+		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
+
 	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -92,6 +100,64 @@ describe('Grid per-column filters', () => {
 		expect(button).not.toHaveAttribute('data-active')
 
 		expect(button.className).not.toMatch(/text-blue/)
+	})
+
+	it('leaves the button unaccented when a rule carries no value', () => {
+		// A rule with no value (added then emptied, or the freshly seeded rule)
+		// constrains nothing, so the button must read as inactive.
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: blankRule() }] }}
+			/>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Filter Name' })
+
+		expect(button).not.toHaveAttribute('data-active')
+
+		expect(button.className).not.toMatch(/text-blue/)
+	})
+
+	it('activates only after the seeded rule gains a value, then clears', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		// The popover opens on a seeded, value-less rule — still inactive.
+		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+
+		const value = screen.getByRole('textbox', { name: 'Name value' })
+
+		fireEvent.change(value, { target: { value: 'Bob' } })
+
+		expect(screen.getByRole('button', { name: 'Filter Name' })).toHaveAttribute('data-active')
+
+		// Emptying the value (the "added then removed" end state) deactivates it again.
+		fireEvent.change(value, { target: { value: '' } })
+
+		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+	})
+
+	it('accents the button for a value-less operator (is empty)', () => {
+		// "is empty" filters without a value; it is a real constraint, so the
+		// button reads as active even though the rule has no value.
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: nameIsEmpty() }] }}
+			/>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Filter Name' })
+
+		expect(button).toHaveAttribute('data-active')
+
+		expect(button.className).toMatch(/text-blue/)
 	})
 
 	it('keeps the filter and sort affordances reachable when a filter empties the grid', () => {

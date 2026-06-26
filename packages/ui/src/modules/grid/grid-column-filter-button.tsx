@@ -10,6 +10,7 @@ import { k } from '../../recipes/kata/grid'
 import {
 	createGroup,
 	createRule,
+	isQueryActive,
 	QueryBuilder,
 	type QueryField,
 	type QueryGroupNode,
@@ -70,7 +71,10 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		return createGroup('and', [field.type === 'text' ? { ...rule, operator: 'contains' } : rule])
 	}, [field])
 
-	const active = (query?.children.length ?? 0) > 0
+	// Accent the button only when a rule actually constrains rows — a real value,
+	// or a value-less operator like "is empty" — not merely because a blank rule
+	// exists (a freshly seeded, added-then-emptied, or all-cleared query).
+	const active = query != null && isQueryActive(query, fields)
 
 	const label = filterLabel(column)
 
