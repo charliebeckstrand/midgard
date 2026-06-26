@@ -7,8 +7,10 @@ import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
+	getSortedRowModel,
 	type OnChangeFn,
 	type PaginationState,
+	type SortingState,
 	type Table,
 	type TableOptions,
 	type Updater,
@@ -17,6 +19,7 @@ import {
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { isDataColumn } from '../../utilities'
+import type { SortState } from './context'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE, DEFAULT_PAGE_SIZE } from './grid-constants'
 import type {
 	GridColumn,
@@ -50,6 +53,18 @@ function isManualPagination(config: GridPagination | undefined): boolean {
 	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }
 
+/** Adapts the grid's single-column {@link SortState} to a TanStack `SortingState`. @internal */
+function toSortingState(sort: SortState | undefined): SortingState {
+	return sort ? [{ id: String(sort.column), desc: sort.direction === 'desc' }] : []
+}
+
+/** Adapts a TanStack `SortingState` back to the grid's single-column {@link SortState}. @internal */
+function toSortState(sorting: SortingState): SortState | undefined {
+	const first = sorting[0]
+
+	return first ? { column: first.id, direction: first.desc ? 'desc' : 'asc' } : undefined
+}
+
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
 function resolveFilterMode(args: {
 	globalConfigured: boolean
@@ -63,15 +78,18 @@ function resolveFilterMode(args: {
 	}
 }
 
-/** Whether the engine slices/filters the rows itself (vs. the consumer doing it server-side). @internal */
+/** Whether the engine transforms the rows itself (vs. the consumer doing it server-side). @internal */
 function usesClientModel(args: {
 	paginated: boolean
 	paginationManual: boolean
 	filtersConfigured: boolean
 	filtersManual: boolean
+	sortClient: boolean
 }): boolean {
 	return (
-		(args.paginated && !args.paginationManual) || (args.filtersConfigured && !args.filtersManual)
+		(args.paginated && !args.paginationManual) ||
+		(args.filtersConfigured && !args.filtersManual) ||
+		args.sortClient
 	)
 }
 
@@ -95,6 +113,7 @@ function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 		// Only data columns resize; select/actions hold their width.
 		enableResizing: isDataColumn(col),
 		enableColumnFilter: Boolean(col.filterable && value),
+		enableSorting: Boolean(col.sortable),
 		// `value` makes the column searchable/sortable by the engine without
 		// changing how its cell renders (still `col.cell`).
 		...(value ? { accessorFn: (row: T) => value(row) } : {}),
@@ -150,6 +169,20 @@ function filterOptions<T>(args: {
 	}
 }
 
+/** Client-sort slice of the table options, or `{}` when sorting stays consumer-driven. @internal */
+function sortOptions<T>(args: {
+	clientSort: boolean
+	onSortingChange: OnChangeFn<SortingState>
+}): Partial<TableOptions<T>> {
+	if (!args.clientSort) return {}
+
+	return {
+		getSortedRowModel: getSortedRowModel(),
+		onSortingChange: args.onSortingChange,
+		enableMultiSort: false,
+	}
+}
+
 /** Column-resize slice of the table options, or `{}` when resizing is off. @internal */
 function resizeOptions<T>(args: {
 	resizable: boolean
@@ -174,17 +207,21 @@ function buildState(args: {
 	globalFilter: string
 	columnFiltered: boolean
 	columnFilters: ColumnFiltersState
+	sortClient: boolean
+	sorting: SortingState
 }): {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
+	sorting?: SortingState
 } {
 	const state: {
 		pagination?: PaginationState
 		columnSizing?: ColumnSizingState
 		globalFilter?: string
 		columnFilters?: ColumnFiltersState
+		sorting?: SortingState
 	} = {}
 
 	if (args.paginated) state.pagination = args.pagination
@@ -194,6 +231,8 @@ function buildState(args: {
 	if (args.globalFiltered) state.globalFilter = args.globalFilter
 
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
+
+	if (args.sortClient) state.sorting = args.sorting
 
 	return state
 }
@@ -283,6 +322,9 @@ type UseGridTableParams<T> = {
 	rows: T[]
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
+	sort?: SortState
+	setSort?: (sort: SortState | undefined) => void
+	sortManual?: boolean
 	pagination?: GridPagination
 	resizable?: boolean
 	columnSizing?: GridColumnSizing
@@ -393,6 +435,9 @@ export function useGridTable<T>({
 	rows,
 	columns,
 	getKey,
+	sort,
+	setSort,
+	sortManual = true,
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
@@ -475,6 +520,13 @@ export function useGridTable<T>({
 		columnManual: columnFiltersConfig?.manual,
 	})
 
+	const clientSort = sortManual === false
+
+	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
+		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),
+		[sort, setSort],
+	)
+
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
 	const table = useReactTable<T>({
@@ -493,9 +545,12 @@ export function useGridTable<T>({
 			globalFilter: resolvedGlobalFilter,
 			columnFiltered: hasColumnFilters,
 			columnFilters: resolvedColumnFilters,
+			sortClient: clientSort,
+			sorting: toSortingState(sort),
 		}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 		...resizeOptions<T>({ resizable, onColumnSizingChange }),
+		...sortOptions<T>({ clientSort, onSortingChange }),
 		...filterOptions<T>({
 			configured: filterMode.configured,
 			manual: filterMode.manual,
@@ -511,6 +566,7 @@ export function useGridTable<T>({
 		paginationManual: manual,
 		filtersConfigured: filterMode.configured,
 		filtersManual: filterMode.manual,
+		sortClient: clientSort,
 	})
 
 	const renderRows =

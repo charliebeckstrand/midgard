@@ -69,6 +69,11 @@ const sortableColumns: GridColumn<Person>[] = columns.map((col) =>
 	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
 
+const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
+	...col,
+	value: (row) => String(row[col.id as keyof Person]),
+}))
+
 const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	...col,
 	width: '180px',
@@ -108,6 +113,20 @@ function SortableExample() {
 			rows={sortedPeople}
 			getKey={(row) => row.id}
 			sort={{ value: sort, onValueChange: setSort }}
+		/>
+	)
+}
+
+function ClientSortExample() {
+	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
+
+	// The grid sorts `people` itself by each column's `value` — no manual sort.
+	return (
+		<Grid
+			columns={clientSortColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			sort={{ value: sort, onValueChange: setSort, manual: false }}
 		/>
 	)
 }
@@ -279,6 +298,13 @@ export function Demo() {
 
 			<Example title="Sortable">
 				<SortableExample />
+			</Example>
+
+			<Example
+				title="Client sorting"
+				code={code`<Grid sort={{ value, onValueChange, manual: false }} />`}
+			>
+				<ClientSortExample />
 			</Example>
 
 			<Example title="Selection">

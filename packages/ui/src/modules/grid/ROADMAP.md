@@ -10,9 +10,11 @@ Pagination is the first feature on the engine: server-side (`manualPagination`) 
 
 Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop.
 
-Filtering is the third: columns gain an optional `value` accessor, then quick search (`globalFilter`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server). The accessors are the foundation client sorting and faceting build on next.
+Filtering is the third: columns gain an optional `value` accessor, then quick search (`globalFilter`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
 
-Everything else — sorting, selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
+Sorting is the fourth: with `sort.manual: false` the engine sorts `rows` by each sortable column's `value` through `getSortedRowModel`, replacing consumer-side `useMemo` sorting; server (manual) sorting stays the default. Single-column today — multi-column with priority is the next step.
+
+Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
 ## Migration — converging existing state onto the engine
 
@@ -21,7 +23,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 | # | Step | TanStack surface |
 |---|---|---|
 | 1 | Render head/cells through `flexRender`; map `GridColumn` to full `ColumnDef` (accessors, `header`, `cell`) | `getHeaderGroups()`, `row.getVisibleCells()`, `flexRender` |
-| 2 | Move sort onto the engine; add multi-column sort | `state.sorting`, `manualSorting`, `enableMultiSort`, `sortingFns` |
+| 2 | Multi-column sort with priority badges (single-column client sort shipped) | `state.sorting`, `enableMultiSort`, `sortingFns`, header sort-index UI |
 | 3 | Move row selection onto the engine | `state.rowSelection`, `enableRowSelection` |
 | 4 | Move column order/visibility (fold in the column manager + dnd reorder) | `state.columnOrder`, `state.columnVisibility` |
 

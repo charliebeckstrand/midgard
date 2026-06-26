@@ -57,6 +57,12 @@ export type GridSort = {
 	value?: SortState
 	defaultValue?: SortState
 	onValueChange?: (sort: SortState | undefined) => void
+	/**
+	 * Server-side (manual) sorting: the consumer sorts `rows`. When `false`, the
+	 * grid sorts client-side by each sortable column's {@link GridColumn.value}.
+	 * @defaultValue true
+	 */
+	manual?: boolean
 }
 
 /**
@@ -395,6 +401,9 @@ function GridData<T>({
 		rows,
 		columns,
 		getKey,
+		sort,
+		setSort,
+		sortManual: sortConfig?.manual ?? true,
 		pagination: paginationConfig,
 		resizable,
 		columnSizing: columnSizingConfig,
