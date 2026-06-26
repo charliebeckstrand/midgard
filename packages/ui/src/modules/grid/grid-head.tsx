@@ -22,7 +22,10 @@ import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
 	columns: GridColumn<T>[]
+	/** Whether any rows are *visible* (post-filter); gates the select-all checkbox. */
 	hasRows: boolean
+	/** Whether there is *source* data; gates the sort/resize/filter affordances. */
+	interactive: boolean
 	/** When the body is virtualized, the header is row 1 of the full aria-rowcount set. */
 	virtualized?: boolean
 	/**
@@ -51,6 +54,7 @@ type GridHeadProps<T> = {
 export function GridHead<T>({
 	columns,
 	hasRows,
+	interactive,
 	virtualized,
 	reorderable = false,
 	resize,
@@ -66,6 +70,7 @@ export function GridHead<T>({
 						// Header column indices accompany the virtualized row-index scheme.
 						colIndex={virtualized ? colIdx + 1 : undefined}
 						hasRows={hasRows}
+						interactive={interactive}
 						reorderable={reorderable}
 						resize={resize ?? null}
 						filters={filters ?? null}
@@ -80,7 +85,10 @@ export function GridHead<T>({
 type GridHeaderCellProps<T> = {
 	column: GridColumn<T>
 	colIndex: number | undefined
+	/** Visible-rows flag for the select-all checkbox. */
 	hasRows: boolean
+	/** Source-data flag gating the sort/resize/filter affordances. */
+	interactive: boolean
 	reorderable: boolean
 	resize: GridColumnResize | null
 	filters: GridColumnFilter | null
@@ -98,6 +106,7 @@ function GridHeaderCell<T>({
 	column,
 	colIndex,
 	hasRows,
+	interactive,
 	reorderable,
 	resize,
 	filters,
@@ -144,9 +153,10 @@ function GridHeaderCell<T>({
 		width,
 		resize: sizing,
 		resizing,
-		// Sort/resize/filter affordances stand down on an empty grid: there's
-		// nothing to order, size to, or filter until rows arrive.
-		interactive: hasRows,
+		// Sort/resize/filter affordances stand down with no source data: there's
+		// nothing to order, size to, or filter until rows exist (a filter that
+		// empties the *view* keeps them — `interactive` tracks source data).
+		interactive,
 		// Identifies a data-column header to the right-click context menu.
 		gridCol: isDataColumn(column) ? column.id : undefined,
 		// Per-column filter controls; the header shows a filter button when set.
@@ -157,9 +167,9 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 	}
 
-	// Reorder also stands down when empty (handled here so the cell drops the
-	// drag activator entirely rather than rendering an inert grip).
-	if (reorderable && hasRows && isDataColumn(column) && !column.pinned) {
+	// `reorderable` already folds in the source-data gate (its caller passes
+	// `canReorder && hasData`), so the cell drops the drag activator with no data.
+	if (reorderable && isDataColumn(column) && !column.pinned) {
 		return <GridReorderableColumnHeader {...shared} />
 	}
 
@@ -196,6 +206,24 @@ type GridColumnHeaderProps = {
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
 function headerLabel(column: Pick<GridColumn<unknown>, 'id' | 'title'>): string {
 	return typeof column.title === 'string' ? column.title : String(column.id)
+}
+
+/**
+ * Whether a filterable column shows its filter button: when the grid has data,
+ * or — even with an empty view — when this column carries an active filter, so a
+ * filter that emptied the grid can still be reached and cleared.
+ *
+ * @internal
+ */
+function showsFilterButton(
+	filter: GridColumnFilter,
+	columnId: string | number,
+	interactive: boolean,
+	filterQuery: QueryGroupNode | undefined,
+): boolean {
+	if (!filter.canFilter(columnId)) return false
+
+	return interactive || (filterQuery?.children.length ?? 0) > 0
 }
 
 /**
@@ -360,7 +388,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
-				{interactive && filter?.canFilter(column.id) && (
+				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
 			</span>
@@ -445,7 +473,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
-				{interactive && filter?.canFilter(column.id) && (
+				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
 			</span>

@@ -94,6 +94,26 @@ describe('Grid per-column filters', () => {
 		expect(button.className).not.toMatch(/text-blue/)
 	})
 
+	it('keeps the filter and sort affordances reachable when a filter empties the grid', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('no-such-name') }] }}
+			/>,
+		)
+
+		// No row matches, so the body is empty...
+		expect(screen.getByText('No items')).toBeInTheDocument()
+
+		// ...but the source still has rows, so the header stays live — the filter
+		// button is reachable to clear the filter, and the column stays sortable.
+		expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+	})
+
 	it('applies a controlled column query client-side', () => {
 		renderUI(
 			<Grid
