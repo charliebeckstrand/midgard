@@ -26,9 +26,9 @@ import type {
 	GridColumnFilters,
 	GridColumnSizing,
 	GridColumnSizingState,
-	GridGlobalFilter,
 	GridPagination,
 	GridPaginationState,
+	GridSearch,
 } from './types'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
@@ -40,7 +40,7 @@ const EMPTY_SIZING: GridColumnSizingState = {}
 /** Stable empty column-filters default; read-only, replaced wholesale on change. @internal */
 const EMPTY_COLUMN_FILTERS: ColumnFiltersState = []
 
-/** Search-input placeholder when {@link GridGlobalFilter} supplies none. @internal */
+/** Search-input placeholder when {@link GridSearch} supplies none. @internal */
 const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
 
 /** Resolves a TanStack `Updater<S>` against a base value. @internal */
@@ -328,7 +328,7 @@ type UseGridTableParams<T> = {
 	pagination?: GridPagination
 	resizable?: boolean
 	columnSizing?: GridColumnSizing
-	globalFilter?: GridGlobalFilter
+	globalFilter?: GridSearch
 	columnFilters?: GridColumnFilters
 }
 

@@ -222,7 +222,7 @@ const ResizableExample = () => (
 	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
 )
 
-const GlobalFilterExample = () => {
+const SearchExample = () => {
 	const [query, setQuery] = useState('')
 
 	return (
@@ -230,7 +230,7 @@ const GlobalFilterExample = () => {
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}
-			globalFilter={{ value: query, onValueChange: setQuery, placeholder: 'Search people' }}
+			search={{ value: query, onValueChange: setQuery, placeholder: 'Search people' }}
 		/>
 	)
 }
@@ -360,8 +360,8 @@ export function Demo() {
 				<ResizableExample />
 			</Example>
 
-			<Example title="Search" code={code`<Grid globalFilter={{ value, onValueChange }} />`}>
-				<GlobalFilterExample />
+			<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
+				<SearchExample />
 			</Example>
 
 			<Example

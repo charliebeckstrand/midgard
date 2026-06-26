@@ -309,6 +309,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 		<TableHeader
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
+			data-resizable={dataAttr(canResize)}
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
@@ -371,6 +372,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
+			data-resizable={dataAttr(canResize)}
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,

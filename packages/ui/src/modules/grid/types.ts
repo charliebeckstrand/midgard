@@ -135,15 +135,15 @@ export type GridColumnSizing = {
 }
 
 /**
- * Controlled/uncontrolled global-filter (quick search) binding for
- * {@link GridProps.globalFilter}, backed by the grid's TanStack Table engine.
+ * Controlled/uncontrolled quick-search binding for {@link GridProps.search},
+ * backed by the grid's TanStack Table engine.
  *
  * @remarks Searches the columns that declare a {@link GridColumn.value}
  * accessor. Client-side by default — the engine filters `rows`; set `manual` for
  * server-side, where the consumer refetches from the emitted query and feeds
  * back `rows`.
  */
-export type GridGlobalFilter = {
+export type GridSearch = {
 	value?: string
 	defaultValue?: string
 	onValueChange?: (value: string) => void
@@ -165,7 +165,7 @@ export type GridColumnFilterState = { id: string; value: unknown }
  * @remarks Columns opt in with {@link GridColumn.filterable} (which needs a
  * {@link GridColumn.value} accessor), surfacing a filter row of text inputs.
  * Client-side by default; `manual` defers filtering to the consumer, which
- * shares the table-wide filter mode with {@link GridGlobalFilter}.
+ * shares the table-wide filter mode with {@link GridSearch}.
  */
 export type GridColumnFilters = {
 	value?: GridColumnFilterState[]

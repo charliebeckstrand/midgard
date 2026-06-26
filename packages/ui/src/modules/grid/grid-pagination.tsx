@@ -64,30 +64,8 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
-			<div className={cn(k.footer.start)}>
-				{showPicker && (
-					<>
-						<span aria-hidden="true">Rows per page</span>
-
-						<Select<number>
-							aria-label="Rows per page"
-							value={pageSize}
-							onValueChange={(value) => value != null && setPageSize(value)}
-							displayValue={(value) => String(value)}
-							placement="top-start"
-						>
-							{pageSizeOptions.map((option) => (
-								<SelectOption key={option} value={option}>
-									<SelectLabel>{option}</SelectLabel>
-								</SelectOption>
-							))}
-						</Select>
-					</>
-				)}
-			</div>
-
-			<div className={cn(k.footer.center)}>
-				{showNav && (
+			{showNav && (
+				<div className={cn(k.footer.nav)}>
 					<Pagination>
 						<PaginationPrevious
 							onClick={() => setPageIndex(pageIndex - 1)}
@@ -115,12 +93,36 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 						<PaginationNext onClick={() => setPageIndex(pageIndex + 1)} disabled={!canNext} />
 					</Pagination>
-				)}
-			</div>
+				</div>
+			)}
 
-			<span data-slot="grid-pagination-status" className={cn(k.footer.status)} aria-live="polite">
-				{status}
-			</span>
+			<div className={cn(k.footer.meta)}>
+				<div className={cn(k.footer.start)}>
+					{showPicker && (
+						<>
+							<span aria-hidden="true">Rows per page</span>
+
+							<Select<number>
+								aria-label="Rows per page"
+								value={pageSize}
+								onValueChange={(value) => value != null && setPageSize(value)}
+								displayValue={(value) => String(value)}
+								placement="top-start"
+							>
+								{pageSizeOptions.map((option) => (
+									<SelectOption key={option} value={option}>
+										<SelectLabel>{option}</SelectLabel>
+									</SelectOption>
+								))}
+							</Select>
+						</>
+					)}
+				</div>
+
+				<span data-slot="grid-pagination-status" className={cn(k.footer.status)} aria-live="polite">
+					{status}
+				</span>
+			</div>
 		</div>
 	)
 }

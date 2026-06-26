@@ -23,8 +23,8 @@ import type {
 	GridColumnFilters,
 	GridColumnManagerPreset,
 	GridColumnSizing,
-	GridGlobalFilter,
 	GridPagination,
+	GridSearch,
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
@@ -168,14 +168,14 @@ export type GridDataProps<T> = TableVariants & {
 	 * {@link GridColumn.value} accessor. Client-side by default; set `manual` for
 	 * server-side.
 	 *
-	 * @see {@link GridGlobalFilter}
+	 * @see {@link GridSearch}
 	 */
-	globalFilter?: GridGlobalFilter
+	search?: GridSearch
 
 	/**
 	 * Per-column filter binding; columns opting in via {@link GridColumn.filterable}
 	 * (with a {@link GridColumn.value} accessor) surface a filter row of text
-	 * inputs. Shares the table-wide filter mode with {@link GridDataProps.globalFilter}.
+	 * inputs. Shares the table-wide filter mode with {@link GridDataProps.search}.
 	 *
 	 * @see {@link GridColumnFilters}
 	 */
@@ -348,7 +348,7 @@ function GridData<T>({
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
-	globalFilter: globalFilterConfig,
+	search: searchConfig,
 	columnFilters: columnFiltersConfig,
 	reorder = false,
 	rowClassName,
@@ -407,7 +407,7 @@ function GridData<T>({
 		pagination: paginationConfig,
 		resizable,
 		columnSizing: columnSizingConfig,
-		globalFilter: globalFilterConfig,
+		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,
 	})
 
@@ -472,7 +472,7 @@ function GridData<T>({
 			bleed={bleed}
 			outline={outline}
 			striped={striped}
-			className={className}
+			className={cn(resizable && k.resize.padding({ density }), className)}
 			tableProps={resolveTableProps({
 				tableProps,
 				loading,

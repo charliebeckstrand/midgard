@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen, userEvent } from '../helpers'
 
-describe('Grid global filter', () => {
+describe('Grid search', () => {
 	type Row = { id: number; name: string; role: string }
 
 	const columns: GridColumn<Row>[] = [
@@ -17,12 +17,12 @@ describe('Grid global filter', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('renders a search field only when globalFilter is configured', () => {
+	it('renders a search field only when search is configured', () => {
 		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
 
-		rerender(<Grid columns={columns} rows={rows} getKey={getKey} globalFilter={{}} />)
+		rerender(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
 		expect(screen.getByRole('searchbox')).toBeInTheDocument()
 	})
@@ -30,7 +30,7 @@ describe('Grid global filter', () => {
 	it('filters rows client-side as you type', async () => {
 		const user = userEvent.setup()
 
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} globalFilter={{}} />)
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
 		await user.type(screen.getByRole('searchbox'), 'Alice')
 
@@ -45,12 +45,7 @@ describe('Grid global filter', () => {
 		const onValueChange = vi.fn()
 
 		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				globalFilter={{ value: '', onValueChange }}
-			/>,
+			<Grid columns={columns} rows={rows} getKey={getKey} search={{ value: '', onValueChange }} />,
 		)
 
 		await user.type(screen.getByRole('searchbox'), 'B')
@@ -68,7 +63,7 @@ describe('Grid global filter', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				globalFilter={{ manual: true, onValueChange }}
+				search={{ manual: true, onValueChange }}
 			/>,
 		)
 
@@ -97,7 +92,7 @@ describe('Grid global filter', () => {
 			{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
 		]
 
-		renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} globalFilter={{}} />)
+		renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} search={{}} />)
 
 		await user.type(screen.getByRole('searchbox'), 'zzz')
 

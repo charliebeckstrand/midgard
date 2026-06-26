@@ -10,7 +10,7 @@ Pagination is the first feature on the engine: server-side (`manualPagination`) 
 
 Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop.
 
-Filtering is the third: columns gain an optional `value` accessor, then quick search (`globalFilter`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
+Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
 
 Sorting is the fourth: with `sort.manual: false` the engine sorts `rows` by each sortable column's `value` through `getSortedRowModel`, replacing consumer-side `useMemo` sorting; server (manual) sorting stays the default. Single-column today — multi-column with priority is the next step.
 

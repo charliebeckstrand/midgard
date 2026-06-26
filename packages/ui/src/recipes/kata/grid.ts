@@ -23,6 +23,22 @@ const sortIcon = defineRecipe({
 	defaults: { active: false },
 })
 
+/**
+ * Trailing padding for a resizable header so its label clears the resize handle,
+ * scaled to the table's density. Projected from the `<table>` element onto the
+ * resizable headers — those carrying `data-resizable` — so it overrides the
+ * density cell padding at higher specificity without `!important`. Keyed by the
+ * friendly density level the grid forwards to `<Table>`.
+ */
+const resizePadding = defineRecipe({
+	density: {
+		compact: '[&>*>tr>th[data-resizable]]:pr-2',
+		snug: '[&>*>tr>th[data-resizable]]:pr-4',
+		loose: '[&>*>tr>th[data-resizable]]:pr-6',
+	},
+	defaults: { density: 'snug' },
+})
+
 export const k = {
 	wrapper: ['relative', flex.col, 'gap-2'],
 	sticky: {
@@ -71,6 +87,9 @@ export const k = {
 	resize: {
 		// The header cell hosts the absolutely-positioned handle.
 		cell: 'relative',
+		// Density-scaled trailing padding projected onto resizable headers so their
+		// labels clear the handle; lives on the `<table>` element.
+		padding: resizePadding,
 		// Full-height grab area on the column's trailing edge, centering the grip.
 		handle: [
 			'group/grid-resize absolute top-0 right-0 z-10 h-full w-1.5',
@@ -92,19 +111,47 @@ export const k = {
 		],
 	},
 	filter: {
-		// Quick-search field above the table; capped width on larger viewports.
-		bar: ['w-full', 'sm:max-w-xs'],
+		// Quick-search field above the table; capped width and pushed to the right
+		// on larger viewports, full-width on the smallest.
+		bar: ['w-full', 'sm:ml-auto', 'sm:max-w-xs'],
 		// Per-column filter row beneath the header.
 		row: bg.surface,
 		cell: ['px-2', 'py-1', 'align-middle'],
 	},
 	footer: {
-		// Footer below the table: page-size picker (left), centered page navigation
-		// in the auto-width middle track, and the row-range status (right).
-		bar: ['grid', 'grid-cols-[1fr_auto_1fr]', 'items-center', 'gap-2', 'pt-2'],
-		start: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
-		center: 'justify-self-center',
-		status: [size.sm, text.muted, 'whitespace-nowrap', 'justify-self-end'],
+		// Footer below the table. From `lg`: one centered row — page-size picker,
+		// page navigation, then the row-range status — gapped, not spread. Below
+		// `lg`: the navigation stacks on top, with the picker and status sharing a
+		// justified-between row beneath it (the `meta` wrapper collapses to
+		// `contents` at `lg` so all three become siblings of the centered row).
+		bar: [
+			'flex',
+			'flex-col',
+			'gap-3',
+			'pt-2',
+			'lg:flex-row',
+			'lg:items-center',
+			'lg:justify-center',
+		],
+		// Page navigation: centered on its own row below `lg`, the middle item from `lg`.
+		nav: ['flex', 'justify-center', 'lg:order-2'],
+		// Picker + status: a justified-between row below `lg`; dissolves into the
+		// centered row from `lg` so each orders independently.
+		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
+		start: [
+			flex.inline,
+			'items-center',
+			'gap-2',
+			size.sm,
+			text.muted,
+			'whitespace-nowrap',
+			'lg:order-1',
+			// Without a page-size picker the wrapper is empty; keep it on the small
+			// screen so the status stays right (justified between), drop it from the
+			// centered row so it adds no phantom gap.
+			'lg:empty:hidden',
+		],
+		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-3'],
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const
