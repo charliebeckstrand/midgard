@@ -7,7 +7,6 @@ import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableHead, TableHeader, TableRow } from '../../components/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
@@ -19,7 +18,7 @@ import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
-import { useGridTruncation } from './use-grid-truncation'
+import { truncationTitle, useGridTruncation } from './use-grid-truncation'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
@@ -265,30 +264,19 @@ function sortDirectionIcon(
 
 /**
  * A column's title on a single line, truncated to an ellipsis when it overflows
- * the header. A truncated title gains a hover/focus {@link Tooltip} revealing the
- * full text — sharing the data cell's sub-pixel overflow detection so the header
- * and its column clip in step. An untruncated title renders just the span; the
- * closed tooltip adds no surface.
+ * the header. A truncated title reveals its full text through the native `title`
+ * attribute — sharing the data cell's sub-pixel overflow detection so the header
+ * and its column clip in step, and avoiding a floating-ui portal per header.
  *
- * @remarks Like {@link GridCellContent}, the span stays mounted and the tooltip
- * is gated by `enabled` rather than mounted only while truncated, so the overflow
- * `ResizeObserver` never detaches and a widened column re-measures and closes the
- * tooltip.
  * @internal
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
 
 	return (
-		<Tooltip enabled={truncated}>
-			<TooltipTrigger>
-				<span ref={ref} className={cn(k.head.title)}>
-					{title}
-				</span>
-			</TooltipTrigger>
-
-			<TooltipContent className={cn(k.cell.tooltip)}>{title}</TooltipContent>
-		</Tooltip>
+		<span ref={ref} className={cn(k.head.title)} title={truncationTitle(title, ref, truncated)}>
+			{title}
+		</span>
 	)
 }
 

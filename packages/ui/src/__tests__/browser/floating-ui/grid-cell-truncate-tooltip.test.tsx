@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen } from '../../helpers'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * Cell truncation tooltip against the real floating engine and real layout. The
- * jsdom suite can't see overflow (`scrollWidth`/`clientWidth` are 0) and mocks
- * `@floating-ui/react`, so the hover tooltip only surfaces here. A narrow
- * controlled column width forces the cell to truncate (auto-fit stands down
- * while `columnSizing` is controlled).
+ * Cell truncation reveal against real layout. The default (`auto`) reveal uses
+ * the native `title` attribute — no floating-ui portal per cell — so it is
+ * asserted on the attribute; a column's custom `cellTooltip` node keeps the
+ * styled floating tooltip (the real engine), surfaced on hover. jsdom can't
+ * measure overflow (`scrollWidth`/`clientWidth` are 0), so this only resolves in
+ * the browser.
  */
-describe('grid cell truncation tooltip (real browser)', () => {
+describe('grid cell truncation reveal (real browser)', () => {
 	type Row = { id: number; name: string }
 
 	const longName = 'A very long name that overflows its narrow column'
@@ -24,19 +25,39 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 	const narrow = { value: { name: 80 } }
 
-	it('shows a tooltip with the full content when the cell is truncated', async () => {
+	it('reveals the full content via the native title when the cell is truncated', async () => {
 		renderUI(
 			<Grid resizable columns={[nameCol]} columnSizing={narrow} rows={rows} getKey={getKey} />,
 		)
 
-		await userEvent.hover(screen.getByText(longName))
-
-		const tip = await screen.findByRole('tooltip')
-
-		expect(tip).toHaveTextContent(longName)
+		await waitFor(() => expect(screen.getByText(longName)).toHaveAttribute('title', longName))
 	})
 
-	it('supersedes the tooltip content with a cellTooltip node', async () => {
+	it('mounts no floating-ui portal per truncated cell', async () => {
+		const many = Array.from({ length: 30 }, (_, i) => ({ id: i, name: `${longName} ${i}` }))
+
+		// Context menu off so its single portal can't mask the per-cell count.
+		renderUI(
+			<Grid
+				resizable
+				contextMenu={false}
+				columns={[nameCol]}
+				columnSizing={narrow}
+				rows={many}
+				getKey={getKey}
+			/>,
+		)
+
+		// Let layout settle and truncation measure across the rows.
+		await screen.findByText(`${longName} 0`)
+
+		await new Promise((resolve) => setTimeout(resolve, 100))
+
+		// The auto reveal is a native title; 30 truncated cells add zero portals.
+		expect(document.querySelectorAll('[data-floating-ui-portal]')).toHaveLength(0)
+	})
+
+	it('shows a styled tooltip from a custom cellTooltip node', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -54,7 +75,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent('Full name on file')
 	})
 
-	it('disables the tooltip when cellTooltip returns null', async () => {
+	it('reveals nothing when cellTooltip returns null', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -67,14 +88,15 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await userEvent.hover(screen.getByText(longName))
 
-		// The tooltip would open at the 250ms hover delay if enabled; wait past it
-		// (no pointer-leave to cancel) and assert none surfaced.
+		// Past the would-be hover delay: neither a native title nor a floating tooltip.
 		await new Promise((resolve) => setTimeout(resolve, 400))
+
+		expect(screen.getByText(longName)).not.toHaveAttribute('title')
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 
-	it('shows no tooltip when the content fits the column (precise detection)', async () => {
+	it('reveals nothing when the content fits the column (precise detection)', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -85,16 +107,15 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.hover(screen.getByText('Ada'))
+		await screen.findByText('Ada')
 
-		// A short value in a wide column does not overflow; no tooltip should open
-		// even after the hover delay (guards against a sub-pixel false positive).
+		// A short value in a wide column does not overflow (guards a sub-pixel false positive).
 		await new Promise((resolve) => setTimeout(resolve, 400))
 
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		expect(screen.getByText('Ada')).not.toHaveAttribute('title')
 	})
 
-	it('stops showing the tooltip after the column widens past its content', async () => {
+	it('clears the title after the column widens past its content', async () => {
 		function Harness() {
 			const [name, setName] = useState(80)
 
@@ -117,24 +138,15 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		renderUI(<Harness />)
 
-		// Narrow column: the cell truncates and tooltips on hover.
-		await userEvent.hover(screen.getByText(longName))
+		await waitFor(() => expect(screen.getByText(longName)).toHaveAttribute('title', longName))
 
-		await screen.findByRole('tooltip')
-
-		// Widen past the content (the click also moves the pointer off the cell).
 		await userEvent.click(screen.getByRole('button', { name: 'Widen' }))
 
-		// Re-hover: the cell now fits, so the overflow observer (still attached to
-		// the unremounted span) has cleared truncation and no tooltip surfaces.
-		await userEvent.hover(screen.getByText(longName))
-
-		await new Promise((resolve) => setTimeout(resolve, 400))
-
-		expect(screen.queryByRole('tooltip')).toBeNull()
+		// The observer (still attached to the unremounted span) clears truncation.
+		await waitFor(() => expect(screen.getByText(longName)).not.toHaveAttribute('title'))
 	})
 
-	it('does not truncate or tooltip when truncate is false', async () => {
+	it('does not truncate or reveal when truncate is false', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -146,9 +158,11 @@ describe('grid cell truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.hover(screen.getByText(longName))
+		await screen.findByText(longName)
 
 		await new Promise((resolve) => setTimeout(resolve, 400))
+
+		expect(screen.getByText(longName)).not.toHaveAttribute('title')
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})

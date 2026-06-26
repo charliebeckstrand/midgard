@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGridTruncation } from './use-grid-truncation'
+import { truncationTitle, useGridTruncation } from './use-grid-truncation'
 
 /**
  * Truncation tooltip for a data cell: `auto` shows the cell's own content when
@@ -23,36 +23,45 @@ type GridCellContentProps = {
 
 /**
  * Renders a data cell's content on one line, truncated to an ellipsis when it
- * overflows the column width. A truncated cell gains a hover/focus
- * {@link Tooltip} carrying the full content — or a column's `cellTooltip` node in
- * its place — while `none` suppresses it.
+ * overflows the column width. A truncated cell reveals its full text through the
+ * native `title` attribute (`auto`) — no floating portal — while a column's
+ * `custom` node opts into a styled hover/focus {@link Tooltip}, and `none`
+ * suppresses the reveal.
  *
- * @remarks The tooltip stays mounted and is gated by its `enabled` prop rather
- * than mounted only while truncated: keeping the span in place means the overflow
- * `ResizeObserver` never detaches, so widening a column back out re-measures and
- * `enabled` closes the tooltip. (Remounting the span on every truncation toggle
- * stranded the observer on the old node, leaving a stale tooltip.) The closed
- * tooltip renders no surface, so an untruncated cell adds no DOM.
+ * @remarks Defaulting to the native `title` keeps a data grid from mounting a
+ * floating-ui portal per cell (one persists per `Tooltip` even while closed),
+ * which floods the DOM at scale. The styled tooltip is reserved for the columns
+ * that supply a `cellTooltip` node, so the portal cost is paid only where asked.
+ * In the custom case the span stays mounted and the tooltip is gated by
+ * `enabled`, so the overflow `ResizeObserver` never detaches and widening a
+ * column re-measures and closes the tooltip.
  * @internal
  */
 export function GridCellContent({ content, tooltip }: GridCellContentProps) {
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
 
-	const span = (
-		<span ref={ref} className={cn(k.cell.truncate)}>
-			{content}
-		</span>
-	)
+	// A custom node gets the styled floating tooltip — opt-in per column, so it
+	// can't flood the DOM with a portal per cell.
+	if (tooltip.kind === 'custom') {
+		return (
+			<Tooltip enabled={truncated}>
+				<TooltipTrigger>
+					<span ref={ref} className={cn(k.cell.truncate)}>
+						{content}
+					</span>
+				</TooltipTrigger>
 
-	if (tooltip.kind === 'none') return span
+				<TooltipContent className={cn(k.cell.tooltip)}>{tooltip.node}</TooltipContent>
+			</Tooltip>
+		)
+	}
 
-	const node = tooltip.kind === 'custom' ? tooltip.node : content
+	// `auto` reveals the full text via the native title (no portal); `none` omits it.
+	const title = tooltip.kind === 'auto' ? truncationTitle(content, ref, truncated) : undefined
 
 	return (
-		<Tooltip enabled={truncated}>
-			<TooltipTrigger>{span}</TooltipTrigger>
-
-			<TooltipContent className={cn(k.cell.tooltip)}>{node}</TooltipContent>
-		</Tooltip>
+		<span ref={ref} className={cn(k.cell.truncate)} title={title}>
+			{content}
+		</span>
 	)
 }

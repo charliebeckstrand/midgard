@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 
 /**
  * Whether an element's single-line content overflows its content box, measured
@@ -73,4 +81,26 @@ export function useGridTruncation<E extends HTMLElement>(): [RefObject<E | null>
 	}, [measure])
 
 	return [ref, truncated]
+}
+
+/**
+ * The native `title` text revealing a truncated element's full content, or
+ * `undefined` when it isn't truncated. String/number content is used directly; a
+ * richer node falls back to the element's rendered `textContent` (read off
+ * `ref`), so the reveal works without mounting a floating tooltip per cell.
+ *
+ * @internal
+ */
+export function truncationTitle(
+	content: ReactNode,
+	ref: RefObject<HTMLElement | null>,
+	truncated: boolean,
+): string | undefined {
+	if (!truncated) return undefined
+
+	if (typeof content === 'string') return content
+
+	if (typeof content === 'number') return String(content)
+
+	return ref.current?.textContent || undefined
 }

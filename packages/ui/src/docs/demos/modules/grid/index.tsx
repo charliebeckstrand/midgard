@@ -155,8 +155,8 @@ const truncatedColumns: GridColumn<Person>[] = [
 		id: 'role',
 		title: 'Role',
 		cell: (row) => row.role,
-		// Supersede the default truncation tooltip with richer content; return
-		// `null` from `cellTooltip` instead to disable it for a column.
+		// The default reveal is the native `title`; `cellTooltip` opts this column
+		// into a styled tooltip with richer content (return `null` to disable it).
 		cellTooltip: (row) => `${row.name} — ${row.role}`,
 	},
 ]
@@ -343,9 +343,9 @@ const ResizableExample = () => (
 
 const TruncationExample = () => (
 	// In a narrow grid, overflowing cells — and column titles — truncate to an
-	// ellipsis and reveal the full text in a tooltip on hover; the Role column
-	// supersedes the cell tooltip via `cellTooltip`. Truncation is on by default —
-	// pass `truncate={false}` to wrap.
+	// ellipsis and reveal the full text via the native `title` (no per-cell
+	// portal); the Role column opts into a styled tooltip via `cellTooltip`.
+	// Truncation is on by default — pass `truncate={false}` to wrap.
 	<div className="max-w-sm">
 		<Grid resizable columns={truncatedColumns} rows={people} getKey={(row) => row.id} />
 	</div>
