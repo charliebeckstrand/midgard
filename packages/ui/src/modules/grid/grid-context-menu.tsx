@@ -1,6 +1,14 @@
 'use client'
 
-import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, Copy, StretchHorizontal } from 'lucide-react'
+import {
+	ArrowDown,
+	ArrowUp,
+	ArrowUpDown,
+	Columns3,
+	Copy,
+	Download,
+	StretchHorizontal,
+} from 'lucide-react'
 import { type MouseEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from '../../components/menu'
@@ -33,6 +41,8 @@ type GridContextMenuProps<T> = {
 	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Choose Columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
+	/** Exports the filtered/sorted rows to CSV, or `null` when export is off. */
+	exportCsv: (() => void) | null
 	children: ReactNode
 }
 
@@ -50,17 +60,28 @@ type ColumnMenuDefaultArgs<T> = {
 	clearSort: () => void
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
+	exportCsv: (() => void) | null
 }
 
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
  * "Clear sort" once it is the sorted column, an "Auto-size columns" action
- * (when resizing is on), then "Choose Columns" (when a manager is reachable).
+ * (when resizing is on), then the table-wide tools — "Choose Columns" (when a
+ * manager is reachable) and "Export to CSV" (when export is on) — under a
+ * separator.
  *
  * @internal
  */
 function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
-	const { column, sortDirection, sortColumn, clearSort, autoSizeColumns, chooseColumns } = args
+	const {
+		column,
+		sortDirection,
+		sortColumn,
+		clearSort,
+		autoSizeColumns,
+		chooseColumns,
+		exportCsv,
+	} = args
 
 	const items: GridMenuItem[] = []
 
@@ -99,15 +120,31 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		})
 	}
 
-	if (chooseColumns) {
-		if (items.length > 0) items.push({ key: 'choose-columns-separator', separator: true })
+	// Table-wide tools share a separator from the column's own sort/size actions.
+	const tools: GridMenuItem[] = []
 
-		items.push({
+	if (chooseColumns) {
+		tools.push({
 			key: 'choose-columns',
 			label: 'Choose Columns',
 			icon: <Columns3 />,
 			onSelect: chooseColumns,
 		})
+	}
+
+	if (exportCsv) {
+		tools.push({
+			key: 'export-csv',
+			label: 'Export to CSV',
+			icon: <Download />,
+			onSelect: exportCsv,
+		})
+	}
+
+	if (tools.length > 0) {
+		if (items.length > 0) items.push({ key: 'tools-separator', separator: true })
+
+		items.push(...tools)
 	}
 
 	return items
@@ -151,6 +188,7 @@ export function GridContextMenu<T>({
 	clearSort,
 	autoSizeColumns,
 	chooseColumns,
+	exportCsv,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -185,6 +223,7 @@ export function GridContextMenu<T>({
 				clearSort,
 				autoSizeColumns: autoSizeColumns ?? undefined,
 				chooseColumns: () => chooseColumns?.(),
+				exportCsv: exportCsv ?? undefined,
 			}
 
 			const defaults = columnMenuDefaults({
@@ -194,11 +233,21 @@ export function GridContextMenu<T>({
 				clearSort,
 				autoSizeColumns,
 				chooseColumns,
+				exportCsv,
 			})
 
 			return typeof config.column === 'function' ? config.column(context, defaults) : defaults
 		},
-		[config.column, columnById, sort, sortColumn, clearSort, autoSizeColumns, chooseColumns],
+		[
+			config.column,
+			columnById,
+			sort,
+			sortColumn,
+			clearSort,
+			autoSizeColumns,
+			chooseColumns,
+			exportCsv,
+		],
 	)
 
 	const resolveCellItems = useCallback(

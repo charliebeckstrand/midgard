@@ -20,6 +20,8 @@ Auto-sizing is the sixth: under `resizable`, data columns fit the container widt
 
 Truncation is the seventh, and on by default (`truncate={false}` opts out, as the editable variant does): overflowing cell content — and column titles — clip to one line with an ellipsis instead of spilling across neighbours, visible wherever the column width is bounded (a resizable/fixed-layout grid). A truncated cell reveals its full content in a hover/focus `Tooltip`; a column's `cellTooltip` returns a node to supersede that content or `null` to disable it. A truncated header title reveals itself the same way, the title shrinking within the header's flex slot — and, when sortable, within the sort button — so the ellipsis engages around the sort/filter/resize chrome rather than the title overrunning the cell. Both surfaces share one overflow detector (`useGridTruncation`), measured eagerly at sub-pixel precision (a `Tooltip` can't open mid-hover on an `enabled` flip), and mount a tooltip only while truncated. The tooltip's floating surface mounts its portal only while open (see `FloatingSurface`), so a grid of many cells leaves no `[data-floating-ui-portal]` nodes behind at rest — the styled reveal without a per-cell portal flood. Truncation needs a bounded column width: a `resizable`/fixed-layout grid, or a column `width`; an auto-layout column sizes to its content instead.
 
+CSV export is the eighth, opt-in via `exportable`: an "Export to CSV" item joins the header right-click menu and downloads the grid's filtered and sorted rows (all pages, from the engine's sorted row model) as an RFC 4180 file, UTF-8 BOM led for spreadsheet apps. Each cell reads its column's `value` accessor — the same value sort and filter use — falling back to the row field named by the column id; non-data columns (selection, actions) and columns with neither a `value` nor a matching field drop out or blank. A `column`-menu builder can reach the same action through its context's `exportCsv`. Excel and print views remain on the backlog.
+
 A grid with no source data (including while loading) stands its column interactions down: the sort, resize, filter, and reorder affordances drop from the header and the right-click menu defers to the browser's, since each acts on rows that aren't there. The gate reads the source `rows`, not the rendered view — a filter or search that empties the result keeps the header live (the filter button in particular, so the filter can be cleared and the rows recovered). The column-manager toolbar — a deliberate tool, not a header affordance — stays available throughout.
 
 Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
@@ -84,7 +86,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 
 | Feature | Approach |
 |---|---|
-| CSV / Excel export, clipboard, print view | Derive from the (filtered/sorted) row model |
+| Excel export, clipboard, print view | CSV export ships (`exportable`, header-menu item over the filtered/sorted row model); Excel/print still derive from that model |
 
 ### Rendering & performance
 

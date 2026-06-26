@@ -383,6 +383,12 @@ const ColumnManagerExample = () => {
 	)
 }
 
+// `exportable` adds an "Export to CSV" item to the header right-click menu; it
+// downloads the filtered/sorted rows, each column read through its `value`.
+const ExportExample = () => (
+	<Grid exportable columns={filterableColumns} rows={people} getKey={(row) => row.id} />
+)
+
 const ServerPaginationExample = () => {
 	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 10 })
 
@@ -525,6 +531,10 @@ export function Demo() {
 
 			<Example title="Column manager">
 				<ColumnManagerExample />
+			</Example>
+
+			<Example title="CSV export" code={code`<Grid exportable />`}>
+				<ExportExample />
 			</Example>
 
 			<Example

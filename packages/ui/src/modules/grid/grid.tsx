@@ -17,6 +17,7 @@ import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
 import { GridContextMenu } from './grid-context-menu'
 import { GridEditable, type GridEditableProps } from './grid-editable'
+import { downloadCsv, rowsToCsv } from './grid-export'
 import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -217,6 +218,16 @@ export type GridDataProps<T> = TableVariants & {
 	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
+	 * Adds an "Export to CSV" item to the header context menu that downloads the
+	 * grid's filtered and sorted rows (all pages) as a CSV file. Each row reads a
+	 * column's {@link GridColumn.value}, falling back to the row field named by the
+	 * column id; columns without either export an empty field. Off by default so a
+	 * grid doesn't expose a bulk download unless asked.
+	 * @defaultValue false
+	 */
+	exportable?: boolean
+
+	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
 	 * non-pinned data column — letting the user reorder columns by pointer or
 	 * keyboard. Commits through `columnOrder`; `select`, `actions`, and `pinned`
@@ -321,6 +332,7 @@ type GridRegionProps<T> = {
 	clearSort: () => void
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
+	exportCsv: (() => void) | null
 	children: ReactNode
 }
 
@@ -346,6 +358,7 @@ function GridRegion<T>({
 	clearSort,
 	autoSizeColumns,
 	chooseColumns,
+	exportCsv,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -371,6 +384,7 @@ function GridRegion<T>({
 			clearSort={clearSort}
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
+			exportCsv={exportCsv}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -584,6 +598,7 @@ function GridData<T>({
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
 	contextMenu,
+	exportable = false,
 	reorder = false,
 	truncate = true,
 	rowClassName,
@@ -688,6 +703,24 @@ function GridData<T>({
 			})
 		},
 		[setSort],
+	)
+
+	// Export the filtered + sorted rows (all pages) to a CSV download. The engine's
+	// sorted row model reflects active filters and sort; `null` keeps the menu item
+	// out unless `exportable` is set.
+	const exportCsv = useMemo(
+		() =>
+			exportable
+				? () =>
+						downloadCsv(
+							'grid.csv',
+							rowsToCsv(
+								visibleColumns,
+								table.getSortedRowModel().rows.map((modelRow) => modelRow.original),
+							),
+						)
+				: null,
+		[exportable, visibleColumns, table],
 	)
 
 	const context = useMemo(
@@ -850,6 +883,7 @@ function GridData<T>({
 					clearSort={clearSort}
 					autoSizeColumns={autoSizeColumns}
 					chooseColumns={chooseColumns}
+					exportCsv={exportCsv}
 				>
 					{tableRegion}
 				</GridRegion>

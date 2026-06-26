@@ -240,6 +240,8 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Choose Columns"). */
 	chooseColumns: () => void
+	/** Exports the filtered/sorted rows to a CSV download, or `undefined` when {@link GridProps.exportable} is off. */
+	exportCsv: (() => void) | undefined
 }
 
 /**
