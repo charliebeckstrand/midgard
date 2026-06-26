@@ -1,13 +1,19 @@
 'use client'
 
-import { Filter } from 'lucide-react'
+import { ListFilter } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { createGroup, createRule, QueryBuilder, type QueryField } from '../query'
+import {
+	createGroup,
+	createRule,
+	QueryBuilder,
+	type QueryField,
+	type QueryGroupNode,
+} from '../query'
 import type { GridColumn } from './types'
 import type { GridColumnFilter } from './use-grid-table'
 
@@ -33,6 +39,13 @@ function toQueryField(column: FilterColumn): QueryField {
 type GridColumnFilterButtonProps = {
 	column: FilterColumn
 	filter: GridColumnFilter
+	/**
+	 * The column's current query tree, threaded as a prop (not read live off
+	 * `filter`) so a change re-renders this button through the memoized header
+	 * cell — otherwise the controlled {@link QueryBuilder} would freeze on its
+	 * seed and never reflect an edit.
+	 */
+	query: QueryGroupNode | undefined
 }
 
 /**
@@ -44,7 +57,7 @@ type GridColumnFilterButtonProps = {
  *
  * @internal
  */
-export function GridColumnFilterButton({ column, filter }: GridColumnFilterButtonProps) {
+export function GridColumnFilterButton({ column, filter, query }: GridColumnFilterButtonProps) {
 	const field = useMemo(() => toQueryField(column), [column])
 
 	const fields = useMemo(() => [field], [field])
@@ -57,7 +70,7 @@ export function GridColumnFilterButton({ column, filter }: GridColumnFilterButto
 		return createGroup('and', [field.type === 'text' ? { ...rule, operator: 'contains' } : rule])
 	}, [field])
 
-	const active = (filter.getQuery(column.id)?.children.length ?? 0) > 0
+	const active = (query?.children.length ?? 0) > 0
 
 	const label = filterLabel(column)
 
@@ -70,7 +83,7 @@ export function GridColumnFilterButton({ column, filter }: GridColumnFilterButto
 					data-active={dataAttr(active)}
 					className={cn(k.filter.button)}
 				>
-					<Icon icon={<Filter />} />
+					<Icon icon={<ListFilter />} />
 				</Button>
 			</PopoverTrigger>
 
@@ -79,7 +92,7 @@ export function GridColumnFilterButton({ column, filter }: GridColumnFilterButto
 					fields={fields}
 					hideFieldSelector
 					allowGroups={false}
-					value={filter.getQuery(column.id) ?? seeded}
+					value={query ?? seeded}
 					onValueChange={(next) => filter.setQuery(column.id, next)}
 				/>
 			</PopoverContent>

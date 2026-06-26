@@ -134,8 +134,8 @@ export const k = {
 			fg.hover,
 			'data-[active]:text-blue-600 dark:data-[active]:text-blue-400',
 		],
-		// Filter popover panel: room for the single-column rule editor.
-		popover: ['w-80', 'max-w-[calc(100vw-2rem)]'],
+		// Filter popover panel: roomy so the value input has space alongside the operator.
+		popover: ['w-[32rem]', 'max-w-[calc(100vw-2rem)]'],
 	},
 	footer: {
 		// Footer below the table. From `lg`: one centered row — page-size picker,

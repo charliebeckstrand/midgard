@@ -11,6 +11,7 @@ import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import type { QueryGroupNode } from '../query'
 import { useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
@@ -147,6 +148,10 @@ function GridHeaderCell<T>({
 		gridCol: isDataColumn(column) ? column.id : undefined,
 		// Per-column filter controls; the header shows a filter button when set.
 		filter: filters,
+		// The column's live query, read here (this cell re-renders on filter
+		// changes) so the memoized header re-renders when it changes — the
+		// filter button's controlled QueryBuilder reads it, not `filter` live.
+		filterQuery: filters?.getQuery(column.id),
 	}
 
 	if (reorderable && isDataColumn(column) && !column.pinned) {
@@ -177,6 +182,8 @@ type GridColumnHeaderProps = {
 	gridCol: string | number | undefined
 	/** Per-column filter controls; a filter button shows when the column is filterable. */
 	filter: GridColumnFilter | null
+	/** The column's live query tree, passed so a filter change re-renders this memoized cell. */
+	filterQuery: QueryGroupNode | undefined
 }
 
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
@@ -316,6 +323,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	resizing,
 	gridCol,
 	filter,
+	filterQuery,
 }: GridColumnHeaderProps) {
 	const canResize = resize?.canResize(column.id) ?? false
 
@@ -339,7 +347,9 @@ const GridColumnHeader = memo(function GridColumnHeader({
 					direction={direction}
 					toggleSort={toggleSort}
 				/>
-				{filter?.canFilter(column.id) && <GridColumnFilterButton column={column} filter={filter} />}
+				{filter?.canFilter(column.id) && (
+					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
+				)}
 			</span>
 			{canResize && resize && (
 				<GridColumnResizeHandle
@@ -373,6 +383,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	resizing,
 	gridCol,
 	filter,
+	filterQuery,
 }: GridColumnHeaderProps) {
 	const {
 		setNodeRef,
@@ -419,7 +430,9 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					direction={direction}
 					toggleSort={toggleSort}
 				/>
-				{filter?.canFilter(column.id) && <GridColumnFilterButton column={column} filter={filter} />}
+				{filter?.canFilter(column.id) && (
+					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
+				)}
 			</span>
 			{canResize && resize && (
 				<GridColumnResizeHandle
