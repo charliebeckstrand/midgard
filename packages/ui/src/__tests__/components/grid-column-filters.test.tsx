@@ -145,7 +145,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		// The drawer opens on a seeded, value-less rule — still inactive.
+		// The sheet opens on a seeded, value-less rule — still inactive.
 		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
@@ -172,7 +172,7 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
 	})
 
-	it('discards a draft when the filter drawer is dismissed without applying', () => {
+	it('discards a draft when the filter sheet is dismissed without applying', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))

@@ -3,8 +3,8 @@
 import { ListFilter } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/button'
-import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../components/drawer'
 import { Icon } from '../../components/icon'
+import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import {
@@ -18,7 +18,7 @@ import {
 import type { GridColumn } from './types'
 import type { GridColumnFilter } from './use-grid-table'
 
-/** The subset of a column the filter drawer reads. @internal */
+/** The subset of a column the filter sheet reads. @internal */
 type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'filterOptions'>
 
 /** A column's filter label: its `title` when a string, else the stringified id. @internal */
@@ -26,7 +26,7 @@ function filterLabel(column: Pick<GridColumn<unknown>, 'id' | 'title'>): string 
 	return typeof column.title === 'string' ? column.title : String(column.id)
 }
 
-/** The single query field a column's filter drawer edits. @internal */
+/** The single query field a column's filter sheet edits. @internal */
 function toQueryField(column: FilterColumn): QueryField {
 	return {
 		name: String(column.id),
@@ -43,7 +43,7 @@ type GridColumnFilterButtonProps = {
 	/**
 	 * The column's current query tree, threaded as a prop (not read live off
 	 * `filter`) so a change re-renders this button through the memoized header
-	 * cell — keeping the active accent and the drawer's reopened draft in step
+	 * cell — keeping the active accent and the sheet's reopened draft in step
 	 * with what's actually applied.
 	 */
 	query: QueryGroupNode | undefined
@@ -51,11 +51,11 @@ type GridColumnFilterButtonProps = {
 
 /**
  * Filter affordance for a filterable column header: an icon button opening a
- * {@link Drawer} that hosts a single-field {@link QueryBuilder} — no field
- * selector, no nested groups, just operator + value rules joined by AND/OR.
+ * right-side {@link Sheet} that hosts a single-field {@link QueryBuilder} — no
+ * field selector, no nested groups, just operator + value rules joined by AND/OR.
  *
  * Edits accumulate in a local draft; nothing reaches the engine until the
- * drawer's **Apply** settles it, and dismissing (Cancel, Escape, backdrop)
+ * sheet's **Apply** settles it, and dismissing (Cancel, Escape, backdrop)
  * discards the draft so the applied filter stands. The button reads accent from
  * the applied query, not the draft.
  *
@@ -66,7 +66,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	const fields = useMemo(() => [field], [field])
 
-	// A drawer with no applied query opens on one empty rule (text defaults to
+	// A sheet with no applied query opens on one empty rule (text defaults to
 	// `contains`); the applied query seeds the draft instead once it exists.
 	const seeded = useMemo(() => {
 		const rule = createRule(field)
@@ -78,7 +78,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	const [draft, setDraft] = useState<QueryGroupNode>(seeded)
 
-	// Seed the draft from the applied query each time the drawer opens, so editing
+	// Seed the draft from the applied query each time the sheet opens, so editing
 	// always resumes from what's in effect; an unapplied draft is dropped on close.
 	function handleOpenChange(next: boolean) {
 		if (next) setDraft(query ?? seeded)
@@ -119,23 +119,21 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				<Icon icon={<ListFilter />} />
 			</Button>
 
-			<Drawer open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
-				<DrawerTitle>Filter {label}</DrawerTitle>
+			<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
+				<SheetTitle>Filter {label}</SheetTitle>
 
-				<DrawerBody>
-					<div className={cn(k.filter.drawerContent)}>
-						<QueryBuilder
-							fields={fields}
-							hideFieldSelector
-							allowGroups={false}
-							requireRule
-							value={draft}
-							onValueChange={setDraft}
-						/>
-					</div>
-				</DrawerBody>
+				<SheetBody>
+					<QueryBuilder
+						fields={fields}
+						hideFieldSelector
+						allowGroups={false}
+						requireRule
+						value={draft}
+						onValueChange={setDraft}
+					/>
+				</SheetBody>
 
-				<DrawerFooter>
+				<SheetFooter>
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
@@ -143,8 +141,8 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					<Button color="blue" onClick={apply}>
 						Apply
 					</Button>
-				</DrawerFooter>
-			</Drawer>
+				</SheetFooter>
+			</Sheet>
 		</>
 	)
 }

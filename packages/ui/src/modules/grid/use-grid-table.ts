@@ -427,7 +427,7 @@ export type GridColumnResize = {
 }
 
 /**
- * Per-column filter controls the header filter drawers render from. Methods
+ * Per-column filter controls the header filter sheets render from. Methods
  * read the engine live, so the object itself is stable across renders.
  *
  * @internal
