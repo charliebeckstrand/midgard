@@ -1,5 +1,7 @@
 'use client'
 
+import { type KeyboardEvent, useEffect, useState } from 'react'
+import { Input } from '../../components/input'
 import {
 	Pagination,
 	PaginationGap,
@@ -13,6 +15,67 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { getVisiblePages } from './grid-pagination-utilities'
 import type { GridPaginationView } from './use-grid-table'
+
+/** Props for {@link GridJumpToPage}. @internal */
+type GridJumpToPageProps = {
+	/** 1-based current page. */
+	pageNumber: number
+	/** Total pages (known and ≥ 1). */
+	pageCount: number
+	/** Jumps to a 0-based page index. */
+	setPageIndex: (index: number) => void
+}
+
+/**
+ * "Go to page" number entry: a narrow input seeded with the current page that
+ * jumps on Enter or blur, clamped to `[1, pageCount]`. The draft re-syncs when
+ * the page changes elsewhere (nav buttons, page-size change).
+ *
+ * @internal
+ */
+function GridJumpToPage({ pageNumber, pageCount, setPageIndex }: GridJumpToPageProps) {
+	const [draft, setDraft] = useState(String(pageNumber))
+
+	useEffect(() => setDraft(String(pageNumber)), [pageNumber])
+
+	const commit = () => {
+		const parsed = Number.parseInt(draft, 10)
+
+		if (Number.isNaN(parsed)) {
+			setDraft(String(pageNumber))
+
+			return
+		}
+
+		const clamped = Math.min(Math.max(parsed, 1), pageCount)
+
+		setPageIndex(clamped - 1)
+
+		setDraft(String(clamped))
+	}
+
+	const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Enter') commit()
+	}
+
+	return (
+		<div className={cn(k.footer.jump)}>
+			<span aria-hidden="true">Go to page</span>
+
+			<Input
+				type="number"
+				min={1}
+				max={pageCount}
+				value={draft}
+				onChange={(event) => setDraft(event.target.value)}
+				onKeyDown={onKeyDown}
+				onBlur={commit}
+				aria-label="Go to page"
+				className={cn(k.footer.jumpInput)}
+			/>
+		</div>
+	)
+}
 
 /** Props for {@link GridPagination}. @internal */
 type GridPaginationProps = {
@@ -36,6 +99,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 		canPrevious,
 		canNext,
 		pageSizeOptions,
+		jumpToPage,
 		setPageIndex,
 		setPageSize,
 	} = pagination
@@ -45,6 +109,9 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	const knownPages = pageCount > 0
 
 	const showPicker = pageSizeOptions != null && pageSizeOptions.length > 0
+
+	// Jumping needs a known, multi-page total to clamp against.
+	const showJump = jumpToPage && knownPages && pageCount > 1
 
 	// Hide the navigation for a single known page (or none); keep it for multiple
 	// pages or an unbounded server feed (`pageCount` of -1).
@@ -106,6 +173,14 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 								))}
 							</Select>
 						</>
+					)}
+
+					{showJump && (
+						<GridJumpToPage
+							pageNumber={pageNumber}
+							pageCount={pageCount}
+							setPageIndex={setPageIndex}
+						/>
 					)}
 				</div>
 			</div>

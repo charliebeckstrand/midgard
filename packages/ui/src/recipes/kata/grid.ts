@@ -184,6 +184,9 @@ export const k = {
 			'lg:empty:hidden',
 		],
 		status: [size.sm, text.muted, 'whitespace-nowrap'],
+		// "Go to page" control: label + a narrow number input, inline with the picker.
+		jump: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
+		jumpInput: 'w-16',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

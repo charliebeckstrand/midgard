@@ -400,6 +400,7 @@ function buildPaginationView<T>(args: {
 		canPrevious: args.table.getCanPreviousPage(),
 		canNext: args.table.getCanNextPage(),
 		pageSizeOptions: args.config.pageSizeOptions,
+		jumpToPage: args.config.jumpToPage ?? false,
 		setPageIndex: (index) => args.table.setPageIndex(index),
 		setPageSize: (size) => args.table.setPageSize(size),
 	}
@@ -489,6 +490,8 @@ export type GridPaginationView = {
 	canPrevious: boolean
 	canNext: boolean
 	pageSizeOptions: number[] | undefined
+	/** Whether the footer shows a "Go to page" input (known multi-page sets only). */
+	jumpToPage: boolean
 	setPageIndex: (index: number) => void
 	setPageSize: (size: number) => void
 }

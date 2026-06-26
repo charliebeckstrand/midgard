@@ -143,6 +143,14 @@ export type GridPagination = {
 	pageSizeOptions?: number[]
 
 	/**
+	 * Adds a "Go to page" number input to the footer for jumping directly to a
+	 * page. Shows only when the total page count is known and exceeds one; the
+	 * entry is clamped to the valid range. Off by default.
+	 * @defaultValue false
+	 */
+	jumpToPage?: boolean
+
+	/**
 	 * Server-side (manual) pagination: the consumer supplies each page's `rows`
 	 * and a `rowCount`/`pageCount`. When omitted, defaults to `true` if either
 	 * total is given, else `false` (client-side slicing of `rows`).
