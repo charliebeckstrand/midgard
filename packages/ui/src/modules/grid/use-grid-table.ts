@@ -73,16 +73,17 @@ function isManualPagination(config: GridPagination | undefined): boolean {
 	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }
 
-/** Adapts the grid's single-column {@link SortState} to a TanStack `SortingState`. @internal */
-function toSortingState(sort: SortState | undefined): SortingState {
-	return sort ? [{ id: String(sort.column), desc: sort.direction === 'desc' }] : []
+/** Adapts the grid's ordered {@link SortState} list to a TanStack `SortingState`, priority order preserved. @internal */
+function toSortingState(sort: SortState[] | undefined): SortingState {
+	return (sort ?? []).map((entry) => ({
+		id: String(entry.column),
+		desc: entry.direction === 'desc',
+	}))
 }
 
-/** Adapts a TanStack `SortingState` back to the grid's single-column {@link SortState}. @internal */
-function toSortState(sorting: SortingState): SortState | undefined {
-	const first = sorting[0]
-
-	return first ? { column: first.id, direction: first.desc ? 'desc' : 'asc' } : undefined
+/** Adapts a TanStack `SortingState` back to the grid's ordered {@link SortState} list. @internal */
+function toSortState(sorting: SortingState): SortState[] {
+	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
 }
 
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
@@ -256,7 +257,9 @@ function sortOptions<T>(args: {
 	return {
 		getSortedRowModel: getSortedRowModel(),
 		onSortingChange: args.onSortingChange,
-		enableMultiSort: false,
+		// The grid owns the additive Shift-click model, so the engine should honor a
+		// multi-column sorting state rather than collapse it to one column.
+		enableMultiSort: true,
 	}
 }
 
@@ -455,8 +458,8 @@ type UseGridTableParams<T> = {
 	rows: T[]
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
-	sort?: SortState
-	setSort?: (sort: SortState | undefined) => void
+	sort?: SortState[]
+	setSort?: (sort: SortState[]) => void
 	sortManual?: boolean
 	pagination?: GridPagination
 	resizable?: boolean

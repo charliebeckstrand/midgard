@@ -2,7 +2,7 @@
 
 import { createContext } from '../../core'
 
-/** Active sort: the sorted column's id and its direction. */
+/** One sorted column: its id and direction. The grid's sort is an ordered list of these. */
 export type SortState = {
 	column: string | number
 	direction: 'asc' | 'desc'
@@ -15,8 +15,15 @@ export type GridContextValue = {
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
-	sort: SortState | undefined
-	toggleSort: (column: string | number) => void
+	/** The active sort columns in priority order; empty when unsorted. */
+	sort: SortState[]
+	/**
+	 * Cycles a column's sort. `additive` (a Shift-click) folds the column into the
+	 * existing sort — appending it, flipping its direction, then dropping it —
+	 * leaving the others in place; otherwise the sort collapses to this column
+	 * alone, cycling ascending → descending → unsorted.
+	 */
+	toggleSort: (column: string | number, additive: boolean) => void
 	stickyHeader: boolean
 }
 

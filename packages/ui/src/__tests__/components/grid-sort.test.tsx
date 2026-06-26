@@ -31,7 +31,7 @@ describe('Grid client sorting', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ value: { column: 'name', direction: 'asc' }, manual: false }}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], manual: false }}
 			/>,
 		)
 
@@ -44,7 +44,7 @@ describe('Grid client sorting', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ value: { column: 'name', direction: 'desc' }, manual: false }}
+				sort={{ value: [{ column: 'name', direction: 'desc' }], manual: false }}
 			/>,
 		)
 
@@ -57,7 +57,7 @@ describe('Grid client sorting', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ value: { column: 'name', direction: 'asc' }, manual: true }}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], manual: true }}
 			/>,
 		)
 
@@ -75,7 +75,7 @@ describe('Grid client sorting', () => {
 				columns={plainColumns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ value: { column: 'name', direction: 'asc' } }}
+				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
 			/>,
 		)
 
@@ -107,7 +107,7 @@ describe('Grid client sorting', () => {
 				columns={moneyColumns}
 				rows={amounts}
 				getKey={(row) => row.id}
-				sort={{ value: { column: 'amount', direction: 'asc' } }}
+				sort={{ value: [{ column: 'amount', direction: 'asc' }] }}
 			/>,
 		)
 
@@ -139,11 +139,104 @@ describe('Grid client sorting', () => {
 				columns={rankedColumns}
 				rows={ranked}
 				getKey={(row) => row.id}
-				sort={{ value: { column: 'name', direction: 'asc' } }}
+				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
 			/>,
 		)
 
 		// By rank (1, 2, 3), not by name — the sortFn overrides the smart default.
 		expect(order()).toEqual(['Bea', 'Cody', 'Aaron'])
+	})
+})
+
+describe('Grid multi-column sort', () => {
+	type Row = { id: number; group: string; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{
+			id: 'group',
+			title: 'Group',
+			cell: (row) => row.group,
+			value: (row) => row.group,
+			sortable: true,
+		},
+		{
+			id: 'name',
+			title: 'Name',
+			cell: (row) => row.name,
+			value: (row) => row.name,
+			sortable: true,
+		},
+	]
+
+	const rows: Row[] = [
+		{ id: 1, group: 'B', name: 'Zoe' },
+		{ id: 2, group: 'A', name: 'Bob' },
+		{ id: 3, group: 'A', name: 'Ann' },
+		{ id: 4, group: 'B', name: 'Amy' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	it('orders rows by each sort column in priority order', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{
+					value: [
+						{ column: 'group', direction: 'asc' },
+						{ column: 'name', direction: 'asc' },
+					],
+				}}
+			/>,
+		)
+
+		// Group ascending first, then name ascending within each group.
+		expect(screen.getAllByRole('cell').map((cell) => cell.textContent)).toEqual([
+			'A',
+			'Ann',
+			'A',
+			'Bob',
+			'B',
+			'Amy',
+			'B',
+			'Zoe',
+		])
+	})
+
+	it('renders a 1-based priority badge on each sorted header', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{
+					value: [
+						{ column: 'name', direction: 'asc' },
+						{ column: 'group', direction: 'asc' },
+					],
+				}}
+			/>,
+		)
+
+		// Name is priority 1, Group priority 2 (the badge digit rides in the button).
+		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).toContain('1')
+
+		expect(screen.getByRole('button', { name: 'Sort by Group' }).textContent).toContain('2')
+	})
+
+	it('omits the priority badge under a single-column sort', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		// One sort column needs no ranking, so no digit appears in the header.
+		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).not.toMatch(/\d/)
 	})
 })

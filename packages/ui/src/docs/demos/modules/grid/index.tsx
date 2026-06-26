@@ -264,18 +264,27 @@ function DefaultExample() {
 }
 
 function SortableExample() {
-	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
+	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
 
 	// Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
-	// their order untouched. Omit `manual` for the default client-side sort.
+	// their order untouched. The sort is an ordered list — Shift-click a header to
+	// add columns — so the comparator walks it in priority order.
 	const sortedPeople = useMemo(() => {
-		if (!sort) return people
+		if (!sort.length) return people
 
-		const key = sort.column as keyof Person
+		return [...people].sort((a, b) => {
+			for (const { column, direction } of sort) {
+				const key = column as keyof Person
 
-		const dir = sort.direction === 'asc' ? 1 : -1
+				const dir = direction === 'asc' ? 1 : -1
 
-		return [...people].sort((a, b) => (a[key] < b[key] ? -dir : a[key] > b[key] ? dir : 0))
+				if (a[key] < b[key]) return -dir
+
+				if (a[key] > b[key]) return dir
+			}
+
+			return 0
+		})
 	}, [sort])
 
 	return (
@@ -289,10 +298,30 @@ function SortableExample() {
 }
 
 function ClientSortExample() {
-	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
+	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
 
 	// Client-side is the default: the grid sorts `people` itself by each column's
 	// value (here an explicit `value`; columns without one sort by their field).
+	// Shift-click a second header to sort by it too — the engine orders by the
+	// whole list, and a priority badge appears on each sorted header.
+	return (
+		<Grid
+			columns={clientSortColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			sort={{ value: sort, onValueChange: setSort }}
+		/>
+	)
+}
+
+function MultiSortExample() {
+	// Seeded with a two-column sort (Role, then Name) so the priority badges show
+	// at a glance; Shift-click any sortable header to extend or reorder the sort.
+	const [sort, setSort] = useState<SortState[]>([
+		{ column: 'role', direction: 'asc' },
+		{ column: 'name', direction: 'asc' },
+	])
+
 	return (
 		<Grid
 			columns={clientSortColumns}
@@ -335,7 +364,7 @@ const SmartSortExample = () => (
 		columns={invoiceColumns}
 		rows={invoices}
 		getKey={(row) => row.id}
-		sort={{ defaultValue: { column: 'amount', direction: 'asc' } }}
+		sort={{ defaultValue: [{ column: 'amount', direction: 'asc' }] }}
 	/>
 )
 
@@ -559,6 +588,13 @@ export function Demo() {
 
 			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
 				<ClientSortExample />
+			</Example>
+
+			<Example
+				title="Multi-column sort"
+				code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
+			>
+				<MultiSortExample />
 			</Example>
 
 			<Example

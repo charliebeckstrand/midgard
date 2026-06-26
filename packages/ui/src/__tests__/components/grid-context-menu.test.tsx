@@ -55,7 +55,9 @@ describe('Grid context menus', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort Descending' }))
 
-		expect(onValueChange).toHaveBeenCalledWith<[SortState]>({ column: 'name', direction: 'desc' })
+		expect(onValueChange).toHaveBeenCalledWith<[SortState[]]>([
+			{ column: 'name', direction: 'desc' },
+		])
 	})
 
 	it('opens a cell menu with Copy by default on a body-cell right-click', () => {
@@ -155,7 +157,7 @@ describe('Grid context menus', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
 			/>,
 		)
 
@@ -177,7 +179,7 @@ describe('Grid context menus', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				sort={{ defaultValue: { column: 'name', direction: 'asc' }, onValueChange }}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
 			/>,
 		)
 
@@ -185,7 +187,7 @@ describe('Grid context menus', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear sort' }))
 
-		expect(onValueChange).toHaveBeenCalledWith(undefined)
+		expect(onValueChange).toHaveBeenCalledWith([])
 	})
 
 	it('adds "Auto-size columns" to the header menu when resizable', () => {

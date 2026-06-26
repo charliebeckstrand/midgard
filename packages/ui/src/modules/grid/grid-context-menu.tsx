@@ -47,8 +47,8 @@ type GridContextMenuProps<T> = {
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Active sort, so a sorted column's menu offers "Clear sort". */
-	sort: SortState | undefined
+	/** Active sort columns in priority order, so a sorted column's menu offers "Clear sort". */
+	sort: SortState[]
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
 	clearSort: () => void
@@ -279,7 +279,7 @@ export function GridContextMenu<T>({
 
 			if (!column) return null
 
-			const sortDirection = sort?.column === column.id ? sort.direction : undefined
+			const sortDirection = sort.find((entry) => entry.column === column.id)?.direction
 
 			const context: GridColumnMenuContext<T> = {
 				column,

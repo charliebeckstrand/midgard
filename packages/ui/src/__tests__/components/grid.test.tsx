@@ -161,7 +161,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
 				/>,
 			)
 
@@ -188,7 +188,7 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-			expect(onValueChange).toHaveBeenCalledWith({ column: 'name', direction: 'asc' })
+			expect(onValueChange).toHaveBeenCalledWith([{ column: 'name', direction: 'asc' }])
 		})
 
 		it('toggles direction from asc to desc when clicked again on the same column', async () => {
@@ -199,7 +199,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'asc' }, onValueChange }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
 				/>,
 			)
 
@@ -207,7 +207,7 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith({ column: 'name', direction: 'desc' })
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'desc' }])
 		})
 
 		it('clears the sort on the third click of the same column', async () => {
@@ -218,7 +218,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'desc' }, onValueChange }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
 				/>,
 			)
 
@@ -227,7 +227,8 @@ describe('Grid', () => {
 			// Starting at desc, the next click completes asc → desc → unsorted.
 			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith(undefined)
+			// The unsorted state is the empty list.
+			expect(onValueChange).toHaveBeenLastCalledWith([])
 		})
 
 		it('resets to asc when sorting on a different column', async () => {
@@ -238,7 +239,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'desc' }, onValueChange }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
 				/>,
 			)
 
@@ -246,7 +247,99 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Age' }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith({ column: 'age', direction: 'asc' })
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'age', direction: 'asc' }])
+		})
+
+		it('Shift-click adds a column to the sort in priority order', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([
+				{ column: 'name', direction: 'asc' },
+				{ column: 'age', direction: 'asc' },
+			])
+		})
+
+		it('Shift-click flips an already-sorted column, leaving the others', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'asc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([
+				{ column: 'name', direction: 'asc' },
+				{ column: 'age', direction: 'desc' },
+			])
+		})
+
+		it('Shift-click drops a descending column from the sort', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'desc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
+		})
+
+		it('a plain click collapses a multi-column sort to that one column', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'asc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
 
 		it('renders the asc icon for the active sorted column', () => {
@@ -255,7 +348,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ value: { column: 'name', direction: 'asc' } }}
+					sort={{ value: [{ column: 'name', direction: 'asc' }] }}
 				/>,
 			)
 
@@ -275,7 +368,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ value: { column: 'age', direction: 'desc' } }}
+					sort={{ value: [{ column: 'age', direction: 'desc' }] }}
 				/>,
 			)
 

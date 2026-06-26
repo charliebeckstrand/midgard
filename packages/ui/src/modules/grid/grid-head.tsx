@@ -13,7 +13,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
-import { useGrid } from './context'
+import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
@@ -103,6 +103,28 @@ type GridHeaderCellProps<T> = {
 }
 
 /**
+ * A column's place in the priority-ordered sort: whether it sorts, its
+ * direction, and its 1-based priority — surfaced only under a multi-column sort,
+ * where the ranking is meaningful (a single sort needs no badge).
+ *
+ * @internal
+ */
+function columnSort(
+	sort: SortState[],
+	columnId: string | number,
+): { sorted: boolean; direction: 'asc' | 'desc' | undefined; priority: number | undefined } {
+	const index = sort.findIndex((entry) => entry.column === columnId)
+
+	if (index === -1) return { sorted: false, direction: undefined, priority: undefined }
+
+	return {
+		sorted: true,
+		direction: sort[index]?.direction,
+		priority: sort.length > 1 ? index + 1 : undefined,
+	}
+}
+
+/**
  * Routes one column to its header cell: the select-all checkbox for the
  * selectable column, a reorderable header for draggable data columns, or a
  * plain sort header otherwise — resolving the engine width and resize controls
@@ -149,9 +171,7 @@ function GridHeaderCell<T>({
 		)
 	}
 
-	const sorted = sort?.column === column.id
-
-	const direction = sorted ? sort?.direction : undefined
+	const { sorted, direction, priority: sortPriority } = columnSort(sort, column.id)
 
 	// Engine-driven width and the resize handle apply to data columns only.
 	const sizing = resize && isDataColumn(column) ? resize : null
@@ -165,6 +185,7 @@ function GridHeaderCell<T>({
 		colIndex,
 		sorted,
 		direction,
+		sortPriority,
 		stickyHeader,
 		toggleSort,
 		width,
@@ -204,8 +225,10 @@ type GridColumnHeaderProps = {
 	colIndex: number | undefined
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
+	/** 1-based sort priority shown as a badge under a multi-column sort; `undefined` otherwise. */
+	sortPriority: number | undefined
 	stickyHeader: boolean
-	toggleSort: (column: string | number) => void
+	toggleSort: (column: string | number, additive: boolean) => void
 	/** Resolved width: engine size (px) when resizable, else the column's CSS `width`. */
 	width: number | string | undefined
 	/** Resize controls for this column, or `null` when it is not resizable. */
@@ -316,11 +339,12 @@ function ColumnHeaderLabel({
 	column,
 	sorted,
 	direction,
+	sortPriority,
 	toggleSort,
 	interactive,
 }: Pick<
 	GridColumnHeaderProps,
-	'column' | 'sorted' | 'direction' | 'toggleSort' | 'interactive'
+	'column' | 'sorted' | 'direction' | 'sortPriority' | 'toggleSort' | 'interactive'
 >): ReactNode {
 	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
 
@@ -329,11 +353,14 @@ function ColumnHeaderLabel({
 			<Button
 				type="button"
 				className={cn(k.sort.button)}
-				onClick={() => toggleSort(column.id)}
+				// A Shift-click folds this column into the existing sort (multi-column);
+				// a plain click collapses the sort to just this column.
+				onClick={(event) => toggleSort(column.id, event.shiftKey)}
 				aria-label={`Sort by ${headerLabel(column)}`}
 			>
 				<GridHeaderTitle title={column.title} />
 				{sortDirectionIcon(sorted, direction)}
+				{sortPriority != null && <span className={cn(k.sort.badge)}>{sortPriority}</span>}
 			</Button>
 		</HeadlessProvider>
 	)
@@ -406,6 +433,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	colIndex,
 	sorted,
 	direction,
+	sortPriority,
 	stickyHeader,
 	toggleSort,
 	width,
@@ -441,6 +469,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 					column={column}
 					sorted={sorted}
 					direction={direction}
+					sortPriority={sortPriority}
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
@@ -473,6 +502,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	colIndex,
 	sorted,
 	direction,
+	sortPriority,
 	stickyHeader,
 	toggleSort,
 	width,
@@ -526,6 +556,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					column={column}
 					sorted={sorted}
 					direction={direction}
+					sortPriority={sortPriority}
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>

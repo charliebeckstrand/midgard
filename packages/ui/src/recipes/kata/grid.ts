@@ -105,6 +105,9 @@ export const k = {
 		// truncate; the title carries the ellipsis while the sort arrow holds its size.
 		button: [flex.inline, 'min-w-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 		icon: sortIcon,
+		// Priority number beside the arrow under a multi-column sort: small, muted,
+		// tabular (so digits hold their box), and non-shrinking next to the title.
+		badge: ['text-xs', 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
 	},
 	reorder: {
 		// Lift the actively dragged column above its neighbours and soften it. The
