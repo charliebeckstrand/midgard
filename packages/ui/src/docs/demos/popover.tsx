@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
@@ -7,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../components/popove
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { GlassProvider } from '../../providers/glass'
+import { Example } from '../engine'
 
 const placements = ['left', 'top', 'bottom', 'right'] as const
 

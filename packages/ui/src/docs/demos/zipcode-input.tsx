@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { ZipcodeInput } from '../../components/zipcode-input'
+import { Example } from '../engine'
 
 function ControlledExample() {
 	const [value, setValue] = useState('')

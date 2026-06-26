@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { Alert, AlertDescription, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
 import {
@@ -12,6 +11,7 @@ import {
 import { Link } from '../../components/link'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (

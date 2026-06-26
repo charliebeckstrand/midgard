@@ -1,5 +1,5 @@
-import { code, Example } from 'docs'
 import { Markdown } from '../../components/markdown'
+import { code, Example } from '../engine'
 
 const prose = code`
 	# Markdown

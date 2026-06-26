@@ -1,6 +1,6 @@
-import { Example } from 'docs'
 import { Description, Label } from '../../components/fieldset'
 import { Switch, SwitchField } from '../../components/switch'
+import { Example } from '../engine'
 
 const sizes = [
 	{

@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
@@ -7,6 +6,7 @@ import { DialogBody } from '../../components/dialog'
 import { Label } from '../../components/fieldset'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { Example } from '../engine'
 
 export function Demo() {
 	const [discardOpen, setDiscardOpen] = useState(false)

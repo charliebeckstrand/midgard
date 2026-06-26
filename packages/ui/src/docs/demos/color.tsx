@@ -1,8 +1,8 @@
-import { Example, LabeledRow, LabeledRows } from 'docs'
 import { useState } from 'react'
 import type { Hsva } from '../../components/color'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { Text } from '../../components/text'
+import { Example, LabeledRow, LabeledRows } from '../engine'
 
 const sizes = ['sm', 'md', 'lg'] as const
 

@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import {
 	Timeline,
 	TimelineDescription,
@@ -6,6 +5,7 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../components/timeline'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (

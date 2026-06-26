@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Box } from '../../../components/box'
 import { Button } from '../../../components/button'
@@ -18,6 +17,7 @@ import {
 	TableRow,
 } from '../../../components/table'
 import { DashboardLayout, StackedLayoutBody } from '../../../layouts'
+import { Example } from '../../engine'
 
 const stats = [
 	{ label: 'Total revenue', value: '$45,231', delta: '+20.1%', trend: 'up' as const },

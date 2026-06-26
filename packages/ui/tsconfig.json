@@ -9,5 +9,5 @@
 		"tsBuildInfoFile": ".tsbuildinfo/main.tsbuildinfo"
 	},
 	"include": ["src", "tsup.config.ts"],
-	"exclude": ["src/docs", "src/__benchmarks__/docs"]
+	"exclude": ["src/docs"]
 }

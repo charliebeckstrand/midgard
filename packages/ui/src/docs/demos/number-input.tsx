@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
+import { Example } from '../engine'
 
 function ControlledExample() {
 	const [value, setValue] = useState<number | undefined>(3)

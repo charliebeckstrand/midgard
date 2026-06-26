@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import {
 	Pagination,
@@ -8,6 +7,7 @@ import {
 	PaginationPage,
 	PaginationPrevious,
 } from '../../components/pagination'
+import { Example } from '../engine'
 
 const totalPages = 10
 

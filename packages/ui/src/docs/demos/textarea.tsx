@@ -1,4 +1,3 @@
-import { capitalize, Example } from 'docs'
 import { ArrowUp, Paperclip } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Button } from '../../components/button'
@@ -6,6 +5,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Spacer } from '../../components/spacer'
 import { Textarea } from '../../components/textarea'
+import { capitalize, Example } from '../engine'
 
 const variants = ['default', 'outline'] as const
 const sizes = ['sm', 'md', 'lg'] as const

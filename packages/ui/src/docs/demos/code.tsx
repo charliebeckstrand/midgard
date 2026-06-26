@@ -1,7 +1,7 @@
-import { code, Example, SizeListbox } from 'docs'
 import { useState } from 'react'
 import { Code, CodeBlock } from '../../components/code'
 import { Text } from '../../components/text'
+import { code, Example, SizeListbox } from '../engine'
 
 const sizes = ['sm', 'md', 'lg'] as const
 

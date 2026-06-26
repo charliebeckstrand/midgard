@@ -1,6 +1,6 @@
-import { Example } from 'docs'
 import { Link } from '../../components/link'
 import { Text } from '../../components/text'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (
