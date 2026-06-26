@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import {
@@ -10,6 +9,7 @@ import {
 	KanbanColumnTitle,
 } from '../../components/kanban'
 import { Stack } from '../../components/stack'
+import { Example } from '../engine'
 
 type Load = { id: string; code: string; customer: string; weight: string }
 

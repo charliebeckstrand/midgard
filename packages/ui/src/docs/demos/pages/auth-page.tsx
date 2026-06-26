@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { type ComponentProps, type ReactNode, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Field, Fieldset, Label } from '../../../components/fieldset'
@@ -7,6 +6,7 @@ import { Input } from '../../../components/input'
 import { PasswordInput } from '../../../components/password-input'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { AuthLayout } from '../../../layouts'
+import { Example } from '../../engine'
 
 const Form = ({
 	onSubmit,

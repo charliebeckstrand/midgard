@@ -1,6 +1,6 @@
-import { Example } from 'docs'
 import { Box } from '../../components/box'
 import { Stack } from '../../components/stack'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (

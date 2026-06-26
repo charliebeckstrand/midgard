@@ -1,8 +1,8 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
+import { Example } from '../engine'
 
 export function Demo() {
 	const [leftOpen, setLeftOpen] = useState(false)

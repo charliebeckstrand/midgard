@@ -1,4 +1,3 @@
-import { Example, SizeListbox } from 'docs'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
@@ -6,6 +5,7 @@ import { Flex } from '../../components/flex'
 import { ScrollArea } from '../../components/scroll-area'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { Example, SizeListbox } from '../engine'
 
 const sizes = ['sm', 'md', 'lg', 'xl', '2xl'] as const
 

@@ -1,9 +1,16 @@
-import { capitalize, Example, LabeledColumn, LabeledRow, LabeledRows, ValueStepper } from 'docs'
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Stack } from '../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
+import {
+	capitalize,
+	Example,
+	LabeledColumn,
+	LabeledRow,
+	LabeledRows,
+	ValueStepper,
+} from '../engine'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 

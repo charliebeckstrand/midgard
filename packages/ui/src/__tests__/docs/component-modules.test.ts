@@ -1,10 +1,10 @@
-import { defaultRegistry } from 'docs/derive-code'
 import { describe, expect, it } from 'vitest'
+import { defaultRegistry } from '../../docs/engine/derive-code'
 
 // Integration: the docs engine, pointed at ui by the docs vite plugin (see
 // vitest.config.ts), resolves ui's real components, providers, and demo
 // externals into the name map that backs snippet-import resolution. This is
-// ui-specific — the agnostic engine behaviour lives in the docs package.
+// ui-specific — the agnostic engine behaviour lives under src/docs/engine/__tests__.
 describe('docs engine ⇄ ui component map', () => {
 	it('is a Map keyed by component name', () => {
 		expect(defaultRegistry.byName).toBeInstanceOf(Map)

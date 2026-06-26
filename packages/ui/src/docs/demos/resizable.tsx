@@ -1,6 +1,6 @@
-import { Example } from 'docs'
 import { Card } from '../../components/card'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
+import { Example } from '../engine'
 
 const Pane = () => <Card className="h-full" />
 

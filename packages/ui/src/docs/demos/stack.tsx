@@ -1,8 +1,8 @@
-import { Example } from 'docs'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
 import { Stack } from '../../components/stack'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (

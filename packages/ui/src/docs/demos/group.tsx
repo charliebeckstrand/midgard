@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { Heading1, Heading2, Heading3 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/button'
@@ -9,6 +8,7 @@ import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../components/stack'
+import { Example } from '../engine'
 
 type ChildType = 'button' | 'input'
 

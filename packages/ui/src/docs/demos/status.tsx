@@ -1,8 +1,8 @@
-import { capitalize, Example, SizeListbox, VariantListbox } from 'docs'
 import { useState } from 'react'
 import { Flex } from '../../components/flex'
 import { Stack } from '../../components/stack'
 import { StatusDot } from '../../components/status'
+import { capitalize, Example, SizeListbox, VariantListbox } from '../engine'
 
 const statuses = ['inactive', 'active', 'info', 'warning', 'error'] as const
 

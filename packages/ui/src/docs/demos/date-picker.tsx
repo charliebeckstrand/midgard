@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
 import { GlassProvider } from '../../providers/glass'
+import { Example } from '../engine'
 
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)

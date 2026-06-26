@@ -1,4 +1,3 @@
-import { code, Example } from 'docs'
 import { useState } from 'react'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import {
@@ -9,6 +8,7 @@ import {
 	Map as MapView,
 	type RouteData,
 } from '../../../modules/map'
+import { code, Example } from '../../engine'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 const route: RouteData = {

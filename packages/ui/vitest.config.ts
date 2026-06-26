@@ -1,10 +1,11 @@
-import { docsPlugin } from 'docs/plugins'
 import { configDefaults, defineConfig } from 'vitest/config'
+import { docsPlugin } from './src/docs/engine/plugins'
 import { baseTest, setupFiles, testIsolation } from './vitest.base.config'
 
 export default defineConfig({
 	// The docs engine, pointed at ui, backs the `docs/*` integration tests under
-	// src/__tests__/docs/ (the real component-modules map + barrel tagging).
+	// src/__tests__/docs/ (the real component-modules map + barrel tagging) and
+	// runs its own suite under src/docs/engine/__tests__.
 	plugins: [docsPlugin({ vitest: true })],
 	test: {
 		...baseTest,
@@ -12,7 +13,7 @@ export default defineConfig({
 		pool: 'vmThreads',
 		sequence: { shuffle: true },
 		setupFiles,
-		include: ['src/__tests__/**/*.test.{ts,tsx}'],
+		include: ['src/__tests__/**/*.test.{ts,tsx}', 'src/docs/engine/__tests__/**/*.test.{ts,tsx}'],
 		// The browser suite (vitest.browser.config.ts) verifies behaviour jsdom
 		// can't — layout/colour geometry and, in its floating-ui project,
 		// real-floating-engine focus trapping — so it may not run under this

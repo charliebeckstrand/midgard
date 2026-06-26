@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import {
@@ -14,6 +13,7 @@ import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
 import { Textarea } from '../../components/textarea'
+import { Example } from '../engine'
 
 export function Demo() {
 	const [open, setOpen] = useState(false)

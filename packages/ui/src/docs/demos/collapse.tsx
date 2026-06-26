@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import {
@@ -9,6 +8,7 @@ import {
 } from '../../components/collapse'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
+import { Example } from '../engine'
 
 function TriggerLabel() {
 	const { open } = useCollapseContext()

@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import {
 	Combobox,
@@ -7,6 +6,7 @@ import {
 	useComboboxQuery,
 } from '../../components/combobox'
 import { Field, Label } from '../../components/fieldset'
+import { Example } from '../engine'
 
 const people = [
 	'Wade Cooper',

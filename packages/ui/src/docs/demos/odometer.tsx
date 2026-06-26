@@ -1,9 +1,9 @@
-import { code, Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Odometer } from '../../components/odometer'
 import { Stack } from '../../components/stack'
+import { code, Example } from '../engine'
 
 function CounterExample() {
 	const [value, setValue] = useState(1284)

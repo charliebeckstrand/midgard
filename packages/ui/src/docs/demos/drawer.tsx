@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../components/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../components/drawer'
+import { Example } from '../engine'
 
 export function Demo() {
 	const [open, setOpen] = useState(false)
