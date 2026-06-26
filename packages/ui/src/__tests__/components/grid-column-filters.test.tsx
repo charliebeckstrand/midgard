@@ -172,6 +172,50 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
 	})
 
+	it('lifts an applied filter with Reset, restoring the hidden rows', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		// Nothing applied yet — Reset has no filter to lift.
+		expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled()
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+		// "name contains Bob" hides Alice.
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+		// Reopen — Reset is now live — and press it.
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		// The filter lifts: the button deactivates and the hidden row returns.
+		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+
+		expect(screen.getByText('Alice')).toBeInTheDocument()
+	})
+
+	it('left-aligns the Reset button across from Cancel and Apply', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		// An auto right-margin pushes Reset to the opposite edge from the pair.
+		expect(screen.getByRole('button', { name: 'Reset' }).className).toContain('mr-auto')
+	})
+
 	it('discards a draft when the filter sheet is dismissed without applying', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

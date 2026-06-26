@@ -175,6 +175,9 @@ export const k = {
 		// when active so it doesn't override that colour.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
+		// Reset button in the filter sheet's footer: an auto right-margin pushes it
+		// to the left edge, across from the right-justified Cancel / Apply pair.
+		reset: 'mr-auto',
 	},
 	footer: {
 		// Footer below the table. From `lg`: one centered row — page-size picker,

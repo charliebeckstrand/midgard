@@ -65,8 +65,10 @@ type GridColumnFilterButtonProps = {
  *
  * Edits accumulate in a local draft; nothing reaches the engine until the
  * sheet's **Apply** settles it, and dismissing (Cancel, Escape, backdrop)
- * discards the draft so the applied filter stands. The button reads accent from
- * the applied query, not the draft.
+ * discards the draft so the applied filter stands. **Reset** is the inverse of
+ * Apply — it lifts the applied filter outright and closes — and is offered only
+ * while a filter is in effect. The button reads accent from the applied query,
+ * not the draft.
  *
  * @internal
  */
@@ -125,6 +127,16 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		setOpen(false)
 	}
 
+	// Clear the applied filter outright and close — the one-press path to undo a
+	// filter, distinct from Apply's commit and Cancel's discard. Disabled below
+	// when nothing is applied, so it only shows as live when there's a filter to
+	// lift.
+	function reset() {
+		filter.setQuery(column.id, undefined)
+
+		setOpen(false)
+	}
+
 	// Accent the button only when the applied query actually constrains rows — a
 	// real value, or a value-less operator like "is empty" — not merely because a
 	// rule exists (a freshly seeded, added-then-emptied, or all-cleared query).
@@ -164,6 +176,15 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</SheetBody>
 
 				<SheetFooter>
+					<Button
+						variant="outline"
+						className={cn(k.filter.reset)}
+						disabled={!active}
+						onClick={reset}
+					>
+						Reset
+					</Button>
+
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
