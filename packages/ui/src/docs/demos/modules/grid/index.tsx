@@ -69,6 +69,12 @@ const sortableColumns: GridColumn<Person>[] = columns.map((col) =>
 	col.id === 'name' || col.id === 'email' || col.id === 'role' ? { ...col, sortable: true } : col,
 )
 
+const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
+	...col,
+	width: '180px',
+	minWidth: 100,
+}))
+
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
@@ -183,6 +189,10 @@ const ReorderExample = () => {
 	)
 }
 
+const ResizableExample = () => (
+	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
+)
+
 const ColumnManagerExample = () => {
 	return (
 		<Grid
@@ -291,6 +301,10 @@ export function Demo() {
 
 			<Example title="Reorder">
 				<ReorderExample />
+			</Example>
+
+			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
+				<ResizableExample />
 			</Example>
 
 			<Example title="Column manager">

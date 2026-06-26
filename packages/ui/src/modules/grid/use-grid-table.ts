@@ -2,6 +2,7 @@
 
 import {
 	type ColumnDef,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getPaginationRowModel,
 	type OnChangeFn,
@@ -11,11 +12,90 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
-import { DEFAULT_PAGE_SIZE } from './grid-constants'
-import type { GridColumn, GridPagination, GridPaginationState } from './types'
+import { isDataColumn } from '../../utilities'
+import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE, DEFAULT_PAGE_SIZE } from './grid-constants'
+import type {
+	GridColumn,
+	GridColumnSizing,
+	GridColumnSizingState,
+	GridPagination,
+	GridPaginationState,
+} from './types'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
 const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE }
+
+/** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
+const EMPTY_SIZING: GridColumnSizingState = {}
+
+/** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
+function parsePxWidth(width: string | undefined): number | undefined {
+	if (width == null) return undefined
+
+	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
+
+	return match ? Number(match[1]) : undefined
+}
+
+/** Maps a grid column to its engine `ColumnDef`: identity, the per-column resize gate, and sizing bounds. @internal */
+function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
+	const size = parsePxWidth(col.width)
+
+	return {
+		id: String(col.id),
+		// Only data columns resize; select/actions hold their width.
+		enableResizing: isDataColumn(col),
+		...(size != null ? { size } : {}),
+		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
+		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
+	}
+}
+
+/** Server-mode total-count option: prefer `pageCount`, fall back to `rowCount`, else neither. @internal */
+function manualTotals(
+	config: GridPagination | undefined,
+): { pageCount: number } | { rowCount: number } | undefined {
+	if (config?.pageCount != null) return { pageCount: config.pageCount }
+
+	if (config?.rowCount != null) return { rowCount: config.rowCount }
+
+	return undefined
+}
+
+/** Assembles the {@link GridColumnResize} controls over a table instance; every method reads it live. @internal */
+function buildColumnResize<T>(table: Table<T>): GridColumnResize {
+	const bounds = (id: string | number) => {
+		const column = table.getColumn(String(id))
+
+		return {
+			min: column?.columnDef.minSize ?? DEFAULT_MIN_COLUMN_SIZE,
+			max: column?.columnDef.maxSize ?? Number.MAX_SAFE_INTEGER,
+		}
+	}
+
+	return {
+		getSize: (id) => table.getColumn(String(id))?.getSize() ?? DEFAULT_COLUMN_SIZE,
+		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
+		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
+		getResizeHandler: (id) =>
+			table
+				.getFlatHeaders()
+				.find((header) => header.column.id === String(id))
+				?.getResizeHandler(),
+		bounds,
+		nudge: (id, delta) => {
+			const column = table.getColumn(String(id))
+
+			if (!column) return
+
+			const limit = bounds(id)
+
+			const next = Math.min(Math.max(column.getSize() + delta, limit.min), limit.max)
+
+			table.setColumnSizing((prev) => ({ ...prev, [String(id)]: next }))
+		},
+	}
+}
 
 /** Parameters for {@link useGridTable}. @internal */
 type UseGridTableParams<T> = {
@@ -23,6 +103,30 @@ type UseGridTableParams<T> = {
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
 	pagination?: GridPagination
+	resizable?: boolean
+	columnSizing?: GridColumnSizing
+}
+
+/**
+ * Column-resize controls the header renders from: the live width, drag/keyboard
+ * handlers, and per-column bounds. Methods read the engine live, so the object
+ * itself is stable across renders.
+ *
+ * @internal
+ */
+export type GridColumnResize = {
+	/** Current clamped width (px) for a column. */
+	getSize: (id: string | number) => number
+	/** Whether the column may be resized (data columns only). */
+	canResize: (id: string | number) => boolean
+	/** Whether the column is mid drag-resize. */
+	isResizing: (id: string | number) => boolean
+	/** Pointer handler (mouse + touch) that begins a drag-resize. */
+	getResizeHandler: (id: string | number) => ((event: unknown) => void) | undefined
+	/** Resize bounds for the column, for the separator's `aria-valuemin`/`max`. */
+	bounds: (id: string | number) => { min: number; max: number }
+	/** Adjust a column's width by `delta` px (keyboard), clamped to its bounds. */
+	nudge: (id: string | number, delta: number) => void
 }
 
 /**
@@ -57,6 +161,8 @@ type UseGridTableResult<T> = {
 	renderRows: T[]
 	/** Footer view model, or `null` when pagination is not configured. */
 	pagination: GridPaginationView | null
+	/** Column-resize controls, or `null` when `resizable` is off. */
+	resize: GridColumnResize | null
 }
 
 /**
@@ -80,14 +186,14 @@ export function useGridTable<T>({
 	columns,
 	getKey,
 	pagination: paginationConfig,
+	resizable = false,
+	columnSizing: columnSizingConfig,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
-	// Display-only column defs: rendering still flows through the grid's own
+	// Display-only column defs (rendering still flows through the grid's own
 	// `visibleColumns`, so the engine needs identities, not accessors — accessors
-	// arrive when the header/cell render migrates onto `flexRender`.
-	const columnDefs = useMemo<ColumnDef<T>[]>(
-		() => columns.map((col) => ({ id: String(col.id) })),
-		[columns],
-	)
+	// arrive when the header/cell render migrates onto `flexRender`), carrying the
+	// sizing bounds and per-column resize gate.
+	const columnDefs = useMemo<ColumnDef<T>[]>(() => columns.map(toColumnDef), [columns])
 
 	const paginated = paginationConfig != null
 
@@ -119,30 +225,51 @@ export function useGridTable<T>({
 		[setPaginationState],
 	)
 
+	const [columnSizingState, setColumnSizingState] = useControllable<GridColumnSizingState>({
+		value: columnSizingConfig?.value,
+		defaultValue: columnSizingConfig?.defaultValue ?? EMPTY_SIZING,
+		onValueChange: (next) => columnSizingConfig?.onValueChange?.(next ?? {}),
+	})
+
+	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
+
+	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
+		(updater) => {
+			setColumnSizingState((prev) => {
+				const base = prev ?? EMPTY_SIZING
+				return typeof updater === 'function' ? updater(base) : updater
+			})
+		},
+		[setColumnSizingState],
+	)
+
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
+
+	// State is controlled per feature; merge the active slices into one object.
+	const state: { pagination?: PaginationState; columnSizing?: ColumnSizingState } = {}
+
+	if (paginated) state.pagination = resolvedPagination
+
+	if (resizable) state.columnSizing = resolvedSizing
 
 	const table = useReactTable<T>({
 		data: rows,
 		columns: columnDefs,
 		getRowId,
 		getCoreRowModel: getCoreRowModel(),
-		// The page coordinate is owned by the controllable binding, not the table.
+		// The page coordinate and column widths are owned by controllable bindings.
 		autoResetPageIndex: false,
+		state,
 		...(paginated
 			? {
-					state: { pagination: resolvedPagination },
 					onPaginationChange,
 					...(manual
-						? {
-								manualPagination: true,
-								...(paginationConfig?.pageCount != null
-									? { pageCount: paginationConfig.pageCount }
-									: paginationConfig?.rowCount != null
-										? { rowCount: paginationConfig.rowCount }
-										: {}),
-							}
+						? { manualPagination: true, ...manualTotals(paginationConfig) }
 						: { getPaginationRowModel: getPaginationRowModel() }),
 				}
+			: {}),
+		...(resizable
+			? { enableColumnResizing: true, columnResizeMode: 'onChange', onColumnSizingChange }
 			: {}),
 	})
 
@@ -184,5 +311,10 @@ export function useGridTable<T>({
 		table,
 	])
 
-	return { table, renderRows, pagination }
+	const resize = useMemo<GridColumnResize | null>(
+		() => (resizable ? buildColumnResize(table) : null),
+		[resizable, table],
+	)
+
+	return { table, renderRows, pagination, resize }
 }

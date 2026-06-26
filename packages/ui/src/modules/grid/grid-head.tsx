@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
-import { memo, type ReactElement, type ReactNode } from 'react'
+import { type KeyboardEvent, memo, type ReactElement, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
@@ -12,8 +12,10 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { useGrid } from './context'
+import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
+import type { GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
@@ -28,92 +30,135 @@ type GridHeadProps<T> = {
 	 * @defaultValue false
 	 */
 	reorderable?: boolean
+	/**
+	 * Column-resize controls when the grid is `resizable`: data columns take
+	 * their width from the engine and gain a resize separator. `null` otherwise.
+	 */
+	resize?: GridColumnResize | null
 }
 
 /**
- * Header row for {@link Grid}: a select-all checkbox in the selectable
- * column and a sort toggle per sortable column, reading selection and sort state
- * from {@link useGrid}. When `reorderable`, visible non-pinned data columns
- * also carry a drag handle backed by the data table's column-reorder sortable.
+ * Header row for {@link Grid}: one {@link GridHeaderCell} per column, reading
+ * selection and sort state from {@link useGrid}. When `reorderable`, visible
+ * non-pinned data columns carry a drag handle backed by the column-reorder
+ * sortable; when `resize` is supplied, data columns size from the engine and
+ * gain a resize separator.
  */
 export function GridHead<T>({
 	columns,
 	hasRows,
 	virtualized,
 	reorderable = false,
+	resize,
 }: GridHeadProps<T>) {
-	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
-
 	return (
 		<TableHead>
 			<TableRow aria-rowindex={virtualized ? 1 : undefined}>
-				{columns.map((col, colIdx) => {
-					// Header column indices accompany the virtualized row-index scheme.
-					const colIndex = virtualized ? colIdx + 1 : undefined
-
-					if (col.selectable) {
-						return (
-							<TableHeader
-								key={col.id}
-								aria-colindex={colIndex}
-								className={cn(k.selectCell, stickyHeader && k.sticky.head, col.headerClassName)}
-								style={col.width ? { width: col.width } : undefined}
-							>
-								{hasRows && (
-									<Checkbox
-										checked={allSelected}
-										indeterminate={someSelected && !allSelected}
-										onChange={toggleAll}
-										aria-label="Select all rows"
-									/>
-								)}
-							</TableHeader>
-						)
-					}
-
-					const sorted = sort?.column === col.id
-
-					const direction = sorted ? sort?.direction : undefined
-
-					if (reorderable && isDataColumn(col) && !col.pinned) {
-						return (
-							<GridReorderableColumnHeader
-								key={col.id}
-								column={col}
-								colIndex={colIndex}
-								sorted={sorted}
-								direction={direction}
-								stickyHeader={stickyHeader}
-								toggleSort={toggleSort}
-							/>
-						)
-					}
-
-					return (
-						<GridColumnHeader
-							key={col.id}
-							column={col}
-							colIndex={colIndex}
-							sorted={sorted}
-							direction={direction}
-							stickyHeader={stickyHeader}
-							toggleSort={toggleSort}
-						/>
-					)
-				})}
+				{columns.map((col, colIdx) => (
+					<GridHeaderCell
+						key={col.id}
+						column={col}
+						// Header column indices accompany the virtualized row-index scheme.
+						colIndex={virtualized ? colIdx + 1 : undefined}
+						hasRows={hasRows}
+						reorderable={reorderable}
+						resize={resize ?? null}
+					/>
+				))}
 			</TableRow>
 		</TableHead>
 	)
 }
 
+/** Props for {@link GridHeaderCell}. @internal */
+type GridHeaderCellProps<T> = {
+	column: GridColumn<T>
+	colIndex: number | undefined
+	hasRows: boolean
+	reorderable: boolean
+	resize: GridColumnResize | null
+}
+
+/**
+ * Routes one column to its header cell: the select-all checkbox for the
+ * selectable column, a reorderable header for draggable data columns, or a
+ * plain sort header otherwise — resolving the engine width and resize controls
+ * for data columns along the way.
+ *
+ * @internal
+ */
+function GridHeaderCell<T>({
+	column,
+	colIndex,
+	hasRows,
+	reorderable,
+	resize,
+}: GridHeaderCellProps<T>) {
+	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
+
+	if (column.selectable) {
+		return (
+			<TableHeader
+				aria-colindex={colIndex}
+				className={cn(k.selectCell, stickyHeader && k.sticky.head, column.headerClassName)}
+				style={column.width ? { width: column.width } : undefined}
+			>
+				{hasRows && (
+					<Checkbox
+						checked={allSelected}
+						indeterminate={someSelected && !allSelected}
+						onChange={toggleAll}
+						aria-label="Select all rows"
+					/>
+				)}
+			</TableHeader>
+		)
+	}
+
+	const sorted = sort?.column === column.id
+
+	const direction = sorted ? sort?.direction : undefined
+
+	// Engine-driven width and the resize handle apply to data columns only.
+	const sizing = resize && isDataColumn(column) ? resize : null
+
+	const width = sizing ? sizing.getSize(column.id) : column.width
+
+	const resizing = sizing ? sizing.isResizing(column.id) : false
+
+	const shared = {
+		column,
+		colIndex,
+		sorted,
+		direction,
+		stickyHeader,
+		toggleSort,
+		width,
+		resize: sizing,
+		resizing,
+	}
+
+	if (reorderable && isDataColumn(column) && !column.pinned) {
+		return <GridReorderableColumnHeader {...shared} />
+	}
+
+	return <GridColumnHeader {...shared} />
+}
+
 /** Props for the column header cells. @internal */
 type GridColumnHeaderProps = {
-	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable' | 'width' | 'headerClassName'>
+	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable' | 'headerClassName'>
 	colIndex: number | undefined
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	stickyHeader: boolean
 	toggleSort: (column: string | number) => void
+	/** Resolved width: engine size (px) when resizable, else the column's CSS `width`. */
+	width: number | string | undefined
+	/** Resize controls for this column, or `null` when it is not resizable. */
+	resize: GridColumnResize | null
+	/** Whether this column is mid drag-resize. */
+	resizing: boolean
 }
 
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
@@ -161,7 +206,7 @@ function ColumnHeaderLabel({
 	sorted,
 	direction,
 	toggleSort,
-}: Omit<GridColumnHeaderProps, 'colIndex' | 'stickyHeader'>): ReactNode {
+}: Pick<GridColumnHeaderProps, 'column' | 'sorted' | 'direction' | 'toggleSort'>): ReactNode {
 	if (!column.sortable) return column.title
 
 	return (
@@ -179,7 +224,66 @@ function ColumnHeaderLabel({
 	)
 }
 
-/** Single column header cell; renders a sort-toggle button when the column is sortable. @internal */
+/** Props for {@link GridColumnResizeHandle}. @internal */
+type GridColumnResizeHandleProps = {
+	id: string | number
+	label: string
+	resize: GridColumnResize
+	resizing: boolean
+}
+
+/**
+ * Resize separator on a column's trailing edge: a focusable window-splitter that
+ * starts a pointer drag-resize and accepts Arrow keys to nudge the width.
+ *
+ * @internal
+ */
+function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResizeHandleProps) {
+	const onPointer = resize.getResizeHandler(id)
+
+	const { min, max } = resize.bounds(id)
+
+	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
+		if (event.key === 'ArrowLeft') {
+			event.preventDefault()
+
+			resize.nudge(id, -COLUMN_RESIZE_STEP)
+		} else if (event.key === 'ArrowRight') {
+			event.preventDefault()
+
+			resize.nudge(id, COLUMN_RESIZE_STEP)
+		}
+	}
+
+	return (
+		// biome-ignore lint/a11y/useSemanticElements: an interactive window-splitter is role="separator" with aria-value*; <hr> is a non-interactive thematic break
+		<span
+			role="separator"
+			aria-orientation="vertical"
+			aria-label={`Resize ${label}`}
+			aria-valuenow={Math.round(resize.getSize(id))}
+			aria-valuemin={min}
+			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
+			tabIndex={0}
+			data-resizing={dataAttr(resizing)}
+			className={cn(k.resize.handle)}
+			onMouseDown={(event) => {
+				event.stopPropagation()
+
+				onPointer?.(event)
+			}}
+			onTouchStart={(event) => {
+				event.stopPropagation()
+
+				onPointer?.(event)
+			}}
+			onClick={(event) => event.stopPropagation()}
+			onKeyDown={handleKeyDown}
+		/>
+	)
+}
+
+/** Single column header cell; renders a sort-toggle button and, when resizable, a resize separator. @internal */
 const GridColumnHeader = memo(function GridColumnHeader({
 	column,
 	colIndex,
@@ -187,13 +291,22 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	direction,
 	stickyHeader,
 	toggleSort,
+	width,
+	resize,
+	resizing,
 }: GridColumnHeaderProps) {
+	const canResize = resize?.canResize(column.id) ?? false
+
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
-			className={cn(stickyHeader && k.sticky.head, column.headerClassName)}
-			style={column.width ? { width: column.width } : undefined}
+			className={cn(
+				stickyHeader && k.sticky.head,
+				canResize && !stickyHeader && k.resize.cell,
+				column.headerClassName,
+			)}
+			style={width != null ? { width } : undefined}
 		>
 			<ColumnHeaderLabel
 				column={column}
@@ -201,6 +314,14 @@ const GridColumnHeader = memo(function GridColumnHeader({
 				direction={direction}
 				toggleSort={toggleSort}
 			/>
+			{canResize && resize && (
+				<GridColumnResizeHandle
+					id={column.id}
+					label={headerLabel(column)}
+					resize={resize}
+					resizing={resizing}
+				/>
+			)}
 		</TableHeader>
 	)
 })
@@ -208,7 +329,8 @@ const GridColumnHeader = memo(function GridColumnHeader({
 /**
  * Reorderable column header cell: registers the `<th>` as a horizontal sortable
  * item and prefixes the title (and any sort control) with a grip drag handle
- * that carries the pointer/keyboard activator.
+ * that carries the pointer/keyboard activator; adds a resize separator when the
+ * grid is resizable.
  *
  * @internal
  */
@@ -219,6 +341,9 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	direction,
 	stickyHeader,
 	toggleSort,
+	width,
+	resize,
+	resizing,
 }: GridColumnHeaderProps) {
 	const {
 		setNodeRef,
@@ -230,6 +355,8 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 		isDragging,
 	} = useSortable({ id: String(column.id) })
 
+	const canResize = resize?.canResize(column.id) ?? false
+
 	return (
 		<TableHeader
 			ref={setNodeRef}
@@ -239,9 +366,10 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
+				canResize && !stickyHeader && k.resize.cell,
 				column.headerClassName,
 			)}
-			style={columnDragStyle(transform, transition, column.width)}
+			style={{ ...columnDragStyle(transform, transition), ...(width != null ? { width } : null) }}
 		>
 			<span className={cn(k.reorder.layout)}>
 				<button
@@ -261,6 +389,14 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					toggleSort={toggleSort}
 				/>
 			</span>
+			{canResize && resize && (
+				<GridColumnResizeHandle
+					id={column.id}
+					label={headerLabel(column)}
+					resize={resize}
+					resizing={resizing}
+				/>
+			)}
 		</TableHeader>
 	)
 })

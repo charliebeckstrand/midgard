@@ -8,6 +8,8 @@ The TanStack Table engine is now in place. `useGridTable` builds a `useReactTabl
 
 Pagination is the first feature on the engine: server-side (`manualPagination`) and client-side, bound through the controllable `pagination` prop, with a footer carrying a row-range status, page navigation, and an optional page-size picker. The row model is only materialized when pagination is active, so unpaginated grids are unchanged.
 
+Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop.
+
 Everything else — sorting, selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
 ## Migration — converging existing state onto the engine
@@ -27,7 +29,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 
 | Feature | Approach |
 |---|---|
-| Resizable columns | Column sizing API — `state.columnSizing`, `header.getResizeHandler()`, `columnResizeMode`; apply widths via a `<colgroup>` so header and body track together |
+| Precise column sizing | Fixed table layout + `<colgroup>` so resized widths are exact and columns can shrink below content (the shipped resize rides the auto-layout header width) |
 | Column pinning (freeze left/right) | `state.columnPinning`, `column.pin()`; sticky offsets from `column.getStart()/getAfter()` |
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
 | Auto-size / fit-to-content | Measure rendered cells, then `setColumnSizing` |

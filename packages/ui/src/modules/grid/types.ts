@@ -26,7 +26,15 @@ export type GridColumn<T> = {
 	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
 	className?: string
 	headerClassName?: string
+	/** Column width as a CSS length; under {@link GridProps.resizable} a `px` value seeds the initial resize width. */
 	width?: string
+	/**
+	 * Minimum width (px) the column can be resized to.
+	 * @defaultValue {@link DEFAULT_MIN_COLUMN_SIZE}
+	 */
+	minWidth?: number
+	/** Maximum width (px) the column can be resized to; unbounded when omitted. */
+	maxWidth?: number
 	/** Shown in the column manager but cannot be reordered or hidden. */
 	pinned?: boolean
 	/**
@@ -99,4 +107,21 @@ export type GridPagination = {
 	 * total is given, else `false` (client-side slicing of `rows`).
 	 */
 	manual?: boolean
+}
+
+/**
+ * Per-column widths in pixels, keyed by stringified column id — structurally
+ * TanStack Table's `ColumnSizingState`.
+ */
+export type GridColumnSizingState = Record<string, number>
+
+/**
+ * Controlled/uncontrolled column-width binding for {@link GridProps.columnSizing},
+ * backed by the grid's TanStack Table engine. Pairs with
+ * {@link GridProps.resizable} to persist and restore drag-resized widths.
+ */
+export type GridColumnSizing = {
+	value?: GridColumnSizingState
+	defaultValue?: GridColumnSizingState
+	onValueChange?: (sizing: GridColumnSizingState) => void
 }

@@ -68,6 +68,18 @@ export const k = {
 			'cursor-grab touch-none select-none active:cursor-grabbing',
 		],
 	},
+	resize: {
+		// The header cell hosts the absolutely-positioned handle.
+		cell: 'relative',
+		// Grab strip on the column's trailing edge; surfaces on hover, focus, and active drag.
+		handle: [
+			'absolute top-0 right-0 z-10 h-full w-1.5',
+			'cursor-col-resize touch-none select-none',
+			'opacity-0 hover:opacity-100 focus-visible:opacity-100 data-[resizing]:opacity-100',
+			bg.tint,
+			focus.ring,
+		],
+	},
 	footer: {
 		// Footer below the table: a row range/status on one edge, the page-size
 		// picker and page navigation on the other; wraps on narrow viewports.

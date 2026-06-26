@@ -17,7 +17,7 @@ import { GridEditable, type GridEditableProps } from './grid-editable'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
-import type { GridColumn, GridColumnManagerPreset, GridPagination } from './types'
+import type { GridColumn, GridColumnManagerPreset, GridColumnSizing, GridPagination } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelection } from './use-grid-selection'
@@ -135,6 +135,18 @@ export type GridDataProps<T> = TableVariants & {
 	 * @see {@link GridPagination}
 	 */
 	pagination?: GridPagination
+
+	/**
+	 * Enables drag- and keyboard-resizing of data columns through the grid's
+	 * TanStack Table engine; each data-column header gains a resize separator.
+	 * A column's initial width comes from a `px` `width`, else a default, and
+	 * widths persist through {@link GridDataProps.columnSizing}.
+	 * @defaultValue false
+	 */
+	resizable?: boolean
+
+	/** Controlled/uncontrolled column-width state; pairs with {@link GridDataProps.resizable} to persist widths. */
+	columnSizing?: GridColumnSizing
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -274,6 +286,8 @@ function GridData<T>({
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
 	pagination: paginationConfig,
+	resizable = false,
+	columnSizing: columnSizingConfig,
 	reorder = false,
 	rowClassName,
 	rowLabel,
@@ -321,11 +335,13 @@ function GridData<T>({
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
-	const { renderRows, pagination } = useGridTable<T>({
+	const { renderRows, pagination, resize } = useGridTable<T>({
 		rows,
 		columns,
 		getKey,
 		pagination: paginationConfig,
+		resizable,
+		columnSizing: columnSizingConfig,
 	})
 
 	const rowKeys = useMemo<(string | number)[]>(
@@ -412,6 +428,7 @@ function GridData<T>({
 				hasRows={renderRows.length > 0}
 				virtualized={virtualizeEnabled}
 				reorderable={canReorder}
+				resize={resize}
 			/>
 
 			<GridBody<T>
