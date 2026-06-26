@@ -5,7 +5,7 @@
  * sub-recipe is the `sort.icon`, inked or muted by whether its column is the
  * active sort.
  */
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -71,15 +71,24 @@ export const k = {
 	resize: {
 		// The header cell hosts the absolutely-positioned handle.
 		cell: 'relative',
-		// Grab strip on the column's trailing edge: an always-visible divider that
-		// thickens on hover, focus, and active drag.
+		// Full-height grab area on the column's trailing edge, centering the grip.
 		handle: [
-			'absolute top-0 right-0 z-10 h-full w-1.5',
-			'cursor-col-resize touch-none select-none',
-			'border-r',
-			border.subtle,
-			'hover:border-r-2 focus-visible:border-r-2 data-[resizing]:border-r-2',
-			focus.ring,
+			'group/grid-resize absolute top-0 right-0 z-10 h-full w-1.5',
+			'flex items-center justify-center',
+			'cursor-col-resize touch-none select-none outline-none',
+		],
+		// Always-visible grip (mirrors the Resizable handle): tints on hover and
+		// turns accent on keyboard focus or active drag. Focus shows as a colour
+		// change, not an outset ring, so the scroll container can't clip it.
+		grip: [
+			'h-6 w-0.5',
+			rounded.full,
+			...mode(
+				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
+				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',
+			),
+			'group-focus-visible/grid-resize:bg-blue-500 dark:group-focus-visible/grid-resize:bg-blue-500',
+			'group-data-[resizing]/grid-resize:bg-blue-500 dark:group-data-[resizing]/grid-resize:bg-blue-500',
 		],
 	},
 	filter: {

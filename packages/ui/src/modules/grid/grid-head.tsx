@@ -285,7 +285,9 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 			}}
 			onClick={(event) => event.stopPropagation()}
 			onKeyDown={handleKeyDown}
-		/>
+		>
+			<span aria-hidden="true" className={cn(k.resize.grip)} />
+		</span>
 	)
 }
 
