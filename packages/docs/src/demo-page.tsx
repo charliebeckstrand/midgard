@@ -44,10 +44,10 @@ export function DemoPage({
 						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 					</Button>
 					<Heading>{demo.name}</Heading>
-					<DemoNav />
 				</Flex>
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
+				<DemoNav />
 				<Component />
 				{api && (
 					<Stack gap="sm">
