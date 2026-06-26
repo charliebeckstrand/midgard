@@ -11,6 +11,8 @@ export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
 	sortable?: boolean
+	/** Adds a text filter input for this column in the filter row; requires {@link GridColumn.value}. */
+	filterable?: boolean
 	/** Marks this as the selection column; renders the row-select checkboxes instead of a cell value. */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
@@ -151,4 +153,23 @@ export type GridGlobalFilter = {
 	 * @defaultValue 'Search'
 	 */
 	placeholder?: string
+}
+
+/** One column's filter — its id and filter value, structurally TanStack's `ColumnFilter`. */
+export type GridColumnFilterState = { id: string; value: unknown }
+
+/**
+ * Controlled/uncontrolled per-column filter binding for
+ * {@link GridProps.columnFilters}, backed by the grid's TanStack Table engine.
+ *
+ * @remarks Columns opt in with {@link GridColumn.filterable} (which needs a
+ * {@link GridColumn.value} accessor), surfacing a filter row of text inputs.
+ * Client-side by default; `manual` defers filtering to the consumer, which
+ * shares the table-wide filter mode with {@link GridGlobalFilter}.
+ */
+export type GridColumnFilters = {
+	value?: GridColumnFilterState[]
+	defaultValue?: GridColumnFilterState[]
+	onValueChange?: (filters: GridColumnFilterState[]) => void
+	manual?: boolean
 }

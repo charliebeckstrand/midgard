@@ -20,6 +20,7 @@ import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
 import type {
 	GridColumn,
+	GridColumnFilters,
 	GridColumnManagerPreset,
 	GridColumnSizing,
 	GridGlobalFilter,
@@ -164,6 +165,15 @@ export type GridDataProps<T> = TableVariants & {
 	 * @see {@link GridGlobalFilter}
 	 */
 	globalFilter?: GridGlobalFilter
+
+	/**
+	 * Per-column filter binding; columns opting in via {@link GridColumn.filterable}
+	 * (with a {@link GridColumn.value} accessor) surface a filter row of text
+	 * inputs. Shares the table-wide filter mode with {@link GridDataProps.globalFilter}.
+	 *
+	 * @see {@link GridColumnFilters}
+	 */
+	columnFilters?: GridColumnFilters
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -333,6 +343,7 @@ function GridData<T>({
 	resizable = false,
 	columnSizing: columnSizingConfig,
 	globalFilter: globalFilterConfig,
+	columnFilters: columnFiltersConfig,
 	reorder = false,
 	rowClassName,
 	rowLabel,
@@ -380,7 +391,7 @@ function GridData<T>({
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
-	const { renderRows, pagination, resize, globalFilter } = useGridTable<T>({
+	const { renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
 		rows,
 		columns,
 		getKey,
@@ -388,6 +399,7 @@ function GridData<T>({
 		resizable,
 		columnSizing: columnSizingConfig,
 		globalFilter: globalFilterConfig,
+		columnFilters: columnFiltersConfig,
 	})
 
 	const rowKeys = useMemo<(string | number)[]>(
@@ -466,6 +478,7 @@ function GridData<T>({
 				virtualized={virtualizeEnabled}
 				reorderable={canReorder}
 				resize={resize}
+				filters={filters}
 			/>
 
 			<GridBody<T>

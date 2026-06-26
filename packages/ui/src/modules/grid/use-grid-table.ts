@@ -2,6 +2,7 @@
 
 import {
 	type ColumnDef,
+	type ColumnFiltersState,
 	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -19,6 +20,7 @@ import { isDataColumn } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE, DEFAULT_PAGE_SIZE } from './grid-constants'
 import type {
 	GridColumn,
+	GridColumnFilters,
 	GridColumnSizing,
 	GridColumnSizingState,
 	GridGlobalFilter,
@@ -32,6 +34,9 @@ const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: 
 /** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
 const EMPTY_SIZING: GridColumnSizingState = {}
 
+/** Stable empty column-filters default; read-only, replaced wholesale on change. @internal */
+const EMPTY_COLUMN_FILTERS: ColumnFiltersState = []
+
 /** Search-input placeholder when {@link GridGlobalFilter} supplies none. @internal */
 const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
 
@@ -43,6 +48,31 @@ function applyUpdater<S>(updater: Updater<S>, base: S): S {
 /** Server (manual) pagination is implied once a total is supplied. @internal */
 function isManualPagination(config: GridPagination | undefined): boolean {
 	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
+}
+
+/** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
+function resolveFilterMode(args: {
+	globalConfigured: boolean
+	hasColumnFilters: boolean
+	globalManual: boolean | undefined
+	columnManual: boolean | undefined
+}): { configured: boolean; manual: boolean } {
+	return {
+		configured: args.globalConfigured || args.hasColumnFilters,
+		manual: Boolean(args.globalManual) || Boolean(args.columnManual),
+	}
+}
+
+/** Whether the engine slices/filters the rows itself (vs. the consumer doing it server-side). @internal */
+function usesClientModel(args: {
+	paginated: boolean
+	paginationManual: boolean
+	filtersConfigured: boolean
+	filtersManual: boolean
+}): boolean {
+	return (
+		(args.paginated && !args.paginationManual) || (args.filtersConfigured && !args.filtersManual)
+	)
 }
 
 /** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
@@ -64,9 +94,11 @@ function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 		id: String(col.id),
 		// Only data columns resize; select/actions hold their width.
 		enableResizing: isDataColumn(col),
+		enableColumnFilter: Boolean(col.filterable && value),
 		// `value` makes the column searchable/sortable by the engine without
 		// changing how its cell renders (still `col.cell`).
 		...(value ? { accessorFn: (row: T) => value(row) } : {}),
+		...(col.filterable && value ? { filterFn: 'includesString' } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
@@ -105,13 +137,15 @@ function paginationOptions<T>(args: {
 function filterOptions<T>(args: {
 	configured: boolean
 	manual: boolean
-	onGlobalFilterChange: OnChangeFn<string>
+	onGlobalFilterChange?: OnChangeFn<string>
+	onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>
 }): Partial<TableOptions<T>> {
 	if (!args.configured) return {}
 
 	return {
-		onGlobalFilterChange: args.onGlobalFilterChange,
 		globalFilterFn: 'includesString',
+		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
+		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
 		...(args.manual ? { manualFiltering: true } : { getFilteredRowModel: getFilteredRowModel() }),
 	}
 }
@@ -136,20 +170,30 @@ function buildState(args: {
 	pagination: PaginationState
 	resizable: boolean
 	sizing: ColumnSizingState
-	filtered: boolean
+	globalFiltered: boolean
 	globalFilter: string
-}): { pagination?: PaginationState; columnSizing?: ColumnSizingState; globalFilter?: string } {
+	columnFiltered: boolean
+	columnFilters: ColumnFiltersState
+}): {
+	pagination?: PaginationState
+	columnSizing?: ColumnSizingState
+	globalFilter?: string
+	columnFilters?: ColumnFiltersState
+} {
 	const state: {
 		pagination?: PaginationState
 		columnSizing?: ColumnSizingState
 		globalFilter?: string
+		columnFilters?: ColumnFiltersState
 	} = {}
 
 	if (args.paginated) state.pagination = args.pagination
 
 	if (args.resizable) state.columnSizing = args.sizing
 
-	if (args.filtered) state.globalFilter = args.globalFilter
+	if (args.globalFiltered) state.globalFilter = args.globalFilter
+
+	if (args.columnFiltered) state.columnFilters = args.columnFilters
 
 	return state
 }
@@ -186,6 +230,19 @@ function buildColumnResize<T>(table: Table<T>): GridColumnResize {
 
 			table.setColumnSizing((prev) => ({ ...prev, [String(id)]: next }))
 		},
+	}
+}
+
+/** Assembles the {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
+function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
+	return {
+		canFilter: (id) => table.getColumn(String(id))?.getCanFilter() ?? false,
+		getValue: (id) => {
+			const value = table.getColumn(String(id))?.getFilterValue()
+
+			return typeof value === 'string' ? value : ''
+		},
+		setValue: (id, value) => table.getColumn(String(id))?.setFilterValue(value || undefined),
 	}
 }
 
@@ -230,6 +287,7 @@ type UseGridTableParams<T> = {
 	resizable?: boolean
 	columnSizing?: GridColumnSizing
 	globalFilter?: GridGlobalFilter
+	columnFilters?: GridColumnFilters
 }
 
 /**
@@ -252,6 +310,21 @@ export type GridColumnResize = {
 	bounds: (id: string | number) => { min: number; max: number }
 	/** Adjust a column's width by `delta` px (keyboard), clamped to its bounds. */
 	nudge: (id: string | number, delta: number) => void
+}
+
+/**
+ * Per-column filter controls the filter row renders from. Methods read the
+ * engine live, so the object itself is stable across renders.
+ *
+ * @internal
+ */
+export type GridColumnFilter = {
+	/** Whether the column accepts a filter (declared `filterable` with a `value`). */
+	canFilter: (id: string | number) => boolean
+	/** Current text filter for the column, or `''`. */
+	getValue: (id: string | number) => string
+	/** Set (or, when empty, clear) the column's text filter. */
+	setValue: (id: string | number, value: string) => void
 }
 
 /**
@@ -297,6 +370,8 @@ type UseGridTableResult<T> = {
 	resize: GridColumnResize | null
 	/** Global-filter view, or `null` when filtering is not configured. */
 	globalFilter: GridGlobalFilterView | null
+	/** Per-column filter controls, or `null` when no column is filterable. */
+	filters: GridColumnFilter | null
 }
 
 /**
@@ -322,6 +397,7 @@ export function useGridTable<T>({
 	resizable = false,
 	columnSizing: columnSizingConfig,
 	globalFilter: globalFilterConfig,
+	columnFilters: columnFiltersConfig,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
 	const columnDefs = useMemo<ColumnDef<T>[]>(() => columns.map(toColumnDef), [columns])
 
@@ -361,9 +437,7 @@ export function useGridTable<T>({
 		[setColumnSizingState],
 	)
 
-	const filterConfigured = globalFilterConfig != null
-
-	const filterManual = globalFilterConfig?.manual ?? false
+	const globalConfigured = globalFilterConfig != null
 
 	const [globalFilterState, setGlobalFilterState] = useControllable<string>({
 		value: globalFilterConfig?.value,
@@ -377,6 +451,29 @@ export function useGridTable<T>({
 		(updater) => setGlobalFilterState((prev) => applyUpdater(updater, prev ?? '')),
 		[setGlobalFilterState],
 	)
+
+	const hasColumnFilters = columns.some((col) => Boolean(col.filterable && col.value))
+
+	const [columnFiltersState, setColumnFiltersState] = useControllable<ColumnFiltersState>({
+		value: columnFiltersConfig?.value,
+		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
+		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
+	})
+
+	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
+
+	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
+		(updater) =>
+			setColumnFiltersState((prev) => applyUpdater(updater, prev ?? EMPTY_COLUMN_FILTERS)),
+		[setColumnFiltersState],
+	)
+
+	const filterMode = resolveFilterMode({
+		globalConfigured,
+		hasColumnFilters,
+		globalManual: globalFilterConfig?.manual,
+		columnManual: columnFiltersConfig?.manual,
+	})
 
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
@@ -392,21 +489,29 @@ export function useGridTable<T>({
 			pagination: resolvedPagination,
 			resizable,
 			sizing: resolvedSizing,
-			filtered: filterConfigured,
+			globalFiltered: globalConfigured,
 			globalFilter: resolvedGlobalFilter,
+			columnFiltered: hasColumnFilters,
+			columnFilters: resolvedColumnFilters,
 		}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 		...resizeOptions<T>({ resizable, onColumnSizingChange }),
 		...filterOptions<T>({
-			configured: filterConfigured,
-			manual: filterManual,
-			onGlobalFilterChange,
+			configured: filterMode.configured,
+			manual: filterMode.manual,
+			onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
+			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
 		}),
 	})
 
 	// Materialize the row model only when a client-side transform is active;
 	// otherwise hand `rows` straight to the body.
-	const clientTransform = (paginated && !manual) || (filterConfigured && !filterManual)
+	const clientTransform = usesClientModel({
+		paginated,
+		paginationManual: manual,
+		filtersConfigured: filterMode.configured,
+		filtersManual: filterMode.manual,
+	})
 
 	const renderRows =
 		paginated || clientTransform
@@ -434,15 +539,20 @@ export function useGridTable<T>({
 
 	const globalFilter = useMemo<GridGlobalFilterView | null>(
 		() =>
-			filterConfigured
+			globalConfigured
 				? {
 						value: resolvedGlobalFilter,
 						setValue: (value: string) => table.setGlobalFilter(value),
 						placeholder: globalFilterConfig?.placeholder ?? DEFAULT_SEARCH_PLACEHOLDER,
 					}
 				: null,
-		[filterConfigured, resolvedGlobalFilter, globalFilterConfig, table],
+		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, table],
 	)
 
-	return { table, renderRows, pagination, resize, globalFilter }
+	const filters = useMemo<GridColumnFilter | null>(
+		() => (hasColumnFilters ? buildColumnFilters(table) : null),
+		[hasColumnFilters, table],
+	)
+
+	return { table, renderRows, pagination, resize, globalFilter, filters }
 }

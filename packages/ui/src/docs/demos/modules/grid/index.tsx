@@ -80,6 +80,11 @@ const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	value: (row) => String(row[col.id as keyof Person]),
 }))
 
+const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) => ({
+	...col,
+	filterable: true,
+}))
+
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
@@ -211,6 +216,10 @@ const GlobalFilterExample = () => {
 	)
 }
 
+const ColumnFiltersExample = () => (
+	<Grid columns={filterableColumns} rows={people} getKey={(row) => row.id} />
+)
+
 const ColumnManagerExample = () => {
 	return (
 		<Grid
@@ -327,6 +336,13 @@ export function Demo() {
 
 			<Example title="Search" code={code`<Grid globalFilter={{ value, onValueChange }} />`}>
 				<GlobalFilterExample />
+			</Example>
+
+			<Example
+				title="Column filters"
+				code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
+			>
+				<ColumnFiltersExample />
 			</Example>
 
 			<Example title="Column manager">

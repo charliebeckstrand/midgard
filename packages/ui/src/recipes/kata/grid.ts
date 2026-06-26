@@ -83,6 +83,9 @@ export const k = {
 	filter: {
 		// Quick-search field above the table; capped width on larger viewports.
 		bar: ['w-full', 'sm:max-w-xs'],
+		// Per-column filter row beneath the header.
+		row: bg.surface,
+		cell: ['px-2', 'py-1', 'align-middle'],
 	},
 	footer: {
 		// Footer below the table: a row range/status on one edge, the page-size

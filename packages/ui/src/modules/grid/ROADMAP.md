@@ -10,7 +10,7 @@ Pagination is the first feature on the engine: server-side (`manualPagination`) 
 
 Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop.
 
-Quick search (global filter) is the third: columns gain an optional `value` accessor, and the `globalFilter` prop drives TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server) behind a search field. Those accessors are the foundation the remaining engine reads — per-column filters, client sorting, faceting — build on.
+Filtering is the third: columns gain an optional `value` accessor, then quick search (`globalFilter`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server). The accessors are the foundation client sorting and faceting build on next.
 
 Everything else — sorting, selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
@@ -41,7 +41,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 
 | Feature | Approach |
 |---|---|
-| Per-column filters (text, number range, select, date range, boolean) — the immediate next step on the shipped `value` accessors | `state.columnFilters`, `column.getFilterValue()/setFilterValue()`; `getFilteredRowModel` (client) or `manualFiltering` (server); a header filter row or per-column filter menu |
+| Richer column-filter types (number range, select, date range, boolean) | Typed filter editors per `filterFn`; text per-column filters and the filter row are shipped |
 | Faceted values & counts | `getFacetedRowModel`, `getFacetedUniqueValues`, `getFacetedMinMaxValues` — drives autocomplete/range filter options |
 | Filter operators (contains, equals, gt/lt, between) | Custom `filterFns` per column |
 

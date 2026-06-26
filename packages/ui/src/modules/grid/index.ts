@@ -42,6 +42,8 @@ export type {
 } from './grid-editable-types'
 export type {
 	GridColumn,
+	GridColumnFilterState,
+	GridColumnFilters,
 	GridColumnManagerItem,
 	GridColumnManagerPreset,
 	GridColumnSizing,

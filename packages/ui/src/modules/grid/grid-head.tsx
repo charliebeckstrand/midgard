@@ -13,9 +13,10 @@ import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { useGrid } from './context'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
+import { GridFilterRow } from './grid-filter-row'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
-import type { GridColumnResize } from './use-grid-table'
+import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
@@ -35,6 +36,8 @@ type GridHeadProps<T> = {
 	 * their width from the engine and gain a resize separator. `null` otherwise.
 	 */
 	resize?: GridColumnResize | null
+	/** Per-column filter controls; renders a filter row beneath the header when present. */
+	filters?: GridColumnFilter | null
 }
 
 /**
@@ -50,6 +53,7 @@ export function GridHead<T>({
 	virtualized,
 	reorderable = false,
 	resize,
+	filters,
 }: GridHeadProps<T>) {
 	return (
 		<TableHead>
@@ -66,6 +70,8 @@ export function GridHead<T>({
 					/>
 				))}
 			</TableRow>
+
+			{filters && <GridFilterRow columns={columns} filters={filters} />}
 		</TableHead>
 	)
 }
