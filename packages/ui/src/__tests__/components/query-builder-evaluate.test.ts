@@ -36,6 +36,33 @@ describe('matchQueryRule', () => {
 		// An unknown (half-built) operator imposes no constraint.
 		expect(matchQueryRule('???', 'x', 'y')).toBe(true)
 	})
+
+	it('matches the between range operator inclusively', () => {
+		expect(matchQueryRule('between', 5, [1, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 1, [1, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 10, [1, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 11, [1, 10])).toBe(false)
+	})
+
+	it('treats a blank between bound as open-ended', () => {
+		// Only a lower bound: everything at or above it.
+		expect(matchQueryRule('between', 100, [10, ''])).toBe(true)
+
+		expect(matchQueryRule('between', 5, [10, ''])).toBe(false)
+
+		// Only an upper bound: everything at or below it.
+		expect(matchQueryRule('between', 5, ['', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, ['', 10])).toBe(false)
+
+		// Both blank constrains nothing; a non-tuple value is ignored.
+		expect(matchQueryRule('between', 5, ['', ''])).toBe(true)
+
+		expect(matchQueryRule('between', 5, undefined)).toBe(true)
+	})
 })
 
 describe('evaluateQuery', () => {

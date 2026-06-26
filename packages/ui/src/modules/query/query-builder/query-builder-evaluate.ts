@@ -10,6 +10,11 @@ function asNumber(value: unknown): number {
 	return typeof value === 'number' ? value : Number(value)
 }
 
+/** True for a nullish or empty-string range bound, treated as open-ended. @internal */
+function isBlank(value: unknown): boolean {
+	return value == null || value === ''
+}
+
 /**
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
@@ -29,6 +34,17 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 	gte: (a, b) => asNumber(a) >= asNumber(b),
 	lt: (a, b) => asNumber(a) < asNumber(b),
 	lte: (a, b) => asNumber(a) <= asNumber(b),
+	between: (a, b) => {
+		if (!Array.isArray(b)) return true
+
+		// A blank bound is open-ended (±∞), so one-sided ranges still constrain.
+		const lo = isBlank(b[0]) ? Number.NEGATIVE_INFINITY : asNumber(b[0])
+		const hi = isBlank(b[1]) ? Number.POSITIVE_INFINITY : asNumber(b[1])
+
+		const value = asNumber(a)
+
+		return value >= lo && value <= hi
+	},
 	before: (a, b) => asText(a) < asText(b),
 	after: (a, b) => asText(a) > asText(b),
 	isTrue: (a) => a === true,

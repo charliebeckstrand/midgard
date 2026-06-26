@@ -108,6 +108,12 @@ describe('getOperators', () => {
 	it('falls back to the default operator list per field type', () => {
 		expect(getOperators(numberField).map((o) => o.value)).toContain('gte')
 	})
+
+	it('offers a range between operator for numbers', () => {
+		const between = getOperators(numberField).find((o) => o.value === 'between')
+
+		expect(between?.range).toBe(true)
+	})
 })
 
 describe('hasRules', () => {
@@ -186,6 +192,22 @@ describe('isQueryActive', () => {
 		])
 
 		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats a range with every bound blank as inactive', () => {
+		const group = createGroup('and', [
+			{ ...createRule(numberField), operator: 'between', value: ['', ''] },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats a one-sided range as active', () => {
+		const group = createGroup('and', [
+			{ ...createRule(numberField), operator: 'between', value: ['10', ''] },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(true)
 	})
 })
 

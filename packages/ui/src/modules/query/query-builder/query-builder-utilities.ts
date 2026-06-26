@@ -78,6 +78,7 @@ const defaultOperators = {
 		{ value: 'gte', label: '≥' },
 		{ value: 'lt', label: '<' },
 		{ value: 'lte', label: '≤' },
+		{ value: 'between', label: 'between', range: true },
 	],
 	date: [
 		{ value: 'equals', label: 'on' },
@@ -115,7 +116,9 @@ function isEmptyValue(value: unknown): boolean {
 
 	if (typeof value === 'string') return value.trim() === ''
 
-	if (Array.isArray(value)) return value.length === 0
+	// A range tuple is empty only when every bound is — an open-ended range with
+	// one bound set still constrains rows.
+	if (Array.isArray(value)) return value.every((item) => isEmptyValue(item))
 
 	return false
 }

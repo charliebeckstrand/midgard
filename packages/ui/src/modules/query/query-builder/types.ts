@@ -33,6 +33,12 @@ export type QueryOperator = {
 	label: string
 	/** When true, the rule omits its value input (e.g. "is empty"). */
 	noValue?: boolean
+	/**
+	 * When true, the rule edits a two-bound `[min, max]` tuple (e.g. "between")
+	 * instead of a single value; either bound may be left blank for an open-ended
+	 * range.
+	 */
+	range?: boolean
 }
 
 /** A queryable field definition: its `name`, display `label`, type, and optional operator/option overrides. */

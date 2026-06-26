@@ -305,3 +305,83 @@ describe('Grid date and boolean filters', () => {
 		expect(screen.queryByText('Beta')).not.toBeInTheDocument()
 	})
 })
+
+describe('Grid numeric range filter', () => {
+	type Item = { id: number; name: string; price: number }
+
+	const items: Item[] = [
+		{ id: 1, name: 'Cheap', price: 10 },
+		{ id: 2, name: 'Mid', price: 50 },
+		{ id: 3, name: 'Pricey', price: 100 },
+	]
+
+	const getKey = (item: Item) => item.id
+
+	const priceField: QueryField = { name: 'price', label: 'Price', type: 'number' }
+
+	const columns: GridColumn<Item>[] = [
+		{ id: 'name', title: 'Name', cell: (item) => item.name, value: (item) => item.name },
+		{
+			id: 'price',
+			title: 'Price',
+			cell: (item) => item.price,
+			value: (item) => item.price,
+			filterable: true,
+			filterType: 'number',
+		},
+	]
+
+	const priceBetween = (lo: number | '', hi: number | '') =>
+		createGroup('and', [{ ...createRule(priceField), operator: 'between', value: [lo, hi] }])
+
+	it('renders two bound inputs for the between operator', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={items}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'price', value: priceBetween('', '') }] }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Price' }))
+
+		expect(screen.getByRole('spinbutton', { name: 'Price minimum' })).toBeInTheDocument()
+
+		expect(screen.getByRole('spinbutton', { name: 'Price maximum' })).toBeInTheDocument()
+	})
+
+	it('keeps only rows within the range, inclusive of the bounds', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={items}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'price', value: priceBetween(20, 100) }] }}
+			/>,
+		)
+
+		expect(screen.queryByText('Cheap')).not.toBeInTheDocument()
+
+		expect(screen.getByText('Mid')).toBeInTheDocument()
+
+		expect(screen.getByText('Pricey')).toBeInTheDocument()
+	})
+
+	it('applies a one-sided range when a bound is left blank', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={items}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'price', value: priceBetween('', 50) }] }}
+			/>,
+		)
+
+		expect(screen.getByText('Cheap')).toBeInTheDocument()
+
+		expect(screen.getByText('Mid')).toBeInTheDocument()
+
+		expect(screen.queryByText('Pricey')).not.toBeInTheDocument()
+	})
+})

@@ -55,9 +55,21 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 
 	const onOperatorChange = useCallback(
 		(v: string | undefined) => {
-			if (v) updateRule(rule.id, { operator: v })
+			if (!v) return
+
+			// Switching between a scalar and a range operator changes the value's
+			// shape, so reset to the matching empty value; staying on the same arity
+			// keeps the current value.
+			const nextRange = operators.find((o) => o.value === v)?.range ?? false
+
+			const patch =
+				nextRange !== (selectedOperator?.range ?? false)
+					? { operator: v, value: nextRange ? ['', ''] : '' }
+					: { operator: v }
+
+			updateRule(rule.id, patch)
 		},
-		[rule.id, updateRule],
+		[rule.id, updateRule, operators, selectedOperator],
 	)
 
 	const onValueChange = useCallback(
@@ -119,6 +131,7 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 						field={field}
 						value={rule.value}
 						onValueChange={onValueChange}
+						range={selectedOperator?.range}
 						className="w-full"
 					/>
 				)}
