@@ -12,10 +12,8 @@ import {
 	useState,
 } from 'react'
 import { Button } from 'ui/button'
-import { cn } from 'ui/core'
 import { Icon } from 'ui/icon'
-import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
-import { Stack } from 'ui/stack'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger, useMenuActions } from 'ui/menu'
 
 // Below this count the page reads top-to-bottom comfortably, so the jump nav
 // stays hidden; at or above it the list earns its place.
@@ -125,10 +123,36 @@ export function useRegisterExample(id: string, title: ReactNode) {
 }
 
 /**
- * Bare icon button that opens a {@link Popover} listing the page's examples,
- * each a button that scrolls its example into view. Renders nothing until at
- * least {@link MIN_EXAMPLES} examples have registered, so single-example pages
- * stay uncluttered.
+ * One menu item that scrolls to its example on selection.
+ *
+ * @remarks The trigger sits in the sticky header, so the menu's close-time focus
+ * restore would scroll the content back to the trigger's unstuck position,
+ * undoing the jump. Refocusing the trigger here (without scrolling, before
+ * {@link MenuItem}'s own close) satisfies the restore — which skips when focus
+ * is already on the trigger — and keeps the keyboard caret on a sensible control.
+ * @internal
+ */
+function DemoNavItem({ entry }: { entry: ExampleEntry }) {
+	const { triggerRef } = useMenuActions()
+
+	return (
+		<MenuItem
+			onAction={() => {
+				jumpTo(entry.id)
+
+				triggerRef.current?.focus({ preventScroll: true })
+			}}
+		>
+			<MenuLabel>{entry.title}</MenuLabel>
+		</MenuItem>
+	)
+}
+
+/**
+ * Bare icon button that opens a {@link Menu} of the page's examples, each item
+ * scrolling its example into view. Renders nothing until at least
+ * {@link MIN_EXAMPLES} examples have registered, so single-example pages stay
+ * uncluttered.
  *
  * @remarks Reads the registry from {@link DemoNavProvider}; place it within the
  * same provider that wraps the demo body.
@@ -136,50 +160,20 @@ export function useRegisterExample(id: string, title: ReactNode) {
 export function DemoNav() {
 	const entries = use(ExampleEntriesContext)
 
-	const [open, setOpen] = useState(false)
-
-	const triggerRef = useRef<HTMLButtonElement>(null)
-
 	if (entries.length < MIN_EXAMPLES) return null
 
-	const select = (id: string) => {
-		jumpTo(id)
-
-		// The trigger sits in the sticky header, so the popover's close-time focus
-		// restore would scroll the content back to the trigger's unstuck position,
-		// undoing the jump. Focusing it here (without scrolling) both satisfies the
-		// restore — which skips when focus is already on the trigger — and keeps the
-		// keyboard caret on a sensible control.
-		triggerRef.current?.focus({ preventScroll: true })
-
-		setOpen(false)
-	}
-
 	return (
-		<Popover open={open} onOpenChange={setOpen} placement="bottom-start">
-			<PopoverTrigger>
-				<Button ref={triggerRef} variant="bare" aria-label="Jump to example">
+		<Menu placement="bottom-start">
+			<MenuTrigger>
+				<Button variant="bare" aria-label="Jump to example">
 					<Icon icon={<ListSortAscending />} />
 				</Button>
-			</PopoverTrigger>
-			<PopoverContent autoFocus p="xs" aria-label="Examples on this page">
-				<Stack data-slot="demo-nav" className="min-w-40 max-w-72">
-					{entries.map((entry) => (
-						<button
-							key={entry.id}
-							type="button"
-							onClick={() => select(entry.id)}
-							className={cn(
-								'w-full truncate rounded-md px-3 py-1.5 text-left text-sm',
-								'hover:bg-zinc-100 dark:hover:bg-zinc-800',
-								'focus-visible:-outline-offset-2',
-							)}
-						>
-							{entry.title}
-						</button>
-					))}
-				</Stack>
-			</PopoverContent>
-		</Popover>
+			</MenuTrigger>
+			<MenuContent>
+				{entries.map((entry) => (
+					<DemoNavItem key={entry.id} entry={entry} />
+				))}
+			</MenuContent>
+		</Menu>
 	)
 }
