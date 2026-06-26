@@ -82,7 +82,9 @@ export type GridColumn<T> = {
 	 * A pinned column is also locked — it can't be reordered or hidden, and shows
 	 * in the column manager's pinned group. Multi-column stacking needs known
 	 * widths (a `resizable`/fixed-layout grid, or a column `width`); a lone pinned
-	 * column on a side needs neither.
+	 * column on a side needs neither. This is the column's initial pin — the
+	 * header context menu's Pin Left / Pin Right / Unpin items override it at
+	 * runtime.
 	 */
 	pinned?: boolean | 'left' | 'right'
 	/**
@@ -256,6 +258,14 @@ export type GridColumnMenuContext<T> = {
 	sortDescending: () => void
 	/** Clears the grid's active sort. */
 	clearSort: () => void
+	/** This column's frozen edge, or `undefined` when it scrolls. */
+	pinned: 'left' | 'right' | undefined
+	/** Freezes this column against the left edge. */
+	pinLeft: () => void
+	/** Freezes this column against the right edge. */
+	pinRight: () => void
+	/** Releases this column back into the scrolling area. */
+	unpin: () => void
 	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Choose Columns"). */
@@ -266,10 +276,11 @@ export type GridColumnMenuContext<T> = {
 
 /**
  * Header context-menu config: `true` (or omit) for the default items — Sort
- * Ascending, Sort Descending, Clear sort (when the column is sorted), Auto-size
- * columns (when resizing is on), Choose Columns — or a builder receiving the
- * {@link GridColumnMenuContext} and those defaults, returning the final list to
- * extend, reorder, or replace them. `false` omits the header menu entirely.
+ * Ascending, Sort Descending, Clear sort (when the column is sorted), Pin Left /
+ * Pin Right / Unpin, Auto-size columns (when resizing is on), Choose Columns —
+ * or a builder receiving the {@link GridColumnMenuContext} and those defaults,
+ * returning the final list to extend, reorder, or replace them. `false` omits
+ * the header menu entirely.
  *
  * @typeParam T - Shape of a single row.
  */

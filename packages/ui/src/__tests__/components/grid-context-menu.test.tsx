@@ -203,4 +203,104 @@ describe('Grid context menus', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Auto-size columns' })).not.toBeInTheDocument()
 	})
+
+	const headerCell = (container: HTMLElement, id: string) =>
+		container.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`)
+
+	const pinnedColumns: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			cell: (row) => row.name,
+			value: (row) => row.name,
+			pinned: 'left',
+		},
+		{ id: 'role', title: 'Role', cell: (row) => row.role },
+	]
+
+	it('offers both edges and no Unpin on a scrolling column', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Pin Left' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Pin Right' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Unpin' })).not.toBeInTheDocument()
+	})
+
+	it('offers Unpin and the opposite edge on a pinned column', () => {
+		renderUI(<Grid columns={pinnedColumns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Unpin' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Pin Right' })).toBeInTheDocument()
+
+		// A left-pinned column does not re-offer its own edge.
+		expect(screen.queryByRole('menuitem', { name: 'Pin Left' })).not.toBeInTheDocument()
+	})
+
+	it('freezes a column to the left when Pin Left is chosen', () => {
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headerCell(container, 'name')?.className).not.toContain('sticky')
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin Left' }))
+
+		const head = headerCell(container, 'name')
+
+		expect(head?.className).toContain('sticky')
+
+		expect(head?.style.left).toBe('0px')
+	})
+
+	it('releases a column when Unpin is chosen', () => {
+		const { container } = renderUI(<Grid columns={pinnedColumns} rows={rows} getKey={getKey} />)
+
+		expect(headerCell(container, 'name')?.className).toContain('sticky')
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Unpin' }))
+
+		const head = headerCell(container, 'name')
+
+		expect(head?.className).not.toContain('sticky')
+
+		expect(head?.style.left).toBe('')
+	})
+
+	it('exposes the pin state and actions to a column-menu builder', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{
+					column: ({ pinned, pinRight }, defaults) => [
+						...defaults,
+						{
+							key: 'custom',
+							label: pinned ? `Pinned ${pinned}` : 'Freeze right',
+							onSelect: pinRight,
+						},
+					],
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Freeze right' }))
+
+		// The builder now reads the live pin side it just set.
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Pinned right' })).toBeInTheDocument()
+	})
 })

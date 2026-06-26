@@ -2,11 +2,14 @@
 
 import {
 	ArrowDown,
+	ArrowLeftToLine,
+	ArrowRightToLine,
 	ArrowUp,
 	ArrowUpDown,
 	Columns3,
 	Copy,
 	Download,
+	PinOff,
 	StretchHorizontal,
 } from 'lucide-react'
 import { type MouseEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
@@ -24,6 +27,18 @@ import type {
 /** Sets the sort to a column in a fixed direction. @internal */
 type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
 
+/** Pins a column to an edge, or unpins it with `false`. @internal */
+type PinColumn = (column: string | number, side: 'left' | 'right' | false) => void
+
+/** A column's frozen edge, with `true` collapsed to `'left'`. @internal */
+function normalizePinned(
+	pinned: boolean | 'left' | 'right' | undefined,
+): 'left' | 'right' | undefined {
+	if (pinned === 'right') return 'right'
+
+	return pinned ? 'left' : undefined
+}
+
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
 	config: GridContextMenuConfig<T>
@@ -37,6 +52,8 @@ type GridContextMenuProps<T> = {
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
 	clearSort: () => void
+	/** Pins the right-clicked column to an edge, or unpins it; backs the menu's Pin items. */
+	pinColumn: PinColumn
 	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Choose Columns"), or `null` when none is reachable. */
@@ -58,17 +75,61 @@ type ColumnMenuDefaultArgs<T> = {
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
 	clearSort: () => void
+	pinColumn: PinColumn
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportCsv: (() => void) | null
 }
 
 /**
+ * Pin items for a column's menu: "Pin Left" / "Pin Right" for the edges it is
+ * not already frozen to, and "Unpin" once it is frozen. A scrolling column
+ * offers both edges; a left-pinned one offers Pin Right and Unpin, and vice
+ * versa.
+ *
+ * @internal
+ */
+function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
+	const side = normalizePinned(column.pinned)
+
+	const items: GridMenuItem[] = []
+
+	if (side !== 'left') {
+		items.push({
+			key: 'pin-left',
+			label: 'Pin Left',
+			icon: <ArrowLeftToLine />,
+			onSelect: () => pinColumn(column.id, 'left'),
+		})
+	}
+
+	if (side !== 'right') {
+		items.push({
+			key: 'pin-right',
+			label: 'Pin Right',
+			icon: <ArrowRightToLine />,
+			onSelect: () => pinColumn(column.id, 'right'),
+		})
+	}
+
+	if (side) {
+		items.push({
+			key: 'unpin',
+			label: 'Unpin',
+			icon: <PinOff />,
+			onSelect: () => pinColumn(column.id, false),
+		})
+	}
+
+	return items
+}
+
+/**
  * Default header-menu items: sort controls (when the column sorts) with a
- * "Clear sort" once it is the sorted column, an "Auto-size columns" action
- * (when resizing is on), then the table-wide tools — "Choose Columns" (when a
- * manager is reachable) and "Export to CSV" (when export is on) — under a
- * separator.
+ * "Clear sort" once it is the sorted column, the column's pin controls (Pin
+ * Left / Pin Right / Unpin), an "Auto-size columns" action (when resizing is
+ * on), then the table-wide tools — "Choose Columns" (when a manager is
+ * reachable) and "Export to CSV" (when export is on) — under a separator.
  *
  * @internal
  */
@@ -78,6 +139,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		sortDirection,
 		sortColumn,
 		clearSort,
+		pinColumn,
 		autoSizeColumns,
 		chooseColumns,
 		exportCsv,
@@ -110,6 +172,9 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 			})
 		}
 	}
+
+	// Pin controls sit with the column's own actions, above the table-wide tools.
+	items.push(...pinMenuItems(column, pinColumn))
 
 	if (autoSizeColumns) {
 		items.push({
@@ -186,6 +251,7 @@ export function GridContextMenu<T>({
 	sort,
 	sortColumn,
 	clearSort,
+	pinColumn,
 	autoSizeColumns,
 	chooseColumns,
 	exportCsv,
@@ -221,6 +287,10 @@ export function GridContextMenu<T>({
 				sortAscending: () => sortColumn(column.id, 'asc'),
 				sortDescending: () => sortColumn(column.id, 'desc'),
 				clearSort,
+				pinned: normalizePinned(column.pinned),
+				pinLeft: () => pinColumn(column.id, 'left'),
+				pinRight: () => pinColumn(column.id, 'right'),
+				unpin: () => pinColumn(column.id, false),
 				autoSizeColumns: autoSizeColumns ?? undefined,
 				chooseColumns: () => chooseColumns?.(),
 				exportCsv: exportCsv ?? undefined,
@@ -231,6 +301,7 @@ export function GridContextMenu<T>({
 				sortDirection,
 				sortColumn,
 				clearSort,
+				pinColumn,
 				autoSizeColumns,
 				chooseColumns,
 				exportCsv,
@@ -244,6 +315,7 @@ export function GridContextMenu<T>({
 			sort,
 			sortColumn,
 			clearSort,
+			pinColumn,
 			autoSizeColumns,
 			chooseColumns,
 			exportCsv,

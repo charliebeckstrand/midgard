@@ -2,7 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
@@ -330,6 +330,8 @@ type GridRegionProps<T> = {
 	sort: SortState | undefined
 	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
 	clearSort: () => void
+	/** Pins a column to an edge, or unpins it with `false`; backs the header menu's Pin items. */
+	pinColumn: (column: string | number, side: PinSide | false) => void
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportCsv: (() => void) | null
@@ -356,6 +358,7 @@ function GridRegion<T>({
 	sort,
 	sortColumn,
 	clearSort,
+	pinColumn,
 	autoSizeColumns,
 	chooseColumns,
 	exportCsv,
@@ -382,6 +385,7 @@ function GridRegion<T>({
 			sort={sort}
 			sortColumn={sortColumn}
 			clearSort={clearSort}
+			pinColumn={pinColumn}
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 			exportCsv={exportCsv}
@@ -389,6 +393,39 @@ function GridRegion<T>({
 			{reordered}
 		</GridContextMenu>
 	)
+}
+
+/** A column's frozen edge once normalized (`true` collapses to `'left'`). @internal */
+type PinSide = 'left' | 'right'
+
+/**
+ * Runtime pin changes keyed by column id, layered over the static
+ * {@link GridColumn.pinned} flags: a side pins the column, `'none'` unpins a
+ * statically-pinned one. The header menu writes here so a column can be frozen
+ * or released without touching the column definitions.
+ *
+ * @internal
+ */
+type PinOverrides = Map<string | number, PinSide | 'none'>
+
+/**
+ * Overlays the menu's {@link PinOverrides} onto each column's static `pinned`
+ * flag, cloning only the columns an override touches — and returning the input
+ * array untouched when there are none — so unrelated columns keep their identity
+ * (and the downstream `visibleColumns` reference reuse holds).
+ *
+ * @internal
+ */
+function applyPinOverrides<T>(columns: GridColumn<T>[], overrides: PinOverrides): GridColumn<T>[] {
+	if (overrides.size === 0) return columns
+
+	return columns.map((col) => {
+		const override = overrides.get(col.id)
+
+		if (override === undefined) return col
+
+		return { ...col, pinned: override === 'none' ? undefined : override }
+	})
 }
 
 /**
@@ -628,6 +665,26 @@ function GridData<T>({
 	// that doesn't set its own, so head and engine read one resolved flag.
 	const resolvedColumns = useMemo(() => resolveSortable(columns, sortable), [columns, sortable])
 
+	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
+	// them into the columns here lets the column and engine hooks read one
+	// `pinned` flag whether it came from the definition or the menu.
+	const [pinOverrides, setPinOverrides] = useState<PinOverrides>(() => new Map())
+
+	const pinnedColumns = useMemo(
+		() => applyPinOverrides(resolvedColumns, pinOverrides),
+		[resolvedColumns, pinOverrides],
+	)
+
+	const pinColumn = useCallback((id: string | number, side: PinSide | false) => {
+		setPinOverrides((prev) => {
+			const next = new Map(prev)
+
+			next.set(id, side === false ? 'none' : side)
+
+			return next
+		})
+	}, [])
+
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortConfig?.value,
 		defaultValue: sortConfig?.defaultValue,
@@ -646,7 +703,7 @@ function GridData<T>({
 		managerItems,
 		manageColumns,
 		manageColumnsLabel,
-	} = useGridColumns<T>({ columns: resolvedColumns, columnOrderConfig, columnManagerConfig })
+	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
 
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
@@ -885,6 +942,7 @@ function GridData<T>({
 					sort={sort}
 					sortColumn={sortColumn}
 					clearSort={clearSort}
+					pinColumn={pinColumn}
 					autoSizeColumns={autoSizeColumns}
 					chooseColumns={chooseColumns}
 					exportCsv={exportCsv}

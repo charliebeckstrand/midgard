@@ -341,10 +341,11 @@ const SmartSortExample = () => (
 
 const ContextMenuExample = () => (
 	// Context menus are on by default. Right-click a header for sort controls,
-	// "Clear sort" (once the column is sorted), and "Choose Columns" (which opens
-	// the manager without a toolbar button); right-click a body cell for "Copy".
-	// Hold Ctrl while right-clicking for the browser's standard menu. Pass
-	// `contextMenu={false}` to disable, or a builder to reshape the items.
+	// "Clear sort" (once the column is sorted), pin controls (Pin Left / Pin Right
+	// / Unpin), and "Choose Columns" (which opens the manager without a toolbar
+	// button); right-click a body cell for "Copy". Hold Ctrl while right-clicking
+	// for the browser's standard menu. Pass `contextMenu={false}` to disable, or a
+	// builder to reshape the items.
 	<Grid columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
