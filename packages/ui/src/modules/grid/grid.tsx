@@ -8,6 +8,7 @@ import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
+import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, type SortState } from './context'
@@ -32,7 +33,7 @@ import type {
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelection } from './use-grid-selection'
-import { useGridTable } from './use-grid-table'
+import { type GridColumnResize, useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -401,10 +402,15 @@ function resolveTableProps(args: {
 	virtualized: boolean
 	ariaRowCount: number
 	colCount: number
+	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
+	tableWidth: number | undefined
 }): TableElementProps {
 	return {
 		...args.tableProps,
 		...(args.loading ? { 'aria-busy': true } : {}),
+		...(args.tableWidth != null
+			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
+			: {}),
 		...(args.virtualized
 			? {
 					role: args.tableProps?.role ?? 'grid',
@@ -412,6 +418,41 @@ function resolveTableProps(args: {
 					'aria-colcount': args.colCount,
 				}
 			: {}),
+	}
+}
+
+/**
+ * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
+ * the `table-fixed` + trailing-padding class, and the total table width — so a
+ * resize touches only its own column. Inert (no colgroup, no width) when the
+ * grid is not resizable. Split out of {@link GridData} for its
+ * cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveResizeLayout<T>(args: {
+	resizable: boolean
+	resize: GridColumnResize | null
+	columns: GridColumn<T>[]
+	density: DensityLevel | undefined
+	className: string | undefined
+}): { colGroup: ReactNode; tableClassName: string; tableWidth: number | undefined } {
+	const { resize } = args
+
+	if (!args.resizable || !resize) {
+		return { colGroup: null, tableClassName: cn(args.className), tableWidth: undefined }
+	}
+
+	return {
+		colGroup: (
+			<colgroup>
+				{args.columns.map((col) => (
+					<col key={col.id} style={{ width: resize.getSize(col.id) }} />
+				))}
+			</colgroup>
+		),
+		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
+		tableWidth: resize.totalSize(),
 	}
 }
 
@@ -607,7 +648,8 @@ function GridData<T>({
 		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
 	)
 
-	// Lift the column-manager dialog's open state so the header menu's "Choose
+	// Lift the column-manager dialog's open state and derive the header-menu
+	// actions (sort a column, open the manager); see `useGridMenuActions`.
 	const { showColumnManager, columnManagerOpen, setColumnManagerOpen, sortColumn, chooseColumns } =
 		useGridMenuActions<T>({ manageColumns, contextMenu, columnManagerConfig, setSort })
 
@@ -628,21 +670,33 @@ function GridData<T>({
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
 
+	// Fixed-layout column widths so a resize touches only its own column.
+	const { colGroup, tableClassName, tableWidth } = resolveResizeLayout({
+		resizable,
+		resize,
+		columns: visibleColumns,
+		density,
+		className,
+	})
+
 	const tableContent = (
 		<Table
 			density={density}
 			bleed={bleed}
 			outline={outline}
 			striped={striped}
-			className={cn(resizable && k.resize.padding({ density }), className)}
+			className={tableClassName}
 			tableProps={resolveTableProps({
 				tableProps,
 				loading,
 				virtualized: virtualizeEnabled,
 				ariaRowCount,
 				colCount: visibleColumns.length,
+				tableWidth,
 			})}
 		>
+			{colGroup}
+
 			<GridHead
 				columns={visibleColumns}
 				hasRows={renderRows.length > 0}

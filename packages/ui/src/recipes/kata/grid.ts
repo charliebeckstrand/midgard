@@ -85,6 +85,11 @@ export const k = {
 		],
 	},
 	resize: {
+		// Fixed layout + a <colgroup> of exact widths so resizing one column
+		// changes only that column (and the table's total width) instead of
+		// redistributing across siblings; the table scrolls horizontally past its
+		// container in the Table's own overflow wrapper.
+		fixed: 'table-fixed',
 		// The header cell hosts the absolutely-positioned handle.
 		cell: 'relative',
 		// Density-scaled trailing padding projected onto resizable headers so their

@@ -31,6 +31,34 @@ describe('Grid resizable columns', () => {
 		expect(screen.queryByRole('separator')).not.toBeInTheDocument()
 	})
 
+	it('lays resizable columns out with a fixed-width colgroup', () => {
+		const { container } = renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const table = container.querySelector('table')
+
+		expect(table).toHaveClass('table-fixed')
+
+		const cols = container.querySelectorAll('colgroup col')
+
+		expect(cols).toHaveLength(columns.length)
+
+		// Each column takes its own pixel width and the table is their sum, so a
+		// resize grows or shrinks one column (and the table) without redistributing.
+		expect((cols[0] as HTMLElement).style.width).toBe('200px')
+
+		expect((cols[1] as HTMLElement).style.width).toBe('120px')
+
+		expect((table as HTMLElement).style.width).toBe('320px')
+	})
+
+	it('uses auto layout with no colgroup when not resizable', () => {
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(container.querySelector('table')).not.toHaveClass('table-fixed')
+
+		expect(container.querySelector('colgroup')).not.toBeInTheDocument()
+	})
+
 	it('omits a separator on the selection column', () => {
 		renderUI(
 			<Grid

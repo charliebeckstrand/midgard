@@ -262,6 +262,7 @@ function buildColumnResize<T>(table: Table<T>): GridColumnResize {
 
 	return {
 		getSize: (id) => table.getColumn(String(id))?.getSize() ?? DEFAULT_COLUMN_SIZE,
+		totalSize: () => table.getTotalSize(),
 		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
 		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
 		getResizeHandler: (id) =>
@@ -354,6 +355,8 @@ type UseGridTableParams<T> = {
 export type GridColumnResize = {
 	/** Current clamped width (px) for a column. */
 	getSize: (id: string | number) => number
+	/** Total width (px) of every column — the width of the fixed-layout table. */
+	totalSize: () => number
 	/** Whether the column may be resized (data columns only). */
 	canResize: (id: string | number) => boolean
 	/** Whether the column is mid drag-resize. */

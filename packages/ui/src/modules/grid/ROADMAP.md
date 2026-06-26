@@ -8,7 +8,7 @@ The TanStack Table engine is now in place. `useGridTable` builds a `useReactTabl
 
 Pagination is the first feature on the engine: server-side (`manualPagination`) and client-side, bound through the controllable `pagination` prop, with a footer carrying a row-range status, page navigation, and an optional page-size picker. The row model is only materialized when pagination is active, so unpaginated grids are unchanged.
 
-Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop.
+Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop. Under `resizable` the table switches to fixed layout with a `<colgroup>` of exact widths and a table width summing them, so resizing one column changes only that column (and the table's total width) — siblings hold their size and the table scrolls — rather than redistributing across the row.
 
 Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
 
@@ -35,7 +35,6 @@ Each step preserves the public API via adapters and ships as its own change, sma
 
 | Feature | Approach |
 |---|---|
-| Precise column sizing | Fixed table layout + `<colgroup>` so resized widths are exact and columns can shrink below content (the shipped resize rides the auto-layout header width) |
 | Column pinning (freeze left/right) | `state.columnPinning`, `column.pin()`; sticky offsets from `column.getStart()/getAfter()` |
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
 | Auto-size / fit-to-content | Measure rendered cells, then `setColumnSizing` |
