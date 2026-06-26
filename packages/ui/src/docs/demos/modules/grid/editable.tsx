@@ -124,7 +124,7 @@ const bulkColumns: GridEditableColumn<LaneRate>[] = [
 	...columns,
 ]
 
-function EditingHelp({ label, children }: { label: string; children: string }) {
+function EditHelp({ label, children }: { label: string; children: string }) {
 	return (
 		<Flex justify="end">
 			<Tooltip placement="left">
@@ -144,10 +144,10 @@ export function EditableExample() {
 
 	return (
 		<>
-			<EditingHelp label="Editing help">
+			<EditHelp label="Editing help">
 				Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or click
 				away to save, Escape to cancel.
-			</EditingHelp>
+			</EditHelp>
 			<Grid
 				editable
 				outline
@@ -218,10 +218,10 @@ export function BulkEditExample() {
 
 	return (
 		<>
-			<EditingHelp label="Bulk editing help">
+			<EditHelp label="Bulk edit help">
 				Select multiple rows using the checkboxes, then edit a cell to apply that change to every
 				selected row.
-			</EditingHelp>
+			</EditHelp>
 			<Grid
 				editable
 				outline

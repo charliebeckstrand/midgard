@@ -248,7 +248,7 @@ export function Demo() {
 				<EditableExample />
 			</Example>
 
-			<Example title="Bulk editing">
+			<Example title="Bulk edit">
 				<BulkEditExample />
 			</Example>
 		</>
