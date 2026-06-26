@@ -68,5 +68,13 @@ export const k = {
 			'cursor-grab touch-none select-none active:cursor-grabbing',
 		],
 	},
+	footer: {
+		// Footer below the table: a row range/status on one edge, the page-size
+		// picker and page navigation on the other; wraps on narrow viewports.
+		bar: [flex.row, 'flex-wrap', 'items-center', 'justify-between', 'gap-2', 'gap-y-2', 'pt-2'],
+		status: [size.sm, text.muted, 'whitespace-nowrap'],
+		controls: [flex.inline, 'items-center', 'gap-4'],
+		picker: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

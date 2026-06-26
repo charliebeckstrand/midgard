@@ -5,7 +5,12 @@ import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
-import { Grid, type GridColumn, type SortState } from '../../../../modules/grid'
+import {
+	Grid,
+	type GridColumn,
+	type GridPaginationState,
+	type SortState,
+} from '../../../../modules/grid'
 import type { DensityLevel } from '../../../../providers/density'
 import { code, DensityListbox, Example } from '../../../engine'
 import { BulkEditExample, EditableExample } from './editable'
@@ -37,6 +42,17 @@ const people: Person[] = [
 		status: 'inactive',
 	},
 ]
+
+const roles = ['Developer', 'Designer', 'Manager', 'Analyst']
+
+// A larger set so the pagination demos have several pages to move through.
+const manyPeople: Person[] = Array.from({ length: 47 }, (_, i) => ({
+	id: i + 1,
+	name: `Person ${i + 1}`,
+	email: `person${i + 1}@example.com`,
+	role: roles[i % roles.length] ?? 'Developer',
+	status: i % 3 === 0 ? 'inactive' : 'active',
+}))
 
 const columns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
@@ -178,6 +194,43 @@ const ColumnManagerExample = () => {
 	)
 }
 
+const ServerPaginationExample = () => {
+	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 5 })
+
+	// Stand-in for a server fetch: slice the requested page from the full set.
+	const page = useMemo(
+		() =>
+			manyPeople.slice(
+				pagination.pageIndex * pagination.pageSize,
+				pagination.pageIndex * pagination.pageSize + pagination.pageSize,
+			),
+		[pagination],
+	)
+
+	return (
+		<Grid
+			columns={columns}
+			rows={page}
+			getKey={(row) => row.id}
+			pagination={{
+				value: pagination,
+				onValueChange: setPagination,
+				rowCount: manyPeople.length,
+				pageSizeOptions: [5, 10, 25],
+			}}
+		/>
+	)
+}
+
+const ClientPaginationExample = () => (
+	<Grid
+		columns={columns}
+		rows={manyPeople}
+		getKey={(row) => row.id}
+		pagination={{ defaultValue: { pageIndex: 0, pageSize: 10 }, pageSizeOptions: [10, 25, 50] }}
+	/>
+)
+
 export function Demo() {
 	const [density, setDensity] = useState<DensityLevel>('snug')
 
@@ -242,6 +295,17 @@ export function Demo() {
 
 			<Example title="Column manager">
 				<ColumnManagerExample />
+			</Example>
+
+			<Example
+				title="Server pagination"
+				code={code`<Grid pagination={{ value, onValueChange, rowCount }} />`}
+			>
+				<ServerPaginationExample />
+			</Example>
+
+			<Example title="Client pagination">
+				<ClientPaginationExample />
 			</Example>
 
 			<Example title="Editable">

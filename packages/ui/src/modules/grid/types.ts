@@ -54,3 +54,49 @@ export type GridColumnManagerPreset = {
 	order: (string | number)[]
 	hidden: (string | number)[]
 }
+
+/**
+ * Active page coordinate: the zero-based `pageIndex` and the `pageSize`.
+ * Structurally identical to TanStack Table's `PaginationState`, so it threads
+ * straight into a `useReactTable` instance.
+ */
+export type GridPaginationState = {
+	pageIndex: number
+	pageSize: number
+}
+
+/**
+ * Controlled/uncontrolled pagination binding for {@link GridProps.pagination},
+ * backed by the grid's TanStack Table engine.
+ *
+ * @remarks Two modes, selected by {@link GridPagination.manual}. In server
+ * mode (the default once `rowCount` or `pageCount` is given) the grid never
+ * slices: it advertises the page controls and emits page changes through
+ * `onValueChange`, and the consumer fetches that page and feeds it back as
+ * `rows` — TanStack's `manualPagination` contract. In client mode the grid
+ * paginates the full `rows` array itself.
+ */
+export type GridPagination = {
+	value?: GridPaginationState
+	defaultValue?: GridPaginationState
+	onValueChange?: (pagination: GridPaginationState) => void
+
+	/**
+	 * Total row count across all pages (TanStack `rowCount`); the grid derives
+	 * the page count from it. Supply in server mode so the last page is known.
+	 */
+	rowCount?: number
+
+	/** Total page count (TanStack `pageCount`); takes precedence over deriving from {@link GridPagination.rowCount}. */
+	pageCount?: number
+
+	/** Page sizes offered by the footer's size picker; omit to hide the picker entirely. */
+	pageSizeOptions?: number[]
+
+	/**
+	 * Server-side (manual) pagination: the consumer supplies each page's `rows`
+	 * and a `rowCount`/`pageCount`. When omitted, defaults to `true` if either
+	 * total is given, else `false` (client-side slicing of `rows`).
+	 */
+	manual?: boolean
+}

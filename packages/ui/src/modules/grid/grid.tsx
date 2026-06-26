@@ -15,11 +15,13 @@ import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
 import { GridEditable, type GridEditableProps } from './grid-editable'
 import { GridHead } from './grid-head'
+import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
-import type { GridColumn, GridColumnManagerPreset } from './types'
+import type { GridColumn, GridColumnManagerPreset, GridPagination } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelection } from './use-grid-selection'
+import { useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -122,6 +124,17 @@ export type GridDataProps<T> = TableVariants & {
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
 	columnManager?: GridColumnManagerConfig
+
+	/**
+	 * Pagination binding backed by the grid's TanStack Table engine. In server
+	 * mode (the default once `rowCount`/`pageCount` is supplied) the consumer
+	 * feeds each page as `rows`; in client mode the grid slices `rows` itself.
+	 * Renders a footer with a row-range status, page navigation, and an optional
+	 * page-size picker. Omit to render every row with no footer.
+	 *
+	 * @see {@link GridPagination}
+	 */
+	pagination?: GridPagination
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -260,6 +273,7 @@ function GridData<T>({
 	selection: selectionConfig,
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
+	pagination: paginationConfig,
 	reorder = false,
 	rowClassName,
 	rowLabel,
@@ -304,9 +318,19 @@ function GridData<T>({
 		manageColumnsLabel,
 	} = useGridColumns<T>({ columns, columnOrderConfig, columnManagerConfig })
 
+	// TanStack Table is the data engine: rows flow through its row model, which
+	// also surfaces the pagination state and handlers the footer renders from.
+	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
+	const { renderRows, pagination } = useGridTable<T>({
+		rows,
+		columns,
+		getKey,
+		pagination: paginationConfig,
+	})
+
 	const rowKeys = useMemo<(string | number)[]>(
-		() => rows.map((row, i) => getKey(row, i)),
-		[rows, getKey],
+		() => renderRows.map((row, i) => getKey(row, i)),
+		[renderRows, getKey],
 	)
 
 	const { selection, setSelection, toggleRow, toggleAll, allSelected, someSelected } =
@@ -355,6 +379,10 @@ function GridData<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
+	// Full row extent for grid semantics: the server total when paginating, else
+	// the rendered count (which equals every row when unpaginated).
+	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
+
 	const tableContent = (
 		<Table
 			density={density}
@@ -373,7 +401,7 @@ function GridData<T>({
 				...(virtualizeEnabled
 					? {
 							role: tableProps?.role ?? 'grid',
-							'aria-rowcount': rows.length + 1,
+							'aria-rowcount': ariaRowCount,
 							'aria-colcount': visibleColumns.length,
 						}
 					: {}),
@@ -381,14 +409,14 @@ function GridData<T>({
 		>
 			<GridHead
 				columns={visibleColumns}
-				hasRows={rows.length > 0}
+				hasRows={renderRows.length > 0}
 				virtualized={virtualizeEnabled}
 				reorderable={canReorder}
 			/>
 
 			<GridBody<T>
 				loading={loading}
-				rows={rows}
+				rows={renderRows}
 				rowKeys={rowKeys}
 				visibleColumns={visibleColumns}
 				getKey={getKey}
@@ -448,6 +476,8 @@ function GridData<T>({
 				) : (
 					tableRegion
 				)}
+
+				{pagination && <GridPaginationFooter pagination={pagination} />}
 			</div>
 		</GridContext>
 	)

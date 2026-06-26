@@ -44,4 +44,6 @@ export type {
 	GridColumn,
 	GridColumnManagerItem,
 	GridColumnManagerPreset,
+	GridPagination,
+	GridPaginationState,
 } from './types'
