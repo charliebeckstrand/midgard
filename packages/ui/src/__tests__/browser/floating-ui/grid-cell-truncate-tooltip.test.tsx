@@ -73,6 +73,26 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 
+	it('shows no tooltip when the content fits the column (precise detection)', async () => {
+		renderUI(
+			<Grid
+				resizable
+				columns={[nameCol]}
+				columnSizing={{ value: { name: 360 } }}
+				rows={[{ id: 1, name: 'Ada' }]}
+				getKey={getKey}
+			/>,
+		)
+
+		await userEvent.hover(screen.getByText('Ada'))
+
+		// A short value in a wide column does not overflow; no tooltip should open
+		// even after the hover delay (guards against a sub-pixel false positive).
+		await new Promise((resolve) => setTimeout(resolve, 400))
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+	})
+
 	it('does not truncate or tooltip when truncate is false', async () => {
 		renderUI(
 			<Grid

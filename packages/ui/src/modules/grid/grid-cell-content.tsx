@@ -23,11 +23,35 @@ import { k } from '../../recipes/kata/grid'
 export type CellTooltip = { kind: 'auto' } | { kind: 'custom'; node: ReactNode } | { kind: 'none' }
 
 /**
+ * Whether an element's single-line content overflows its content box, measured
+ * at sub-pixel precision. `scrollWidth`/`clientWidth` round to integers, so a
+ * fraction of a pixel of overflow can read as fitting (a clipped cell with no
+ * tooltip) or an exact fit as overflowing (a tooltip with nothing to reveal); a
+ * `Range` over the contents reports their true laid-out width, regardless of the
+ * overflow clip. The truncate span carries no padding or border, so its bounding
+ * width is its content box; half a pixel of slack absorbs rounding noise.
+ *
+ * @internal
+ */
+function isOverflowing(el: HTMLElement): boolean {
+	const range = document.createRange()
+
+	range.selectNodeContents(el)
+
+	// Layout-less environments (jsdom) don't implement Range geometry; fall back
+	// to the integer scroll/client comparison there.
+	if (typeof range.getBoundingClientRect !== 'function') return el.scrollWidth > el.clientWidth
+
+	return range.getBoundingClientRect().width - el.getBoundingClientRect().width > 0.5
+}
+
+/**
  * Tracks whether an element's single-line content overflows its box (clipped to
- * an ellipsis). Measured eagerly — after every commit, for content changes, and
- * through a `ResizeObserver`, for width changes that don't re-render — because a
- * {@link Tooltip} won't open mid-hover once its `enabled` flips, so truncation
- * must be known before the pointer arrives.
+ * an ellipsis). Measured eagerly — after every commit, for content changes, on
+ * `ResizeObserver` width changes that don't re-render, and once web fonts settle
+ * (which reflows text without resizing the box) — because a {@link Tooltip} won't
+ * open mid-hover once its `enabled` flips, so truncation must be known before the
+ * pointer arrives.
  *
  * @internal
  */
@@ -41,7 +65,7 @@ function useGridCellTruncated<E extends HTMLElement>(): [RefObject<E | null>, bo
 	const measure = useCallback(() => {
 		const el = ref.current
 
-		if (el) setTruncated(el.scrollWidth > el.clientWidth)
+		if (el) setTruncated(isOverflowing(el))
 	}, [])
 
 	useLayoutEffect(measure)
@@ -49,7 +73,11 @@ function useGridCellTruncated<E extends HTMLElement>(): [RefObject<E | null>, bo
 	useEffect(() => {
 		const el = ref.current
 
-		if (!el || typeof ResizeObserver === 'undefined') return
+		if (!el) return
+
+		if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+
+		if (typeof ResizeObserver === 'undefined') return
 
 		const observer = new ResizeObserver(measure)
 
