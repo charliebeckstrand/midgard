@@ -7,6 +7,7 @@
 | Surface | Doc | Contents |
 |---|---|---|
 | Components | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) | Every component, grouped by domain (inputs, overlays, data display, layout, …). |
+| Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/modules/*` — complex, multi-part compositions that own their sub-components, hooks, and docs. |
 | Layouts | [`docs/LAYOUTS.md`](docs/LAYOUTS.md) | `ui/layouts` — page scaffolds and app shells (auth, stacked, dashboard, sidebar). |
 | Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks` — state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
 | Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*` — floating/overlay shells, polymorphism, the styling-context cascades. |
@@ -24,7 +25,7 @@ The library splits into two tiers. **Static components** carry no `'use client'`
 The boundary rule: ambient styling state crosses the server/client boundary through the DOM, never through React context. Context cannot reach a server-rendered child passed through a client parent; data attributes and CSS can. Concretely:
 
 - Hosts size their slot indicators with recipe projections: `shaku.icon` rows on Button/Badge/Sidebar, stepped-down icon and spinner rows on the control affix slots (`kiso/control/affix`). A projection owns its slot; an explicit `size` on a slot icon or spinner does not override it.
-- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes; Table projects density, grid, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
+- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes; Table projects density, outline, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
 - `AffixContext` remains for client slot children (a Button inside an Input affix still steps down); static leaves never read it.
 - `DensityProvider` reaches client components only (Input, Button, Tabs, Menu, …). Static atoms ignore it; pass `size`/`space`/`gap` explicitly. A Badge in a control affix slot takes `size` one step below the control: the affix compensation constants assume the stepped-down chip.
 - A static host may *open* a density scope without reading one: an explicitly sized Card wraps its children in the `Density` client component, so client children inherit the step while the Card itself stays directive-free and server-renderable. This is client-to-client context — it never crosses the server/client boundary — and static children still ignore it. Reading the cascade (`useDensity` and friends) stays banned in the static tier.
@@ -68,6 +69,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/.../boundary/`). Add a de
 | Goal | Path |
 |---|---|
 | Components | `packages/ui/src/components/<name>/*` |
+| Modules | `packages/ui/src/modules/<name>/*` |
 | Component demos | `packages/ui/src/docs/demos/*` |
 | Docs rendering engine | [`packages/docs`](../docs) |
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |

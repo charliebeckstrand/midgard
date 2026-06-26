@@ -1,0 +1,102 @@
+import { cleanup, render } from '@testing-library/react'
+import { bench, describe } from 'vitest'
+import { Grid, type GridEditableColumn } from '../modules/grid'
+import { makeShipments, type Shipment } from './fixtures'
+
+const COLUMNS: GridEditableColumn<Shipment>[] = [
+	{ id: 'id', title: 'ID', readOnly: true },
+	{ id: 'reference', title: 'Reference', field: 'reference' },
+	{ id: 'origin', title: 'Origin', field: 'origin' },
+	{ id: 'destination', title: 'Destination', field: 'destination' },
+	{ id: 'status', title: 'Status', field: 'status' },
+	{ id: 'carrier', title: 'Carrier', field: 'carrier' },
+	{ id: 'loads', title: 'Loads', field: 'loads' },
+	{ id: 'weight', title: 'Weight', field: 'weight' },
+]
+
+const getKey = (row: Shipment) => row.id
+
+const rows100 = makeShipments(100)
+const rows500 = makeShipments(500)
+const rows1k = makeShipments(1_000)
+const rows10k = makeShipments(10_000)
+
+describe('Grid · initial render', () => {
+	bench('100 rows × 8 cols', () => {
+		render(<Grid editable columns={COLUMNS} rows={rows100} getKey={getKey} onValueChange={noop} />)
+
+		cleanup()
+	})
+
+	bench('500 rows × 8 cols', () => {
+		render(<Grid editable columns={COLUMNS} rows={rows500} getKey={getKey} onValueChange={noop} />)
+
+		cleanup()
+	})
+
+	bench('1,000 rows × 8 cols', () => {
+		render(<Grid editable columns={COLUMNS} rows={rows1k} getKey={getKey} onValueChange={noop} />)
+
+		cleanup()
+	})
+})
+
+describe('Grid · with selection', () => {
+	const cols: GridEditableColumn<Shipment>[] = [
+		{ id: '__select', title: '', selectable: true },
+		...COLUMNS,
+	]
+
+	bench('1,000 rows · 10% selected', () => {
+		const selection = new Set(rows1k.filter((_, i) => i % 10 === 0).map(getKey))
+
+		render(
+			<Grid
+				editable
+				columns={cols}
+				rows={rows1k}
+				getKey={getKey}
+				onValueChange={noop}
+				selection={{ value: selection }}
+			/>,
+		)
+
+		cleanup()
+	})
+})
+
+describe('Grid · virtualized initial render', () => {
+	bench('1,000 rows × 8 cols · virtualize', () => {
+		render(
+			<Grid
+				editable
+				columns={COLUMNS}
+				rows={rows1k}
+				getKey={getKey}
+				onValueChange={noop}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+
+	bench('10,000 rows × 8 cols · virtualize', () => {
+		render(
+			<Grid
+				editable
+				columns={COLUMNS}
+				rows={rows10k}
+				getKey={getKey}
+				onValueChange={noop}
+				virtualize
+				maxHeight="600px"
+			/>,
+		)
+
+		cleanup()
+	})
+})
+
+function noop() {}

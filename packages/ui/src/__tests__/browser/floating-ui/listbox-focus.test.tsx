@@ -42,7 +42,10 @@ describe('Listbox focus (real browser)', () => {
 
 		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
 
-		expect(document.activeElement?.getAttribute('data-selected')).toBe('true')
+		// Focus settles on the selected option, marked by the presence boolean
+		// `data-selected` (`dataAttr` renders it value-less, not `"true"`); poll
+		// for it rather than assert synchronously (CONVENTIONS §10.3).
+		await waitFor(() => expect(document.activeElement?.hasAttribute('data-selected')).toBe(true))
 	})
 
 	// Guards the APG select pattern: Tab dismisses the listbox and the keystroke

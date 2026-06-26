@@ -14,7 +14,7 @@ const DOCS = join(UI_ROOT, 'docs')
 /**
  * Every `` `identifier` `` span in a markdown surface index, excluding fenced
  * code blocks so import examples don't count as documentation. Captures both
- * symbol names (`useControllable`) and kebab directory names (`data-table`).
+ * symbol names (`useControllable`) and kebab directory names (`pivot-table`).
  */
 function documentedTokens(mdFile: string): Set<string> {
 	const withoutFences = readFileSync(join(DOCS, mdFile), 'utf-8').replace(/```[\s\S]*?```/g, '')
@@ -67,6 +67,7 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 
 	it.each([
 		['COMPONENTS.md', 'components'],
+		['MODULES.md', 'modules'],
 		['PRIMITIVES.md', 'primitives'],
 	])('%s lists every %s directory', (mdFile, dir) => {
 		const dirs = subdirectories(dir)

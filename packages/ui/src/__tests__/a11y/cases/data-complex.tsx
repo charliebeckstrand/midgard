@@ -1,4 +1,3 @@
-import { EditableGrid, type EditableGridColumn } from '../../../components/editable-grid'
 import { Label } from '../../../components/fieldset'
 import { Filters, FiltersField } from '../../../components/filters'
 import { Input } from '../../../components/input'
@@ -12,7 +11,8 @@ import {
 	KanbanColumnTitle,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
-import { QueryBuilder, type QueryField } from '../../../components/query-builder'
+import { Grid, type GridEditableColumn } from '../../../modules/grid'
+import { QueryBuilder, type QueryField } from '../../../modules/query'
 import type { Case } from './types'
 
 const noop = () => {}
@@ -60,7 +60,7 @@ const gridRows: GridRow[] = [
 	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com' },
 ]
 
-const gridColumns: EditableGridColumn<GridRow>[] = [
+const gridColumns: GridEditableColumn<GridRow>[] = [
 	{ id: 'name', title: 'Name', field: 'name' },
 	{ id: 'email', title: 'Email', field: 'email' },
 ]
@@ -111,7 +111,8 @@ export const dataComplexCases: readonly Case[] = [
 	[
 		// Editable data grid with column headers and keyed rows.
 		'editable grid',
-		<EditableGrid
+		<Grid
+			editable
 			key="eg"
 			columns={gridColumns}
 			rows={gridRows}

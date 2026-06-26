@@ -35,11 +35,11 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Data display
 
-`data-table` · `table` · `editable-grid` · `pivot-table` · `query-builder` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `odometer` · `time-ago` · `status` · `badge` · `avatar` · `kbd` · `code`
+`table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `odometer` · `time-ago` · `status` · `badge` · `avatar` · `kbd` · `code`
 
 ## Layout & surfaces
 
-`box` · `flex` · `grid` · `stack` · `group` · `split` · `container` · `card` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+`box` · `flex` · `stack` · `group` · `split` · `container` · `card` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
 ## Typography
 
@@ -51,7 +51,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Domain & specialized
 
-`map` · `pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
+`pdf-viewer` · `chat-message` · `chat-prompt` · `filters`
 
 ---
 

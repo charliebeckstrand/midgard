@@ -16,6 +16,8 @@ import { describe, expect, it } from 'vitest'
 
 const componentsDir = join(__dirname, '../../../components')
 
+const modulesDir = join(__dirname, '../../../modules')
+
 const srcDir = join(__dirname, '../../..')
 
 const REEXPORT_FROM = /export\s+(?:\*|\{[^}]*\}|type\s+\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/g
@@ -26,27 +28,31 @@ describe('component internals boundary', () => {
 	it("a component's index.ts re-exports only from within its own folder", () => {
 		const violations: string[] = []
 
-		for (const entry of readdirSync(componentsDir, { withFileTypes: true })) {
-			if (!entry.isDirectory()) continue
+		for (const dir of [componentsDir, modulesDir]) {
+			const label = relative(srcDir, dir)
 
-			const indexPath = join(componentsDir, entry.name, 'index.ts')
+			for (const entry of readdirSync(dir, { withFileTypes: true })) {
+				if (!entry.isDirectory()) continue
 
-			try {
-				statSync(indexPath)
-			} catch {
-				continue
-			}
+				const indexPath = join(dir, entry.name, 'index.ts')
 
-			const source = readFileSync(indexPath, 'utf8')
+				try {
+					statSync(indexPath)
+				} catch {
+					continue
+				}
 
-			for (const match of source.matchAll(REEXPORT_FROM)) {
-				const target = match[1]
+				const source = readFileSync(indexPath, 'utf8')
 
-				if (!target || target.startsWith('./')) continue
+				for (const match of source.matchAll(REEXPORT_FROM)) {
+					const target = match[1]
 
-				if (isOwnKataReexport(target, entry.name)) continue
+					if (!target || target.startsWith('./')) continue
 
-				violations.push(`components/${entry.name}/index.ts → ${target}`)
+					if (isOwnKataReexport(target, entry.name)) continue
+
+					violations.push(`${label}/${entry.name}/index.ts → ${target}`)
+				}
 			}
 		}
 
@@ -59,15 +65,16 @@ describe('component internals boundary', () => {
 	it("no file imports a sibling component's main file via a deep relative path", () => {
 		const violations: string[] = []
 
-		walk(componentsDir, (file, content) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+		for (const dir of [componentsDir, modulesDir])
+			walk(dir, (file, content) => {
+				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
-			const rel = relative(srcDir, file)
+				const rel = relative(srcDir, file)
 
-			for (const match of content.matchAll(SIBLING_MAIN_IMPORT)) {
-				violations.push(`${rel} → ../${match[1]}/${match[1]}`)
-			}
-		})
+				for (const match of content.matchAll(SIBLING_MAIN_IMPORT)) {
+					violations.push(`${rel} → ../${match[1]}/${match[1]}`)
+				}
+			})
 
 		expect(
 			violations,
@@ -83,15 +90,16 @@ describe('component internals boundary', () => {
 
 		const PROVIDER_JSX = /<[A-Z][A-Za-z]*Context[\s>]/
 
-		walk(componentsDir, (file, content) => {
-			if (!file.endsWith('.tsx')) return
+		for (const dir of [componentsDir, modulesDir])
+			walk(dir, (file, content) => {
+				if (!file.endsWith('.tsx')) return
 
-			if (!PROVIDER_JSX.test(content)) return
+				if (!PROVIDER_JSX.test(content)) return
 
-			if (content.startsWith("'use client'")) return
+				if (content.startsWith("'use client'")) return
 
-			violations.push(relative(srcDir, file))
-		})
+				violations.push(relative(srcDir, file))
+			})
 
 		expect(
 			violations,

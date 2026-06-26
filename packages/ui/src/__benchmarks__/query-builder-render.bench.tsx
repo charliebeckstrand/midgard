@@ -1,7 +1,7 @@
 import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
-import type { QueryGroupNode } from '../components/query-builder'
-import { mapNode, QueryBuilder } from '../components/query-builder'
+import type { QueryGroupNode } from '../modules/query'
+import { mapNode, QueryBuilder } from '../modules/query'
 import { makeQueryTree, QUERY_FIELDS } from './fixtures'
 
 function collectRuleIds(group: QueryGroupNode): string[] {

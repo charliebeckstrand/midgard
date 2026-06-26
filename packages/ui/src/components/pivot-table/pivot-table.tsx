@@ -39,7 +39,8 @@ export type PivotTableProps<T> = {
 	/** Rendered when no source rows match a (row × column) group. @defaultValue '—' */
 	emptyCell?: ReactNode
 	density?: DensityLevel
-	grid?: boolean
+	/** Draw hairline borders around every cell. @defaultValue false */
+	outline?: boolean
 	striped?: boolean
 	className?: string
 	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
@@ -66,7 +67,7 @@ export function PivotTable<T>({
 	columnOrder,
 	emptyCell = '—',
 	density,
-	grid,
+	outline,
 	striped,
 	className,
 	'aria-label': ariaLabel,
@@ -90,7 +91,7 @@ export function PivotTable<T>({
 		<Table
 			className={className}
 			density={density}
-			grid={grid}
+			outline={outline}
 			striped={striped}
 			tableProps={{ 'data-slot': 'pivot-table', 'aria-label': ariaLabel }}
 		>

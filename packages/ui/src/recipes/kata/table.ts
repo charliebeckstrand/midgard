@@ -1,7 +1,7 @@
 /**
  * Table kata: object-literal surface for the bare `<Table>` element and its
- * cells. The `cell` and `header` sub-recipes carry the density/grid leaf
- * styling; `projection` holds the density-, grid-, and stripe-varying child
+ * cells. The `cell` and `header` sub-recipes carry the density/outline leaf
+ * styling; `projection` holds the density-, outline-, and stripe-varying child
  * selectors the `<table>` casts onto descendants so cells read no context and
  * the family renders in RSC. `head`, `row`, and `empty` are static slots.
  */
@@ -18,7 +18,7 @@ const cellDensity = {
 	lg: 'px-3 py-3',
 }
 
-const grid = {
+const outline = {
 	true: border.subtle,
 	false: '',
 }
@@ -26,21 +26,21 @@ const grid = {
 const cell = defineRecipe({
 	base: [text.default],
 	density: cellDensity,
-	grid,
-	defaults: { density: 'md', grid: false },
+	outline,
+	defaults: { density: 'md', outline: false },
 })
 
 const header = defineRecipe({
 	base: ['font-bold', text.muted],
 	density: cellDensity,
-	grid,
-	defaults: { density: 'md', grid: false },
+	outline,
+	defaults: { density: 'md', outline: false },
 })
 
 /**
  * Table-side projections onto descendant cells. Cells and headers are
  * static leaves carrying their own md padding; the table overrides the
- * density-, grid-, and stripe-varying properties from the `<table>`
+ * density-, outline-, and stripe-varying properties from the `<table>`
  * element, so no descendant reads context and the whole family renders in
  * React Server Components. The exact-depth child chains (`>*>tr>` walks
  * thead/tbody/tfoot) keep a nested table's cells independent. md has no
@@ -58,7 +58,7 @@ const projection = {
 		md: [],
 		lg: ['[&>*>tr>td]:px-3', '[&>*>tr>td]:py-3', '[&>*>tr>th]:px-3', '[&>*>tr>th]:py-3'],
 	},
-	grid: [
+	outline: [
 		'[&>*>tr>td]:border',
 		'[&>*>tr>td]:border-zinc-950/5',
 		'dark:[&>*>tr>td]:border-white/5',

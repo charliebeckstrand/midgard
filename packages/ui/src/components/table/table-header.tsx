@@ -10,7 +10,7 @@ export type TableHeaderProps = {
 /**
  * A header cell (`<th>`) within a {@link Table}, defaulting `scope="col"`.
  * Static leaf: renders in React Server Components. Carries md padding;
- * `<Table density>` and `grid` override it through the table's projection.
+ * `<Table density>` and `outline` override it through the table's projection.
  *
  * @remarks Forwards `ref` to the underlying `<th>`, so a client caller can make
  * the cell a drag node (e.g. the data table's reorderable column headers).

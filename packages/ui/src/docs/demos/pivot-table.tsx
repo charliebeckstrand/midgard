@@ -45,7 +45,7 @@ export function Demo() {
 					format={currency}
 					rowHeader="Lane"
 					totals="both"
-					grid
+					outline
 				/>
 			</Example>
 
