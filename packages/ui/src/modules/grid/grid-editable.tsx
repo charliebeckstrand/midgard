@@ -199,6 +199,9 @@ export function GridEditable<T>({
 						rows={rows}
 						getKey={getKey}
 						sort={sortConfig}
+						// Editing keeps sorting opt-in: a column sorts only when it sets
+						// `sortable`, not from the read-only grid's sortable-by-default.
+						sortable={false}
 						selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
 						rowClassName={rowClassName}
 						stickyHeader={stickyHeader}

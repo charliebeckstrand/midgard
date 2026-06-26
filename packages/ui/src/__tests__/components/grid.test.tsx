@@ -285,6 +285,7 @@ describe('Grid', () => {
 					id: 'name',
 					title: 'Name',
 					cell: (row: { name: string }) => row.name,
+					sortable: false,
 				},
 				{
 					id: 'age',
@@ -298,6 +299,30 @@ describe('Grid', () => {
 
 			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
+			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
+		})
+
+		it('makes data columns sortable by default', () => {
+			const plainColumns = [
+				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
+			]
+
+			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} />)
+
+			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+		})
+
+		it('disables sorting for every column when sortable is false', () => {
+			const plainColumns = [
+				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
+				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age, sortable: true },
+			]
+
+			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} sortable={false} />)
+
+			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
+
+			// A column opting in explicitly still overrides the grid-level default.
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
 		})
 	})

@@ -9,6 +9,7 @@ import { Toolbar } from '../../components/toolbar'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
+import { isDataColumn } from '../../utilities'
 import { GridContext, type SortState } from './context'
 import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
@@ -135,6 +136,15 @@ export type GridDataProps<T> = TableVariants & {
 	getKey: (row: T, index: number) => string | number
 
 	sort?: GridSort
+
+	/**
+	 * Whether data columns are sortable by default. Each column overrides this
+	 * through its own {@link GridColumn.sortable}; set `false` to make sorting
+	 * opt-in. Sorting still flows through the {@link GridDataProps.sort} binding.
+	 * @defaultValue true
+	 */
+	sortable?: boolean
+
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
 	columnManager?: GridColumnManagerConfig
@@ -262,6 +272,19 @@ export type GridDataProps<T> = TableVariants & {
 export type GridProps<T> = GridDataProps<T> | (GridEditableProps<T> & { editable: true })
 
 /**
+ * Applies the grid-level `sortable` default to data columns that don't declare
+ * their own: an undefined {@link GridColumn.sortable} inherits `defaultSortable`,
+ * while an explicit value (and every non-data column) is left untouched.
+ *
+ * @internal
+ */
+function resolveSortable<T>(columns: GridColumn<T>[], defaultSortable: boolean): GridColumn<T>[] {
+	return columns.map((col) =>
+		isDataColumn(col) && col.sortable === undefined ? { ...col, sortable: defaultSortable } : col,
+	)
+}
+
+/**
  * Collapses the `virtualize` prop (boolean or options object) into a resolved
  * enabled flag and sizing.
  *
@@ -342,6 +365,7 @@ function GridData<T>({
 	rows,
 	getKey,
 	sort: sortConfig,
+	sortable = true,
 	selection: selectionConfig,
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
@@ -374,6 +398,10 @@ function GridData<T>({
 
 	const { enabled: virtualizeEnabled, estimateSize, overscan } = resolveVirtualization(virtualize)
 
+	// Columns sort by default; bake the grid-level default into each data column
+	// that doesn't set its own, so head and engine read one resolved flag.
+	const resolvedColumns = useMemo(() => resolveSortable(columns, sortable), [columns, sortable])
+
 	const [sort, setSort] = useControllable<SortState>({
 		value: sortConfig?.value,
 		defaultValue: sortConfig?.defaultValue,
@@ -392,14 +420,14 @@ function GridData<T>({
 		managerItems,
 		manageColumns,
 		manageColumnsLabel,
-	} = useGridColumns<T>({ columns, columnOrderConfig, columnManagerConfig })
+	} = useGridColumns<T>({ columns: resolvedColumns, columnOrderConfig, columnManagerConfig })
 
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
 	const { renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
 		rows,
-		columns,
+		columns: resolvedColumns,
 		getKey,
 		sort,
 		setSort,
