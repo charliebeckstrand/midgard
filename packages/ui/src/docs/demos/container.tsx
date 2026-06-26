@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { Card } from '../../components/card'
 import { Container } from '../../components/container'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

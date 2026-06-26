@@ -8,8 +8,8 @@ import {
 	hasRules,
 	mapNode,
 	removeChild,
-} from '../../components/query-builder/query-builder-utilities'
-import type { QueryField, QueryNode, QueryRule } from '../../components/query-builder/types'
+} from '../../modules/query/query-builder/query-builder-utilities'
+import type { QueryField, QueryNode, QueryRule } from '../../modules/query/query-builder/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }

@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 
 const componentsDir = join(__dirname, '../../../components')
+const modulesDir = join(__dirname, '../../../modules')
 const srcDir = join(__dirname, '../../..')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
@@ -18,38 +19,39 @@ describe('component recipe-import boundary', () => {
 	it('components import recipe values only via recipes/kata/<name>', () => {
 		const violations: string[] = []
 
-		walk(componentsDir, (file, content) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+		for (const dir of [componentsDir, modulesDir])
+			walk(dir, (file, content) => {
+				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
-			const rel = relative(srcDir, file)
+				const rel = relative(srcDir, file)
 
-			for (const match of content.matchAll(IMPORT_RE)) {
-				const head = match[1] ?? ''
-				const path = match[2] ?? ''
+				for (const match of content.matchAll(IMPORT_RE)) {
+					const head = match[1] ?? ''
+					const path = match[2] ?? ''
 
-				if (!path.includes('/recipes')) continue
+					if (!path.includes('/recipes')) continue
 
-				// `recipes/kata/...` is the sanctioned funnel for components.
-				if (/\/recipes\/kata\/[^'"]+$/.test(path)) continue
+					// `recipes/kata/...` is the sanctioned funnel for components.
+					if (/\/recipes\/kata\/[^'"]+$/.test(path)) continue
 
-				const isTypeOnly = /\bimport\s+type\b/.test(head) || isAllTypeNamed(match[0])
+					const isTypeOnly = /\bimport\s+type\b/.test(head) || isAllTypeNamed(match[0])
 
-				const isBarrel = /\/recipes['"]?$/.test(path) || path.endsWith('/recipes')
+					const isBarrel = /\/recipes['"]?$/.test(path) || path.endsWith('/recipes')
 
-				const isInternalLayer = /\/recipes\/(?:katakana|kiso)\//.test(path)
+					const isInternalLayer = /\/recipes\/(?:katakana|kiso)\//.test(path)
 
-				if (isBarrel && isTypeOnly) continue
+					if (isBarrel && isTypeOnly) continue
 
-				if (isBarrel) {
-					violations.push(`${rel}: value import from recipes barrel — ${match[0]}`)
-					continue
+					if (isBarrel) {
+						violations.push(`${rel}: value import from recipes barrel — ${match[0]}`)
+						continue
+					}
+
+					if (isInternalLayer) {
+						violations.push(`${rel}: forbidden import from ${path} — ${match[0]}`)
+					}
 				}
-
-				if (isInternalLayer) {
-					violations.push(`${rel}: forbidden import from ${path} — ${match[0]}`)
-				}
-			}
-		})
+			})
 
 		expect(
 			violations,

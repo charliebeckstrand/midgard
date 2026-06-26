@@ -1,8 +1,8 @@
+import { Example } from 'docs'
 import { Lock } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { PasswordInput } from '../../components/password-input'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

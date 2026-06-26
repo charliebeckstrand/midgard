@@ -1,7 +1,7 @@
+import { Example } from 'docs'
 import { Link } from '../../../components/link'
 import type { LinkProps } from '../../../primitives/link'
 import { UIProvider } from '../../../providers/ui'
-import { Example } from '../../components/example'
 
 export const meta = { name: 'UI Provider' }
 

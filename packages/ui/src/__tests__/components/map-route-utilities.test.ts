@@ -4,8 +4,8 @@ import {
 	resolveCurrentIndex,
 	toColorMatch,
 	toSegmentCollection,
-} from '../../components/map/map-route-utilities'
-import type { RouteData, RouteStop } from '../../components/map/types'
+} from '../../modules/map/map-route-utilities'
+import type { RouteData, RouteStop } from '../../modules/map/types'
 
 function stop(id: string, position: [number, number], status?: RouteStop['status']): RouteStop {
 	return { id, name: id, position, status }

@@ -1,5 +1,5 @@
+import { Example } from 'docs'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../components/dl'
-import { Example } from '../components/example'
 
 export const meta = { name: 'DL' }
 

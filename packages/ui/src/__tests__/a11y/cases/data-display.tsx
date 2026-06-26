@@ -8,7 +8,6 @@ import { Avatar } from '../../../components/avatar'
 import { Badge } from '../../../components/badge'
 import { Code } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
-import { DataTable, type DataTableColumn } from '../../../components/data-table'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
@@ -37,6 +36,7 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { Tree, TreeItem } from '../../../components/tree'
+import { Grid, type GridColumn } from '../../../modules/grid'
 import type { Case } from './types'
 
 type Person = { id: number; name: string; email: string }
@@ -46,7 +46,7 @@ const dataTableRows: Person[] = [
 	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com' },
 ]
 
-const dataTableColumns: DataTableColumn<Person>[] = [
+const dataTableColumns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, sortable: true },
 	{ id: 'email', title: 'Email', cell: (row) => row.email },
 ]
@@ -125,7 +125,7 @@ export const dataDisplayCases: readonly Case[] = [
 	[
 		// Data grid with a sortable column header (aria-sort) and keyed rows.
 		'data table',
-		<DataTable key="dt" columns={dataTableColumns} rows={dataTableRows} getKey={(row) => row.id} />,
+		<Grid key="dt" columns={dataTableColumns} rows={dataTableRows} getKey={(row) => row.id} />,
 	],
 	[
 		// Static semantic table: thead/tbody with column headers.

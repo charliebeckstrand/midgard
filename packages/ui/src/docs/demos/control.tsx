@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
 import { Button } from '../../components/button'
@@ -6,7 +7,6 @@ import { Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 function RequiredExample() {
 	const [submitting, setSubmitting] = useState(false)

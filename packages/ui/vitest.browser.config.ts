@@ -2,7 +2,6 @@ import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docsPlugin } from './src/docs/plugins'
 
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
@@ -24,7 +23,7 @@ import { docsPlugin } from './src/docs/plugins'
  * `pnpm test:browser` runs both; `--project <name>` scopes to one.
  */
 export default defineConfig({
-	plugins: [...docsPlugin({ vitest: true }), tailwindcss()],
+	plugins: [tailwindcss()],
 	// Pre-bundle the component dependency set so the optimizer doesn't discover
 	// them lazily and reload the page mid-run (which drops the in-flight test
 	// import). The browser pool can't recover from that reload the way the node

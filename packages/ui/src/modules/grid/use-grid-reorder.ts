@@ -1,0 +1,63 @@
+'use client'
+
+import { useCallback, useMemo } from 'react'
+import { useSortableList } from '../../hooks'
+import { isDataColumn } from '../../utilities'
+import type { GridColumn } from './types'
+
+/** Stable drag id for a column. @internal */
+const columnDragId = (col: { id: string | number }) => String(col.id)
+
+/** Stable empty list so a non-reorderable table keeps a constant sortable `items` reference. @internal */
+const EMPTY_COLUMNS: never[] = []
+
+/** Options for {@link useGridReorder}. @internal */
+type GridReorderOptions<T> = {
+	/** Whether header column reordering is enabled. */
+	reorder: boolean
+	/** The ordered, visible columns the header renders. */
+	visibleColumns: GridColumn<T>[]
+	/** Commits a header drag: the new order of the reorderable column ids. */
+	reorderColumns: (reorderedIds: (string | number)[]) => void
+}
+
+/**
+ * Wires column reordering onto `@dnd-kit`'s horizontal sortable for
+ * {@link Grid}. Only visible, non-pinned data columns are draggable, and a
+ * lone draggable column has nowhere to go, so `canReorder` gates the chrome on
+ * there being at least two. The data table renders `<DndContext>` /
+ * `<SortableContext>` from the returned props around the whole table region —
+ * never the `<table>` itself, since the dnd context injects hidden
+ * accessibility nodes that must not be `<table>` children.
+ *
+ * @returns `canReorder` (render gate) plus the `items`, `strategy`, and
+ * `dndContextProps` to spread onto the sortable context and dnd context.
+ * @internal
+ */
+export function useGridReorder<T>({
+	reorder,
+	visibleColumns,
+	reorderColumns,
+}: GridReorderOptions<T>) {
+	const draggableColumns = useMemo(
+		() =>
+			reorder ? visibleColumns.filter((col) => isDataColumn(col) && !col.pinned) : EMPTY_COLUMNS,
+		[reorder, visibleColumns],
+	)
+
+	const canReorder = reorder && draggableColumns.length > 1
+
+	const handleReorder = useCallback(
+		(next: GridColumn<T>[]) => reorderColumns(next.map((col) => col.id)),
+		[reorderColumns],
+	)
+
+	const { itemIds, strategy, dndContextProps } = useSortableList<GridColumn<T>>({
+		items: draggableColumns,
+		getKey: columnDragId,
+		onReorder: canReorder ? handleReorder : undefined,
+		orientation: 'horizontal',
+	})
+
+	return { canReorder, itemIds, strategy, dndContextProps }
+}

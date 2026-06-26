@@ -1,11 +1,11 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
+import { Box } from '../../components/box'
 import { Card, CardBody, CardDescription, CardTitle } from '../../components/card'
-import { Grid, GridCell } from '../../components/grid'
 import { List, ListItem, ListLabel } from '../../components/list'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 const items = [
 	{
@@ -65,18 +65,18 @@ export function Demo() {
 							)}
 						</List>
 					) : (
-						<Grid columns={{ initial: 2 }} gap="md">
+						<Box className="grid grid-cols-2 gap-3">
 							{items.map((item) => (
-								<GridCell key={item.name} className="flex">
+								<Box key={item.name} className="flex">
 									<Card className="grow">
 										<CardBody>
 											<CardTitle>{item.name}</CardTitle>
 											<CardDescription>{item.description}</CardDescription>
 										</CardBody>
 									</Card>
-								</GridCell>
+								</Box>
 							))}
-						</Grid>
+						</Box>
 					)}
 				</Stack>
 			</Example>

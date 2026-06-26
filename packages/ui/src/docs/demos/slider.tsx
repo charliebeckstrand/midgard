@@ -1,11 +1,8 @@
+import { capitalize, Example, LabeledRow, LabeledRows, ValueStepper } from 'docs'
 import { useState } from 'react'
 import { RangeSlider, Slider } from '../../components/slider'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { Example } from '../components/example'
-import { capitalize } from '../components/format'
-import { LabeledRow, LabeledRows } from '../components/labeled'
-import { ValueStepper } from '../components/value-stepper'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 

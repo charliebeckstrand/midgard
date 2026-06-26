@@ -33,6 +33,10 @@
 			"types": "./src/types/index.ts",
 			"default": "./src/types/index.ts"
 		},
+		"./modules/*": {
+			"types": "./src/modules/*/index.ts",
+			"default": "./src/modules/*/index.ts"
+		},
 		"./*": {
 			"types": "./src/components/*/index.ts",
 			"default": "./src/components/*/index.ts"
@@ -66,7 +70,7 @@
 		"@tanstack/react-virtual": "^3.13.23",
 		"card-validator": "^10.0.4",
 		"clsx": "^2.0.0",
-		"lucide-react": "^1.7.0",
+		"lucide-react": "^1.21.0",
 		"maplibre-gl": "^5.23.0",
 		"marked": "^18.0.5",
 		"motion": "^12.0.0",
@@ -88,18 +92,16 @@
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/browser": "4.1.8",
 		"@vitest/browser-playwright": "4.1.8",
 		"@vitest/coverage-v8": "^4.1.8",
+		"docs": "workspace:*",
 		"jest-axe": "^10.0.0",
 		"jsdom": "^29.0.2",
 		"playwright": "1.56.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.2.4",
-		"rollup-plugin-visualizer": "^6.0.0",
 		"tailwindcss": "^4.3.0",
-		"ts-morph": "^28.0.0",
 		"tsup": "^8.5.1",
 		"tsx": "^4.19.0",
 		"typescript": "^6.0.3",

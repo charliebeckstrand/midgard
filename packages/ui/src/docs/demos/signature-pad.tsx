@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
@@ -5,7 +6,6 @@ import { Flex } from '../../components/flex'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import { Stack } from '../../components/stack'
 import { Text } from '../../components/text'
-import { Example } from '../components/example'
 
 function DefaultExample() {
 	const [value, setValue] = useState<string | null>(null)

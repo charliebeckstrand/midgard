@@ -1,9 +1,7 @@
+import { code, Example, SizeListbox } from 'docs'
 import { useState } from 'react'
 import { Code, CodeBlock } from '../../components/code'
 import { Text } from '../../components/text'
-import { code } from '../code'
-import { Example } from '../components/example'
-import { SizeListbox } from '../components/size-listbox'
 
 const sizes = ['sm', 'md', 'lg'] as const
 

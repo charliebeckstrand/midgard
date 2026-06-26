@@ -1,10 +1,10 @@
+import { Example } from 'docs'
 import { CircleDashed } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { ChatPrompt } from '../../components/chat-prompt'
 import { Icon } from '../../components/icon'
-import { Example } from '../components/example'
 
 function DefaultExample() {
 	const [value, setValue] = useState('')

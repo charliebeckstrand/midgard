@@ -1,9 +1,10 @@
+import { Example } from 'docs'
 import { useState } from 'react'
+import { Box } from '../../../components/box'
 import { Button } from '../../../components/button'
 import { Card, CardBody, CardHeader, CardTitle } from '../../../components/card'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
 import { Flex } from '../../../components/flex'
-import { Grid } from '../../../components/grid'
 import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Stack } from '../../../components/stack'
@@ -17,7 +18,6 @@ import {
 	TableRow,
 } from '../../../components/table'
 import { DashboardLayout, StackedLayoutBody } from '../../../layouts'
-import { Example } from '../../components/example'
 
 const stats = [
 	{ label: 'Total revenue', value: '$45,231', delta: '+20.1%', trend: 'up' as const },
@@ -103,7 +103,7 @@ export function Demo() {
 			<DashboardLayout filters={<DashboardFilters />}>
 				<StackedLayoutBody>
 					<Stack gap="lg">
-						<Grid columns={{ initial: 1, sm: 2, lg: 4 }} gap="lg">
+						<Box className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 							{stats.map((stat) => (
 								<Card key={stat.label} bg="none">
 									<CardBody>
@@ -115,7 +115,7 @@ export function Demo() {
 									</CardBody>
 								</Card>
 							))}
-						</Grid>
+						</Box>
 
 						<Card>
 							<CardHeader>

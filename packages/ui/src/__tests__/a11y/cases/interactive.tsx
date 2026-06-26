@@ -9,9 +9,9 @@ import {
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
-import { Map as MapView } from '../../../components/map'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { Map as MapView } from '../../../modules/map'
 import { screen, waitFor } from '../../helpers'
 import type { InteractiveCase } from './types'
 

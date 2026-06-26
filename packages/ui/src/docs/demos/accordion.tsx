@@ -1,3 +1,4 @@
+import { Example, VariantListbox } from 'docs'
 import { useState } from 'react'
 import {
 	Accordion,
@@ -5,8 +6,6 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../components/accordion'
-import { Example } from '../components/example'
-import { VariantListbox } from '../components/variant-listbox'
 
 const variants = ['separated', 'outline', 'plain'] as const
 

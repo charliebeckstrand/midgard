@@ -11,12 +11,12 @@ import { renderUI, waitFor } from '../helpers'
  * exercise (zero-size scroll container → zero rendered rows).
  *
  * Coverage spans the two production windowing seams: `useVirtualWindow` (the
- * hook DataTable's virtualized body delegates to, exercised in a minimal real
+ * hook Grid's virtualized body delegates to, exercised in a minimal real
  * table) and `VirtualOptions` (the primitive that windows Combobox/Listbox
  * options). Both require a viewport of definite height; the harnesses supply a
  * fixed height rather than relying on `max-height`.
  *
- * The full DataTable component is not driven here: its render lifecycle never
+ * The full Grid component is not driven here: its render lifecycle never
  * initialises the virtualizer on an isolated headless mount (CONVENTIONS §10.3).
  * Its windowing is covered by the benchmarks; `useVirtualWindow` is the shared
  * hook exercised below.
@@ -25,7 +25,7 @@ import { renderUI, waitFor } from '../helpers'
 const TABLE_HEIGHT = 300
 const ROW_HEIGHT = 44
 
-/** Minimal real table over `useVirtualWindow`, mirroring DataTable's virtualized body. */
+/** Minimal real table over `useVirtualWindow`, mirroring Grid's virtualized body. */
 function VirtualTable({ count }: { count: number }) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 

@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { Text } from '../../components/text'
-import { Example } from '../components/example'
 
 const tabs = ['Account', 'Notifications', 'Billing'] as const
 

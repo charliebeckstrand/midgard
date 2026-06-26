@@ -9,7 +9,7 @@ export type TableCellProps = {
 
 /**
  * A data cell (`<td>`) within a {@link TableRow}. Static leaf: renders in
- * React Server Components. Carries md padding; `<Table density>` and `grid`
+ * React Server Components. Carries md padding; `<Table density>` and `outline`
  * override it through the table's projection.
  *
  * @remarks Forwards `ref` to the underlying `<td>`, so a client caller can make

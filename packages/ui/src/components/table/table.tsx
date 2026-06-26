@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { type DensityLevel, densityToSize } from '../../providers/density/context'
 import { k } from '../../recipes/kata/table'
 
-/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `grid` borders, and zebra `striped` rows. */
+/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, and zebra `striped` rows. */
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Explicit: the table projects the
@@ -15,7 +15,8 @@ export type TableVariants = {
 	 */
 	density?: DensityLevel
 	bleed?: boolean
-	grid?: boolean
+	/** Draw hairline borders around every cell. @defaultValue false */
+	outline?: boolean
 	/**
 	 * Zebra-stripe the body rows. `true` shades even rows (equivalent to
 	 * `'even'`); pass `'odd'` to shade odd rows instead.
@@ -44,7 +45,7 @@ export type TableProps = TableVariants & {
 
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
- * The table owns `density`, `grid`, and `striped` and projects them onto
+ * The table owns `density`, `outline`, and `striped` and projects them onto
  * descendant rows and cells, so TableBody, TableCell, and TableHeader read
  * no context.
  *
@@ -58,7 +59,7 @@ export type TableProps = TableVariants & {
  */
 export function Table({
 	bleed,
-	grid,
+	outline,
 	striped,
 	density,
 	className,
@@ -79,7 +80,7 @@ export function Table({
 				className={cn(
 					k.base,
 					k.projection.density[step],
-					grid && k.projection.grid,
+					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					className,
 					tableProps?.className,

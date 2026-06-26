@@ -1,5 +1,5 @@
+import { Example } from 'docs'
 import { PivotTable } from '../../components/pivot-table'
-import { Example } from '../components/example'
 
 type LoadRow = {
 	lane: string
@@ -45,7 +45,7 @@ export function Demo() {
 					format={currency}
 					rowHeader="Lane"
 					totals="both"
-					grid
+					outline
 				/>
 			</Example>
 

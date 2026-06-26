@@ -26,11 +26,14 @@ const componentEntries = discoverEntries('src/components')
 
 const providerEntries = discoverEntries('src/providers', 'providers/')
 
+const moduleEntries = discoverEntries('src/modules', 'modules/')
+
 const entry = {
 	hooks: 'src/hooks/index.ts',
 	layouts: 'src/layouts/index.ts',
 	...componentEntries,
 	...providerEntries,
+	...moduleEntries,
 }
 
 // No 'use client' banner: a blanket banner stamps the directive onto every

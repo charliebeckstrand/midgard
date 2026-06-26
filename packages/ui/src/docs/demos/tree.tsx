@@ -1,6 +1,6 @@
+import { Example } from 'docs'
 import { File, Folder, Image, Music, Video } from 'lucide-react'
 import { Tree, TreeItem } from '../../components/tree'
-import { Example } from '../components/example'
 
 export function Demo() {
 	return (

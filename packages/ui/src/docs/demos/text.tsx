@@ -1,5 +1,5 @@
+import { Example } from 'docs'
 import { Text } from '../../components/text'
-import { Example } from '../components/example'
 
 const severities = ['default', 'primary', 'success', 'warning', 'error', 'muted'] as const
 

@@ -1,3 +1,4 @@
+import { Example, ValueStepper } from 'docs'
 import { Fragment, useState } from 'react'
 import { Alert, AlertDescription } from '../../components/alert'
 import {
@@ -8,8 +9,6 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
-import { Example } from '../components/example'
-import { ValueStepper } from '../components/value-stepper'
 
 const steps = [
 	{ title: 'Account', description: 'Create your account' },

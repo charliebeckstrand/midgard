@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { PasswordInput } from '../../components/password-input'
@@ -7,7 +8,6 @@ import {
 	PasswordStrength,
 } from '../../components/password-strength'
 import { Stack } from '../../components/stack'
-import { Example } from '../components/example'
 
 function BasicExample() {
 	const [value, setValue] = useState('')

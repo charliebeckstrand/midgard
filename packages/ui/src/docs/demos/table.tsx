@@ -1,3 +1,4 @@
+import { Example } from 'docs'
 import {
 	Table,
 	TableBody,
@@ -8,7 +9,6 @@ import {
 	TableLoading,
 	TableRow,
 } from '../../components/table'
-import { Example } from '../components/example'
 
 const users = [
 	{ name: 'Wade Cooper', email: 'wade@example.com', role: 'Admin' },
@@ -60,8 +60,8 @@ export function Demo() {
 				</Table>
 			</Example>
 
-			<Example title="Grid">
-				<Table grid>
+			<Example title="Outline">
+				<Table outline>
 					<TableHead>
 						<TableRow>
 							<TableHeader>Name</TableHeader>
