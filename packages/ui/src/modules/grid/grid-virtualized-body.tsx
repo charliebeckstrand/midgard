@@ -19,6 +19,8 @@ type GridVirtualizedBodyProps<T> = {
 	toggleRow: (key: string | number) => void
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
 	reorderable: boolean
+	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
+	truncate: boolean
 	estimateSize: number
 	overscan: number
 }
@@ -44,6 +46,7 @@ export function GridVirtualizedBody<T>({
 	selection,
 	toggleRow,
 	reorderable,
+	truncate,
 	estimateSize,
 	overscan,
 }: GridVirtualizedBodyProps<T>) {
@@ -84,6 +87,7 @@ export function GridVirtualizedBody<T>({
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						reorderable={reorderable}
+						truncate={truncate}
 						dataRowIndex={vr.index}
 						// Header occupies row 1; data rows are offset by 2.
 						rowIndex={vr.index + 2}

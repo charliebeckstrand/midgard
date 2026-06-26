@@ -226,6 +226,15 @@ export type GridDataProps<T> = TableVariants & {
 	 */
 	reorder?: boolean
 
+	/**
+	 * Truncate overflowing cell content to a single line with an ellipsis, and
+	 * show a tooltip with the full content on hover/focus when a cell is
+	 * truncated. A column supersedes or disables that tooltip via
+	 * {@link GridColumn.cellTooltip}. Set `false` to let cells wrap instead.
+	 * @defaultValue true
+	 */
+	truncate?: boolean
+
 	rowClassName?: (row: T) => string | undefined
 
 	/**
@@ -571,6 +580,7 @@ function GridData<T>({
 	columnFilters: columnFiltersConfig,
 	contextMenu,
 	reorder = false,
+	truncate = true,
 	rowClassName,
 	rowLabel,
 	stickyHeader = false,
@@ -758,6 +768,7 @@ function GridData<T>({
 				selection={selection}
 				toggleRow={toggleRow}
 				reorderable={canReorder}
+				truncate={truncate}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
 		</Table>

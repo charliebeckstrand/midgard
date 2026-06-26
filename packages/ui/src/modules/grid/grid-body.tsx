@@ -19,6 +19,8 @@ type GridBodyProps<T> = {
 	toggleRow: (key: string | number) => void
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
 	reorderable: boolean
+	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
+	truncate: boolean
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -46,6 +48,7 @@ export function GridBody<T>({
 	selection,
 	toggleRow,
 	reorderable,
+	truncate,
 	virtualize,
 }: GridBodyProps<T>) {
 	if (loading) return <TableLoading columns={visibleColumns.length} />
@@ -65,6 +68,7 @@ export function GridBody<T>({
 				selection={selection}
 				toggleRow={toggleRow}
 				reorderable={reorderable}
+				truncate={truncate}
 				estimateSize={virtualize.estimateSize}
 				overscan={virtualize.overscan}
 			/>
@@ -88,6 +92,7 @@ export function GridBody<T>({
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						reorderable={reorderable}
+						truncate={truncate}
 						dataRowIndex={index}
 					/>
 				)

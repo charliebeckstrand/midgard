@@ -98,6 +98,19 @@ const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) =>
 		: { ...col, filterable: true },
 )
 
+const truncatedColumns: GridColumn<Person>[] = [
+	{ id: 'name', title: 'Name', cell: (row) => row.name },
+	{ id: 'email', title: 'Email', cell: (row) => row.email },
+	{
+		id: 'role',
+		title: 'Role',
+		cell: (row) => row.role,
+		// Supersede the default truncation tooltip with richer content; return
+		// `null` from `cellTooltip` instead to disable it for a column.
+		cellTooltip: (row) => `${row.name} — ${row.role}`,
+	},
+]
+
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
@@ -241,6 +254,15 @@ const ResizableExample = () => (
 	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
 )
 
+const TruncationExample = () => (
+	// In a narrow grid, overflowing cells truncate to an ellipsis and reveal the
+	// full text in a tooltip on hover; the Role column supersedes that tooltip via
+	// `cellTooltip`. Truncation is on by default — pass `truncate={false}` to wrap.
+	<div className="max-w-sm">
+		<Grid resizable columns={truncatedColumns} rows={people} getKey={(row) => row.id} />
+	</div>
+)
+
 const SearchExample = () => {
 	const [query, setQuery] = useState('')
 
@@ -375,6 +397,13 @@ export function Demo() {
 
 			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
 				<ResizableExample />
+			</Example>
+
+			<Example
+				title="Cell truncation"
+				code={code`<Grid columns={[{ ...col, cellTooltip: (row) => detail }]} />`}
+			>
+				<TruncationExample />
 			</Example>
 
 			<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>

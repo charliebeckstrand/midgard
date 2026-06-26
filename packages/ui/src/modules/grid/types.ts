@@ -28,6 +28,14 @@ export type GridColumn<T> = {
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
+	 * Tooltip shown when this column's cell content is truncated (see
+	 * {@link GridProps.truncate}). Receives the row and returns the tooltip
+	 * content; return `null` to disable the tooltip for the column. When omitted,
+	 * a truncated cell shows its own full content. No effect under
+	 * `truncate={false}`.
+	 */
+	cellTooltip?: (row: T) => ReactNode
+	/**
 	 * Raw value for engine operations — filtering today, sorting/grouping ahead —
 	 * distinct from {@link GridColumn.cell}, which renders. A column needs `value`
 	 * to be searchable.

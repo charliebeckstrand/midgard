@@ -18,6 +18,8 @@ Context menus are the fifth, and on by default (`contextMenu={false}` opts out):
 
 Auto-sizing is the sixth: under `resizable`, data columns fit the container width on mount and on container resize (via `ResizeObserver`), distributing the available width across data columns within each column's bounds and standing down once the user drag-resizes a column (so manual widths persist). The header's "Auto-size columns" action re-fits on demand and re-arms the automatic behavior. Width-distribution only; content measurement (fit-to-content) is still on the backlog.
 
+Cell truncation is the seventh, and on by default (`truncate={false}` opts out, as the editable variant does): overflowing cell content clips to one line with an ellipsis instead of spilling across neighbours — visible wherever the column width is bounded (a resizable/fixed-layout grid). A truncated cell reveals its full content in a hover/focus `Tooltip`; a column's `cellTooltip` returns a node to supersede that content or `null` to disable it. Overflow is measured eagerly (a `Tooltip` can't open mid-hover on an `enabled` flip), and only truncated cells mount a tooltip. Header truncation is still on the backlog.
+
 Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
 ## Migration — converging existing state onto the engine
@@ -41,6 +43,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
 | Fit-to-content sizing | Auto-fit-to-width shipped (distributes container width via `setColumnSizing`); fit-to-content still needs rendered-cell measurement |
 | Column header menu | Right-click sort + clear-sort + auto-size + "Choose Columns" shipped via `contextMenu`; fold in filter/pin/hide as they land |
+| Header truncation | Body-cell truncation + overflow tooltip shipped (`truncate`, `cellTooltip`); extend the same to header labels around the sort/filter/resize chrome |
 
 ### Filtering
 

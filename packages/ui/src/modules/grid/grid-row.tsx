@@ -7,6 +7,7 @@ import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridRowContext, type GridRowContextValue } from './context'
+import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 
@@ -33,6 +34,12 @@ type GridRowProps<T> = {
 	 */
 	reorderable?: boolean
 	/**
+	 * Truncate overflowing cell content to one line with an ellipsis and a
+	 * tooltip; a column's {@link GridColumn.cellTooltip} customizes or disables
+	 * the tooltip.
+	 */
+	truncate: boolean
+	/**
 	 * 1-based position in the full row set (header = 1). Set only when the body
 	 * is virtualized; assistive tech reads it to report position in the
 	 * windowed DOM. Omitted otherwise.
@@ -45,6 +52,21 @@ type GridRowProps<T> = {
 	 * DOM position diverge from data order.
 	 */
 	dataRowIndex: number
+}
+
+/**
+ * Resolves a column's truncation tooltip: `auto` (the cell's own content) when
+ * the column declares no `cellTooltip`, a `custom` node when it returns one, or
+ * `none` when it returns null/undefined.
+ *
+ * @internal
+ */
+function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
+	if (col.cellTooltip == null) return { kind: 'auto' }
+
+	const node = col.cellTooltip(row)
+
+	return node == null ? { kind: 'none' } : { kind: 'custom', node }
 }
 
 /**
@@ -63,6 +85,7 @@ function GridRowImpl<T>({
 	selected,
 	toggleRow,
 	reorderable = false,
+	truncate,
 	rowIndex,
 	dataRowIndex,
 }: GridRowProps<T>) {
@@ -115,7 +138,17 @@ function GridRowImpl<T>({
 
 					const cellExtra = col.cellProps?.(row)
 
-					const content = col.cell ? col.cell(row) : null
+					const rawContent = col.cell ? col.cell(row) : null
+
+					// Truncate overflowing content to an ellipsis with an on-overflow
+					// tooltip, unless the grid opts out. Null content stays bare so an
+					// empty cell adds no wrapper.
+					const content =
+						truncate && rawContent != null ? (
+							<GridCellContent content={rawContent} tooltip={resolveCellTooltip(col, row)} />
+						) : (
+							rawContent
+						)
 
 					if (reorderable && !col.pinned) {
 						return (

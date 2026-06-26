@@ -205,6 +205,9 @@ export function GridEditable<T>({
 						// Editing owns right-click (cell selection / copy-paste), so the
 						// read-only grid's default context menus stay off here.
 						contextMenu={false}
+						// Cells host editors that must not be clipped; the editable grid
+						// manages its own overflow, so read-only truncation stays off.
+						truncate={false}
 						selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
 						rowClassName={rowClassName}
 						stickyHeader={stickyHeader}

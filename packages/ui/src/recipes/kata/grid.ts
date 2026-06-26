@@ -61,6 +61,13 @@ export const k = {
 	},
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
+	cell: {
+		// One-line cell content that truncates to an ellipsis at the column width.
+		// `block` gives the span the cell's width so the fixed/auto column bounds it.
+		truncate: ['block', 'truncate'],
+		// Truncation tooltip surface: cap the width and let long text wrap inside.
+		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
+	},
 	sort: {
 		button: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 		icon: sortIcon,
