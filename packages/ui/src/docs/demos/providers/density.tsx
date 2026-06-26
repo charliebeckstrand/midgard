@@ -1,4 +1,3 @@
-import { DensityListbox, Example } from 'docs'
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
@@ -28,6 +27,7 @@ import {
 import { Text } from '../../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
 import { type DensityLevel, DensityProvider } from '../../../providers/density'
+import { DensityListbox, Example } from '../../engine'
 
 export const meta = { name: 'Density Provider' }
 

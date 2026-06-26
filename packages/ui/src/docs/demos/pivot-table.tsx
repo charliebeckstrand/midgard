@@ -1,5 +1,5 @@
-import { Example } from 'docs'
 import { PivotTable } from '../../components/pivot-table'
+import { Example } from '../engine'
 
 type LoadRow = {
 	lane: string

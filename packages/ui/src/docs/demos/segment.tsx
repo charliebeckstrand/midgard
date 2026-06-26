@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Box } from '../../components/box'
@@ -6,6 +5,7 @@ import { Card, CardBody, CardDescription, CardTitle } from '../../components/car
 import { List, ListItem, ListLabel } from '../../components/list'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Stack } from '../../components/stack'
+import { Example } from '../engine'
 
 const items = [
 	{

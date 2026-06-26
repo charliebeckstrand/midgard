@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { TagInput } from '../../components/tag-input'
+import { Example } from '../engine'
 
 function DefaultTagInputExample() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])

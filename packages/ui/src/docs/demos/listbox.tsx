@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
+import { Example } from '../engine'
 
 const statuses = [
 	{ value: 'active', label: 'Active' },

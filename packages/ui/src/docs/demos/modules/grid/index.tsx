@@ -1,4 +1,3 @@
-import { code, DensityListbox, Example } from 'docs'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge } from '../../../../components/badge'
@@ -8,6 +7,7 @@ import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
 import { Grid, type GridColumn, type SortState } from '../../../../modules/grid'
 import type { DensityLevel } from '../../../../providers/density'
+import { code, DensityListbox, Example } from '../../../engine'
 import { BulkEditExample, EditableExample } from './editable'
 
 type Person = {

@@ -1,7 +1,7 @@
-import { Example } from 'docs'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Kbd } from '../../components/kbd'
+import { Example } from '../engine'
 
 export function Demo() {
 	return (

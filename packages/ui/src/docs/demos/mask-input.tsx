@@ -1,7 +1,7 @@
-import { code, Example } from 'docs'
 import { useState } from 'react'
 import { Field, Label } from '../../components/fieldset'
 import { MaskInput } from '../../components/mask-input'
+import { code, Example } from '../engine'
 
 function formatLicensePlate(raw: string) {
 	const clean = raw

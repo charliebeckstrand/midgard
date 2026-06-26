@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { CurrencyInput } from '../../../components/currency-input'
@@ -6,6 +5,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Flex } from '../../../components/flex'
 import { Group } from '../../../components/group'
 import { LocaleProvider } from '../../../providers/locale'
+import { Example } from '../../engine'
 
 export const meta = { name: 'Locale Provider' }
 

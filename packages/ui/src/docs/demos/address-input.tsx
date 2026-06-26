@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { useState } from 'react'
 import {
 	AddressInput,
@@ -8,6 +7,7 @@ import {
 import { Alert } from '../../components/alert'
 import { Field, Label } from '../../components/fieldset'
 import { Text } from '../../components/text'
+import { Example } from '../engine'
 
 const places = [
 	{

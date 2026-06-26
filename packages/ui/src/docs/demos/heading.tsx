@@ -1,5 +1,5 @@
-import { Example } from 'docs'
 import { Heading } from '../../components/heading'
+import { Example } from '../engine'
 
 const levels = [1, 2, 3, 4, 5, 6] as const
 

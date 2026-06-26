@@ -1,4 +1,3 @@
-import { Example } from 'docs'
 import { type ComponentProps, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
@@ -18,6 +17,7 @@ import {
 	StackedLayoutFooter,
 	StackedLayoutHeader,
 } from '../../../layouts'
+import { Example } from '../../engine'
 
 export function Demo() {
 	const [password, setPassword] = useState('')
