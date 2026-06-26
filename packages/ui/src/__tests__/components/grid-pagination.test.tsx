@@ -31,9 +31,6 @@ describe('Grid pagination', () => {
 		)
 
 		expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
-
-		// The footer still reports the row range.
-		expect(screen.getByText(/of 3$/)).toBeInTheDocument()
 	})
 
 	describe('client mode', () => {
@@ -72,19 +69,6 @@ describe('Grid pagination', () => {
 
 			expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
 		})
-
-		it('reports the row range and total in the status', () => {
-			renderUI(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-				/>,
-			)
-
-			expect(screen.getByText(/of 25$/)).toHaveTextContent(/^1.5 of 25$/)
-		})
 	})
 
 	describe('server (manual) mode', () => {
@@ -102,8 +86,6 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('Row 11')).toBeInTheDocument()
 
 			expect(screen.getByText('Row 15')).toBeInTheDocument()
-
-			expect(screen.getByText(/of 25$/)).toHaveTextContent(/^11.15 of 25$/)
 		})
 	})
 

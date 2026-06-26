@@ -11,8 +11,7 @@ import {
 	type GridPaginationState,
 	type SortState,
 } from '../../../../modules/grid'
-import type { DensityLevel } from '../../../../providers/density'
-import { code, DensityListbox, Example } from '../../../engine'
+import { code, Example } from '../../../engine'
 import { BulkEditExample, EditableExample } from './editable'
 
 type Person = {
@@ -274,7 +273,7 @@ const ColumnManagerExample = () => {
 }
 
 const ServerPaginationExample = () => {
-	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 5 })
+	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 10 })
 
 	// Stand-in for a server fetch: slice the requested page from the full set.
 	const page = useMemo(
@@ -295,7 +294,7 @@ const ServerPaginationExample = () => {
 				value: pagination,
 				onValueChange: setPagination,
 				rowCount: manyPeople.length,
-				pageSizeOptions: [5, 10, 25],
+				pageSizeOptions: [10, 25],
 			}}
 		/>
 	)
@@ -311,8 +310,6 @@ const ClientPaginationExample = () => (
 )
 
 export function Demo() {
-	const [density, setDensity] = useState<DensityLevel>('snug')
-
 	return (
 		<>
 			<Example title="Default">
@@ -355,13 +352,6 @@ export function Demo() {
 
 			<Example title="Outline">
 				<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
-
-			<Example
-				title="Density"
-				actions={<DensityListbox value={density} onValueChange={setDensity} />}
-			>
-				<Grid density={density} columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>

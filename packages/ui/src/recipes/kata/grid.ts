@@ -116,9 +116,15 @@ export const k = {
 		],
 	},
 	filter: {
-		// Quick-search field above the table; capped width and pushed to the right
-		// on larger viewports, full-width on the smallest.
-		bar: ['w-full', 'sm:ml-auto', 'sm:max-w-xs'],
+		// Footer below the table. From `lg`: one centered row — page-size picker,
+		// page navigation, then the row-range status — gapped, not spread. Below
+		// `lg`: the navigation stacks on top, with the picker and status sharing a
+		// justified-between row beneath it (the `meta` wrapper collapses to
+		// `contents` at `lg` so all three become siblings of the centered row).
+		bar: ['w-full', 'sm:max-w-xs'],
+		// Per-column filter row beneath the header.
+		row: bg.surface,
+		cell: ['px-2', 'py-1', 'align-middle'],
 		// Header row: title on the left, filter button across from it on the right.
 		slot: ['flex', 'items-center', 'justify-between', 'gap-1'],
 		// Filter icon button in a column header; turns accent while a filter is active.
@@ -140,17 +146,17 @@ export const k = {
 		bar: [
 			'flex',
 			'flex-col',
-			'gap-3',
+			'gap-2',
 			'pt-2',
 			'lg:flex-row',
 			'lg:items-center',
 			'lg:justify-center',
 		],
 		// Page navigation: centered on its own row below `lg`, the middle item from `lg`.
-		nav: ['flex', 'justify-center', 'lg:order-2'],
+		nav: ['flex', 'justify-center'],
 		// Picker + status: a justified-between row below `lg`; dissolves into the
 		// centered row from `lg` so each orders independently.
-		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
+		meta: ['flex', 'items-center', 'justify-center', 'gap-2'],
 		start: [
 			flex.inline,
 			'items-center',
@@ -158,13 +164,12 @@ export const k = {
 			size.sm,
 			text.muted,
 			'whitespace-nowrap',
-			'lg:order-1',
 			// Without a page-size picker the wrapper is empty; keep it on the small
 			// screen so the status stays right (justified between), drop it from the
 			// centered row so it adds no phantom gap.
 			'lg:empty:hidden',
 		],
-		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-3'],
+		status: [size.sm, text.muted, 'whitespace-nowrap'],
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

@@ -33,9 +33,6 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 		pageIndex,
 		pageSize,
 		pageCount,
-		rowCount,
-		from,
-		to,
 		canPrevious,
 		canNext,
 		pageSizeOptions,
@@ -46,15 +43,6 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	const pageNumber = pageIndex + 1
 
 	const knownPages = pageCount > 0
-
-	const status =
-		rowCount != null
-			? rowCount === 0
-				? 'No results'
-				: `${from}–${to} of ${rowCount}`
-			: knownPages
-				? `Page ${pageNumber} of ${pageCount}`
-				: `Page ${pageNumber}`
 
 	const showPicker = pageSizeOptions != null && pageSizeOptions.length > 0
 
@@ -100,14 +88,16 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 				<div className={cn(k.footer.start)}>
 					{showPicker && (
 						<>
-							<span aria-hidden="true">Rows per page</span>
+							<span aria-hidden="true" className="sr-only">
+								Rows per page
+							</span>
 
 							<Select<number>
 								aria-label="Rows per page"
 								value={pageSize}
 								onValueChange={(value) => value != null && setPageSize(value)}
 								displayValue={(value) => String(value)}
-								placement="top-start"
+								placement="top-end"
 							>
 								{pageSizeOptions.map((option) => (
 									<SelectOption key={option} value={option}>
@@ -118,10 +108,6 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 						</>
 					)}
 				</div>
-
-				<span data-slot="grid-pagination-status" className={cn(k.footer.status)} aria-live="polite">
-					{status}
-				</span>
 			</div>
 		</div>
 	)
