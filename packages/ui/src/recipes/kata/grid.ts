@@ -150,8 +150,9 @@ export const k = {
 		// when active so it doesn't override that colour.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
-		// Filter popover panel: roomy so the value input has space alongside the operator.
-		popover: ['w-[32rem]', 'max-w-[calc(100vw-2rem)]'],
+		// Filter drawer content: a centred, readable column inside the full-width
+		// bottom sheet, so the operator and value editors don't stretch edge to edge.
+		drawerContent: ['mx-auto', 'w-full', 'max-w-2xl'],
 	},
 	footer: {
 		// Footer below the table. From `lg`: one centered row — page-size picker,

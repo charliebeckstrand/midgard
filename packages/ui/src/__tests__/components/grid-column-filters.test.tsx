@@ -140,24 +140,56 @@ describe('Grid per-column filters', () => {
 		expect(button.className).not.toMatch(/text-blue/)
 	})
 
-	it('activates only after the seeded rule gains a value, then clears', () => {
+	it('activates only after Apply settles a valued rule, and clears on Apply', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		// The popover opens on a seeded, value-less rule — still inactive.
+		// The drawer opens on a seeded, value-less rule — still inactive.
 		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
 
-		const value = screen.getByRole('textbox', { name: 'Name value' })
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
 
-		fireEvent.change(value, { target: { value: 'Bob' } })
+		// The edit is a draft: nothing reaches the engine, so the button stays inactive.
+		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+
+		// Apply settles it — now the button accents.
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
 		expect(screen.getByRole('button', { name: 'Filter Name' })).toHaveAttribute('data-active')
 
-		// Emptying the value (the "added then removed" end state) deactivates it again.
-		fireEvent.change(value, { target: { value: '' } })
+		// Reopen, empty the value, and apply: the cleared rule deactivates it again.
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: '' },
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
 		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+	})
+
+	it('discards a draft when the filter drawer is dismissed without applying', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
+
+		// Cancel discards the draft — the filter never engaged.
+		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+
+		// Reopening starts from the applied (empty) state, not the discarded draft.
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		expect(screen.getByRole('textbox', { name: 'Name value' })).toHaveValue('')
 	})
 
 	it('accents the button for a value-less operator (is empty)', () => {

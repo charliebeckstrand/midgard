@@ -20,10 +20,10 @@ export type GridColumn<T> = {
 	 * {@link GridSort.manual} defers sorting to the consumer.
 	 */
 	sortFn?: (a: T, b: T) => number
-	/** Adds a filter button to this column's header that opens a query-builder popover; requires {@link GridColumn.value}. */
+	/** Adds a filter button to this column's header that opens a query-builder drawer (settled with Apply); requires {@link GridColumn.value}. */
 	filterable?: boolean
 	/**
-	 * Editor the filter popover uses for this column: a text input, a number
+	 * Editor the filter drawer uses for this column: a text input, a number
 	 * input, a {@link GridColumn.filterOptions} select, a date picker, or a
 	 * boolean is-true/is-false toggle. The column's {@link GridColumn.value} must
 	 * return a value the matching operators compare against — an ISO `YYYY-MM-DD`
