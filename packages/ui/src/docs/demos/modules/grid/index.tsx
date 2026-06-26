@@ -98,6 +98,45 @@ const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) =>
 		: { ...col, filterable: true },
 )
 
+type Ticket = { id: number; title: string; due: string; resolved: boolean }
+
+const tickets: Ticket[] = [
+	{ id: 1, title: 'Fix login redirect', due: '2026-01-15', resolved: true },
+	{ id: 2, title: 'Add dark mode', due: '2026-03-01', resolved: false },
+	{ id: 3, title: 'Upgrade dependencies', due: '2026-02-10', resolved: false },
+	{ id: 4, title: 'Write API docs', due: '2026-04-20', resolved: true },
+]
+
+// `date` filters compare an ISO `YYYY-MM-DD` value (before / on / after); `boolean`
+// filters offer is-true / is-false with no value input.
+const ticketColumns: GridColumn<Ticket>[] = [
+	{
+		id: 'title',
+		title: 'Title',
+		cell: (row) => row.title,
+		value: (row) => row.title,
+		filterable: true,
+	},
+	{
+		id: 'due',
+		title: 'Due',
+		cell: (row) => row.due,
+		value: (row) => row.due,
+		filterable: true,
+		filterType: 'date',
+	},
+	{
+		id: 'resolved',
+		title: 'Resolved',
+		cell: (row) => (
+			<Badge color={row.resolved ? 'green' : 'zinc'}>{row.resolved ? 'Yes' : 'No'}</Badge>
+		),
+		value: (row) => row.resolved,
+		filterable: true,
+		filterType: 'boolean',
+	},
+]
+
 const truncatedColumns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
 	// A long title truncates in the header and reveals itself on hover, the same
@@ -320,6 +359,10 @@ const ColumnFiltersExample = () => (
 	<Grid columns={filterableColumns} rows={people} getKey={(row) => row.id} />
 )
 
+const DateBooleanFilterExample = () => (
+	<Grid columns={ticketColumns} rows={tickets} getKey={(row) => row.id} />
+)
+
 const ColumnManagerExample = () => {
 	return (
 		<Grid
@@ -462,6 +505,13 @@ export function Demo() {
 				code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
 			>
 				<ColumnFiltersExample />
+			</Example>
+
+			<Example
+				title="Date & boolean filters"
+				code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'date' }]} />`}
+			>
+				<DateBooleanFilterExample />
 			</Example>
 
 			<Example title="Column manager">

@@ -211,3 +211,97 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
 })
+
+describe('Grid date and boolean filters', () => {
+	type Task = { id: number; title: string; due: string; done: boolean }
+
+	const tasks: Task[] = [
+		{ id: 1, title: 'Alpha', due: '2026-01-10', done: true },
+		{ id: 2, title: 'Beta', due: '2026-03-20', done: false },
+	]
+
+	const getKey = (task: Task) => task.id
+
+	const dueField: QueryField = { name: 'due', label: 'Due', type: 'date' }
+
+	const doneField: QueryField = { name: 'done', label: 'Done', type: 'boolean' }
+
+	const columns: GridColumn<Task>[] = [
+		{ id: 'title', title: 'Title', cell: (task) => task.title, value: (task) => task.title },
+		{
+			id: 'due',
+			title: 'Due',
+			cell: (task) => task.due,
+			value: (task) => task.due,
+			filterable: true,
+			filterType: 'date',
+		},
+		{
+			id: 'done',
+			title: 'Done',
+			cell: (task) => (task.done ? 'yes' : 'no'),
+			value: (task) => task.done,
+			filterable: true,
+			filterType: 'boolean',
+		},
+	]
+
+	it('opens a date-picker value editor for a date filter', () => {
+		renderUI(<Grid columns={columns} rows={tasks} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Due' }))
+
+		// The date branch threads the column title through the DatePicker's aria-label.
+		expect(screen.getByRole('button', { name: 'Due value' })).toBeInTheDocument()
+	})
+
+	it('filters rows by a date comparison (before)', () => {
+		const before = createGroup('and', [
+			{ ...createRule(dueField), operator: 'before', value: '2026-02-01' },
+		])
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={tasks}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'due', value: before }] }}
+			/>,
+		)
+
+		expect(screen.getByText('Alpha')).toBeInTheDocument()
+
+		expect(screen.queryByText('Beta')).not.toBeInTheDocument()
+	})
+
+	it('offers a value-less is-true / is-false operator for a boolean filter', () => {
+		renderUI(<Grid columns={columns} rows={tasks} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Done' }))
+
+		// The operator select shows, but a value-less operator suppresses the value
+		// editor entirely (no input of any kind labelled for the field).
+		expect(screen.getByRole('combobox', { name: 'Operator' })).toBeInTheDocument()
+
+		expect(screen.queryByLabelText('Done value')).toBeNull()
+	})
+
+	it('filters rows by a boolean (is true)', () => {
+		const isTrue = createGroup('and', [
+			{ ...createRule(doneField), operator: 'isTrue', value: null },
+		])
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={tasks}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'done', value: isTrue }] }}
+			/>,
+		)
+
+		expect(screen.getByText('Alpha')).toBeInTheDocument()
+
+		expect(screen.queryByText('Beta')).not.toBeInTheDocument()
+	})
+})

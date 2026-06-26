@@ -23,11 +23,14 @@ export type GridColumn<T> = {
 	/** Adds a filter button to this column's header that opens a query-builder popover; requires {@link GridColumn.value}. */
 	filterable?: boolean
 	/**
-	 * Editor the filter popover uses for this column — a text input, a number
-	 * input, or a {@link GridColumn.filterOptions} select.
+	 * Editor the filter popover uses for this column: a text input, a number
+	 * input, a {@link GridColumn.filterOptions} select, a date picker, or a
+	 * boolean is-true/is-false toggle. The column's {@link GridColumn.value} must
+	 * return a value the matching operators compare against — an ISO `YYYY-MM-DD`
+	 * string for `date`, a boolean for `boolean`.
 	 * @defaultValue 'text'
 	 */
-	filterType?: 'text' | 'number' | 'select'
+	filterType?: 'text' | 'number' | 'select' | 'date' | 'boolean'
 	/** Options for a `select` {@link GridColumn.filterType}. */
 	filterOptions?: { label: string; value: string }[]
 	/** Marks this as the selection column; renders the row-select checkboxes instead of a cell value. */
