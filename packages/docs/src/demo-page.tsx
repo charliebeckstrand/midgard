@@ -9,6 +9,7 @@ import { Icon } from 'ui/icon'
 import { SidebarLayoutHeader } from 'ui/layouts'
 import { Stack } from 'ui/stack'
 import { ApiReference } from './components/api-reference'
+import { DemoNav, DemoNavProvider } from './components/demo-nav'
 import type { Demo } from './registry'
 import { getComponentApi, loadDemo } from './registry'
 
@@ -31,7 +32,7 @@ export function DemoPage({
 	const api = getComponentApi(demo.id)
 
 	return (
-		<>
+		<DemoNavProvider>
 			<SidebarLayoutHeader>
 				<Flex align="center" gap="md">
 					<Button
@@ -46,6 +47,7 @@ export function DemoPage({
 				</Flex>
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
+				<DemoNav />
 				<Component />
 				{api && (
 					<Stack gap="sm">
@@ -54,6 +56,6 @@ export function DemoPage({
 					</Stack>
 				)}
 			</Stack>
-		</>
+		</DemoNavProvider>
 	)
 }
