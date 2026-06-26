@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
 
 /**
  * One column of a {@link Grid}: its id, header `title`, optional cell
@@ -172,4 +172,88 @@ export type GridColumnFilters = {
 	defaultValue?: GridColumnFilterState[]
 	onValueChange?: (filters: GridColumnFilterState[]) => void
 	manual?: boolean
+}
+
+/**
+ * One entry in a Grid context menu: an actionable item, or a separator. The
+ * defaults the grid supplies — and anything a {@link GridColumnMenu} /
+ * {@link GridCellMenu} builder returns — render as menu items in order.
+ */
+export type GridMenuItem =
+	| {
+			/** Stable identity for the item. */
+			key: string
+			label: ReactNode
+			/** Leading icon element (e.g. a lucide icon); rendered through `Icon`. */
+			icon?: ReactElement
+			/** Runs when the item is chosen; the menu closes afterward. */
+			onSelect: () => void
+			disabled?: boolean
+	  }
+	| { key: string; separator: true }
+
+/**
+ * Context for a {@link GridContextMenu.column} builder: the right-clicked column
+ * and the actions its default items invoke.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridColumnMenuContext<T> = {
+	column: GridColumn<T>
+	/** Sorts this column ascending through the grid's `sort` binding. */
+	sortAscending: () => void
+	/** Sorts this column descending. */
+	sortDescending: () => void
+	/** Opens the column-manager dialog ("Choose Columns"). */
+	chooseColumns: () => void
+}
+
+/**
+ * Header context-menu config: `true` (or omit / `false`) for the default items —
+ * Sort Ascending, Sort Descending, Choose Columns — or a builder receiving the
+ * {@link GridColumnMenuContext} and those defaults, returning the final list to
+ * extend, reorder, or replace them.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridColumnMenu<T> =
+	| boolean
+	| ((context: GridColumnMenuContext<T>, defaults: GridMenuItem[]) => GridMenuItem[])
+
+/**
+ * Context for a {@link GridContextMenu.cell} builder: the right-clicked row, its
+ * column, that cell's value, and a `copy` action.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridCellMenuContext<T> = {
+	row: T
+	column: GridColumn<T>
+	/** The column's {@link GridColumn.value} for the row, else its rendered text. */
+	value: unknown
+	/** Copies the cell value to the clipboard. */
+	copy: () => void
+}
+
+/**
+ * Body-cell context-menu config: `true` (or omit / `false`) for the default Copy
+ * item, or a builder receiving the {@link GridCellMenuContext} and that default,
+ * returning the final item list.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridCellMenu<T> =
+	| boolean
+	| ((context: GridCellMenuContext<T>, defaults: GridMenuItem[]) => GridMenuItem[])
+
+/**
+ * Right-click context menus for {@link GridProps.contextMenu}: a `column` menu on
+ * headers and a `cell` menu on body cells. Each side is opt-in — a header or
+ * cell shows its menu only when its side is set.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridContextMenu<T> = {
+	column?: GridColumnMenu<T>
+	cell?: GridCellMenu<T>
 }

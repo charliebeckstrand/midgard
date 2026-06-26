@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager, type GridColumnManagerItem } from '../../modules/grid'
 import { GridColumnManagerDialog } from '../../modules/grid/grid-column-manager-dialog'
@@ -223,19 +224,28 @@ describe('GridColumnManager', () => {
 })
 
 describe('GridColumnManagerDialog', () => {
-	it('opens from the toolbar trigger and closes via the Done button', async () => {
-		const user = userEvent.setup()
+	function Harness() {
+		const [open, setOpen] = useState(false)
 
-		renderUI(
+		return (
 			<GridColumnManagerDialog
+				enabled
+				open={open}
+				onOpenChange={setOpen}
 				label="Columns"
 				columns={columns}
 				order={['name', 'email', 'role']}
 				onOrderChange={() => {}}
 				hidden={new Set()}
 				onHiddenChange={() => {}}
-			/>,
+			/>
 		)
+	}
+
+	it('opens from the toolbar trigger and closes via the Done button', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Harness />)
 
 		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
 

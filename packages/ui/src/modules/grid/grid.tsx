@@ -2,7 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
@@ -14,6 +14,7 @@ import { GridContext, type SortState } from './context'
 import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
+import { GridContextMenu } from './grid-context-menu'
 import { GridEditable, type GridEditableProps } from './grid-editable'
 import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
@@ -24,6 +25,7 @@ import type {
 	GridColumnFilters,
 	GridColumnManagerPreset,
 	GridColumnSizing,
+	GridContextMenu as GridContextMenuConfig,
 	GridPagination,
 	GridSearch,
 } from './types'
@@ -120,6 +122,11 @@ export type GridColumnManagerConfig = {
 	defaultHidden?: Set<string | number>
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
+	/** Controlled open state of the manager dialog; pair with {@link GridColumnManagerConfig.onOpenChange}. */
+	open?: boolean
+	defaultOpen?: boolean
+	onOpenChange?: (open: boolean) => void
+
 	/** Called when the manager's "save preset" action fires, with the current order and hidden ids. */
 	onSavePreset?: (preset: GridColumnManagerPreset) => void
 }
@@ -192,6 +199,17 @@ export type GridDataProps<T> = TableVariants & {
 	 * @see {@link GridColumnFilters}
 	 */
 	columnFilters?: GridColumnFilters
+
+	/**
+	 * Right-click context menus: a `column` menu on headers (Sort Ascending /
+	 * Descending, Choose Columns) and a `cell` menu on body cells (Copy). Each
+	 * side is opt-in and either takes the defaults (`true`) or a builder that
+	 * reshapes them. "Choose Columns" opens the column manager, rendering its
+	 * dialog even without the toolbar button.
+	 *
+	 * @see {@link GridContextMenu}
+	 */
+	contextMenu?: GridContextMenuConfig<T>
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -272,6 +290,68 @@ export type GridDataProps<T> = TableVariants & {
  * @typeParam T - Shape of a single row.
  */
 export type GridProps<T> = GridDataProps<T> | (GridEditableProps<T> & { editable: true })
+
+/** Props for {@link GridRegion}. @internal */
+type GridRegionProps<T> = {
+	canReorder: boolean
+	dndContextProps: ComponentProps<typeof DndContext>
+	itemIds: ComponentProps<typeof SortableContext>['items']
+	strategy: ComponentProps<typeof SortableContext>['strategy']
+	contextMenu: GridContextMenuConfig<T> | undefined
+	columns: GridColumn<T>[]
+	rows: T[]
+	rowKeys: (string | number)[]
+	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
+	chooseColumns: (() => void) | null
+	children: ReactNode
+}
+
+/**
+ * Wraps the table region in its interaction layers: the column-reorder dnd
+ * context (when reorderable) nested inside the right-click context menu (when
+ * configured). Split out of {@link GridData} so its body stays within the
+ * cognitive-complexity budget.
+ *
+ * @internal
+ */
+function GridRegion<T>({
+	canReorder,
+	dndContextProps,
+	itemIds,
+	strategy,
+	contextMenu,
+	columns,
+	rows,
+	rowKeys,
+	sortColumn,
+	chooseColumns,
+	children,
+}: GridRegionProps<T>) {
+	const reordered = canReorder ? (
+		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
+			<SortableContext items={itemIds} strategy={strategy}>
+				{children}
+			</SortableContext>
+		</DndContext>
+	) : (
+		children
+	)
+
+	if (!contextMenu) return reordered
+
+	return (
+		<GridContextMenu
+			config={contextMenu}
+			columns={columns}
+			rows={rows}
+			rowKeys={rowKeys}
+			sortColumn={sortColumn}
+			chooseColumns={chooseColumns}
+		>
+			{reordered}
+		</GridContextMenu>
+	)
+}
 
 /**
  * Applies the grid-level `sortable` default to data columns that don't declare
@@ -355,6 +435,53 @@ export function Grid<T>(props: GridProps<T>) {
 }
 
 /**
+ * Lifts the column-manager dialog's open state and derives the header
+ * context-menu actions (sort a column, open the manager). Split out of
+ * {@link GridData} so its body stays within the cognitive-complexity budget.
+ *
+ * @internal
+ */
+function useGridMenuActions<T>({
+	manageColumns,
+	contextMenu,
+	columnManagerConfig,
+	setSort,
+}: {
+	manageColumns: boolean
+	contextMenu: GridContextMenuConfig<T> | undefined
+	columnManagerConfig: GridColumnManagerConfig | undefined
+	setSort: (sort: SortState) => void
+}) {
+	// The dialog renders when the manager is enabled, or when a column menu can
+	// reach it ("Choose Columns").
+	const showColumnManager = manageColumns || Boolean(contextMenu?.column)
+
+	const [open, setOpen] = useControllable<boolean>({
+		value: columnManagerConfig?.open,
+		defaultValue: columnManagerConfig?.defaultOpen ?? false,
+		onValueChange: (next) => columnManagerConfig?.onOpenChange?.(next ?? false),
+	})
+
+	const sortColumn = useCallback(
+		(column: string | number, direction: 'asc' | 'desc') => setSort({ column, direction }),
+		[setSort],
+	)
+
+	const chooseColumns = useMemo(
+		() => (showColumnManager ? () => setOpen(true) : null),
+		[showColumnManager, setOpen],
+	)
+
+	return {
+		showColumnManager,
+		columnManagerOpen: open ?? false,
+		setColumnManagerOpen: setOpen,
+		sortColumn,
+		chooseColumns,
+	}
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -376,6 +503,7 @@ function GridData<T>({
 	columnSizing: columnSizingConfig,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
+	contextMenu,
 	reorder = false,
 	rowClassName,
 	rowLabel,
@@ -479,6 +607,10 @@ function GridData<T>({
 		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
 	)
 
+	// Lift the column-manager dialog's open state so the header menu's "Choose
+	const { showColumnManager, columnManagerOpen, setColumnManagerOpen, sortColumn, chooseColumns } =
+		useGridMenuActions<T>({ manageColumns, contextMenu, columnManagerConfig, setSort })
+
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
 	// `canReorder` to register each draggable cell against it.
@@ -553,8 +685,11 @@ function GridData<T>({
 	return (
 		<GridContext value={context}>
 			<div data-slot="grid" className={cn(k.wrapper)}>
-				{manageColumns && (
+				{showColumnManager && (
 					<GridColumnManagerDialog
+						enabled={manageColumns}
+						open={columnManagerOpen ?? false}
+						onOpenChange={setColumnManagerOpen}
 						label={manageColumnsLabel}
 						columns={managerItems}
 						order={columnOrder}
@@ -571,19 +706,20 @@ function GridData<T>({
 					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>
 				)}
 
-				{canReorder ? (
-					<DndContext
-						{...dndContextProps}
-						modifiers={REORDER_MODIFIERS}
-						autoScroll={REORDER_AUTO_SCROLL}
-					>
-						<SortableContext items={itemIds} strategy={strategy}>
-							{tableRegion}
-						</SortableContext>
-					</DndContext>
-				) : (
-					tableRegion
-				)}
+				<GridRegion
+					canReorder={canReorder}
+					dndContextProps={dndContextProps}
+					itemIds={itemIds}
+					strategy={strategy}
+					contextMenu={contextMenu}
+					columns={visibleColumns}
+					rows={renderRows}
+					rowKeys={rowKeys}
+					sortColumn={sortColumn}
+					chooseColumns={chooseColumns}
+				>
+					{tableRegion}
+				</GridRegion>
 
 				{pagination && <GridPaginationFooter pagination={pagination} />}
 			</div>

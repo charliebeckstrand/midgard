@@ -134,6 +134,17 @@ function ClientSortExample() {
 	)
 }
 
+const ContextMenuExample = () => (
+	// Right-click a header for sort + "Choose Columns" (which opens the manager
+	// without a toolbar button), or a body cell for "Copy".
+	<Grid
+		columns={columns}
+		rows={people}
+		getKey={(row) => row.id}
+		contextMenu={{ column: true, cell: true }}
+	/>
+)
+
 const SelectionExample = () => {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
@@ -308,6 +319,13 @@ export function Demo() {
 
 			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
 				<ClientSortExample />
+			</Example>
+
+			<Example
+				title="Context menus"
+				code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
+			>
+				<ContextMenuExample />
 			</Example>
 
 			<Example title="Selection">

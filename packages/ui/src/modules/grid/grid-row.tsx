@@ -76,6 +76,7 @@ function GridRowImpl<T>({
 			<TableRow
 				data-selected={dataAttr(selected)}
 				data-row-index={dataRowIndex}
+				data-grid-row={String(rowKey)}
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>
@@ -135,6 +136,7 @@ function GridRowImpl<T>({
 							key={col.id}
 							aria-colindex={colIndex}
 							{...cellExtra}
+							data-grid-col={col.id}
 							className={cn(col.className, cellExtra?.className)}
 						>
 							{content}
@@ -181,6 +183,7 @@ const GridReorderableCell = memo(function GridReorderableCell({
 			aria-colindex={colIndex}
 			{...cellProps}
 			data-dragging={dataAttr(isDragging)}
+			data-grid-col={id}
 			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
 			style={{ ...cellProps?.style, ...columnDragStyle(transform, transition) }}
 		>

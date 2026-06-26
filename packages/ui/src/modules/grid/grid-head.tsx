@@ -142,6 +142,8 @@ function GridHeaderCell<T>({
 		width,
 		resize: sizing,
 		resizing,
+		// Identifies a data-column header to the right-click context menu.
+		gridCol: isDataColumn(column) ? column.id : undefined,
 	}
 
 	if (reorderable && isDataColumn(column) && !column.pinned) {
@@ -165,6 +167,8 @@ type GridColumnHeaderProps = {
 	resize: GridColumnResize | null
 	/** Whether this column is mid drag-resize. */
 	resizing: boolean
+	/** Column id for context-menu resolution, or `undefined` for non-data headers. */
+	gridCol: string | number | undefined
 }
 
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
@@ -302,6 +306,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	width,
 	resize,
 	resizing,
+	gridCol,
 }: GridColumnHeaderProps) {
 	const canResize = resize?.canResize(column.id) ?? false
 
@@ -310,6 +315,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
+			data-grid-col={gridCol}
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
@@ -353,6 +359,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	width,
 	resize,
 	resizing,
+	gridCol,
 }: GridColumnHeaderProps) {
 	const {
 		setNodeRef,
@@ -373,6 +380,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
 			data-resizable={dataAttr(canResize)}
+			data-grid-col={gridCol}
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,

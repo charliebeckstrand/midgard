@@ -14,6 +14,8 @@ Filtering is the third: columns gain an optional `value` accessor, then quick se
 
 Sorting is the fourth: data columns are sortable and sorted client-side by default — the engine orders `rows` through `getSortedRowModel` by each column's `value` accessor, or the row field named by the column id when none is given. Opt a column out with `sortable: false` (or grid-wide with `sortable={false}`), and switch to server-side ordering with `sort.manual: true`, where the consumer sorts `rows` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
 
+Context menus are the fifth: a `contextMenu` config adds a cursor-anchored right-click menu — a column menu on headers (Sort Ascending / Descending, Choose Columns, which opens the column manager) and a cell menu on body cells (Copy). Each side is opt-in and reshapeable through a builder that receives the default items. It composes the `Menu` primitive; column pinning — and a Pin Column item — remain on the backlog.
+
 Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
 ## Migration — converging existing state onto the engine
@@ -37,7 +39,7 @@ Each step preserves the public API via adapters and ships as its own change, sma
 | Column pinning (freeze left/right) | `state.columnPinning`, `column.pin()`; sticky offsets from `column.getStart()/getAfter()` |
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
 | Auto-size / fit-to-content | Measure rendered cells, then `setColumnSizing` |
-| Column header menu | One menu for sort/filter/pin/hide/resize, composing `Menu` |
+| Column header menu | Right-click sort + "Choose Columns" shipped via `contextMenu`; fold in filter/pin/hide/resize as they land |
 
 ### Filtering
 
