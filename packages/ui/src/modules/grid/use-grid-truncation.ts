@@ -3,16 +3,21 @@
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 /**
- * Sub-pixel slack (px) on the `Range` overflow test: above the rounding noise a
- * `Range` rect carries at an exact fit (~0.02px observed), below the smallest
- * fraction of a pixel that still paints an ellipsis. A larger slack (the prior
- * half-pixel) left a dead zone — a cell clipped by a fraction of a pixel read as
- * fitting, so its reveal tooltip never armed until the column shrank further (a
- * clipped cell with no tooltip until nudged smaller).
+ * Floating-point epsilon (px) on the `Range` overflow test. The single-line
+ * element fits exactly when its content is no wider than its box, so the `Range`
+ * width minus the box width is ≤ 0 while it fits (the line shrink-wraps to its
+ * text, or fills and ends short) and turns positive — by one device sub-pixel
+ * (~1/64px observed) — the instant the ellipsis paints. So the test wants a bare
+ * `> 0`; this epsilon only clears float dust short of that first real fraction.
+ *
+ * A larger slack (the prior tenth-of-a-pixel) left a dead zone: a cell clipped by
+ * less than that read as fitting, so its reveal tooltip never armed until the
+ * column shrank a further fraction — a clipped cell with no tooltip until nudged
+ * smaller.
  *
  * @internal
  */
-const OVERFLOW_SLACK = 0.1
+const OVERFLOW_SLACK = 0.01
 
 /**
  * Whether an element's single-line content overflows its content box. A whole

@@ -58,12 +58,13 @@ describe('grid header truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(longTitle)
 	})
 
-	it('reveals the header tooltip for a title clipped by a sub-pixel amount', async () => {
+	it('reveals the header tooltip for a title clipped by a sub-tenth-of-a-pixel amount', async () => {
 		// The header shares the cell's overflow detector, so it shared the dead zone:
 		// a title clipped by a fraction of a pixel (the ellipsis painted) read as
-		// fitting, withholding the tooltip until the column shrank further. Probe the
-		// title width + header chrome, then find a width where the title clips
-		// sub-pixel — scroll/client round equal yet a Range measures it wider.
+		// fitting, withholding the tooltip until the column shrank further. The
+		// detector now arms at the first device sub-pixel of overflow, so target the
+		// band the prior tenth-of-a-pixel slack missed: a clip under 0.1px where
+		// scroll/client still round equal yet a Range measures the title wider.
 		const measureOverflow = (span: HTMLElement) => {
 			const range = document.createRange()
 
@@ -102,7 +103,10 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		let deadZone: number | undefined
 
-		for (let w = boundary + 1; w >= boundary - 2 && deadZone === undefined; w -= 0.1) {
+		// Step finely (the device sub-pixel is ~1/64px) across the fit boundary — the
+		// integer-rounded chrome estimate can sit a fraction off — to land a clip
+		// under a tenth of a pixel, what the old slack let slip.
+		for (let w = boundary + 0.6; w >= boundary - 1.5 && deadZone === undefined; w -= 0.02) {
 			const { container, unmount } = renderUI(
 				<Grid
 					resizable
@@ -122,13 +126,13 @@ describe('grid header truncation tooltip (real browser)', () => {
 			if (span && span.scrollWidth === span.clientWidth) {
 				const overflow = measureOverflow(span)
 
-				if (overflow > 0.15 && overflow < 0.45) deadZone = w
+				if (overflow > 0.02 && overflow < 0.1) deadZone = w
 			}
 
 			unmount()
 		}
 
-		if (deadZone === undefined) throw new Error('no sub-pixel clip width found in sweep')
+		if (deadZone === undefined) throw new Error('no sub-tenth-pixel clip width found in sweep')
 
 		renderUI(
 			<Grid
