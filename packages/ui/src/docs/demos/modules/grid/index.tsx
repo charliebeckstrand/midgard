@@ -85,10 +85,19 @@ const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	value: (row) => String(row[col.id as keyof Person]),
 }))
 
-const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) => ({
-	...col,
-	filterable: true,
-}))
+const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) =>
+	col.id === 'status'
+		? {
+				...col,
+				filterable: true,
+				filterType: 'select',
+				filterOptions: [
+					{ label: 'Active', value: 'active' },
+					{ label: 'Inactive', value: 'inactive' },
+				],
+			}
+		: { ...col, filterable: true },
+)
 
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />

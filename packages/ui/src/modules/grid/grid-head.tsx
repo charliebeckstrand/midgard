@@ -12,8 +12,8 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { useGrid } from './context'
+import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
-import { GridFilterRow } from './grid-filter-row'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
@@ -67,11 +67,10 @@ export function GridHead<T>({
 						hasRows={hasRows}
 						reorderable={reorderable}
 						resize={resize ?? null}
+						filters={filters ?? null}
 					/>
 				))}
 			</TableRow>
-
-			{filters && <GridFilterRow columns={columns} filters={filters} />}
 		</TableHead>
 	)
 }
@@ -83,6 +82,7 @@ type GridHeaderCellProps<T> = {
 	hasRows: boolean
 	reorderable: boolean
 	resize: GridColumnResize | null
+	filters: GridColumnFilter | null
 }
 
 /**
@@ -99,6 +99,7 @@ function GridHeaderCell<T>({
 	hasRows,
 	reorderable,
 	resize,
+	filters,
 }: GridHeaderCellProps<T>) {
 	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
 
@@ -144,6 +145,8 @@ function GridHeaderCell<T>({
 		resizing,
 		// Identifies a data-column header to the right-click context menu.
 		gridCol: isDataColumn(column) ? column.id : undefined,
+		// Per-column filter controls; the header shows a filter button when set.
+		filter: filters,
 	}
 
 	if (reorderable && isDataColumn(column) && !column.pinned) {
@@ -155,7 +158,10 @@ function GridHeaderCell<T>({
 
 /** Props for the column header cells. @internal */
 type GridColumnHeaderProps = {
-	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable' | 'headerClassName'>
+	column: Pick<
+		GridColumn<unknown>,
+		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions'
+	>
 	colIndex: number | undefined
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
@@ -169,6 +175,8 @@ type GridColumnHeaderProps = {
 	resizing: boolean
 	/** Column id for context-menu resolution, or `undefined` for non-data headers. */
 	gridCol: string | number | undefined
+	/** Per-column filter controls; a filter button shows when the column is filterable. */
+	filter: GridColumnFilter | null
 }
 
 /** A column's accessible name: its `title` when a string, else the stringified id. @internal */
@@ -307,6 +315,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	resize,
 	resizing,
 	gridCol,
+	filter,
 }: GridColumnHeaderProps) {
 	const canResize = resize?.canResize(column.id) ?? false
 
@@ -323,12 +332,15 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			)}
 			style={width != null ? { width } : undefined}
 		>
-			<ColumnHeaderLabel
-				column={column}
-				sorted={sorted}
-				direction={direction}
-				toggleSort={toggleSort}
-			/>
+			<span className={cn(k.filter.slot)}>
+				<ColumnHeaderLabel
+					column={column}
+					sorted={sorted}
+					direction={direction}
+					toggleSort={toggleSort}
+				/>
+				{filter?.canFilter(column.id) && <GridColumnFilterButton column={column} filter={filter} />}
+			</span>
 			{canResize && resize && (
 				<GridColumnResizeHandle
 					id={column.id}
@@ -360,6 +372,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	resize,
 	resizing,
 	gridCol,
+	filter,
 }: GridColumnHeaderProps) {
 	const {
 		setNodeRef,
@@ -406,6 +419,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					direction={direction}
 					toggleSort={toggleSort}
 				/>
+				{filter?.canFilter(column.id) && <GridColumnFilterButton column={column} filter={filter} />}
 			</span>
 			{canResize && resize && (
 				<GridColumnResizeHandle

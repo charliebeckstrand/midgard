@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { createGroup, createRule, type QueryField } from '../../modules/query'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
 	type Row = { id: number; name: string; role: string }
@@ -23,72 +24,73 @@ describe('Grid per-column filters', () => {
 
 	const getKey = (row: Row) => row.id
 
-	it('renders a filter input only for filterable columns', () => {
+	const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
+
+	/** A query that keeps only rows whose name contains `text`. */
+	const nameContains = (text: string) =>
+		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: text }])
+
+	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('searchbox', { name: 'Filter Name' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
 
-		expect(screen.queryByRole('searchbox', { name: 'Filter Role' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Filter Role' })).not.toBeInTheDocument()
 	})
 
-	it('renders no filter row when no column is filterable', () => {
+	it('renders no filter button when no column is filterable', () => {
 		const plain = columns.map((col) => ({ ...col, filterable: false }))
 
 		renderUI(<Grid columns={plain} rows={rows} getKey={getKey} />)
 
-		expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /^Filter / })).not.toBeInTheDocument()
 	})
 
-	it('filters rows client-side as you type', async () => {
-		const user = userEvent.setup()
-
+	it('opens a single-column query builder — rules only, no field selector or groups', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		await user.type(screen.getByRole('searchbox', { name: 'Filter Name' }), 'Alice')
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		expect(screen.getByText('Alice')).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
 
-		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		// Scoped to the column: no field picker, no nested groups.
+		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+
+		const labels = Array.from(document.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
+			el.getAttribute('aria-label'),
+		)
+
+		expect(labels).not.toContain('Field')
 	})
 
-	it('reflects and applies a controlled column filter', () => {
+	it('applies a controlled column query client-side', () => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				columnFilters={{ value: [{ id: 'name', value: 'Bob' }] }}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }] }}
 			/>,
 		)
-
-		expect(screen.getByRole('searchbox', { name: 'Filter Name' })).toHaveValue('Bob')
 
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
 
-	it('does not filter client-side in manual (server) mode', async () => {
-		const user = userEvent.setup()
-
-		const onValueChange = vi.fn()
-
+	it('does not filter client-side in manual (server) mode', () => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				columnFilters={{ manual: true, onValueChange }}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }], manual: true }}
 			/>,
 		)
 
-		await user.type(screen.getByRole('searchbox', { name: 'Filter Name' }), 'Alice')
-
-		// The engine leaves rows untouched; the consumer would refetch from the filters.
-		expect(screen.getByText('Alice')).toBeInTheDocument()
-
+		// The engine leaves rows untouched; the consumer filters server-side.
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
 })

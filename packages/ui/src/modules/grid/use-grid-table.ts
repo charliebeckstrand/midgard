@@ -4,12 +4,14 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnSizingState,
+	type FilterFn,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	type OnChangeFn,
 	type PaginationState,
+	type Row,
 	type SortingState,
 	type Table,
 	type TableOptions,
@@ -19,6 +21,7 @@ import {
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { isDataColumn } from '../../utilities'
+import { evaluateQuery, type QueryGroupNode } from '../query'
 import type { SortState } from './context'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE, DEFAULT_PAGE_SIZE } from './grid-constants'
 import type {
@@ -107,6 +110,23 @@ function readField<T>(row: T, id: string | number): unknown {
 	return (row as Record<string | number, unknown>)[id]
 }
 
+/** Narrows an unknown filter value to a query tree. @internal */
+function isQueryGroup(value: unknown): value is QueryGroupNode {
+	return value != null && typeof value === 'object' && (value as { type?: string }).type === 'group'
+}
+
+/**
+ * Column filter: evaluates the column's query tree against the row, reading the
+ * cell through the column accessor. A non-query value imposes no filter, and an
+ * empty tree auto-removes, so a half-built rule never hides rows.
+ *
+ * @internal
+ */
+const queryFilterFn: FilterFn<unknown> = (row: Row<unknown>, columnId, filterValue) =>
+	!isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
+
+queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
+
 /** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the resize gate, and sizing bounds. @internal */
 function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 	const size = parsePxWidth(col.width)
@@ -129,7 +149,8 @@ function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 		// The accessor feeds sort/filter without changing how the cell renders
 		// (still `col.cell`).
 		...(accessorFn ? { accessorFn } : {}),
-		...(col.filterable && value ? { filterFn: 'includesString' } : {}),
+		// The query filter is row-shape-agnostic; cast to this column's row type.
+		...(col.filterable && value ? { filterFn: queryFilterFn as FilterFn<T> } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
@@ -289,12 +310,12 @@ function buildColumnResize<T>(table: Table<T>): GridColumnResize {
 function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
 	return {
 		canFilter: (id) => table.getColumn(String(id))?.getCanFilter() ?? false,
-		getValue: (id) => {
+		getQuery: (id) => {
 			const value = table.getColumn(String(id))?.getFilterValue()
 
-			return typeof value === 'string' ? value : ''
+			return isQueryGroup(value) ? value : undefined
 		},
-		setValue: (id, value) => table.getColumn(String(id))?.setFilterValue(value || undefined),
+		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
 	}
 }
 
@@ -370,18 +391,18 @@ export type GridColumnResize = {
 }
 
 /**
- * Per-column filter controls the filter row renders from. Methods read the
- * engine live, so the object itself is stable across renders.
+ * Per-column filter controls the header filter popovers render from. Methods
+ * read the engine live, so the object itself is stable across renders.
  *
  * @internal
  */
 export type GridColumnFilter = {
 	/** Whether the column accepts a filter (declared `filterable` with a `value`). */
 	canFilter: (id: string | number) => boolean
-	/** Current text filter for the column, or `''`. */
-	getValue: (id: string | number) => string
-	/** Set (or, when empty, clear) the column's text filter. */
-	setValue: (id: string | number, value: string) => void
+	/** Current query tree for the column, or `undefined` when unfiltered. */
+	getQuery: (id: string | number) => QueryGroupNode | undefined
+	/** Set (or, with `undefined`, clear) the column's query tree. */
+	setQuery: (id: string | number, query: QueryGroupNode | undefined) => void
 }
 
 /**

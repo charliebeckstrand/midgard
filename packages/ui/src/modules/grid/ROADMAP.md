@@ -10,7 +10,7 @@ Pagination is the first feature on the engine: server-side (`manualPagination`) 
 
 Resizable columns are the second: the `resizable` prop wires TanStack's column-sizing API (`enableColumnResizing`, `columnResizeMode`, `column.getSize()`), each data-column header gaining a keyboard-accessible `role="separator"` resize handle, with widths persisted through the controllable `columnSizing` prop. Under `resizable` the table switches to fixed layout with a `<colgroup>` of exact widths and a table width summing them, so resizing one column changes only that column (and the table's total width) — siblings hold their size and the table scrolls — rather than redistributing across the row.
 
-Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
+Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column filters both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server). A `filterable` column shows a Filter button in its header opening a popover with a single-column query builder (from [`modules/query`](../query)) — operator + value rules joined by AND/OR, typed per the column's `filterType` (`text` / `number` / `select`) — applied to rows by the query evaluator.
 
 Sorting is the fourth: data columns are sortable and sorted client-side by default — the engine orders `rows` through `getSortedRowModel` by each column's `value` accessor, or the row field named by the column id when none is given. Opt a column out with `sortable: false` (or grid-wide with `sortable={false}`), and switch to server-side ordering with `sort.manual: true`, where the consumer sorts `rows` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
 
@@ -44,9 +44,8 @@ Each step preserves the public API via adapters and ships as its own change, sma
 
 | Feature | Approach |
 |---|---|
-| Richer column-filter types (number range, select, date range, boolean) | Typed filter editors per `filterFn`; text per-column filters and the filter row are shipped |
+| Richer column-filter types (date, boolean, ranges) | Extend the query builder's per-`filterType` editors; `text` / `number` / `select` ship via the header filter popover |
 | Faceted values & counts | `getFacetedRowModel`, `getFacetedUniqueValues`, `getFacetedMinMaxValues` — drives autocomplete/range filter options |
-| Filter operators (contains, equals, gt/lt, between) | Custom `filterFns` per column |
 
 ### Rows
 

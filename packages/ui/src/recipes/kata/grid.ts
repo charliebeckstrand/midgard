@@ -119,9 +119,17 @@ export const k = {
 		// Quick-search field above the table; capped width and pushed to the right
 		// on larger viewports, full-width on the smallest.
 		bar: ['w-full', 'sm:ml-auto', 'sm:max-w-xs'],
-		// Per-column filter row beneath the header.
-		row: bg.surface,
-		cell: ['px-2', 'py-1', 'align-middle'],
+		// Header row: title on the left, filter button across from it on the right.
+		slot: ['flex', 'items-center', 'justify-between', 'gap-1'],
+		// Filter icon button in a column header; turns accent while a filter is active.
+		button: [
+			'shrink-0',
+			text.muted,
+			fg.hover,
+			'data-[active]:text-blue-600 dark:data-[active]:text-blue-400',
+		],
+		// Filter popover panel: room for the single-column rule editor.
+		popover: ['w-80', 'max-w-[calc(100vw-2rem)]'],
 	},
 	footer: {
 		// Footer below the table. From `lg`: one centered row — page-size picker,

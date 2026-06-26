@@ -11,8 +11,16 @@ export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
 	sortable?: boolean
-	/** Adds a text filter input for this column in the filter row; requires {@link GridColumn.value}. */
+	/** Adds a filter button to this column's header that opens a query-builder popover; requires {@link GridColumn.value}. */
 	filterable?: boolean
+	/**
+	 * Editor the filter popover uses for this column — a text input, a number
+	 * input, or a {@link GridColumn.filterOptions} select.
+	 * @defaultValue 'text'
+	 */
+	filterType?: 'text' | 'number' | 'select'
+	/** Options for a `select` {@link GridColumn.filterType}. */
+	filterOptions?: { label: string; value: string }[]
 	/** Marks this as the selection column; renders the row-select checkboxes instead of a cell value. */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
