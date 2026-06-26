@@ -7,6 +7,8 @@ import {
 	type ColumnSizingState,
 	type FilterFn,
 	getCoreRowModel,
+	getFacetedRowModel,
+	getFacetedUniqueValues,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
@@ -230,7 +232,16 @@ function filterOptions<T>(args: {
 		globalFilterFn: 'includesString',
 		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
 		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
-		...(args.manual ? { manualFiltering: true } : { getFilteredRowModel: getFilteredRowModel() }),
+		// Client filtering also faceted: a select filter can offer the column's own
+		// values (unique values reflect the rows left by *other* filters). Manual
+		// mode sees only the server page, so faceting stands down there.
+		...(args.manual
+			? { manualFiltering: true }
+			: {
+					getFilteredRowModel: getFilteredRowModel(),
+					getFacetedRowModel: getFacetedRowModel(),
+					getFacetedUniqueValues: getFacetedUniqueValues(),
+				}),
 	}
 }
 
@@ -348,6 +359,17 @@ function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
 			return isQueryGroup(value) ? value : undefined
 		},
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
+		uniqueValues: (id) => {
+			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+
+			if (!facets) return []
+
+			const values = [...facets.keys()]
+				.filter((value) => value != null && value !== '')
+				.map((value) => String(value))
+
+			return [...new Set(values)].sort((a, b) => a.localeCompare(b))
+		},
 	}
 }
 
@@ -439,6 +461,12 @@ export type GridColumnFilter = {
 	getQuery: (id: string | number) => QueryGroupNode | undefined
 	/** Set (or, with `undefined`, clear) the column's query tree. */
 	setQuery: (id: string | number, query: QueryGroupNode | undefined) => void
+	/**
+	 * The column's distinct cell values (faceted), sorted and de-duplicated — what
+	 * a `select` filter offers when it declares no explicit `filterOptions`. Empty
+	 * under server-side (manual) filtering or for a column without a value accessor.
+	 */
+	uniqueValues: (id: string | number) => string[]
 }
 
 /**

@@ -84,19 +84,25 @@ const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	value: (row) => String(row[col.id as keyof Person]),
 }))
 
-const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) =>
-	col.id === 'status'
-		? {
-				...col,
-				filterable: true,
-				filterType: 'select',
-				filterOptions: [
-					{ label: 'Active', value: 'active' },
-					{ label: 'Inactive', value: 'inactive' },
-				],
-			}
-		: { ...col, filterable: true },
-)
+const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) => {
+	if (col.id === 'status') {
+		return {
+			...col,
+			filterable: true,
+			filterType: 'select',
+			filterOptions: [
+				{ label: 'Active', value: 'active' },
+				{ label: 'Inactive', value: 'inactive' },
+			],
+		}
+	}
+
+	// A `select` filter without `filterOptions` offers the column's own values,
+	// faceted from the data (sorted, de-duplicated).
+	if (col.id === 'role') return { ...col, filterable: true, filterType: 'select' }
+
+	return { ...col, filterable: true }
+})
 
 type Ticket = { id: number; title: string; due: string; estimate: number; resolved: boolean }
 

@@ -436,3 +436,69 @@ describe('Grid numeric range filter', () => {
 		expect(screen.queryByText('Pricey')).not.toBeInTheDocument()
 	})
 })
+
+describe('Grid faceted select filter', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const getKey = (row: Row) => row.id
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Designer' },
+		{ id: 3, name: 'Cara', role: 'Developer' },
+	]
+
+	it('offers a select filter the column values when it declares no options', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+			{
+				id: 'role',
+				title: 'Role',
+				cell: (row) => row.role,
+				value: (row) => row.role,
+				filterable: true,
+				filterType: 'select',
+			},
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Role' }))
+
+		// The value editor is a Select; opening it reveals the faceted options.
+		fireEvent.click(screen.getByRole('combobox', { name: 'Role value' }))
+
+		// The column's own distinct values, sorted and de-duplicated (two, not three).
+		expect(screen.getByRole('option', { name: 'Designer' })).toBeInTheDocument()
+
+		expect(screen.getByRole('option', { name: 'Developer' })).toBeInTheDocument()
+
+		expect(screen.getAllByRole('option')).toHaveLength(2)
+	})
+
+	it('uses explicit filterOptions over the faceted values when provided', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+			{
+				id: 'role',
+				title: 'Role',
+				cell: (row) => row.role,
+				value: (row) => row.role,
+				filterable: true,
+				filterType: 'select',
+				filterOptions: [{ label: 'Engineer', value: 'Engineer' }],
+			},
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Role' }))
+
+		fireEvent.click(screen.getByRole('combobox', { name: 'Role value' }))
+
+		// The explicit option wins; the data values (Developer/Designer) don't appear.
+		expect(screen.getByRole('option', { name: 'Engineer' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('option', { name: 'Developer' })).toBeNull()
+	})
+})

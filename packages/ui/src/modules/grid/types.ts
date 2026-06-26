@@ -31,7 +31,12 @@ export type GridColumn<T> = {
 	 * @defaultValue 'text'
 	 */
 	filterType?: 'text' | 'number' | 'select' | 'date' | 'boolean'
-	/** Options for a `select` {@link GridColumn.filterType}. */
+	/**
+	 * Options for a `select` {@link GridColumn.filterType}. Omit to offer the
+	 * column's own values instead, faceted from the data (the distinct
+	 * {@link GridColumn.value}s among the rows other filters leave, sorted and
+	 * de-duplicated). Unavailable under server-side filtering.
+	 */
 	filterOptions?: { label: string; value: string }[]
 	/** Marks this as the selection column; renders the row-select checkboxes instead of a cell value. */
 	selectable?: boolean

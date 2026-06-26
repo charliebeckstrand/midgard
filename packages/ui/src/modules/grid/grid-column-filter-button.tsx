@@ -26,13 +26,22 @@ function filterLabel(column: Pick<GridColumn<unknown>, 'id' | 'title'>): string 
 	return typeof column.title === 'string' ? column.title : String(column.id)
 }
 
-/** The single query field a column's filter sheet edits. @internal */
-function toQueryField(column: FilterColumn): QueryField {
+/**
+ * The single query field a column's filter sheet edits. A `select` field's
+ * options are the column's explicit {@link GridColumn.filterOptions}, else the
+ * supplied faceted values (the column's own data), else none.
+ *
+ * @internal
+ */
+function toQueryField(
+	column: FilterColumn,
+	options: { label: string; value: string }[] | undefined,
+): QueryField {
 	return {
 		name: String(column.id),
 		label: filterLabel(column),
 		type: column.filterType ?? 'text',
-		...(column.filterOptions ? { options: column.filterOptions } : {}),
+		...(options ? { options } : {}),
 	}
 }
 
@@ -62,7 +71,28 @@ type GridColumnFilterButtonProps = {
  * @internal
  */
 export function GridColumnFilterButton({ column, filter, query }: GridColumnFilterButtonProps) {
-	const field = useMemo(() => toQueryField(column), [column])
+	// A `select` filter without explicit options offers the column's own values,
+	// faceted from the data; explicit `filterOptions` always win. Computed each
+	// render (cheap, engine-memoized) and keyed below so the field identity holds
+	// while the values are unchanged — a fresh render on drawer-open refreshes them.
+	const facetValues =
+		column.filterType === 'select' && !column.filterOptions
+			? filter.uniqueValues(column.id)
+			: undefined
+
+	// Null-joined content key so the field below holds its identity while the
+	// faceted values are unchanged (the array itself is fresh each render).
+	const facetKey = JSON.stringify(facetValues ?? null)
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-derives when the faceted values change via facetKey; facetValues is a fresh array each render
+	const field = useMemo(
+		() =>
+			toQueryField(
+				column,
+				column.filterOptions ?? facetValues?.map((value) => ({ label: value, value })),
+			),
+		[column, facetKey],
+	)
 
 	const fields = useMemo(() => [field], [field])
 
