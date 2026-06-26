@@ -1,5 +1,6 @@
 'use client'
 
+import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback } from 'react'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
@@ -9,8 +10,11 @@ import type { GridColumn } from './types'
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = {
 	scrollRef: RefObject<HTMLDivElement | null>
+	/** The engine; each row renders its cells from `table.getRow(key).getVisibleCells()`. */
+	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]
+	/** Visible columns, kept for the spacer-row column span. */
 	visibleColumns: GridColumn<T>[]
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
@@ -37,6 +41,7 @@ type GridVirtualizedBodyProps<T> = {
  */
 export function GridVirtualizedBody<T>({
 	scrollRef,
+	table,
 	rows,
 	rowKeys,
 	visibleColumns,
@@ -78,9 +83,9 @@ export function GridVirtualizedBody<T>({
 				return (
 					<GridRow<T>
 						key={key}
+						cells={table.getRow(String(key)).getVisibleCells()}
 						row={row}
 						rowKey={key}
-						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
 						rowLabel={rowLabel?.(row)}

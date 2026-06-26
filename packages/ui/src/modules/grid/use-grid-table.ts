@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type CellContext,
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnSizingState,
@@ -12,6 +13,7 @@ import {
 	type OnChangeFn,
 	type PaginationState,
 	type Row,
+	type RowData,
 	type SortingFn,
 	type SortingState,
 	type Table,
@@ -19,7 +21,7 @@ import {
 	type Updater,
 	useReactTable,
 } from '@tanstack/react-table'
-import { type RefObject, useCallback, useMemo } from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery, type QueryGroupNode } from '../query'
@@ -36,6 +38,15 @@ import type {
 	GridSearch,
 } from './types'
 import { useGridColumnFit } from './use-grid-column-fit'
+
+declare module '@tanstack/react-table' {
+	// Carries the source GridColumn on each ColumnDef so the body renderer reads a
+	// column's chrome (selectable / actions / pinned / className / cellProps)
+	// straight off the engine's cell model.
+	interface ColumnMeta<TData extends RowData, TValue> {
+		gridColumn: GridColumn<TData>
+	}
+}
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
 const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE }
@@ -478,6 +489,53 @@ type UseGridTableResult<T> = {
 }
 
 /**
+ * Builds the engine `ColumnDef[]` with referentially-stable per-id cell
+ * renderers. `flexRender(columnDef.cell, …)` makes the cell's component type the
+ * `cell` function itself, so a fresh function each render would remount every
+ * cell — dropping editor focus and selection, and flooding reconciliation. Each
+ * id's renderer is created once and reads the latest column from a ref, so cell
+ * content stays current while its identity holds. The rest of the def rebuilds
+ * freely (only `cell`'s identity drives mounting); `meta` carries the source
+ * column for the body's chrome.
+ *
+ * @internal
+ */
+function useStableColumnDefs<T>(columns: GridColumn<T>[]): ColumnDef<T>[] {
+	const columnsById = useMemo(
+		() => new Map(columns.map((col) => [String(col.id), col] as const)),
+		[columns],
+	)
+
+	const columnsByIdRef = useRef(columnsById)
+
+	columnsByIdRef.current = columnsById
+
+	const cellRenderers = useRef(new Map<string, (info: CellContext<T, unknown>) => ReactNode>())
+
+	return useMemo<ColumnDef<T>[]>(
+		() =>
+			columns.map((col) => {
+				const id = String(col.id)
+
+				let renderCell = cellRenderers.current.get(id)
+
+				if (!renderCell) {
+					renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
+
+					cellRenderers.current.set(id, renderCell)
+				}
+
+				return {
+					...toColumnDef(col),
+					meta: { gridColumn: col },
+					...(col.cell ? { cell: renderCell } : {}),
+				}
+			}),
+		[columns],
+	)
+}
+
+/**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * powers a {@link Grid}: it adapts the grid's `GridColumn[]` to TanStack
  * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`,
@@ -506,7 +564,7 @@ export function useGridTable<T>({
 	columnFilters: columnFiltersConfig,
 	containerRef,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
-	const columnDefs = useMemo<ColumnDef<T>[]>(() => columns.map(toColumnDef), [columns])
+	const columnDefs = useStableColumnDefs(columns)
 
 	const paginated = paginationConfig != null
 

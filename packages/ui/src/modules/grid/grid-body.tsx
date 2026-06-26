@@ -1,3 +1,4 @@
+import type { Table } from '@tanstack/react-table'
 import type { ReactNode, RefObject } from 'react'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import { GridRow } from './grid-row'
@@ -7,8 +8,11 @@ import type { GridColumn } from './types'
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = {
 	loading: boolean
+	/** The engine; each row renders its cells from `table.getRow(key).getVisibleCells()`. */
+	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]
+	/** Visible columns, kept for the loading/empty column spans. */
 	visibleColumns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
 	rowLoading?: (row: T) => boolean
@@ -37,6 +41,7 @@ type GridBodyProps<T> = {
  */
 export function GridBody<T>({
 	loading,
+	table,
 	rows,
 	rowKeys,
 	visibleColumns,
@@ -59,6 +64,7 @@ export function GridBody<T>({
 		return (
 			<GridVirtualizedBody<T>
 				scrollRef={virtualize.scrollRef}
+				table={table}
 				rows={rows}
 				rowKeys={rowKeys}
 				visibleColumns={visibleColumns}
@@ -83,9 +89,9 @@ export function GridBody<T>({
 				return (
 					<GridRow<T>
 						key={key}
+						cells={table.getRow(String(key)).getVisibleCells()}
 						row={row}
 						rowKey={key}
-						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
 						rowLabel={rowLabel?.(row)}

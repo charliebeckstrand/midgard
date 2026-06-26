@@ -639,9 +639,11 @@ function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
+	const { table, renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
 		rows,
-		columns: resolvedColumns,
+		// The engine sees the visible columns in display order, so its cell model
+		// (which the body renders from) matches what the header shows.
+		columns: visibleColumns,
 		getKey,
 		sort,
 		setSort,
@@ -780,6 +782,7 @@ function GridData<T>({
 
 			<GridBody<T>
 				loading={loading}
+				table={table}
 				rows={renderRows}
 				rowKeys={rowKeys}
 				visibleColumns={visibleColumns}

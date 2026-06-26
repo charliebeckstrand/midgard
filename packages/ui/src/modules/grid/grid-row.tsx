@@ -1,6 +1,7 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
+import { type Cell, flexRender } from '@tanstack/react-table'
 import { type HTMLAttributes, memo, type ReactNode, useMemo } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
@@ -15,7 +16,13 @@ import type { GridColumn } from './types'
 type GridRowProps<T> = {
 	row: T
 	rowKey: string | number
-	columns: GridColumn<T>[]
+	/**
+	 * This row's visible cells from the engine (`row.getVisibleCells()`), rendered
+	 * through `flexRender`. Passed in (not pulled off a stable `table`) so the
+	 * memoized row re-renders when the cell set changes — the array's identity
+	 * shifts on a column-def rebuild but holds across cursor navigation.
+	 */
+	cells: Cell<T, unknown>[]
 	loading: boolean
 	className: string | undefined
 	/** Human-readable name for the selection checkbox ("Select {label}"); falls back to the row key. */
@@ -78,7 +85,7 @@ function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 function GridRowImpl<T>({
 	row,
 	rowKey,
-	columns,
+	cells,
 	loading,
 	className,
 	rowLabel,
@@ -103,7 +110,13 @@ function GridRowImpl<T>({
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>
-				{columns.map((col, colIdx) => {
+				{cells.map((cell, colIdx) => {
+					// Every engine column carries its source column on `meta`; the guard
+					// narrows the optional type (it is always set in `toColumnDef`).
+					const col = cell.column.columnDef.meta?.gridColumn
+
+					if (!col) return null
+
 					// Cell column indices accompany aria-rowindex under virtualization
 					// (rowIndex is only set then).
 					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
@@ -136,44 +149,16 @@ function GridRowImpl<T>({
 						)
 					}
 
-					const cellExtra = col.cellProps?.(row)
-
-					const rawContent = col.cell ? col.cell(row) : null
-
-					// Truncate overflowing content to an ellipsis with an on-overflow
-					// tooltip, unless the grid opts out. Null content stays bare so an
-					// empty cell adds no wrapper.
-					const content =
-						truncate && rawContent != null ? (
-							<GridCellContent content={rawContent} tooltip={resolveCellTooltip(col, row)} />
-						) : (
-							rawContent
-						)
-
-					if (reorderable && !col.pinned) {
-						return (
-							<GridReorderableCell
-								key={col.id}
-								id={col.id}
-								colIndex={colIndex}
-								className={col.className}
-								cellProps={cellExtra}
-							>
-								{content}
-							</GridReorderableCell>
-						)
-					}
-
 					return (
-						<TableCell
+						<GridDataCell<T>
 							key={col.id}
-							aria-colindex={colIndex}
-							{...cellExtra}
-							data-grid-col={col.id}
-							className={cn(col.className, cellExtra?.className)}
-						>
-							{content}
-						</TableCell>
+							cell={cell}
+							col={col}
+							row={row}
+							colIndex={colIndex}
+							reorderable={reorderable}
+							truncate={truncate}
+						/>
 					)
 				})}
 			</TableRow>
@@ -183,6 +168,69 @@ function GridRowImpl<T>({
 
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */
 export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
+
+/** Props for {@link GridDataCell}. @internal */
+type GridDataCellProps<T> = {
+	cell: Cell<T, unknown>
+	col: GridColumn<T>
+	row: T
+	colIndex: number | undefined
+	reorderable: boolean
+	truncate: boolean
+}
+
+/**
+ * One data cell: renders its content through the engine (`flexRender`), wrapping
+ * it in the truncation reveal unless the grid opts out, then in a reorder-aware
+ * `<td>`. A column with no `cell` yields null content and stays bare.
+ *
+ * @internal
+ */
+function GridDataCell<T>({
+	cell,
+	col,
+	row,
+	colIndex,
+	reorderable,
+	truncate,
+}: GridDataCellProps<T>) {
+	const cellExtra = col.cellProps?.(row)
+
+	// Render only columns that declare a `cell`; a bare accessor column stays empty
+	// rather than falling back to TanStack's default value renderer.
+	const rawContent = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+
+	const content =
+		truncate && rawContent != null ? (
+			<GridCellContent content={rawContent} tooltip={resolveCellTooltip(col, row)} />
+		) : (
+			rawContent
+		)
+
+	if (reorderable && !col.pinned) {
+		return (
+			<GridReorderableCell
+				id={col.id}
+				colIndex={colIndex}
+				className={col.className}
+				cellProps={cellExtra}
+			>
+				{content}
+			</GridReorderableCell>
+		)
+	}
+
+	return (
+		<TableCell
+			aria-colindex={colIndex}
+			{...cellExtra}
+			data-grid-col={col.id}
+			className={cn(col.className, cellExtra?.className)}
+		>
+			{content}
+		</TableCell>
+	)
+}
 
 /** Props for {@link GridReorderableCell}. @internal */
 type GridReorderableCellProps = {
