@@ -31,6 +31,13 @@ export type QueryBuilderProps = {
 	 * @defaultValue false
 	 */
 	hideFieldSelector?: boolean
+	/**
+	 * Keep at least one rule in the query: a group's sole remaining rule hides its
+	 * remove control, so the builder can't be emptied. For always-on filters (a
+	 * column filter) that must keep a rule to edit.
+	 * @defaultValue false
+	 */
+	requireRule?: boolean
 	className?: string
 }
 
@@ -48,6 +55,7 @@ export function QueryBuilder({
 	disabled = false,
 	allowGroups = true,
 	hideFieldSelector = false,
+	requireRule = false,
 	className,
 }: QueryBuilderProps) {
 	const { root, actions, register } = useQueryBuilderTree({
@@ -60,8 +68,8 @@ export function QueryBuilder({
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
 
 	const state = useMemo<QueryBuilderStateValue>(
-		() => ({ fields, getField, disabled, allowGroups, hideFieldSelector }),
-		[fields, getField, disabled, allowGroups, hideFieldSelector],
+		() => ({ fields, getField, disabled, allowGroups, hideFieldSelector, requireRule }),
+		[fields, getField, disabled, allowGroups, hideFieldSelector, requireRule],
 	)
 
 	return (

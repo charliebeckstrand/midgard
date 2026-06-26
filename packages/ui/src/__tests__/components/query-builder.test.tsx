@@ -109,6 +109,22 @@ describe('QueryBuilder', () => {
 		expect(next.children).toHaveLength(0)
 	})
 
+	it('hides a sole rule’s remove button under requireRule, keeping it past one', () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { rerender } = renderUI(<QueryBuilder fields={fields} value={tree} requireRule />)
+
+		// One rule: removing it would empty the query, so the control is hidden.
+		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
+
+		const two = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
+
+		rerender(<QueryBuilder fields={fields} value={two} requireRule />)
+
+		// Two rules: each is removable again.
+		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
+	})
+
 	it('disables the remove rule button when QueryBuilder is disabled', () => {
 		const initialRule = createRule(fields[0])
 

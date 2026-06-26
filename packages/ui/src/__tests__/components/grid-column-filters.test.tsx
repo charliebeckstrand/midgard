@@ -71,6 +71,25 @@ describe('Grid per-column filters', () => {
 		expect(labels).not.toContain('Field')
 	})
 
+	it('hides the remove control while a single rule remains, restoring it past one', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+		// The lone seeded rule can't be removed (the filter keeps one), so no control.
+		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+
+		// Two rules now: each can be removed.
+		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
+
+		// Removing one returns to a single, again-unremovable rule.
+		fireEvent.click(screen.getAllByRole('button', { name: 'Remove rule' })[0] as HTMLElement)
+
+		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
+	})
+
 	it('accents the filter button via the color prop while a filter is active', () => {
 		renderUI(
 			<Grid

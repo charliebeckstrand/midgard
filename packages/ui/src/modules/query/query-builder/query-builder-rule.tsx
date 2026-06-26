@@ -17,15 +17,21 @@ import type { QueryRule } from './types'
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
 	rule: QueryRule
+	/**
+	 * Whether this rule shows its remove control. The enclosing group passes
+	 * `false` for the sole remaining rule under `requireRule`, so the query keeps
+	 * at least one rule. @defaultValue true
+	 */
+	removable?: boolean
 	className?: string
 }
 
 /**
  * Renders one query rule: field and operator {@link Select}s plus a type-aware
- * value input (suppressed for `noValue` operators) and a remove button.
- * Changing the field resets the operator and value. Memoized.
+ * value input (suppressed for `noValue` operators) and, when `removable`, a
+ * remove button. Changing the field resets the operator and value. Memoized.
  */
-function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
+function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
@@ -137,17 +143,19 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 				)}
 			</Flex>
 
-			<Button
-				ref={removeRef}
-				variant="bare"
-				color="red"
-				aria-label="Remove rule"
-				disabled={disabled}
-				className={k.rowRemove}
-				onClick={onRemove}
-			>
-				<Icon icon={<Trash />} />
-			</Button>
+			{removable && (
+				<Button
+					ref={removeRef}
+					variant="bare"
+					color="red"
+					aria-label="Remove rule"
+					disabled={disabled}
+					className={k.rowRemove}
+					onClick={onRemove}
+				>
+					<Icon icon={<Trash />} />
+				</Button>
+			)}
 		</Flex>
 	)
 }

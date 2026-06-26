@@ -100,6 +100,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					fields={fields}
 					hideFieldSelector
 					allowGroups={false}
+					requireRule
 					value={query ?? seeded}
 					onValueChange={(next) => filter.setQuery(column.id, next)}
 				/>

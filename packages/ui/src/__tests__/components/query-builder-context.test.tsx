@@ -18,6 +18,7 @@ const stateValue = {
 	disabled: false,
 	allowGroups: true,
 	hideFieldSelector: false,
+	requireRule: false,
 }
 
 const actionsValue: QueryBuilderActions = {
