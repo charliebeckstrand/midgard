@@ -26,7 +26,7 @@ export type QueryBuilderRuleProps = {
  * Changing the field resets the operator and value. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
-	const { fields, getField, disabled } = useQueryBuilderState()
+	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
 
@@ -82,20 +82,22 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	return (
 		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
 			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }}>
-				<Select
-					value={rule.field}
-					displayValue={displayField}
-					onValueChange={onFieldChange}
-					placeholder="Field"
-					aria-label="Field"
-					className="w-full"
-				>
-					{fields.map((f) => (
-						<ListboxOption key={f.name} value={f.name}>
-							{f.label}
-						</ListboxOption>
-					))}
-				</Select>
+				{!hideFieldSelector && (
+					<Select
+						value={rule.field}
+						displayValue={displayField}
+						onValueChange={onFieldChange}
+						placeholder="Field"
+						aria-label="Field"
+						className="w-full"
+					>
+						{fields.map((f) => (
+							<ListboxOption key={f.name} value={f.name}>
+								{f.label}
+							</ListboxOption>
+						))}
+					</Select>
+				)}
 
 				<Select
 					value={rule.operator}

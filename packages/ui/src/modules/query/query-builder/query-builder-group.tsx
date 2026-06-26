@@ -28,7 +28,7 @@ export type QueryBuilderGroupProps = {
  * with a hold-to-remove control.
  */
 export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
-	const { disabled } = useQueryBuilderState()
+	const { disabled, allowGroups } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
@@ -85,9 +85,16 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 				>
 					Add rule
 				</Button>
-				<Button variant="soft" color="blue" disabled={disabled} onClick={() => addGroup(group.id)}>
-					Add group
-				</Button>
+				{allowGroups && (
+					<Button
+						variant="soft"
+						color="blue"
+						disabled={disabled}
+						onClick={() => addGroup(group.id)}
+					>
+						Add group
+					</Button>
+				)}
 				{!root && (
 					<Flex justify="end">
 						<Tooltip>

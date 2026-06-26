@@ -148,6 +148,29 @@ describe('QueryBuilder', () => {
 		expect(labels).toContain('Operator')
 	})
 
+	it('hides the field selector when hideFieldSelector is set', () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} hideFieldSelector />)
+
+		const labels = Array.from(container.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
+			el.getAttribute('aria-label'),
+		)
+
+		expect(labels).not.toContain('Field')
+
+		expect(labels).toContain('Operator')
+	})
+
+	it('hides the "Add group" action when allowGroups is false', () => {
+		renderUI(<QueryBuilder fields={fields} allowGroups={false} />)
+
+		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+
+		// "Add rule" stays available.
+		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+	})
+
 	it('renders a number input for number-typed rule fields', () => {
 		const numberRule = createRule(fields[1])
 
