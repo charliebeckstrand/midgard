@@ -125,6 +125,25 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'email')?.style.right).toBe('100px')
 	})
 
+	it('paints a pinned body cell with the viewport-aware content-host surface', () => {
+		// Regression: a plain `bg.surface` (`dark:bg-zinc-900`) matched only the
+		// desktop card, so on mobile — where the content block is transparent over
+		// the darker page — the frozen columns read a shade off. The fill now tracks
+		// the host: the page background below `lg`, the card surface at `lg`.
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const body = dataCell(container, 'name')
+
+		expect(body?.className).toContain('dark:bg-zinc-950')
+
+		expect(body?.className).toContain('dark:lg:bg-zinc-900')
+	})
+
 	it('carries no sticky chrome when no column is pinned', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },

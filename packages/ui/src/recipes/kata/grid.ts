@@ -39,6 +39,16 @@ const resizePadding = defineRecipe({
 	defaults: { density: 'snug' },
 })
 
+/**
+ * Opaque fill behind a frozen body cell, so the columns scrolling under it stay
+ * hidden. It tracks the content host (`omote.content` — the same viewport-aware
+ * surface the sidebar layout paints behind its sticky headers): the card surface
+ * at `lg`, and the flush page background below it. A plain `bg.surface` painted
+ * the desktop card colour at every width, so on mobile — where the content block
+ * is transparent over the darker page — the frozen columns read a shade off.
+ */
+const pinnedSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
+
 export const k = {
 	wrapper: ['relative', flex.col, 'gap-2'],
 	sticky: {
@@ -48,10 +58,13 @@ export const k = {
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
 		// through, lifted just above the centre cells (below the z-10 sticky head,
-		// so a vertical scroll still tucks pinned cells under it). The left/right
+		// so a vertical scroll still tucks pinned cells under it). The fill tracks
+		// the content host across viewports (see `pinnedSurface`); the left/right
 		// offset is an inline style summed from the engine.
-		cell: ['sticky z-[1]', bg.surface],
+		cell: ['sticky z-[1]', pinnedSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
+		// Matches the (sticky) header's own `bg.surface` so the header bar reads as
+		// one piece, pinned cells included.
 		head: ['sticky z-20', bg.surface],
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
 		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
