@@ -3,27 +3,41 @@
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 /**
- * Whether an element's single-line content overflows its content box, measured
- * at sub-pixel precision. `scrollWidth`/`clientWidth` round to integers, so a
- * fraction of a pixel of overflow can read as fitting (a clipped element with no
- * tooltip) or an exact fit as overflowing (a tooltip with nothing to reveal); a
- * `Range` over the contents reports their true laid-out width, regardless of the
- * overflow clip. The truncating element carries no padding or border, so its
- * bounding width is its content box; half a pixel of slack absorbs rounding
- * noise.
+ * Sub-pixel slack (px) on the `Range` overflow test: above the rounding noise a
+ * `Range` rect carries at an exact fit (~0.02px observed), below the smallest
+ * fraction of a pixel that still paints an ellipsis. A larger slack (the prior
+ * half-pixel) left a dead zone — a cell clipped by a fraction of a pixel read as
+ * fitting, so its reveal tooltip never armed until the column shrank further (a
+ * clipped cell with no tooltip until nudged smaller).
+ *
+ * @internal
+ */
+const OVERFLOW_SLACK = 0.1
+
+/**
+ * Whether an element's single-line content overflows its content box. A whole
+ * pixel of overflow is read straight from `scrollWidth`/`clientWidth` — integer,
+ * but unambiguous and cross-browser, and never a false positive (`scrollWidth`
+ * never dips below `clientWidth` for fitting content). Below a pixel those round
+ * the gap away — a `clientWidth` rounded up to meet `scrollWidth` reads as a fit
+ * while the ellipsis is already painted — so a `Range` over the contents supplies
+ * the true sub-pixel width, unaffected by the overflow clip. The truncating
+ * element carries no padding or border, so its bounding width is its content box.
  *
  * @internal
  */
 function isOverflowing(el: HTMLElement): boolean {
+	if (el.scrollWidth > el.clientWidth) return true
+
 	const range = document.createRange()
 
 	range.selectNodeContents(el)
 
-	// Layout-less environments (jsdom) don't implement Range geometry; fall back
-	// to the integer scroll/client comparison there.
-	if (typeof range.getBoundingClientRect !== 'function') return el.scrollWidth > el.clientWidth
+	// Layout-less environments (jsdom) don't implement Range geometry; the integer
+	// comparison above is the only signal there.
+	if (typeof range.getBoundingClientRect !== 'function') return false
 
-	return range.getBoundingClientRect().width - el.getBoundingClientRect().width > 0.5
+	return range.getBoundingClientRect().width - el.getBoundingClientRect().width > OVERFLOW_SLACK
 }
 
 /**

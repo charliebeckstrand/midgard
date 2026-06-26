@@ -201,6 +201,70 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		}
 	})
 
+	it('reveals the tooltip for a cell clipped by a sub-pixel amount', async () => {
+		// A pointer drag lands on fractional widths. Find one where the cell clips by
+		// a fraction of a pixel: scroll/client round equal (the integer test reads
+		// "fits") yet a Range measures the content wider than its box — the ellipsis
+		// is painted. The prior half-pixel slack left exactly this cell without a
+		// tooltip until the column shrank further; the tooltip must now arm here.
+		const measureOverflow = (span: HTMLElement) => {
+			const range = document.createRange()
+
+			range.selectNodeContents(span)
+
+			return range.getBoundingClientRect().width - span.getBoundingClientRect().width
+		}
+
+		let deadZone: number | undefined
+
+		for (let w = 124; w >= 118 && deadZone === undefined; w -= 0.1) {
+			const { container, unmount } = renderUI(
+				<Grid
+					resizable
+					columns={[nameCol]}
+					columnSizing={{ value: { name: w } }}
+					rows={[{ id: 1, name: 'Wade Cooper' }]}
+					getKey={getKey}
+				/>,
+			)
+
+			await screen.findByText('Wade Cooper')
+
+			await new Promise((resolve) => setTimeout(resolve, 20))
+
+			const span = container.querySelector<HTMLElement>('td[data-grid-col="name"] span.truncate')
+
+			// The former dead zone: integer-equal (scroll backstop misses it) yet the
+			// Range shows a clip the old half-pixel slack swallowed.
+			if (span && span.scrollWidth === span.clientWidth) {
+				const overflow = measureOverflow(span)
+
+				if (overflow > 0.15 && overflow < 0.45) deadZone = w
+			}
+
+			unmount()
+		}
+
+		// A sub-pixel dead-zone width must exist for the assertion to mean anything.
+		if (deadZone === undefined) throw new Error('no sub-pixel clip width found in sweep')
+
+		renderUI(
+			<Grid
+				resizable
+				columns={[nameCol]}
+				columnSizing={{ value: { name: deadZone } }}
+				rows={[{ id: 1, name: 'Wade Cooper' }]}
+				getKey={getKey}
+			/>,
+		)
+
+		await userEvent.hover(screen.getByText('Wade Cooper'))
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent('Wade Cooper')
+	})
+
 	it('clips rows of differing length uniformly at a narrow width', async () => {
 		// The demo names, at a width none of them fits — every row must clip with an
 		// ellipsis, not just the longer ones.
