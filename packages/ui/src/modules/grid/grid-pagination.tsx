@@ -58,15 +58,15 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 	const showPicker = pageSizeOptions != null && pageSizeOptions.length > 0
 
+	// Hide the navigation for a single known page (or none); keep it for multiple
+	// pages or an unbounded server feed (`pageCount` of -1).
+	const showNav = pageCount !== 0 && pageCount !== 1
+
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
-			<span data-slot="grid-pagination-status" className={cn(k.footer.status)} aria-live="polite">
-				{status}
-			</span>
-
-			<div className={cn(k.footer.controls)}>
+			<div className={cn(k.footer.start)}>
 				{showPicker && (
-					<div className={cn(k.footer.picker)}>
+					<>
 						<span aria-hidden="true">Rows per page</span>
 
 						<Select<number>
@@ -82,34 +82,45 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 								</SelectOption>
 							))}
 						</Select>
-					</div>
+					</>
 				)}
-
-				<Pagination>
-					<PaginationPrevious onClick={() => setPageIndex(pageIndex - 1)} disabled={!canPrevious} />
-
-					{knownPages && (
-						<PaginationList>
-							{getVisiblePages(pageNumber, pageCount).map((item, index) =>
-								item === 'gap' ? (
-									// biome-ignore lint/suspicious/noArrayIndexKey: gap markers carry no stable identity; their position in the fixed window is their identity
-									<PaginationGap key={`gap-${index}`} />
-								) : (
-									<PaginationPage
-										key={item}
-										current={item === pageNumber}
-										onClick={() => setPageIndex(item - 1)}
-									>
-										{item}
-									</PaginationPage>
-								),
-							)}
-						</PaginationList>
-					)}
-
-					<PaginationNext onClick={() => setPageIndex(pageIndex + 1)} disabled={!canNext} />
-				</Pagination>
 			</div>
+
+			<div className={cn(k.footer.center)}>
+				{showNav && (
+					<Pagination>
+						<PaginationPrevious
+							onClick={() => setPageIndex(pageIndex - 1)}
+							disabled={!canPrevious}
+						/>
+
+						{knownPages && (
+							<PaginationList>
+								{getVisiblePages(pageNumber, pageCount).map((item, index) =>
+									item === 'gap' ? (
+										// biome-ignore lint/suspicious/noArrayIndexKey: gap markers carry no stable identity; their position in the fixed window is their identity
+										<PaginationGap key={`gap-${index}`} />
+									) : (
+										<PaginationPage
+											key={item}
+											current={item === pageNumber}
+											onClick={() => setPageIndex(item - 1)}
+										>
+											{item}
+										</PaginationPage>
+									),
+								)}
+							</PaginationList>
+						)}
+
+						<PaginationNext onClick={() => setPageIndex(pageIndex + 1)} disabled={!canNext} />
+					</Pagination>
+				)}
+			</div>
+
+			<span data-slot="grid-pagination-status" className={cn(k.footer.status)} aria-live="polite">
+				{status}
+			</span>
 		</div>
 	)
 }

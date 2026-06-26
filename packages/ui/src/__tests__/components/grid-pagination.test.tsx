@@ -20,6 +20,22 @@ describe('Grid pagination', () => {
 		expect(screen.getByText('Row 25')).toBeInTheDocument()
 	})
 
+	it('hides the navigation when there is only one page', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={many.slice(0, 3)}
+				getKey={getKey}
+				pagination={{ defaultValue: { pageIndex: 0, pageSize: 10 } }}
+			/>,
+		)
+
+		expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+
+		// The footer still reports the row range.
+		expect(screen.getByText(/of 3$/)).toBeInTheDocument()
+	})
+
 	describe('client mode', () => {
 		it('renders only the first page of rows', () => {
 			renderUI(

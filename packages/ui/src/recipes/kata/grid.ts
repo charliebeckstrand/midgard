@@ -71,12 +71,14 @@ export const k = {
 	resize: {
 		// The header cell hosts the absolutely-positioned handle.
 		cell: 'relative',
-		// Grab strip on the column's trailing edge; surfaces on hover, focus, and active drag.
+		// Grab strip on the column's trailing edge: an always-visible divider that
+		// thickens on hover, focus, and active drag.
 		handle: [
 			'absolute top-0 right-0 z-10 h-full w-1.5',
 			'cursor-col-resize touch-none select-none',
-			'opacity-0 hover:opacity-100 focus-visible:opacity-100 data-[resizing]:opacity-100',
-			bg.tint,
+			'border-r',
+			border.subtle,
+			'hover:border-r-2 focus-visible:border-r-2 data-[resizing]:border-r-2',
 			focus.ring,
 		],
 	},
@@ -88,12 +90,12 @@ export const k = {
 		cell: ['px-2', 'py-1', 'align-middle'],
 	},
 	footer: {
-		// Footer below the table: a row range/status on one edge, the page-size
-		// picker and page navigation on the other; wraps on narrow viewports.
-		bar: [flex.row, 'flex-wrap', 'items-center', 'justify-between', 'gap-2', 'gap-y-2', 'pt-2'],
-		status: [size.sm, text.muted, 'whitespace-nowrap'],
-		controls: [flex.inline, 'items-center', 'gap-4'],
-		picker: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
+		// Footer below the table: page-size picker (left), centered page navigation
+		// in the auto-width middle track, and the row-range status (right).
+		bar: ['grid', 'grid-cols-[1fr_auto_1fr]', 'items-center', 'gap-2', 'pt-2'],
+		start: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
+		center: 'justify-self-center',
+		status: [size.sm, text.muted, 'whitespace-nowrap', 'justify-self-end'],
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const

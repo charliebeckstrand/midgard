@@ -1,6 +1,6 @@
 'use client'
 
-import { Input } from '../../components/input'
+import { SearchInput } from '../../components/search-input'
 import { TableHeader, TableRow } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -32,10 +32,10 @@ export function GridFilterRow<T>({ columns, filters }: GridFilterRowProps<T>) {
 			{columns.map((col) => (
 				<TableHeader key={col.id} className={cn(k.filter.cell)}>
 					{filters.canFilter(col.id) ? (
-						<Input
-							type="search"
+						<SearchInput
 							value={filters.getValue(col.id)}
 							onChange={(event) => filters.setValue(col.id, event.target.value)}
+							onClear={() => filters.setValue(col.id, '')}
 							aria-label={`Filter ${filterLabel(col)}`}
 							placeholder="Filter"
 						/>
