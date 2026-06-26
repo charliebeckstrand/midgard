@@ -155,11 +155,48 @@ function ClientSortExample() {
 	)
 }
 
+type Invoice = { id: number; ref: string; amount: string; status: 'paid' | 'due' }
+
+const invoices: Invoice[] = [
+	{ id: 1, ref: 'INV-2', amount: '$1,200.00', status: 'due' },
+	{ id: 2, ref: 'INV-10', amount: '$90.50', status: 'paid' },
+	{ id: 3, ref: 'INV-1', amount: '$340.00', status: 'due' },
+]
+
+const statusOrder: Record<Invoice['status'], number> = { paid: 0, due: 1 }
+
+const invoiceColumns: GridColumn<Invoice>[] = [
+	// Natural order: INV-1, INV-2, INV-10 (not INV-1, INV-10, INV-2).
+	{ id: 'ref', title: 'Reference', cell: (row) => row.ref, value: (row) => row.ref },
+	// Money sorts by amount, not by the leading digit of "$1,200.00".
+	{ id: 'amount', title: 'Amount', cell: (row) => row.amount, value: (row) => row.amount },
+	// A manual client-side comparator overrides the smart default.
+	{
+		id: 'status',
+		title: 'Status',
+		cell: (row) => row.status,
+		value: (row) => row.status,
+		sortFn: (a, b) => statusOrder[a.status] - statusOrder[b.status],
+	},
+]
+
+const SmartSortExample = () => (
+	// Smart by default: money, comma-grouped numbers, and numbers inside strings
+	// sort correctly; the Status column supplies its own `sortFn`.
+	<Grid
+		columns={invoiceColumns}
+		rows={invoices}
+		getKey={(row) => row.id}
+		sort={{ defaultValue: { column: 'amount', direction: 'asc' } }}
+	/>
+)
+
 const ContextMenuExample = () => (
 	// Context menus are on by default. Right-click a header for sort controls,
 	// "Clear sort" (once the column is sorted), and "Choose Columns" (which opens
 	// the manager without a toolbar button); right-click a body cell for "Copy".
-	// Pass `contextMenu={false}` to disable, or a builder to reshape the items.
+	// Hold Ctrl while right-clicking for the browser's standard menu. Pass
+	// `contextMenu={false}` to disable, or a builder to reshape the items.
 	<Grid columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
@@ -344,6 +381,13 @@ export function Demo() {
 
 			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
 				<ClientSortExample />
+			</Example>
+
+			<Example
+				title="Smart sorting"
+				code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
+			>
+				<SmartSortExample />
 			</Example>
 
 			<Example

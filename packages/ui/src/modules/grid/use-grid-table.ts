@@ -12,6 +12,7 @@ import {
 	type OnChangeFn,
 	type PaginationState,
 	type Row,
+	type SortingFn,
 	type SortingState,
 	type Table,
 	type TableOptions,
@@ -24,6 +25,7 @@ import { isDataColumn } from '../../utilities'
 import { evaluateQuery, type QueryGroupNode } from '../query'
 import type { SortState } from './context'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE, DEFAULT_PAGE_SIZE } from './grid-constants'
+import { compareSmart } from './grid-sorting-utilities'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -128,17 +130,33 @@ const queryFilterFn: FilterFn<unknown> = (row: Row<unknown>, columnId, filterVal
 
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 
-/** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the resize gate, and sizing bounds. @internal */
+/**
+ * Default column sort: compares each row's accessor value with the smart
+ * comparator, so numbers, money, percentages, and the like sort correctly out of
+ * the box rather than lexically. Row-shape-agnostic; cast to a column's row type.
+ *
+ * @internal
+ */
+const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
+	compareSmart(rowA.getValue(columnId), rowB.getValue(columnId))
+
+/** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the sort comparator, the resize gate, and sizing bounds. @internal */
 function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 	const size = parsePxWidth(col.width)
 
-	const { value } = col
+	const { value, sortFn } = col
 
 	// Sort and filter read a column's value through an accessor. An explicit
 	// `value` wins; otherwise a data column falls back to the row field named by
 	// its id, so columns sort client-side out of the box. Quick search stays
 	// scoped to columns that declare `value` via `enableGlobalFilter`.
 	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
+
+	// A column's manual comparator wins; otherwise the smart default. Either runs
+	// only under client sorting (the engine's sorted row model).
+	const sortingFn: SortingFn<T> = sortFn
+		? (rowA, rowB) => sortFn(rowA.original, rowB.original)
+		: (smartSortingFn as SortingFn<T>)
 
 	return {
 		id: String(col.id),
@@ -150,6 +168,8 @@ function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 		// The accessor feeds sort/filter without changing how the cell renders
 		// (still `col.cell`).
 		...(accessorFn ? { accessorFn } : {}),
+		// Smart/manual comparator for the data columns that can sort.
+		...(isDataColumn(col) ? { sortingFn } : {}),
 		// The query filter is row-shape-agnostic; cast to this column's row type.
 		...(col.filterable && value ? { filterFn: queryFilterFn as FilterFn<T> } : {}),
 		...(size != null ? { size } : {}),

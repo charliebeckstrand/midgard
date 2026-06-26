@@ -226,6 +226,14 @@ export function GridContextMenu<T>({
 
 	const handleContextMenu = useCallback(
 		(event: MouseEvent<HTMLDivElement>) => {
+			// Ctrl held: defer to the browser's standard menu. Stop the event before
+			// the Menu wrapper opens the custom one, and leave the default intact.
+			if (event.ctrlKey) {
+				event.stopPropagation()
+
+				return
+			}
+
 			const resolved = resolveTarget(
 				event.target as HTMLElement,
 				resolveColumnItems,

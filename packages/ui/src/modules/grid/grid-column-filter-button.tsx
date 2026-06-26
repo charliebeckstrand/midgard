@@ -75,13 +75,17 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	const label = filterLabel(column)
 
 	return (
-		<Popover>
+		// Prefer opening above the header; floating-ui flips below on collision.
+		<Popover placement="top">
 			<PopoverTrigger>
 				<Button
 					variant="bare"
+					// An active filter accents the button through its `color`; the resting
+					// muted tint drops so it doesn't override that colour.
+					color={active ? 'blue' : undefined}
 					aria-label={`Filter ${label}`}
 					data-active={dataAttr(active)}
-					className={cn(k.filter.button)}
+					className={cn(k.filter.button, !active && k.filter.idle)}
 				>
 					<Icon icon={<ListFilter />} />
 				</Button>

@@ -144,6 +144,9 @@ function GridHeaderCell<T>({
 		width,
 		resize: sizing,
 		resizing,
+		// Sort/resize/filter affordances stand down on an empty grid: there's
+		// nothing to order, size to, or filter until rows arrive.
+		interactive: hasRows,
 		// Identifies a data-column header to the right-click context menu.
 		gridCol: isDataColumn(column) ? column.id : undefined,
 		// Per-column filter controls; the header shows a filter button when set.
@@ -154,7 +157,9 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 	}
 
-	if (reorderable && isDataColumn(column) && !column.pinned) {
+	// Reorder also stands down when empty (handled here so the cell drops the
+	// drag activator entirely rather than rendering an inert grip).
+	if (reorderable && hasRows && isDataColumn(column) && !column.pinned) {
 		return <GridReorderableColumnHeader {...shared} />
 	}
 
@@ -178,6 +183,8 @@ type GridColumnHeaderProps = {
 	resize: GridColumnResize | null
 	/** Whether this column is mid drag-resize. */
 	resizing: boolean
+	/** Whether the header's sort/resize/filter affordances are live (false on an empty grid). */
+	interactive: boolean
 	/** Column id for context-menu resolution, or `undefined` for non-data headers. */
 	gridCol: string | number | undefined
 	/** Per-column filter controls; a filter button shows when the column is filterable. */
@@ -225,14 +232,18 @@ function sortDirectionIcon(
 	return null
 }
 
-/** Title text, wrapped in a sort-toggle button when the column is sortable. @internal */
+/** Title text, wrapped in a sort-toggle button when the column is sortable and interactive. @internal */
 function ColumnHeaderLabel({
 	column,
 	sorted,
 	direction,
 	toggleSort,
-}: Pick<GridColumnHeaderProps, 'column' | 'sorted' | 'direction' | 'toggleSort'>): ReactNode {
-	if (!column.sortable) return column.title
+	interactive,
+}: Pick<
+	GridColumnHeaderProps,
+	'column' | 'sorted' | 'direction' | 'toggleSort' | 'interactive'
+>): ReactNode {
+	if (!column.sortable || !interactive) return column.title
 
 	return (
 		<HeadlessProvider>
@@ -321,16 +332,17 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	width,
 	resize,
 	resizing,
+	interactive,
 	gridCol,
 	filter,
 	filterQuery,
 }: GridColumnHeaderProps) {
-	const canResize = resize?.canResize(column.id) ?? false
+	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
-			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
+			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
 			className={cn(
@@ -346,8 +358,9 @@ const GridColumnHeader = memo(function GridColumnHeader({
 					sorted={sorted}
 					direction={direction}
 					toggleSort={toggleSort}
+					interactive={interactive}
 				/>
-				{filter?.canFilter(column.id) && (
+				{interactive && filter?.canFilter(column.id) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
 			</span>
@@ -381,6 +394,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	width,
 	resize,
 	resizing,
+	interactive,
 	gridCol,
 	filter,
 	filterQuery,
@@ -395,13 +409,13 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 		isDragging,
 	} = useSortable({ id: String(column.id) })
 
-	const canResize = resize?.canResize(column.id) ?? false
+	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	return (
 		<TableHeader
 			ref={setNodeRef}
 			aria-colindex={colIndex}
-			aria-sort={ariaSortValue(column.sortable, sorted, direction)}
+			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
 			data-resizable={dataAttr(canResize)}
 			data-grid-col={gridCol}
@@ -429,8 +443,9 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					sorted={sorted}
 					direction={direction}
 					toggleSort={toggleSort}
+					interactive={interactive}
 				/>
-				{filter?.canFilter(column.id) && (
+				{interactive && filter?.canFilter(column.id) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
 			</span>

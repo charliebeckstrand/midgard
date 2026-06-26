@@ -511,15 +511,20 @@ function useGridMenuActions<T>({
 	columnManagerConfig,
 	resize,
 	setSort,
+	hasRows,
 }: {
 	manageColumns: boolean
 	contextMenu: GridContextMenuConfig<T> | false | undefined
 	columnManagerConfig: GridColumnManagerConfig | undefined
 	resize: GridColumnResize | null
 	setSort: (sort: SortState | undefined) => void
+	/** Right-click menus stand down on an empty grid (its items act on rows). */
+	hasRows: boolean
 }) {
-	// Context menus are on by default; `false` opts out.
-	const menu = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
+	// Context menus are on by default (`false` opts out), but never on an empty grid.
+	const configured = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
+
+	const menu = hasRows ? configured : undefined
 
 	// The dialog renders when the manager is enabled, or when a column menu can
 	// reach it ("Choose Columns").
@@ -654,6 +659,11 @@ function GridData<T>({
 		[renderRows, getKey],
 	)
 
+	// An empty grid (no rows to act on, incl. while loading) stands its column
+	// interactions down: sort/resize/filter affordances hide, reorder switches
+	// off, and the right-click menu defers to the browser's.
+	const hasRows = renderRows.length > 0
+
 	const { selection, setSelection, toggleRow, toggleAll, allSelected, someSelected } =
 		useGridSelection({
 			selectionConfig,
@@ -700,7 +710,14 @@ function GridData<T>({
 		clearSort,
 		autoSizeColumns,
 		chooseColumns,
-	} = useGridMenuActions<T>({ manageColumns, contextMenu, columnManagerConfig, resize, setSort })
+	} = useGridMenuActions<T>({
+		manageColumns,
+		contextMenu,
+		columnManagerConfig,
+		resize,
+		setSort,
+		hasRows,
+	})
 
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
@@ -718,6 +735,8 @@ function GridData<T>({
 	// Full row extent for grid semantics: the server total when paginating, else
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
+
+	const reorderActive = canReorder && hasRows
 
 	// Fixed-layout column widths so a resize touches only its own column.
 	const { colGroup, tableClassName, tableWidth } = resolveResizeLayout({
@@ -748,9 +767,9 @@ function GridData<T>({
 
 			<GridHead
 				columns={visibleColumns}
-				hasRows={renderRows.length > 0}
+				hasRows={hasRows}
 				virtualized={virtualizeEnabled}
-				reorderable={canReorder}
+				reorderable={reorderActive}
 				resize={resize}
 				filters={filters}
 			/>
@@ -767,7 +786,7 @@ function GridData<T>({
 				empty={empty}
 				selection={selection}
 				toggleRow={toggleRow}
-				reorderable={canReorder}
+				reorderable={reorderActive}
 				truncate={truncate}
 				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 			/>
@@ -811,7 +830,7 @@ function GridData<T>({
 				)}
 
 				<GridRegion
-					canReorder={canReorder}
+					canReorder={reorderActive}
 					dndContextProps={dndContextProps}
 					itemIds={itemIds}
 					strategy={strategy}

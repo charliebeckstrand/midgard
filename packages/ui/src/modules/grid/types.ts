@@ -11,6 +11,15 @@ export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
 	sortable?: boolean
+	/**
+	 * Client-side comparator for this column, overriding the smart default (which
+	 * already handles numbers, comma-grouped numbers, currency, percentages,
+	 * dates, and natural string order). Receives two rows and returns a negative,
+	 * zero, or positive number for ascending order; the grid flips it for
+	 * descending. Runs under client sorting only — it is ignored when
+	 * {@link GridSort.manual} defers sorting to the consumer.
+	 */
+	sortFn?: (a: T, b: T) => number
 	/** Adds a filter button to this column's header that opens a query-builder popover; requires {@link GridColumn.value}. */
 	filterable?: boolean
 	/**

@@ -135,6 +135,20 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
+	it('defers to the native menu when Ctrl is held during the right-click', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((element) => element.textContent?.includes('Name'))
+
+		if (!header) throw new Error('no Name columnheader')
+
+		fireEvent.contextMenu(header, { ctrlKey: true })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
 	it('offers "Clear sort" only for the sorted column', () => {
 		renderUI(
 			<Grid

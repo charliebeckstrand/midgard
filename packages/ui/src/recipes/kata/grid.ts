@@ -134,13 +134,11 @@ export const k = {
 		cell: ['px-2', 'py-1', 'align-middle'],
 		// Header row: title on the left, filter button across from it on the right.
 		slot: ['flex', 'items-center', 'justify-between', 'gap-1'],
-		// Filter icon button in a column header; turns accent while a filter is active.
-		button: [
-			'shrink-0',
-			text.muted,
-			fg.hover,
-			'data-[active]:text-blue-600 dark:data-[active]:text-blue-400',
-		],
+		// Filter icon button in a column header: layout only. The active accent comes
+		// from the Button's `color` prop; `idle` is the resting muted tint, dropped
+		// when active so it doesn't override that colour.
+		button: ['shrink-0'],
+		idle: [text.muted, fg.hover],
 		// Filter popover panel: roomy so the value input has space alongside the operator.
 		popover: ['w-[32rem]', 'max-w-[calc(100vw-2rem)]'],
 	},

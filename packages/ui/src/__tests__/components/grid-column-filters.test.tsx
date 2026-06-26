@@ -63,6 +63,37 @@ describe('Grid per-column filters', () => {
 		expect(labels).not.toContain('Field')
 	})
 
+	it('accents the filter button via the color prop while a filter is active', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Filter Name' })
+
+		expect(button).toHaveAttribute('data-active')
+
+		// The Button's `color="blue"` tints the text (not just the always-blue
+		// focus ring); the resting muted tint drops.
+		expect(button.className).toMatch(/text-blue/)
+
+		expect(button.className).not.toMatch(/text-zinc-500/)
+	})
+
+	it('leaves the filter button unaccented when no filter is active', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const button = screen.getByRole('button', { name: 'Filter Name' })
+
+		expect(button).not.toHaveAttribute('data-active')
+
+		expect(button.className).not.toMatch(/text-blue/)
+	})
+
 	it('applies a controlled column query client-side', () => {
 		renderUI(
 			<Grid
