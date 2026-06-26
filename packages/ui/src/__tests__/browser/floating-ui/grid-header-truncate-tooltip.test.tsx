@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { renderUI, screen } from '../../helpers'
 
 /**
- * Column-header truncation reveal against real layout. A truncated title exposes
- * its full text through the native `title` attribute — no floating-ui portal per
- * header; jsdom can't measure overflow (`scrollWidth`/`clientWidth` are 0), so it
- * only resolves in the browser. A narrow controlled width forces truncation.
- * Both the sortable path (title inside the sort button) and the plain path run.
+ * Column-header truncation tooltip against the real floating engine and real
+ * layout. The jsdom suite can't see overflow (`scrollWidth`/`clientWidth` are 0)
+ * and mocks `@floating-ui/react`, so the hover tooltip only surfaces here. A
+ * narrow controlled column width forces the header to truncate (auto-fit stands
+ * down while `columnSizing` is controlled). Both the sortable path (title inside
+ * the sort button) and the plain path are exercised.
  */
-describe('grid header truncation reveal (real browser)', () => {
+describe('grid header truncation tooltip (real browser)', () => {
 	type Row = { id: number; name: string }
 
 	const longTitle = 'A very long column title that overflows its narrow header'
@@ -20,7 +22,7 @@ describe('grid header truncation reveal (real browser)', () => {
 
 	const narrow = { value: { name: 80 } }
 
-	it('reveals the full title via the native title when a sortable header is truncated', async () => {
+	it('shows a tooltip with the full title when a sortable header is truncated', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -31,10 +33,14 @@ describe('grid header truncation reveal (real browser)', () => {
 			/>,
 		)
 
-		await waitFor(() => expect(screen.getByText(longTitle)).toHaveAttribute('title', longTitle))
+		await userEvent.hover(screen.getByText(longTitle))
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(longTitle)
 	})
 
-	it('reveals the full title when a non-sortable header is truncated', async () => {
+	it('shows a tooltip with the full title when a non-sortable header is truncated', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -45,10 +51,14 @@ describe('grid header truncation reveal (real browser)', () => {
 			/>,
 		)
 
-		await waitFor(() => expect(screen.getByText(longTitle)).toHaveAttribute('title', longTitle))
+		await userEvent.hover(screen.getByText(longTitle))
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(longTitle)
 	})
 
-	it('reveals nothing when the title fits the header (precise detection)', async () => {
+	it('shows no tooltip when the title fits the header (precise detection)', async () => {
 		renderUI(
 			<Grid
 				resizable
@@ -59,11 +69,12 @@ describe('grid header truncation reveal (real browser)', () => {
 			/>,
 		)
 
-		await screen.findByText('Name')
+		await userEvent.hover(screen.getByText('Name'))
 
-		// A short title in a wide header does not overflow (guards a sub-pixel false positive).
+		// A short title in a wide header does not overflow; no tooltip should open
+		// even after the hover delay (guards against a sub-pixel false positive).
 		await new Promise((resolve) => setTimeout(resolve, 400))
 
-		expect(screen.getByText('Name')).not.toHaveAttribute('title')
+		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 })
