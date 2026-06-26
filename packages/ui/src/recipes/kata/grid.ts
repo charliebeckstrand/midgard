@@ -80,6 +80,10 @@ export const k = {
 			focus.ring,
 		],
 	},
+	filter: {
+		// Quick-search field above the table; capped width on larger viewports.
+		bar: ['w-full', 'sm:max-w-xs'],
+	},
 	footer: {
 		// Footer below the table: a row range/status on one edge, the page-size
 		// picker and page navigation on the other; wraps on narrow viewports.

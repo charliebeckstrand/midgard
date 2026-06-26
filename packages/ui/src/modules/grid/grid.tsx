@@ -14,10 +14,17 @@ import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
 import { GridEditable, type GridEditableProps } from './grid-editable'
+import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
-import type { GridColumn, GridColumnManagerPreset, GridColumnSizing, GridPagination } from './types'
+import type {
+	GridColumn,
+	GridColumnManagerPreset,
+	GridColumnSizing,
+	GridGlobalFilter,
+	GridPagination,
+} from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelection } from './use-grid-selection'
@@ -149,6 +156,16 @@ export type GridDataProps<T> = TableVariants & {
 	columnSizing?: GridColumnSizing
 
 	/**
+	 * Quick-search binding backed by the engine's global filter; renders a search
+	 * field above the table that searches columns declaring a
+	 * {@link GridColumn.value} accessor. Client-side by default; set `manual` for
+	 * server-side.
+	 *
+	 * @see {@link GridGlobalFilter}
+	 */
+	globalFilter?: GridGlobalFilter
+
+	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
 	 * non-pinned data column — letting the user reorder columns by pointer or
 	 * keyboard. Commits through `columnOrder`; `select`, `actions`, and `pinned`
@@ -251,6 +268,33 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 }
 
 /**
+ * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
+ * while loading, and — under virtualization — `role="grid"` with the full
+ * row/column counts (per-cell indices come from head/row).
+ *
+ * @internal
+ */
+function resolveTableProps(args: {
+	tableProps: TableElementProps | undefined
+	loading: boolean
+	virtualized: boolean
+	ariaRowCount: number
+	colCount: number
+}): TableElementProps {
+	return {
+		...args.tableProps,
+		...(args.loading ? { 'aria-busy': true } : {}),
+		...(args.virtualized
+			? {
+					role: args.tableProps?.role ?? 'grid',
+					'aria-rowcount': args.ariaRowCount,
+					'aria-colcount': args.colCount,
+				}
+			: {}),
+	}
+}
+
+/**
  * Data-driven {@link Table} over a flat `rows` source: maps each row through
  * `columns`, sorts and selects by the key from `getKey`, and shares that state
  * with head and cells via {@link useGrid}/{@link useGridRow}. Sort,
@@ -288,6 +332,7 @@ function GridData<T>({
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
+	globalFilter: globalFilterConfig,
 	reorder = false,
 	rowClassName,
 	rowLabel,
@@ -335,13 +380,14 @@ function GridData<T>({
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
-	const { renderRows, pagination, resize } = useGridTable<T>({
+	const { renderRows, pagination, resize, globalFilter } = useGridTable<T>({
 		rows,
 		columns,
 		getKey,
 		pagination: paginationConfig,
 		resizable,
 		columnSizing: columnSizingConfig,
+		globalFilter: globalFilterConfig,
 	})
 
 	const rowKeys = useMemo<(string | number)[]>(
@@ -406,22 +452,13 @@ function GridData<T>({
 			outline={outline}
 			striped={striped}
 			className={className}
-			// `aria-busy` marks the table as updating while the loading skeleton
-			// stands in for the body. Virtualization windows the DOM; these props
-			// advertise the full extent: `role="grid"` (aria-rowindex is inert on
-			// a plain `role="table"`), `aria-rowcount` (header + data rows), and
-			// `aria-colcount`, with per-cell indices emitted by head/row.
-			tableProps={{
-				...tableProps,
-				...(loading ? { 'aria-busy': true } : {}),
-				...(virtualizeEnabled
-					? {
-							role: tableProps?.role ?? 'grid',
-							'aria-rowcount': ariaRowCount,
-							'aria-colcount': visibleColumns.length,
-						}
-					: {}),
-			}}
+			tableProps={resolveTableProps({
+				tableProps,
+				loading,
+				virtualized: virtualizeEnabled,
+				ariaRowCount,
+				colCount: visibleColumns.length,
+			})}
 		>
 			<GridHead
 				columns={visibleColumns}
@@ -475,6 +512,8 @@ function GridData<T>({
 						onSavePreset={columnManagerConfig?.onSavePreset}
 					/>
 				)}
+
+				{globalFilter && <GridFilter filter={globalFilter} />}
 
 				{batchActions && someSelected && (
 					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>

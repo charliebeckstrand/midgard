@@ -46,6 +46,7 @@ export type {
 	GridColumnManagerPreset,
 	GridColumnSizing,
 	GridColumnSizingState,
+	GridGlobalFilter,
 	GridPagination,
 	GridPaginationState,
 } from './types'

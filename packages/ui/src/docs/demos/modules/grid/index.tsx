@@ -75,6 +75,11 @@ const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	minWidth: 100,
 }))
 
+const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
+	...col,
+	value: (row) => String(row[col.id as keyof Person]),
+}))
+
 function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
@@ -193,6 +198,19 @@ const ResizableExample = () => (
 	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
 )
 
+const GlobalFilterExample = () => {
+	const [query, setQuery] = useState('')
+
+	return (
+		<Grid
+			columns={searchableColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			globalFilter={{ value: query, onValueChange: setQuery, placeholder: 'Search people' }}
+		/>
+	)
+}
+
 const ColumnManagerExample = () => {
 	return (
 		<Grid
@@ -305,6 +323,10 @@ export function Demo() {
 
 			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
 				<ResizableExample />
+			</Example>
+
+			<Example title="Search" code={code`<Grid globalFilter={{ value, onValueChange }} />`}>
+				<GlobalFilterExample />
 			</Example>
 
 			<Example title="Column manager">

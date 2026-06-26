@@ -4,10 +4,13 @@ import {
 	type ColumnDef,
 	type ColumnSizingState,
 	getCoreRowModel,
+	getFilteredRowModel,
 	getPaginationRowModel,
 	type OnChangeFn,
 	type PaginationState,
 	type Table,
+	type TableOptions,
+	type Updater,
 	useReactTable,
 } from '@tanstack/react-table'
 import { useCallback, useMemo } from 'react'
@@ -18,6 +21,7 @@ import type {
 	GridColumn,
 	GridColumnSizing,
 	GridColumnSizingState,
+	GridGlobalFilter,
 	GridPagination,
 	GridPaginationState,
 } from './types'
@@ -28,6 +32,19 @@ const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: 
 /** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
 const EMPTY_SIZING: GridColumnSizingState = {}
 
+/** Search-input placeholder when {@link GridGlobalFilter} supplies none. @internal */
+const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
+
+/** Resolves a TanStack `Updater<S>` against a base value. @internal */
+function applyUpdater<S>(updater: Updater<S>, base: S): S {
+	return typeof updater === 'function' ? (updater as (prev: S) => S)(base) : updater
+}
+
+/** Server (manual) pagination is implied once a total is supplied. @internal */
+function isManualPagination(config: GridPagination | undefined): boolean {
+	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
+}
+
 /** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
 function parsePxWidth(width: string | undefined): number | undefined {
 	if (width == null) return undefined
@@ -37,14 +54,19 @@ function parsePxWidth(width: string | undefined): number | undefined {
 	return match ? Number(match[1]) : undefined
 }
 
-/** Maps a grid column to its engine `ColumnDef`: identity, the per-column resize gate, and sizing bounds. @internal */
+/** Maps a grid column to its engine `ColumnDef`: identity, the filter/sort value accessor, the resize gate, and sizing bounds. @internal */
 function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 	const size = parsePxWidth(col.width)
+
+	const { value } = col
 
 	return {
 		id: String(col.id),
 		// Only data columns resize; select/actions hold their width.
 		enableResizing: isDataColumn(col),
+		// `value` makes the column searchable/sortable by the engine without
+		// changing how its cell renders (still `col.cell`).
+		...(value ? { accessorFn: (row: T) => value(row) } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),
@@ -60,6 +82,76 @@ function manualTotals(
 	if (config?.rowCount != null) return { rowCount: config.rowCount }
 
 	return undefined
+}
+
+/** Pagination slice of the table options, or `{}` when pagination is off. @internal */
+function paginationOptions<T>(args: {
+	paginated: boolean
+	manual: boolean
+	config: GridPagination | undefined
+	onPaginationChange: OnChangeFn<PaginationState>
+}): Partial<TableOptions<T>> {
+	if (!args.paginated) return {}
+
+	return {
+		onPaginationChange: args.onPaginationChange,
+		...(args.manual
+			? { manualPagination: true, ...manualTotals(args.config) }
+			: { getPaginationRowModel: getPaginationRowModel() }),
+	}
+}
+
+/** Global-filter slice of the table options, or `{}` when filtering is off. @internal */
+function filterOptions<T>(args: {
+	configured: boolean
+	manual: boolean
+	onGlobalFilterChange: OnChangeFn<string>
+}): Partial<TableOptions<T>> {
+	if (!args.configured) return {}
+
+	return {
+		onGlobalFilterChange: args.onGlobalFilterChange,
+		globalFilterFn: 'includesString',
+		...(args.manual ? { manualFiltering: true } : { getFilteredRowModel: getFilteredRowModel() }),
+	}
+}
+
+/** Column-resize slice of the table options, or `{}` when resizing is off. @internal */
+function resizeOptions<T>(args: {
+	resizable: boolean
+	onColumnSizingChange: OnChangeFn<ColumnSizingState>
+}): Partial<TableOptions<T>> {
+	if (!args.resizable) return {}
+
+	return {
+		enableColumnResizing: true,
+		columnResizeMode: 'onChange',
+		onColumnSizingChange: args.onColumnSizingChange,
+	}
+}
+
+/** The controlled state slices the active features own. @internal */
+function buildState(args: {
+	paginated: boolean
+	pagination: PaginationState
+	resizable: boolean
+	sizing: ColumnSizingState
+	filtered: boolean
+	globalFilter: string
+}): { pagination?: PaginationState; columnSizing?: ColumnSizingState; globalFilter?: string } {
+	const state: {
+		pagination?: PaginationState
+		columnSizing?: ColumnSizingState
+		globalFilter?: string
+	} = {}
+
+	if (args.paginated) state.pagination = args.pagination
+
+	if (args.resizable) state.columnSizing = args.sizing
+
+	if (args.filtered) state.globalFilter = args.globalFilter
+
+	return state
 }
 
 /** Assembles the {@link GridColumnResize} controls over a table instance; every method reads it live. @internal */
@@ -97,6 +189,38 @@ function buildColumnResize<T>(table: Table<T>): GridColumnResize {
 	}
 }
 
+/** Builds the {@link GridPaginationView} the footer renders from. @internal */
+function buildPaginationView<T>(args: {
+	table: Table<T>
+	pagination: PaginationState
+	manual: boolean
+	config: GridPagination
+	pageRowCount: number
+}): GridPaginationView {
+	const { pageIndex, pageSize } = args.pagination
+
+	const onPage = args.pageRowCount
+
+	// Pre-pagination count reflects any client-side filtering; server mode trusts the supplied total.
+	const total = args.manual
+		? args.config.rowCount
+		: args.table.getPrePaginationRowModel().rows.length
+
+	return {
+		pageIndex,
+		pageSize,
+		pageCount: args.table.getPageCount(),
+		rowCount: total,
+		from: onPage === 0 ? 0 : pageIndex * pageSize + 1,
+		to: onPage === 0 ? 0 : pageIndex * pageSize + onPage,
+		canPrevious: args.table.getCanPreviousPage(),
+		canNext: args.table.getCanNextPage(),
+		pageSizeOptions: args.config.pageSizeOptions,
+		setPageIndex: (index) => args.table.setPageIndex(index),
+		setPageSize: (size) => args.table.setPageSize(size),
+	}
+}
+
 /** Parameters for {@link useGridTable}. @internal */
 type UseGridTableParams<T> = {
 	rows: T[]
@@ -105,6 +229,7 @@ type UseGridTableParams<T> = {
 	pagination?: GridPagination
 	resizable?: boolean
 	columnSizing?: GridColumnSizing
+	globalFilter?: GridGlobalFilter
 }
 
 /**
@@ -140,7 +265,7 @@ export type GridPaginationView = {
 	pageSize: number
 	/** Total pages, or `-1` when unknown (server mode with no `rowCount`/`pageCount`). */
 	pageCount: number
-	/** Total rows across pages when known: `rowCount` in server mode, the data length in client mode. */
+	/** Total rows across pages when known: `rowCount` in server mode, the filtered count in client mode. */
 	rowCount: number | undefined
 	/** 1-based index of the first row shown on the page; `0` when the page is empty. */
 	from: number
@@ -153,31 +278,39 @@ export type GridPaginationView = {
 	setPageSize: (size: number) => void
 }
 
+/** Global-filter view the search input renders from. @internal */
+export type GridGlobalFilterView = {
+	value: string
+	setValue: (value: string) => void
+	placeholder: string
+}
+
 /** Result of {@link useGridTable}. @internal */
 type UseGridTableResult<T> = {
 	/** The TanStack Table instance backing the grid. */
 	table: Table<T>
-	/** Rows to render: the current page in client mode, the supplied page verbatim in server mode, or all rows when unpaginated. */
+	/** Rows to render: the engine-transformed slice when paginating/filtering client-side, else the supplied `rows`. */
 	renderRows: T[]
 	/** Footer view model, or `null` when pagination is not configured. */
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
 	resize: GridColumnResize | null
+	/** Global-filter view, or `null` when filtering is not configured. */
+	globalFilter: GridGlobalFilterView | null
 }
 
 /**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * powers a {@link Grid}: it adapts the grid's `GridColumn[]` to TanStack
- * `ColumnDef[]` and `getKey` to `getRowId`, then routes data through the table's
- * row model so pagination (and, ahead, sorting/filtering/grouping) ride one
- * engine.
+ * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`,
+ * then routes data through the table's row model so pagination, filtering, and
+ * column sizing ride one engine.
  *
- * @remarks Pagination is opt-in. Server mode (`manual`) leaves the data
- * untouched — the consumer feeds each page as `rows` and supplies a total — per
- * TanStack's `manualPagination` contract; client mode slices `rows` through
- * `getPaginationRowModel`. The row model is only materialized when pagination is
- * active, so unpaginated grids render straight from `rows` and pay no engine
- * traversal. `autoResetPageIndex` is off: the page is consumer-controlled.
+ * @remarks Each feature is opt-in. Pagination and filtering each run server-side
+ * (`manual`, the consumer transforms `rows`) or client-side (the engine slices
+ * and filters); resizing rides the column-sizing API. The row model is only
+ * materialized when a client-side transform is active, so a plain grid renders
+ * straight from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
  * @typeParam T - Shape of a single row.
  * @internal
  */
@@ -188,19 +321,14 @@ export function useGridTable<T>({
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
+	globalFilter: globalFilterConfig,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
-	// Display-only column defs (rendering still flows through the grid's own
-	// `visibleColumns`, so the engine needs identities, not accessors — accessors
-	// arrive when the header/cell render migrates onto `flexRender`), carrying the
-	// sizing bounds and per-column resize gate.
 	const columnDefs = useMemo<ColumnDef<T>[]>(() => columns.map(toColumnDef), [columns])
 
 	const paginated = paginationConfig != null
 
 	// Server mode is implied once a total is supplied; otherwise the grid slices.
-	const manual =
-		paginationConfig?.manual ??
-		(paginationConfig?.rowCount != null || paginationConfig?.pageCount != null)
+	const manual = isManualPagination(paginationConfig)
 
 	const [paginationState, setPaginationState] = useControllable<GridPaginationState>({
 		value: paginationConfig?.value,
@@ -212,16 +340,11 @@ export function useGridTable<T>({
 
 	const resolvedPagination = paginationState ?? DEFAULT_PAGINATION_STATE
 
-	// Bridge TanStack's `Updater<PaginationState>` onto the controllable setter so
-	// the table's own `setPageIndex`/`setPageSize`/`nextPage` flow out through the
-	// public `onValueChange`.
+	// Bridge TanStack's `Updater<T>` onto each controllable setter so the table's
+	// own imperative methods flow out through the public `onValueChange`.
 	const onPaginationChange = useCallback<OnChangeFn<PaginationState>>(
-		(updater) => {
-			setPaginationState((prev) => {
-				const base = prev ?? DEFAULT_PAGINATION_STATE
-				return typeof updater === 'function' ? updater(base) : updater
-			})
-		},
+		(updater) =>
+			setPaginationState((prev) => applyUpdater(updater, prev ?? DEFAULT_PAGINATION_STATE)),
 		[setPaginationState],
 	)
 
@@ -234,87 +357,92 @@ export function useGridTable<T>({
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
-		(updater) => {
-			setColumnSizingState((prev) => {
-				const base = prev ?? EMPTY_SIZING
-				return typeof updater === 'function' ? updater(base) : updater
-			})
-		},
+		(updater) => setColumnSizingState((prev) => applyUpdater(updater, prev ?? EMPTY_SIZING)),
 		[setColumnSizingState],
 	)
 
+	const filterConfigured = globalFilterConfig != null
+
+	const filterManual = globalFilterConfig?.manual ?? false
+
+	const [globalFilterState, setGlobalFilterState] = useControllable<string>({
+		value: globalFilterConfig?.value,
+		defaultValue: globalFilterConfig?.defaultValue ?? '',
+		onValueChange: (next) => globalFilterConfig?.onValueChange?.(next ?? ''),
+	})
+
+	const resolvedGlobalFilter = globalFilterState ?? ''
+
+	const onGlobalFilterChange = useCallback<OnChangeFn<string>>(
+		(updater) => setGlobalFilterState((prev) => applyUpdater(updater, prev ?? '')),
+		[setGlobalFilterState],
+	)
+
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
-
-	// State is controlled per feature; merge the active slices into one object.
-	const state: { pagination?: PaginationState; columnSizing?: ColumnSizingState } = {}
-
-	if (paginated) state.pagination = resolvedPagination
-
-	if (resizable) state.columnSizing = resolvedSizing
 
 	const table = useReactTable<T>({
 		data: rows,
 		columns: columnDefs,
 		getRowId,
 		getCoreRowModel: getCoreRowModel(),
-		// The page coordinate and column widths are owned by controllable bindings.
+		// The page coordinate, widths, and query are owned by controllable bindings.
 		autoResetPageIndex: false,
-		state,
-		...(paginated
-			? {
-					onPaginationChange,
-					...(manual
-						? { manualPagination: true, ...manualTotals(paginationConfig) }
-						: { getPaginationRowModel: getPaginationRowModel() }),
-				}
-			: {}),
-		...(resizable
-			? { enableColumnResizing: true, columnResizeMode: 'onChange', onColumnSizingChange }
-			: {}),
+		state: buildState({
+			paginated,
+			pagination: resolvedPagination,
+			resizable,
+			sizing: resolvedSizing,
+			filtered: filterConfigured,
+			globalFilter: resolvedGlobalFilter,
+		}),
+		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
+		...resizeOptions<T>({ resizable, onColumnSizingChange }),
+		...filterOptions<T>({
+			configured: filterConfigured,
+			manual: filterManual,
+			onGlobalFilterChange,
+		}),
 	})
 
-	// Only touch the row model when paginating; unpaginated grids skip the
-	// per-row traversal entirely and hand `rows` straight to the body.
-	const renderRows = paginated
-		? table.getRowModel().rows.map((modelRow) => modelRow.original)
-		: rows
+	// Materialize the row model only when a client-side transform is active;
+	// otherwise hand `rows` straight to the body.
+	const clientTransform = (paginated && !manual) || (filterConfigured && !filterManual)
 
-	const pagination = useMemo<GridPaginationView | null>(() => {
-		if (!paginated) return null
+	const renderRows =
+		paginated || clientTransform
+			? table.getRowModel().rows.map((modelRow) => modelRow.original)
+			: rows
 
-		const { pageIndex, pageSize } = resolvedPagination
-
-		const onPage = renderRows.length
-
-		const total = manual ? paginationConfig?.rowCount : rows.length
-
-		return {
-			pageIndex,
-			pageSize,
-			pageCount: table.getPageCount(),
-			rowCount: total,
-			from: onPage === 0 ? 0 : pageIndex * pageSize + 1,
-			to: onPage === 0 ? 0 : pageIndex * pageSize + onPage,
-			canPrevious: table.getCanPreviousPage(),
-			canNext: table.getCanNextPage(),
-			pageSizeOptions: paginationConfig?.pageSizeOptions,
-			setPageIndex: (index) => table.setPageIndex(index),
-			setPageSize: (size) => table.setPageSize(size),
-		}
-	}, [
-		paginated,
-		manual,
-		resolvedPagination,
-		renderRows.length,
-		rows.length,
-		paginationConfig,
-		table,
-	])
+	// Computed each render (not memoized) so the total reflects live client-side
+	// filtering — read through `table`, which a deps array can't observe; the
+	// footer is cheap and re-renders with the grid regardless.
+	const pagination =
+		paginated && paginationConfig
+			? buildPaginationView({
+					table,
+					pagination: resolvedPagination,
+					manual,
+					config: paginationConfig,
+					pageRowCount: renderRows.length,
+				})
+			: null
 
 	const resize = useMemo<GridColumnResize | null>(
 		() => (resizable ? buildColumnResize(table) : null),
 		[resizable, table],
 	)
 
-	return { table, renderRows, pagination, resize }
+	const globalFilter = useMemo<GridGlobalFilterView | null>(
+		() =>
+			filterConfigured
+				? {
+						value: resolvedGlobalFilter,
+						setValue: (value: string) => table.setGlobalFilter(value),
+						placeholder: globalFilterConfig?.placeholder ?? DEFAULT_SEARCH_PLACEHOLDER,
+					}
+				: null,
+		[filterConfigured, resolvedGlobalFilter, globalFilterConfig, table],
+	)
+
+	return { table, renderRows, pagination, resize, globalFilter }
 }

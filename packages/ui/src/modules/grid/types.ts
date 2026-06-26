@@ -18,6 +18,12 @@ export type GridColumn<T> = {
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
+	 * Raw value for engine operations — filtering today, sorting/grouping ahead —
+	 * distinct from {@link GridColumn.cell}, which renders. A column needs `value`
+	 * to be searchable.
+	 */
+	value?: (row: T) => unknown
+	/**
 	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
 	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
 	 * composite-widget wrapper like GridEditable). Returned `className` is
@@ -124,4 +130,25 @@ export type GridColumnSizing = {
 	value?: GridColumnSizingState
 	defaultValue?: GridColumnSizingState
 	onValueChange?: (sizing: GridColumnSizingState) => void
+}
+
+/**
+ * Controlled/uncontrolled global-filter (quick search) binding for
+ * {@link GridProps.globalFilter}, backed by the grid's TanStack Table engine.
+ *
+ * @remarks Searches the columns that declare a {@link GridColumn.value}
+ * accessor. Client-side by default — the engine filters `rows`; set `manual` for
+ * server-side, where the consumer refetches from the emitted query and feeds
+ * back `rows`.
+ */
+export type GridGlobalFilter = {
+	value?: string
+	defaultValue?: string
+	onValueChange?: (value: string) => void
+	manual?: boolean
+	/**
+	 * Placeholder for the search input.
+	 * @defaultValue 'Search'
+	 */
+	placeholder?: string
 }
