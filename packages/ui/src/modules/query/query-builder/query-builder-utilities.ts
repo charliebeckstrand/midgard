@@ -107,11 +107,13 @@ export function hasRules(group: QueryGroup): boolean {
 
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
- * blank or whitespace-only strings, and empty arrays read as empty.
+ * blank or whitespace-only strings, and empty arrays read as empty. Shared with
+ * the evaluator so a rule the builder reads as inactive imposes no constraint on
+ * rows (the "active" notion and the filter result stay in step).
  *
  * @internal
  */
-function isEmptyValue(value: unknown): boolean {
+export function isEmptyValue(value: unknown): boolean {
 	if (value == null) return true
 
 	if (typeof value === 'string') return value.trim() === ''

@@ -37,6 +37,32 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('???', 'x', 'y')).toBe(true)
 	})
 
+	it('imposes no constraint when a value-requiring operator has an empty value', () => {
+		// A cleared date rule (operator "on" → equals, value blank) must match every
+		// row, not hide them all — the regression behind "clear the filter and the
+		// rows don't come back".
+		expect(matchQueryRule('equals', '2026-01-15', '')).toBe(true)
+
+		expect(matchQueryRule('before', '2026-01-15', '')).toBe(true)
+
+		expect(matchQueryRule('after', '2026-01-15', undefined)).toBe(true)
+
+		// Same for a blank numeric comparison and a blank text match.
+		expect(matchQueryRule('gt', 5, '')).toBe(true)
+
+		expect(matchQueryRule('lt', 5, '')).toBe(true)
+
+		expect(matchQueryRule('contains', 'Alice', '   ')).toBe(true)
+	})
+
+	it('still constrains when a value-requiring operator has a value', () => {
+		expect(matchQueryRule('equals', '2026-01-15', '2026-01-15')).toBe(true)
+
+		expect(matchQueryRule('equals', '2026-01-15', '2026-02-01')).toBe(false)
+
+		expect(matchQueryRule('before', '2026-01-15', '2026-02-01')).toBe(true)
+	})
+
 	it('matches the between range operator inclusively', () => {
 		expect(matchQueryRule('between', 5, [1, 10])).toBe(true)
 

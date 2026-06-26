@@ -1,4 +1,16 @@
+import { isEmptyValue } from './query-builder-utilities'
 import type { QueryGroup, QueryNode } from './types'
+
+/**
+ * Operators that evaluate without a rule value — their matcher ignores the second
+ * argument. Every other operator imposes no constraint when its value is empty,
+ * so a half-built or cleared rule (e.g. a date rule whose value was cleared back
+ * to blank) never hides rows. Mirrors the `noValue` operator flag in
+ * `getOperators`.
+ *
+ * @internal
+ */
+const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'])
 
 /** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
 function asText(value: unknown): string {
@@ -52,13 +64,20 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
- * Tests one operator against a field value and a rule value. Unknown operators
- * pass (treated as "no constraint"), so a half-built rule never hides rows.
+ * Tests one operator against a field value and a rule value. Three cases pass as
+ * "no constraint" so a half-built or cleared rule never hides rows: an unknown
+ * operator, and a value-requiring operator whose value is empty (a blank text
+ * box, a cleared date, an all-blank range). Value-less operators (`is empty`,
+ * `is true`, …) evaluate regardless.
  */
 export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
 	const matcher = matchers[operator]
 
-	return matcher ? matcher(fieldValue, ruleValue) : true
+	if (!matcher) return true
+
+	if (!VALUELESS_OPERATORS.has(operator) && isEmptyValue(ruleValue)) return true
+
+	return matcher(fieldValue, ruleValue)
 }
 
 /** Evaluates one node — a rule via {@link matchQueryRule}, a group via {@link evaluateQuery}. @internal */
