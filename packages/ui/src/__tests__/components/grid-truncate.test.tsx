@@ -46,3 +46,44 @@ describe('Grid cell truncation', () => {
 		expect(cell?.querySelector('span.truncate')).toBeNull()
 	})
 })
+
+// The overflow tooltip itself needs real layout (see the browser suite,
+// grid-header-truncate-tooltip); these cover the structural wiring jsdom sees.
+describe('Grid header truncation', () => {
+	type Row = { id: number; name: string }
+
+	const rows: Row[] = [{ id: 1, name: 'Alice' }]
+
+	const getKey = (row: Row) => row.id
+
+	it('wraps a sortable column title in a truncating element inside the sort button', () => {
+		const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const header = container.querySelector('th[data-grid-col="name"]')
+
+		const title = header?.querySelector('button span.truncate')
+
+		expect(title).not.toBeNull()
+
+		expect(title).toHaveTextContent('Name')
+	})
+
+	it('wraps a non-sortable column title in a truncating element', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', sortable: false, cell: (row) => row.name },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const header = container.querySelector('th[data-grid-col="name"]')
+
+		// No sort button when the column opts out of sorting, but the title still truncates.
+		expect(header?.querySelector('button')).toBeNull()
+
+		expect(header?.querySelector('span.truncate')).not.toBeNull()
+
+		expect(header).toHaveTextContent('Name')
+	})
+})

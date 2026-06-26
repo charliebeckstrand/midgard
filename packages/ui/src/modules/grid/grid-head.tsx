@@ -7,6 +7,7 @@ import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableHead, TableHeader, TableRow } from '../../components/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
@@ -18,6 +19,7 @@ import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnFilter, GridColumnResize } from './use-grid-table'
+import { useGridTruncation } from './use-grid-truncation'
 
 /** Props for {@link GridHead}. @internal */
 type GridHeadProps<T> = {
@@ -251,13 +253,43 @@ function sortDirectionIcon(
 ): ReactElement | null {
 	if (!sorted) return null
 
-	const className = cn(k.sort.icon({ active: true }))
+	// `shrink-0` keeps the arrow at full size while the adjacent title truncates.
+	const className = cn(k.sort.icon({ active: true }), 'shrink-0')
 
 	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={className} />
 
 	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={className} />
 
 	return null
+}
+
+/**
+ * A column's title on a single line, truncated to an ellipsis when it overflows
+ * the header. A truncated title gains a hover/focus {@link Tooltip} revealing the
+ * full text — sharing the data cell's sub-pixel overflow detection so the header
+ * and its column clip in step. An untruncated title renders just the span; the
+ * closed tooltip adds no surface.
+ *
+ * @remarks Like {@link GridCellContent}, the span stays mounted and the tooltip
+ * is gated by `enabled` rather than mounted only while truncated, so the overflow
+ * `ResizeObserver` never detaches and a widened column re-measures and closes the
+ * tooltip.
+ * @internal
+ */
+function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+
+	return (
+		<Tooltip enabled={truncated}>
+			<TooltipTrigger>
+				<span ref={ref} className={cn(k.head.title)}>
+					{title}
+				</span>
+			</TooltipTrigger>
+
+			<TooltipContent className={cn(k.cell.tooltip)}>{title}</TooltipContent>
+		</Tooltip>
+	)
 }
 
 /** Title text, wrapped in a sort-toggle button when the column is sortable and interactive. @internal */
@@ -271,7 +303,7 @@ function ColumnHeaderLabel({
 	GridColumnHeaderProps,
 	'column' | 'sorted' | 'direction' | 'toggleSort' | 'interactive'
 >): ReactNode {
-	if (!column.sortable || !interactive) return column.title
+	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
 
 	return (
 		<HeadlessProvider>
@@ -281,7 +313,7 @@ function ColumnHeaderLabel({
 				onClick={() => toggleSort(column.id)}
 				aria-label={`Sort by ${headerLabel(column)}`}
 			>
-				{column.title}
+				<GridHeaderTitle title={column.title} />
 				{sortDirectionIcon(sorted, direction)}
 			</Button>
 		</HeadlessProvider>

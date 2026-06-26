@@ -100,7 +100,9 @@ const filterableColumns: GridColumn<Person>[] = searchableColumns.map((col) =>
 
 const truncatedColumns: GridColumn<Person>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name },
-	{ id: 'email', title: 'Email', cell: (row) => row.email },
+	// A long title truncates in the header and reveals itself on hover, the same
+	// way an overflowing cell does.
+	{ id: 'email', title: 'Email address on file', cell: (row) => row.email },
 	{
 		id: 'role',
 		title: 'Role',
@@ -292,9 +294,10 @@ const ResizableExample = () => (
 )
 
 const TruncationExample = () => (
-	// In a narrow grid, overflowing cells truncate to an ellipsis and reveal the
-	// full text in a tooltip on hover; the Role column supersedes that tooltip via
-	// `cellTooltip`. Truncation is on by default — pass `truncate={false}` to wrap.
+	// In a narrow grid, overflowing cells — and column titles — truncate to an
+	// ellipsis and reveal the full text in a tooltip on hover; the Role column
+	// supersedes the cell tooltip via `cellTooltip`. Truncation is on by default —
+	// pass `truncate={false}` to wrap.
 	<div className="max-w-sm">
 		<Grid resizable columns={truncatedColumns} rows={people} getKey={(row) => row.id} />
 	</div>

@@ -68,8 +68,17 @@ export const k = {
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
 	},
+	head: {
+		// One-line header title that truncates to an ellipsis when it outgrows the
+		// column. `min-w-0` overrides the flex item's `min-width: auto` so it shrinks
+		// within the header's flex slot — and, for a sortable column, within the sort
+		// button — instead of pushing past the cell into its neighbour.
+		title: ['block', 'truncate', 'min-w-0'],
+	},
 	sort: {
-		button: [flex.inline, text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		// `min-w-0` lets the button shrink within the header slot so its title can
+		// truncate; the title carries the ellipsis while the sort arrow holds its size.
+		button: [flex.inline, 'min-w-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 		icon: sortIcon,
 	},
 	reorder: {
@@ -80,8 +89,10 @@ export const k = {
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
-		// Keeps the grip, title, and any sort control on one baseline.
-		layout: [flex.inline, 'items-center gap-1'],
+		// Keeps the grip, title, and any sort control on one baseline. A block-level
+		// flex (not inline) fills the header width so the title between the grip and
+		// the filter button can shrink to an ellipsis instead of overrunning the cell.
+		layout: [flex.row, 'min-w-0', 'gap-1'],
 		handle: [
 			flex.inline,
 			'shrink-0',
