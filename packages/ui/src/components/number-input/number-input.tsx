@@ -147,6 +147,11 @@ export function NumberInput({
 			step={step}
 			className={cn(padding[resolvedSize], k.number, className)}
 			suffix={
+				// Keep focus on the input when a stepper is pressed. The buttons are
+				// tabIndex -1 and mutate silently, so a focus shift would blur the
+				// input — ending an enclosing edit (e.g. a Grid editable cell, whose
+				// numeric editor commits on blur) before the click's step lands.
+				// preventDefault cancels only the focus move; the click still fires.
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
 						variant="bare"
@@ -154,6 +159,7 @@ export function NumberInput({
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
+						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
 					>
 						<Icon icon={<Minus />} />
@@ -164,6 +170,7 @@ export function NumberInput({
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
+						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
 					>
 						<Icon icon={<Plus />} />

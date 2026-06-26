@@ -57,6 +57,29 @@ describe('NumberInput', () => {
 		await vi.waitFor(() => expect(politeRegion).toHaveTextContent('5'))
 	})
 
+	it('keeps focus on the input when a stepper is pressed', async () => {
+		const onBlur = vi.fn()
+
+		renderUI(<NumberInput defaultValue={5} onBlur={onBlur} />)
+
+		const user = userEvent.setup()
+
+		const input = screen.getByRole('spinbutton')
+
+		await user.click(input)
+
+		expect(input).toHaveFocus()
+
+		await user.click(screen.getByLabelText('Increase'))
+
+		// The tabIndex -1 steppers must not steal focus: blurring the input would
+		// end an enclosing edit (e.g. a Grid editable cell that commits on blur)
+		// before the step lands.
+		expect(input).toHaveFocus()
+
+		expect(onBlur).not.toHaveBeenCalled()
+	})
+
 	it('forwards ref', () => {
 		const ref = createRef<HTMLInputElement>()
 
