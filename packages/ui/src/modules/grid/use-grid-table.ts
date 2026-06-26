@@ -18,7 +18,7 @@ import {
 	type Updater,
 	useReactTable,
 } from '@tanstack/react-table'
-import { useCallback, useMemo } from 'react'
+import { type RefObject, useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery, type QueryGroupNode } from '../query'
@@ -33,6 +33,7 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
+import { useGridColumnFit } from './use-grid-column-fit'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
 const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE }
@@ -270,8 +271,8 @@ function buildState(args: {
 	return state
 }
 
-/** Assembles the {@link GridColumnResize} controls over a table instance; every method reads it live. @internal */
-function buildColumnResize<T>(table: Table<T>): GridColumnResize {
+/** Assembles the table-backed {@link GridColumnResize} controls (all but `sizeToFit`, grafted on by the hook); every method reads it live. @internal */
+function buildColumnResize<T>(table: Table<T>): Omit<GridColumnResize, 'sizeToFit'> {
 	const bounds = (id: string | number) => {
 		const column = table.getColumn(String(id))
 
@@ -364,6 +365,8 @@ type UseGridTableParams<T> = {
 	columnSizing?: GridColumnSizing
 	globalFilter?: GridSearch
 	columnFilters?: GridColumnFilters
+	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
+	containerRef?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -388,6 +391,8 @@ export type GridColumnResize = {
 	bounds: (id: string | number) => { min: number; max: number }
 	/** Adjust a column's width by `delta` px (keyboard), clamped to its bounds. */
 	nudge: (id: string | number, delta: number) => void
+	/** Auto-size data columns to fill the container width, re-arming auto-fit. */
+	sizeToFit: () => void
 }
 
 /**
@@ -479,6 +484,7 @@ export function useGridTable<T>({
 	columnSizing: columnSizingConfig,
 	globalFilter: globalFilterConfig,
 	columnFilters: columnFiltersConfig,
+	containerRef,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
 	const columnDefs = useMemo<ColumnDef<T>[]>(() => columns.map(toColumnDef), [columns])
 
@@ -624,9 +630,19 @@ export function useGridTable<T>({
 				})
 			: null
 
+	// Auto-size resizable columns to fill the container, unless widths are
+	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
+	const { sizeToFit } = useGridColumnFit<T>({
+		resizable,
+		controlled: columnSizingConfig?.value != null,
+		table,
+		columns,
+		containerRef,
+	})
+
 	const resize = useMemo<GridColumnResize | null>(
-		() => (resizable ? buildColumnResize(table) : null),
-		[resizable, table],
+		() => (resizable ? { ...buildColumnResize(table), sizeToFit } : null),
+		[resizable, table, sizeToFit],
 	)
 
 	const globalFilter = useMemo<GridGlobalFilterView | null>(

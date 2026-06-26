@@ -12,9 +12,11 @@ Resizable columns are the second: the `resizable` prop wires TanStack's column-s
 
 Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column filters both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server). A `filterable` column shows a Filter button in its header opening a popover with a single-column query builder (from [`modules/query`](../query)) — operator + value rules joined by AND/OR, typed per the column's `filterType` (`text` / `number` / `select`) — applied to rows by the query evaluator.
 
-Sorting is the fourth: data columns are sortable and sorted client-side by default — the engine orders `rows` through `getSortedRowModel` by each column's `value` accessor, or the row field named by the column id when none is given. Opt a column out with `sortable: false` (or grid-wide with `sortable={false}`), and switch to server-side ordering with `sort.manual: true`, where the consumer sorts `rows` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
+Sorting is the fourth: data columns are sortable and sorted client-side by default — the engine orders `rows` through `getSortedRowModel` by each column's `value` accessor, or the row field named by the column id when none is given. A header click cycles the column tri-state, ascending → descending → unsorted. Opt a column out with `sortable: false` (or grid-wide with `sortable={false}`), and switch to server-side ordering with `sort.manual: true`, where the consumer sorts `rows` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
 
-Context menus are the fifth: a `contextMenu` config adds a cursor-anchored right-click menu — a column menu on headers (Sort Ascending / Descending, Choose Columns, which opens the column manager) and a cell menu on body cells (Copy). Each side is opt-in and reshapeable through a builder that receives the default items. It composes the `Menu` primitive; column pinning — and a Pin Column item — remain on the backlog.
+Context menus are the fifth, and on by default (`contextMenu={false}` opts out): a cursor-anchored right-click menu — a column menu on headers (Sort Ascending / Descending, Clear sort once the column is sorted, Auto-size columns when resizing is on, Choose Columns, which opens the column manager) and a cell menu on body cells (Copy). Each side reshapes through a builder that receives the default items. It composes the `Menu` primitive; column pinning — and a Pin Column item — remain on the backlog.
+
+Auto-sizing is the sixth: under `resizable`, data columns fit the container width on mount and on container resize (via `ResizeObserver`), distributing the available width across data columns within each column's bounds and standing down once the user drag-resizes a column (so manual widths persist). The header's "Auto-size columns" action re-fits on demand and re-arms the automatic behavior. Width-distribution only; content measurement (fit-to-content) is still on the backlog.
 
 Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 
@@ -37,8 +39,8 @@ Each step preserves the public API via adapters and ships as its own change, sma
 |---|---|
 | Column pinning (freeze left/right) | `state.columnPinning`, `column.pin()`; sticky offsets from `column.getStart()/getAfter()` |
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
-| Auto-size / fit-to-content | Measure rendered cells, then `setColumnSizing` |
-| Column header menu | Right-click sort + "Choose Columns" shipped via `contextMenu`; fold in filter/pin/hide/resize as they land |
+| Fit-to-content sizing | Auto-fit-to-width shipped (distributes container width via `setColumnSizing`); fit-to-content still needs rendered-cell measurement |
+| Column header menu | Right-click sort + clear-sort + auto-size + "Choose Columns" shipped via `contextMenu`; fold in filter/pin/hide as they land |
 
 ### Filtering
 

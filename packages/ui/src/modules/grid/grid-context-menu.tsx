@@ -1,9 +1,10 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Columns3, Copy } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, Copy, StretchHorizontal } from 'lucide-react'
 import { type MouseEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from '../../components/menu'
+import type { SortState } from './context'
 import type {
 	GridCellMenuContext,
 	GridColumn,
@@ -23,7 +24,13 @@ type GridContextMenuProps<T> = {
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
 	rows: T[]
 	rowKeys: (string | number)[]
+	/** Active sort, so a sorted column's menu offers "Clear sort". */
+	sort: SortState | undefined
 	sortColumn: SortColumn
+	/** Clears the grid's active sort. */
+	clearSort: () => void
+	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
+	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Choose Columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
 	children: ReactNode
@@ -34,12 +41,27 @@ function copyText(text: string): void {
 	navigator.clipboard?.writeText(text)
 }
 
-/** Default header-menu items: sort controls (when the column sorts), then "Choose Columns" (when a manager is reachable). @internal */
-function columnMenuDefaults<T>(
-	column: GridColumn<T>,
-	sortColumn: SortColumn,
-	chooseColumns: (() => void) | null,
-): GridMenuItem[] {
+/** Inputs shaping the default header-menu items. @internal */
+type ColumnMenuDefaultArgs<T> = {
+	column: GridColumn<T>
+	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
+	sortDirection: 'asc' | 'desc' | undefined
+	sortColumn: SortColumn
+	clearSort: () => void
+	autoSizeColumns: (() => void) | null
+	chooseColumns: (() => void) | null
+}
+
+/**
+ * Default header-menu items: sort controls (when the column sorts) with a
+ * "Clear sort" once it is the sorted column, an "Auto-size columns" action
+ * (when resizing is on), then "Choose Columns" (when a manager is reachable).
+ *
+ * @internal
+ */
+function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
+	const { column, sortDirection, sortColumn, clearSort, autoSizeColumns, chooseColumns } = args
+
 	const items: GridMenuItem[] = []
 
 	if (column.sortable !== false) {
@@ -57,6 +79,24 @@ function columnMenuDefaults<T>(
 				onSelect: () => sortColumn(column.id, 'desc'),
 			},
 		)
+
+		if (sortDirection) {
+			items.push({
+				key: 'clear-sort',
+				label: 'Clear sort',
+				icon: <ArrowUpDown />,
+				onSelect: clearSort,
+			})
+		}
+	}
+
+	if (autoSizeColumns) {
+		items.push({
+			key: 'auto-size',
+			label: 'Auto-size columns',
+			icon: <StretchHorizontal />,
+			onSelect: autoSizeColumns,
+		})
 	}
 
 	if (chooseColumns) {
@@ -106,7 +146,10 @@ export function GridContextMenu<T>({
 	columns,
 	rows,
 	rowKeys,
+	sort,
 	sortColumn,
+	clearSort,
+	autoSizeColumns,
 	chooseColumns,
 	children,
 }: GridContextMenuProps<T>) {
@@ -132,18 +175,30 @@ export function GridContextMenu<T>({
 
 			if (!column) return null
 
+			const sortDirection = sort?.column === column.id ? sort.direction : undefined
+
 			const context: GridColumnMenuContext<T> = {
 				column,
+				sortDirection,
 				sortAscending: () => sortColumn(column.id, 'asc'),
 				sortDescending: () => sortColumn(column.id, 'desc'),
+				clearSort,
+				autoSizeColumns: autoSizeColumns ?? undefined,
 				chooseColumns: () => chooseColumns?.(),
 			}
 
-			const defaults = columnMenuDefaults(column, sortColumn, chooseColumns)
+			const defaults = columnMenuDefaults({
+				column,
+				sortDirection,
+				sortColumn,
+				clearSort,
+				autoSizeColumns,
+				chooseColumns,
+			})
 
 			return typeof config.column === 'function' ? config.column(context, defaults) : defaults
 		},
-		[config.column, columnById, sortColumn, chooseColumns],
+		[config.column, columnById, sort, sortColumn, clearSort, autoSizeColumns, chooseColumns],
 	)
 
 	const resolveCellItems = useCallback(

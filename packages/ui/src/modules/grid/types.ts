@@ -208,19 +208,26 @@ export type GridMenuItem =
  */
 export type GridColumnMenuContext<T> = {
 	column: GridColumn<T>
+	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
+	sortDirection: 'asc' | 'desc' | undefined
 	/** Sorts this column ascending through the grid's `sort` binding. */
 	sortAscending: () => void
 	/** Sorts this column descending. */
 	sortDescending: () => void
+	/** Clears the grid's active sort. */
+	clearSort: () => void
+	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
+	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Choose Columns"). */
 	chooseColumns: () => void
 }
 
 /**
- * Header context-menu config: `true` (or omit / `false`) for the default items —
- * Sort Ascending, Sort Descending, Choose Columns — or a builder receiving the
+ * Header context-menu config: `true` (or omit) for the default items — Sort
+ * Ascending, Sort Descending, Clear sort (when the column is sorted), Auto-size
+ * columns (when resizing is on), Choose Columns — or a builder receiving the
  * {@link GridColumnMenuContext} and those defaults, returning the final list to
- * extend, reorder, or replace them.
+ * extend, reorder, or replace them. `false` omits the header menu entirely.
  *
  * @typeParam T - Shape of a single row.
  */

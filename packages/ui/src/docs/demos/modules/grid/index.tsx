@@ -143,14 +143,11 @@ function ClientSortExample() {
 }
 
 const ContextMenuExample = () => (
-	// Right-click a header for sort + "Choose Columns" (which opens the manager
-	// without a toolbar button), or a body cell for "Copy".
-	<Grid
-		columns={columns}
-		rows={people}
-		getKey={(row) => row.id}
-		contextMenu={{ column: true, cell: true }}
-	/>
+	// Context menus are on by default. Right-click a header for sort controls,
+	// "Clear sort" (once the column is sorted), and "Choose Columns" (which opens
+	// the manager without a toolbar button); right-click a body cell for "Copy".
+	// Pass `contextMenu={false}` to disable, or a builder to reshape the items.
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
 const SelectionExample = () => {

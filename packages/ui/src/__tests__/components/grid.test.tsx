@@ -210,6 +210,26 @@ describe('Grid', () => {
 			expect(onValueChange).toHaveBeenLastCalledWith({ column: 'name', direction: 'desc' })
 		})
 
+		it('clears the sort on the third click of the same column', async () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: { column: 'name', direction: 'desc' }, onValueChange }}
+				/>,
+			)
+
+			const user = userEvent.setup()
+
+			// Starting at desc, the next click completes asc → desc → unsorted.
+			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+			expect(onValueChange).toHaveBeenLastCalledWith(undefined)
+		})
+
 		it('resets to asc when sorting on a different column', async () => {
 			const onValueChange = vi.fn()
 

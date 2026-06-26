@@ -108,11 +108,85 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 	})
 
-	it('shows no menu when contextMenu is not configured', () => {
+	it('opens the menus by default with no contextMenu prop', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
+		expect(screen.getByRole('menuitem', { name: 'Sort Ascending' })).toBeInTheDocument()
+
+		// "Choose Columns" reaches the manager even without the toolbar button.
+		expect(screen.getByRole('menuitem', { name: 'Choose Columns' })).toBeInTheDocument()
+	})
+
+	it('opens the default cell menu with no contextMenu prop', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('cell', 'Alice')
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	it('shows no menu when contextMenu is false', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={false} />)
+
+		rightClick('columnheader', 'Name')
+
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('offers "Clear sort" only for the sorted column', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
+
+		// A different, unsorted column's menu omits it.
+		rightClick('columnheader', 'Role')
+
+		expect(screen.queryByRole('menuitem', { name: 'Clear sort' })).not.toBeInTheDocument()
+	})
+
+	it('clears the active sort when "Clear sort" is chosen', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ defaultValue: { column: 'name', direction: 'asc' }, onValueChange }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear sort' }))
+
+		expect(onValueChange).toHaveBeenCalledWith(undefined)
+	})
+
+	it('adds "Auto-size columns" to the header menu when resizable', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Auto-size columns' })).toBeInTheDocument()
+	})
+
+	it('omits "Auto-size columns" when not resizable', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.queryByRole('menuitem', { name: 'Auto-size columns' })).not.toBeInTheDocument()
 	})
 })

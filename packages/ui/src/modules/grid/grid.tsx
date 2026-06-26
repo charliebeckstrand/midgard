@@ -48,6 +48,9 @@ const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAn
  */
 const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 
+/** Context menus are on by default (both header and cell); `contextMenu={false}` disables them. @internal */
+const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
+
 /**
  * Row-virtualization setting: `true` for defaults, `false`/absent to disable,
  * or an object tuning `estimateSize` (row height, px) and `overscan`.
@@ -203,14 +206,15 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Right-click context menus: a `column` menu on headers (Sort Ascending /
-	 * Descending, Choose Columns) and a `cell` menu on body cells (Copy). Each
-	 * side is opt-in and either takes the defaults (`true`) or a builder that
-	 * reshapes them. "Choose Columns" opens the column manager, rendering its
-	 * dialog even without the toolbar button.
+	 * Descending, Auto-size columns, Choose Columns) and a `cell` menu on body
+	 * cells (Copy). On by default; pass `false` to disable. Each side takes the
+	 * defaults (`true`) or a builder that reshapes them. "Choose Columns" opens
+	 * the column manager, rendering its dialog even without the toolbar button.
 	 *
 	 * @see {@link GridContextMenu}
+	 * @defaultValue `{ column: true, cell: true }`
 	 */
-	contextMenu?: GridContextMenuConfig<T>
+	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -302,7 +306,11 @@ type GridRegionProps<T> = {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
+	/** Active sort, so the header menu can offer "Clear sort" for the sorted column. */
+	sort: SortState | undefined
 	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
+	clearSort: () => void
+	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	children: ReactNode
 }
@@ -324,7 +332,10 @@ function GridRegion<T>({
 	columns,
 	rows,
 	rowKeys,
+	sort,
 	sortColumn,
+	clearSort,
+	autoSizeColumns,
 	chooseColumns,
 	children,
 }: GridRegionProps<T>) {
@@ -346,7 +357,10 @@ function GridRegion<T>({
 			columns={columns}
 			rows={rows}
 			rowKeys={rowKeys}
+			sort={sort}
 			sortColumn={sortColumn}
+			clearSort={clearSort}
+			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 		>
 			{reordered}
@@ -486,16 +500,21 @@ function useGridMenuActions<T>({
 	manageColumns,
 	contextMenu,
 	columnManagerConfig,
+	resize,
 	setSort,
 }: {
 	manageColumns: boolean
-	contextMenu: GridContextMenuConfig<T> | undefined
+	contextMenu: GridContextMenuConfig<T> | false | undefined
 	columnManagerConfig: GridColumnManagerConfig | undefined
-	setSort: (sort: SortState) => void
+	resize: GridColumnResize | null
+	setSort: (sort: SortState | undefined) => void
 }) {
+	// Context menus are on by default; `false` opts out.
+	const menu = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
+
 	// The dialog renders when the manager is enabled, or when a column menu can
 	// reach it ("Choose Columns").
-	const showColumnManager = manageColumns || Boolean(contextMenu?.column)
+	const showColumnManager = manageColumns || Boolean(menu?.column)
 
 	const [open, setOpen] = useControllable<boolean>({
 		value: columnManagerConfig?.open,
@@ -508,16 +527,22 @@ function useGridMenuActions<T>({
 		[setSort],
 	)
 
+	const clearSort = useCallback(() => setSort(undefined), [setSort])
+
 	const chooseColumns = useMemo(
 		() => (showColumnManager ? () => setOpen(true) : null),
 		[showColumnManager, setOpen],
 	)
 
 	return {
+		contextMenu: menu,
 		showColumnManager,
 		columnManagerOpen: open ?? false,
 		setColumnManagerOpen: setOpen,
 		sortColumn,
+		clearSort,
+		// Header "Auto-size columns" — only when resizing is on.
+		autoSizeColumns: resize?.sizeToFit ?? null,
 		chooseColumns,
 	}
 }
@@ -596,6 +621,9 @@ function GridData<T>({
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
+	// Measured to auto-size resizable columns to fill the available width.
+	const wrapperRef = useRef<HTMLDivElement>(null)
+
 	const { renderRows, pagination, resize, globalFilter, filters } = useGridTable<T>({
 		rows,
 		columns: resolvedColumns,
@@ -608,6 +636,7 @@ function GridData<T>({
 		columnSizing: columnSizingConfig,
 		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,
+		containerRef: wrapperRef,
 	})
 
 	const rowKeys = useMemo<(string | number)[]>(
@@ -621,14 +650,16 @@ function GridData<T>({
 			rowKeys,
 		})
 
+	// Header clicks cycle a column through ascending → descending → unsorted.
 	const toggleSort = useCallback(
 		(column: string | number) => {
 			setSort((prev) => {
-				if (prev?.column === column) {
-					return { column, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-				}
+				if (prev?.column !== column) return { column, direction: 'asc' }
 
-				return { column, direction: 'asc' }
+				if (prev.direction === 'asc') return { column, direction: 'desc' }
+
+				// Third click clears the sort for this column.
+				return undefined
 			})
 		},
 		[setSort],
@@ -648,10 +679,18 @@ function GridData<T>({
 		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
 	)
 
-	// Lift the column-manager dialog's open state and derive the header-menu
-	// actions (sort a column, open the manager); see `useGridMenuActions`.
-	const { showColumnManager, columnManagerOpen, setColumnManagerOpen, sortColumn, chooseColumns } =
-		useGridMenuActions<T>({ manageColumns, contextMenu, columnManagerConfig, setSort })
+	// Lift the column-manager dialog's open state, resolve the (default-on)
+	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
+	const {
+		contextMenu: resolvedContextMenu,
+		showColumnManager,
+		columnManagerOpen,
+		setColumnManagerOpen,
+		sortColumn,
+		clearSort,
+		autoSizeColumns,
+		chooseColumns,
+	} = useGridMenuActions<T>({ manageColumns, contextMenu, columnManagerConfig, resize, setSort })
 
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
@@ -738,7 +777,7 @@ function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div data-slot="grid" className={cn(k.wrapper)}>
+			<div ref={wrapperRef} data-slot="grid" className={cn(k.wrapper)}>
 				{showColumnManager && (
 					<GridColumnManagerDialog
 						enabled={manageColumns}
@@ -765,11 +804,14 @@ function GridData<T>({
 					dndContextProps={dndContextProps}
 					itemIds={itemIds}
 					strategy={strategy}
-					contextMenu={contextMenu}
+					contextMenu={resolvedContextMenu}
 					columns={visibleColumns}
 					rows={renderRows}
 					rowKeys={rowKeys}
+					sort={sort}
 					sortColumn={sortColumn}
+					clearSort={clearSort}
+					autoSizeColumns={autoSizeColumns}
 					chooseColumns={chooseColumns}
 				>
 					{tableRegion}
