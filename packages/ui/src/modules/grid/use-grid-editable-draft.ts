@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useRef, useState } from 'react'
+import { type RefObject, type SetStateAction, useCallback, useRef, useState } from 'react'
 import type {
 	Coord,
 	GridEditableDraftApi,
@@ -28,7 +28,21 @@ export function useGridEditableDraft<T>({
 }): GridEditableDraftApi {
 	const [editing, setEditing] = useState(false)
 
-	const [draft, setDraft] = useState('')
+	const [draft, setDraftState] = useState('')
+
+	// Mirror the draft into a ref so a commit always reads the latest keystroke,
+	// even when blur fires in the same tick as the change — before the `setDraft`
+	// re-render lands and refreshes `commitEdit`'s closure. Without this the
+	// blur commit can save a stale draft, dropping the last edit.
+	const draftRef = useRef('')
+
+	const setDraft = useCallback((next: SetStateAction<string>) => {
+		const value = typeof next === 'function' ? next(draftRef.current) : next
+
+		draftRef.current = value
+
+		setDraftState(value)
+	}, [])
 
 	// Prevents the commit-on-blur from firing again after an explicit Enter /
 	// Tab / Escape commit; ensures a single commit per edit session.
@@ -57,7 +71,7 @@ export function useGridEditableDraft<T>({
 
 			setEditing(true)
 		},
-		[editableCols, setActive],
+		[editableCols, setActive, setDraft],
 	)
 
 	const commitEdit = useCallback(
@@ -68,9 +82,13 @@ export function useGridEditableDraft<T>({
 
 			setEditing(false)
 
-			if (active && draft !== originalFormattedRef.current) {
-				if (anchorRef.current || extraCellsRef.current.size > 0) applyBulkFill(draft)
-				else applyCellWrite(active.row, active.col, draft)
+			// Read the live draft, not the closure's: blur can fire before the last
+			// keystroke's re-render refreshes this callback.
+			const committed = draftRef.current
+
+			if (active && committed !== originalFormattedRef.current) {
+				if (anchorRef.current || extraCellsRef.current.size > 0) applyBulkFill(committed)
+				else applyCellWrite(active.row, active.col, committed)
 			}
 
 			let stayedInGrid = true
@@ -85,7 +103,6 @@ export function useGridEditableDraft<T>({
 		},
 		[
 			active,
-			draft,
 			anchorRef,
 			extraCellsRef,
 			applyCellWrite,
@@ -104,7 +121,7 @@ export function useGridEditableDraft<T>({
 		setDraft('')
 
 		wrapperRef.current?.focus()
-	}, [wrapperRef])
+	}, [wrapperRef, setDraft])
 
 	return { editing, draft, setDraft, beginEdit, commitEdit, cancelEdit }
 }
