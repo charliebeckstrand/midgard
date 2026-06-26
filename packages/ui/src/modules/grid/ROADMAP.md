@@ -12,7 +12,7 @@ Resizable columns are the second: the `resizable` prop wires TanStack's column-s
 
 Filtering is the third: columns gain an optional `value` accessor, then quick search (`search`) and per-column `filterable` inputs (a filter row) both drive TanStack's `getFilteredRowModel` (client) or `manualFiltering` (server).
 
-Sorting is the fourth: with `sort.manual: false` the engine sorts `rows` by each sortable column's `value` through `getSortedRowModel`, replacing consumer-side `useMemo` sorting; server (manual) sorting stays the default. Data columns are sortable by default — opt out per column with `sortable: false` or grid-wide with `sortable={false}` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
+Sorting is the fourth: data columns are sortable and sorted client-side by default — the engine orders `rows` through `getSortedRowModel` by each column's `value` accessor, or the row field named by the column id when none is given. Opt a column out with `sortable: false` (or grid-wide with `sortable={false}`), and switch to server-side ordering with `sort.manual: true`, where the consumer sorts `rows` (the editable grid keeps sorting opt-in). Single-column today — multi-column with priority is the next step.
 
 Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
 

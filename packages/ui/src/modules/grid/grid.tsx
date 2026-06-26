@@ -59,9 +59,11 @@ export type GridSort = {
 	defaultValue?: SortState
 	onValueChange?: (sort: SortState | undefined) => void
 	/**
-	 * Server-side (manual) sorting: the consumer sorts `rows`. When `false`, the
-	 * grid sorts client-side by each sortable column's {@link GridColumn.value}.
-	 * @defaultValue true
+	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
+	 * their order untouched. When omitted, the grid sorts client-side by each
+	 * sortable column's value — its {@link GridColumn.value} accessor, or the row
+	 * field named by the column id when none is given.
+	 * @defaultValue false
 	 */
 	manual?: boolean
 }
@@ -431,7 +433,7 @@ function GridData<T>({
 		getKey,
 		sort,
 		setSort,
-		sortManual: sortConfig?.manual ?? true,
+		sortManual: sortConfig?.manual ?? false,
 		pagination: paginationConfig,
 		resizable,
 		columnSizing: columnSizingConfig,

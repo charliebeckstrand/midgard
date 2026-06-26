@@ -51,17 +51,35 @@ describe('Grid client sorting', () => {
 		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
 	})
 
-	it('leaves row order to the consumer in manual mode (the default)', () => {
+	it('leaves row order to the consumer in manual (server) mode', () => {
 		renderUI(
 			<Grid
 				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: { column: 'name', direction: 'asc' }, manual: true }}
+			/>,
+		)
+
+		// Display-only: the grid does not reorder; the supplied order is preserved.
+		expect(order()).toEqual(['Charlie', 'Alice', 'Bob'])
+	})
+
+	it('sorts client-side by default, falling back to the row field named by the column id', () => {
+		const plainColumns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, sortable: true },
+		]
+
+		renderUI(
+			<Grid
+				columns={plainColumns}
 				rows={rows}
 				getKey={getKey}
 				sort={{ value: { column: 'name', direction: 'asc' } }}
 			/>,
 		)
 
-		// Display-only: the grid does not reorder; the supplied order is preserved.
-		expect(order()).toEqual(['Charlie', 'Alice', 'Bob'])
+		// No `value` accessor and no `manual`: the engine sorts by `row.name`.
+		expect(order()).toEqual(['Alice', 'Bob', 'Charlie'])
 	})
 })

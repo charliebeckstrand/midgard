@@ -102,21 +102,33 @@ function parsePxWidth(width: string | undefined): number | undefined {
 	return match ? Number(match[1]) : undefined
 }
 
-/** Maps a grid column to its engine `ColumnDef`: identity, the filter/sort value accessor, the resize gate, and sizing bounds. @internal */
+/** Reads the row field named by a column id — the default sort accessor when a column declares no `value`. @internal */
+function readField<T>(row: T, id: string | number): unknown {
+	return (row as Record<string | number, unknown>)[id]
+}
+
+/** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the resize gate, and sizing bounds. @internal */
 function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 	const size = parsePxWidth(col.width)
 
 	const { value } = col
+
+	// Sort and filter read a column's value through an accessor. An explicit
+	// `value` wins; otherwise a data column falls back to the row field named by
+	// its id, so columns sort client-side out of the box. Quick search stays
+	// scoped to columns that declare `value` via `enableGlobalFilter`.
+	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
 
 	return {
 		id: String(col.id),
 		// Only data columns resize; select/actions hold their width.
 		enableResizing: isDataColumn(col),
 		enableColumnFilter: Boolean(col.filterable && value),
+		enableGlobalFilter: Boolean(value),
 		enableSorting: Boolean(col.sortable),
-		// `value` makes the column searchable/sortable by the engine without
-		// changing how its cell renders (still `col.cell`).
-		...(value ? { accessorFn: (row: T) => value(row) } : {}),
+		// The accessor feeds sort/filter without changing how the cell renders
+		// (still `col.cell`).
+		...(accessorFn ? { accessorFn } : {}),
 		...(col.filterable && value ? { filterFn: 'includesString' } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),

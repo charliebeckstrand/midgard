@@ -97,6 +97,8 @@ function DefaultExample() {
 function SortableExample() {
 	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
 
+	// Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
+	// their order untouched. Omit `manual` for the default client-side sort.
 	const sortedPeople = useMemo(() => {
 		if (!sort) return people
 
@@ -112,7 +114,7 @@ function SortableExample() {
 			columns={sortableColumns}
 			rows={sortedPeople}
 			getKey={(row) => row.id}
-			sort={{ value: sort, onValueChange: setSort }}
+			sort={{ value: sort, onValueChange: setSort, manual: true }}
 		/>
 	)
 }
@@ -120,13 +122,14 @@ function SortableExample() {
 function ClientSortExample() {
 	const [sort, setSort] = useState<SortState | undefined>({ column: 'name', direction: 'asc' })
 
-	// The grid sorts `people` itself by each column's `value` — no manual sort.
+	// Client-side is the default: the grid sorts `people` itself by each column's
+	// value (here an explicit `value`; columns without one sort by their field).
 	return (
 		<Grid
 			columns={clientSortColumns}
 			rows={people}
 			getKey={(row) => row.id}
-			sort={{ value: sort, onValueChange: setSort, manual: false }}
+			sort={{ value: sort, onValueChange: setSort }}
 		/>
 	)
 }
@@ -296,14 +299,14 @@ export function Demo() {
 				<DefaultExample />
 			</Example>
 
-			<Example title="Sortable">
+			<Example
+				title="Server-side sorting"
+				code={code`<Grid sort={{ value, onValueChange, manual: true }} />`}
+			>
 				<SortableExample />
 			</Example>
 
-			<Example
-				title="Client sorting"
-				code={code`<Grid sort={{ value, onValueChange, manual: false }} />`}
-			>
+			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
 				<ClientSortExample />
 			</Example>
 
