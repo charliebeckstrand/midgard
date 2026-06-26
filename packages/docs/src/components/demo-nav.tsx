@@ -1,6 +1,6 @@
 'use client'
 
-import { List } from 'lucide-react'
+import { ListSortAscending } from 'lucide-react'
 import {
 	createContext,
 	type ReactNode,
@@ -159,7 +159,7 @@ export function DemoNav() {
 		<Popover open={open} onOpenChange={setOpen} placement="bottom-start">
 			<PopoverTrigger>
 				<Button ref={triggerRef} variant="bare" aria-label="Jump to example">
-					<Icon icon={<List />} />
+					<Icon icon={<ListSortAscending />} />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent autoFocus p="xs" aria-label="Examples on this page">
