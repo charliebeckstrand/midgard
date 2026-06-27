@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import type { ClipboardEvent, FocusEvent } from 'react'
+import type { ClipboardEvent, FocusEvent, MouseEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
 	Coord,
@@ -639,5 +639,90 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 		expect(setExtraCells).not.toHaveBeenCalled()
 
 		portal.remove()
+	})
+})
+
+describe('useGridEditableWrapper: onWrapperMouseDown', () => {
+	type MouseTarget = MouseEvent<HTMLTableElement>['target']
+
+	function makeMouseEvent(target: Element, button: number) {
+		const preventDefault = vi.fn()
+
+		const partial: Partial<MouseEvent<HTMLTableElement>> = {
+			button,
+			target: target as MouseTarget,
+			preventDefault,
+		}
+
+		return { event: partial as MouseEvent<HTMLTableElement>, preventDefault }
+	}
+
+	/** A detached `<table>` with a header cell and a body cell to classify a press against. */
+	function makeTable() {
+		const table = document.createElement('table')
+
+		const thead = document.createElement('thead')
+
+		const th = document.createElement('th')
+
+		thead.append(th)
+
+		const tbody = document.createElement('tbody')
+
+		const td = document.createElement('td')
+
+		tbody.append(td)
+
+		table.append(thead, tbody)
+
+		return { th, td }
+	}
+
+	it('suppresses the default focus on a right-click inside the header', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 2)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).toHaveBeenCalled()
+	})
+
+	it('suppresses the default focus on a middle-click inside the header', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 1)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).toHaveBeenCalled()
+	})
+
+	it('leaves a primary left-click on the header alone, so the cursor still seats on focus', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 0)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('leaves a right-click on a body cell alone, so the cell handler seats it for the menu', () => {
+		const { api } = setup()
+
+		const { td } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(td, 2)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).not.toHaveBeenCalled()
 	})
 })

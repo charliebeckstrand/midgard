@@ -49,8 +49,10 @@ export type GridEditableProps<T> = TableVariants & {
 	 * default — pass `false` to disable, or a config/builder per side to reshape
 	 * the items. The header menu omits the sort items unless a column opts in with
 	 * {@link GridColumn.sortable}, since editing keeps sorting opt-in. A right-click
-	 * also seats the active cell (via the cell's own mouse handler), so the menu
-	 * acts on the clicked cell.
+	 * on a body cell also seats the active cell (via the cell's own mouse handler),
+	 * so the menu acts on the clicked cell; a non-primary click on a header (a
+	 * right-click for the menu, or a middle-click) opens no cursor — only a primary
+	 * click seats it — leaving keyboard navigation unstarted.
 	 *
 	 * @see {@link GridContextMenu}
 	 * @defaultValue `{ column: true, cell: true }`
@@ -156,7 +158,7 @@ export function GridEditable<T>({
 
 	const draft = useGridEditableDraft<T>({ nav, mutations, rows: rowsApi, wrapperRef })
 
-	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur } =
+	const { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur, onWrapperMouseDown } =
 		useGridEditableWrapper<T>({
 			nav,
 			mutations,
@@ -218,8 +220,9 @@ export function GridEditable<T>({
 					// `sortable`, not from the read-only grid's sortable-by-default.
 					sortable={false}
 					// Context menus default on, forwarded from `contextMenu`. A
-					// right-click seats the active cell through the cell's own mouse
-					// handler, then the menu opens on it; `false` opts out.
+					// right-click on a body cell seats the active cell through the cell's
+					// own mouse handler, then the menu opens on it; a header right-click
+					// opens its menu without seating the cursor; `false` opts out.
 					contextMenu={contextMenu}
 					// Cells host editors that must not be clipped; the editable grid
 					// manages its own overflow, so read-only truncation stays off.
@@ -248,6 +251,10 @@ export function GridEditable<T>({
 						onPaste: onWrapperPaste,
 						onFocus: onWrapperFocus,
 						onBlur: onWrapperBlur,
+						// A non-primary header click (right-click for the menu, or middle-
+						// click) must not seat the cursor; this suppresses the focus that
+						// would otherwise start keyboard navigation.
+						onMouseDown: onWrapperMouseDown,
 					}}
 				/>
 			</GridEditableEditContext>
