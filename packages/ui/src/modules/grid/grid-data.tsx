@@ -295,6 +295,8 @@ function resolveTableProps(args: {
 	navigable: boolean
 	ariaRowCount: number
 	colCount: number
+	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
+	multiSelectable: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
@@ -312,6 +314,9 @@ function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
+		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
+		// native table conveys selection through each row's `aria-selected` alone.
+		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
 		...(args.gridSemantics
 			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
@@ -739,6 +744,13 @@ export function GridData<T>({
 	// the header must stay live so the user can clear it and recover the rows.
 	const hasData = rows.length > 0
 
+	// A selection column makes rows selectable, so each row exposes `aria-selected`
+	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
+	const hasSelectionColumn = useMemo(
+		() => visibleColumns.some((col) => col.selectable),
+		[visibleColumns],
+	)
+
 	const { toggleRow, toggleAll, allSelected, someSelected } = useGridSelectionActions({
 		selection,
 		setSelection,
@@ -871,6 +883,7 @@ export function GridData<T>({
 					navigable,
 					ariaRowCount,
 					colCount: visibleColumns.length,
+					multiSelectable: hasSelectionColumn,
 					tableWidth,
 				})}
 			>
@@ -904,6 +917,7 @@ export function GridData<T>({
 					rowIndexOffset={pageRowOffset}
 					selection={selection}
 					toggleRow={toggleRow}
+					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					truncate={truncate}
 					pinning={pinning}
