@@ -18,7 +18,8 @@ type MenuStateOptions = {
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the right-click `handleContextMenu` and an
  * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`),
- * right-click context menu (`useClientPoint` anchored to the cursor), and
+ * right-click context menu (`useClientPoint` opening at the cursor but anchored
+ * to the right-clicked element, so it tracks that element on scroll), and
  * static inline (`defaultOpen` with no `placement`).
  *
  * @internal
@@ -75,11 +76,20 @@ export function useMenuState({
 		(event: MouseEvent) => {
 			event.preventDefault()
 
+			// Anchor the menu to the right-clicked element, not just the cursor
+			// coordinates. `useClientPoint` reads this reference as its virtual
+			// element's `contextElement` and re-derives the cursor point from the
+			// element's live rect on every `autoUpdate` tick, so the menu opens at
+			// the cursor yet follows the element as the page (or a scroll container)
+			// scrolls. With no reference set the point stays fixed in the viewport
+			// and the menu floats free of the item it was invoked on.
+			if (event.target instanceof Element) refs.setReference(event.target)
+
 			setPoint({ x: event.clientX, y: event.clientY })
 
 			setOpen(true)
 		},
-		[setOpen],
+		[setOpen, refs],
 	)
 
 	const state = useMemo(
