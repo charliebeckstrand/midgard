@@ -206,6 +206,33 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Auto-size columns' })).not.toBeInTheDocument()
 	})
 
+	it('groups "Auto-size columns" with the table-wide tools below the divider', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		const menu = screen.getByRole('menu')
+
+		// The menu items and the lone divider (an <hr>) in render order.
+		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
+
+		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
+
+		const autoSizeIndex = sequence.findIndex(
+			(node) => node.textContent?.trim() === 'Auto-size columns',
+		)
+
+		const manageIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Manage columns')
+
+		// Auto-size sits below the divider — a grid-wide action, not the clicked
+		// column's — and leads "Manage columns".
+		expect(dividerIndex).toBeGreaterThanOrEqual(0)
+
+		expect(autoSizeIndex).toBeGreaterThan(dividerIndex)
+
+		expect(manageIndex).toBe(autoSizeIndex + 1)
+	})
+
 	const headerCell = (container: HTMLElement, id: string) =>
 		container.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`)
 
