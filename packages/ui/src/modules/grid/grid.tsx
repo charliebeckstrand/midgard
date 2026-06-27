@@ -941,7 +941,6 @@ function GridData<T>({
 				rows={renderRows}
 				rowKeys={rowKeys}
 				visibleColumns={visibleColumns}
-				getKey={getKey}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
 				rowLabel={rowLabel}

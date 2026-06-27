@@ -15,7 +15,6 @@ type GridBodyProps<T> = {
 	rowKeys: (string | number)[]
 	/** Visible columns, kept for the loading/empty column spans. */
 	visibleColumns: GridColumn<T>[]
-	getKey: (row: T, index: number) => string | number
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
 	rowLabel?: (row: T) => string
@@ -48,7 +47,6 @@ export function GridBody<T>({
 	rows,
 	rowKeys,
 	visibleColumns,
-	getKey,
 	rowLoading,
 	rowClassName,
 	rowLabel,
@@ -89,7 +87,9 @@ export function GridBody<T>({
 	return (
 		<TableBody>
 			{rows.map((row, index) => {
-				const key = rowKeys[index] ?? getKey(row, index)
+				// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is
+				// always present; the cast mirrors the virtualized body's row lookup.
+				const key = rowKeys[index] as string | number
 
 				return (
 					<GridRow<T>
