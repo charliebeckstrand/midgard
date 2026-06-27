@@ -64,11 +64,6 @@ type GridColumnsResult = {
  * `manageColumnsLabel` collapse the config's enabled flag and label into plain
  * values for the dialog's render gate.
  *
- * @returns A {@link GridColumnsResult}: the controllable `columnOrder` /
- * `setColumnOrder` and `hiddenColumns` / `setHiddenColumns`, the engine
- * `columnVisibility` map, the `reorderColumns` committer for header drags, the
- * `managerItems` for the dialog, and the `manageColumns` / `manageColumnsLabel`
- * render-gate values.
  * @internal
  */
 export function useGridColumns<T>({

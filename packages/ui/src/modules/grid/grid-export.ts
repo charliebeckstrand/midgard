@@ -72,7 +72,6 @@ export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
  * @internal
  */
 export function downloadCsv(filename: string, csv: string): void {
-	// Lead with a UTF-8 BOM (U+FEFF) so spreadsheet apps detect the encoding.
 	const blob = new Blob([String.fromCharCode(0xfeff), csv], { type: 'text/csv;charset=utf-8' })
 
 	const url = URL.createObjectURL(blob)
