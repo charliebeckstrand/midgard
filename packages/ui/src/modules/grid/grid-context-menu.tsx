@@ -60,6 +60,8 @@ type GridContextMenuProps<T> = {
 	chooseColumns: (() => void) | null
 	/** Exports the filtered/sorted rows to CSV, or `null` when export is off. */
 	exportCsv: (() => void) | null
+	/** Label on the "Export to CSV" item, shared with the export toolbar button. */
+	exportLabel: ReactNode
 	children: ReactNode
 }
 
@@ -79,6 +81,8 @@ type ColumnMenuDefaultArgs<T> = {
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportCsv: (() => void) | null
+	/** Label on the "Export to CSV" item, shared with the export toolbar button. */
+	exportLabel: ReactNode
 }
 
 /**
@@ -143,6 +147,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		autoSizeColumns,
 		chooseColumns,
 		exportCsv,
+		exportLabel,
 	} = args
 
 	const items: GridMenuItem[] = []
@@ -203,7 +208,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	if (exportCsv) {
 		tools.push({
 			key: 'export-csv',
-			label: 'Export to CSV',
+			label: exportLabel,
 			icon: <Download />,
 			onSelect: exportCsv,
 		})
@@ -258,6 +263,7 @@ export function GridContextMenu<T>({
 	autoSizeColumns,
 	chooseColumns,
 	exportCsv,
+	exportLabel,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -293,6 +299,7 @@ export function GridContextMenu<T>({
 				autoSizeColumns,
 				chooseColumns,
 				exportCsv,
+				exportLabel,
 			})
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
@@ -326,6 +333,7 @@ export function GridContextMenu<T>({
 			autoSizeColumns,
 			chooseColumns,
 			exportCsv,
+			exportLabel,
 		],
 	)
 
