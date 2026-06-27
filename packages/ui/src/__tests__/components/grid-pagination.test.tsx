@@ -159,6 +159,42 @@ describe('Grid pagination', () => {
 		})
 	})
 
+	describe('status', () => {
+		it('shows the row range for the current page and tracks navigation (client mode)', async () => {
+			const user = userEvent.setup()
+
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+				/>,
+			)
+
+			// 25 rows at size 5 → "1–5 of 25" on the first page.
+			expect(screen.getByText('1–5 of 25')).toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+			expect(screen.getByText('6–10 of 25')).toBeInTheDocument()
+		})
+
+		it('counts from the supplied total in server mode', () => {
+			// Page 3 (rows 11–15) handed in directly against a total of 25.
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many.slice(10, 15)}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 2, pageSize: 5 }, rowCount: 25 }}
+				/>,
+			)
+
+			expect(screen.getByText('11–15 of 25')).toBeInTheDocument()
+		})
+	})
+
 	describe('page-size picker', () => {
 		it('renders only when pageSizeOptions is supplied', () => {
 			const { rerender } = renderUI(
@@ -170,7 +206,11 @@ describe('Grid pagination', () => {
 				/>,
 			)
 
-			expect(screen.getByText('Rows per page')).toBeInTheDocument()
+			// The trigger carries the "Rows per page" accessible name and a compact
+			// "{n} / page" label.
+			expect(screen.getByRole('combobox', { name: 'Rows per page' })).toBeInTheDocument()
+
+			expect(screen.getByText('5 / page')).toBeInTheDocument()
 
 			rerender(
 				<Grid
@@ -181,81 +221,7 @@ describe('Grid pagination', () => {
 				/>,
 			)
 
-			expect(screen.queryByText('Rows per page')).not.toBeInTheDocument()
-		})
-	})
-
-	describe('jump to page', () => {
-		it('renders the input only when jumpToPage is set', () => {
-			const { rerender } = renderUI(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
-				/>,
-			)
-
-			expect(screen.queryByRole('spinbutton', { name: 'Go to page' })).not.toBeInTheDocument()
-
-			rerender(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 }, jumpToPage: true }}
-				/>,
-			)
-
-			expect(screen.getByRole('spinbutton', { name: 'Go to page' })).toBeInTheDocument()
-		})
-
-		it('jumps to the entered page on Enter (uncontrolled)', async () => {
-			const user = userEvent.setup()
-
-			renderUI(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 }, jumpToPage: true }}
-				/>,
-			)
-
-			const input = screen.getByRole('spinbutton', { name: 'Go to page' })
-
-			await user.clear(input)
-
-			await user.type(input, '3{Enter}')
-
-			// Page 3 at size 5 → rows 11–15.
-			expect(screen.getByText('Row 11')).toBeInTheDocument()
-
-			expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
-		})
-
-		it('clamps an out-of-range entry to the last page', async () => {
-			const user = userEvent.setup()
-
-			const onValueChange = vi.fn()
-
-			renderUI(
-				<Grid
-					columns={columns}
-					rows={many}
-					getKey={getKey}
-					pagination={{ value: { pageIndex: 0, pageSize: 5 }, onValueChange, jumpToPage: true }}
-				/>,
-			)
-
-			const input = screen.getByRole('spinbutton', { name: 'Go to page' })
-
-			await user.clear(input)
-
-			await user.type(input, '99{Enter}')
-
-			// 25 rows at size 5 → 5 pages; 99 clamps to the last page (index 4).
-			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex: 4, pageSize: 5 })
+			expect(screen.queryByRole('combobox', { name: 'Rows per page' })).not.toBeInTheDocument()
 		})
 	})
 })

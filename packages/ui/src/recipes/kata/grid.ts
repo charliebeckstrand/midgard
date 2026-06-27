@@ -193,11 +193,8 @@ export const k = {
 		],
 	},
 	filter: {
-		// Footer below the table. From `lg`: one centered row — page-size picker,
-		// page navigation, then the row-range status — gapped, not spread. Below
-		// `lg`: the navigation stacks on top, with the picker and status sharing a
-		// justified-between row beneath it (the `meta` wrapper collapses to
-		// `contents` at `lg` so all three become siblings of the centered row).
+		// Quick-search / per-column filter input above the table: full width, capped
+		// narrow from `sm`.
 		bar: ['w-full', 'sm:max-w-xs'],
 		// Per-column filter row beneath the header.
 		row: bg.surface,
@@ -214,41 +211,29 @@ export const k = {
 		reset: 'mr-auto',
 	},
 	footer: {
-		// Footer below the table. From `lg`: one centered row — page-size picker,
-		// page navigation, then the row-range status — gapped, not spread. Below
-		// `lg`: the navigation stacks on top, with the picker and status sharing a
-		// justified-between row beneath it (the `meta` wrapper collapses to
-		// `contents` at `lg` so all three become siblings of the centered row).
-		bar: [
-			'flex',
-			'flex-col',
-			'gap-2',
-			'pt-2',
-			'lg:flex-row',
-			'lg:items-center',
-			'lg:justify-center',
-		],
-		// Page navigation: centered on its own row below `lg`, the middle item from `lg`.
-		nav: ['flex', 'justify-center'],
-		// Picker + status: a justified-between row below `lg`; dissolves into the
-		// centered row from `lg` so each orders independently.
-		meta: ['flex', 'items-center', 'justify-center', 'gap-2'],
-		start: [
-			flex.inline,
-			'items-center',
-			'gap-2',
-			size.sm,
-			text.muted,
-			'whitespace-nowrap',
-			// Without a page-size picker the wrapper is empty; keep it on the small
-			// screen so the status stays right (justified between), drop it from the
-			// centered row so it adds no phantom gap.
-			'lg:empty:hidden',
-		],
-		status: [size.sm, text.muted, 'whitespace-nowrap'],
-		// "Go to page" control: label + a narrow number input, inline with the picker.
-		jump: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
-		jumpInput: 'w-16',
+		// Footer below the table, laid out as three zones. From `lg`: one row with
+		// the row-range status at the start, the page navigation centered, and the
+		// page-size picker at the end — each zone an equal `flex-1` track so the
+		// navigation stays centered whatever the side content. Below `lg`: the
+		// navigation sits on its own row up top, with the
+		// status and controls sharing a justified-between row beneath it (the `meta`
+		// wrapper collapses to `contents` at `lg` so all three become siblings of the
+		// one row, reordered status · nav · controls).
+		bar: ['flex', 'flex-col', 'gap-2', 'pt-2', 'lg:flex-row', 'lg:items-center'],
+		// Page navigation: centered on its own row below `lg`, the centered middle
+		// track from `lg`.
+		nav: ['flex', 'justify-center', 'lg:order-2', 'lg:flex-1'],
+		// Status + controls: a justified-between row below `lg`; dissolves into the
+		// footer row from `lg` so the status and controls order independently around
+		// the centered nav.
+		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
+		// Row-range status ("1–10 of 47"): the start track from `lg`, the left of the
+		// justified row below it.
+		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-1', 'lg:flex-1'],
+		// Page-size picker: the end track from `lg` (right-aligned), the right of the
+		// justified row below it. Always rendered so the track holds even when empty,
+		// keeping the nav centered.
+		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-3', 'lg:flex-1', 'lg:justify-end'],
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {

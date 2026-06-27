@@ -600,11 +600,9 @@ const ClientPaginationExample = () => (
 		columns={columns}
 		rows={manyPeople}
 		getKey={(row) => row.id}
-		// `jumpToPage` adds a "Go to page" input for hopping straight to a page.
 		pagination={{
 			defaultValue: { pageIndex: 0, pageSize: 10 },
 			pageSizeOptions: [10, 25, 50],
-			jumpToPage: true,
 		}}
 	/>
 )
