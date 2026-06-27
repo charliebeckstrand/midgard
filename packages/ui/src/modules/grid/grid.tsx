@@ -607,7 +607,7 @@ function resolveResizeLayout<T>(args: {
  * Data-driven {@link Table} over a flat `rows` source: maps each row through
  * `columns`, keys each row for selection and identity via `getKey`, sorts by
  * column value on the engine, and shares that state with head and cells via
- * {@link useGrid}/{@link useGridRow}. Sort,
+ * {@link useGrid}. Sort,
  * selection, and `columnOrder` are controllable; selecting rows surfaces a
  * batch-action {@link Toolbar}, a column manager dialog reorders and hides
  * columns, and `reorder` adds header drag handles for in-place column

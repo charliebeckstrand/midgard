@@ -85,27 +85,3 @@ export function useGridSelectionActions({
 
 	return { toggleRow, toggleAll, allSelected, someSelected }
 }
-
-/**
- * Owns the data table's selection: the controllable `Set<key>`, the row/all
- * toggles, and the `allSelected` / `someSelected` flags derived from the current
- * rowKeys. A thin composition of {@link useGridSelectionState} and
- * {@link useGridSelectionActions} — {@link Grid} calls those two directly so the
- * selection state can sit above the engine, but the composed form keeps a single
- * entry point for callers (and tests) that don't need that split.
- *
- * @internal
- */
-export function useGridSelection({
-	selectionConfig,
-	rowKeys,
-}: {
-	selectionConfig: GridSelection | undefined
-	rowKeys: (string | number)[]
-}): GridSelectionState & GridSelectionActions {
-	const state = useGridSelectionState(selectionConfig)
-
-	const actions = useGridSelectionActions({ ...state, rowKeys })
-
-	return { ...state, ...actions }
-}

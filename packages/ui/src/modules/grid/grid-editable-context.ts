@@ -6,61 +6,31 @@ import { createContext } from '../../core'
 import type { Coord, GridEditableCommitAdvance } from './grid-editable-types'
 import { cellKey } from './use-grid-editable-navigation'
 
-/**
- * Full grid interaction state exposed to consumers: the active/anchor cursor,
- * extra selected cells, the live edit-session draft, and the move/edit/commit
- * actions that drive them. Returned by {@link useGridEditable}.
- */
-export type GridEditableContextValue = {
-	active: Coord | null
-	anchor: Coord | null
-	extraCells: Set<string>
-	editing: boolean
+// The edit-session slice (draft + commit/cancel) changes on every keystroke and
+// is read only by the mounted editor. Cells subscribe to
+// `GridEditableStoreContext` for their own derived slice (see
+// `useGridEditableCellSlice`), re-rendering only when their slice flips. Cursor
+// and selection state is mirrored into that store, not a context, so navigation
+// touches only the cells whose slice changed.
+
+/** The live edit-session: the draft string and its commit/cancel actions, read only by the mounted editor. @internal */
+export type GridEditableEditValue = {
 	draft: string
 	setDraft: Dispatch<SetStateAction<string>>
-	setActive: (coord: Coord, extend?: boolean) => void
-	addCellToSelection: (coord: Coord) => void
-	beginEdit: (coord: Coord, initial?: string, original?: string) => void
 	commitEdit: (advance: GridEditableCommitAdvance) => boolean
 	cancelEdit: () => void
 }
 
-// Internal split. The state slice changes on navigation/selection/edit-toggle
-// (not per keystroke) and backs the public `useGridEditable` view plus the store
-// below. The edit-session slice (draft + commit/cancel) changes on every
-// keystroke and is read only by the mounted editor. Cells subscribe to
-// `GridEditableStoreContext` for their own derived slice (see
-// `useGridEditableCellSlice`), re-rendering only when their slice flips.
-export type GridEditableStateValue = Pick<
-	GridEditableContextValue,
-	'active' | 'anchor' | 'extraCells' | 'editing' | 'setActive' | 'addCellToSelection' | 'beginEdit'
->
-
-export type GridEditableEditValue = Pick<
-	GridEditableContextValue,
-	'draft' | 'setDraft' | 'commitEdit' | 'cancelEdit'
->
-
-export const [GridEditableStateContext, useGridEditableState] =
-	createContext<GridEditableStateValue>('GridEditableState')
-
 export const [GridEditableEditContext, useGridEditableEdit] =
 	createContext<GridEditableEditValue>('GridEditableEdit')
 
-/**
- * Combined state + edit-session view. Re-renders on any change, including every
- * keystroke. Prefer `useGridEditableEdit` (editor) or `useGridEditableCellSlice`
- * (cell) internally; this is the stable public surface for external consumers.
- */
-export function useGridEditable(): GridEditableContextValue {
-	return { ...useGridEditableState(), ...useGridEditableEdit() }
-}
-
 /** Volatile cell-positioning state mirrored into the store for per-cell selection. @internal */
-export type GridEditableSnapshot = Pick<
-	GridEditableContextValue,
-	'active' | 'anchor' | 'extraCells' | 'editing'
->
+export type GridEditableSnapshot = {
+	active: Coord | null
+	anchor: Coord | null
+	extraCells: Set<string>
+	editing: boolean
+}
 
 /** External-store interface over the navigation snapshot; built in `useGridEditableStore`. @internal */
 export type GridEditableStore = {

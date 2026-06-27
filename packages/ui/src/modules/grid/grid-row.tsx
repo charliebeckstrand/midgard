@@ -2,12 +2,11 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { type Cell, flexRender } from '@tanstack/react-table'
-import { type HTMLAttributes, memo, type ReactNode, useMemo } from 'react'
+import { type HTMLAttributes, memo, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { GridRowContext, type GridRowContextValue } from './context'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
@@ -82,7 +81,7 @@ function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 
 /**
  * One data row: maps `columns` to cells (selection checkbox, actions, or `cell`
- * content) and publishes its datum and flags through {@link GridRowContext}.
+ * content).
  *
  * @internal
  */
@@ -101,76 +100,69 @@ function GridRowImpl<T>({
 	dataRowIndex,
 	pinning,
 }: GridRowProps<T>) {
-	const rowContext = useMemo<GridRowContextValue<T>>(
-		() => ({ row, rowKey, selected, loading }),
-		[row, rowKey, selected, loading],
-	)
-
 	return (
-		<GridRowContext value={rowContext}>
-			<TableRow
-				data-selected={dataAttr(selected)}
-				data-row-index={dataRowIndex}
-				data-grid-row={String(rowKey)}
-				aria-rowindex={rowIndex}
-				className={cn(loading && k.rowLoading, className)}
-			>
-				{cells.map((cell, colIdx) => {
-					// Every engine column carries its source column on `meta`; the guard
-					// narrows the optional type (it is always set in `toColumnDef`).
-					const col = cell.column.columnDef.meta?.gridColumn
+		<TableRow
+			data-selected={dataAttr(selected)}
+			data-row-index={dataRowIndex}
+			data-grid-row={String(rowKey)}
+			aria-rowindex={rowIndex}
+			className={cn(loading && k.rowLoading, className)}
+		>
+			{cells.map((cell, colIdx) => {
+				// Every engine column carries its source column on `meta`; the guard
+				// narrows the optional type (it is always set in `toColumnDef`).
+				const col = cell.column.columnDef.meta?.gridColumn
 
-					if (!col) return null
+				if (!col) return null
 
-					// Cell column indices accompany aria-rowindex under virtualization
-					// (rowIndex is only set then).
-					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
+				// Cell column indices accompany aria-rowindex under virtualization
+				// (rowIndex is only set then).
+				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
-					if (col.selectable) {
-						return (
-							<TableCell
-								key={col.id}
-								aria-colindex={colIndex}
-								className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
-								style={pinnedOffsetStyle(pinning, col.id)}
-							>
-								<Checkbox
-									checked={selected}
-									onChange={() => toggleRow(rowKey)}
-									aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
-								/>
-							</TableCell>
-						)
-					}
-
-					if (col.actions) {
-						return (
-							<TableCell
-								key={col.id}
-								aria-colindex={colIndex}
-								className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
-								style={pinnedOffsetStyle(pinning, col.id)}
-							>
-								{col.actions(row)}
-							</TableCell>
-						)
-					}
-
+				if (col.selectable) {
 					return (
-						<GridDataCell<T>
+						<TableCell
 							key={col.id}
-							cell={cell}
-							col={col}
-							row={row}
-							colIndex={colIndex}
-							reorderable={reorderable}
-							truncate={truncate}
-							pinning={pinning}
-						/>
+							aria-colindex={colIndex}
+							className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
+							style={pinnedOffsetStyle(pinning, col.id)}
+						>
+							<Checkbox
+								checked={selected}
+								onChange={() => toggleRow(rowKey)}
+								aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
+							/>
+						</TableCell>
 					)
-				})}
-			</TableRow>
-		</GridRowContext>
+				}
+
+				if (col.actions) {
+					return (
+						<TableCell
+							key={col.id}
+							aria-colindex={colIndex}
+							className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
+							style={pinnedOffsetStyle(pinning, col.id)}
+						>
+							{col.actions(row)}
+						</TableCell>
+					)
+				}
+
+				return (
+					<GridDataCell<T>
+						key={col.id}
+						cell={cell}
+						col={col}
+						row={row}
+						colIndex={colIndex}
+						reorderable={reorderable}
+						truncate={truncate}
+						pinning={pinning}
+					/>
+				)
+			})}
+		</TableRow>
 	)
 }
 
