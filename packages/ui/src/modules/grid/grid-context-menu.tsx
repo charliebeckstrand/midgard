@@ -56,7 +56,7 @@ type GridContextMenuProps<T> = {
 	pinColumn: PinColumn
 	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
-	/** Opens the column-manager dialog ("Choose Columns"), or `null` when none is reachable. */
+	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
 	/** Exports the filtered/sorted rows to CSV, or `null` when export is off. */
 	exportCsv: (() => void) | null
@@ -82,9 +82,9 @@ type ColumnMenuDefaultArgs<T> = {
 }
 
 /**
- * Pin items for a column's menu: "Pin Left" / "Pin Right" for the edges it is
+ * Pin items for a column's menu: "Pin left" / "Pin right" for the edges it is
  * not already frozen to, and "Unpin" once it is frozen. A scrolling column
- * offers both edges; a left-pinned one offers Pin Right and Unpin, and vice
+ * offers both edges; a left-pinned one offers Pin right and Unpin, and vice
  * versa.
  *
  * @internal
@@ -97,7 +97,7 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 	if (side !== 'left') {
 		items.push({
 			key: 'pin-left',
-			label: 'Pin Left',
+			label: 'Pin left',
 			icon: <ArrowLeftToLine />,
 			onSelect: () => pinColumn(column.id, 'left'),
 		})
@@ -106,7 +106,7 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 	if (side !== 'right') {
 		items.push({
 			key: 'pin-right',
-			label: 'Pin Right',
+			label: 'Pin right',
 			icon: <ArrowRightToLine />,
 			onSelect: () => pinColumn(column.id, 'right'),
 		})
@@ -127,8 +127,8 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
  * "Clear sort" once it is the sorted column, the column's pin controls (Pin
- * Left / Pin Right / Unpin), an "Auto-size columns" action (when resizing is
- * on), then the table-wide tools — "Choose Columns" (when a manager is
+ * left / Pin right / Unpin), an "Auto-size columns" action (when resizing is
+ * on), then the table-wide tools — "Manage columns" (when a manager is
  * reachable) and "Export to CSV" (when export is on) — under a separator.
  *
  * @internal
@@ -151,13 +151,13 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		items.push(
 			{
 				key: 'sort-asc',
-				label: 'Sort Ascending',
+				label: 'Sort ascending',
 				icon: <ArrowUp />,
 				onSelect: () => sortColumn(column.id, 'asc'),
 			},
 			{
 				key: 'sort-desc',
-				label: 'Sort Descending',
+				label: 'Sort descending',
 				icon: <ArrowDown />,
 				onSelect: () => sortColumn(column.id, 'desc'),
 			},
@@ -191,7 +191,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	if (chooseColumns) {
 		tools.push({
 			key: 'choose-columns',
-			label: 'Choose Columns',
+			label: 'Manage columns',
 			icon: <Columns3 />,
 			onSelect: chooseColumns,
 		})

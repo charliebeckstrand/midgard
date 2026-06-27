@@ -358,7 +358,7 @@ function useGridMenuActions<T>({
 	const menu = hasData ? configured : undefined
 
 	// The dialog renders when the manager is enabled, or when a column menu can
-	// reach it ("Choose Columns").
+	// reach it ("Manage columns").
 	const showColumnManager = manageColumns || Boolean(menu?.column)
 
 	const [open, setOpen] = useControllable<boolean>({
