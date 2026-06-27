@@ -611,21 +611,46 @@ describe('Grid', () => {
 	})
 
 	describe('column manager', () => {
-		it('renders the column-manager toolbar when enabled', () => {
-			renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ enabled: true }} />,
-			)
-
-			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
-		})
-
-		it('honors a custom label on the column-manager toolbar', () => {
+		it('renders the toolbar button when toolbarButton is set', () => {
 			renderUI(
 				<Grid
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, label: 'Manage' }}
+					columnManager={{ toolbarButton: true }}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
+		})
+
+		it('hides the toolbar button by default (context-menu only)', () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('hides the toolbar button when the manager is disabled', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ enabled: false, toolbarButton: true }}
+				/>,
+			)
+
+			// `enabled: false` is the master switch; the button opt-in can't override it.
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('honors a custom label on the toolbar button', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ toolbarButton: true, label: 'Manage' }}
 				/>,
 			)
 
@@ -638,7 +663,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, defaultHidden: new Set(['age']) }}
+					columnManager={{ defaultHidden: new Set(['age']) }}
 				/>,
 			)
 
@@ -678,7 +703,6 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnManager={{
-						enabled: true,
 						defaultHidden: new Set(['select', 'actions', 'name']),
 					}}
 				/>,
@@ -731,7 +755,7 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnOrder={{ onValueChange }}
-					columnManager={{ enabled: true, onHiddenChange }}
+					columnManager={{ toolbarButton: true, onHiddenChange }}
 				/>,
 			)
 

@@ -460,21 +460,22 @@ function resolveResizeLayout<T>(args: {
 }
 
 /**
- * Lifts the column-manager dialog's open state and derives the header
- * context-menu actions (sort a column, open the manager). Split out of
- * {@link GridData} so its body stays within the cognitive-complexity budget.
+ * Resolves the column-manager gates, lifts the dialog's open state, and derives
+ * the header context-menu actions (sort a column, open the manager). Column
+ * management is on by default ({@link GridColumnManagerConfig.enabled}); the
+ * standalone toolbar button is opt-in
+ * ({@link GridColumnManagerConfig.toolbarButton}). Split out of {@link GridData}
+ * so its body stays within the cognitive-complexity budget.
  *
  * @internal
  */
 function useGridMenuActions<T>({
-	manageColumns,
 	contextMenu,
 	columnManagerConfig,
 	resize,
 	setSort,
 	hasData,
 }: {
-	manageColumns: boolean
 	contextMenu: GridContextMenuConfig<T> | false | undefined
 	columnManagerConfig: GridColumnManagerConfig | undefined
 	resize: GridColumnResize | null
@@ -487,9 +488,20 @@ function useGridMenuActions<T>({
 
 	const menu = hasData ? configured : undefined
 
-	// The dialog renders when the manager is enabled, or when a column menu can
-	// reach it ("Manage columns").
-	const showColumnManager = manageColumns || Boolean(menu?.column)
+	// Column management is on by default; `enabled: false` is the master off
+	// switch — no "Manage columns" item, no toolbar button, no dialog.
+	const managerEnabled = columnManagerConfig?.enabled ?? true
+
+	const managerLabel = columnManagerConfig?.label ?? 'Manage columns'
+
+	// Two entry points to the dialog, both under the master switch: the opt-in
+	// toolbar button, and the header menu's "Manage columns" item (shown whenever
+	// a column menu is). The dialog mounts when either can reach it.
+	const showButton = managerEnabled && (columnManagerConfig?.toolbarButton ?? false)
+
+	const menuItemReachable = managerEnabled && Boolean(menu?.column)
+
+	const renderDialog = showButton || menuItemReachable
 
 	const [open, setOpen] = useControllable<boolean>({
 		value: columnManagerConfig?.open,
@@ -506,14 +518,19 @@ function useGridMenuActions<T>({
 
 	const clearSort = useCallback(() => setSort([]), [setSort])
 
+	// Backs the menu's "Manage columns" item; `null` keeps it out. Non-null
+	// implies `renderDialog`, so opening is always valid (the item only ever
+	// renders inside a column menu, which the master switch already gated).
 	const chooseColumns = useMemo(
-		() => (showColumnManager ? () => setOpen(true) : null),
-		[showColumnManager, setOpen],
+		() => (renderDialog ? () => setOpen(true) : null),
+		[renderDialog, setOpen],
 	)
 
 	return {
 		contextMenu: menu,
-		showColumnManager,
+		renderDialog,
+		showButton,
+		managerLabel,
 		columnManagerOpen: open ?? false,
 		setColumnManagerOpen: setOpen,
 		sortColumn,
@@ -650,8 +667,6 @@ export function GridData<T>({
 		columnVisibility,
 		reorderColumns,
 		managerItems,
-		manageColumns,
-		manageColumnsLabel,
 	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
 
 	// TanStack Table is the data engine: rows flow through its row model, which
@@ -777,7 +792,9 @@ export function GridData<T>({
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
 	const {
 		contextMenu: resolvedContextMenu,
-		showColumnManager,
+		renderDialog,
+		showButton,
+		managerLabel,
 		columnManagerOpen,
 		setColumnManagerOpen,
 		sortColumn,
@@ -785,7 +802,6 @@ export function GridData<T>({
 		autoSizeColumns,
 		chooseColumns,
 	} = useGridMenuActions<T>({
-		manageColumns,
 		contextMenu,
 		columnManagerConfig,
 		resize,
@@ -922,12 +938,12 @@ export function GridData<T>({
 			>
 				<GridBusyStatus loading={loading} />
 
-				{showColumnManager && (
+				{renderDialog && (
 					<GridColumnManagerDialog
-						enabled={manageColumns}
-						open={columnManagerOpen ?? false}
+						toolbarButton={showButton}
+						open={columnManagerOpen}
 						onOpenChange={setColumnManagerOpen}
-						label={manageColumnsLabel}
+						label={managerLabel}
 						columns={managerItems}
 						order={columnOrder}
 						onOrderChange={setColumnOrder}

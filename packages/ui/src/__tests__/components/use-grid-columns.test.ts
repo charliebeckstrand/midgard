@@ -28,25 +28,6 @@ describe('useGridColumns', () => {
 		expect(result.current.hiddenColumns.size).toBe(0)
 	})
 
-	it('exposes the default manage-columns label as "Manage columns"', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns, columnManagerConfig: undefined }),
-		)
-
-		expect(result.current.manageColumnsLabel).toBe('Manage columns')
-	})
-
-	it('reads manageColumns from columnManagerConfig.enabled', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { enabled: true },
-			}),
-		)
-
-		expect(result.current.manageColumns).toBe(true)
-	})
-
 	it('honors a controlled order from columnOrderConfig.value', () => {
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
@@ -200,17 +181,6 @@ describe('useGridColumns', () => {
 		expect(result.current.managerItems[0]?.title).toBe('name')
 	})
 
-	it('honors a custom manage-columns label', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { enabled: true, label: 'Manage' },
-			}),
-		)
-
-		expect(result.current.manageColumnsLabel).toBe('Manage')
-	})
-
 	it('propagates pinned and hideable=false metadata onto managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (r) => r.name, pinned: true },
@@ -251,19 +221,5 @@ describe('useGridColumns', () => {
 		expect(result.current.hiddenColumns.has('age')).toBe(false)
 
 		expect(result.current.columnVisibility).toEqual({ name: false })
-	})
-
-	it('honors manageColumns=false when columnManagerConfig.enabled is unset', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { label: 'Anything' },
-			}),
-		)
-
-		expect(result.current.manageColumns).toBe(false)
-
-		// Custom label still resolves even when the manager is not enabled.
-		expect(result.current.manageColumnsLabel).toBe('Anything')
 	})
 })

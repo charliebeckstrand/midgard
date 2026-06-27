@@ -110,6 +110,25 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 	})
 
+	it('omits "Manage columns" when the column manager is disabled', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnManager={{ enabled: false }}
+				contextMenu={{ column: true }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		// The header menu still opens its own controls; only management is gated off.
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
+	})
+
 	it('opens the menus by default with no contextMenu prop', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
