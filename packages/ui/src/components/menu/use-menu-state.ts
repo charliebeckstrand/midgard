@@ -18,7 +18,8 @@ type MenuStateOptions = {
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the right-click `handleContextMenu` and an
  * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`),
- * right-click context menu (`useClientPoint` anchored to the cursor), and
+ * right-click context menu (`useClientPoint` opening at the cursor but anchored
+ * to the right-clicked element, so it tracks that element on scroll), and
  * static inline (`defaultOpen` with no `placement`).
  *
  * @internal
@@ -75,11 +76,28 @@ export function useMenuState({
 		(event: MouseEvent) => {
 			event.preventDefault()
 
+			// The menu panel is portaled out of the DOM but stays a React child of
+			// this wrapper, so its own contextmenu events bubble back here. A
+			// right-click inside the open panel must not re-anchor or reposition it:
+			// anchoring to an element within the floating panel would make the menu
+			// chase its own moving rect, jittering it across the screen. Suppress
+			// the native menu (above) and leave the panel where it is.
+			if (refs.floating.current?.contains(event.target as Node)) return
+
+			// Anchor the menu to the right-clicked element, not just the cursor
+			// coordinates. `useClientPoint` reads this reference as its virtual
+			// element's `contextElement` and re-derives the cursor point from the
+			// element's live rect on every `autoUpdate` tick, so the menu opens at
+			// the cursor yet follows the element as the page (or a scroll container)
+			// scrolls. With no reference set the point stays fixed in the viewport
+			// and the menu floats free of the item it was invoked on.
+			if (event.target instanceof Element) refs.setReference(event.target)
+
 			setPoint({ x: event.clientX, y: event.clientY })
 
 			setOpen(true)
 		},
-		[setOpen],
+		[setOpen, refs],
 	)
 
 	const state = useMemo(
