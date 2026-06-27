@@ -563,6 +563,12 @@ export function useGridEditableWrapper<T>({
 
 			if (next instanceof Node && wrapperRef.current?.contains(next)) return
 
+			// A cell editor can open a floating panel (a select dropdown, a date
+			// calendar) that portals outside the table and grabs focus. That focus
+			// move is still part of the edit, so keep the active cell — clearing it
+			// would unmount the editor and snap the panel shut.
+			if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return
+
 			setActive(null)
 
 			setAnchor(null)

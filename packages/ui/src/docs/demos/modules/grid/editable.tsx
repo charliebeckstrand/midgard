@@ -169,7 +169,6 @@ const editorTypeColumns: GridEditableColumn<Task>[] = [
 		id: 'done',
 		title: 'Done',
 		field: 'done',
-		align: 'center',
 		value: (row) => row.done,
 		format: (row) => (row.done ? 'Yes' : 'No'),
 		parse: (raw) => raw === 'true',

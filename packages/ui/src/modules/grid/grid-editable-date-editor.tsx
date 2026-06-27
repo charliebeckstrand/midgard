@@ -1,9 +1,10 @@
 'use client'
 
-import type { KeyboardEvent } from 'react'
-import { DatePicker } from '../../components/date-picker'
+import { useLayoutEffect, useRef } from 'react'
+import { DateInput, type DateInputFormat } from '../../components/date-input'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid-editable'
+import { editorKeyHandler } from './grid-editable-editor-utilities'
 import type { GridEditableEditorProps } from './grid-editable-types'
 
 /**
@@ -32,19 +33,26 @@ export function dateToIso(date: Date): string {
 
 /**
  * Props for {@link GridEditableDateEditor}: the {@link GridEditableEditorProps}
- * edit-slot contract plus optional `min`/`max` calendar bounds.
+ * edit-slot contract plus optional `min`/`max` bounds and the typed `format`.
  *
  * @typeParam T - The row type backing the cell under edit.
  */
 export type GridEditableDateEditorProps<T> = GridEditableEditorProps<T> & {
 	min?: Date
 	max?: Date
+	/**
+	 * Mask the typed entry uses. Defaults to ISO to match the column's stored
+	 * `YYYY-MM-DD` value.
+	 * @defaultValue 'YYYY-MM-DD'
+	 */
+	format?: DateInputFormat
 }
 
 /**
- * In-cell date editor backed by `DatePicker` in typed-input mode. Seeds from the
- * row's current ISO `YYYY-MM-DD` value (`column.field`) and commits the picked or
- * typed date — written back as ISO and advancing the cursor down — on change;
+ * In-cell date editor backed by `DateInput` — a typed, masked text input (no
+ * calendar popover), so it commits on Enter / Tab / blur like the other inline
+ * editors. Seeds from the row's current ISO `YYYY-MM-DD` value (`column.field`),
+ * masks entry in `format` (ISO by default), and writes the value back as ISO;
  * Escape cancels. Pair the column's `value` accessor with an ISO string so sort
  * and filter read the same value the editor writes.
  *
@@ -60,34 +68,40 @@ export function GridEditableDateEditor<T>({
 	ariaLabel,
 	min,
 	max,
+	format = 'YYYY-MM-DD',
 }: GridEditableDateEditorProps<T>) {
+	const ref = useRef<HTMLInputElement>(null)
+
+	useLayoutEffect(() => {
+		const input = ref.current
+
+		if (!input) return
+
+		input.focus()
+
+		input.select()
+	}, [])
+
 	const fieldValue = column.field ? row[column.field] : undefined
 
 	const initial = typeof fieldValue === 'string' ? isoToDate(fieldValue) : undefined
 
-	const onKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
-		if (event.key === 'Escape') {
-			event.preventDefault()
-
-			cancel()
-		}
-	}
-
 	return (
 		<HeadlessProvider>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: a keydown listener on the host span routes Escape to cancel; the DatePicker input owns the real focus */}
-			<span className={k.editControl({ align })} onKeyDown={onKeyDown}>
-				<DatePicker
-					input
+			<span className={k.editControl({ align })}>
+				<DateInput
+					ref={ref}
+					data-slot="grid-editable-date-input"
 					aria-label={ariaLabel}
+					format={format}
 					defaultValue={initial}
 					min={min}
 					max={max}
-					onValueChange={(date) => {
-						setDraft(date ? dateToIso(date) : '')
-
-						commit('down')
-					}}
+					clearable={false}
+					// Mirror the parsed date into the draft as ISO; the commit reads it.
+					onValueChange={(date) => setDraft(date ? dateToIso(date) : '')}
+					onBlur={() => commit('none')}
+					onKeyDown={editorKeyHandler(commit, cancel)}
 				/>
 			</span>
 		</HeadlessProvider>

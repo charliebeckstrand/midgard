@@ -2,7 +2,11 @@ import type { Dispatch, SetStateAction } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridEditableBooleanEditor } from '../../modules/grid/grid-editable-boolean-editor'
 import { GridEditableCurrencyEditor } from '../../modules/grid/grid-editable-currency-editor'
-import { dateToIso, isoToDate } from '../../modules/grid/grid-editable-date-editor'
+import {
+	dateToIso,
+	GridEditableDateEditor,
+	isoToDate,
+} from '../../modules/grid/grid-editable-date-editor'
 import { GridEditableNumberEditor } from '../../modules/grid/grid-editable-number-editor'
 import { GridEditableTextEditor } from '../../modules/grid/grid-editable-text-editor'
 import type {
@@ -312,6 +316,60 @@ describe('GridEditableBooleanEditor', () => {
 		expect(cancel).toHaveBeenCalledTimes(1)
 
 		fireEvent.blur(checkbox)
+
+		expect(commit).toHaveBeenCalledWith('none')
+	})
+})
+
+describe('GridEditableDateEditor', () => {
+	type DateRow = { id: number; due: string }
+
+	const dateColumn: GridEditableColumn<DateRow> = { id: 'due', field: 'due' }
+
+	function dateProps(
+		overrides: Partial<GridEditableEditorProps<DateRow>> = {},
+	): GridEditableEditorProps<DateRow> {
+		return {
+			row: { id: 1, due: '2026-01-15' },
+			column: dateColumn,
+			draft: '2026-01-15',
+			setDraft: vi.fn() as unknown as Dispatch<SetStateAction<string>>,
+			commit: vi.fn(() => true),
+			cancel: vi.fn(),
+			align: 'left',
+			ariaLabel: 'Edit due',
+			selectAllOnFocus: true,
+			...overrides,
+		}
+	}
+
+	it('renders a typed DateInput seeded with the row value in ISO format', () => {
+		const { container } = renderUI(<GridEditableDateEditor {...dateProps()} />)
+
+		const input = bySlot(container, 'grid-editable-date-input') as HTMLInputElement
+
+		expect(input).toBeInTheDocument()
+
+		// Masked text in the column's ISO format, not MM/DD/YYYY.
+		expect(input.value).toBe('2026-01-15')
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	it('commits on blur and cancels on Escape', () => {
+		const commit = vi.fn(() => true)
+
+		const cancel = vi.fn()
+
+		const { container } = renderUI(<GridEditableDateEditor {...dateProps({ commit, cancel })} />)
+
+		const input = bySlot(container, 'grid-editable-date-input') as HTMLInputElement
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(cancel).toHaveBeenCalledTimes(1)
+
+		fireEvent.blur(input)
 
 		expect(commit).toHaveBeenCalledWith('none')
 	})
