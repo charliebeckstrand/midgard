@@ -160,4 +160,24 @@ describe('Grid column pinning', () => {
 
 		expect(head?.style.right).toBe('')
 	})
+
+	it('marks a pinned column header with a side-labelled pin icon', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, pinned: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Each frozen header leads its title with a pin indicator named for its edge.
+		expect(headCell(container, 'name')?.querySelector('[aria-label="Pinned left"]')).not.toBeNull()
+
+		expect(
+			headCell(container, 'status')?.querySelector('[aria-label="Pinned right"]'),
+		).not.toBeNull()
+
+		// The scrolling column's header carries none.
+		expect(headCell(container, 'email')?.querySelector('[aria-label^="Pinned"]')).toBeNull()
+	})
 })

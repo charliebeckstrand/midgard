@@ -99,6 +99,13 @@ export const k = {
 		// within the header's flex slot — and, for a sortable column, within the sort
 		// button — instead of pushing past the cell into its neighbour.
 		title: ['block', 'truncate', 'min-w-0'],
+		// Leading group pairing a pinned column's pin icon with its title. `min-w-0`
+		// keeps the title shrinkable so it still truncates beside the icon; `gap-1`
+		// sets the icon-to-title spacing.
+		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
+		// Pin indicator on a frozen column's header: muted so it reads as status
+		// rather than an action, matching the sort button and the idle filter tint.
+		pinIcon: text.muted,
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can

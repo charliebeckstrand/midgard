@@ -1,7 +1,7 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Pin } from 'lucide-react'
 import { type KeyboardEvent, memo, type ReactElement, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
@@ -444,6 +444,21 @@ const GridColumnHeader = memo(function GridColumnHeader({
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
+	// This column's frozen edge (read live from the engine), or `undefined` when it
+	// scrolls; a frozen header leads its title with a pin indicator.
+	const pinnedSide = pinning?.side(column.id)
+
+	const label = (
+		<ColumnHeaderLabel
+			column={column}
+			sorted={sorted}
+			direction={direction}
+			sortPriority={sortPriority}
+			toggleSort={toggleSort}
+			interactive={interactive}
+		/>
+	)
+
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
@@ -462,14 +477,19 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			}}
 		>
 			<span className={cn(k.filter.slot)}>
-				<ColumnHeaderLabel
-					column={column}
-					sorted={sorted}
-					direction={direction}
-					sortPriority={sortPriority}
-					toggleSort={toggleSort}
-					interactive={interactive}
-				/>
+				{pinnedSide ? (
+					<span className={cn(k.head.pinnedLabel)}>
+						<Icon
+							icon={<Pin />}
+							size="sm"
+							className={cn(k.head.pinIcon)}
+							label={`Pinned ${pinnedSide}`}
+						/>
+						{label}
+					</span>
+				) : (
+					label
+				)}
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
