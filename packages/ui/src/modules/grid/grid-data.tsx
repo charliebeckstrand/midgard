@@ -485,6 +485,7 @@ export function GridData<T>({
 	bleed,
 	outline,
 	striped,
+	hover,
 	className,
 }: GridDataProps<T>) {
 	if (virtualize && !maxHeight) {
@@ -685,6 +686,7 @@ export function GridData<T>({
 			bleed={bleed}
 			outline={outline}
 			striped={striped}
+			hover={hover}
 			className={tableClassName}
 			tableProps={resolveTableProps({
 				tableProps,
