@@ -5,7 +5,6 @@ import { SortableContext } from '@dnd-kit/sortable'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
-import { Toolbar } from '../../components/toolbar'
 import { cn, dataAttr } from '../../core'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
@@ -24,12 +23,11 @@ import type {
 	GridVirtualize,
 } from './grid-data-types'
 import { downloadCsv, rowsToCsv } from './grid-export'
-import { GridExportButton } from './grid-export-button'
-import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
+import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
 import {
@@ -280,9 +278,9 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 /**
  * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
  * into resolved export settings: whether export is on, whether to render the
- * standalone toolbar button (never when export is off), and the label and
- * download filename shared by the button and the header menu's "Export to CSV"
- * item. The boolean `true` enables export with the context-menu item alone.
+ * toolbar button (never when export is off), and the label and download
+ * filename shared by the button and the header menu's "Export to CSV" item. The
+ * boolean `true` enables export with the context-menu item alone.
  *
  * @internal
  */
@@ -496,7 +494,7 @@ function resolveResizeLayout<T>(args: {
  * Resolves the column-manager gates, lifts the dialog's open state, and derives
  * the header context-menu actions (sort a column, open the manager). Column
  * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * standalone toolbar button is opt-in
+ * toolbar button is opt-in
  * ({@link GridColumnManagerConfig.toolbarButton}). Split out of {@link GridData}
  * so its body stays within the cognitive-complexity budget.
  *
@@ -983,7 +981,6 @@ export function GridData<T>({
 
 				{renderDialog && (
 					<GridColumnManagerDialog
-						toolbarButton={showButton}
 						open={columnManagerOpen}
 						onOpenChange={setColumnManagerOpen}
 						label={managerLabel}
@@ -996,15 +993,19 @@ export function GridData<T>({
 					/>
 				)}
 
-				{exportToolbarButton && exportCsv && (
-					<GridExportButton label={exportLabel} onExport={exportCsv} />
-				)}
-
-				{globalFilter && <GridFilter filter={globalFilter} />}
-
-				{batchActions && someSelected && (
-					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>
-				)}
+				<GridToolbar
+					filter={globalFilter}
+					showColumnManager={showButton}
+					columnManagerLabel={managerLabel}
+					onManageColumns={() => setColumnManagerOpen(true)}
+					showExport={exportToolbarButton}
+					exportLabel={exportLabel}
+					onExport={exportCsv}
+					batchActions={batchActions}
+					hasSelection={someSelected}
+					selection={selection}
+					setSelection={setSelection}
+				/>
 
 				<GridRegion
 					canReorder={reorderActive}

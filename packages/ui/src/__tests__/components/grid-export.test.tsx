@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { downloadCsv, rowsToCsv } from '../../modules/grid/grid-export'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen, within } from '../helpers'
 
 describe('rowsToCsv', () => {
 	type Row = { id: number; name: string; role: string }
@@ -274,5 +274,23 @@ describe('Grid CSV export', () => {
 		expect(downloadName).toBe('people.csv')
 
 		click.mockRestore()
+	})
+
+	it('shares one tools toolbar with the column-manager button', () => {
+		renderUI(
+			<Grid
+				columnManager={{ toolbarButton: true }}
+				exportable={{ toolbarButton: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		const tools = screen.getByRole('toolbar', { name: 'Table tools' })
+
+		expect(within(tools).getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
+
+		expect(within(tools).getByRole('button', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 })

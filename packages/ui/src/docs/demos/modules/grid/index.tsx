@@ -567,9 +567,9 @@ const ColumnManagerExample = () => {
 
 // `exportable` adds an "Export to CSV" item to the header right-click menu; it
 // downloads the filtered/sorted rows, each column read through its `value`.
-// Passing a config object instead of `true` also surfaces a standalone toolbar
-// button (mirroring the column manager's `toolbarButton`), and tunes the label
-// and download filename.
+// Passing a config object instead of `true` also surfaces a toolbar button
+// (mirroring the column manager's `toolbarButton`, beside it in the grid's
+// toolbar), and tunes the label and download filename.
 const ExportExample = () => (
 	<Grid
 		exportable={{ toolbarButton: true, filename: 'people.csv' }}

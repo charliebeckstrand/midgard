@@ -72,7 +72,7 @@ export type GridSelection = {
 
 /**
  * Column-manager binding for {@link GridProps.columnManager}: gates column
- * management, optionally adds a standalone toolbar button, and holds
+ * management, optionally adds a toolbar button, and holds
  * controlled/uncontrolled column-visibility state. Column order lives on the
  * top-level {@link GridProps.columnOrder} binding, which the manager dialog
  * reads and writes.
@@ -86,9 +86,8 @@ export type GridColumnManagerConfig = {
 	 */
 	enabled?: boolean
 	/**
-	 * Also render a standalone toolbar button above the table that opens the
-	 * manager dialog, alongside the context-menu item. Has no effect when
-	 * `enabled` is `false`.
+	 * Also render a button in the grid's toolbar that opens the manager dialog,
+	 * alongside the context-menu item. Has no effect when `enabled` is `false`.
 	 * @defaultValue false
 	 */
 	toolbarButton?: boolean
@@ -113,11 +112,12 @@ export type GridColumnManagerConfig = {
 
 /**
  * Export binding for {@link GridDataProps.exportable}: gates CSV export and
- * optionally surfaces a standalone toolbar button alongside the header
- * context-menu item. The boolean shorthand `exportable={true}` enables export
- * with the menu item alone; the object form adds the toolbar button and tunes
- * the shared label and download filename. Mirrors
- * {@link GridColumnManagerConfig}'s `enabled` / `toolbarButton` / `label` shape.
+ * optionally surfaces a toolbar button alongside the header context-menu item.
+ * The boolean shorthand `exportable={true}` enables export with the menu item
+ * alone; the object form adds the toolbar button and tunes the label and
+ * download filename. Mirrors {@link GridColumnManagerConfig}'s `enabled` /
+ * `toolbarButton` / `label` shape, and the button joins the column manager's in
+ * the grid's toolbar.
  */
 export type GridExportConfig = {
 	/**
@@ -128,9 +128,9 @@ export type GridExportConfig = {
 	 */
 	enabled?: boolean
 	/**
-	 * Also render a standalone toolbar button above the table that downloads the
-	 * CSV, alongside the context-menu item. Has no effect when `enabled` is
-	 * `false`.
+	 * Also render a button in the grid's toolbar that downloads the CSV, beside
+	 * the column-manager trigger when present and alongside the context-menu item.
+	 * Has no effect when `enabled` is `false`.
 	 * @defaultValue false
 	 */
 	toolbarButton?: boolean
@@ -236,8 +236,8 @@ export type GridDataProps<T> = TableVariants & {
 	/**
 	 * Enables CSV export of the grid's filtered and sorted rows (all pages). The
 	 * shorthand `true` adds an "Export to CSV" item to the header context menu;
-	 * pass a {@link GridExportConfig} to also surface a standalone toolbar button
-	 * and tune the label and filename. Each row reads a column's
+	 * pass a {@link GridExportConfig} to also surface a toolbar button and tune
+	 * the label and filename. Each row reads a column's
 	 * {@link GridColumn.value}, falling back to the row field named by the column
 	 * id; columns without either export an empty field. Off by default so a grid
 	 * doesn't expose a bulk download unless asked.
