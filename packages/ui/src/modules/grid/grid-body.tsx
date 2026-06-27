@@ -9,7 +9,7 @@ import type { GridColumnPinning } from './use-grid-table'
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = {
 	loading: boolean
-	/** The engine; each row renders its cells from `table.getRow(key).getVisibleCells()`. */
+	/** The engine; rows read their cells from it. */
 	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]

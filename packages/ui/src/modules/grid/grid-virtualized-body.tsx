@@ -11,7 +11,7 @@ import type { GridColumnPinning } from './use-grid-table'
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = {
 	scrollRef: RefObject<HTMLDivElement | null>
-	/** The engine; each row renders its cells from `table.getRow(key).getVisibleCells()`. */
+	/** The engine; rows read their cells from it. */
 	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]

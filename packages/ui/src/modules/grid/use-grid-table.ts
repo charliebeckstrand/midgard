@@ -924,7 +924,6 @@ export function useGridTable<T>({
 		}),
 	})
 
-	// The columns to render, resolved by the engine (order + visibility + pinning).
 	const visibleColumns = useVisibleColumns(table)
 
 	// Materialize the row model only when a client-side transform is active;
