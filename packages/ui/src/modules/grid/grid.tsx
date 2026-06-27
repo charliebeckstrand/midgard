@@ -33,7 +33,7 @@ import type {
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
-import { useGridSelection } from './use-grid-selection'
+import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, useGridTable } from './use-grid-table'
 
 /**
@@ -760,6 +760,11 @@ function GridData<T>({
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
+	// Selection state lives above the engine so the table can mirror it into its
+	// own `state.rowSelection`; the row-derived flags and toggles come after the
+	// engine produces `rowKeys` (see `useGridSelectionActions` below).
+	const { selection, setSelection } = useGridSelectionState(selectionConfig)
+
 	const batchActions = selectionConfig?.batchActions
 
 	const {
@@ -787,6 +792,7 @@ function GridData<T>({
 			// (which the body renders from) matches what the header shows.
 			columns: visibleColumns,
 			getKey,
+			selection,
 			sort,
 			setSort,
 			sortManual: sortConfig?.manual ?? false,
@@ -812,11 +818,11 @@ function GridData<T>({
 	// the header must stay live so the user can clear it and recover the rows.
 	const hasData = rows.length > 0
 
-	const { selection, setSelection, toggleRow, toggleAll, allSelected, someSelected } =
-		useGridSelection({
-			selectionConfig,
-			rowKeys,
-		})
+	const { toggleRow, toggleAll, allSelected, someSelected } = useGridSelectionActions({
+		selection,
+		setSelection,
+		rowKeys,
+	})
 
 	// Export the filtered + sorted rows (all pages) to a CSV download. The engine's
 	// sorted row model reflects active filters and sort; `null` keeps the menu item

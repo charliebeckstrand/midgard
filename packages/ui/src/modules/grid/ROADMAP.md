@@ -26,16 +26,15 @@ Column pinning is the ninth, declared per column via `pinned` (`'left'` / `'righ
 
 A grid with no source data (including while loading) stands its column interactions down: the sort, resize, filter, and reorder affordances drop from the header and the right-click menu defers to the browser's, since each acts on rows that aren't there. The gate reads the source `rows`, not the rendered view — a filter or search that empties the result keeps the header live (the filter button in particular, so the filter can be cleared and the rows recovered). The column-manager toolbar — a deliberate tool, not a header affordance — stays available throughout.
 
-Everything else — selection, column order/visibility, drag-reorder, virtualization, the editable variant — still runs on the original bespoke hooks. The migration below converges them onto the one instance.
+Column order/visibility, drag-reorder, virtualization, and the editable variant still run on the original bespoke hooks. Row selection is mirrored onto the engine: the controllable `Set<key>` stays the source of truth (the checkboxes write it), and the table reflects it into `state.rowSelection` (`enableRowSelection`) one-way, so the engine's selected-row model tracks the grid — the foundation the cross-page selection and selected-row features build on. The migration below converges what remains.
 
 ## Migration — converging existing state onto the engine
 
-Each step preserves the public API via adapters and ships as its own change, smallest blast radius first. The render-tree migration (`flexRender` over a full `ColumnDef`) and multi-column sort (`state.sorting` + `enableMultiSort`, with Shift-click and priority badges) have shipped; what remains converges selection and column order/visibility onto the engine.
+Each step preserves the public API via adapters and ships as its own change, smallest blast radius first. The render-tree migration (`flexRender` over a full `ColumnDef`), multi-column sort (`state.sorting` + `enableMultiSort`, with Shift-click and priority badges), and the row-selection mirror (`state.rowSelection`) have shipped; what remains converges column order/visibility onto the engine.
 
 | # | Step | TanStack surface |
 |---|---|---|
-| 1 | Move row selection onto the engine | `state.rowSelection`, `enableRowSelection` |
-| 2 | Move column order/visibility (fold in the column manager + dnd reorder) | `state.columnOrder`, `state.columnVisibility` |
+| 1 | Move column order/visibility (fold in the column manager + dnd reorder) | `state.columnOrder`, `state.columnVisibility` |
 
 ## Feature backlog
 

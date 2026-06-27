@@ -17,6 +17,7 @@ import {
 	type PaginationState,
 	type Row,
 	type RowData,
+	type RowSelectionState,
 	type SortingFn,
 	type SortingState,
 	type Table,
@@ -84,6 +85,24 @@ function toSortingState(sort: SortState[] | undefined): SortingState {
 /** Adapts a TanStack `SortingState` back to the grid's ordered {@link SortState} list. @internal */
 function toSortState(sorting: SortingState): SortState[] {
 	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
+}
+
+/**
+ * Mirrors the grid's selection `Set<key>` into TanStack's `RowSelectionState`
+ * (`{ [rowId]: true }`), keyed by the stringified row id `getRowId` produces.
+ * One-way: the `Set` stays the source of truth (the grid's checkboxes write it),
+ * and the engine reads this for its selected-row model.
+ *
+ * @internal
+ */
+function toRowSelectionState(selection: Set<string | number> | undefined): RowSelectionState {
+	const state: RowSelectionState = {}
+
+	if (!selection) return state
+
+	for (const key of selection) state[String(key)] = true
+
+	return state
 }
 
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
@@ -291,6 +310,8 @@ function buildState(args: {
 	sorting: SortingState
 	pinned: boolean
 	columnPinning: ColumnPinningState
+	selectable: boolean
+	rowSelection: RowSelectionState
 }): {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
@@ -298,6 +319,7 @@ function buildState(args: {
 	columnFilters?: ColumnFiltersState
 	sorting?: SortingState
 	columnPinning?: ColumnPinningState
+	rowSelection?: RowSelectionState
 } {
 	const state: {
 		pagination?: PaginationState
@@ -306,6 +328,7 @@ function buildState(args: {
 		columnFilters?: ColumnFiltersState
 		sorting?: SortingState
 		columnPinning?: ColumnPinningState
+		rowSelection?: RowSelectionState
 	} = {}
 
 	if (args.paginated) state.pagination = args.pagination
@@ -319,6 +342,8 @@ function buildState(args: {
 	if (args.sortClient) state.sorting = args.sorting
 
 	if (args.pinned) state.columnPinning = args.columnPinning
+
+	if (args.selectable) state.rowSelection = args.rowSelection
 
 	return state
 }
@@ -458,6 +483,8 @@ type UseGridTableParams<T> = {
 	rows: T[]
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
+	/** Selected row keys; mirrored into the engine's `state.rowSelection` so its selected-row model tracks the grid's `Set`. */
+	selection?: Set<string | number>
 	sort?: SortState[]
 	setSort?: (sort: SortState[]) => void
 	sortManual?: boolean
@@ -654,6 +681,7 @@ export function useGridTable<T>({
 	rows,
 	columns,
 	getKey,
+	selection,
 	sort,
 	setSort,
 	sortManual = true,
@@ -754,6 +782,12 @@ export function useGridTable<T>({
 		[columns],
 	)
 
+	// The grid's selection `Set` is the source of truth; mirror it into the engine
+	// so its selected-row model tracks it (the checkboxes still write the `Set`).
+	const selectable = selection != null
+
+	const rowSelection = useMemo(() => toRowSelectionState(selection), [selection])
+
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
 	const table = useReactTable<T>({
@@ -776,7 +810,10 @@ export function useGridTable<T>({
 			sorting: toSortingState(sort),
 			pinned: hasPinned,
 			columnPinning,
+			selectable,
+			rowSelection,
 		}),
+		...(selectable ? { enableRowSelection: true } : {}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 		...resizeOptions<T>({ resizable, onColumnSizingChange }),
 		...sortOptions<T>({ clientSort, onSortingChange }),
