@@ -468,33 +468,15 @@ const RowClickExample = () => {
 }
 
 const ErrorExample = () => {
-	const [failed, setFailed] = useState(true)
-
 	// `error` shows in place of the body — for a failed fetch — taking precedence
-	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
-	// control), or `error` (true) for a default alert.
+	// over rows and the empty slot.
 	return (
-		<>
-			{!failed && (
-				<Button variant="soft" color="red" onClick={() => setFailed(true)}>
-					Reset
-				</Button>
-			)}
-			<Grid
-				columns={columns}
-				rows={people}
-				getKey={(row) => row.id}
-				error={
-					failed ? (
-						<Alert color="red" variant="soft" title="Couldn't load people" block>
-							<Button variant="soft" color="red" onClick={() => setFailed(false)}>
-								Retry
-							</Button>
-						</Alert>
-					) : undefined
-				}
-			/>
-		</>
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+		/>
 	)
 }
 
