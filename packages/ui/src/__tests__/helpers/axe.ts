@@ -1,4 +1,10 @@
-import { configureAxe } from 'jest-axe'
+import { configureAxe, toHaveNoViolations } from 'jest-axe'
+import { expect } from 'vitest'
+
+// Register `toHaveNoViolations` here rather than in setup/index.ts so axe-core
+// loads only for the two a11y suites that import `axe`/`axePage` from this
+// module — not across the whole jsdom setup path (one import per test file).
+expect.extend(toHaveNoViolations)
 
 /**
  * axe-core runner for the jsdom test environment.
@@ -8,7 +14,7 @@ import { configureAxe } from 'jest-axe'
  * disabled here. Structural rules (roles, names, ARIA validity, label
  * association, list and landmark structure) remain enabled.
  *
- * Pair with the `toHaveNoViolations` matcher (registered in setup/index.ts):
+ * Pair with the `toHaveNoViolations` matcher (registered above):
  *
  *     expect(await axe(container)).toHaveNoViolations()
  */
