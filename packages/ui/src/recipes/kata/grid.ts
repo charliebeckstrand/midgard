@@ -40,12 +40,13 @@ const resizePadding = defineRecipe({
 })
 
 /**
- * Opaque fill behind a frozen body cell, so the columns scrolling under it stay
- * hidden. It tracks the content host (`omote.content` — the same viewport-aware
- * surface the sidebar layout paints behind its sticky headers): the card surface
- * at `lg`, and the flush page background below it. A plain `bg.surface` painted
- * the desktop card colour at every width, so on mobile — where the content block
- * is transparent over the darker page — the frozen columns read a shade off.
+ * Opaque fill behind a frozen cell — body and header alike — so the columns
+ * scrolling under it stay hidden. It tracks the content host (`omote.content` —
+ * the same viewport-aware surface the sidebar layout paints behind its sticky
+ * headers): the card surface at `lg`, and the flush page background below it. A
+ * plain `bg.surface` painted the desktop card colour at every width, so on
+ * mobile — where the content block is transparent over the darker page — the
+ * frozen columns read a shade off.
  */
 const pinnedSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
@@ -66,9 +67,11 @@ export const k = {
 		// offset is an inline style summed from the engine.
 		cell: ['sticky z-[1]', pinnedSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
-		// Matches the (sticky) header's own `bg.surface` so the header bar reads as
-		// one piece, pinned cells included.
-		head: ['sticky z-20', bg.surface],
+		// Shares the body cell's viewport-aware fill (see `pinnedSurface`) so the
+		// pinned header tracks the content host instead of painting the desktop card
+		// colour at every width — which, on mobile, stood out as a box against the
+		// transparent content block over the darker page.
+		head: ['sticky z-20', pinnedSurface],
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
 		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
 		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
