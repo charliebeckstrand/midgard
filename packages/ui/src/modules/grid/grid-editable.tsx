@@ -99,6 +99,7 @@ export function GridEditable<T>({
 	bleed,
 	outline,
 	striped,
+	hover,
 	className,
 }: GridEditableProps<T>) {
 	const { selection, setSelection, selectionApi } = useGridEditableSelection(selectionConfig)
@@ -198,6 +199,7 @@ export function GridEditable<T>({
 					bleed={bleed}
 					outline={outline}
 					striped={striped}
+					hover={hover}
 					className={cn('outline-0', className)}
 					tableProps={{
 						ref: wrapperRef,

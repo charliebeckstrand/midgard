@@ -602,6 +602,10 @@ export function Demo() {
 				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
+			<Example title="Hover">
+				<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
+			</Example>
+
 			<Example title="Outline">
 				<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
