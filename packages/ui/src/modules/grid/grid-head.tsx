@@ -55,6 +55,8 @@ type GridHeadProps<T> = {
  * non-pinned data columns carry a drag handle backed by the column-reorder
  * sortable; when `resize` is supplied, data columns size from the engine and
  * gain a resize separator.
+ *
+ * @internal
  */
 export function GridHead<T>({
 	columns,

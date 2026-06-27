@@ -59,6 +59,8 @@ function collectFillCoords(active: Coord, anchor: Coord | null, extras: Iterable
  * multi-row selection), and `applyBulkFill` writes one raw value across the
  * active cell, the anchored rectangle, and any ctrl-clicked extras. Both emit
  * the resulting {@link CellChange}s through `onValueChange`.
+ *
+ * @internal
  */
 export function useGridEditableMutations<T>({
 	nav: { activeRef, anchorRef, extraCellsRef },

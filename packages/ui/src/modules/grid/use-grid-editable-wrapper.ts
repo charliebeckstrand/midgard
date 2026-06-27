@@ -344,6 +344,8 @@ function collectMatrixChanges<T>(
  * Returns the four handlers to spread onto the grid's `<table>` wrapper.
  *
  * @returns `onWrapperKeyDown` / `onWrapperPaste` / `onWrapperFocus` / `onWrapperBlur`.
+ *
+ * @internal
  */
 export function useGridEditableWrapper<T>({
 	nav: {

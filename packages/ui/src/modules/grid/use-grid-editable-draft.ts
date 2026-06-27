@@ -14,6 +14,8 @@ import type {
  * once-per-session commit guard, and the lossy-format diff baseline. Routes
  * commits through `applyBulkFill` when a multi-cell selection is active and
  * through `applyCellWrite` otherwise, then advances the cursor.
+ *
+ * @internal
  */
 export function useGridEditableDraft<T>({
 	nav: { active, anchorRef, extraCellsRef, moveActive, moveActiveTab, setActive },

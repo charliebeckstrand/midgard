@@ -11,6 +11,8 @@ import { type RefObject, useEffect } from 'react'
  * cell content. `ref` points at the content node; the attribute is written
  * imperatively on its `<td>`, which React leaves untouched; `aria-selected`
  * is not part of the `<td>`'s rendered props.
+ *
+ * @internal
  */
 export function useGridEditableCellAriaSelected(
 	ref: RefObject<HTMLElement | null>,

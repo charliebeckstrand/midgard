@@ -56,13 +56,13 @@ export function useGridEditable(): GridEditableContextValue {
 	return { ...useGridEditableState(), ...useGridEditableEdit() }
 }
 
-/** Volatile cell-positioning state mirrored into the store for per-cell selection. */
+/** Volatile cell-positioning state mirrored into the store for per-cell selection. @internal */
 export type GridEditableSnapshot = Pick<
 	GridEditableContextValue,
 	'active' | 'anchor' | 'extraCells' | 'editing'
 >
 
-/** External-store interface over the navigation snapshot; built in `useGridEditableStore`. */
+/** External-store interface over the navigation snapshot; built in `useGridEditableStore`. @internal */
 export type GridEditableStore = {
 	subscribe: (listener: () => void) => () => void
 	getSnapshot: () => GridEditableSnapshot
@@ -71,7 +71,7 @@ export type GridEditableStore = {
 export const [GridEditableStoreContext, useGridEditableStoreContext] =
 	createContext<GridEditableStore>('GridEditableStore')
 
-/** Derived per-cell flags. A cell re-renders only when one of these flips. */
+/** Derived per-cell flags. A cell re-renders only when one of these flips. @internal */
 export type GridEditableCellSlice = {
 	isActive: boolean
 	inRange: boolean
@@ -83,6 +83,8 @@ export type GridEditableCellSlice = {
  * Caches the slice by content: an unchanged cell keeps a stable snapshot and
  * skips re-rendering when an unrelated cell becomes active. The rectangle math
  * still runs per cell (cheap integer compares); reconciliation does not.
+ *
+ * @internal
  */
 export function useGridEditableCellSlice(
 	rowIdx: number,

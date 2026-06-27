@@ -14,7 +14,7 @@ export type CellChange = {
 /** Direction the cursor moves after a successful commit. */
 export type GridEditableCommitAdvance = 'down' | 'right' | 'left' | 'none'
 
-/** Horizontal text alignment for a column's cells and editor. */
+/** Horizontal text alignment for a column's cells and editor. @internal */
 export type GridEditableAlign = 'left' | 'center' | 'right'
 
 /**

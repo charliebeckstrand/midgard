@@ -93,6 +93,8 @@ function compareNumeric(a: unknown, b: unknown): number | null {
  * and booleans compare by their natural order; everything else falls back to a
  * natural, locale-aware string compare (so `Item 2` precedes `Item 10`). The
  * grid negates the result for descending order.
+ *
+ * @internal
  */
 export function compareSmart(a: unknown, b: unknown): number {
 	if (Object.is(a, b)) return 0

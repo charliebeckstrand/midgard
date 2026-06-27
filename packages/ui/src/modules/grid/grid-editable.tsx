@@ -80,6 +80,8 @@ export type GridEditableProps<T> = TableVariants & {
  * `maxHeight`.
  *
  * @typeParam T - Shape of a single row.
+ *
+ * @internal
  */
 export function GridEditable<T>({
 	columns,

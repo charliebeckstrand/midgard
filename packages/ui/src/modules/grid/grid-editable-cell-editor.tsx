@@ -21,6 +21,8 @@ type GridEditableCellEditorProps<T> = {
  * The active cell's in-place editor. Only this component subscribes to the
  * per-keystroke edit-session slice; surrounding cell shells do not re-render
  * while the user types.
+ *
+ * @internal
  */
 export function GridEditableCellEditor<T>({
 	rowIdx,

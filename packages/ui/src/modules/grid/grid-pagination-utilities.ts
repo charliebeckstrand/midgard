@@ -1,4 +1,4 @@
-/** A window entry: a 1-based page number, or `'gap'` for an elided range. */
+/** A window entry: a 1-based page number, or `'gap'` for an elided range. @internal */
 export type GridPageItem = number | 'gap'
 
 /**
@@ -9,6 +9,8 @@ export type GridPageItem = number | 'gap'
  * @param current - The active page, 1-based.
  * @param total - Total page count.
  * @returns Page numbers interleaved with `'gap'` markers; empty when `total < 1`.
+ *
+ * @internal
  */
 export function getVisiblePages(current: number, total: number): GridPageItem[] {
 	if (total < 1) return []

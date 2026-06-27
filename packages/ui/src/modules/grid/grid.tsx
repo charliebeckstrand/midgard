@@ -146,6 +146,8 @@ export type GridColumnManagerConfig = {
  * `columns` and the various renderers are keyed to it.
  *
  * @typeParam T - Shape of a single row.
+ *
+ * @internal
  */
 export type GridDataProps<T> = TableVariants & {
 	/** Column definitions, in declaration order; `columnOrder`, `reorder`, and the column manager can reorder and hide a subset. */

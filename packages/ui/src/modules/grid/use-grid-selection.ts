@@ -93,6 +93,8 @@ export function useGridSelectionActions({
  * {@link useGridSelectionActions} — {@link Grid} calls those two directly so the
  * selection state can sit above the engine, but the composed form keeps a single
  * entry point for callers (and tests) that don't need that split.
+ *
+ * @internal
  */
 export function useGridSelection({
 	selectionConfig,
