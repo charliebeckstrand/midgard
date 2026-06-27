@@ -4,6 +4,7 @@ import {
 	type CellContext,
 	type ColumnDef,
 	type ColumnFiltersState,
+	type ColumnOrderState,
 	type ColumnPinningState,
 	type ColumnSizingState,
 	type FilterFn,
@@ -24,6 +25,7 @@ import {
 	type TableOptions,
 	type Updater,
 	useReactTable,
+	type VisibilityState,
 } from '@tanstack/react-table'
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
@@ -60,6 +62,12 @@ const EMPTY_SIZING: GridColumnSizingState = {}
 
 /** Stable empty column-filters default; read-only, replaced wholesale on change. @internal */
 const EMPTY_COLUMN_FILTERS: ColumnFiltersState = []
+
+/** Stable empty column-order default (engine reads definition order); read-only. @internal */
+const EMPTY_COLUMN_ORDER: (string | number)[] = []
+
+/** Stable empty column-visibility default (all visible); read-only. @internal */
+const EMPTY_VISIBILITY: VisibilityState = {}
 
 /** Search-input placeholder when {@link GridSearch} supplies none. @internal */
 const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
@@ -312,6 +320,8 @@ function buildState(args: {
 	columnPinning: ColumnPinningState
 	selectable: boolean
 	rowSelection: RowSelectionState
+	columnOrder: ColumnOrderState
+	columnVisibility: VisibilityState
 }): {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
@@ -320,6 +330,8 @@ function buildState(args: {
 	sorting?: SortingState
 	columnPinning?: ColumnPinningState
 	rowSelection?: RowSelectionState
+	columnOrder: ColumnOrderState
+	columnVisibility: VisibilityState
 } {
 	const state: {
 		pagination?: PaginationState
@@ -329,7 +341,10 @@ function buildState(args: {
 		sorting?: SortingState
 		columnPinning?: ColumnPinningState
 		rowSelection?: RowSelectionState
-	} = {}
+		// Always set: the grid owns column order and visibility for every grid.
+		columnOrder: ColumnOrderState
+		columnVisibility: VisibilityState
+	} = { columnOrder: args.columnOrder, columnVisibility: args.columnVisibility }
 
 	if (args.paginated) state.pagination = args.pagination
 
@@ -401,6 +416,68 @@ function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	const right = columns.filter((col) => col.pinned === 'right').map((col) => String(col.id))
 
 	return { state: { left, right }, hasPinned: left.length > 0 || right.length > 0 }
+}
+
+/** Element-wise reference equality between two arrays. @internal */
+function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
+	if (a === b) return true
+
+	if (a.length !== b.length) return false
+
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+
+	return true
+}
+
+/**
+ * The grid columns to render, resolved by the engine from its `columnOrder`,
+ * `columnVisibility`, and `columnPinning` state: the visible leaf columns in
+ * pinned-edge order (left, then centre, then right), each mapped back to its
+ * source {@link GridColumn} through `meta`. This is the single source of column
+ * order and visibility the header, body, and `<colgroup>` all read.
+ *
+ * @internal
+ */
+function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
+	const sections = [
+		table.getLeftVisibleLeafColumns(),
+		table.getCenterVisibleLeafColumns(),
+		table.getRightVisibleLeafColumns(),
+	]
+
+	const result: GridColumn<T>[] = []
+
+	for (const section of sections) {
+		for (const leaf of section) {
+			const col = leaf.columnDef.meta?.gridColumn
+
+			if (col) result.push(col)
+		}
+	}
+
+	return result
+}
+
+/**
+ * The engine-resolved {@link deriveVisibleColumns} list, recomputed each render
+ * (the leaf columns read live engine state) but held at a stable reference while
+ * its contents are element-wise unchanged — so the header and the memos keyed on
+ * it don't churn between renders.
+ *
+ * @internal
+ */
+function useVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
+	const candidate = deriveVisibleColumns(table)
+
+	const ref = useRef(candidate)
+
+	const stable = sameElements(ref.current, candidate) ? ref.current : candidate
+
+	ref.current = stable
+
+	return stable
 }
 
 /**
@@ -481,10 +558,15 @@ function buildPaginationView<T>(args: {
 /** Parameters for {@link useGridTable}. @internal */
 type UseGridTableParams<T> = {
 	rows: T[]
+	/** The full column set; the engine resolves which render (and in what order) from the order/visibility/pinning state below. */
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
 	/** Selected row keys; mirrored into the engine's `state.rowSelection` so its selected-row model tracks the grid's `Set`. */
 	selection?: Set<string | number>
+	/** Display order of the column ids; feeds the engine's `columnOrder`. Columns absent from it append in definition order. */
+	columnOrder?: (string | number)[]
+	/** Hidden-column map (`{ id: false }`) feeding the engine's `columnVisibility`. */
+	columnVisibility?: VisibilityState
 	sort?: SortState[]
 	setSort?: (sort: SortState[]) => void
 	sortManual?: boolean
@@ -601,6 +683,12 @@ export type GridGlobalFilterView = {
 type UseGridTableResult<T> = {
 	/** The TanStack Table instance backing the grid. */
 	table: Table<T>
+	/**
+	 * Columns to render in resolved display order — the engine's visible leaf
+	 * columns (order + visibility + pinning applied), mapped back to their source
+	 * {@link GridColumn}. The header, body `<colgroup>`, and menus all read this.
+	 */
+	visibleColumns: GridColumn<T>[]
 	/** Rows to render: the engine-transformed slice when paginating/filtering client-side, else the supplied `rows`. */
 	renderRows: T[]
 	/** Footer view model, or `null` when pagination is not configured. */
@@ -682,6 +770,8 @@ export function useGridTable<T>({
 	columns,
 	getKey,
 	selection,
+	columnOrder = EMPTY_COLUMN_ORDER,
+	columnVisibility = EMPTY_VISIBILITY,
 	sort,
 	setSort,
 	sortManual = true,
@@ -775,8 +865,8 @@ export function useGridTable<T>({
 		[sort, setSort],
 	)
 
-	// Frozen columns, keyed off each column's `pinned` flag. `columns` arrives
-	// already partitioned to the edges, so these id lists are in sticky order.
+	// Frozen columns, keyed off each column's `pinned` flag. The engine pulls them
+	// to their edge via `columnPinning`, so these id lists drive the sticky order.
 	const { state: columnPinning, hasPinned } = useMemo(
 		() => toColumnPinningState(columns),
 		[columns],
@@ -787,6 +877,10 @@ export function useGridTable<T>({
 	const selectable = selection != null
 
 	const rowSelection = useMemo(() => toRowSelectionState(selection), [selection])
+
+	// Engine column-order state: the display order as string ids (columns absent
+	// from it append in definition order). Visibility defaults to all-visible.
+	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
 
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
@@ -812,6 +906,8 @@ export function useGridTable<T>({
 			columnPinning,
 			selectable,
 			rowSelection,
+			columnOrder: engineColumnOrder,
+			columnVisibility,
 		}),
 		...(selectable ? { enableRowSelection: true } : {}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
@@ -824,6 +920,9 @@ export function useGridTable<T>({
 			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
 		}),
 	})
+
+	// The columns to render, resolved by the engine (order + visibility + pinning).
+	const visibleColumns = useVisibleColumns(table)
 
 	// Materialize the row model only when a client-side transform is active;
 	// otherwise hand `rows` straight to the body.
@@ -860,7 +959,8 @@ export function useGridTable<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
-		columns,
+		// Fit distributes width across the *visible* data columns, not the hidden ones.
+		columns: visibleColumns,
 		containerRef,
 	})
 
@@ -891,5 +991,5 @@ export function useGridTable<T>({
 		[hasPinned, table],
 	)
 
-	return { table, renderRows, pagination, resize, globalFilter, filters, pinning }
+	return { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning }
 }

@@ -26,15 +26,11 @@ Column pinning is the ninth, declared per column via `pinned` (`'left'` / `'righ
 
 A grid with no source data (including while loading) stands its column interactions down: the sort, resize, filter, and reorder affordances drop from the header and the right-click menu defers to the browser's, since each acts on rows that aren't there. The gate reads the source `rows`, not the rendered view — a filter or search that empties the result keeps the header live (the filter button in particular, so the filter can be cleared and the rows recovered). The column-manager toolbar — a deliberate tool, not a header affordance — stays available throughout.
 
-Column order/visibility, drag-reorder, virtualization, and the editable variant still run on the original bespoke hooks. Row selection is mirrored onto the engine: the controllable `Set<key>` stays the source of truth (the checkboxes write it), and the table reflects it into `state.rowSelection` (`enableRowSelection`) one-way, so the engine's selected-row model tracks the grid — the foundation the cross-page selection and selected-row features build on. The migration below converges what remains.
+Column order and visibility now resolve on the engine: the controllable `columnOrder` and the column manager's hidden set feed `state.columnOrder` / `state.columnVisibility`, and the rendered column list comes back from the engine's visible leaf columns in pinned-edge order — one source the header, body, and `<colgroup>` all read, replacing the bespoke partition. The dnd reorder still rides @dnd-kit but commits through the same `columnOrder` binding. Row selection is mirrored onto the engine: the controllable `Set<key>` stays the source of truth (the checkboxes write it), and the table reflects it into `state.rowSelection` (`enableRowSelection`) one-way, so the engine's selected-row model tracks the grid — the foundation the cross-page selection and selected-row features build on.
 
 ## Migration — converging existing state onto the engine
 
-Each step preserves the public API via adapters and ships as its own change, smallest blast radius first. The render-tree migration (`flexRender` over a full `ColumnDef`), multi-column sort (`state.sorting` + `enableMultiSort`, with Shift-click and priority badges), and the row-selection mirror (`state.rowSelection`) have shipped; what remains converges column order/visibility onto the engine.
-
-| # | Step | TanStack surface |
-|---|---|---|
-| 1 | Move column order/visibility (fold in the column manager + dnd reorder) | `state.columnOrder`, `state.columnVisibility` |
+The state migration is complete: rendering through `flexRender` over a full `ColumnDef`, sorting (`state.sorting` + `enableMultiSort`, with Shift-click and priority badges), filtering, pagination, column sizing, column pinning (`state.columnPinning`), column order/visibility (`state.columnOrder` / `state.columnVisibility`), and row selection (`state.rowSelection`) all live on the one `useReactTable` instance. The editable variant and the virtualized body still layer their own behaviour on top, but read from the same engine. New features build on the engine directly rather than a bespoke hook.
 
 ## Feature backlog
 

@@ -772,7 +772,7 @@ function GridData<T>({
 		setColumnOrder,
 		hiddenColumns,
 		setHiddenColumns,
-		visibleColumns,
+		columnVisibility,
 		reorderColumns,
 		managerItems,
 		manageColumns,
@@ -785,14 +785,17 @@ function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { table, renderRows, pagination, resize, globalFilter, filters, pinning } = useGridTable<T>(
-		{
+	const { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning } =
+		useGridTable<T>({
 			rows,
-			// The engine sees the visible columns in display order, so its cell model
-			// (which the body renders from) matches what the header shows.
-			columns: visibleColumns,
+			// The engine receives the full column set and resolves which render (and
+			// in what order) from the order / visibility / pinning state below;
+			// `visibleColumns` comes back in that resolved order for the header and body.
+			columns: pinnedColumns,
 			getKey,
 			selection,
+			columnOrder,
+			columnVisibility,
 			sort,
 			setSort,
 			sortManual: sortConfig?.manual ?? false,
@@ -802,8 +805,7 @@ function GridData<T>({
 			globalFilter: searchConfig,
 			columnFilters: columnFiltersConfig,
 			containerRef: wrapperRef,
-		},
-	)
+		})
 
 	const rowKeys = useMemo<(string | number)[]>(
 		() => renderRows.map((row, i) => getKey(row, i)),

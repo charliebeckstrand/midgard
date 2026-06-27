@@ -57,8 +57,6 @@ describe('useGridColumns', () => {
 		)
 
 		expect(result.current.columnOrder).toEqual(['age', 'name', 'status'])
-
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'name', 'status'])
 	})
 
 	it('uses columnOrderConfig.defaultValue when no controlled order is supplied', () => {
@@ -73,7 +71,7 @@ describe('useGridColumns', () => {
 		expect(result.current.columnOrder).toEqual(['status', 'name', 'age'])
 	})
 
-	it('drops a hidden column from visibleColumns', () => {
+	it('marks a hidden column false in the engine columnVisibility map', () => {
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
 				columns,
@@ -81,11 +79,8 @@ describe('useGridColumns', () => {
 			}),
 		)
 
-		const ids = result.current.visibleColumns.map((c) => c.id)
-
-		expect(ids).not.toContain('age')
-
-		expect(ids).toContain('name')
+		// Only hidden columns appear (false); the rest default to visible (absent).
+		expect(result.current.columnVisibility).toEqual({ age: false })
 	})
 
 	it('fires onHiddenChange when setHiddenColumns is called', () => {
@@ -150,7 +145,7 @@ describe('useGridColumns', () => {
 		expect(onValueChange).toHaveBeenCalledWith(['select', 'status', 'age', 'name'])
 	})
 
-	it('preserves selectable, actions, and pinned columns even when listed as hidden', () => {
+	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'name', title: 'Name', cell: (r) => r.name },
@@ -171,15 +166,9 @@ describe('useGridColumns', () => {
 			}),
 		)
 
-		const visibleIds = result.current.visibleColumns.map((c) => c.id)
-
-		expect(visibleIds).toContain('select')
-
-		expect(visibleIds).toContain('pinned-status')
-
-		expect(visibleIds).toContain('actions')
-
-		expect(visibleIds).not.toContain('name')
+		// Only the hideable data column ('name') is marked hidden; selection,
+		// actions, and pinned columns always stay visible (absent from the map).
+		expect(result.current.columnVisibility).toEqual({ name: false })
 	})
 
 	it('excludes selectable and actions columns from managerItems', () => {
@@ -222,39 +211,6 @@ describe('useGridColumns', () => {
 		expect(result.current.manageColumnsLabel).toBe('Manage')
 	})
 
-	it('appends columns missing from the stored order at the end', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnOrderConfig: { value: ['name'] },
-				columnManagerConfig: undefined,
-			}),
-		)
-
-		const ids = result.current.visibleColumns.map((c) => c.id)
-
-		expect(ids[0]).toBe('name')
-
-		expect(ids).toContain('age')
-
-		expect(ids).toContain('status')
-	})
-
-	it('reuses the previous visibleColumns reference when contents are element-wise identical', () => {
-		const { result, rerender } = renderHook(
-			({ cols }: { cols: GridColumn<Row>[] }) =>
-				useGridColumns<Row>({ columns: cols, columnManagerConfig: undefined }),
-			{ initialProps: { cols: columns } },
-		)
-
-		const first = result.current.visibleColumns
-
-		// Same columns, new array: still reuses the cached reference.
-		rerender({ cols: [...columns] })
-
-		expect(result.current.visibleColumns).toBe(first)
-	})
-
 	it('propagates pinned and hideable=false metadata onto managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (r) => r.name, pinned: true },
@@ -294,26 +250,7 @@ describe('useGridColumns', () => {
 
 		expect(result.current.hiddenColumns.has('age')).toBe(false)
 
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'status'])
-	})
-
-	it('returns the new visibleColumns reference when the visible slice actually changes', () => {
-		const { result, rerender } = renderHook(
-			({ hidden }: { hidden: Set<string | number> }) =>
-				useGridColumns<Row>({
-					columns,
-					columnManagerConfig: { hidden },
-				}),
-			{ initialProps: { hidden: new Set<string | number>() } },
-		)
-
-		const first = result.current.visibleColumns
-
-		rerender({ hidden: new Set<string | number>(['age']) })
-
-		expect(result.current.visibleColumns).not.toBe(first)
-
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['name', 'status'])
+		expect(result.current.columnVisibility).toEqual({ name: false })
 	})
 
 	it('honors manageColumns=false when columnManagerConfig.enabled is unset', () => {
@@ -328,78 +265,5 @@ describe('useGridColumns', () => {
 
 		// Custom label still resolves even when the manager is not enabled.
 		expect(result.current.manageColumnsLabel).toBe('Anything')
-	})
-})
-
-describe('useGridColumns column pinning partition', () => {
-	type R = { a: string }
-
-	const cell = (r: R) => r.a
-
-	const ids = (cols: GridColumn<R>[]) =>
-		renderHook(() =>
-			useGridColumns<R>({ columns: cols, columnManagerConfig: undefined }),
-		).result.current.visibleColumns.map((c) => c.id)
-
-	it('pulls left-pinned columns to the front in declaration order (true is left)', () => {
-		expect(
-			ids([
-				{ id: 'a', cell },
-				{ id: 'b', cell, pinned: 'left' },
-				{ id: 'c', cell },
-				{ id: 'd', cell, pinned: true },
-			]),
-		).toEqual(['b', 'd', 'a', 'c'])
-	})
-
-	it('pushes right-pinned columns to the end in declaration order', () => {
-		expect(
-			ids([
-				{ id: 'a', cell, pinned: 'right' },
-				{ id: 'b', cell },
-				{ id: 'c', cell, pinned: 'right' },
-				{ id: 'd', cell },
-			]),
-		).toEqual(['b', 'd', 'a', 'c'])
-	})
-
-	it('orders left, then center, then right — each group keeping its order', () => {
-		expect(
-			ids([
-				{ id: 'l1', cell, pinned: 'left' },
-				{ id: 'c1', cell },
-				{ id: 'r1', cell, pinned: 'right' },
-				{ id: 'l2', cell, pinned: 'left' },
-				{ id: 'c2', cell },
-				{ id: 'r2', cell, pinned: 'right' },
-			]),
-		).toEqual(['l1', 'l2', 'c1', 'c2', 'r1', 'r2'])
-	})
-
-	it('leaves column order untouched when nothing is pinned', () => {
-		expect(
-			ids([
-				{ id: 'a', cell },
-				{ id: 'b', cell },
-				{ id: 'c', cell },
-			]),
-		).toEqual(['a', 'b', 'c'])
-	})
-
-	it('partitions after the stored order, so a reorder still resolves to the edges', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<R>({
-				columns: [
-					{ id: 'a', cell },
-					{ id: 'b', cell, pinned: 'left' },
-					{ id: 'c', cell },
-				],
-				// Stored order shuffles the center columns; the pin still wins the edge.
-				columnOrderConfig: { value: ['c', 'a', 'b'] },
-				columnManagerConfig: undefined,
-			}),
-		)
-
-		expect(result.current.visibleColumns.map((col) => col.id)).toEqual(['b', 'c', 'a'])
 	})
 })
