@@ -1,8 +1,8 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { type Cell, flexRender } from '@tanstack/react-table'
-import { type HTMLAttributes, memo, type ReactNode } from 'react'
+import { type Cell, flexRender, type Table } from '@tanstack/react-table'
+import { type HTMLAttributes, memo, type ReactElement, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
@@ -12,6 +12,70 @@ import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
+
+/**
+ * Per-row wiring shared by the plain and virtualized bodies: the engine, the
+ * row/key sources, and the flags every {@link GridRow} reads. Both bodies
+ * extend this with their own layout props and render rows through
+ * {@link renderGridRow}.
+ *
+ * @internal
+ */
+export type GridRowsProps<T> = {
+	/** The engine; rows read their cells from it. */
+	table: Table<T>
+	rows: T[]
+	rowKeys: (string | number)[]
+	/** Visible columns, kept for the loading/empty/spacer column spans. */
+	visibleColumns: GridColumn<T>[]
+	rowLoading?: (row: T) => boolean
+	rowClassName?: (row: T) => string | undefined
+	rowLabel?: (row: T) => string
+	selection: Set<string | number>
+	toggleRow: (key: string | number) => void
+	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
+	reorderable: boolean
+	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
+	truncate: boolean
+	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
+	pinning: GridColumnPinning | null
+}
+
+/**
+ * Renders one engine row through {@link GridRow}, resolving its cells, key, and
+ * per-row flags from the shared body wiring. `rowIndex` is the 1-based aria
+ * position, set only when the body is virtualized.
+ *
+ * @internal
+ */
+export function renderGridRow<T>(
+	props: GridRowsProps<T>,
+	row: T,
+	dataRowIndex: number,
+	rowIndex?: number,
+): ReactElement {
+	// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is always present.
+	const key = props.rowKeys[dataRowIndex] as string | number
+
+	return (
+		<GridRow<T>
+			key={key}
+			cells={props.table.getRow(String(key)).getVisibleCells()}
+			row={row}
+			rowKey={key}
+			loading={props.rowLoading?.(row) ?? false}
+			className={props.rowClassName?.(row)}
+			rowLabel={props.rowLabel?.(row)}
+			selected={props.selection.has(key)}
+			toggleRow={props.toggleRow}
+			reorderable={props.reorderable}
+			truncate={props.truncate}
+			pinning={props.pinning}
+			dataRowIndex={dataRowIndex}
+			rowIndex={rowIndex}
+		/>
+	)
+}
 
 /** Props for {@link GridRow}. @internal */
 type GridRowProps<T> = {

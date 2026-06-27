@@ -1,7 +1,7 @@
 'use client'
 
 import { isDataColumn } from '../../utilities'
-import type { GridColumn } from './types'
+import { columnLabel, type GridColumn } from './types'
 
 /**
  * Quotes a CSV field per RFC 4180: a field carrying the delimiter, a quote, or a
@@ -17,11 +17,6 @@ function escapeCsvField(value: string): string {
 /** Stringifies a cell value for CSV: nullish becomes empty, everything else `String()`s. @internal */
 function csvCellText(value: unknown): string {
 	return value == null ? '' : String(value)
-}
-
-/** A column's header label: its `title` when a string, else the stringified id. @internal */
-function exportLabel<T>(column: GridColumn<T>): string {
-	return typeof column.title === 'string' ? column.title : String(column.id)
 }
 
 /**
@@ -53,7 +48,7 @@ function exportValue<T>(column: GridColumn<T>, row: T): unknown {
 export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
 	const dataColumns = columns.filter(isDataColumn)
 
-	const header = dataColumns.map((column) => escapeCsvField(exportLabel(column))).join(',')
+	const header = dataColumns.map((column) => escapeCsvField(columnLabel(column))).join(',')
 
 	const body = rows.map((row) =>
 		dataColumns.map((column) => escapeCsvField(csvCellText(exportValue(column, row)))).join(','),

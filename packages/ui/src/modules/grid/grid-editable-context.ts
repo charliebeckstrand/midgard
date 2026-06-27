@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { Coord, GridEditableCommitAdvance } from './grid-editable-types'
-import { cellKey } from './use-grid-editable-navigation'
+import { cellKey, inRect } from './use-grid-editable-navigation'
 
 // The edit-session slice (draft + commit/cancel) changes on every keystroke and
 // is read only by the mounted editor. Cells subscribe to
@@ -70,15 +70,9 @@ export function useGridEditableCellSlice(
 
 		const isActive = active?.row === rowIdx && active?.col === colIdx
 
-		const inRect =
-			!!active &&
-			!!anchor &&
-			rowIdx >= Math.min(anchor.row, active.row) &&
-			rowIdx <= Math.max(anchor.row, active.row) &&
-			colIdx >= Math.min(anchor.col, active.col) &&
-			colIdx <= Math.max(anchor.col, active.col)
+		const within = !!active && !!anchor && inRect(rowIdx, colIdx, anchor, active)
 
-		const inRange = !isActive && (inRect || extraCells.has(cellKey(rowIdx, colIdx)))
+		const inRange = !isActive && (within || extraCells.has(cellKey(rowIdx, colIdx)))
 
 		const showEditor = isActive && editing && !readOnly
 

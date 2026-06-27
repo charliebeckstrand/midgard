@@ -9,6 +9,7 @@ import type {
 	GridEditableRowsApi,
 	GridEditableSelectionApi,
 } from './grid-editable-types'
+import { forEachInRect } from './use-grid-editable-navigation'
 
 /**
  * Cells to fill: the active cell, the active-to-anchor rectangle, and any
@@ -33,16 +34,7 @@ function collectFillCoords(active: Coord, anchor: Coord | null, extras: Iterable
 
 	push(active.row, active.col)
 
-	if (anchor) {
-		const r0 = Math.min(anchor.row, active.row)
-		const r1 = Math.max(anchor.row, active.row)
-		const c0 = Math.min(anchor.col, active.col)
-		const c1 = Math.max(anchor.col, active.col)
-
-		for (let r = r0; r <= r1; r++) {
-			for (let c = c0; c <= c1; c++) push(r, c)
-		}
-	}
+	if (anchor) forEachInRect(anchor, active, push)
 
 	for (const key of extras) {
 		const [rs, cs] = key.split(',')
