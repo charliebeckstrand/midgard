@@ -50,7 +50,10 @@ const resizePadding = defineRecipe({
 const pinnedSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 export const k = {
-	wrapper: ['relative', flex.col, 'gap-2'],
+	// Hosts the `group/grid` resize-state flag: while a column drag-resize is in
+	// flight the wrapper carries `data-resizing`, which descendants read to stand
+	// down their hover affordances and which paints the resize cursor grid-wide.
+	wrapper: ['group/grid', 'relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		head: ['sticky top-0 z-10', bg.surface],
@@ -144,27 +147,43 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
-		// The header cell hosts the absolutely-positioned handle.
+		// Marks a resizable header as the grip's hover host: hovering anywhere on the
+		// header cell reveals its (otherwise hidden) grip. Pairs with the handle's
+		// own `group/grid-resize`, which reveals the grip when the pointer is on the
+		// full-height edge strip running down past the header. While a drag-resize is
+		// in flight (the wrapper's `data-resizing`), every host drops its pointer
+		// events so the dragging pointer — sweeping across the full-height strips —
+		// can't flash other columns' grips; the active column's grip stays lit
+		// through its handle's own `data-resizing`, which this never gates.
+		host: ['group/grid-col', 'group-data-[resizing]/grid:pointer-events-none'],
+		// Anchors the absolutely-positioned handle (non-sticky headers only — a
+		// sticky header is already a positioned containing block).
 		cell: 'relative',
 		// Density-scaled trailing padding projected onto resizable headers so their
 		// labels clear the handle; lives on the `<table>` element.
 		padding: resizePadding,
-		// Full-height grab area straddling the column's trailing edge, centering the
-		// grip. Widened from a hairline and pulled half its width past the boundary
-		// (`translate-x-1/2`) so the hit target spans the edge rather than a 6px
-		// sliver — far easier to land with a pointer (toward WCAG 2.5.8) — while the
-		// inner grip stays a thin line on the boundary.
+		// Grab area straddling the column's trailing edge. Spans the column's full
+		// height — header through the last row — via the measured
+		// `--grid-resize-height`, so a drag can begin anywhere down the right side,
+		// not just the header (falling back to the header height until measured).
+		// Widened and pulled half its width past the boundary (`translate-x-1/2`) so
+		// the hit target straddles the edge rather than a thin sliver — far easier to
+		// land with a pointer (toward WCAG 2.5.8) — while the inner grip stays a thin
+		// line on the boundary.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 h-full w-4 translate-x-1/2',
+			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)] translate-x-1/2',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Always-visible grip (mirrors the Resizable handle): tints on hover and
-		// turns accent on keyboard focus or active drag. Focus shows as a colour
-		// change, not an outset ring, so the scroll container can't clip it.
+		// Full-height grip line, hidden until the column edge is
+		// hovered, and shown on keyboard focus or active drag: tints on hover, turns
+		// accent on focus or drag. Focus shows as a colour change, not an outset
+		// ring, so the scroll container can't clip it.
 		grip: [
-			'h-6 w-0.5',
-			rounded.full,
+			'h-full w-1',
+			'opacity-0 transition-opacity',
+			'group-hover/grid-resize:opacity-100',
+			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',

@@ -488,6 +488,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			data-grid-col={gridCol}
 			className={cn(
 				stickyHeader && k.sticky.head,
+				canResize && k.resize.host,
 				canResize && !stickyHeader && k.resize.cell,
 				pinnedClassName(pinning, column.id, { header: true }),
 				column.headerClassName,
@@ -576,6 +577,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
+				canResize && k.resize.host,
 				canResize && !stickyHeader && k.resize.cell,
 				column.headerClassName,
 			)}

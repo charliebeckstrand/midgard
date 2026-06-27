@@ -198,8 +198,8 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Auto-size columns' })).toBeInTheDocument()
 	})
 
-	it('omits "Auto-size columns" when not resizable', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('omits "Auto-size columns" when resizable is off', () => {
+		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
