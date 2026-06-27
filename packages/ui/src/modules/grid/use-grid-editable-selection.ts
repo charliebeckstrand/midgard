@@ -23,7 +23,9 @@ export function useGridEditableSelection(config: GridSelection | undefined) {
 	const [selectionRaw, setSelection] = useControllable<Set<string | number>>({
 		value: config?.value,
 		defaultValue: config?.defaultValue ?? new Set(),
-		onValueChange: config?.onValueChange,
+		// Coalesce a clear to the empty set so the public callback keeps its
+		// non-nullable shape (mirrors `useGridSelectionState`).
+		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SELECTION),
 	})
 
 	const selection = selectionRaw ?? EMPTY_SELECTION

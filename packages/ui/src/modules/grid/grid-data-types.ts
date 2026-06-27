@@ -59,7 +59,12 @@ export type GridColumnOrder = {
 export type GridSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
-	onValueChange?: (selection: Set<string | number> | undefined) => void
+	/**
+	 * Fires with the next selection. The grid coalesces an internal clear to an
+	 * empty set, so the payload is never `undefined` — matching the other grid
+	 * bindings' non-nullable callbacks.
+	 */
+	onValueChange?: (selection: Set<string | number>) => void
 	/**
 	 * Renders a {@link Toolbar} of actions over the table while at least one row
 	 * is selected. Receives the current selection and a setter to mutate it.
