@@ -213,9 +213,9 @@ export const k = {
 	footer: {
 		// Footer below the table, laid out as three zones. From `lg`: one row with
 		// the row-range status at the start, the page navigation centered, and the
-		// page-size picker (plus optional "Go to page" jump) at the end — each zone
-		// an equal `flex-1` track so the navigation stays centered whatever the side
-		// content. Below `lg`: the navigation sits on its own row up top, with the
+		// page-size picker at the end — each zone an equal `flex-1` track so the
+		// navigation stays centered whatever the side content. Below `lg`: the
+		// navigation sits on its own row up top, with the
 		// status and controls sharing a justified-between row beneath it (the `meta`
 		// wrapper collapses to `contents` at `lg` so all three become siblings of the
 		// one row, reordered status · nav · controls).
@@ -230,13 +230,10 @@ export const k = {
 		// Row-range status ("1–10 of 47"): the start track from `lg`, the left of the
 		// justified row below it.
 		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-1', 'lg:flex-1'],
-		// Page-size picker + optional jump: the end track from `lg` (right-aligned),
-		// the right of the justified row below it. Always rendered so the track holds
-		// even when empty, keeping the nav centered.
+		// Page-size picker: the end track from `lg` (right-aligned), the right of the
+		// justified row below it. Always rendered so the track holds even when empty,
+		// keeping the nav centered.
 		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-3', 'lg:flex-1', 'lg:justify-end'],
-		// "Go to page" control: label + a narrow number input, inline with the picker.
-		jump: [flex.inline, 'items-center', 'gap-2', size.sm, text.muted, 'whitespace-nowrap'],
-		jumpInput: 'w-16',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 } as const
