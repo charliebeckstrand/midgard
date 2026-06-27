@@ -229,7 +229,7 @@ describe('GridColumnManagerDialog', () => {
 
 		return (
 			<GridColumnManagerDialog
-				enabled
+				toolbarButton
 				open={open}
 				onOpenChange={setOpen}
 				label="Manage columns"

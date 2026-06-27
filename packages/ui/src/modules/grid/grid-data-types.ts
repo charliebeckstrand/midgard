@@ -71,19 +71,29 @@ export type GridSelection = {
 }
 
 /**
- * Column-manager binding for {@link GridProps.columnManager}: gates the
- * toolbar button and holds controlled/uncontrolled column-visibility state.
- * Column order lives on the top-level {@link GridProps.columnOrder}
- * binding, which the manager dialog reads and writes.
+ * Column-manager binding for {@link GridProps.columnManager}: gates column
+ * management, optionally adds a standalone toolbar button, and holds
+ * controlled/uncontrolled column-visibility state. Column order lives on the
+ * top-level {@link GridProps.columnOrder} binding, which the manager dialog
+ * reads and writes.
  */
 export type GridColumnManagerConfig = {
 	/**
-	 * Render the toolbar button that opens the manage-columns dialog.
-	 * @defaultValue false
+	 * Whether column management is available: the "Manage columns" header
+	 * context-menu item and the manager dialog it opens. Set `false` to drop the
+	 * item and keep the dialog out of the tree entirely.
+	 * @defaultValue true
 	 */
 	enabled?: boolean
 	/**
-	 * Label on the toolbar button (and dialog title).
+	 * Also render a standalone toolbar button above the table that opens the
+	 * manager dialog, alongside the context-menu item. Has no effect when
+	 * `enabled` is `false`.
+	 * @defaultValue false
+	 */
+	toolbarButton?: boolean
+	/**
+	 * Label on the toolbar button and the dialog title.
 	 * @defaultValue 'Manage columns'
 	 */
 	label?: ReactNode
@@ -180,7 +190,8 @@ export type GridDataProps<T> = TableVariants & {
 	 * descending, Auto-size columns, Manage columns) and a `cell` menu on body
 	 * cells (Copy). On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
-	 * the column manager, rendering its dialog even without the toolbar button.
+	 * the column manager, rendering its dialog even without the toolbar button —
+	 * unless {@link GridColumnManagerConfig.enabled} is `false`, which drops it.
 	 *
 	 * @see {@link GridContextMenu}
 	 * @defaultValue `{ column: true, cell: true }`

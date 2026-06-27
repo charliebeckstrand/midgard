@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
 import { applyColumnReorder } from './grid-reorder'
@@ -50,8 +50,6 @@ type GridColumnsResult = {
 	/** Commits a header drag: splices the reordered visible data-column ids back into the full order. */
 	reorderColumns: (reorderedIds: (string | number)[]) => void
 	managerItems: GridColumnManagerItem[]
-	manageColumns: boolean
-	manageColumnsLabel: ReactNode
 }
 
 /**
@@ -60,9 +58,8 @@ type GridColumnsResult = {
  * map that feeds the engine, the `reorderColumns` header-drag committer, and the
  * `managerItems` shape consumed by the column-manager dialog. The engine owns
  * the actual resolution (order + visibility + pinning) and produces the rendered
- * visible-column list; this hook only supplies its state. `manageColumns` /
- * `manageColumnsLabel` collapse the config's enabled flag and label into plain
- * values for the dialog's render gate.
+ * visible-column list; this hook only supplies its state. The column-manager's
+ * enablement and toolbar-button gates live with the menu actions, not here.
  *
  * @internal
  */
@@ -103,10 +100,6 @@ export function useGridColumns<T>({
 		[setColumnOrder, columnOrder, columnById, hiddenColumns],
 	)
 
-	const manageColumns = columnManagerConfig?.enabled ?? false
-
-	const manageColumnsLabel = columnManagerConfig?.label ?? 'Manage columns'
-
 	const columnVisibility = useMemo(
 		() => toColumnVisibility(hiddenColumns, columnById),
 		[hiddenColumns, columnById],
@@ -132,7 +125,5 @@ export function useGridColumns<T>({
 		columnVisibility,
 		reorderColumns,
 		managerItems,
-		manageColumns,
-		manageColumnsLabel,
 	}
 }

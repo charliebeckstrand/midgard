@@ -11,8 +11,8 @@ import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 
 /** Props for {@link GridColumnManagerDialog}. @internal */
 type GridColumnManagerDialogProps = {
-	/** Render the toolbar trigger button; the dialog itself is always controlled. */
-	enabled: boolean
+	/** Render the standalone toolbar trigger button; the dialog itself is always controlled. */
+	toolbarButton: boolean
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	label: ReactNode
@@ -26,14 +26,14 @@ type GridColumnManagerDialogProps = {
 
 /**
  * Controlled {@link Dialog} hosting the {@link GridColumnManager}, opened by its
- * own toolbar button when `enabled` and/or by the grid's "Manage columns"
+ * own toolbar button when `toolbarButton` and/or by the grid's "Manage columns"
  * context-menu item. {@link Grid} renders it when a column manager is configured
  * or reachable from a menu.
  *
  * @internal
  */
 export function GridColumnManagerDialog({
-	enabled,
+	toolbarButton,
 	open,
 	onOpenChange,
 	label,
@@ -46,7 +46,7 @@ export function GridColumnManagerDialog({
 }: GridColumnManagerDialogProps) {
 	return (
 		<>
-			{enabled && (
+			{toolbarButton && (
 				<Toolbar aria-label="Column management">
 					<Button variant="plain" aria-haspopup="dialog" onClick={() => onOpenChange(true)}>
 						<Icon icon={<SlidersHorizontal />} />

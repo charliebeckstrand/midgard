@@ -551,12 +551,16 @@ const DateBooleanFilterExample = () => (
 )
 
 const ColumnManagerExample = () => {
+	// Column management is on by default (the header right-click menu's "Manage
+	// columns" opens the dialog); `toolbarButton` adds the standalone button
+	// shown here. Pass `columnManager={{ enabled: false }}` to turn it off
+	// entirely.
 	return (
 		<Grid
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			columnManager={{ enabled: true }}
+			columnManager={{ toolbarButton: true }}
 		/>
 	)
 }
