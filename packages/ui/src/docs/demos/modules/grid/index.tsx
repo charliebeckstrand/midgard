@@ -76,7 +76,7 @@ const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
 
 const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	...col,
-	width: '180px',
+	width: '200px',
 	minWidth: 100,
 }))
 
@@ -229,18 +229,18 @@ const employees: Employee[] = [
 // a side needs known widths, so this grid is `resizable` (fixed layout) and its
 // sticky header rides the same scroll container as the frozen columns.
 const employeeColumns: GridColumn<Employee>[] = [
-	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '180px', pinned: 'left' },
-	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '220px' },
+	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', pinned: 'left' },
+	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '200px' },
 	{ id: 'role', title: 'Role', cell: (row) => row.role, width: '160px' },
 	{ id: 'department', title: 'Department', cell: (row) => row.department, width: '160px' },
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
-	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '140px' },
-	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '140px' },
+	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '160px' },
+	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '160px' },
 	{
 		id: 'status',
 		title: 'Status',
 		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
-		width: '120px',
+		width: '160px',
 		pinned: 'right',
 	},
 ]
@@ -473,20 +473,27 @@ const ErrorExample = () => {
 	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
 	// control), or `error` (true) for a default alert.
 	return (
-		<Grid
-			columns={columns}
-			rows={people}
-			getKey={(row) => row.id}
-			error={
-				failed ? (
-					<Alert severity="error" variant="soft" title="Couldn't load people" block>
-						<Button variant="soft" color="red" onClick={() => setFailed(false)}>
-							Retry
-						</Button>
-					</Alert>
-				) : undefined
-			}
-		/>
+		<>
+			{!failed && (
+				<Button variant="soft" color="red" onClick={() => setFailed(true)}>
+					Reset
+				</Button>
+			)}
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				error={
+					failed ? (
+						<Alert color="red" variant="soft" title="Couldn't load people" block>
+							<Button variant="soft" color="red" onClick={() => setFailed(false)}>
+								Retry
+							</Button>
+						</Alert>
+					) : undefined
+				}
+			/>
+		</>
 	)
 }
 
@@ -656,10 +663,6 @@ export function Demo() {
 				<RowClickExample />
 			</Example>
 
-			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
-				<ErrorExample />
-			</Example>
-
 			<Example title="Striped">
 				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
@@ -684,6 +687,10 @@ export function Demo() {
 
 			<Example title="Empty">
 				<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
+			</Example>
+
+			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
+				<ErrorExample />
 			</Example>
 
 			<Example title="Reorder">
