@@ -15,3 +15,6 @@ export const DEFAULT_MIN_COLUMN_SIZE = 40
 
 /** Pixels a keyboard arrow nudges a column resize handle. @internal */
 export const COLUMN_RESIZE_STEP = 16
+
+/** Rows a PageUp/PageDown jumps the read-only cell cursor. @internal */
+export const NAV_PAGE_STEP = 10

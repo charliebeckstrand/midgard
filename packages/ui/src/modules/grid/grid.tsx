@@ -28,10 +28,12 @@ export type GridProps<T> = GridDataProps<T> | (GridEditableProps<T> & { editable
  * sorts by column value on the engine, and shares that state with head and
  * cells via {@link useGrid}. Sort, selection, and `columnOrder` are
  * controllable; selecting rows surfaces a batch-action {@link Toolbar}, a column
- * manager dialog reorders and hides columns, and `reorder` adds header drag
- * handles. Renders a loading skeleton (`aria-busy`), an `empty` slot when there
- * are no rows, a sticky header, and — under `virtualize` — windowed rows with
- * full `role="grid"` row/column counts.
+ * manager dialog reorders and hides columns, `reorder` adds header drag handles,
+ * and `navigable` adds a keyboard cell cursor (`role="grid"` with an
+ * `aria-activedescendant` active cell). Renders a loading skeleton (`aria-busy`
+ * with a polite status), an `empty` slot when there are no rows, a sticky header,
+ * and — under `virtualize` — windowed rows with full row/column counts (a
+ * `role="grid"` only when `navigable`, otherwise a windowed `role="table"`).
  *
  * Pass `editable` for the spreadsheet-style {@link GridEditable} surface
  * instead; the `editable` discriminant on {@link GridProps} selects the arm.

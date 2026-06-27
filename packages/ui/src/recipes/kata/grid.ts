@@ -251,4 +251,26 @@ export const k = {
 		jumpInput: 'w-16',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
+	row: {
+		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
+		// ring (the row is a tab stop). Its hover wash is the shared `<Table hover>`
+		// variant `GridData` enables for a row click. Interactive cell content
+		// (buttons, the select checkbox) handles its own clicks; the row guard skips
+		// those.
+		clickable: ['cursor-pointer', focus.ring],
+	},
+	nav: {
+		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
+		// own focus outline so the active-cell ring is the sole, precise indicator.
+		table: 'outline-0',
+		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
+		// `data-active` the cell marker toggles onto the owning `role="gridcell"`
+		// <td>. Inset so the scroll container can't clip it; accent blue, matching
+		// the editable grid's active cell.
+		cell: [
+			'data-[active]:ring-2',
+			'data-[active]:ring-inset',
+			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+		],
+	},
 } as const

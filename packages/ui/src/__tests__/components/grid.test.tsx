@@ -892,15 +892,17 @@ describe('Grid', () => {
 			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
 		})
 
-		it('exposes grid semantics so the row/col index scheme is honored', () => {
+		it('exposes windowed table semantics so the row/col index scheme is honored', () => {
 			const { container } = renderUI(
 				<Grid columns={columns} rows={manyRows} getKey={getKey} virtualize maxHeight="300px" />,
 			)
 
 			const table = container.querySelector('table')
 
-			// aria-rowindex/rowcount are inert on a plain role="table".
-			expect(table).toHaveAttribute('role', 'grid')
+			// A windowed but non-navigable grid stays role="table" (no keyboard cursor
+			// backs role="grid"); aria-rowcount/colcount/colindex are valid on table
+			// and convey the full extent despite the DOM holding only the window.
+			expect(table).toHaveAttribute('role', 'table')
 
 			expect(table).toHaveAttribute('aria-colcount', String(columns.length))
 

@@ -37,7 +37,7 @@ const INTERACTIVE_CELL_CONTENT =
 	'a,button,input,select,textarea,label,[role="button"],[role="menuitem"],[role="checkbox"],[contenteditable="true"]'
 
 /** Whether the event originated inside interactive cell content. @internal */
-function fromInteractiveContent(target: EventTarget | null): boolean {
+export function fromInteractiveContent(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
 }
 
@@ -236,9 +236,10 @@ function GridRowImpl<T>({
 						}
 					: undefined
 			}
-			// A clickable row shows the pointer cursor; its hover wash is the shared
-			// `<Table hover>` variant that `GridData` enables for a row-click handler.
-			className={cn(loading && k.rowLoading, onRowClick && 'cursor-pointer', className)}
+			// A clickable row carries the pointer cursor and a keyboard focus ring (see
+			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
+			// that `GridData` enables for a row-click handler.
+			className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
 		>
 			{cells.map((cell, colIdx) => {
 				// Every engine column carries its source column on `meta`; the guard
