@@ -830,6 +830,20 @@ describe('Grid', () => {
 
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
+
+		it('drives the grip grabbing cursor off the drag state, not :active', () => {
+			// A right-click presses the grip into `:active` like any button; with the
+			// context menu eating the pointerup, an `active:cursor-grabbing` cue would
+			// stay stuck as if the column were held. The cue tracks `data-[dragging]`,
+			// which dnd-kit never sets for a right-click, so it cannot stick.
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} reorder />)
+
+			const handle = screen.getByRole('button', { name: 'Reorder Name' })
+
+			expect(handle.className).toContain('data-[dragging]:cursor-grabbing')
+
+			expect(handle.className).not.toContain('active:cursor-grabbing')
+		})
 	})
 
 	describe('virtualize', () => {

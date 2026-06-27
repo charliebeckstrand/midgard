@@ -587,6 +587,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 				<button
 					type="button"
 					ref={setActivatorNodeRef}
+					data-dragging={dataAttr(isDragging)}
 					className={cn(k.reorder.handle)}
 					aria-label={`Reorder ${columnLabel(column)}`}
 					{...attributes}

@@ -132,13 +132,17 @@ export const k = {
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
 		layout: [flex.row, 'min-w-0', 'gap-1'],
+		// The grabbing cursor follows the live drag (`data-[dragging]`), not the
+		// pointer's `:active` state: a right-click presses the grip `<button>` into
+		// `:active` too, and the context menu swallowing the matching pointerup
+		// would leave that cursor stuck as if the column were still held.
 		handle: [
 			flex.inline,
 			'shrink-0',
 			text.muted,
 			fg.hover,
 			focus.ring,
-			'cursor-grab touch-none select-none active:cursor-grabbing',
+			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
 		],
 	},
 	resize: {
