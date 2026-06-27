@@ -162,6 +162,10 @@ type Employee = {
 	location: string
 	startDate: string
 	salary: string
+	manager: string
+	team: string
+	phone: string
+	level: string
 	status: 'active' | 'inactive'
 }
 
@@ -175,6 +179,10 @@ const employees: Employee[] = [
 		location: 'San Francisco',
 		startDate: '2021-03-14',
 		salary: '$145,000',
+		manager: 'Devon Webb',
+		team: 'Platform',
+		phone: '+1 (415) 555-0142',
+		level: 'L5',
 		status: 'active',
 	},
 	{
@@ -186,6 +194,10 @@ const employees: Employee[] = [
 		location: 'New York',
 		startDate: '2022-07-01',
 		salary: '$132,000',
+		manager: 'Devon Webb',
+		team: 'Design Systems',
+		phone: '+1 (212) 555-0188',
+		level: 'L4',
 		status: 'active',
 	},
 	{
@@ -197,6 +209,10 @@ const employees: Employee[] = [
 		location: 'Austin',
 		startDate: '2019-11-23',
 		salary: '$158,000',
+		manager: 'Tanya Fox',
+		team: 'Leadership',
+		phone: '+1 (512) 555-0119',
+		level: 'L6',
 		status: 'inactive',
 	},
 	{
@@ -208,6 +224,10 @@ const employees: Employee[] = [
 		location: 'Seattle',
 		startDate: '2023-02-12',
 		salary: '$121,000',
+		manager: 'Wade Cooper',
+		team: 'Platform',
+		phone: '+1 (206) 555-0167',
+		level: 'L3',
 		status: 'active',
 	},
 	{
@@ -219,6 +239,10 @@ const employees: Employee[] = [
 		location: 'Remote',
 		startDate: '2020-05-30',
 		salary: '$139,000',
+		manager: 'Arlene McCoy',
+		team: 'Design Systems',
+		phone: '+1 (650) 555-0173',
+		level: 'L5',
 		status: 'inactive',
 	},
 ]
@@ -237,6 +261,10 @@ const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
 	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '160px' },
 	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '160px' },
+	{ id: 'manager', title: 'Manager', cell: (row) => row.manager, width: '160px' },
+	{ id: 'team', title: 'Team', cell: (row) => row.team, width: '160px' },
+	{ id: 'phone', title: 'Phone', cell: (row) => row.phone, width: '180px' },
+	{ id: 'level', title: 'Level', cell: (row) => row.level, width: '120px' },
 	{
 		id: 'status',
 		title: 'Status',
