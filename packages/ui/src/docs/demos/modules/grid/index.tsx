@@ -225,9 +225,10 @@ const employees: Employee[] = [
 
 // `pinned` freezes a column against horizontal scroll: `'left'` (or `true`) pulls
 // it to the left edge, `'right'` to the right; the rest scroll between them. A
-// pinned column is locked — it can't be reordered or hidden. Stacking columns on
-// a side needs known widths, so this grid is `resizable` (fixed layout) and its
-// sticky header rides the same scroll container as the frozen columns.
+// pinned column is locked — it can't be reordered or hidden, and its header shows
+// a pin button that unpins it. Stacking columns on a side needs known widths, so
+// this grid is `resizable` (fixed layout) and its sticky header rides the same
+// scroll container as the frozen columns.
 const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', pinned: 'left' },
 	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '200px' },

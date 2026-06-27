@@ -99,6 +99,14 @@ export const k = {
 		// within the header's flex slot — and, for a sortable column, within the sort
 		// button — instead of pushing past the cell into its neighbour.
 		title: ['block', 'truncate', 'min-w-0'],
+		// Leading group pairing a pinned column's pin button with its title. `min-w-0`
+		// keeps the title shrinkable so it still truncates beside the button; `gap-1`
+		// sets the button-to-title spacing.
+		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
+		// Pin button on a frozen column's header: an icon-only control that unpins the
+		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
+		// matching the sort button — so it reads as the actionable affordance it is.
+		pinButton: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can

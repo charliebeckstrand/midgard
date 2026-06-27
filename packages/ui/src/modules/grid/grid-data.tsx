@@ -615,9 +615,20 @@ export function GridData<T>({
 			someSelected,
 			sort,
 			toggleSort,
+			pinColumn,
 			stickyHeader,
 		}),
-		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
+		[
+			selection,
+			toggleRow,
+			toggleAll,
+			allSelected,
+			someSelected,
+			sort,
+			toggleSort,
+			pinColumn,
+			stickyHeader,
+		],
 	)
 
 	// Lift the column-manager dialog's open state, resolve the (default-on)

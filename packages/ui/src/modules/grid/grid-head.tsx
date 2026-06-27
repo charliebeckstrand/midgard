@@ -1,7 +1,7 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Pin } from 'lucide-react'
 import { type KeyboardEvent, memo, type ReactElement, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
@@ -159,7 +159,8 @@ function GridHeaderCell<T>({
 	filters,
 	pinning,
 }: GridHeaderCellProps<T>) {
-	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
+	const { allSelected, someSelected, toggleAll, sort, toggleSort, pinColumn, stickyHeader } =
+		useGrid()
 
 	if (column.selectable) {
 		return (
@@ -222,6 +223,8 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 		// Frozen-column controls; the header reads them so a pinned cell sticks.
 		pinning,
+		// Unpins a column; backs the pin button a frozen header shows.
+		pinColumn,
 	}
 
 	// `reorderable` already folds in the source-data gate (its caller passes
@@ -262,6 +265,8 @@ type GridColumnHeaderProps = {
 	filterQuery: QueryGroupNode | undefined
 	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
 	pinning: GridColumnPinning | null
+	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
+	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 }
 
 /**
@@ -456,8 +461,24 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	filter,
 	filterQuery,
 	pinning,
+	pinColumn,
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
+
+	// This column's frozen edge (read live from the engine), or `undefined` when it
+	// scrolls; a frozen header leads its title with a pin indicator.
+	const pinnedSide = pinning?.side(column.id)
+
+	const label = (
+		<ColumnHeaderLabel
+			column={column}
+			sorted={sorted}
+			direction={direction}
+			sortPriority={sortPriority}
+			toggleSort={toggleSort}
+			interactive={interactive}
+		/>
+	)
 
 	return (
 		<TableHeader
@@ -477,14 +498,21 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			}}
 		>
 			<span className={cn(k.filter.slot)}>
-				<ColumnHeaderLabel
-					column={column}
-					sorted={sorted}
-					direction={direction}
-					sortPriority={sortPriority}
-					toggleSort={toggleSort}
-					interactive={interactive}
-				/>
+				{pinnedSide ? (
+					<span className={cn(k.head.pinnedLabel)}>
+						<button
+							type="button"
+							className={cn(k.head.pinButton)}
+							aria-label={`Unpin ${columnLabel(column)}`}
+							onClick={() => pinColumn(column.id, false)}
+						>
+							<Icon icon={<Pin />} size="sm" />
+						</button>
+						{label}
+					</span>
+				) : (
+					label
+				)}
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
