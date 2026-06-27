@@ -136,23 +136,36 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
-		// The header cell hosts the absolutely-positioned handle.
+		// Marks a resizable header as the grip's hover host: hovering anywhere on
+		// the header cell reveals its (otherwise hidden) grip. Pairs with the
+		// handle's own `group/grid-resize`, which reveals the grip when the pointer
+		// is on the full-height edge strip running down past the header.
+		host: 'group/grid-col',
+		// Anchors the absolutely-positioned handle (non-sticky headers only — a
+		// sticky header is already a positioned containing block).
 		cell: 'relative',
 		// Density-scaled trailing padding projected onto resizable headers so their
 		// labels clear the handle; lives on the `<table>` element.
 		padding: resizePadding,
-		// Full-height grab area on the column's trailing edge, centering the grip.
+		// Grab area on the column's trailing edge. Spans the column's full height —
+		// header through the last row — via the measured `--grid-resize-height`, so
+		// a drag can begin anywhere down the column's right side, not just the
+		// header. Falls back to the header height until the height is measured.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 h-full w-1.5',
-			'flex items-center justify-center',
+			'group/grid-resize absolute top-0 right-0 z-10 w-2 h-[var(--grid-resize-height,100%)]',
+			'flex justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Always-visible grip (mirrors the Resizable handle): tints on hover and
-		// turns accent on keyboard focus or active drag. Focus shows as a colour
-		// change, not an outset ring, so the scroll container can't clip it.
+		// Full-height grip line, hidden until the column edge or its header is
+		// hovered, and shown on keyboard focus or active drag: tints on hover, turns
+		// accent on focus or drag. Focus shows as a colour change, not an outset
+		// ring, so the scroll container can't clip it.
 		grip: [
-			'h-6 w-0.5',
+			'h-full w-0.5',
 			rounded.full,
+			'opacity-0 transition-opacity',
+			'group-hover/grid-col:opacity-100 group-hover/grid-resize:opacity-100',
+			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',

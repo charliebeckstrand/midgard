@@ -25,8 +25,16 @@ describe('Grid resizable columns', () => {
 		expect(screen.getByRole('separator', { name: 'Resize Age' })).toBeInTheDocument()
 	})
 
-	it('renders no separators when not resizable', () => {
+	it('resizes columns by default', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(screen.getByRole('separator', { name: 'Resize Name' })).toBeInTheDocument()
+
+		expect(screen.getByRole('separator', { name: 'Resize Age' })).toBeInTheDocument()
+	})
+
+	it('renders no separators when resizable is off', () => {
+		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.queryByRole('separator')).not.toBeInTheDocument()
 	})
@@ -51,8 +59,10 @@ describe('Grid resizable columns', () => {
 		expect((table as HTMLElement).style.width).toBe('320px')
 	})
 
-	it('uses auto layout with no colgroup when not resizable', () => {
-		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('uses auto layout with no colgroup when resizable is off', () => {
+		const { container } = renderUI(
+			<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />,
+		)
 
 		expect(container.querySelector('table')).not.toHaveClass('table-fixed')
 

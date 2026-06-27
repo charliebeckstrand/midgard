@@ -30,6 +30,7 @@ import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './g
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridResizeHeight } from './use-grid-resize-height'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, useGridTable } from './use-grid-table'
 
@@ -412,7 +413,7 @@ export function GridData<T>({
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
 	pagination: paginationConfig,
-	resizable = false,
+	resizable = true,
 	columnSizing: columnSizingConfig,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
@@ -515,6 +516,10 @@ export function GridData<T>({
 			columnFilters: columnFiltersConfig,
 			containerRef: wrapperRef,
 		})
+
+	// Publish the table height so each column's resize handle spans the full
+	// column (header through the last row), not just its header cell.
+	useGridResizeHeight(wrapperRef, resizable)
 
 	const rowKeys = useMemo<(string | number)[]>(
 		() => renderRows.map((row, i) => getKey(row, i)),
