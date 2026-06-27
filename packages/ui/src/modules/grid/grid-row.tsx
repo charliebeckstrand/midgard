@@ -236,7 +236,9 @@ function GridRowImpl<T>({
 						}
 					: undefined
 			}
-			className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
+			// A clickable row shows the pointer cursor; its hover wash is the shared
+			// `<Table hover>` variant that `GridData` enables for a row-click handler.
+			className={cn(loading && k.rowLoading, onRowClick && 'cursor-pointer', className)}
 		>
 			{cells.map((cell, colIdx) => {
 				// Every engine column carries its source column on `meta`; the guard

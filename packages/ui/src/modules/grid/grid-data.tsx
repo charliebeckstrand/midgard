@@ -345,6 +345,21 @@ function useStableRowClick<T>(
 }
 
 /**
+ * Whether the grid paints the shared {@link Table} `hover` wash: when the
+ * consumer opts in with `hover`, or implicitly for a clickable grid
+ * (`onRowClick`), whose rows then read as actionable. Pulled out of
+ * {@link GridData} so the `||` stays off its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveHover<T>(
+	hover: boolean | undefined,
+	onRowClick: GridRowClick<T> | undefined,
+): boolean {
+	return hover === true || onRowClick != null
+}
+
+/**
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
  * the `table-fixed` + trailing-padding class, and the total table width — so a
  * resize touches only its own column. Inert (no colgroup, no width) when the
@@ -669,6 +684,11 @@ export function GridData<T>({
 	// passes an inline `onRowClick`.
 	const handleRowClick = useStableRowClick(onRowClick)
 
+	// A clickable grid reads as actionable through the shared `<Table hover>`
+	// wash, layered over any explicit `hover`; the row keeps its own pointer
+	// cursor (see `GridRow`).
+	const rowHover = resolveHover(hover, onRowClick)
+
 	const reorderActive = canReorder && hasData
 
 	// Fixed-layout column widths so a resize touches only its own column.
@@ -686,7 +706,7 @@ export function GridData<T>({
 			bleed={bleed}
 			outline={outline}
 			striped={striped}
-			hover={hover}
+			hover={rowHover}
 			className={tableClassName}
 			tableProps={resolveTableProps({
 				tableProps,

@@ -224,10 +224,4 @@ export const k = {
 		jumpInput: 'w-16',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
-	row: {
-		// A clickable row (`onRowClick`): pointer cursor and a hover tint so the row
-		// reads as actionable. Interactive cell content (buttons, the select
-		// checkbox) still handles its own clicks; the row guard skips those.
-		clickable: ['cursor-pointer', ...mode('hover:bg-zinc-50', 'dark:hover:bg-zinc-800/40')],
-	},
 } as const
