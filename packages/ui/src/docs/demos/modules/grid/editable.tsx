@@ -23,9 +23,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/
 import {
 	type CellChange,
 	Grid,
+	GridEditableBooleanEditor,
 	type GridEditableColumn,
 	GridEditableCurrencyEditor,
+	GridEditableDateEditor,
 	GridEditableNumberEditor,
+	GridEditableSelectEditor,
 } from '../../../../modules/grid'
 
 type LaneRate = {
@@ -102,6 +105,8 @@ const columns: GridEditableColumn<LaneRate>[] = [
 		field: 'perMile',
 		format: (r) => currency.format(r.perMile),
 		editor: GridEditableCurrencyEditor,
+		// A rejected commit keeps the editor open with this message.
+		validate: (value) => (typeof value === 'number' && value > 0 ? null : 'Enter a rate above $0'),
 	}),
 	numericColumn({
 		id: 'minCharge',
@@ -123,6 +128,74 @@ const bulkColumns: GridEditableColumn<LaneRate>[] = [
 	{ id: 'select', selectable: true, width: '48px' },
 	...columns,
 ]
+
+type Task = { id: number; title: string; status: string; due: string; done: boolean }
+
+const initialTasks: Task[] = [
+	{ id: 1, title: 'Fix login redirect', status: 'in-progress', due: '2026-01-15', done: false },
+	{ id: 2, title: 'Add dark mode', status: 'todo', due: '2026-03-01', done: false },
+	{ id: 3, title: 'Write API docs', status: 'done', due: '2026-02-10', done: true },
+]
+
+const statusOptions = [
+	{ label: 'Todo', value: 'todo' },
+	{ label: 'In progress', value: 'in-progress' },
+	{ label: 'Done', value: 'done' },
+]
+
+// Beyond text/number/currency, an editor slot can mount a select, a date
+// picker, or a boolean toggle: pick the value through the matching control and
+// the column's `parse` round-trips it (a boolean here, an ISO date string for
+// `due`, the option value for `status`).
+const editorTypeColumns: GridEditableColumn<Task>[] = [
+	{ id: 'title', title: 'Title', field: 'title', width: '200px' },
+	{
+		id: 'status',
+		title: 'Status',
+		field: 'status',
+		value: (row) => row.status,
+		format: (row) =>
+			statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
+		editor: (props) => <GridEditableSelectEditor {...props} options={statusOptions} />,
+	},
+	{
+		id: 'due',
+		title: 'Due',
+		field: 'due',
+		value: (row) => row.due,
+		editor: GridEditableDateEditor,
+	},
+	{
+		id: 'done',
+		title: 'Done',
+		field: 'done',
+		value: (row) => row.done,
+		format: (row) => (row.done ? 'Yes' : 'No'),
+		parse: (raw) => raw === 'true',
+		editor: GridEditableBooleanEditor,
+	},
+]
+
+export function EditorTypesExample() {
+	const [tasks, setTasks] = useState<Task[]>(initialTasks)
+
+	return (
+		<>
+			<EditHelp label="Editor types help">
+				Edit Status with a dropdown, Due with a date picker, and Done with a checkbox; Title is a
+				plain text cell.
+			</EditHelp>
+			<Grid
+				editable
+				outline
+				columns={editorTypeColumns}
+				rows={tasks}
+				getKey={(row) => row.id}
+				onValueChange={(changes) => setTasks((prev) => applyChanges(prev, changes))}
+			/>
+		</>
+	)
+}
 
 function EditHelp({ label, children }: { label: string; children: string }) {
 	return (
@@ -146,7 +219,8 @@ export function EditableExample() {
 		<>
 			<EditHelp label="Editing help">
 				Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or click
-				away to save, Escape to cancel.
+				away to save, Escape to cancel. Per-mile rejects a non-positive value; Ctrl/Cmd+Z undoes and
+				Ctrl/Cmd+Shift+Z (or Ctrl/Cmd+Y) redoes.
 			</EditHelp>
 			<Grid
 				editable

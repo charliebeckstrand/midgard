@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { SortState } from './context'
+import type { GridRowClick } from './grid-row'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -215,6 +216,16 @@ export type GridDataProps<T> = TableVariants & {
 	rowClassName?: (row: T) => string | undefined
 
 	/**
+	 * Invoked when a row is clicked, with the row datum and the originating
+	 * event. A click that lands on interactive cell content — a button, link,
+	 * input, or the selection checkbox — is ignored, so per-row controls keep
+	 * working. A row with a handler is keyboard-focusable and activates on
+	 * Enter / Space; place primary actions in an interactive cell rather than
+	 * relying on the row click alone for the clearest screen-reader semantics.
+	 */
+	onRowClick?: GridRowClick<T>
+
+	/**
 	 * Human-readable name for a row; labels its selection checkbox
 	 * ("Select {label}"). Falls back to the raw row key.
 	 */
@@ -241,6 +252,15 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue A "No items" message.
 	 */
 	empty?: ReactNode
+
+	/**
+	 * Error state shown in place of the body — for a failed data fetch, where
+	 * there are no rows to render but the cause isn't "no items". Takes
+	 * precedence over `empty` and is hidden while `loading`. Pass a node (e.g. an
+	 * `Alert` with a retry control) to render it, or `true` for a default error
+	 * `Alert`. Omit (or `false`) to fall back to the `empty` slot.
+	 */
+	error?: ReactNode
 
 	/**
 	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in

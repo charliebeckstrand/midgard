@@ -1,6 +1,12 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { GridEditableBooleanEditor } from '../../modules/grid/grid-editable-boolean-editor'
 import { GridEditableCurrencyEditor } from '../../modules/grid/grid-editable-currency-editor'
+import {
+	dateToIso,
+	GridEditableDateEditor,
+	isoToDate,
+} from '../../modules/grid/grid-editable-date-editor'
 import { GridEditableNumberEditor } from '../../modules/grid/grid-editable-number-editor'
 import { GridEditableTextEditor } from '../../modules/grid/grid-editable-text-editor'
 import type {
@@ -243,5 +249,156 @@ describe('GridEditableNumberEditor', () => {
 		})
 
 		expect(commit).toHaveBeenCalledWith('down')
+	})
+})
+
+describe('GridEditableBooleanEditor', () => {
+	type BooleanRow = { id: number; active: boolean }
+
+	const booleanColumn: GridEditableColumn<BooleanRow> = { id: 'active', field: 'active' }
+
+	function booleanProps(
+		overrides: Partial<GridEditableEditorProps<BooleanRow>> = {},
+	): GridEditableEditorProps<BooleanRow> {
+		return {
+			row: { id: 1, active: true },
+			column: booleanColumn,
+			draft: 'true',
+			setDraft: vi.fn() as unknown as Dispatch<SetStateAction<string>>,
+			commit: vi.fn(() => true),
+			cancel: vi.fn(),
+			align: 'left',
+			ariaLabel: 'Edit active',
+			selectAllOnFocus: true,
+			...overrides,
+		}
+	}
+
+	it('reflects the field value and focuses on mount', () => {
+		const { container } = renderUI(<GridEditableBooleanEditor {...booleanProps()} />)
+
+		const checkbox = bySlot(container, 'grid-editable-boolean-input') as HTMLInputElement
+
+		expect(checkbox).toBeChecked()
+
+		expect(document.activeElement).toBe(checkbox)
+	})
+
+	it('commits the flipped value and advances on toggle', () => {
+		const setDraft = vi.fn()
+
+		const commit = vi.fn(() => true)
+
+		const { container } = renderUI(
+			<GridEditableBooleanEditor {...booleanProps({ setDraft, commit })} />,
+		)
+
+		fireEvent.click(bySlot(container, 'grid-editable-boolean-input') as HTMLInputElement)
+
+		expect(setDraft).toHaveBeenCalledWith('false')
+
+		expect(commit).toHaveBeenCalledWith('down')
+	})
+
+	it('cancels on Escape and commits on blur', () => {
+		const commit = vi.fn(() => true)
+
+		const cancel = vi.fn()
+
+		const { container } = renderUI(
+			<GridEditableBooleanEditor {...booleanProps({ commit, cancel })} />,
+		)
+
+		const checkbox = bySlot(container, 'grid-editable-boolean-input') as HTMLInputElement
+
+		fireEvent.keyDown(checkbox, { key: 'Escape' })
+
+		expect(cancel).toHaveBeenCalledTimes(1)
+
+		fireEvent.blur(checkbox)
+
+		expect(commit).toHaveBeenCalledWith('none')
+	})
+})
+
+describe('GridEditableDateEditor', () => {
+	type DateRow = { id: number; due: string }
+
+	const dateColumn: GridEditableColumn<DateRow> = { id: 'due', field: 'due' }
+
+	function dateProps(
+		overrides: Partial<GridEditableEditorProps<DateRow>> = {},
+	): GridEditableEditorProps<DateRow> {
+		return {
+			row: { id: 1, due: '2026-01-15' },
+			column: dateColumn,
+			draft: '2026-01-15',
+			setDraft: vi.fn() as unknown as Dispatch<SetStateAction<string>>,
+			commit: vi.fn(() => true),
+			cancel: vi.fn(),
+			align: 'left',
+			ariaLabel: 'Edit due',
+			selectAllOnFocus: true,
+			...overrides,
+		}
+	}
+
+	it('renders a typed DateInput seeded with the row value in ISO format', () => {
+		const { container } = renderUI(<GridEditableDateEditor {...dateProps()} />)
+
+		const input = bySlot(container, 'grid-editable-date-input') as HTMLInputElement
+
+		expect(input).toBeInTheDocument()
+
+		// Masked text in the column's ISO format, not MM/DD/YYYY.
+		expect(input.value).toBe('2026-01-15')
+
+		expect(document.activeElement).toBe(input)
+	})
+
+	it('commits on blur and cancels on Escape', () => {
+		const commit = vi.fn(() => true)
+
+		const cancel = vi.fn()
+
+		const { container } = renderUI(<GridEditableDateEditor {...dateProps({ commit, cancel })} />)
+
+		const input = bySlot(container, 'grid-editable-date-input') as HTMLInputElement
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(cancel).toHaveBeenCalledTimes(1)
+
+		fireEvent.blur(input)
+
+		expect(commit).toHaveBeenCalledWith('none')
+	})
+})
+
+describe('date ISO helpers', () => {
+	it('round-trips a calendar date through local time without a day-shift', () => {
+		const date = isoToDate('2026-01-15')
+
+		expect(date).toBeInstanceOf(Date)
+
+		expect(date?.getFullYear()).toBe(2026)
+
+		expect(date?.getMonth()).toBe(0)
+
+		expect(date?.getDate()).toBe(15)
+
+		expect(dateToIso(date as Date)).toBe('2026-01-15')
+	})
+
+	it('returns undefined for a non-date string', () => {
+		expect(isoToDate('')).toBeUndefined()
+
+		expect(isoToDate('nope')).toBeUndefined()
+
+		expect(isoToDate('2026/01/15')).toBeUndefined()
+	})
+
+	it('zero-pads month and day', () => {
+		expect(dateToIso(new Date(2026, 2, 4))).toBe('2026-03-04')
 	})
 })

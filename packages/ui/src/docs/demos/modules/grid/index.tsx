@@ -1,5 +1,6 @@
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
@@ -12,7 +13,7 @@ import {
 	type SortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
-import { BulkEditExample, EditableExample } from './editable'
+import { BulkEditExample, EditableExample, EditorTypesExample } from './editable'
 
 type Person = {
 	id: number
@@ -75,7 +76,7 @@ const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
 
 const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	...col,
-	width: '180px',
+	width: '200px',
 	minWidth: 100,
 }))
 
@@ -228,18 +229,18 @@ const employees: Employee[] = [
 // a side needs known widths, so this grid is `resizable` (fixed layout) and its
 // sticky header rides the same scroll container as the frozen columns.
 const employeeColumns: GridColumn<Employee>[] = [
-	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '180px', pinned: 'left' },
-	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '220px' },
+	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', pinned: 'left' },
+	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '200px' },
 	{ id: 'role', title: 'Role', cell: (row) => row.role, width: '160px' },
 	{ id: 'department', title: 'Department', cell: (row) => row.department, width: '160px' },
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
-	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '140px' },
-	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '140px' },
+	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '160px' },
+	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '160px' },
 	{
 		id: 'status',
 		title: 'Status',
 		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
-		width: '120px',
+		width: '160px',
 		pinned: 'right',
 	},
 ]
@@ -436,6 +437,66 @@ const RowActionsExample = () => {
 	)
 }
 
+const RowClickExample = () => {
+	const [picked, setPicked] = useState<Person | null>(null)
+
+	// A click on interactive cell content (here the row-action buttons) is ignored,
+	// so the row click and per-row controls coexist. The row is also focusable and
+	// activates on Enter / Space.
+	return (
+		<>
+			{picked && <Badge color="blue">Selected {picked.name}</Badge>}
+			<Grid
+				columns={[
+					...columns,
+					{
+						id: 'actions',
+						actions: () => (
+							<Button variant="bare" color="blue">
+								<Icon icon={<PencilIcon />} />
+							</Button>
+						),
+					},
+				]}
+				rows={people}
+				getKey={(row) => row.id}
+				onRowClick={(row) => setPicked(row)}
+			/>
+		</>
+	)
+}
+
+const ErrorExample = () => {
+	const [failed, setFailed] = useState(true)
+
+	// `error` shows in place of the body — for a failed fetch — taking precedence
+	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
+	// control), or `error` (true) for a default alert.
+	return (
+		<>
+			{!failed && (
+				<Button variant="soft" color="red" onClick={() => setFailed(true)}>
+					Reset
+				</Button>
+			)}
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				error={
+					failed ? (
+						<Alert color="red" variant="soft" title="Couldn't load people" block>
+							<Button variant="soft" color="red" onClick={() => setFailed(false)}>
+								Retry
+							</Button>
+						</Alert>
+					) : undefined
+				}
+			/>
+		</>
+	)
+}
+
 const ReorderExample = () => {
 	const [order, setOrder] = useState<(string | number)[]>(['name', 'email', 'role', 'status'])
 
@@ -598,6 +659,10 @@ export function Demo() {
 				<RowActionsExample />
 			</Example>
 
+			<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+				<RowClickExample />
+			</Example>
+
 			<Example title="Striped">
 				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
@@ -622,6 +687,10 @@ export function Demo() {
 
 			<Example title="Empty">
 				<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
+			</Example>
+
+			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
+				<ErrorExample />
 			</Example>
 
 			<Example title="Reorder">
@@ -678,6 +747,13 @@ export function Demo() {
 
 			<Example title="Editable">
 				<EditableExample />
+			</Example>
+
+			<Example
+				title="Editor types"
+				code={code`<Grid columns={[{ ...col, editor: GridEditableSelectEditor }]} editable />`}
+			>
+				<EditorTypesExample />
 			</Example>
 
 			<Example title="Bulk edit">

@@ -88,6 +88,14 @@ export type GridEditableColumn<T> = Omit<
 	 * @defaultValue {@link GridEditableTextEditor} (a plain text input)
 	 */
 	editor?: GridEditableEditor<T>
+	/**
+	 * Validates a committed cell value. Receives the parsed value (the same one
+	 * {@link GridEditableColumn.parse} produces) and the row, and returns an error
+	 * message to reject the edit — the editor stays open showing the message and
+	 * no change is emitted — or `null` to accept it. Runs on interactive cell
+	 * commits, not on bulk paste.
+	 */
+	validate?: (value: unknown, row: T) => string | null
 	/** Cells in this column can't be edited. Nav still visits them. */
 	readOnly?: boolean
 	align?: GridEditableAlign
@@ -164,6 +172,8 @@ export type GridEditableMutationsApi = {
 export type GridEditableDraftApi = {
 	editing: boolean
 	draft: string
+	/** Validation message for the open edit, or `null` when valid; a failed commit keeps the editor open and sets this. */
+	error: string | null
 	setDraft: Dispatch<SetStateAction<string>>
 	beginEdit: (coord: Coord, initial?: string, original?: string) => void
 	commitEdit: (advance: GridEditableCommitAdvance) => boolean
