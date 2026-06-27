@@ -774,7 +774,10 @@ export function useGridTable<T>({
 	columnVisibility = EMPTY_VISIBILITY,
 	sort,
 	setSort,
-	sortManual = true,
+	// Client-side sorting by default, matching GridColumn's contract; the Grid
+	// passes `sortConfig?.manual ?? false`, so this default only backs direct
+	// callers that omit it.
+	sortManual = false,
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
