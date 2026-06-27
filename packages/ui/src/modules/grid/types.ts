@@ -90,12 +90,12 @@ export type GridColumn<T> = {
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and
 	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
-	 * A pinned column is also locked — it can't be reordered or hidden, shows in
-	 * the column manager's pinned group, and marks its header with a pin icon.
-	 * Multi-column stacking needs known widths (a `resizable`/fixed-layout grid, or
-	 * a column `width`); a lone pinned column on a side needs neither. This is the
-	 * column's initial pin — the header context menu's Pin left / Pin right / Unpin
-	 * items override it at runtime.
+	 * A pinned column is also locked — it can't be reordered or hidden, shows in the
+	 * column manager's pinned group, and marks its header with a pin button that
+	 * unpins it on click. Multi-column stacking needs known widths (a
+	 * `resizable`/fixed-layout grid, or a column `width`); a lone pinned column on a
+	 * side needs neither. This is the column's initial pin — the header context
+	 * menu's Pin left / Pin right / Unpin items override it at runtime.
 	 */
 	pinned?: boolean | 'left' | 'right'
 	/**

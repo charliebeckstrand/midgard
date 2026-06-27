@@ -159,7 +159,8 @@ function GridHeaderCell<T>({
 	filters,
 	pinning,
 }: GridHeaderCellProps<T>) {
-	const { allSelected, someSelected, toggleAll, sort, toggleSort, stickyHeader } = useGrid()
+	const { allSelected, someSelected, toggleAll, sort, toggleSort, pinColumn, stickyHeader } =
+		useGrid()
 
 	if (column.selectable) {
 		return (
@@ -222,6 +223,8 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 		// Frozen-column controls; the header reads them so a pinned cell sticks.
 		pinning,
+		// Unpins a column; backs the pin button a frozen header shows.
+		pinColumn,
 	}
 
 	// `reorderable` already folds in the source-data gate (its caller passes
@@ -262,6 +265,8 @@ type GridColumnHeaderProps = {
 	filterQuery: QueryGroupNode | undefined
 	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
 	pinning: GridColumnPinning | null
+	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
+	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 }
 
 /**
@@ -456,6 +461,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	filter,
 	filterQuery,
 	pinning,
+	pinColumn,
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
@@ -494,12 +500,14 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			<span className={cn(k.filter.slot)}>
 				{pinnedSide ? (
 					<span className={cn(k.head.pinnedLabel)}>
-						<Icon
-							icon={<Pin />}
-							size="sm"
-							className={cn(k.head.pinIcon)}
-							label={`Pinned ${pinnedSide}`}
-						/>
+						<button
+							type="button"
+							className={cn(k.head.pinButton)}
+							aria-label={`Unpin ${columnLabel(column)}`}
+							onClick={() => pinColumn(column.id, false)}
+						>
+							<Icon icon={<Pin />} size="sm" />
+						</button>
 						{label}
 					</span>
 				) : (
