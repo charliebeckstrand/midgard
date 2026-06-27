@@ -52,6 +52,40 @@ type GridPasteDeps<T> = {
 	parseValue: GridEditableRowsApi<T>['parseValue']
 }
 
+/**
+ * Handles the history shortcuts on the grid wrapper: Ctrl/Cmd+Z undoes,
+ * Ctrl/Cmd+Y or Ctrl/Cmd+Shift+Z redoes. Returns whether a shortcut fired.
+ *
+ * @internal
+ */
+function handleHistoryKey(
+	event: KeyboardEvent<HTMLTableElement>,
+	undo: () => void,
+	redo: () => void,
+): boolean {
+	if (event.altKey || !(event.metaKey || event.ctrlKey)) return false
+
+	const key = event.key.toLowerCase()
+
+	if (key === 'z' && !event.shiftKey) {
+		event.preventDefault()
+
+		undo()
+
+		return true
+	}
+
+	if (key === 'y' || (key === 'z' && event.shiftKey)) {
+		event.preventDefault()
+
+		redo()
+
+		return true
+	}
+
+	return false
+}
+
 /** True when `target` is a selection checkbox inside the grid wrapper. @internal */
 function isGridCheckbox(
 	target: EventTarget | null,
@@ -365,6 +399,8 @@ export function useGridEditableWrapper<T>({
 	rows: { rowsRef, editableCols, getKey, formatCell, parseValue },
 	wrapperRef,
 	onValueChange,
+	undo,
+	redo,
 }: {
 	nav: GridEditableNavigationApi
 	mutations: GridEditableMutationsApi
@@ -372,12 +408,17 @@ export function useGridEditableWrapper<T>({
 	rows: GridEditableRowsApi<T>
 	wrapperRef: RefObject<HTMLTableElement | null>
 	onValueChange: (changes: CellChange[]) => void
+	undo: () => void
+	redo: () => void
 }) {
 	const hasMultiSelection = !!anchor || extraCells.size > 0
 
 	const onWrapperKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>) => {
 			if (editing) return
+
+			// Undo/redo work whenever the grid has focus, before the active-cell gate.
+			if (handleHistoryKey(event, undo, redo)) return
 
 			if (rowsRef.current.length === 0 || editableCols.length === 0) return
 
@@ -436,6 +477,8 @@ export function useGridEditableWrapper<T>({
 			formatCell,
 			applyCellWrite,
 			applyBulkFill,
+			undo,
+			redo,
 		],
 	)
 

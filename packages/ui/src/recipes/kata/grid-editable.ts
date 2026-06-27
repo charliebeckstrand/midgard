@@ -63,4 +63,12 @@ export const k = {
 	],
 	editInput,
 	editControl,
+	// A rejected validation keeps the editor open: a red inset ring on the editor
+	// surface, plus a small message anchored below the cell.
+	editErrorRing: ['ring-2 ring-inset ring-red-600 dark:ring-red-500'],
+	editError: [
+		'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+		'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+		'bg-red-600 text-white shadow dark:bg-red-500',
+	],
 }

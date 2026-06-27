@@ -102,6 +102,8 @@ function setup(
 			},
 			wrapperRef: { current: wrapper },
 			onValueChange: mocks.onValueChange,
+			undo: vi.fn(),
+			redo: vi.fn(),
 		}),
 	)
 
@@ -200,6 +202,8 @@ describe('useGridEditableWrapper: onWrapperKeyDown arrow navigation', () => {
 				},
 				wrapperRef: { current: document.createElement('table') },
 				onValueChange: vi.fn(),
+				undo: vi.fn(),
+				redo: vi.fn(),
 			}),
 		)
 
@@ -565,6 +569,8 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 				},
 				wrapperRef: { current: wrapper },
 				onValueChange: vi.fn(),
+				undo: vi.fn(),
+				redo: vi.fn(),
 			}),
 		)
 

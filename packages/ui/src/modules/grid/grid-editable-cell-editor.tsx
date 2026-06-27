@@ -1,5 +1,7 @@
 'use client'
 
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/grid-editable'
 import { useGridEditableEdit } from './grid-editable-context'
 import type {
 	GridEditableAlign,
@@ -33,10 +35,10 @@ export function GridEditableCellEditor<T>({
 	column,
 	editor: Editor,
 }: GridEditableCellEditorProps<T>) {
-	const { draft, setDraft, commitEdit, cancelEdit } = useGridEditableEdit()
+	const { draft, error, setDraft, commitEdit, cancelEdit } = useGridEditableEdit()
 
 	return (
-		<div className="absolute inset-0 flex items-stretch">
+		<div className={cn('absolute inset-0 flex items-stretch', error && k.editErrorRing)}>
 			<Editor
 				row={row}
 				column={column}
@@ -54,6 +56,12 @@ export function GridEditableCellEditor<T>({
 				}
 				selectAllOnFocus={draft === formatted}
 			/>
+
+			{error && (
+				<span role="alert" className={cn(k.editError)}>
+					{error}
+				</span>
+			)}
 		</div>
 	)
 }

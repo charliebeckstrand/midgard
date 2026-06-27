@@ -64,8 +64,8 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 | Feature | Approach |
 |---|---|
 | Cell / range selection (spreadsheet) | Extend the editable variant's range model to the read-only grid |
-| More cell editors (select, date, checkbox, autocomplete) | Build on `GridEditable`'s editor contract |
-| Validation, async commit, undo/redo | Extend the editable draft/commit pipeline |
+| More cell editors (autocomplete) | Select, date, and boolean editors ship (`GridEditableSelectEditor` / `GridEditableDateEditor` / `GridEditableBooleanEditor`); autocomplete still builds on the editor contract |
+| Async / optimistic commit | Per-cell `validate` (rejects a bad commit, editor stays open with the message) and value-based undo/redo (Ctrl/Cmd+Z · Shift+Z / Y, exposed via `useGridEditable`) ship; async/optimistic commit still extends the draft pipeline |
 | Fill handle + copy/paste range | Clipboard TSV over the active range |
 
 ### Pagination (extend)
@@ -94,7 +94,7 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 |---|---|
 | Unified grid-state snapshot (sort + filter + order + visibility + sizing + pagination) save/restore | Generalize the column-manager preset to full table state |
 | URL / `searchParams` sync for SSR | Next.js App Router helper mapping table state to the query string |
-| Global `aria-rowindex`/`aria-colindex` under pagination | Emit grid semantics with page-aware global indices (today only virtualization emits them) |
+| Global `aria-rowindex`/`aria-colindex` under pagination | Shipped — pagination emits `role="grid"` with page-aware global indices, alongside virtualization; a plain whole-set grid stays a native table |
 
 ---
 

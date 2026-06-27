@@ -105,6 +105,8 @@ const columns: GridEditableColumn<LaneRate>[] = [
 		field: 'perMile',
 		format: (r) => currency.format(r.perMile),
 		editor: GridEditableCurrencyEditor,
+		// A rejected commit keeps the editor open with this message.
+		validate: (value) => (typeof value === 'number' && value > 0 ? null : 'Enter a rate above $0'),
 	}),
 	numericColumn({
 		id: 'minCharge',
@@ -218,7 +220,8 @@ export function EditableExample() {
 		<>
 			<EditHelp label="Editing help">
 				Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or click
-				away to save, Escape to cancel.
+				away to save, Escape to cancel. Per-mile rejects a non-positive value; Ctrl/Cmd+Z undoes and
+				Ctrl/Cmd+Shift+Z (or Ctrl/Cmd+Y) redoes.
 			</EditHelp>
 			<Grid
 				editable

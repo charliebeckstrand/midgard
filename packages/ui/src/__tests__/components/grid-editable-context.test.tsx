@@ -19,10 +19,15 @@ const stateValue: GridEditableStateValue = {
 	setActive: vi.fn(),
 	addCellToSelection: vi.fn(),
 	beginEdit: vi.fn(),
+	undo: vi.fn(),
+	redo: vi.fn(),
+	canUndo: false,
+	canRedo: false,
 }
 
 const editValue: GridEditableEditValue = {
 	draft: 'hello',
+	error: null,
 	setDraft: vi.fn(),
 	commitEdit: vi.fn(() => true),
 	cancelEdit: vi.fn(),

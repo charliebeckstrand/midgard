@@ -17,12 +17,22 @@ export type GridEditableContextValue = {
 	extraCells: Set<string>
 	editing: boolean
 	draft: string
+	/** Validation message for the open edit, or `null` when valid. A failed commit keeps the editor open and sets this. */
+	error: string | null
 	setDraft: Dispatch<SetStateAction<string>>
 	setActive: (coord: Coord, extend?: boolean) => void
 	addCellToSelection: (coord: Coord) => void
 	beginEdit: (coord: Coord, initial?: string, original?: string) => void
 	commitEdit: (advance: GridEditableCommitAdvance) => boolean
 	cancelEdit: () => void
+	/** Reverts the last committed change (Ctrl/Cmd+Z), re-emitting the prior values through `onValueChange`. */
+	undo: () => void
+	/** Replays the last undone change (Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y). */
+	redo: () => void
+	/** Whether an undo step is available. */
+	canUndo: boolean
+	/** Whether a redo step is available. */
+	canRedo: boolean
 }
 
 // Internal split. The state slice changes on navigation/selection/edit-toggle
@@ -33,12 +43,22 @@ export type GridEditableContextValue = {
 // `useGridEditableCellSlice`), re-rendering only when their slice flips.
 export type GridEditableStateValue = Pick<
 	GridEditableContextValue,
-	'active' | 'anchor' | 'extraCells' | 'editing' | 'setActive' | 'addCellToSelection' | 'beginEdit'
+	| 'active'
+	| 'anchor'
+	| 'extraCells'
+	| 'editing'
+	| 'setActive'
+	| 'addCellToSelection'
+	| 'beginEdit'
+	| 'undo'
+	| 'redo'
+	| 'canUndo'
+	| 'canRedo'
 >
 
 export type GridEditableEditValue = Pick<
 	GridEditableContextValue,
-	'draft' | 'setDraft' | 'commitEdit' | 'cancelEdit'
+	'draft' | 'error' | 'setDraft' | 'commitEdit' | 'cancelEdit'
 >
 
 export const [GridEditableStateContext, useGridEditableState] =
