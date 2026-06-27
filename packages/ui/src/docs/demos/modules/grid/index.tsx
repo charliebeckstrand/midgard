@@ -13,7 +13,7 @@ import {
 	type SortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
-import { BulkEditExample, EditableExample } from './editable'
+import { BulkEditExample, EditableExample, EditorTypesExample } from './editable'
 
 type Person = {
 	id: number
@@ -740,6 +740,13 @@ export function Demo() {
 
 			<Example title="Editable">
 				<EditableExample />
+			</Example>
+
+			<Example
+				title="Editor types"
+				code={code`<Grid columns={[{ ...col, editor: GridEditableSelectEditor }]} editable />`}
+			>
+				<EditorTypesExample />
 			</Example>
 
 			<Example title="Bulk edit">

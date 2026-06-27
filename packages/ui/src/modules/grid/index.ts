@@ -19,6 +19,7 @@ export {
 	type GridColumnManagerProps,
 } from './grid-column-manager'
 export type { GridEditableProps } from './grid-editable'
+export { GridEditableBooleanEditor } from './grid-editable-boolean-editor'
 export {
 	type GridEditableContextValue,
 	useGridEditable,
@@ -28,9 +29,17 @@ export {
 	type GridEditableCurrencyEditorProps,
 } from './grid-editable-currency-editor'
 export {
+	GridEditableDateEditor,
+	type GridEditableDateEditorProps,
+} from './grid-editable-date-editor'
+export {
 	GridEditableNumberEditor,
 	type GridEditableNumberEditorProps,
 } from './grid-editable-number-editor'
+export {
+	GridEditableSelectEditor,
+	type GridEditableSelectEditorProps,
+} from './grid-editable-select-editor'
 export { GridEditableTextEditor } from './grid-editable-text-editor'
 export type {
 	CellChange,

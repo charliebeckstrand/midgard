@@ -31,6 +31,21 @@ const editInput = defineRecipe({
 	defaults: { align: 'left' },
 })
 
+/**
+ * Host for a non-text inline editor (select, date, boolean) that renders its own
+ * control rather than a bare input: fills the cell and aligns the control to the
+ * column's edge, sharing `editInput`'s alignment axis.
+ */
+const editControl = defineRecipe({
+	base: ['flex h-full w-full items-center gap-1', 'px-2', 'py-1'],
+	align: {
+		left: 'justify-start',
+		center: 'justify-center',
+		right: 'justify-end',
+	},
+	defaults: { align: 'left' },
+})
+
 export const k = {
 	cellTd: 'relative p-0 align-middle',
 	cell,
@@ -47,4 +62,5 @@ export const k = {
 		'motion-safe:animate-[grid-editable-cell-flash_700ms_ease-out_forwards]',
 	],
 	editInput,
+	editControl,
 }
