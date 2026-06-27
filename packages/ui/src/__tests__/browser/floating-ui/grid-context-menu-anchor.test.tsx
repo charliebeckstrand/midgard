@@ -63,4 +63,40 @@ describe('grid context menu anchoring (real browser)', () => {
 			expect(Math.abs(menuTop1 - cellTop1 - (menuTop0 - cellTop0))).toBeLessThan(2)
 		})
 	})
+
+	it('stays put when the open menu itself is right-clicked', async () => {
+		renderUI(
+			<div style={{ marginTop: 240 }}>
+				<Grid columns={columns} rows={rows} getKey={getKey} />
+			</div>,
+		)
+
+		const cell = screen.getByText('Person 2')
+
+		const opened = cell.getBoundingClientRect()
+
+		fireEvent.contextMenu(cell, { clientX: opened.left + 4, clientY: opened.top + 4 })
+
+		const menu = await screen.findByRole('menu')
+
+		const before = menu.getBoundingClientRect()
+
+		// Right-click a menu item — the panel is portaled out but its contextmenu
+		// still bubbles to the wrapper. Re-anchoring to an item inside the panel
+		// would make it chase its own rect; the position must instead hold.
+		const item = screen.getByRole('menuitem', { name: 'Copy' })
+
+		const itemRect = item.getBoundingClientRect()
+
+		fireEvent.contextMenu(item, { clientX: itemRect.left + 4, clientY: itemRect.top + 4 })
+
+		// Let any stray autoUpdate ticks settle, then confirm the panel did not move.
+		await new Promise((resolve) => setTimeout(resolve, 100))
+
+		const after = menu.getBoundingClientRect()
+
+		expect(after.top).toBeCloseTo(before.top, 1)
+
+		expect(after.left).toBeCloseTo(before.left, 1)
+	})
 })

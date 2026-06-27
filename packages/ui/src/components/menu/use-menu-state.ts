@@ -76,6 +76,14 @@ export function useMenuState({
 		(event: MouseEvent) => {
 			event.preventDefault()
 
+			// The menu panel is portaled out of the DOM but stays a React child of
+			// this wrapper, so its own contextmenu events bubble back here. A
+			// right-click inside the open panel must not re-anchor or reposition it:
+			// anchoring to an element within the floating panel would make the menu
+			// chase its own moving rect, jittering it across the screen. Suppress
+			// the native menu (above) and leave the panel where it is.
+			if (refs.floating.current?.contains(event.target as Node)) return
+
 			// Anchor the menu to the right-clicked element, not just the cursor
 			// coordinates. `useClientPoint` reads this reference as its virtual
 			// element's `contextElement` and re-derives the cursor point from the
