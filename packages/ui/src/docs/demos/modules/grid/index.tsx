@@ -356,8 +356,8 @@ const SmartSortExample = () => (
 
 const ContextMenuExample = () => (
 	// Context menus are on by default. Right-click a header for sort controls,
-	// "Clear sort" (once the column is sorted), pin controls (Pin Left / Pin Right
-	// / Unpin), and "Choose Columns" (which opens the manager without a toolbar
+	// "Clear sort" (once the column is sorted), pin controls (Pin left / Pin right
+	// / Unpin), and "Manage columns" (which opens the manager without a toolbar
 	// button); right-click a body cell for "Copy". Hold Ctrl while right-clicking
 	// for the browser's standard menu. Pass `contextMenu={false}` to disable, or a
 	// builder to reshape the items.

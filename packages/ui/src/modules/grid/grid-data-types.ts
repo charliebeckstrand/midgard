@@ -173,10 +173,10 @@ export type GridDataProps<T> = TableVariants & {
 	columnFilters?: GridColumnFilters
 
 	/**
-	 * Right-click context menus: a `column` menu on headers (Sort Ascending /
-	 * Descending, Auto-size columns, Choose Columns) and a `cell` menu on body
+	 * Right-click context menus: a `column` menu on headers (Sort ascending /
+	 * descending, Auto-size columns, Manage columns) and a `cell` menu on body
 	 * cells (Copy). On by default; pass `false` to disable. Each side takes the
-	 * defaults (`true`) or a builder that reshapes them. "Choose Columns" opens
+	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
 	 * the column manager, rendering its dialog even without the toolbar button.
 	 *
 	 * @see {@link GridContextMenu}
