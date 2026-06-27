@@ -30,8 +30,27 @@ const item = defineRecipe({
 	defaults: { density: 'md', size: 'md' },
 })
 
+// Native overlay scrollbars (macOS, iOS) stay hidden until the user scrolls,
+// so a menu clipped by `max-h` reads as complete — the overflow items look
+// missing, not scrollable. Styling the scrollbar opts WebKit/Blink into a
+// classic always-on bar, and a non-default `scrollbar-color` does the same in
+// Firefox; either way it shows whenever the list overflows. Thumb colours
+// mirror `kata/scroll-area`'s thumb.
+const scrollbar = [
+	'[scrollbar-width:thin]',
+	'[scrollbar-color:rgb(9_9_11_/_0.2)_transparent]',
+	'dark:[scrollbar-color:rgb(255_255_255_/_0.2)_transparent]',
+	'[&::-webkit-scrollbar]:w-2',
+	'[&::-webkit-scrollbar-track]:bg-transparent',
+	'[&::-webkit-scrollbar-thumb]:rounded-full',
+	'[&::-webkit-scrollbar-thumb]:bg-zinc-950/20',
+	'[&::-webkit-scrollbar-thumb:hover]:bg-zinc-950/30',
+	'dark:[&::-webkit-scrollbar-thumb]:bg-white/20',
+	'dark:[&::-webkit-scrollbar-thumb:hover]:bg-white/30',
+]
+
 export const k = {
-	content: ['min-w-48', 'max-h-60'],
+	content: ['min-w-48', 'max-h-60', ...scrollbar],
 	item,
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
