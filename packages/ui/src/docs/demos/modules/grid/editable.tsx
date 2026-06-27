@@ -124,10 +124,7 @@ const columns: GridEditableColumn<LaneRate>[] = [
 	}),
 ]
 
-const bulkColumns: GridEditableColumn<LaneRate>[] = [
-	{ id: 'select', selectable: true, width: '48px' },
-	...columns,
-]
+const bulkColumns: GridEditableColumn<LaneRate>[] = [{ id: 'select', selectable: true }, ...columns]
 
 type Task = { id: number; title: string; status: string; due: string; done: boolean }
 

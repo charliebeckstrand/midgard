@@ -49,7 +49,11 @@ export type GridColumn<T> = {
 	 * de-duplicated). Unavailable under server-side filtering.
 	 */
 	filterOptions?: { label: string; value: string }[]
-	/** Marks this as the selection column; renders the row-select checkboxes instead of a cell value. */
+	/**
+	 * Marks this as the selection column; renders the row-select checkboxes
+	 * instead of a cell value. Defaults to a natural checkbox width rather than a
+	 * full data-column width; set {@link GridColumn.width} to override.
+	 */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
 	actions?: (row: T) => ReactNode

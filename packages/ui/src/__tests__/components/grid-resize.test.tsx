@@ -83,6 +83,38 @@ describe('Grid resizable columns', () => {
 		expect(screen.getAllByRole('separator')).toHaveLength(2)
 	})
 
+	it('sizes a width-less selection column to a natural checkbox width', () => {
+		const { container } = renderUI(
+			<Grid
+				resizable
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		// The checkbox column holds a narrow natural width rather than the engine's
+		// 150px default a width-less column would otherwise take.
+		const cols = container.querySelectorAll('colgroup col')
+
+		expect((cols[0] as HTMLElement).style.width).toBe('48px')
+	})
+
+	it('lets the selection column override its natural width', () => {
+		const { container } = renderUI(
+			<Grid
+				resizable
+				columns={[{ id: 'select', selectable: true, width: '64px' }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		const cols = container.querySelectorAll('colgroup col')
+
+		expect((cols[0] as HTMLElement).style.width).toBe('64px')
+	})
+
 	it('sizes data-column headers from the engine', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 

@@ -370,7 +370,7 @@ const SelectionExample = () => {
 
 	return (
 		<Grid
-			columns={[{ id: 'select', selectable: true, width: '48px' }, ...columns]}
+			columns={[{ id: 'select', selectable: true }, ...columns]}
 			rows={people}
 			getKey={(row) => row.id}
 			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
