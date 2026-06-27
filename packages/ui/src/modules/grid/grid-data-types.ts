@@ -205,6 +205,22 @@ export type GridDataProps<T> = TableVariants & {
 	reorder?: boolean
 
 	/**
+	 * Adds a keyboard cell cursor over the data cells. The grid becomes a single
+	 * tab stop (`role="grid"`) whose active cell moves with the arrow keys, Home/End
+	 * (row edges), Ctrl/Cmd+Home/End (grid corners), and PageUp/PageDown, tracked
+	 * for assistive tech through `aria-activedescendant` and ringed on screen.
+	 * Enter/Space activates the active row's {@link GridDataProps.onRowClick};
+	 * clicking a cell seats the cursor there.
+	 *
+	 * Off by default, so a static table keeps the browser/screen-reader's native
+	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
+	 * cell content (links, buttons, the selection checkbox) stays independently
+	 * tabbable — the cursor is additive, not a focus trap.
+	 * @defaultValue false
+	 */
+	navigable?: boolean
+
+	/**
 	 * Truncate overflowing cell content to a single line with an ellipsis, and
 	 * show a tooltip with the full content on hover/focus when a cell is
 	 * truncated. A column supersedes or disables that tooltip via

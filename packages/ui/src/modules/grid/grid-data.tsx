@@ -30,6 +30,13 @@ import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './g
 import type { GridRowClick } from './grid-row'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
+import {
+	GridNavContext,
+	type GridNavTableProps,
+	type GridRowActivate,
+	useGridNavigation,
+} from './use-grid-navigation'
+import { useGridNavigationColumns } from './use-grid-navigation-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
@@ -265,33 +272,47 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 
 /**
  * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
- * while loading, and — when the rendered body is a window onto a larger set
- * (`gridSemantics`: virtualization or pagination) — `role="grid"` with the full
- * row/column counts (per-cell indices come from head/row).
+ * while loading, and the role/index scheme. The role is `grid` when the table
+ * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
+ * editable grid), `table` when the body is only a window onto a larger set
+ * (`gridSemantics`: virtualization or pagination) with no cursor, and native
+ * otherwise. A windowed body also carries the full row/column counts (valid on
+ * both roles); per-cell indices come from head/row.
  *
+ * @remarks `role="grid"` is withheld until a keyboard model backs it: a windowed
+ * but non-navigable table stays `role="table"`, which still honors
+ * `aria-rowcount`/`aria-colcount`, rather than promising cell navigation it
+ * doesn't implement.
  * @internal
  */
 function resolveTableProps(args: {
 	tableProps: TableElementProps | undefined
+	/** Cursor props (tab stop, `aria-activedescendant`, key/focus handlers) under `navigable`. */
+	navTableProps: GridNavTableProps | undefined
 	loading: boolean
 	gridSemantics: boolean
+	navigable: boolean
 	ariaRowCount: number
 	colCount: number
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
+	const role =
+		args.tableProps?.role ?? (args.navigable ? 'grid' : args.gridSemantics ? 'table' : undefined)
+
 	return {
 		...args.tableProps,
+		...args.navTableProps,
+		// The navigable table drops its own focus outline (the active-cell ring is the
+		// indicator); merge it onto any caller className so it reaches the `<table>`.
+		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),
 		...(args.loading ? { 'aria-busy': true } : {}),
 		...(args.tableWidth != null
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
+		...(role ? { role } : {}),
 		...(args.gridSemantics
-			? {
-					role: args.tableProps?.role ?? 'grid',
-					'aria-rowcount': args.ariaRowCount,
-					'aria-colcount': args.colCount,
-				}
+			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
 	}
 }
@@ -341,6 +362,37 @@ function useStableRowClick<T>(
 	return useMemo(
 		() => (hasRowClick ? (row: T, event) => ref.current?.(row, event) : undefined),
 		[hasRowClick],
+	)
+}
+
+/**
+ * Adapts the row-click into the cursor's `onRowActivate`: the cursor fires from
+ * the grid `<table>` (its single tab stop), so the row-level event type is bridged
+ * to the table-level one here. `undefined` when the grid has no row click.
+ *
+ * @internal
+ */
+function bridgeRowActivate<T>(
+	handleRowClick: GridRowClick<T> | undefined,
+): GridRowActivate | undefined {
+	if (!handleRowClick) return undefined
+
+	return (row, event) =>
+		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
+}
+
+/**
+ * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
+ * region whose text toggles to `Loading` while `loading`, so assistive tech
+ * announces the load start (the rendered table appears on completion).
+ *
+ * @internal
+ */
+function GridBusyStatus({ loading }: { loading: boolean }) {
+	return (
+		<span role="status" className="sr-only">
+			{loading ? 'Loading' : ''}
+		</span>
 	)
 }
 
@@ -469,6 +521,7 @@ export function GridData<T>({
 	contextMenu,
 	exportable = false,
 	reorder = false,
+	navigable = false,
 	truncate = true,
 	rowClassName,
 	onRowClick,
@@ -519,6 +572,38 @@ export function GridData<T>({
 		})
 	}, [])
 
+	// Read-only keyboard cursor (opt-in via `navigable`). Bounds and the active
+	// row resolve from these refs at event/render time, so the cursor's callbacks
+	// and the augmented columns stay stable across moves and the memoized rows hold.
+	const rowsRef = useRef<T[]>([])
+
+	const colCountRef = useRef(0)
+
+	const rowIndexMapRef = useRef<Map<T, number>>(new Map())
+
+	const colIndexMapRef = useRef<Map<string | number, number>>(new Map())
+
+	// A stable click handler so the memoized rows don't churn when the consumer
+	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
+	const handleRowClick = useStableRowClick(onRowClick)
+
+	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
+	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
+
+	const nav = useGridNavigation({ enabled: navigable, rowsRef, colCountRef, onRowActivate })
+
+	// Augment the data columns with the cursor wiring (cell ids, `role="gridcell"`,
+	// click-to-focus, active marker) before the engine builds its column defs. A
+	// non-navigable grid gets `pinnedColumns` back untouched.
+	const navColumns = useGridNavigationColumns<T>({
+		enabled: navigable,
+		columns: pinnedColumns,
+		rowIndexMapRef,
+		colIndexMapRef,
+		cellId: nav.cellId,
+		moveTo: nav.moveTo,
+	})
+
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
 	// Selection state lives above the engine so the table can mirror it into its
@@ -552,7 +637,8 @@ export function GridData<T>({
 			// The engine receives the full column set and resolves which render (and
 			// in what order) from the order / visibility / pinning state below;
 			// `visibleColumns` comes back in that resolved order for the header and body.
-			columns: pinnedColumns,
+			// Under `navigable` these carry the cursor wiring (see `navColumns`).
+			columns: navColumns,
 			getKey,
 			selection,
 			columnOrder,
@@ -572,6 +658,30 @@ export function GridData<T>({
 		() => renderRows.map((row, i) => getKey(row, i)),
 		[renderRows, getKey],
 	)
+
+	// Cursor index space: rendered rows and the visible *data* columns (it skips
+	// select / actions cells). Synced from the refs here — after the engine resolves
+	// order and visibility — so the cell ids, `aria-activedescendant`, and
+	// click-to-focus track the displayed grid even as it sorts, filters, or paginates.
+	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
+
+	const rowIndexMap = useMemo(
+		() => new Map(renderRows.map((row, i) => [row, i] as const)),
+		[renderRows],
+	)
+
+	const colIndexMap = useMemo(
+		() => new Map(dataColumns.map((col, i) => [col.id, i] as const)),
+		[dataColumns],
+	)
+
+	rowsRef.current = renderRows
+
+	colCountRef.current = dataColumns.length
+
+	rowIndexMapRef.current = rowIndexMap
+
+	colIndexMapRef.current = colIndexMap
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
@@ -664,10 +774,6 @@ export function GridData<T>({
 		selectAllLabel,
 	} = resolveGridSemantics(virtualizeEnabled, pagination)
 
-	// A stable click handler so the memoized rows don't churn when the consumer
-	// passes an inline `onRowClick`.
-	const handleRowClick = useStableRowClick(onRowClick)
-
 	const reorderActive = canReorder && hasData
 
 	// Fixed-layout column widths so a resize touches only its own column.
@@ -679,58 +785,65 @@ export function GridData<T>({
 		className,
 	})
 
+	// The cursor store is always provided (inert when not `navigable`); only a
+	// navigable grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
-		<Table
-			density={density}
-			bleed={bleed}
-			outline={outline}
-			striped={striped}
-			className={tableClassName}
-			tableProps={resolveTableProps({
-				tableProps,
-				loading,
-				gridSemantics,
-				ariaRowCount,
-				colCount: visibleColumns.length,
-				tableWidth,
-			})}
-		>
-			{colGroup}
+		<GridNavContext value={nav.store}>
+			<Table
+				density={density}
+				bleed={bleed}
+				outline={outline}
+				striped={striped}
+				className={tableClassName}
+				tableProps={resolveTableProps({
+					tableProps,
+					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
+					navTableProps: nav.navTableProps,
+					loading,
+					gridSemantics,
+					navigable,
+					ariaRowCount,
+					colCount: visibleColumns.length,
+					tableWidth,
+				})}
+			>
+				{colGroup}
 
-			<GridHead
-				columns={visibleColumns}
-				hasRows={hasRows}
-				interactive={hasData}
-				selectAllLabel={selectAllLabel}
-				gridSemantics={gridSemantics}
-				reorderable={reorderActive}
-				resize={resize}
-				filters={filters}
-				pinning={pinning}
-			/>
+				<GridHead
+					columns={visibleColumns}
+					hasRows={hasRows}
+					interactive={hasData}
+					selectAllLabel={selectAllLabel}
+					gridSemantics={gridSemantics}
+					reorderable={reorderActive}
+					resize={resize}
+					filters={filters}
+					pinning={pinning}
+				/>
 
-			<GridBody<T>
-				loading={loading}
-				table={table}
-				rows={renderRows}
-				rowKeys={rowKeys}
-				visibleColumns={visibleColumns}
-				rowLoading={rowLoading}
-				rowClassName={rowClassName}
-				rowLabel={rowLabel}
-				onRowClick={handleRowClick}
-				empty={empty}
-				error={error}
-				gridSemantics={gridSemantics}
-				rowIndexOffset={pageRowOffset}
-				selection={selection}
-				toggleRow={toggleRow}
-				reorderable={reorderActive}
-				truncate={truncate}
-				pinning={pinning}
-				virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
-			/>
-		</Table>
+				<GridBody<T>
+					loading={loading}
+					table={table}
+					rows={renderRows}
+					rowKeys={rowKeys}
+					visibleColumns={visibleColumns}
+					rowLoading={rowLoading}
+					rowClassName={rowClassName}
+					rowLabel={rowLabel}
+					onRowClick={handleRowClick}
+					empty={empty}
+					error={error}
+					gridSemantics={gridSemantics}
+					rowIndexOffset={pageRowOffset}
+					selection={selection}
+					toggleRow={toggleRow}
+					reorderable={reorderActive}
+					truncate={truncate}
+					pinning={pinning}
+					virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
+				/>
+			</Table>
+		</GridNavContext>
 	)
 
 	const tableRegion = needsScrollWrapper ? (
@@ -748,6 +861,8 @@ export function GridData<T>({
 	return (
 		<GridContext value={context}>
 			<div ref={wrapperRef} data-slot="grid" className={cn(k.wrapper)}>
+				<GridBusyStatus loading={loading} />
+
 				{showColumnManager && (
 					<GridColumnManagerDialog
 						enabled={manageColumns}

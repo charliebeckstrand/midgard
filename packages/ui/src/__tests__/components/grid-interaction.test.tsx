@@ -128,7 +128,7 @@ describe('Grid pagination semantics', () => {
 		expect(screen.getByLabelText('Select all rows on this page')).toBeInTheDocument()
 	})
 
-	it('emits grid semantics (role=grid + full aria-rowcount) when paginated', () => {
+	it('emits windowed table semantics (role=table + full aria-rowcount) when paginated', () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -138,10 +138,15 @@ describe('Grid pagination semantics', () => {
 			/>,
 		)
 
-		const grid = screen.getByRole('grid')
+		// A paginated but non-navigable grid is a windowed table, not a grid: role="grid"
+		// is withheld until a keyboard cursor (`navigable`) backs it, while aria-rowcount
+		// still reports the full set across pages.
+		const table = screen.getByRole('table')
+
+		expect(screen.queryByRole('grid')).not.toBeInTheDocument()
 
 		// 4 data rows + the header row.
-		expect(grid).toHaveAttribute('aria-rowcount', '5')
+		expect(table).toHaveAttribute('aria-rowcount', '5')
 	})
 
 	it('keeps native table semantics for a plain, whole-set grid', () => {

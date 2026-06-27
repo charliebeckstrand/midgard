@@ -225,9 +225,28 @@ export const k = {
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {
-		// A clickable row (`onRowClick`): pointer cursor and a hover tint so the row
-		// reads as actionable. Interactive cell content (buttons, the select
-		// checkbox) still handles its own clicks; the row guard skips those.
-		clickable: ['cursor-pointer', ...mode('hover:bg-zinc-50', 'dark:hover:bg-zinc-800/40')],
+		// A clickable row (`onRowClick`): pointer cursor, a hover tint so the row
+		// reads as actionable, and a keyboard focus ring (it is a tab stop).
+		// Interactive cell content (buttons, the select checkbox) still handles its
+		// own clicks; the row guard skips those.
+		clickable: [
+			'cursor-pointer',
+			focus.ring,
+			...mode('hover:bg-zinc-50', 'dark:hover:bg-zinc-800/40'),
+		],
+	},
+	nav: {
+		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
+		// own focus outline so the active-cell ring is the sole, precise indicator.
+		table: 'outline-0',
+		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
+		// `data-active` the cell marker toggles onto the owning `role="gridcell"`
+		// <td>. Inset so the scroll container can't clip it; accent blue, matching
+		// the editable grid's active cell.
+		cell: [
+			'data-[active]:ring-2',
+			'data-[active]:ring-inset',
+			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+		],
 	},
 } as const

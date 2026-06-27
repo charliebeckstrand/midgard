@@ -1,0 +1,303 @@
+'use client'
+
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	type RefObject,
+	useCallback,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import { createContext } from '../../core'
+import { useIdScope } from '../../hooks'
+import { clamp } from '../../utilities'
+import { NAV_PAGE_STEP } from './grid-constants'
+
+/** Zero-based cursor position over the grid's data cells, in display order. @internal */
+export type Coord = { row: number; col: number }
+
+/**
+ * Activates the row under the cursor on Enter/Space. The originating event is the
+ * grid `<table>` (the cursor's single tab stop), not a `<tr>`, so this is decoupled
+ * from the grid's row-click handler; `Grid` bridges the two.
+ *
+ * @internal
+ */
+export type GridRowActivate = (row: unknown, event: KeyboardEvent<HTMLTableElement>) => void
+
+/**
+ * External-store interface over the read-only cursor, built in
+ * {@link useGridNavigation}: each cell subscribes to whether it is the active
+ * cell without re-rendering on every cursor move.
+ *
+ * @internal
+ */
+export type GridNavStore = {
+	subscribe: (listener: () => void) => () => void
+	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
+	isActive: (row: number, col: number) => boolean
+}
+
+/** Provides the read-only cursor store to the cell markers under a `navigable` grid. @internal */
+export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav')
+
+/** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
+const INERT_STORE: GridNavStore = { subscribe: () => () => {}, isActive: () => false }
+
+/**
+ * The cursor props merged onto a `navigable` grid's `<table>`: the single tab
+ * stop, the active-cell pointer, and the key/focus handlers. `aria-activedescendant`
+ * is omitted (rather than empty) when the cursor is unseated.
+ *
+ * @internal
+ */
+export type GridNavTableProps = {
+	tabIndex: 0
+	'aria-activedescendant': string | undefined
+	onKeyDown: (event: KeyboardEvent<HTMLTableElement>) => void
+	onFocus: (event: FocusEvent<HTMLTableElement>) => void
+	onBlur: (event: FocusEvent<HTMLTableElement>) => void
+}
+
+/**
+ * Resolves a movement key to the cursor's next coord (unclamped), or `null` when
+ * the key doesn't move the cursor. Arrows step one cell; Home/End jump to the
+ * row's edges, or the grid's first/last cell with Ctrl/Cmd (`toGrid`); PageUp/Down
+ * jump {@link NAV_PAGE_STEP} rows.
+ *
+ * @internal
+ */
+function navTarget(
+	key: string,
+	base: Coord,
+	rowCount: number,
+	colCount: number,
+	toGrid: boolean,
+): Coord | null {
+	switch (key) {
+		case 'ArrowUp':
+			return { row: base.row - 1, col: base.col }
+		case 'ArrowDown':
+			return { row: base.row + 1, col: base.col }
+		case 'ArrowLeft':
+			return { row: base.row, col: base.col - 1 }
+		case 'ArrowRight':
+			return { row: base.row, col: base.col + 1 }
+		case 'Home':
+			return toGrid ? { row: 0, col: 0 } : { row: base.row, col: 0 }
+		case 'End':
+			return toGrid
+				? { row: rowCount - 1, col: colCount - 1 }
+				: { row: base.row, col: colCount - 1 }
+		case 'PageUp':
+			return { row: base.row - NAV_PAGE_STEP, col: base.col }
+		case 'PageDown':
+			return { row: base.row + NAV_PAGE_STEP, col: base.col }
+		default:
+			return null
+	}
+}
+
+/**
+ * Owns the read-only grid's keyboard cursor: a single active cell mirrored into
+ * an external store (so only the cells whose active flag flips re-render) and
+ * exposed to assistive tech through `aria-activedescendant`. Arrow keys, Home/End
+ * (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the cursor;
+ * Enter/Space activates the row through `onRowActivate`; Escape unseats it.
+ *
+ * Bounds and the active row come from `rowsRef`/`colCountRef` at event time, so
+ * the hook holds no stale counts and its callbacks stay referentially stable
+ * across renders. When `enabled` is false the hook is inert — `navTableProps`
+ * is `undefined` and the store never reports an active cell — so a non-navigable
+ * grid pays nothing.
+ *
+ * @returns The reactive `active` coord (drives `aria-activedescendant`), the
+ *   subscription `store`, the `cellId` id-deriver matched by the active pointer,
+ *   the clamped `moveTo` (for click-to-focus), and `navTableProps` to spread onto
+ *   the `<table>` (or `undefined` when disabled).
+ * @internal
+ */
+export function useGridNavigation({
+	enabled,
+	rowsRef,
+	colCountRef,
+	onRowActivate,
+}: {
+	enabled: boolean
+	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
+	rowsRef: RefObject<unknown[]>
+	/** Live count of cursor-visitable data columns; backs horizontal bounds. */
+	colCountRef: RefObject<number>
+	/** Activates the row under the cursor on Enter/Space, when the grid has a row click. */
+	onRowActivate: GridRowActivate | undefined
+}): {
+	active: Coord | null
+	store: GridNavStore
+	cellId: (row: number, col: number) => string
+	moveTo: (coord: Coord) => void
+	navTableProps: GridNavTableProps | undefined
+} {
+	const [active, setActive] = useState<Coord | null>(null)
+
+	const activeRef = useRef<Coord | null>(null)
+
+	activeRef.current = active
+
+	// Read the row-click through a ref so the key handler's deps stay stable when
+	// the consumer passes an inline callback.
+	const onRowActivateRef = useRef(onRowActivate)
+
+	onRowActivateRef.current = onRowActivate
+
+	const { sub } = useIdScope()
+
+	const cellId = useCallback((row: number, col: number) => sub(`cell-${row}-${col}`), [sub])
+
+	// Mirror the active cell into an external store so each cell subscribes to its
+	// own active flag (mirrors `useGridEditableStore`): moving the cursor
+	// re-renders only the two cells whose flag flipped, not every rendered cell.
+	const internalRef = useRef<{ active: Coord | null; listeners: Set<() => void> } | null>(null)
+
+	if (internalRef.current === null) {
+		internalRef.current = { active, listeners: new Set() }
+	}
+
+	const internal = internalRef.current
+
+	useLayoutEffect(() => {
+		internal.active = active
+
+		for (const listener of internal.listeners) listener()
+	}, [active, internal])
+
+	const storeRef = useRef<GridNavStore | null>(null)
+
+	if (storeRef.current === null) {
+		storeRef.current = {
+			subscribe: (listener) => {
+				internal.listeners.add(listener)
+
+				return () => {
+					internal.listeners.delete(listener)
+				}
+			},
+			isActive: (row, col) => internal.active?.row === row && internal.active?.col === col,
+		}
+	}
+
+	const moveTo = useCallback(
+		(coord: Coord) => {
+			const rowCount = rowsRef.current.length
+
+			const colCount = colCountRef.current
+
+			if (rowCount === 0 || colCount === 0) return
+
+			setActive({
+				row: clamp(coord.row, 0, rowCount - 1),
+				col: clamp(coord.col, 0, colCount - 1),
+			})
+		},
+		[rowsRef, colCountRef],
+	)
+
+	// Enter/Space activates the row under the cursor (when the grid has a row click).
+	const activateRow = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, rowIdx: number) => {
+			const activate = onRowActivateRef.current
+
+			const row = rowsRef.current[rowIdx]
+
+			if (!activate || row === undefined) return
+
+			event.preventDefault()
+
+			activate(row, event)
+		},
+		[rowsRef],
+	)
+
+	const onKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>) => {
+			const rowCount = rowsRef.current.length
+
+			const colCount = colCountRef.current
+
+			if (rowCount === 0 || colCount === 0) return
+
+			// The cursor seeds at the first cell when a key arrives before focus has.
+			const base = activeRef.current ?? { row: 0, col: 0 }
+
+			const target = navTarget(event.key, base, rowCount, colCount, event.metaKey || event.ctrlKey)
+
+			if (target) {
+				event.preventDefault()
+
+				moveTo(target)
+			} else if (event.key === 'Enter' || event.key === ' ') {
+				activateRow(event, base.row)
+			} else if (event.key === 'Escape' && activeRef.current) {
+				event.preventDefault()
+
+				setActive(null)
+			}
+		},
+		[moveTo, activateRow, rowsRef, colCountRef],
+	)
+
+	const onFocus = useCallback(
+		(event: FocusEvent<HTMLTableElement>) => {
+			// Seed only when the table itself takes focus (not a focusable descendant)
+			// and the cursor is unseated.
+			if (event.target !== event.currentTarget || activeRef.current) return
+
+			const rel = event.relatedTarget
+
+			if (rel instanceof Node && event.currentTarget.contains(rel)) return
+
+			const rowCount = rowsRef.current.length
+
+			const colCount = colCountRef.current
+
+			if (rowCount === 0 || colCount === 0) return
+
+			// Entering backwards (Shift+Tab from after the grid) lands on the last cell;
+			// forwards lands on the first.
+			const cameFromAfter =
+				rel instanceof Node &&
+				!!(event.currentTarget.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+			setActive(cameFromAfter ? { row: rowCount - 1, col: colCount - 1 } : { row: 0, col: 0 })
+		},
+		[rowsRef, colCountRef],
+	)
+
+	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
+		const next = event.relatedTarget
+
+		// Keep the cursor while focus moves to focusable cell content inside the grid;
+		// drop it only when focus leaves the table entirely.
+		if (next instanceof Node && event.currentTarget.contains(next)) return
+
+		setActive(null)
+	}, [])
+
+	const navTableProps: GridNavTableProps | undefined = enabled
+		? {
+				tabIndex: 0,
+				'aria-activedescendant': active ? cellId(active.row, active.col) : undefined,
+				onKeyDown,
+				onFocus,
+				onBlur,
+			}
+		: undefined
+
+	return {
+		active: enabled ? active : null,
+		store: enabled ? storeRef.current : INERT_STORE,
+		cellId,
+		moveTo,
+		navTableProps,
+	}
+}
