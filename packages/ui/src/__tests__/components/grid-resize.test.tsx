@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid resizable columns', () => {
 	type Row = { id: number; name: string; age: number }
@@ -217,5 +217,39 @@ describe('Grid resizable columns', () => {
 		)
 
 		expect(screen.getAllByRole('columnheader')[0]).toHaveStyle({ width: '320px' })
+	})
+
+	// The engine's resize handler ends only on `mouseup`. A right-click opens the
+	// context menu, which swallows that `mouseup`, so a resize begun on a
+	// right-click never ends — the column stays stuck tracking the pointer. The
+	// handle starts a resize on a primary press only.
+	it('starts a resize on a primary-button press', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.mouseDown(handle, { button: 0, clientX: 200 })
+
+		expect(handle).toHaveAttribute('data-resizing')
+	})
+
+	it('does not start a resize on a right-button press', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.mouseDown(handle, { button: 2, clientX: 200 })
+
+		expect(handle).not.toHaveAttribute('data-resizing')
+	})
+
+	it('does not start a resize on a macOS Ctrl+click (button 0 + ctrlKey)', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.mouseDown(handle, { button: 0, ctrlKey: true, clientX: 200 })
+
+		expect(handle).not.toHaveAttribute('data-resizing')
 	})
 })
