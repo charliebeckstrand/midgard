@@ -20,7 +20,8 @@ import {
 	StackedLayoutFooter,
 	StackedLayoutHeader,
 } from '../../layouts'
-import { axePage, renderUI } from '../helpers'
+import { renderUI } from '../helpers'
+import { axePage } from '../helpers/axe'
 
 /**
  * Page/layout landmark compliance. Renders whole layouts and runs axe at
