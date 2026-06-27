@@ -4,7 +4,8 @@ import { useMemo, useRef } from 'react'
 import type { TableVariants } from '../../components/table'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks'
-import { Grid, type GridSelection, type GridSort, type GridVirtualize } from './grid'
+import { GridData } from './grid-data'
+import type { GridSelection, GridSort, GridVirtualize } from './grid-data-types'
 import {
 	GridEditableEditContext,
 	type GridEditableEditValue,
@@ -174,7 +175,7 @@ export function GridEditable<T>({
 				<style href="grid-editable-cell-flash" precedence="default">
 					{CELL_FLASH_KEYFRAMES}
 				</style>
-				<Grid
+				<GridData
 					columns={augmentedColumns}
 					rows={rows}
 					getKey={getKey}

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { GridSelection } from '../../modules/grid/grid'
+import type { GridSelection } from '../../modules/grid/grid-data-types'
 import {
 	useGridSelectionActions,
 	useGridSelectionState,

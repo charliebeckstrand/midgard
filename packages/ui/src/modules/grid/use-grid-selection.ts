@@ -3,7 +3,7 @@
 import { useCallback, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks'
 import { toggleItem } from '../../utilities'
-import type { GridSelection } from './grid'
+import type { GridSelection } from './grid-data-types'
 
 /** Stable empty selection default; read-only, replaced wholesale on change. @internal */
 const EMPTY_SELECTION: Set<string | number> = new Set()
