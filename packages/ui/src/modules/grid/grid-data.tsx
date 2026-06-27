@@ -2,7 +2,15 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
@@ -14,7 +22,7 @@ import { isDataColumn } from '../../utilities'
 import { GridContext, type SortState } from './context'
 import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
 import { GridContextMenu } from './grid-context-menu'
 import type {
 	GridColumnManagerConfig,
@@ -388,16 +396,46 @@ function bridgeRowActivate<T>(
 }
 
 /**
- * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
- * region whose text toggles to `Loading` while `loading`, so assistive tech
- * announces the load start (the rendered table appears on completion).
+ * The polite live-region message for the grid: `Loading` while loading, then —
+ * after a short debounce so a fast filter/search doesn't chatter — a settled
+ * row-count summary. Assistive tech hears the load start, its result, and later
+ * result-count changes from filtering, search, or paging.
  *
  * @internal
  */
-function GridBusyStatus({ loading }: { loading: boolean }) {
+function useGridStatusMessage(loading: boolean, rowCount: number): string {
+	const [message, setMessage] = useState('')
+
+	useEffect(() => {
+		if (loading) {
+			setMessage('Loading')
+
+			return
+		}
+
+		const id = setTimeout(() => {
+			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
+		}, GRID_STATUS_DEBOUNCE_MS)
+
+		return () => clearTimeout(id)
+	}, [loading, rowCount])
+
+	return message
+}
+
+/**
+ * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
+ * region announcing the load start and, on completion, the result count (see
+ * {@link useGridStatusMessage}).
+ *
+ * @internal
+ */
+function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
+	const message = useGridStatusMessage(loading, rowCount)
+
 	return (
 		<span role="status" className="sr-only">
-			{loading ? 'Loading' : ''}
+			{message}
 		</span>
 	)
 }
@@ -838,6 +876,10 @@ export function GridData<T>({
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
 
+	// Full filtered row extent (the server total when paginating) for the busy
+	// region's result announcement; the header row the aria count adds is excluded.
+	const dataRowCount = pagination?.rowCount ?? renderRows.length
+
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	const {
@@ -950,7 +992,7 @@ export function GridData<T>({
 				data-resizing={dataAttr(resizing)}
 				className={cn(k.wrapper)}
 			>
-				<GridBusyStatus loading={loading} />
+				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
 				{renderDialog && (
 					<GridColumnManagerDialog

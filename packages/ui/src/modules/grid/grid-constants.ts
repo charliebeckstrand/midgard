@@ -36,3 +36,6 @@ export const COLUMN_RESIZE_HANDLE_OVERHANG = 12
 
 /** Rows a PageUp/PageDown jumps the read-only cell cursor. @internal */
 export const NAV_PAGE_STEP = 10
+
+/** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */
+export const GRID_STATUS_DEBOUNCE_MS = 150

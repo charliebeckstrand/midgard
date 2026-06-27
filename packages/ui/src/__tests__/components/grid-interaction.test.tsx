@@ -245,3 +245,29 @@ describe('Grid row selection semantics', () => {
 		expect(screen.getByRole('grid')).toHaveAttribute('aria-multiselectable', 'true')
 	})
 })
+
+describe('Grid busy live region', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice' },
+		{ id: 2, name: 'Bob' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	it('announces the settled row count to assistive tech', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The polite status region settles (debounced) to the result count.
+		expect(await screen.findByText('2 rows')).toHaveClass('sr-only')
+	})
+
+	it('announces No results for an empty grid', async () => {
+		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+
+		expect(await screen.findByText('No results')).toBeInTheDocument()
+	})
+})
