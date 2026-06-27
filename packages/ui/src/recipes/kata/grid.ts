@@ -40,15 +40,16 @@ const resizePadding = defineRecipe({
 })
 
 /**
- * Opaque fill behind a frozen cell — body and header alike — so the columns
- * scrolling under it stay hidden. It tracks the content host (`omote.content` —
- * the same viewport-aware surface the sidebar layout paints behind its sticky
- * headers): the card surface at `lg`, and the flush page background below it. A
- * plain `bg.surface` painted the desktop card colour at every width, so on
- * mobile — where the content block is transparent over the darker page — the
- * frozen columns read a shade off.
+ * Opaque fill behind every sticky grid surface — the sticky header bar and the
+ * frozen header/body cells alike — so the rows and columns scrolling under them
+ * stay hidden. It tracks the content host (`omote.content` — the same
+ * viewport-aware surface the sidebar layout paints behind its sticky headers):
+ * the card surface at `lg`, and the flush page background below it. A plain
+ * `bg.surface` painted the desktop card colour at every width, so on mobile —
+ * where the content block is transparent over the darker page — these surfaces
+ * read a shade off (standing out as a box against the page).
  */
-const pinnedSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
+const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 export const k = {
 	// Hosts the `group/grid` resize-state flag: while a column drag-resize is in
@@ -57,21 +58,26 @@ export const k = {
 	wrapper: ['group/grid', 'relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
-		head: ['sticky top-0 z-10', bg.surface],
+		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
+		// scroll. Tracks the content host (see `hostSurface`) so it matches the page
+		// background on mobile and the card surface on desktop — a plain `bg.surface`
+		// painted the desktop card colour at every width and stood out as a box
+		// against the transparent content block on mobile.
+		head: ['sticky top-0 z-10', hostSurface],
 	},
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
 		// through, lifted just above the centre cells (below the z-10 sticky head,
 		// so a vertical scroll still tucks pinned cells under it). The fill tracks
-		// the content host across viewports (see `pinnedSurface`); the left/right
+		// the content host across viewports (see `hostSurface`); the left/right
 		// offset is an inline style summed from the engine.
-		cell: ['sticky z-[1]', pinnedSurface],
+		cell: ['sticky z-[1]', hostSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
-		// Shares the body cell's viewport-aware fill (see `pinnedSurface`) so the
+		// Shares the sticky header's viewport-aware fill (see `hostSurface`) so the
 		// pinned header tracks the content host instead of painting the desktop card
 		// colour at every width — which, on mobile, stood out as a box against the
 		// transparent content block over the darker page.
-		head: ['sticky z-20', pinnedSurface],
+		head: ['sticky z-20', hostSurface],
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
 		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
 		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
