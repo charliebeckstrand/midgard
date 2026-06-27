@@ -733,10 +733,15 @@ export function GridData<T>({
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
 
-	// Column interactions stand down only when there's no *source* data to act on
-	// (incl. while loading) — not when a filter or search empties the view, where
-	// the header must stay live so the user can clear it and recover the rows.
-	const hasData = rows.length > 0
+	// Column interactions stand down when there's no *source* data to act on
+	// (incl. while loading), or when an error has pre-empted the body — mirroring
+	// the empty state, since both replace the rows there's nothing to act on. They
+	// stay live when a filter or search merely empties the view, so the user can
+	// clear it and recover the rows. `showingError` tracks the body's own error
+	// branch (see `GridBody`), which loading takes precedence over.
+	const showingError = !loading && error != null && error !== false
+
+	const hasData = rows.length > 0 && !showingError
 
 	const { toggleRow, toggleAll, allSelected, someSelected } = useGridSelectionActions({
 		selection,
