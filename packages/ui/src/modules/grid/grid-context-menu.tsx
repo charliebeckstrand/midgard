@@ -281,6 +281,21 @@ export function GridContextMenu<T>({
 
 			const sortDirection = sort.find((entry) => entry.column === column.id)?.direction
 
+			const defaults = columnMenuDefaults({
+				column,
+				sortDirection,
+				sortColumn,
+				clearSort,
+				pinColumn,
+				autoSizeColumns,
+				chooseColumns,
+				exportCsv,
+			})
+
+			// A boolean `column` opt-in takes the defaults untouched; only a builder
+			// function needs the context, so it's built solely on that path.
+			if (typeof config.column !== 'function') return defaults
+
 			const context: GridColumnMenuContext<T> = {
 				column,
 				sortDirection,
@@ -296,18 +311,7 @@ export function GridContextMenu<T>({
 				exportCsv: exportCsv ?? undefined,
 			}
 
-			const defaults = columnMenuDefaults({
-				column,
-				sortDirection,
-				sortColumn,
-				clearSort,
-				pinColumn,
-				autoSizeColumns,
-				chooseColumns,
-				exportCsv,
-			})
-
-			return typeof config.column === 'function' ? config.column(context, defaults) : defaults
+			return config.column(context, defaults)
 		},
 		[
 			config.column,
@@ -336,11 +340,15 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(value == null ? '' : String(value))
 
-			const context: GridCellMenuContext<T> = { row, column, value, copy }
-
 			const defaults = cellMenuDefaults(copy)
 
-			return typeof config.cell === 'function' ? config.cell(context, defaults) : defaults
+			// As with columns: the context is built only for a builder function, not
+			// the boolean opt-in that takes the defaults as-is.
+			if (typeof config.cell !== 'function') return defaults
+
+			const context: GridCellMenuContext<T> = { row, column, value, copy }
+
+			return config.cell(context, defaults)
 		},
 		[config.cell, columnById, rowByKey],
 	)

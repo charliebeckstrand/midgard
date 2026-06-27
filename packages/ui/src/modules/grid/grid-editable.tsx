@@ -11,7 +11,6 @@ import {
 	type GridEditableSnapshot,
 	GridEditableStoreContext,
 } from './grid-editable-context'
-import { GridEditableStyles } from './grid-editable-styles'
 import type { CellChange, GridEditableColumn } from './grid-editable-types'
 import { useGridEditableAugmentedColumns } from './use-grid-editable-augmented-columns'
 import { useGridEditableDraft } from './use-grid-editable-draft'
@@ -21,6 +20,10 @@ import { useGridEditableRows } from './use-grid-editable-rows'
 import { useGridEditableSelection } from './use-grid-editable-selection'
 import { useGridEditableStore } from './use-grid-editable-store'
 import { useGridEditableWrapper } from './use-grid-editable-wrapper'
+
+// Cell-change flash keyframe, mounted once below. Hoisted and deduplicated by
+// React 19 via `precedence`.
+const CELL_FLASH_KEYFRAMES = '@keyframes grid-editable-cell-flash{from{opacity:1}to{opacity:0}}'
 
 /**
  * Props for {@link GridEditable}: the `columns`/`rows`/`getKey` data binding,
@@ -168,7 +171,9 @@ export function GridEditable<T>({
 	return (
 		<GridEditableStoreContext value={store}>
 			<GridEditableEditContext value={editValue}>
-				<GridEditableStyles />
+				<style href="grid-editable-cell-flash" precedence="default">
+					{CELL_FLASH_KEYFRAMES}
+				</style>
 				<Grid
 					columns={augmentedColumns}
 					rows={rows}

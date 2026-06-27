@@ -75,19 +75,17 @@ export const restrictToFirstScrollableAncestor: Modifier = ({
  *
  * @param transform - The sortable transform for this column, or `null` when idle.
  * @param transition - The sortable transition string, or `undefined`.
- * @param width - Optional fixed column width to preserve while dragging.
- * @returns The cell's inline style.
+ * @returns The cell's inline style. Callers merge any fixed column width
+ * themselves, since the width sits outside the drag transform.
  * @internal
  */
 export function columnDragStyle(
 	transform: Transform | null,
 	transition: string | undefined,
-	width?: string,
 ): CSSProperties {
 	return {
 		transform: CSS.Translate.toString(transform),
 		transition,
-		...(width ? { width } : null),
 	}
 }
 
