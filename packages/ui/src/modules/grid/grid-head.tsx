@@ -18,7 +18,7 @@ import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
-import type { GridColumn } from './types'
+import { columnLabel, type GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
 
@@ -249,11 +249,6 @@ type GridColumnHeaderProps = {
 	pinning: GridColumnPinning | null
 }
 
-/** A column's accessible name: its `title` when a string, else the stringified id. @internal */
-function headerLabel(column: Pick<GridColumn<unknown>, 'id' | 'title'>): string {
-	return typeof column.title === 'string' ? column.title : String(column.id)
-}
-
 /**
  * Whether a filterable column shows its filter button: when the grid has data,
  * or — even with an empty view — when this column carries an active filter, so a
@@ -358,7 +353,7 @@ function ColumnHeaderLabel({
 				// A Shift-click folds this column into the existing sort (multi-column);
 				// a plain click collapses the sort to just this column.
 				onClick={(event) => toggleSort(column.id, event.shiftKey)}
-				aria-label={`Sort by ${headerLabel(column)}`}
+				aria-label={`Sort by ${columnLabel(column)}`}
 			>
 				<GridHeaderTitle title={column.title} />
 				{sortDirectionIcon(sorted, direction)}
@@ -482,7 +477,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			{canResize && resize && (
 				<GridColumnResizeHandle
 					id={column.id}
-					label={headerLabel(column)}
+					label={columnLabel(column)}
 					resize={resize}
 					resizing={resizing}
 				/>
@@ -548,7 +543,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					type="button"
 					ref={setActivatorNodeRef}
 					className={cn(k.reorder.handle)}
-					aria-label={`Reorder ${headerLabel(column)}`}
+					aria-label={`Reorder ${columnLabel(column)}`}
 					{...attributes}
 					{...listeners}
 				>
@@ -569,7 +564,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			{canResize && resize && (
 				<GridColumnResizeHandle
 					id={column.id}
-					label={headerLabel(column)}
+					label={columnLabel(column)}
 					resize={resize}
 					resizing={resizing}
 				/>

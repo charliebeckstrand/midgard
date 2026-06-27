@@ -9,6 +9,32 @@ export function cellKey(row: number, col: number): string {
 	return `${row},${col}`
 }
 
+/** The inclusive rectangle bounds two coordinates span. @internal */
+function rectBounds(a: Coord, b: Coord): { r0: number; r1: number; c0: number; c1: number } {
+	return {
+		r0: Math.min(a.row, b.row),
+		r1: Math.max(a.row, b.row),
+		c0: Math.min(a.col, b.col),
+		c1: Math.max(a.col, b.col),
+	}
+}
+
+/** Whether a cell falls inside the inclusive rectangle two coordinates span. @internal */
+export function inRect(row: number, col: number, a: Coord, b: Coord): boolean {
+	const { r0, r1, c0, c1 } = rectBounds(a, b)
+
+	return row >= r0 && row <= r1 && col >= c0 && col <= c1
+}
+
+/** Visits every cell of the inclusive rectangle two coordinates span, row-major. @internal */
+export function forEachInRect(a: Coord, b: Coord, visit: (row: number, col: number) => void): void {
+	const { r0, r1, c0, c1 } = rectBounds(a, b)
+
+	for (let r = r0; r <= r1; r++) {
+		for (let c = c0; c <= c1; c++) visit(r, c)
+	}
+}
+
 /**
  * Owns the cursor and range selection: reactive `active`/`anchor`/`extraCells`
  * for rendering, mirrored refs for event-time reads, and the move/extend
@@ -77,16 +103,7 @@ export function useGridEditableNavigation<T>({
 		if (prevActive) baked.add(cellKey(prevActive.row, prevActive.col))
 
 		if (prevActive && prevAnchor) {
-			const r0 = Math.min(prevAnchor.row, prevActive.row)
-			const r1 = Math.max(prevAnchor.row, prevActive.row)
-			const c0 = Math.min(prevAnchor.col, prevActive.col)
-			const c1 = Math.max(prevAnchor.col, prevActive.col)
-
-			for (let r = r0; r <= r1; r++) {
-				for (let c = c0; c <= c1; c++) {
-					baked.add(cellKey(r, c))
-				}
-			}
+			forEachInRect(prevAnchor, prevActive, (r, c) => baked.add(cellKey(r, c)))
 		}
 
 		baked.delete(cellKey(coord.row, coord.col))

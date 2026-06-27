@@ -10,7 +10,6 @@ import type {
 	GridEditableColumn,
 	GridEditableEditor,
 } from './grid-editable-types'
-import { useGridEditableCellAriaSelected } from './use-grid-editable-cell-aria-selected'
 
 /** Props for {@link GridEditableCell}. @internal */
 type GridEditableCellContentProps<T> = {
@@ -34,7 +33,7 @@ type GridEditableCellContentProps<T> = {
  * @remarks
  * `aria-selected` lives on the owning `role="gridcell"` `<td>` (applied by
  * `Grid` through non-reactive `cellProps`); this content div mirrors it
- * imperatively via {@link useGridEditableCellAriaSelected}.
+ * imperatively, since React doesn't manage that attribute.
  *
  * @internal
  */
@@ -66,7 +65,14 @@ export function GridEditableCell<T>({
 
 	const cellRef = useRef<HTMLDivElement>(null)
 
-	useGridEditableCellAriaSelected(cellRef, isActive || inRange)
+	// Mirror live selection onto the owning role="gridcell" <td> imperatively:
+	// the role is applied through non-reactive cellProps, so React leaves the
+	// element's `aria-selected` untouched.
+	const selected = isActive || inRange
+
+	useEffect(() => {
+		cellRef.current?.closest('[role="gridcell"]')?.setAttribute('aria-selected', String(selected))
+	}, [selected])
 
 	return (
 		<div

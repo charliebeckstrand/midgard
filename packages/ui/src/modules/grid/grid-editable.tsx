@@ -4,16 +4,14 @@ import { useMemo, useRef } from 'react'
 import type { TableVariants } from '../../components/table'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks'
-import { Grid, type GridSelection, type GridSort, type GridVirtualize } from './grid'
+import { GridData } from './grid-data'
+import type { GridSelection, GridSort, GridVirtualize } from './grid-data-types'
 import {
 	GridEditableEditContext,
 	type GridEditableEditValue,
 	type GridEditableSnapshot,
-	GridEditableStateContext,
-	type GridEditableStateValue,
 	GridEditableStoreContext,
 } from './grid-editable-context'
-import { GridEditableStyles } from './grid-editable-styles'
 import type { CellChange, GridEditableColumn } from './grid-editable-types'
 import { useGridEditableAugmentedColumns } from './use-grid-editable-augmented-columns'
 import { useGridEditableDraft } from './use-grid-editable-draft'
@@ -23,6 +21,10 @@ import { useGridEditableRows } from './use-grid-editable-rows'
 import { useGridEditableSelection } from './use-grid-editable-selection'
 import { useGridEditableStore } from './use-grid-editable-store'
 import { useGridEditableWrapper } from './use-grid-editable-wrapper'
+
+// Cell-change flash keyframe, mounted once below. Hoisted and deduplicated by
+// React 19 via `precedence`.
+const CELL_FLASH_KEYFRAMES = '@keyframes grid-editable-cell-flash{from{opacity:1}to{opacity:0}}'
 
 /**
  * Props for {@link GridEditable}: the `columns`/`rows`/`getKey` data binding,
@@ -71,8 +73,7 @@ export type GridEditableProps<T> = TableVariants & {
  * keyboard navigation with range selection, paste, and batch-apply that writes
  * one column value across every row in a multi-row selection. Each commit emits
  * a {@link CellChange} batch through `onValueChange`; sort, selection, and
- * virtualization forward to the underlying table. Exposes its cursor and edit
- * state via {@link useGridEditable}.
+ * virtualization forward to the underlying table.
  *
  * @remarks
  * Client component. The `<table>` carries `role="grid"` with
@@ -143,29 +144,6 @@ export function GridEditable<T>({
 		cellId: cells.sub,
 	})
 
-	// Stable while editing; the cell shells subscribe here. Typing only moves the
-	// edit slice below, leaving cell shells untouched.
-	const stateValue = useMemo<GridEditableStateValue>(
-		() => ({
-			active: nav.active,
-			anchor: nav.anchor,
-			extraCells: nav.extraCells,
-			editing: draft.editing,
-			setActive: nav.moveActiveTo,
-			addCellToSelection: nav.addCellToSelection,
-			beginEdit: draft.beginEdit,
-		}),
-		[
-			nav.active,
-			nav.anchor,
-			nav.extraCells,
-			draft.editing,
-			nav.moveActiveTo,
-			nav.addCellToSelection,
-			draft.beginEdit,
-		],
-	)
-
 	// Mirrored into the store below; each cell subscribes to its own derived
 	// slice. Only cells whose slice changed re-render on navigation.
 	const cellSnapshot = useMemo<GridEditableSnapshot>(
@@ -192,51 +170,51 @@ export function GridEditable<T>({
 	)
 
 	return (
-		<GridEditableStateContext value={stateValue}>
-			<GridEditableStoreContext value={store}>
-				<GridEditableEditContext value={editValue}>
-					<GridEditableStyles />
-					<Grid
-						columns={augmentedColumns}
-						rows={rows}
-						getKey={getKey}
-						sort={sortConfig}
-						// Editing keeps sorting opt-in: a column sorts only when it sets
-						// `sortable`, not from the read-only grid's sortable-by-default.
-						sortable={false}
-						// Editing owns right-click (cell selection / copy-paste), so the
-						// read-only grid's default context menus stay off here.
-						contextMenu={false}
-						// Cells host editors that must not be clipped; the editable grid
-						// manages its own overflow, so read-only truncation stays off.
-						truncate={false}
-						selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
-						rowClassName={rowClassName}
-						stickyHeader={stickyHeader}
-						maxHeight={maxHeight}
-						virtualize={virtualize}
-						density={density}
-						bleed={bleed}
-						outline={outline}
-						striped={striped}
-						className={cn('outline-0', className)}
-						tableProps={{
-							ref: wrapperRef,
-							'data-slot': 'grid-editable',
-							role: 'grid',
-							'aria-multiselectable': true,
-							'aria-activedescendant': nav.active
-								? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
-								: undefined,
-							tabIndex: 0,
-							onKeyDown: onWrapperKeyDown,
-							onPaste: onWrapperPaste,
-							onFocus: onWrapperFocus,
-							onBlur: onWrapperBlur,
-						}}
-					/>
-				</GridEditableEditContext>
-			</GridEditableStoreContext>
-		</GridEditableStateContext>
+		<GridEditableStoreContext value={store}>
+			<GridEditableEditContext value={editValue}>
+				<style href="grid-editable-cell-flash" precedence="default">
+					{CELL_FLASH_KEYFRAMES}
+				</style>
+				<GridData
+					columns={augmentedColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={sortConfig}
+					// Editing keeps sorting opt-in: a column sorts only when it sets
+					// `sortable`, not from the read-only grid's sortable-by-default.
+					sortable={false}
+					// Editing owns right-click (cell selection / copy-paste), so the
+					// read-only grid's default context menus stay off here.
+					contextMenu={false}
+					// Cells host editors that must not be clipped; the editable grid
+					// manages its own overflow, so read-only truncation stays off.
+					truncate={false}
+					selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
+					rowClassName={rowClassName}
+					stickyHeader={stickyHeader}
+					maxHeight={maxHeight}
+					virtualize={virtualize}
+					density={density}
+					bleed={bleed}
+					outline={outline}
+					striped={striped}
+					className={cn('outline-0', className)}
+					tableProps={{
+						ref: wrapperRef,
+						'data-slot': 'grid-editable',
+						role: 'grid',
+						'aria-multiselectable': true,
+						'aria-activedescendant': nav.active
+							? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
+							: undefined,
+						tabIndex: 0,
+						onKeyDown: onWrapperKeyDown,
+						onPaste: onWrapperPaste,
+						onFocus: onWrapperFocus,
+						onBlur: onWrapperBlur,
+					}}
+				/>
+			</GridEditableEditContext>
+		</GridEditableStoreContext>
 	)
 }

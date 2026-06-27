@@ -3,7 +3,7 @@
 import { useCallback, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks'
 import { toggleItem } from '../../utilities'
-import type { GridSelection } from './grid'
+import type { GridSelection } from './grid-data-types'
 
 /** Stable empty selection default; read-only, replaced wholesale on change. @internal */
 const EMPTY_SELECTION: Set<string | number> = new Set()
@@ -90,9 +90,9 @@ export function useGridSelectionActions({
  * Owns the data table's selection: the controllable `Set<key>`, the row/all
  * toggles, and the `allSelected` / `someSelected` flags derived from the current
  * rowKeys. A thin composition of {@link useGridSelectionState} and
- * {@link useGridSelectionActions} — {@link Grid} calls those two directly so the
- * selection state can sit above the engine, but the composed form keeps a single
- * entry point for callers (and tests) that don't need that split.
+ * {@link useGridSelectionActions}, which {@link Grid} calls directly so the
+ * selection state can sit above the engine; this composed form is the file's
+ * single entry point for callers that don't need that split.
  *
  * @internal
  */

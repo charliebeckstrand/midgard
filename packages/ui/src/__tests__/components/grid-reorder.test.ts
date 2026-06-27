@@ -46,11 +46,7 @@ describe('applyColumnReorder', () => {
 
 describe('columnDragStyle', () => {
 	it('translates horizontally without the scale that would stretch cell content', () => {
-		const style = columnDragStyle(
-			{ x: 12, y: 0, scaleX: 2, scaleY: 0.5 },
-			'transform 200ms ease',
-			'120px',
-		)
+		const style = columnDragStyle({ x: 12, y: 0, scaleX: 2, scaleY: 0.5 }, 'transform 200ms ease')
 
 		expect(style.transform).toContain('translate3d')
 
@@ -60,16 +56,12 @@ describe('columnDragStyle', () => {
 		expect(style.transform).not.toContain('scale')
 
 		expect(style.transition).toBe('transform 200ms ease')
-
-		expect(style.width).toBe('120px')
 	})
 
-	it('emits no transform when idle and omits width when unset', () => {
+	it('emits no transform when idle', () => {
 		const style = columnDragStyle(null, undefined)
 
 		expect(style.transform).toBeUndefined()
-
-		expect(style.width).toBeUndefined()
 	})
 })
 
