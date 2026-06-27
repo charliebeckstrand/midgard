@@ -152,21 +152,6 @@ const ticketColumns: GridColumn<Ticket>[] = [
 	},
 ]
 
-const truncatedColumns: GridColumn<Person>[] = [
-	{ id: 'name', title: 'Name', cell: (row) => row.name },
-	// A long title truncates in the header and reveals itself on hover, the same
-	// way an overflowing cell does.
-	{ id: 'email', title: 'Email address on file', cell: (row) => row.email },
-	{
-		id: 'role',
-		title: 'Role',
-		cell: (row) => row.role,
-		// Supersede the default truncation tooltip with richer content; return
-		// `null` from `cellTooltip` instead to disable it for a column.
-		cellTooltip: (row) => `${row.name} — ${row.role}`,
-	},
-]
-
 type Employee = {
 	id: number
 	name: string
@@ -482,16 +467,6 @@ const PinnedExample = () => (
 	/>
 )
 
-const TruncationExample = () => (
-	// In a narrow grid, overflowing cells — and column titles — truncate to an
-	// ellipsis and reveal the full text in a tooltip on hover; the Role column
-	// supersedes the cell tooltip via `cellTooltip`. Truncation is on by default —
-	// pass `truncate={false}` to wrap.
-	<div className="max-w-sm">
-		<Grid resizable columns={truncatedColumns} rows={people} getKey={(row) => row.id} />
-	</div>
-)
-
 const SearchExample = () => {
 	const [query, setQuery] = useState('')
 
@@ -662,13 +637,6 @@ export function Demo() {
 				code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
 			>
 				<PinnedExample />
-			</Example>
-
-			<Example
-				title="Cell truncation"
-				code={code`<Grid columns={[{ ...col, cellTooltip: (row) => detail }]} />`}
-			>
-				<TruncationExample />
 			</Example>
 
 			<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>

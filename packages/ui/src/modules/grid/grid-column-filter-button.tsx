@@ -128,9 +128,8 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	}
 
 	// Clear the applied filter outright and close — the one-press path to undo a
-	// filter, distinct from Apply's commit and Cancel's discard. Disabled below
-	// when nothing is applied, so it only shows as live when there's a filter to
-	// lift.
+	// filter, distinct from Apply's commit and Cancel's discard. Rendered below
+	// only when a filter is applied, so it's offered solely when there's one to lift.
 	function reset() {
 		filter.setQuery(column.id, undefined)
 
@@ -176,14 +175,11 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</SheetBody>
 
 				<SheetFooter>
-					<Button
-						variant="outline"
-						className={cn(k.filter.reset)}
-						disabled={!active}
-						onClick={reset}
-					>
-						Reset
-					</Button>
+					{active && (
+						<Button variant="soft" color="red" className={cn(k.filter.reset)} onClick={reset}>
+							Reset
+						</Button>
+					)}
 
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel

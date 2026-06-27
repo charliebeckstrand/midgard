@@ -177,8 +177,8 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		// Nothing applied yet — Reset has no filter to lift.
-		expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled()
+		// Nothing applied yet — with no filter to lift, Reset isn't offered.
+		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
