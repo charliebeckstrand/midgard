@@ -224,32 +224,39 @@ describe('GridColumnManager', () => {
 })
 
 describe('GridColumnManagerDialog', () => {
+	// The dialog is purely controlled; its trigger lives in `GridToolbar` (covered
+	// through `<Grid>`). The harness drives `open` itself to exercise the dialog.
 	function Harness() {
 		const [open, setOpen] = useState(false)
 
 		return (
-			<GridColumnManagerDialog
-				toolbarButton
-				open={open}
-				onOpenChange={setOpen}
-				label="Manage columns"
-				columns={columns}
-				order={['name', 'email', 'role']}
-				onOrderChange={() => {}}
-				hidden={new Set()}
-				onHiddenChange={() => {}}
-			/>
+			<>
+				<button type="button" onClick={() => setOpen(true)}>
+					Open
+				</button>
+
+				<GridColumnManagerDialog
+					open={open}
+					onOpenChange={setOpen}
+					label="Manage columns"
+					columns={columns}
+					order={['name', 'email', 'role']}
+					onOrderChange={() => {}}
+					hidden={new Set()}
+					onHiddenChange={() => {}}
+				/>
+			</>
 		)
 	}
 
-	it('opens from the toolbar trigger and closes via the Done button', async () => {
+	it('shows the manager while open and closes via the Done button', async () => {
 		const user = userEvent.setup()
 
 		renderUI(<Harness />)
 
 		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
+		await user.click(screen.getByRole('button', { name: 'Open' }))
 
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 
