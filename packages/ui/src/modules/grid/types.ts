@@ -94,7 +94,7 @@ export type GridColumn<T> = {
 	 * the column manager's pinned group, and marks its header with a pin icon.
 	 * Multi-column stacking needs known widths (a `resizable`/fixed-layout grid, or
 	 * a column `width`); a lone pinned column on a side needs neither. This is the
-	 * column's initial pin — the header context menu's Pin Left / Pin Right / Unpin
+	 * column's initial pin — the header context menu's Pin left / Pin right / Unpin
 	 * items override it at runtime.
 	 */
 	pinned?: boolean | 'left' | 'right'
@@ -279,7 +279,7 @@ export type GridColumnMenuContext<T> = {
 	unpin: () => void
 	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | undefined
-	/** Opens the column-manager dialog ("Choose Columns"). */
+	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
 	/** Exports the filtered/sorted rows to a CSV download, or `undefined` when {@link GridProps.exportable} is off. */
 	exportCsv: (() => void) | undefined
@@ -287,8 +287,8 @@ export type GridColumnMenuContext<T> = {
 
 /**
  * Header context-menu config: `true` (or omit) for the default items — Sort
- * Ascending, Sort Descending, Clear sort (when the column is sorted), Pin Left /
- * Pin Right / Unpin, Auto-size columns (when resizing is on), Choose Columns —
+ * ascending, Sort descending, Clear sort (when the column is sorted), Pin left /
+ * Pin right / Unpin, Auto-size columns (when resizing is on), Manage columns —
  * or a builder receiving the {@link GridColumnMenuContext} and those defaults,
  * returning the final list to extend, reorder, or replace them. `false` omits
  * the header menu entirely.

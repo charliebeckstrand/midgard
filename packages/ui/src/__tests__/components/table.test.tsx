@@ -154,6 +154,38 @@ describe('TableBody', () => {
 		expect(table?.className).not.toContain('nth-child(odd)')
 	})
 
+	it('washes body rows on hover through the Table projection, not the tbody', () => {
+		const { container } = renderUI(
+			<Table hover>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		// The hover selector rides the table element; the static tbody stays bare.
+		expect(container.querySelector('table')?.className).toContain(
+			'[&>tbody>tr]:hover:bg-zinc-950/5',
+		)
+		expect(bySlot(container, 'table-body')?.className).not.toContain('hover:')
+	})
+
+	it('omits the hover projection when hover is unset', () => {
+		const { container } = renderUI(
+			<Table>
+				<TableBody>
+					<TableRow>
+						<TableCell>cell</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>,
+		)
+
+		expect(container.querySelector('table')?.className).not.toContain('hover:bg-zinc-950/5')
+	})
+
 	it('applies a custom className on TableBody', () => {
 		const { container } = renderUI(
 			<Table>

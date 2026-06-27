@@ -46,8 +46,11 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 					/>
 				</tr>
 			)}
-			{/* Header occupies row 1; data rows are offset by 2 for aria-rowindex. */}
-			{virtualItems.map((vr) => renderGridRow(props, rows[vr.index] as T, vr.index, vr.index + 2))}
+			{/* Header occupies row 1; data rows are offset by 2, plus any page offset
+			    (a paginated, virtualized window starts past prior pages). */}
+			{virtualItems.map((vr) =>
+				renderGridRow(props, rows[vr.index] as T, vr.index, props.rowIndexOffset + vr.index + 2),
+			)}
 			{bottomSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
 				<tr data-slot="grid-spacer" aria-hidden="true">

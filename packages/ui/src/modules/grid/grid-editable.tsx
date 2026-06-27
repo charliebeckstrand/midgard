@@ -15,6 +15,7 @@ import {
 import type { CellChange, GridEditableColumn } from './grid-editable-types'
 import { useGridEditableAugmentedColumns } from './use-grid-editable-augmented-columns'
 import { useGridEditableDraft } from './use-grid-editable-draft'
+import { useGridEditableHistory } from './use-grid-editable-history'
 import { useGridEditableMutations } from './use-grid-editable-mutations'
 import { useGridEditableNavigation } from './use-grid-editable-navigation'
 import { useGridEditableRows } from './use-grid-editable-rows'
@@ -69,10 +70,13 @@ export type GridEditableProps<T> = TableVariants & {
 
 /**
  * Spreadsheet-style editable grid layered over {@link Grid}. Adds inline
- * per-cell editing (text by default, or a column's `editor` slot), arrow/Tab
- * keyboard navigation with range selection, paste, and batch-apply that writes
- * one column value across every row in a multi-row selection. Each commit emits
- * a {@link CellChange} batch through `onValueChange`; sort, selection, and
+ * per-cell editing (text by default, or a column's `editor` slot — select, date,
+ * and boolean editors ship alongside text/number/currency), arrow/Tab keyboard
+ * navigation with range selection, paste, and batch-apply that writes one column
+ * value across every row in a multi-row selection. A column's `validate` rejects
+ * a bad commit (the editor stays open with the message); Ctrl/Cmd+Z and
+ * Ctrl/Cmd+Shift+Z (or Ctrl/Cmd+Y) undo and redo. Each commit emits a
+ * {@link CellChange} batch through `onValueChange`; sort, selection, and
  * virtualization forward to the underlying table.
  *
  * @remarks
@@ -99,6 +103,7 @@ export function GridEditable<T>({
 	bleed,
 	outline,
 	striped,
+	hover,
 	className,
 }: GridEditableProps<T>) {
 	const { selection, setSelection, selectionApi } = useGridEditableSelection(selectionConfig)
@@ -116,11 +121,20 @@ export function GridEditable<T>({
 		editableColCount: rowsApi.editableCols.length,
 	})
 
+	// Undo/redo wraps the commit sink: every write flows through `history.emit`,
+	// which records the inverse before forwarding to `onValueChange`.
+	const history = useGridEditableHistory<T>({
+		rowsRef: rowsApi.rowsRef,
+		editableCols: rowsApi.editableCols,
+		getKey,
+		onValueChange,
+	})
+
 	const mutations = useGridEditableMutations<T>({
 		nav,
 		rows: rowsApi,
 		selection: selectionApi,
-		onValueChange,
+		onValueChange: history.emit,
 	})
 
 	const draft = useGridEditableDraft<T>({ nav, mutations, rows: rowsApi, wrapperRef })
@@ -132,7 +146,9 @@ export function GridEditable<T>({
 			draft,
 			rows: rowsApi,
 			wrapperRef,
-			onValueChange,
+			onValueChange: history.emit,
+			undo: history.undo,
+			redo: history.redo,
 		})
 
 	const augmentedColumns = useGridEditableAugmentedColumns<T>({
@@ -162,11 +178,12 @@ export function GridEditable<T>({
 	const editValue = useMemo<GridEditableEditValue>(
 		() => ({
 			draft: draft.draft,
+			error: draft.error,
 			setDraft: draft.setDraft,
 			commitEdit: draft.commitEdit,
 			cancelEdit: draft.cancelEdit,
 		}),
-		[draft.draft, draft.setDraft, draft.commitEdit, draft.cancelEdit],
+		[draft.draft, draft.error, draft.setDraft, draft.commitEdit, draft.cancelEdit],
 	)
 
 	return (
@@ -198,6 +215,7 @@ export function GridEditable<T>({
 					bleed={bleed}
 					outline={outline}
 					striped={striped}
+					hover={hover}
 					className={cn('outline-0', className)}
 					tableProps={{
 						ref: wrapperRef,

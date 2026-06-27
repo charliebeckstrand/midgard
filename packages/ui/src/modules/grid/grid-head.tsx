@@ -29,8 +29,18 @@ type GridHeadProps<T> = {
 	hasRows: boolean
 	/** Whether there is *source* data; gates the sort/resize/filter affordances. */
 	interactive: boolean
-	/** When the body is virtualized, the header is row 1 of the full aria-rowcount set. */
-	virtualized?: boolean
+	/**
+	 * Accessible name for the select-all checkbox. Under pagination it toggles
+	 * only the current page, so {@link Grid} narrows the label to say so.
+	 * @defaultValue 'Select all rows'
+	 */
+	selectAllLabel?: string
+	/**
+	 * When the rendered body is a window onto a larger set (virtualization or
+	 * pagination), the header is row 1 of the full `aria-rowcount` set and each
+	 * cell carries an `aria-colindex`.
+	 */
+	gridSemantics?: boolean
 	/**
 	 * Renders each visible non-pinned data column with a drag handle and
 	 * registers it as a sortable item. The enclosing {@link Grid} owns the
@@ -62,7 +72,8 @@ export function GridHead<T>({
 	columns,
 	hasRows,
 	interactive,
-	virtualized,
+	selectAllLabel = 'Select all rows',
+	gridSemantics,
 	reorderable = false,
 	resize,
 	filters,
@@ -70,15 +81,16 @@ export function GridHead<T>({
 }: GridHeadProps<T>) {
 	return (
 		<TableHead>
-			<TableRow aria-rowindex={virtualized ? 1 : undefined}>
+			<TableRow aria-rowindex={gridSemantics ? 1 : undefined}>
 				{columns.map((col, colIdx) => (
 					<GridHeaderCell
 						key={col.id}
 						column={col}
-						// Header column indices accompany the virtualized row-index scheme.
-						colIndex={virtualized ? colIdx + 1 : undefined}
+						// Header column indices accompany the global row-index scheme.
+						colIndex={gridSemantics ? colIdx + 1 : undefined}
 						hasRows={hasRows}
 						interactive={interactive}
+						selectAllLabel={selectAllLabel}
 						reorderable={reorderable}
 						resize={resize ?? null}
 						filters={filters ?? null}
@@ -98,6 +110,8 @@ type GridHeaderCellProps<T> = {
 	hasRows: boolean
 	/** Source-data flag gating the sort/resize/filter affordances. */
 	interactive: boolean
+	/** Accessible name for the select-all checkbox. */
+	selectAllLabel: string
 	reorderable: boolean
 	resize: GridColumnResize | null
 	filters: GridColumnFilter | null
@@ -139,6 +153,7 @@ function GridHeaderCell<T>({
 	colIndex,
 	hasRows,
 	interactive,
+	selectAllLabel,
 	reorderable,
 	resize,
 	filters,
@@ -166,7 +181,7 @@ function GridHeaderCell<T>({
 						checked={allSelected}
 						indeterminate={someSelected && !allSelected}
 						onChange={toggleAll}
-						aria-label="Select all rows"
+						aria-label={selectAllLabel}
 					/>
 				)}
 			</TableHeader>
