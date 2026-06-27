@@ -1,33 +1,11 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { GridSelection } from '../../modules/grid'
-import {
-	useGridSelectionActions,
-	useGridSelectionState,
-} from '../../modules/grid/use-grid-selection'
+import { useGridSelection } from '../../modules/grid/use-grid-selection'
 
-/**
- * Selection state and actions are split so the state can sit above the engine;
- * Grid composes them in that order. These tests drive the same composition.
- */
-function useSelection({
-	selectionConfig,
-	rowKeys,
-}: {
-	selectionConfig: GridSelection | undefined
-	rowKeys: (string | number)[]
-}) {
-	const state = useGridSelectionState(selectionConfig)
-
-	const actions = useGridSelectionActions({ ...state, rowKeys })
-
-	return { ...state, ...actions }
-}
-
-describe('grid selection hooks', () => {
+describe('useGridSelection', () => {
 	it('starts with an empty selection by default', () => {
 		const { result } = renderHook(() =>
-			useSelection({ selectionConfig: undefined, rowKeys: ['a', 'b'] }),
+			useGridSelection({ selectionConfig: undefined, rowKeys: ['a', 'b'] }),
 		)
 
 		expect(result.current.selection.size).toBe(0)
@@ -39,7 +17,7 @@ describe('grid selection hooks', () => {
 
 	it('seeds with the configured defaultValue', () => {
 		const { result } = renderHook(() =>
-			useSelection({
+			useGridSelection({
 				selectionConfig: { defaultValue: new Set(['a']) },
 				rowKeys: ['a', 'b'],
 			}),
@@ -54,7 +32,7 @@ describe('grid selection hooks', () => {
 
 	it('reports allSelected when every row key is present', () => {
 		const { result } = renderHook(() =>
-			useSelection({
+			useGridSelection({
 				selectionConfig: { defaultValue: new Set(['a', 'b']) },
 				rowKeys: ['a', 'b'],
 			}),
@@ -67,7 +45,7 @@ describe('grid selection hooks', () => {
 
 	it('toggles a single row on and off via toggleRow', () => {
 		const { result } = renderHook(() =>
-			useSelection({ selectionConfig: undefined, rowKeys: ['a', 'b'] }),
+			useGridSelection({ selectionConfig: undefined, rowKeys: ['a', 'b'] }),
 		)
 
 		act(() => {
@@ -87,7 +65,7 @@ describe('grid selection hooks', () => {
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() =>
-			useSelection({
+			useGridSelection({
 				selectionConfig: { onValueChange },
 				rowKeys: ['a', 'b', 'c'],
 			}),
@@ -106,7 +84,7 @@ describe('grid selection hooks', () => {
 
 	it('clears the selection when toggleAll is called with everything selected', () => {
 		const { result } = renderHook(() =>
-			useSelection({
+			useGridSelection({
 				selectionConfig: { defaultValue: new Set(['a', 'b']) },
 				rowKeys: ['a', 'b'],
 			}),
@@ -123,7 +101,7 @@ describe('grid selection hooks', () => {
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() =>
-			useSelection({
+			useGridSelection({
 				selectionConfig: { onValueChange },
 				rowKeys: ['a'],
 			}),
