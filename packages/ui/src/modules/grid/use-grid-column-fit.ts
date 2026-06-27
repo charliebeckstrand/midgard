@@ -1,7 +1,7 @@
 'use client'
 
 import type { ColumnSizingState, Table } from '@tanstack/react-table'
-import { type RefObject, useCallback, useEffect, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import { COLUMN_RESIZE_HANDLE_OVERHANG, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
 import type { GridColumn } from './types'
@@ -52,10 +52,12 @@ function fitSizes<T>(table: Table<T>, columns: GridColumn<T>[], width: number): 
 /**
  * Auto-sizes resizable columns to fill the container width, holding back a
  * {@link COLUMN_RESIZE_HANDLE_OVERHANG} gutter so the trailing column's resize
- * handle stays clear of the scroll edge. Fits on mount and on container resize
- * (via `ResizeObserver`) until the user manually resizes a column, then leaves
- * their widths alone. Returns `sizeToFit`, which re-fits on demand and re-arms
- * the automatic behavior (the "Auto-size columns" action).
+ * handle stays clear of the scroll edge. Fits on mount — synchronously, before
+ * the browser paints, so the default colgroup never flashes before snapping to
+ * fit — and on container resize (via `ResizeObserver`) until the user manually
+ * resizes a column, then leaves their widths alone. Returns `sizeToFit`, which
+ * re-fits on demand and re-arms the automatic behavior (the "Auto-size columns"
+ * action).
  *
  * @internal
  */
@@ -92,10 +94,18 @@ export function useGridColumnFit<T>({
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
 	}, [table, columns, containerRef])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const element = containerRef?.current
 
 		if (!enabled || !element || typeof ResizeObserver === 'undefined') return
+
+		// Fit synchronously, before the browser paints. The colgroup renders at the
+		// columns' default widths until the first fit lands, so leaning on the
+		// observer's initial callback alone — delivered asynchronously, after paint —
+		// flashes that default layout before it snaps to fit. A layout-effect fit
+		// lands in the first paint instead. (The observe() below re-fits identically
+		// on its initial delivery; same widths, so no visible second paint.)
+		if (!manualRef.current) applyFit()
 
 		const observer = new ResizeObserver(() => {
 			if (!manualRef.current) applyFit()
