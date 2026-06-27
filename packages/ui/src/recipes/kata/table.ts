@@ -11,8 +11,7 @@ import { iro, sen } from '../kiso'
 const { text } = iro
 const { border } = sen
 
-// Density scales the padding only; cell text size never changes.
-const cellDensity = {
+const density = {
 	sm: 'px-1 py-1',
 	md: 'px-2 py-2',
 	lg: 'px-3 py-3',
@@ -25,14 +24,14 @@ const outline = {
 
 const cell = defineRecipe({
 	base: [text.default],
-	density: cellDensity,
+	density,
 	outline,
 	defaults: { density: 'md', outline: false },
 })
 
 const header = defineRecipe({
 	base: ['font-bold', text.muted],
-	density: cellDensity,
+	density,
 	outline,
 	defaults: { density: 'md', outline: false },
 })

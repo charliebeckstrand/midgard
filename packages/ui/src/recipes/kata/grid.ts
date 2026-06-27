@@ -163,19 +163,18 @@ export const k = {
 		// land with a pointer (toward WCAG 2.5.8) — while the inner grip stays a thin
 		// line on the boundary.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 w-4 h-[var(--grid-resize-height,100%)] translate-x-1/2',
+			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)] translate-x-1/2',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Full-height grip line, hidden until the column edge or its header is
+		// Full-height grip line, hidden until the column edge is
 		// hovered, and shown on keyboard focus or active drag: tints on hover, turns
 		// accent on focus or drag. Focus shows as a colour change, not an outset
 		// ring, so the scroll container can't clip it.
 		grip: [
-			'h-full w-0.5',
-			rounded.full,
+			'h-full w-1',
 			'opacity-0 transition-opacity',
-			'group-hover/grid-col:opacity-100 group-hover/grid-resize:opacity-100',
+			'group-hover/grid-resize:opacity-100',
 			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
