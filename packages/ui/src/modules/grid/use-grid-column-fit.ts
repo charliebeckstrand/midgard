@@ -3,7 +3,7 @@
 import type { ColumnSizingState, Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
-import { DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
+import { COLUMN_RESIZE_HANDLE_OVERHANG, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnFit}. @internal */
@@ -50,10 +50,12 @@ function fitSizes<T>(table: Table<T>, columns: GridColumn<T>[], width: number): 
 }
 
 /**
- * Auto-sizes resizable columns to fill the container width. Fits on mount and on
- * container resize (via `ResizeObserver`) until the user manually resizes a
- * column, then leaves their widths alone. Returns `sizeToFit`, which re-fits on
- * demand and re-arms the automatic behavior (the "Auto-size columns" action).
+ * Auto-sizes resizable columns to fill the container width, holding back a
+ * {@link COLUMN_RESIZE_HANDLE_OVERHANG} gutter so the trailing column's resize
+ * handle stays clear of the scroll edge. Fits on mount and on container resize
+ * (via `ResizeObserver`) until the user manually resizes a column, then leaves
+ * their widths alone. Returns `sizeToFit`, which re-fits on demand and re-arms
+ * the automatic behavior (the "Auto-size columns" action).
  *
  * @internal
  */
@@ -80,7 +82,12 @@ export function useGridColumnFit<T>({
 
 		if (!width) return
 
-		const sizing = fitSizes(table, columns, width)
+		// Hold back the trailing column's resize handle from the scroll edge: it
+		// overhangs the last column's boundary by half its width, so fitting the
+		// full width would clip it. Fit to the width less that overhang to keep the
+		// handle in view — when the columns can shrink to it; past their minimums
+		// they overflow and the handle is reached by scrolling instead.
+		const sizing = fitSizes(table, columns, Math.max(0, width - COLUMN_RESIZE_HANDLE_OVERHANG))
 
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
 	}, [table, columns, containerRef])
