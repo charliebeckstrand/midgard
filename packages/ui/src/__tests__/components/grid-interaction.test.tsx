@@ -67,6 +67,29 @@ describe('Grid row click', () => {
 
 		expect(screen.getByText('Alice').closest('tr')).not.toHaveAttribute('tabindex')
 	})
+
+	it('washes a clickable grid with the shared Table hover variant and a pointer cursor', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} onRowClick={vi.fn()} />,
+		)
+
+		// The hover wash rides the table element via the `<Table hover>` projection
+		// rather than a per-row tint.
+		expect(container.querySelector('table')?.className).toContain(
+			'[&>tbody>tr]:hover:bg-zinc-950/5',
+		)
+
+		// The row keeps its own pointer cursor to read as actionable.
+		expect(screen.getByText('Alice').closest('tr')?.className).toContain('cursor-pointer')
+	})
+
+	it('leaves the hover wash and pointer cursor off a grid with neither onRowClick nor hover', () => {
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(container.querySelector('table')?.className).not.toContain('hover:bg-zinc-950/5')
+
+		expect(screen.getByText('Alice').closest('tr')?.className).not.toContain('cursor-pointer')
+	})
 })
 
 describe('Grid error state', () => {

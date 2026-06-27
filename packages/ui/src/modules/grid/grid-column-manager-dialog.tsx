@@ -26,7 +26,7 @@ type GridColumnManagerDialogProps = {
 
 /**
  * Controlled {@link Dialog} hosting the {@link GridColumnManager}, opened by its
- * own toolbar button when `enabled` and/or by the grid's "Choose Columns"
+ * own toolbar button when `enabled` and/or by the grid's "Manage columns"
  * context-menu item. {@link Grid} renders it when a column manager is configured
  * or reachable from a menu.
  *

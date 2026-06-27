@@ -225,9 +225,10 @@ const employees: Employee[] = [
 
 // `pinned` freezes a column against horizontal scroll: `'left'` (or `true`) pulls
 // it to the left edge, `'right'` to the right; the rest scroll between them. A
-// pinned column is locked — it can't be reordered or hidden. Stacking columns on
-// a side needs known widths, so this grid is `resizable` (fixed layout) and its
-// sticky header rides the same scroll container as the frozen columns.
+// pinned column is locked — it can't be reordered or hidden, and its header shows
+// a pin button that unpins it. Stacking columns on a side needs known widths, so
+// this grid is `resizable` (fixed layout) and its sticky header rides the same
+// scroll container as the frozen columns.
 const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', pinned: 'left' },
 	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '200px' },
@@ -356,8 +357,8 @@ const SmartSortExample = () => (
 
 const ContextMenuExample = () => (
 	// Context menus are on by default. Right-click a header for sort controls,
-	// "Clear sort" (once the column is sorted), pin controls (Pin Left / Pin Right
-	// / Unpin), and "Choose Columns" (which opens the manager without a toolbar
+	// "Clear sort" (once the column is sorted), pin controls (Pin left / Pin right
+	// / Unpin), and "Manage columns" (which opens the manager without a toolbar
 	// button); right-click a body cell for "Copy". Hold Ctrl while right-clicking
 	// for the browser's standard menu. Pass `contextMenu={false}` to disable, or a
 	// builder to reshape the items.
@@ -665,6 +666,10 @@ export function Demo() {
 
 			<Example title="Striped">
 				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
+			</Example>
+
+			<Example title="Hover">
+				<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
 			</Example>
 
 			<Example title="Outline">

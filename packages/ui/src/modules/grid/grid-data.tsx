@@ -6,7 +6,7 @@ import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useS
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
@@ -38,6 +38,7 @@ import {
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridResizeHeight } from './use-grid-resize-height'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
 
@@ -397,11 +398,27 @@ function GridBusyStatus({ loading }: { loading: boolean }) {
 }
 
 /**
+ * Whether the grid paints the shared {@link Table} `hover` wash: when the
+ * consumer opts in with `hover`, or implicitly for a clickable grid
+ * (`onRowClick`), whose rows then read as actionable. Pulled out of
+ * {@link GridData} so the `||` stays off its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveHover<T>(
+	hover: boolean | undefined,
+	onRowClick: GridRowClick<T> | undefined,
+): boolean {
+	return hover === true || onRowClick != null
+}
+
+/**
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
- * the `table-fixed` + trailing-padding class, and the total table width — so a
- * resize touches only its own column. Inert (no colgroup, no width) when the
- * grid is not resizable. Split out of {@link GridData} for its
- * cognitive-complexity budget.
+ * the `table-fixed` + trailing-padding class, the total table width — so a resize
+ * touches only its own column — and `resizing`, whether a pointer drag-resize is
+ * in flight (the wrapper flags it so other columns' grips stand down). Inert (no
+ * colgroup, no width, not resizing) when the grid is not resizable. Split out of
+ * {@link GridData} for its cognitive-complexity budget.
  *
  * @internal
  */
@@ -411,11 +428,21 @@ function resolveResizeLayout<T>(args: {
 	columns: GridColumn<T>[]
 	density: DensityLevel | undefined
 	className: string | undefined
-}): { colGroup: ReactNode; tableClassName: string; tableWidth: number | undefined } {
+}): {
+	colGroup: ReactNode
+	tableClassName: string
+	tableWidth: number | undefined
+	resizing: boolean
+} {
 	const { resize } = args
 
 	if (!args.resizable || !resize) {
-		return { colGroup: null, tableClassName: cn(args.className), tableWidth: undefined }
+		return {
+			colGroup: null,
+			tableClassName: cn(args.className),
+			tableWidth: undefined,
+			resizing: false,
+		}
 	}
 
 	return {
@@ -428,6 +455,7 @@ function resolveResizeLayout<T>(args: {
 		),
 		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
+		resizing: resize.isResizingAny(),
 	}
 }
 
@@ -460,7 +488,7 @@ function useGridMenuActions<T>({
 	const menu = hasData ? configured : undefined
 
 	// The dialog renders when the manager is enabled, or when a column menu can
-	// reach it ("Choose Columns").
+	// reach it ("Manage columns").
 	const showColumnManager = manageColumns || Boolean(menu?.column)
 
 	const [open, setOpen] = useControllable<boolean>({
@@ -514,7 +542,7 @@ export function GridData<T>({
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
 	pagination: paginationConfig,
-	resizable = false,
+	resizable = true,
 	columnSizing: columnSizingConfig,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
@@ -538,6 +566,7 @@ export function GridData<T>({
 	bleed,
 	outline,
 	striped,
+	hover,
 	className,
 }: GridDataProps<T>) {
 	if (virtualize && !maxHeight) {
@@ -654,6 +683,10 @@ export function GridData<T>({
 			containerRef: wrapperRef,
 		})
 
+	// Publish the table height so each column's resize handle spans the full
+	// column (header through the last row), not just its header cell.
+	useGridResizeHeight(wrapperRef, resizable)
+
 	const rowKeys = useMemo<(string | number)[]>(
 		() => renderRows.map((row, i) => getKey(row, i)),
 		[renderRows, getKey],
@@ -724,9 +757,20 @@ export function GridData<T>({
 			someSelected,
 			sort,
 			toggleSort,
+			pinColumn,
 			stickyHeader,
 		}),
-		[selection, toggleRow, toggleAll, allSelected, someSelected, sort, toggleSort, stickyHeader],
+		[
+			selection,
+			toggleRow,
+			toggleAll,
+			allSelected,
+			someSelected,
+			sort,
+			toggleSort,
+			pinColumn,
+			stickyHeader,
+		],
 	)
 
 	// Lift the column-manager dialog's open state, resolve the (default-on)
@@ -774,10 +818,16 @@ export function GridData<T>({
 		selectAllLabel,
 	} = resolveGridSemantics(virtualizeEnabled, pagination)
 
+	// A clickable grid reads as actionable through the shared `<Table hover>`
+	// wash, layered over any explicit `hover`; the row keeps its own pointer
+	// cursor (see `GridRow`).
+	const rowHover = resolveHover(hover, onRowClick)
+
 	const reorderActive = canReorder && hasData
 
-	// Fixed-layout column widths so a resize touches only its own column.
-	const { colGroup, tableClassName, tableWidth } = resolveResizeLayout({
+	// Fixed-layout column widths so a resize touches only its own column;
+	// `resizing` flags an in-flight drag so other columns' grips stand down.
+	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
 		columns: visibleColumns,
@@ -794,6 +844,7 @@ export function GridData<T>({
 				bleed={bleed}
 				outline={outline}
 				striped={striped}
+				hover={rowHover}
 				className={tableClassName}
 				tableProps={resolveTableProps({
 					tableProps,
@@ -860,7 +911,15 @@ export function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div ref={wrapperRef} data-slot="grid" className={cn(k.wrapper)}>
+			<div
+				ref={wrapperRef}
+				data-slot="grid"
+				// Flags an in-flight column drag-resize so the headers stand down their
+				// hover grips (only the active column stays lit) and the grid paints the
+				// resize cursor; see `k.resize.host` and `k.wrapper`.
+				data-resizing={dataAttr(resizing)}
+				className={cn(k.wrapper)}
+			>
 				<GridBusyStatus loading={loading} />
 
 				{showColumnManager && (

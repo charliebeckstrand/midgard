@@ -153,11 +153,17 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 			<div className={cn(k.footer.meta)}>
 				<div className={cn(k.footer.start)}>
+					{showJump && (
+						<GridJumpToPage
+							pageNumber={pageNumber}
+							pageCount={pageCount}
+							setPageIndex={setPageIndex}
+						/>
+					)}
+
 					{showPicker && (
 						<>
-							<span aria-hidden="true" className="sr-only">
-								Rows per page
-							</span>
+							<span aria-hidden="true">Rows per page</span>
 
 							<Select<number>
 								aria-label="Rows per page"
@@ -173,14 +179,6 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 								))}
 							</Select>
 						</>
-					)}
-
-					{showJump && (
-						<GridJumpToPage
-							pageNumber={pageNumber}
-							pageCount={pageCount}
-							setPageIndex={setPageIndex}
-						/>
 					)}
 				</div>
 			</div>

@@ -22,6 +22,8 @@ export type GridColumnResize = {
 	canResize: (id: string | number) => boolean
 	/** Whether the column is mid drag-resize. */
 	isResizing: (id: string | number) => boolean
+	/** Whether any column is mid drag-resize — a pointer drag is in flight. */
+	isResizingAny: () => boolean
 	/** Pointer handler (mouse + touch) that begins a drag-resize. */
 	getResizeHandler: (id: string | number) => ((event: unknown) => void) | undefined
 	/** Resize bounds for the column, for the separator's `aria-valuemin`/`max`. */
@@ -208,6 +210,7 @@ export function buildColumnResize<T>(table: Table<T>): Omit<GridColumnResize, 's
 		totalSize: () => table.getTotalSize(),
 		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
 		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
+		isResizingAny: () => Boolean(table.getState().columnSizingInfo.isResizingColumn),
 		getResizeHandler: (id) =>
 			table
 				.getFlatHeaders()

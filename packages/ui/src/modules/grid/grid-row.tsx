@@ -236,6 +236,9 @@ function GridRowImpl<T>({
 						}
 					: undefined
 			}
+			// A clickable row carries the pointer cursor and a keyboard focus ring (see
+			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
+			// that `GridData` enables for a row-click handler.
 			className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
 		>
 			{cells.map((cell, colIdx) => {

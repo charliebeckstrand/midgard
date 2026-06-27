@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { type DensityLevel, densityToSize } from '../../providers/density/context'
 import { k } from '../../recipes/kata/table'
 
-/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, and zebra `striped` rows. */
+/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. Explicit: the table projects the
@@ -23,6 +23,14 @@ export type TableVariants = {
 	 * @defaultValue false
 	 */
 	striped?: boolean | 'odd' | 'even'
+	/**
+	 * Wash the body row under the pointer with the standard hover tint,
+	 * projected from the `<table>` onto its `tbody` rows. An interactive
+	 * variant, so it out-cascades the {@link TableVariants.striped} shade on the
+	 * hovered row. Header rows are untouched.
+	 * @defaultValue false
+	 */
+	hover?: boolean
 }
 
 /** Attributes spread onto the underlying `<table>` element, including a `ref` and arbitrary `data-*` keys. */
@@ -45,9 +53,9 @@ export type TableProps = TableVariants & {
 
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
- * The table owns `density`, `outline`, and `striped` and projects them onto
- * descendant rows and cells, so TableBody, TableCell, and TableHeader read
- * no context.
+ * The table owns `density`, `outline`, `striped`, and `hover` and projects
+ * them onto descendant rows and cells, so TableBody, TableCell, and
+ * TableHeader read no context.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
@@ -61,6 +69,7 @@ export function Table({
 	bleed,
 	outline,
 	striped,
+	hover,
 	density,
 	className,
 	children,
@@ -82,6 +91,7 @@ export function Table({
 					k.projection.density[step],
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
+					hover && k.projection.hover,
 					className,
 					tableProps?.className,
 				)}

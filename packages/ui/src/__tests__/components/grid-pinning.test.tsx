@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * Column pinning chrome in jsdom: the sticky classes and the inline offset styles
@@ -159,5 +159,42 @@ describe('Grid column pinning', () => {
 		expect(head?.style.left).toBe('')
 
 		expect(head?.style.right).toBe('')
+	})
+
+	it('gives a pinned column header an unpin button and leaves scrolling headers without one', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, pinned: 'right' },
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Each frozen header carries a pin button that unpins its own column.
+		expect(screen.getByRole('button', { name: 'Unpin Name' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Unpin Status' })).toBeInTheDocument()
+
+		// The scrolling column's header carries none.
+		expect(screen.queryByRole('button', { name: 'Unpin Email' })).not.toBeInTheDocument()
+	})
+
+	it('releases a column when its header pin button is clicked', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headCell(container, 'name')?.className).toContain('sticky')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Unpin Name' }))
+
+		const head = headCell(container, 'name')
+
+		expect(head?.className).not.toContain('sticky')
+
+		expect(head?.style.left).toBe('')
 	})
 })

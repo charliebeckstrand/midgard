@@ -24,6 +24,11 @@ export type GridContextValue = {
 	 * alone, cycling ascending → descending → unsorted.
 	 */
 	toggleSort: (column: string | number, additive: boolean) => void
+	/**
+	 * Pins a column to an edge, or unpins it with `false`. Backs the header's pin
+	 * button (which unpins) and shares the mutation with the column context menu.
+	 */
+	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 	stickyHeader: boolean
 }
 
