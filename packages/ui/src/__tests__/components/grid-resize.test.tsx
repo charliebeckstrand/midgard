@@ -210,4 +210,14 @@ describe('Grid resizable columns', () => {
 
 		expect(handle).not.toHaveAttribute('data-resizing')
 	})
+
+	it('does not start a resize on a macOS Ctrl+click (button 0 + ctrlKey)', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.mouseDown(handle, { button: 0, ctrlKey: true, clientX: 200 })
+
+		expect(handle).not.toHaveAttribute('data-resizing')
+	})
 })

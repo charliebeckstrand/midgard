@@ -427,13 +427,14 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 			data-resizing={dataAttr(resizing)}
 			className={cn(k.resize.handle)}
 			onMouseDown={(event) => {
-				// Only a primary-button press starts a drag-resize. A right- or
-				// middle-click would otherwise begin one through the engine's
-				// mouse handler — which never ends, because the context menu the
-				// same press opens swallows the `mouseup` — leaving the column
-				// stuck resizing to the pointer. Non-primary presses fall through
-				// so the header's context menu still opens.
-				if (event.button !== 0) return
+				// Only a plain primary press starts a drag-resize. Any context-menu
+				// gesture — a right- or middle-click, or a Ctrl-click (the macOS
+				// secondary click) — would otherwise begin one through the engine's
+				// mouse handler, which never ends because the context menu the same
+				// press opens swallows the `mouseup`, leaving the column stuck
+				// resizing to the pointer. These presses fall through untouched so
+				// the header's context menu still opens.
+				if (event.button !== 0 || event.ctrlKey) return
 
 				event.stopPropagation()
 

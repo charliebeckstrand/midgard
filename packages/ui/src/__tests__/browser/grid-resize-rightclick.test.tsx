@@ -57,30 +57,37 @@ describe('grid resize handle — right-click (real browser)', () => {
 		)
 	}
 
-	it('does not resize on a right-button drag whose mouseup the menu swallows', async () => {
-		const { container, separator, nameHeader } = setup()
+	// Both context-menu gestures: a plain right-click, and the macOS Ctrl+click
+	// (button 0 + ctrlKey) that would slip past a button-only guard.
+	for (const { name, init } of [
+		{ name: 'right-button', init: { button: 2 } as const },
+		{ name: 'Ctrl+click', init: { button: 0, ctrlKey: true } as const },
+	]) {
+		it(`does not resize on a ${name} drag whose mouseup the menu swallows`, async () => {
+			const { container, separator, nameHeader } = setup()
 
-		await settled(container, separator)
+			await settled(container, separator)
 
-		const startWidth = nameHeader.getBoundingClientRect().width
+			const startWidth = nameHeader.getBoundingClientRect().width
 
-		const rect = separator.getBoundingClientRect()
-		const startX = rect.left + rect.width / 2
-		const y = rect.bottom - 16
+			const rect = separator.getBoundingClientRect()
+			const startX = rect.left + rect.width / 2
+			const y = rect.bottom - 16
 
-		// Right-press, then move — and never release, the way an opening context
-		// menu strands the gesture.
-		fireEvent.mouseDown(separator, { button: 2, clientX: startX, clientY: y })
-		fireEvent.mouseMove(document, { button: 2, clientX: startX + 80, clientY: y })
+			// Press, then move — and never release, the way an opening context menu
+			// strands the gesture.
+			fireEvent.mouseDown(separator, { ...init, clientX: startX, clientY: y })
+			fireEvent.mouseMove(document, { ...init, clientX: startX + 80, clientY: y })
 
-		// No resize engaged: nothing is mid-resize and the width held.
-		expect(container.querySelector('[data-resizing]')).toBeNull()
+			// No resize engaged: nothing is mid-resize and the width held.
+			expect(container.querySelector('[data-resizing]')).toBeNull()
 
-		// A further move (pointer still travelling) must not drag the column either.
-		fireEvent.mouseMove(document, { clientX: startX + 160, clientY: y })
+			// A further move (pointer still travelling) must not drag the column either.
+			fireEvent.mouseMove(document, { clientX: startX + 160, clientY: y })
 
-		expect(nameHeader.getBoundingClientRect().width).toBeCloseTo(startWidth, 0)
-	})
+			expect(nameHeader.getBoundingClientRect().width).toBeCloseTo(startWidth, 0)
+		})
+	}
 
 	it('still resizes on a primary-button drag', async () => {
 		const { container, separator, nameHeader } = setup()
