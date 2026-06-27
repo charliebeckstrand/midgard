@@ -106,6 +106,38 @@ function isHeaderNonPrimaryClick(event: MouseEvent<HTMLTableElement>): boolean {
 	)
 }
 
+/**
+ * Resolves where a focus landing directly on the grid `<table>` should seat the
+ * cursor, or `null` when it should not seat at all. Returns `null` for focus
+ * that bubbled from a focusable descendant, returned from a floating overlay (a
+ * dismissed menu or dropdown, whose portal sits outside the table), or arrived
+ * at an empty grid. Otherwise the cursor seeds the first cell, or the last when
+ * focus entered backwards — Shift+Tab from a real element after the grid
+ * (`DOCUMENT_POSITION_FOLLOWING`).
+ *
+ * @internal
+ */
+function focusSeedTarget(
+	event: FocusEvent<HTMLTableElement>,
+	wrapper: HTMLTableElement,
+	rowCount: number,
+	colCount: number,
+): GridActiveCell | null {
+	const rel = event.relatedTarget
+
+	if (rel instanceof Node && wrapper.contains(rel)) return null
+
+	if (rel instanceof Element && rel.closest('[data-floating-ui-portal]')) return null
+
+	if (rowCount === 0 || colCount === 0) return null
+
+	const cameFromAfter =
+		rel instanceof Node &&
+		!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+	return cameFromAfter ? { row: rowCount - 1, col: colCount - 1 } : { row: 0, col: 0 }
+}
+
 /** True when `target` is a selection checkbox inside the grid wrapper. @internal */
 function isGridCheckbox(
 	target: EventTarget | null,
@@ -561,21 +593,9 @@ export function useGridEditableWrapper<T>({
 
 			if (activeRef.current) return
 
-			const rel = event.relatedTarget
+			const target = focusSeedTarget(event, wrapper, rowsRef.current.length, editableCols.length)
 
-			if (rel instanceof Node && wrapper.contains(rel)) return
-
-			if (rowsRef.current.length === 0 || editableCols.length === 0) return
-
-			const cameFromAfter =
-				rel instanceof Node &&
-				!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
-
-			moveActiveTo(
-				cameFromAfter
-					? { row: rowsRef.current.length - 1, col: editableCols.length - 1 }
-					: { row: 0, col: 0 },
-			)
+			if (target) moveActiveTo(target)
 		},
 		[wrapperRef, activeRef, rowsRef, editableCols, moveActiveTo],
 	)

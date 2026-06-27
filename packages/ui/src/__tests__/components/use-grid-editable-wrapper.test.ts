@@ -577,6 +577,49 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 		result.current.onWrapperFocus(makeFocusEvent(wrapper, before))
 	})
 
+	it('onWrapperFocus seeds the last cell when focus enters from a real element after the grid', () => {
+		const wrapper = document.createElement('table')
+
+		document.body.appendChild(wrapper)
+
+		// A focusable element after the table in the DOM — a Shift+Tab source.
+		const after = document.createElement('button')
+
+		document.body.appendChild(after)
+
+		const { api, moveActiveTo } = setup({ wrapper, active: null })
+
+		api.onWrapperFocus(makeFocusEvent(wrapper, after))
+
+		// setup has 2 rows and 2 editable columns, so the last cell is {1, 1}.
+		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: 1 })
+	})
+
+	it('onWrapperFocus does not seat a cell when focus returns from a floating menu portal', () => {
+		const wrapper = document.createElement('table')
+
+		document.body.appendChild(wrapper)
+
+		// A menu item inside a floating-ui portal positioned after the table — what a
+		// dismissed context menu hands focus back from. The cameFromAfter heuristic
+		// would otherwise seat the last cell behind the menu.
+		const portal = document.createElement('div')
+
+		portal.setAttribute('data-floating-ui-portal', '')
+
+		const menuItem = document.createElement('div')
+
+		portal.appendChild(menuItem)
+
+		document.body.appendChild(portal)
+
+		const { api, moveActiveTo } = setup({ wrapper, active: null })
+
+		api.onWrapperFocus(makeFocusEvent(wrapper, menuItem))
+
+		expect(moveActiveTo).not.toHaveBeenCalled()
+	})
+
 	it('onWrapperBlur clears active, anchor, and extras when focus leaves the wrapper', () => {
 		const wrapper = document.createElement('table')
 
