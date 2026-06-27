@@ -126,10 +126,10 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
- * "Clear sort" once it is the sorted column, the column's pin controls (Pin
- * left / Pin right / Unpin), an "Auto-size columns" action (when resizing is
- * on), then the table-wide tools — "Manage columns" (when a manager is
- * reachable) and "Export to CSV" (when export is on) — under a separator.
+ * "Clear sort" once it is the sorted column and the column's pin controls (Pin
+ * left / Pin right / Unpin), then the table-wide tools under a separator —
+ * "Auto-size columns" (when resizing is on), "Manage columns" (when a manager is
+ * reachable), and "Export to CSV" (when export is on).
  *
  * @internal
  */
@@ -176,17 +176,20 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	// Pin controls sit with the column's own actions, above the table-wide tools.
 	items.push(...pinMenuItems(column, pinColumn))
 
+	// Table-wide tools sit under a separator, set off from the clicked column's
+	// own sort and pin actions. "Auto-size columns" leads them: it re-fits every
+	// column, not just the one clicked, so it belongs with the grid-wide tools
+	// rather than the column's actions above.
+	const tools: GridMenuItem[] = []
+
 	if (autoSizeColumns) {
-		items.push({
+		tools.push({
 			key: 'auto-size',
 			label: 'Auto-size columns',
 			icon: <StretchHorizontal />,
 			onSelect: autoSizeColumns,
 		})
 	}
-
-	// Table-wide tools share a separator from the column's own sort/size actions.
-	const tools: GridMenuItem[] = []
 
 	if (chooseColumns) {
 		tools.push({
