@@ -22,6 +22,7 @@ import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
+import type { GridRowClick } from './grid-row'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -34,7 +35,7 @@ import type {
 import { useGridColumns } from './use-grid-columns'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { type GridColumnResize, useGridTable } from './use-grid-table'
+import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -256,6 +257,16 @@ export type GridDataProps<T> = TableVariants & {
 	rowClassName?: (row: T) => string | undefined
 
 	/**
+	 * Invoked when a row is clicked, with the row datum and the originating
+	 * event. A click that lands on interactive cell content — a button, link,
+	 * input, or the selection checkbox — is ignored, so per-row controls keep
+	 * working. A row with a handler is keyboard-focusable and activates on
+	 * Enter / Space; place primary actions in an interactive cell rather than
+	 * relying on the row click alone for the clearest screen-reader semantics.
+	 */
+	onRowClick?: GridRowClick<T>
+
+	/**
 	 * Human-readable name for a row; labels its selection checkbox
 	 * ("Select {label}"). Falls back to the raw row key.
 	 */
@@ -282,6 +293,15 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue A "No items" message.
 	 */
 	empty?: ReactNode
+
+	/**
+	 * Error state shown in place of the body — for a failed data fetch, where
+	 * there are no rows to render but the cause isn't "no items". Takes
+	 * precedence over `empty` and is hidden while `loading`. Pass a node (e.g. an
+	 * `Alert` with a retry control) to render it, or `true` for a default error
+	 * `Alert`. Omit (or `false`) to fall back to the `empty` slot.
+	 */
+	error?: ReactNode
 
 	/**
 	 * Enables row virtualization via `@tanstack/react-virtual`. Only rows in
@@ -538,7 +558,8 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 
 /**
  * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
- * while loading, and — under virtualization — `role="grid"` with the full
+ * while loading, and — when the rendered body is a window onto a larger set
+ * (`gridSemantics`: virtualization or pagination) — `role="grid"` with the full
  * row/column counts (per-cell indices come from head/row).
  *
  * @internal
@@ -546,7 +567,7 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 function resolveTableProps(args: {
 	tableProps: TableElementProps | undefined
 	loading: boolean
-	virtualized: boolean
+	gridSemantics: boolean
 	ariaRowCount: number
 	colCount: number
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
@@ -558,7 +579,7 @@ function resolveTableProps(args: {
 		...(args.tableWidth != null
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
-		...(args.virtualized
+		...(args.gridSemantics
 			? {
 					role: args.tableProps?.role ?? 'grid',
 					'aria-rowcount': args.ariaRowCount,
@@ -601,6 +622,54 @@ function resolveResizeLayout<T>(args: {
 		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 	}
+}
+
+/** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
+type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabel: string }
+
+/**
+ * Derives grid semantics from the rendered-window mode. The body is a window
+ * onto a larger set under virtualization (DOM windowing) or pagination (one page
+ * of many): both need `role="grid"`, `aria-rowcount`, and a page-/window-aware
+ * global row offset so assistive tech reports position in the full set. Under
+ * pagination the select-all checkbox toggles only the current page, so its label
+ * says so rather than overclaiming "all rows". A plain table conveys all this
+ * natively and stays a table.
+ *
+ * @internal
+ */
+function resolveGridSemantics(
+	virtualizeEnabled: boolean,
+	pagination: GridPaginationView | null,
+): GridSemantics {
+	return {
+		enabled: virtualizeEnabled || pagination != null,
+		rowOffset: pagination ? pagination.pageIndex * pagination.pageSize : 0,
+		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
+	}
+}
+
+/**
+ * Stabilizes an `onRowClick` callback so the memoized rows hold across renders:
+ * returns a referentially-stable handler (or `undefined` when no callback is
+ * set) that reads the live callback through a ref, so an inline consumer
+ * callback doesn't churn every row.
+ *
+ * @internal
+ */
+function useStableRowClick<T>(
+	onRowClick: GridRowClick<T> | undefined,
+): GridRowClick<T> | undefined {
+	const ref = useRef(onRowClick)
+
+	ref.current = onRowClick
+
+	const hasRowClick = onRowClick != null
+
+	return useMemo(
+		() => (hasRowClick ? (row: T, event) => ref.current?.(row, event) : undefined),
+		[hasRowClick],
+	)
 }
 
 /**
@@ -715,12 +784,14 @@ function GridData<T>({
 	reorder = false,
 	truncate = true,
 	rowClassName,
+	onRowClick,
 	rowLabel,
 	stickyHeader = false,
 	maxHeight,
 	loading = false,
 	rowLoading,
 	empty,
+	error,
 	virtualize,
 	tableProps,
 	density,
@@ -898,6 +969,18 @@ function GridData<T>({
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
 
+	// Grid semantics (role="grid" + global indices) and the select-all label,
+	// derived together from the rendered-window mode; see `resolveGridSemantics`.
+	const {
+		enabled: gridSemantics,
+		rowOffset: pageRowOffset,
+		selectAllLabel,
+	} = resolveGridSemantics(virtualizeEnabled, pagination)
+
+	// A stable click handler so the memoized rows don't churn when the consumer
+	// passes an inline `onRowClick`.
+	const handleRowClick = useStableRowClick(onRowClick)
+
 	const reorderActive = canReorder && hasData
 
 	// Fixed-layout column widths so a resize touches only its own column.
@@ -919,7 +1002,7 @@ function GridData<T>({
 			tableProps={resolveTableProps({
 				tableProps,
 				loading,
-				virtualized: virtualizeEnabled,
+				gridSemantics,
 				ariaRowCount,
 				colCount: visibleColumns.length,
 				tableWidth,
@@ -931,7 +1014,8 @@ function GridData<T>({
 				columns={visibleColumns}
 				hasRows={hasRows}
 				interactive={hasData}
-				virtualized={virtualizeEnabled}
+				selectAllLabel={selectAllLabel}
+				gridSemantics={gridSemantics}
 				reorderable={reorderActive}
 				resize={resize}
 				filters={filters}
@@ -946,8 +1030,12 @@ function GridData<T>({
 				visibleColumns={visibleColumns}
 				rowLoading={rowLoading}
 				rowClassName={rowClassName}
+				onRowClick={handleRowClick}
 				rowLabel={rowLabel}
 				empty={empty}
+				error={error}
+				gridSemantics={gridSemantics}
+				rowIndexOffset={pageRowOffset}
 				selection={selection}
 				toggleRow={toggleRow}
 				reorderable={reorderActive}

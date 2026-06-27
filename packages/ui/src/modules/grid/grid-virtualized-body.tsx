@@ -4,7 +4,7 @@ import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback } from 'react'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
-import { GridRow } from './grid-row'
+import { GridRow, type GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -20,6 +20,12 @@ type GridVirtualizedBodyProps<T> = {
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
 	rowLabel?: (row: T) => string
+	/** Stable per-row click handler; rows are inert when omitted. */
+	onRowClick?: GridRowClick<T>
+	/** When the rendered body is a window onto a larger set, rows carry global `aria-rowindex`. */
+	gridSemantics: boolean
+	/** Global row-index base added to each rendered row's index (the page offset under pagination, else 0). */
+	rowIndexOffset: number
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
@@ -51,6 +57,9 @@ export function GridVirtualizedBody<T>({
 	rowLoading,
 	rowClassName,
 	rowLabel,
+	onRowClick,
+	gridSemantics,
+	rowIndexOffset,
 	selection,
 	toggleRow,
 	reorderable,
@@ -93,14 +102,16 @@ export function GridVirtualizedBody<T>({
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
 						rowLabel={rowLabel?.(row)}
+						onRowClick={onRowClick}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						reorderable={reorderable}
 						truncate={truncate}
 						pinning={pinning}
 						dataRowIndex={vr.index}
-						// Header occupies row 1; data rows are offset by 2.
-						rowIndex={vr.index + 2}
+						// Header occupies row 1; data rows are offset by 2, plus any page
+						// offset (a paginated, virtualized window starts past prior pages).
+						rowIndex={gridSemantics ? rowIndexOffset + vr.index + 2 : undefined}
 					/>
 				)
 			})}

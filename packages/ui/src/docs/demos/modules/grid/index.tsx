@@ -1,5 +1,6 @@
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
@@ -436,6 +437,59 @@ const RowActionsExample = () => {
 	)
 }
 
+const RowClickExample = () => {
+	const [picked, setPicked] = useState<Person | null>(null)
+
+	// A click on interactive cell content (here the row-action buttons) is ignored,
+	// so the row click and per-row controls coexist. The row is also focusable and
+	// activates on Enter / Space.
+	return (
+		<>
+			{picked && <Badge color="blue">Selected {picked.name}</Badge>}
+			<Grid
+				columns={[
+					...columns,
+					{
+						id: 'actions',
+						actions: () => (
+							<Button variant="bare" color="blue">
+								<Icon icon={<PencilIcon />} />
+							</Button>
+						),
+					},
+				]}
+				rows={people}
+				getKey={(row) => row.id}
+				onRowClick={(row) => setPicked(row)}
+			/>
+		</>
+	)
+}
+
+const ErrorExample = () => {
+	const [failed, setFailed] = useState(true)
+
+	// `error` shows in place of the body — for a failed fetch — taking precedence
+	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
+	// control), or `error` (true) for a default alert.
+	return (
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			error={
+				failed ? (
+					<Alert severity="error" variant="soft" title="Couldn't load people" block>
+						<Button variant="soft" color="red" onClick={() => setFailed(false)}>
+							Retry
+						</Button>
+					</Alert>
+				) : undefined
+			}
+		/>
+	)
+}
+
 const ReorderExample = () => {
 	const [order, setOrder] = useState<(string | number)[]>(['name', 'email', 'role', 'status'])
 
@@ -596,6 +650,14 @@ export function Demo() {
 
 			<Example title="Row actions">
 				<RowActionsExample />
+			</Example>
+
+			<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+				<RowClickExample />
+			</Example>
+
+			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
+				<ErrorExample />
 			</Example>
 
 			<Example title="Striped">
