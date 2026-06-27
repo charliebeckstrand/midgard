@@ -6,7 +6,7 @@ import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useS
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { Toolbar } from '../../components/toolbar'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
@@ -347,10 +347,11 @@ function useStableRowClick<T>(
 
 /**
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
- * the `table-fixed` + trailing-padding class, and the total table width — so a
- * resize touches only its own column. Inert (no colgroup, no width) when the
- * grid is not resizable. Split out of {@link GridData} for its
- * cognitive-complexity budget.
+ * the `table-fixed` + trailing-padding class, the total table width — so a resize
+ * touches only its own column — and `resizing`, whether a pointer drag-resize is
+ * in flight (the wrapper flags it so other columns' grips stand down). Inert (no
+ * colgroup, no width, not resizing) when the grid is not resizable. Split out of
+ * {@link GridData} for its cognitive-complexity budget.
  *
  * @internal
  */
@@ -360,11 +361,21 @@ function resolveResizeLayout<T>(args: {
 	columns: GridColumn<T>[]
 	density: DensityLevel | undefined
 	className: string | undefined
-}): { colGroup: ReactNode; tableClassName: string; tableWidth: number | undefined } {
+}): {
+	colGroup: ReactNode
+	tableClassName: string
+	tableWidth: number | undefined
+	resizing: boolean
+} {
 	const { resize } = args
 
 	if (!args.resizable || !resize) {
-		return { colGroup: null, tableClassName: cn(args.className), tableWidth: undefined }
+		return {
+			colGroup: null,
+			tableClassName: cn(args.className),
+			tableWidth: undefined,
+			resizing: false,
+		}
 	}
 
 	return {
@@ -377,6 +388,7 @@ function resolveResizeLayout<T>(args: {
 		),
 		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
+		resizing: resize.isResizingAny(),
 	}
 }
 
@@ -676,8 +688,9 @@ export function GridData<T>({
 
 	const reorderActive = canReorder && hasData
 
-	// Fixed-layout column widths so a resize touches only its own column.
-	const { colGroup, tableClassName, tableWidth } = resolveResizeLayout({
+	// Fixed-layout column widths so a resize touches only its own column;
+	// `resizing` flags an in-flight drag so other columns' grips stand down.
+	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
 		columns: visibleColumns,
@@ -754,7 +767,15 @@ export function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div ref={wrapperRef} data-slot="grid" className={cn(k.wrapper)}>
+			<div
+				ref={wrapperRef}
+				data-slot="grid"
+				// Flags an in-flight column drag-resize so the headers stand down their
+				// hover grips (only the active column stays lit) and the grid paints the
+				// resize cursor; see `k.resize.host` and `k.wrapper`.
+				data-resizing={dataAttr(resizing)}
+				className={cn(k.wrapper)}
+			>
 				{showColumnManager && (
 					<GridColumnManagerDialog
 						enabled={manageColumns}

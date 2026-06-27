@@ -129,4 +129,53 @@ describe('grid column resizing (real browser)', () => {
 
 		expect(onValueChange).toHaveBeenCalled()
 	})
+
+	it('stands the other columns down while a drag-resize is in flight', async () => {
+		const { container, separator } = setup()
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() =>
+			expect(separator.getBoundingClientRect().height).toBeCloseTo(
+				table.getBoundingClientRect().height,
+				0,
+			),
+		)
+
+		const wrapper = container.querySelector('[data-slot="grid"]') as HTMLElement
+		const ageHeader = container.querySelector('th[data-grid-col="age"]') as HTMLElement
+		const ageHandle = container.querySelector(
+			'[role="separator"][aria-label="Resize Age"]',
+		) as HTMLElement
+		const nameGrip = separator.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const ageGrip = ageHandle.querySelector('span[aria-hidden="true"]') as HTMLElement
+
+		const rect = separator.getBoundingClientRect()
+		const startX = rect.left + rect.width / 2
+		const bodyY = rect.bottom - 16
+
+		// Hold the drag open — mousedown plus a move, but no mouseup yet.
+		fireEvent.mouseDown(separator, { clientX: startX, clientY: bodyY })
+		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: bodyY })
+
+		// The grid flags the in-flight resize and every resizable header drops its
+		// pointer events, so a pointer sweeping the full-height strips can't light
+		// another column's grip…
+		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(true))
+
+		expect(getComputedStyle(ageHeader).pointerEvents).toBe('none')
+
+		// …only the dragged column's grip stays visible (via its own data-resizing;
+		// waitFor lets its reveal transition settle).
+		await waitFor(() => expect(getComputedStyle(nameGrip).opacity).toBe('1'))
+
+		expect(getComputedStyle(ageGrip).opacity).toBe('0')
+
+		// Releasing the drag clears the flag and restores header interaction.
+		fireEvent.mouseUp(document, { clientX: startX + 40, clientY: bodyY })
+
+		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(false))
+
+		expect(getComputedStyle(ageHeader).pointerEvents).not.toBe('none')
+	})
 })

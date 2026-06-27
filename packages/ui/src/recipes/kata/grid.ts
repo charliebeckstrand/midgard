@@ -50,7 +50,10 @@ const resizePadding = defineRecipe({
 const pinnedSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 export const k = {
-	wrapper: ['relative', flex.col, 'gap-2'],
+	// Hosts the `group/grid` resize-state flag: while a column drag-resize is in
+	// flight the wrapper carries `data-resizing`, which descendants read to stand
+	// down their hover affordances and which paints the resize cursor grid-wide.
+	wrapper: ['group/grid', 'relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		head: ['sticky top-0 z-10', bg.surface],
@@ -136,11 +139,15 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
-		// Marks a resizable header as the grip's hover host: hovering anywhere on
-		// the header cell reveals its (otherwise hidden) grip. Pairs with the
-		// handle's own `group/grid-resize`, which reveals the grip when the pointer
-		// is on the full-height edge strip running down past the header.
-		host: 'group/grid-col',
+		// Marks a resizable header as the grip's hover host: hovering anywhere on the
+		// header cell reveals its (otherwise hidden) grip. Pairs with the handle's
+		// own `group/grid-resize`, which reveals the grip when the pointer is on the
+		// full-height edge strip running down past the header. While a drag-resize is
+		// in flight (the wrapper's `data-resizing`), every host drops its pointer
+		// events so the dragging pointer — sweeping across the full-height strips —
+		// can't flash other columns' grips; the active column's grip stays lit
+		// through its handle's own `data-resizing`, which this never gates.
+		host: ['group/grid-col', 'group-data-[resizing]/grid:pointer-events-none'],
 		// Anchors the absolutely-positioned handle (non-sticky headers only — a
 		// sticky header is already a positioned containing block).
 		cell: 'relative',
