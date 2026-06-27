@@ -726,3 +726,128 @@ describe('Grid', () => {
 		expect(rateCell.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
 	})
 })
+
+describe('Grid editable context menus', () => {
+	/** Right-clicks the first editable cell whose text contains `text`. */
+	const rightClickCell = (container: HTMLElement, text: string) => {
+		const cell = allBySlot(container, 'grid-editable-cell').find((el) =>
+			el.textContent?.includes(text),
+		)
+
+		if (!cell) throw new Error(`no editable cell containing "${text}"`)
+
+		fireEvent.contextMenu(cell)
+	}
+
+	/** Right-clicks the header of the column with `id`. */
+	const rightClickHeader = (container: HTMLElement, id: string) => {
+		const header = container.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`)
+
+		if (!header) throw new Error(`no header for column "${id}"`)
+
+		fireEvent.contextMenu(header)
+	}
+
+	it('opens a cell menu with Copy by default', () => {
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		rightClickCell(container, 'CA')
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	it('opens a column menu with the grid-wide tools by default, omitting sort items', () => {
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		rightClickHeader(container, 'rate')
+
+		// Editing keeps sorting opt-in, so a column that has not asked for it shows
+		// no sort items — unlike the read-only grid, which sorts by default.
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).not.toBeInTheDocument()
+
+		// The grid-wide tools still render.
+		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
+	})
+
+	it('surfaces sort items for a column that opts into sortable', () => {
+		const sortableColumns: GridEditableColumn<Row>[] = [
+			{ id: 'state', title: 'State', field: 'state', readOnly: true },
+			{ id: 'rate', title: 'Rate', field: 'rate', sortable: true },
+		]
+
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={sortableColumns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		rightClickHeader(container, 'rate')
+
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+	})
+
+	it('shows no menu when contextMenu is false', () => {
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+				contextMenu={false}
+			/>,
+		)
+
+		rightClickCell(container, 'CA')
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('passes the row to a cell-menu builder and runs a custom item', () => {
+		const onFlag = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+				contextMenu={{
+					cell: ({ row }, defaults) => [
+						...defaults,
+						{ key: 'flag', label: `Flag ${row.state}`, onSelect: () => onFlag(row) },
+					],
+				}}
+			/>,
+		)
+
+		rightClickCell(container, 'CA')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Flag CA' }))
+
+		expect(onFlag).toHaveBeenCalledWith(rows[0])
+	})
+})

@@ -13,6 +13,7 @@ import {
 	GridEditableStoreContext,
 } from './grid-editable-context'
 import type { CellChange, GridEditableColumn } from './grid-editable-types'
+import type { GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridEditableAugmentedColumns } from './use-grid-editable-augmented-columns'
 import { useGridEditableDraft } from './use-grid-editable-draft'
 import { useGridEditableHistory } from './use-grid-editable-history'
@@ -41,6 +42,20 @@ export type GridEditableProps<T> = TableVariants & {
 
 	sort?: GridSort
 	selection?: GridSelection
+
+	/**
+	 * Right-click context menus, forwarded to the underlying {@link Grid}: a
+	 * `column` menu on headers and a `cell` menu on body cells (Copy). On by
+	 * default — pass `false` to disable, or a config/builder per side to reshape
+	 * the items. The header menu omits the sort items unless a column opts in with
+	 * {@link GridColumn.sortable}, since editing keeps sorting opt-in. A right-click
+	 * also seats the active cell (via the cell's own mouse handler), so the menu
+	 * acts on the clicked cell.
+	 *
+	 * @see {@link GridContextMenu}
+	 * @defaultValue `{ column: true, cell: true }`
+	 */
+	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
 	 * Called with one or more changes. When committing a cell inside a row that
@@ -76,7 +91,8 @@ export type GridEditableProps<T> = TableVariants & {
  * value across every row in a multi-row selection. A column's `validate` rejects
  * a bad commit (the editor stays open with the message); Ctrl/Cmd+Z and
  * Ctrl/Cmd+Shift+Z (or Ctrl/Cmd+Y) undo and redo. Each commit emits a
- * {@link CellChange} batch through `onValueChange`; sort, selection, and
+ * {@link CellChange} batch through `onValueChange`; sort, selection, context
+ * menus (on by default — Copy on cells, column tools on headers), and
  * virtualization forward to the underlying table.
  *
  * @remarks
@@ -94,6 +110,7 @@ export function GridEditable<T>({
 	getKey,
 	sort: sortConfig,
 	selection: selectionConfig,
+	contextMenu,
 	onValueChange,
 	stickyHeader,
 	maxHeight,
@@ -200,9 +217,10 @@ export function GridEditable<T>({
 					// Editing keeps sorting opt-in: a column sorts only when it sets
 					// `sortable`, not from the read-only grid's sortable-by-default.
 					sortable={false}
-					// Editing owns right-click (cell selection / copy-paste), so the
-					// read-only grid's default context menus stay off here.
-					contextMenu={false}
+					// Context menus default on, forwarded from `contextMenu`. A
+					// right-click seats the active cell through the cell's own mouse
+					// handler, then the menu opens on it; `false` opts out.
+					contextMenu={contextMenu}
 					// Cells host editors that must not be clipped; the editable grid
 					// manages its own overflow, so read-only truncation stays off.
 					truncate={false}
