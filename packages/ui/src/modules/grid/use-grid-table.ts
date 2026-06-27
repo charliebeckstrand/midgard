@@ -304,6 +304,24 @@ function resizeOptions<T>(args: {
 	}
 }
 
+/**
+ * The controlled state slices passed to the engine: each active feature's slice
+ * is optional, but the grid always owns column order and visibility.
+ *
+ * @internal
+ */
+type GridControlledState = {
+	pagination?: PaginationState
+	columnSizing?: ColumnSizingState
+	globalFilter?: string
+	columnFilters?: ColumnFiltersState
+	sorting?: SortingState
+	columnPinning?: ColumnPinningState
+	rowSelection?: RowSelectionState
+	columnOrder: ColumnOrderState
+	columnVisibility: VisibilityState
+}
+
 /** The controlled state slices the active features own. @internal */
 function buildState(args: {
 	paginated: boolean
@@ -322,29 +340,11 @@ function buildState(args: {
 	rowSelection: RowSelectionState
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
-}): {
-	pagination?: PaginationState
-	columnSizing?: ColumnSizingState
-	globalFilter?: string
-	columnFilters?: ColumnFiltersState
-	sorting?: SortingState
-	columnPinning?: ColumnPinningState
-	rowSelection?: RowSelectionState
-	columnOrder: ColumnOrderState
-	columnVisibility: VisibilityState
-} {
-	const state: {
-		pagination?: PaginationState
-		columnSizing?: ColumnSizingState
-		globalFilter?: string
-		columnFilters?: ColumnFiltersState
-		sorting?: SortingState
-		columnPinning?: ColumnPinningState
-		rowSelection?: RowSelectionState
-		// Always set: the grid owns column order and visibility for every grid.
-		columnOrder: ColumnOrderState
-		columnVisibility: VisibilityState
-	} = { columnOrder: args.columnOrder, columnVisibility: args.columnVisibility }
+}): GridControlledState {
+	const state: GridControlledState = {
+		columnOrder: args.columnOrder,
+		columnVisibility: args.columnVisibility,
+	}
 
 	if (args.paginated) state.pagination = args.pagination
 
