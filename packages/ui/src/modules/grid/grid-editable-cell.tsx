@@ -66,8 +66,6 @@ export function GridEditableCell<T>({
 
 	const cellRef = useRef<HTMLDivElement>(null)
 
-	// `aria-selected` belongs on the owning `role="gridcell"` <td>, not this
-	// inner content div; this reflects the live selection onto it.
 	useGridEditableCellAriaSelected(cellRef, isActive || inRange)
 
 	return (

@@ -156,6 +156,23 @@ describe('useGridEditableDraft: commitEdit', () => {
 		expect(applyBulkFill).not.toHaveBeenCalled()
 	})
 
+	it('commits the latest draft when the change and commit land in the same tick', () => {
+		const { api, applyCellWrite } = setup()
+
+		act(() => api.current.beginEdit({ row: 0, col: 0 }, '', ''))
+
+		// No re-render between the change and the commit (as when blur fires in the
+		// same tick as the last keystroke): the commit must read the draft from the
+		// ref, not a stale closure, or the edit is dropped.
+		act(() => {
+			api.current.setDraft('typed')
+
+			api.current.commitEdit('none')
+		})
+
+		expect(applyCellWrite).toHaveBeenCalledWith(0, 0, 'typed')
+	})
+
 	it('routes to applyBulkFill when an anchor is present', () => {
 		const { api, applyBulkFill, applyCellWrite } = setup({ anchor: { row: 1, col: 0 } })
 

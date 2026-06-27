@@ -2,7 +2,7 @@
 
 import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
+import { type CSSProperties, type HTMLAttributes, type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/popover'
 import { usePortalContainer } from '../portal'
@@ -51,6 +51,14 @@ export function FloatingSurface({
 }: FloatingSurfaceProps) {
 	const root = usePortalContainer()
 
+	// Mount the portal only while open or animating out. A closed surface keeps no
+	// portal node in the DOM, so a grid of N tooltips no longer leaves N empty
+	// `[data-floating-ui-portal]` containers behind. `mounted` flips on with `open`
+	// (adjusted during render) and off once the exit animation completes.
+	const [mounted, setMounted] = useState(open)
+
+	if (open && !mounted) setMounted(true)
+
 	const surface = open ? (
 		<div
 			ref={setFloating}
@@ -64,10 +72,18 @@ export function FloatingSurface({
 		</div>
 	) : null
 
+	if (!mounted) return null
+
+	const handleExitComplete = () => {
+		setMounted(false)
+
+		onExitComplete?.()
+	}
+
 	return (
 		<FloatingPortal root={root ?? undefined}>
 			<ReducedMotion>
-				<AnimatePresence onExitComplete={onExitComplete}>
+				<AnimatePresence onExitComplete={handleExitComplete}>
 					{surface &&
 						(trapFocusContext ? (
 							// `returnFocus={false}`: `useFloatingPanel`'s reason-aware

@@ -109,7 +109,24 @@ export function useFloatingDisclosure({
 	// Dialog/Sheet consumes the press without also closing the surface
 	// beneath. Tooltips stay unlayered: incidental hover surfaces close on
 	// any Escape without swallowing the press meant for the layer below.
-	const dismiss = useDismiss(context, { escapeKey: false })
+	const dismiss = useDismiss(context, {
+		escapeKey: false,
+		// Spare presses that land in a *nested* floating portal — e.g. a Select
+		// listbox opened from within this surface — which teleports outside this
+		// panel's DOM subtree. There's no floating-ui node tree here, so match the
+		// portal the way `useFloatingPanel`'s own listener does.
+		outsidePress: (event) => {
+			const target = event.target
+
+			if (!(target instanceof Element)) return true
+
+			const ownPortal = refs.floating.current?.closest('[data-floating-ui-portal]') ?? null
+
+			const targetPortal = target.closest('[data-floating-ui-portal]')
+
+			return !(targetPortal && targetPortal !== ownPortal)
+		},
+	})
 
 	useEscapeLayer({
 		open,

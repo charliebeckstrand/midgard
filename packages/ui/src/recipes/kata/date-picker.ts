@@ -65,7 +65,10 @@ export const k = {
 		base: ['flex items-center min-w-0', '*:data-[slot=icon]:pointer-events-none', ...text.muted],
 	},
 	content: {
-		portal: [focus.ring, ...portal],
+		// `portal` is the single `z-100` class string — include it, don't spread it
+		// (spreading a string scatters it into junk chars, dropping the z-index and
+		// letting the calendar fall behind a modal overlay's z-99 backdrop).
+		portal: [focus.ring, portal],
 		motion: panel.motion,
 		text: text.default,
 		glass: panel.glass,

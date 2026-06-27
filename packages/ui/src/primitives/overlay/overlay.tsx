@@ -1,9 +1,16 @@
 'use client'
 
-import { FloatingFocusManager, useFloating } from '@floating-ui/react'
+import { FloatingFocusManager, FloatingPortal, useFloating } from '@floating-ui/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type HTMLAttributes, type ReactNode, type RefObject, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
+import {
+	type HTMLAttributes,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
@@ -82,6 +89,14 @@ export function Overlay({
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
 
+	// Mount the portal only while open or animating out, so a closed overlay leaves
+	// no `[data-floating-ui-portal]` node behind (a page of many closed overlays —
+	// e.g. one filter drawer per column — would otherwise strand an empty div
+	// each). `mounted` flips on with `open` and off once the exit animation ends.
+	const [mounted, setMounted] = useState(open)
+
+	if (open && !mounted) setMounted(true)
+
 	const scoped = container != null
 
 	// Explicit `container` (scoped overlay) wins; otherwise falls back to the
@@ -109,6 +124,8 @@ export function Overlay({
 
 	if (typeof document === 'undefined') return null
 
+	if (!mounted) return null
+
 	const panel = (
 		<div
 			ref={(node) => {
@@ -135,21 +152,48 @@ export function Overlay({
 		</div>
 	)
 
-	return createPortal(
-		<ReducedMotion>
-			<AnimatePresence>
-				{open &&
-					// Non-modal overlays skip focus management entirely: no trap, no
-					// initial-focus steal, no focus return; focus stays where it is.
-					(modal ? (
-						<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+	// Teleport through floating-ui's portal (not React's `createPortal`) so a
+	// floating menu opened inside the overlay — a `Select` listbox, a date picker —
+	// nests in the portal context and is excluded from the modal focus manager's
+	// `markOthers`; React's portal left those nested surfaces inert and unreachable.
+	return (
+		<FloatingPortal root={portalContainer ?? undefined}>
+			<ReducedMotion>
+				<AnimatePresence onExitComplete={() => setMounted(false)}>
+					{open && (
+						<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
 							{panel}
-						</FloatingFocusManager>
-					) : (
-						panel
-					))}
-			</AnimatePresence>
-		</ReducedMotion>,
-		portalContainer ?? document.body,
+						</OverlayFocus>
+					)}
+				</AnimatePresence>
+			</ReducedMotion>
+		</FloatingPortal>
+	)
+}
+
+/**
+ * Wraps the overlay panel in a modal `FloatingFocusManager` (trap focus, move it
+ * in on open, restore on close), or renders it bare for a non-modal surface — no
+ * trap, no initial-focus steal, no focus return; focus stays where it is.
+ *
+ * @internal
+ */
+function OverlayFocus({
+	modal,
+	context,
+	initialFocus,
+	children,
+}: {
+	modal: boolean
+	context: ReturnType<typeof useFloating>['context']
+	initialFocus: RefObject<HTMLElement | null> | undefined
+	children: ReactElement
+}) {
+	if (!modal) return children
+
+	return (
+		<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+			{children}
+		</FloatingFocusManager>
 	)
 }

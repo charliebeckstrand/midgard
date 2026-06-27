@@ -1,7 +1,7 @@
 'use client'
 
 import { SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
 import { Icon } from '../../components/icon'
@@ -11,6 +11,10 @@ import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 
 /** Props for {@link GridColumnManagerDialog}. @internal */
 type GridColumnManagerDialogProps = {
+	/** Render the toolbar trigger button; the dialog itself is always controlled. */
+	enabled: boolean
+	open: boolean
+	onOpenChange: (open: boolean) => void
 	label: ReactNode
 	columns: GridColumnManagerItem[]
 	order: (string | number)[]
@@ -21,13 +25,17 @@ type GridColumnManagerDialogProps = {
 }
 
 /**
- * Toolbar button that opens a {@link Dialog} hosting the
- * {@link GridColumnManager}; {@link Grid} renders it when a column
- * manager is configured.
+ * Controlled {@link Dialog} hosting the {@link GridColumnManager}, opened by its
+ * own toolbar button when `enabled` and/or by the grid's "Choose Columns"
+ * context-menu item. {@link Grid} renders it when a column manager is configured
+ * or reachable from a menu.
  *
  * @internal
  */
 export function GridColumnManagerDialog({
+	enabled,
+	open,
+	onOpenChange,
 	label,
 	columns,
 	order,
@@ -36,18 +44,18 @@ export function GridColumnManagerDialog({
 	onHiddenChange,
 	onSavePreset,
 }: GridColumnManagerDialogProps) {
-	const [open, setOpen] = useState(false)
-
 	return (
 		<>
-			<Toolbar aria-label="Column management">
-				<Button variant="plain" aria-haspopup="dialog" onClick={() => setOpen(true)}>
-					<Icon icon={<SlidersHorizontal />} />
-					{label}
-				</Button>
-			</Toolbar>
+			{enabled && (
+				<Toolbar aria-label="Column management">
+					<Button variant="plain" aria-haspopup="dialog" onClick={() => onOpenChange(true)}>
+						<Icon icon={<SlidersHorizontal />} />
+						{label}
+					</Button>
+				</Toolbar>
+			)}
 
-			<Dialog open={open} onOpenChange={setOpen}>
+			<Dialog open={open} onOpenChange={onOpenChange}>
 				<DialogTitle>{label}</DialogTitle>
 				<DialogBody>
 					<GridColumnManager
@@ -60,7 +68,7 @@ export function GridColumnManagerDialog({
 					/>
 				</DialogBody>
 				<DialogFooter>
-					<Button variant="plain" onClick={() => setOpen(false)}>
+					<Button variant="plain" onClick={() => onOpenChange(false)}>
 						Done
 					</Button>
 				</DialogFooter>

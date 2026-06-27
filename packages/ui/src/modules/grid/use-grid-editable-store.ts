@@ -15,6 +15,8 @@ import type { GridEditableSnapshot, GridEditableStore } from './grid-editable-co
  *
  * `snapshot` must stay referentially stable while its fields are unchanged
  * (pass a memoized object); an unstable snapshot notifies every render.
+ *
+ * @internal
  */
 export function useGridEditableStore(snapshot: GridEditableSnapshot): GridEditableStore {
 	const internalRef = useRef<{

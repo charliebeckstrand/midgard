@@ -1,16 +1,21 @@
 'use client'
 
+import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback } from 'react'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
 import { GridRow } from './grid-row'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = {
 	scrollRef: RefObject<HTMLDivElement | null>
+	/** The engine; rows read their cells from it. */
+	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]
+	/** Visible columns, kept for the spacer-row column span. */
 	visibleColumns: GridColumn<T>[]
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
@@ -19,6 +24,10 @@ type GridVirtualizedBodyProps<T> = {
 	toggleRow: (key: string | number) => void
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
 	reorderable: boolean
+	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
+	truncate: boolean
+	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
+	pinning: GridColumnPinning | null
 	estimateSize: number
 	overscan: number
 }
@@ -35,6 +44,7 @@ type GridVirtualizedBodyProps<T> = {
  */
 export function GridVirtualizedBody<T>({
 	scrollRef,
+	table,
 	rows,
 	rowKeys,
 	visibleColumns,
@@ -44,6 +54,8 @@ export function GridVirtualizedBody<T>({
 	selection,
 	toggleRow,
 	reorderable,
+	truncate,
+	pinning,
 	estimateSize,
 	overscan,
 }: GridVirtualizedBodyProps<T>) {
@@ -75,15 +87,17 @@ export function GridVirtualizedBody<T>({
 				return (
 					<GridRow<T>
 						key={key}
+						cells={table.getRow(String(key)).getVisibleCells()}
 						row={row}
 						rowKey={key}
-						columns={visibleColumns}
 						loading={rowLoading?.(row) ?? false}
 						className={rowClassName?.(row)}
 						rowLabel={rowLabel?.(row)}
 						selected={selection.has(key)}
 						toggleRow={toggleRow}
 						reorderable={reorderable}
+						truncate={truncate}
+						pinning={pinning}
 						dataRowIndex={vr.index}
 						// Header occupies row 1; data rows are offset by 2.
 						rowIndex={vr.index + 2}

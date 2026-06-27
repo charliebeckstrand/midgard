@@ -8,6 +8,8 @@ type Commit = (advance: GridEditableCommitAdvance) => boolean
  * cancels, Tab commits in the tabbing direction (and only swallows the event
  * when the cursor stays in the grid). Use to keep custom editors keyboard-
  * compatible with the built-in ones.
+ *
+ * @internal
  */
 export const editorKeyHandler =
 	(commit: Commit, cancel: () => void) => (event: KeyboardEvent<HTMLElement>) => {

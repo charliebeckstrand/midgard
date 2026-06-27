@@ -80,6 +80,8 @@ export type GridEditableProps<T> = TableVariants & {
  * `maxHeight`.
  *
  * @typeParam T - Shape of a single row.
+ *
+ * @internal
  */
 export function GridEditable<T>({
 	columns,
@@ -199,6 +201,15 @@ export function GridEditable<T>({
 						rows={rows}
 						getKey={getKey}
 						sort={sortConfig}
+						// Editing keeps sorting opt-in: a column sorts only when it sets
+						// `sortable`, not from the read-only grid's sortable-by-default.
+						sortable={false}
+						// Editing owns right-click (cell selection / copy-paste), so the
+						// read-only grid's default context menus stay off here.
+						contextMenu={false}
+						// Cells host editors that must not be clipped; the editable grid
+						// manages its own overflow, so read-only truncation stays off.
+						truncate={false}
 						selection={{ ...selectionConfig, value: selection, onValueChange: setSelection }}
 						rowClassName={rowClassName}
 						stickyHeader={stickyHeader}

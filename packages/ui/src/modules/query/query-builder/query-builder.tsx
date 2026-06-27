@@ -19,6 +19,25 @@ export type QueryBuilderProps = {
 	onValueChange?: (value: QueryGroupNode) => void
 	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean
+	/**
+	 * Allow nested groups via an "Add group" action. Set `false` for a flat list
+	 * of rules joined by AND/OR.
+	 * @defaultValue true
+	 */
+	allowGroups?: boolean
+	/**
+	 * Hide each rule's field selector — for a single fixed field, e.g. a
+	 * column-scoped filter. Supply that one field in `fields`.
+	 * @defaultValue false
+	 */
+	hideFieldSelector?: boolean
+	/**
+	 * Keep at least one rule in the query: a group's sole remaining rule hides its
+	 * remove control, so the builder can't be emptied. For always-on filters (a
+	 * column filter) that must keep a rule to edit.
+	 * @defaultValue false
+	 */
+	requireRule?: boolean
 	className?: string
 }
 
@@ -34,6 +53,9 @@ export function QueryBuilder({
 	defaultValue,
 	onValueChange,
 	disabled = false,
+	allowGroups = true,
+	hideFieldSelector = false,
+	requireRule = false,
 	className,
 }: QueryBuilderProps) {
 	const { root, actions, register } = useQueryBuilderTree({
@@ -46,8 +68,8 @@ export function QueryBuilder({
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
 
 	const state = useMemo<QueryBuilderStateValue>(
-		() => ({ fields, getField, disabled }),
-		[fields, getField, disabled],
+		() => ({ fields, getField, disabled, allowGroups, hideFieldSelector, requireRule }),
+		[fields, getField, disabled, allowGroups, hideFieldSelector, requireRule],
 	)
 
 	return (

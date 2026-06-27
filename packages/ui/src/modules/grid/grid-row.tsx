@@ -1,20 +1,30 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
+import { type Cell, flexRender } from '@tanstack/react-table'
 import { type HTMLAttributes, memo, type ReactNode, useMemo } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridRowContext, type GridRowContextValue } from './context'
+import { type CellTooltip, GridCellContent } from './grid-cell-content'
+import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridRow}. @internal */
 type GridRowProps<T> = {
 	row: T
 	rowKey: string | number
-	columns: GridColumn<T>[]
+	/**
+	 * This row's visible cells from the engine (`row.getVisibleCells()`), rendered
+	 * through `flexRender`. Passed in (not pulled off a stable `table`) so the
+	 * memoized row re-renders when the cell set changes — the array's identity
+	 * shifts on a column-def rebuild but holds across cursor navigation.
+	 */
+	cells: Cell<T, unknown>[]
 	loading: boolean
 	className: string | undefined
 	/** Human-readable name for the selection checkbox ("Select {label}"); falls back to the row key. */
@@ -33,6 +43,12 @@ type GridRowProps<T> = {
 	 */
 	reorderable?: boolean
 	/**
+	 * Truncate overflowing cell content to one line with an ellipsis and a
+	 * tooltip; a column's {@link GridColumn.cellTooltip} customizes or disables
+	 * the tooltip.
+	 */
+	truncate: boolean
+	/**
 	 * 1-based position in the full row set (header = 1). Set only when the body
 	 * is virtualized; assistive tech reads it to report position in the
 	 * windowed DOM. Omitted otherwise.
@@ -45,6 +61,23 @@ type GridRowProps<T> = {
 	 * DOM position diverge from data order.
 	 */
 	dataRowIndex: number
+	/** Frozen-column controls; pinned cells stick to an edge over the scrolling ones. `null` when none. */
+	pinning: GridColumnPinning | null
+}
+
+/**
+ * Resolves a column's truncation tooltip: `auto` (the cell's own content) when
+ * the column declares no `cellTooltip`, a `custom` node when it returns one, or
+ * `none` when it returns null/undefined.
+ *
+ * @internal
+ */
+function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
+	if (col.cellTooltip == null) return { kind: 'auto' }
+
+	const node = col.cellTooltip(row)
+
+	return node == null ? { kind: 'none' } : { kind: 'custom', node }
 }
 
 /**
@@ -56,15 +89,17 @@ type GridRowProps<T> = {
 function GridRowImpl<T>({
 	row,
 	rowKey,
-	columns,
+	cells,
 	loading,
 	className,
 	rowLabel,
 	selected,
 	toggleRow,
 	reorderable = false,
+	truncate,
 	rowIndex,
 	dataRowIndex,
+	pinning,
 }: GridRowProps<T>) {
 	const rowContext = useMemo<GridRowContextValue<T>>(
 		() => ({ row, rowKey, selected, loading }),
@@ -76,10 +111,17 @@ function GridRowImpl<T>({
 			<TableRow
 				data-selected={dataAttr(selected)}
 				data-row-index={dataRowIndex}
+				data-grid-row={String(rowKey)}
 				aria-rowindex={rowIndex}
 				className={cn(loading && k.rowLoading, className)}
 			>
-				{columns.map((col, colIdx) => {
+				{cells.map((cell, colIdx) => {
+					// Every engine column carries its source column on `meta`; the guard
+					// narrows the optional type (it is always set in `toColumnDef`).
+					const col = cell.column.columnDef.meta?.gridColumn
+
+					if (!col) return null
+
 					// Cell column indices accompany aria-rowindex under virtualization
 					// (rowIndex is only set then).
 					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
@@ -89,7 +131,8 @@ function GridRowImpl<T>({
 							<TableCell
 								key={col.id}
 								aria-colindex={colIndex}
-								className={cn(k.selectCell, col.className)}
+								className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
+								style={pinnedOffsetStyle(pinning, col.id)}
 							>
 								<Checkbox
 									checked={selected}
@@ -105,40 +148,25 @@ function GridRowImpl<T>({
 							<TableCell
 								key={col.id}
 								aria-colindex={colIndex}
-								className={cn(k.actionsCell, col.className)}
+								className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
+								style={pinnedOffsetStyle(pinning, col.id)}
 							>
 								{col.actions(row)}
 							</TableCell>
 						)
 					}
 
-					const cellExtra = col.cellProps?.(row)
-
-					const content = col.cell ? col.cell(row) : null
-
-					if (reorderable && !col.pinned) {
-						return (
-							<GridReorderableCell
-								key={col.id}
-								id={col.id}
-								colIndex={colIndex}
-								className={col.className}
-								cellProps={cellExtra}
-							>
-								{content}
-							</GridReorderableCell>
-						)
-					}
-
 					return (
-						<TableCell
+						<GridDataCell<T>
 							key={col.id}
-							aria-colindex={colIndex}
-							{...cellExtra}
-							className={cn(col.className, cellExtra?.className)}
-						>
-							{content}
-						</TableCell>
+							cell={cell}
+							col={col}
+							row={row}
+							colIndex={colIndex}
+							reorderable={reorderable}
+							truncate={truncate}
+							pinning={pinning}
+						/>
 					)
 				})}
 			</TableRow>
@@ -148,6 +176,72 @@ function GridRowImpl<T>({
 
 /** Memoized {@link GridRowImpl}; re-renders a row only when its own props change. @internal */
 export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
+
+/** Props for {@link GridDataCell}. @internal */
+type GridDataCellProps<T> = {
+	cell: Cell<T, unknown>
+	col: GridColumn<T>
+	row: T
+	colIndex: number | undefined
+	reorderable: boolean
+	truncate: boolean
+	pinning: GridColumnPinning | null
+}
+
+/**
+ * One data cell: renders its content through the engine (`flexRender`), wrapping
+ * it in the truncation reveal unless the grid opts out, then in a reorder-aware
+ * `<td>`. A column with no `cell` yields null content and stays bare.
+ *
+ * @internal
+ */
+function GridDataCell<T>({
+	cell,
+	col,
+	row,
+	colIndex,
+	reorderable,
+	truncate,
+	pinning,
+}: GridDataCellProps<T>) {
+	const cellExtra = col.cellProps?.(row)
+
+	// Render only columns that declare a `cell`; a bare accessor column stays empty
+	// rather than falling back to TanStack's default value renderer.
+	const rawContent = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+
+	const content =
+		truncate && rawContent != null ? (
+			<GridCellContent content={rawContent} tooltip={resolveCellTooltip(col, row)} />
+		) : (
+			rawContent
+		)
+
+	if (reorderable && !col.pinned) {
+		return (
+			<GridReorderableCell
+				id={col.id}
+				colIndex={colIndex}
+				className={col.className}
+				cellProps={cellExtra}
+			>
+				{content}
+			</GridReorderableCell>
+		)
+	}
+
+	return (
+		<TableCell
+			aria-colindex={colIndex}
+			{...cellExtra}
+			data-grid-col={col.id}
+			className={cn(pinnedClassName(pinning, col.id), col.className, cellExtra?.className)}
+			style={{ ...cellExtra?.style, ...pinnedOffsetStyle(pinning, col.id) }}
+		>
+			{content}
+		</TableCell>
+	)
+}
 
 /** Props for {@link GridReorderableCell}. @internal */
 type GridReorderableCellProps = {
@@ -181,6 +275,7 @@ const GridReorderableCell = memo(function GridReorderableCell({
 			aria-colindex={colIndex}
 			{...cellProps}
 			data-dragging={dataAttr(isDragging)}
+			data-grid-col={id}
 			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
 			style={{ ...cellProps?.style, ...columnDragStyle(transform, transition) }}
 		>

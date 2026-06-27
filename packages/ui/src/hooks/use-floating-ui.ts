@@ -273,17 +273,25 @@ export function useFloatingUI({
 			const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
 
 			// A press inside a *different* floating-ui portal than this panel's own
-			// is a nested overlay opened from within it (e.g. the calendar's
-			// month/year picker popover inside the DatePicker dialog). Those portals
-			// teleport outside this panel's DOM subtree, so `insideFloating` misses
-			// them; floating-ui's native outsidePress spares them via its node tree,
-			// which this custom listener stands in for. Treat them as inside.
+			// is spared only when that portal is a nested overlay opened from WITHIN
+			// this panel — a descendant (e.g. the calendar's month/year picker
+			// popover inside the DatePicker dialog). Those portals teleport outside
+			// this panel's DOM subtree, so `insideFloating` misses them; floating-ui's
+			// native outsidePress spares them via its node tree, which this custom
+			// listener stands in for. An ANCESTOR portal — one that contains this
+			// panel's own reference, e.g. the filter Popover hosting this listbox's
+			// trigger — is genuinely outside, so a press there must still dismiss.
 			const targetPortal =
 				target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
 
 			const ownPortal = floating?.closest('[data-floating-ui-portal]') ?? null
 
-			const insideNestedFloating = !!targetPortal && targetPortal !== ownPortal
+			const reference = refs.domReference.current
+
+			const insideNestedFloating =
+				!!targetPortal &&
+				targetPortal !== ownPortal &&
+				!(reference != null && targetPortal.contains(reference))
 
 			if (!floating || insideFloating || insideReference || onScrollbar || insideNestedFloating)
 				return

@@ -1,4 +1,5 @@
 import { type ReactNode, type RefObject, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
 
 // Passed through unmocked: ref merging is pure React wiring with no floating
@@ -25,6 +26,9 @@ type MockFocusManagerProps = {
 	children: ReactNode
 	initialFocus?: RefObject<HTMLElement | null>
 }
+
+/** `FloatingPortal`'s `root`: a node, a ref to one, or absent (render inline). @internal */
+type MockPortalRoot = HTMLElement | RefObject<HTMLElement | null> | null
 
 // Stable id stamped on the floating element by `useRole`, mirrored onto the
 // reference's `aria-describedby` while open; enough to assert the tooltip's
@@ -97,7 +101,14 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
 const floatingUIMock = {
 	autoUpdate: noop,
 	FloatingFocusManager: MockFloatingFocusManager,
-	FloatingPortal: ({ children }: { children: ReactNode }) => children,
+	// Honour `root` like the real portal (teleport into the given node, resolving a
+	// ref); without one, render inline so content stays in the query tree. Overlays
+	// that target a scoped/provider container rely on this to mount there.
+	FloatingPortal: ({ children, root }: { children: ReactNode; root?: MockPortalRoot }) => {
+		const node = root && 'current' in root ? root.current : root
+
+		return node ? createPortal(children, node) : children
+	},
 	flip: () => ({}),
 	offset: () => ({}),
 	shift: () => ({}),

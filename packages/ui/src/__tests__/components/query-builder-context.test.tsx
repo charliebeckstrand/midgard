@@ -16,6 +16,9 @@ const stateValue = {
 	fields,
 	getField: (name: string) => fields.find((f) => f.name === name),
 	disabled: false,
+	allowGroups: true,
+	hideFieldSelector: false,
+	requireRule: false,
 }
 
 const actionsValue: QueryBuilderActions = {

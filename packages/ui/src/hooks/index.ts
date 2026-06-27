@@ -23,7 +23,7 @@ export {
 } from './a11y'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
-export { useControllable } from './use-controllable'
+export { type SetValue, useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'
 export { useDismissable } from './use-dismissable'
 export { useEscapeLayer } from './use-escape-layer'

@@ -44,10 +44,9 @@ export function useGridEditableAugmentedColumns<T>({
 	formatCell,
 	cellId,
 }: GridEditableAugmentedColumns<T>): GridColumn<T>[] {
-	// `cellProps` is a plain function, not a component; it reads `active` and
-	// `editing` through refs at event time rather than closing over state values,
-	// keeping them out of the memo deps. Stable column identities let memoized
-	// Grid rows hold; only the affected cell shells re-render via context.
+	// `cellProps` is a plain function, not a component, so reading `active` and
+	// `editing` through refs keeps them out of this hook's memo deps (see the
+	// @remarks above for why that matters).
 	const activeRef = useRef(active)
 
 	activeRef.current = active

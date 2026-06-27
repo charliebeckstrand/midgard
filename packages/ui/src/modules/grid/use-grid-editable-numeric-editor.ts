@@ -18,6 +18,8 @@ type NumericEditorBindings = {
  * mirrors edits into the draft as `String(value)`, focuses on mount (selecting
  * only for Enter/F2/double-click opens), and forwards the standard editor
  * keyboard contract.
+ *
+ * @internal
  */
 export function useGridEditableNumericEditor<T>({
 	row,
