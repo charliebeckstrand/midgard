@@ -616,7 +616,7 @@ describe('Grid', () => {
 				<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ enabled: true }} />,
 			)
 
-			expect(screen.getByRole('button', { name: /Columns/ })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
 		})
 
 		it('honors a custom label on the column-manager toolbar', () => {
@@ -737,7 +737,7 @@ describe('Grid', () => {
 
 			const user = userEvent.setup()
 
-			await user.click(screen.getByRole('button', { name: /Columns/ }))
+			await user.click(screen.getByRole('button', { name: 'Manage columns' }))
 
 			await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 

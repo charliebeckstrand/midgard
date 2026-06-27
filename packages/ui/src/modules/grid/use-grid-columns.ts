@@ -105,7 +105,7 @@ export function useGridColumns<T>({
 
 	const manageColumns = columnManagerConfig?.enabled ?? false
 
-	const manageColumnsLabel = columnManagerConfig?.label ?? 'Columns'
+	const manageColumnsLabel = columnManagerConfig?.label ?? 'Manage columns'
 
 	const columnVisibility = useMemo(
 		() => toColumnVisibility(hiddenColumns, columnById),

@@ -232,7 +232,7 @@ describe('GridColumnManagerDialog', () => {
 				enabled
 				open={open}
 				onOpenChange={setOpen}
-				label="Columns"
+				label="Manage columns"
 				columns={columns}
 				order={['name', 'email', 'role']}
 				onOrderChange={() => {}}
@@ -249,7 +249,7 @@ describe('GridColumnManagerDialog', () => {
 
 		expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Columns' }))
+		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
 
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 

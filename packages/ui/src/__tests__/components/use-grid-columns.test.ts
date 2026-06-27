@@ -28,12 +28,12 @@ describe('useGridColumns', () => {
 		expect(result.current.hiddenColumns.size).toBe(0)
 	})
 
-	it('exposes the default manage-columns label as "Columns"', () => {
+	it('exposes the default manage-columns label as "Manage columns"', () => {
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({ columns, columnManagerConfig: undefined }),
 		)
 
-		expect(result.current.manageColumnsLabel).toBe('Columns')
+		expect(result.current.manageColumnsLabel).toBe('Manage columns')
 	})
 
 	it('reads manageColumns from columnManagerConfig.enabled', () => {

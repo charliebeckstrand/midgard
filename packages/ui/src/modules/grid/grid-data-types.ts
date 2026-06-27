@@ -84,7 +84,7 @@ export type GridColumnManagerConfig = {
 	enabled?: boolean
 	/**
 	 * Label on the toolbar button (and dialog title).
-	 * @defaultValue 'Columns'
+	 * @defaultValue 'Manage columns'
 	 */
 	label?: ReactNode
 
