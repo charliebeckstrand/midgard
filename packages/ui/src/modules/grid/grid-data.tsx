@@ -5,7 +5,6 @@ import { SortableContext } from '@dnd-kit/sortable'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
-import { Toolbar } from '../../components/toolbar'
 import { cn, dataAttr } from '../../core'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
@@ -23,11 +22,11 @@ import type {
 	GridVirtualize,
 } from './grid-data-types'
 import { downloadCsv, rowsToCsv } from './grid-export'
-import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
+import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
 import {
@@ -940,7 +939,6 @@ export function GridData<T>({
 
 				{renderDialog && (
 					<GridColumnManagerDialog
-						toolbarButton={showButton}
 						open={columnManagerOpen}
 						onOpenChange={setColumnManagerOpen}
 						label={managerLabel}
@@ -953,11 +951,16 @@ export function GridData<T>({
 					/>
 				)}
 
-				{globalFilter && <GridFilter filter={globalFilter} />}
-
-				{batchActions && someSelected && (
-					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>
-				)}
+				<GridToolbar
+					filter={globalFilter}
+					showColumnManager={showButton}
+					columnManagerLabel={managerLabel}
+					onManageColumns={() => setColumnManagerOpen(true)}
+					batchActions={batchActions}
+					hasSelection={someSelected}
+					selection={selection}
+					setSelection={setSelection}
+				/>
 
 				<GridRegion
 					canReorder={reorderActive}

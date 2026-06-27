@@ -73,6 +73,18 @@ export const k = {
 		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
 		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
 	},
+	// The toolbar region above the table — see `GridToolbar`, the single home for
+	// the grid's above-table controls. A vertical stack of the top control row and,
+	// while a row is selected, the batch-action row beneath it.
+	toolbar: {
+		root: ['flex', 'flex-col', 'gap-2'],
+		// Top row: the quick-search field at the start, the column-manager trigger at
+		// the end. Stacks on narrow viewports, then lays out as a row from `sm`.
+		bar: ['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center'],
+		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
+		// from the search field (and stays at the end even when it stands alone).
+		actions: 'sm:ml-auto',
+	},
 	batch: {
 		bar: [
 			flex.row,

@@ -1,18 +1,13 @@
 'use client'
 
-import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
-import { Icon } from '../../components/icon'
-import { Toolbar } from '../../components/toolbar'
 import { GridColumnManager } from './grid-column-manager'
 import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 
 /** Props for {@link GridColumnManagerDialog}. @internal */
 type GridColumnManagerDialogProps = {
-	/** Render the standalone toolbar trigger button; the dialog itself is always controlled. */
-	toolbarButton: boolean
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	label: ReactNode
@@ -25,15 +20,14 @@ type GridColumnManagerDialogProps = {
 }
 
 /**
- * Controlled {@link Dialog} hosting the {@link GridColumnManager}, opened by its
- * own toolbar button when `toolbarButton` and/or by the grid's "Manage columns"
- * context-menu item. {@link Grid} renders it when a column manager is configured
- * or reachable from a menu.
+ * Controlled {@link Dialog} hosting the {@link GridColumnManager}. Its two entry
+ * points live elsewhere: the column-manager trigger in {@link GridToolbar} and
+ * the grid's "Manage columns" header context-menu item. {@link Grid} mounts it
+ * whenever either entry point can reach it.
  *
  * @internal
  */
 export function GridColumnManagerDialog({
-	toolbarButton,
 	open,
 	onOpenChange,
 	label,
@@ -45,34 +39,23 @@ export function GridColumnManagerDialog({
 	onSavePreset,
 }: GridColumnManagerDialogProps) {
 	return (
-		<>
-			{toolbarButton && (
-				<Toolbar aria-label="Column management">
-					<Button variant="plain" aria-haspopup="dialog" onClick={() => onOpenChange(true)}>
-						<Icon icon={<SlidersHorizontal />} />
-						{label}
-					</Button>
-				</Toolbar>
-			)}
-
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogTitle>{label}</DialogTitle>
-				<DialogBody>
-					<GridColumnManager
-						columns={columns}
-						order={order}
-						onOrderChange={onOrderChange}
-						hidden={hidden}
-						onHiddenChange={onHiddenChange}
-						onSavePreset={onSavePreset}
-					/>
-				</DialogBody>
-				<DialogFooter>
-					<Button variant="plain" onClick={() => onOpenChange(false)}>
-						Done
-					</Button>
-				</DialogFooter>
-			</Dialog>
-		</>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogTitle>{label}</DialogTitle>
+			<DialogBody>
+				<GridColumnManager
+					columns={columns}
+					order={order}
+					onOrderChange={onOrderChange}
+					hidden={hidden}
+					onHiddenChange={onHiddenChange}
+					onSavePreset={onSavePreset}
+				/>
+			</DialogBody>
+			<DialogFooter>
+				<Button variant="plain" onClick={() => onOpenChange(false)}>
+					Done
+				</Button>
+			</DialogFooter>
+		</Dialog>
 	)
 }
