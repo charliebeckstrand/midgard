@@ -168,4 +168,111 @@ describe('Grid CSV export', () => {
 
 		click.mockRestore()
 	})
+
+	it('omits the toolbar button for the boolean shorthand', () => {
+		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(screen.queryByRole('button', { name: 'Export to CSV' })).toBeNull()
+	})
+
+	it('renders a toolbar button that downloads the CSV when toolbarButton is set', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid exportable={{ toolbarButton: true }} columns={columns} rows={rows} getKey={getKey} />,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		expect(text).toContain('Name,Role')
+
+		expect(text).toContain('Alice,Developer')
+
+		expect(click).toHaveBeenCalledTimes(1)
+
+		click.mockRestore()
+	})
+
+	it('keeps the header menu item alongside the toolbar button', () => {
+		renderUI(
+			<Grid exportable={{ toolbarButton: true }} columns={columns} rows={rows} getKey={getKey} />,
+		)
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeTruthy()
+	})
+
+	it('drops the menu item and toolbar button when enabled is false', () => {
+		renderUI(
+			<Grid
+				exportable={{ enabled: false, toolbarButton: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Export to CSV' })).toBeNull()
+
+		rightClickHeader('Name')
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
+	})
+
+	it('labels the button and menu item with a custom label', () => {
+		renderUI(
+			<Grid
+				exportable={{ toolbarButton: true, label: 'Download CSV' }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Download CSV' })).toBeTruthy()
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Download CSV' })).toBeTruthy()
+	})
+
+	it('uses the configured filename for the download', () => {
+		URL.createObjectURL = vi.fn().mockReturnValue('blob:mock')
+		URL.revokeObjectURL = vi.fn()
+
+		let downloadName: string | undefined
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+			this: HTMLAnchorElement,
+		) {
+			downloadName = this.download
+		})
+
+		renderUI(
+			<Grid
+				exportable={{ toolbarButton: true, filename: 'people.csv' }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		expect(downloadName).toBe('people.csv')
+
+		click.mockRestore()
+	})
 })
