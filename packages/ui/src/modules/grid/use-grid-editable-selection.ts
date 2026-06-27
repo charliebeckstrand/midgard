@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import { useControllable } from '../../hooks'
-import type { GridSelection } from './grid'
+import type { GridSelection } from './grid-data-types'
 import type { GridEditableSelectionApi } from './grid-editable-types'
 
 // Stable empty-selection sentinel. Treated as read-only; all updates go through

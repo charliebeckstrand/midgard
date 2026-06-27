@@ -15,16 +15,11 @@ import {
 	type QueryField,
 	type QueryGroupNode,
 } from '../query'
-import type { GridColumn } from './types'
+import { columnLabel, type GridColumn } from './types'
 import type { GridColumnFilter } from './use-grid-table'
 
 /** The subset of a column the filter sheet reads. @internal */
 type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'filterOptions'>
-
-/** A column's filter label: its `title` when a string, else the stringified id. @internal */
-function filterLabel(column: Pick<GridColumn<unknown>, 'id' | 'title'>): string {
-	return typeof column.title === 'string' ? column.title : String(column.id)
-}
 
 /**
  * The single query field a column's filter sheet edits. A `select` field's
@@ -39,7 +34,7 @@ function toQueryField(
 ): QueryField {
 	return {
 		name: String(column.id),
-		label: filterLabel(column),
+		label: columnLabel(column),
 		type: column.filterType ?? 'text',
 		...(options ? { options } : {}),
 	}
@@ -141,7 +136,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// rule exists (a freshly seeded, added-then-emptied, or all-cleared query).
 	const active = query != null && isQueryActive(query, fields)
 
-	const label = filterLabel(column)
+	const label = columnLabel(column)
 
 	return (
 		<>

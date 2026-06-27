@@ -1,20 +1,19 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { type Cell, flexRender } from '@tanstack/react-table'
+import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import {
 	type HTMLAttributes,
 	memo,
+	type ReactElement,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type MouseEvent as ReactMouseEvent,
 	type ReactNode,
-	useMemo,
 } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { GridRowContext, type GridRowContextValue } from './context'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
@@ -40,6 +39,77 @@ const INTERACTIVE_CELL_CONTENT =
 /** Whether the event originated inside interactive cell content. @internal */
 function fromInteractiveContent(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
+}
+
+/**
+ * Per-row wiring shared by the plain and virtualized bodies: the engine, the
+ * row/key sources, and the flags every {@link GridRow} reads. Both bodies
+ * extend this with their own layout props and render rows through
+ * {@link renderGridRow}.
+ *
+ * @internal
+ */
+export type GridRowsProps<T> = {
+	/** The engine; rows read their cells from it. */
+	table: Table<T>
+	rows: T[]
+	rowKeys: (string | number)[]
+	/** Visible columns, kept for the loading/empty/spacer column spans. */
+	visibleColumns: GridColumn<T>[]
+	rowLoading?: (row: T) => boolean
+	rowClassName?: (row: T) => string | undefined
+	rowLabel?: (row: T) => string
+	/** Stable per-row click handler; rows are inert when omitted. */
+	onRowClick?: GridRowClick<T>
+	selection: Set<string | number>
+	toggleRow: (key: string | number) => void
+	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
+	reorderable: boolean
+	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
+	truncate: boolean
+	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
+	pinning: GridColumnPinning | null
+	/** When the rendered body is a window onto a larger set (virtualization/pagination), rows carry global `aria-rowindex`. */
+	gridSemantics: boolean
+	/** Global row-index base added to each rendered row's index (the page offset under pagination, else 0). */
+	rowIndexOffset: number
+}
+
+/**
+ * Renders one engine row through {@link GridRow}, resolving its cells, key, and
+ * per-row flags from the shared body wiring. `rowIndex` is the 1-based aria
+ * position, set only when the body is virtualized.
+ *
+ * @internal
+ */
+export function renderGridRow<T>(
+	props: GridRowsProps<T>,
+	row: T,
+	dataRowIndex: number,
+	rowIndex?: number,
+): ReactElement {
+	// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is always present.
+	const key = props.rowKeys[dataRowIndex] as string | number
+
+	return (
+		<GridRow<T>
+			key={key}
+			cells={props.table.getRow(String(key)).getVisibleCells()}
+			row={row}
+			rowKey={key}
+			loading={props.rowLoading?.(row) ?? false}
+			className={props.rowClassName?.(row)}
+			rowLabel={props.rowLabel?.(row)}
+			onRowClick={props.onRowClick}
+			selected={props.selection.has(key)}
+			toggleRow={props.toggleRow}
+			reorderable={props.reorderable}
+			truncate={props.truncate}
+			pinning={props.pinning}
+			dataRowIndex={dataRowIndex}
+			rowIndex={rowIndex}
+		/>
+	)
 }
 
 /** Props for {@link GridRow}. @internal */
@@ -113,7 +183,7 @@ function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 
 /**
  * One data row: maps `columns` to cells (selection checkbox, actions, or `cell`
- * content) and publishes its datum and flags through {@link GridRowContext}.
+ * content).
  *
  * @internal
  */
@@ -133,103 +203,96 @@ function GridRowImpl<T>({
 	dataRowIndex,
 	pinning,
 }: GridRowProps<T>) {
-	const rowContext = useMemo<GridRowContextValue<T>>(
-		() => ({ row, rowKey, selected, loading }),
-		[row, rowKey, selected, loading],
-	)
-
 	return (
-		<GridRowContext value={rowContext}>
-			<TableRow
-				data-selected={dataAttr(selected)}
-				data-row-index={dataRowIndex}
-				data-grid-row={String(rowKey)}
-				data-clickable={dataAttr(onRowClick != null)}
-				aria-rowindex={rowIndex}
-				// A clickable row is keyboard-focusable and activates on Enter / Space;
-				// a click on interactive cell content defers to that content. Activation
-				// from the keyboard is gated to the row itself so inner controls keep
-				// their own Enter / Space behaviour.
-				tabIndex={onRowClick ? 0 : undefined}
-				onClick={
-					onRowClick
-						? (event) => {
-								if (!fromInteractiveContent(event.target)) onRowClick(row, event)
+		<TableRow
+			data-selected={dataAttr(selected)}
+			data-row-index={dataRowIndex}
+			data-grid-row={String(rowKey)}
+			data-clickable={dataAttr(onRowClick != null)}
+			aria-rowindex={rowIndex}
+			// A clickable row is keyboard-focusable and activates on Enter / Space;
+			// a click on interactive cell content defers to that content. Activation
+			// from the keyboard is gated to the row itself so inner controls keep
+			// their own Enter / Space behaviour.
+			tabIndex={onRowClick ? 0 : undefined}
+			onClick={
+				onRowClick
+					? (event) => {
+							if (!fromInteractiveContent(event.target)) onRowClick(row, event)
+						}
+					: undefined
+			}
+			onKeyDown={
+				onRowClick
+					? (event) => {
+							if (
+								(event.key === 'Enter' || event.key === ' ') &&
+								event.target === event.currentTarget
+							) {
+								event.preventDefault()
+
+								onRowClick(row, event)
 							}
-						: undefined
-				}
-				onKeyDown={
-					onRowClick
-						? (event) => {
-								if (
-									(event.key === 'Enter' || event.key === ' ') &&
-									event.target === event.currentTarget
-								) {
-									event.preventDefault()
+						}
+					: undefined
+			}
+			className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
+		>
+			{cells.map((cell, colIdx) => {
+				// Every engine column carries its source column on `meta`; the guard
+				// narrows the optional type (it is always set in `toColumnDef`).
+				const col = cell.column.columnDef.meta?.gridColumn
 
-									onRowClick(row, event)
-								}
-							}
-						: undefined
-				}
-				className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
-			>
-				{cells.map((cell, colIdx) => {
-					// Every engine column carries its source column on `meta`; the guard
-					// narrows the optional type (it is always set in `toColumnDef`).
-					const col = cell.column.columnDef.meta?.gridColumn
+				if (!col) return null
 
-					if (!col) return null
+				// Cell column indices accompany aria-rowindex under virtualization
+				// (rowIndex is only set then).
+				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
-					// Cell column indices accompany aria-rowindex under virtualization
-					// (rowIndex is only set then).
-					const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
-
-					if (col.selectable) {
-						return (
-							<TableCell
-								key={col.id}
-								aria-colindex={colIndex}
-								className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
-								style={pinnedOffsetStyle(pinning, col.id)}
-							>
-								<Checkbox
-									checked={selected}
-									onChange={() => toggleRow(rowKey)}
-									aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
-								/>
-							</TableCell>
-						)
-					}
-
-					if (col.actions) {
-						return (
-							<TableCell
-								key={col.id}
-								aria-colindex={colIndex}
-								className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
-								style={pinnedOffsetStyle(pinning, col.id)}
-							>
-								{col.actions(row)}
-							</TableCell>
-						)
-					}
-
+				if (col.selectable) {
 					return (
-						<GridDataCell<T>
+						<TableCell
 							key={col.id}
-							cell={cell}
-							col={col}
-							row={row}
-							colIndex={colIndex}
-							reorderable={reorderable}
-							truncate={truncate}
-							pinning={pinning}
-						/>
+							aria-colindex={colIndex}
+							className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
+							style={pinnedOffsetStyle(pinning, col.id)}
+						>
+							<Checkbox
+								checked={selected}
+								onChange={() => toggleRow(rowKey)}
+								aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
+							/>
+						</TableCell>
 					)
-				})}
-			</TableRow>
-		</GridRowContext>
+				}
+
+				if (col.actions) {
+					return (
+						<TableCell
+							key={col.id}
+							aria-colindex={colIndex}
+							className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
+							style={pinnedOffsetStyle(pinning, col.id)}
+						>
+							{col.actions(row)}
+						</TableCell>
+					)
+				}
+
+				return (
+					<GridDataCell<T>
+						key={col.id}
+						cell={cell}
+						col={col}
+						row={row}
+						colIndex={colIndex}
+						reorderable={reorderable}
+						truncate={truncate}
+						pinning={pinning}
+					/>
+				)
+			})}
+		</TableRow>
 	)
 }
 

@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
-import type { GridColumnManagerConfig, GridColumnOrder } from './grid'
+import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
 import { applyColumnReorder } from './grid-reorder'
 import type { GridColumn, GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'

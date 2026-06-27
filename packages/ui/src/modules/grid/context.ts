@@ -34,20 +34,3 @@ export type GridContextValue = {
  * @throws If called outside a `<Grid>`.
  */
 export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
-
-/** Per-row state shared with a row's cells: the row datum, its key, and selected/loading flags. */
-export type GridRowContextValue<T = unknown> = {
-	row: T
-	rowKey: string | number
-	selected: boolean
-	loading: boolean
-}
-
-/**
- * Reads the enclosing row's datum, key, and selected/loading flags. Use from a
- * column's `cell` or `actions` renderer to reach the row context.
- *
- * @returns The current {@link GridRowContextValue}.
- * @throws If called outside a `<Grid>` row.
- */
-export const [GridRowContext, useGridRow] = createContext<GridRowContextValue>('GridRow')
