@@ -10,6 +10,15 @@ export const DEFAULT_PAGE_SIZE = 10
 /** Initial width (px) for a resizable column without a parseable `width`. @internal */
 export const DEFAULT_COLUMN_SIZE = 150
 
+/**
+ * Natural width (px) the selection-checkbox column holds in the fixed (resizable)
+ * layout when it sets no `width` — wide enough for the checkbox, instead of the
+ * {@link DEFAULT_COLUMN_SIZE} a width-less column would otherwise take. The
+ * non-resizable auto layout sizes the column to its content via `w-px`, so this
+ * seeds only the fixed-layout colgroup. @internal
+ */
+export const SELECT_COLUMN_SIZE = 48
+
 /** Floor (px) a resizable column can shrink to when it sets no `minWidth`. @internal */
 export const DEFAULT_MIN_COLUMN_SIZE = 40
 

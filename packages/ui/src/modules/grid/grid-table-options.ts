@@ -22,6 +22,7 @@ import {
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery } from '../query'
 import type { SortState } from './context'
+import { SELECT_COLUMN_SIZE } from './grid-constants'
 import { compareSmart } from './grid-sorting-utilities'
 import { isQueryGroup } from './grid-table-views'
 import type { GridColumn, GridPagination } from './types'
@@ -125,7 +126,10 @@ const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
 
 /** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the sort comparator, the resize gate, and sizing bounds. @internal */
 export function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
-	const size = parsePxWidth(col.width)
+	// A width-less column takes the engine's 150px default; the selection column
+	// instead holds a natural checkbox width so it isn't that wide. (The
+	// non-resizable auto layout already sizes it to content via `w-px`.)
+	const size = parsePxWidth(col.width) ?? (col.selectable ? SELECT_COLUMN_SIZE : undefined)
 
 	const { value, sortFn } = col
 
