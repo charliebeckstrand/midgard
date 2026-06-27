@@ -567,8 +567,16 @@ const ColumnManagerExample = () => {
 
 // `exportable` adds an "Export to CSV" item to the header right-click menu; it
 // downloads the filtered/sorted rows, each column read through its `value`.
+// Passing a config object instead of `true` also surfaces a toolbar button
+// (mirroring the column manager's `toolbarButton`, beside it in the grid's
+// toolbar), and tunes the label and download filename.
 const ExportExample = () => (
-	<Grid exportable columns={filterableColumns} rows={people} getKey={(row) => row.id} />
+	<Grid
+		exportable={{ toolbarButton: true, filename: 'people.csv' }}
+		columns={filterableColumns}
+		rows={people}
+		getKey={(row) => row.id}
+	/>
 )
 
 const ServerPaginationExample = () => {
@@ -737,7 +745,7 @@ export function Demo() {
 				<ColumnManagerExample />
 			</Example>
 
-			<Example title="CSV export" code={code`<Grid exportable />`}>
+			<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
 				<ExportExample />
 			</Example>
 

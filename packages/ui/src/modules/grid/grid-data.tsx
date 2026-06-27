@@ -18,6 +18,7 @@ import { GridContextMenu } from './grid-context-menu'
 import type {
 	GridColumnManagerConfig,
 	GridDataProps,
+	GridExportConfig,
 	GridSort,
 	GridVirtualize,
 } from './grid-data-types'
@@ -76,6 +77,8 @@ type GridRegionProps<T> = {
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportCsv: (() => void) | null
+	/** Label on the header menu's "Export to CSV" item, shared with the export toolbar button. */
+	exportLabel: ReactNode
 	children: ReactNode
 }
 
@@ -103,6 +106,7 @@ function GridRegion<T>({
 	autoSizeColumns,
 	chooseColumns,
 	exportCsv,
+	exportLabel,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -130,6 +134,7 @@ function GridRegion<T>({
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 			exportCsv={exportCsv}
+			exportLabel={exportLabel}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -267,6 +272,33 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 		enabled,
 		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
+	}
+}
+
+/**
+ * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
+ * into resolved export settings: whether export is on, whether to render the
+ * toolbar button (never when export is off), and the label and download
+ * filename shared by the button and the header menu's "Export to CSV" item. The
+ * boolean `true` enables export with the context-menu item alone.
+ *
+ * @internal
+ */
+function resolveExport(exportable: boolean | GridExportConfig): {
+	enabled: boolean
+	toolbarButton: boolean
+	label: ReactNode
+	filename: string
+} {
+	const config = typeof exportable === 'object' ? exportable : { enabled: exportable }
+
+	const enabled = config.enabled ?? true
+
+	return {
+		enabled,
+		toolbarButton: enabled && (config.toolbarButton ?? false),
+		label: config.label ?? 'Export to CSV',
+		filename: config.filename ?? 'grid.csv',
 	}
 }
 
@@ -462,7 +494,7 @@ function resolveResizeLayout<T>(args: {
  * Resolves the column-manager gates, lifts the dialog's open state, and derives
  * the header context-menu actions (sort a column, open the manager). Column
  * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * standalone toolbar button is opt-in
+ * toolbar button is opt-in
  * ({@link GridColumnManagerConfig.toolbarButton}). Split out of {@link GridData}
  * so its body stays within the cognitive-complexity budget.
  *
@@ -744,22 +776,32 @@ export function GridData<T>({
 		rowKeys,
 	})
 
+	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
+	// flag, the opt-in toolbar button, and the label/filename shared by the button
+	// and the header menu's "Export to CSV" item.
+	const {
+		enabled: exportEnabled,
+		toolbarButton: exportToolbarButton,
+		label: exportLabel,
+		filename: exportFilename,
+	} = resolveExport(exportable)
+
 	// Export the filtered + sorted rows (all pages) to a CSV download. The engine's
-	// sorted row model reflects active filters and sort; `null` keeps the menu item
-	// out unless `exportable` is set.
+	// sorted row model reflects active filters and sort; `null` keeps both the menu
+	// item and the toolbar button out unless export is enabled.
 	const exportCsv = useMemo(
 		() =>
-			exportable
+			exportEnabled
 				? () =>
 						downloadCsv(
-							'grid.csv',
+							exportFilename,
 							rowsToCsv(
 								visibleColumns,
 								table.getSortedRowModel().rows.map((modelRow) => modelRow.original),
 							),
 						)
 				: null,
-		[exportable, visibleColumns, table],
+		[exportEnabled, exportFilename, visibleColumns, table],
 	)
 
 	const context = useMemo(
@@ -956,6 +998,9 @@ export function GridData<T>({
 					showColumnManager={showButton}
 					columnManagerLabel={managerLabel}
 					onManageColumns={() => setColumnManagerOpen(true)}
+					showExport={exportToolbarButton}
+					exportLabel={exportLabel}
+					onExport={exportCsv}
 					batchActions={batchActions}
 					hasSelection={someSelected}
 					selection={selection}
@@ -978,6 +1023,7 @@ export function GridData<T>({
 					autoSizeColumns={autoSizeColumns}
 					chooseColumns={chooseColumns}
 					exportCsv={exportCsv}
+					exportLabel={exportLabel}
 				>
 					{tableRegion}
 				</GridRegion>
