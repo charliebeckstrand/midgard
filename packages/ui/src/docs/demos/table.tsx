@@ -60,6 +60,25 @@ export function Demo() {
 				</Table>
 			</Example>
 
+			<Example title="Hover">
+				<Table hover>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Name</TableHeader>
+							<TableHeader>Role</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{users.map((user) => (
+							<TableRow key={user.email}>
+								<TableCell>{user.name}</TableCell>
+								<TableCell>{user.role}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</Example>
+
 			<Example title="Outline">
 				<Table outline>
 					<TableHead>

@@ -147,13 +147,17 @@ export const k = {
 		// Density-scaled trailing padding projected onto resizable headers so their
 		// labels clear the handle; lives on the `<table>` element.
 		padding: resizePadding,
-		// Grab area on the column's trailing edge. Spans the column's full height —
-		// header through the last row — via the measured `--grid-resize-height`, so
-		// a drag can begin anywhere down the column's right side, not just the
-		// header. Falls back to the header height until the height is measured.
+		// Grab area straddling the column's trailing edge. Spans the column's full
+		// height — header through the last row — via the measured
+		// `--grid-resize-height`, so a drag can begin anywhere down the right side,
+		// not just the header (falling back to the header height until measured).
+		// Widened and pulled half its width past the boundary (`translate-x-1/2`) so
+		// the hit target straddles the edge rather than a thin sliver — far easier to
+		// land with a pointer (toward WCAG 2.5.8) — while the inner grip stays a thin
+		// line on the boundary.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 w-2 h-[var(--grid-resize-height,100%)]',
-			'flex justify-center',
+			'group/grid-resize absolute top-0 right-0 z-10 w-4 h-[var(--grid-resize-height,100%)] translate-x-1/2',
+			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Full-height grip line, hidden until the column edge or its header is
@@ -233,4 +237,10 @@ export const k = {
 		jumpInput: 'w-16',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
+	row: {
+		// A clickable row (`onRowClick`): pointer cursor and a hover tint so the row
+		// reads as actionable. Interactive cell content (buttons, the select
+		// checkbox) still handles its own clicks; the row guard skips those.
+		clickable: ['cursor-pointer', ...mode('hover:bg-zinc-50', 'dark:hover:bg-zinc-800/40')],
+	},
 } as const

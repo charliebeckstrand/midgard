@@ -33,9 +33,9 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.getByRole('menuitem', { name: 'Sort Ascending' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
-		expect(screen.getByRole('menuitem', { name: 'Sort Descending' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
 	})
 
 	it('sorts the column when a sort item is chosen', () => {
@@ -53,7 +53,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort Descending' }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
 
 		expect(onValueChange).toHaveBeenCalledWith<[SortState[]]>([
 			{ column: 'name', direction: 'desc' },
@@ -92,7 +92,7 @@ describe('Grid context menus', () => {
 		expect(onFlag).toHaveBeenCalledWith(rows[0])
 	})
 
-	it('opens the column manager from the "Choose Columns" item', () => {
+	it('opens the column manager from the "Manage columns" item', () => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -105,7 +105,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Choose Columns' }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Manage columns' }))
 
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 	})
@@ -115,10 +115,10 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.getByRole('menuitem', { name: 'Sort Ascending' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
-		// "Choose Columns" reaches the manager even without the toolbar button.
-		expect(screen.getByRole('menuitem', { name: 'Choose Columns' })).toBeInTheDocument()
+		// "Manage columns" reaches the manager even without the toolbar button.
+		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
 	})
 
 	it('opens the default cell menu with no contextMenu prop', () => {
@@ -225,9 +225,9 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.getByRole('menuitem', { name: 'Pin Left' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 
-		expect(screen.getByRole('menuitem', { name: 'Pin Right' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('menuitem', { name: 'Unpin' })).not.toBeInTheDocument()
 	})
@@ -239,20 +239,20 @@ describe('Grid context menus', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Unpin' })).toBeInTheDocument()
 
-		expect(screen.getByRole('menuitem', { name: 'Pin Right' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toBeInTheDocument()
 
 		// A left-pinned column does not re-offer its own edge.
-		expect(screen.queryByRole('menuitem', { name: 'Pin Left' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})
 
-	it('freezes a column to the left when Pin Left is chosen', () => {
+	it('freezes a column to the left when Pin left is chosen', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(headerCell(container, 'name')?.className).not.toContain('sticky')
 
 		rightClick('columnheader', 'Name')
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin Left' }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
 
 		const head = headerCell(container, 'name')
 

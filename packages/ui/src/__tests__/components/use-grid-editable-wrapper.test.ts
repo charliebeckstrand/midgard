@@ -102,6 +102,8 @@ function setup(
 			},
 			wrapperRef: { current: wrapper },
 			onValueChange: mocks.onValueChange,
+			undo: vi.fn(),
+			redo: vi.fn(),
 		}),
 	)
 
@@ -200,6 +202,8 @@ describe('useGridEditableWrapper: onWrapperKeyDown arrow navigation', () => {
 				},
 				wrapperRef: { current: document.createElement('table') },
 				onValueChange: vi.fn(),
+				undo: vi.fn(),
+				redo: vi.fn(),
 			}),
 		)
 
@@ -565,6 +569,8 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 				},
 				wrapperRef: { current: wrapper },
 				onValueChange: vi.fn(),
+				undo: vi.fn(),
+				redo: vi.fn(),
 			}),
 		)
 
@@ -605,5 +611,33 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 		expect(setActive).not.toHaveBeenCalled()
 
 		expect(setAnchor).not.toHaveBeenCalled()
+	})
+
+	it('onWrapperBlur keeps the active cell when focus moves into a floating editor panel', () => {
+		// A select/date editor opens a panel portalled outside the table; the
+		// active cell must survive so the editor (and its panel) stay mounted.
+		const wrapper = document.createElement('table')
+
+		const portal = document.createElement('div')
+
+		portal.setAttribute('data-floating-ui-portal', '')
+
+		const option = document.createElement('div')
+
+		portal.appendChild(option)
+
+		document.body.appendChild(portal)
+
+		const { api, setActive, setAnchor, setExtraCells } = setup({ wrapper })
+
+		api.onWrapperBlur(makeFocusEvent(wrapper, option))
+
+		expect(setActive).not.toHaveBeenCalled()
+
+		expect(setAnchor).not.toHaveBeenCalled()
+
+		expect(setExtraCells).not.toHaveBeenCalled()
+
+		portal.remove()
 	})
 })

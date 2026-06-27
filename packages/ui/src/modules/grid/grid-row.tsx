@@ -2,7 +2,14 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { type Cell, flexRender, type Table } from '@tanstack/react-table'
-import { type HTMLAttributes, memo, type ReactElement, type ReactNode } from 'react'
+import {
+	type HTMLAttributes,
+	memo,
+	type ReactElement,
+	type KeyboardEvent as ReactKeyboardEvent,
+	type MouseEvent as ReactMouseEvent,
+	type ReactNode,
+} from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
@@ -12,6 +19,27 @@ import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnDragStyle } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
+
+/**
+ * Row-click handler: the row datum and the originating pointer or keyboard
+ * event. @internal
+ */
+export type GridRowClick<T> = (
+	row: T,
+	event: ReactMouseEvent<HTMLTableRowElement> | ReactKeyboardEvent<HTMLTableRowElement>,
+) => void
+
+/**
+ * Interactive cell content that handles its own click, so a row-level
+ * `onRowClick` defers to it rather than double-firing. @internal
+ */
+const INTERACTIVE_CELL_CONTENT =
+	'a,button,input,select,textarea,label,[role="button"],[role="menuitem"],[role="checkbox"],[contenteditable="true"]'
+
+/** Whether the event originated inside interactive cell content. @internal */
+function fromInteractiveContent(target: EventTarget | null): boolean {
+	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
+}
 
 /**
  * Per-row wiring shared by the plain and virtualized bodies: the engine, the
@@ -31,6 +59,8 @@ export type GridRowsProps<T> = {
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
 	rowLabel?: (row: T) => string
+	/** Stable per-row click handler; rows are inert when omitted. */
+	onRowClick?: GridRowClick<T>
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
@@ -39,6 +69,10 @@ export type GridRowsProps<T> = {
 	truncate: boolean
 	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
 	pinning: GridColumnPinning | null
+	/** When the rendered body is a window onto a larger set (virtualization/pagination), rows carry global `aria-rowindex`. */
+	gridSemantics: boolean
+	/** Global row-index base added to each rendered row's index (the page offset under pagination, else 0). */
+	rowIndexOffset: number
 }
 
 /**
@@ -66,6 +100,7 @@ export function renderGridRow<T>(
 			loading={props.rowLoading?.(row) ?? false}
 			className={props.rowClassName?.(row)}
 			rowLabel={props.rowLabel?.(row)}
+			onRowClick={props.onRowClick}
 			selected={props.selection.has(key)}
 			toggleRow={props.toggleRow}
 			reorderable={props.reorderable}
@@ -111,10 +146,13 @@ type GridRowProps<T> = {
 	 * the tooltip.
 	 */
 	truncate: boolean
+	/** Invoked when the row is clicked or activated by keyboard; `undefined` makes the row inert. */
+	onRowClick?: GridRowClick<T>
 	/**
-	 * 1-based position in the full row set (header = 1). Set only when the body
-	 * is virtualized; assistive tech reads it to report position in the
-	 * windowed DOM. Omitted otherwise.
+	 * 1-based position in the full row set (header = 1). Set when the rendered
+	 * body is a window onto a larger set — virtualization or pagination — so
+	 * assistive tech reports position in the full set, not the rendered slice.
+	 * Omitted for a plain, whole-set table.
 	 */
 	rowIndex?: number
 	/**
@@ -160,6 +198,7 @@ function GridRowImpl<T>({
 	toggleRow,
 	reorderable = false,
 	truncate,
+	onRowClick,
 	rowIndex,
 	dataRowIndex,
 	pinning,
@@ -169,8 +208,35 @@ function GridRowImpl<T>({
 			data-selected={dataAttr(selected)}
 			data-row-index={dataRowIndex}
 			data-grid-row={String(rowKey)}
+			data-clickable={dataAttr(onRowClick != null)}
 			aria-rowindex={rowIndex}
-			className={cn(loading && k.rowLoading, className)}
+			// A clickable row is keyboard-focusable and activates on Enter / Space;
+			// a click on interactive cell content defers to that content. Activation
+			// from the keyboard is gated to the row itself so inner controls keep
+			// their own Enter / Space behaviour.
+			tabIndex={onRowClick ? 0 : undefined}
+			onClick={
+				onRowClick
+					? (event) => {
+							if (!fromInteractiveContent(event.target)) onRowClick(row, event)
+						}
+					: undefined
+			}
+			onKeyDown={
+				onRowClick
+					? (event) => {
+							if (
+								(event.key === 'Enter' || event.key === ' ') &&
+								event.target === event.currentTarget
+							) {
+								event.preventDefault()
+
+								onRowClick(row, event)
+							}
+						}
+					: undefined
+			}
+			className={cn(loading && k.rowLoading, onRowClick && k.row.clickable, className)}
 		>
 			{cells.map((cell, colIdx) => {
 				// Every engine column carries its source column on `meta`; the guard

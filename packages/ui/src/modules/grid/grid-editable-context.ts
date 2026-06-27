@@ -13,9 +13,11 @@ import { cellKey, inRect } from './use-grid-editable-navigation'
 // and selection state is mirrored into that store, not a context, so navigation
 // touches only the cells whose slice changed.
 
-/** The live edit-session: the draft string and its commit/cancel actions, read only by the mounted editor. @internal */
+/** The live edit-session: the draft string, its validation error, and its commit/cancel actions, read only by the mounted editor. @internal */
 export type GridEditableEditValue = {
 	draft: string
+	/** Validation message for the open edit, or `null` when valid. A failed commit keeps the editor open and sets this. */
+	error: string | null
 	setDraft: Dispatch<SetStateAction<string>>
 	commitEdit: (advance: GridEditableCommitAdvance) => boolean
 	cancelEdit: () => void
