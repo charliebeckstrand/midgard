@@ -3,7 +3,7 @@
 import type { ColumnSizingState, Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
-import { COLUMN_RESIZE_HANDLE_OVERHANG, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
+import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnFit}. @internal */
@@ -18,8 +18,15 @@ type GridColumnFitOptions<T> = {
 }
 
 /**
- * Distributes a width across the data columns, clamped to each column's bounds,
- * leaving non-data columns (select / actions) at their own size.
+ * Sizes the data columns to the available width while honoring each column's
+ * specified width. That width — the engine size, or the width-less default —
+ * clamped to the column's own bounds, is its desired size, and the fit never
+ * shrinks a column below it. When the desired widths already fill (or exceed) the
+ * available width, the columns hold at those widths and the table overflows
+ * horizontally rather than every column squishing down to fit, which truncates
+ * content. When there is room to spare, the columns grow proportionally to take
+ * it up so the table still spans the container. Non-data columns (select /
+ * actions) keep their own size.
  *
  * @internal
  */
@@ -32,32 +39,57 @@ function fitSizes<T>(table: Table<T>, columns: GridColumn<T>[], width: number): 
 		.filter((col) => !isDataColumn(col))
 		.reduce((sum, col) => sum + (table.getColumn(String(col.id))?.getSize() ?? 0), 0)
 
-	const per = Math.floor(Math.max(0, width - fixed) / dataColumns.length)
-
-	const sizing: ColumnSizingState = {}
-
-	for (const col of dataColumns) {
+	// Each data column's desired width, the floor the fit never shrinks past: its
+	// specified `width` (the engine size) or the width-less default, clamped to the
+	// column's own min/max.
+	const bases = dataColumns.map((col) => {
 		const def = table.getColumn(String(col.id))?.columnDef
 
 		const min = def?.minSize ?? DEFAULT_MIN_COLUMN_SIZE
 
 		const max = def?.maxSize ?? Number.MAX_SAFE_INTEGER
 
-		sizing[String(col.id)] = Math.min(Math.max(per, min), max)
+		return {
+			id: String(col.id),
+			base: Math.min(Math.max(def?.size ?? DEFAULT_COLUMN_SIZE, min), max),
+			max,
+		}
+	})
+
+	const available = Math.max(0, width - fixed)
+
+	const totalBase = bases.reduce((sum, col) => sum + col.base, 0)
+
+	const sizing: ColumnSizingState = {}
+
+	// Desired widths already fill (or exceed) the space: hold them and let the
+	// table scroll horizontally, rather than shrinking below a static width.
+	if (totalBase >= available) {
+		for (const col of bases) sizing[col.id] = col.base
+
+		return sizing
 	}
+
+	// Room to spare: grow each column from its desired width in proportion to it
+	// (clamped to its max) so the columns absorb the surplus and the table fills.
+	const scale = available / totalBase
+
+	for (const col of bases) sizing[col.id] = Math.min(Math.round(col.base * scale), col.max)
 
 	return sizing
 }
 
 /**
- * Auto-sizes resizable columns to fill the container width, holding back a
- * {@link COLUMN_RESIZE_HANDLE_OVERHANG} gutter so the trailing column's resize
- * handle stays clear of the scroll edge. Fits on mount — synchronously, before
- * the browser paints, so the default colgroup never flashes before snapping to
- * fit — and on container resize (via `ResizeObserver`) until the user manually
- * resizes a column, then leaves their widths alone. Returns `sizeToFit`, which
- * re-fits on demand and re-arms the automatic behavior (the "Auto-size columns"
- * action).
+ * Auto-sizes resizable columns to the container while honoring their specified
+ * widths: each column takes its declared width (or the width-less default), the
+ * columns grow proportionally to fill any surplus, and when their widths exceed
+ * the container they hold and the table overflows horizontally rather than
+ * shrinking to fit (which truncates content) — see {@link fitSizes}. Fits on mount
+ * — synchronously, before the browser paints, so the default colgroup never flashes
+ * before snapping to fit — and on container resize (via `ResizeObserver`) until
+ * the user manually resizes a column, then leaves their widths alone. Returns
+ * `sizeToFit`, which re-fits on demand and re-arms the automatic behavior (the
+ * "Auto-size columns" action).
  *
  * @internal
  */
@@ -84,12 +116,10 @@ export function useGridColumnFit<T>({
 
 		if (!width) return
 
-		// Hold back the trailing column's resize handle from the scroll edge: it
-		// overhangs the last column's boundary by half its width, so fitting the
-		// full width would clip it. Fit to the width less that overhang to keep the
-		// handle in view — when the columns can shrink to it; past their minimums
-		// they overflow and the handle is reached by scrolling instead.
-		const sizing = fitSizes(table, columns, Math.max(0, width - COLUMN_RESIZE_HANDLE_OVERHANG))
+		// Fit to the full container width — the resize handle sits inside each
+		// column's trailing edge (it no longer overhangs the boundary), so the
+		// trailing column's handle needs no gutter held back from the scroll edge.
+		const sizing = fitSizes(table, columns, width)
 
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
 	}, [table, columns, containerRef])
