@@ -214,6 +214,8 @@ export const k = {
 			'h-full w-0.5',
 			rounded.full,
 			'opacity-0 transition-opacity',
+			// Revealed by a pointer on the full-height edge strip (the handle's own
+			// `group/grid-resize`), on keyboard focus, and while a drag is in flight.
 			'group-hover/grid-resize:opacity-100',
 			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
 			...mode(

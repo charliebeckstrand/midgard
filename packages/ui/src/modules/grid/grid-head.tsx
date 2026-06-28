@@ -421,6 +421,7 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 			aria-orientation="vertical"
 			aria-label={`Resize ${label}`}
 			aria-valuenow={Math.round(resize.getSize(id))}
+			aria-valuetext={`${Math.round(resize.getSize(id))} pixels`}
 			aria-valuemin={min}
 			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			tabIndex={0}

@@ -112,6 +112,12 @@ export function useGridColumnFit<T>({
 	}, [resizingColumn])
 
 	const applyFit = useCallback(() => {
+		// A controlled or non-resizable grid manages its own sizing; the exposed
+		// `sizeToFit()` (the header "Auto-size columns" action) must respect that as
+		// the automatic ResizeObserver path below already does, rather than write
+		// engine sizing the consumer never asked for.
+		if (!enabled) return
+
 		const width = containerRef?.current?.clientWidth ?? 0
 
 		if (!width) return
@@ -122,7 +128,7 @@ export function useGridColumnFit<T>({
 		const sizing = fitSizes(table, columns, width)
 
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
-	}, [table, columns, containerRef])
+	}, [enabled, table, columns, containerRef])
 
 	useLayoutEffect(() => {
 		const element = containerRef?.current

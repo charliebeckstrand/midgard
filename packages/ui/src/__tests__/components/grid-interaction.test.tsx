@@ -209,3 +209,94 @@ describe('Grid pagination semantics', () => {
 		expect(screen.getByLabelText('Select all rows')).toBeInTheDocument()
 	})
 })
+
+describe('Grid row selection semantics', () => {
+	type Row = { id: number; name: string }
+
+	const selectableColumns: GridColumn<Row>[] = [
+		{ id: 'select', selectable: true },
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+	]
+
+	const plainColumns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+	const rows: Row[] = Array.from({ length: 3 }, (_, i) => ({ id: i + 1, name: `Person ${i + 1}` }))
+
+	const getKey = (row: Row) => row.id
+
+	it('reflects each selectable row state through aria-selected', () => {
+		renderUI(
+			<Grid
+				columns={selectableColumns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([2]) }}
+			/>,
+		)
+
+		expect(screen.getByText('Person 2').closest('tr')).toHaveAttribute('aria-selected', 'true')
+
+		expect(screen.getByText('Person 1').closest('tr')).toHaveAttribute('aria-selected', 'false')
+	})
+
+	it('omits aria-selected entirely when the grid has no selection column', () => {
+		renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} />)
+
+		expect(screen.getByText('Person 1').closest('tr')).not.toHaveAttribute('aria-selected')
+	})
+
+	it('does not advertise aria-multiselectable on a plain selectable table', () => {
+		// A plain selectable table exposes per-row aria-selected but is not a grid,
+		// so aria-multiselectable (a grid-only state) is withheld.
+		renderUI(
+			<Grid
+				columns={selectableColumns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set() }}
+			/>,
+		)
+
+		expect(screen.getByRole('table')).not.toHaveAttribute('aria-multiselectable')
+	})
+
+	it('advertises aria-multiselectable on a navigable selectable grid', () => {
+		renderUI(
+			<Grid
+				columns={selectableColumns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set() }}
+				navigable
+			/>,
+		)
+
+		expect(screen.getByRole('grid')).toHaveAttribute('aria-multiselectable', 'true')
+	})
+})
+
+describe('Grid busy live region', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice' },
+		{ id: 2, name: 'Bob' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	it('announces the settled row count to assistive tech', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The polite status region settles (debounced) to the result count.
+		expect(await screen.findByText('2 rows')).toHaveClass('sr-only')
+	})
+
+	it('announces No results for an empty grid', async () => {
+		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+
+		expect(await screen.findByText('No results')).toBeInTheDocument()
+	})
+})

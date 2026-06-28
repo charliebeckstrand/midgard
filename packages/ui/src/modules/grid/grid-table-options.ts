@@ -124,41 +124,55 @@ queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.len
 const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
 	compareSmart(rowA.getValue(columnId), rowB.getValue(columnId))
 
-/** Maps a grid column to its engine `ColumnDef`: identity, the sort/filter value accessor, the sort comparator, the resize gate, and sizing bounds. @internal */
+/**
+ * Resolves a column's engine behaviors from its declaration: the sort/filter
+ * value `accessorFn` (an explicit `value`, else the row field named by a data
+ * column's id — so columns sort client-side out of the box), the `sortingFn` (a
+ * column's manual `sortFn`, else the smart default; data columns only), and the
+ * query `filterFn` (a filterable column with a value). Each is `undefined` when
+ * the column opts out, so {@link toColumnDef} spreads only what applies. The
+ * comparator and filter are row-shape agnostic, cast to the column's row type.
+ *
+ * @internal
+ */
+function deriveColumnBehavior<T>(col: GridColumn<T>) {
+	const { value, sortFn } = col
+
+	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
+
+	const sortingFn: SortingFn<T> | undefined = !isDataColumn(col)
+		? undefined
+		: sortFn
+			? (rowA, rowB) => sortFn(rowA.original, rowB.original)
+			: (smartSortingFn as SortingFn<T>)
+
+	const filterFn: FilterFn<T> | undefined =
+		col.filterable && value ? (queryFilterFn as FilterFn<T>) : undefined
+
+	return { accessorFn, sortingFn, filterFn }
+}
+
+/** Maps a grid column to its engine `ColumnDef`: identity, the capability gates, the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds. @internal */
 export function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection column
 	// instead holds a natural checkbox width so it isn't that wide. (The
 	// non-resizable auto layout already sizes it to content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? (col.selectable ? SELECT_COLUMN_SIZE : undefined)
 
-	const { value, sortFn } = col
-
-	// Sort and filter read a column's value through an accessor. An explicit
-	// `value` wins; otherwise a data column falls back to the row field named by
-	// its id, so columns sort client-side out of the box. Quick search stays
-	// scoped to columns that declare `value` via `enableGlobalFilter`.
-	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
-
-	// A column's manual comparator wins; otherwise the smart default. Either runs
-	// only under client sorting (the engine's sorted row model).
-	const sortingFn: SortingFn<T> = sortFn
-		? (rowA, rowB) => sortFn(rowA.original, rowB.original)
-		: (smartSortingFn as SortingFn<T>)
+	const { accessorFn, sortingFn, filterFn } = deriveColumnBehavior(col)
 
 	return {
 		id: String(col.id),
 		// Only data columns resize; select/actions hold their width.
 		enableResizing: isDataColumn(col),
-		enableColumnFilter: Boolean(col.filterable && value),
-		enableGlobalFilter: Boolean(value),
+		enableColumnFilter: Boolean(col.filterable && col.value),
+		// Quick search stays scoped to columns that declare `value`.
+		enableGlobalFilter: Boolean(col.value),
 		enableSorting: Boolean(col.sortable),
-		// The accessor feeds sort/filter without changing how the cell renders
-		// (still `col.cell`).
+		// The accessor feeds sort/filter without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
-		// Smart/manual comparator for the data columns that can sort.
-		...(isDataColumn(col) ? { sortingFn } : {}),
-		// The query filter is row-shape-agnostic; cast to this column's row type.
-		...(col.filterable && value ? { filterFn: queryFilterFn as FilterFn<T> } : {}),
+		...(sortingFn ? { sortingFn } : {}),
+		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
 		...(col.maxWidth != null ? { maxSize: col.maxWidth } : {}),

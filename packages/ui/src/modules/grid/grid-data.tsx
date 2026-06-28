@@ -2,31 +2,35 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { cn, dataAttr } from '../../core'
-import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, type SortState } from './context'
 import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
 import { GridContextMenu } from './grid-context-menu'
-import type {
-	GridColumnManagerConfig,
-	GridDataProps,
-	GridExportConfig,
-	GridSort,
-	GridVirtualize,
-} from './grid-data-types'
+import type { GridDataProps, GridExportConfig, GridVirtualize } from './grid-data-types'
 import { downloadCsv, rowsToCsv } from './grid-export'
 import { GridHead } from './grid-head'
+import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
+import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
+import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
@@ -54,9 +58,6 @@ const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAn
  * with the vertical axis off so a downward drag can't scroll the body. @internal
  */
 const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
-
-/** Context menus are on by default (both header and cell); `contextMenu={false}` disables them. @internal */
-const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
 
 /** Props for {@link GridRegion}. @internal */
 type GridRegionProps<T> = {
@@ -139,105 +140,6 @@ function GridRegion<T>({
 			{reordered}
 		</GridContextMenu>
 	)
-}
-
-/** A column's frozen edge once normalized (`true` collapses to `'left'`). @internal */
-type PinSide = 'left' | 'right'
-
-/**
- * Runtime pin changes keyed by column id, layered over the static
- * {@link GridColumn.pinned} flags: a side pins the column, `'none'` unpins a
- * statically-pinned one. The header menu writes here so a column can be frozen
- * or released without touching the column definitions.
- *
- * @internal
- */
-type PinOverrides = Map<string | number, PinSide | 'none'>
-
-/**
- * Overlays the menu's {@link PinOverrides} onto each column's static `pinned`
- * flag, cloning only the columns an override touches — and returning the input
- * array untouched when there are none — so unrelated columns keep their identity
- * (and the downstream `visibleColumns` reference reuse holds).
- *
- * @internal
- */
-function applyPinOverrides<T>(columns: GridColumn<T>[], overrides: PinOverrides): GridColumn<T>[] {
-	if (overrides.size === 0) return columns
-
-	return columns.map((col) => {
-		const override = overrides.get(col.id)
-
-		if (override === undefined) return col
-
-		return { ...col, pinned: override === 'none' ? undefined : override }
-	})
-}
-
-/** Stable empty sort default; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: SortState[] = []
-
-/**
- * Next sort list after cycling `column`. A Shift-click (`additive`) folds the
- * column into the existing sort, preserving the others and their priority order:
- * appending it ascending, flipping it to descending, then dropping it. A plain
- * click collapses the sort to this column alone, cycling ascending → descending →
- * unsorted (so a lone sorted column clears on its third click).
- *
- * @internal
- */
-function nextSort(current: SortState[], column: string | number, additive: boolean): SortState[] {
-	const existing = current.find((entry) => entry.column === column)
-
-	if (additive) {
-		if (!existing) return [...current, { column, direction: 'asc' }]
-
-		if (existing.direction === 'asc') {
-			return current.map((entry) =>
-				entry.column === column ? { column, direction: 'desc' } : entry,
-			)
-		}
-
-		return current.filter((entry) => entry.column !== column)
-	}
-
-	// Tri-state only when this column is already the sole sort; otherwise a plain
-	// click on any other (or additional) column resets to just this one, ascending.
-	if (current.length === 1 && existing) {
-		return existing.direction === 'asc' ? [{ column, direction: 'desc' }] : EMPTY_SORT
-	}
-
-	return [{ column, direction: 'asc' }]
-}
-
-/**
- * Owns the grid's controllable sort: the resolved ordered list (never
- * `undefined` — an empty list is unsorted), the raw setter the engine and header
- * menu write through, and `toggleSort`, which cycles a column's sort via
- * {@link nextSort} (Shift-click folds it into the existing sort).
- *
- * @internal
- */
-function useGridSort(config: GridSort | undefined): {
-	sort: SortState[]
-	setSort: (sort: SortState[]) => void
-	toggleSort: (column: string | number, additive: boolean) => void
-} {
-	const [sortState, setSortState] = useControllable<SortState[]>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? EMPTY_SORT,
-		// The list is never meaningfully `undefined`; coalesce so the public callback
-		// keeps its non-nullable shape (an empty list is the unsorted state).
-		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SORT),
-	})
-
-	const toggleSort = useCallback(
-		(column: string | number, additive: boolean) =>
-			setSortState((prev) => nextSort(prev ?? EMPTY_SORT, column, additive)),
-		[setSortState],
-	)
-
-	return { sort: sortState ?? EMPTY_SORT, setSort: setSortState, toggleSort }
 }
 
 /**
@@ -326,6 +228,8 @@ function resolveTableProps(args: {
 	navigable: boolean
 	ariaRowCount: number
 	colCount: number
+	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
+	multiSelectable: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
@@ -343,6 +247,9 @@ function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
+		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
+		// native table conveys selection through each row's `aria-selected` alone.
+		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
 		...(args.gridSemantics
 			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
@@ -414,16 +321,46 @@ function bridgeRowActivate<T>(
 }
 
 /**
- * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
- * region whose text toggles to `Loading` while `loading`, so assistive tech
- * announces the load start (the rendered table appears on completion).
+ * The polite live-region message for the grid: `Loading` while loading, then —
+ * after a short debounce so a fast filter/search doesn't chatter — a settled
+ * row-count summary. Assistive tech hears the load start, its result, and later
+ * result-count changes from filtering, search, or paging.
  *
  * @internal
  */
-function GridBusyStatus({ loading }: { loading: boolean }) {
+function useGridStatusMessage(loading: boolean, rowCount: number): string {
+	const [message, setMessage] = useState('')
+
+	useEffect(() => {
+		if (loading) {
+			setMessage('Loading')
+
+			return
+		}
+
+		const id = setTimeout(() => {
+			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
+		}, GRID_STATUS_DEBOUNCE_MS)
+
+		return () => clearTimeout(id)
+	}, [loading, rowCount])
+
+	return message
+}
+
+/**
+ * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
+ * region announcing the load start and, on completion, the result count (see
+ * {@link useGridStatusMessage}).
+ *
+ * @internal
+ */
+function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
+	const message = useGridStatusMessage(loading, rowCount)
+
 	return (
 		<span role="status" className="sr-only">
-			{loading ? 'Loading' : ''}
+			{message}
 		</span>
 	)
 }
@@ -487,88 +424,6 @@ function resolveResizeLayout<T>(args: {
 		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
-	}
-}
-
-/**
- * Resolves the column-manager gates, lifts the dialog's open state, and derives
- * the header context-menu actions (sort a column, open the manager). Column
- * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * toolbar button is opt-in
- * ({@link GridColumnManagerConfig.toolbarButton}). Split out of {@link GridData}
- * so its body stays within the cognitive-complexity budget.
- *
- * @internal
- */
-function useGridMenuActions<T>({
-	contextMenu,
-	columnManagerConfig,
-	resize,
-	setSort,
-	hasData,
-}: {
-	contextMenu: GridContextMenuConfig<T> | false | undefined
-	columnManagerConfig: GridColumnManagerConfig | undefined
-	resize: GridColumnResize | null
-	setSort: (sort: SortState[]) => void
-	/** Right-click menus stand down with no source data (its items act on rows). */
-	hasData: boolean
-}) {
-	// Context menus are on by default (`false` opts out), but never without data.
-	const configured = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
-
-	const menu = hasData ? configured : undefined
-
-	// Column management is on by default; `enabled: false` is the master off
-	// switch — no "Manage columns" item, no toolbar button, no dialog.
-	const managerEnabled = columnManagerConfig?.enabled ?? true
-
-	const managerLabel = columnManagerConfig?.label ?? 'Manage columns'
-
-	// Two entry points to the dialog, both under the master switch: the opt-in
-	// toolbar button, and the header menu's "Manage columns" item (shown whenever
-	// a column menu is). The dialog mounts when either can reach it.
-	const showButton = managerEnabled && (columnManagerConfig?.toolbarButton ?? false)
-
-	const menuItemReachable = managerEnabled && Boolean(menu?.column)
-
-	const renderDialog = showButton || menuItemReachable
-
-	const [open, setOpen] = useControllable<boolean>({
-		value: columnManagerConfig?.open,
-		defaultValue: columnManagerConfig?.defaultOpen ?? false,
-		onValueChange: (next) => columnManagerConfig?.onOpenChange?.(next ?? false),
-	})
-
-	// The menu sets a single-column sort, replacing any multi-column sort; Clear
-	// sort empties it. (Multi-column sorting is the header Shift-click path.)
-	const sortColumn = useCallback(
-		(column: string | number, direction: 'asc' | 'desc') => setSort([{ column, direction }]),
-		[setSort],
-	)
-
-	const clearSort = useCallback(() => setSort([]), [setSort])
-
-	// Backs the menu's "Manage columns" item; `null` keeps it out. Non-null
-	// implies `renderDialog`, so opening is always valid (the item only ever
-	// renders inside a column menu, which the master switch already gated).
-	const chooseColumns = useMemo(
-		() => (renderDialog ? () => setOpen(true) : null),
-		[renderDialog, setOpen],
-	)
-
-	return {
-		contextMenu: menu,
-		renderDialog,
-		showButton,
-		managerLabel,
-		columnManagerOpen: open ?? false,
-		setColumnManagerOpen: setOpen,
-		sortColumn,
-		clearSort,
-		// Header "Auto-size columns" — only when resizing is on.
-		autoSizeColumns: resize?.sizeToFit ?? null,
-		chooseColumns,
 	}
 }
 
@@ -775,6 +630,13 @@ export function GridData<T>({
 
 	const hasData = rows.length > 0 && !showingError
 
+	// A selection column makes rows selectable, so each row exposes `aria-selected`
+	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
+	const hasSelectionColumn = useMemo(
+		() => visibleColumns.some((col) => col.selectable),
+		[visibleColumns],
+	)
+
 	const { toggleRow, toggleAll, allSelected, someSelected } = useGridSelectionActions({
 		selection,
 		setSelection,
@@ -872,6 +734,10 @@ export function GridData<T>({
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
 
+	// Full filtered row extent (the server total when paginating) for the busy
+	// region's result announcement; the header row the aria count adds is excluded.
+	const dataRowCount = pagination?.rowCount ?? renderRows.length
+
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	const {
@@ -917,6 +783,7 @@ export function GridData<T>({
 					navigable,
 					ariaRowCount,
 					colCount: visibleColumns.length,
+					multiSelectable: hasSelectionColumn,
 					tableWidth,
 				})}
 			>
@@ -950,6 +817,7 @@ export function GridData<T>({
 					rowIndexOffset={pageRowOffset}
 					selection={selection}
 					toggleRow={toggleRow}
+					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					truncate={truncate}
 					pinning={pinning}
@@ -982,7 +850,7 @@ export function GridData<T>({
 				data-resizing={dataAttr(resizing)}
 				className={cn(k.wrapper)}
 			>
-				<GridBusyStatus loading={loading} />
+				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
 				{renderDialog && (
 					<GridColumnManagerDialog

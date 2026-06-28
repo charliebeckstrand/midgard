@@ -13,6 +13,9 @@ import type { GridEditableEditorProps } from './grid-editable-types'
  * and Escape cancels. Pair with a boolean `parse` on the column (e.g.
  * `parse: (raw) => raw === 'true'`) to round-trip the value as a boolean.
  *
+ * @remarks Consumes the shared {@link GridEditableEditorProps}; a boolean cell
+ * needs no editor-specific options, so it exports no dedicated props type (unlike
+ * the number, currency, date, and select editors).
  * @typeParam T - The row type backing the cell under edit.
  */
 export function GridEditableBooleanEditor<T>({

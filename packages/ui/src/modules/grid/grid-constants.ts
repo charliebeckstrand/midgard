@@ -1,4 +1,7 @@
+/** Estimated row height (px) for virtualization when {@link GridVirtualize} sets none. @internal */
 export const DEFAULT_ROW_HEIGHT = 44
+
+/** Rows rendered beyond the viewport on each side under virtualization, when unset. @internal */
 export const DEFAULT_OVERSCAN = 10
 
 // Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it.
@@ -27,3 +30,6 @@ export const COLUMN_RESIZE_STEP = 16
 
 /** Rows a PageUp/PageDown jumps the read-only cell cursor. @internal */
 export const NAV_PAGE_STEP = 10
+
+/** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */
+export const GRID_STATUS_DEBOUNCE_MS = 150

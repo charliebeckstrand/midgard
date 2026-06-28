@@ -89,4 +89,25 @@ describe('useGridEditableHistory', () => {
 
 		expect(result.current.canUndo).toBe(false)
 	})
+
+	it('collapses duplicate cells in one batch (last write wins) so undo stays consistent', () => {
+		const { result, onValueChange } = setup()
+
+		// Two writes to the same cell in one batch (e.g. a paste whose target rows
+		// resolve to duplicate keys).
+		act(() =>
+			result.current.emit([
+				{ rowKey: 1, columnId: 'rate', value: 5 },
+				{ rowKey: 1, columnId: 'rate', value: 8 },
+			]),
+		)
+
+		// Forwarded as a single last-write-wins entry, not the duplicated pair.
+		expect(onValueChange).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'rate', value: 8 }])
+
+		// A single inverse entry restores the one prior value — no double-apply on undo.
+		act(() => result.current.undo())
+
+		expect(onValueChange).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'rate', value: 2.35 }])
+	})
 })
