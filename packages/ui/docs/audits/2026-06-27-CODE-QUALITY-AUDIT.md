@@ -17,12 +17,14 @@ static-analyzer output was false-positive noise (see the reliability appendix);
 the genuine findings were a small set of concrete items. There were **no critical
 (data-loss / crash) defects** — severities topped out at `high`.
 
-Both high-severity items and the bulk of the medium and low findings were
-resolved in the follow-up pass (commits below). The deferred items are the
-explicit-ARIA-roles change (multi-file, flagged for screen-reader validation),
-two behavior-neutral refactors (menu-actions extraction, `deriveColumnBehavior`),
-a speculative body-memo, and the sort-activation announcement (which would deviate
-from the APG-standard `aria-sort` already in place).
+Both high-severity items and nearly all the medium and low findings were resolved
+in the follow-up pass (commits below), including the sort-state, menu-actions,
+pin-override, and `deriveColumnBehavior` extractions. The explicit-ARIA-roles item
+was re-examined and dropped as redundant (native table elements already carry the
+grid-compatible implicit roles). What remains is a speculative body-memo (profile
+first), an optional resolver/resize-handle split, and the sort-activation
+announcement (deferred — it would deviate from the APG-standard `aria-sort` already
+in place).
 
 ## Findings by severity
 
@@ -30,14 +32,14 @@ from the APG-standard `aria-sort` already in place).
 |-----|------|-----------|-------|--------|
 | **high** | a11y | grid-row.tsx:206 | Selectable rows never emit `aria-selected` | ✅ RESOLVED `a641d5c` |
 | **high** | perf | grid-row.tsx:323 | `GridDataCell` not memoized — cells re-render with any row re-render | ✅ RESOLVED `a641d5c` |
-| medium | a11y | table-header.tsx:27 · grid-head.tsx:83 | No explicit `role=row/rowgroup/columnheader` under `role="grid"` | ◯ OPEN (needs SR validation) |
+| medium | a11y | table-header.tsx:27 · grid-head.tsx:83 | No explicit `role=row/rowgroup/columnheader` under `role="grid"` | NOT A DEFECT (native roles suffice — see note) |
 | medium | correctness | grid-editable-context.ts:70 | `useGridEditableCellSlice` mutates a ref during render | ✅ RESOLVED `7f8cc93` |
 | medium | a11y | grid-data.tsx:392 | Busy live-region never announces completion or row-count | ✅ RESOLVED `e3031a7` |
 | medium | a11y | grid-head.tsx:368 | Sort activation announces nothing (relies on `aria-sort`) | ◯ OPEN (by design — see note) |
 | medium | api | grid-data-types.ts:62 | `GridSelection.onValueChange` payload needlessly nullable | ✅ RESOLVED `da61784` |
 | medium | cohesion | grid-data.tsx:173 | Extractable sort-state machine buried in the hub | ✅ RESOLVED `aa4a7b4` |
-| medium | cohesion | grid-data.tsx:462 | Extractable menu-actions + pin-override unit | ◯ OPEN (deferred refactor) |
-| medium | complexity | grid-table-options.ts:128 | `toColumnDef` accidental conditional-spread density | ◯ OPEN (deferred refactor) |
+| medium | cohesion | grid-data.tsx:462 | Extractable menu-actions + pin-override unit | ✅ RESOLVED `1946284` |
+| medium | complexity | grid-table-options.ts:128 | `toColumnDef` accidental conditional-spread density | ✅ RESOLVED `cf15cf5` |
 | medium | correctness | use-grid-editable-history.ts:73 | History inverse collides if one batch writes a cell twice | ✅ RESOLVED `3802721` |
 | medium | perf | grid-body.tsx:27 · grid-head.tsx:71 | Body/head components unmemoized | ◯ OPEN (needs-judgment, profile first) |
 | low | correctness | use-grid-column-fit.ts:109 | `enabled` gated auto-fit but not the exposed `sizeToFit()` | ✅ RESOLVED `b725750` |
@@ -63,13 +65,16 @@ selection also advertises `aria-multiselectable` (grid-only, so a windowed
 `role="table"` or native table conveys selection through `aria-selected` alone).
 Covered by new row-selection ARIA tests.
 
-**No explicit ARIA roles under `role="grid"` — ◯ OPEN.** Data cells get explicit
-`role="gridcell"` (via the navigation/editable augmentation), but `<th>` headers,
-`<tr>` rows, and `<thead>`/`<tbody>` rely on native table→grid remapping, which is
-inconsistent across AT. Deferred: the change threads a grid-role flag through
-grid-head, grid-row, both body components, and grid-data, and the audit flagged it
-for real screen-reader validation before shipping (native remapping may suffice on
-the true `<table>`).
+**No explicit ARIA roles under `role="grid"` — NOT A DEFECT (re-examined).**
+Setting `role="grid"` on a `<table>` does not reset its descendants' implicit
+roles, and the table elements' implicit roles are already the grid-compatible ones:
+`<tr>` → `row`, `<th>` → `columnheader`, `<thead>`/`<tbody>` → `rowgroup`. The one
+element whose implicit role (`cell`) is wrong for a grid is `<td>` → needs
+`gridcell`, and the data cells already receive that via the navigation/editable
+augmentation. So adding explicit `role=row/rowgroup/columnheader` would be redundant
+— which is why the original finding hedged. Left as-is; the only residual edge is
+the selection/actions `<td>`s reading as `cell` rather than `gridcell`, which ARIA
+permits as a row child and which the keyboard cursor never traverses.
 
 **Busy live-region — ✅ RESOLVED `e3031a7`.** `GridBusyStatus` announced "Loading"
 on start but cleared to empty on completion. The polite status region now settles
@@ -173,13 +178,14 @@ benign localized TanStack-boundary casts.
 optional sub-split of `nextSort` into `foldAdditive`/`collapseToColumn` was left as
 essential domain logic.
 
-**Menu-actions + pin-override extraction — ◯ OPEN.** `useGridMenuActions`,
-`DEFAULT_CONTEXT_MENU`, and the pure `applyPinOverrides`/`PinSide`/`PinOverrides`
-remain candidates for `grid-menu-actions.ts`. Behavior-neutral; deferred.
+**Menu-actions + pin-override extraction — ✅ RESOLVED `1946284`.**
+`useGridMenuActions` + `DEFAULT_CONTEXT_MENU` moved to `grid-menu-actions.ts`, and
+the pin-override model (`PinSide`/`PinOverrides`/`applyPinOverrides`) to
+`grid-pin-overrides.ts`, trimming `grid-data.tsx` from 987 to ~855 lines.
 
-**`toColumnDef` `deriveColumnBehavior` — ◯ OPEN.** The conditional-spread density in
-`toColumnDef` (the real owner of the misattributed `autoRemove` complexity flag)
-could move to a `deriveColumnBehavior(col)` helper. Deferred.
+**`toColumnDef` `deriveColumnBehavior` — ✅ RESOLVED `cf15cf5`.** The accessor /
+sort-comparator / filter derivation moved to a named `deriveColumnBehavior(col)`
+helper, flattening the `ColumnDef` return body.
 
 ### Magic numbers — NOT A DEFECT
 
@@ -206,11 +212,7 @@ output was false-positive for this codebase. Trust the tools as *pointers*.
 
 ## Remaining work
 
-- **Explicit ARIA grid roles** (medium, a11y) — additive `role=row/rowgroup/columnheader`
-  under `role="grid"`; pair with screen-reader validation.
 - **Body/head memoization** (medium, perf) — profile a large non-virtualized grid first.
-- **Menu-actions + pin-override extraction** and **`deriveColumnBehavior`** (medium,
-  cohesion/complexity) — behavior-neutral refactors of `grid-data.tsx` / `toColumnDef`.
 - **Optional cohesion** — extract `GridColumnResizeHandle`; group the pure
   `grid-data.tsx` resolvers into a sibling.
 - **Sort-activation announcement** (medium, a11y) — only via a polite live-region,
