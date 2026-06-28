@@ -529,10 +529,10 @@ const GridColumnHeader = memo(function GridColumnHeader({
 		>
 			<span className={cn(k.filter.slot)}>
 				{pinnedSide ? (
-					<span className={cn(k.head.pinnedLabel)}>
+					<span className={cn(k.head.pinned.label)}>
 						<button
 							type="button"
-							className={cn(k.head.pinButton)}
+							className={cn(k.head.pinned.button)}
 							aria-label={`Unpin ${columnLabel(column)}`}
 							onClick={() => pinColumn(column.id, false)}
 						>
