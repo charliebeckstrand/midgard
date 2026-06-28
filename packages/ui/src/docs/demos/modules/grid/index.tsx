@@ -1,9 +1,8 @@
-import { PencilIcon, TrashIcon } from 'lucide-react'
+import { PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
@@ -443,31 +442,6 @@ const BatchActionsExample = () => {
 	)
 }
 
-const RowActionsExample = () => {
-	return (
-		<Grid
-			columns={[
-				...columns,
-				{
-					id: 'actions',
-					actions: () => (
-						<Flex gap="sm">
-							<Button variant="bare" color="blue">
-								<Icon icon={<PencilIcon />} />
-							</Button>
-							<Button variant="bare" color="red">
-								<Icon icon={<TrashIcon />} />
-							</Button>
-						</Flex>
-					),
-				},
-			]}
-			rows={people}
-			getKey={(row) => row.id}
-		/>
-	)
-}
-
 const RowClickExample = () => {
 	const [picked, setPicked] = useState<Person | null>(null)
 
@@ -646,7 +620,6 @@ const tabs = [
 	'Filters',
 	'Toolbar',
 	'Pagination',
-	'Actions',
 	'State',
 	'Editable',
 ] as const
@@ -730,6 +703,17 @@ export function Demo() {
 						<Example title="Batch actions">
 							<BatchActionsExample />
 						</Example>
+
+						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+							<RowClickExample />
+						</Example>
+
+						<Example
+							title="Context menus"
+							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
+						>
+							<ContextMenuExample />
+						</Example>
 					</Stack>
 				</TabContent>
 
@@ -809,25 +793,6 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Actions">
-					<Stack gap="xl">
-						<Example title="Row actions">
-							<RowActionsExample />
-						</Example>
-
-						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
-							<RowClickExample />
-						</Example>
-
-						<Example
-							title="Context menus"
-							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
-						>
-							<ContextMenuExample />
-						</Example>
-					</Stack>
-				</TabContent>
-
 				<TabContent value="State">
 					<Stack gap="xl">
 						<Example title="Loading">
@@ -846,13 +811,16 @@ export function Demo() {
 
 				<TabContent value="Editable">
 					<Stack gap="xl">
-						<Example title="Editable">
+						<Example
+							title="Editable"
+							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+						>
 							<EditableExample />
 						</Example>
 
 						<Example
 							title="Editor types"
-							code={code`<Grid columns={[{ ...col, editor: GridEditableSelectEditor }]} editable />`}
+							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
 						>
 							<EditorTypesExample />
 						</Example>

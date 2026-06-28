@@ -38,13 +38,8 @@ import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
-import {
-	GridNavContext,
-	type GridNavTableProps,
-	type GridRowActivate,
-	useGridNavigation,
-} from './use-grid-navigation'
-import { useGridNavigationColumns } from './use-grid-navigation-columns'
+import { useGridCursor } from './use-grid-cursor'
+import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
@@ -463,6 +458,7 @@ export function GridData<T>({
 	exportable = false,
 	reorder = false,
 	navigable = false,
+	editable,
 	truncate = true,
 	rowClassName,
 	onRowClick,
@@ -514,9 +510,10 @@ export function GridData<T>({
 		})
 	}, [])
 
-	// Read-only keyboard cursor (opt-in via `navigable`). Bounds and the active
-	// row resolve from these refs at event/render time, so the cursor's callbacks
-	// and the augmented columns stay stable across moves and the memoized rows hold.
+	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
+	// Bounds, the active row, the row keys, and the visible data columns resolve
+	// from these refs at event/render time, so the cursor's callbacks and the
+	// augmented columns stay stable across moves and the memoized rows hold.
 	const rowsRef = useRef<T[]>([])
 
 	const colCountRef = useRef(0)
@@ -525,6 +522,10 @@ export function GridData<T>({
 
 	const colIndexMapRef = useRef<Map<string | number, number>>(new Map())
 
+	const rowKeysRef = useRef<(string | number)[]>([])
+
+	const dataColumnsRef = useRef<GridColumn<T>[]>([])
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -532,18 +533,22 @@ export function GridData<T>({
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
 
-	const nav = useGridNavigation({ enabled: navigable, rowsRef, colCountRef, onRowActivate })
-
-	// Augment the data columns with the cursor wiring (cell ids, `role="gridcell"`,
-	// click-to-focus, active marker) before the engine builds its column defs. A
-	// non-navigable grid gets `pinnedColumns` back untouched.
-	const navColumns = useGridNavigationColumns<T>({
-		enabled: navigable,
+	// The cursor + editing layer: the augmented columns, the `<table>` cursor
+	// props, the cursor store, and the row-editing-context wrapper. Inert for a
+	// static grid.
+	const cursor = useGridCursor<T>({
+		navigable,
+		editable,
 		columns: pinnedColumns,
-		rowIndexMapRef,
-		colIndexMapRef,
-		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		onRowActivate,
+		refs: {
+			rowsRef,
+			colCountRef,
+			rowIndexMapRef,
+			colIndexMapRef,
+			rowKeysRef,
+			dataColumnsRef,
+		},
 	})
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
@@ -586,8 +591,9 @@ export function GridData<T>({
 		// The engine receives the full column set and resolves which render (and
 		// in what order) from the order / visibility / pinning state below;
 		// `visibleColumns` comes back in that resolved order for the header and body.
-		// Under `navigable` these carry the cursor wiring (see `navColumns`).
-		columns: navColumns,
+		// Under a cursor (navigable or editable) these carry the cursor/editor
+		// wiring (see `useGridCursor`).
+		columns: cursor.columns,
 		getKey,
 		selection,
 		columnOrder,
@@ -626,6 +632,12 @@ export function GridData<T>({
 	rowIndexMapRef.current = rowIndexMap
 
 	colIndexMapRef.current = colIndexMap
+
+	// Editing resolves a cell's row key and column from these — the cursor's row
+	// and (data-)column index spaces.
+	rowKeysRef.current = rowKeys
+
+	dataColumnsRef.current = dataColumns
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
@@ -786,10 +798,10 @@ export function GridData<T>({
 
 	const reorderActive = canReorder && hasData
 
-	// The cursor store is always provided (inert when not `navigable`); only a
-	// navigable grid's cells subscribe, so the wrapper costs nothing otherwise.
+	// The cursor store is always provided (inert when not navigable/editable); only
+	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
-		<GridNavContext value={nav.store}>
+		<GridNavContext value={cursor.navStore}>
 			<Table
 				density={density}
 				bleed={bleed}
@@ -800,10 +812,10 @@ export function GridData<T>({
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
-					navTableProps: nav.navTableProps,
+					navTableProps: cursor.navTableProps,
 					loading,
 					gridSemantics,
-					navigable,
+					navigable: cursor.cursorEnabled,
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,
@@ -850,16 +862,20 @@ export function GridData<T>({
 		</GridNavContext>
 	)
 
+	// Mount the editing contexts (the open edit's coord and session) around the
+	// table when editable; a read-only grid returns it untouched.
+	const cursorContent = cursor.wrap(tableContent)
+
 	const tableRegion = needsScrollWrapper ? (
 		<div
 			ref={scrollRef}
 			className={cn(k.sticky.wrapper)}
 			style={maxHeight ? { maxHeight } : undefined}
 		>
-			{tableContent}
+			{cursorContent}
 		</div>
 	) : (
-		tableContent
+		cursorContent
 	)
 
 	return (

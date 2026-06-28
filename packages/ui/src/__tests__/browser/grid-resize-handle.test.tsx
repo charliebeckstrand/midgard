@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import type { GridEditableColumn } from '../../modules/grid/grid-editable-types'
 import { renderUI, waitFor } from '../helpers'
 
 /**
@@ -168,11 +167,6 @@ describe('grid resize grip alignment (real browser)', () => {
 		{ id: 'role', title: 'Role', cell: (r) => r.role },
 	]
 
-	const editableColumns: GridEditableColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', width: '200px' },
-		{ id: 'role', title: 'Role', field: 'role' },
-	]
-
 	// Distance from the 'name' column's trailing border to its grip's right edge:
 	// about one cell-padding when the grip centres in the grab zone.
 	function gripInset(container: HTMLElement): number {
@@ -202,16 +196,16 @@ describe('grid resize grip alignment (real browser)', () => {
 		expect(gripInset(container)).toBeLessThan(14)
 	})
 
-	it('centres the grip the same way in a non-truncating (editable) grid', async () => {
+	it('centres the grip the same way in a non-truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid
-					editable
+					resizable
 					outline
-					columns={editableColumns}
+					truncate={false}
+					columns={readOnlyColumns}
 					rows={rows}
 					getKey={(r) => r.id}
-					onValueChange={() => {}}
 				/>
 			</div>,
 		)
@@ -220,7 +214,7 @@ describe('grid resize grip alignment (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// The editable surface centres the grip identically — alignment no longer
+		// A non-truncating grid centres the grip identically — alignment no longer
 		// depends on truncation.
 		expect(gripInset(container)).toBeGreaterThan(3)
 

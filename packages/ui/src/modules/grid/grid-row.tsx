@@ -166,9 +166,9 @@ type GridRowProps<T> = {
 	rowIndex?: number
 	/**
 	 * 0-based index into the full `rows` array, surfaced as `data-row-index`.
-	 * Keyboard bridges (e.g. GridEditable) resolve a `<tr>` to its data row
-	 * through it; under virtualization, spacer rows and windowing make physical
-	 * DOM position diverge from data order.
+	 * Keyboard bridges resolve a `<tr>` to its data row through it; under
+	 * virtualization, spacer rows and windowing make physical DOM position
+	 * diverge from data order.
 	 */
 	dataRowIndex: number
 	/** Frozen-column controls; pinned cells stick to an edge over the scrolling ones. `null` when none. */

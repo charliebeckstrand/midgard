@@ -324,4 +324,22 @@ export const k = {
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
 		],
 	},
+	// Inline per-row editing: an editable row's cells render their editors (the
+	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
+	// their normal styling, sitting inside the cell padding — the editing row just
+	// grows to fit the controls.
+	edit: {
+		// Host for a cell's editor; anchors the absolute validation message.
+		host: 'relative flex w-full items-center',
+		// The in-cell control fills the cell width.
+		input: 'w-full',
+		// A failed validation rings the editor and anchors a small message below it.
+		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
+		error: [
+			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+			'text-white shadow',
+			...mode('bg-red-600', 'dark:bg-red-500'),
+		],
+	},
 } as const

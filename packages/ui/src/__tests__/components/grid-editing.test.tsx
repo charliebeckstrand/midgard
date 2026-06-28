@@ -1,0 +1,196 @@
+import { useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import { Grid, type GridColumn } from '../../modules/grid'
+import { bySlot, fireEvent, renderUI } from '../helpers'
+
+/**
+ * Per-row inline editing baked into Grid: a row in the `editable` set puts all of
+ * its editable cells into edit mode at once (the editor inferred from the value's
+ * primitive type, or a column `editCell` slot). Edits stage live; removing the
+ * row from the set saves its changed cells as one batch through `onValueChange`,
+ * and Escape reverts a cell.
+ */
+describe('Grid per-row editing', () => {
+	type Row = { id: number; name: string; count: number; done: boolean }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2, done: false },
+		{ id: 2, name: 'Bob', count: 5, done: true },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+	]
+
+	function renderGrid(cols: GridColumn<Row>[] = columns) {
+		const onValueChange = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set([1]))}>
+						edit-1
+					</button>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={cols}
+						rows={baseRows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onValueChange }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		return {
+			...view,
+			onValueChange,
+			editRow1: () => fireEvent.click(view.getByRole('button', { name: 'edit-1' })),
+			save: () => fireEvent.click(view.getByRole('button', { name: 'save' })),
+		}
+	}
+
+	it('renders display content, not editors, for a row that is not editable', () => {
+		const { container } = renderGrid()
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('puts every editable cell of an editable row into edit mode, inferring the editor by value type', () => {
+		const { container, editRow1 } = renderGrid()
+
+		editRow1()
+
+		// name → text input, count → number input, done → yes/no listbox.
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
+
+		expect(bySlot(container, 'grid-edit-boolean-input')).toBeInTheDocument()
+	})
+
+	it('saves a row (removing it from the set) as one batch of its changed cells', () => {
+		const { container, editRow1, save, onValueChange } = renderGrid()
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		save()
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
+	it('emits nothing when the row is saved with no changes', () => {
+		const { editRow1, save, onValueChange } = renderGrid()
+
+		editRow1()
+
+		save()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('reverts a cell on Escape and does not save it', () => {
+		const { container, editRow1, save, onValueChange } = renderGrid()
+
+		editRow1()
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Discarded' } })
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		// The editor stays open (the row is still editing) and resets to the value.
+		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Alice')
+
+		save()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('uses a column editCell slot instead of the inferred editor', () => {
+		const slotColumns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				editCell: ({ value, onValueUpdate }) => (
+					<input
+						data-slot="custom-edit"
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				),
+			},
+		]
+
+		const { container, editRow1, save, onValueChange } = renderGrid(slotColumns)
+
+		editRow1()
+
+		expect(bySlot(container, 'custom-edit')).toBeInTheDocument()
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		fireEvent.change(bySlot(container, 'custom-edit') as HTMLInputElement, {
+			target: { value: 'Slotted' },
+		})
+
+		save()
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Slotted' }])
+	})
+
+	it('shows a live validation error and skips an invalid cell on save', () => {
+		const validatedColumns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+			},
+		]
+
+		const { container, editRow1, save, onValueChange } = renderGrid(validatedColumns)
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: '' },
+		})
+
+		expect(container.querySelector('[role="alert"]')).toHaveTextContent('Required')
+
+		save()
+
+		// The invalid cell is dropped, not emitted.
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		// A valid value saves.
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Fixed' },
+		})
+
+		save()
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Fixed' }])
+	})
+})
