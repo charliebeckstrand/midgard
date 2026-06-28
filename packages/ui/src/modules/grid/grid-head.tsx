@@ -337,9 +337,13 @@ function sortDirectionIcon(
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+	const { resizing } = useGrid()
 
 	return (
-		<Tooltip enabled={truncated}>
+		// `!resizing` holds the tooltip closed through a column drag-resize: the
+		// drag reflows the header, and the overflow tooltip would otherwise flash
+		// open over the content the resize is reshaping.
+		<Tooltip enabled={truncated && !resizing}>
 			<TooltipTrigger>
 				<span ref={ref} className={cn(k.head.title)}>
 					{title}

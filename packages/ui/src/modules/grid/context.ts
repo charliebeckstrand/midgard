@@ -30,6 +30,13 @@ export type GridContextValue = {
 	 */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 	stickyHeader: boolean
+	/**
+	 * Whether a column drag-resize is in flight. Head and cells read it to
+	 * suppress their truncation tooltips for the duration: a resize reflows the
+	 * columns, and the overflow tooltip would otherwise flash open over the
+	 * content the drag is reshaping.
+	 */
+	resizing: boolean
 }
 
 /**

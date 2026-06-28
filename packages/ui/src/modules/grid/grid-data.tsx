@@ -421,7 +421,7 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
+		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
@@ -671,6 +671,17 @@ export function GridData<T>({
 		[exportEnabled, exportFilename, visibleColumns, table],
 	)
 
+	// Fixed-layout column widths so a resize touches only its own column;
+	// `resizing` flags an in-flight drag so other columns' grips stand down (and
+	// head/cells suppress their truncation tooltips, shared below via context).
+	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
+		resizable,
+		resize,
+		columns: visibleColumns,
+		density,
+		className,
+	})
+
 	const context = useMemo(
 		() => ({
 			selection,
@@ -682,6 +693,7 @@ export function GridData<T>({
 			toggleSort,
 			pinColumn,
 			stickyHeader,
+			resizing,
 		}),
 		[
 			selection,
@@ -693,6 +705,7 @@ export function GridData<T>({
 			toggleSort,
 			pinColumn,
 			stickyHeader,
+			resizing,
 		],
 	)
 
@@ -752,16 +765,6 @@ export function GridData<T>({
 	const rowHover = resolveHover(hover, onRowClick)
 
 	const reorderActive = canReorder && hasData
-
-	// Fixed-layout column widths so a resize touches only its own column;
-	// `resizing` flags an in-flight drag so other columns' grips stand down.
-	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
-		resizable,
-		resize,
-		columns: visibleColumns,
-		density,
-		className,
-	})
 
 	// The cursor store is always provided (inert when not `navigable`); only a
 	// navigable grid's cells subscribe, so the wrapper costs nothing otherwise.

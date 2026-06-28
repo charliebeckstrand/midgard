@@ -24,17 +24,29 @@ const sortIcon = defineRecipe({
 })
 
 /**
- * Trailing padding for a resizable header so its label clears the resize handle,
- * scaled to the table's density. Projected from the `<table>` element onto the
- * resizable headers — those carrying `data-resizable` — so it overrides the
+ * Density-scaled resize metrics, projected from the `<table>` element onto the
+ * resizable headers (those carrying `data-resizable`) so they override the
  * density cell padding at higher specificity without `!important`. Keyed by the
- * friendly density level the grid forwards to `<Table>`.
+ * friendly density level the grid forwards to `<Table>`. Two coupled measures:
+ *
+ * - the header's trailing padding, so its label clears the handle; and
+ * - the resize handle's own width (the handle can't size itself — only the table
+ *   knows the density).
+ *
+ * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
+ * 4/8/12px): the handle is twice that padding, so its centred grip
+ * (`justify-center`) lands exactly one cell-padding in from the trailing edge —
+ * flush with where the header label and body values truncate, so the grip line
+ * meets the value instead of cutting through it.
  */
-const resizePadding = defineRecipe({
+const resizeMetrics = defineRecipe({
 	density: {
-		compact: '[&>*>tr>th[data-resizable]]:pr-2',
-		snug: '[&>*>tr>th[data-resizable]]:pr-4',
-		loose: '[&>*>tr>th[data-resizable]]:pr-6',
+		compact: [
+			'[&>*>tr>th[data-resizable]]:pr-2',
+			'[&>*>tr>th[data-resizable]>[role=separator]]:w-2',
+		],
+		snug: ['[&>*>tr>th[data-resizable]]:pr-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
+		loose: ['[&>*>tr>th[data-resizable]]:pr-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
 	},
 	defaults: { density: 'snug' },
 })
@@ -184,12 +196,16 @@ export const k = {
 		// Anchors the absolutely-positioned handle (non-sticky headers only — a
 		// sticky header is already a positioned containing block).
 		cell: 'relative',
-		// Density-scaled trailing padding projected onto resizable headers so their
-		// labels clear the handle; lives on the `<table>` element.
-		padding: resizePadding,
+		// Density-scaled resize metrics (header trailing padding + handle width)
+		// projected onto resizable headers; lives on the `<table>` element.
+		metrics: resizeMetrics,
 		// Grab area along the column's trailing edge, anchored to the inside of that
-		// edge (`right-0`, no outward shift) and widening leftward into the cell to a
-		// comfortable ~24px target (toward WCAG 2.5.8). It deliberately does not
+		// edge (`right-0`, no outward shift) and widening leftward into the cell. Its
+		// width is density-scaled (set via `metrics`, since only the table knows the
+		// density) to twice the cell's horizontal padding — 8/16/24px across
+		// compact/snug/loose — so the centred grip sits one cell-padding in from the
+		// edge, flush with where the header label and body values truncate (only the
+		// loose step reaches the 24px WCAG 2.5.8 target). It deliberately does not
 		// overhang the boundary: an outward overhang (a former `translate-x-1/2`) was
 		// painted over by the next sticky header's opaque cell — clipping the grip to
 		// a sliver across the header — and, on the trailing column, pushed past the
@@ -199,17 +215,18 @@ export const k = {
 		// down the right side, not just the header (falling back to the header height
 		// until measured).
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)]',
-			'flex items-center justify-end',
+			'group/grid-resize absolute top-0 right-0 z-10 h-[var(--grid-resize-height,100%)]',
+			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
 		// grip (`kata/resizable`) so every resize affordance reads the same width —
-		// flush against the column's trailing edge (so it sits within the cell and
-		// stays clear of the neighbour's opaque sticky header), hidden until the edge
-		// is hovered, and shown on keyboard focus or active drag: tints on hover,
-		// turns accent on focus or drag. Focus shows as a colour change, not an outset
-		// ring, so the scroll container can't clip it.
+		// centred in the handle so it sits one cell-padding in from the column's
+		// trailing edge, flush with where the values truncate (and clear of the
+		// neighbour's opaque sticky header), hidden until the edge is hovered, and
+		// shown on keyboard focus or active drag: tints on hover, turns accent on
+		// focus or drag. Focus shows as a colour change, not an outset ring, so the
+		// scroll container can't clip it.
 		grip: [
 			'h-full w-0.5',
 			rounded.full,
