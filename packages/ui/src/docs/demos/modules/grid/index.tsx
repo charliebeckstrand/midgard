@@ -1,11 +1,12 @@
-import { PencilIcon, TrashIcon } from 'lucide-react'
+import { PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { Stack } from '../../../../components/stack'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import {
 	Grid,
 	type GridColumn,
@@ -441,31 +442,6 @@ const BatchActionsExample = () => {
 	)
 }
 
-const RowActionsExample = () => {
-	return (
-		<Grid
-			columns={[
-				...columns,
-				{
-					id: 'actions',
-					actions: () => (
-						<Flex gap="sm">
-							<Button variant="bare" color="blue">
-								<Icon icon={<PencilIcon />} />
-							</Button>
-							<Button variant="bare" color="red">
-								<Icon icon={<TrashIcon />} />
-							</Button>
-						</Flex>
-					),
-				},
-			]}
-			rows={people}
-			getKey={(row) => row.id}
-		/>
-	)
-}
-
 const RowClickExample = () => {
 	const [picked, setPicked] = useState<Person | null>(null)
 
@@ -630,161 +606,231 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// The demo is sectioned into tabs so the long example list reads as discrete
+// capabilities rather than one scroll. Panels unmount when inactive
+// (`fade={false}`) so the page's jump nav only ever lists the visible tab's
+// examples and never scrolls to a hidden one.
+const tabs = [
+	'Variants',
+	'Sorting',
+	'Selection',
+	'Reorder',
+	'Resize',
+	'Pin',
+	'Filters',
+	'Toolbar',
+	'Pagination',
+	'State',
+	'Editable',
+] as const
+
 export function Demo() {
 	return (
-		<>
-			<Example title="Default">
-				<DefaultExample />
-			</Example>
+		<Tabs defaultValue="Variants">
+			<TabList aria-label="Grid examples">
+				{tabs.map((tab) => (
+					<Tab key={tab} value={tab}>
+						{tab}
+					</Tab>
+				))}
+			</TabList>
+			<TabContents fade={false}>
+				<TabContent value="Variants">
+					<Stack gap="xl">
+						<Example title="Default">
+							<DefaultExample />
+						</Example>
 
-			<Example
-				title="Server-side sorting"
-				code={code`<Grid sort={{ value, onValueChange, manual: true }} />`}
-			>
-				<SortableExample />
-			</Example>
+						<Example title="Striped">
+							<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 
-			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
-				<ClientSortExample />
-			</Example>
+						<Example title="Hover">
+							<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 
-			<Example
-				title="Multi-column sort"
-				code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
-			>
-				<MultiSortExample />
-			</Example>
+						<Example title="Outline">
+							<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 
-			<Example
-				title="Smart sorting"
-				code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
-			>
-				<SmartSortExample />
-			</Example>
+						<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
+							<Grid
+								stickyHeader
+								maxHeight="200px"
+								columns={columns}
+								rows={[...people, ...people]}
+								getKey={(row, i) => `${row.id}-${i}`}
+							/>
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Context menus"
-				code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
-			>
-				<ContextMenuExample />
-			</Example>
+				<TabContent value="Sorting">
+					<Stack gap="xl">
+						<Example
+							title="Server-side sorting"
+							code={code`<Grid sort={{ value, onValueChange, manual: true }} />`}
+						>
+							<SortableExample />
+						</Example>
 
-			<Example title="Selection">
-				<SelectionExample />
-			</Example>
+						<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
+							<ClientSortExample />
+						</Example>
 
-			<Example title="Batch actions">
-				<BatchActionsExample />
-			</Example>
+						<Example
+							title="Multi-column sort"
+							code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
+						>
+							<MultiSortExample />
+						</Example>
 
-			<Example title="Row actions">
-				<RowActionsExample />
-			</Example>
+						<Example
+							title="Smart sorting"
+							code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
+						>
+							<SmartSortExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
-				<RowClickExample />
-			</Example>
+				<TabContent value="Selection">
+					<Stack gap="xl">
+						<Example title="Selection">
+							<SelectionExample />
+						</Example>
 
-			<Example title="Striped">
-				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+						<Example title="Batch actions">
+							<BatchActionsExample />
+						</Example>
 
-			<Example title="Hover">
-				<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+							<RowClickExample />
+						</Example>
 
-			<Example title="Outline">
-				<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+						<Example
+							title="Context menus"
+							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
+						>
+							<ContextMenuExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
-				<Grid
-					stickyHeader
-					maxHeight="200px"
-					columns={columns}
-					rows={[...people, ...people]}
-					getKey={(row, i) => `${row.id}-${i}`}
-				/>
-			</Example>
+				<TabContent value="Reorder">
+					<Stack gap="xl">
+						<Example title="Reorder">
+							<ReorderExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Loading">
-				<Grid loading columns={columns} rows={[]} getKey={(row) => row.id} />
-			</Example>
+				<TabContent value="Resize">
+					<Stack gap="xl">
+						<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
+							<ResizableExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Empty">
-				<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
-			</Example>
+				<TabContent value="Pin">
+					<Stack gap="xl">
+						<Example
+							title="Pinned columns"
+							code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
+						>
+							<PinnedExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
-				<ErrorExample />
-			</Example>
+				<TabContent value="Filters">
+					<Stack gap="xl">
+						<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
+							<SearchExample />
+						</Example>
 
-			<Example title="Reorder">
-				<ReorderExample />
-			</Example>
+						<Example
+							title="Column filters"
+							code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
+						>
+							<ColumnFiltersExample />
+						</Example>
 
-			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
-				<ResizableExample />
-			</Example>
+						<Example
+							title="Date, number & boolean filters"
+							code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'number' }]} />`}
+						>
+							<DateBooleanFilterExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Pinned columns"
-				code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
-			>
-				<PinnedExample />
-			</Example>
+				<TabContent value="Toolbar">
+					<Stack gap="xl">
+						<Example title="Column manager">
+							<ColumnManagerExample />
+						</Example>
 
-			<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
-				<SearchExample />
-			</Example>
+						<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
+							<ExportExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Column filters"
-				code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
-			>
-				<ColumnFiltersExample />
-			</Example>
+				<TabContent value="Pagination">
+					<Stack gap="xl">
+						<Example
+							title="Server pagination"
+							code={code`<Grid pagination={{ value, onValueChange, rowCount }} />`}
+						>
+							<ServerPaginationExample />
+						</Example>
 
-			<Example
-				title="Date, number & boolean filters"
-				code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'number' }]} />`}
-			>
-				<DateBooleanFilterExample />
-			</Example>
+						<Example title="Client pagination">
+							<ClientPaginationExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Column manager">
-				<ColumnManagerExample />
-			</Example>
+				<TabContent value="State">
+					<Stack gap="xl">
+						<Example title="Loading">
+							<Grid loading columns={columns} rows={[]} getKey={(row) => row.id} />
+						</Example>
 
-			<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
-				<ExportExample />
-			</Example>
+						<Example title="Empty">
+							<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
+						</Example>
 
-			<Example
-				title="Server pagination"
-				code={code`<Grid pagination={{ value, onValueChange, rowCount }} />`}
-			>
-				<ServerPaginationExample />
-			</Example>
+						<Example title="Error" code={code`<Grid error={<Alert ... />} />`}>
+							<ErrorExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Client pagination">
-				<ClientPaginationExample />
-			</Example>
+				<TabContent value="Editable">
+					<Stack gap="xl">
+						<Example
+							title="Editable"
+							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+						>
+							<EditableExample />
+						</Example>
 
-			<Example title="Editable">
-				<EditableExample />
-			</Example>
+						<Example
+							title="Editor types"
+							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
+						>
+							<EditorTypesExample />
+						</Example>
 
-			<Example
-				title="Editor types"
-				code={code`<Grid columns={[{ ...col, editor: GridEditableSelectEditor }]} editable />`}
-			>
-				<EditorTypesExample />
-			</Example>
-
-			<Example title="Bulk edit">
-				<BulkEditExample />
-			</Example>
-		</>
+						<Example title="Bulk edit">
+							<BulkEditExample />
+						</Example>
+					</Stack>
+				</TabContent>
+			</TabContents>
+		</Tabs>
 	)
 }

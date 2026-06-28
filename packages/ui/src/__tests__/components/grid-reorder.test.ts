@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	applyColumnReorder,
-	columnDragStyle,
+	columnShiftStyle,
 	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
 } from '../../modules/grid/grid-reorder'
@@ -44,24 +44,14 @@ describe('applyColumnReorder', () => {
 	})
 })
 
-describe('columnDragStyle', () => {
-	it('translates horizontally without the scale that would stretch cell content', () => {
-		const style = columnDragStyle({ x: 12, y: 0, scaleX: 2, scaleY: 0.5 }, 'transform 200ms ease')
+describe('columnShiftStyle', () => {
+	it('translates a column horizontally from its indexed CSS variable, never scaling', () => {
+		const style = columnShiftStyle(3)
 
-		expect(style.transform).toContain('translate3d')
+		expect(style.transform).toBe('translateX(var(--grid-col-x-3, 0px))')
 
-		expect(style.transform).toContain('12px')
-
-		// The scale dnd-kit packs into `transform` (the stretch) is dropped.
-		expect(style.transform).not.toContain('scale')
-
-		expect(style.transition).toBe('transform 200ms ease')
-	})
-
-	it('emits no transform when idle', () => {
-		const style = columnDragStyle(null, undefined)
-
-		expect(style.transform).toBeUndefined()
+		// Only the x translate is read, so dnd-kit's scaleX/scaleY can never stretch the cell.
+		expect(String(style.transform)).not.toContain('scale')
 	})
 })
 

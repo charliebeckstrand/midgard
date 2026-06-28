@@ -24,17 +24,29 @@ const sortIcon = defineRecipe({
 })
 
 /**
- * Trailing padding for a resizable header so its label clears the resize handle,
- * scaled to the table's density. Projected from the `<table>` element onto the
- * resizable headers — those carrying `data-resizable` — so it overrides the
+ * Density-scaled resize metrics, projected from the `<table>` element onto the
+ * resizable headers (those carrying `data-resizable`) so they override the
  * density cell padding at higher specificity without `!important`. Keyed by the
- * friendly density level the grid forwards to `<Table>`.
+ * friendly density level the grid forwards to `<Table>`. Two coupled measures:
+ *
+ * - the header's trailing padding, so its label clears the handle; and
+ * - the resize handle's own width (the handle can't size itself — only the table
+ *   knows the density).
+ *
+ * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
+ * 4/8/12px): the grab zone is twice that padding and anchored to the trailing
+ * edge, so its centred grip (`justify-center`; see `handle`) lands exactly one
+ * cell-padding in from that edge — flush with where the header label and body
+ * values truncate, so the grip meets the value instead of cutting through it.
  */
-const resizePadding = defineRecipe({
+const resizeMetrics = defineRecipe({
 	density: {
-		compact: '[&>*>tr>th[data-resizable]]:pr-2',
-		snug: '[&>*>tr>th[data-resizable]]:pr-4',
-		loose: '[&>*>tr>th[data-resizable]]:pr-6',
+		compact: [
+			'[&>*>tr>th[data-resizable]]:pr-2',
+			'[&>*>tr>th[data-resizable]>[role=separator]]:w-2',
+		],
+		snug: ['[&>*>tr>th[data-resizable]]:pr-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
+		loose: ['[&>*>tr>th[data-resizable]]:pr-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
 	},
 	defaults: { density: 'snug' },
 })
@@ -52,10 +64,10 @@ const resizePadding = defineRecipe({
 const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 export const k = {
-	// Hosts the `group/grid` resize-state flag: while a column drag-resize is in
-	// flight the wrapper carries `data-resizing`, which descendants read to stand
-	// down their hover affordances and which paints the resize cursor grid-wide.
-	wrapper: ['group/grid', 'relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
+	// which paints the resize cursor grid-wide; head and cells read the matching
+	// `resizing` context flag to drop their hover wash and truncation tooltips.
+	wrapper: ['relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
@@ -123,14 +135,35 @@ export const k = {
 		// within the header's flex slot — and, for a sortable column, within the sort
 		// button — instead of pushing past the cell into its neighbour.
 		title: ['block', 'truncate', 'min-w-0'],
-		// Leading group pairing a pinned column's pin button with its title. `min-w-0`
-		// keeps the title shrinkable so it still truncates beside the button; `gap-1`
-		// sets the button-to-title spacing.
-		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
-		// Pin button on a frozen column's header: an icon-only control that unpins the
-		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
-		// matching the sort button — so it reads as the actionable affordance it is.
-		pinButton: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		// A frozen column's header affordances: the pin button paired with the title.
+		pinned: {
+			// Leading group pairing a pinned column's pin button with its title. `min-w-0`
+			// keeps the title shrinkable so it still truncates beside the button; `gap-1`
+			// sets the button-to-title spacing.
+			label: [flex.inline, 'min-w-0', 'gap-1'],
+			// Pin button on a frozen column's header: an icon-only control that unpins the
+			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
+			// affordance it is. `-ml-1` pulls the button left by the Pin glyph's optical
+			// inset so the visible pin lands over the column's cell values rather than a
+			// step to their right. The Pin's leftmost ink sits ~4px into its `size-5` box
+			// (x=5 of lucide's 24-unit grid, scaled by 20/24) — shallower than the grip's
+			// dots at x=8 — so it takes a smaller pull than the grip's `-ml-1.5`; a shared
+			// value would over-pull one glyph or the other. That pull seats the box flush
+			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
+			// `components/table`), which clips an outset outline at its edge; the focus ring
+			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
+			// `k.sort.button`, whose outset `ring` clears the edge.
+			button: [
+				flex.inline,
+				'shrink-0',
+				'-ml-1',
+				text.muted,
+				fg.hover,
+				focus.inset,
+				cursor,
+				'select-none',
+			],
+		},
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can
@@ -157,12 +190,20 @@ export const k = {
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
 		// would leave that cursor stuck as if the column were still held.
+		// `-ml-1.5` pulls the grip left by the GripVertical glyph's optical inset (its
+		// dots sit a third of the way into the `size-5` box) so the visible grip lines
+		// up over the column's cell values instead of floating a step to their right.
+		// That pull seats the box flush to the table's horizontal scroll wrapper
+		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
+		// `k.nav.cell` and the `k.resize.grip` colour shift — rather than the outset
+		// `ring` the wrapper would shave at the edge.
 		handle: [
 			flex.inline,
 			'shrink-0',
+			'-ml-1.5',
 			text.muted,
 			fg.hover,
-			focus.ring,
+			focus.inset,
 			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
 		],
 	},
@@ -172,53 +213,43 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
-		// Marks a resizable header as the grip's hover host: hovering anywhere on the
-		// header cell reveals its (otherwise hidden) grip. Pairs with the handle's
-		// own `group/grid-resize`, which reveals the grip when the pointer is on the
-		// full-height edge strip running down past the header. While a drag-resize is
-		// in flight (the wrapper's `data-resizing`), every host drops its pointer
-		// events so the dragging pointer — sweeping across the full-height strips —
-		// can't flash other columns' grips; the active column's grip stays lit
-		// through its handle's own `data-resizing`, which this never gates.
-		host: ['group/grid-col', 'group-data-[resizing]/grid:pointer-events-none'],
-		// Anchors the absolutely-positioned handle (non-sticky headers only — a
-		// sticky header is already a positioned containing block).
+		// Anchors the absolutely-positioned resize handle on a non-sticky header (a
+		// sticky header already positions itself; a reordering header's shift
+		// transform also forms a containing block, but `relative` keeps the anchor
+		// explicit and shared by both). The handle lives in the header, so there is
+		// no body-region overflow to lift over the column's cells.
 		cell: 'relative',
-		// Density-scaled trailing padding projected onto resizable headers so their
-		// labels clear the handle; lives on the `<table>` element.
-		padding: resizePadding,
-		// Grab area along the column's trailing edge, anchored to the inside of that
-		// edge (`right-0`, no outward shift) and widening leftward into the cell to a
-		// comfortable ~24px target (toward WCAG 2.5.8). It deliberately does not
-		// overhang the boundary: an outward overhang (a former `translate-x-1/2`) was
-		// painted over by the next sticky header's opaque cell — clipping the grip to
-		// a sliver across the header — and, on the trailing column, pushed past the
-		// table's edge to inflate the horizontal scroll (nudging a right-pinned column
-		// at the scroll end). Spans the column's full height — header through the last
-		// row — via the measured `--grid-resize-height`, so a drag can begin anywhere
-		// down the right side, not just the header (falling back to the header height
-		// until measured).
+		// Density-scaled resize metrics (header trailing padding + grab-zone width)
+		// projected onto resizable headers; lives on the `<table>` element.
+		metrics: resizeMetrics,
+		// Resize grab zone on a resizable header's trailing edge, anchored to the
+		// inside of that edge (`right-0`, no outward shift) and widening leftward into
+		// the cell. Its width is density-scaled (set via `metrics`, since only the
+		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
+		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
+		// affordance lives in the header, not down the column. `justify-center` lands
+		// the grip one cell-padding in from the trailing edge — flush with where a
+		// truncating header's label and body values clip — and `items-center` centres
+		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
+		// and turn accent on focus or active drag. The grab zone does not overhang the
+		// boundary: an outward overhang gets painted over by a neighbour's opaque
+		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)]',
-			'flex items-center justify-end',
+			'group/grid-resize absolute top-0 right-0 z-10 h-full',
+			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
-		// grip (`kata/resizable`) so every resize affordance reads the same width —
-		// flush against the column's trailing edge (so it lines up with the column
-		// border, sits within the cell, and stays clear of the neighbour's opaque
-		// sticky header), hidden until the edge is hovered, and shown on keyboard
-		// focus or active drag: tints on hover, turns accent on focus or drag. Focus
+		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
+		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
+		// the same, centred in the grab zone (`justify-center` on the handle) one
+		// cell-padding in from the trailing edge. Always visible: muted at rest,
+		// tinting on hover, turning accent on keyboard focus or active drag. Focus
 		// shows as a colour change, not an outset ring, so the scroll container can't
 		// clip it.
 		grip: [
-			'h-full w-0.5',
+			'h-4 w-0.5',
 			rounded.full,
-			'opacity-0 transition-opacity',
-			// Revealed by a pointer on the full-height edge strip (the handle's own
-			// `group/grid-resize`), on keyboard focus, and while a drag is in flight.
-			'group-hover/grid-resize:opacity-100',
-			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
+			'transition-colors',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',
@@ -291,6 +322,24 @@ export const k = {
 			'data-[active]:ring-2',
 			'data-[active]:ring-inset',
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+		],
+	},
+	// Inline per-row editing: an editable row's cells render their editors (the
+	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
+	// their normal styling, sitting inside the cell padding — the editing row just
+	// grows to fit the controls.
+	edit: {
+		// Host for a cell's editor; anchors the absolute validation message.
+		host: 'relative flex w-full items-center',
+		// The in-cell control fills the cell width.
+		input: 'w-full',
+		// A failed validation rings the editor and anchors a small message below it.
+		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
+		error: [
+			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+			'text-white shadow',
+			...mode('bg-red-600', 'dark:bg-red-500'),
 		],
 	},
 } as const

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks'
 import { toggleItem } from '../../utilities'
 import type { GridSelection } from './grid-data-types'
@@ -56,9 +56,19 @@ export function useGridSelectionActions({
 	setSelection,
 	rowKeys,
 }: GridSelectionState & { rowKeys: (string | number)[] }): GridSelectionActions {
-	const allSelected = rowKeys.length > 0 && rowKeys.every((rk) => selection.has(rk))
+	// Both flags re-scan `rowKeys` (the full set on an unpaginated grid), so they
+	// are memoized to recompute only when the rows or the selection actually
+	// change — not on every unrelated GridData render (keystrokes, resize frames).
+	// The `selection.size` guard skips the scan in the common empty-selection state.
+	const allSelected = useMemo(
+		() => rowKeys.length > 0 && rowKeys.every((rk) => selection.has(rk)),
+		[rowKeys, selection],
+	)
 
-	const someSelected = rowKeys.some((rk) => selection.has(rk))
+	const someSelected = useMemo(
+		() => selection.size > 0 && rowKeys.some((rk) => selection.has(rk)),
+		[rowKeys, selection],
+	)
 
 	const rowKeysRef = useRef(rowKeys)
 

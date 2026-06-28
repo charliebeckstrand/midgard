@@ -4,13 +4,13 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, waitFor } from '../helpers'
 
 /**
- * Resize-handle geometry against a real layout engine. The handle is anchored
- * inside its column's trailing edge — it must not overhang the boundary, or the
- * next sticky header's opaque cell clips the grip to a sliver (the grip then
- * reads narrower across the header than down the body), and on the trailing
- * column the overhang pushes past the table to inflate the horizontal scroll
- * (nudging a right-pinned column at the scroll end). Both only resolve in a
- * browser, where the table has real geometry.
+ * Resize-handle geometry against a real layout engine. The handle lives in the
+ * header, anchored inside its column's trailing edge — it must not overhang the
+ * boundary, or the next sticky header's opaque cell clips the grip to a sliver,
+ * and on the trailing column the overhang pushes past the table to inflate the
+ * horizontal scroll (nudging a right-pinned column at the scroll end). It must
+ * also stay confined to the header, not run the full column height. All only
+ * resolve in a browser, where the table has real geometry.
  */
 describe('grid resize handle geometry (real browser)', () => {
 	type Employee = { id: number; name: string; role: string; status: 'active' | 'inactive' }
@@ -73,28 +73,41 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 	})
 
-	it('lines the grip up with the column border, not a cell-padding inside it', async () => {
-		const { container, table } = setup()
+	it('confines the handle to the header, leaving no phantom vertical scroll', async () => {
+		// The handle lives in the header (it no longer runs the full column height), so
+		// it can't overrun the table bottom: a bordered, un-capped grid stays
+		// un-scrolled. Driving a full-height handle from the table height once ran it a
+		// top-border past the bottom and — the scroll container's `overflow-x-auto`
+		// making the y-axis scrollable too — raised a spurious vertical scrollbar.
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid resizable outline columns={columns} rows={employees} getKey={(r) => r.id} />
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		const roleHeader = container.querySelector<HTMLElement>(
-			'th[data-grid-col="role"]',
+		const nameHandle = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
 		) as HTMLElement
 
-		const grip = container
-			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Role"]')
-			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const nameHeader = container.querySelector<HTMLElement>(
+			'th[data-grid-col="name"]',
+		) as HTMLElement
 
-		// The grip sits flush against the column's trailing border: its right edge
-		// lands within a hairline of the header's right edge. A grip centred in the
-		// handle would fall ~one cell-padding (8px at this density) short of the
-		// border, reading as a misaligned line floating inside the cell.
-		const gap = roleHeader.getBoundingClientRect().right - grip.getBoundingClientRect().right
+		// Header height, not full-column height.
+		expect(
+			Math.abs(
+				nameHandle.getBoundingClientRect().height - nameHeader.getBoundingClientRect().height,
+			),
+		).toBeLessThanOrEqual(2)
 
-		expect(gap).toBeGreaterThanOrEqual(-0.5)
+		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
-		expect(gap).toBeLessThanOrEqual(2)
+		// No phantom vertical scroll.
+		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)
 	})
 
 	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
@@ -133,5 +146,78 @@ describe('grid resize handle geometry (real browser)', () => {
 		await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
 
 		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
+	})
+})
+
+/**
+ * Grip alignment is uniform: every resizable grid centres its grip in the grab
+ * zone — one cell-padding in from the trailing border — whether or not its cells
+ * truncate. The handle only has measured geometry in a real browser.
+ */
+describe('grid resize grip alignment (real browser)', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Manager' },
+	]
+
+	const readOnlyColumns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '200px' },
+		{ id: 'role', title: 'Role', cell: (r) => r.role },
+	]
+
+	// Distance from the 'name' column's trailing border to its grip's right edge:
+	// about one cell-padding when the grip centres in the grab zone.
+	function gripInset(container: HTMLElement): number {
+		const header = container.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+
+		const grip = container
+			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Name"]')
+			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+
+		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
+	}
+
+	it('centres the grip a cell-padding inside the trailing border in a truncating grid', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// A cell-padding inside the border (where a truncating value clips), not flush.
+		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
+	})
+
+	it('centres the grip the same way in a non-truncating grid', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid
+					resizable
+					outline
+					truncate={false}
+					columns={readOnlyColumns}
+					rows={rows}
+					getKey={(r) => r.id}
+				/>
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// A non-truncating grid centres the grip identically — alignment no longer
+		// depends on truncation.
+		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
 	})
 })

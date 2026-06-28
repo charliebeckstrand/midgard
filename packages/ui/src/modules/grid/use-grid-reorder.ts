@@ -52,12 +52,12 @@ export function useGridReorder<T>({
 		[reorderColumns],
 	)
 
-	const { itemIds, strategy, dndContextProps } = useSortableList<GridColumn<T>>({
+	const { itemIds, strategy, dndContextProps, activeId } = useSortableList<GridColumn<T>>({
 		items: draggableColumns,
 		getKey: columnDragId,
 		onReorder: canReorder ? handleReorder : undefined,
 		orientation: 'horizontal',
 	})
 
-	return { canReorder, itemIds, strategy, dndContextProps }
+	return { canReorder, itemIds, strategy, dndContextProps, activeId }
 }

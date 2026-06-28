@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { SortState } from './context'
+import type { GridEditableConfig } from './grid-editing-types'
 import type { GridRowClick } from './grid-row'
 import type {
 	GridColumn,
@@ -202,10 +203,9 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Enables drag- and keyboard-resizing of data columns through the grid's
-	 * TanStack Table engine. Each data column gains a resize handle on its trailing
-	 * edge, spanning the column's full height — header through the last row — so a
-	 * drag can begin anywhere down the column's right side, not just the header. The
-	 * handle's grip is revealed on hover, keyboard focus, or active drag. A column's
+	 * TanStack Table engine. Each data column's header gains a resize handle on its
+	 * trailing edge, carrying an always-visible grip — a short centred bar that
+	 * tints on hover and turns accent on keyboard focus or active drag. A column's
 	 * initial width comes from a `px` `width`, else a default, and widths persist
 	 * through {@link GridDataProps.columnSizing}. Set `false` for fixed-width columns.
 	 * @defaultValue true
@@ -373,11 +373,15 @@ export type GridDataProps<T> = TableVariants & {
 	tableProps?: TableElementProps
 
 	/**
-	 * Discriminant for the read-only grid. Set `editable` (see {@link GridProps})
-	 * for the spreadsheet-style editing surface instead.
-	 * @defaultValue false
+	 * Bakes per-row inline editing into the grid. Supply an
+	 * {@link GridEditableConfig}: which rows are editable and a commit sink. A row
+	 * in the editable set puts all of its editable cells into edit mode at once;
+	 * edits stage live, and removing the row from the set saves its changed cells
+	 * as one batch. A column binds to a row property via {@link GridColumn.field},
+	 * and the editor is inferred from the value's primitive type unless the column
+	 * supplies an {@link GridColumn.editCell} slot. Omit for a read-only grid.
 	 */
-	editable?: false
+	editable?: GridEditableConfig
 
 	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string

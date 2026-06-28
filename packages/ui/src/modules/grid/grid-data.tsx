@@ -28,21 +28,19 @@ import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
-import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
+import {
+	GridReorderContext,
+	restrictToFirstScrollableAncestor,
+	restrictToHorizontalAxis,
+} from './grid-reorder'
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
-import {
-	GridNavContext,
-	type GridNavTableProps,
-	type GridRowActivate,
-	useGridNavigation,
-} from './use-grid-navigation'
-import { useGridNavigationColumns } from './use-grid-navigation-columns'
+import { useGridCursor } from './use-grid-cursor'
+import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
-import { useGridResizeHeight } from './use-grid-resize-height'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
 
@@ -65,6 +63,8 @@ type GridRegionProps<T> = {
 	dndContextProps: ComponentProps<typeof DndContext>
 	itemIds: ComponentProps<typeof SortableContext>['items']
 	strategy: ComponentProps<typeof SortableContext>['strategy']
+	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
+	activeReorderId: string | null
 	contextMenu: GridContextMenuConfig<T> | undefined
 	columns: GridColumn<T>[]
 	rows: T[]
@@ -96,6 +96,7 @@ function GridRegion<T>({
 	dndContextProps,
 	itemIds,
 	strategy,
+	activeReorderId,
 	contextMenu,
 	columns,
 	rows,
@@ -113,7 +114,7 @@ function GridRegion<T>({
 	const reordered = canReorder ? (
 		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
 			<SortableContext items={itemIds} strategy={strategy}>
-				{children}
+				<GridReorderContext value={activeReorderId}>{children}</GridReorderContext>
 			</SortableContext>
 		</DndContext>
 	) : (
@@ -368,25 +369,29 @@ function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: num
 /**
  * Whether the grid paints the shared {@link Table} `hover` wash: when the
  * consumer opts in with `hover`, or implicitly for a clickable grid
- * (`onRowClick`), whose rows then read as actionable. Pulled out of
- * {@link GridData} so the `||` stays off its cognitive-complexity budget.
+ * (`onRowClick`), whose rows then read as actionable — but never through a
+ * column drag-resize (`resizing`), so the row under the pointer doesn't light
+ * up mid-drag (matching the truncation tooltips' `!resizing` gate). Pulled out
+ * of {@link GridData} so the boolean logic stays off its cognitive-complexity
+ * budget.
  *
  * @internal
  */
 function resolveHover<T>(
 	hover: boolean | undefined,
 	onRowClick: GridRowClick<T> | undefined,
+	resizing: boolean,
 ): boolean {
-	return hover === true || onRowClick != null
+	return (hover === true || onRowClick != null) && !resizing
 }
 
 /**
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
  * the `table-fixed` + trailing-padding class, the total table width — so a resize
  * touches only its own column — and `resizing`, whether a pointer drag-resize is
- * in flight (the wrapper flags it so other columns' grips stand down). Inert (no
- * colgroup, no width, not resizing) when the grid is not resizable. Split out of
- * {@link GridData} for its cognitive-complexity budget.
+ * in flight (the wrapper flags it to paint the resize cursor grid-wide and drop
+ * the hover wash). Inert (no colgroup, no width, not resizing) when the grid is
+ * not resizable. Split out of {@link GridData} for its cognitive-complexity budget.
  *
  * @internal
  */
@@ -421,7 +426,7 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
+		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
@@ -453,6 +458,7 @@ export function GridData<T>({
 	exportable = false,
 	reorder = false,
 	navigable = false,
+	editable,
 	truncate = true,
 	rowClassName,
 	onRowClick,
@@ -504,9 +510,10 @@ export function GridData<T>({
 		})
 	}, [])
 
-	// Read-only keyboard cursor (opt-in via `navigable`). Bounds and the active
-	// row resolve from these refs at event/render time, so the cursor's callbacks
-	// and the augmented columns stay stable across moves and the memoized rows hold.
+	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
+	// Bounds, the active row, the row keys, and the visible data columns resolve
+	// from these refs at event/render time, so the cursor's callbacks and the
+	// augmented columns stay stable across moves and the memoized rows hold.
 	const rowsRef = useRef<T[]>([])
 
 	const colCountRef = useRef(0)
@@ -515,6 +522,10 @@ export function GridData<T>({
 
 	const colIndexMapRef = useRef<Map<string | number, number>>(new Map())
 
+	const rowKeysRef = useRef<(string | number)[]>([])
+
+	const dataColumnsRef = useRef<GridColumn<T>[]>([])
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -522,18 +533,22 @@ export function GridData<T>({
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
 
-	const nav = useGridNavigation({ enabled: navigable, rowsRef, colCountRef, onRowActivate })
-
-	// Augment the data columns with the cursor wiring (cell ids, `role="gridcell"`,
-	// click-to-focus, active marker) before the engine builds its column defs. A
-	// non-navigable grid gets `pinnedColumns` back untouched.
-	const navColumns = useGridNavigationColumns<T>({
-		enabled: navigable,
+	// The cursor + editing layer: the augmented columns, the `<table>` cursor
+	// props, the cursor store, and the row-editing-context wrapper. Inert for a
+	// static grid.
+	const cursor = useGridCursor<T>({
+		navigable,
+		editable,
 		columns: pinnedColumns,
-		rowIndexMapRef,
-		colIndexMapRef,
-		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		onRowActivate,
+		refs: {
+			rowsRef,
+			colCountRef,
+			rowIndexMapRef,
+			colIndexMapRef,
+			rowKeysRef,
+			dataColumnsRef,
+		},
 	})
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
@@ -561,37 +576,38 @@ export function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning } =
-		useGridTable<T>({
-			rows,
-			// The engine receives the full column set and resolves which render (and
-			// in what order) from the order / visibility / pinning state below;
-			// `visibleColumns` comes back in that resolved order for the header and body.
-			// Under `navigable` these carry the cursor wiring (see `navColumns`).
-			columns: navColumns,
-			getKey,
-			selection,
-			columnOrder,
-			columnVisibility,
-			sort,
-			setSort,
-			sortManual: sortConfig?.manual ?? false,
-			pagination: paginationConfig,
-			resizable,
-			columnSizing: columnSizingConfig,
-			globalFilter: searchConfig,
-			columnFilters: columnFiltersConfig,
-			containerRef: wrapperRef,
-		})
-
-	// Publish the table height so each column's resize handle spans the full
-	// column (header through the last row), not just its header cell.
-	useGridResizeHeight(wrapperRef, resizable)
-
-	const rowKeys = useMemo<(string | number)[]>(
-		() => renderRows.map((row, i) => getKey(row, i)),
-		[renderRows, getKey],
-	)
+	const {
+		table,
+		visibleColumns,
+		renderRows,
+		rowKeys,
+		pagination,
+		resize,
+		globalFilter,
+		filters,
+		pinning,
+	} = useGridTable<T>({
+		rows,
+		// The engine receives the full column set and resolves which render (and
+		// in what order) from the order / visibility / pinning state below;
+		// `visibleColumns` comes back in that resolved order for the header and body.
+		// Under a cursor (navigable or editable) these carry the cursor/editor
+		// wiring (see `useGridCursor`).
+		columns: cursor.columns,
+		getKey,
+		selection,
+		columnOrder,
+		columnVisibility,
+		sort,
+		setSort,
+		sortManual: sortConfig?.manual ?? false,
+		pagination: paginationConfig,
+		resizable,
+		columnSizing: columnSizingConfig,
+		globalFilter: searchConfig,
+		columnFilters: columnFiltersConfig,
+		containerRef: wrapperRef,
+	})
 
 	// Cursor index space: rendered rows and the visible *data* columns (it skips
 	// select / actions cells). Synced from the refs here — after the engine resolves
@@ -616,6 +632,12 @@ export function GridData<T>({
 	rowIndexMapRef.current = rowIndexMap
 
 	colIndexMapRef.current = colIndexMap
+
+	// Editing resolves a cell's row key and column from these — the cursor's row
+	// and (data-)column index spaces.
+	rowKeysRef.current = rowKeys
+
+	dataColumnsRef.current = dataColumns
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
@@ -682,8 +704,9 @@ export function GridData<T>({
 	)
 
 	// Fixed-layout column widths so a resize touches only its own column;
-	// `resizing` flags an in-flight drag so other columns' grips stand down (and
-	// head/cells suppress their truncation tooltips, shared below via context).
+	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
+	// and truncation tooltips (shared below via context) and the active column's
+	// grip reads accent.
 	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
@@ -694,7 +717,6 @@ export function GridData<T>({
 
 	const context = useMemo(
 		() => ({
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,
@@ -706,7 +728,6 @@ export function GridData<T>({
 			resizing,
 		}),
 		[
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,
@@ -743,7 +764,7 @@ export function GridData<T>({
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
 	// `canReorder` to register each draggable cell against it.
-	const { canReorder, itemIds, strategy, dndContextProps } = useGridReorder<T>({
+	const { canReorder, itemIds, strategy, dndContextProps, activeId } = useGridReorder<T>({
 		reorder,
 		visibleColumns,
 		reorderColumns,
@@ -771,15 +792,16 @@ export function GridData<T>({
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
-	// cursor (see `GridRow`).
-	const rowHover = resolveHover(hover, onRowClick)
+	// cursor (see `GridRow`). Suppressed through a column drag-resize so the row
+	// under the pointer doesn't light up mid-drag.
+	const rowHover = resolveHover(hover, onRowClick, resizing)
 
 	const reorderActive = canReorder && hasData
 
-	// The cursor store is always provided (inert when not `navigable`); only a
-	// navigable grid's cells subscribe, so the wrapper costs nothing otherwise.
+	// The cursor store is always provided (inert when not navigable/editable); only
+	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
-		<GridNavContext value={nav.store}>
+		<GridNavContext value={cursor.navStore}>
 			<Table
 				density={density}
 				bleed={bleed}
@@ -790,10 +812,10 @@ export function GridData<T>({
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
-					navTableProps: nav.navTableProps,
+					navTableProps: cursor.navTableProps,
 					loading,
 					gridSemantics,
-					navigable,
+					navigable: cursor.cursorEnabled,
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,
@@ -840,16 +862,20 @@ export function GridData<T>({
 		</GridNavContext>
 	)
 
+	// Mount the editing contexts (the open edit's coord and session) around the
+	// table when editable; a read-only grid returns it untouched.
+	const cursorContent = cursor.wrap(tableContent)
+
 	const tableRegion = needsScrollWrapper ? (
 		<div
 			ref={scrollRef}
 			className={cn(k.sticky.wrapper)}
 			style={maxHeight ? { maxHeight } : undefined}
 		>
-			{tableContent}
+			{cursorContent}
 		</div>
 	) : (
-		tableContent
+		cursorContent
 	)
 
 	return (
@@ -857,9 +883,9 @@ export function GridData<T>({
 			<div
 				ref={wrapperRef}
 				data-slot="grid"
-				// Flags an in-flight column drag-resize so the headers stand down their
-				// hover grips (only the active column stays lit) and the grid paints the
-				// resize cursor; see `k.resize.host` and `k.wrapper`.
+				// Flags an in-flight column drag-resize so the grid paints the resize
+				// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+				// `resizing` context flag to drop their hover wash and truncation tooltips.
 				data-resizing={dataAttr(resizing)}
 				className={cn(k.wrapper)}
 			>
@@ -898,6 +924,7 @@ export function GridData<T>({
 					dndContextProps={dndContextProps}
 					itemIds={itemIds}
 					strategy={strategy}
+					activeReorderId={activeId}
 					contextMenu={resolvedContextMenu}
 					columns={visibleColumns}
 					rows={renderRows}

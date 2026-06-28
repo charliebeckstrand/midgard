@@ -9,7 +9,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * type holds across renders — a fresh `columns` array (consumers often pass one
  * inline) reconciles the cell's content in place instead of remounting it, which
  * would drop editor focus and selection. This guards that stability for the
- * read-only grid; the editable commit path is covered by grid-editable.
+ * read-only grid; the editable commit path is covered by grid-editing.
  */
 describe('Grid cell stability across column-array changes', () => {
 	type Row = { id: number; name: string }

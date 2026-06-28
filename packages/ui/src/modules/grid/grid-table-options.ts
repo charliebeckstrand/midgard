@@ -23,7 +23,7 @@ import { isDataColumn } from '../../utilities'
 import { evaluateQuery } from '../query'
 import type { SortState } from './context'
 import { SELECT_COLUMN_SIZE } from './grid-constants'
-import { compareSmart } from './grid-sorting-utilities'
+import { compareSortKeys, type SortKey, toSortKey } from './grid-sorting-utilities'
 import { isQueryGroup } from './grid-table-views'
 import type { GridColumn, GridPagination } from './types'
 
@@ -115,14 +115,48 @@ const queryFilterFn: FilterFn<unknown> = (row: Row<unknown>, columnId, filterVal
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 
 /**
- * Default column sort: compares each row's accessor value with the smart
- * comparator, so numbers, money, percentages, and the like sort correctly out of
- * the box rather than lexically. Row-shape-agnostic; cast to a column's row type.
+ * Each row's decorated {@link SortKey}, cached per column on the row. A sort
+ * compares a row O(log N) times; without this the smart comparator would reparse
+ * the value (the currency / percent / accounting regexes) on every comparison.
+ * Keyed by the stable engine `Row` and resolved through the engine's own cached
+ * `getValue`, so a value is decoded once per sort and the entry falls away with
+ * the row model when the data changes — a `WeakMap` holds no row alive.
+ *
+ * @internal
+ */
+const sortKeyCache = new WeakMap<Row<unknown>, Map<string, SortKey>>()
+
+/** This row's {@link SortKey} for `columnId`, decoded once on first use and reused across the sort's comparisons. @internal */
+function rowSortKey(row: Row<unknown>, columnId: string): SortKey {
+	let perColumn = sortKeyCache.get(row)
+
+	if (!perColumn) {
+		perColumn = new Map()
+
+		sortKeyCache.set(row, perColumn)
+	}
+
+	let key = perColumn.get(columnId)
+
+	if (key === undefined) {
+		key = toSortKey(row.getValue(columnId))
+
+		perColumn.set(columnId, key)
+	}
+
+	return key
+}
+
+/**
+ * Default column sort: orders each row by the smart {@link SortKey} of its
+ * accessor value — numbers, money, percentages, dates, and the like sort
+ * correctly out of the box rather than lexically — decorating each value once per
+ * sort (see {@link rowSortKey}). Row-shape-agnostic; cast to a column's row type.
  *
  * @internal
  */
 const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
-	compareSmart(rowA.getValue(columnId), rowB.getValue(columnId))
+	compareSortKeys(rowSortKey(rowA, columnId), rowSortKey(rowB, columnId))
 
 /**
  * Resolves a column's engine behaviors from its declaration: the sort/filter

@@ -1,6 +1,5 @@
 'use client'
 
-import { useSortable } from '@dnd-kit/sortable'
 import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import {
 	type HTMLAttributes,
@@ -9,6 +8,7 @@ import {
 	type KeyboardEvent as ReactKeyboardEvent,
 	type MouseEvent as ReactMouseEvent,
 	type ReactNode,
+	useContext,
 } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableCell, TableRow } from '../../components/table'
@@ -16,7 +16,7 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnDragStyle } from './grid-reorder'
+import { columnShiftStyle, GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -166,9 +166,9 @@ type GridRowProps<T> = {
 	rowIndex?: number
 	/**
 	 * 0-based index into the full `rows` array, surfaced as `data-row-index`.
-	 * Keyboard bridges (e.g. GridEditable) resolve a `<tr>` to its data row
-	 * through it; under virtualization, spacer rows and windowing make physical
-	 * DOM position diverge from data order.
+	 * Keyboard bridges resolve a `<tr>` to its data row through it; under
+	 * virtualization, spacer rows and windowing make physical DOM position
+	 * diverge from data order.
 	 */
 	dataRowIndex: number
 	/** Frozen-column controls; pinned cells stick to an edge over the scrolling ones. `null` when none. */
@@ -302,6 +302,7 @@ function GridRowImpl<T>({
 						col={col}
 						row={row}
 						colIndex={colIndex}
+						columnIndex={colIdx}
 						reorderable={reorderable}
 						truncate={truncate}
 						pinning={pinning}
@@ -321,6 +322,8 @@ type GridDataCellProps<T> = {
 	col: GridColumn<T>
 	row: T
 	colIndex: number | undefined
+	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
+	columnIndex: number
 	reorderable: boolean
 	truncate: boolean
 	pinning: GridColumnPinning | null
@@ -338,6 +341,7 @@ function GridDataCellImpl<T>({
 	col,
 	row,
 	colIndex,
+	columnIndex,
 	reorderable,
 	truncate,
 	pinning,
@@ -359,6 +363,7 @@ function GridDataCellImpl<T>({
 		return (
 			<GridReorderableCell
 				id={col.id}
+				columnIndex={columnIndex}
 				colIndex={colIndex}
 				className={col.className}
 				cellProps={cellExtra}
@@ -392,6 +397,8 @@ const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
 /** Props for {@link GridReorderableCell}. @internal */
 type GridReorderableCellProps = {
 	id: string | number
+	/** 0-based visible column index keying the CSS-variable shift its header writes. */
+	columnIndex: number
 	colIndex: number | undefined
 	className: string | undefined
 	cellProps: Omit<HTMLAttributes<HTMLTableCellElement>, 'children'> | undefined
@@ -399,31 +406,33 @@ type GridReorderableCellProps = {
 }
 
 /**
- * Body cell for a reordering column: registers the `<td>` against the data
- * table's column sortable under the same id as the column's header, so the
- * whole column glides together while its header handle is dragged. Carries no
- * activator of its own — the drag is initiated from the header grip.
+ * Body cell for a reordering column. It no longer registers a sortable of its
+ * own — that put the column's header id on every body row, a duplicate-id churn
+ * dnd-kit re-measures over. Instead the whole column glides via the CSS variable
+ * its header writes (see {@link columnShiftStyle}), and this cell only reflects
+ * the dragged-column lift from {@link GridReorderContext} — a value that
+ * flips just at drag start and end, so a drag re-renders it twice, never per move.
  *
  * @internal
  */
 const GridReorderableCell = memo(function GridReorderableCell({
 	id,
+	columnIndex,
 	colIndex,
 	className,
 	cellProps,
 	children,
 }: GridReorderableCellProps) {
-	const { setNodeRef, transform, transition, isDragging } = useSortable({ id: String(id) })
+	const dragging = useContext(GridReorderContext) === String(id)
 
 	return (
 		<TableCell
-			ref={setNodeRef}
 			aria-colindex={colIndex}
 			{...cellProps}
-			data-dragging={dataAttr(isDragging)}
+			data-dragging={dataAttr(dragging)}
 			data-grid-col={id}
 			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
-			style={{ ...cellProps?.style, ...columnDragStyle(transform, transition) }}
+			style={{ ...cellProps?.style, ...columnShiftStyle(columnIndex) }}
 		>
 			{children}
 		</TableCell>

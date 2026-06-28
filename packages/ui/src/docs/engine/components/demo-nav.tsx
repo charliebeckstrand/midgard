@@ -14,9 +14,9 @@ import {
 } from '../../../components/menu'
 import { createContext } from '../../../core'
 
-// Below this count the page reads top-to-bottom comfortably, so the jump nav
-// stays hidden; at or above it the list earns its place.
-const MIN_EXAMPLES = 3
+// A page with no titled examples has nothing to jump to, so the nav stays
+// hidden; one example or more earns it a place in the header.
+const MIN_EXAMPLES = 1
 
 // Breathing room left above a jumped-to example, beneath the sticky header.
 const JUMP_GAP_PX = 8
@@ -156,8 +156,8 @@ function DemoNavItem({ entry }: { entry: ExampleEntry }) {
 /**
  * Bare icon button that opens a {@link Menu} of the page's examples, each item
  * scrolling its example into view. Renders nothing until at least
- * {@link MIN_EXAMPLES} examples have registered, so single-example pages stay
- * uncluttered.
+ * {@link MIN_EXAMPLES} examples have registered, so pages with nothing to jump
+ * to stay uncluttered.
  *
  * @remarks Reads the registry from {@link DemoNavProvider}; place it within the
  * same provider that wraps the demo body.
