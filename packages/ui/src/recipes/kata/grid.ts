@@ -140,18 +140,21 @@ export const k = {
 		// sets the button-to-title spacing.
 		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
 		// Pin button on a frozen column's header: an icon-only control that unpins the
-		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
-		// matching the sort button — so it reads as the actionable affordance it is.
-		// `-ml-1.5` pulls the button left by the Pin glyph's optical inset (the icon ink
-		// sits a few px inside its `size-5` box) so the visible pin lands over the
-		// column's cell values rather than floating a step to their right.
+		// column. Muted at rest, tinting on hover/focus so it reads as the actionable
+		// affordance it is. `-ml-1.5` pulls the button left by the Pin glyph's optical
+		// inset (the icon ink sits a few px inside its `size-5` box) so the visible pin
+		// lands over the column's cell values rather than floating a step to their
+		// right. That pull seats the box flush to the table's horizontal scroll wrapper
+		// (`overflow-x-auto`, see `components/table`), which clips an outset outline at
+		// its edge; the focus ring is therefore `inset` — clip-safe, like `k.nav.cell`
+		// and unlike the inboard `k.sort.button`, whose outset `ring` clears the edge.
 		pinButton: [
 			flex.inline,
 			'shrink-0',
 			'-ml-1.5',
 			text.muted,
 			fg.hover,
-			focus.ring,
+			focus.inset,
 			cursor,
 			'select-none',
 		],
@@ -184,13 +187,17 @@ export const k = {
 		// `-ml-1.5` pulls the grip left by the GripVertical glyph's optical inset (its
 		// dots sit a third of the way into the `size-5` box) so the visible grip lines
 		// up over the column's cell values instead of floating a step to their right.
+		// That pull seats the box flush to the table's horizontal scroll wrapper
+		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
+		// `k.nav.cell` and the `k.resize.grip` colour shift — rather than the outset
+		// `ring` the wrapper would shave at the edge.
 		handle: [
 			flex.inline,
 			'shrink-0',
 			'-ml-1.5',
 			text.muted,
 			fg.hover,
-			focus.ring,
+			focus.inset,
 			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
 		],
 	},
