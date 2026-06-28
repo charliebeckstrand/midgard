@@ -583,8 +583,15 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	filter,
 	filterQuery,
 }: GridColumnHeaderProps) {
-	const { setNodeRef, setActivatorNodeRef, attributes, listeners, transform, isDragging } =
-		useSortable({ id: String(column.id) })
+	const {
+		setNodeRef,
+		setActivatorNodeRef,
+		attributes,
+		listeners,
+		transform,
+		isDragging,
+		isSorting,
+	} = useSortable({ id: String(column.id) })
 
 	// The header animates its live drag translate onto a CSS variable on the
 	// enclosing <table> — the nearest common ancestor of this header and its
@@ -602,7 +609,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 		[setNodeRef],
 	)
 
-	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging)
+	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging, isSorting)
 
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 

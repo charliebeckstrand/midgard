@@ -109,15 +109,18 @@ const SHIFT_SPRING = { type: 'spring', stiffness: 600, damping: 38 } as const
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}
  * reads, so the whole column — its header and every body cell — moves from one
- * variable without re-rendering a cell. The actively dragged column tracks the
- * pointer 1:1 (a spring would lag the cursor); every other column springs to its
- * target via `motion`, so the make-room shifts glide instead of snapping. Reduced
- * motion snaps all of them straight to target (WCAG 2.3.3).
+ * variable without re-rendering a cell. Only the make-room shifts of an in-flight
+ * drag spring: the actively dragged column tracks the pointer 1:1 (a spring would
+ * lag the cursor), and once the drag ends (`!isSorting`) every column snaps
+ * straight to its committed slot — there is no second animation gliding columns
+ * "home", which on an index-keyed variable would spring each from the value the
+ * previous occupant left. Reduced motion snaps everything (WCAG 2.3.3).
  *
  * @param tableRef - The enclosing `<table>` the variable lives on; it cascades to the column's cells.
  * @param index - The column's visible index, keying its variable.
  * @param x - The column's target horizontal translate in px (0 when idle).
  * @param isDragging - Whether this is the actively dragged column.
+ * @param isSorting - Whether a column drag is in flight anywhere in the grid.
  * @internal
  */
 export function useColumnReorderShift(
@@ -125,6 +128,7 @@ export function useColumnReorderShift(
 	index: number,
 	x: number,
 	isDragging: boolean,
+	isSorting: boolean,
 ): void {
 	const reduceMotion = useReducedMotion()
 
@@ -135,17 +139,19 @@ export function useColumnReorderShift(
 
 		// Every write goes through motion so it owns the variable: a direct style
 		// write would fight motion's render loop, which keeps applying the value it
-		// last animated and drops the write. The dragged column — and reduced
-		// motion — jump instantly (duration 0); every other column springs to make
-		// room.
+		// last animated and drops the write. Spring only the make-room shifts of an
+		// in-flight drag; the dragged column, a settled drop (`!isSorting`), and
+		// reduced motion all jump instantly (duration 0).
+		const instant = isDragging || reduceMotion || !isSorting
+
 		const controls: AnimationPlaybackControls = animate(
 			table,
 			{ [columnShiftVar(index)]: `${x}px` },
-			isDragging || reduceMotion ? { duration: 0 } : SHIFT_SPRING,
+			instant ? { duration: 0 } : SHIFT_SPRING,
 		)
 
 		return () => controls.stop()
-	}, [tableRef, index, x, isDragging, reduceMotion])
+	}, [tableRef, index, x, isDragging, isSorting, reduceMotion])
 }
 
 /**
