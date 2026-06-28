@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
 	applyColumnReorder,
+	columnShiftStyle,
 	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
-	writeColumnShift,
 } from '../../modules/grid/grid-reorder'
 
 /** dnd-kit's modifier args are broad; the modifier only reads `transform`. */
@@ -44,34 +44,14 @@ describe('applyColumnReorder', () => {
 	})
 })
 
-describe('writeColumnShift', () => {
-	it('writes a horizontal translate without the scale that would stretch cell content', () => {
-		const table = document.createElement('table')
+describe('columnShiftStyle', () => {
+	it('translates a column horizontally from its indexed CSS variable, never scaling', () => {
+		const style = columnShiftStyle(3)
 
-		writeColumnShift(table, 0, { x: 12, y: 0, scaleX: 2, scaleY: 0.5 }, 'transform 200ms ease')
+		expect(style.transform).toBe('translateX(var(--grid-col-x-3, 0px))')
 
-		const x = table.style.getPropertyValue('--grid-col-x-0')
-
-		expect(x).toContain('translate3d')
-
-		expect(x).toContain('12px')
-
-		// The scale dnd-kit packs into `transform` (the stretch) is dropped.
-		expect(x).not.toContain('scale')
-
-		expect(table.style.getPropertyValue('--grid-col-transition-0')).toBe('transform 200ms ease')
-	})
-
-	it('clears the variables when idle', () => {
-		const table = document.createElement('table')
-
-		writeColumnShift(table, 0, { x: 12, y: 0, scaleX: 1, scaleY: 1 }, 'transform 200ms ease')
-
-		writeColumnShift(table, 0, null, undefined)
-
-		expect(table.style.getPropertyValue('--grid-col-x-0')).toBe('')
-
-		expect(table.style.getPropertyValue('--grid-col-transition-0')).toBe('')
+		// Only the x translate is read, so dnd-kit's scaleX/scaleY can never stretch the cell.
+		expect(String(style.transform)).not.toContain('scale')
 	})
 })
 

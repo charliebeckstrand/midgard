@@ -8,7 +8,6 @@ import {
 	type ReactElement,
 	type ReactNode,
 	useCallback,
-	useLayoutEffect,
 	useRef,
 } from 'react'
 import { Button } from '../../components/button'
@@ -25,7 +24,7 @@ import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnShiftStyle, writeColumnShift } from './grid-reorder'
+import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
@@ -584,21 +583,14 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	filter,
 	filterQuery,
 }: GridColumnHeaderProps) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({ id: String(column.id) })
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, transform, isDragging } =
+		useSortable({ id: String(column.id) })
 
-	// The header writes its live drag translate to a CSS variable on the enclosing
-	// <table> — the nearest common ancestor of this header and its column's body
-	// cells — where those cells read it (see `columnShiftStyle`), so the whole
-	// column glides without re-rendering a single body cell. Resolve the table from
-	// the header node as it mounts.
+	// The header animates its live drag translate onto a CSS variable on the
+	// enclosing <table> — the nearest common ancestor of this header and its
+	// column's body cells — which the whole column reads (see `columnShiftStyle` /
+	// `useColumnReorderShift`), so it glides without re-rendering a single cell.
+	// Resolve the table from the header node as it mounts.
 	const tableRef = useRef<HTMLTableElement | null>(null)
 
 	const setTableNodeRef = useCallback(
@@ -610,13 +602,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 		[setNodeRef],
 	)
 
-	useLayoutEffect(() => {
-		const table = tableRef.current
-
-		writeColumnShift(table, columnIndex, transform, transition)
-
-		return () => writeColumnShift(table, columnIndex, null, undefined)
-	}, [columnIndex, transform, transition])
+	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging)
 
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 

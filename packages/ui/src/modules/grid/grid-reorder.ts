@@ -1,8 +1,10 @@
 'use client'
 
 import type { ClientRect, Modifier } from '@dnd-kit/core'
-import { CSS, type Transform } from '@dnd-kit/utilities'
-import type { CSSProperties } from 'react'
+import type { Transform } from '@dnd-kit/utilities'
+import { type AnimationPlaybackControls, animate } from 'motion'
+import { useReducedMotion } from 'motion/react'
+import { type CSSProperties, type RefObject, useEffect } from 'react'
 import { createContext } from '../../core'
 
 /**
@@ -82,56 +84,73 @@ export const [GridReorderActiveContext] = createContext<string | null>('GridReor
 	default: null,
 })
 
-/** The CSS custom-property names carrying a reordering column's live translate and transition, keyed by its visible index. @internal */
-function columnShiftVars(index: number): { x: string; transition: string } {
-	return { x: `--grid-col-x-${index}`, transition: `--grid-col-transition-${index}` }
+/** The CSS custom-property name carrying a reordering column's live translate, keyed by its visible index. @internal */
+function columnShiftVar(index: number): string {
+	return `--grid-col-x-${index}`
 }
 
 /**
- * Inline style for a reordering body cell: its column's live drag translate and
- * transition, read from the CSS variables the column's header writes (see
- * {@link writeColumnShift}). An idle column leaves the variables unset, so the
- * cell resolves to no transform. Keyed by the column's visible index, which a
- * header and the row cells beneath it share.
+ * Inline style for a reordering cell — a header or a body cell. Reads its
+ * column's live translate from the CSS variable the column's header animates (see
+ * {@link useColumnReorderShift}); an idle column leaves it unset, so the cell
+ * resolves to no shift. Keyed by the column's visible index, which a header and
+ * the row cells beneath it share, so they move as one. Only the x translate is
+ * taken — never dnd-kit's `scaleX` / `scaleY`, which would stretch cell content.
  *
  * @internal
  */
 export function columnShiftStyle(index: number): CSSProperties {
-	const vars = columnShiftVars(index)
-
-	return {
-		transform: `var(${vars.x}, none)`,
-		transition: `var(${vars.transition}, none)`,
-	}
+	return { transform: `translateX(var(${columnShiftVar(index)}, 0px))` }
 }
 
+/** Snappy, lightly-damped spring for the shift glide — settles fast with a touch of give, not a bounce. @internal */
+const SHIFT_SPRING = { type: 'spring', stiffness: 600, damping: 38 } as const
+
 /**
- * Writes (or clears) a reordering column's translate and transition onto the
- * `table` element as the CSS variables {@link columnShiftStyle} reads, so the
- * column's body cells glide with its header without re-rendering. A `null`
- * `transform` — the column is idle or its header is unmounting — removes them.
+ * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}
+ * reads, so the whole column — its header and every body cell — moves from one
+ * variable without re-rendering a cell. The actively dragged column tracks the
+ * pointer 1:1 (a spring would lag the cursor); every other column springs to its
+ * target via `motion`, so the make-room shifts glide instead of snapping. Reduced
+ * motion snaps all of them straight to target (WCAG 2.3.3).
  *
+ * @param tableRef - The enclosing `<table>` the variable lives on; it cascades to the column's cells.
+ * @param index - The column's visible index, keying its variable.
+ * @param x - The column's target horizontal translate in px (0 when idle).
+ * @param isDragging - Whether this is the actively dragged column.
  * @internal
  */
-export function writeColumnShift(
-	table: HTMLElement | null,
+export function useColumnReorderShift(
+	tableRef: RefObject<HTMLTableElement | null>,
 	index: number,
-	transform: Transform | null,
-	transition: string | undefined,
+	x: number,
+	isDragging: boolean,
 ): void {
-	if (!table) return
+	const reduceMotion = useReducedMotion()
 
-	const vars = columnShiftVars(index)
+	useEffect(() => {
+		const table = tableRef.current
 
-	if (transform) {
-		table.style.setProperty(vars.x, CSS.Translate.toString(transform) || 'none')
+		if (!table) return
 
-		table.style.setProperty(vars.transition, transition ?? '')
-	} else {
-		table.style.removeProperty(vars.x)
+		const name = columnShiftVar(index)
 
-		table.style.removeProperty(vars.transition)
-	}
+		// Seed a numeric starting point so the spring has a value to read and
+		// interpolate from on its first run.
+		if (!table.style.getPropertyValue(name)) table.style.setProperty(name, '0px')
+
+		// The dragged column follows the pointer with no spring; reduced motion
+		// snaps every column straight to its target.
+		if (isDragging || reduceMotion) {
+			table.style.setProperty(name, `${x}px`)
+
+			return
+		}
+
+		const controls: AnimationPlaybackControls = animate(table, { [name]: `${x}px` }, SHIFT_SPRING)
+
+		return () => controls.stop()
+	}, [tableRef, index, x, isDragging, reduceMotion])
 }
 
 /**
