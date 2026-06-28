@@ -709,7 +709,6 @@ export function GridData<T>({
 
 	const context = useMemo(
 		() => ({
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,
@@ -721,7 +720,6 @@ export function GridData<T>({
 			resizing,
 		}),
 		[
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,

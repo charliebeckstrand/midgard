@@ -8,9 +8,8 @@ export type SortState = {
 	direction: 'asc' | 'desc'
 }
 
-/** Table-wide state shared with head and rows: selection, sort, and sticky-header flag. */
+/** Table-wide state shared with head and rows: selection flags and toggles, sort, pinning, and resize/sticky-header flags. */
 export type GridContextValue = {
-	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	toggleAll: () => void
 	allSelected: boolean
