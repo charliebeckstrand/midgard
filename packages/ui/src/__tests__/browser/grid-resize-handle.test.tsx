@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
+import type { GridEditableColumn } from '../../modules/grid/grid-editable-types'
 import { renderUI, waitFor } from '../helpers'
 
 /**
@@ -132,5 +133,83 @@ describe('grid resize handle geometry (real browser)', () => {
 		await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
 
 		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
+	})
+})
+
+/**
+ * Grip alignment follows where the cell content ends. A truncating grid clips its
+ * values one cell-padding inside the trailing edge, so the grip centres in the
+ * handle to meet that point; a non-truncating grid (the editable surface, whose
+ * cells host edge-to-edge editors) has no truncation point, so the grip flushes to
+ * the column border instead. The two only diverge in a real browser, where the
+ * handle has measured geometry.
+ */
+describe('grid resize grip alignment by truncation (real browser)', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Manager' },
+	]
+
+	const readOnlyColumns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '200px' },
+		{ id: 'role', title: 'Role', cell: (r) => r.role },
+	]
+
+	const editableColumns: GridEditableColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', width: '200px' },
+		{ id: 'role', title: 'Role', field: 'role' },
+	]
+
+	// Distance from the 'name' column's trailing border to its grip's right edge:
+	// ~one cell-padding when centred, a hairline when flush to the border.
+	function gripInset(container: HTMLElement): number {
+		const header = container.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+
+		const grip = container
+			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Name"]')
+			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+
+		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
+	}
+
+	it('centres the grip at the truncation point in a truncating grid', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// Centred in the handle, so it sits a cell-padding inside the border (where
+		// the value clips), well clear of the boundary.
+		expect(gripInset(container)).toBeGreaterThan(3)
+	})
+
+	it('flushes the grip to the border in a non-truncating (editable) grid', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid
+					editable
+					outline
+					columns={editableColumns}
+					rows={rows}
+					getKey={(r) => r.id}
+					onValueChange={() => {}}
+				/>
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// The editable cells fill to the edge, so the grip lands on the column border
+		// — within a hairline of it, not a cell-padding inside.
+		expect(gripInset(container)).toBeLessThanOrEqual(2)
 	})
 })

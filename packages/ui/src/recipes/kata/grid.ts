@@ -199,21 +199,34 @@ export const k = {
 		// Density-scaled resize metrics (header trailing padding + handle width)
 		// projected onto resizable headers; lives on the `<table>` element.
 		metrics: resizeMetrics,
+		// Alignment override the table projects onto its resize handles when the grid
+		// does not truncate (`truncate={false}` — the editable grid, whose cells host
+		// edge-to-edge editors rather than a truncating value). The grip then aligns
+		// with the column border instead of the (absent) truncation point: justify it
+		// to the handle's trailing edge — `right-0` — so it lands on the boundary. A
+		// truncating grid omits this and keeps the handle's default centred grip (see
+		// `handle`). Projected from the `<table>`, like `metrics`, at higher
+		// specificity than the handle's own `justify-center` so it wins without
+		// `!important`.
+		flush: '[&>*>tr>th[data-resizable]>[role=separator]]:justify-end',
 		// Grab area along the column's trailing edge, anchored to the inside of that
 		// edge (`right-0`, no outward shift) and widening leftward into the cell. Its
 		// width is density-scaled (set via `metrics`, since only the table knows the
 		// density) to twice the cell's horizontal padding — 8/16/24px across
-		// compact/snug/loose — so the centred grip sits one cell-padding in from the
-		// edge, flush with where the header label and body values truncate (only the
-		// loose step reaches the 24px WCAG 2.5.8 target). It deliberately does not
-		// overhang the boundary: an outward overhang (a former `translate-x-1/2`) was
-		// painted over by the next sticky header's opaque cell — clipping the grip to
-		// a sliver across the header — and, on the trailing column, pushed past the
-		// table's edge to inflate the horizontal scroll (nudging a right-pinned column
-		// at the scroll end). Spans the column's full height — header through the last
-		// row — via the measured `--grid-resize-height`, so a drag can begin anywhere
-		// down the right side, not just the header (falling back to the header height
-		// until measured).
+		// compact/snug/loose — so the grip aligns with where the cell content ends.
+		// By default it is centred (`justify-center`), landing one cell-padding in
+		// from the edge — flush with where a truncating grid's header label and body
+		// values clip (only the loose step reaches the 24px WCAG 2.5.8 target). A
+		// non-truncating grid overrides this to `justify-end` (see `flush`) so the
+		// grip meets the border its edge-to-edge cells reach instead. It deliberately
+		// does not overhang the boundary: an outward overhang (a former
+		// `translate-x-1/2`) was painted over by the next sticky header's opaque cell
+		// — clipping the grip to a sliver across the header — and, on the trailing
+		// column, pushed past the table's edge to inflate the horizontal scroll
+		// (nudging a right-pinned column at the scroll end). Spans the column's full
+		// height — header through the last row — via the measured
+		// `--grid-resize-height`, so a drag can begin anywhere down the right side,
+		// not just the header (falling back to the header height until measured).
 		handle: [
 			'group/grid-resize absolute top-0 right-0 z-10 h-[var(--grid-resize-height,100%)]',
 			'flex items-center justify-center',
@@ -221,12 +234,12 @@ export const k = {
 		],
 		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
 		// grip (`kata/resizable`) so every resize affordance reads the same width —
-		// centred in the handle so it sits one cell-padding in from the column's
-		// trailing edge, flush with where the values truncate (and clear of the
-		// neighbour's opaque sticky header), hidden until the edge is hovered, and
-		// shown on keyboard focus or active drag: tints on hover, turns accent on
-		// focus or drag. Focus shows as a colour change, not an outset ring, so the
-		// scroll container can't clip it.
+		// positioned by the handle's justification (centred at the truncation point by
+		// default, at the column border when the grid does not truncate; see `handle`
+		// and `flush`), and clear of the neighbour's opaque sticky header. Hidden
+		// until the edge is hovered, and shown on keyboard focus or active drag: tints
+		// on hover, turns accent on focus or drag. Focus shows as a colour change, not
+		// an outset ring, so the scroll container can't clip it.
 		grip: [
 			'h-full w-0.5',
 			rounded.full,
