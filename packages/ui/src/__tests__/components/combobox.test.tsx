@@ -71,10 +71,13 @@ describe('Combobox', () => {
 		const suffix = bySlot(container, 'suffix')
 
 		expect(suffix).toBeInTheDocument()
+
 		// The chevron is a decorative mouse affordance, not a second button; the
 		// input carries the combobox semantics.
 		expect(suffix).not.toHaveAttribute('role', 'button')
+
 		expect(suffix).toHaveAttribute('aria-hidden', 'true')
+
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
@@ -192,6 +195,7 @@ describe('Combobox', () => {
 		const frame = bySlot(container, 'control-frame')
 
 		expect(frame?.contains(suffix ?? null)).toBe(true)
+
 		expect(frame?.querySelector(':disabled')).toBe(bySlot(container, 'combobox-input'))
 	})
 
@@ -272,6 +276,7 @@ describe('Combobox', () => {
 		// Panel is in FloatingPortal; query document. jsdom has no layout;
 		// react-virtual renders 0 items, so the count is bounded by options.length.
 		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
+
 		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
 	})
 })

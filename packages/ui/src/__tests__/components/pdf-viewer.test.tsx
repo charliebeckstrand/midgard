@@ -26,6 +26,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	vi.unstubAllGlobals()
+
 	vi.restoreAllMocks()
 })
 
@@ -236,6 +237,7 @@ describe('PdfViewer', () => {
 		const img = viewport.querySelector('img') as HTMLImageElement
 
 		Object.defineProperty(img, 'naturalWidth', { value: 800, configurable: true })
+
 		Object.defineProperty(img, 'naturalHeight', { value: 600, configurable: true })
 
 		act(() => {
@@ -255,6 +257,7 @@ describe('PdfViewer', () => {
 describe('downloadPdf', () => {
 	it('creates an anchor with the src, clicks it, and removes it', () => {
 		const createElement = vi.spyOn(document, 'createElement')
+
 		const appendChild = vi.spyOn(document.body, 'appendChild')
 
 		downloadPdf('/doc.pdf', 'doc.pdf')
@@ -274,6 +277,7 @@ describe('downloadPdf', () => {
 		expect(anchor.parentNode).toBeNull()
 
 		createElement.mockRestore()
+
 		appendChild.mockRestore()
 	})
 
@@ -305,11 +309,13 @@ describe('printPdf', () => {
 		expect(iframe.getAttribute('aria-hidden')).toBe('true')
 
 		iframe.remove()
+
 		appendChild.mockRestore()
 	})
 
 	it('opens the pdf in a new tab when the iframe fails to load', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+
 		const appendChild = vi.spyOn(document.body, 'appendChild')
 
 		printPdf('/fail.pdf')
@@ -321,6 +327,7 @@ describe('printPdf', () => {
 		expect(open).toHaveBeenCalledWith('/fail.pdf', '_blank', 'noopener,noreferrer')
 
 		open.mockRestore()
+
 		appendChild.mockRestore()
 	})
 
@@ -363,6 +370,7 @@ describe('printPdf', () => {
 		expect(iframe.parentNode).not.toBeNull()
 
 		iframe.remove()
+
 		appendChild.mockRestore()
 	})
 
@@ -391,6 +399,7 @@ describe('printPdf', () => {
 
 	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+
 		const appendChild = vi.spyOn(document.body, 'appendChild')
 
 		printPdf('/doc.pdf')
@@ -414,6 +423,7 @@ describe('printPdf', () => {
 		expect(iframe.parentNode).toBeNull()
 
 		open.mockRestore()
+
 		appendChild.mockRestore()
 	})
 })

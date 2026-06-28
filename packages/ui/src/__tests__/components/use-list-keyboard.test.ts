@@ -16,6 +16,7 @@ function mountListDom(ids: string[]): HTMLElement[] {
 		const el = document.createElement('button')
 
 		el.setAttribute('data-slot', 'list-item')
+
 		el.setAttribute('data-item-id', id)
 
 		el.tabIndex = 0
@@ -64,6 +65,7 @@ describe('useListKeyboard', () => {
 			act(() => result.current.onItemKeyDown('b', lift))
 
 			expect(result.current.liftedId).toBe('b')
+
 			expect(lift.preventDefault).toHaveBeenCalled()
 
 			const drop = makeKeyEvent(' ')
@@ -126,6 +128,7 @@ describe('useListKeyboard', () => {
 			act(() => result.current.onItemKeyDown('a', ev))
 
 			expect(document.activeElement).toBe(b)
+
 			expect(ev.preventDefault).toHaveBeenCalled()
 		})
 
@@ -248,7 +251,9 @@ describe('useListKeyboard', () => {
 			act(() => result.current.onItemKeyDown('a', move))
 
 			expect(move.preventDefault).toHaveBeenCalled()
+
 			expect(onReorder).toHaveBeenCalledTimes(1)
+
 			expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['b', 'a', 'c'])
 		})
 

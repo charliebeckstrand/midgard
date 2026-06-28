@@ -10,11 +10,13 @@ import { allBySlot, bySlot, renderUI, screen } from '../helpers'
 describe('Control', () => {
 	it('sets data-disabled when disabled', () => {
 		const { container } = renderUI(<Control disabled>content</Control>)
+
 		expect(bySlot(container, 'control')).toHaveAttribute('data-disabled')
 	})
 
 	it('does not set data-disabled when not disabled', () => {
 		const { container } = renderUI(<Control>content</Control>)
+
 		expect(bySlot(container, 'control')).not.toHaveAttribute('data-disabled')
 	})
 })
@@ -27,9 +29,13 @@ describe('Control + Label', () => {
 				<Input />
 			</Control>,
 		)
+
 		const label = bySlot(container, 'label')
+
 		const input = bySlot(container, 'input')
+
 		expect(label).toHaveAttribute('for')
+
 		expect(label?.getAttribute('for')).toBe(input?.getAttribute('id'))
 	})
 
@@ -40,11 +46,13 @@ describe('Control + Label', () => {
 				<Input />
 			</Control>,
 		)
+
 		expect(screen.getByText('Email')).toHaveAttribute('for', 'custom')
 	})
 
 	it('works without Control (backward compatible)', () => {
 		renderUI(<Label htmlFor="manual">Email</Label>)
+
 		expect(screen.getByText('Email')).toHaveAttribute('for', 'manual')
 	})
 })
@@ -56,6 +64,7 @@ describe('Control + Description', () => {
 				<Description>Help text</Description>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'description')).toHaveAttribute('id', 'test-description')
 	})
 
@@ -65,11 +74,13 @@ describe('Control + Description', () => {
 				<Description id="custom">Help text</Description>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'description')).toHaveAttribute('id', 'custom')
 	})
 
 	it('has no id outside Control', () => {
 		const { container } = renderUI(<Description>Help text</Description>)
+
 		expect(bySlot(container, 'description')).not.toHaveAttribute('id')
 	})
 })
@@ -81,6 +92,7 @@ describe('Control + Message', () => {
 				<Message>Error</Message>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'message')).toHaveAttribute('id', 'test-error')
 	})
 
@@ -90,6 +102,7 @@ describe('Control + Message', () => {
 				<Message id="custom">Error</Message>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'message')).toHaveAttribute('id', 'custom')
 	})
 })
@@ -101,6 +114,7 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toHaveAttribute('id', 'test')
 	})
 
@@ -110,6 +124,7 @@ describe('Control + Input', () => {
 				<Input id="custom" />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toHaveAttribute('id', 'custom')
 	})
 
@@ -119,6 +134,7 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toBeDisabled()
 	})
 
@@ -128,6 +144,7 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toBeRequired()
 	})
 
@@ -137,6 +154,7 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
 	})
 
@@ -146,8 +164,11 @@ describe('Control + Input', () => {
 				<Input />
 			</Control>,
 		)
+
 		const input = bySlot(container, 'input')
+
 		expect(input).toHaveAttribute('data-invalid')
+
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
@@ -201,11 +222,13 @@ describe('Control + Input', () => {
 				<Input disabled={false} />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).not.toBeDisabled()
 	})
 
 	it('works without Control', () => {
 		const { container } = renderUI(<Input id="standalone" />)
+
 		expect(bySlot(container, 'input')).toHaveAttribute('id', 'standalone')
 	})
 })
@@ -217,6 +240,7 @@ describe('Control + Textarea', () => {
 				<Textarea />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'textarea')).toHaveAttribute('id', 'test')
 	})
 
@@ -226,6 +250,7 @@ describe('Control + Textarea', () => {
 				<Textarea />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'textarea')).toBeDisabled()
 	})
 
@@ -235,6 +260,7 @@ describe('Control + Textarea', () => {
 				<Textarea />
 			</Control>,
 		)
+
 		expect(bySlot(container, 'textarea')).toHaveAttribute('data-invalid')
 	})
 })
@@ -298,6 +324,7 @@ describe('Control nesting', () => {
 				</Control>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
 	})
 
@@ -309,6 +336,7 @@ describe('Control nesting', () => {
 				</Control>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).not.toHaveAttribute('data-invalid')
 	})
 
@@ -320,6 +348,7 @@ describe('Control nesting', () => {
 				</Control>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'input')).not.toBeRequired()
 	})
 
@@ -332,8 +361,11 @@ describe('Control nesting', () => {
 				</Control>
 			</Control>,
 		)
+
 		const inputs = allBySlot(container, 'input')
+
 		expect(inputs[0]).toHaveAttribute('id', 'parent')
+
 		expect(inputs[1]).toHaveAttribute('id', 'child')
 	})
 
@@ -346,6 +378,7 @@ describe('Control nesting', () => {
 				</Control>
 			</Control>,
 		)
+
 		expect(bySlot(container, 'label')).toHaveAttribute('for', 'child')
 	})
 
@@ -355,8 +388,11 @@ describe('Control nesting', () => {
 				<Control id="child">content</Control>
 			</Control>,
 		)
+
 		const controls = allBySlot(container, 'control')
+
 		expect(controls[0]).toHaveAttribute('data-disabled')
+
 		expect(controls[1]).toHaveAttribute('data-disabled')
 	})
 })

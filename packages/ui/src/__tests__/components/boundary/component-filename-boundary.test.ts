@@ -172,6 +172,7 @@ function checkFolder(folderPath: string): Violation[] {
 
 		if (nameReason) {
 			violations.push({ path, reason: nameReason })
+
 			continue
 		}
 

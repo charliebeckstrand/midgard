@@ -488,7 +488,9 @@ describe('formatExpiry', () => {
 
 	it('passes any single digit through unchanged', () => {
 		expect(formatExpiry('0')).toBe('0')
+
 		expect(formatExpiry('1')).toBe('1')
+
 		expect(formatExpiry('5')).toBe('5')
 	})
 

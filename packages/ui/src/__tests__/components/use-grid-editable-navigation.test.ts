@@ -244,8 +244,11 @@ describe('useGridEditableNavigation: addCellToSelection', () => {
 		})
 
 		expect(result.current.extraCells.has(cellKey(0, 0))).toBe(true)
+
 		expect(result.current.extraCells.has(cellKey(0, 1))).toBe(true)
+
 		expect(result.current.extraCells.has(cellKey(1, 0))).toBe(true)
+
 		expect(result.current.extraCells.has(cellKey(1, 1))).toBe(true)
 
 		// The newly clicked cell does not appear in extras; it's the new active.

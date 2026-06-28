@@ -34,6 +34,7 @@ describe('TagInput', () => {
 		const input = getInput(container)
 
 		expect(input).toBeInTheDocument()
+
 		expect(input.tagName).toBe('INPUT')
 	})
 
@@ -43,6 +44,7 @@ describe('TagInput', () => {
 		const { container } = renderUI(<TagInput ref={ref} />)
 
 		expect(ref.current).toBeInstanceOf(HTMLInputElement)
+
 		expect(ref.current).toBe(getInput(container))
 	})
 
@@ -66,6 +68,7 @@ describe('TagInput', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
 		expect(container.textContent).toContain('react')
+
 		expect(container.textContent).toContain('vue')
 	})
 
@@ -124,6 +127,7 @@ describe('TagInput', () => {
 		const user = userEvent.setup()
 
 		await user.type(input, 'svelte')
+
 		await user.tab()
 
 		expect(onChange).toHaveBeenCalledWith(['svelte'])
@@ -254,6 +258,7 @@ describe('TagInput', () => {
 		;(getBadges(container)[0] as HTMLElement).focus()
 
 		await user.keyboard('{Enter}')
+
 		await user.keyboard('a')
 
 		expect(onChange).not.toHaveBeenCalled()
@@ -284,6 +289,7 @@ describe('TagInput', () => {
 		const user = userEvent.setup()
 
 		await user.click(input)
+
 		await user.keyboard('{Backspace}')
 
 		expect(onChange).toHaveBeenCalledWith(['react'])
@@ -369,6 +375,7 @@ describe('TagInput', () => {
 		const badge = getBadges(container)[0] as HTMLElement
 
 		fireEvent.keyDown(badge, { key: 'Backspace' })
+
 		fireEvent.keyDown(badge, { key: 'Delete' })
 
 		expect(onChange).not.toHaveBeenCalled()

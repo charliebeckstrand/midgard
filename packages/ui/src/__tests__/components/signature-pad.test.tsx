@@ -184,6 +184,7 @@ describe('drawSnapshot', () => {
 		window.Image = class extends Original {
 			constructor() {
 				super()
+
 				captured = this
 			}
 		} as typeof Image

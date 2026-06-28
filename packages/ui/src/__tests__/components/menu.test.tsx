@@ -304,6 +304,7 @@ describe('MenuItem', () => {
 
 	it('does not call a consumer onClick or onKeyDown when disabled', () => {
 		const onClick = vi.fn()
+
 		const onKeyDown = vi.fn()
 
 		renderUI(
@@ -319,9 +320,11 @@ describe('MenuItem', () => {
 		const item = screen.getByText('Item')
 
 		fireEvent.click(item)
+
 		fireEvent.keyDown(item, { key: 'Enter' })
 
 		expect(onClick).not.toHaveBeenCalled()
+
 		expect(onKeyDown).not.toHaveBeenCalled()
 	})
 

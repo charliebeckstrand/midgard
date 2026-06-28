@@ -18,6 +18,7 @@ import { usePdfViewerDocument } from '../../components/pdf-viewer/use-pdf-viewer
 const originalFetch = globalThis.fetch
 
 const originalCreateObjectURL = globalThis.URL.createObjectURL
+
 const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
 
 beforeEach(() => {

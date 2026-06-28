@@ -23,6 +23,7 @@ import { renderUI, waitFor } from '../helpers'
  */
 
 const TABLE_HEIGHT = 300
+
 const ROW_HEIGHT = 44
 
 /** Minimal real table over `useVirtualWindow`, mirroring Grid's virtualized body. */

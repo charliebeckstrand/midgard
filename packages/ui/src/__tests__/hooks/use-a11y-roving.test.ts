@@ -11,6 +11,7 @@ describe('queryItems', () => {
 
 	it('returns matching elements', () => {
 		const container = document.createElement('div')
+
 		container.innerHTML = '<button>A</button><button>B</button><span>C</span>'
 
 		const items = queryItems(container, 'button')

@@ -72,6 +72,7 @@ describe('Link', () => {
 		const el = screen.getByText('Custom')
 
 		expect(el.tagName).toBe('SPAN')
+
 		expect(el).toHaveAttribute('data-href', '/custom')
 	})
 })

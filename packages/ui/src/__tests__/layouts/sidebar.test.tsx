@@ -116,6 +116,7 @@ describe('SidebarLayout', () => {
 		const desktopPanel = container.querySelector('.custom-panel')
 
 		expect(desktopPanel).toBeInTheDocument()
+
 		expect(desktopPanel?.className).toContain('max-lg:hidden')
 	})
 })
@@ -231,6 +232,7 @@ describe('SidebarLayout floating mode', () => {
 		const backdrop = document.querySelector('[data-slot="overlay-backdrop"]')
 
 		expect(backdrop).toBeInTheDocument()
+
 		expect(backdrop?.className).toContain('backdrop-blur')
 
 		// The wrapper stays non-interactive so the blurred page is still usable.

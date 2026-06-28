@@ -32,8 +32,10 @@ describe('grid column auto-fit (real browser)', () => {
 		)
 
 		const table = container.querySelector('table') as HTMLElement
+
 		const header = (col: string) =>
 			container.querySelector<HTMLElement>(`th[data-grid-col="${col}"]`) as HTMLElement
+
 		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
 		return { container, table, header, scroll }
@@ -46,12 +48,14 @@ describe('grid column auto-fit (real browser)', () => {
 		await waitFor(() => {
 			// Each column holds its declared width rather than squishing to fit…
 			expect(header('name').getBoundingClientRect().width).toBeCloseTo(200, 0)
+
 			expect(header('age').getBoundingClientRect().width).toBeCloseTo(120, 0)
 		})
 
 		// …so the table runs wider than its scroll container and overflows sideways
 		// (no shrink-to-fit, so no truncation).
 		expect(table.getBoundingClientRect().width).toBeCloseTo(320, 0)
+
 		expect(table.getBoundingClientRect().width).toBeGreaterThan(scroll.clientWidth)
 	})
 
@@ -62,11 +66,13 @@ describe('grid column auto-fit (real browser)', () => {
 		await waitFor(() => {
 			// Columns grow past their declared widths to take up the surplus…
 			expect(header('name').getBoundingClientRect().width).toBeGreaterThan(200)
+
 			expect(header('age').getBoundingClientRect().width).toBeGreaterThan(120)
 		})
 
 		// …filling the container instead of overflowing it.
 		expect(table.getBoundingClientRect().width).toBeLessThanOrEqual(scroll.clientWidth + 1)
+
 		expect(table.getBoundingClientRect().width).toBeGreaterThan(440)
 	})
 })

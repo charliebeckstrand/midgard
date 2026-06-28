@@ -9,6 +9,7 @@ import { collectPatternViolations } from '../../helpers/walk-source'
 // primitives is allowed; hooks may read context from primitive providers.
 
 const hooksDir = join(__dirname, '../../../hooks')
+
 const srcDir = join(__dirname, '../../..')
 
 const FORBIDDEN_PATTERNS = [

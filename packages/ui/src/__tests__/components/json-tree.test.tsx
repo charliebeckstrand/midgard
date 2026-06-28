@@ -21,8 +21,11 @@ describe('JsonTree', () => {
 		)
 
 		expect(screen.getByText('"Ada"')).toBeInTheDocument()
+
 		expect(screen.getByText('42')).toBeInTheDocument()
+
 		expect(screen.getByText('true')).toBeInTheDocument()
+
 		expect(screen.getByText('null')).toBeInTheDocument()
 	})
 
@@ -286,6 +289,7 @@ describe('JsonTree', () => {
 
 		it('never renders more rows than the flattened node count', () => {
 			const data = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`key_${i}`, i]))
+
 			const { container } = renderUI(
 				<JsonTree data={data} virtualize maxHeight="400px" defaultExpandDepth={1} />,
 			)

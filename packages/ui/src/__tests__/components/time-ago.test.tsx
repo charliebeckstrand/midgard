@@ -3,8 +3,11 @@ import { TimeAgo } from '../../components/time-ago'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 const SEC = 1000
+
 const MIN = 60 * SEC
+
 const HOUR = 60 * MIN
+
 const DAY = 24 * HOUR
 
 describe('TimeAgo', () => {
@@ -16,6 +19,7 @@ describe('TimeAgo', () => {
 
 	afterEach(() => {
 		vi.useRealTimers()
+
 		vi.restoreAllMocks()
 	})
 

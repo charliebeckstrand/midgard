@@ -62,6 +62,7 @@ describe('findScrollableAncestor', () => {
 		const child = document.createElement('div')
 
 		parent.appendChild(child)
+
 		document.body.appendChild(parent)
 
 		expect(findScrollableAncestor(child)).toBeNull()
@@ -75,6 +76,7 @@ describe('findScrollableAncestor', () => {
 		const child = document.createElement('div')
 
 		scrollable.appendChild(child)
+
 		document.body.appendChild(scrollable)
 
 		expect(findScrollableAncestor(child)).toBe(scrollable)
@@ -88,6 +90,7 @@ describe('findScrollableAncestor', () => {
 		const child = document.createElement('div')
 
 		tooSmall.appendChild(child)
+
 		document.body.appendChild(tooSmall)
 
 		expect(findScrollableAncestor(child)).toBeNull()

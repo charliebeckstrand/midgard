@@ -34,7 +34,9 @@ describe('a11y focus trap (real browser) — modal family', () => {
 		expect(screen.getByRole('button', { name: trigger, hidden: true })).not.toHaveFocus()
 
 		const focusables = tabbables(panel)
+
 		const first = focusables[0] as HTMLElement
+
 		const last = focusables[focusables.length - 1] as HTMLElement
 
 		expect(first).toBeDefined()
