@@ -4,7 +4,7 @@ import type { ClientRect, Modifier } from '@dnd-kit/core'
 import type { Transform } from '@dnd-kit/utilities'
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { useReducedMotion } from 'motion/react'
-import { type CSSProperties, type RefObject, useEffect } from 'react'
+import { type CSSProperties, type RefObject, useLayoutEffect } from 'react'
 import { createContext } from '../../core'
 
 /**
@@ -128,26 +128,21 @@ export function useColumnReorderShift(
 ): void {
 	const reduceMotion = useReducedMotion()
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const table = tableRef.current
 
 		if (!table) return
 
-		const name = columnShiftVar(index)
-
-		// Seed a numeric starting point so the spring has a value to read and
-		// interpolate from on its first run.
-		if (!table.style.getPropertyValue(name)) table.style.setProperty(name, '0px')
-
-		// The dragged column follows the pointer with no spring; reduced motion
-		// snaps every column straight to its target.
-		if (isDragging || reduceMotion) {
-			table.style.setProperty(name, `${x}px`)
-
-			return
-		}
-
-		const controls: AnimationPlaybackControls = animate(table, { [name]: `${x}px` }, SHIFT_SPRING)
+		// Every write goes through motion so it owns the variable: a direct style
+		// write would fight motion's render loop, which keeps applying the value it
+		// last animated and drops the write. The dragged column — and reduced
+		// motion — jump instantly (duration 0); every other column springs to make
+		// room.
+		const controls: AnimationPlaybackControls = animate(
+			table,
+			{ [columnShiftVar(index)]: `${x}px` },
+			isDragging || reduceMotion ? { duration: 0 } : SHIFT_SPRING,
+		)
 
 		return () => controls.stop()
 	}, [tableRef, index, x, isDragging, reduceMotion])
