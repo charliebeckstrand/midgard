@@ -4,6 +4,7 @@ import { DatePicker } from '../../../components/date-picker'
 import { Flex } from '../../../components/flex'
 import { Input } from '../../../components/input'
 import { ListboxOption } from '../../../components/listbox'
+import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import type { QueryField } from './types'
@@ -16,11 +17,6 @@ export type QueryBuilderRuleValueProps = {
 	/** When true, edit a two-bound `[min, max]` tuple (the operator is a range). */
 	range?: boolean
 	className?: string
-}
-
-/** Parses an `<input>` string back to a numeric bound, keeping blanks blank (open-ended). @internal */
-function toBound(next: string): number | '' {
-	return next === '' ? '' : Number(next)
 }
 
 /** A range value as a `[min, max]` pair of numeric-or-blank bounds; non-tuples read as both-blank. @internal */
@@ -57,9 +53,9 @@ function fromIsoDate(value: string): Date | undefined {
 
 /**
  * Value input for a query rule, chosen by the field's type: a {@link Select}
- * for `select`, a numeric {@link Input} for `number`, a {@link DatePicker}
- * (round-tripped as a local-wall-clock ISO date) for `date`, and a text
- * {@link Input} otherwise.
+ * for `select`, a {@link NumberInput} for `number` (a `[min, max]` pair of them
+ * when the operator is a range), a {@link DatePicker} (round-tripped as a
+ * local-wall-clock ISO date) for `date`, and a text {@link Input} otherwise.
  */
 export function QueryBuilderRuleValue({
 	field,
@@ -75,22 +71,20 @@ export function QueryBuilderRuleValue({
 
 		return (
 			<Flex gap="sm" className={cn('w-full', className)}>
-				<Input
-					type="number"
-					value={lo === '' ? '' : String(lo)}
+				<NumberInput
+					value={lo === '' ? null : lo}
 					placeholder="Min"
 					aria-label={`${field.label} minimum`}
 					className="w-full"
-					onChange={(event) => onValueChange([toBound(event.target.value), hi])}
+					onValueChange={(next) => onValueChange([next ?? '', hi])}
 				/>
 
-				<Input
-					type="number"
-					value={hi === '' ? '' : String(hi)}
+				<NumberInput
+					value={hi === '' ? null : hi}
 					placeholder="Max"
 					aria-label={`${field.label} maximum`}
 					className="w-full"
-					onChange={(event) => onValueChange([lo, toBound(event.target.value)])}
+					onValueChange={(next) => onValueChange([lo, next ?? ''])}
 				/>
 			</Flex>
 		)
@@ -117,16 +111,12 @@ export function QueryBuilderRuleValue({
 
 	if (field.type === 'number') {
 		return (
-			<Input
-				type="number"
-				value={value == null ? '' : String(value)}
+			<NumberInput
+				value={value === '' || value == null ? null : Number(value)}
 				placeholder="Value"
 				aria-label={label}
 				className={className}
-				onChange={(event) => {
-					const next = event.target.value
-					onValueChange(next === '' ? '' : Number(next))
-				}}
+				onValueChange={(next) => onValueChange(next ?? '')}
 			/>
 		)
 	}
