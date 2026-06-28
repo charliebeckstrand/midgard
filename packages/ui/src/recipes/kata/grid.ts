@@ -334,4 +334,23 @@ export const k = {
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
 		],
 	},
+	// Inline per-cell editing layered over the navigable cursor: the editor fills
+	// the cell and reuses the grid's own styling (no separate outlined surface).
+	edit: {
+		// Host for the mounted editor; anchors the absolute validation message.
+		host: 'relative flex h-full w-full items-center',
+		// Bare in-cell input/number field: fills the cell with no chrome of its own.
+		input: 'w-full bg-transparent outline-none',
+		// Host for a non-text control (a checkbox, or an `editCell` slot).
+		control: 'flex h-full w-full items-center',
+		// A rejected validation keeps the editor open: a red inset ring plus a small
+		// message anchored below the cell.
+		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500')],
+		error: [
+			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
+			'text-white shadow',
+			...mode('bg-red-600', 'dark:bg-red-500'),
+		],
+	},
 } as const

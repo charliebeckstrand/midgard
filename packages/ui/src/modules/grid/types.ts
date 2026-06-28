@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
+import type { GridEditCell } from './grid-editing-types'
 
 /**
  * A column's display label: its `title` when a plain string, else its `id`
@@ -60,6 +61,37 @@ export type GridColumn<T> = {
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
+	 * Row property this column reads and writes while the grid is
+	 * {@link GridProps.editable | editable} and the cell's row is in edit mode. A
+	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
+	 * editable; the editor the grid mounts is inferred from the field value's
+	 * primitive type (string → text, number → number, boolean → checkbox), and the
+	 * committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 */
+	field?: keyof T
+	/**
+	 * Opts this data column out of editing in an {@link GridProps.editable | editable}
+	 * grid: the cursor still visits its cells, but they never enter edit mode. Has
+	 * no effect on a non-editable grid.
+	 * @defaultValue false
+	 */
+	readOnly?: boolean
+	/**
+	 * Custom in-cell editor for an {@link GridProps.editable | editable} grid,
+	 * superseding the primitive-typed editor the grid would otherwise infer.
+	 * Receives the cell's value plus `onValueUpdate` / `commit` / `cancel`; render
+	 * a control (select, date picker, currency input, …) and stage or commit the
+	 * value through them.
+	 */
+	editCell?: GridEditCell<T>
+	/**
+	 * Validates a committed cell value in an {@link GridProps.editable | editable}
+	 * grid. Receives the pending value and its row; return an error message to
+	 * reject the commit — the editor stays open showing the message and nothing is
+	 * emitted — or `null` to accept it.
+	 */
+	validate?: (value: unknown, row: T) => string | null
+	/**
 	 * Tooltip shown when this column's cell content is truncated (see
 	 * {@link GridProps.truncate}). Receives the row and returns the tooltip
 	 * content; return `null` to disable the tooltip for the column. When omitted,
@@ -76,8 +108,8 @@ export type GridColumn<T> = {
 	/**
 	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
 	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
-	 * composite-widget wrapper like GridEditable). Returned `className` is
-	 * merged with the column's static `className`.
+	 * composite-widget wrapper like the navigable/editable cursor). Returned
+	 * `className` is merged with the column's static `className`.
 	 */
 	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
 	className?: string

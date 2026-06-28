@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { SortState } from './context'
+import type { GridEditableConfig } from './grid-editing-types'
 import type { GridRowClick } from './grid-row'
 import type {
 	GridColumn,
@@ -373,11 +374,16 @@ export type GridDataProps<T> = TableVariants & {
 	tableProps?: TableElementProps
 
 	/**
-	 * Discriminant for the read-only grid. Set `editable` (see {@link GridProps})
-	 * for the spreadsheet-style editing surface instead.
-	 * @defaultValue false
+	 * Bakes per-row inline editing into the grid. Supply an
+	 * {@link GridEditableConfig}: which rows are editable and a commit sink. The
+	 * grid gains a keyboard cursor (as under {@link GridDataProps.navigable}); a
+	 * cell in an editable row enters edit mode on double-click / Enter, commits on
+	 * Enter or blur, and cancels on Escape. A column binds to a row property via
+	 * {@link GridColumn.field}, and the editor is inferred from the value's
+	 * primitive type unless the column supplies an {@link GridColumn.editCell} slot.
+	 * Omit for a read-only grid.
 	 */
-	editable?: false
+	editable?: GridEditableConfig
 
 	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string

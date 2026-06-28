@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import type { GridEditableColumn } from '../../modules/grid/grid-editable-types'
 import { renderUI, waitFor } from '../helpers'
 
 /**
@@ -139,9 +138,9 @@ describe('grid resize handle geometry (real browser)', () => {
 /**
  * Grip alignment follows where the cell content ends. A truncating grid clips its
  * values one cell-padding inside the trailing edge, so the grip centres in the
- * handle to meet that point; a non-truncating grid (the editable surface, whose
- * cells host edge-to-edge editors) has no truncation point, so the grip flushes to
- * the column border instead. The two only diverge in a real browser, where the
+ * handle to meet that point; a non-truncating grid (`truncate={false}`, whose
+ * cells fill edge-to-edge) has no truncation point, so the grip flushes to the
+ * column border instead. The two only diverge in a real browser, where the
  * handle has measured geometry.
  */
 describe('grid resize grip alignment by truncation (real browser)', () => {
@@ -155,11 +154,6 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 	const readOnlyColumns: GridColumn<Row>[] = [
 		{ id: 'name', title: 'Name', cell: (r) => r.name, width: '200px' },
 		{ id: 'role', title: 'Role', cell: (r) => r.role },
-	]
-
-	const editableColumns: GridEditableColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', width: '200px' },
-		{ id: 'role', title: 'Role', field: 'role' },
 	]
 
 	// Distance from the 'name' column's trailing border to its grip's right edge:
@@ -190,16 +184,16 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 		expect(gripInset(container)).toBeGreaterThan(3)
 	})
 
-	it('flushes the grip to the border in a non-truncating (editable) grid', async () => {
+	it('flushes the grip to the border in a non-truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid
-					editable
+					resizable
 					outline
-					columns={editableColumns}
+					truncate={false}
+					columns={readOnlyColumns}
 					rows={rows}
 					getKey={(r) => r.id}
-					onValueChange={() => {}}
 				/>
 			</div>,
 		)

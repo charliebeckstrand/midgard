@@ -11,7 +11,7 @@ import {
 	KanbanColumnTitle,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
-import { Grid, type GridEditableColumn } from '../../../modules/grid'
+import { Grid, type GridColumn } from '../../../modules/grid'
 import { QueryBuilder, type QueryField } from '../../../modules/query'
 import type { Case } from './types'
 
@@ -60,9 +60,9 @@ const gridRows: GridRow[] = [
 	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com' },
 ]
 
-const gridColumns: GridEditableColumn<GridRow>[] = [
-	{ id: 'name', title: 'Name', field: 'name' },
-	{ id: 'email', title: 'Email', field: 'email' },
+const gridColumns: GridColumn<GridRow>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
 ]
 
 /** Complex, interactive data surfaces: trees, grids, boards, and query UIs. */
@@ -112,12 +112,11 @@ export const dataComplexCases: readonly Case[] = [
 		// Editable data grid with column headers and keyed rows.
 		'editable grid',
 		<Grid
-			editable
 			key="eg"
 			columns={gridColumns}
 			rows={gridRows}
 			getKey={(row) => row.id}
-			onValueChange={noop}
+			editable={{ rows: new Set([1, 2]), onValueChange: noop }}
 		/>,
 	],
 	[

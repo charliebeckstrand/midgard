@@ -155,8 +155,8 @@ export function useGridNavigation({
 	const cellId = useCallback((row: number, col: number) => sub(`cell-${row}-${col}`), [sub])
 
 	// Mirror the active cell into an external store so each cell subscribes to its
-	// own active flag (mirrors `useGridEditableStore`): moving the cursor
-	// re-renders only the two cells whose flag flipped, not every rendered cell.
+	// own active flag: moving the cursor re-renders only the two cells whose flag
+	// flipped, not every rendered cell.
 	const internalRef = useRef<{ active: Coord | null; listeners: Set<() => void> } | null>(null)
 
 	if (internalRef.current === null) {
@@ -255,6 +255,11 @@ export function useGridNavigation({
 			const rel = event.relatedTarget
 
 			if (rel instanceof Node && event.currentTarget.contains(rel)) return
+
+			// Focus returning from a transient floating overlay (e.g. a context menu
+			// portaled after the table) is not a Tab-into the grid; leave the cursor
+			// unseated rather than seeding the last cell behind the dismissed menu.
+			if (rel instanceof Element && rel.closest('[data-floating-ui-portal]')) return
 
 			const rowCount = rowsRef.current.length
 
