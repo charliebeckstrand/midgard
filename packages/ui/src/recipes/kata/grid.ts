@@ -135,26 +135,29 @@ export const k = {
 		// within the header's flex slot — and, for a sortable column, within the sort
 		// button — instead of pushing past the cell into its neighbour.
 		title: ['block', 'truncate', 'min-w-0'],
-		// Leading group pairing a pinned column's pin button with its title. `min-w-0`
-		// keeps the title shrinkable so it still truncates beside the button; `gap-1`
-		// sets the button-to-title spacing.
-		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
-		// Pin button on a frozen column's header: an icon-only control that unpins the
-		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
-		// matching the sort button — so it reads as the actionable affordance it is.
-		// `-ml-1.5` pulls the button left by the Pin glyph's optical inset (the icon ink
-		// sits a few px inside its `size-5` box) so the visible pin lands over the
-		// column's cell values rather than floating a step to their right.
-		pinButton: [
-			flex.inline,
-			'shrink-0',
-			'-ml-1.5',
-			text.muted,
-			fg.hover,
-			focus.ring,
-			cursor,
-			'select-none',
-		],
+		// A frozen column's header affordances: the pin button paired with the title.
+		pinned: {
+			// Leading group pairing a pinned column's pin button with its title. `min-w-0`
+			// keeps the title shrinkable so it still truncates beside the button; `gap-1`
+			// sets the button-to-title spacing.
+			label: [flex.inline, 'min-w-0', 'gap-1'],
+			// Pin button on a frozen column's header: an icon-only control that unpins the
+			// column. Muted at rest, tinting and showing a focus ring on hover/focus —
+			// matching the sort button — so it reads as the actionable affordance it is.
+			// `-ml-1.5` pulls the button left by the Pin glyph's optical inset (the icon ink
+			// sits a few px inside its `size-5` box) so the visible pin lands over the
+			// column's cell values rather than floating a step to their right.
+			button: [
+				flex.inline,
+				'shrink-0',
+				'-ml-1.5',
+				text.muted,
+				fg.hover,
+				focus.ring,
+				cursor,
+				'select-none',
+			],
+		},
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can
