@@ -367,6 +367,21 @@ describe('TabPanel', () => {
 
 		expect(panel).toHaveAttribute('aria-labelledby', 't1')
 	})
+
+	it('carries the design-system focus ring, not the browser default', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+				<TabPanels>
+					<TabPanel>Panel A</TabPanel>
+				</TabPanels>
+			</Tabs>,
+		)
+
+		expect(bySlot(container, 'tab-panel')?.className).toContain('focus-visible:outline-blue-600')
+	})
 })
 
 describe('TabContent (idiomatic)', () => {
@@ -421,6 +436,16 @@ describe('TabContent (idiomatic)', () => {
 		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
 
 		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
+	})
+
+	it('carries the design-system focus ring, not the browser default', () => {
+		renderContents()
+
+		const tab = screen.getByRole('tab', { name: 'A' })
+
+		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+
+		expect(panel?.className).toContain('focus-visible:outline-blue-600')
 	})
 })
 
