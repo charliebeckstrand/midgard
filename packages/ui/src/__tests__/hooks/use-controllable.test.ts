@@ -120,6 +120,7 @@ describe('useControllable', () => {
 
 		act(() => {
 			result.current[1]((prev) => (prev ?? 0) + 1)
+
 			result.current[1]((prev) => (prev ?? 0) + 1)
 		})
 
@@ -137,6 +138,7 @@ describe('useControllable', () => {
 
 		act(() => {
 			result.current[1]((prev) => (prev ?? 0) + 1)
+
 			result.current[1]((prev) => (prev ?? 0) + 1)
 		})
 

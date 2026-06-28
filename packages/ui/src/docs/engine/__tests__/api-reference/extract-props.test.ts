@@ -60,6 +60,7 @@ describe('extractProps — TSDoc', () => {
 		)
 
 		expect(p.description).toBe('Ordered columns. Each needs a stable id.')
+
 		expect(p.required).toBe(true)
 	})
 
@@ -86,6 +87,7 @@ describe('extractProps — TSDoc', () => {
 		)
 
 		expect(p.default).toBe('2')
+
 		expect(p.description).toBe('Seconds per sweep.')
 	})
 
@@ -117,6 +119,7 @@ describe('extractProps — TSDoc', () => {
 		)
 
 		expect(prop(props, 'scale').deprecated).toBe('use size instead')
+
 		expect(prop(props, 'legacy').deprecated).toBe(true)
 	})
 
@@ -134,6 +137,7 @@ describe('extractProps — TSDoc', () => {
 		)
 
 		expect(p.example).toContain('<Foo')
+
 		expect(p.description).toBe('Renders a tag.')
 	})
 })
@@ -152,6 +156,7 @@ describe('extractProps — type display', () => {
 
 		// The optional `?` lives on the property name, not the type node.
 		expect(p.type).toBe('Responsive<number>')
+
 		// The preserved alias now reaches the references resolver.
 		expect(p.references?.Responsive).toContain('initial?:')
 	})
@@ -169,6 +174,7 @@ describe('extractProps — type display', () => {
 		)
 
 		expect(p.type).toBe(`'none' | 'sm' | 'md' | 'lg'`)
+
 		expect(p.references).toBeUndefined()
 	})
 
@@ -184,6 +190,7 @@ describe('extractProps — type display', () => {
 		)
 
 		expect(p.type).toBe(`'xs' | 'sm' | 'md' | 'lg'`)
+
 		expect(p.references).toBeUndefined()
 	})
 
@@ -201,6 +208,7 @@ describe('extractProps — type display', () => {
 
 		// Not a pure literal union — boolean is present — so it is not inlined.
 		expect(p.type).toBe('BoxOutline')
+
 		expect(p.references?.BoxOutline).toBeDefined()
 	})
 
@@ -211,8 +219,11 @@ describe('extractProps — type display', () => {
 		)
 
 		expect(p.type).toContain(`'start'`)
+
 		expect(p.type).toContain(`'center'`)
+
 		expect(p.type).toContain(`'end'`)
+
 		expect(p.references).toBeUndefined()
 	})
 
@@ -241,6 +252,7 @@ describe('extractProps — type display', () => {
 		// text, so it surfaces no reference card — the project-only gate. A
 		// project alias in its place would yield a `Dep` reference card.
 		expect(p.type).toBe('Dep')
+
 		expect(p.references).toBeUndefined()
 	})
 })
@@ -273,6 +285,7 @@ describe('extractProps — discriminated unions', () => {
 		const p = prop(propsOf(SRC), 'kind')
 
 		expect(p.description).toBe('Config or bare true.')
+
 		expect(p.references?.Config).toContain('years?:')
 	})
 

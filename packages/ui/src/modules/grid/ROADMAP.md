@@ -79,7 +79,7 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 
 | Feature | Approach |
 |---|---|
-| Excel export, clipboard, print view | CSV export ships (`exportable`, header-menu item over the filtered/sorted row model); Excel/print still derive from that model |
+| Excel export, clipboard, print view | CSV export ships (`exportable`; header- and cell-menu items and an optional toolbar button over the filtered/sorted row model, scoped to the selection when active); Excel/print still derive from that model |
 
 ### Rendering & performance
 

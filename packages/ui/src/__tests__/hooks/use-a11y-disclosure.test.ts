@@ -36,15 +36,18 @@ describe('useA11yDisclosure', () => {
 
 	it('derives matching ids in independent calls sharing a base id and key', () => {
 		const trigger = renderHook(() => useA11yDisclosure({ id: 'flow', key: 2 }))
+
 		const panel = renderHook(() => useA11yDisclosure({ id: 'flow', key: 2 }))
 
 		expect(trigger.result.current.triggerId).toBe('flow-trigger-2')
+
 		expect(panel.result.current.panelId).toBe('flow-panel-2')
 
 		// Both halves agree on the cross-reference.
 		expect(panel.result.current.panelProps['aria-labelledby']).toBe(
 			trigger.result.current.triggerProps.id,
 		)
+
 		expect(trigger.result.current.triggerProps['aria-controls']).toBe(
 			panel.result.current.panelProps.id,
 		)
@@ -52,9 +55,11 @@ describe('useA11yDisclosure', () => {
 
 	it('discriminates pairs by key under a shared base id', () => {
 		const { result: first } = renderHook(() => useA11yDisclosure({ id: 'flow', key: 1 }))
+
 		const { result: second } = renderHook(() => useA11yDisclosure({ id: 'flow', key: 2 }))
 
 		expect(first.current.triggerId).not.toBe(second.current.triggerId)
+
 		expect(first.current.panelId).not.toBe(second.current.panelId)
 	})
 
@@ -62,11 +67,13 @@ describe('useA11yDisclosure', () => {
 		const { result, rerender } = renderHook(() => useA11yDisclosure({ id: 'flow', expanded: true }))
 
 		const firstTrigger = result.current.triggerProps
+
 		const firstPanel = result.current.panelProps
 
 		rerender()
 
 		expect(result.current.triggerProps).toBe(firstTrigger)
+
 		expect(result.current.panelProps).toBe(firstPanel)
 	})
 })

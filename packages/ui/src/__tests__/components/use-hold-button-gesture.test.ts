@@ -88,6 +88,7 @@ describe('useHoldButtonGesture', () => {
 		})
 
 		expect(onComplete).not.toHaveBeenCalled()
+
 		expect(onHoldCancel).toHaveBeenCalledTimes(1)
 	})
 
@@ -110,6 +111,7 @@ describe('useHoldButtonGesture', () => {
 		})
 
 		expect(onHoldStart).not.toHaveBeenCalled()
+
 		expect(onComplete).not.toHaveBeenCalled()
 	})
 
@@ -188,6 +190,7 @@ describe('useHoldButtonGesture', () => {
 		act(() => result.current.start())
 
 		expect(result.current.fill.style.transform).toBe('scaleX(1)')
+
 		expect(result.current.fill.style.transition).toBe('transform 500ms linear')
 	})
 
@@ -199,6 +202,7 @@ describe('useHoldButtonGesture', () => {
 		act(() => result.current.cancel())
 
 		expect(result.current.fill.style.transform).toBe('scaleX(0)')
+
 		expect(result.current.fill.style.transition).toMatch(/transform 150ms linear/)
 	})
 
@@ -223,6 +227,7 @@ describe('useHoldButtonGesture', () => {
 		act(() => result.current.start())
 
 		expect(onHoldStart).toHaveBeenCalledTimes(2)
+
 		expect(onComplete).toHaveBeenCalledTimes(1)
 	})
 })

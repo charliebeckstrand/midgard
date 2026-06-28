@@ -55,6 +55,7 @@ describe('useA11yControl', () => {
 		const { result, rerender } = renderHook(() => useA11yControl('field'))
 
 		const firstDescription = result.current.registerDescription
+
 		const firstMessage = result.current.registerMessage
 
 		rerender()

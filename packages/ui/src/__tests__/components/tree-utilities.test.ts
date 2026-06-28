@@ -9,6 +9,7 @@ function makeTree(count: number): { container: HTMLDivElement; items: HTMLElemen
 		const item = document.createElement('div')
 
 		item.setAttribute('role', 'treeitem')
+
 		container.appendChild(item)
 	}
 

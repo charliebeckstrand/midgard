@@ -39,6 +39,7 @@ describe('HoldButton', () => {
 		const el = bySlot(container, 'hold-button') as HTMLElement
 
 		fireEvent.pointerDown(el)
+
 		fireEvent.pointerUp(el)
 
 		expect(onHoldCancel).toHaveBeenCalledOnce()
@@ -54,6 +55,7 @@ describe('HoldButton', () => {
 		const el = bySlot(container, 'hold-button') as HTMLElement
 
 		fireEvent.pointerDown(el)
+
 		fireEvent.pointerLeave(el)
 
 		expect(onHoldCancel).toHaveBeenCalledOnce()
@@ -181,6 +183,7 @@ describe('HoldButton', () => {
 		const el = bySlot(container, 'hold-button') as HTMLElement
 
 		fireEvent.keyDown(el, { key: ' ' })
+
 		fireEvent.keyDown(el, { key: ' ', repeat: true })
 
 		expect(onHoldStart).toHaveBeenCalledOnce()
@@ -260,6 +263,7 @@ describe('HoldButton', () => {
 
 	it('forwards onKeyDown and onKeyUp to the caller', () => {
 		const onKeyDown = vi.fn()
+
 		const onKeyUp = vi.fn()
 
 		const { container } = renderUI(
@@ -271,6 +275,7 @@ describe('HoldButton', () => {
 		const el = bySlot(container, 'hold-button') as HTMLElement
 
 		fireEvent.keyDown(el, { key: 'Enter' })
+
 		fireEvent.keyUp(el, { key: 'Enter' })
 
 		expect(onKeyDown).toHaveBeenCalledOnce()

@@ -71,12 +71,15 @@ describe('grid resize handle — right-click (real browser)', () => {
 			const startWidth = nameHeader.getBoundingClientRect().width
 
 			const rect = separator.getBoundingClientRect()
+
 			const startX = rect.left + rect.width / 2
+
 			const y = rect.bottom - 16
 
 			// Press, then move — and never release, the way an opening context menu
 			// strands the gesture.
 			fireEvent.mouseDown(separator, { ...init, clientX: startX, clientY: y })
+
 			fireEvent.mouseMove(document, { ...init, clientX: startX + 80, clientY: y })
 
 			// No resize engaged: nothing is mid-resize and the width held.
@@ -97,11 +100,15 @@ describe('grid resize handle — right-click (real browser)', () => {
 		const startWidth = nameHeader.getBoundingClientRect().width
 
 		const rect = separator.getBoundingClientRect()
+
 		const startX = rect.left + rect.width / 2
+
 		const y = rect.bottom - 16
 
 		fireEvent.mouseDown(separator, { button: 0, clientX: startX, clientY: y })
+
 		fireEvent.mouseMove(document, { clientX: startX + 80, clientY: y })
+
 		fireEvent.mouseUp(document, { clientX: startX + 80, clientY: y })
 
 		await waitFor(() =>

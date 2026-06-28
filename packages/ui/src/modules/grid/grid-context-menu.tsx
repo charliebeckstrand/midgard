@@ -58,7 +58,7 @@ type GridContextMenuProps<T> = {
 	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
-	/** Exports the filtered/sorted rows to CSV, or `null` when export is off. */
+	/** Exports to CSV — the selected rows when a selection is active, else the filtered/sorted set — or `null` when export is off. Shared by the column menu, the cell menu, and the toolbar button. */
 	exportCsv: (() => void) | null
 	/** Label on the "Export to CSV" item, shared with the export toolbar button. */
 	exportLabel: ReactNode
@@ -223,9 +223,29 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	return items
 }
 
-/** Default cell-menu item: Copy. @internal */
-function cellMenuDefaults(copy: () => void): GridMenuItem[] {
-	return [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
+/**
+ * Default cell-menu items: Copy, then — when export is on — "Export to CSV" under
+ * a separator. Copy acts on the right-clicked cell; export is a grid-wide tool
+ * (scoped to the selection when rows are selected), so it sits apart below the
+ * divider, mirroring the column menu's grouping of its table-wide tools.
+ *
+ * @internal
+ */
+function cellMenuDefaults(
+	copy: () => void,
+	exportCsv: (() => void) | null,
+	exportLabel: ReactNode,
+): GridMenuItem[] {
+	const items: GridMenuItem[] = [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
+
+	if (exportCsv) {
+		items.push(
+			{ key: 'export-separator', separator: true },
+			{ key: 'export-csv', label: exportLabel, icon: <Download />, onSelect: exportCsv },
+		)
+	}
+
+	return items
 }
 
 /** Renders one {@link GridMenuItem} as a menu item or separator. @internal */
@@ -351,17 +371,23 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(value == null ? '' : String(value))
 
-			const defaults = cellMenuDefaults(copy)
+			const defaults = cellMenuDefaults(copy, exportCsv, exportLabel)
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
 			if (typeof config.cell !== 'function') return defaults
 
-			const context: GridCellMenuContext<T> = { row, column, value, copy }
+			const context: GridCellMenuContext<T> = {
+				row,
+				column,
+				value,
+				copy,
+				exportCsv: exportCsv ?? undefined,
+			}
 
 			return config.cell(context, defaults)
 		},
-		[config.cell, columnById, rowByKey],
+		[config.cell, columnById, rowByKey, exportCsv, exportLabel],
 	)
 
 	const handleContextMenu = useCallback(

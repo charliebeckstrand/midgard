@@ -110,7 +110,9 @@ describe('useKanbanKeyboard: focus navigation', () => {
 			const el = document.createElement('div')
 
 			el.setAttribute('data-slot', 'kanban-card')
+
 			el.setAttribute('data-card-id', id)
+
 			el.setAttribute('tabindex', '0')
 
 			document.body.appendChild(el)

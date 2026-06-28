@@ -11,6 +11,7 @@ function makeLoadEvent(
 	const img = document.createElement('img')
 
 	Object.defineProperty(img, 'naturalWidth', { configurable: true, value: naturalWidth })
+
 	Object.defineProperty(img, 'naturalHeight', { configurable: true, value: naturalHeight })
 
 	const partial: Partial<SyntheticEvent<HTMLImageElement>> = { currentTarget: img }

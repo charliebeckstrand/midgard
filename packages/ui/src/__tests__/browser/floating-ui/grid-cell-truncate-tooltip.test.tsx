@@ -272,6 +272,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// Baseline: the clipped cell arms its tooltip on hover.
 		await userEvent.hover(screen.getByText(longName))
+
 		await screen.findByRole('tooltip')
 
 		// Press the column's resize handle and drag, without releasing.
@@ -282,10 +283,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		if (!separator) throw new Error('resize separator not found')
 
 		const rect = separator.getBoundingClientRect()
+
 		const x = rect.left + rect.width / 2
+
 		const y = rect.top + 4
 
 		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
+
 		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
 
 		// The in-flight resize holds the overflow tooltip closed, though the cell is

@@ -49,16 +49,19 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 
 		const table = container.querySelector('table') as HTMLElement
+
 		return { container, table }
 	}
 
 	it('keeps the grip within its own column (clear of the next sticky header)', async () => {
 		const { container, table } = setup()
+
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
 		const roleHeader = container.querySelector<HTMLElement>(
 			'th[data-grid-col="role"]',
 		) as HTMLElement
+
 		const grip = container
 			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Role"]')
 			?.querySelector('span[aria-hidden="true"]') as HTMLElement
@@ -95,10 +98,12 @@ describe('grid resize handle geometry (real browser)', () => {
 
 	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
 		const { container, table } = setup()
+
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
 		// The scroll container that the wide table overflows.
 		let scroll = table.parentElement as HTMLElement
+
 		while (scroll && scroll !== container && scroll.scrollWidth <= scroll.clientWidth + 1) {
 			scroll = scroll.parentElement as HTMLElement
 		}
@@ -110,6 +115,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		const statusHandle = container.querySelector<HTMLElement>(
 			'[role="separator"][aria-label="Resize Status"]',
 		) as HTMLElement
+
 		expect(statusHandle.getBoundingClientRect().right).toBeLessThanOrEqual(
 			table.getBoundingClientRect().right + 0.5,
 		)
@@ -118,9 +124,13 @@ describe('grid resize handle geometry (real browser)', () => {
 		const statusHeader = container.querySelector<HTMLElement>(
 			'th[data-grid-col="status"]',
 		) as HTMLElement
+
 		const before = statusHeader.getBoundingClientRect().left
+
 		scroll.scrollLeft = scroll.scrollWidth
+
 		await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+
 		expect(statusHeader.getBoundingClientRect().left).toBeCloseTo(before, 0)
 	})
 })

@@ -196,7 +196,9 @@ describe('DateInput', () => {
 		const emitted = onChange.mock.lastCall?.[0] as Date
 
 		expect(emitted.getFullYear()).toBe(2026)
+
 		expect(emitted.getMonth()).toBe(11)
+
 		expect(emitted.getDate()).toBe(25)
 	})
 
@@ -556,7 +558,9 @@ describe('DateInput', () => {
 		const submitted = onSubmit.mock.lastCall?.[0]?.due as Date
 
 		expect(submitted.getFullYear()).toBe(2026)
+
 		expect(submitted.getMonth()).toBe(11)
+
 		expect(submitted.getDate()).toBe(25)
 	})
 })

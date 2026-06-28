@@ -144,6 +144,7 @@ describe('StepperPanel', () => {
 		)
 
 		const step = screen.getByRole('button')
+
 		const panel = screen.getByRole('region')
 
 		expect(step.getAttribute('aria-controls')).toBe(panel.id)

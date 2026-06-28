@@ -12,8 +12,11 @@ function makeContainer(buttonCount: number) {
 
 	for (let i = 0; i < buttonCount; i++) {
 		const btn = document.createElement('button')
+
 		btn.textContent = String(i)
+
 		btn.setAttribute('tabindex', '0')
+
 		el.appendChild(btn)
 	}
 
@@ -33,7 +36,9 @@ function setup(
 	} = {},
 ) {
 	const header = makeContainer(options.headerButtons ?? 3)
+
 	const grid = makeContainer(options.gridButtons ?? 14)
+
 	const footer = options.footer ? makeContainer(options.footerButtons ?? 2) : null
 
 	const { result } = renderHook(() =>

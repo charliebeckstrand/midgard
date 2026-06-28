@@ -5,6 +5,7 @@ import { useSignaturePadCanvasSizing } from '../../components/signature-pad/use-
 import { makeCanvasContext } from '../helpers'
 
 type ContainerRef = RefObject<HTMLDivElement | null>
+
 type CanvasRef = RefObject<HTMLCanvasElement | null>
 
 function setup(opts: {

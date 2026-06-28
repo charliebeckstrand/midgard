@@ -28,6 +28,7 @@ describe('announce', () => {
 		await flush()
 
 		expect(regionBy('assertive')).toHaveTextContent('Stop')
+
 		expect(regionBy('polite')).toBeNull()
 	})
 
