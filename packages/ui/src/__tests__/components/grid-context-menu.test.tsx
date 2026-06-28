@@ -148,6 +148,26 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 	})
 
+	it('adds "Export to CSV" to the cell menu when exportable', () => {
+		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('cell', 'Alice')
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+	})
+
+	it('omits "Export to CSV" from the cell menu unless exportable', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('cell', 'Alice')
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).not.toBeInTheDocument()
+	})
+
 	it('shows no menu when contextMenu is false', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={false} />)
 
