@@ -395,6 +395,8 @@ function resolveResizeLayout<T>(args: {
 	resize: GridColumnResize | null
 	columns: GridColumn<T>[]
 	density: DensityLevel | undefined
+	/** Whether cells truncate; a non-truncating grid flushes the grip to the border (see `k.resize.flush`). */
+	truncate: boolean
 	className: string | undefined
 }): {
 	colGroup: ReactNode
@@ -421,7 +423,15 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
+		// A non-truncating grid (the editable surface) flushes the grip to the column
+		// border rather than the absent truncation point; a truncating grid keeps the
+		// handle's default centred grip.
+		tableClassName: cn(
+			k.resize.fixed,
+			k.resize.metrics({ density: args.density }),
+			!args.truncate && k.resize.flush,
+			args.className,
+		),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
@@ -689,6 +699,7 @@ export function GridData<T>({
 		resize,
 		columns: visibleColumns,
 		density,
+		truncate,
 		className,
 	})
 
