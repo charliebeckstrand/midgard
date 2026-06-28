@@ -8,6 +8,7 @@ export type {
 	GridColumnOrder,
 	GridDataProps,
 	GridExportConfig,
+	GridHeader,
 	GridSelection,
 	GridSort,
 	GridVirtualize,

@@ -463,7 +463,7 @@ export function GridData<T>({
 	rowClassName,
 	onRowClick,
 	rowLabel,
-	stickyHeader = false,
+	header,
 	maxHeight,
 	loading = false,
 	rowLoading,
@@ -485,6 +485,10 @@ export function GridData<T>({
 	}
 
 	const { enabled: virtualizeEnabled, estimateSize, overscan } = resolveVirtualization(virtualize)
+
+	// Sticky header pins the header row while the body scrolls (forcing a scroll
+	// wrapper); resolved from the `header` config's `position`.
+	const stickyHeader = header?.position === 'sticky'
 
 	// Columns sort by default; bake the grid-level default into each data column
 	// that doesn't set its own, so head and engine read one resolved flag.

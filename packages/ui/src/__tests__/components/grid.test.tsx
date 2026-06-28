@@ -505,9 +505,15 @@ describe('Grid', () => {
 			expect((headers[1] as HTMLElement).style.width).toBe('200px')
 		})
 
-		it('adds sticky-header chrome when stickyHeader is set', () => {
+		it('adds sticky-header chrome when header position is sticky', () => {
 			const { container } = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} stickyHeader maxHeight="200px" />,
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
 			)
 
 			// Sticky header forces the scroll wrapper to render.
@@ -520,7 +526,13 @@ describe('Grid', () => {
 			// the header stood out as a box. It now tracks the host: the page background
 			// below `lg`, the card surface at `lg`.
 			const { container } = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} stickyHeader maxHeight="200px" />,
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
 			)
 
 			const header = container.querySelector<HTMLElement>('thead th')
