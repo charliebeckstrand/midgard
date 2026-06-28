@@ -12,6 +12,9 @@ import type { GridEditableEditorProps } from './grid-editable-types'
  * the cell, mirrors the cell's draft buffer, and routes Enter / Tab / Escape /
  * blur through the grid's commit and cancel callbacks.
  *
+ * @remarks Consumes the shared {@link GridEditableEditorProps}; the default text
+ * cell needs no editor-specific options, so it exports no dedicated props type
+ * (unlike the number, currency, date, and select editors).
  * @typeParam T - The row type backing the cell under edit.
  */
 export function GridEditableTextEditor<T>({

@@ -231,6 +231,7 @@ describe('Message', () => {
 		)
 
 		const input = bySlot(container, 'input') as HTMLElement
+
 		const message = bySlot(container, 'message') as HTMLElement
 
 		expect(input).not.toHaveAttribute('aria-invalid')
@@ -392,6 +393,7 @@ describe('Field aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'input') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(description.id).toBeTruthy()
@@ -409,7 +411,9 @@ describe('Field aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'input') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
+
 		const message = bySlot(container, 'message') as HTMLElement
 
 		expect((input.getAttribute('aria-describedby') ?? '').split(' ')).toEqual([
@@ -448,6 +452,7 @@ describe('Field aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'input') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(input).toHaveAttribute('aria-describedby', `external ${description.id}`)
@@ -490,6 +495,7 @@ describe('Field aria-describedby — composite triggers', () => {
 			)
 
 			const trigger = bySlot(container, triggerSlot) as HTMLElement
+
 			const description = bySlot(container, 'description') as HTMLElement
 
 			expect(description.id).toBeTruthy()

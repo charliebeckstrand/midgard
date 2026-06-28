@@ -116,6 +116,7 @@ describe('AddressInput', () => {
 
 		const provider: AddressProvider = (_, { signal }) => {
 			signals.push(signal)
+
 			return new Promise(() => {})
 		}
 

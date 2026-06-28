@@ -16,6 +16,7 @@ import { collectPatternViolations } from '../../helpers/walk-source'
 // dependencies. Per-module consumer documentation lives in recipes/kiso/README.md.
 
 const kisoDir = join(__dirname, '../../../recipes/kiso')
+
 const srcDir = join(__dirname, '../../..')
 
 const FORBIDDEN_PATTERNS = [

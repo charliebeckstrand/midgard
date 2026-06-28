@@ -11,6 +11,7 @@ import {
 import { allBySlot, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 type Item = { id: string; title: string }
+
 type Column = { id: string; title: string; items: Item[] }
 
 const columns: Column[] = [
@@ -134,6 +135,7 @@ describe('KanbanColumn', () => {
 
 	it('renders an empty fallback when the column has no items', () => {
 		const emptyColumn: Column = { id: 'empty', title: 'Empty', items: [] }
+
 		const empty: Column[] = [emptyColumn]
 
 		renderUI(

@@ -16,7 +16,7 @@ Sorting is the fourth: data columns are sortable and sorted client-side by defau
 
 Context menus are the fifth, and on by default (`contextMenu={false}` opts out): a cursor-anchored right-click menu — a column menu on headers (Sort ascending / descending, Clear sort once the column is sorted, Auto-size columns when resizing is on, Manage columns, which opens the column manager) and a cell menu on body cells (Copy). The column menu also carries the pin controls (Pin left / Pin right / Unpin). Holding Ctrl during the right-click defers to the browser's standard menu. Each side reshapes through a builder that receives the default items. It composes the `Menu` primitive.
 
-Auto-sizing is the sixth: under `resizable`, data columns fit the container width on mount and on container resize (via `ResizeObserver`), distributing the available width — less a small gutter that holds the trailing column's resize handle clear of the scroll edge, since the handle overhangs the column boundary by half its width and an exact fill would clip it — across data columns within each column's bounds and standing down once the user drag-resizes a column (so manual widths persist). The header's "Auto-size columns" action re-fits on demand and re-arms the automatic behavior. Width-distribution only; content measurement (fit-to-content) is still on the backlog.
+Auto-sizing is the sixth: under `resizable`, data columns fit the container on mount and on container resize (via `ResizeObserver`) while honoring each column's declared width. That width (or the width-less default), clamped to the column's bounds, is its desired size and the floor the fit never shrinks past: when the desired widths exceed the container the columns hold and the table overflows horizontally — what it can fit shows, the rest scrolls — rather than every column squishing down to fit, which truncated content; when there is room to spare the columns grow proportionally to fill it. The fit stands down once the user drag-resizes a column (so manual widths persist); the header's "Auto-size columns" action re-fits on demand and re-arms it. Declared-width-aware width-distribution only; content measurement (fit-to-content) is still on the backlog.
 
 Truncation is the seventh, and on by default (`truncate={false}` opts out, as the editable variant does): overflowing cell content — and column titles — clip to one line with an ellipsis instead of spilling across neighbours, visible wherever the column width is bounded (a resizable/fixed-layout grid). A truncated cell reveals its full content in a hover/focus `Tooltip`; a column's `cellTooltip` returns a node to supersede that content or `null` to disable it. A truncated header title reveals itself the same way, the title shrinking within the header's flex slot — and, when sortable, within the sort button — so the ellipsis engages around the sort/filter/resize chrome rather than the title overrunning the cell. Both surfaces share one overflow detector (`useGridTruncation`), measured eagerly at sub-pixel precision (a `Tooltip` can't open mid-hover on an `enabled` flip), and mount a tooltip only while truncated. The tooltip's floating surface mounts its portal only while open (see `FloatingSurface`), so a grid of many cells leaves no `[data-floating-ui-portal]` nodes behind at rest — the styled reveal without a per-cell portal flood. Truncation needs a bounded column width: a `resizable`/fixed-layout grid, or a column `width`; an auto-layout column sizes to its content instead.
 
@@ -39,7 +39,7 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 | Feature | Approach |
 |---|---|
 | Column groups / multi-level headers | Grouped `ColumnDef`s rendered from `getHeaderGroups()` depth |
-| Fit-to-content sizing | Auto-fit-to-width shipped (distributes container width via `setColumnSizing`); fit-to-content still needs rendered-cell measurement |
+| Fit-to-content sizing | Auto-fit-to-width shipped (honors declared widths, growing them to fill surplus or overflowing past the container, via `setColumnSizing`); fit-to-content still needs rendered-cell measurement |
 | Column header menu | Right-click sort + clear-sort + pin (Pin left / Pin right / Unpin) + auto-size + "Manage columns" shipped via `contextMenu`; fold in filter/hide menu items as they land |
 
 ### Filtering
@@ -79,7 +79,7 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 
 | Feature | Approach |
 |---|---|
-| Excel export, clipboard, print view | CSV export ships (`exportable`, header-menu item over the filtered/sorted row model); Excel/print still derive from that model |
+| Excel export, clipboard, print view | CSV export ships (`exportable`; header- and cell-menu items and an optional toolbar button over the filtered/sorted row model, scoped to the selection when active); Excel/print still derive from that model |
 
 ### Rendering & performance
 

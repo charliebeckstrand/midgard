@@ -2,32 +2,36 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
-import { Toolbar } from '../../components/toolbar'
 import { cn, dataAttr } from '../../core'
-import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, type SortState } from './context'
 import { GridBody } from './grid-body'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
+import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
 import { GridContextMenu } from './grid-context-menu'
-import type {
-	GridColumnManagerConfig,
-	GridDataProps,
-	GridSort,
-	GridVirtualize,
-} from './grid-data-types'
+import type { GridDataProps, GridExportConfig, GridVirtualize } from './grid-data-types'
 import { downloadCsv, rowsToCsv } from './grid-export'
-import { GridFilter } from './grid-filter'
 import { GridHead } from './grid-head'
+import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
+import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
 import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
+import { useGridSort } from './grid-sort-state'
+import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
 import {
@@ -55,9 +59,6 @@ const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAn
  */
 const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 
-/** Context menus are on by default (both header and cell); `contextMenu={false}` disables them. @internal */
-const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
-
 /** Props for {@link GridRegion}. @internal */
 type GridRegionProps<T> = {
 	canReorder: boolean
@@ -77,6 +78,8 @@ type GridRegionProps<T> = {
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportCsv: (() => void) | null
+	/** Label on the header menu's "Export to CSV" item, shared with the export toolbar button. */
+	exportLabel: ReactNode
 	children: ReactNode
 }
 
@@ -104,6 +107,7 @@ function GridRegion<T>({
 	autoSizeColumns,
 	chooseColumns,
 	exportCsv,
+	exportLabel,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -131,109 +135,11 @@ function GridRegion<T>({
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 			exportCsv={exportCsv}
+			exportLabel={exportLabel}
 		>
 			{reordered}
 		</GridContextMenu>
 	)
-}
-
-/** A column's frozen edge once normalized (`true` collapses to `'left'`). @internal */
-type PinSide = 'left' | 'right'
-
-/**
- * Runtime pin changes keyed by column id, layered over the static
- * {@link GridColumn.pinned} flags: a side pins the column, `'none'` unpins a
- * statically-pinned one. The header menu writes here so a column can be frozen
- * or released without touching the column definitions.
- *
- * @internal
- */
-type PinOverrides = Map<string | number, PinSide | 'none'>
-
-/**
- * Overlays the menu's {@link PinOverrides} onto each column's static `pinned`
- * flag, cloning only the columns an override touches — and returning the input
- * array untouched when there are none — so unrelated columns keep their identity
- * (and the downstream `visibleColumns` reference reuse holds).
- *
- * @internal
- */
-function applyPinOverrides<T>(columns: GridColumn<T>[], overrides: PinOverrides): GridColumn<T>[] {
-	if (overrides.size === 0) return columns
-
-	return columns.map((col) => {
-		const override = overrides.get(col.id)
-
-		if (override === undefined) return col
-
-		return { ...col, pinned: override === 'none' ? undefined : override }
-	})
-}
-
-/** Stable empty sort default; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: SortState[] = []
-
-/**
- * Next sort list after cycling `column`. A Shift-click (`additive`) folds the
- * column into the existing sort, preserving the others and their priority order:
- * appending it ascending, flipping it to descending, then dropping it. A plain
- * click collapses the sort to this column alone, cycling ascending → descending →
- * unsorted (so a lone sorted column clears on its third click).
- *
- * @internal
- */
-function nextSort(current: SortState[], column: string | number, additive: boolean): SortState[] {
-	const existing = current.find((entry) => entry.column === column)
-
-	if (additive) {
-		if (!existing) return [...current, { column, direction: 'asc' }]
-
-		if (existing.direction === 'asc') {
-			return current.map((entry) =>
-				entry.column === column ? { column, direction: 'desc' } : entry,
-			)
-		}
-
-		return current.filter((entry) => entry.column !== column)
-	}
-
-	// Tri-state only when this column is already the sole sort; otherwise a plain
-	// click on any other (or additional) column resets to just this one, ascending.
-	if (current.length === 1 && existing) {
-		return existing.direction === 'asc' ? [{ column, direction: 'desc' }] : EMPTY_SORT
-	}
-
-	return [{ column, direction: 'asc' }]
-}
-
-/**
- * Owns the grid's controllable sort: the resolved ordered list (never
- * `undefined` — an empty list is unsorted), the raw setter the engine and header
- * menu write through, and `toggleSort`, which cycles a column's sort via
- * {@link nextSort} (Shift-click folds it into the existing sort).
- *
- * @internal
- */
-function useGridSort(config: GridSort | undefined): {
-	sort: SortState[]
-	setSort: (sort: SortState[]) => void
-	toggleSort: (column: string | number, additive: boolean) => void
-} {
-	const [sortState, setSortState] = useControllable<SortState[]>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? EMPTY_SORT,
-		// The list is never meaningfully `undefined`; coalesce so the public callback
-		// keeps its non-nullable shape (an empty list is the unsorted state).
-		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SORT),
-	})
-
-	const toggleSort = useCallback(
-		(column: string | number, additive: boolean) =>
-			setSortState((prev) => nextSort(prev ?? EMPTY_SORT, column, additive)),
-		[setSortState],
-	)
-
-	return { sort: sortState ?? EMPTY_SORT, setSort: setSortState, toggleSort }
 }
 
 /**
@@ -272,6 +178,33 @@ function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 }
 
 /**
+ * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
+ * into resolved export settings: whether export is on, whether to render the
+ * toolbar button (never when export is off), and the label and download
+ * filename shared by the button and the header menu's "Export to CSV" item. The
+ * boolean `true` enables export with the context-menu item alone.
+ *
+ * @internal
+ */
+function resolveExport(exportable: boolean | GridExportConfig): {
+	enabled: boolean
+	toolbarButton: boolean
+	label: ReactNode
+	filename: string
+} {
+	const config = typeof exportable === 'object' ? exportable : { enabled: exportable }
+
+	const enabled = config.enabled ?? true
+
+	return {
+		enabled,
+		toolbarButton: enabled && (config.toolbarButton ?? false),
+		label: config.label ?? 'Export to CSV',
+		filename: config.filename ?? 'grid.csv',
+	}
+}
+
+/**
  * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
  * while loading, and the role/index scheme. The role is `grid` when the table
  * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
@@ -295,6 +228,8 @@ function resolveTableProps(args: {
 	navigable: boolean
 	ariaRowCount: number
 	colCount: number
+	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
+	multiSelectable: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
@@ -312,6 +247,9 @@ function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
+		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
+		// native table conveys selection through each row's `aria-selected` alone.
+		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
 		...(args.gridSemantics
 			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
@@ -383,16 +321,46 @@ function bridgeRowActivate<T>(
 }
 
 /**
- * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
- * region whose text toggles to `Loading` while `loading`, so assistive tech
- * announces the load start (the rendered table appears on completion).
+ * The polite live-region message for the grid: `Loading` while loading, then —
+ * after a short debounce so a fast filter/search doesn't chatter — a settled
+ * row-count summary. Assistive tech hears the load start, its result, and later
+ * result-count changes from filtering, search, or paging.
  *
  * @internal
  */
-function GridBusyStatus({ loading }: { loading: boolean }) {
+function useGridStatusMessage(loading: boolean, rowCount: number): string {
+	const [message, setMessage] = useState('')
+
+	useEffect(() => {
+		if (loading) {
+			setMessage('Loading')
+
+			return
+		}
+
+		const id = setTimeout(() => {
+			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
+		}, GRID_STATUS_DEBOUNCE_MS)
+
+		return () => clearTimeout(id)
+	}, [loading, rowCount])
+
+	return message
+}
+
+/**
+ * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
+ * region announcing the load start and, on completion, the result count (see
+ * {@link useGridStatusMessage}).
+ *
+ * @internal
+ */
+function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
+	const message = useGridStatusMessage(loading, rowCount)
+
 	return (
 		<span role="status" className="sr-only">
-			{loading ? 'Loading' : ''}
+			{message}
 		</span>
 	)
 }
@@ -400,16 +368,20 @@ function GridBusyStatus({ loading }: { loading: boolean }) {
 /**
  * Whether the grid paints the shared {@link Table} `hover` wash: when the
  * consumer opts in with `hover`, or implicitly for a clickable grid
- * (`onRowClick`), whose rows then read as actionable. Pulled out of
- * {@link GridData} so the `||` stays off its cognitive-complexity budget.
+ * (`onRowClick`), whose rows then read as actionable — but never through a
+ * column drag-resize (`resizing`), so the row under the pointer doesn't light
+ * up mid-drag (matching the truncation tooltips' `!resizing` gate). Pulled out
+ * of {@link GridData} so the boolean logic stays off its cognitive-complexity
+ * budget.
  *
  * @internal
  */
 function resolveHover<T>(
 	hover: boolean | undefined,
 	onRowClick: GridRowClick<T> | undefined,
+	resizing: boolean,
 ): boolean {
-	return hover === true || onRowClick != null
+	return (hover === true || onRowClick != null) && !resizing
 }
 
 /**
@@ -427,6 +399,8 @@ function resolveResizeLayout<T>(args: {
 	resize: GridColumnResize | null
 	columns: GridColumn<T>[]
 	density: DensityLevel | undefined
+	/** Whether cells truncate; a non-truncating grid flushes the grip to the border (see `k.resize.flush`). */
+	truncate: boolean
 	className: string | undefined
 }): {
 	colGroup: ReactNode
@@ -453,91 +427,17 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
+		// A non-truncating grid (the editable surface) flushes the grip to the column
+		// border rather than the absent truncation point; a truncating grid keeps the
+		// handle's default centred grip.
+		tableClassName: cn(
+			k.resize.fixed,
+			k.resize.metrics({ density: args.density }),
+			!args.truncate && k.resize.flush,
+			args.className,
+		),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
-	}
-}
-
-/**
- * Resolves the column-manager gates, lifts the dialog's open state, and derives
- * the header context-menu actions (sort a column, open the manager). Column
- * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * standalone toolbar button is opt-in
- * ({@link GridColumnManagerConfig.toolbarButton}). Split out of {@link GridData}
- * so its body stays within the cognitive-complexity budget.
- *
- * @internal
- */
-function useGridMenuActions<T>({
-	contextMenu,
-	columnManagerConfig,
-	resize,
-	setSort,
-	hasData,
-}: {
-	contextMenu: GridContextMenuConfig<T> | false | undefined
-	columnManagerConfig: GridColumnManagerConfig | undefined
-	resize: GridColumnResize | null
-	setSort: (sort: SortState[]) => void
-	/** Right-click menus stand down with no source data (its items act on rows). */
-	hasData: boolean
-}) {
-	// Context menus are on by default (`false` opts out), but never without data.
-	const configured = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
-
-	const menu = hasData ? configured : undefined
-
-	// Column management is on by default; `enabled: false` is the master off
-	// switch — no "Manage columns" item, no toolbar button, no dialog.
-	const managerEnabled = columnManagerConfig?.enabled ?? true
-
-	const managerLabel = columnManagerConfig?.label ?? 'Manage columns'
-
-	// Two entry points to the dialog, both under the master switch: the opt-in
-	// toolbar button, and the header menu's "Manage columns" item (shown whenever
-	// a column menu is). The dialog mounts when either can reach it.
-	const showButton = managerEnabled && (columnManagerConfig?.toolbarButton ?? false)
-
-	const menuItemReachable = managerEnabled && Boolean(menu?.column)
-
-	const renderDialog = showButton || menuItemReachable
-
-	const [open, setOpen] = useControllable<boolean>({
-		value: columnManagerConfig?.open,
-		defaultValue: columnManagerConfig?.defaultOpen ?? false,
-		onValueChange: (next) => columnManagerConfig?.onOpenChange?.(next ?? false),
-	})
-
-	// The menu sets a single-column sort, replacing any multi-column sort; Clear
-	// sort empties it. (Multi-column sorting is the header Shift-click path.)
-	const sortColumn = useCallback(
-		(column: string | number, direction: 'asc' | 'desc') => setSort([{ column, direction }]),
-		[setSort],
-	)
-
-	const clearSort = useCallback(() => setSort([]), [setSort])
-
-	// Backs the menu's "Manage columns" item; `null` keeps it out. Non-null
-	// implies `renderDialog`, so opening is always valid (the item only ever
-	// renders inside a column menu, which the master switch already gated).
-	const chooseColumns = useMemo(
-		() => (renderDialog ? () => setOpen(true) : null),
-		[renderDialog, setOpen],
-	)
-
-	return {
-		contextMenu: menu,
-		renderDialog,
-		showButton,
-		managerLabel,
-		columnManagerOpen: open ?? false,
-		setColumnManagerOpen: setOpen,
-		sortColumn,
-		clearSort,
-		// Header "Auto-size columns" — only when resizing is on.
-		autoSizeColumns: resize?.sizeToFit ?? null,
-		chooseColumns,
 	}
 }
 
@@ -734,10 +634,22 @@ export function GridData<T>({
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
 
-	// Column interactions stand down only when there's no *source* data to act on
-	// (incl. while loading) — not when a filter or search empties the view, where
-	// the header must stay live so the user can clear it and recover the rows.
-	const hasData = rows.length > 0
+	// Column interactions stand down when there's no *source* data to act on
+	// (incl. while loading), or when an error has pre-empted the body — mirroring
+	// the empty state, since both replace the rows there's nothing to act on. They
+	// stay live when a filter or search merely empties the view, so the user can
+	// clear it and recover the rows. `showingError` tracks the body's own error
+	// branch (see `GridBody`), which loading takes precedence over.
+	const showingError = !loading && error != null && error !== false
+
+	const hasData = rows.length > 0 && !showingError
+
+	// A selection column makes rows selectable, so each row exposes `aria-selected`
+	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
+	const hasSelectionColumn = useMemo(
+		() => visibleColumns.some((col) => col.selectable),
+		[visibleColumns],
+	)
 
 	const { toggleRow, toggleAll, allSelected, someSelected } = useGridSelectionActions({
 		selection,
@@ -745,23 +657,55 @@ export function GridData<T>({
 		rowKeys,
 	})
 
-	// Export the filtered + sorted rows (all pages) to a CSV download. The engine's
-	// sorted row model reflects active filters and sort; `null` keeps the menu item
-	// out unless `exportable` is set.
+	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
+	// flag, the opt-in toolbar button, and the label/filename shared by the button
+	// and the header menu's "Export to CSV" item.
+	const {
+		enabled: exportEnabled,
+		toolbarButton: exportToolbarButton,
+		label: exportLabel,
+		filename: exportFilename,
+	} = resolveExport(exportable)
+
+	// Export to a CSV download: the selected rows when a selection is active, else
+	// the full filtered + sorted set (all pages). The engine's sorted row model
+	// reflects active filters and sort and carries each row's selected state (the
+	// grid mirrors its selection `Set` into the engine), so the selected subset
+	// keeps the displayed order; `null` keeps the menu items and the toolbar
+	// button out unless export is enabled.
 	const exportCsv = useMemo(
 		() =>
-			exportable
-				? () =>
+			exportEnabled
+				? () => {
+						const sorted = table.getSortedRowModel().rows
+
+						const selected = sorted.filter((modelRow) => modelRow.getIsSelected())
+
+						const exported = selected.length > 0 ? selected : sorted
+
 						downloadCsv(
-							'grid.csv',
+							exportFilename,
 							rowsToCsv(
 								visibleColumns,
-								table.getSortedRowModel().rows.map((modelRow) => modelRow.original),
+								exported.map((modelRow) => modelRow.original),
 							),
 						)
+					}
 				: null,
-		[exportable, visibleColumns, table],
+		[exportEnabled, exportFilename, visibleColumns, table],
 	)
+
+	// Fixed-layout column widths so a resize touches only its own column;
+	// `resizing` flags an in-flight drag so other columns' grips stand down (and
+	// head/cells suppress their truncation tooltips, shared below via context).
+	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
+		resizable,
+		resize,
+		columns: visibleColumns,
+		density,
+		truncate,
+		className,
+	})
 
 	const context = useMemo(
 		() => ({
@@ -774,6 +718,7 @@ export function GridData<T>({
 			toggleSort,
 			pinColumn,
 			stickyHeader,
+			resizing,
 		}),
 		[
 			selection,
@@ -785,6 +730,7 @@ export function GridData<T>({
 			toggleSort,
 			pinColumn,
 			stickyHeader,
+			resizing,
 		],
 	)
 
@@ -826,6 +772,10 @@ export function GridData<T>({
 	// the rendered count (which equals every row when unpaginated).
 	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
 
+	// Full filtered row extent (the server total when paginating) for the busy
+	// region's result announcement; the header row the aria count adds is excluded.
+	const dataRowCount = pagination?.rowCount ?? renderRows.length
+
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	const {
@@ -836,20 +786,11 @@ export function GridData<T>({
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
-	// cursor (see `GridRow`).
-	const rowHover = resolveHover(hover, onRowClick)
+	// cursor (see `GridRow`). Suppressed through a column drag-resize so the row
+	// under the pointer doesn't light up mid-drag.
+	const rowHover = resolveHover(hover, onRowClick, resizing)
 
 	const reorderActive = canReorder && hasData
-
-	// Fixed-layout column widths so a resize touches only its own column;
-	// `resizing` flags an in-flight drag so other columns' grips stand down.
-	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
-		resizable,
-		resize,
-		columns: visibleColumns,
-		density,
-		className,
-	})
 
 	// The cursor store is always provided (inert when not `navigable`); only a
 	// navigable grid's cells subscribe, so the wrapper costs nothing otherwise.
@@ -871,6 +812,7 @@ export function GridData<T>({
 					navigable,
 					ariaRowCount,
 					colCount: visibleColumns.length,
+					multiSelectable: hasSelectionColumn,
 					tableWidth,
 				})}
 			>
@@ -904,6 +846,7 @@ export function GridData<T>({
 					rowIndexOffset={pageRowOffset}
 					selection={selection}
 					toggleRow={toggleRow}
+					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					truncate={truncate}
 					pinning={pinning}
@@ -936,11 +879,10 @@ export function GridData<T>({
 				data-resizing={dataAttr(resizing)}
 				className={cn(k.wrapper)}
 			>
-				<GridBusyStatus loading={loading} />
+				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
 				{renderDialog && (
 					<GridColumnManagerDialog
-						toolbarButton={showButton}
 						open={columnManagerOpen}
 						onOpenChange={setColumnManagerOpen}
 						label={managerLabel}
@@ -953,11 +895,19 @@ export function GridData<T>({
 					/>
 				)}
 
-				{globalFilter && <GridFilter filter={globalFilter} />}
-
-				{batchActions && someSelected && (
-					<Toolbar aria-label="Batch actions">{batchActions({ selection, setSelection })}</Toolbar>
-				)}
+				<GridToolbar
+					filter={globalFilter}
+					showColumnManager={showButton}
+					columnManagerLabel={managerLabel}
+					onManageColumns={() => setColumnManagerOpen(true)}
+					showExport={exportToolbarButton}
+					exportLabel={exportLabel}
+					onExport={exportCsv}
+					batchActions={batchActions}
+					hasSelection={someSelected}
+					selection={selection}
+					setSelection={setSelection}
+				/>
 
 				<GridRegion
 					canReorder={reorderActive}
@@ -975,6 +925,7 @@ export function GridData<T>({
 					autoSizeColumns={autoSizeColumns}
 					chooseColumns={chooseColumns}
 					exportCsv={exportCsv}
+					exportLabel={exportLabel}
 				>
 					{tableRegion}
 				</GridRegion>

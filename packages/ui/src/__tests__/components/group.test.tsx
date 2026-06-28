@@ -15,7 +15,9 @@ describe('Group', () => {
 		const root = bySlot(container, 'group')
 
 		expect(root).toHaveAttribute('data-group-orientation', 'horizontal')
+
 		expect(root?.className).toContain('inline-flex')
+
 		expect(root?.className).toContain('flex-row')
 	})
 
@@ -30,7 +32,9 @@ describe('Group', () => {
 		const root = bySlot(container, 'group')
 
 		expect(root?.className).toContain('flex-col')
+
 		expect(root?.className).not.toContain('flex-row')
+
 		expect(root).toHaveAttribute('data-group-orientation', 'vertical')
 	})
 
@@ -46,6 +50,7 @@ describe('Group', () => {
 		const children = allBySlot(container, 'child')
 
 		expect(children).toHaveLength(1)
+
 		expect(children[0]).toHaveAttribute('data-group', 'only')
 	})
 
@@ -64,6 +69,7 @@ describe('Group', () => {
 		const [first, second] = allBySlot(container, 'child')
 
 		expect(first).toHaveAttribute('data-group', 'start')
+
 		expect(second).toHaveAttribute('data-group', 'end')
 	})
 

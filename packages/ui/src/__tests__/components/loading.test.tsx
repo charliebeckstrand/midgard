@@ -13,6 +13,7 @@ describe('LoadingDots', () => {
 		expect(dots?.tagName).toBe('OUTPUT')
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
+
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')
 	})
 
@@ -42,6 +43,7 @@ describe('LoadingSpinner', () => {
 		expect(spinner?.tagName).toBe('OUTPUT')
 
 		expect(screen.getByText('Loading')).toBeInTheDocument()
+
 		expect(screen.getByText('Loading')).toHaveClass('sr-only')
 	})
 

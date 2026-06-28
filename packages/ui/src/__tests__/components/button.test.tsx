@@ -120,6 +120,7 @@ describe('Button', () => {
 		const { container } = renderUI(<ButtonSkeleton />)
 
 		expect(bySlot(container, 'button')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -203,6 +204,7 @@ describe('Button', () => {
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
+
 			expect(bySlot(container, 'button')?.className).not.toContain(textClassFor.lg)
 		})
 

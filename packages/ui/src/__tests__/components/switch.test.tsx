@@ -59,6 +59,7 @@ describe('Switch', () => {
 		const { container } = renderUI(<SwitchSkeleton />)
 
 		expect(bySlot(container, 'switch')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
@@ -146,6 +147,7 @@ describe('SwitchField aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'switch') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(description.id).toBeTruthy()

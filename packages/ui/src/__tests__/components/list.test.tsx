@@ -267,6 +267,7 @@ describe('List keyboard reordering', () => {
 		first.focus()
 
 		fireEvent.keyDown(first, { key: ' ' })
+
 		fireEvent.keyDown(first, { key: 'ArrowDown' })
 
 		expect(onReorder).toHaveBeenCalledOnce()
@@ -284,6 +285,7 @@ describe('List keyboard reordering', () => {
 		last.focus()
 
 		fireEvent.keyDown(last, { key: ' ' })
+
 		fireEvent.keyDown(last, { key: 'ArrowUp' })
 
 		expect(onReorder.mock.calls[0]?.[0].map((i: Item) => i.id)).toEqual(['a', 'c', 'b'])
@@ -327,6 +329,7 @@ describe('List keyboard reordering', () => {
 		const first = firstItem(renderList().container)
 
 		fireEvent.keyDown(first, { key: ' ' })
+
 		fireEvent.keyDown(first, { key: 'ArrowDown' })
 
 		await waitFor(() => expect(liveRegion()).toHaveTextContent('Alpha moved to position 2 of 3'))
@@ -336,6 +339,7 @@ describe('List keyboard reordering', () => {
 		const first = firstItem(renderList().container)
 
 		fireEvent.keyDown(first, { key: ' ' })
+
 		fireEvent.keyDown(first, { key: 'Enter' })
 
 		await waitFor(() => expect(liveRegion()).toHaveTextContent('Dropped Alpha, position 1 of 3'))

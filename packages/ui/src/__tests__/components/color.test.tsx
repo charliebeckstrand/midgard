@@ -39,10 +39,13 @@ describe('color conversions', () => {
 			const out = hsvaToHex(hexToHsva(hex) as NonNullable<ReturnType<typeof hexToHsva>>)
 
 			const a = hexToRgba(hex) as NonNullable<ReturnType<typeof hexToRgba>>
+
 			const b = hexToRgba(out) as NonNullable<ReturnType<typeof hexToRgba>>
 
 			expect(within(a.r, b.r)).toBe(true)
+
 			expect(within(a.g, b.g)).toBe(true)
+
 			expect(within(a.b, b.b)).toBe(true)
 		}
 	})
@@ -61,6 +64,7 @@ describe('color conversions', () => {
 
 	it('emits an 8-digit hex when alpha is requested', () => {
 		expect(hsvaToHex({ h: 0, s: 100, v: 100, a: 1 }, true)).toBe('#ff0000ff')
+
 		expect(hsvaToHex({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('#ff000080')
 	})
 
@@ -90,6 +94,7 @@ describe('color conversions', () => {
 
 	it('builds a css rgba fill, dropping alpha unless requested', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
+
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('rgba(255, 0, 0, 0.5)')
 	})
 })

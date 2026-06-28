@@ -162,6 +162,10 @@ type Employee = {
 	location: string
 	startDate: string
 	salary: string
+	manager: string
+	team: string
+	phone: string
+	level: string
 	status: 'active' | 'inactive'
 }
 
@@ -175,6 +179,10 @@ const employees: Employee[] = [
 		location: 'San Francisco',
 		startDate: '2021-03-14',
 		salary: '$145,000',
+		manager: 'Devon Webb',
+		team: 'Platform',
+		phone: '+1 (415) 555-0142',
+		level: 'L5',
 		status: 'active',
 	},
 	{
@@ -186,6 +194,10 @@ const employees: Employee[] = [
 		location: 'New York',
 		startDate: '2022-07-01',
 		salary: '$132,000',
+		manager: 'Devon Webb',
+		team: 'Design Systems',
+		phone: '+1 (212) 555-0188',
+		level: 'L4',
 		status: 'active',
 	},
 	{
@@ -197,6 +209,10 @@ const employees: Employee[] = [
 		location: 'Austin',
 		startDate: '2019-11-23',
 		salary: '$158,000',
+		manager: 'Tanya Fox',
+		team: 'Leadership',
+		phone: '+1 (512) 555-0119',
+		level: 'L6',
 		status: 'inactive',
 	},
 	{
@@ -208,6 +224,10 @@ const employees: Employee[] = [
 		location: 'Seattle',
 		startDate: '2023-02-12',
 		salary: '$121,000',
+		manager: 'Wade Cooper',
+		team: 'Platform',
+		phone: '+1 (206) 555-0167',
+		level: 'L3',
 		status: 'active',
 	},
 	{
@@ -219,6 +239,10 @@ const employees: Employee[] = [
 		location: 'Remote',
 		startDate: '2020-05-30',
 		salary: '$139,000',
+		manager: 'Arlene McCoy',
+		team: 'Design Systems',
+		phone: '+1 (650) 555-0173',
+		level: 'L5',
 		status: 'inactive',
 	},
 ]
@@ -237,6 +261,10 @@ const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
 	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '160px' },
 	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '160px' },
+	{ id: 'manager', title: 'Manager', cell: (row) => row.manager, width: '160px' },
+	{ id: 'team', title: 'Team', cell: (row) => row.team, width: '160px' },
+	{ id: 'phone', title: 'Phone', cell: (row) => row.phone, width: '180px' },
+	{ id: 'level', title: 'Level', cell: (row) => row.level, width: '120px' },
 	{
 		id: 'status',
 		title: 'Status',
@@ -468,33 +496,15 @@ const RowClickExample = () => {
 }
 
 const ErrorExample = () => {
-	const [failed, setFailed] = useState(true)
-
 	// `error` shows in place of the body — for a failed fetch — taking precedence
-	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
-	// control), or `error` (true) for a default alert.
+	// over rows and the empty slot.
 	return (
-		<>
-			{!failed && (
-				<Button variant="soft" color="red" onClick={() => setFailed(true)}>
-					Reset
-				</Button>
-			)}
-			<Grid
-				columns={columns}
-				rows={people}
-				getKey={(row) => row.id}
-				error={
-					failed ? (
-						<Alert color="red" variant="soft" title="Couldn't load people" block>
-							<Button variant="soft" color="red" onClick={() => setFailed(false)}>
-								Retry
-							</Button>
-						</Alert>
-					) : undefined
-				}
-			/>
-		</>
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+		/>
 	)
 }
 
@@ -565,10 +575,19 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// `exportable` adds an "Export to CSV" item to the header right-click menu; it
-// downloads the filtered/sorted rows, each column read through its `value`.
+// `exportable` adds an "Export to CSV" item to the header and cell right-click
+// menus; it downloads the filtered/sorted rows — or just the selected rows when a
+// selection is active — each column read through its `value`. Passing a config
+// object instead of `true` also surfaces a toolbar button (mirroring the column
+// manager's `toolbarButton`, beside it in the grid's toolbar), and tunes the
+// label and download filename.
 const ExportExample = () => (
-	<Grid exportable columns={filterableColumns} rows={people} getKey={(row) => row.id} />
+	<Grid
+		exportable={{ toolbarButton: true, filename: 'people.csv' }}
+		columns={filterableColumns}
+		rows={people}
+		getKey={(row) => row.id}
+	/>
 )
 
 const ServerPaginationExample = () => {
@@ -737,7 +756,7 @@ export function Demo() {
 				<ColumnManagerExample />
 			</Example>
 
-			<Example title="CSV export" code={code`<Grid exportable />`}>
+			<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
 				<ExportExample />
 			</Example>
 

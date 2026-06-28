@@ -34,6 +34,7 @@ describe('iro ramp contrast', () => {
 			const [light, dark] = onSurface[color]
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+
 			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
@@ -59,6 +60,7 @@ describe('iro ramp contrast', () => {
 		const [light, dark] = strong
 
 		expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+
 		expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 	})
 
@@ -67,6 +69,7 @@ describe('iro ramp contrast', () => {
 			const [light, dark] = marker[color]
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
+
 			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(NON_TEXT_AA)
 		})
 	})
@@ -84,6 +87,7 @@ describe('iro spectrum (extended palette) contrast', () => {
 			const [light, dark] = spectrumOnSurface[color]
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
+
 			expect(contrastOf(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})

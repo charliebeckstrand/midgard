@@ -36,6 +36,7 @@ function resolve(id: string): DatePickerRelativeValue {
 describe('DEFAULT_RELATIVE_PRESETS', () => {
 	it('resolves day-granular spans inclusive of both endpoints', () => {
 		expect(resolve('today')).toEqual({ from: new Date(2025, 5, 15), to: new Date(2025, 5, 15) })
+
 		expect(resolve('yesterday')).toEqual({ from: new Date(2025, 5, 14), to: new Date(2025, 5, 14) })
 	})
 
@@ -44,10 +45,12 @@ describe('DEFAULT_RELATIVE_PRESETS', () => {
 			from: new Date(2025, 5, 9),
 			to: new Date(2025, 5, 15),
 		})
+
 		expect(resolve('last-30-days')).toEqual({
 			from: addDays(startOfDay(NOW), -29),
 			to: new Date(2025, 5, 15),
 		})
+
 		expect(resolve('last-90-days')).toEqual({
 			from: addDays(startOfDay(NOW), -89),
 			to: new Date(2025, 5, 15),
@@ -56,11 +59,13 @@ describe('DEFAULT_RELATIVE_PRESETS', () => {
 
 	it('resolves month-to-date and the prior whole month', () => {
 		expect(resolve('this-month')).toEqual({ from: new Date(2025, 5, 1), to: new Date(2025, 5, 15) })
+
 		expect(resolve('last-month')).toEqual({ from: new Date(2025, 4, 1), to: new Date(2025, 4, 31) })
 	})
 
 	it('resolves year-to-date and the prior whole year', () => {
 		expect(resolve('this-year')).toEqual({ from: new Date(2025, 0, 1), to: new Date(2025, 5, 15) })
+
 		expect(resolve('last-year')).toEqual({ from: new Date(2024, 0, 1), to: new Date(2024, 11, 31) })
 	})
 
@@ -90,6 +95,7 @@ describe('resolveRelativePresets', () => {
 describe('isRelativeEmpty', () => {
 	it('is true for undefined and the empty array', () => {
 		expect(isRelativeEmpty(undefined)).toBe(true)
+
 		expect(isRelativeEmpty([])).toBe(true)
 	})
 
@@ -172,6 +178,7 @@ describe('matchRelativePreset / selectedPresetIds / isCustomActive', () => {
 		const custom = { from: new Date(2025, 0, 3), to: new Date(2025, 0, 9) }
 
 		expect(matchRelativePreset(custom, presets, NOW)).toBeNull()
+
 		expect(isCustomActive([custom], presets, NOW)).toBe(true)
 	})
 
@@ -179,6 +186,7 @@ describe('matchRelativePreset / selectedPresetIds / isCustomActive', () => {
 		const ids = selectedPresetIds([resolve('today'), resolve('last-year')], presets, NOW)
 
 		expect([...ids].sort()).toEqual(['last-year', 'today'])
+
 		expect(isCustomActive([resolve('today')], presets, NOW)).toBe(false)
 	})
 })

@@ -94,6 +94,7 @@ describe('Toast: useToast behavior', () => {
 
 		act(() => {
 			api?.toast({ title: 'Saved' })
+
 			api?.toast({ title: 'Failed', severity: 'error' })
 		})
 
@@ -166,11 +167,14 @@ describe('Toast: useToast behavior', () => {
 
 		act(() => {
 			api?.toast({ title: 'A' })
+
 			api?.toast({ title: 'B' })
+
 			api?.toast({ title: 'C' })
 		})
 
 		expect(screen.getByText('B')).toBeInTheDocument()
+
 		expect(screen.getByText('C')).toBeInTheDocument()
 	})
 
@@ -533,7 +537,9 @@ describe('Toast: useToast behavior', () => {
 
 		act(() => {
 			api?.toast({ title: 'One', persist: true })
+
 			api?.toast({ title: 'Two', persist: true })
+
 			api?.toast({ title: 'Three', persist: true })
 		})
 

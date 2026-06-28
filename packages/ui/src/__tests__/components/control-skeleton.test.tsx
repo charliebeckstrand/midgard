@@ -13,6 +13,7 @@ describe('ControlSkeleton', () => {
 
 	it('sizes from the explicit size prop', () => {
 		const { container: md } = renderUI(<ControlSkeleton />)
+
 		const { container: sm } = renderUI(<ControlSkeleton size="sm" />)
 
 		expect(bySlot(md, 'placeholder')?.className).not.toBe(bySlot(sm, 'placeholder')?.className)
@@ -20,6 +21,7 @@ describe('ControlSkeleton', () => {
 
 	it('switches to the grouped silhouette with joined', () => {
 		const { container: full } = renderUI(<ControlSkeleton />)
+
 		const { container: joined } = renderUI(<ControlSkeleton joined />)
 
 		expect(bySlot(joined, 'placeholder')?.className).not.toBe(

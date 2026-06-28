@@ -74,6 +74,7 @@ describe('CopyButton', () => {
 
 	it('does not fire onCopiedChange when only the callback identity changes', () => {
 		const first = vi.fn()
+
 		const second = vi.fn()
 
 		const { rerender } = renderUI(<CopyButton value="hello" onCopiedChange={first} />)
@@ -81,6 +82,7 @@ describe('CopyButton', () => {
 		rerender(<CopyButton value="hello" onCopiedChange={second} />)
 
 		expect(first).not.toHaveBeenCalled()
+
 		expect(second).not.toHaveBeenCalled()
 	})
 
@@ -88,6 +90,7 @@ describe('CopyButton', () => {
 		vi.useFakeTimers()
 
 		const writeText = vi.fn().mockResolvedValue(undefined)
+
 		const onCopiedChange = vi.fn()
 
 		const restore = stubClipboard(writeText)
@@ -112,9 +115,11 @@ describe('CopyButton', () => {
 			})
 
 			expect(onCopiedChange).toHaveBeenLastCalledWith(false)
+
 			expect(onCopiedChange).toHaveBeenCalledTimes(2)
 		} finally {
 			restore()
+
 			vi.useRealTimers()
 		}
 	})
@@ -155,6 +160,7 @@ describe('CopyButton', () => {
 
 	it('does not fire onCopiedChange when clipboard.writeText rejects', async () => {
 		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
+
 		const onCopiedChange = vi.fn()
 
 		const restore = stubClipboard(writeText)
@@ -176,6 +182,7 @@ describe('CopyButton', () => {
 
 	it('invokes a consumer onClick before copying', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
+
 		const onClick = vi.fn()
 
 		const restore = stubClipboard(writeText)

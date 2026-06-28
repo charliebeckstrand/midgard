@@ -27,6 +27,7 @@ describe('primitive recipe-import boundary', () => {
 
 			for (const match of content.matchAll(IMPORT_RE)) {
 				const head = match[1] ?? ''
+
 				const path = match[2] ?? ''
 
 				if (!path.includes('/recipes')) continue

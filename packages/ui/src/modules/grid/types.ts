@@ -277,7 +277,7 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
-	/** Exports the filtered/sorted rows to a CSV download, or `undefined` when {@link GridProps.exportable} is off. */
+	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
 	exportCsv: (() => void) | undefined
 }
 
@@ -308,11 +308,14 @@ export type GridCellMenuContext<T> = {
 	value: unknown
 	/** Copies the cell value to the clipboard. */
 	copy: () => void
+	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
+	exportCsv: (() => void) | undefined
 }
 
 /**
- * Body-cell context-menu config: `true` (or omit / `false`) for the default Copy
- * item, or a builder receiving the {@link GridCellMenuContext} and that default,
+ * Body-cell context-menu config: `true` (or omit / `false`) for the default
+ * items — Copy, plus "Export to CSV" when {@link GridProps.exportable} is on — or
+ * a builder receiving the {@link GridCellMenuContext} and those defaults,
  * returning the final item list.
  *
  * @typeParam T - Shape of a single row.

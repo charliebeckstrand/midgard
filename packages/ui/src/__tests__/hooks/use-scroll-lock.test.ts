@@ -59,7 +59,9 @@ describe('useScrollLock', () => {
 			Object.defineProperty(docEl, key, { configurable: true, value })
 
 		patch('scrollHeight', 2000)
+
 		patch('clientHeight', 1000)
+
 		patch('clientWidth', 1000)
 
 		const innerWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth')

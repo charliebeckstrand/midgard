@@ -83,18 +83,25 @@ describe('Listbox', () => {
 		)
 
 		const prefix = bySlot(container, 'prefix')
+
 		const suffix = bySlot(container, 'suffix')
+
 		const button = bySlot(container, 'listbox-button')
 
 		expect(prefix).toBeInTheDocument()
+
 		expect(prefix?.querySelector('[data-testid="prefix"]')).toBeInTheDocument()
 
 		expect(suffix).toBeInTheDocument()
+
 		expect(suffix?.querySelector('[data-testid="suffix"]')).toBeInTheDocument()
 
 		expect(button).toBeInTheDocument()
+
 		expect(button?.tagName).toBe('BUTTON')
+
 		expect(button).toHaveAttribute('role', 'combobox')
+
 		expect(button).not.toBeDisabled()
 	})
 
@@ -110,6 +117,7 @@ describe('Listbox', () => {
 		const suffix = bySlot(container, 'suffix')
 
 		expect(suffix).toBeInTheDocument()
+
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
@@ -419,6 +427,7 @@ describe('Listbox', () => {
 		)
 
 		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
+
 		expect(container.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(items.length)
 	})
 })

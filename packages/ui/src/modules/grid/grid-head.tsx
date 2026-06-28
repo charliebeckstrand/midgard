@@ -337,9 +337,13 @@ function sortDirectionIcon(
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+	const { resizing } = useGrid()
 
 	return (
-		<Tooltip enabled={truncated}>
+		// `!resizing` holds the tooltip closed through a column drag-resize: the
+		// drag reflows the header, and the overflow tooltip would otherwise flash
+		// open over the content the resize is reshaping.
+		<Tooltip enabled={truncated && !resizing}>
 			<TooltipTrigger>
 				<span ref={ref} className={cn(k.head.title)}>
 					{title}
@@ -421,12 +425,22 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 			aria-orientation="vertical"
 			aria-label={`Resize ${label}`}
 			aria-valuenow={Math.round(resize.getSize(id))}
+			aria-valuetext={`${Math.round(resize.getSize(id))} pixels`}
 			aria-valuemin={min}
 			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			tabIndex={0}
 			data-resizing={dataAttr(resizing)}
 			className={cn(k.resize.handle)}
 			onMouseDown={(event) => {
+				// Only a plain primary press starts a drag-resize. Any context-menu
+				// gesture — a right- or middle-click, or a Ctrl-click (the macOS
+				// secondary click) — would otherwise begin one through the engine's
+				// mouse handler, which never ends because the context menu the same
+				// press opens swallows the `mouseup`, leaving the column stuck
+				// resizing to the pointer. These presses fall through untouched so
+				// the header's context menu still opens.
+				if (event.button !== 0 || event.ctrlKey) return
+
 				event.stopPropagation()
 
 				onPointer?.(event)
@@ -587,6 +601,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 				<button
 					type="button"
 					ref={setActivatorNodeRef}
+					data-dragging={dataAttr(isDragging)}
 					className={cn(k.reorder.handle)}
 					aria-label={`Reorder ${columnLabel(column)}`}
 					{...attributes}

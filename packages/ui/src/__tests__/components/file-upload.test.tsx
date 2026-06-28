@@ -130,6 +130,7 @@ describe('FileUpload disabled dropzone', () => {
 		const files = makeFileList([new File(['x'], 'resume.pdf')])
 
 		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+
 		fireEvent.drop(zone, { dataTransfer: { files } })
 
 		expect(onFiles).not.toHaveBeenCalled()

@@ -63,6 +63,8 @@ export type GridRowsProps<T> = {
 	onRowClick?: GridRowClick<T>
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
+	/** Whether the grid renders a selection column, so each row exposes its `aria-selected` state. */
+	selectable: boolean
 	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
 	reorderable: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
@@ -103,6 +105,7 @@ export function renderGridRow<T>(
 			onRowClick={props.onRowClick}
 			selected={props.selection.has(key)}
 			toggleRow={props.toggleRow}
+			selectable={props.selectable}
 			reorderable={props.reorderable}
 			truncate={props.truncate}
 			pinning={props.pinning}
@@ -134,6 +137,12 @@ type GridRowProps<T> = {
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */
 	toggleRow: (key: string | number) => void
+	/**
+	 * Whether the grid renders a selection column. When true the row's `<tr>`
+	 * carries `aria-selected`; a grid with no selection column omits it rather
+	 * than asserting selectability on rows that can't be selected.
+	 */
+	selectable: boolean
 	/**
 	 * When true, each non-pinned data cell registers against the table's column
 	 * sortable (matching its header's id) so the whole column drags as one.
@@ -196,6 +205,7 @@ function GridRowImpl<T>({
 	rowLabel,
 	selected,
 	toggleRow,
+	selectable,
 	reorderable = false,
 	truncate,
 	onRowClick,
@@ -205,6 +215,9 @@ function GridRowImpl<T>({
 }: GridRowProps<T>) {
 	return (
 		<TableRow
+			// Selectable rows expose their checkbox state to assistive tech; a grid
+			// with no selection column omits the attribute entirely.
+			aria-selected={selectable ? selected : undefined}
 			data-selected={dataAttr(selected)}
 			data-row-index={dataRowIndex}
 			data-grid-row={String(rowKey)}
@@ -369,10 +382,10 @@ function GridDataCellImpl<T>({
 }
 
 /**
- * Memoized {@link GridDataCellImpl}; when a row re-renders for a reason its cell
- * props don't reflect (a `selected` / `loading` flip), cells whose `cell` / `col`
- * / `row` identity is unchanged bail instead of re-running `flexRender` and the
- * tooltip resolution. @internal
+ * Memoized {@link GridDataCellImpl}: when a row re-renders, only the cells whose
+ * own props (cell, column, row, pinning) changed re-render, so a row-level change
+ * (selection, truncation) doesn't re-run `flexRender` and `cellProps` for every
+ * cell in the row. @internal
  */
 const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
 

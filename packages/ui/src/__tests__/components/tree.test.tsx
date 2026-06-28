@@ -84,8 +84,11 @@ describe('TreeItem', () => {
 		)
 
 		expect(bySlot(container, 'tree-item-prefix')).toBeInTheDocument()
+
 		expect(bySlot(container, 'tree-item-suffix')).toBeInTheDocument()
+
 		expect(screen.getByTestId('pre')).toBeInTheDocument()
+
 		expect(screen.getByTestId('suf')).toBeInTheDocument()
 	})
 
@@ -114,6 +117,7 @@ describe('TreeItem', () => {
 		fireEvent.click(screen.getByTestId('pre-btn'))
 
 		expect(onPrefixClick).toHaveBeenCalledOnce()
+
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})
 

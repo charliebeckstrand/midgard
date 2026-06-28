@@ -152,6 +152,7 @@ describe('useResizablePanel', () => {
 			act(() => result.current.resize(0, 10))
 
 			expect(result.current.sizes).toEqual([60, 40])
+
 			expect(onSizesChange).toHaveBeenCalledWith([60, 40])
 		})
 
@@ -191,6 +192,7 @@ describe('useResizablePanel', () => {
 			act(() => result.current.resize(0, 90))
 
 			expect(result.current.sizes[1]).toBe(20)
+
 			expect(result.current.sizes[0]).toBe(80)
 		})
 
@@ -209,6 +211,7 @@ describe('useResizablePanel', () => {
 			act(() => result.current.resize(0, -90))
 
 			expect(result.current.sizes[0]).toBe(20)
+
 			expect(result.current.sizes[1]).toBe(80)
 		})
 
@@ -243,6 +246,7 @@ describe('useResizablePanel', () => {
 			act(() => result.current.resize(5, 10))
 
 			expect(result.current.sizes).toEqual([50, 50])
+
 			expect(onSizesChange).not.toHaveBeenCalled()
 		})
 
@@ -264,7 +268,9 @@ describe('useResizablePanel', () => {
 			const [a, b, c] = result.current.sizes
 
 			expect(a).toBeCloseTo(33.333, 2)
+
 			expect(b).toBeCloseTo(43.333, 2)
+
 			expect(c).toBeCloseTo(23.333, 2)
 		})
 	})
@@ -337,6 +343,7 @@ describe('useResizablePanel', () => {
 			})
 
 			expect(preventDefault).toHaveBeenCalled()
+
 			expect(result.current.dragging).toBe(0)
 
 			act(() => {
@@ -372,6 +379,7 @@ describe('useResizablePanel', () => {
 
 			// 100px delta / 1000px available = 10% shift.
 			expect(result.current.sizes).toEqual([60, 40])
+
 			expect(onSizesChange).toHaveBeenLastCalledWith([60, 40])
 		})
 

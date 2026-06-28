@@ -59,7 +59,12 @@ export type GridColumnOrder = {
 export type GridSelection = {
 	value?: Set<string | number>
 	defaultValue?: Set<string | number>
-	onValueChange?: (selection: Set<string | number> | undefined) => void
+	/**
+	 * Fires with the next selection. The grid coalesces an internal clear to an
+	 * empty set, so the payload is never `undefined` — matching the other grid
+	 * bindings' non-nullable callbacks.
+	 */
+	onValueChange?: (selection: Set<string | number>) => void
 	/**
 	 * Renders a {@link Toolbar} of actions over the table while at least one row
 	 * is selected. Receives the current selection and a setter to mutate it.
@@ -72,7 +77,7 @@ export type GridSelection = {
 
 /**
  * Column-manager binding for {@link GridProps.columnManager}: gates column
- * management, optionally adds a standalone toolbar button, and holds
+ * management, optionally adds a toolbar button, and holds
  * controlled/uncontrolled column-visibility state. Column order lives on the
  * top-level {@link GridProps.columnOrder} binding, which the manager dialog
  * reads and writes.
@@ -86,9 +91,8 @@ export type GridColumnManagerConfig = {
 	 */
 	enabled?: boolean
 	/**
-	 * Also render a standalone toolbar button above the table that opens the
-	 * manager dialog, alongside the context-menu item. Has no effect when
-	 * `enabled` is `false`.
+	 * Also render a button in the grid's toolbar that opens the manager dialog,
+	 * alongside the context-menu item. Has no effect when `enabled` is `false`.
 	 * @defaultValue false
 	 */
 	toolbarButton?: boolean
@@ -98,8 +102,17 @@ export type GridColumnManagerConfig = {
 	 */
 	label?: ReactNode
 
+	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
 	hidden?: Set<string | number>
+
+	/** Initial hidden column ids for the uncontrolled case. */
 	defaultHidden?: Set<string | number>
+
+	/**
+	 * Fires with the next hidden set. Named `onHiddenChange` rather than the usual
+	 * `onValueChange` because this config also carries the `open`/`onOpenChange`
+	 * controllable, so each binding names its own field.
+	 */
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
 	/** Controlled open state of the manager dialog; pair with {@link GridColumnManagerConfig.onOpenChange}. */
@@ -109,6 +122,42 @@ export type GridColumnManagerConfig = {
 
 	/** Called when the manager's "save preset" action fires, with the current order and hidden ids. */
 	onSavePreset?: (preset: GridColumnManagerPreset) => void
+}
+
+/**
+ * Export binding for {@link GridDataProps.exportable}: gates CSV export and
+ * optionally surfaces a toolbar button alongside the context-menu items. The
+ * boolean shorthand `exportable={true}` enables export with the menu items
+ * alone; the object form adds the toolbar button and tunes the label and
+ * download filename. Mirrors {@link GridColumnManagerConfig}'s `enabled` /
+ * `toolbarButton` / `label` shape, and the button joins the column manager's in
+ * the grid's toolbar.
+ */
+export type GridExportConfig = {
+	/**
+	 * Whether CSV export is available: the "Export to CSV" context-menu items
+	 * (header and cell) and, with `toolbarButton`, the toolbar button. The boolean
+	 * shorthand `exportable={true}` is this set to `true`.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
+	/**
+	 * Also render a button in the grid's toolbar that downloads the CSV, beside
+	 * the column-manager trigger when present and alongside the context-menu item.
+	 * Has no effect when `enabled` is `false`.
+	 * @defaultValue false
+	 */
+	toolbarButton?: boolean
+	/**
+	 * Label on the toolbar button and the "Export to CSV" context-menu items.
+	 * @defaultValue 'Export to CSV'
+	 */
+	label?: ReactNode
+	/**
+	 * Suggested filename for the CSV download.
+	 * @defaultValue 'grid.csv'
+	 */
+	filename?: string
 }
 
 /**
@@ -187,11 +236,13 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Right-click context menus: a `column` menu on headers (Sort ascending /
-	 * descending, Auto-size columns, Manage columns) and a `cell` menu on body
-	 * cells (Copy). On by default; pass `false` to disable. Each side takes the
-	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
-	 * the column manager, rendering its dialog even without the toolbar button —
-	 * unless {@link GridColumnManagerConfig.enabled} is `false`, which drops it.
+	 * descending, Auto-size columns, Manage columns, Export to CSV) and a `cell`
+	 * menu on body cells (Copy, Export to CSV). On by default; pass `false` to
+	 * disable. Each side takes the defaults (`true`) or a builder that reshapes
+	 * them. "Manage columns" opens the column manager, rendering its dialog even
+	 * without the toolbar button — unless {@link GridColumnManagerConfig.enabled}
+	 * is `false`, which drops it. The Export items appear only when
+	 * {@link GridDataProps.exportable} is on.
 	 *
 	 * @see {@link GridContextMenu}
 	 * @defaultValue `{ column: true, cell: true }`
@@ -199,14 +250,17 @@ export type GridDataProps<T> = TableVariants & {
 	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
-	 * Adds an "Export to CSV" item to the header context menu that downloads the
-	 * grid's filtered and sorted rows (all pages) as a CSV file. Each row reads a
-	 * column's {@link GridColumn.value}, falling back to the row field named by the
-	 * column id; columns without either export an empty field. Off by default so a
-	 * grid doesn't expose a bulk download unless asked.
+	 * Enables CSV export of the grid's rows. The shorthand `true` adds an "Export
+	 * to CSV" item to the header and cell context menus; pass a
+	 * {@link GridExportConfig} to also surface a toolbar button and tune the label
+	 * and filename. Export covers the filtered and sorted rows (all pages), or
+	 * just the selected rows when a {@link GridDataProps.selection} is active. Each
+	 * row reads a column's {@link GridColumn.value}, falling back to the row field
+	 * named by the column id; columns without either export an empty field. Off by
+	 * default so a grid doesn't expose a bulk download unless asked.
 	 * @defaultValue false
 	 */
-	exportable?: boolean
+	exportable?: boolean | GridExportConfig
 
 	/**
 	 * Adds a drag handle to each reorderable column header — every visible,
@@ -243,6 +297,7 @@ export type GridDataProps<T> = TableVariants & {
 	 */
 	truncate?: boolean
 
+	/** Returns an extra class for a row's `<tr>`, or `undefined` for none; receives the row datum. */
 	rowClassName?: (row: T) => string | undefined
 
 	/**
@@ -267,6 +322,8 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	stickyHeader?: boolean
+
+	/** Caps the table height (any CSS length) behind a scroll wrapper; required by {@link GridDataProps.virtualize}. */
 	maxHeight?: string
 
 	/**
@@ -274,6 +331,8 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	loading?: boolean
+
+	/** Marks individual rows as loading, applying a per-row loading treatment; distinct from the whole-grid {@link GridDataProps.loading}. */
 	rowLoading?: (row: T) => boolean
 
 	/**
@@ -319,6 +378,10 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	editable?: false
+
+	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string
+
+	/** The grid renders from `columns`/`rows`, not JSX children. */
 	children?: never
 }

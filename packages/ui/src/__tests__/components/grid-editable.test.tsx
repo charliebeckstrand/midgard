@@ -264,6 +264,7 @@ describe('Grid', () => {
 		)
 
 		const grid = bySlot(container, 'grid-editable') as HTMLElement
+
 		const cells = allBySlot(container, 'grid-editable-cell')
 
 		fireEvent.mouseDown(cells[0] as HTMLElement)
@@ -291,6 +292,7 @@ describe('Grid', () => {
 		)
 
 		const grid = bySlot(container, 'grid-editable') as HTMLElement
+
 		const rateCell = allBySlot(container, 'grid-editable-cell')[1] as HTMLElement
 
 		fireEvent.mouseDown(rateCell)
@@ -785,6 +787,39 @@ describe('Grid editable context menus', () => {
 
 		// The grid-wide tools still render.
 		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
+	})
+
+	it('does not start the navigable cursor when a header is right-clicked', () => {
+		const { container } = renderUI(
+			<Grid
+				editable
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				onValueChange={() => {}}
+			/>,
+		)
+
+		const grid = bySlot(container, 'grid-editable') as HTMLTableElement
+
+		const header = container.querySelector<HTMLElement>('th[data-grid-col="rate"]')
+
+		if (!header) throw new Error('no header for column "rate"')
+
+		// The header carries no cell handler, so a right-click would otherwise focus
+		// the grid and seed the cursor. The wrapper suppresses that default; a real
+		// browser fires the follow-on focus only when the press was not prevented, so
+		// gate the simulated focus on the dispatch result the same way.
+		const notPrevented = fireEvent.mouseDown(header, { button: 2 })
+
+		if (notPrevented) fireEvent.focus(grid)
+
+		// The cursor stays unseated: no active descendant and no active cell.
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		expect(
+			allBySlot(container, 'grid-editable-cell').some((cell) => cell.hasAttribute('data-active')),
+		).toBe(false)
 	})
 
 	it('surfaces sort items for a column that opts into sortable', () => {

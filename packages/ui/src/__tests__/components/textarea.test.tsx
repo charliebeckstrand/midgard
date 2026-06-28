@@ -40,6 +40,7 @@ describe('Textarea', () => {
 		const { container } = renderUI(<TextareaSkeleton />)
 
 		expect(bySlot(container, 'textarea')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

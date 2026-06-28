@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen } from '../../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Cell truncation tooltip against the real floating engine and real layout. The
@@ -263,6 +263,40 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const tip = await screen.findByRole('tooltip')
 
 		expect(tip).toHaveTextContent('Wade Cooper')
+	})
+
+	it('suppresses the tooltip while a column drag-resize is in flight', async () => {
+		const { container } = renderUI(
+			<Grid resizable columns={[nameCol]} columnSizing={narrow} rows={rows} getKey={getKey} />,
+		)
+
+		// Baseline: the clipped cell arms its tooltip on hover.
+		await userEvent.hover(screen.getByText(longName))
+
+		await screen.findByRole('tooltip')
+
+		// Press the column's resize handle and drag, without releasing.
+		const separator = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
+		)
+
+		if (!separator) throw new Error('resize separator not found')
+
+		const rect = separator.getBoundingClientRect()
+
+		const x = rect.left + rect.width / 2
+
+		const y = rect.top + 4
+
+		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
+
+		// The in-flight resize holds the overflow tooltip closed, though the cell is
+		// still clipped and still hovered.
+		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+
+		fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
 	})
 
 	it('clips rows of differing length uniformly at a narrow width', async () => {

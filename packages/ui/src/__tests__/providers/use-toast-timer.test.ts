@@ -51,6 +51,7 @@ describe('useToastTimer', () => {
 
 		// Hover pause, then focus pause with no intervening resume.
 		act(() => result.current.pause())
+
 		act(() => result.current.pause())
 
 		act(() => result.current.resume())

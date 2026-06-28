@@ -36,6 +36,7 @@ describe('useScrollAreaScrollbar', () => {
 			)
 
 			expect(result.current.hasVertical).toBe(true)
+
 			expect(result.current.hasHorizontal).toBe(false)
 		})
 
@@ -45,6 +46,7 @@ describe('useScrollAreaScrollbar', () => {
 			)
 
 			expect(result.current.hasVertical).toBe(false)
+
 			expect(result.current.hasHorizontal).toBe(true)
 		})
 
@@ -54,6 +56,7 @@ describe('useScrollAreaScrollbar', () => {
 			)
 
 			expect(result.current.hasVertical).toBe(true)
+
 			expect(result.current.hasHorizontal).toBe(true)
 		})
 	})
@@ -65,7 +68,9 @@ describe('useScrollAreaScrollbar', () => {
 			)
 
 			expect(result.current.verticalThumb).toEqual({ size: 0, offset: 0, visible: false })
+
 			expect(result.current.horizontalThumb).toEqual({ size: 0, offset: 0, visible: false })
+
 			expect(result.current.isScrolling).toBe(false)
 		})
 	})
@@ -78,7 +83,9 @@ describe('useScrollAreaScrollbar', () => {
 
 			// viewport=100, content=400, track=100 → rawSize=25, clamped to MIN_THUMB_SIZE=20 → 25
 			expect(hook.result.current.verticalThumb.size).toBe(25)
+
 			expect(hook.result.current.verticalThumb.offset).toBe(0)
+
 			expect(hook.result.current.verticalThumb.visible).toBe(true)
 
 			mockDomGeometry(viewport, { scrollTop: 150 })
@@ -182,6 +189,7 @@ describe('useScrollAreaScrollbar', () => {
 			)
 
 			expect(() => act(() => result.current.handleScroll())).not.toThrow()
+
 			expect(result.current.verticalThumb.visible).toBe(false)
 		})
 	})
@@ -199,6 +207,7 @@ describe('useScrollAreaScrollbar', () => {
 			const event = makePointerEvent<HTMLDivElement>({ clientY: 0, clientX: 0 })
 
 			expect(() => handler(event)).not.toThrow()
+
 			expect(event.preventDefault).not.toHaveBeenCalled()
 		})
 
@@ -225,6 +234,7 @@ describe('useScrollAreaScrollbar', () => {
 			})
 
 			expect(preventDefault).toHaveBeenCalled()
+
 			expect(stopPropagation).toHaveBeenCalled()
 
 			act(() => {
