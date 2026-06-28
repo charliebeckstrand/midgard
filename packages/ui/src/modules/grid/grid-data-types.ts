@@ -103,8 +103,17 @@ export type GridColumnManagerConfig = {
 	 */
 	label?: ReactNode
 
+	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
 	hidden?: Set<string | number>
+
+	/** Initial hidden column ids for the uncontrolled case. */
 	defaultHidden?: Set<string | number>
+
+	/**
+	 * Fires with the next hidden set. Named `onHiddenChange` rather than the usual
+	 * `onValueChange` because this config also carries the `open`/`onOpenChange`
+	 * controllable, so each binding names its own field.
+	 */
 	onHiddenChange?: (hidden: Set<string | number>) => void
 
 	/** Controlled open state of the manager dialog; pair with {@link GridColumnManagerConfig.onOpenChange}. */
@@ -248,6 +257,7 @@ export type GridDataProps<T> = TableVariants & {
 	 */
 	truncate?: boolean
 
+	/** Returns an extra class for a row's `<tr>`, or `undefined` for none; receives the row datum. */
 	rowClassName?: (row: T) => string | undefined
 
 	/**
@@ -272,6 +282,8 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	stickyHeader?: boolean
+
+	/** Caps the table height (any CSS length) behind a scroll wrapper; required by {@link GridDataProps.virtualize}. */
 	maxHeight?: string
 
 	/**
@@ -279,6 +291,8 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	loading?: boolean
+
+	/** Marks individual rows as loading, applying a per-row loading treatment; distinct from the whole-grid {@link GridDataProps.loading}. */
 	rowLoading?: (row: T) => boolean
 
 	/**
@@ -324,6 +338,10 @@ export type GridDataProps<T> = TableVariants & {
 	 * @defaultValue false
 	 */
 	editable?: false
+
+	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string
+
+	/** The grid renders from `columns`/`rows`, not JSX children. */
 	children?: never
 }

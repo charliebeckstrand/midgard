@@ -1,4 +1,7 @@
+/** Estimated row height (px) for virtualization when {@link GridVirtualize} sets none. @internal */
 export const DEFAULT_ROW_HEIGHT = 44
+
+/** Rows rendered beyond the viewport on each side under virtualization, when unset. @internal */
 export const DEFAULT_OVERSCAN = 10
 
 // Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it.
