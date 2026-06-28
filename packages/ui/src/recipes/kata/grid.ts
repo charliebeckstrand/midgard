@@ -178,24 +178,29 @@ export const k = {
 		// Density-scaled trailing padding projected onto resizable headers so their
 		// labels clear the handle; lives on the `<table>` element.
 		padding: resizePadding,
-		// Grab area straddling the column's trailing edge. Spans the column's full
-		// height — header through the last row — via the measured
-		// `--grid-resize-height`, so a drag can begin anywhere down the right side,
-		// not just the header (falling back to the header height until measured).
-		// Widened and pulled half its width past the boundary (`translate-x-1/2`) so
-		// the hit target straddles the edge rather than a thin sliver — far easier to
-		// land with a pointer (toward WCAG 2.5.8) — while the inner grip stays a thin
-		// line on the boundary.
+		// Grab area along the column's trailing edge, anchored to the inside of that
+		// edge (`right-0`, no outward shift) and widening leftward into the cell to a
+		// comfortable ~24px target (toward WCAG 2.5.8). It deliberately does not
+		// overhang the boundary: an outward overhang (a former `translate-x-1/2`) was
+		// painted over by the next sticky header's opaque cell — clipping the grip to
+		// a sliver across the header — and, on the trailing column, pushed past the
+		// table's edge to inflate the horizontal scroll (nudging a right-pinned column
+		// at the scroll end). Spans the column's full height — header through the last
+		// row — via the measured `--grid-resize-height`, so a drag can begin anywhere
+		// down the right side, not just the header (falling back to the header height
+		// until measured).
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)] translate-x-1/2',
-			'flex items-center justify-center',
+			'group/grid-resize absolute top-0 right-0 z-10 w-6 h-[var(--grid-resize-height,100%)]',
+			'flex items-center justify-end',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
 		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
 		// grip (`kata/resizable`) so every resize affordance reads the same width —
-		// hidden until the column edge is hovered, and shown on keyboard focus or
-		// active drag: tints on hover, turns accent on focus or drag. Focus shows as
-		// a colour change, not an outset ring, so the scroll container can't clip it.
+		// flush against the column's trailing edge (so it sits within the cell and
+		// stays clear of the neighbour's opaque sticky header), hidden until the edge
+		// is hovered, and shown on keyboard focus or active drag: tints on hover,
+		// turns accent on focus or drag. Focus shows as a colour change, not an outset
+		// ring, so the scroll container can't clip it.
 		grip: [
 			'h-full w-0.5',
 			rounded.full,

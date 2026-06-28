@@ -3,11 +3,7 @@
 import type { ColumnSizingState, Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { isDataColumn } from '../../utilities'
-import {
-	COLUMN_RESIZE_HANDLE_OVERHANG,
-	DEFAULT_COLUMN_SIZE,
-	DEFAULT_MIN_COLUMN_SIZE,
-} from './grid-constants'
+import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnFit}. @internal */
@@ -88,10 +84,8 @@ function fitSizes<T>(table: Table<T>, columns: GridColumn<T>[], width: number): 
  * widths: each column takes its declared width (or the width-less default), the
  * columns grow proportionally to fill any surplus, and when their widths exceed
  * the container they hold and the table overflows horizontally rather than
- * shrinking to fit (which truncates content) — see {@link fitSizes}. Holds back a
- * {@link COLUMN_RESIZE_HANDLE_OVERHANG} gutter when they fill, so the trailing
- * column's resize handle stays clear of the scroll edge. Fits on mount —
- * synchronously, before the browser paints, so the default colgroup never flashes
+ * shrinking to fit (which truncates content) — see {@link fitSizes}. Fits on mount
+ * — synchronously, before the browser paints, so the default colgroup never flashes
  * before snapping to fit — and on container resize (via `ResizeObserver`) until
  * the user manually resizes a column, then leaves their widths alone. Returns
  * `sizeToFit`, which re-fits on demand and re-arms the automatic behavior (the
@@ -122,12 +116,10 @@ export function useGridColumnFit<T>({
 
 		if (!width) return
 
-		// Hold back the trailing column's resize handle from the scroll edge: it
-		// overhangs the last column's boundary by half its width, so fitting the
-		// full width would clip it. Fit to the width less that overhang to keep the
-		// handle in view — when the columns fit within it; when their widths exceed
-		// it they overflow and the handle is reached by scrolling instead.
-		const sizing = fitSizes(table, columns, Math.max(0, width - COLUMN_RESIZE_HANDLE_OVERHANG))
+		// Fit to the full container width — the resize handle sits inside each
+		// column's trailing edge (it no longer overhangs the boundary), so the
+		// trailing column's handle needs no gutter held back from the scroll edge.
+		const sizing = fitSizes(table, columns, width)
 
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
 	}, [table, columns, containerRef])
