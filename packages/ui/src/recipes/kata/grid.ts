@@ -312,19 +312,12 @@ export const k = {
 		],
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the
-	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot).
+	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot) with
+	// their normal styling, sitting inside the cell padding — the editing row just
+	// grows to fit the controls.
 	edit: {
-		// Host for a cell's editor. A negative margin matching the cell's density
-		// padding pulls the control out to the cell edges, so the editor occupies the
-		// same box as the display value and toggling into edit mode shifts nothing.
-		// The padding is projected onto cells by `<Table data-density>` (sm/md/lg →
-		// p-1/p-2/p-3), so the offset reads that ancestor attribute.
-		host: [
-			'relative flex w-full items-center',
-			'[[data-density=sm]_&]:-m-1',
-			'[[data-density=md]_&]:-m-2',
-			'[[data-density=lg]_&]:-m-3',
-		],
+		// Host for a cell's editor; anchors the absolute validation message.
+		host: 'relative flex w-full items-center',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
 		// A failed validation rings the editor and anchors a small message below it.
