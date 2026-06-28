@@ -4,6 +4,7 @@ import {
 	type ClipboardEvent,
 	type FocusEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type RefObject,
 	useCallback,
 } from 'react'
@@ -84,6 +85,57 @@ function handleHistoryKey(
 	}
 
 	return false
+}
+
+/**
+ * Whether a mousedown is a non-primary press (middle- or right-click) inside the
+ * header. Such a press lands on a `<th>`, which carries no cell mouse handler of
+ * its own, so its default action focuses the grid `<table>` — the cursor's
+ * single tab stop — and `onWrapperFocus` then seats the active cell, starting
+ * keyboard navigation. Only a primary (left) press should: a right-click opens
+ * the column context menu, and a middle-click is no part of cell navigation, so
+ * neither should seat the cursor. The caller suppresses the default focus on
+ * those, leaving the menu (a separate `contextmenu` event) and the primary-click
+ * navigation intact.
+ *
+ * @internal
+ */
+function isHeaderNonPrimaryClick(event: MouseEvent<HTMLTableElement>): boolean {
+	return (
+		event.button !== 0 && event.target instanceof Element && event.target.closest('thead') !== null
+	)
+}
+
+/**
+ * Resolves where a focus landing directly on the grid `<table>` should seat the
+ * cursor, or `null` when it should not seat at all. Returns `null` for focus
+ * that bubbled from a focusable descendant, returned from a floating overlay (a
+ * dismissed menu or dropdown, whose portal sits outside the table), or arrived
+ * at an empty grid. Otherwise the cursor seeds the first cell, or the last when
+ * focus entered backwards — Shift+Tab from a real element after the grid
+ * (`DOCUMENT_POSITION_FOLLOWING`).
+ *
+ * @internal
+ */
+function focusSeedTarget(
+	event: FocusEvent<HTMLTableElement>,
+	wrapper: HTMLTableElement,
+	rowCount: number,
+	colCount: number,
+): GridActiveCell | null {
+	const rel = event.relatedTarget
+
+	if (rel instanceof Node && wrapper.contains(rel)) return null
+
+	if (rel instanceof Element && rel.closest('[data-floating-ui-portal]')) return null
+
+	if (rowCount === 0 || colCount === 0) return null
+
+	const cameFromAfter =
+		rel instanceof Node &&
+		!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+	return cameFromAfter ? { row: rowCount - 1, col: colCount - 1 } : { row: 0, col: 0 }
 }
 
 /** True when `target` is a selection checkbox inside the grid wrapper. @internal */
@@ -374,10 +426,13 @@ function collectMatrixChanges<T>(
 /**
  * Wires the editable grid's wrapper-level interaction: `keydown` (cell
  * navigation, edit entry, clear, and checkbox bridging), `paste` (single-cell
- * and matrix writes), and focus/blur (seeding and clearing the active cell).
- * Returns the four handlers to spread onto the grid's `<table>` wrapper.
+ * and matrix writes), focus/blur (seeding and clearing the active cell), and
+ * `mousedown` (suppressing the cursor-seating focus a non-primary header click —
+ * middle or right — would otherwise trigger). Returns the handlers to spread onto
+ * the grid's `<table>` wrapper.
  *
- * @returns `onWrapperKeyDown` / `onWrapperPaste` / `onWrapperFocus` / `onWrapperBlur`.
+ * @returns `onWrapperKeyDown` / `onWrapperPaste` / `onWrapperFocus` /
+ *   `onWrapperBlur` / `onWrapperMouseDown`.
  *
  * @internal
  */
@@ -538,21 +593,9 @@ export function useGridEditableWrapper<T>({
 
 			if (activeRef.current) return
 
-			const rel = event.relatedTarget
+			const target = focusSeedTarget(event, wrapper, rowsRef.current.length, editableCols.length)
 
-			if (rel instanceof Node && wrapper.contains(rel)) return
-
-			if (rowsRef.current.length === 0 || editableCols.length === 0) return
-
-			const cameFromAfter =
-				rel instanceof Node &&
-				!!(wrapper.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
-
-			moveActiveTo(
-				cameFromAfter
-					? { row: rowsRef.current.length - 1, col: editableCols.length - 1 }
-					: { row: 0, col: 0 },
-			)
+			if (target) moveActiveTo(target)
 		},
 		[wrapperRef, activeRef, rowsRef, editableCols, moveActiveTo],
 	)
@@ -579,5 +622,14 @@ export function useGridEditableWrapper<T>({
 		[wrapperRef, setActive, setAnchor, setExtraCells],
 	)
 
-	return { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur }
+	const onWrapperMouseDown = useCallback((event: MouseEvent<HTMLTableElement>) => {
+		// A middle- or right-click on a header must not seat the cursor (a right-click
+		// opens the column menu). Suppressing the press's default focus keeps the grid
+		// from taking focus and `onWrapperFocus` from starting keyboard navigation. A
+		// primary left-click still seeds the cursor, and a click on a body cell is
+		// unaffected — the cell's own handler seats it so the menu acts on that cell.
+		if (isHeaderNonPrimaryClick(event)) event.preventDefault()
+	}, [])
+
+	return { onWrapperKeyDown, onWrapperPaste, onWrapperFocus, onWrapperBlur, onWrapperMouseDown }
 }

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import type { ClipboardEvent, FocusEvent } from 'react'
+import type { ClipboardEvent, FocusEvent, MouseEvent } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
 	Coord,
@@ -577,6 +577,49 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 		result.current.onWrapperFocus(makeFocusEvent(wrapper, before))
 	})
 
+	it('onWrapperFocus seeds the last cell when focus enters from a real element after the grid', () => {
+		const wrapper = document.createElement('table')
+
+		document.body.appendChild(wrapper)
+
+		// A focusable element after the table in the DOM — a Shift+Tab source.
+		const after = document.createElement('button')
+
+		document.body.appendChild(after)
+
+		const { api, moveActiveTo } = setup({ wrapper, active: null })
+
+		api.onWrapperFocus(makeFocusEvent(wrapper, after))
+
+		// setup has 2 rows and 2 editable columns, so the last cell is {1, 1}.
+		expect(moveActiveTo).toHaveBeenCalledWith({ row: 1, col: 1 })
+	})
+
+	it('onWrapperFocus does not seat a cell when focus returns from a floating menu portal', () => {
+		const wrapper = document.createElement('table')
+
+		document.body.appendChild(wrapper)
+
+		// A menu item inside a floating-ui portal positioned after the table — what a
+		// dismissed context menu hands focus back from. The cameFromAfter heuristic
+		// would otherwise seat the last cell behind the menu.
+		const portal = document.createElement('div')
+
+		portal.setAttribute('data-floating-ui-portal', '')
+
+		const menuItem = document.createElement('div')
+
+		portal.appendChild(menuItem)
+
+		document.body.appendChild(portal)
+
+		const { api, moveActiveTo } = setup({ wrapper, active: null })
+
+		api.onWrapperFocus(makeFocusEvent(wrapper, menuItem))
+
+		expect(moveActiveTo).not.toHaveBeenCalled()
+	})
+
 	it('onWrapperBlur clears active, anchor, and extras when focus leaves the wrapper', () => {
 		const wrapper = document.createElement('table')
 
@@ -639,5 +682,90 @@ describe('useGridEditableWrapper: onWrapperFocus and onWrapperBlur', () => {
 		expect(setExtraCells).not.toHaveBeenCalled()
 
 		portal.remove()
+	})
+})
+
+describe('useGridEditableWrapper: onWrapperMouseDown', () => {
+	type MouseTarget = MouseEvent<HTMLTableElement>['target']
+
+	function makeMouseEvent(target: Element, button: number) {
+		const preventDefault = vi.fn()
+
+		const partial: Partial<MouseEvent<HTMLTableElement>> = {
+			button,
+			target: target as MouseTarget,
+			preventDefault,
+		}
+
+		return { event: partial as MouseEvent<HTMLTableElement>, preventDefault }
+	}
+
+	/** A detached `<table>` with a header cell and a body cell to classify a press against. */
+	function makeTable() {
+		const table = document.createElement('table')
+
+		const thead = document.createElement('thead')
+
+		const th = document.createElement('th')
+
+		thead.append(th)
+
+		const tbody = document.createElement('tbody')
+
+		const td = document.createElement('td')
+
+		tbody.append(td)
+
+		table.append(thead, tbody)
+
+		return { th, td }
+	}
+
+	it('suppresses the default focus on a right-click inside the header', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 2)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).toHaveBeenCalled()
+	})
+
+	it('suppresses the default focus on a middle-click inside the header', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 1)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).toHaveBeenCalled()
+	})
+
+	it('leaves a primary left-click on the header alone, so the cursor still seats on focus', () => {
+		const { api } = setup()
+
+		const { th } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(th, 0)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).not.toHaveBeenCalled()
+	})
+
+	it('leaves a right-click on a body cell alone, so the cell handler seats it for the menu', () => {
+		const { api } = setup()
+
+		const { td } = makeTable()
+
+		const { event, preventDefault } = makeMouseEvent(td, 2)
+
+		api.onWrapperMouseDown(event)
+
+		expect(preventDefault).not.toHaveBeenCalled()
 	})
 })

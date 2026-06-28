@@ -14,9 +14,8 @@ const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
  * Resolves the column-manager gates, lifts the dialog's open state, and derives
  * the header context-menu actions (sort a column, open the manager). Column
  * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * standalone toolbar button is opt-in
- * ({@link GridColumnManagerConfig.toolbarButton}). Split out of `GridData` so its
- * body stays within the cognitive-complexity budget.
+ * toolbar button is opt-in ({@link GridColumnManagerConfig.toolbarButton}). Split
+ * out of `GridData` so its body stays within the cognitive-complexity budget.
  *
  * @internal
  */
