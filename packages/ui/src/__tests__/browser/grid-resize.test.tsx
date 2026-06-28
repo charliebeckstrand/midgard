@@ -192,3 +192,98 @@ describe('grid column resizing (real browser)', () => {
 		expect(getComputedStyle(ageHeader).pointerEvents).not.toBe('none')
 	})
 })
+
+/**
+ * Resize and reorder together. A reordering grid shifts every header and body
+ * cell on a `translateX` CSS variable, so each cell becomes a stacking context.
+ * The resize handle is absolutely positioned inside its header and overflows the
+ * full column height; the header's own shift transform would trap its `z-10`
+ * inside the header's (z-auto) stacking context, leaving the later-painted body
+ * cells over the handle's body-region overflow — so a pointer down in the rows
+ * hit the cell, not the handle, and only the header stretch resized. The header
+ * must clear the reordering body cells so the handle stays grabbable down the
+ * whole column, matching a resizable-only grid. Real geometry, so the browser.
+ */
+describe('grid resize handle stays grabbable over the body with reorder active (real browser)', () => {
+	type Row = { id: number; name: string; age: number }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', minWidth: 80 },
+		{ id: 'age', title: 'Age', cell: (row) => row.age, width: '120px' },
+	]
+
+	const rows: Row[] = Array.from({ length: 6 }, (_, i) => ({
+		id: i + 1,
+		name: `Person ${i + 1}`,
+		age: 20 + i,
+	}))
+
+	function setup() {
+		const { container } = renderUI(
+			<div style={{ width: '400px' }}>
+				<Grid reorder resizable columns={columns} rows={rows} getKey={(row) => row.id} />
+			</div>,
+		)
+
+		const separator = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
+		)
+
+		if (!separator) throw new Error('resize handle not found')
+
+		return { container, separator }
+	}
+
+	const nameHeader = (root: HTMLElement) =>
+		root.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+
+	it('keeps the resize handle topmost down in the rows, not just the header', async () => {
+		const { container, separator } = setup()
+
+		const table = container.querySelector('table') as HTMLElement
+
+		// Wait for the handle to grow from the header height to the full column.
+		await waitFor(() =>
+			expect(separator.getBoundingClientRect().height).toBeCloseTo(
+				table.getBoundingClientRect().height,
+				0,
+			),
+		)
+
+		const rect = separator.getBoundingClientRect()
+
+		const x = rect.left + rect.width / 2
+
+		// A point a row deep — below the header, where a reordering body cell sits.
+		const bodyY = nameHeader(container).getBoundingClientRect().bottom + 8
+
+		// The handle (or its grip child) must be the element the pointer lands on,
+		// so a drag-resize can begin down the rows; a reordering body cell here means
+		// the handle's overflow is painted under the shifted cells.
+		expect(separator.contains(document.elementFromPoint(x, bodyY))).toBe(true)
+	})
+
+	it('reveals the grip when the body stretch of the edge is hovered', async () => {
+		const { container, separator } = setup()
+
+		const table = container.querySelector('table') as HTMLElement
+
+		await waitFor(() =>
+			expect(separator.getBoundingClientRect().height).toBeCloseTo(
+				table.getBoundingClientRect().height,
+				0,
+			),
+		)
+
+		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
+
+		expect(getComputedStyle(grip).opacity).toBe('0')
+
+		// `userEvent.hover` drives the real pointer to the handle's centre, which —
+		// the handle spanning the whole column — lands down in the rows. The grip
+		// only reveals if that body-region point reaches the handle.
+		await userEvent.hover(separator)
+
+		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
+	})
+})
