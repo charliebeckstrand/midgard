@@ -69,30 +69,6 @@ export const restrictToFirstScrollableAncestor: Modifier = ({
 }
 
 /**
- * Inline style for a cell that belongs to a reordering column — its header and
- * every body cell. Applies a horizontal-only translate via
- * `CSS.Translate.toString` (not `CSS.Transform`, whose `scaleX`/`scaleY` would
- * stretch a cell's content when columns differ in width) plus the sortable's
- * transition, so the whole column glides as one. The dragged column's
- * "lifted" cue lives in the recipe's `data-dragging` hook.
- *
- * @param transform - The sortable transform for this column, or `null` when idle.
- * @param transition - The sortable transition string, or `undefined`.
- * @returns The cell's inline style. Callers merge any fixed column width
- * themselves, since the width sits outside the drag transform.
- * @internal
- */
-export function columnDragStyle(
-	transform: Transform | null,
-	transition: string | undefined,
-): CSSProperties {
-	return {
-		transform: CSS.Translate.toString(transform),
-		transition,
-	}
-}
-
-/**
  * The id of the column being drag-reordered, or `null` when idle. Provided by
  * the grid around the sortable region and read by each reordering body cell so
  * only the dragged column's cells carry the `data-dragging` lift. The value

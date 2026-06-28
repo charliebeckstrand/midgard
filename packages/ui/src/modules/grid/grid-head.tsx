@@ -25,7 +25,7 @@ import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnDragStyle, writeColumnShift } from './grid-reorder'
+import { columnShiftStyle, writeColumnShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
@@ -635,7 +635,11 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 				canResize && !stickyHeader && k.resize.cell,
 				column.headerClassName,
 			)}
-			style={{ ...columnDragStyle(transform, transition), ...(width != null ? { width } : null) }}
+			// Read the shift from the same CSS variable the body cells use (written
+			// just below), not dnd-kit's transform inline: one variable resolving in
+			// one style recalc keeps the header and its column's cells exactly in
+			// phase through the transition, instead of two mechanisms drifting apart.
+			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
 		>
 			<span className={cn(k.reorder.layout)}>
 				<button
