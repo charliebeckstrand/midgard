@@ -625,7 +625,10 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
 				canResize && k.resize.host,
-				canResize && !stickyHeader && k.resize.cell,
+				// The shift transform makes this header a stacking context, trapping the
+				// handle's `z-10`; `reorderCell` lifts the header above the (likewise
+				// transformed) body cells so the handle stays grabbable down the column.
+				canResize && !stickyHeader && k.resize.reorderCell,
 				column.headerClassName,
 			)}
 			// Read the shift from the same CSS variable the body cells use (written

@@ -196,6 +196,18 @@ export const k = {
 		// Anchors the absolutely-positioned handle (non-sticky headers only — a
 		// sticky header is already a positioned containing block).
 		cell: 'relative',
+		// A reordering header's counterpart to `cell`. That header carries the
+		// column's shift transform (see `columnShiftStyle`), which makes the cell a
+		// stacking context and traps the absolute handle's `z-10` inside it — and the
+		// context sits in the z-auto band, so the reordering body cells (themselves
+		// transformed stacking contexts, painted later in the DOM) cover the handle's
+		// full-height overflow. A pointer down in the rows then hit a cell, not the
+		// handle, so only the header stretch resized. Lifting the header to the
+		// handle's own `z-10` floats its stacking context — handle included — above
+		// the body cells, keeping the edge grabbable down the whole column like a
+		// resizable-only grid. Sticky reordering headers already take this z-index
+		// from `sticky.head`, so this is only the non-sticky case.
+		reorderCell: ['relative', 'z-10'],
 		// Density-scaled resize metrics (header trailing padding + handle width)
 		// projected onto resizable headers; lives on the `<table>` element.
 		metrics: resizeMetrics,
