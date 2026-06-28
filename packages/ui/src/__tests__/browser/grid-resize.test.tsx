@@ -1,14 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, waitFor } from '../helpers'
 
 /**
- * Column resizing against a real layout engine: the handle's full-column height
- * and the hover-revealed grip only resolve in a browser (jsdom paints no layout,
- * so its `offsetHeight` is 0 and computed `opacity` never settles). Here the grid
- * renders with real geometry, so the trailing-edge handle can be measured against
- * the table and a pointer drag can begin down in the body region of that edge.
+ * Column resizing against a real layout engine: the handle's header height, the
+ * always-visible grip, and its trailing-edge alignment only resolve in a browser
+ * (jsdom paints no layout, so its `getBoundingClientRect` is empty and computed
+ * `opacity`/colour never settle). Here the grid renders with real geometry, so the
+ * header-anchored handle can be measured and a pointer drag begun on it.
  */
 describe('grid column resizing (real browser)', () => {
 	type Row = { id: number; name: string; age: number }
@@ -52,66 +51,50 @@ describe('grid column resizing (real browser)', () => {
 	const nameHeader = (root: HTMLElement) =>
 		root.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
 
-	it('extends the handle down the full column height, not just the header', async () => {
+	it('confines the resize handle to the header, not down the column', async () => {
 		const { container, separator } = setup()
 
 		const table = container.querySelector('table') as HTMLElement
 
-		// The handle starts at the header height and grows to the table height once
-		// the measured `--grid-resize-height` lands.
+		// The handle tracks the header cell's height — the affordance lives in the
+		// header — within a hairline cell border.
 		await waitFor(() => {
 			const handleHeight = separator.getBoundingClientRect().height
 
-			const tableHeight = table.getBoundingClientRect().height
+			const headerHeight = nameHeader(container).getBoundingClientRect().height
 
-			expect(handleHeight).toBeCloseTo(tableHeight, 0)
+			expect(Math.abs(handleHeight - headerHeight)).toBeLessThanOrEqual(2)
 		})
 
-		// And it is decisively taller than the header cell alone — so the right edge
-		// is grabbable down every row, not only across the header.
-		const headerHeight = nameHeader(container).getBoundingClientRect().height
+		// And it stops well short of the full column: six rows make the table several
+		// times the header's height, so the edge is not grabbable down every row.
+		const tableHeight = table.getBoundingClientRect().height
 
-		expect(separator.getBoundingClientRect().height).toBeGreaterThan(headerHeight * 2)
+		expect(separator.getBoundingClientRect().height).toBeLessThan(tableHeight / 2)
 	})
 
-	it('keeps the grip hidden until the edge or header is hovered', async () => {
+	it('shows the grip at rest, flush with the header trailing edge', async () => {
 		const { container, separator } = setup()
 
 		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
 
-		// Resting: the grip is hidden, so the edge stays clean until pointed at —
-		// the whole point of the change, versus a permanently-visible handle.
-		expect(getComputedStyle(grip).opacity).toBe('0')
-
-		// The grip reveals on the CSS `:hover` of the edge strip (and the header
-		// cell), so the pointer must really move — `vitest/browser`'s userEvent
-		// drives the Playwright mouse, unlike the synthetic
-		// `@testing-library/user-event` hover, which never sets `:hover`.
-		await userEvent.hover(separator)
-
+		// Always visible — no hover needed; the edge reads as resizable at rest, the
+		// whole point of the change versus the old hidden-until-hover grip.
 		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
 
-		// Hovering anywhere on the header cell reveals it too, for discoverability.
-		await userEvent.unhover(separator)
+		// Justified to the right: the grip sits at the header's trailing edge (within a
+		// couple pixels, allowing a hairline cell border).
+		const headerRect = nameHeader(container).getBoundingClientRect()
 
-		await userEvent.hover(nameHeader(container))
+		const gripRect = grip.getBoundingClientRect()
 
-		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
+		expect(Math.abs(headerRect.right - gripRect.right)).toBeLessThanOrEqual(3)
 	})
 
-	it('resizes the column when the drag begins in the body region of the edge', async () => {
+	it('resizes the column from a drag that begins on the header handle', async () => {
 		const onValueChange = vi.fn()
 
 		const { container, separator } = setup({ onValueChange })
-
-		const table = container.querySelector('table') as HTMLElement
-
-		await waitFor(() =>
-			expect(separator.getBoundingClientRect().height).toBeCloseTo(
-				table.getBoundingClientRect().height,
-				0,
-			),
-		)
 
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
@@ -119,15 +102,13 @@ describe('grid column resizing (real browser)', () => {
 
 		const startX = rect.left + rect.width / 2
 
-		// Begin the drag near the bottom of the handle — down in the rows, not the
-		// header — to prove the whole right side initiates a resize.
-		const bodyY = rect.bottom - 16
+		const y = rect.top + rect.height / 2
 
-		fireEvent.mouseDown(separator, { clientX: startX, clientY: bodyY })
+		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
-		fireEvent.mouseMove(document, { clientX: startX + 70, clientY: bodyY })
+		fireEvent.mouseMove(document, { clientX: startX + 70, clientY: y })
 
-		fireEvent.mouseUp(document, { clientX: startX + 70, clientY: bodyY })
+		fireEvent.mouseUp(document, { clientX: startX + 70, clientY: y })
 
 		await waitFor(() =>
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(startWidth + 40),
@@ -136,21 +117,10 @@ describe('grid column resizing (real browser)', () => {
 		expect(onValueChange).toHaveBeenCalled()
 	})
 
-	it('stands the other columns down while a drag-resize is in flight', async () => {
+	it('accents the dragged column grip while a resize is in flight', async () => {
 		const { container, separator } = setup()
 
-		const table = container.querySelector('table') as HTMLElement
-
-		await waitFor(() =>
-			expect(separator.getBoundingClientRect().height).toBeCloseTo(
-				table.getBoundingClientRect().height,
-				0,
-			),
-		)
-
 		const wrapper = container.querySelector('[data-slot="grid"]') as HTMLElement
-
-		const ageHeader = container.querySelector('th[data-grid-col="age"]') as HTMLElement
 
 		const ageHandle = container.querySelector(
 			'[role="separator"][aria-label="Resize Age"]',
@@ -164,47 +134,39 @@ describe('grid column resizing (real browser)', () => {
 
 		const startX = rect.left + rect.width / 2
 
-		const bodyY = rect.bottom - 16
+		const y = rect.top + rect.height / 2
 
 		// Hold the drag open — mousedown plus a move, but no mouseup yet.
-		fireEvent.mouseDown(separator, { clientX: startX, clientY: bodyY })
+		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
 
-		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: bodyY })
+		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: y })
 
-		// The grid flags the in-flight resize and every resizable header drops its
-		// pointer events, so a pointer sweeping the full-height strips can't light
-		// another column's grip…
 		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(true))
 
-		expect(getComputedStyle(ageHeader).pointerEvents).toBe('none')
+		// Both grips stay visible (always-on); the dragged column's reads accent (its
+		// own `data-resizing`) while the idle column keeps its muted rest colour.
+		expect(getComputedStyle(nameGrip).opacity).toBe('1')
 
-		// …only the dragged column's grip stays visible (via its own data-resizing;
-		// waitFor lets its reveal transition settle).
-		await waitFor(() => expect(getComputedStyle(nameGrip).opacity).toBe('1'))
+		expect(getComputedStyle(ageGrip).opacity).toBe('1')
 
-		expect(getComputedStyle(ageGrip).opacity).toBe('0')
+		expect(getComputedStyle(nameGrip).backgroundColor).not.toBe(
+			getComputedStyle(ageGrip).backgroundColor,
+		)
 
-		// Releasing the drag clears the flag and restores header interaction.
-		fireEvent.mouseUp(document, { clientX: startX + 40, clientY: bodyY })
+		fireEvent.mouseUp(document, { clientX: startX + 40, clientY: y })
 
 		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(false))
-
-		expect(getComputedStyle(ageHeader).pointerEvents).not.toBe('none')
 	})
 })
 
 /**
- * Resize and reorder together. A reordering grid shifts every header and body
- * cell on a `translateX` CSS variable, so each cell becomes a stacking context.
- * The resize handle is absolutely positioned inside its header and overflows the
- * full column height; the header's own shift transform would trap its `z-10`
- * inside the header's (z-auto) stacking context, leaving the later-painted body
- * cells over the handle's body-region overflow — so a pointer down in the rows
- * hit the cell, not the handle, and only the header stretch resized. The header
- * must clear the reordering body cells so the handle stays grabbable down the
- * whole column, matching a resizable-only grid. Real geometry, so the browser.
+ * Resize and reorder together. A reordering grid shifts every header on a
+ * `translateX` CSS variable, so each header is a transformed stacking context —
+ * and the containing block for its absolutely-positioned resize handle. The
+ * handle must still anchor to its header and stay the topmost element at the
+ * trailing edge so a drag-resize can begin on it. Real geometry, so the browser.
  */
-describe('grid resize handle stays grabbable over the body with reorder active (real browser)', () => {
+describe('grid resize handle with reorder active (real browser)', () => {
 	type Row = { id: number; name: string; age: number }
 
 	const columns: GridColumn<Row>[] = [
@@ -237,53 +199,40 @@ describe('grid resize handle stays grabbable over the body with reorder active (
 	const nameHeader = (root: HTMLElement) =>
 		root.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
 
-	it('keeps the resize handle topmost down in the rows, not just the header', async () => {
-		const { container, separator } = setup()
-
-		const table = container.querySelector('table') as HTMLElement
-
-		// Wait for the handle to grow from the header height to the full column.
-		await waitFor(() =>
-			expect(separator.getBoundingClientRect().height).toBeCloseTo(
-				table.getBoundingClientRect().height,
-				0,
-			),
-		)
+	it('keeps the resize handle topmost on the header trailing edge', async () => {
+		const { separator } = setup()
 
 		const rect = separator.getBoundingClientRect()
 
 		const x = rect.left + rect.width / 2
 
-		// A point a row deep — below the header, where a reordering body cell sits.
-		const bodyY = nameHeader(container).getBoundingClientRect().bottom + 8
+		const y = rect.top + rect.height / 2
 
-		// The handle (or its grip child) must be the element the pointer lands on,
-		// so a drag-resize can begin down the rows; a reordering body cell here means
-		// the handle's overflow is painted under the shifted cells.
-		expect(separator.contains(document.elementFromPoint(x, bodyY))).toBe(true)
+		// The handle (or its grip child) is the element under the pointer at the
+		// header's trailing edge, so a drag-resize begins on it even though the reorder
+		// shift transform makes the header its own stacking context.
+		expect(separator.contains(document.elementFromPoint(x, y))).toBe(true)
 	})
 
-	it('reveals the grip when the body stretch of the edge is hovered', async () => {
+	it('resizes from the header handle with reorder active', async () => {
 		const { container, separator } = setup()
 
-		const table = container.querySelector('table') as HTMLElement
+		const startWidth = nameHeader(container).getBoundingClientRect().width
+
+		const rect = separator.getBoundingClientRect()
+
+		const startX = rect.left + rect.width / 2
+
+		const y = rect.top + rect.height / 2
+
+		fireEvent.mouseDown(separator, { clientX: startX, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: startX + 60, clientY: y })
+
+		fireEvent.mouseUp(document, { clientX: startX + 60, clientY: y })
 
 		await waitFor(() =>
-			expect(separator.getBoundingClientRect().height).toBeCloseTo(
-				table.getBoundingClientRect().height,
-				0,
-			),
+			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(startWidth + 30),
 		)
-
-		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
-
-		expect(getComputedStyle(grip).opacity).toBe('0')
-
-		// `userEvent.hover` drives the real pointer to the handle's centre, which —
-		// the handle spanning the whole column — lands down in the rows. The grip
-		// only reveals if that body-region point reaches the handle.
-		await userEvent.hover(separator)
-
-		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
 	})
 })
