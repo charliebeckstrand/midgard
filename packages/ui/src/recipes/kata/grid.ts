@@ -191,12 +191,14 @@ export const k = {
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Full-height grip line, hidden until the column edge is
-		// hovered, and shown on keyboard focus or active drag: tints on hover, turns
-		// accent on focus or drag. Focus shows as a colour change, not an outset
-		// ring, so the scroll container can't clip it.
+		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
+		// grip (`kata/resizable`) so every resize affordance reads the same width —
+		// hidden until the column edge is hovered, and shown on keyboard focus or
+		// active drag: tints on hover, turns accent on focus or drag. Focus shows as
+		// a colour change, not an outset ring, so the scroll container can't clip it.
 		grip: [
-			'h-full w-1',
+			'h-full w-0.5',
+			rounded.full,
 			'opacity-0 transition-opacity',
 			'group-hover/grid-resize:opacity-100',
 			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
