@@ -536,7 +536,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 							aria-label={`Unpin ${columnLabel(column)}`}
 							onClick={() => pinColumn(column.id, false)}
 						>
-							<Icon icon={<Pin />} size="sm" />
+							<Icon icon={<Pin />} />
 						</button>
 						{label}
 					</span>
