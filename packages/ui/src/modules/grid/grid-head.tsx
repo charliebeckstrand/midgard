@@ -359,7 +359,9 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 		// open over the content the resize is reshaping.
 		<Tooltip enabled={truncated && !resizing}>
 			<TooltipTrigger>
-				<span ref={ref} className={cn(k.head.title)}>
+				{/* `data-grid-content` marks the title leaf so the autosizer reads its
+				    intrinsic width and decides the column's header-driven minimum. */}
+				<span ref={ref} data-grid-content className={cn(k.head.title)}>
 					{title}
 				</span>
 			</TooltipTrigger>
@@ -527,7 +529,9 @@ const GridColumnHeader = memo(function GridColumnHeader({
 				...pinnedOffsetStyle(pinning, column.id),
 			}}
 		>
-			<span className={cn(k.filter.slot)}>
+			{/* `data-grid-header` marks the header's flex row so the autosizer can
+			    subtract its justified free space and measure the title + affordances. */}
+			<span data-grid-header className={cn(k.filter.slot)}>
 				{pinnedSide ? (
 					<span className={cn(k.head.pinned.label)}>
 						<button
@@ -637,7 +641,9 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			// phase through the transition, instead of two mechanisms drifting apart.
 			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
 		>
-			<span className={cn(k.reorder.layout)}>
+			{/* `data-grid-header` marks the header's flex row for the autosizer (see the
+			    non-reorderable header above). */}
+			<span data-grid-header className={cn(k.reorder.layout)}>
 				<button
 					type="button"
 					ref={setActivatorNodeRef}

@@ -218,16 +218,25 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Enables drag- and keyboard-resizing of data columns through the grid's
-	 * TanStack Table engine. Each data column's header gains a resize handle on its
-	 * trailing edge, carrying an always-visible grip — a short centred bar that
-	 * tints on hover and turns accent on keyboard focus or active drag. A column's
-	 * initial width comes from a `px` `width`, else a default, and widths persist
-	 * through {@link GridDataProps.columnSizing}. Set `false` for fixed-width columns.
+	 * TanStack Table engine, over the automatic content sizing. Each data column's
+	 * header gains a resize handle on its trailing edge, carrying an always-visible
+	 * grip — a short centred bar that tints on hover and turns accent on keyboard
+	 * focus or active drag. Columns auto-size to their content by default (a `px`
+	 * {@link GridColumn.width} fixes one instead); a drag-resize holds that column at
+	 * its width while the rest keep auto-sizing, and widths persist through
+	 * {@link GridDataProps.columnSizing}. The header context menu's "Auto-size
+	 * columns" re-fits and clears any manual holds. Set `false` to drop the handles
+	 * (columns still auto-size).
 	 * @defaultValue true
 	 */
 	resizable?: boolean
 
-	/** Controlled/uncontrolled column-width state; pairs with {@link GridDataProps.resizable} to persist widths. */
+	/**
+	 * Controlled/uncontrolled column-width state; pairs with
+	 * {@link GridDataProps.resizable} to persist widths. Providing a controlled
+	 * `value` stands the automatic content sizing down — the consumer owns every
+	 * width.
+	 */
 	columnSizing?: GridColumnSizing
 
 	/**

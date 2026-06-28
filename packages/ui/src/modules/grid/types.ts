@@ -114,14 +114,27 @@ export type GridColumn<T> = {
 	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
 	className?: string
 	headerClassName?: string
-	/** Column width as a CSS length; under {@link GridProps.resizable} a `px` value seeds the initial resize width. */
+	/**
+	 * Fixes the column at this CSS width, superseding the automatic content sizing
+	 * ({@link GridProps.resizable}). A `px` value also seeds the column's initial
+	 * resize width. Omit it to let the column size to its content: columns share the
+	 * width evenly when there is room to spare, and any column whose content would
+	 * truncate takes more.
+	 */
 	width?: string
 	/**
-	 * Minimum width (px) the column can be resized to.
+	 * Minimum width (px); the floor the automatic sizing and a drag-resize never go
+	 * below. A single-word header sets its own floor (its full width, so it never
+	 * truncates) when larger than this.
 	 * @defaultValue {@link DEFAULT_MIN_COLUMN_SIZE}
 	 */
 	minWidth?: number
-	/** Maximum width (px) the column can be resized to; unbounded when omitted. */
+	/**
+	 * Maximum width (px); the ceiling a drag-resize and the automatic sizing never
+	 * exceed. Also lifts the cap the autosizer otherwise places on measured content
+	 * width, so a column with wide content can opt into showing more of it.
+	 * Unbounded when omitted.
+	 */
 	maxWidth?: number
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and

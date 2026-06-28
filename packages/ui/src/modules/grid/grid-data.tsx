@@ -611,6 +611,7 @@ export function GridData<T>({
 		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,
 		containerRef: wrapperRef,
+		density,
 	})
 
 	// Cursor index space: rendered rows and the visible *data* columns (it skips
