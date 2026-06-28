@@ -69,4 +69,25 @@ describe('grid column auto-fit (real browser)', () => {
 		expect(table.getBoundingClientRect().width).toBeLessThanOrEqual(scroll.clientWidth + 1)
 		expect(table.getBoundingClientRect().width).toBeGreaterThan(440)
 	})
+
+	it('fills the container without overflowing when cells carry outline borders', async () => {
+		// Hairline `outline` borders render the table a pixel or two past its summed
+		// column widths. Growing the columns to the full container width would push
+		// that border chrome past the scroll edge, raising a phantom horizontal
+		// scrollbar; the fit reserves the chrome so the bordered table lands on the
+		// container exactly.
+		const { container } = renderUI(
+			<div style={{ width: '640px' }}>
+				<Grid outline columns={columns} rows={rows} getKey={getKey} />
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
+		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		// No horizontal scrollbar: the table (borders and all) fits its container.
+		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
+	})
 })

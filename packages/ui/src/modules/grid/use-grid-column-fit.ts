@@ -72,9 +72,23 @@ function fitSizes<T>(table: Table<T>, columns: GridColumn<T>[], width: number): 
 
 	// Room to spare: grow each column from its desired width in proportion to it
 	// (clamped to its max) so the columns absorb the surplus and the table fills.
+	// Carry each column's rounding remainder into the next so the integer widths
+	// sum to exactly `available` — rounding the columns independently can leave a
+	// pixel or two of slack that pushes the table past the container and raises a
+	// phantom horizontal scrollbar.
 	const scale = available / totalBase
 
-	for (const col of bases) sizing[col.id] = Math.min(Math.round(col.base * scale), col.max)
+	let carry = 0
+
+	for (const col of bases) {
+		const exact = col.base * scale + carry
+
+		const width = Math.min(Math.round(exact), col.max)
+
+		carry = exact - width
+
+		sizing[col.id] = width
+	}
 
 	return sizing
 }
@@ -118,14 +132,28 @@ export function useGridColumnFit<T>({
 		// engine sizing the consumer never asked for.
 		if (!enabled) return
 
-		const width = containerRef?.current?.clientWidth ?? 0
+		const container = containerRef?.current
+
+		const width = container?.clientWidth ?? 0
 
 		if (!width) return
 
-		// Fit to the full container width — the resize handle sits inside each
-		// column's trailing edge (it no longer overhangs the boundary), so the
-		// trailing column's handle needs no gutter held back from the scroll edge.
-		const sizing = fitSizes(table, columns, width)
+		// Reserve the table's horizontal border chrome — the hairline `outline`
+		// borders render the table a pixel or two past the summed column widths
+		// (`getTotalSize`), and fitting the columns to the full container width
+		// would push that chrome past the scroll edge, raising a phantom horizontal
+		// scrollbar. The difference is the chrome (0 without `outline`); subtract it
+		// so the rendered table, borders and all, lands exactly on the container.
+		const tableEl = container?.querySelector('table')
+
+		const chrome = tableEl
+			? Math.max(0, Math.round(tableEl.getBoundingClientRect().width - table.getTotalSize()))
+			: 0
+
+		// The resize handle sits inside each column's trailing edge (it no longer
+		// overhangs the boundary), so the trailing column needs no extra gutter held
+		// back from the scroll edge beyond that border chrome.
+		const sizing = fitSizes(table, columns, width - chrome)
 
 		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
 	}, [enabled, table, columns, containerRef])
