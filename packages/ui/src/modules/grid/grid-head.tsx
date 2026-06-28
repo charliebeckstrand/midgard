@@ -410,8 +410,10 @@ type GridColumnResizeHandleProps = {
 }
 
 /**
- * Resize separator on a column's trailing edge: a focusable window-splitter that
- * starts a pointer drag-resize and accepts Arrow keys to nudge the width.
+ * Resize separator on a resizable column header's trailing edge: a focusable
+ * window-splitter, sized to the header, that starts a pointer drag-resize and
+ * accepts Arrow keys to nudge the width. Its always-visible grip is the
+ * `aria-hidden` child.
  *
  * @internal
  */
@@ -516,7 +518,6 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			data-grid-col={gridCol}
 			className={cn(
 				stickyHeader && k.sticky.head,
-				canResize && k.resize.host,
 				canResize && !stickyHeader && k.resize.cell,
 				pinnedClassName(pinning, column.id, { header: true }),
 				column.headerClassName,
@@ -624,11 +625,10 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
-				canResize && k.resize.host,
-				// The shift transform makes this header a stacking context, trapping the
-				// handle's `z-10`; `reorderCell` lifts the header above the (likewise
-				// transformed) body cells so the handle stays grabbable down the column.
-				canResize && !stickyHeader && k.resize.reorderCell,
+				// Anchor the absolute resize handle on a non-sticky header (a sticky
+				// header already positions itself; this header's shift transform also
+				// forms a containing block, so `relative` just keeps the anchor explicit).
+				canResize && !stickyHeader && k.resize.cell,
 				column.headerClassName,
 			)}
 			// Read the shift from the same CSS variable the body cells use (written

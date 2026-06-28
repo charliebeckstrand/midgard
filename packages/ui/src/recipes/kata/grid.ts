@@ -34,10 +34,10 @@ const sortIcon = defineRecipe({
  *   knows the density).
  *
  * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
- * 4/8/12px): the handle is twice that padding, so its centred grip
- * (`justify-center`) lands exactly one cell-padding in from the trailing edge —
- * flush with where the header label and body values truncate, so the grip line
- * meets the value instead of cutting through it.
+ * 4/8/12px): the grab zone is twice that padding and anchored to the trailing
+ * edge, so its centred grip (`justify-center`; see `handle`) lands exactly one
+ * cell-padding in from that edge — flush with where the header label and body
+ * values truncate, so the grip meets the value instead of cutting through it.
  */
 const resizeMetrics = defineRecipe({
 	density: {
@@ -64,10 +64,10 @@ const resizeMetrics = defineRecipe({
 const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 export const k = {
-	// Hosts the `group/grid` resize-state flag: while a column drag-resize is in
-	// flight the wrapper carries `data-resizing`, which descendants read to stand
-	// down their hover affordances and which paints the resize cursor grid-wide.
-	wrapper: ['group/grid', 'relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
+	// which paints the resize cursor grid-wide; head and cells read the matching
+	// `resizing` context flag to drop their hover wash and truncation tooltips.
+	wrapper: ['relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
@@ -184,82 +184,43 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
-		// Marks a resizable header as the grip's hover host: hovering anywhere on the
-		// header cell reveals its (otherwise hidden) grip. Pairs with the handle's
-		// own `group/grid-resize`, which reveals the grip when the pointer is on the
-		// full-height edge strip running down past the header. While a drag-resize is
-		// in flight (the wrapper's `data-resizing`), every host drops its pointer
-		// events so the dragging pointer — sweeping across the full-height strips —
-		// can't flash other columns' grips; the active column's grip stays lit
-		// through its handle's own `data-resizing`, which this never gates.
-		host: ['group/grid-col', 'group-data-[resizing]/grid:pointer-events-none'],
-		// Anchors the absolutely-positioned handle (non-sticky headers only — a
-		// sticky header is already a positioned containing block).
+		// Anchors the absolutely-positioned resize handle on a non-sticky header (a
+		// sticky header already positions itself; a reordering header's shift
+		// transform also forms a containing block, but `relative` keeps the anchor
+		// explicit and shared by both). The handle lives in the header, so there is
+		// no body-region overflow to lift over the column's cells.
 		cell: 'relative',
-		// A reordering header's counterpart to `cell`. That header carries the
-		// column's shift transform (see `columnShiftStyle`), which makes the cell a
-		// stacking context and traps the absolute handle's `z-10` inside it — and the
-		// context sits in the z-auto band, so the reordering body cells (themselves
-		// transformed stacking contexts, painted later in the DOM) cover the handle's
-		// full-height overflow. A pointer down in the rows then hit a cell, not the
-		// handle, so only the header stretch resized. Lifting the header to the
-		// handle's own `z-10` floats its stacking context — handle included — above
-		// the body cells, keeping the edge grabbable down the whole column like a
-		// resizable-only grid. Sticky reordering headers already take this z-index
-		// from `sticky.head`, so this is only the non-sticky case.
-		reorderCell: ['relative', 'z-10'],
-		// Density-scaled resize metrics (header trailing padding + handle width)
+		// Density-scaled resize metrics (header trailing padding + grab-zone width)
 		// projected onto resizable headers; lives on the `<table>` element.
 		metrics: resizeMetrics,
-		// Alignment override the table projects onto its resize handles when the grid
-		// does not truncate (`truncate={false}` — the editable grid, whose cells host
-		// edge-to-edge editors rather than a truncating value). The grip then aligns
-		// with the column border instead of the (absent) truncation point: justify it
-		// to the handle's trailing edge — `right-0` — so it lands on the boundary. A
-		// truncating grid omits this and keeps the handle's default centred grip (see
-		// `handle`). Projected from the `<table>`, like `metrics`, at higher
-		// specificity than the handle's own `justify-center` so it wins without
-		// `!important`.
-		flush: '[&>*>tr>th[data-resizable]>[role=separator]]:justify-end',
-		// Grab area along the column's trailing edge, anchored to the inside of that
-		// edge (`right-0`, no outward shift) and widening leftward into the cell. Its
-		// width is density-scaled (set via `metrics`, since only the table knows the
-		// density) to twice the cell's horizontal padding — 8/16/24px across
-		// compact/snug/loose — so the grip aligns with where the cell content ends.
-		// By default it is centred (`justify-center`), landing one cell-padding in
-		// from the edge — flush with where a truncating grid's header label and body
-		// values clip (only the loose step reaches the 24px WCAG 2.5.8 target). A
-		// non-truncating grid overrides this to `justify-end` (see `flush`) so the
-		// grip meets the border its edge-to-edge cells reach instead. It deliberately
-		// does not overhang the boundary: an outward overhang (a former
-		// `translate-x-1/2`) was painted over by the next sticky header's opaque cell
-		// — clipping the grip to a sliver across the header — and, on the trailing
-		// column, pushed past the table's edge to inflate the horizontal scroll
-		// (nudging a right-pinned column at the scroll end). Spans the column's full
-		// height — header through the last row — via the measured
-		// `--grid-resize-height`, so a drag can begin anywhere down the right side,
-		// not just the header (falling back to the header height until measured).
+		// Resize grab zone on a resizable header's trailing edge, anchored to the
+		// inside of that edge (`right-0`, no outward shift) and widening leftward into
+		// the cell. Its width is density-scaled (set via `metrics`, since only the
+		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
+		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
+		// affordance lives in the header, not down the column. `justify-center` lands
+		// the grip one cell-padding in from the trailing edge — flush with where a
+		// truncating header's label and body values clip — and `items-center` centres
+		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
+		// and turn accent on focus or active drag. The grab zone does not overhang the
+		// boundary: an outward overhang gets painted over by a neighbour's opaque
+		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 h-[var(--grid-resize-height,100%)]',
+			'group/grid-resize absolute top-0 right-0 z-10 h-full',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Full-height grip line — a 2px rounded bar matching the `ResizableHandle`
-		// grip (`kata/resizable`) so every resize affordance reads the same width —
-		// positioned by the handle's justification (centred at the truncation point by
-		// default, at the column border when the grid does not truncate; see `handle`
-		// and `flush`), and clear of the neighbour's opaque sticky header. Hidden
-		// until the edge is hovered, and shown on keyboard focus or active drag: tints
-		// on hover, turns accent on focus or drag. Focus shows as a colour change, not
-		// an outset ring, so the scroll container can't clip it.
+		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
+		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
+		// the same, centred in the grab zone (`justify-center` on the handle) one
+		// cell-padding in from the trailing edge. Always visible: muted at rest,
+		// tinting on hover, turning accent on keyboard focus or active drag. Focus
+		// shows as a colour change, not an outset ring, so the scroll container can't
+		// clip it.
 		grip: [
-			'h-full w-0.5',
+			'h-4 w-0.5',
 			rounded.full,
-			'opacity-0 transition-opacity',
-			// Revealed by a pointer on the full-height edge strip (the handle's own
-			// `group/grid-resize`), on keyboard focus, and while a drag is in flight.
-			'group-hover/grid-resize:opacity-100',
-			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
+			'transition-colors',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
 				'dark:bg-zinc-600 dark:group-hover/grid-resize:bg-zinc-500',

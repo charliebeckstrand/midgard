@@ -438,6 +438,42 @@ describe('Grid', () => {
 			// A column opting in explicitly still overrides the grid-level default.
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
 		})
+
+		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
+			const user = userEvent.setup()
+
+			// Duplicate ids force the key to fold in the row index — the docs "Sticky
+			// header" pattern. A client sort reorders the rows while their engine ids
+			// stay pinned to the original order, so a lookup key taken from the
+			// rendered index used to miss `table.getRow` and throw "could not find
+			// row with ID".
+			type Dup = { id: number; label: string }
+
+			const dupColumns = [
+				{ id: 'label', title: 'Label', cell: (row: Dup) => row.label, sortable: true },
+			]
+
+			const dupRows: Dup[] = [
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+			]
+
+			const { container } = renderUI(
+				<Grid columns={dupColumns} rows={dupRows} getKey={(row, i) => `${row.id}-${i}`} />,
+			)
+
+			const labels = () =>
+				Array.from(container.querySelectorAll('tbody td')).map((td) => td.textContent)
+
+			expect(labels()).toEqual(['Charlie', 'Alice', 'Charlie', 'Alice'])
+
+			// The client sort reorders without a `getRow` miss; the rows land alphabetical.
+			await user.click(screen.getByRole('button', { name: 'Sort by Label' }))
+
+			expect(labels()).toEqual(['Alice', 'Alice', 'Charlie', 'Charlie'])
+		})
 	})
 
 	describe('header customisation', () => {

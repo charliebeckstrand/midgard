@@ -41,7 +41,6 @@ import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
-import { useGridResizeHeight } from './use-grid-resize-height'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
 
@@ -390,9 +389,9 @@ function resolveHover<T>(
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
  * the `table-fixed` + trailing-padding class, the total table width — so a resize
  * touches only its own column — and `resizing`, whether a pointer drag-resize is
- * in flight (the wrapper flags it so other columns' grips stand down). Inert (no
- * colgroup, no width, not resizing) when the grid is not resizable. Split out of
- * {@link GridData} for its cognitive-complexity budget.
+ * in flight (the wrapper flags it to paint the resize cursor grid-wide and drop
+ * the hover wash). Inert (no colgroup, no width, not resizing) when the grid is
+ * not resizable. Split out of {@link GridData} for its cognitive-complexity budget.
  *
  * @internal
  */
@@ -401,8 +400,6 @@ function resolveResizeLayout<T>(args: {
 	resize: GridColumnResize | null
 	columns: GridColumn<T>[]
 	density: DensityLevel | undefined
-	/** Whether cells truncate; a non-truncating grid flushes the grip to the border (see `k.resize.flush`). */
-	truncate: boolean
 	className: string | undefined
 }): {
 	colGroup: ReactNode
@@ -429,15 +426,7 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		// A non-truncating grid (the editable surface) flushes the grip to the column
-		// border rather than the absent truncation point; a truncating grid keeps the
-		// handle's default centred grip.
-		tableClassName: cn(
-			k.resize.fixed,
-			k.resize.metrics({ density: args.density }),
-			!args.truncate && k.resize.flush,
-			args.className,
-		),
+		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
@@ -591,38 +580,38 @@ export function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning } =
-		useGridTable<T>({
-			rows,
-			// The engine receives the full column set and resolves which render (and
-			// in what order) from the order / visibility / pinning state below;
-			// `visibleColumns` comes back in that resolved order for the header and body.
-			// Under a cursor (navigable or editable) these carry the cursor/editor
-			// wiring (see `useGridCursor`).
-			columns: cursor.columns,
-			getKey,
-			selection,
-			columnOrder,
-			columnVisibility,
-			sort,
-			setSort,
-			sortManual: sortConfig?.manual ?? false,
-			pagination: paginationConfig,
-			resizable,
-			columnSizing: columnSizingConfig,
-			globalFilter: searchConfig,
-			columnFilters: columnFiltersConfig,
-			containerRef: wrapperRef,
-		})
-
-	// Publish the table height so each column's resize handle spans the full
-	// column (header through the last row), not just its header cell.
-	useGridResizeHeight(wrapperRef, resizable)
-
-	const rowKeys = useMemo<(string | number)[]>(
-		() => renderRows.map((row, i) => getKey(row, i)),
-		[renderRows, getKey],
-	)
+	const {
+		table,
+		visibleColumns,
+		renderRows,
+		rowKeys,
+		pagination,
+		resize,
+		globalFilter,
+		filters,
+		pinning,
+	} = useGridTable<T>({
+		rows,
+		// The engine receives the full column set and resolves which render (and
+		// in what order) from the order / visibility / pinning state below;
+		// `visibleColumns` comes back in that resolved order for the header and body.
+		// Under a cursor (navigable or editable) these carry the cursor/editor
+		// wiring (see `useGridCursor`).
+		columns: cursor.columns,
+		getKey,
+		selection,
+		columnOrder,
+		columnVisibility,
+		sort,
+		setSort,
+		sortManual: sortConfig?.manual ?? false,
+		pagination: paginationConfig,
+		resizable,
+		columnSizing: columnSizingConfig,
+		globalFilter: searchConfig,
+		columnFilters: columnFiltersConfig,
+		containerRef: wrapperRef,
+	})
 
 	// Cursor index space: rendered rows and the visible *data* columns (it skips
 	// select / actions cells). Synced from the refs here — after the engine resolves
@@ -719,14 +708,14 @@ export function GridData<T>({
 	)
 
 	// Fixed-layout column widths so a resize touches only its own column;
-	// `resizing` flags an in-flight drag so other columns' grips stand down (and
-	// head/cells suppress their truncation tooltips, shared below via context).
+	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
+	// and truncation tooltips (shared below via context) and the active column's
+	// grip reads accent.
 	const { colGroup, tableClassName, tableWidth, resizing } = resolveResizeLayout({
 		resizable,
 		resize,
 		columns: visibleColumns,
 		density,
-		truncate,
 		className,
 	})
 
@@ -900,9 +889,9 @@ export function GridData<T>({
 			<div
 				ref={wrapperRef}
 				data-slot="grid"
-				// Flags an in-flight column drag-resize so the headers stand down their
-				// hover grips (only the active column stays lit) and the grid paints the
-				// resize cursor; see `k.resize.host` and `k.wrapper`.
+				// Flags an in-flight column drag-resize so the grid paints the resize
+				// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+				// `resizing` context flag to drop their hover wash and truncation tooltips.
 				data-resizing={dataAttr(resizing)}
 				className={cn(k.wrapper)}
 			>
