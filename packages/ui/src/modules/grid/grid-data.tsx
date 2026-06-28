@@ -368,16 +368,20 @@ function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: num
 /**
  * Whether the grid paints the shared {@link Table} `hover` wash: when the
  * consumer opts in with `hover`, or implicitly for a clickable grid
- * (`onRowClick`), whose rows then read as actionable. Pulled out of
- * {@link GridData} so the `||` stays off its cognitive-complexity budget.
+ * (`onRowClick`), whose rows then read as actionable — but never through a
+ * column drag-resize (`resizing`), so the row under the pointer doesn't light
+ * up mid-drag (matching the truncation tooltips' `!resizing` gate). Pulled out
+ * of {@link GridData} so the boolean logic stays off its cognitive-complexity
+ * budget.
  *
  * @internal
  */
 function resolveHover<T>(
 	hover: boolean | undefined,
 	onRowClick: GridRowClick<T> | undefined,
+	resizing: boolean,
 ): boolean {
-	return hover === true || onRowClick != null
+	return (hover === true || onRowClick != null) && !resizing
 }
 
 /**
@@ -782,8 +786,9 @@ export function GridData<T>({
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
-	// cursor (see `GridRow`).
-	const rowHover = resolveHover(hover, onRowClick)
+	// cursor (see `GridRow`). Suppressed through a column drag-resize so the row
+	// under the pointer doesn't light up mid-drag.
+	const rowHover = resolveHover(hover, onRowClick, resizing)
 
 	const reorderActive = canReorder && hasData
 
