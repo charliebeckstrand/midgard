@@ -70,28 +70,27 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 	})
 
-	it('lines the grip up with the column border, not a cell-padding inside it', async () => {
-		const { container, table } = setup()
+	it('runs the resize handle to the table bottom, not past it', async () => {
+		// A bordered grid with no height cap should not scroll. The handle is
+		// anchored at its header cell's top — one top-border inside the table — and
+		// spans to the table's bottom; driving its height from the table's full
+		// height ran it that border past the bottom, and the scroll container's
+		// `overflow-x-auto` (which makes the y-axis scrollable too) then showed a
+		// spurious vertical scrollbar on an un-scrolled grid.
+		const { container } = renderUI(
+			<div style={{ width: '900px' }}>
+				<Grid resizable outline columns={columns} rows={employees} getKey={(r) => r.id} />
+			</div>,
+		)
+
+		const table = container.querySelector('table') as HTMLElement
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		const roleHeader = container.querySelector<HTMLElement>(
-			'th[data-grid-col="role"]',
-		) as HTMLElement
+		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
-		const grip = container
-			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Role"]')
-			?.querySelector('span[aria-hidden="true"]') as HTMLElement
-
-		// The grip sits flush against the column's trailing border: its right edge
-		// lands within a hairline of the header's right edge. A grip centred in the
-		// handle would fall ~one cell-padding (8px at this density) short of the
-		// border, reading as a misaligned line floating inside the cell.
-		const gap = roleHeader.getBoundingClientRect().right - grip.getBoundingClientRect().right
-
-		expect(gap).toBeGreaterThanOrEqual(-0.5)
-
-		expect(gap).toBeLessThanOrEqual(2)
+		// No phantom vertical scroll: the handle ends on the table bottom.
+		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)
 	})
 
 	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
