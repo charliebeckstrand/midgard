@@ -44,17 +44,12 @@ describe('grid resize handle — right-click (real browser)', () => {
 		return { container, separator, nameHeader }
 	}
 
-	// The handle grows to the full table height once measured; wait so the drag
+	// Auto-fit sizes the columns on mount; wait for the engine width so the drag
 	// starts on a settled target.
-	async function settled(container: HTMLElement, separator: HTMLElement) {
+	async function settled(container: HTMLElement) {
 		const table = container.querySelector('table') as HTMLElement
 
-		await waitFor(() =>
-			expect(separator.getBoundingClientRect().height).toBeCloseTo(
-				table.getBoundingClientRect().height,
-				0,
-			),
-		)
+		await waitFor(() => expect(table.style.width).not.toBe(''))
 	}
 
 	// Both context-menu gestures: a plain right-click, and the macOS Ctrl+click
@@ -66,7 +61,7 @@ describe('grid resize handle — right-click (real browser)', () => {
 		it(`does not resize on a ${name} drag whose mouseup the menu swallows`, async () => {
 			const { container, separator, nameHeader } = setup()
 
-			await settled(container, separator)
+			await settled(container)
 
 			const startWidth = nameHeader.getBoundingClientRect().width
 
@@ -74,7 +69,7 @@ describe('grid resize handle — right-click (real browser)', () => {
 
 			const startX = rect.left + rect.width / 2
 
-			const y = rect.bottom - 16
+			const y = rect.top + rect.height / 2
 
 			// Press, then move — and never release, the way an opening context menu
 			// strands the gesture.
@@ -95,7 +90,7 @@ describe('grid resize handle — right-click (real browser)', () => {
 	it('still resizes on a primary-button drag', async () => {
 		const { container, separator, nameHeader } = setup()
 
-		await settled(container, separator)
+		await settled(container)
 
 		const startWidth = nameHeader.getBoundingClientRect().width
 
@@ -103,7 +98,7 @@ describe('grid resize handle — right-click (real browser)', () => {
 
 		const startX = rect.left + rect.width / 2
 
-		const y = rect.bottom - 16
+		const y = rect.top + rect.height / 2
 
 		fireEvent.mouseDown(separator, { button: 0, clientX: startX, clientY: y })
 

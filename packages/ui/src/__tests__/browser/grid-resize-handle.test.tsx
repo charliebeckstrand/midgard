@@ -5,13 +5,13 @@ import type { GridEditableColumn } from '../../modules/grid/grid-editable-types'
 import { renderUI, waitFor } from '../helpers'
 
 /**
- * Resize-handle geometry against a real layout engine. The handle is anchored
- * inside its column's trailing edge — it must not overhang the boundary, or the
- * next sticky header's opaque cell clips the grip to a sliver (the grip then
- * reads narrower across the header than down the body), and on the trailing
- * column the overhang pushes past the table to inflate the horizontal scroll
- * (nudging a right-pinned column at the scroll end). Both only resolve in a
- * browser, where the table has real geometry.
+ * Resize-handle geometry against a real layout engine. The handle lives in the
+ * header, anchored inside its column's trailing edge — it must not overhang the
+ * boundary, or the next sticky header's opaque cell clips the grip to a sliver,
+ * and on the trailing column the overhang pushes past the table to inflate the
+ * horizontal scroll (nudging a right-pinned column at the scroll end). It must
+ * also stay confined to the header, not run the full column height. All only
+ * resolve in a browser, where the table has real geometry.
  */
 describe('grid resize handle geometry (real browser)', () => {
 	type Employee = { id: number; name: string; role: string; status: 'active' | 'inactive' }
@@ -74,13 +74,12 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 	})
 
-	it('runs the resize handle to the table bottom, not past it', async () => {
-		// A bordered grid with no height cap should not scroll. The handle is
-		// anchored at its header cell's top — one top-border inside the table — and
-		// spans to the table's bottom; driving its height from the table's full
-		// height ran it that border past the bottom, and the scroll container's
-		// `overflow-x-auto` (which makes the y-axis scrollable too) then showed a
-		// spurious vertical scrollbar on an un-scrolled grid.
+	it('confines the handle to the header, leaving no phantom vertical scroll', async () => {
+		// The handle lives in the header (it no longer runs the full column height), so
+		// it can't overrun the table bottom: a bordered, un-capped grid stays
+		// un-scrolled. Driving a full-height handle from the table height once ran it a
+		// top-border past the bottom and — the scroll container's `overflow-x-auto`
+		// making the y-axis scrollable too — raised a spurious vertical scrollbar.
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid resizable outline columns={columns} rows={employees} getKey={(r) => r.id} />
@@ -91,9 +90,24 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
+		const nameHandle = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
+		) as HTMLElement
+
+		const nameHeader = container.querySelector<HTMLElement>(
+			'th[data-grid-col="name"]',
+		) as HTMLElement
+
+		// Header height, not full-column height.
+		expect(
+			Math.abs(
+				nameHandle.getBoundingClientRect().height - nameHeader.getBoundingClientRect().height,
+			),
+		).toBeLessThanOrEqual(2)
+
 		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
-		// No phantom vertical scroll: the handle ends on the table bottom.
+		// No phantom vertical scroll.
 		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)
 	})
 
@@ -137,14 +151,11 @@ describe('grid resize handle geometry (real browser)', () => {
 })
 
 /**
- * Grip alignment follows where the cell content ends. A truncating grid clips its
- * values one cell-padding inside the trailing edge, so the grip centres in the
- * handle to meet that point; a non-truncating grid (the editable surface, whose
- * cells host edge-to-edge editors) has no truncation point, so the grip flushes to
- * the column border instead. The two only diverge in a real browser, where the
- * handle has measured geometry.
+ * Grip alignment is uniform: every resizable grid centres its grip in the grab
+ * zone — one cell-padding in from the trailing border — whether or not its cells
+ * truncate. The handle only has measured geometry in a real browser.
  */
-describe('grid resize grip alignment by truncation (real browser)', () => {
+describe('grid resize grip alignment (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
 
 	const rows: Row[] = [
@@ -163,7 +174,7 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 	]
 
 	// Distance from the 'name' column's trailing border to its grip's right edge:
-	// ~one cell-padding when centred, a hairline when flush to the border.
+	// about one cell-padding when the grip centres in the grab zone.
 	function gripInset(container: HTMLElement): number {
 		const header = container.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
 
@@ -174,7 +185,7 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
 	}
 
-	it('centres the grip at the truncation point in a truncating grid', async () => {
+	it('centres the grip a cell-padding inside the trailing border in a truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
@@ -185,12 +196,13 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// Centred in the handle, so it sits a cell-padding inside the border (where
-		// the value clips), well clear of the boundary.
+		// A cell-padding inside the border (where a truncating value clips), not flush.
 		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
 	})
 
-	it('flushes the grip to the border in a non-truncating (editable) grid', async () => {
+	it('centres the grip the same way in a non-truncating (editable) grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid
@@ -208,8 +220,10 @@ describe('grid resize grip alignment by truncation (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// The editable cells fill to the edge, so the grip lands on the column border
-		// — within a hairline of it, not a cell-padding inside.
-		expect(gripInset(container)).toBeLessThanOrEqual(2)
+		// The editable surface centres the grip identically — alignment no longer
+		// depends on truncation.
+		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
 	})
 })
