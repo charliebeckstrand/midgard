@@ -1,6 +1,9 @@
+'use client'
+
 import type { ClientRect, Modifier } from '@dnd-kit/core'
 import { CSS, type Transform } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
+import { createContext } from '../../core'
 
 /**
  * dnd-kit modifier that pins a column drag to the x-axis: zeroes the vertical
@@ -86,6 +89,72 @@ export function columnDragStyle(
 	return {
 		transform: CSS.Translate.toString(transform),
 		transition,
+	}
+}
+
+/**
+ * The id of the column being drag-reordered, or `null` when idle. Provided by
+ * the grid around the sortable region and read by each reordering body cell so
+ * only the dragged column's cells carry the `data-dragging` lift. The value
+ * changes just at drag start and end — the per-frame translate rides a CSS
+ * variable instead (see {@link columnShiftStyle}), so a drag re-renders the body
+ * cells twice, not on every pointer move.
+ *
+ * @internal
+ */
+export const [GridReorderActiveContext] = createContext<string | null>('GridReorderActive', {
+	default: null,
+})
+
+/** The CSS custom-property names carrying a reordering column's live translate and transition, keyed by its visible index. @internal */
+function columnShiftVars(index: number): { x: string; transition: string } {
+	return { x: `--grid-col-x-${index}`, transition: `--grid-col-transition-${index}` }
+}
+
+/**
+ * Inline style for a reordering body cell: its column's live drag translate and
+ * transition, read from the CSS variables the column's header writes (see
+ * {@link writeColumnShift}). An idle column leaves the variables unset, so the
+ * cell resolves to no transform. Keyed by the column's visible index, which a
+ * header and the row cells beneath it share.
+ *
+ * @internal
+ */
+export function columnShiftStyle(index: number): CSSProperties {
+	const vars = columnShiftVars(index)
+
+	return {
+		transform: `var(${vars.x}, none)`,
+		transition: `var(${vars.transition}, none)`,
+	}
+}
+
+/**
+ * Writes (or clears) a reordering column's translate and transition onto the
+ * `table` element as the CSS variables {@link columnShiftStyle} reads, so the
+ * column's body cells glide with its header without re-rendering. A `null`
+ * `transform` — the column is idle or its header is unmounting — removes them.
+ *
+ * @internal
+ */
+export function writeColumnShift(
+	table: HTMLElement | null,
+	index: number,
+	transform: Transform | null,
+	transition: string | undefined,
+): void {
+	if (!table) return
+
+	const vars = columnShiftVars(index)
+
+	if (transform) {
+		table.style.setProperty(vars.x, CSS.Translate.toString(transform) || 'none')
+
+		table.style.setProperty(vars.transition, transition ?? '')
+	} else {
+		table.style.removeProperty(vars.x)
+
+		table.style.removeProperty(vars.transition)
 	}
 }
 
