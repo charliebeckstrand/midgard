@@ -135,32 +135,35 @@ export const k = {
 		// within the header's flex slot — and, for a sortable column, within the sort
 		// button — instead of pushing past the cell into its neighbour.
 		title: ['block', 'truncate', 'min-w-0'],
-		// Leading group pairing a pinned column's pin button with its title. `min-w-0`
-		// keeps the title shrinkable so it still truncates beside the button; `gap-1`
-		// sets the button-to-title spacing.
-		pinnedLabel: [flex.inline, 'min-w-0', 'gap-1'],
-		// Pin button on a frozen column's header: an icon-only control that unpins the
-		// column. Muted at rest, tinting on hover/focus so it reads as the actionable
-		// affordance it is. `-ml-1` pulls the button left by the Pin glyph's optical
-		// inset so the visible pin lands over the column's cell values rather than a
-		// step to their right. The Pin's leftmost ink sits ~4px into its `size-5` box
-		// (x=5 of lucide's 24-unit grid, scaled by 20/24) — shallower than the grip's
-		// dots at x=8 — so it takes a smaller pull than the grip's `-ml-1.5`; a shared
-		// value would over-pull one glyph or the other. That pull seats the box flush
-		// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
-		// `components/table`), which clips an outset outline at its edge; the focus ring
-		// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
-		// `k.sort.button`, whose outset `ring` clears the edge.
-		pinButton: [
-			flex.inline,
-			'shrink-0',
-			'-ml-1',
-			text.muted,
-			fg.hover,
-			focus.inset,
-			cursor,
-			'select-none',
-		],
+		// A frozen column's header affordances: the pin button paired with the title.
+		pinned: {
+			// Leading group pairing a pinned column's pin button with its title. `min-w-0`
+			// keeps the title shrinkable so it still truncates beside the button; `gap-1`
+			// sets the button-to-title spacing.
+			label: [flex.inline, 'min-w-0', 'gap-1'],
+			// Pin button on a frozen column's header: an icon-only control that unpins the
+			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
+			// affordance it is. `-ml-1` pulls the button left by the Pin glyph's optical
+			// inset so the visible pin lands over the column's cell values rather than a
+			// step to their right. The Pin's leftmost ink sits ~4px into its `size-5` box
+			// (x=5 of lucide's 24-unit grid, scaled by 20/24) — shallower than the grip's
+			// dots at x=8 — so it takes a smaller pull than the grip's `-ml-1.5`; a shared
+			// value would over-pull one glyph or the other. That pull seats the box flush
+			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
+			// `components/table`), which clips an outset outline at its edge; the focus ring
+			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
+			// `k.sort.button`, whose outset `ring` clears the edge.
+			button: [
+				flex.inline,
+				'shrink-0',
+				'-ml-1',
+				text.muted,
+				fg.hover,
+				focus.inset,
+				cursor,
+				'select-none',
+			],
+		},
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can
