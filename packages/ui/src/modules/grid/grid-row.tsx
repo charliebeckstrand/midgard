@@ -320,7 +320,7 @@ type GridDataCellProps<T> = {
  *
  * @internal
  */
-function GridDataCell<T>({
+function GridDataCellImpl<T>({
 	cell,
 	col,
 	row,
@@ -367,6 +367,14 @@ function GridDataCell<T>({
 		</TableCell>
 	)
 }
+
+/**
+ * Memoized {@link GridDataCellImpl}; when a row re-renders for a reason its cell
+ * props don't reflect (a `selected` / `loading` flip), cells whose `cell` / `col`
+ * / `row` identity is unchanged bail instead of re-running `flexRender` and the
+ * tooltip resolution. @internal
+ */
+const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
 
 /** Props for {@link GridReorderableCell}. @internal */
 type GridReorderableCellProps = {
