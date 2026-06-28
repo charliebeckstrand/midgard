@@ -155,7 +155,24 @@ export function useGridColumnFit<T>({
 		// back from the scroll edge beyond that border chrome.
 		const sizing = fitSizes(table, columns, width - chrome)
 
-		table.setColumnSizing((prev) => ({ ...prev, ...sizing }))
+		// Bail when the fit changes no width: a ResizeObserver tick from a height-only
+		// container resize (or any change that lands on the same px) must not allocate
+		// a fresh sizing object, which would re-render the head, body, and footer and
+		// re-run the per-cell truncation sweep for nothing. Returning `prev` unchanged
+		// lets the state update no-op.
+		table.setColumnSizing((prev) => {
+			let changed = false
+
+			for (const id in sizing) {
+				if (prev[id] !== sizing[id]) {
+					changed = true
+
+					break
+				}
+			}
+
+			return changed ? { ...prev, ...sizing } : prev
+		})
 	}, [enabled, table, columns, containerRef])
 
 	useLayoutEffect(() => {

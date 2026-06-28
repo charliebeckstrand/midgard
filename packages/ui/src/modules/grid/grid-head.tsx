@@ -2,7 +2,14 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { ArrowDown, ArrowUp, GripVertical, Pin } from 'lucide-react'
-import { type KeyboardEvent, memo, type ReactElement, type ReactNode } from 'react'
+import {
+	type KeyboardEvent,
+	memo,
+	type ReactElement,
+	type ReactNode,
+	useCallback,
+	useRef,
+} from 'react'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
@@ -17,7 +24,7 @@ import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnDragStyle } from './grid-reorder'
+import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
@@ -88,6 +95,7 @@ export function GridHead<T>({
 						column={col}
 						// Header column indices accompany the global row-index scheme.
 						colIndex={gridSemantics ? colIdx + 1 : undefined}
+						columnIndex={colIdx}
 						hasRows={hasRows}
 						interactive={interactive}
 						selectAllLabel={selectAllLabel}
@@ -106,6 +114,8 @@ export function GridHead<T>({
 type GridHeaderCellProps<T> = {
 	column: GridColumn<T>
 	colIndex: number | undefined
+	/** 0-based visible column index, shared with the row cells so a reorder drag keys its CSS-variable shift the same way. */
+	columnIndex: number
 	/** Visible-rows flag for the select-all checkbox. */
 	hasRows: boolean
 	/** Source-data flag gating the sort/resize/filter affordances. */
@@ -151,6 +161,7 @@ function columnSort(
 function GridHeaderCell<T>({
 	column,
 	colIndex,
+	columnIndex,
 	hasRows,
 	interactive,
 	selectAllLabel,
@@ -201,6 +212,7 @@ function GridHeaderCell<T>({
 	const shared = {
 		column,
 		colIndex,
+		columnIndex,
 		sorted,
 		direction,
 		sortPriority,
@@ -243,6 +255,8 @@ type GridColumnHeaderProps = {
 		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions'
 	>
 	colIndex: number | undefined
+	/** 0-based visible column index; a reorderable header writes its drag shift to the CSS variable keyed by it. */
+	columnIndex: number
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
 	/** 1-based sort priority shown as a badge under a multi-column sort; `undefined` otherwise. */
@@ -555,6 +569,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	column,
 	colIndex,
+	columnIndex,
 	sorted,
 	direction,
 	sortPriority,
@@ -574,15 +589,33 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 		attributes,
 		listeners,
 		transform,
-		transition,
 		isDragging,
+		isSorting,
 	} = useSortable({ id: String(column.id) })
+
+	// The header animates its live drag translate onto a CSS variable on the
+	// enclosing <table> — the nearest common ancestor of this header and its
+	// column's body cells — which the whole column reads (see `columnShiftStyle` /
+	// `useColumnReorderShift`), so it glides without re-rendering a single cell.
+	// Resolve the table from the header node as it mounts.
+	const tableRef = useRef<HTMLTableElement | null>(null)
+
+	const setTableNodeRef = useCallback(
+		(node: HTMLTableCellElement | null) => {
+			setNodeRef(node)
+
+			if (node) tableRef.current = node.closest('table')
+		},
+		[setNodeRef],
+	)
+
+	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging, isSorting)
 
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	return (
 		<TableHeader
-			ref={setNodeRef}
+			ref={setTableNodeRef}
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
@@ -595,7 +628,11 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 				canResize && !stickyHeader && k.resize.cell,
 				column.headerClassName,
 			)}
-			style={{ ...columnDragStyle(transform, transition), ...(width != null ? { width } : null) }}
+			// Read the shift from the same CSS variable the body cells use (written
+			// just below), not dnd-kit's transform inline: one variable resolving in
+			// one style recalc keeps the header and its column's cells exactly in
+			// phase through the transition, instead of two mechanisms drifting apart.
+			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
 		>
 			<span className={cn(k.reorder.layout)}>
 				<button

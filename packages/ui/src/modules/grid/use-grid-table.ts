@@ -383,10 +383,17 @@ export function useGridTable<T>({
 		sortClient: clientSort,
 	})
 
-	const renderRows =
-		paginated || clientTransform
-			? table.getRowModel().rows.map((modelRow) => modelRow.original)
-			: rows
+	// `getRowModel().rows` is reference-stable until the sort/filter/pagination
+	// state actually changes, so memoizing on it keeps `renderRows` — and the
+	// `rowKeys` / `rowIndexMap` GridData rebuilds it feeds — stable across
+	// unrelated re-renders (resize-drag frames, selection toggles, search
+	// keystrokes), instead of reallocating the full set every render.
+	const modelRows = paginated || clientTransform ? table.getRowModel().rows : null
+
+	const renderRows = useMemo(
+		() => (modelRows ? modelRows.map((modelRow) => modelRow.original) : rows),
+		[modelRows, rows],
+	)
 
 	// Computed each render (not memoized) so the total reflects live client-side
 	// filtering — read through `table`, which a deps array can't observe; the

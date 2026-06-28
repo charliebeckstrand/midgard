@@ -53,37 +53,81 @@ export function parseNumeric(value: unknown): number | null {
 	return negative ? -parsed : parsed
 }
 
-/** Orders nullish/empty values last; `null` when neither side is empty. @internal */
-function compareEmpty(a: unknown, b: unknown): number | null {
-	const aEmpty = a == null || a === ''
-
-	const bEmpty = b == null || b === ''
-
-	if (!aEmpty && !bEmpty) return null
-
-	if (aEmpty && bEmpty) return 0
-
-	return aEmpty ? 1 : -1
-}
-
 /**
- * Numeric order when both values parse as numbers; a lone number sorts ahead of
- * a non-number so mixed columns group cleanly; `null` when neither parses.
+ * A value decorated for sorting: the empty / date / boolean / numeric
+ * classification {@link compareSmart} branches on, plus the string form for the
+ * locale-aware fallback — all computed once so a sort orders a value without
+ * reparsing it on every comparison.
  *
  * @internal
  */
-function compareNumeric(a: unknown, b: unknown): number | null {
-	const an = parseNumeric(a)
+export type SortKey = {
+	/** Nullish or empty-string; these sink to the end regardless of the rest. */
+	empty: boolean
+	isDate: boolean
+	/** `Date.getTime()` when {@link SortKey.isDate}, else 0. */
+	time: number
+	isBoolean: boolean
+	/** 1 for `true`, 0 for `false`, else 0; read only when both sides are booleans. */
+	boolean: number
+	/** {@link parseNumeric} of the value, or `null` when it doesn't read as a number. */
+	numeric: number | null
+	/** `String(value)` for the natural, locale-aware fallback compare. */
+	text: string
+}
 
-	const bn = parseNumeric(b)
+/**
+ * Decorates a value into its {@link SortKey} — the "decorate" half of a
+ * decorate-sort-undecorate. Runs {@link parseNumeric} (the costly part) and the
+ * type checks once; {@link compareSortKeys} then orders the keys with no further
+ * parsing.
+ *
+ * @internal
+ */
+export function toSortKey(value: unknown): SortKey {
+	const empty = value == null || value === ''
 
-	if (an !== null && bn !== null) return an - bn
+	const isDate = value instanceof Date
 
-	if (an !== null) return -1
+	const isBoolean = typeof value === 'boolean'
 
-	if (bn !== null) return 1
+	return {
+		empty,
+		isDate,
+		time: isDate ? value.getTime() : 0,
+		isBoolean,
+		boolean: isBoolean ? (value ? 1 : 0) : 0,
+		numeric: empty ? null : parseNumeric(value),
+		text: empty ? '' : String(value),
+	}
+}
 
-	return null
+/**
+ * Orders two {@link SortKey}s with the exact precedence of {@link compareSmart}:
+ * empties last, then date-vs-date, boolean-vs-boolean, numeric (a lone number
+ * ahead of a non-number), and finally a natural locale-aware string compare —
+ * without reparsing either value.
+ *
+ * @internal
+ */
+export function compareSortKeys(a: SortKey, b: SortKey): number {
+	if (a.empty || b.empty) {
+		if (a.empty && b.empty) return 0
+
+		return a.empty ? 1 : -1
+	}
+
+	if (a.isDate && b.isDate) return a.time - b.time
+
+	if (a.isBoolean && b.isBoolean) return a.boolean - b.boolean
+
+	if (a.numeric !== null && b.numeric !== null) return a.numeric - b.numeric
+
+	if (a.numeric !== null) return -1
+
+	if (b.numeric !== null) return 1
+
+	return a.text.localeCompare(b.text, undefined, { numeric: true })
 }
 
 /**
@@ -99,17 +143,5 @@ function compareNumeric(a: unknown, b: unknown): number | null {
 export function compareSmart(a: unknown, b: unknown): number {
 	if (Object.is(a, b)) return 0
 
-	const empty = compareEmpty(a, b)
-
-	if (empty !== null) return empty
-
-	if (a instanceof Date && b instanceof Date) return a.getTime() - b.getTime()
-
-	if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0)
-
-	const numeric = compareNumeric(a, b)
-
-	if (numeric !== null) return numeric
-
-	return String(a).localeCompare(String(b), undefined, { numeric: true })
+	return compareSortKeys(toSortKey(a), toSortKey(b))
 }

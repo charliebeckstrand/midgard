@@ -28,7 +28,11 @@ import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
-import { restrictToFirstScrollableAncestor, restrictToHorizontalAxis } from './grid-reorder'
+import {
+	GridReorderContext,
+	restrictToFirstScrollableAncestor,
+	restrictToHorizontalAxis,
+} from './grid-reorder'
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
@@ -65,6 +69,8 @@ type GridRegionProps<T> = {
 	dndContextProps: ComponentProps<typeof DndContext>
 	itemIds: ComponentProps<typeof SortableContext>['items']
 	strategy: ComponentProps<typeof SortableContext>['strategy']
+	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
+	activeReorderId: string | null
 	contextMenu: GridContextMenuConfig<T> | undefined
 	columns: GridColumn<T>[]
 	rows: T[]
@@ -96,6 +102,7 @@ function GridRegion<T>({
 	dndContextProps,
 	itemIds,
 	strategy,
+	activeReorderId,
 	contextMenu,
 	columns,
 	rows,
@@ -113,7 +120,7 @@ function GridRegion<T>({
 	const reordered = canReorder ? (
 		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
 			<SortableContext items={itemIds} strategy={strategy}>
-				{children}
+				<GridReorderContext value={activeReorderId}>{children}</GridReorderContext>
 			</SortableContext>
 		</DndContext>
 	) : (
@@ -709,7 +716,6 @@ export function GridData<T>({
 
 	const context = useMemo(
 		() => ({
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,
@@ -721,7 +727,6 @@ export function GridData<T>({
 			resizing,
 		}),
 		[
-			selection,
 			toggleRow,
 			toggleAll,
 			allSelected,
@@ -758,7 +763,7 @@ export function GridData<T>({
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
 	// `canReorder` to register each draggable cell against it.
-	const { canReorder, itemIds, strategy, dndContextProps } = useGridReorder<T>({
+	const { canReorder, itemIds, strategy, dndContextProps, activeId } = useGridReorder<T>({
 		reorder,
 		visibleColumns,
 		reorderColumns,
@@ -914,6 +919,7 @@ export function GridData<T>({
 					dndContextProps={dndContextProps}
 					itemIds={itemIds}
 					strategy={strategy}
+					activeReorderId={activeId}
 					contextMenu={resolvedContextMenu}
 					columns={visibleColumns}
 					rows={renderRows}

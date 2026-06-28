@@ -46,6 +46,48 @@ function isOverflowing(el: HTMLElement): boolean {
 }
 
 /**
+ * A single {@link ResizeObserver} shared by every truncation cell, fanning each
+ * width change out to the affected element's `measure`. One observer for the
+ * document beats one per cell: a wide, virtualized grid mounts hundreds of
+ * truncation cells, and an observer apiece multiplies the registration and
+ * per-frame dispatch cost a shared instance pays once.
+ *
+ * @internal
+ */
+let sharedResizeObserver: ResizeObserver | null = null
+
+/** Per-element `measure` callbacks the {@link sharedResizeObserver} dispatches to. @internal */
+const measureCallbacks = new WeakMap<Element, () => void>()
+
+/**
+ * Registers `el` with the shared {@link ResizeObserver}, routing its width
+ * changes to `measure`; returns an unobserve cleanup. A no-op where
+ * `ResizeObserver` is unavailable (SSR / jsdom), matching the integer-only
+ * overflow path there.
+ *
+ * @internal
+ */
+function observeTruncation(el: Element, measure: () => void): () => void {
+	if (typeof ResizeObserver === 'undefined') return () => {}
+
+	if (!sharedResizeObserver) {
+		sharedResizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) measureCallbacks.get(entry.target)?.()
+		})
+	}
+
+	measureCallbacks.set(el, measure)
+
+	sharedResizeObserver.observe(el)
+
+	return () => {
+		sharedResizeObserver?.unobserve(el)
+
+		measureCallbacks.delete(el)
+	}
+}
+
+/**
  * Tracks whether an element's single-line content overflows its box (clipped to
  * an ellipsis). Measured eagerly — after every commit, for content changes, on
  * `ResizeObserver` width changes that don't re-render, and once web fonts settle
@@ -82,13 +124,7 @@ export function useGridTruncation<E extends HTMLElement>(): [RefObject<E | null>
 
 		if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
 
-		if (typeof ResizeObserver === 'undefined') return
-
-		const observer = new ResizeObserver(measure)
-
-		observer.observe(el)
-
-		return () => observer.disconnect()
+		return observeTruncation(el, measure)
 	}, [measure])
 
 	return [ref, truncated]
