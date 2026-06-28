@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, type RefObject, useMemo } from 'react'
-import { GridEditingCoordContext, GridEditSessionContext } from './grid-editing-context'
+import { GridRowEditingContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
@@ -21,7 +21,6 @@ type GridCursorRefs<T> = {
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	rowKeysRef: RefObject<(string | number)[]>
 	dataColumnsRef: RefObject<GridColumn<T>[]>
-	tableRef: RefObject<HTMLTableElement | null>
 }
 
 /**
@@ -66,32 +65,20 @@ export function useGridCursor<T>({
 
 	const cursorEnabled = navigable || editingEnabled
 
-	const {
-		rowsRef,
-		colCountRef,
-		rowIndexMapRef,
-		colIndexMapRef,
-		rowKeysRef,
-		dataColumnsRef,
-		tableRef,
-	} = refs
+	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
 	const nav = useGridNavigation({ enabled: cursorEnabled, rowsRef, colCountRef, onRowActivate })
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
-		active: nav.active,
-		moveTo: nav.moveTo,
-		navKeyDown: nav.navTableProps?.onKeyDown,
 		rowsRef,
 		rowKeysRef,
 		dataColumnsRef,
-		tableRef,
 	})
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
-	// augmentation (editor mount + double-click-to-edit) for an editable one.
+	// augmentation (which mounts the editors) for an editable one.
 	const navColumns = useGridNavigationColumns<T>({
 		enabled: cursorEnabled && !editingEnabled,
 		columns,
@@ -106,40 +93,27 @@ export function useGridCursor<T>({
 		columns,
 		rowIndexMapRef,
 		colIndexMapRef,
+		rowKeysRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
-		isCellEditable: editing.isCellEditable,
-		beginEdit: editing.beginEdit,
 	})
 
-	// Layer the editing key handler (Enter / type-to-edit) over the navigation
-	// cursor's; a read-only navigable grid keeps the bare cursor handler.
-	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
-		if (!nav.navTableProps) return undefined
-
-		return editingEnabled
-			? { ...nav.navTableProps, onKeyDown: editing.onTableKeyDown }
-			: nav.navTableProps
-	}, [nav.navTableProps, editingEnabled, editing.onTableKeyDown])
-
-	const { editingCoord, session } = editing
+	const { rowEditing } = editing
 
 	const wrap = useMemo(
 		() =>
 			editingEnabled
 				? (children: ReactNode) => (
-						<GridEditingCoordContext value={editingCoord}>
-							<GridEditSessionContext value={session}>{children}</GridEditSessionContext>
-						</GridEditingCoordContext>
+						<GridRowEditingContext value={rowEditing}>{children}</GridRowEditingContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, editingCoord, session],
+		[editingEnabled, rowEditing],
 	)
 
 	return {
 		cursorEnabled,
 		navStore: nav.store,
-		navTableProps,
+		navTableProps: nav.navTableProps,
 		columns: editingEnabled ? editColumns : navColumns,
 		wrap,
 	}

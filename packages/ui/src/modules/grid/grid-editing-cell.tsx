@@ -4,8 +4,8 @@ import { type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridEditInputs } from './grid-edit-inputs'
-import { useGridEditingCoord, useGridEditSession } from './grid-editing-context'
-import { inferEditorKind } from './grid-editing-utilities'
+import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
+import { inferEditorKind, isColumnEditable } from './grid-editing-utilities'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -13,37 +13,50 @@ import { GridNavCell } from './use-grid-navigation-columns'
 type GridEditingCellProps<T> = {
 	rowIdx: number
 	colIdx: number
+	rowKey: string | number
 	row: T
 	column: GridColumn<T>
-	/** The column's display renderer (`col.cell`), shown when the cell is not being edited. */
+	/** The column's display renderer (`col.cell`), shown when the row is not being edited. */
 	render: ((row: T) => ReactNode) | undefined
 }
 
+/** Props for the mounted editor: the cell plus the row-editing staging callbacks. @internal */
+type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
+	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft'>
+
 /**
- * The active cell's in-place editor. Reads the live edit session and renders the
- * column's {@link GridColumn.editCell} slot, or the editor inferred from the
- * cell value's primitive type. A rejected validation rings the editor and shows
- * the message beneath the cell.
+ * A cell's in-place editor while its row is in edit mode. Owns its live display
+ * value (seeded from the cell's current value) and mirrors each change into the
+ * grid's staged drafts; the grid stays unrendered as the user types. Renders the
+ * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
+ * value's primitive type. A failed `validate` rings the editor and shows the
+ * message beneath the cell; Escape reverts the cell.
  *
  * @internal
  */
 function GridCellEditor<T>({
 	rowIdx,
 	colIdx,
+	rowKey,
 	row,
 	column,
-}: Omit<GridEditingCellProps<T>, 'render'>) {
-	const session = useGridEditSession()
+	stageDraft,
+	unstageDraft,
+}: GridCellEditorProps<T>) {
+	const seed = column.field != null ? row[column.field] : undefined
 
-	// The editor owns its live display value, seeded once from the session; each
-	// change mirrors into the grid's commit-read ref. The grid stays unrendered
-	// while the user types.
-	const [draft, setDraft] = useState<unknown>(session.initialDraft)
+	const [draft, setDraft] = useState<unknown>(seed)
 
 	const update = (next: unknown) => {
 		setDraft(next)
 
-		session.onValueUpdate(next)
+		stageDraft(rowKey, column.id, next)
+	}
+
+	const cancel = () => {
+		setDraft(seed)
+
+		unstageDraft(rowKey, column.id)
 	}
 
 	const ariaLabel =
@@ -51,42 +64,38 @@ function GridCellEditor<T>({
 			? `Edit ${column.title}, row ${rowIdx + 1}`
 			: `Edit row ${rowIdx + 1} column ${colIdx + 1}`
 
-	const current = column.field != null ? row[column.field] : undefined
+	const error = column.validate ? column.validate(draft, row) : null
 
 	const body = column.editCell ? (
 		column.editCell({
 			row,
 			value: draft,
 			onValueUpdate: update,
-			// A slot can stage-and-commit in one call (e.g. a select's pick) by
-			// passing the chosen value; the draft write is synchronous, so the commit
-			// reads it.
+			// A slot can stage a final value in one call (e.g. a select's pick); the
+			// row's save flushes the staged values, so there is no per-cell close.
 			commit: (next) => {
 				if (next !== undefined) update(next)
-
-				session.commit()
 			},
-			cancel: session.cancel,
+			cancel,
 			ariaLabel,
 		})
 	) : (
 		<GridEditInputs
-			kind={inferEditorKind(current)}
+			kind={inferEditorKind(seed)}
 			draft={draft}
 			onValueUpdate={update}
-			commit={session.commit}
-			cancel={session.cancel}
+			cancel={cancel}
 			ariaLabel={ariaLabel}
 		/>
 	)
 
 	return (
-		<span className={cn(k.edit.host, session.error && k.edit.errorRing)}>
+		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
-			{session.error && (
+			{error && (
 				<span role="alert" className={cn(k.edit.error)}>
-					{session.error}
+					{error}
 				</span>
 			)}
 		</span>
@@ -94,28 +103,36 @@ function GridCellEditor<T>({
 }
 
 /**
- * One data cell of an editable grid. When its coordinate is the open edit, it
- * mounts {@link GridCellEditor}; otherwise it renders the column's display
- * content through {@link GridNavCell}, which carries the active-cursor ring. The
- * editing flag comes from the coord context (it flips only on edit begin/end), so
- * cells don't re-render as the draft changes.
+ * One data cell of an editable grid. When its row key is in the editable set and
+ * the column binds an editor, it mounts {@link GridCellEditor}; otherwise it
+ * renders the column's display content through {@link GridNavCell} (which carries
+ * the active-cursor ring). The editable set flips only on a row toggle, so cells
+ * don't re-render as the user types.
  *
  * @internal
  */
 export function GridEditingCell<T>({
 	rowIdx,
 	colIdx,
+	rowKey,
 	row,
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const editingCoord = useGridEditingCoord()
+	const { editableRows, stageDraft, unstageDraft } = useGridRowEditing()
 
-	const isEditing =
-		editingCoord != null && editingCoord.row === rowIdx && editingCoord.col === colIdx
-
-	if (isEditing) {
-		return <GridCellEditor rowIdx={rowIdx} colIdx={colIdx} row={row} column={column} />
+	if (editableRows.has(rowKey) && isColumnEditable(column)) {
+		return (
+			<GridCellEditor
+				rowIdx={rowIdx}
+				colIdx={colIdx}
+				rowKey={rowKey}
+				row={row}
+				column={column}
+				stageDraft={stageDraft}
+				unstageDraft={unstageDraft}
+			/>
+		)
 	}
 
 	return (

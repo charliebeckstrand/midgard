@@ -21,9 +21,13 @@ const rows500 = makeShipments(500)
 const rows1k = makeShipments(1_000)
 const rows10k = makeShipments(10_000)
 
-// Every row editable — the worst case for the editing augmentation (every cell
-// carries the cursor + editor wiring).
-const editableOf = (rows: Shipment[]) => ({ rows: new Set(rows.map(getKey)), onValueChange: noop })
+// The at-rest editable grid: no row is in edit mode, so the benchmark measures
+// the editing augmentation's per-cell overhead (each cell wired for editing)
+// without mounting an editor per cell.
+const editableOf = (_rows: Shipment[]) => ({
+	rows: new Set<string | number>(),
+	onValueChange: noop,
+})
 
 describe('Grid · editable initial render', () => {
 	bench('100 rows × 8 cols', () => {

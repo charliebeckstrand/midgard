@@ -65,8 +65,8 @@ export type GridColumn<T> = {
 	 * {@link GridProps.editable | editable} and the cell's row is in edit mode. A
 	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
 	 * editable; the editor the grid mounts is inferred from the field value's
-	 * primitive type (string → text, number → number, boolean → checkbox), and the
-	 * committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 * primitive type (string → text, number → number, boolean → yes/no listbox),
+	 * and the committed value flows out through {@link GridEditableConfig.onValueChange}.
 	 */
 	field?: keyof T
 	/**
@@ -85,10 +85,10 @@ export type GridColumn<T> = {
 	 */
 	editCell?: GridEditCell<T>
 	/**
-	 * Validates a committed cell value in an {@link GridProps.editable | editable}
+	 * Validates an edited cell value in an {@link GridProps.editable | editable}
 	 * grid. Receives the pending value and its row; return an error message to
-	 * reject the commit — the editor stays open showing the message and nothing is
-	 * emitted — or `null` to accept it.
+	 * reject it — the editor shows the message inline while editing, and the cell
+	 * is dropped (not emitted) when the row saves — or `null` to accept it.
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**

@@ -526,9 +526,6 @@ export function GridData<T>({
 
 	const dataColumnsRef = useRef<GridColumn<T>[]>([])
 
-	// The grid `<table>`, refocused after an edit commits or cancels.
-	const tableRef = useRef<HTMLTableElement>(null)
-
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -537,8 +534,8 @@ export function GridData<T>({
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
 
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
-	// props (with the editing key handler under `editable`), the cursor store, and
-	// the editing-context wrapper. Inert for a static grid.
+	// props, the cursor store, and the row-editing-context wrapper. Inert for a
+	// static grid.
 	const cursor = useGridCursor<T>({
 		navigable,
 		editable,
@@ -551,7 +548,6 @@ export function GridData<T>({
 			colIndexMapRef,
 			rowKeysRef,
 			dataColumnsRef,
-			tableRef,
 		},
 	})
 
@@ -814,10 +810,8 @@ export function GridData<T>({
 				hover={rowHover}
 				className={tableClassName}
 				tableProps={resolveTableProps({
-					// The `<table>` ref backs the post-commit refocus of an editable grid.
-					tableProps: { ...tableProps, ref: tableRef },
-					// The cursor's tab stop, active-cell pointer, and key/focus handlers
-					// (with the editing key handler layered on under `editable`).
+					tableProps,
+					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
 					navTableProps: cursor.navTableProps,
 					loading,
 					gridSemantics,

@@ -374,13 +374,12 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Bakes per-row inline editing into the grid. Supply an
-	 * {@link GridEditableConfig}: which rows are editable and a commit sink. The
-	 * grid gains a keyboard cursor (as under {@link GridDataProps.navigable}); a
-	 * cell in an editable row enters edit mode on double-click / Enter, commits on
-	 * Enter or blur, and cancels on Escape. A column binds to a row property via
-	 * {@link GridColumn.field}, and the editor is inferred from the value's
-	 * primitive type unless the column supplies an {@link GridColumn.editCell} slot.
-	 * Omit for a read-only grid.
+	 * {@link GridEditableConfig}: which rows are editable and a commit sink. A row
+	 * in the editable set puts all of its editable cells into edit mode at once;
+	 * edits stage live, and removing the row from the set saves its changed cells
+	 * as one batch. A column binds to a row property via {@link GridColumn.field},
+	 * and the editor is inferred from the value's primitive type unless the column
+	 * supplies an {@link GridColumn.editCell} slot. Omit for a read-only grid.
 	 */
 	editable?: GridEditableConfig
 

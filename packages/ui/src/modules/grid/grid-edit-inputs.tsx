@@ -1,168 +1,95 @@
 'use client'
 
-import { type KeyboardEvent, useLayoutEffect, useRef } from 'react'
-import { Checkbox } from '../../components/checkbox'
+import type { KeyboardEvent } from 'react'
 import { Input } from '../../components/input'
+import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
-import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import type { EditorKind } from './grid-editing-utilities'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and
- * commit/cancel callbacks (from the grid's edit session), and the accessible
- * label. @internal
+ * cancel callbacks, and the accessible label. The whole editable row mounts its
+ * editors at once, so none of them grabs focus on mount — the user clicks or tabs
+ * into the cell to edit it. @internal
  */
 export type GridEditInputProps = {
 	draft: unknown
 	onValueUpdate: (next: unknown) => void
-	commit: () => void
+	/** Revert this cell to the row's current value (Escape). */
 	cancel: () => void
 	ariaLabel: string
 }
 
-/** Enter commits, Escape cancels; blur commits separately. @internal */
-function editKeyHandler(commit: () => void, cancel: () => void) {
-	return (event: KeyboardEvent<HTMLElement>) => {
-		if (event.key === 'Enter') {
-			event.preventDefault()
+/** Escape reverts the cell; staging is live, so there is no commit key. @internal */
+const cancelOnEscape = (cancel: () => void) => (event: KeyboardEvent<HTMLElement>) => {
+	if (event.key === 'Escape') {
+		event.preventDefault()
 
-			commit()
-		} else if (event.key === 'Escape') {
-			event.preventDefault()
-
-			cancel()
-		}
+		cancel()
 	}
 }
 
-/** Bare text editor for string cells; cursor lands at the draft's end on mount. @internal */
-function GridTextEditInput({
-	draft,
-	onValueUpdate,
-	commit,
-	cancel,
-	ariaLabel,
-}: GridEditInputProps) {
-	const ref = useRef<HTMLInputElement>(null)
-
-	useLayoutEffect(() => {
-		const input = ref.current
-
-		if (!input) return
-
-		input.focus()
-
-		input.setSelectionRange(input.value.length, input.value.length)
-	}, [])
-
+/** Text editor for string cells, backed by the `Input` component. @internal */
+function GridTextEditInput({ draft, onValueUpdate, cancel, ariaLabel }: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
 	return (
-		<HeadlessProvider>
-			<Input
-				ref={ref}
-				data-slot="grid-edit-input"
-				aria-label={ariaLabel}
-				className={k.edit.input}
-				value={value}
-				onChange={(event) => onValueUpdate(event.target.value)}
-				onBlur={commit}
-				onKeyDown={editKeyHandler(commit, cancel)}
-			/>
-		</HeadlessProvider>
+		<Input
+			data-slot="grid-edit-input"
+			aria-label={ariaLabel}
+			className={k.edit.input}
+			value={value}
+			onChange={(event) => onValueUpdate(event.target.value)}
+			onKeyDown={cancelOnEscape(cancel)}
+		/>
 	)
 }
 
-/** Bare number editor for numeric cells; selects on mount so a keystroke replaces. @internal */
-function GridNumberEditInput({
-	draft,
-	onValueUpdate,
-	commit,
-	cancel,
-	ariaLabel,
-}: GridEditInputProps) {
-	const ref = useRef<HTMLInputElement>(null)
-
-	useLayoutEffect(() => {
-		const input = ref.current
-
-		if (!input) return
-
-		input.focus()
-
-		input.select()
-	}, [])
-
+/** Number editor for numeric cells, backed by `NumberInput`. @internal */
+function GridNumberEditInput({ draft, onValueUpdate, cancel, ariaLabel }: GridEditInputProps) {
 	return (
-		<HeadlessProvider>
-			<NumberInput
-				ref={ref}
-				data-slot="grid-edit-number-input"
-				aria-label={ariaLabel}
-				className={k.edit.input}
-				value={typeof draft === 'number' ? draft : null}
-				onValueChange={(next) => onValueUpdate(next ?? undefined)}
-				onBlur={commit}
-				onKeyDown={editKeyHandler(commit, cancel)}
-			/>
-		</HeadlessProvider>
+		<NumberInput
+			data-slot="grid-edit-number-input"
+			aria-label={ariaLabel}
+			className={k.edit.input}
+			value={typeof draft === 'number' ? draft : null}
+			onValueChange={(next) => onValueUpdate(next ?? undefined)}
+			onKeyDown={cancelOnEscape(cancel)}
+		/>
 	)
 }
 
-/** Checkbox editor for boolean cells; a toggle (click or Space) commits the flipped value. @internal */
-function GridBooleanEditInput({
-	draft,
-	onValueUpdate,
-	commit,
-	cancel,
-	ariaLabel,
-}: GridEditInputProps) {
-	const ref = useRef<HTMLInputElement>(null)
+const BOOLEAN_OPTIONS = [
+	{ value: 'true', label: 'Yes' },
+	{ value: 'false', label: 'No' },
+]
 
-	useLayoutEffect(() => {
-		ref.current?.focus()
-	}, [])
-
-	const checked = draft === true
-
+/** Boolean editor for true/false cells, a yes/no `Listbox`. @internal */
+function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel }: GridEditInputProps) {
 	return (
-		<HeadlessProvider>
-			<span className={k.edit.control}>
-				<Checkbox
-					ref={ref}
-					data-slot="grid-edit-boolean-input"
-					aria-label={ariaLabel}
-					checked={checked}
-					// `onValueUpdate` writes the draft synchronously, so the immediate
-					// `commit` reads the flipped value.
-					onChange={() => {
-						onValueUpdate(!checked)
-
-						commit()
-					}}
-					onKeyDown={(event) => {
-						if (event.key === 'Enter') {
-							event.preventDefault()
-
-							commit()
-						} else if (event.key === 'Escape') {
-							event.preventDefault()
-
-							cancel()
-						}
-					}}
-					onBlur={commit}
-				/>
-			</span>
-		</HeadlessProvider>
+		<Listbox<string>
+			data-slot="grid-edit-boolean-input"
+			aria-label={ariaLabel}
+			className={k.edit.input}
+			value={draft === true ? 'true' : 'false'}
+			onValueChange={(next) => onValueUpdate(next === 'true')}
+			displayValue={(value) => (value === 'true' ? 'Yes' : 'No')}
+		>
+			{BOOLEAN_OPTIONS.map((option) => (
+				<ListboxOption key={option.value} value={option.value}>
+					<ListboxLabel>{option.label}</ListboxLabel>
+				</ListboxOption>
+			))}
+		</Listbox>
 	)
 }
 
 /**
  * Renders the inline editor inferred from the cell value's primitive type — a
- * checkbox for a boolean, a number input for a number, a text input otherwise.
- * The column's {@link GridColumn.editCell} slot supersedes this upstream.
+ * yes/no listbox for a boolean, a number input for a number, a text input
+ * otherwise. The column's {@link GridColumn.editCell} slot supersedes this
+ * upstream.
  *
  * @internal
  */

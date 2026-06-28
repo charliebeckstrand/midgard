@@ -17,13 +17,12 @@ import type { Coord } from './use-grid-navigation'
 
 /**
  * Projects an editable grid's data columns into editing-aware ones: each gains
- * the cursor wiring (a stable per-cell id, `role="gridcell"`, click-to-seat) plus
- * a double-click that opens the editor, and its content renders through
- * {@link GridEditingCell} (display, or the mounted editor when this cell is
- * under edit). Display-order indices resolve from the live maps at cell-render
- * time, so the columns stay referentially stable across cursor moves and edits.
- * Select/actions columns, and a non-editable grid (`enabled` false), pass through
- * untouched.
+ * the cursor wiring (a stable per-cell id, `role="gridcell"`, click-to-seat), and
+ * its content renders through {@link GridEditingCell} — the column's display
+ * value, or its editor when the cell's row is in edit mode. Display-order indices
+ * and the row key resolve from the live maps at cell-render time, so the columns
+ * stay referentially stable across cursor moves and edits. Select/actions
+ * columns, and a non-editable grid (`enabled` false), pass through untouched.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
  * @internal
@@ -33,10 +32,9 @@ export function useGridEditingColumns<T>({
 	columns,
 	rowIndexMapRef,
 	colIndexMapRef,
+	rowKeysRef,
 	cellId,
 	moveTo,
-	isCellEditable,
-	beginEdit,
 }: {
 	enabled: boolean
 	columns: GridColumn<T>[]
@@ -44,10 +42,10 @@ export function useGridEditingColumns<T>({
 	rowIndexMapRef: RefObject<Map<T, number>>
 	/** Live column-id → display-data-index map; resolves a cell's cursor column. */
 	colIndexMapRef: RefObject<Map<string | number, number>>
+	/** Live display-order row keys; resolves a cell's row key for the editable-set test. */
+	rowKeysRef: RefObject<(string | number)[]>
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
-	isCellEditable: (rowIdx: number, colIdx: number) => boolean
-	beginEdit: (coord: Coord) => void
 }): GridColumn<T>[] {
 	return useMemo(() => {
 		if (!enabled) return columns
@@ -75,8 +73,8 @@ export function useGridEditingColumns<T>({
 						role: 'gridcell',
 						'aria-readonly': col.readOnly || undefined,
 						onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-							// Defer to focusable cell content (action buttons, links); otherwise
-							// seat the cursor here and pull focus onto the grid container.
+							// Defer to focusable cell content (the row's editors, action
+							// buttons, links); otherwise seat the cursor here and focus the grid.
 							if (!fromInteractiveContent(event.target)) {
 								event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
 
@@ -85,11 +83,6 @@ export function useGridEditingColumns<T>({
 
 							prev?.onMouseDown?.(event)
 						},
-						onDoubleClick: (event: MouseEvent<HTMLTableCellElement>) => {
-							if (isCellEditable(rowIdx, colIdx)) beginEdit({ row: rowIdx, col: colIdx })
-
-							prev?.onDoubleClick?.(event)
-						},
 					}
 				},
 				cell: (row: T): ReactNode => {
@@ -97,10 +90,13 @@ export function useGridEditingColumns<T>({
 
 					const colIdx = colIndexMapRef.current.get(col.id) ?? -1
 
+					const rowKey = rowKeysRef.current[rowIdx] ?? rowIdx
+
 					return (
 						<GridEditingCell
 							rowIdx={rowIdx}
 							colIdx={colIdx}
+							rowKey={rowKey}
 							row={row}
 							column={col}
 							render={renderCell}
@@ -109,5 +105,5 @@ export function useGridEditingColumns<T>({
 				},
 			}
 		})
-	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, cellId, moveTo, isCellEditable, beginEdit])
+	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, moveTo])
 }

@@ -1,10 +1,10 @@
 import { Check, Info, Pencil, Trash2 } from 'lucide-react'
-import { type KeyboardEvent, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { CurrencyInput } from '../../../../components/currency-input'
-import { DateInput } from '../../../../components/date-input'
+import { DatePicker } from '../../../../components/date-picker'
 import {
 	Dialog,
 	DialogBody,
@@ -17,8 +17,8 @@ import { Field, Label } from '../../../../components/fieldset'
 import { Flex } from '../../../../components/flex'
 import { Form, useFormField } from '../../../../components/form'
 import { Icon } from '../../../../components/icon'
+import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
-import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
 import { SubmitButton } from '../../../../components/submit-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
@@ -30,7 +30,8 @@ import {
 } from '../../../../modules/grid'
 
 // Applies committed cell changes onto the row state: each change patches one
-// field on the row it keys. The grid emits these through `editable.onValueChange`.
+// field on the row it keys. The grid emits these (as one batch per row) through
+// `editable.onValueChange` when an editing row is saved.
 function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
 	if (!changes.length) return rows
 
@@ -67,52 +68,36 @@ function EditHelp({ label, children }: { label: string; children: string }) {
 }
 
 // Custom editors live in the column's `editCell` slot — the grid exposes no
-// editor components. Each receives the cell value plus commit/cancel, mirroring
-// the inferred text/number/checkbox editors the grid mounts for primitive cells.
+// editor components. Each receives the cell value plus the staging callbacks; the
+// row's save flushes the staged values, so the slot only stages (no per-cell
+// commit), mirroring the inferred text / number / yes-no editors the grid mounts.
 
-/** A select slot: opens on mount, commits the picked option, cancels on dismiss. */
-function CellSelect({
+/** A listbox slot: stages the picked option. */
+function CellListbox({
 	value,
 	options,
-	commit,
-	cancel,
+	onValueUpdate,
 	ariaLabel,
 }: {
 	value: string
 	options: { label: string; value: string }[]
-	commit: GridEditCellContext<unknown>['commit']
-	cancel: () => void
+	onValueUpdate: GridEditCellContext<unknown>['onValueUpdate']
 	ariaLabel: string
 }) {
-	const [open, setOpen] = useState(true)
-
-	const picked = useRef(false)
-
 	return (
-		<Select<string>
-			open={open}
-			onOpenChange={(next) => {
-				setOpen(next)
-
-				if (!next && !picked.current) cancel()
-			}}
-			value={value || undefined}
-			onValueChange={(next) => {
-				if (next == null) return
-
-				picked.current = true
-
-				commit(next)
-			}}
-			displayValue={(v) => options.find((option) => option.value === v)?.label ?? v}
+		<Listbox<string>
 			aria-label={ariaLabel}
+			className="w-full"
+			value={value || undefined}
+			onValueChange={(next) => onValueUpdate(next ?? '')}
+			displayValue={(v) => options.find((option) => option.value === v)?.label ?? v}
 		>
 			{options.map((option) => (
-				<SelectOption key={option.value} value={option.value}>
-					<SelectLabel>{option.label}</SelectLabel>
-				</SelectOption>
+				<ListboxOption key={option.value} value={option.value}>
+					<ListboxLabel>{option.label}</ListboxLabel>
+				</ListboxOption>
 			))}
-		</Select>
+		</Listbox>
 	)
 }
 
@@ -130,74 +115,28 @@ function dateToIso(date: Date): string {
 	return `${date.getFullYear()}-${month}-${day}`
 }
 
-function editKeyDown(commit: () => void, cancel: () => void) {
-	return (event: KeyboardEvent<HTMLElement>) => {
-		if (event.key === 'Enter') {
-			event.preventDefault()
-
-			commit()
-		} else if (event.key === 'Escape') {
-			event.preventDefault()
-
-			cancel()
-		}
-	}
-}
-
-/** A date slot: masked ISO entry, commits on Enter/blur, cancels on Escape. */
-function CellDate({
-	value,
-	onValueUpdate,
-	commit,
-	cancel,
-	ariaLabel,
-}: GridEditCellContext<unknown>) {
-	const ref = useRef<HTMLInputElement>(null)
-
-	useLayoutEffect(() => {
-		ref.current?.focus()
-
-		ref.current?.select()
-	}, [])
-
+/** A date slot: a typed `DatePicker` in input mode, staging an ISO string. */
+function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
 	return (
-		<DateInput
-			ref={ref}
-			className="w-full"
+		<DatePicker
+			input
 			format="YYYY-MM-DD"
 			aria-label={ariaLabel}
-			defaultValue={typeof value === 'string' ? isoToDate(value) : undefined}
+			className="w-full"
+			value={typeof value === 'string' ? isoToDate(value) : undefined}
 			onValueChange={(date) => onValueUpdate(date ? dateToIso(date) : '')}
-			onBlur={() => commit()}
-			onKeyDown={editKeyDown(() => commit(), cancel)}
 		/>
 	)
 }
 
-/** A currency slot: numeric entry, commits on Enter/blur, cancels on Escape. */
-function CellCurrency({
-	value,
-	onValueUpdate,
-	commit,
-	cancel,
-	ariaLabel,
-}: GridEditCellContext<unknown>) {
-	const ref = useRef<HTMLInputElement>(null)
-
-	useLayoutEffect(() => {
-		ref.current?.focus()
-
-		ref.current?.select()
-	}, [])
-
+/** A currency slot: a `CurrencyInput`, staging a number. */
+function CellCurrency({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
 	return (
 		<CurrencyInput
-			ref={ref}
 			aria-label={ariaLabel}
+			className="w-full"
 			value={typeof value === 'number' ? value : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
-			onBlur={() => commit()}
-			onKeyDown={editKeyDown(() => commit(), cancel)}
 		/>
 	)
 }
@@ -221,19 +160,19 @@ export function EditableExample() {
 
 	const [editing, setEditing] = useState<Set<string | number>>(new Set())
 
-	const toggleEditing = (id: number) =>
+	const setRowEditing = (id: number, on: boolean) =>
 		setEditing((prev) => {
 			const next = new Set(prev)
 
-			next.has(id) ? next.delete(id) : next.add(id)
+			on ? next.add(id) : next.delete(id)
 
 			return next
 		})
 
-	// `name`/`email` infer a text editor and `active` a checkbox from their value
-	// type; `role` overrides with a select slot. The pencil flips a row editable;
-	// while editable, click a cell to focus it and double-click or press Enter to
-	// edit it.
+	// `name`/`email` infer a text editor and `active` a yes/no listbox from their
+	// value type; `role` overrides with a listbox slot. The pencil swaps the whole
+	// row into edit mode (every cell becomes an editor); the check saves the row's
+	// edits together.
 	const columns: GridColumn<Person>[] = [
 		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
@@ -243,11 +182,10 @@ export function EditableExample() {
 			field: 'role',
 			cell: (row) => row.role,
 			editCell: (ctx) => (
-				<CellSelect
+				<CellListbox
 					value={String(ctx.value ?? '')}
 					options={roleOptions}
-					commit={ctx.commit}
-					cancel={ctx.cancel}
+					onValueUpdate={ctx.onValueUpdate}
 					ariaLabel={ctx.ariaLabel}
 				/>
 			),
@@ -267,8 +205,8 @@ export function EditableExample() {
 					<Button
 						variant="bare"
 						color="green"
-						aria-label="Done editing"
-						onClick={() => toggleEditing(row.id)}
+						aria-label="Save row"
+						onClick={() => setRowEditing(row.id, false)}
 					>
 						<Icon icon={<Check />} />
 					</Button>
@@ -278,7 +216,7 @@ export function EditableExample() {
 							variant="bare"
 							color="blue"
 							aria-label="Edit row"
-							onClick={() => toggleEditing(row.id)}
+							onClick={() => setRowEditing(row.id, true)}
 						>
 							<Icon icon={<Pencil />} />
 						</Button>
@@ -298,8 +236,8 @@ export function EditableExample() {
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Click the pencil to make a row editable, then click a cell to focus it and double-click or
-				press Enter to edit. Enter saves, Escape cancels. Click the check to finish.
+				Click the pencil to edit a row: every cell becomes an editor at once. Make your changes,
+				then click the check to save them together. Escape reverts a cell.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -315,12 +253,26 @@ export function EditableExample() {
 	)
 }
 
-type Task = { id: number; title: string; status: string; due: string; done: boolean }
+type Task = {
+	id: number
+	title: string
+	status: string
+	due: string
+	done: boolean
+	budget: number
+}
 
 const initialTasks: Task[] = [
-	{ id: 1, title: 'Fix login redirect', status: 'in-progress', due: '2026-01-15', done: false },
-	{ id: 2, title: 'Add dark mode', status: 'todo', due: '2026-03-01', done: false },
-	{ id: 3, title: 'Write API docs', status: 'done', due: '2026-02-10', done: true },
+	{
+		id: 1,
+		title: 'Fix login redirect',
+		status: 'in-progress',
+		due: '2026-01-15',
+		done: false,
+		budget: 1200,
+	},
+	{ id: 2, title: 'Add dark mode', status: 'todo', due: '2026-03-01', done: false, budget: 800 },
+	{ id: 3, title: 'Write API docs', status: 'done', due: '2026-02-10', done: true, budget: 500 },
 ]
 
 const statusOptions = [
@@ -329,16 +281,18 @@ const statusOptions = [
 	{ label: 'Done', value: 'done' },
 ]
 
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
 export function EditorTypesExample() {
 	const [tasks, setTasks] = useState<Task[]>(initialTasks)
 
-	// Every row is editable here so any cell can be edited. `title` infers a text
-	// editor and `done` a checkbox; `status` and `due` override with select and
-	// date slots.
+	// Every row is editable here so each editor type shows at once. `title` infers
+	// a text editor and `done` a yes/no listbox; `status`, `due`, and `budget`
+	// override with listbox, date, and currency slots.
 	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [tasks])
 
 	const columns: GridColumn<Task>[] = [
-		{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '220px' },
+		{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
 		{
 			id: 'status',
 			title: 'Status',
@@ -346,16 +300,22 @@ export function EditorTypesExample() {
 			cell: (row) =>
 				statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
 			editCell: (ctx) => (
-				<CellSelect
+				<CellListbox
 					value={String(ctx.value ?? '')}
 					options={statusOptions}
-					commit={ctx.commit}
-					cancel={ctx.cancel}
+					onValueUpdate={ctx.onValueUpdate}
 					ariaLabel={ctx.ariaLabel}
 				/>
 			),
 		},
 		{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due, editCell: CellDate },
+		{
+			id: 'budget',
+			title: 'Budget',
+			field: 'budget',
+			cell: (row) => money.format(row.budget),
+			editCell: CellCurrency,
+		},
 		{
 			id: 'done',
 			title: 'Done',
@@ -367,8 +327,8 @@ export function EditorTypesExample() {
 	return (
 		<>
 			<EditHelp label="Editor types help">
-				Title is a text cell and Done a checkbox, inferred from the value type; Status edits with a
-				dropdown and Due with a date picker through the column's editCell slot.
+				Title is a text cell and Done a yes/no listbox, inferred from the value type; Status, Due,
+				and Budget edit through listbox, date-picker, and currency slots.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -394,8 +354,6 @@ const initialRates: LaneRate[] = [
 	{ id: 6, state: 'TX', perMile: 2.15, minCharge: 215, fuelPct: 26 },
 ]
 
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-
 // CurrencyInput doesn't bind to Form via `name` like NumberInput does; this
 // wrapper bridges it for the bulk-edit dialog.
 function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: string }) {
@@ -410,50 +368,20 @@ function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: 
 	)
 }
 
+const bulkColumns: GridColumn<LaneRate>[] = [
+	{ id: 'select', selectable: true },
+	{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
+	{ id: 'perMile', title: 'Per-mile', cell: (row) => money.format(row.perMile) },
+	{ id: 'minCharge', title: 'Min charge', cell: (row) => money.format(row.minCharge) },
+	{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
+]
+
 export function BulkEditExample() {
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)
 
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
 	const [editOpen, setEditOpen] = useState(false)
-
-	// Every row is inline-editable; selection drives the dialog-based bulk edit.
-	const editing = useMemo(() => new Set<string | number>(rates.map((rate) => rate.id)), [rates])
-
-	// `perMile`/`minCharge` edit through a currency slot; `fuelPct` infers a number
-	// editor from its value type.
-	const columns: GridColumn<LaneRate>[] = [
-		{
-			id: 'state',
-			title: 'State',
-			field: 'state',
-			cell: (row) => row.state,
-			readOnly: true,
-			width: '80px',
-		},
-		{
-			id: 'perMile',
-			title: 'Per-mile',
-			field: 'perMile',
-			cell: (row) => currency.format(row.perMile),
-			editCell: CellCurrency,
-			validate: (value) =>
-				typeof value === 'number' && value > 0 ? null : 'Enter a rate above $0',
-		},
-		{
-			id: 'minCharge',
-			title: 'Min charge',
-			field: 'minCharge',
-			cell: (row) => currency.format(row.minCharge),
-			editCell: CellCurrency,
-		},
-		{
-			id: 'fuelPct',
-			title: 'Fuel %',
-			field: 'fuelPct',
-			cell: (row) => `${row.fuelPct}%`,
-		},
-	]
 
 	const applyBulkEdit = (patch: Partial<Pick<LaneRate, 'perMile' | 'minCharge' | 'fuelPct'>>) => {
 		if (Object.keys(patch).length) {
@@ -482,11 +410,11 @@ export function BulkEditExample() {
 	return (
 		<>
 			<EditHelp label="Bulk edit help">
-				Edit a cell inline, or select rows with the checkboxes and choose Edit selected to apply one
-				change across every selected row at once.
+				Select rows with the checkboxes, then choose Edit selected to apply one change across every
+				selected row at once through a dialog.
 			</EditHelp>
 			<Grid
-				columns={[{ id: 'select', selectable: true }, ...columns]}
+				columns={bulkColumns}
 				rows={rates}
 				getKey={(row) => row.id}
 				selection={{
@@ -502,10 +430,6 @@ export function BulkEditExample() {
 							</Button>
 						</Flex>
 					),
-				}}
-				editable={{
-					rows: editing,
-					onValueChange: (changes) => setRates((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 			<Dialog open={editOpen} onOpenChange={setEditOpen}>

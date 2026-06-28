@@ -116,7 +116,7 @@ export const dataComplexCases: readonly Case[] = [
 			columns={gridColumns}
 			rows={gridRows}
 			getKey={(row) => row.id}
-			editable={{ rows: new Set([1, 2]), onValueChange: noop }}
+			editable={{ rows: new Set([1]), onValueChange: noop }}
 		/>,
 	],
 	[

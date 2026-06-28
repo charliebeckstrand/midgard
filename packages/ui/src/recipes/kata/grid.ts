@@ -311,18 +311,24 @@ export const k = {
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
 		],
 	},
-	// Inline per-cell editing layered over the navigable cursor: the editor fills
-	// the cell and reuses the grid's own styling (no separate outlined surface).
+	// Inline per-row editing: an editable row's cells render their editors (the
+	// grid's own Input / NumberInput / Listbox, or a column `editCell` slot).
 	edit: {
-		// Host for the mounted editor; anchors the absolute validation message.
-		host: 'relative flex h-full w-full items-center',
-		// Bare in-cell input/number field: fills the cell with no chrome of its own.
-		input: 'w-full bg-transparent outline-none',
-		// Host for a non-text control (a checkbox, or an `editCell` slot).
-		control: 'flex h-full w-full items-center',
-		// A rejected validation keeps the editor open: a red inset ring plus a small
-		// message anchored below the cell.
-		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500')],
+		// Host for a cell's editor. A negative margin matching the cell's density
+		// padding pulls the control out to the cell edges, so the editor occupies the
+		// same box as the display value and toggling into edit mode shifts nothing.
+		// The padding is projected onto cells by `<Table data-density>` (sm/md/lg →
+		// p-1/p-2/p-3), so the offset reads that ancestor attribute.
+		host: [
+			'relative flex w-full items-center',
+			'[[data-density=sm]_&]:-m-1',
+			'[[data-density=md]_&]:-m-2',
+			'[[data-density=lg]_&]:-m-3',
+		],
+		// The in-cell control fills the cell width.
+		input: 'w-full',
+		// A failed validation rings the editor and anchors a small message below it.
+		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [
 			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
 			'rounded px-1.5 py-0.5 text-xs whitespace-normal',

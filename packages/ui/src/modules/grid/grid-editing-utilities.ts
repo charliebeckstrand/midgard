@@ -1,13 +1,11 @@
-import type { KeyboardEvent } from 'react'
-
 /** The primitive-typed inline editor the grid mounts when a column supplies no `editCell` slot. @internal */
 export type EditorKind = 'text' | 'number' | 'boolean'
 
 /**
  * Picks the inline editor for a cell from its value's primitive type: a boolean
- * toggles a checkbox, a number drives a number input, and everything else (string,
- * null, undefined) falls back to a plain text input. A column's
- * {@link GridColumn.editCell} slot supersedes this for richer controls. @internal
+ * drives a yes/no listbox, a number a number input, and everything else (string,
+ * null, undefined) a text input. A column's {@link GridColumn.editCell} slot
+ * supersedes this for richer controls. @internal
  */
 export function inferEditorKind(value: unknown): EditorKind {
 	if (typeof value === 'boolean') return 'boolean'
@@ -18,9 +16,14 @@ export function inferEditorKind(value: unknown): EditorKind {
 }
 
 /**
- * Whether a keydown is a lone printable character (no Ctrl/Cmd/Alt), used to
- * begin editing a text cell by typing into it. @internal
+ * Whether a data column can be edited: it isn't `readOnly` and binds an editor —
+ * a `field` to read/write, or a custom `editCell` slot. A cell in an editable row
+ * renders its editor only when this holds. @internal
  */
-export function isPrintableKey(event: KeyboardEvent): boolean {
-	return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey
+export function isColumnEditable(col: {
+	readOnly?: boolean
+	field?: unknown
+	editCell?: unknown
+}): boolean {
+	return !col.readOnly && (col.field != null || col.editCell != null)
 }

@@ -31,11 +31,11 @@ export type GridProps<T> = GridDataProps<T>
  * `aria-activedescendant` active cell).
  *
  * Pass `editable` (a {@link GridEditableConfig}) to bake in per-row inline
- * editing on top of that cursor: mark rows editable, and a cell in an editable
- * row enters edit mode on double-click / Enter — the editor inferred from the
- * value's primitive type, or a column's {@link GridColumn.editCell} slot —
- * committing on Enter / blur and cancelling on Escape. Committed values flow out
- * through {@link GridEditableConfig.onValueChange}.
+ * editing: a row in the editable set puts all of its editable cells into edit
+ * mode at once — each editor inferred from the value's primitive type, or a
+ * column's {@link GridColumn.editCell} slot. Edits stage live; removing the row
+ * from the set saves its changed cells as one batch through
+ * {@link GridEditableConfig.onValueChange} (Escape reverts a cell).
  *
  * Renders a loading skeleton (`aria-busy` with a polite status), an `empty` slot
  * when there are no rows, a sticky header, and — under `virtualize` — windowed

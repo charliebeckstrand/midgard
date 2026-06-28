@@ -61,7 +61,7 @@ The state migration is complete: rendering through `flexRender` over a full `Col
 
 ### Selection & editing
 
-Per-row inline editing is baked into Grid via the `editable` binding (a controllable set of editable row keys plus a commit sink). It layers on the keyboard cursor: a cell in an editable row enters edit mode on double-click / Enter, the editor inferred from the value's primitive type (string → text, number → number, boolean → checkbox) or a column's `editCell` slot (select, date, currency, custom), committing on Enter / blur and cancelling on Escape, with per-column `validate` rejecting a bad commit. Editor components are internal — the slot's `onValueUpdate` / `commit` / `cancel` callbacks are the override surface, not exported editors.
+Per-row inline editing is baked into Grid via the `editable` binding (a controllable set of editable row keys plus a commit sink). A row in the set puts all of its editable cells into edit mode at once — each editor inferred from the value's primitive type (string → text `Input`, number → `NumberInput`, boolean → yes/no `Listbox`) or a column's `editCell` slot (select, date, currency, custom). Edits stage live in the grid; removing the row from the set (a save action's check) flushes its changed, valid cells as one `onValueChange` batch, with per-column `validate` dropping a bad cell and Escape reverting one. Editor components are internal — the slot's `onValueUpdate` / `commit` / `cancel` callbacks are the override surface, not exported editors.
 
 | Feature | Approach |
 |---|---|

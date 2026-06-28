@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 
 /**
  * A single committed cell write: the new `value` for `columnId` on the row keyed
- * by `rowKey`. Emitted (one per array, batched for forward-compatibility) through
- * {@link GridEditableConfig.onValueChange} when an edit commits.
+ * by `rowKey`. A saved row emits one per changed cell, batched into a single
+ * {@link GridEditableConfig.onValueChange} call.
  */
 export type CellChange = {
 	rowKey: string | number
@@ -45,16 +45,17 @@ export type GridEditCellContext<T> = {
 export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 
 /**
- * Editing binding for {@link GridProps.editable}: marks which rows are currently
- * editable and sinks committed cell values. Setting it bakes per-row editing into
- * the grid — a cursor (as under `navigable`) seats on click, and a cell in an
- * editable row enters edit mode on double-click / Enter, committing on
- * Enter / blur and cancelling on Escape.
+ * Editing binding for {@link GridProps.editable}: marks which rows are in edit
+ * mode and sinks their committed cell values. Setting it bakes per-row editing
+ * into the grid — a row in the set puts all of its editable cells into edit mode
+ * at once. Edits stage live; removing the row from the set saves its changed
+ * cells as one batch through `onValueChange` (Escape reverts a cell).
  *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
- * {@link GridSelection}: flip a row in (e.g. from a row-action pencil) to make
- * its cells editable, out to settle it. Selection and editing are independent —
- * a row can be selected without being editable, and vice versa.
+ * {@link GridSelection}: flip a row in (e.g. from a row-action pencil) to put it
+ * into edit mode, out (a save action's check) to settle and commit it. Selection
+ * and editing are independent — a row can be selected without being editable, and
+ * vice versa.
  */
 export type GridEditableConfig = {
 	/** Controlled set of row keys whose cells are editable; pair with {@link GridEditableConfig.onRowsChange}. */
@@ -64,10 +65,10 @@ export type GridEditableConfig = {
 	/** Fires with the next editable-row set. The grid coalesces an internal clear to an empty set, so the payload is never `undefined`. */
 	onRowsChange?: (rows: Set<string | number>) => void
 	/**
-	 * Called with the committed change(s) when a cell edit settles. The array
-	 * carries a single change today; it stays an array so a future batch path
-	 * (e.g. paste) keeps the same signature. Apply each change to your own row
-	 * data and feed it back as `rows`.
+	 * Called when an editing row is saved (removed from the set), with one
+	 * {@link CellChange} per changed cell in that row, batched into a single call.
+	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your
+	 * own row data and feed it back as `rows`.
 	 */
 	onValueChange: (changes: CellChange[]) => void
 }
