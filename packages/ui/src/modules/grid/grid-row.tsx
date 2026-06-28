@@ -16,7 +16,7 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnShiftStyle, GridReorderActiveContext } from './grid-reorder'
+import { columnShiftStyle, GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -410,7 +410,7 @@ type GridReorderableCellProps = {
  * own — that put the column's header id on every body row, a duplicate-id churn
  * dnd-kit re-measures over. Instead the whole column glides via the CSS variable
  * its header writes (see {@link columnShiftStyle}), and this cell only reflects
- * the dragged-column lift from {@link GridReorderActiveContext} — a value that
+ * the dragged-column lift from {@link GridReorderContext} — a value that
  * flips just at drag start and end, so a drag re-renders it twice, never per move.
  *
  * @internal
@@ -423,7 +423,7 @@ const GridReorderableCell = memo(function GridReorderableCell({
 	cellProps,
 	children,
 }: GridReorderableCellProps) {
-	const dragging = useContext(GridReorderActiveContext) === String(id)
+	const dragging = useContext(GridReorderContext) === String(id)
 
 	return (
 		<TableCell

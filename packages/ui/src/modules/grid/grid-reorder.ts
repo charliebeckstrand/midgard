@@ -80,7 +80,7 @@ export const restrictToFirstScrollableAncestor: Modifier = ({
  *
  * @internal
  */
-export const [GridReorderActiveContext] = createContext<string | null>('GridReorderActive', {
+export const [GridReorderContext] = createContext<string | null>('GridReorder', {
 	default: null,
 })
 

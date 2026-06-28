@@ -29,7 +29,7 @@ import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
 import {
-	GridReorderActiveContext,
+	GridReorderContext,
 	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
 } from './grid-reorder'
@@ -120,7 +120,7 @@ function GridRegion<T>({
 	const reordered = canReorder ? (
 		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
 			<SortableContext items={itemIds} strategy={strategy}>
-				<GridReorderActiveContext value={activeReorderId}>{children}</GridReorderActiveContext>
+				<GridReorderContext value={activeReorderId}>{children}</GridReorderContext>
 			</SortableContext>
 		</DndContext>
 	) : (
