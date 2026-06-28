@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { useGrid } from './context'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -37,6 +38,7 @@ type GridCellContentProps = {
  */
 export function GridCellContent({ content, tooltip }: GridCellContentProps) {
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+	const { resizing } = useGrid()
 
 	const span = (
 		<span ref={ref} className={cn(k.cell.truncate)}>
@@ -49,7 +51,10 @@ export function GridCellContent({ content, tooltip }: GridCellContentProps) {
 	const node = tooltip.kind === 'custom' ? tooltip.node : content
 
 	return (
-		<Tooltip enabled={truncated}>
+		// `!resizing` holds the tooltip closed through a column drag-resize: the
+		// drag reflows the column, and the overflow tooltip would otherwise flash
+		// open over the content the resize is reshaping.
+		<Tooltip enabled={truncated && !resizing}>
 			<TooltipTrigger>{span}</TooltipTrigger>
 
 			<TooltipContent className={cn(k.cell.tooltip)}>{node}</TooltipContent>
