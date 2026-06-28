@@ -653,20 +653,30 @@ export function GridData<T>({
 		filename: exportFilename,
 	} = resolveExport(exportable)
 
-	// Export the filtered + sorted rows (all pages) to a CSV download. The engine's
-	// sorted row model reflects active filters and sort; `null` keeps both the menu
-	// item and the toolbar button out unless export is enabled.
+	// Export to a CSV download: the selected rows when a selection is active, else
+	// the full filtered + sorted set (all pages). The engine's sorted row model
+	// reflects active filters and sort and carries each row's selected state (the
+	// grid mirrors its selection `Set` into the engine), so the selected subset
+	// keeps the displayed order; `null` keeps the menu items and the toolbar
+	// button out unless export is enabled.
 	const exportCsv = useMemo(
 		() =>
 			exportEnabled
-				? () =>
+				? () => {
+						const sorted = table.getSortedRowModel().rows
+
+						const selected = sorted.filter((modelRow) => modelRow.getIsSelected())
+
+						const exported = selected.length > 0 ? selected : sorted
+
 						downloadCsv(
 							exportFilename,
 							rowsToCsv(
 								visibleColumns,
-								table.getSortedRowModel().rows.map((modelRow) => modelRow.original),
+								exported.map((modelRow) => modelRow.original),
 							),
 						)
+					}
 				: null,
 		[exportEnabled, exportFilename, visibleColumns, table],
 	)

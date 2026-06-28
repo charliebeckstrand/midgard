@@ -575,11 +575,12 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// `exportable` adds an "Export to CSV" item to the header right-click menu; it
-// downloads the filtered/sorted rows, each column read through its `value`.
-// Passing a config object instead of `true` also surfaces a toolbar button
-// (mirroring the column manager's `toolbarButton`, beside it in the grid's
-// toolbar), and tunes the label and download filename.
+// `exportable` adds an "Export to CSV" item to the header and cell right-click
+// menus; it downloads the filtered/sorted rows — or just the selected rows when a
+// selection is active — each column read through its `value`. Passing a config
+// object instead of `true` also surfaces a toolbar button (mirroring the column
+// manager's `toolbarButton`, beside it in the grid's toolbar), and tunes the
+// label and download filename.
 const ExportExample = () => (
 	<Grid
 		exportable={{ toolbarButton: true, filename: 'people.csv' }}

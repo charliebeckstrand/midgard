@@ -293,4 +293,108 @@ describe('Grid CSV export', () => {
 
 		expect(within(tools).getByRole('button', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
+
+	it('exports only the selected rows when a selection is active', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				exportable={{ toolbarButton: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([2]) }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		// Only Bob (id 2) is selected: the export keeps the header and drops the
+		// unselected Alice.
+		expect(text).toContain('Name,Role')
+
+		expect(text).toContain('Bob,Designer')
+
+		expect(text).not.toContain('Alice,Developer')
+
+		click.mockRestore()
+	})
+
+	it('exports the selected rows from the cell context menu', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				exportable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([1]) }}
+			/>,
+		)
+
+		const cell = screen.getAllByRole('cell').find((node) => node.textContent?.includes('Alice'))
+
+		if (!cell) throw new Error('no cell containing "Alice"')
+
+		fireEvent.contextMenu(cell)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		// Alice (id 1) is selected: the cell-menu export drops the unselected Bob.
+		expect(text).toContain('Alice,Developer')
+
+		expect(text).not.toContain('Bob,Designer')
+
+		click.mockRestore()
+	})
+
+	it('falls back to every row when the selection is empty', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				exportable={{ toolbarButton: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set<number>() }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		expect(text).toContain('Alice,Developer')
+
+		expect(text).toContain('Bob,Designer')
+
+		click.mockRestore()
+	})
 })
