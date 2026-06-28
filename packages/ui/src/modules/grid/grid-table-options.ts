@@ -89,7 +89,7 @@ export function usesClientModel(args: {
 }
 
 /** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
-function parsePxWidth(width: string | undefined): number | undefined {
+export function parsePxWidth(width: string | undefined): number | undefined {
 	if (width == null) return undefined
 
 	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())

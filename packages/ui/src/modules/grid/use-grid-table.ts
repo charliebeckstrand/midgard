@@ -18,6 +18,7 @@ import {
 } from '@tanstack/react-table'
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
+import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
 import { DEFAULT_PAGE_SIZE } from './grid-constants'
 import {
@@ -55,7 +56,7 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
-import { useGridColumnFit } from './use-grid-column-fit'
+import { useGridColumnAutoSize } from './use-grid-column-auto-size'
 
 export type {
 	GridColumnFilter,
@@ -124,6 +125,8 @@ type UseGridTableParams<T> = {
 	columnFilters?: GridColumnFilters
 	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
 	containerRef?: RefObject<HTMLElement | null>
+	/** Table density; threaded to the autosizer, whose measurements scale with it. */
+	density?: DensityLevel
 }
 
 /** Result of {@link useGridTable}. @internal */
@@ -238,6 +241,7 @@ export function useGridTable<T>({
 	globalFilter: globalFilterConfig,
 	columnFilters: columnFiltersConfig,
 	containerRef,
+	density,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
 	const columnDefs = useStableColumnDefs(columns)
 
@@ -432,13 +436,14 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
-	const { sizeToFit } = useGridColumnFit<T>({
+	const { sizeToFit } = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
+		density,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(

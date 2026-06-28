@@ -41,7 +41,10 @@ export function GridCellContent({ content, tooltip }: GridCellContentProps) {
 	const { resizing } = useGrid()
 
 	const span = (
-		<span ref={ref} className={cn(k.cell.truncate)}>
+		// `data-grid-content` marks the truncating leaf so the column autosizer can
+		// read its intrinsic content width (`scrollWidth`/`Range`), unclipped by the
+		// column it's measuring.
+		<span ref={ref} data-grid-content className={cn(k.cell.truncate)}>
 			{content}
 		</span>
 	)

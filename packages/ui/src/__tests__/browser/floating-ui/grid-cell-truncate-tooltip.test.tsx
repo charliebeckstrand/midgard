@@ -176,18 +176,21 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		expect(document.querySelectorAll('[data-floating-ui-portal]')).toHaveLength(0)
 	})
 
-	it('clips every row consistently under auto-fit in a constrained container', async () => {
-		const many = Array.from({ length: 5 }, (_, i) => ({ id: i, name: `${longName} ${i}` }))
+	it('clips every row consistently under auto-fit past the content cap', async () => {
+		// Content this wide exceeds the autosizer's per-column content cap, so the
+		// column settles at the cap rather than growing to fit — and every row clips.
+		const huge = `${longName} ${longName} ${longName}`
 
-		// Resizable + uncontrolled sizing exercises auto-fit (as the demo does),
-		// inside a width the long column can't satisfy.
+		const many = Array.from({ length: 5 }, (_, i) => ({ id: i, name: `${huge} ${i}` }))
+
+		// Resizable + uncontrolled sizing exercises auto-fit (as the demo does).
 		const { container } = renderUI(
 			<div style={{ maxWidth: '240px' }}>
 				<Grid resizable columns={[nameCol]} rows={many} getKey={getKey} />
 			</div>,
 		)
 
-		await screen.findByText(`${longName} 0`)
+		await screen.findByText(`${huge} 0`)
 
 		await new Promise((resolve) => setTimeout(resolve, 200))
 
