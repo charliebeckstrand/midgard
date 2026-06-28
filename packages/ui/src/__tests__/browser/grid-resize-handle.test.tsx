@@ -70,6 +70,30 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 	})
 
+	it('lines the grip up with the column border, not a cell-padding inside it', async () => {
+		const { container, table } = setup()
+
+		await waitFor(() => expect(table.style.width).not.toBe(''))
+
+		const roleHeader = container.querySelector<HTMLElement>(
+			'th[data-grid-col="role"]',
+		) as HTMLElement
+
+		const grip = container
+			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Role"]')
+			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+
+		// The grip sits flush against the column's trailing border: its right edge
+		// lands within a hairline of the header's right edge. A grip centred in the
+		// handle would fall ~one cell-padding (8px at this density) short of the
+		// border, reading as a misaligned line floating inside the cell.
+		const gap = roleHeader.getBoundingClientRect().right - grip.getBoundingClientRect().right
+
+		expect(gap).toBeGreaterThanOrEqual(-0.5)
+
+		expect(gap).toBeLessThanOrEqual(2)
+	})
+
 	it('does not overhang the table edge, so a right-pinned column holds at the scroll end', async () => {
 		const { container, table } = setup()
 		await waitFor(() => expect(table.style.width).not.toBe(''))

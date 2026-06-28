@@ -421,7 +421,7 @@ function resolveResizeLayout<T>(args: {
 				))}
 			</colgroup>
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
+		tableClassName: cn(k.resize.fixed, k.resize.padding({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
