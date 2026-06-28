@@ -162,6 +162,21 @@ export type GridExportConfig = {
 }
 
 /**
+ * Header configuration for {@link GridDataProps.header}. Carries the header
+ * row's positioning today; further header options attach here as the surface
+ * grows, so the grid takes one `header` binding rather than a prop per setting.
+ */
+export type GridHeader = {
+	/**
+	 * Header row positioning. `'sticky'` pins the header to the top while the body
+	 * scrolls, forcing a scroll wrapper around the table; `'static'` leaves it in
+	 * normal flow.
+	 * @defaultValue 'static'
+	 */
+	position?: 'static' | 'sticky'
+}
+
+/**
  * Props for a read-only data {@link Grid}. `T` is the row datum type;
  * `columns` and the various renderers are keyed to it.
  *
@@ -317,11 +332,12 @@ export type GridDataProps<T> = TableVariants & {
 	rowLabel?: (row: T) => string
 
 	/**
-	 * Pins the header row while the body scrolls; forces a scroll wrapper around
-	 * the table.
-	 * @defaultValue false
+	 * Header configuration. A `position` of `'sticky'` pins the header row while
+	 * the body scrolls, forcing a scroll wrapper around the table.
+	 *
+	 * @see {@link GridHeader}
 	 */
-	stickyHeader?: boolean
+	header?: GridHeader
 
 	/** Caps the table height (any CSS length) behind a scroll wrapper; required by {@link GridDataProps.virtualize}. */
 	maxHeight?: string

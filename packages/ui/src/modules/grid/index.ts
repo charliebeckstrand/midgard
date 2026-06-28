@@ -4,6 +4,7 @@ export {
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
 	type GridExportConfig,
+	type GridHeader,
 	type GridProps,
 	type GridSelection,
 	type GridSort,

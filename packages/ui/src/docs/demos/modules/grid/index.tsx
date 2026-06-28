@@ -507,7 +507,7 @@ const PinnedExample = () => (
 	// sideways and they stay put while the middle columns slide beneath them.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={employeeColumns}
 		rows={employees}
@@ -618,6 +618,7 @@ const tabs = [
 	'Resize',
 	'Pin',
 	'Filters',
+	'Header',
 	'Toolbar',
 	'Pagination',
 	'State',
@@ -651,16 +652,6 @@ export function Demo() {
 
 						<Example title="Outline">
 							<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
-						</Example>
-
-						<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
-							<Grid
-								stickyHeader
-								maxHeight="200px"
-								columns={columns}
-								rows={[...people, ...people]}
-								getKey={(row, i) => `${row.id}-${i}`}
-							/>
 						</Example>
 					</Stack>
 				</TabContent>
@@ -762,6 +753,23 @@ export function Demo() {
 							code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'number' }]} />`}
 						>
 							<DateBooleanFilterExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Header">
+					<Stack gap="xl">
+						<Example
+							title="Sticky header"
+							code={code`<Grid header={{ position: 'sticky' }} maxHeight="200px" />`}
+						>
+							<Grid
+								header={{ position: 'sticky' }}
+								maxHeight="200px"
+								columns={columns}
+								rows={[...people, ...people]}
+								getKey={(row, i) => `${row.id}-${i}`}
+							/>
 						</Example>
 					</Stack>
 				</TabContent>
