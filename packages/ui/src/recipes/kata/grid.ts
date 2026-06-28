@@ -142,7 +142,19 @@ export const k = {
 		// Pin button on a frozen column's header: an icon-only control that unpins the
 		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
 		// matching the sort button — so it reads as the actionable affordance it is.
-		pinButton: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		// `-ml-1` pulls the button left by the Pin glyph's optical inset (the icon ink
+		// sits a few px inside its `size-4` box) so the visible pin lands over the
+		// column's cell values rather than floating a step to their right.
+		pinButton: [
+			flex.inline,
+			'shrink-0',
+			'-ml-1',
+			text.muted,
+			fg.hover,
+			focus.ring,
+			cursor,
+			'select-none',
+		],
 	},
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can
@@ -169,9 +181,13 @@ export const k = {
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
 		// would leave that cursor stuck as if the column were still held.
+		// `-ml-1.5` pulls the grip left by the GripVertical glyph's optical inset (its
+		// dots sit a third of the way into the `size-5` box) so the visible grip lines
+		// up over the column's cell values instead of floating a step to their right.
 		handle: [
 			flex.inline,
 			'shrink-0',
+			'-ml-1.5',
 			text.muted,
 			fg.hover,
 			focus.ring,
