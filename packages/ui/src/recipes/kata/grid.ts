@@ -35,9 +35,9 @@ const sortIcon = defineRecipe({
  *
  * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
  * 4/8/12px): the grab zone is twice that padding and anchored to the trailing
- * edge, so it reaches one cell-padding past where the label clears it — a
- * comfortable target — while the grip itself sits flush at that edge
- * (`justify-end`; see `handle`).
+ * edge, so its centred grip (`justify-center`; see `handle`) lands exactly one
+ * cell-padding in from that edge — flush with where the header label and body
+ * values truncate, so the grip meets the value instead of cutting through it.
  */
 const resizeMetrics = defineRecipe({
 	density: {
@@ -197,28 +197,28 @@ export const k = {
 		// inside of that edge (`right-0`, no outward shift) and widening leftward into
 		// the cell. Its width is density-scaled (set via `metrics`, since only the
 		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
-		// across compact/snug/loose (only the loose step reaches the 24px WCAG 2.5.8
-		// target). It spans the header cell's height (`h-full`): the affordance lives
-		// in the header, not down the column, and `justify-end` holds the grip at the
-		// trailing edge. `group/grid-resize` lets the grip tint on hover and turn
-		// accent on focus or active drag. It deliberately does not overhang the
+		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
+		// affordance lives in the header, not down the column. `justify-center` lands
+		// the grip one cell-padding in from the trailing edge — flush with where a
+		// truncating header's label and body values clip — and `items-center` centres
+		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
+		// and turn accent on focus or active drag. The grab zone does not overhang the
 		// boundary: an outward overhang gets painted over by a neighbour's opaque
-		// sticky/pinned header — clipping the grip to a sliver — and, on the trailing
-		// column, pushes past the table's edge to inflate the horizontal scroll.
+		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
 			'group/grid-resize absolute top-0 right-0 z-10 h-full',
-			'flex items-center justify-end',
+			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
-		// Grip line — a 2px rounded bar matching the `ResizableHandle` grip
-		// (`kata/resizable`) so every resize affordance reads the same width —
-		// spanning the header height at the trailing edge (`justify-end` on the
-		// handle), clear of a neighbour's opaque sticky/pinned header. Always visible:
-		// muted at rest, tinting on hover, turning accent on keyboard focus or active
-		// drag. Focus shows as a colour change, not an outset ring, so the scroll
-		// container can't clip it.
+		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
+		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
+		// the same, centred in the grab zone (`justify-center` on the handle) one
+		// cell-padding in from the trailing edge. Always visible: muted at rest,
+		// tinting on hover, turning accent on keyboard focus or active drag. Focus
+		// shows as a colour change, not an outset ring, so the scroll container can't
+		// clip it.
 		grip: [
-			'h-full w-0.5',
+			'h-4 w-0.5',
 			rounded.full,
 			'transition-colors',
 			...mode(

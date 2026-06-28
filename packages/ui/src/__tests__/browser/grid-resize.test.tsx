@@ -73,7 +73,7 @@ describe('grid column resizing (real browser)', () => {
 		expect(separator.getBoundingClientRect().height).toBeLessThan(tableHeight / 2)
 	})
 
-	it('shows the grip at rest, flush with the header trailing edge', async () => {
+	it('shows a short grip at rest, centred in the header trailing edge', async () => {
 		const { container, separator } = setup()
 
 		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
@@ -82,13 +82,18 @@ describe('grid column resizing (real browser)', () => {
 		// whole point of the change versus the old hidden-until-hover grip.
 		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
 
-		// Justified to the right: the grip sits at the header's trailing edge (within a
-		// couple pixels, allowing a hairline cell border).
-		const headerRect = nameHeader(container).getBoundingClientRect()
-
+		// A short bar (`h-4` ≈ 16px), not the full header height.
 		const gripRect = grip.getBoundingClientRect()
 
-		expect(Math.abs(headerRect.right - gripRect.right)).toBeLessThanOrEqual(3)
+		const headerRect = nameHeader(container).getBoundingClientRect()
+
+		expect(gripRect.height).toBeCloseTo(16, 0)
+
+		expect(gripRect.height).toBeLessThan(headerRect.height)
+
+		// Centred in the grab zone (`justify-center`), so it sits a cell-padding inside
+		// the trailing edge — not flush against the border.
+		expect(headerRect.right - gripRect.right).toBeGreaterThan(3)
 	})
 
 	it('resizes the column from a drag that begins on the header handle', async () => {

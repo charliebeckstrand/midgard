@@ -151,11 +151,9 @@ describe('grid resize handle geometry (real browser)', () => {
 })
 
 /**
- * Grip alignment is now uniform: every resizable grid flushes its grip to the
- * column's trailing border, whether or not its cells truncate. (A truncating grid
- * once centred the grip at the truncation point while the editable surface flushed
- * it to the border; the grip now sits at the border in both.) The handle only has
- * measured geometry in a real browser.
+ * Grip alignment is uniform: every resizable grid centres its grip in the grab
+ * zone — one cell-padding in from the trailing border — whether or not its cells
+ * truncate. The handle only has measured geometry in a real browser.
  */
 describe('grid resize grip alignment (real browser)', () => {
 	type Row = { id: number; name: string; role: string }
@@ -176,7 +174,7 @@ describe('grid resize grip alignment (real browser)', () => {
 	]
 
 	// Distance from the 'name' column's trailing border to its grip's right edge:
-	// a hairline when the grip flushes to the border.
+	// about one cell-padding when the grip centres in the grab zone.
 	function gripInset(container: HTMLElement): number {
 		const header = container.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
 
@@ -187,7 +185,7 @@ describe('grid resize grip alignment (real browser)', () => {
 		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
 	}
 
-	it('flushes the grip to the trailing border in a truncating grid', async () => {
+	it('centres the grip a cell-padding inside the trailing border in a truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
@@ -198,11 +196,13 @@ describe('grid resize grip alignment (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// On the column border — within a hairline of it, not a cell-padding inside.
-		expect(gripInset(container)).toBeLessThanOrEqual(2)
+		// A cell-padding inside the border (where a truncating value clips), not flush.
+		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
 	})
 
-	it('flushes the grip to the trailing border in a non-truncating (editable) grid', async () => {
+	it('centres the grip the same way in a non-truncating (editable) grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid
@@ -220,7 +220,10 @@ describe('grid resize grip alignment (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// The editable cells fill to the edge, and the grip lands on the same border.
-		expect(gripInset(container)).toBeLessThanOrEqual(2)
+		// The editable surface centres the grip identically — alignment no longer
+		// depends on truncation.
+		expect(gripInset(container)).toBeGreaterThan(3)
+
+		expect(gripInset(container)).toBeLessThan(14)
 	})
 })

@@ -202,10 +202,9 @@ export type GridDataProps<T> = TableVariants & {
 
 	/**
 	 * Enables drag- and keyboard-resizing of data columns through the grid's
-	 * TanStack Table engine. Each data column gains a resize handle on its trailing
-	 * edge, spanning the column's full height — header through the last row — so a
-	 * drag can begin anywhere down the column's right side, not just the header. The
-	 * handle's grip is revealed on hover, keyboard focus, or active drag. A column's
+	 * TanStack Table engine. Each data column's header gains a resize handle on its
+	 * trailing edge, carrying an always-visible grip — a short centred bar that
+	 * tints on hover and turns accent on keyboard focus or active drag. A column's
 	 * initial width comes from a `px` `width`, else a default, and widths persist
 	 * through {@link GridDataProps.columnSizing}. Set `false` for fixed-width columns.
 	 * @defaultValue true
