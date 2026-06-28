@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, userEvent, waitFor } from '../helpers'
+import { fireEvent, renderUI, waitFor } from '../helpers'
 
 /**
  * Column resizing against a real layout engine: the handle's full-column height
@@ -73,8 +74,6 @@ describe('grid column resizing (real browser)', () => {
 	})
 
 	it('keeps the grip hidden until the edge or header is hovered', async () => {
-		const user = userEvent.setup()
-
 		const { container, separator } = setup()
 
 		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
@@ -83,15 +82,18 @@ describe('grid column resizing (real browser)', () => {
 		// the whole point of the change, versus a permanently-visible handle.
 		expect(getComputedStyle(grip).opacity).toBe('0')
 
-		// Hovering the edge strip reveals it. The strip spans the body, so this
-		// hover lands well below the header yet still lights the grip.
-		await user.hover(separator)
+		// The grip reveals on the CSS `:hover` of the edge strip (and the header
+		// cell), so the pointer must really move — `vitest/browser`'s userEvent
+		// drives the Playwright mouse, unlike the synthetic
+		// `@testing-library/user-event` hover, which never sets `:hover`.
+		await userEvent.hover(separator)
 
 		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
 
 		// Hovering anywhere on the header cell reveals it too, for discoverability.
-		await user.unhover(separator)
-		await user.hover(nameHeader(container))
+		await userEvent.unhover(separator)
+
+		await userEvent.hover(nameHeader(container))
 
 		await waitFor(() => expect(getComputedStyle(grip).opacity).toBe('1'))
 	})

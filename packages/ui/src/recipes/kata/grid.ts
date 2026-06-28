@@ -214,7 +214,10 @@ export const k = {
 			'h-full w-0.5',
 			rounded.full,
 			'opacity-0 transition-opacity',
-			'group-hover/grid-resize:opacity-100',
+			// Revealed by a pointer on the full-height edge strip (the handle's own
+			// `group/grid-resize`) or anywhere on the resizable header (its
+			// `group/grid-col` host), on keyboard focus, and while a drag is in flight.
+			'group-hover/grid-resize:opacity-100 group-hover/grid-col:opacity-100',
 			'group-focus-visible/grid-resize:opacity-100 group-data-[resizing]/grid-resize:opacity-100',
 			...mode(
 				'bg-zinc-300 group-hover/grid-resize:bg-zinc-400',
