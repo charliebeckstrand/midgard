@@ -142,13 +142,13 @@ export const k = {
 		// Pin button on a frozen column's header: an icon-only control that unpins the
 		// column. Muted at rest, tinting and showing a focus ring on hover/focus —
 		// matching the sort button — so it reads as the actionable affordance it is.
-		// `-ml-1` pulls the button left by the Pin glyph's optical inset (the icon ink
-		// sits a few px inside its `size-4` box) so the visible pin lands over the
+		// `-ml-1.5` pulls the button left by the Pin glyph's optical inset (the icon ink
+		// sits a few px inside its `size-5` box) so the visible pin lands over the
 		// column's cell values rather than floating a step to their right.
 		pinButton: [
 			flex.inline,
 			'shrink-0',
-			'-ml-1',
+			'-ml-1.5',
 			text.muted,
 			fg.hover,
 			focus.ring,
