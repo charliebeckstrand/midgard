@@ -40,6 +40,7 @@ describe('useA11yAnnouncements', () => {
 		})
 
 		rerender({ m: 'b' })
+
 		rerender({ m: 'b' })
 
 		expect(announce).toHaveBeenCalledTimes(1)

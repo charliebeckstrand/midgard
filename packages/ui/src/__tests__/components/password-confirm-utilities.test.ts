@@ -52,6 +52,7 @@ describe('handlePasswordInput', () => {
 		const input = document.createElement('input')
 
 		input.name = 'password'
+
 		input.value = 'hunter2'
 
 		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)
@@ -89,6 +90,7 @@ describe('handlePasswordInput', () => {
 		const input = document.createElement('input')
 
 		input.dataset.passwordConfirmInput = ''
+
 		input.value = 'hunter2'
 
 		handlePasswordInput(makeEvent(input), setPassword, setPasswordName, setLastEdited)

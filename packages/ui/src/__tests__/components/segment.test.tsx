@@ -27,6 +27,7 @@ describe('Segment', () => {
 		const list = bySlot(container, 'tab-list')
 
 		expect(list).toBeInTheDocument()
+
 		expect(list).toHaveAttribute('role', 'tablist')
 	})
 
@@ -45,6 +46,7 @@ describe('Segment', () => {
 		expect(items).toHaveLength(2)
 
 		expect(items[0]).toHaveAttribute('role', 'tab')
+
 		expect(items[1]).toHaveAttribute('role', 'tab')
 	})
 
@@ -61,6 +63,7 @@ describe('Segment', () => {
 		const items = allBySlot(container, 'tab')
 
 		expect(items[0]).toHaveAttribute('aria-selected', 'false')
+
 		expect(items[1]).toHaveAttribute('aria-selected', 'true')
 	})
 
@@ -117,6 +120,7 @@ describe('Segment', () => {
 		const items = allBySlot(container, 'tab')
 
 		expect(items[0]).not.toHaveAttribute('data-current')
+
 		expect(items[1]).toHaveAttribute('data-current', '')
 	})
 
@@ -133,6 +137,7 @@ describe('Segment', () => {
 		const items = allBySlot(container, 'tab')
 
 		expect(items[0]).toHaveAttribute('tabindex', '-1')
+
 		expect(items[1]).toHaveAttribute('tabindex', '0')
 	})
 

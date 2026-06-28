@@ -59,6 +59,7 @@ describe('extractReferences', () => {
 		const refs = extractReferences('Item', location, checker)
 
 		expect(refs?.Item).toContain('id: string')
+
 		expect(refs?.Item).toContain('label: string')
 
 		expect(refs?.Item).toMatch(/^\{/)
@@ -116,6 +117,7 @@ describe('extractReferences', () => {
 		expect(refs?.Slot).toBe(`'PageHeader' | 'PageBody'`)
 
 		expect(refs?.PageHeader).toBeUndefined()
+
 		expect(refs?.PageBody).toBeUndefined()
 	})
 

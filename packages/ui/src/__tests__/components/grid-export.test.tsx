@@ -74,9 +74,11 @@ describe('rowsToCsv', () => {
 describe('downloadCsv', () => {
 	it('wraps the CSV in a BOM-led blob and clicks an object-URL anchor', async () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
 		const revokeObjectURL = vi.fn()
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = revokeObjectURL
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
@@ -142,6 +144,7 @@ describe('Grid CSV export', () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = vi.fn()
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
@@ -179,6 +182,7 @@ describe('Grid CSV export', () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = vi.fn()
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
@@ -250,6 +254,7 @@ describe('Grid CSV export', () => {
 
 	it('uses the configured filename for the download', () => {
 		URL.createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
 		URL.revokeObjectURL = vi.fn()
 
 		let downloadName: string | undefined
@@ -298,6 +303,7 @@ describe('Grid CSV export', () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = vi.fn()
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
@@ -333,6 +339,7 @@ describe('Grid CSV export', () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = vi.fn()
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
@@ -371,6 +378,7 @@ describe('Grid CSV export', () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
+
 		URL.revokeObjectURL = vi.fn()
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})

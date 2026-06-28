@@ -115,6 +115,7 @@ describe('TableBody', () => {
 		expect(container.querySelector('table')?.className).toContain(
 			'[&>tbody>tr:nth-child(even)]:bg-zinc-950/2.5',
 		)
+
 		expect(bySlot(container, 'table-body')?.className).not.toContain('even:')
 	})
 
@@ -169,6 +170,7 @@ describe('TableBody', () => {
 		expect(container.querySelector('table')?.className).toContain(
 			'[&>tbody>tr]:hover:bg-zinc-950/5',
 		)
+
 		expect(bySlot(container, 'table-body')?.className).not.toContain('hover:')
 	})
 
@@ -277,6 +279,7 @@ describe('Table variants', () => {
 
 		// The projection lives on the table element; cells stay identical.
 		expect(outlined.querySelector('table')?.className).toContain('[&>*>tr>td]:border')
+
 		expect(outlined.querySelector('tbody td')?.className).toBe(
 			plain.querySelector('tbody td')?.className,
 		)
@@ -297,6 +300,7 @@ describe('Table density resolution', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 
 		expect(container.querySelector('tbody td')?.className).toContain('px-2')
+
 		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
 	})
 
@@ -306,7 +310,9 @@ describe('Table density resolution', () => {
 		// The static cell keeps its md classes; the table element overrides
 		// them from outside.
 		expect(container.querySelector('table')?.className).toContain('[&>*>tr>td]:px-1')
+
 		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
+
 		expect(container.querySelector('tbody td')?.className).toContain('px-2')
 	})
 
@@ -319,6 +325,7 @@ describe('Table density resolution', () => {
 
 		// Static leaf: density comes from the explicit prop only.
 		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+
 		expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
 	})
 })

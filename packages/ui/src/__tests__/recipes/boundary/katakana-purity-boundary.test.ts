@@ -12,6 +12,7 @@ import { walkSource } from '../../helpers/walk-source'
 // the bridge rather than injected by the calling kata.
 
 const katakanaDir = join(__dirname, '../../../recipes/katakana')
+
 const srcDir = join(__dirname, '../../..')
 
 // Captures one module specifier per match; the lazy body stops at the first

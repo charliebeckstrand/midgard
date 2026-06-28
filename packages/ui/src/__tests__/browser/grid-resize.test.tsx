@@ -61,6 +61,7 @@ describe('grid column resizing (real browser)', () => {
 		// the measured `--grid-resize-height` lands.
 		await waitFor(() => {
 			const handleHeight = separator.getBoundingClientRect().height
+
 			const tableHeight = table.getBoundingClientRect().height
 
 			expect(handleHeight).toBeCloseTo(tableHeight, 0)
@@ -115,6 +116,7 @@ describe('grid column resizing (real browser)', () => {
 		const startWidth = nameHeader(container).getBoundingClientRect().width
 
 		const rect = separator.getBoundingClientRect()
+
 		const startX = rect.left + rect.width / 2
 
 		// Begin the drag near the bottom of the handle — down in the rows, not the
@@ -122,7 +124,9 @@ describe('grid column resizing (real browser)', () => {
 		const bodyY = rect.bottom - 16
 
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: bodyY })
+
 		fireEvent.mouseMove(document, { clientX: startX + 70, clientY: bodyY })
+
 		fireEvent.mouseUp(document, { clientX: startX + 70, clientY: bodyY })
 
 		await waitFor(() =>
@@ -145,19 +149,26 @@ describe('grid column resizing (real browser)', () => {
 		)
 
 		const wrapper = container.querySelector('[data-slot="grid"]') as HTMLElement
+
 		const ageHeader = container.querySelector('th[data-grid-col="age"]') as HTMLElement
+
 		const ageHandle = container.querySelector(
 			'[role="separator"][aria-label="Resize Age"]',
 		) as HTMLElement
+
 		const nameGrip = separator.querySelector('span[aria-hidden="true"]') as HTMLElement
+
 		const ageGrip = ageHandle.querySelector('span[aria-hidden="true"]') as HTMLElement
 
 		const rect = separator.getBoundingClientRect()
+
 		const startX = rect.left + rect.width / 2
+
 		const bodyY = rect.bottom - 16
 
 		// Hold the drag open — mousedown plus a move, but no mouseup yet.
 		fireEvent.mouseDown(separator, { clientX: startX, clientY: bodyY })
+
 		fireEvent.mouseMove(document, { clientX: startX + 40, clientY: bodyY })
 
 		// The grid flags the in-flight resize and every resizable header drops its

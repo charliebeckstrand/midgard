@@ -27,6 +27,7 @@ describe('Calendar', () => {
 		const el = bySlot(container, 'calendar')
 
 		expect(el?.textContent).toContain('Su')
+
 		expect(el?.textContent).toContain('Mo')
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()

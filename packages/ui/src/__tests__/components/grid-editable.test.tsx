@@ -264,6 +264,7 @@ describe('Grid', () => {
 		)
 
 		const grid = bySlot(container, 'grid-editable') as HTMLElement
+
 		const cells = allBySlot(container, 'grid-editable-cell')
 
 		fireEvent.mouseDown(cells[0] as HTMLElement)
@@ -291,6 +292,7 @@ describe('Grid', () => {
 		)
 
 		const grid = bySlot(container, 'grid-editable') as HTMLElement
+
 		const rateCell = allBySlot(container, 'grid-editable-cell')[1] as HTMLElement
 
 		fireEvent.mouseDown(rateCell)

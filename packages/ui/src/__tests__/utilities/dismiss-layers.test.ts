@@ -33,6 +33,7 @@ describe('dismiss layers', () => {
 
 	it('treats only the innermost (last-registered) layer as topmost', () => {
 		const outer = open()
+
 		const inner = open()
 
 		expect(isTopDismissLayer(inner.layer)).toBe(true)
@@ -42,6 +43,7 @@ describe('dismiss layers', () => {
 
 	it('restores the previous layer to the top once the innermost unregisters', () => {
 		const outer = open()
+
 		const inner = open()
 
 		inner.unregister()
@@ -51,9 +53,11 @@ describe('dismiss layers', () => {
 
 	it('is a no-op when a layer unregisters twice, leaving the rest intact', () => {
 		const outer = open()
+
 		const inner = open()
 
 		inner.unregister()
+
 		inner.unregister()
 
 		expect(isTopDismissLayer(outer.layer)).toBe(true)

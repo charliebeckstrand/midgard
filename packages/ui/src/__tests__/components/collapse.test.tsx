@@ -77,6 +77,7 @@ describe('Collapse', () => {
 		)
 
 		expect(bySlot(container, 'collapse-trigger')).toBeNull()
+
 		expect(screen.getByText('Just body')).toBeInTheDocument()
 	})
 

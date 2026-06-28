@@ -80,6 +80,7 @@ describe('Sheet', () => {
 describe('SheetTrigger', () => {
 	it('invokes onClick and preserves the child onClick when clicked', () => {
 		const childOnClick = vi.fn()
+
 		const onClick = vi.fn()
 
 		renderUI(
@@ -101,6 +102,7 @@ describe('SheetTrigger', () => {
 describe('SheetClose', () => {
 	it('invokes the child onClick and closes the sheet when clicked', () => {
 		const childOnClick = vi.fn()
+
 		const onOpenChange = vi.fn()
 
 		renderUI(

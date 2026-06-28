@@ -44,6 +44,7 @@ describe('grid context menu anchoring (real browser)', () => {
 
 		// The cell and the menu at open time, before any scroll.
 		const cellTop0 = cell.getBoundingClientRect().top
+
 		const menuTop0 = menu.getBoundingClientRect().top
 
 		// Scroll the container; the cell moves up in the viewport.
@@ -51,6 +52,7 @@ describe('grid context menu anchoring (real browser)', () => {
 
 		await waitFor(() => {
 			const cellTop1 = cell.getBoundingClientRect().top
+
 			const menuTop1 = menu.getBoundingClientRect().top
 
 			// The cell actually scrolled up.

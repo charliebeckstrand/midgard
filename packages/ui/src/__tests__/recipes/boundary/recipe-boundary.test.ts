@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
 const uiRoot = join(__dirname, '../../../..')
+
 const workspaceRoot = join(uiRoot, '../..')
 
 describe('recipes internal-boundary contract', () => {

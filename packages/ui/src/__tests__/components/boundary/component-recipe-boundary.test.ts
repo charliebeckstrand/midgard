@@ -10,7 +10,9 @@ import { describe, expect, it } from 'vitest'
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 
 const componentsDir = join(__dirname, '../../../components')
+
 const modulesDir = join(__dirname, '../../../modules')
+
 const srcDir = join(__dirname, '../../..')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
@@ -27,6 +29,7 @@ describe('component recipe-import boundary', () => {
 
 				for (const match of content.matchAll(IMPORT_RE)) {
 					const head = match[1] ?? ''
+
 					const path = match[2] ?? ''
 
 					if (!path.includes('/recipes')) continue
@@ -44,6 +47,7 @@ describe('component recipe-import boundary', () => {
 
 					if (isBarrel) {
 						violations.push(`${rel}: value import from recipes barrel — ${match[0]}`)
+
 						continue
 					}
 

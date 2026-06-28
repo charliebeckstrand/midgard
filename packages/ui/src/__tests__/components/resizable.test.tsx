@@ -87,6 +87,7 @@ describe('Resizable', () => {
 		const panels = allBySlot(container, 'resizable-panel')
 
 		expect(panels[0]?.style.flex).toBe('70 0 0px')
+
 		expect(panels[1]?.style.flex).toBe('30 0 0px')
 	})
 
@@ -116,6 +117,7 @@ describe('Resizable', () => {
 		const handle = bySlot(container, 'resizable-handle')
 
 		expect(handle).toHaveAttribute('aria-valuemin', '20')
+
 		expect(handle).toHaveAttribute('aria-valuemax', '80')
 	})
 })

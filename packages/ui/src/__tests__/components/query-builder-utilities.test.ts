@@ -13,7 +13,9 @@ import {
 import type { QueryField, QueryNode, QueryRule } from '../../modules/query/query-builder/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
+
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
 const selectField: QueryField = {
 	name: 'role',
 	label: 'Role',
@@ -23,6 +25,7 @@ const selectField: QueryField = {
 		{ value: 'user', label: 'User' },
 	],
 }
+
 const booleanField: QueryField = { name: 'active', label: 'Active', type: 'boolean' }
 
 describe('createRule', () => {
@@ -394,7 +397,9 @@ describe('removeChild', () => {
 describe('findFocusTarget', () => {
 	it('prefers the previous sibling, then offers the next, then the group', () => {
 		const a = createRule(textField)
+
 		const b = createRule(textField)
+
 		const c = createRule(textField)
 
 		const root = createGroup('and', [a, b, c])
@@ -409,6 +414,7 @@ describe('findFocusTarget', () => {
 
 	it('omits the previous candidate when removing the first child', () => {
 		const a = createRule(textField)
+
 		const b = createRule(textField)
 
 		const root = createGroup('and', [a, b])

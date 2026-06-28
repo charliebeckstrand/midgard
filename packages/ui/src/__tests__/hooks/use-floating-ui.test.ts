@@ -144,7 +144,9 @@ describe('useFloatingUI', () => {
 				floatingChild,
 				cleanup: () => {
 					unmount()
+
 					reference.remove()
+
 					floating.remove()
 				},
 			}
@@ -241,6 +243,7 @@ describe('useFloatingUI', () => {
 			expect(onOpenChange).not.toHaveBeenCalled()
 
 			outside.remove()
+
 			cleanup()
 		})
 	})
@@ -293,7 +296,9 @@ describe('useFloatingUI', () => {
 			expect(focus).not.toHaveBeenCalled()
 
 			outside.remove()
+
 			reference.remove()
+
 			floating.remove()
 		})
 

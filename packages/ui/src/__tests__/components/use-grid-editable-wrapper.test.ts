@@ -135,6 +135,7 @@ describe('useGridEditableWrapper: onWrapperKeyDown arrow navigation', () => {
 		const { api, moveActive } = setup()
 
 		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowLeft'))
+
 		api.onWrapperKeyDown(makeKeyEvent<HTMLTableElement>('ArrowRight'))
 
 		expect(moveActive).toHaveBeenNthCalledWith(1, 0, -1, false)

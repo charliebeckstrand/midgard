@@ -179,6 +179,7 @@ describe('DatePicker', () => {
 		const arg = onChange.mock.calls[0]?.[0] as Date
 
 		expect(arg.getMonth()).toBe(5)
+
 		expect(arg.getDate()).toBe(20)
 	})
 
@@ -606,6 +607,7 @@ describe('DatePicker range', () => {
 
 	it('displays formatted range when value is set', () => {
 		const start = new Date(2025, 0, 1)
+
 		const end = new Date(2025, 0, 10)
 
 		const { container } = renderUI(<DatePicker range value={[start, end]} />)
@@ -687,6 +689,7 @@ describe('DatePicker input', () => {
 		const emitted = onChange.mock.lastCall?.[0] as Date
 
 		expect(emitted.getMonth()).toBe(11)
+
 		expect(emitted.getDate()).toBe(25)
 	})
 
@@ -776,6 +779,7 @@ describe('DatePicker input', () => {
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
 		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
 		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await user.click(calendar)
@@ -797,6 +801,7 @@ describe('DatePicker input', () => {
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
 		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
 		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await user.click(calendar)

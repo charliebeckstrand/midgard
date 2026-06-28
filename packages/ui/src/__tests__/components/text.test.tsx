@@ -15,6 +15,7 @@ describe('Text', () => {
 		const { container } = renderUI(<TextSkeleton />)
 
 		expect(bySlot(container, 'text')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
