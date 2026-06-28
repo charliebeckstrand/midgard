@@ -83,6 +83,7 @@ describe('grid column auto-fit (real browser)', () => {
 		)
 
 		const table = container.querySelector('table') as HTMLElement
+
 		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
