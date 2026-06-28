@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Column pinning against a real layout engine: sticky positioning only resolves
@@ -132,6 +132,74 @@ describe('grid column pinning (real browser)', () => {
 		// The right-pinned column keeps its right edge through the scroll.
 		expect((cell(container, 'status') as HTMLElement).getBoundingClientRect().right).toBeCloseTo(
 			pinnedRight,
+			0,
+		)
+	})
+
+	it('keeps the selection column frozen leftmost, ahead of a pinned column, while the body scrolls', async () => {
+		// The selection column is defined *after* the left-pinned column, yet it must
+		// still freeze ahead of it: perpetually leftmost, with the pinned column
+		// stacked to its right.
+		const selectColumns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'select', selectable: true },
+			{ id: 'a', title: 'A', cell: (row) => row.a },
+			{ id: 'b', title: 'B', cell: (row) => row.b },
+			{ id: 'c', title: 'C', cell: (row) => row.c },
+			{ id: 'd', title: 'D', cell: (row) => row.d },
+		]
+
+		const { container } = renderUI(
+			<div style={{ width: '480px' }}>
+				<Grid
+					resizable
+					stickyHeader
+					maxHeight="240px"
+					columns={selectColumns}
+					columnSizing={{ value: { name: 160, a: 200, b: 200, c: 200, d: 200 } }}
+					rows={rows}
+					getKey={getKey}
+					selection={{ value: new Set() }}
+				/>
+			</div>,
+		)
+
+		const scroller = container.querySelector<HTMLElement>('.overflow-auto')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		await waitFor(() => expect(screen.queryByLabelText('Select row 1')).not.toBeNull())
+
+		// The selection cell carries no `data-grid-col`; reach it through its checkbox.
+		const selectCell = () => screen.getByLabelText('Select row 1').closest('td') as HTMLElement
+
+		expect(getComputedStyle(selectCell()).position).toBe('sticky')
+
+		const selectLeft = selectCell().getBoundingClientRect().left
+
+		const nameLeft = (cell(container, 'name') as HTMLElement).getBoundingClientRect().left
+
+		// The checkboxes lead the frozen group; the pinned data column sits to their right.
+		expect(nameLeft).toBeGreaterThan(selectLeft)
+
+		const centerLeft = (cell(container, 'c') as HTMLElement).getBoundingClientRect().left
+
+		scroller.scrollLeft = 300
+
+		scroller.dispatchEvent(new Event('scroll'))
+
+		// A scrolling column slides under the frozen group...
+		await waitFor(() =>
+			expect((cell(container, 'c') as HTMLElement).getBoundingClientRect().left).toBeLessThan(
+				centerLeft - 100,
+			),
+		)
+
+		// ...while the selection column and the column pinned to its right both hold.
+		expect(selectCell().getBoundingClientRect().left).toBeCloseTo(selectLeft, 0)
+
+		expect((cell(container, 'name') as HTMLElement).getBoundingClientRect().left).toBeCloseTo(
+			nameLeft,
 			0,
 		)
 	})

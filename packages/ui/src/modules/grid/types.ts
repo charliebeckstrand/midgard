@@ -53,6 +53,12 @@ export type GridColumn<T> = {
 	 * Marks this as the selection column; renders the row-select checkboxes
 	 * instead of a cell value. Defaults to a natural checkbox width rather than a
 	 * full data-column width; set {@link GridColumn.width} to override.
+	 *
+	 * @remarks The selection column is perpetually frozen to the far left,
+	 * wherever it sits in `columns`: it leads the left edge ahead of every
+	 * {@link GridColumn.pinned | pinned} column, so the checkboxes never scroll out
+	 * of view and anything pinned left stacks to their right. This freeze isn't the
+	 * runtime pin system — it has no unpin control and can't be released.
 	 */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
@@ -99,7 +105,9 @@ export type GridColumn<T> = {
 	 * unpins it on click. Multi-column stacking needs known widths (a
 	 * `resizable`/fixed-layout grid, or a column `width`); a lone pinned column on a
 	 * side needs neither. This is the column's initial pin — the header context
-	 * menu's Pin left / Pin right / Unpin items override it at runtime.
+	 * menu's Pin left / Pin right / Unpin items override it at runtime. The
+	 * {@link GridColumn.selectable | selection column} always leads the left edge,
+	 * so a left-pinned column sits to its right.
 	 */
 	pinned?: boolean | 'left' | 'right'
 	/**

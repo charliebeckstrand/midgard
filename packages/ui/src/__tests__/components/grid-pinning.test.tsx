@@ -163,6 +163,63 @@ describe('Grid column pinning', () => {
 		expect(head?.className).toContain('dark:lg:bg-zinc-900')
 	})
 
+	it('perpetually freezes the selection column to the left, ahead of a pinned column', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'select', selectable: true },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'left' },
+		]
+
+		const { container } = renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ value: new Set() }}
+				columnSizing={{ value: { name: 120, email: 200 } }}
+			/>,
+		)
+
+		// The selection column sits frozen at the edge even though defined second.
+		const select = screen.getByLabelText('Select all rows').closest('th')
+
+		expect(select?.className).toContain('sticky')
+
+		expect(select?.style.left).toBe('0px')
+
+		// The user-pinned column stacks to its right by the selection column's
+		// natural checkbox width (48px), so the checkboxes stay leftmost.
+		expect(headCell(container, 'email')?.style.left).toBe('48px')
+
+		// Only the user-pinned column offers an unpin control; the frozen selection
+		// column carries none, so its freeze can't be released.
+		expect(screen.getByRole('button', { name: 'Unpin Email' })).toBeInTheDocument()
+
+		expect(screen.getAllByRole('button', { name: /^Unpin/ })).toHaveLength(1)
+	})
+
+	it('freezes the selection column even when no other column is pinned', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} selection={{ value: new Set() }} />,
+		)
+
+		const select = screen.getByLabelText('Select all rows').closest('th')
+
+		expect(select?.className).toContain('sticky')
+
+		expect(select?.style.left).toBe('0px')
+
+		// The checkboxes can't be unpinned: no pin control anywhere in the grid.
+		expect(screen.queryByRole('button', { name: /^Unpin/ })).not.toBeInTheDocument()
+	})
+
 	it('carries no sticky chrome when no column is pinned', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },

@@ -69,6 +69,29 @@ describe('useGridTable column resolution', () => {
 		expect(visibleIds(cols, { columnVisibility: { c: false } })).toEqual(['a', 'd', 'b'])
 	})
 
+	it('hoists the selection column to the far left wherever it is defined', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A', cell: cell('a') },
+			{ id: 'select', selectable: true },
+			{ id: 'b', title: 'B', cell: cell('b') },
+		]
+
+		// Defined mid-array, the checkbox column still resolves leftmost.
+		expect(visibleIds(cols, { selection: new Set() })).toEqual(['select', 'a', 'b'])
+	})
+
+	it('keeps the selection column ahead of a user-pinned-left column', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A', cell: cell('a'), pinned: 'left' },
+			{ id: 'select', selectable: true },
+			{ id: 'b', title: 'B', cell: cell('b') },
+			{ id: 'c', title: 'C', cell: cell('c'), pinned: 'right' },
+		]
+
+		// Selection leads the left edge; the pinned data column stacks to its right.
+		expect(visibleIds(cols, { selection: new Set() })).toEqual(['select', 'a', 'b', 'c'])
+	})
+
 	it('holds a stable visibleColumns reference across renders with identical contents', () => {
 		const { result, rerender } = renderHook(
 			({ cols }: { cols: GridColumn<Row>[] }) => useGridTable<Row>({ rows, columns: cols, getKey }),

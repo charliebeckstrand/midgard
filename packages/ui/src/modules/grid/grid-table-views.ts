@@ -115,17 +115,34 @@ export function isQueryGroup(value: unknown): value is QueryGroupNode {
  * Derives the engine's `columnPinning` state from each column's `pinned` flag
  * (`true` is left), plus whether any column is pinned at all.
  *
+ * @remarks The selection column ({@link GridColumn.selectable}) is perpetually
+ * frozen to the far left: it leads the `left` list ahead of every user-pinned
+ * column, independent of its own `pinned` flag, so the row-select checkboxes
+ * never scroll out of view and anything pinned left stacks to their right. The
+ * engine renders left-pinned columns in `left`-array order, so leading the list
+ * places it leftmost. The freeze can't be released — its header renders only the
+ * checkbox (no unpin button) and exposes no `data-grid-col` for the pin menu.
  * @internal
  */
 export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	state: ColumnPinningState
 	hasPinned: boolean
 } {
-	const left = columns
-		.filter((col) => col.pinned === true || col.pinned === 'left')
-		.map((col) => String(col.id))
+	// The selection column leads the left edge, ahead of any user-pinned column
+	// and regardless of its own `pinned` flag, so the checkboxes stay frozen far
+	// left and can't be unpinned.
+	const select = columns.filter((col) => col.selectable).map((col) => String(col.id))
 
-	const right = columns.filter((col) => col.pinned === 'right').map((col) => String(col.id))
+	const left = [
+		...select,
+		...columns
+			.filter((col) => !col.selectable && (col.pinned === true || col.pinned === 'left'))
+			.map((col) => String(col.id)),
+	]
+
+	const right = columns
+		.filter((col) => !col.selectable && col.pinned === 'right')
+		.map((col) => String(col.id))
 
 	return { state: { left, right }, hasPinned: left.length > 0 || right.length > 0 }
 }
