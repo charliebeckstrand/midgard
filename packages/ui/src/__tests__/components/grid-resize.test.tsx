@@ -252,4 +252,25 @@ describe('Grid resizable columns', () => {
 
 		expect(handle).not.toHaveAttribute('data-resizing')
 	})
+
+	// A column drag-resize sweeps the pointer across the rows; the shared
+	// `<Table hover>` wash would light each one up mid-drag, so the grid drops it
+	// until the drag ends.
+	it('drops the hover wash while a column resize is in flight', () => {
+		const { container } = renderUI(
+			<Grid resizable hover columns={columns} rows={rows} getKey={getKey} />,
+		)
+
+		const table = container.querySelector('table')
+
+		// The `hover` grid paints the shared `<Table hover>` wash at rest.
+		expect(table?.className).toContain('[&>tbody>tr]:hover:bg-zinc-950/5')
+
+		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize Name' }), {
+			button: 0,
+			clientX: 200,
+		})
+
+		expect(table?.className).not.toContain('[&>tbody>tr]:hover:bg-zinc-950/5')
+	})
 })
