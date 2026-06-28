@@ -582,37 +582,41 @@ export function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
-	const { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning } =
-		useGridTable<T>({
-			rows,
-			// The engine receives the full column set and resolves which render (and
-			// in what order) from the order / visibility / pinning state below;
-			// `visibleColumns` comes back in that resolved order for the header and body.
-			// Under `navigable` these carry the cursor wiring (see `navColumns`).
-			columns: navColumns,
-			getKey,
-			selection,
-			columnOrder,
-			columnVisibility,
-			sort,
-			setSort,
-			sortManual: sortConfig?.manual ?? false,
-			pagination: paginationConfig,
-			resizable,
-			columnSizing: columnSizingConfig,
-			globalFilter: searchConfig,
-			columnFilters: columnFiltersConfig,
-			containerRef: wrapperRef,
-		})
+	const {
+		table,
+		visibleColumns,
+		renderRows,
+		rowKeys,
+		pagination,
+		resize,
+		globalFilter,
+		filters,
+		pinning,
+	} = useGridTable<T>({
+		rows,
+		// The engine receives the full column set and resolves which render (and
+		// in what order) from the order / visibility / pinning state below;
+		// `visibleColumns` comes back in that resolved order for the header and body.
+		// Under `navigable` these carry the cursor wiring (see `navColumns`).
+		columns: navColumns,
+		getKey,
+		selection,
+		columnOrder,
+		columnVisibility,
+		sort,
+		setSort,
+		sortManual: sortConfig?.manual ?? false,
+		pagination: paginationConfig,
+		resizable,
+		columnSizing: columnSizingConfig,
+		globalFilter: searchConfig,
+		columnFilters: columnFiltersConfig,
+		containerRef: wrapperRef,
+	})
 
 	// Publish the table height so each column's resize handle spans the full
 	// column (header through the last row), not just its header cell.
 	useGridResizeHeight(wrapperRef, resizable)
-
-	const rowKeys = useMemo<(string | number)[]>(
-		() => renderRows.map((row, i) => getKey(row, i)),
-		[renderRows, getKey],
-	)
 
 	// Cursor index space: rendered rows and the visible *data* columns (it skips
 	// select / actions cells). Synced from the refs here — after the engine resolves
