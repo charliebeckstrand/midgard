@@ -27,9 +27,11 @@ export function pinnedOffsetStyle(
 }
 
 /**
- * Sticky, opaque-surface, and boundary-shadow classes for a pinned cell, or `''`
- * when the column scrolls. The innermost column of each frozen group gains the
- * separating shadow. `header` selects the header layer (above the sticky head).
+ * Sticky, opaque-surface, inner-border, and boundary-shadow classes for a pinned
+ * cell, or `''` when the column scrolls. Every frozen column borders the edge
+ * facing the scroll — right for a left-frozen column, left for a right-frozen one
+ * — and the innermost column of each frozen group also gains the separating
+ * shadow. `header` selects the header layer (above the sticky head).
  *
  * @internal
  */
@@ -44,10 +46,12 @@ export function pinnedClassName(
 
 	if (!side) return ''
 
+	const sideBorder = side === 'left' ? k.pinned.borderRight : k.pinned.borderLeft
+
 	const edge =
 		side === 'left'
 			? pinning.isLastLeft(id) && k.pinned.edgeLeft
 			: pinning.isFirstRight(id) && k.pinned.edgeRight
 
-	return cn(options.header ? k.pinned.head : k.pinned.cell, edge)
+	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }

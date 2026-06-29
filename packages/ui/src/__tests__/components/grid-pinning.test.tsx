@@ -163,6 +163,31 @@ describe('Grid column pinning', () => {
 		expect(head?.className).toContain('dark:lg:bg-zinc-900')
 	})
 
+	it('borders a frozen column on the edge facing the scroll', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Left-frozen (pinned): a right border on both header and body cells.
+		expect(headCell(container, 'name')?.classList.contains('border-r')).toBe(true)
+
+		expect(dataCell(container, 'name')?.classList.contains('border-r')).toBe(true)
+
+		// Right-frozen (locked): a left border.
+		expect(headCell(container, 'status')?.classList.contains('border-l')).toBe(true)
+
+		expect(dataCell(container, 'status')?.classList.contains('border-l')).toBe(true)
+
+		// A scrolling column carries neither edge border.
+		expect(headCell(container, 'email')?.classList.contains('border-r')).toBe(false)
+
+		expect(headCell(container, 'email')?.classList.contains('border-l')).toBe(false)
+	})
+
 	it('carries no sticky chrome when no column is pinned', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
