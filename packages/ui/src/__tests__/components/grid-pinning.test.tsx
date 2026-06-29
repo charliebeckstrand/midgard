@@ -363,7 +363,7 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'status')?.style.right).toBe('0px')
 	})
 
-	it('marks a locked column header with a directional edge arrow, positioned per side', () => {
+	it('shows no edge arrow in a locked column header (the boundary border marks it)', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
@@ -372,29 +372,11 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// True when `a` precedes `b` in document order.
-		const precedes = (a: Element | null | undefined, b: Element | null | undefined) =>
-			!!a && !!b && Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+		// The directional arrows live only in the column manager now; the header relies
+		// on the boundary border to mark a locked column.
+		expect(headCell(container, 'name')?.querySelector('.lucide-arrow-left-to-line')).toBeNull()
 
-		const leftArrow = headCell(container, 'name')?.querySelector('.lucide-arrow-left-to-line')
-
-		const leftTitle = headCell(container, 'name')?.querySelector('[data-grid-content]')
-
-		const rightArrow = headCell(container, 'status')?.querySelector('.lucide-arrow-right-to-line')
-
-		const rightTitle = headCell(container, 'status')?.querySelector('[data-grid-content]')
-
-		// The locked indicator is a directional arrow pointing to the frozen edge (not
-		// a lock glyph): left → ArrowLeftToLine, right → ArrowRightToLine.
-		expect(leftArrow).not.toBeNull()
-
-		expect(rightArrow).not.toBeNull()
-
-		// A left-locked column prepends the arrow before its title; a right-locked one
-		// appends it after.
-		expect(precedes(leftArrow, leftTitle)).toBe(true)
-
-		expect(precedes(rightTitle, rightArrow)).toBe(true)
+		expect(headCell(container, 'status')?.querySelector('.lucide-arrow-right-to-line')).toBeNull()
 	})
 
 	it('treats locked: true as left', () => {

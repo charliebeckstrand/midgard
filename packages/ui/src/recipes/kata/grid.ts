@@ -205,14 +205,6 @@ export const k = {
 				cursor,
 				'select-none',
 			],
-			// Edge arrow on a locked column's header (ArrowLeftToLine / ArrowRightToLine),
-			// the static counterpart to `button`. A locked freeze is immutable, so this is
-			// a non-interactive indicator — muted, with no hover/focus/cursor. `lock` leads
-			// a left-frozen title (sharing the button's `-ml-1` optical inset so the glyph
-			// lands over the column's values); `lockEnd` trails a right-frozen title with
-			// the mirrored `-mr-1`, so the arrow seats against the column's trailing edge.
-			lock: [flex.inline, 'shrink-0', '-ml-1', text.muted, 'select-none'],
-			lockEnd: [flex.inline, 'shrink-0', '-mr-1', text.muted, 'select-none'],
 		},
 	},
 	sort: {
