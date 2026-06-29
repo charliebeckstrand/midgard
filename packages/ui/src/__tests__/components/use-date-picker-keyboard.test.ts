@@ -18,12 +18,19 @@ type Setup = Partial<{
 
 function setup(overrides: Setup = {}) {
 	const setActive = vi.fn<(next: CalendarActive | null) => void>()
+
 	const openCalendar = vi.fn()
+
 	const closeCalendar = vi.fn()
+
 	const moveGridDate = vi.fn((delta: number) => new Date(2026, 0, 15 + delta))
+
 	const moveGridMonths = vi.fn((delta: number) => new Date(2026, 0 + delta, 15))
+
 	const getInitialActiveDate = vi.fn(() => new Date(2026, 0, 15))
+
 	const handleSelect = vi.fn()
+
 	const onFooterActivate = vi.fn()
 
 	const calendarHandle: CalendarHandle = overrides.calendarHandle ?? {

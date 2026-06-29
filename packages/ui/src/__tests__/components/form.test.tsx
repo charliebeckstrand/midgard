@@ -57,6 +57,7 @@ describe('Form', () => {
 
 		// The edited field re-renders with its new value.
 		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
+
 		expect(renders.a).toBeGreaterThan(bAfterMount)
 
 		// The untouched sibling does not re-render.
@@ -348,7 +349,9 @@ describe('Form', () => {
 		})
 
 		expect(screen.getByTestId('error').textContent).toBe('')
+
 		expect(screen.getByTestId('valid').textContent).toBe('true')
+
 		expect(container.querySelector('fieldset')).not.toBeDisabled()
 	})
 
@@ -368,11 +371,13 @@ describe('Form', () => {
 		})
 
 		expect(onSettled).toHaveBeenCalledTimes(1)
+
 		expect(onSettled).toHaveBeenCalledWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('delivers { ok: false, error } to onSettled when onSubmit throws', async () => {
 		const failure = new Error('rate limited')
+
 		const onSettled = vi.fn()
 
 		const { container } = renderUI(
@@ -394,6 +399,7 @@ describe('Form', () => {
 		})
 
 		expect(onSettled).toHaveBeenCalledTimes(1)
+
 		expect(onSettled).toHaveBeenCalledWith({ ok: false, error: failure })
 	})
 
@@ -423,7 +429,9 @@ describe('Form', () => {
 		const outcome = onSettled.mock.calls[0]?.[0] as { ok: false; error: Error }
 
 		expect(outcome.ok).toBe(false)
+
 		expect(outcome.error).toBeInstanceOf(Error)
+
 		expect(outcome.error.message).toBe('boom')
 	})
 
@@ -451,6 +459,7 @@ describe('Form', () => {
 
 	it('does not fire onSettled when client validation blocks submission', async () => {
 		const onSubmit = vi.fn()
+
 		const onSettled = vi.fn()
 
 		const { container } = renderUI(
@@ -471,6 +480,7 @@ describe('Form', () => {
 		})
 
 		expect(onSubmit).not.toHaveBeenCalled()
+
 		expect(onSettled).not.toHaveBeenCalled()
 	})
 
@@ -681,6 +691,7 @@ describe('Form', () => {
 		})
 
 		expect(screen.getByTestId('touched').textContent).toBe('touched')
+
 		expect(screen.getByTestId('error').textContent).toBe('required')
 
 		act(() => {
@@ -688,6 +699,7 @@ describe('Form', () => {
 		})
 
 		expect(screen.getByTestId('touched').textContent).toBe('touched')
+
 		expect(screen.getByTestId('error').textContent).toBe('required')
 	})
 
@@ -763,6 +775,7 @@ describe('Form', () => {
 	it('reset(nextDefaults) shifts the baseline and clears errors and touched', () => {
 		function Probe() {
 			const field = useFormField('name')
+
 			const actions = useFormActions()
 
 			return (
@@ -801,14 +814,18 @@ describe('Form', () => {
 		})
 
 		expect(screen.getByTestId('value').textContent).toBe('Grace')
+
 		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+
 		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+
 		expect(screen.getByTestId('error').textContent).toBe('')
 	})
 
 	it('reset() with no args reverts to the original defaultValues', () => {
 		function Probe() {
 			const field = useFormField('name')
+
 			const actions = useFormActions()
 
 			return (

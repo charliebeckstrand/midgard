@@ -29,7 +29,15 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
  *
  * @internal
  */
-function GridNavCell({ row, col, children }: { row: number; col: number; children: ReactNode }) {
+export function GridNavCell({
+	row,
+	col,
+	children,
+}: {
+	row: number
+	col: number
+	children: ReactNode
+}) {
 	const store = useGridNavContext()
 
 	const ref = useRef<HTMLSpanElement>(null)

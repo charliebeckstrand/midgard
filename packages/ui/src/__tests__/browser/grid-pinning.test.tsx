@@ -51,7 +51,7 @@ describe('grid column pinning (real browser)', () => {
 			<div style={{ width: '480px' }}>
 				<Grid
 					resizable
-					stickyHeader
+					header={{ position: 'sticky' }}
 					maxHeight="240px"
 					columns={columns}
 					columnSizing={sizing}
@@ -77,11 +77,13 @@ describe('grid column pinning (real browser)', () => {
 		await waitFor(() => expect(cell(container, 'name')).not.toBeNull())
 
 		const pinned = cell(container, 'name') as HTMLElement
+
 		const center = cell(container, 'b') as HTMLElement
 
 		expect(getComputedStyle(pinned).position).toBe('sticky')
 
 		const pinnedLeft = pinned.getBoundingClientRect().left
+
 		const centerLeft = center.getBoundingClientRect().left
 
 		scroller.scrollLeft = 300
@@ -108,11 +110,13 @@ describe('grid column pinning (real browser)', () => {
 		await waitFor(() => expect(cell(container, 'status')).not.toBeNull())
 
 		const pinned = cell(container, 'status') as HTMLElement
+
 		const center = cell(container, 'a') as HTMLElement
 
 		expect(getComputedStyle(pinned).position).toBe('sticky')
 
 		const pinnedRight = pinned.getBoundingClientRect().right
+
 		const centerLeft = center.getBoundingClientRect().left
 
 		scroller.scrollLeft = 300

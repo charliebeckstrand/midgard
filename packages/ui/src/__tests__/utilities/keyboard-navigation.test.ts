@@ -104,6 +104,7 @@ describe('nextIndexForKey', () => {
 
 	it('grid ArrowUp from top row, col absent from partial last row, lands one row earlier', () => {
 		expect(nextIndexForKey('ArrowUp', 1, 10, { cols: 3 })).toBe(7)
+
 		expect(nextIndexForKey('ArrowUp', 2, 10, { cols: 3 })).toBe(8)
 	})
 

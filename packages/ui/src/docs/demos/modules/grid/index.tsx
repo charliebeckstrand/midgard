@@ -1,11 +1,12 @@
-import { PencilIcon, TrashIcon } from 'lucide-react'
+import { PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { Stack } from '../../../../components/stack'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import {
 	Grid,
 	type GridColumn,
@@ -72,12 +73,6 @@ const sortableColumns: GridColumn<Person>[] = columns.map((col) =>
 const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
 	...col,
 	value: (row) => String(row[col.id as keyof Person]),
-}))
-
-const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
-	...col,
-	width: '200px',
-	minWidth: 100,
 }))
 
 const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
@@ -162,6 +157,10 @@ type Employee = {
 	location: string
 	startDate: string
 	salary: string
+	manager: string
+	team: string
+	phone: string
+	level: string
 	status: 'active' | 'inactive'
 }
 
@@ -175,6 +174,10 @@ const employees: Employee[] = [
 		location: 'San Francisco',
 		startDate: '2021-03-14',
 		salary: '$145,000',
+		manager: 'Devon Webb',
+		team: 'Platform',
+		phone: '+1 (415) 555-0142',
+		level: 'L5',
 		status: 'active',
 	},
 	{
@@ -186,6 +189,10 @@ const employees: Employee[] = [
 		location: 'New York',
 		startDate: '2022-07-01',
 		salary: '$132,000',
+		manager: 'Devon Webb',
+		team: 'Design Systems',
+		phone: '+1 (212) 555-0188',
+		level: 'L4',
 		status: 'active',
 	},
 	{
@@ -197,6 +204,10 @@ const employees: Employee[] = [
 		location: 'Austin',
 		startDate: '2019-11-23',
 		salary: '$158,000',
+		manager: 'Tanya Fox',
+		team: 'Leadership',
+		phone: '+1 (512) 555-0119',
+		level: 'L6',
 		status: 'inactive',
 	},
 	{
@@ -208,6 +219,10 @@ const employees: Employee[] = [
 		location: 'Seattle',
 		startDate: '2023-02-12',
 		salary: '$121,000',
+		manager: 'Wade Cooper',
+		team: 'Platform',
+		phone: '+1 (206) 555-0167',
+		level: 'L3',
 		status: 'active',
 	},
 	{
@@ -219,6 +234,10 @@ const employees: Employee[] = [
 		location: 'Remote',
 		startDate: '2020-05-30',
 		salary: '$139,000',
+		manager: 'Arlene McCoy',
+		team: 'Design Systems',
+		phone: '+1 (650) 555-0173',
+		level: 'L5',
 		status: 'inactive',
 	},
 ]
@@ -237,6 +256,10 @@ const employeeColumns: GridColumn<Employee>[] = [
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
 	{ id: 'startDate', title: 'Start date', cell: (row) => row.startDate, width: '160px' },
 	{ id: 'salary', title: 'Salary', cell: (row) => row.salary, width: '160px' },
+	{ id: 'manager', title: 'Manager', cell: (row) => row.manager, width: '160px' },
+	{ id: 'team', title: 'Team', cell: (row) => row.team, width: '160px' },
+	{ id: 'phone', title: 'Phone', cell: (row) => row.phone, width: '180px' },
+	{ id: 'level', title: 'Level', cell: (row) => row.level, width: '120px' },
 	{
 		id: 'status',
 		title: 'Status',
@@ -413,31 +436,6 @@ const BatchActionsExample = () => {
 	)
 }
 
-const RowActionsExample = () => {
-	return (
-		<Grid
-			columns={[
-				...columns,
-				{
-					id: 'actions',
-					actions: () => (
-						<Flex gap="sm">
-							<Button variant="bare" color="blue">
-								<Icon icon={<PencilIcon />} />
-							</Button>
-							<Button variant="bare" color="red">
-								<Icon icon={<TrashIcon />} />
-							</Button>
-						</Flex>
-					),
-				},
-			]}
-			rows={people}
-			getKey={(row) => row.id}
-		/>
-	)
-}
-
 const RowClickExample = () => {
 	const [picked, setPicked] = useState<Person | null>(null)
 
@@ -468,33 +466,15 @@ const RowClickExample = () => {
 }
 
 const ErrorExample = () => {
-	const [failed, setFailed] = useState(true)
-
 	// `error` shows in place of the body — for a failed fetch — taking precedence
-	// over rows and the empty slot. Pass a node (e.g. an Alert with a retry
-	// control), or `error` (true) for a default alert.
+	// over rows and the empty slot.
 	return (
-		<>
-			{!failed && (
-				<Button variant="soft" color="red" onClick={() => setFailed(true)}>
-					Reset
-				</Button>
-			)}
-			<Grid
-				columns={columns}
-				rows={people}
-				getKey={(row) => row.id}
-				error={
-					failed ? (
-						<Alert color="red" variant="soft" title="Couldn't load people" block>
-							<Button variant="soft" color="red" onClick={() => setFailed(false)}>
-								Retry
-							</Button>
-						</Alert>
-					) : undefined
-				}
-			/>
-		</>
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+		/>
 	)
 }
 
@@ -513,7 +493,7 @@ const ReorderExample = () => {
 }
 
 const ResizableExample = () => (
-	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
+	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
 const PinnedExample = () => (
@@ -521,7 +501,7 @@ const PinnedExample = () => (
 	// sideways and they stay put while the middle columns slide beneath them.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={employeeColumns}
 		rows={employees}
@@ -565,10 +545,19 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// `exportable` adds an "Export to CSV" item to the header right-click menu; it
-// downloads the filtered/sorted rows, each column read through its `value`.
+// `exportable` adds an "Export to CSV" item to the header and cell right-click
+// menus; it downloads the filtered/sorted rows — or just the selected rows when a
+// selection is active — each column read through its `value`. Passing a config
+// object instead of `true` also surfaces a toolbar button (mirroring the column
+// manager's `toolbarButton`, beside it in the grid's toolbar), and tunes the
+// label and download filename.
 const ExportExample = () => (
-	<Grid exportable columns={filterableColumns} rows={people} getKey={(row) => row.id} />
+	<Grid
+		exportable={{ toolbarButton: true, filename: 'people.csv' }}
+		columns={filterableColumns}
+		rows={people}
+		getKey={(row) => row.id}
+	/>
 )
 
 const ServerPaginationExample = () => {
@@ -611,161 +600,239 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// The demo is sectioned into tabs so the long example list reads as discrete
+// capabilities rather than one scroll. Panels unmount when inactive
+// (`fade={false}`) so the page's jump nav only ever lists the visible tab's
+// examples and never scrolls to a hidden one.
+const tabs = [
+	'Variants',
+	'Sorting',
+	'Selection',
+	'Reorder',
+	'Resize',
+	'Pin',
+	'Filters',
+	'Header',
+	'Toolbar',
+	'Pagination',
+	'State',
+	'Editable',
+] as const
+
 export function Demo() {
 	return (
-		<>
-			<Example title="Default">
-				<DefaultExample />
-			</Example>
+		<Tabs defaultValue="Variants">
+			<TabList aria-label="Grid examples">
+				{tabs.map((tab) => (
+					<Tab key={tab} value={tab}>
+						{tab}
+					</Tab>
+				))}
+			</TabList>
+			<TabContents fade={false}>
+				<TabContent value="Variants">
+					<Stack gap="xl">
+						<Example title="Default">
+							<DefaultExample />
+						</Example>
 
-			<Example
-				title="Server-side sorting"
-				code={code`<Grid sort={{ value, onValueChange, manual: true }} />`}
-			>
-				<SortableExample />
-			</Example>
+						<Example title="Striped">
+							<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 
-			<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
-				<ClientSortExample />
-			</Example>
+						<Example title="Hover">
+							<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 
-			<Example
-				title="Multi-column sort"
-				code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
-			>
-				<MultiSortExample />
-			</Example>
+						<Example title="Outline">
+							<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Smart sorting"
-				code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
-			>
-				<SmartSortExample />
-			</Example>
+				<TabContent value="Sorting">
+					<Stack gap="xl">
+						<Example
+							title="Server-side sorting"
+							code={code`<Grid sort={{ value, onValueChange, manual: true }} />`}
+						>
+							<SortableExample />
+						</Example>
 
-			<Example
-				title="Context menus"
-				code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
-			>
-				<ContextMenuExample />
-			</Example>
+						<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
+							<ClientSortExample />
+						</Example>
 
-			<Example title="Selection">
-				<SelectionExample />
-			</Example>
+						<Example
+							title="Multi-column sort"
+							code={code`<Grid sort={{ value: [{ column, direction }, ...] }} />`}
+						>
+							<MultiSortExample />
+						</Example>
 
-			<Example title="Batch actions">
-				<BatchActionsExample />
-			</Example>
+						<Example
+							title="Smart sorting"
+							code={code`<Grid columns={[{ ...col, sortFn: (a, b) => ... }]} />`}
+						>
+							<SmartSortExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Row actions">
-				<RowActionsExample />
-			</Example>
+				<TabContent value="Selection">
+					<Stack gap="xl">
+						<Example title="Selection">
+							<SelectionExample />
+						</Example>
 
-			<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
-				<RowClickExample />
-			</Example>
+						<Example title="Batch actions">
+							<BatchActionsExample />
+						</Example>
 
-			<Example title="Striped">
-				<Grid striped columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+							<RowClickExample />
+						</Example>
 
-			<Example title="Hover">
-				<Grid hover columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+						<Example
+							title="Context menus"
+							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
+						>
+							<ContextMenuExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Outline">
-				<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
-			</Example>
+				<TabContent value="Reorder">
+					<Stack gap="xl">
+						<Example title="Reorder">
+							<ReorderExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
-				<Grid
-					stickyHeader
-					maxHeight="200px"
-					columns={columns}
-					rows={[...people, ...people]}
-					getKey={(row, i) => `${row.id}-${i}`}
-				/>
-			</Example>
+				<TabContent value="Resize">
+					<Stack gap="xl">
+						<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
+							<ResizableExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Loading">
-				<Grid loading columns={columns} rows={[]} getKey={(row) => row.id} />
-			</Example>
+				<TabContent value="Pin">
+					<Stack gap="xl">
+						<Example
+							title="Pinned columns"
+							code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
+						>
+							<PinnedExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Empty">
-				<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
-			</Example>
+				<TabContent value="Filters">
+					<Stack gap="xl">
+						<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
+							<SearchExample />
+						</Example>
 
-			<Example title="Error state" code={code`<Grid error={<Alert ... />} />`}>
-				<ErrorExample />
-			</Example>
+						<Example
+							title="Column filters"
+							code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
+						>
+							<ColumnFiltersExample />
+						</Example>
 
-			<Example title="Reorder">
-				<ReorderExample />
-			</Example>
+						<Example
+							title="Date, number & boolean filters"
+							code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'number' }]} />`}
+						>
+							<DateBooleanFilterExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
-				<ResizableExample />
-			</Example>
+				<TabContent value="Header">
+					<Stack gap="xl">
+						<Example
+							title="Sticky header"
+							code={code`<Grid header={{ position: 'sticky' }} maxHeight="200px" />`}
+						>
+							<Grid
+								header={{ position: 'sticky' }}
+								maxHeight="200px"
+								columns={columns}
+								rows={[...people, ...people]}
+								getKey={(row, i) => `${row.id}-${i}`}
+							/>
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Pinned columns"
-				code={code`<Grid columns={[{ ...col, pinned: 'left' }, { ...col, pinned: 'right' }]} />`}
-			>
-				<PinnedExample />
-			</Example>
+				<TabContent value="Toolbar">
+					<Stack gap="xl">
+						<Example title="Column manager">
+							<ColumnManagerExample />
+						</Example>
 
-			<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
-				<SearchExample />
-			</Example>
+						<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
+							<ExportExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example
-				title="Column filters"
-				code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
-			>
-				<ColumnFiltersExample />
-			</Example>
+				<TabContent value="Pagination">
+					<Stack gap="xl">
+						<Example
+							title="Server pagination"
+							code={code`<Grid pagination={{ value, onValueChange, rowCount }} />`}
+						>
+							<ServerPaginationExample />
+						</Example>
 
-			<Example
-				title="Date, number & boolean filters"
-				code={code`<Grid columns={[{ ...col, filterable: true, filterType: 'number' }]} />`}
-			>
-				<DateBooleanFilterExample />
-			</Example>
+						<Example title="Client pagination">
+							<ClientPaginationExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Column manager">
-				<ColumnManagerExample />
-			</Example>
+				<TabContent value="State">
+					<Stack gap="xl">
+						<Example title="Loading">
+							<Grid loading columns={columns} rows={[]} getKey={(row) => row.id} />
+						</Example>
 
-			<Example title="CSV export" code={code`<Grid exportable />`}>
-				<ExportExample />
-			</Example>
+						<Example title="Empty">
+							<Grid columns={columns} rows={[]} getKey={(row) => row.id} />
+						</Example>
 
-			<Example
-				title="Server pagination"
-				code={code`<Grid pagination={{ value, onValueChange, rowCount }} />`}
-			>
-				<ServerPaginationExample />
-			</Example>
+						<Example title="Error" code={code`<Grid error={<Alert ... />} />`}>
+							<ErrorExample />
+						</Example>
+					</Stack>
+				</TabContent>
 
-			<Example title="Client pagination">
-				<ClientPaginationExample />
-			</Example>
+				<TabContent value="Editable">
+					<Stack gap="xl">
+						<Example
+							title="Editable"
+							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+						>
+							<EditableExample />
+						</Example>
 
-			<Example title="Editable">
-				<EditableExample />
-			</Example>
+						<Example
+							title="Editor types"
+							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
+						>
+							<EditorTypesExample />
+						</Example>
 
-			<Example
-				title="Editor types"
-				code={code`<Grid columns={[{ ...col, editor: GridEditableSelectEditor }]} editable />`}
-			>
-				<EditorTypesExample />
-			</Example>
-
-			<Example title="Bulk edit">
-				<BulkEditExample />
-			</Example>
-		</>
+						<Example title="Bulk edit">
+							<BulkEditExample />
+						</Example>
+					</Stack>
+				</TabContent>
+			</TabContents>
+		</Tabs>
 	)
 }

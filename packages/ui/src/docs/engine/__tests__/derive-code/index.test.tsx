@@ -208,6 +208,7 @@ describe('deriveCode + __code', () => {
 		expect(result).toContain(
 			'function AreaDemo() {\n\tconst [files, setFiles] = useState<File[]>([])',
 		)
+
 		expect(result).toContain('<FileUpload accept="image/*" onFiles={setFiles} />')
 
 		// Component imports inferred from JSX, under the library prefix.

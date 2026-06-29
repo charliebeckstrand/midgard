@@ -112,8 +112,11 @@ describe('parseDateText', () => {
 		const parsed = parseDateText('06/15/2026', 'MM/DD/YYYY')
 
 		expect(parsed?.getFullYear()).toBe(2026)
+
 		expect(parsed?.getMonth()).toBe(5)
+
 		expect(parsed?.getDate()).toBe(15)
+
 		expect(parsed?.getHours()).toBe(0)
 	})
 

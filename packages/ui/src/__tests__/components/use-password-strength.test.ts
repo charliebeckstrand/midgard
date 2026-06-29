@@ -17,6 +17,7 @@ describe('usePasswordStrength', () => {
 		const { result } = renderHook(() => usePasswordStrength({ value: '', rules }))
 
 		expect(result.current.level).toBe('empty')
+
 		expect(result.current.passedCount).toBe(0)
 	})
 
@@ -32,6 +33,7 @@ describe('usePasswordStrength', () => {
 			const { result } = renderHook(() => usePasswordStrength({ value, rules }))
 
 			expect(result.current.level).toBe(level)
+
 			expect(result.current.passedCount).toBe(passedCount)
 		}
 	})
@@ -40,6 +42,7 @@ describe('usePasswordStrength', () => {
 		const { result } = renderHook(() => usePasswordStrength({ value: 'abcdefgh', rules }))
 
 		expect(result.current.level).toBe('weak')
+
 		expect(result.current.passedCount).toBe(1)
 	})
 
@@ -68,6 +71,7 @@ describe('usePasswordStrength', () => {
 			'digit',
 			'symbol',
 		])
+
 		expect(result.current.results[0]?.rule).toBe(rules[0])
 	})
 
@@ -83,6 +87,7 @@ describe('usePasswordStrength', () => {
 		renderHook(() => usePasswordStrength({ value: 'Ab1!', rules, onStrengthChange }))
 
 		expect(onStrengthChange).toHaveBeenCalledTimes(1)
+
 		expect(onStrengthChange).toHaveBeenLastCalledWith({
 			score: 3,
 			max: 4,
@@ -104,6 +109,7 @@ describe('usePasswordStrength', () => {
 		rerender({ value: 'Ab1!extra' })
 
 		expect(onStrengthChange).toHaveBeenCalledTimes(1)
+
 		expect(onStrengthChange.mock.calls[0]?.[0]).toMatchObject({
 			score: 4,
 			level: 'strong',
@@ -112,6 +118,7 @@ describe('usePasswordStrength', () => {
 
 	it('always invokes the latest onStrengthChange callback', () => {
 		const first = vi.fn()
+
 		const second = vi.fn()
 
 		const { rerender } = renderHook(
@@ -126,6 +133,7 @@ describe('usePasswordStrength', () => {
 
 		// Effect dependencies (score/level/passedIds) didn't change, so neither callback fires.
 		expect(first).not.toHaveBeenCalled()
+
 		expect(second).not.toHaveBeenCalled()
 
 		rerender({ cb: second })
@@ -135,6 +143,7 @@ describe('usePasswordStrength', () => {
 
 	it('uses the latest callback when the score changes after callback identity changes', () => {
 		const first = vi.fn()
+
 		const second = vi.fn()
 
 		const { rerender } = renderHook(
@@ -148,7 +157,9 @@ describe('usePasswordStrength', () => {
 		rerender({ value: 'Ab1!', cb: second })
 
 		expect(first).not.toHaveBeenCalled()
+
 		expect(second).toHaveBeenCalledTimes(1)
+
 		expect(second.mock.calls[0]?.[0]).toMatchObject({ score: 3, level: 'good' })
 	})
 
@@ -160,8 +171,11 @@ describe('usePasswordStrength', () => {
 		)
 
 		expect(result.current.results).toEqual([])
+
 		expect(result.current.passedCount).toBe(0)
+
 		expect(result.current.level).toBe('weak')
+
 		expect(onStrengthChange).toHaveBeenCalledWith({
 			score: 0,
 			max: 0,

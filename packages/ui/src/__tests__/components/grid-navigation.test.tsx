@@ -20,9 +20,13 @@ const getKey = (row: Row) => row.id
 // Cells render row-major, so the visible data cells index as:
 //   [r0c0, r0c1, r1c0, r1c1, r2c0, r2c1] → indices 0..5.
 const NAME = 0
+
 const ROLE = 1
+
 const ROW1_NAME = 2
+
 const ROW1_ROLE = 3
+
 const ROW2_ROLE = 5
 
 describe('Grid navigable cursor', () => {

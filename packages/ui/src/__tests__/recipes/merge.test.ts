@@ -4,7 +4,9 @@ import { merge } from '../../core/recipe'
 describe('merge', () => {
 	it('concatenates per-key class arrays across every input record', () => {
 		const a = { zinc: ['a-zinc'], red: ['a-red'] }
+
 		const b = { zinc: ['b-zinc'], red: ['b-red'] }
+
 		const c = { zinc: ['c-zinc'], red: ['c-red'] }
 
 		expect(merge(a, b, c)).toEqual({

@@ -18,6 +18,7 @@ import {
 } from '@tanstack/react-table'
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
+import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
 import { DEFAULT_PAGE_SIZE } from './grid-constants'
 import {
@@ -55,7 +56,7 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
-import { useGridColumnFit } from './use-grid-column-fit'
+import { useGridColumnAutoSize } from './use-grid-column-auto-size'
 
 export type {
 	GridColumnFilter,
@@ -124,6 +125,8 @@ type UseGridTableParams<T> = {
 	columnFilters?: GridColumnFilters
 	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
 	containerRef?: RefObject<HTMLElement | null>
+	/** Table density; threaded to the autosizer, whose measurements scale with it. */
+	density?: DensityLevel
 }
 
 /** Result of {@link useGridTable}. @internal */
@@ -138,6 +141,13 @@ type UseGridTableResult<T> = {
 	visibleColumns: GridColumn<T>[]
 	/** Rows to render: the engine-transformed slice when paginating/filtering client-side, else the supplied `rows`. */
 	renderRows: T[]
+	/**
+	 * Per-row keys parallel to {@link renderRows}: each is the value `getKey`
+	 * yields at the row's engine (original-data) index — the index `getRowId` saw —
+	 * so its stringified form matches the id `table.getRow` is keyed by, while the
+	 * raw `string | number` value still backs selection identity.
+	 */
+	rowKeys: (string | number)[]
 	/** Footer view model, or `null` when pagination is not configured. */
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
@@ -231,6 +241,7 @@ export function useGridTable<T>({
 	globalFilter: globalFilterConfig,
 	columnFilters: columnFiltersConfig,
 	containerRef,
+	density,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
 	const columnDefs = useStableColumnDefs(columns)
 
@@ -383,10 +394,31 @@ export function useGridTable<T>({
 		sortClient: clientSort,
 	})
 
-	const renderRows =
-		paginated || clientTransform
-			? table.getRowModel().rows.map((modelRow) => modelRow.original)
-			: rows
+	// `getRowModel().rows` is reference-stable until the sort/filter/pagination
+	// state actually changes, so memoizing on it keeps `renderRows` and `rowKeys`
+	// — and the `rowIndexMap` GridData derives from them — stable across unrelated
+	// re-renders (resize-drag frames, selection toggles, search keystrokes),
+	// instead of reallocating the full set every render.
+	const modelRows = paginated || clientTransform ? table.getRowModel().rows : null
+
+	const renderRows = useMemo(
+		() => (modelRows ? modelRows.map((modelRow) => modelRow.original) : rows),
+		[modelRows, rows],
+	)
+
+	// Keys parallel to `renderRows`, each keyed off the engine's original-data row
+	// index (`modelRow.index`, the index `getRowId` saw), not the rendered
+	// position. A client transform reorders rows while their engine ids stay fixed
+	// to the original order, so deriving keys from the rendered index would diverge
+	// from `getRowId` and make the body's `table.getRow(key)` lookups miss; the
+	// passthrough order *is* the original order, so the index matches directly.
+	const rowKeys = useMemo<(string | number)[]>(
+		() =>
+			modelRows
+				? modelRows.map((modelRow) => getKey(modelRow.original, modelRow.index))
+				: rows.map((row, index) => getKey(row, index)),
+		[modelRows, rows, getKey],
+	)
 
 	// Computed each render (not memoized) so the total reflects live client-side
 	// filtering — read through `table`, which a deps array can't observe; the
@@ -404,13 +436,14 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
-	const { sizeToFit } = useGridColumnFit<T>({
+	const { sizeToFit } = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
+		density,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(
@@ -440,5 +473,15 @@ export function useGridTable<T>({
 		[hasPinned, table],
 	)
 
-	return { table, visibleColumns, renderRows, pagination, resize, globalFilter, filters, pinning }
+	return {
+		table,
+		visibleColumns,
+		renderRows,
+		rowKeys,
+		pagination,
+		resize,
+		globalFilter,
+		filters,
+		pinning,
+	}
 }

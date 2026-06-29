@@ -438,6 +438,42 @@ describe('Grid', () => {
 			// A column opting in explicitly still overrides the grid-level default.
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
 		})
+
+		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
+			const user = userEvent.setup()
+
+			// Duplicate ids force the key to fold in the row index — the docs "Sticky
+			// header" pattern. A client sort reorders the rows while their engine ids
+			// stay pinned to the original order, so a lookup key taken from the
+			// rendered index used to miss `table.getRow` and throw "could not find
+			// row with ID".
+			type Dup = { id: number; label: string }
+
+			const dupColumns = [
+				{ id: 'label', title: 'Label', cell: (row: Dup) => row.label, sortable: true },
+			]
+
+			const dupRows: Dup[] = [
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+			]
+
+			const { container } = renderUI(
+				<Grid columns={dupColumns} rows={dupRows} getKey={(row, i) => `${row.id}-${i}`} />,
+			)
+
+			const labels = () =>
+				Array.from(container.querySelectorAll('tbody td')).map((td) => td.textContent)
+
+			expect(labels()).toEqual(['Charlie', 'Alice', 'Charlie', 'Alice'])
+
+			// The client sort reorders without a `getRow` miss; the rows land alphabetical.
+			await user.click(screen.getByRole('button', { name: 'Sort by Label' }))
+
+			expect(labels()).toEqual(['Alice', 'Alice', 'Charlie', 'Charlie'])
+		})
 	})
 
 	describe('header customisation', () => {
@@ -469,13 +505,41 @@ describe('Grid', () => {
 			expect((headers[1] as HTMLElement).style.width).toBe('200px')
 		})
 
-		it('adds sticky-header chrome when stickyHeader is set', () => {
+		it('adds sticky-header chrome when header position is sticky', () => {
 			const { container } = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} stickyHeader maxHeight="200px" />,
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
 			)
 
 			// Sticky header forces the scroll wrapper to render.
 			expect(container.querySelector('[style*="max-height"]')).toBeInTheDocument()
+		})
+
+		it('paints the sticky header with the viewport-aware content-host surface', () => {
+			// Regression: the sticky header kept a plain `bg.surface` (`dark:bg-zinc-900`),
+			// so on mobile — where the content block is transparent over the darker page —
+			// the header stood out as a box. It now tracks the host: the page background
+			// below `lg`, the card surface at `lg`.
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
+			)
+
+			const header = container.querySelector<HTMLElement>('thead th')
+
+			expect(header?.className).toContain('dark:bg-zinc-950')
+
+			expect(header?.className).toContain('dark:lg:bg-zinc-900')
 		})
 	})
 
@@ -853,6 +917,20 @@ describe('Grid', () => {
 			expect(screen.getByRole('button', { name: 'Reorder Name' })).toBeInTheDocument()
 
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+		})
+
+		it('drives the grip grabbing cursor off the drag state, not :active', () => {
+			// A right-click presses the grip into `:active` like any button; with the
+			// context menu eating the pointerup, an `active:cursor-grabbing` cue would
+			// stay stuck as if the column were held. The cue tracks `data-[dragging]`,
+			// which dnd-kit never sets for a right-click, so it cannot stick.
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} reorder />)
+
+			const handle = screen.getByRole('button', { name: 'Reorder Name' })
+
+			expect(handle.className).toContain('data-[dragging]:cursor-grabbing')
+
+			expect(handle.className).not.toContain('active:cursor-grabbing')
 		})
 	})
 

@@ -8,9 +8,8 @@ export type SortState = {
 	direction: 'asc' | 'desc'
 }
 
-/** Table-wide state shared with head and rows: selection, sort, and sticky-header flag. */
+/** Table-wide state shared with head and rows: selection flags and toggles, sort, pinning, and resize/sticky-header flags. */
 export type GridContextValue = {
-	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	toggleAll: () => void
 	allSelected: boolean
@@ -30,6 +29,13 @@ export type GridContextValue = {
 	 */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
 	stickyHeader: boolean
+	/**
+	 * Whether a column drag-resize is in flight. Head and cells read it to
+	 * suppress their truncation tooltips for the duration: a resize reflows the
+	 * columns, and the overflow tooltip would otherwise flash open over the
+	 * content the drag is reshaping.
+	 */
+	resizing: boolean
 }
 
 /**

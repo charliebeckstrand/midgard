@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
+import type { GridEditCell } from './grid-editing-types'
 
 /**
  * A column's display label: its `title` when a plain string, else its `id`
@@ -60,6 +61,37 @@ export type GridColumn<T> = {
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
+	 * Row property this column reads and writes while the grid is
+	 * {@link GridProps.editable | editable} and the cell's row is in edit mode. A
+	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
+	 * editable; the editor the grid mounts is inferred from the field value's
+	 * primitive type (string → text, number → number, boolean → yes/no listbox),
+	 * and the committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 */
+	field?: keyof T
+	/**
+	 * Opts this data column out of editing in an {@link GridProps.editable | editable}
+	 * grid: the cursor still visits its cells, but they never enter edit mode. Has
+	 * no effect on a non-editable grid.
+	 * @defaultValue false
+	 */
+	readOnly?: boolean
+	/**
+	 * Custom in-cell editor for an {@link GridProps.editable | editable} grid,
+	 * superseding the primitive-typed editor the grid would otherwise infer.
+	 * Receives the cell's value plus `onValueUpdate` / `commit` / `cancel`; render
+	 * a control (select, date picker, currency input, …) and stage or commit the
+	 * value through them.
+	 */
+	editCell?: GridEditCell<T>
+	/**
+	 * Validates an edited cell value in an {@link GridProps.editable | editable}
+	 * grid. Receives the pending value and its row; return an error message to
+	 * reject it — the editor shows the message inline while editing, and the cell
+	 * is dropped (not emitted) when the row saves — or `null` to accept it.
+	 */
+	validate?: (value: unknown, row: T) => string | null
+	/**
 	 * Tooltip shown when this column's cell content is truncated (see
 	 * {@link GridProps.truncate}). Receives the row and returns the tooltip
 	 * content; return `null` to disable the tooltip for the column. When omitted,
@@ -76,20 +108,33 @@ export type GridColumn<T> = {
 	/**
 	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
 	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
-	 * composite-widget wrapper like GridEditable). Returned `className` is
-	 * merged with the column's static `className`.
+	 * composite-widget wrapper like the navigable/editable cursor). Returned
+	 * `className` is merged with the column's static `className`.
 	 */
 	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
 	className?: string
 	headerClassName?: string
-	/** Column width as a CSS length; under {@link GridProps.resizable} a `px` value seeds the initial resize width. */
+	/**
+	 * Fixes the column at this CSS width, superseding the automatic content sizing
+	 * ({@link GridProps.resizable}). A `px` value also seeds the column's initial
+	 * resize width. Omit it to let the column size to its content: columns share the
+	 * width evenly when there is room to spare, and any column whose content would
+	 * truncate takes more.
+	 */
 	width?: string
 	/**
-	 * Minimum width (px) the column can be resized to.
+	 * Minimum width (px); the floor the automatic sizing and a drag-resize never go
+	 * below. A single-word header sets its own floor (its full width, so it never
+	 * truncates) when larger than this.
 	 * @defaultValue {@link DEFAULT_MIN_COLUMN_SIZE}
 	 */
 	minWidth?: number
-	/** Maximum width (px) the column can be resized to; unbounded when omitted. */
+	/**
+	 * Maximum width (px); the ceiling a drag-resize and the automatic sizing never
+	 * exceed. Also lifts the cap the autosizer otherwise places on measured content
+	 * width, so a column with wide content can opt into showing more of it.
+	 * Unbounded when omitted.
+	 */
 	maxWidth?: number
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and
@@ -277,7 +322,7 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
-	/** Exports the filtered/sorted rows to a CSV download, or `undefined` when {@link GridProps.exportable} is off. */
+	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
 	exportCsv: (() => void) | undefined
 }
 
@@ -308,11 +353,14 @@ export type GridCellMenuContext<T> = {
 	value: unknown
 	/** Copies the cell value to the clipboard. */
 	copy: () => void
+	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
+	exportCsv: (() => void) | undefined
 }
 
 /**
- * Body-cell context-menu config: `true` (or omit / `false`) for the default Copy
- * item, or a builder receiving the {@link GridCellMenuContext} and that default,
+ * Body-cell context-menu config: `true` (or omit / `false`) for the default
+ * items — Copy, plus "Export to CSV" when {@link GridProps.exportable} is on — or
+ * a builder receiving the {@link GridCellMenuContext} and those defaults,
  * returning the final item list.
  *
  * @typeParam T - Shape of a single row.

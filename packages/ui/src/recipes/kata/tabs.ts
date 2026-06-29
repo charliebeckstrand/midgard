@@ -116,6 +116,15 @@ const trigger = defineRecipe({
 	defaults: { stretch: false },
 })
 
+/**
+ * Tab panel surface. A panel with no focusable content joins the tab order
+ * (`tabIndex=0`, per the APG tabs pattern) so keyboard users can reach and
+ * scroll it; the design-system blue focus ring then replaces the browser
+ * default when it takes focus. The ring is `:focus-visible`-gated, so a panel
+ * that holds its own focusable content — and is never tabbable — never shows it.
+ */
+const panel = focus.ring
+
 export const k = {
 	group,
 	list,
@@ -124,6 +133,7 @@ export const k = {
 	wrapper,
 	trigger,
 	indicator,
+	panel,
 	segment: bridge.segment(segment),
 	// Two units flow through this kata: the underline tab list and the
 	// segment box behind `<Segment>`.

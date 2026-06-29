@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen } from '../../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Cell truncation tooltip against the real floating engine and real layout. The
@@ -176,18 +176,21 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		expect(document.querySelectorAll('[data-floating-ui-portal]')).toHaveLength(0)
 	})
 
-	it('clips every row consistently under auto-fit in a constrained container', async () => {
-		const many = Array.from({ length: 5 }, (_, i) => ({ id: i, name: `${longName} ${i}` }))
+	it('clips every row consistently under auto-fit past the content cap', async () => {
+		// Content this wide exceeds the autosizer's per-column content cap, so the
+		// column settles at the cap rather than growing to fit — and every row clips.
+		const huge = `${longName} ${longName} ${longName}`
 
-		// Resizable + uncontrolled sizing exercises auto-fit (as the demo does),
-		// inside a width the long column can't satisfy.
+		const many = Array.from({ length: 5 }, (_, i) => ({ id: i, name: `${huge} ${i}` }))
+
+		// Resizable + uncontrolled sizing exercises auto-fit (as the demo does).
 		const { container } = renderUI(
 			<div style={{ maxWidth: '240px' }}>
 				<Grid resizable columns={[nameCol]} rows={many} getKey={getKey} />
 			</div>,
 		)
 
-		await screen.findByText(`${longName} 0`)
+		await screen.findByText(`${huge} 0`)
 
 		await new Promise((resolve) => setTimeout(resolve, 200))
 
@@ -263,6 +266,40 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const tip = await screen.findByRole('tooltip')
 
 		expect(tip).toHaveTextContent('Wade Cooper')
+	})
+
+	it('suppresses the tooltip while a column drag-resize is in flight', async () => {
+		const { container } = renderUI(
+			<Grid resizable columns={[nameCol]} columnSizing={narrow} rows={rows} getKey={getKey} />,
+		)
+
+		// Baseline: the clipped cell arms its tooltip on hover.
+		await userEvent.hover(screen.getByText(longName))
+
+		await screen.findByRole('tooltip')
+
+		// Press the column's resize handle and drag, without releasing.
+		const separator = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
+		)
+
+		if (!separator) throw new Error('resize separator not found')
+
+		const rect = separator.getBoundingClientRect()
+
+		const x = rect.left + rect.width / 2
+
+		const y = rect.top + 4
+
+		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
+
+		// The in-flight resize holds the overflow tooltip closed, though the cell is
+		// still clipped and still hovered.
+		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+
+		fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
 	})
 
 	it('clips rows of differing length uniformly at a narrow width', async () => {

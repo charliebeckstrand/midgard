@@ -1,8 +1,9 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, useRef } from 'react'
-import { createSlot } from '../../core'
+import { cn, createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
+import { k } from '../../recipes/kata/tabs'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 
 /** Props for {@link TabPanels}. */
@@ -21,7 +22,8 @@ export type TabPanelProps = {
  * Manually-wired tab panel for use without `<TabContent>`: emits
  * `role="tabpanel"`, derives its id from the paired `<Tab id>` (`${id}-panel`),
  * sets `aria-labelledby`, and computes `tabIndex` (`0` only when the panel has
- * no focusable child, per APG).
+ * no focusable child, per APG). A content-only panel that becomes tab-focusable
+ * signals focus with the design-system blue ring rather than the browser default.
  */
 export function TabPanel({ id, className, ...props }: TabPanelProps) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -37,7 +39,7 @@ export function TabPanel({ id, className, ...props }: TabPanelProps) {
 			id={id ? `${id}-panel` : undefined}
 			aria-labelledby={id}
 			tabIndex={tabIndex}
-			className={className}
+			className={cn(k.panel, className)}
 			{...props}
 		/>
 	)

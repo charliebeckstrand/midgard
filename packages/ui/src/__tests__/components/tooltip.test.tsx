@@ -59,6 +59,7 @@ describe('Tooltip', () => {
 
 		// The trigger IS the button: no intermediate non-focusable <div>.
 		expect(trigger?.tagName).toBe('BUTTON')
+
 		expect(trigger).toHaveTextContent('Hover me')
 	})
 
@@ -77,6 +78,7 @@ describe('Tooltip', () => {
 		// A child that declares its own slot keeps it; only slotless children
 		// fall back to the generic `tooltip-trigger` marker.
 		expect(bySlot(container, 'custom-trigger')).toBeInTheDocument()
+
 		expect(bySlot(container, 'tooltip-trigger')).not.toBeInTheDocument()
 	})
 
@@ -178,6 +180,7 @@ describe('Tooltip', () => {
 		// The description relationship is anchored on the focusable trigger itself,
 		// pointing at the role="tooltip" panel.
 		expect(panel).toHaveAttribute('role', 'tooltip')
+
 		expect(trigger.getAttribute('aria-describedby')).toBe(panel.getAttribute('id'))
 	})
 })

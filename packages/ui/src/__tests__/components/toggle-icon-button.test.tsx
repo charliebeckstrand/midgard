@@ -4,6 +4,7 @@ import { bySlot, fireEvent, renderUI, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
+
 	const pressedIcon = <svg data-testid="pressed-icon" />
 
 	it('pairs with an explicit ToggleIconButtonSkeleton in loading trees', () => {

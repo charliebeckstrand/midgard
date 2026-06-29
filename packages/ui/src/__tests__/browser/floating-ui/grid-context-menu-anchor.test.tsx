@@ -6,9 +6,11 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * Grid context-menu anchoring against the real floating engine and real layout.
  * The jsdom suite mocks `@floating-ui/react` and has no geometry, so the menu's
  * scroll-following only surfaces here. The menu opens at the cursor but anchors
- * to the right-clicked element (its `useClientPoint` reference), so it tracks
- * that element as the surrounding container scrolls instead of staying pinned to
- * the original viewport coordinate.
+ * to the right-clicked element (its position reference's `contextElement`), so
+ * it tracks that element as the surrounding container scrolls instead of staying
+ * pinned to the original viewport coordinate. That anchor is position-only — not
+ * floating-ui's dismissal reference — so a press on the originating cell still
+ * closes the menu, the inverse case the final test guards.
  */
 describe('grid context menu anchoring (real browser)', () => {
 	type Row = { id: number; name: string }
@@ -44,6 +46,7 @@ describe('grid context menu anchoring (real browser)', () => {
 
 		// The cell and the menu at open time, before any scroll.
 		const cellTop0 = cell.getBoundingClientRect().top
+
 		const menuTop0 = menu.getBoundingClientRect().top
 
 		// Scroll the container; the cell moves up in the viewport.
@@ -51,6 +54,7 @@ describe('grid context menu anchoring (real browser)', () => {
 
 		await waitFor(() => {
 			const cellTop1 = cell.getBoundingClientRect().top
+
 			const menuTop1 = menu.getBoundingClientRect().top
 
 			// The cell actually scrolled up.
@@ -98,5 +102,30 @@ describe('grid context menu anchoring (real browser)', () => {
 		expect(after.top).toBeCloseTo(before.top, 1)
 
 		expect(after.left).toBeCloseTo(before.left, 1)
+	})
+
+	it('closes when the cell it was opened from is pressed', async () => {
+		renderUI(
+			<div style={{ marginTop: 240 }}>
+				<Grid columns={columns} rows={rows} getKey={getKey} />
+			</div>,
+		)
+
+		const cell = screen.getByText('Person 2')
+
+		const rect = cell.getBoundingClientRect()
+
+		fireEvent.contextMenu(cell, { clientX: rect.left + 4, clientY: rect.top + 4 })
+
+		await screen.findByRole('menu')
+
+		// A press on the very cell the menu was opened from is an ordinary outside
+		// press: the cell anchors the menu's position but is not its dismissal
+		// reference, so floating-ui closes it rather than sparing it the way it
+		// spares a dropdown's toggle. Anchoring through `setReference` instead
+		// would leave the menu stuck open under the cursor.
+		fireEvent.pointerDown(cell, { clientX: rect.left + 4, clientY: rect.top + 4 })
+
+		await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument())
 	})
 })

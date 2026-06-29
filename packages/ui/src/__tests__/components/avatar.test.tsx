@@ -23,6 +23,7 @@ describe('Avatar', () => {
 		expect(img).toBeInTheDocument()
 
 		expect(img).toHaveAttribute('src', '/avatar.png')
+
 		expect(img).toHaveAttribute('alt', 'User')
 	})
 
@@ -30,6 +31,7 @@ describe('Avatar', () => {
 		const { container } = renderUI(<AvatarSkeleton size="md" />)
 
 		expect(bySlot(container, 'avatar')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

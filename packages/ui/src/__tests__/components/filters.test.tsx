@@ -29,7 +29,9 @@ describe('FiltersField', () => {
 				</FiltersField>
 			</Filters>,
 		)
+
 		const input = bySlot(container, 'input') as HTMLInputElement
+
 		expect(input.value).toBe('hello')
 	})
 
@@ -101,6 +103,7 @@ describe('FiltersField', () => {
 
 	it('calls onChange when input changes (auto-binding)', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(
 			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
@@ -108,14 +111,19 @@ describe('FiltersField', () => {
 				</FiltersField>
 			</Filters>,
 		)
+
 		const input = bySlot(container, 'input') as HTMLInputElement
+
 		const user = userEvent.setup()
+
 		await user.type(input, 'a')
+
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'a' }))
 	})
 
 	it('supports render prop children', async () => {
 		const onChange = vi.fn()
+
 		const { container } = renderUI(
 			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
 				<FiltersField name="name">
@@ -129,9 +137,13 @@ describe('FiltersField', () => {
 				</FiltersField>
 			</Filters>,
 		)
+
 		const input = bySlot(container, 'raw-input') as HTMLInputElement
+
 		const user = userEvent.setup()
+
 		await user.type(input, 'b')
+
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
 	})
 })
@@ -167,6 +179,7 @@ describe('Filters announcements', () => {
 describe('FiltersClear', () => {
 	it('clears all filter values when clicked', async () => {
 		const onChange = vi.fn()
+
 		renderUI(
 			<Filters
 				aria-label="Filters"
@@ -181,14 +194,19 @@ describe('FiltersClear', () => {
 				</FiltersClear>
 			</Filters>,
 		)
+
 		const user = userEvent.setup()
+
 		await user.click(screen.getByText('Clear'))
+
 		expect(onChange).toHaveBeenCalledWith({})
 	})
 
 	it('resets to defaultValue when provided', async () => {
 		const onChange = vi.fn()
+
 		const defaults = { name: '', status: 'all' }
+
 		renderUI(
 			<Filters
 				aria-label="Filters"
@@ -204,8 +222,11 @@ describe('FiltersClear', () => {
 				</FiltersClear>
 			</Filters>,
 		)
+
 		const user = userEvent.setup()
+
 		await user.click(screen.getByText('Clear'))
+
 		expect(onChange).toHaveBeenCalledWith(defaults)
 	})
 
@@ -249,6 +270,7 @@ describe('FiltersClear', () => {
 describe('useFilters', () => {
 	function ActiveCount() {
 		const { activeCount } = useFilters()
+
 		return <span data-slot="count">{activeCount}</span>
 	}
 
@@ -258,6 +280,7 @@ describe('useFilters', () => {
 				<ActiveCount />
 			</Filters>,
 		)
+
 		// 'yes' and [1] are active, '' and undefined and [] are not
 		expect(bySlot(container, 'count')?.textContent).toBe('2')
 	})
@@ -268,6 +291,7 @@ describe('useFilters', () => {
 				<ActiveCount />
 			</Filters>,
 		)
+
 		expect(bySlot(container, 'count')?.textContent).toBe('0')
 	})
 })
@@ -276,6 +300,7 @@ describe('Filter (uncontrolled)', () => {
 	it('manages state internally with defaultValue', async () => {
 		function ActiveCount() {
 			const { activeCount } = useFilters()
+
 			return <span data-slot="count">{activeCount}</span>
 		}
 
@@ -287,9 +312,13 @@ describe('Filter (uncontrolled)', () => {
 				<ActiveCount />
 			</Filters>,
 		)
+
 		const input = bySlot(container, 'input') as HTMLInputElement
+
 		const user = userEvent.setup()
+
 		await user.type(input, 'test')
+
 		expect(bySlot(container, 'count')?.textContent).toBe('1')
 	})
 })

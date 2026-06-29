@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { usePdfViewerPageScale } from '../../components/pdf-viewer/use-pdf-viewer-page-scale'
 
 const viewport = { width: 800, height: 600 }
+
 const page = { width: 100, height: 200 }
 
 describe('usePdfViewerPageScale', () => {

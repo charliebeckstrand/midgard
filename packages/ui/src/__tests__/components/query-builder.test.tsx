@@ -451,6 +451,40 @@ describe('QueryBuilderRuleValue', () => {
 		expect(input.value).toBe('')
 	})
 
+	it('renders a NumberInput pair for a range and emits an updated bound tuple', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={onChange} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' }) as HTMLInputElement
+
+		expect(min.value).toBe('5')
+
+		expect(max.value).toBe('')
+
+		fireEvent.change(max, { target: { value: '10' } })
+
+		expect(onChange).toHaveBeenCalledWith([5, 10])
+	})
+
+	it('clears a range bound back to an empty string', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, 10]} range onValueChange={onChange} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		fireEvent.change(min, { target: { value: '' } })
+
+		expect(onChange).toHaveBeenCalledWith(['', 10])
+	})
+
 	it('renders a Select for select fields', () => {
 		const field: QueryField = {
 			name: 'status',

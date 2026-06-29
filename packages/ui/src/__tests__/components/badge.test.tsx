@@ -19,6 +19,7 @@ describe('Badge', () => {
 		const { container } = renderUI(<BadgeSkeleton />)
 
 		expect(bySlot(container, 'badge')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 

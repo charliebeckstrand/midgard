@@ -3,10 +3,12 @@ import { subscribeDocumentEvent } from '../../utilities/document-listener'
 
 describe('subscribeDocumentEvent', () => {
 	let addSpy: ReturnType<typeof vi.spyOn>
+
 	let removeSpy: ReturnType<typeof vi.spyOn>
 
 	beforeEach(() => {
 		addSpy = vi.spyOn(document, 'addEventListener')
+
 		removeSpy = vi.spyOn(document, 'removeEventListener')
 	})
 
@@ -16,9 +18,11 @@ describe('subscribeDocumentEvent', () => {
 
 	it('attaches one document listener for many subscribers of the same event', () => {
 		const a = vi.fn()
+
 		const b = vi.fn()
 
 		const unsubA = subscribeDocumentEvent('pointerdown', a)
+
 		const unsubB = subscribeDocumentEvent('pointerdown', b)
 
 		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown')).toHaveLength(1)
@@ -26,6 +30,7 @@ describe('subscribeDocumentEvent', () => {
 		document.dispatchEvent(new Event('pointerdown'))
 
 		expect(a).toHaveBeenCalledTimes(1)
+
 		expect(b).toHaveBeenCalledTimes(1)
 
 		// The listener stays attached until the last subscriber leaves.
@@ -44,12 +49,15 @@ describe('subscribeDocumentEvent', () => {
 
 	it('keeps a separate listener per event type', () => {
 		const onKey = vi.fn()
+
 		const onPointer = vi.fn()
 
 		const unsubKey = subscribeDocumentEvent('keydown', onKey)
+
 		const unsubPointer = subscribeDocumentEvent('pointerdown', onPointer)
 
 		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'keydown')).toHaveLength(1)
+
 		expect(addSpy.mock.calls.filter((call: unknown[]) => call[0] === 'pointerdown')).toHaveLength(1)
 
 		document.dispatchEvent(new Event('keydown'))
@@ -59,14 +67,17 @@ describe('subscribeDocumentEvent', () => {
 		expect(onPointer).not.toHaveBeenCalled()
 
 		unsubKey()
+
 		unsubPointer()
 	})
 
 	it('stops dispatching to a handler once it unsubscribes', () => {
 		const a = vi.fn()
+
 		const b = vi.fn()
 
 		const unsubA = subscribeDocumentEvent('pointerdown', a)
+
 		const unsubB = subscribeDocumentEvent('pointerdown', b)
 
 		unsubA()
@@ -93,6 +104,7 @@ describe('subscribeDocumentEvent', () => {
 		const b = vi.fn()
 
 		const unsubA = subscribeDocumentEvent('pointerdown', a)
+
 		const unsubB = subscribeDocumentEvent('pointerdown', b)
 
 		document.dispatchEvent(new Event('pointerdown'))
@@ -105,6 +117,7 @@ describe('subscribeDocumentEvent', () => {
 		expect(microtask).toHaveBeenCalledTimes(1)
 
 		unsubA()
+
 		unsubB()
 	})
 })

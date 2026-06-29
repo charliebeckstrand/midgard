@@ -65,6 +65,7 @@ describe('useA11yScope', () => {
 
 		act(() => {
 			cleanupA = result.current.register.description('shared')
+
 			cleanupB = result.current.register.description('shared')
 		})
 
