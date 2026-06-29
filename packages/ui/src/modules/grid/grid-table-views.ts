@@ -115,19 +115,34 @@ export function isQueryGroup(value: unknown): value is QueryGroupNode {
  * Derives the engine's `columnPinning` state from each column's `pinned` flag
  * (`true` is left), plus whether any column is pinned at all.
  *
+ * @remarks The selection column always leads the left edge, ahead of every
+ * left-pinned data column, so the row checkboxes stay anchored to the far left
+ * while the grid scrolls sideways. It is held out of the `pinned`-flag filters
+ * (so an explicit flag on it can't double-list its id) and never counts toward
+ * `hasPinned` — that gate stays driven by the data columns, so a grid with
+ * nothing pinned keeps the selection column inline (no sticky offset or boundary
+ * shadow); the freeze only resolves once a data column is pinned.
+ *
  * @internal
  */
 export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	state: ColumnPinningState
 	hasPinned: boolean
 } {
+	const select = columns.filter((col) => col.selectable).map((col) => String(col.id))
+
 	const left = columns
-		.filter((col) => col.pinned === true || col.pinned === 'left')
+		.filter((col) => !col.selectable && (col.pinned === true || col.pinned === 'left'))
 		.map((col) => String(col.id))
 
-	const right = columns.filter((col) => col.pinned === 'right').map((col) => String(col.id))
+	const right = columns
+		.filter((col) => !col.selectable && col.pinned === 'right')
+		.map((col) => String(col.id))
 
-	return { state: { left, right }, hasPinned: left.length > 0 || right.length > 0 }
+	return {
+		state: { left: [...select, ...left], right },
+		hasPinned: left.length > 0 || right.length > 0,
+	}
 }
 
 /** Element-wise reference equality between two arrays. @internal */
