@@ -38,6 +38,26 @@ describe('Grid navigable cursor', () => {
 		expect(grid).toHaveAttribute('tabindex', '0')
 	})
 
+	it('gives the role=grid a default accessible name', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		expect(screen.getByRole('grid')).toHaveAccessibleName('Data grid')
+	})
+
+	it('lets tableProps name the grid, overriding the default', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				tableProps={{ 'aria-label': 'Orders' }}
+			/>,
+		)
+
+		expect(screen.getByRole('grid')).toHaveAccessibleName('Orders')
+	})
+
 	it('marks the data cells as gridcells', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 
@@ -198,6 +218,28 @@ describe('Grid navigable cursor', () => {
 
 		expect(grid).not.toHaveAttribute('aria-activedescendant')
 	})
+
+	it('re-clamps the cursor when the data shrinks so the active cell never dangles', () => {
+		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		// Seat the cursor on the last cell (Ctrl+End).
+		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
+
+		const seated = grid.getAttribute('aria-activedescendant')
+
+		expect(seated && document.getElementById(seated)).toBeInTheDocument()
+
+		// Shrink to a single row; the old coordinate now points past the end.
+		rerender(<Grid columns={columns} rows={rows.slice(0, 1)} getKey={getKey} navigable />)
+
+		const clamped = grid.getAttribute('aria-activedescendant')
+
+		// The active descendant still resolves to a real cell — it was re-clamped,
+		// not left dangling at the removed row.
+		expect(clamped && document.getElementById(clamped)).toBeInTheDocument()
+	})
 })
 
 describe('Grid navigable role', () => {
@@ -206,5 +248,72 @@ describe('Grid navigable role', () => {
 
 		// A cursor backs role="grid" without any windowing.
 		expect(screen.getByRole('grid')).toBeInTheDocument()
+	})
+})
+
+describe('Grid cursor selection', () => {
+	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
+
+	it('toggles the active row selection with Space, never scrolling', () => {
+		renderUI(<Grid columns={selectColumns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		// Seed at the first row, then move the cursor to Bob (row index 1).
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		// fireEvent returns false when a handler calls preventDefault — Space must,
+		// so it never scrolls the grid's own tab stop.
+		const scrolled = fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(scrolled).toBe(false)
+
+		// It toggled the active row's selection (APG grid pattern).
+		expect(screen.getByRole('checkbox', { name: 'Select row 2' })).toBeChecked()
+	})
+
+	it('selects, rather than activates, on Space when the grid is also clickable', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onRowClick={onRowClick}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		// Space selects; Enter is what activates.
+		expect(onRowClick).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('checkbox', { name: 'Select row 2' })).toBeChecked()
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(onRowClick).toHaveBeenCalledTimes(1)
+	})
+
+	it('still activates a clickable row on Space when there is no selection column', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} navigable onRowClick={onRowClick} />,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(onRowClick).toHaveBeenCalledTimes(1)
 	})
 })

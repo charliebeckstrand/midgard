@@ -123,19 +123,30 @@ export function useGridNavigation({
 	rowsRef,
 	colCountRef,
 	onRowActivate,
+	selectableRef,
+	toggleActiveRow,
+	scrollRowIntoViewRef,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
 	rowsRef: RefObject<unknown[]>
 	/** Live count of cursor-visitable data columns; backs horizontal bounds. */
 	colCountRef: RefObject<number>
-	/** Activates the row under the cursor on Enter/Space, when the grid has a row click. */
+	/** Activates the row under the cursor on Enter, when the grid has a row click. */
 	onRowActivate: GridRowActivate | undefined
+	/** Whether the grid has a selection column; gates Space-to-select. */
+	selectableRef: RefObject<boolean>
+	/** Toggles the active row's selection by display index, when selectable. */
+	toggleActiveRow: ((rowIdx: number) => void) | undefined
+	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
+	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 }): {
 	active: Coord | null
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** Re-clamps the active cell to the given bounds; the grid drives it as the data changes. */
+	reconcile: (rowCount: number, colCount: number) => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive] = useState<Coord | null>(null)
@@ -149,6 +160,11 @@ export function useGridNavigation({
 	const onRowActivateRef = useRef(onRowActivate)
 
 	onRowActivateRef.current = onRowActivate
+
+	// Read selection toggling through a ref so the key handler's deps stay stable.
+	const toggleActiveRowRef = useRef(toggleActiveRow)
+
+	toggleActiveRowRef.current = toggleActiveRow
 
 	const { sub } = useIdScope()
 
@@ -194,15 +210,38 @@ export function useGridNavigation({
 
 			if (rowCount === 0 || colCount === 0) return
 
-			setActive({
-				row: clamp(coord.row, 0, rowCount - 1),
-				col: clamp(coord.col, 0, colCount - 1),
-			})
+			const row = clamp(coord.row, 0, rowCount - 1)
+
+			const col = clamp(coord.col, 0, colCount - 1)
+
+			// Bring the target row into the virtualized window so its cell mounts
+			// before `aria-activedescendant` points at it; a no-op when unwindowed.
+			scrollRowIntoViewRef.current?.(row)
+
+			setActive({ row, col })
 		},
-		[rowsRef, colCountRef],
+		[rowsRef, colCountRef, scrollRowIntoViewRef],
 	)
 
-	// Enter/Space activates the row under the cursor (when the grid has a row click).
+	// Re-clamp the cursor to the current bounds when the data shrinks (filter,
+	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
+	// it drives — never dangles past the rendered grid; clears it when the grid
+	// empties. A no-op while in bounds (returns the same coord, so no re-render).
+	const reconcile = useCallback((rowCount: number, colCount: number) => {
+		setActive((current) => {
+			if (current === null) return null
+
+			if (rowCount === 0 || colCount === 0) return null
+
+			const row = clamp(current.row, 0, rowCount - 1)
+
+			const col = clamp(current.col, 0, colCount - 1)
+
+			return row === current.row && col === current.col ? current : { row, col }
+		})
+	}, [])
+
+	// Activates the row under the cursor through the grid's row-click bridge.
 	const activateRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, rowIdx: number) => {
 			const activate = onRowActivateRef.current
@@ -216,6 +255,26 @@ export function useGridNavigation({
 			activate(row, event)
 		},
 		[rowsRef],
+	)
+
+	// Space toggles the active row's selection in a selectable grid (APG grid) and
+	// never scrolls the grid's own tab stop; Enter — and Space when the grid has no
+	// selection — activates a clickable row instead.
+	const activateOrSelectRow = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, rowIdx: number) => {
+			if (event.key === ' ') {
+				event.preventDefault()
+
+				if (selectableRef.current) {
+					toggleActiveRowRef.current?.(rowIdx)
+
+					return
+				}
+			}
+
+			activateRow(event, rowIdx)
+		},
+		[activateRow, selectableRef],
 	)
 
 	const onKeyDown = useCallback(
@@ -236,14 +295,14 @@ export function useGridNavigation({
 
 				moveTo(target)
 			} else if (event.key === 'Enter' || event.key === ' ') {
-				activateRow(event, base.row)
+				activateOrSelectRow(event, base.row)
 			} else if (event.key === 'Escape' && activeRef.current) {
 				event.preventDefault()
 
 				setActive(null)
 			}
 		},
-		[moveTo, activateRow, rowsRef, colCountRef],
+		[moveTo, activateOrSelectRow, rowsRef, colCountRef],
 	)
 
 	const onFocus = useCallback(
@@ -285,6 +344,11 @@ export function useGridNavigation({
 		// drop it only when focus leaves the table entirely.
 		if (next instanceof Node && event.currentTarget.contains(next)) return
 
+		// Keep it seated, too, while focus is in a floating overlay opened from the
+		// grid (e.g. its context menu), so the active cell is restored on close —
+		// mirrors the `onFocus` portal guard that declines to re-seed on return.
+		if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return
+
 		setActive(null)
 	}, [])
 
@@ -303,6 +367,7 @@ export function useGridNavigation({
 		store: enabled ? storeRef.current : INERT_STORE,
 		cellId,
 		moveTo,
+		reconcile,
 		navTableProps,
 	}
 }

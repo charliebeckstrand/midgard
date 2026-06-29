@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridEditInputs } from './grid-edit-inputs'
@@ -66,6 +66,10 @@ function GridCellEditor<T>({
 
 	const error = column.validate ? column.validate(draft, row) : null
 
+	// Links the editor to its message (aria-describedby) so the error reaches AT,
+	// not just sighted users (WCAG 1.3.1 / 3.3.1).
+	const errorId = useId()
+
 	const body = column.editCell ? (
 		column.editCell({
 			row,
@@ -86,6 +90,8 @@ function GridCellEditor<T>({
 			onValueUpdate={update}
 			cancel={cancel}
 			ariaLabel={ariaLabel}
+			error={error}
+			errorId={errorId}
 		/>
 	)
 
@@ -94,7 +100,7 @@ function GridCellEditor<T>({
 			{body}
 
 			{error && (
-				<span role="alert" className={cn(k.edit.error)}>
+				<span id={errorId} role="alert" className={cn(k.edit.error)}>
 					{error}
 				</span>
 			)}

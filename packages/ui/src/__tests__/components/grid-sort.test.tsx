@@ -220,10 +220,15 @@ describe('Grid multi-column sort', () => {
 			/>,
 		)
 
-		// Name is priority 1, Group priority 2 (the badge digit rides in the button).
-		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).toContain('1')
+		// Name is priority 1, Group priority 2: the digit shows visually and the
+		// priority rides in the button's accessible name (the visible badge is aria-hidden).
+		const name = screen.getByRole('button', { name: 'Sort by Name, sort priority 1' })
 
-		expect(screen.getByRole('button', { name: 'Sort by Group' }).textContent).toContain('2')
+		const group = screen.getByRole('button', { name: 'Sort by Group, sort priority 2' })
+
+		expect(name.textContent).toContain('1')
+
+		expect(group.textContent).toContain('2')
 	})
 
 	it('omits the priority badge under a single-column sort', () => {

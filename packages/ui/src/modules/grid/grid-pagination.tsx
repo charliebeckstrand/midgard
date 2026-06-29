@@ -140,7 +140,11 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 					)}
 				</div>
 
-				<p className={cn(k.footer.status)}>{status}</p>
+				{/* A polite live region so a page/range change is announced without moving
+				    focus (WCAG 4.1.3); role="status" stays silent on the initial render. */}
+				<p role="status" className={cn(k.footer.status)}>
+					{status}
+				</p>
 			</div>
 		</div>
 	)

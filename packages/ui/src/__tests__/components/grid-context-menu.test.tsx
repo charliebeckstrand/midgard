@@ -68,6 +68,40 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 	})
 
+	it('opens the cell menu at the active cell from a keyboard context-menu event', async () => {
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} navigable contextMenu={{ cell: true }} />,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		// Seat the cursor on a cell (keydown seeds it; the active cell carries
+		// `data-active`, which the retarget reads).
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// Shift+F10 / the ContextMenu key fires a contextmenu on the focused grid (not
+		// a cell); the menu retargets it to the active cell rather than the native menu.
+		fireEvent.contextMenu(grid)
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	it('keeps the native menu when a keyboard context-menu event has no active cell', () => {
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} navigable contextMenu={{ cell: true }} />,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		// Never navigated: no active cell, so nothing to anchor to and no custom menu
+		// opens (the browser's native menu stands).
+		fireEvent.contextMenu(grid)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
 	it('passes the row and value to a cell-menu builder and runs a custom item', () => {
 		const onFlag = vi.fn()
 

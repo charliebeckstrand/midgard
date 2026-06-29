@@ -262,7 +262,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([
 				{ column: 'name', direction: 'asc' },
@@ -288,7 +288,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([
 				{ column: 'name', direction: 'asc' },
@@ -314,7 +314,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
@@ -337,7 +337,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Name/ }))
 
 			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
@@ -992,6 +992,59 @@ describe('Grid', () => {
 			const { container } = renderUI(<Grid columns={columns} rows={manyRows} getKey={getKey} />)
 
 			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
+		})
+
+		it('emits aria-rowcount=-1 for a server feed paginating by pageCount alone', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 0, pageSize: 5 }, pageCount: 5 }}
+				/>,
+			)
+
+			// Only a page count, no known total: advertise ARIA's indeterminate
+			// sentinel rather than misreporting the current page as the whole set.
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '-1')
+		})
+
+		it('withholds the row/column counts over an empty placeholder', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={[]}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 0, pageSize: 5 }, rowCount: 0 }}
+				/>,
+			)
+
+			// No data rows render (a single spanning cell stands in), so the counts
+			// that would advertise a full structure are withheld.
+			const table = container.querySelector('table')
+
+			expect(table).not.toHaveAttribute('aria-rowcount')
+
+			expect(table).not.toHaveAttribute('aria-colcount')
+		})
+
+		it('withholds the counts while loading but keeps aria-busy', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					loading
+					virtualize
+					maxHeight="300px"
+				/>,
+			)
+
+			const table = container.querySelector('table')
+
+			expect(table).toHaveAttribute('aria-busy', 'true')
+
+			expect(table).not.toHaveAttribute('aria-rowcount')
 		})
 
 		it('exposes windowed table semantics so the row/col index scheme is honored', () => {

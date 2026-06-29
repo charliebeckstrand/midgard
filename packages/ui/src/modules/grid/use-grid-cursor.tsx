@@ -41,6 +41,9 @@ export function useGridCursor<T>({
 	editable,
 	columns,
 	onRowActivate,
+	selectableRef,
+	toggleActiveRow,
+	scrollRowIntoViewRef,
 	refs,
 }: {
 	navigable: boolean
@@ -48,6 +51,12 @@ export function useGridCursor<T>({
 	/** The pinned/resolved columns to augment. */
 	columns: GridColumn<T>[]
 	onRowActivate: GridRowActivate | undefined
+	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
+	selectableRef: RefObject<boolean>
+	/** Toggles the active row's selection by display index, for the cursor's Space key. */
+	toggleActiveRow: ((rowIdx: number) => void) | undefined
+	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
+	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 	refs: GridCursorRefs<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
@@ -56,6 +65,8 @@ export function useGridCursor<T>({
 	navStore: ReturnType<typeof useGridNavigation>['store']
 	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
+	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
+	reconcile: (rowCount: number, colCount: number) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/** Wraps the table with the editing contexts when editable, else returns it unchanged. */
@@ -67,7 +78,15 @@ export function useGridCursor<T>({
 
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
-	const nav = useGridNavigation({ enabled: cursorEnabled, rowsRef, colCountRef, onRowActivate })
+	const nav = useGridNavigation({
+		enabled: cursorEnabled,
+		rowsRef,
+		colCountRef,
+		onRowActivate,
+		selectableRef,
+		toggleActiveRow,
+		scrollRowIntoViewRef,
+	})
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
@@ -114,6 +133,7 @@ export function useGridCursor<T>({
 		cursorEnabled,
 		navStore: nav.store,
 		navTableProps: nav.navTableProps,
+		reconcile: nav.reconcile,
 		columns: editingEnabled ? editColumns : navColumns,
 		wrap,
 	}

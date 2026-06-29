@@ -97,6 +97,21 @@ export function useMenuState({
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
+	// Anchor the menu at a point while tracking `element` as it (or a scroll
+	// container) scrolls — but as the *position* reference only, never floating-ui's
+	// `reference`. Registering the element as the reference (`setReference`, the
+	// `useClientPoint` route) would exempt it from outside-press dismissal, so a
+	// left-click on the very element the menu was opened from could not close it; a
+	// position-only anchor keeps it a normal outside-press target.
+	const openAt = useCallback(
+		(element: Element | null, clientX: number, clientY: number) => {
+			refs.setPositionReference(cursorAnchor(element, clientX, clientY))
+
+			setOpen(true)
+		},
+		[setOpen, refs],
+	)
+
 	const handleContextMenu = useCallback(
 		(event: MouseEvent) => {
 			event.preventDefault()
@@ -109,25 +124,9 @@ export function useMenuState({
 			// the native menu (above) and leave the panel where it is.
 			if (refs.floating.current?.contains(event.target as Node)) return
 
-			// Anchor the menu at the cursor while tracking the right-clicked element
-			// so it follows that element as the page (or a scroll container) scrolls
-			// — but as the *position* reference only, never floating-ui's `reference`.
-			// Registering the element as the reference (`setReference`, the
-			// `useClientPoint` route) would exempt it from outside-press dismissal,
-			// so a left-click on the very cell the menu was opened from could not
-			// close it; a position-only anchor keeps the element a normal
-			// outside-press target.
-			refs.setPositionReference(
-				cursorAnchor(
-					event.target instanceof Element ? event.target : null,
-					event.clientX,
-					event.clientY,
-				),
-			)
-
-			setOpen(true)
+			openAt(event.target instanceof Element ? event.target : null, event.clientX, event.clientY)
 		},
-		[setOpen, refs],
+		[openAt, refs],
 	)
 
 	const state = useMemo(
@@ -159,8 +158,9 @@ export function useMenuState({
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
+			openAt,
 		}),
-		[setOpen, close, isStatic, triggerRef, refs.setReference, refs.setFloating],
+		[setOpen, close, isStatic, triggerRef, refs.setReference, refs.setFloating, openAt],
 	)
 
 	return { state, actions, handleContextMenu, isDropdown }

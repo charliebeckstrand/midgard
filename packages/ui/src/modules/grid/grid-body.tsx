@@ -2,7 +2,7 @@ import type { ReactNode, RefObject } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import { type GridRowsProps, renderGridRow } from './grid-row'
-import { GridVirtualizedBody } from './grid-virtualized-body'
+import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = GridRowsProps<T> & {
@@ -14,6 +14,7 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
 		overscan: number
+		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	} | null
 }
 

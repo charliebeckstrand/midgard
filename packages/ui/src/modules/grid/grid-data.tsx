@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -14,6 +15,7 @@ import {
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { useA11yAnnouncements } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -37,7 +39,12 @@ import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
+import type { GridScrollRowIntoView } from './grid-virtualized-body'
+import {
+	columnLabel,
+	type GridColumn,
+	type GridContextMenu as GridContextMenuConfig,
+} from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
@@ -232,6 +239,8 @@ function resolveTableProps(args: {
 	colCount: number
 	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
 	multiSelectable: boolean
+	/** The body renders real data rows, not a loading/error/empty placeholder; gates the row/column counts so they never advertise a structure that isn't there. */
+	bodyHasRows: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
@@ -249,13 +258,34 @@ function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
+		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
+		// when the caller named the grid through neither `tableProps` escape hatch.
+		...(role === 'grid' &&
+		args.tableProps?.['aria-label'] == null &&
+		args.tableProps?.['aria-labelledby'] == null
+			? { 'aria-label': 'Data grid' }
+			: {}),
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
 		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
-		...(args.gridSemantics
+		// Withheld over a loading/error/empty placeholder (a single spanning cell),
+		// which would otherwise advertise a full row/column count that isn't rendered.
+		...(args.gridSemantics && args.bodyHasRows
 			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
 	}
+}
+
+/**
+ * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
+ * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
+ * sentinel for a server feed paginating by `pageCount` alone (no known total),
+ * rather than misreporting the current page as the whole set. @internal
+ */
+function resolveAriaRowCount(pagination: GridPaginationView | null, renderedCount: number): number {
+	if (pagination && pagination.rowCount == null) return -1
+
+	return (pagination?.rowCount ?? renderedCount) + 1
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
@@ -365,6 +395,47 @@ function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: num
 			{message}
 		</span>
 	)
+}
+
+/**
+ * The polite announcement for the grid's current sort, narrated to assistive
+ * tech when it changes (WCAG 4.1.3): `Sorting cleared` when unsorted, else the
+ * sorted columns by display label and direction, in priority order (`Sorted by
+ * Name ascending, then Age descending`). Resolves each label from the visible
+ * columns so multi-column sort priority is spoken, not just shown.
+ *
+ * @internal
+ */
+function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
+	if (sort.length === 0) return 'Sorting cleared'
+
+	const parts = sort.map((entry) => {
+		const column = columns.find((candidate) => candidate.id === entry.column)
+
+		const name = column ? columnLabel(column) : String(entry.column)
+
+		return `${name} ${entry.direction === 'asc' ? 'ascending' : 'descending'}`
+	})
+
+	return `Sorted by ${parts.join(', then ')}`
+}
+
+/**
+ * The polite announcement for the row selection, narrated when it changes (WCAG
+ * 4.1.3): `All rows selected` — or `All rows on this page selected` when
+ * paginated, since the select-all is page-scoped and the label says as much —
+ * `Selection cleared`, or the running count (`3 rows selected`). The caller
+ * gates announcing on a selection column being present, so a non-selectable grid
+ * stays silent.
+ *
+ * @internal
+ */
+function describeSelection(size: number, allSelected: boolean, onPage: boolean): string {
+	if (allSelected) return onPage ? 'All rows on this page selected' : 'All rows selected'
+
+	if (size === 0) return 'Selection cleared'
+
+	return `${size} ${size === 1 ? 'row' : 'rows'} selected`
 }
 
 /**
@@ -531,8 +602,27 @@ export function GridData<T>({
 
 	const dataColumnsRef = useRef<GridColumn<T>[]>([])
 
+	// Selection wiring the cursor reads at key time: whether a selection column is
+	// present (gating Space-to-select) and a toggle for the active row by display
+	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
+	// them through refs, like its bounds above.
+	const selectableRef = useRef(false)
+
+	const toggleRowRef = useRef<(key: string | number) => void>(() => {})
+
+	const toggleActiveRow = useCallback((rowIdx: number) => {
+		const key = rowKeysRef.current[rowIdx]
+
+		if (key !== undefined) toggleRowRef.current(key)
+	}, [])
+
+	// Published by the virtualized body while mounted (null otherwise), so the cursor
+	// can scroll an off-window row into the rendered window before pointing
+	// `aria-activedescendant` at it.
+	const scrollRowIntoViewRef = useRef<GridScrollRowIntoView | null>(null)
+
 	// A stable click handler so the memoized rows don't churn when the consumer
-	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
+	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
 
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
@@ -546,6 +636,9 @@ export function GridData<T>({
 		editable,
 		columns: pinnedColumns,
 		onRowActivate,
+		selectableRef,
+		toggleActiveRow,
+		scrollRowIntoViewRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -645,6 +738,13 @@ export function GridData<T>({
 
 	dataColumnsRef.current = dataColumns
 
+	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
+	// hide a column), so its active cell and `aria-activedescendant` never dangle
+	// past the new extent; inert for a non-cursor grid (active stays unseated).
+	useLayoutEffect(() => {
+		cursor.reconcile(renderRows.length, dataColumns.length)
+	}, [cursor.reconcile, renderRows.length, dataColumns.length])
+
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
 
@@ -669,6 +769,21 @@ export function GridData<T>({
 		selection,
 		setSelection,
 		rowKeys,
+	})
+
+	// Feed the cursor's selection refs now that the engine has resolved them, so its
+	// Space key toggles the active row's selection (see `useGridNavigation`).
+	selectableRef.current = hasSelectionColumn
+
+	toggleRowRef.current = toggleRow
+
+	// Narrate sort and selection changes to assistive tech without moving focus
+	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays
+	// silent unless the grid has a selection column.
+	useA11yAnnouncements(describeSort(sort, visibleColumns))
+
+	useA11yAnnouncements(describeSelection(selection.size, allSelected, pagination != null), {
+		enabled: hasSelectionColumn,
 	})
 
 	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
@@ -786,9 +901,7 @@ export function GridData<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
-	// Full row extent for grid semantics: the server total when paginating, else
-	// the rendered count (which equals every row when unpaginated).
-	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
+	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
 
 	// Full filtered row extent (the server total when paginating) for the busy
 	// region's result announcement; the header row the aria count adds is excluded.
@@ -831,6 +944,7 @@ export function GridData<T>({
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,
+					bodyHasRows: hasRows && !loading && !showingError,
 					tableWidth,
 				})}
 			>
@@ -869,7 +983,11 @@ export function GridData<T>({
 					truncate={truncate}
 					settleWidths={settleWidths}
 					pinning={pinning}
-					virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
+					virtualize={
+						virtualizeEnabled
+							? { scrollRef, estimateSize, overscan, scrollIntoViewRef: scrollRowIntoViewRef }
+							: null
+					}
 				/>
 			</Table>
 		</GridNavContext>
