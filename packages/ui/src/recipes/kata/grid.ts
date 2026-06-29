@@ -293,28 +293,28 @@ export const k = {
 	},
 	footer: {
 		// Footer below the table, laid out as three zones. From `lg`: one row with
-		// the row-range status at the start, the page navigation centered, and the
-		// page-size picker at the end — each zone an equal `flex-1` track so the
+		// the page-size picker at the start, the page navigation centered, and the
+		// row-range status at the end — each zone an equal `flex-1` track so the
 		// navigation stays centered whatever the side content. Below `lg`: the
 		// navigation sits on its own row up top, with the
-		// status and controls sharing a justified-between row beneath it (the `meta`
+		// picker and status sharing a justified-between row beneath it (the `meta`
 		// wrapper collapses to `contents` at `lg` so all three become siblings of the
-		// one row, reordered status · nav · controls).
+		// one row, reordered controls · nav · status).
 		bar: ['flex', 'flex-col', 'gap-2', 'pt-2', 'lg:flex-row', 'lg:items-center'],
 		// Page navigation: centered on its own row below `lg`, the centered middle
 		// track from `lg`.
 		nav: ['flex', 'justify-center', 'lg:order-2', 'lg:flex-1'],
-		// Status + controls: a justified-between row below `lg`; dissolves into the
-		// footer row from `lg` so the status and controls order independently around
+		// Picker + status: a justified-between row below `lg`; dissolves into the
+		// footer row from `lg` so the controls and status order independently around
 		// the centered nav.
 		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
-		// Row-range status ("1–10 of 47"): the start track from `lg`, the left of the
-		// justified row below it.
-		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-1', 'lg:flex-1'],
-		// Page-size picker: the end track from `lg` (right-aligned), the right of the
+		// Row-range status ("1–10 of 47"): the end track from `lg` (right-aligned),
+		// the right of the justified row below it.
+		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
+		// Page-size picker: the start track from `lg` (left-aligned), the left of the
 		// justified row below it. Always rendered so the track holds even when empty,
 		// keeping the nav centered.
-		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-3', 'lg:flex-1', 'lg:justify-end'],
+		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {
