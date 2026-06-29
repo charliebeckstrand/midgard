@@ -503,6 +503,63 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 	)
 }
 
+/**
+ * Frozen column header: its title paired with a pin indicator — an unpin button
+ * when pinned, a static edge arrow when locked. The indicator leads the title,
+ * except a right-locked column trails it so the arrow points to the frozen edge.
+ *
+ * @internal
+ */
+function GridFrozenHeaderLabel({
+	column,
+	pinnedSide,
+	locked,
+	pinColumn,
+	label,
+}: {
+	column: Pick<GridColumn<unknown>, 'id' | 'title'>
+	pinnedSide: 'left' | 'right'
+	locked: boolean
+	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	label: ReactNode
+}) {
+	const appendArrow = locked && pinnedSide === 'right'
+
+	const indicator = locked ? (
+		<span
+			aria-hidden="true"
+			className={cn(appendArrow ? k.head.pinned.lockEnd : k.head.pinned.lock)}
+		>
+			<Icon icon={pinnedSide === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />} />
+		</span>
+	) : (
+		<button
+			type="button"
+			className={cn(k.head.pinned.button)}
+			aria-label={`Unpin ${columnLabel(column)}`}
+			onClick={() => pinColumn(column.id, false)}
+		>
+			<Icon icon={<Pin />} />
+		</button>
+	)
+
+	return (
+		<span className={cn(k.head.pinned.label)}>
+			{appendArrow ? (
+				<>
+					{label}
+					{indicator}
+				</>
+			) : (
+				<>
+					{indicator}
+					{label}
+				</>
+			)}
+		</span>
+	)
+}
+
 /** Single column header cell; renders a sort-toggle button and, when resizable, a resize separator. @internal */
 const GridColumnHeader = memo(function GridColumnHeader({
 	column,
@@ -526,8 +583,9 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	// This column's frozen edge (read live from the engine), or `undefined` when it
-	// scrolls; a frozen header leads its title with a pin indicator (an unpin button
-	// when pinned, a static edge arrow when locked).
+	// scrolls; a frozen header marks its title with a pin indicator — an unpin button
+	// when pinned, a static edge arrow when locked — leading the title, or trailing it
+	// for a right-locked column.
 	const pinnedSide = pinning?.side(column.id)
 
 	const label = (
@@ -562,25 +620,13 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			    subtract its justified free space and measure the title + affordances. */}
 			<span data-grid-header className={cn(k.filter.slot)}>
 				{pinnedSide ? (
-					<span className={cn(k.head.pinned.label)}>
-						{locked ? (
-							// Locked: a static edge arrow pointing to the frozen edge, in place of the unpin button — the
-							// freeze is immutable, so there's no control to release it.
-							<span aria-hidden="true" className={cn(k.head.pinned.lock)}>
-								<Icon icon={pinnedSide === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />} />
-							</span>
-						) : (
-							<button
-								type="button"
-								className={cn(k.head.pinned.button)}
-								aria-label={`Unpin ${columnLabel(column)}`}
-								onClick={() => pinColumn(column.id, false)}
-							>
-								<Icon icon={<Pin />} />
-							</button>
-						)}
-						{label}
-					</span>
+					<GridFrozenHeaderLabel
+						column={column}
+						pinnedSide={pinnedSide}
+						locked={locked}
+						pinColumn={pinColumn}
+						label={label}
+					/>
 				) : (
 					label
 				)}

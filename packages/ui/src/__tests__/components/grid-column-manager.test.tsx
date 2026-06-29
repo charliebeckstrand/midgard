@@ -312,7 +312,8 @@ describe('GridColumnManager pinning', () => {
 
 		const { container } = renderUI(<GridColumnManager columns={cols} onPinChange={() => {}} />)
 
-		// Locked rows show a directional edge arrow (not a lock glyph): left vs right.
+		// Both locked rows lead with a directional edge arrow (not a lock glyph),
+		// prepended to the row: left → ArrowLeftToLine, right → ArrowRightToLine.
 		expect(container.querySelector('.lucide-arrow-left-to-line')).not.toBeNull()
 
 		expect(container.querySelector('.lucide-arrow-right-to-line')).not.toBeNull()
