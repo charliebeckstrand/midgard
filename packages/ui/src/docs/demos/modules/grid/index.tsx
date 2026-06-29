@@ -250,8 +250,8 @@ const employees: Employee[] = [
 // needs known widths, so this grid is `resizable` (fixed layout) and its sticky
 // header rides the same scroll container as the frozen columns.
 const employeeColumns: GridColumn<Employee>[] = [
-	{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', pinned: 'left' },
-	{ id: 'email', title: 'Email', cell: (row) => row.email, width: '200px' },
+	{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+	{ id: 'email', title: 'Email', cell: (row) => row.email },
 	{ id: 'role', title: 'Role', cell: (row) => row.role, width: '160px' },
 	{ id: 'department', title: 'Department', cell: (row) => row.department, width: '160px' },
 	{ id: 'location', title: 'Location', cell: (row) => row.location, width: '160px' },
