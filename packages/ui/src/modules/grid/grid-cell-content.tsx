@@ -20,6 +20,12 @@ export type CellTooltip = { kind: 'auto' } | { kind: 'custom'; node: ReactNode }
 type GridCellContentProps = {
 	content: ReactNode
 	tooltip: CellTooltip
+	/**
+	 * This cell's column width, frozen to `undefined` while a drag is in flight
+	 * and the settled engine width otherwise; its change after a resize settles
+	 * (or a keyboard nudge) re-renders the memoized cell and re-measures overflow.
+	 */
+	resizeSettleKey: number | undefined
 }
 
 /**
@@ -36,9 +42,9 @@ type GridCellContentProps = {
  * tooltip renders no surface, so an untruncated cell adds no DOM.
  * @internal
  */
-export function GridCellContent({ content, tooltip }: GridCellContentProps) {
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
 	const { resizing } = useGrid()
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizeSettleKey)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
