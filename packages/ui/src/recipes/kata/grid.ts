@@ -196,7 +196,21 @@ export const k = {
 		// z-index only bites where the cell is a positioned box — sticky headers
 		// already are; `shift` promotes the rest for the duration of the drag — and
 		// the shadow reads the lifted column as picked up off the table.
-		cell: ['data-[dragging]:z-20', 'data-[dragging]:shadow-lg', ...draggingSurface],
+		cell: [
+			'data-[dragging]:z-20',
+			'data-[dragging]:shadow-lg',
+			// The held column dims its text to the muted foreground — header and body
+			// alike, since this class is shared — so the dragged column reads as
+			// lifted/in transit and a Space/Enter keyboard lift, which moves nothing
+			// until an arrow key, isn't left without a cue. Mirrors `iro.text.muted`;
+			// the header already sits at this shade (table `header` base), so the
+			// visible shift is the bright body (`text.default`) dimming to meet it.
+			// `data-[dragging]` out-specifies the cell's resting colour, so the
+			// override lands without `!`.
+			'data-[dragging]:text-zinc-500',
+			'dark:data-[dragging]:text-zinc-400',
+			...draggingSurface,
+		],
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
