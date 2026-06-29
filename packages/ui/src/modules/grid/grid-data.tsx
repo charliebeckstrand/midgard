@@ -14,6 +14,7 @@ import {
 import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import { useA11yAnnouncements } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -36,7 +37,11 @@ import {
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
+import {
+	columnLabel,
+	type GridColumn,
+	type GridContextMenu as GridContextMenuConfig,
+} from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
@@ -367,6 +372,45 @@ function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: num
 }
 
 /**
+ * The polite announcement for the grid's current sort, narrated to assistive
+ * tech when it changes (WCAG 4.1.3): `Sorting cleared` when unsorted, else the
+ * sorted columns by display label and direction, in priority order (`Sorted by
+ * Name ascending, then Age descending`). Resolves each label from the visible
+ * columns so multi-column sort priority is spoken, not just shown.
+ *
+ * @internal
+ */
+function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
+	if (sort.length === 0) return 'Sorting cleared'
+
+	const parts = sort.map((entry) => {
+		const column = columns.find((candidate) => candidate.id === entry.column)
+
+		const name = column ? columnLabel(column) : String(entry.column)
+
+		return `${name} ${entry.direction === 'asc' ? 'ascending' : 'descending'}`
+	})
+
+	return `Sorted by ${parts.join(', then ')}`
+}
+
+/**
+ * The polite announcement for the row selection, narrated when it changes (WCAG
+ * 4.1.3): `All rows selected`, `Selection cleared`, or the running count
+ * (`3 rows selected`). The caller gates announcing on a selection column being
+ * present, so a non-selectable grid stays silent.
+ *
+ * @internal
+ */
+function describeSelection(size: number, allSelected: boolean): string {
+	if (allSelected) return 'All rows selected'
+
+	if (size === 0) return 'Selection cleared'
+
+	return `${size} ${size === 1 ? 'row' : 'rows'} selected`
+}
+
+/**
  * Whether the grid paints the shared {@link Table} `hover` wash: when the
  * consumer opts in with `hover`, or implicitly for a clickable grid
  * (`onRowClick`), whose rows then read as actionable — but never through a
@@ -668,6 +712,15 @@ export function GridData<T>({
 		selection,
 		setSelection,
 		rowKeys,
+	})
+
+	// Narrate sort and selection changes to assistive tech without moving focus
+	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays
+	// silent unless the grid has a selection column.
+	useA11yAnnouncements(describeSort(sort, visibleColumns))
+
+	useA11yAnnouncements(describeSelection(selection.size, allSelected), {
+		enabled: hasSelectionColumn,
 	})
 
 	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
