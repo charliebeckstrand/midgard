@@ -23,6 +23,7 @@ import type { SortState } from './context'
 import { DEFAULT_PAGE_SIZE } from './grid-constants'
 import {
 	buildState,
+	clampSizingToFloors,
 	filterOptions,
 	paginationOptions,
 	resizeOptions,
@@ -276,8 +277,17 @@ export function useGridTable<T>({
 
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
+	// Per-column hard floors the autosizer measures (a single-word header's full
+	// width, a multi-word one's icons); a stable map the resize bounds and the
+	// sizing clamp both read. Holding it here, above the engine, lets
+	// `onColumnSizingChange` catch a drag below the floor before it lands.
+	const columnFloorsRef = useRef<Map<string, number>>(new Map())
+
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
-		(updater) => setColumnSizingState((prev) => applyUpdater(updater, prev ?? EMPTY_SIZING)),
+		(updater) =>
+			setColumnSizingState((prev) =>
+				clampSizingToFloors(applyUpdater(updater, prev ?? EMPTY_SIZING), columnFloorsRef.current),
+			),
 		[setColumnSizingState],
 	)
 
@@ -444,10 +454,11 @@ export function useGridTable<T>({
 		columns: visibleColumns,
 		containerRef,
 		density,
+		columnFloors: columnFloorsRef.current,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(
-		() => (resizable ? { ...buildColumnResize(table), sizeToFit } : null),
+		() => (resizable ? { ...buildColumnResize(table, columnFloorsRef.current), sizeToFit } : null),
 		[resizable, table, sizeToFit],
 	)
 

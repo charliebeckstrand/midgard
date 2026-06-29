@@ -298,6 +298,44 @@ export function resizeOptions<T>(args: {
 }
 
 /**
+ * Raises each width in a column-sizing update to its measured floor, so a
+ * drag-resize can't pull a column below the width its header needs — a
+ * single-word header stays whole (it never truncates), a multi-word one keeps
+ * its affordance icons. The engine's resize handler writes the dragged width
+ * clamped only at zero (the `minSize` floor is applied later, at read time), and
+ * every write — drag, keyboard, autosizer — funnels through here, so this is the
+ * one place a sub-floor width is caught before it reaches the controlled state.
+ *
+ * `floors` carries only the columns the autosizer has measured; a column without
+ * an entry (none recorded yet, or width-controlled) is left to the engine's own
+ * `minSize`. Returns the input object unchanged when nothing sits below its
+ * floor, so the autosizer's no-op ticks don't churn a fresh object through the
+ * controlled state and re-render the grid for nothing.
+ *
+ * @internal
+ */
+export function clampSizingToFloors(
+	sizing: ColumnSizingState,
+	floors: ReadonlyMap<string, number>,
+): ColumnSizingState {
+	let result = sizing
+
+	for (const id in sizing) {
+		const floor = floors.get(id)
+
+		const width = sizing[id]
+
+		if (floor != null && width != null && width < floor) {
+			if (result === sizing) result = { ...sizing }
+
+			result[id] = floor
+		}
+	}
+
+	return result
+}
+
+/**
  * The controlled state slices passed to the engine: each active feature's slice
  * is optional, but the grid always owns column order and visibility.
  *
