@@ -238,6 +238,8 @@ function resolveTableProps(args: {
 	colCount: number
 	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
 	multiSelectable: boolean
+	/** The body renders real data rows, not a loading/error/empty placeholder; gates the row/column counts so they never advertise a structure that isn't there. */
+	bodyHasRows: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
@@ -265,10 +267,24 @@ function resolveTableProps(args: {
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
 		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
-		...(args.gridSemantics
+		// Withheld over a loading/error/empty placeholder (a single spanning cell),
+		// which would otherwise advertise a full row/column count that isn't rendered.
+		...(args.gridSemantics && args.bodyHasRows
 			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
 			: {}),
 	}
+}
+
+/**
+ * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
+ * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
+ * sentinel for a server feed paginating by `pageCount` alone (no known total),
+ * rather than misreporting the current page as the whole set. @internal
+ */
+function resolveAriaRowCount(pagination: GridPaginationView | null, renderedCount: number): number {
+	if (pagination && pagination.rowCount == null) return -1
+
+	return (pagination?.rowCount ?? renderedCount) + 1
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
@@ -878,9 +894,7 @@ export function GridData<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
-	// Full row extent for grid semantics: the server total when paginating, else
-	// the rendered count (which equals every row when unpaginated).
-	const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1
+	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
 
 	// Full filtered row extent (the server total when paginating) for the busy
 	// region's result announcement; the header row the aria count adds is excluded.
@@ -923,6 +937,7 @@ export function GridData<T>({
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,
+					bodyHasRows: hasRows && !loading && !showingError,
 					tableWidth,
 				})}
 			>
