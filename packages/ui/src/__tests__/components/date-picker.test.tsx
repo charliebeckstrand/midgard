@@ -391,6 +391,67 @@ describe('DatePicker clearable', () => {
 	})
 })
 
+describe('DatePicker footer', () => {
+	it('drops the Today button but keeps Clear with footer={{ today: false }}', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false }} />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
+
+		expect(footerClear()).toBeInTheDocument()
+	})
+
+	it('drops the footer Clear but keeps Today with footer={{ clear: false }}', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ clear: false }} />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		const toolbar = screen.getByRole('toolbar', { name: 'Date picker actions' })
+
+		expect(within(toolbar).getByRole('button', { name: 'Today' })).toBeInTheDocument()
+
+		// Only the footer Clear is gated; the trigger keeps its own clear affordance.
+		expect(
+			within(toolbar).queryByRole('button', { name: 'Clear selection' }),
+		).not.toBeInTheDocument()
+	})
+
+	it('renders no footer toolbar when both buttons are disabled', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false, clear: false }} />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
+
+	it('drops the range footer Clear with footer={{ clear: false }}', async () => {
+		const user = userEvent.setup()
+
+		const defaultValue: [Date, Date] = [new Date(2025, 5, 1), new Date(2025, 5, 3)]
+
+		const { container } = renderUI(
+			<DatePicker range defaultValue={defaultValue} footer={{ clear: false }} />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
+})
+
 // Focus stays on the trigger while an aria-activedescendant model drives the
 // grid. Covers the keyboard path: opening, moving the highlight, and committing.
 describe('DatePicker keyboard', () => {

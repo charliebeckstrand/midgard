@@ -1,4 +1,4 @@
-export { DatePicker, type DatePickerProps } from './date-picker'
+export { DatePicker, type DatePickerFooterConfig, type DatePickerProps } from './date-picker'
 export type {
 	DatePickerRelativeConfig,
 	DatePickerRelativePreset,

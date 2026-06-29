@@ -274,6 +274,24 @@ describe('DatePicker (relative)', () => {
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
 
+	it('drops the footer Clear with footer={{ clear: false }}', async () => {
+		const user = openPicker()
+
+		renderUI(
+			<DatePicker
+				relative
+				defaultValue={[{ from: new Date(2026, 5, 1), to: new Date(2026, 5, 30) }]}
+				footer={{ clear: false }}
+				aria-label="Reporting range"
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		// A committed span would normally surface the list-mode footer Clear.
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
+
 	it('shows a custom footer Clear once both dates settle and clears the range', async () => {
 		const user = openPicker()
 

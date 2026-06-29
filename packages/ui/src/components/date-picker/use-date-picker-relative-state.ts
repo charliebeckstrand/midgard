@@ -65,6 +65,7 @@ export function useDatePickerRelativeState({
 	defaultValue,
 	onValueChange,
 	relative,
+	footer,
 	placement = 'bottom-start',
 	disabled = false,
 }: DatePickerBaseProps & DatePickerRelativeProps) {
@@ -237,8 +238,8 @@ export function useDatePickerRelativeState({
 	// The footer Clear gates per mode: custom mode requires a settled Start+End
 	// (entering custom mode alone changes nothing); list mode requires any
 	// committed span. Either way Clear runs the same `handleClear`, so one footer
-	// bundle covers both.
-	const showFooterClear = mode === 'custom' ? customComplete : hasValue
+	// bundle covers both. `footer.clear` (default on) suppresses it outright.
+	const showFooterClear = footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
 
 	const footerButtons = useMemo<FooterButton[]>(
 		() => (showFooterClear ? ['clear'] : []),

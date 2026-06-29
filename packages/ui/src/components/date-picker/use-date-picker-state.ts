@@ -32,6 +32,7 @@ export function useDatePickerState({
 	onValueChange,
 	min,
 	max,
+	footer,
 	placement = 'bottom-start',
 	disabled = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
@@ -140,6 +141,12 @@ export function useDatePickerState({
 		[handleClear, handleSelectToday],
 	)
 
+	// Footer toggles default on; a `false` drops the button from the rendered
+	// toolbar and the keyboard model alike, since `footerButtons` feeds both.
+	const showClear = footer?.clear !== false
+
+	const showToday = footer?.today !== false
+
 	const footerButtons = useMemo<FooterButton[]>(() => {
 		const today = new Date()
 
@@ -149,12 +156,12 @@ export function useDatePickerState({
 
 		const buttons: FooterButton[] = []
 
-		if (value != null) buttons.push('clear')
+		if (showClear && value != null) buttons.push('clear')
 
-		if (todayInRange) buttons.push('today')
+		if (showToday && todayInRange) buttons.push('today')
 
 		return buttons
-	}, [value, min, max])
+	}, [value, min, max, showClear, showToday])
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
