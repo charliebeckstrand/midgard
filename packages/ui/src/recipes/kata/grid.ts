@@ -78,10 +78,18 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 ])
 
 export const k = {
+	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
+	// stacking context: the frozen header rides `z-20` and the sticky header `z-10`,
+	// which must layer among themselves but must not leak out to overlap a host's
+	// sticky chrome — e.g. a SidebarLayout's own `z-20` page header the grid scrolls
+	// beneath (without isolation the grid's later-in-DOM `z-20` frozen header wins
+	// the tie and paints over it). Portaled surfaces (the column-manager dialog,
+	// context menus, tooltips) render at the body, outside this context, so they
+	// still overlay the page.
 	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
 	// which paints the resize cursor grid-wide; head and cells read the matching
 	// `resizing` context flag to drop their hover wash and truncation tooltips.
-	wrapper: ['relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	wrapper: ['relative', 'isolate', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical

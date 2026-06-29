@@ -264,6 +264,19 @@ describe('Grid column pinning', () => {
 		expect(head?.style.left).toBe('')
 	})
 
+	it('isolates the grid stacking context so its frozen header stays scoped within it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The grid root carries `isolation: isolate` so its `z-20` frozen header
+		// can't leak past a host layout's own sticky header (which also rides z-20).
+		expect(container.querySelector('[data-slot="grid"]')?.className).toContain('isolate')
+	})
+
 	it('freezes a locked column to its edge like a pinned one', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
