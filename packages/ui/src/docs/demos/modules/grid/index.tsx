@@ -78,7 +78,6 @@ const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
 const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	...col,
 	width: '200px',
-	minWidth: 100,
 }))
 
 const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
