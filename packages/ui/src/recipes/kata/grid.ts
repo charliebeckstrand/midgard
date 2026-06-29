@@ -196,26 +196,24 @@ export const k = {
 		// z-index only bites where the cell is a positioned box — sticky headers
 		// already are; `shift` promotes the rest for the duration of the drag — and
 		// the shadow reads the lifted column as picked up off the table.
-		cell: ['data-[dragging]:z-20', 'data-[dragging]:shadow-lg', ...draggingSurface],
+		cell: [
+			'data-[dragging]:z-20',
+			'data-[dragging]:shadow-lg',
+			// The held column dims its text to the muted foreground — header and body
+			// alike, since this class is shared — so the dragged column reads as
+			// lifted/in transit and a Space/Enter keyboard lift, which moves nothing
+			// until an arrow key, isn't left without a cue. Mirrors `iro.text.muted`;
+			// the header already sits at this shade (table `header` base), so the
+			// visible shift is the bright body (`text.default`) dimming to meet it.
+			// `data-[dragging]` out-specifies the cell's resting colour, so the
+			// override lands without `!`.
+			'data-[dragging]:text-zinc-500',
+			'dark:data-[dragging]:text-zinc-400',
+			...draggingSurface,
+		],
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
-		// The library's "lifted" signal on the actively dragged column's *header*:
-		// an inset ring keyed on `data-[dragging]`, in the violet `sen/focus.lifted`
-		// gives a keyboard-lifted List or Kanban card — a picked-up accent set apart
-		// from the blue focus ring the grip already wears. A pointer drag announces
-		// itself by the column tracking the cursor; a Space/Enter keyboard lift moves
-		// nothing until an arrow key, leaving the faint `cell` shadow (over a fill
-		// that matches the surface) as the only prior cue — easy to miss. The ring
-		// makes the held column unmistakable. Header-only: `cell` (shared with the
-		// body) lifts the whole column with the z-promote, opaque fill, and shadow,
-		// but ringing every body cell too would box each one down the column instead
-		// of reading as one lifted header.
-		lifted: [
-			'data-[dragging]:ring-2',
-			'data-[dragging]:ring-inset',
-			...mode('data-[dragging]:ring-violet-600', 'dark:data-[dragging]:ring-violet-500'),
-		],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.

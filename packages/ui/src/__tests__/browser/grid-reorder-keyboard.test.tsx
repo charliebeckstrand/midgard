@@ -3,17 +3,15 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 /**
- * A keyboard-activated column reorder must give a visible "lifted" cue. dnd-kit's
- * keyboard sensor starts the drag on Space/Enter over the grip, but the column
- * does not move until an arrow key — so without a state-driven indicator there is
- * nothing on screen to show it is now held (the lift's shadow sits over a fill
- * that matches the surface, so it barely reads). The dragged header takes the
- * library's lifted ring — an inset ring keyed on `data-dragging`, as a
- * keyboard-lifted List or Kanban card wears — while an idle header shows none.
+ * A keyboard-activated column reorder must give a visible cue. dnd-kit's keyboard
+ * sensor starts the drag on Space/Enter over the grip, but the column does not
+ * move until an arrow key — so without a state-driven indicator there is nothing
+ * on screen to show it is now held. The held column dims its text to the muted
+ * foreground (header and body alike, via the shared reorder-cell class): the
+ * header already sits at that shade, so the bright body dims to meet it and the
+ * whole column reads as one lifted, muted slice while an idle column stays bright.
  *
- * The ring resolves to an `inset` box-shadow that the lift's outset `shadow-lg`
- * never produces, so its presence is the precise signal here. Real focus, layout,
- * and computed colour, so this runs in the browser suite.
+ * Real focus, layout, and computed colour, so this runs in the browser suite.
  */
 describe('grid column reorder — keyboard lift indicator (real browser)', () => {
 	type Row = { id: number; a: string; b: string }
@@ -28,25 +26,30 @@ describe('grid column reorder — keyboard lift indicator (real browser)', () =>
 		{ id: 2, a: 'a2', b: 'b2' },
 	]
 
-	function headerFor(id: string): HTMLElement {
-		const header = document.querySelector(`th[data-grid-col="${id}"]`)
+	function cellFor(tag: 'th' | 'td', id: string): HTMLElement {
+		const cell = document.querySelector(`${tag}[data-grid-col="${id}"]`)
 
-		if (!header) throw new Error(`no reorderable header for column ${id}`)
+		if (!cell) throw new Error(`no ${tag} for column ${id}`)
 
-		return header as HTMLElement
+		return cell as HTMLElement
 	}
 
-	it('rings the dragged column header when a drag starts from the keyboard', async () => {
+	it('mutes the held column header and body when a drag starts from the keyboard', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder />)
 
 		const grip = screen.getByRole('button', { name: 'Reorder A' })
 
-		const headerA = headerFor('a')
+		const headerA = cellFor('th', 'a')
 
-		const headerB = headerFor('b')
+		const bodyA = cellFor('td', 'a')
 
-		// At rest no column is held, so no header wears the inset lifted ring.
-		expect(getComputedStyle(headerA).boxShadow).not.toContain('inset')
+		const bodyB = cellFor('td', 'b')
+
+		// At rest the header is muted (table header base) but the body is the bright
+		// default, so the two differ — the baseline the drag collapses.
+		const restBodyColor = getComputedStyle(bodyA).color
+
+		expect(getComputedStyle(headerA).color).not.toBe(restBodyColor)
 
 		grip.focus()
 
@@ -55,13 +58,19 @@ describe('grid column reorder — keyboard lift indicator (real browser)', () =>
 
 		await waitFor(() => expect(headerA).toHaveAttribute('data-dragging'))
 
-		// The held column's header now carries the inset lifted ring; its idle
-		// neighbour does not — the ring tracks the drag, not the reorderable set.
-		expect(getComputedStyle(headerA).boxShadow).toContain('inset')
+		const dragBodyColor = getComputedStyle(bodyA).color
 
-		expect(getComputedStyle(headerB).boxShadow).not.toContain('inset')
+		// The held body dims, landing on the muted shade its header already wears —
+		// head and body now read as one muted column.
+		expect(dragBodyColor).not.toBe(restBodyColor)
 
-		// Drop the drag so the lifted column doesn't outlive the test.
+		expect(getComputedStyle(headerA).color).toBe(dragBodyColor)
+
+		// An idle neighbour keeps the bright default: the muting tracks the drag, not
+		// the whole table.
+		expect(getComputedStyle(bodyB).color).toBe(restBodyColor)
+
+		// Drop the drag so the held column doesn't outlive the test.
 		fireEvent.keyDown(grip, { code: 'Escape' })
 	})
 })
