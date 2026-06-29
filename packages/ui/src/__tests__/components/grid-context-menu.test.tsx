@@ -405,4 +405,30 @@ describe('Grid context menus', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Pinned right' })).toBeInTheDocument()
 	})
+
+	it('withholds pin items on a locked column', () => {
+		const lockedColumns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				cell: (row) => row.name,
+				value: (row) => row.name,
+				locked: 'left',
+			},
+			{ id: 'role', title: 'Role', cell: (row) => row.role },
+		]
+
+		renderUI(<Grid columns={lockedColumns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		// Sort items still show; the pin items are withheld — a locked freeze is immutable.
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin right' })).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Unpin' })).not.toBeInTheDocument()
+	})
 })

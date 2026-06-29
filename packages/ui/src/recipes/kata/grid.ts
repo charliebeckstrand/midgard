@@ -177,6 +177,11 @@ export const k = {
 				cursor,
 				'select-none',
 			],
+			// Lock glyph on a locked column's header: the static counterpart to
+			// `button`. A locked freeze is immutable, so this is a non-interactive
+			// indicator — muted, with no hover/focus/cursor — sharing the button's
+			// `-ml-1` optical inset so the glyph lands over the column's values.
+			lock: [flex.inline, 'shrink-0', '-ml-1', text.muted, 'select-none'],
 		},
 	},
 	sort: {

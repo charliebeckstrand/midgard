@@ -1,7 +1,7 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { ArrowDown, ArrowUp, GripVertical, Pin } from 'lucide-react'
+import { ArrowDown, ArrowUp, GripVertical, Lock, Pin } from 'lucide-react'
 import {
 	type KeyboardEvent,
 	memo,
@@ -23,6 +23,7 @@ import type { QueryGroupNode } from '../query'
 import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
+import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
@@ -235,13 +236,17 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 		// Frozen-column controls; the header reads them so a pinned cell sticks.
 		pinning,
-		// Unpins a column; backs the pin button a frozen header shows.
+		// Unpins a column; backs the pin button a (non-locked) frozen header shows.
 		pinColumn,
+		// A locked column is frozen but immutable: its header shows a static lock
+		// icon rather than an unpin button.
+		locked: isLocked(column),
 	}
 
 	// `reorderable` already folds in the source-data gate (its caller passes
 	// `canReorder && hasData`), so the cell drops the drag activator with no data.
-	if (reorderable && isDataColumn(column) && !column.pinned) {
+	// Frozen columns (pinned or locked) are never reorderable.
+	if (reorderable && isDataColumn(column) && !isFrozen(column)) {
 		return <GridReorderableColumnHeader {...shared} />
 	}
 
@@ -281,6 +286,8 @@ type GridColumnHeaderProps = {
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	/** Whether this column is locked (frozen but immutable); its header shows a static lock icon, not an unpin button. */
+	locked: boolean
 }
 
 /**
@@ -507,11 +514,13 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	filterQuery,
 	pinning,
 	pinColumn,
+	locked,
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	// This column's frozen edge (read live from the engine), or `undefined` when it
-	// scrolls; a frozen header leads its title with a pin indicator.
+	// scrolls; a frozen header leads its title with a pin indicator (an unpin button
+	// when pinned, a static lock icon when locked).
 	const pinnedSide = pinning?.side(column.id)
 
 	const label = (
@@ -547,14 +556,22 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			<span data-grid-header className={cn(k.filter.slot)}>
 				{pinnedSide ? (
 					<span className={cn(k.head.pinned.label)}>
-						<button
-							type="button"
-							className={cn(k.head.pinned.button)}
-							aria-label={`Unpin ${columnLabel(column)}`}
-							onClick={() => pinColumn(column.id, false)}
-						>
-							<Icon icon={<Pin />} />
-						</button>
+						{locked ? (
+							// Locked: a static lock glyph in place of the unpin button — the
+							// freeze is immutable, so there's no control to release it.
+							<span aria-hidden="true" className={cn(k.head.pinned.lock)}>
+								<Icon icon={<Lock />} />
+							</span>
+						) : (
+							<button
+								type="button"
+								className={cn(k.head.pinned.button)}
+								aria-label={`Unpin ${columnLabel(column)}`}
+								onClick={() => pinColumn(column.id, false)}
+							>
+								<Icon icon={<Pin />} />
+							</button>
+						)}
 						{label}
 					</span>
 				) : (

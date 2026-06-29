@@ -146,14 +146,30 @@ export type GridColumn<T> = {
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and
 	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
-	 * A pinned column is also locked — it can't be reordered or hidden, shows in the
-	 * column manager's pinned group, and marks its header with a pin button that
-	 * unpins it on click. Multi-column stacking needs known widths (a
-	 * `resizable`/fixed-layout grid, or a column `width`); a lone pinned column on a
-	 * side needs neither. This is the column's initial pin — the header context
-	 * menu's Pin left / Pin right / Unpin items override it at runtime.
+	 * A pinned column can't be reordered or hidden, shows in the column manager's
+	 * matching pinned group (left columns prepended, right appended), and marks its
+	 * header with a pin button that unpins it on click. Multi-column stacking needs
+	 * known widths (a `resizable`/fixed-layout grid, or a column `width`); a lone
+	 * pinned column on a side needs neither. This is the column's initial pin — the
+	 * user moves it at runtime through the header context menu's Pin left / Pin
+	 * right / Unpin items and the column manager's per-column pin control.
+	 * @see {@link GridColumn.locked} for a freeze the user can't change.
 	 */
 	pinned?: boolean | 'left' | 'right'
+	/**
+	 * Freezes the column to an edge like {@link GridColumn.pinned}, but the user
+	 * can't release it: no unpin button on its header, no Pin / Unpin items in its
+	 * context menu, and a non-interactive lock icon (rather than a pin control) in
+	 * the column manager. `'left'` / `'right'` pick the edge; `true` is `'left'`. It
+	 * still lists in the column manager's matching pinned group — left columns
+	 * prepended, right appended — and is excluded from reorder and hide like a
+	 * pinned column. Takes precedence over `pinned` and any runtime pin change.
+	 *
+	 * @remarks Use for columns that must stay frozen — a row's identity column, a
+	 * permanent actions rail — where pinning is part of the grid's design rather
+	 * than a user preference.
+	 */
+	locked?: boolean | 'left' | 'right'
 	/**
 	 * When false, the column cannot be hidden from the column manager.
 	 * @defaultValue true
@@ -161,12 +177,24 @@ export type GridColumn<T> = {
 	hideable?: boolean
 }
 
-/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/hideable flags. */
+/** A column as the {@link GridColumnManager} sees it: id, display `title`, and the pin/lock/hideable flags. */
 export type GridColumnManagerItem = {
 	id: string | number
 	title: ReactNode
-	/** Pinned columns cannot be reordered or hidden. */
-	pinned?: boolean
+	/**
+	 * The edge the column is currently frozen to, or `undefined` when it scrolls.
+	 * A frozen column lists in the manager's matching group — `'left'` prepended,
+	 * `'right'` appended — and can't be reordered or hidden. The per-column pin
+	 * control writes the change back through {@link GridColumnManagerProps.onPinChange}.
+	 */
+	pinned?: 'left' | 'right'
+	/**
+	 * The edge the column is locked to, or `undefined` when it isn't locked. A
+	 * locked column is frozen like {@link GridColumnManagerItem.pinned} but the
+	 * manager shows a non-interactive lock icon for it instead of a pin control, so
+	 * the user can't release it.
+	 */
+	locked?: 'left' | 'right'
 	/**
 	 * When false, the column cannot be hidden.
 	 * @defaultValue true
@@ -319,6 +347,12 @@ export type GridColumnMenuContext<T> = {
 	clearSort: () => void
 	/** This column's frozen edge, or `undefined` when it scrolls. */
 	pinned: 'left' | 'right' | undefined
+	/**
+	 * The edge this column is locked to, or `undefined` when it isn't locked. A
+	 * locked column is frozen immutably — `pinLeft` / `pinRight` / `unpin` don't
+	 * move it — and its default menu offers no pin items.
+	 */
+	locked: 'left' | 'right' | undefined
 	/** Freezes this column against the left edge. */
 	pinLeft: () => void
 	/** Freezes this column against the right edge. */

@@ -263,4 +263,67 @@ describe('Grid column pinning', () => {
 
 		expect(head?.style.left).toBe('')
 	})
+
+	it('freezes a locked column to its edge like a pinned one', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headCell(container, 'name')?.className).toContain('sticky')
+
+		expect(headCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(dataCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(headCell(container, 'status')?.className).toContain('sticky')
+
+		expect(headCell(container, 'status')?.style.right).toBe('0px')
+	})
+
+	it('treats locked: true as left', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: true },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(headCell(container, 'name')?.style.right).toBe('')
+	})
+
+	it('gives a locked column header no unpin button while a pinned one keeps it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'right' },
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The pinned column carries an unpin button; the locked column never does —
+		// its freeze can't be released from the grid.
+		expect(screen.getByRole('button', { name: 'Unpin Email' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Unpin Name' })).not.toBeInTheDocument()
+	})
+
+	it('does not reorder or unpin a locked column from the header', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		renderUI(<Grid reorder columns={columns} rows={rows} getKey={getKey} />)
+
+		// A locked column is excluded from drag-reorder (no grip) like a pinned one.
+		expect(screen.queryByRole('button', { name: 'Reorder Name' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reorder Email' })).toBeInTheDocument()
+	})
 })
