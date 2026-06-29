@@ -38,6 +38,26 @@ describe('Grid navigable cursor', () => {
 		expect(grid).toHaveAttribute('tabindex', '0')
 	})
 
+	it('gives the role=grid a default accessible name', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		expect(screen.getByRole('grid')).toHaveAccessibleName('Data grid')
+	})
+
+	it('lets tableProps name the grid, overriding the default', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				tableProps={{ 'aria-label': 'Orders' }}
+			/>,
+		)
+
+		expect(screen.getByRole('grid')).toHaveAccessibleName('Orders')
+	})
+
 	it('marks the data cells as gridcells', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 

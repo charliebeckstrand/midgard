@@ -253,6 +253,13 @@ function resolveTableProps(args: {
 			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
+		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
+		// when the caller named the grid through neither `tableProps` escape hatch.
+		...(role === 'grid' &&
+		args.tableProps?.['aria-label'] == null &&
+		args.tableProps?.['aria-labelledby'] == null
+			? { 'aria-label': 'Data grid' }
+			: {}),
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
 		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),

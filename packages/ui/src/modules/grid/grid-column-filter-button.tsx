@@ -145,7 +145,9 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// An active filter accents the button through its `color`; the resting
 				// muted tint drops so it doesn't override that colour.
 				color={active ? 'blue' : undefined}
-				aria-label={`Filter ${label}`}
+				// Name carries the applied state so it isn't conveyed by colour alone
+				// (WCAG 1.4.1 / 4.1.2); the open state stays on aria-expanded.
+				aria-label={active ? `Filter ${label}, active` : `Filter ${label}`}
 				aria-haspopup="dialog"
 				aria-expanded={open}
 				data-active={dataAttr(active)}

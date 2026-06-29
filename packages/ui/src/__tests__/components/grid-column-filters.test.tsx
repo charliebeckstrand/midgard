@@ -41,7 +41,7 @@ describe('Grid per-column filters', () => {
 	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).toBeInTheDocument()
 
 		expect(screen.queryByRole('button', { name: 'Filter Role' })).not.toBeInTheDocument()
 	})
@@ -57,7 +57,7 @@ describe('Grid per-column filters', () => {
 	it('opens a single-column query builder — rules only, no field selector or groups', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
 
@@ -74,7 +74,7 @@ describe('Grid per-column filters', () => {
 	it('hides the remove control while a single rule remains, restoring it past one', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		// The lone seeded rule can't be removed (the filter keeps one), so no control.
 		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Filter Name' })
+		const button = screen.getByRole('button', { name: /^Filter Name/ })
 
 		expect(button).toHaveAttribute('data-active')
 
@@ -114,7 +114,7 @@ describe('Grid per-column filters', () => {
 	it('leaves the filter button unaccented when no filter is active', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		const button = screen.getByRole('button', { name: 'Filter Name' })
+		const button = screen.getByRole('button', { name: /^Filter Name/ })
 
 		expect(button).not.toHaveAttribute('data-active')
 
@@ -133,7 +133,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Filter Name' })
+		const button = screen.getByRole('button', { name: /^Filter Name/ })
 
 		expect(button).not.toHaveAttribute('data-active')
 
@@ -143,25 +143,25 @@ describe('Grid per-column filters', () => {
 	it('activates only after Apply settles a valued rule, and clears on Apply', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		// The sheet opens on a seeded, value-less rule — still inactive.
-		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
 		})
 
 		// The edit is a draft: nothing reaches the engine, so the button stays inactive.
-		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		// Apply settles it — now the button accents.
 		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
-		expect(screen.getByRole('button', { name: 'Filter Name' })).toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).toHaveAttribute('data-active')
 
 		// Reopen, empty the value, and apply: the cleared rule deactivates it again.
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: '' },
@@ -169,13 +169,13 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
-		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 	})
 
 	it('lifts an applied filter with Reset, restoring the hidden rows', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		// Nothing applied yet — with no filter to lift, Reset isn't offered.
 		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
@@ -190,12 +190,12 @@ describe('Grid per-column filters', () => {
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 
 		// Reopen — Reset is now live — and press it.
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
 		// The filter lifts: the button deactivates and the hidden row returns.
-		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
@@ -210,7 +210,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		// An auto right-margin pushes Reset to the opposite edge from the pair.
 		expect(screen.getByRole('button', { name: 'Reset' }).className).toContain('mr-auto')
@@ -219,7 +219,7 @@ describe('Grid per-column filters', () => {
 	it('discards a draft when the filter sheet is dismissed without applying', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
@@ -228,10 +228,10 @@ describe('Grid per-column filters', () => {
 		// Cancel discards the draft — the filter never engaged.
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(screen.getByRole('button', { name: 'Filter Name' })).not.toHaveAttribute('data-active')
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		// Reopening starts from the applied (empty) state, not the discarded draft.
-		fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
 		expect(screen.getByRole('textbox', { name: 'Name value' })).toHaveValue('')
 	})
@@ -248,11 +248,14 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Filter Name' })
+		const button = screen.getByRole('button', { name: /^Filter Name/ })
 
 		expect(button).toHaveAttribute('data-active')
 
 		expect(button.className).toMatch(/text-blue/)
+
+		// The applied state is in the accessible name too, not conveyed by colour alone.
+		expect(button).toHaveAccessibleName('Filter Name, active')
 	})
 
 	it('keeps the filter and sort affordances reachable when a filter empties the grid', () => {
@@ -270,7 +273,7 @@ describe('Grid per-column filters', () => {
 
 		// ...but the source still has rows, so the header stays live — the filter
 		// button is reachable to clear the filter, and the column stays sortable.
-		expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 	})

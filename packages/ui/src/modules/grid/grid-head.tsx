@@ -393,11 +393,21 @@ function ColumnHeaderLabel({
 				// A Shift-click folds this column into the existing sort (multi-column);
 				// a plain click collapses the sort to just this column.
 				onClick={(event) => toggleSort(column.id, event.shiftKey)}
-				aria-label={`Sort by ${columnLabel(column)}`}
+				// The explicit name overrides the inner badge, so fold the multi-column
+				// sort priority into it; otherwise the digit is never announced (WCAG 1.3.1).
+				aria-label={
+					sortPriority != null
+						? `Sort by ${columnLabel(column)}, sort priority ${sortPriority}`
+						: `Sort by ${columnLabel(column)}`
+				}
 			>
 				<GridHeaderTitle title={column.title} />
 				{sortDirectionIcon(sorted, direction)}
-				{sortPriority != null && <span className={cn(k.sort.badge)}>{sortPriority}</span>}
+				{sortPriority != null && (
+					<span aria-hidden className={cn(k.sort.badge)}>
+						{sortPriority}
+					</span>
+				)}
 			</Button>
 		</HeadlessProvider>
 	)

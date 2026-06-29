@@ -262,7 +262,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([
 				{ column: 'name', direction: 'asc' },
@@ -288,7 +288,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([
 				{ column: 'name', direction: 'asc' },
@@ -314,7 +314,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Age' }), { shiftKey: true })
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
 
 			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
@@ -337,7 +337,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			fireEvent.click(screen.getByRole('button', { name: 'Sort by Name' }))
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Name/ }))
 
 			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
