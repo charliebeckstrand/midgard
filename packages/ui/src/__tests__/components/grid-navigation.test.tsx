@@ -218,6 +218,28 @@ describe('Grid navigable cursor', () => {
 
 		expect(grid).not.toHaveAttribute('aria-activedescendant')
 	})
+
+	it('re-clamps the cursor when the data shrinks so the active cell never dangles', () => {
+		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		// Seat the cursor on the last cell (Ctrl+End).
+		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
+
+		const seated = grid.getAttribute('aria-activedescendant')
+
+		expect(seated && document.getElementById(seated)).toBeInTheDocument()
+
+		// Shrink to a single row; the old coordinate now points past the end.
+		rerender(<Grid columns={columns} rows={rows.slice(0, 1)} getKey={getKey} navigable />)
+
+		const clamped = grid.getAttribute('aria-activedescendant')
+
+		// The active descendant still resolves to a real cell — it was re-clamped,
+		// not left dangling at the removed row.
+		expect(clamped && document.getElementById(clamped)).toBeInTheDocument()
+	})
 })
 
 describe('Grid navigable role', () => {

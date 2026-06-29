@@ -62,6 +62,8 @@ export function useGridCursor<T>({
 	navStore: ReturnType<typeof useGridNavigation>['store']
 	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
+	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
+	reconcile: (rowCount: number, colCount: number) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/** Wraps the table with the editing contexts when editable, else returns it unchanged. */
@@ -127,6 +129,7 @@ export function useGridCursor<T>({
 		cursorEnabled,
 		navStore: nav.store,
 		navTableProps: nav.navTableProps,
+		reconcile: nav.reconcile,
 		columns: editingEnabled ? editColumns : navColumns,
 		wrap,
 	}

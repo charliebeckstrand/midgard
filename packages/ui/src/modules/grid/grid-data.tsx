@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -712,6 +713,13 @@ export function GridData<T>({
 	rowKeysRef.current = rowKeys
 
 	dataColumnsRef.current = dataColumns
+
+	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
+	// hide a column), so its active cell and `aria-activedescendant` never dangle
+	// past the new extent; inert for a non-cursor grid (active stays unseated).
+	useLayoutEffect(() => {
+		cursor.reconcile(renderRows.length, dataColumns.length)
+	}, [cursor.reconcile, renderRows.length, dataColumns.length])
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0

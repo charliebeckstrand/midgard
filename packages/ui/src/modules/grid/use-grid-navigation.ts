@@ -142,6 +142,8 @@ export function useGridNavigation({
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
+	/** Re-clamps the active cell to the given bounds; the grid drives it as the data changes. */
+	reconcile: (rowCount: number, colCount: number) => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive] = useState<Coord | null>(null)
@@ -212,6 +214,24 @@ export function useGridNavigation({
 		},
 		[rowsRef, colCountRef],
 	)
+
+	// Re-clamp the cursor to the current bounds when the data shrinks (filter,
+	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
+	// it drives — never dangles past the rendered grid; clears it when the grid
+	// empties. A no-op while in bounds (returns the same coord, so no re-render).
+	const reconcile = useCallback((rowCount: number, colCount: number) => {
+		setActive((current) => {
+			if (current === null) return null
+
+			if (rowCount === 0 || colCount === 0) return null
+
+			const row = clamp(current.row, 0, rowCount - 1)
+
+			const col = clamp(current.col, 0, colCount - 1)
+
+			return row === current.row && col === current.col ? current : { row, col }
+		})
+	}, [])
 
 	// Activates the row under the cursor through the grid's row-click bridge.
 	const activateRow = useCallback(
@@ -334,6 +354,7 @@ export function useGridNavigation({
 		store: enabled ? storeRef.current : INERT_STORE,
 		cellId,
 		moveTo,
+		reconcile,
 		navTableProps,
 	}
 }
