@@ -58,6 +58,32 @@ describe('useGridTable column resolution', () => {
 		expect(visibleIds(cols)).toEqual(['b', 'd', 'c', 'a'])
 	})
 
+	it('pulls the selection column to the far left, ahead of a left-pinned column', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'a', title: 'A', cell: cell('a') },
+			{ id: 'b', title: 'B', cell: cell('b') },
+			{ id: 'c', title: 'C', cell: cell('c'), pinned: 'left' },
+			{ id: 'd', title: 'D', cell: cell('d') },
+		]
+
+		// The checkbox column leads the left edge; the pinned column (c) follows it,
+		// then the scrolling columns in order.
+		expect(visibleIds(cols)).toEqual(['select', 'c', 'a', 'b', 'd'])
+	})
+
+	it('anchors the selection column left even when only a right column is pinned', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'a', title: 'A', cell: cell('a') },
+			{ id: 'b', title: 'B', cell: cell('b'), pinned: 'right' },
+			{ id: 'c', title: 'C', cell: cell('c') },
+		]
+
+		// Selection frozen far left, b frozen right, a and c scrolling between them.
+		expect(visibleIds(cols)).toEqual(['select', 'a', 'c', 'b'])
+	})
+
 	it('keeps a hidden column out and pinned columns at their edge together', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'a', title: 'A', cell: cell('a') },

@@ -50,13 +50,13 @@ function pageStatus({
 }
 
 /**
- * Footer for a paginated {@link Grid}, laid out as three zones: a row-range
- * status, the page navigation, and an optional page-size picker — all driven by
+ * Footer for a paginated {@link Grid}, laid out as three zones: an optional
+ * page-size picker, the page navigation, and a row-range status — all driven by
  * the {@link GridPaginationView} the grid's TanStack Table engine resolves. From
- * `lg` they share one row (status at the start, nav centered, controls at the
- * end); below it the nav stacks above a status/controls row. Numbered pages
- * render only when the total page count is known; an unbounded server feed falls
- * back to Previous/Next around a "Page N" status.
+ * `lg` they share one row (picker at the start, nav centered, status at the
+ * end); below it the nav stacks above a picker/status row. Numbered pages render
+ * only when the total page count is known; an unbounded server feed falls back to
+ * Previous/Next around a "Page N" status.
  *
  * @internal
  */
@@ -122,12 +122,6 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 			)}
 
 			<div className={cn(k.footer.meta)}>
-				{/* A polite live region so a page/range change is announced without moving
-				    focus (WCAG 4.1.3); role="status" stays silent on the initial render. */}
-				<p role="status" className={cn(k.footer.status)}>
-					{status}
-				</p>
-
 				<div className={cn(k.footer.controls)}>
 					{showPicker && (
 						<Select<number>
@@ -135,7 +129,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 							value={pageSize}
 							onValueChange={(value) => value != null && setPageSize(value)}
 							displayValue={(value) => `${value} / page`}
-							placement="top-end"
+							placement="top-start"
 						>
 							{pageSizeOptions.map((option) => (
 								<SelectOption key={option} value={option}>
@@ -145,6 +139,12 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 						</Select>
 					)}
 				</div>
+
+				{/* A polite live region so a page/range change is announced without moving
+				    focus (WCAG 4.1.3); role="status" stays silent on the initial render. */}
+				<p role="status" className={cn(k.footer.status)}>
+					{status}
+				</p>
 			</div>
 		</div>
 	)
