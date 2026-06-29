@@ -3,20 +3,12 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 import { announce, cn } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-
-const padding = {
-	sm: 'pr-16',
-	md: 'pr-18',
-	lg: 'pr-20',
-} satisfies Record<ControlSize, string>
 
 /** Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a number-valued change callback. */
 export type NumberInputProps = Omit<
@@ -71,12 +63,6 @@ export function NumberInput({
 		setValue: setCurrent,
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
-
-	const inherited = useDensity()
-
-	// `size` passes through untouched to `<Input>` for the full density token;
-	// resolved locally only to pick the padding that clears the stepper buttons.
-	const resolvedSize: ControlSize = size ?? inherited.size
 
 	const precision = stepPrecision(step)
 
@@ -145,7 +131,7 @@ export function NumberInput({
 			min={min}
 			max={max}
 			step={step}
-			className={cn(padding[resolvedSize], k.number, className)}
+			className={cn(k.number, className)}
 			suffix={
 				// Keep focus on the input when a stepper is pressed. The buttons are
 				// tabIndex -1 and mutate silently, so a focus shift would blur the
