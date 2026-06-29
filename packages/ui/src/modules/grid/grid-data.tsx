@@ -403,14 +403,16 @@ function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
 
 /**
  * The polite announcement for the row selection, narrated when it changes (WCAG
- * 4.1.3): `All rows selected`, `Selection cleared`, or the running count
- * (`3 rows selected`). The caller gates announcing on a selection column being
- * present, so a non-selectable grid stays silent.
+ * 4.1.3): `All rows selected` — or `All rows on this page selected` when
+ * paginated, since the select-all is page-scoped and the label says as much —
+ * `Selection cleared`, or the running count (`3 rows selected`). The caller
+ * gates announcing on a selection column being present, so a non-selectable grid
+ * stays silent.
  *
  * @internal
  */
-function describeSelection(size: number, allSelected: boolean): string {
-	if (allSelected) return 'All rows selected'
+function describeSelection(size: number, allSelected: boolean, onPage: boolean): string {
+	if (allSelected) return onPage ? 'All rows on this page selected' : 'All rows selected'
 
 	if (size === 0) return 'Selection cleared'
 
@@ -726,7 +728,7 @@ export function GridData<T>({
 	// silent unless the grid has a selection column.
 	useA11yAnnouncements(describeSort(sort, visibleColumns))
 
-	useA11yAnnouncements(describeSelection(selection.size, allSelected), {
+	useA11yAnnouncements(describeSelection(selection.size, allSelected, pagination != null), {
 		enabled: hasSelectionColumn,
 	})
 

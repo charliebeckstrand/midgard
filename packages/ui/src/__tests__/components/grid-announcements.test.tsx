@@ -51,6 +51,31 @@ describe('Grid announcements', () => {
 		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('All rows selected'))
 	})
 
+	it('scopes the select-all announcement to the page when paginated', async () => {
+		const user = userEvent.setup()
+
+		const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
+
+		const many: Row[] = Array.from({ length: 12 }, (_, i) => ({ name: `Name ${i + 1}`, age: i }))
+
+		renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={many}
+				getKey={(row) => row.name}
+				pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+			/>,
+		)
+
+		// Select-all is page-scoped under pagination, so the announcement says so
+		// rather than overclaiming every row across all pages.
+		await user.click(screen.getByRole('checkbox', { name: 'Select all rows on this page' }))
+
+		await vi.waitFor(() =>
+			expect(politeRegion()).toHaveTextContent('All rows on this page selected'),
+		)
+	})
+
 	it('stays silent on selection changes when no column is selectable', async () => {
 		const user = userEvent.setup()
 
