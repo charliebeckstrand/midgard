@@ -115,11 +115,14 @@ export type GridColumn<T> = {
 	className?: string
 	headerClassName?: string
 	/**
-	 * Fixes the column at this CSS width, superseding the automatic content sizing
-	 * ({@link GridProps.resizable}). A `px` value also seeds the column's initial
-	 * resize width. Omit it to let the column size to its content: columns share the
-	 * width evenly when there is room to spare, and any column whose content would
-	 * truncate takes more.
+	 * The column's width. In a non-resizable grid this is its fixed CSS width. In a
+	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
+	 * initial width: the column holds it — sitting out the automatic content sizing —
+	 * until you drag-resize it or run the header's "Auto-size columns", which re-fits
+	 * it to content. A drag still can't cross the {@link GridColumn.minWidth} floor,
+	 * so a single-word header stays whole. Omit it to size to content from the first
+	 * render: columns share the width evenly when there is room to spare, and any
+	 * column whose content would truncate takes more.
 	 */
 	width?: string
 	/**

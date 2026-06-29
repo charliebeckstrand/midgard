@@ -130,12 +130,14 @@ function bodyContentWidth(cells: HTMLElement[]): number {
 	return widest
 }
 
-/** A measured column slice: the auto-sized columns' {@link ColumnSizeProfile}s and the summed width held by the rest. @internal */
+/** A measured column slice: the auto-sized columns' {@link ColumnSizeProfile}s, the summed width held by the rest, and every data column's floor. @internal */
 export type ColumnMeasurement = {
 	/** Profiles for the columns the allocator distributes width across. */
 	profiles: ColumnSizeProfile[]
-	/** Total width (px) of the columns excluded from allocation — non-data, `width`-pinned, and manually resized. */
+	/** Total width (px) of the columns excluded from allocation — non-data, `width`-held, and manually resized. */
 	fixed: number
+	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize may not cross (see {@link columnFloor}). */
+	floors: Map<string, number>
 }
 
 /** Options for {@link measureColumnIntrinsics}. @internal */
@@ -147,6 +149,8 @@ type MeasureOptions<T> = {
 	container: HTMLElement
 	/** Columns the user drag-resized; held at their current engine width, not auto-sized. */
 	manualPinned: ReadonlySet<string>
+	/** Columns whose `width` seed the user released via "Auto-size columns"; they auto-size again instead of holding `width`. */
+	released: ReadonlySet<string>
 	/**
 	 * Per-column running-max content width (border-box), carried across passes so a
 	 * wider row scrolling or paging into view only grows a column, never shrinks it
@@ -156,27 +160,19 @@ type MeasureOptions<T> = {
 }
 
 /**
- * Builds one auto-sized data column's {@link ColumnSizeProfile} from its rendered
- * header and body cells. The width is driven by the body content (capped so a
- * runaway cell can't starve the rest, then folded into the running max so a wider
- * row paging in only grows the column); the header's policy lives entirely in the
- * `min` floor — a single-word header reserves its full width, so the column is at
- * least that wide and the header never truncates, while a multi-word or
- * non-string header reserves only its affordance icons plus a small text
- * allowance, so a column with narrow data stays narrow and that header truncates.
- * `max` is the column's `maxWidth`, else unbounded — which also lifts the content
- * cap, an explicit ceiling being deliberate.
+ * A data column's hard floor (px): the narrowest it may be sized — by the
+ * allocator or a drag-resize — before its header can't show. A single-word title
+ * reserves its full width, so the column is at least that wide and the header
+ * never truncates; a multi-word or non-string title reserves only its affordance
+ * icons plus a small text allowance, so a narrow-data column stays narrow and
+ * that header truncates. Clamped up to the column's declared `minWidth` and down
+ * to its `maxWidth`. Read from the header DOM unclipped by the column's current
+ * width (see {@link headerWidth}), so a wide column reports the tight floor, not
+ * its current size — the same floor whatever width it holds.
  *
  * @internal
  */
-function columnProfile<T>(
-	col: GridColumn<T>,
-	th: HTMLElement | undefined,
-	cells: HTMLElement[],
-	runningContent: Map<string, number>,
-): ColumnSizeProfile {
-	const id = String(col.id)
-
+function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined): number {
 	const titleLeaf = th?.querySelector<HTMLElement>('[data-grid-content]') ?? null
 
 	const titleIntrinsic = titleLeaf ? intrinsicWidth(titleLeaf) : 0
@@ -192,32 +188,72 @@ function columnProfile<T>(
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	const min = Math.min(Math.max(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE), max)
+	return Math.min(Math.max(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE), max)
+}
 
-	// Body content drives the width (capped); the header floor is always honored, so
-	// a single-word header still fits while a multi-word one truncates to the data.
+/**
+ * Builds one auto-sized data column's {@link ColumnSizeProfile} from its `floor`
+ * (see {@link columnFloor}) and rendered body cells. The width is driven by the
+ * body content (capped so a runaway cell can't starve the rest, then folded into
+ * the running max so a wider row paging in only grows the column); the floor is
+ * always honored, so a single-word header still fits while a multi-word one
+ * truncates to the data. `max` is the column's `maxWidth`, else unbounded — which
+ * also lifts the content cap, an explicit ceiling being deliberate.
+ *
+ * @internal
+ */
+function columnProfile<T>(
+	col: GridColumn<T>,
+	cells: HTMLElement[],
+	floor: number,
+	runningContent: Map<string, number>,
+): ColumnSizeProfile {
+	const id = String(col.id)
+
+	const max = col.maxWidth ?? Number.MAX_SAFE_INTEGER
+
 	const cap = col.maxWidth ?? DEFAULT_CONTENT_MAX
 
-	const measured = Math.max(min, Math.min(bodyContentWidth(cells), cap))
+	const measured = Math.max(floor, Math.min(bodyContentWidth(cells), cap))
 
 	const content = Math.max(measured, runningContent.get(id) ?? 0)
 
 	runningContent.set(id, content)
 
-	return { id, min, content, max }
+	return { id, min: floor, content, max }
 }
 
-/** Whether a column is auto-sized — a data column with neither a `width` override nor a manual drag-resize. @internal */
-function isAutoSized<T>(col: GridColumn<T>, manualPinned: ReadonlySet<string>): boolean {
-	return isDataColumn(col) && parsePxWidth(col.width) == null && !manualPinned.has(String(col.id))
+/**
+ * Whether a column is auto-sized — a data column the allocator distributes width
+ * across, rather than one holding a fixed width. A drag-resized column (in
+ * `manualPinned`) holds its width; a `width`-seeded column holds its initial
+ * width too, until the user releases it via "Auto-size columns" (its id lands in
+ * `released`), after which it rejoins the fit like a width-less column.
+ *
+ * @internal
+ */
+export function isAutoSized<T>(
+	col: GridColumn<T>,
+	manualPinned: ReadonlySet<string>,
+	released: ReadonlySet<string>,
+): boolean {
+	if (!isDataColumn(col)) return false
+
+	const id = String(col.id)
+
+	if (manualPinned.has(id)) return false
+
+	return parsePxWidth(col.width) == null || released.has(id)
 }
 
 /**
  * Reads the rendered grid and resolves, per auto-sized data column, the
- * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}).
- * Non-data columns (selection / actions), `width`-pinned columns, and manually
- * drag-resized columns are excluded and their widths summed into `fixed` for the
- * caller to reserve.
+ * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}), plus
+ * every data column's {@link columnFloor} — held columns included, so a drag
+ * honors the floor even on a column that sits out the distribution. Non-data
+ * columns (selection / actions), `width`-held columns, and manually drag-resized
+ * columns are excluded from the profiles and their widths summed into `fixed` for
+ * the caller to reserve.
  *
  * Measurements are read from the live DOM unclipped by the current column widths
  * (see {@link headerWidth} / {@link bodyContentWidth}), so re-measuring after the
@@ -230,25 +266,39 @@ export function measureColumnIntrinsics<T>({
 	columns,
 	container,
 	manualPinned,
+	released,
 	runningContent,
 }: MeasureOptions<T>): ColumnMeasurement {
 	const { headers, bodies } = collectCells(container)
 
 	const profiles: ColumnSizeProfile[] = []
 
+	const floors = new Map<string, number>()
+
 	let fixed = 0
 
 	for (const col of columns) {
 		const id = String(col.id)
 
-		if (isAutoSized(col, manualPinned)) {
-			profiles.push(columnProfile(col, headers.get(id), bodies.get(id) ?? [], runningContent))
+		if (!isDataColumn(col)) {
+			// Selection / actions columns keep their engine width and sit out the fit.
+			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
+
+			continue
+		}
+
+		// Every data column gets a floor — a `width`-held or drag-held one honors it on
+		// a resize even though it sits out the distribution.
+		const floor = columnFloor(col, headers.get(id))
+
+		floors.set(id, floor)
+
+		if (isAutoSized(col, manualPinned, released)) {
+			profiles.push(columnProfile(col, bodies.get(id) ?? [], floor, runningContent))
 		} else {
-			// Non-data, `width`-pinned, and manually resized columns keep their engine
-			// width and sit out the distribution.
 			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
 		}
 	}
 
-	return { profiles, fixed }
+	return { profiles, fixed, floors }
 }

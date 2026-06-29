@@ -222,11 +222,12 @@ export type GridDataProps<T> = TableVariants & {
 	 * header gains a resize handle on its trailing edge, carrying an always-visible
 	 * grip — a short centred bar that tints on hover and turns accent on keyboard
 	 * focus or active drag. Columns auto-size to their content by default (a `px`
-	 * {@link GridColumn.width} fixes one instead); a drag-resize holds that column at
-	 * its width while the rest keep auto-sizing, and widths persist through
-	 * {@link GridDataProps.columnSizing}. The header context menu's "Auto-size
-	 * columns" re-fits and clears any manual holds. Set `false` to drop the handles
-	 * (columns still auto-size).
+	 * {@link GridColumn.width} seeds one's initial width instead); a drag-resize
+	 * holds that column at its width while the rest keep auto-sizing, and widths
+	 * persist through {@link GridDataProps.columnSizing}. The header context menu's
+	 * "Auto-size columns" re-fits and clears every held width — drag-resized and
+	 * `width`-seeded alike. Set `false` to drop the handles (columns still
+	 * auto-size).
 	 * @defaultValue true
 	 */
 	resizable?: boolean
