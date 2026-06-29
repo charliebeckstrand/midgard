@@ -163,7 +163,7 @@ describe('Grid column pinning', () => {
 		expect(head?.className).toContain('dark:lg:bg-zinc-900')
 	})
 
-	it('borders a frozen column on the edge facing the scroll', () => {
+	it('borders a frozen column on the edge facing the scroll, riding the sticky cell', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
@@ -172,20 +172,24 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// Left-frozen (pinned): a right border on both header and body cells.
-		expect(headCell(container, 'name')?.classList.contains('border-r')).toBe(true)
+		// The border is a 2px `::after` overlay (`after:w-0.5`) on the sticky cell, not
+		// a CSS border — a collapsed cell border would scroll away with the overflow.
+		// Left-frozen (pinned): on the right edge, header and body.
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
 
-		expect(dataCell(container, 'name')?.classList.contains('border-r')).toBe(true)
+		expect(headCell(container, 'name')?.classList.contains('after:w-0.5')).toBe(true)
 
-		// Right-frozen (locked): a left border.
-		expect(headCell(container, 'status')?.classList.contains('border-l')).toBe(true)
+		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
 
-		expect(dataCell(container, 'status')?.classList.contains('border-l')).toBe(true)
+		// Right-frozen (locked): on the left edge.
+		expect(headCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
 
-		// A scrolling column carries neither edge border.
-		expect(headCell(container, 'email')?.classList.contains('border-r')).toBe(false)
+		expect(dataCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
 
-		expect(headCell(container, 'email')?.classList.contains('border-l')).toBe(false)
+		// A scrolling column carries no edge overlay.
+		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(false)
+
+		expect(headCell(container, 'email')?.classList.contains('after:left-0')).toBe(false)
 	})
 
 	it('carries no sticky chrome when no column is pinned', () => {
