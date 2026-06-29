@@ -112,15 +112,16 @@ export const k = {
 		// colour at every width — which, on mobile, stood out as a box against the
 		// transparent content block over the darker page.
 		head: ['sticky z-20', hostSurface],
-		// Inner-edge border on a frozen column, delineating it from the scrolling
-		// area: a left-frozen column borders its right edge, a right-frozen one its
-		// left — the 2px side facing the scroll, carried by every frozen column (each
-		// pinned or locked one). Drawn as an `::after` overlay, not a CSS `border`: the
-		// table collapses borders (`border-collapse: collapse`), so a real cell border
-		// joins the table grid and scrolls away with the overflow instead of staying on
-		// the frozen column. The overlay rides the sticky cell and holds — the same
-		// reason the edge cue below is a box-shadow. `inset-y-0`/`w-0.5` make a 2px
-		// full-height rule at the inner edge; `pointer-events-none` keeps it inert.
+		// Edge border on a frozen group's scroll-facing boundary: a 2px rule on the
+		// right of a left group's innermost column, the left of a right group's. Only
+		// that boundary column carries it (see `pinnedClassName`), so a stack of pinned
+		// and/or locked columns shows one rule, not one per column. Drawn as an
+		// `::after` overlay, not a CSS `border`: the table collapses borders
+		// (`border-collapse: collapse`), so a real cell border joins the table grid and
+		// scrolls away with the overflow instead of staying on the frozen column. The
+		// overlay rides the sticky cell and holds — the same reason the edge cue below
+		// is a box-shadow. `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner
+		// edge; `pointer-events-none` keeps it inert.
 		borderRight: [
 			"after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-0.5 after:content-['']",
 			'after:bg-zinc-950/10',

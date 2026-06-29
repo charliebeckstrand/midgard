@@ -192,6 +192,43 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'email')?.classList.contains('after:left-0')).toBe(false)
 	})
 
+	it('borders only the innermost column of a combined pinned + locked group', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'left' },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Two left-frozen columns — Name locked, Email pinned. Only the innermost
+		// (Email, at the scroll boundary) carries the edge border; the outer Name does
+		// not, so the group shows one rule rather than a divider per column.
+		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(dataCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+
+		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+	})
+
+	it('borders the boundary column, not the auto-frozen selection column ahead of it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Selection freezes far-left ahead of Name, but only Name (the inner boundary)
+		// carries the edge border — the selection column behind it does not.
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(container.querySelector('thead th')?.classList.contains('after:right-0')).toBe(false)
+	})
+
 	it('carries no sticky chrome when no column is pinned', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },

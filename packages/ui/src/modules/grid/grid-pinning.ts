@@ -27,11 +27,13 @@ export function pinnedOffsetStyle(
 }
 
 /**
- * Sticky, opaque-surface, inner-border, and boundary-shadow classes for a pinned
- * cell, or `''` when the column scrolls. Every frozen column borders the edge
- * facing the scroll — right for a left-frozen column, left for a right-frozen one
- * — and the innermost column of each frozen group also gains the separating
- * shadow. `header` selects the header layer (above the sticky head).
+ * Sticky, opaque-surface, boundary-border, and boundary-shadow classes for a
+ * pinned cell, or `''` when the column scrolls. Only the innermost column of each
+ * frozen group — the one at the scroll-facing boundary — carries the edge border
+ * (right for a left group, left for a right group) and the separating shadow; the
+ * columns behind it get just the sticky surface. The engine's left/right sections
+ * combine pinned and locked columns, so the boundary resolves across whichever mix
+ * is frozen. `header` selects the header layer (above the sticky head).
  *
  * @internal
  */
@@ -46,12 +48,11 @@ export function pinnedClassName(
 
 	if (!side) return ''
 
-	const sideBorder = side === 'left' ? k.pinned.borderRight : k.pinned.borderLeft
+	const atBoundary = side === 'left' ? pinning.isLastLeft(id) : pinning.isFirstRight(id)
 
-	const edge =
-		side === 'left'
-			? pinning.isLastLeft(id) && k.pinned.edgeLeft
-			: pinning.isFirstRight(id) && k.pinned.edgeRight
+	const sideBorder = atBoundary && (side === 'left' ? k.pinned.borderRight : k.pinned.borderLeft)
+
+	const edge = atBoundary && (side === 'left' ? k.pinned.edgeLeft : k.pinned.edgeRight)
 
 	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }
