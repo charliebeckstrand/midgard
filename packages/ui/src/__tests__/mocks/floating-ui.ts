@@ -129,6 +129,7 @@ const floatingUIMock = {
 	useFloating: (opts: MockContext) => ({
 		refs: {
 			setReference: noop,
+			setPositionReference: noop,
 			setFloating: noop,
 			reference: { current: null },
 			floating: { current: null },

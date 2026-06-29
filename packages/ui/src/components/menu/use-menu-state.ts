@@ -1,7 +1,7 @@
 'use client'
 
-import { type Placement, useClientPoint, useInteractions } from '@floating-ui/react'
-import { type MouseEvent, useCallback, useId, useMemo, useState } from 'react'
+import { type Placement, useInteractions } from '@floating-ui/react'
+import { type MouseEvent, useCallback, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
@@ -15,12 +15,49 @@ type MenuStateOptions = {
 }
 
 /**
+ * A position-only virtual reference for a right-click menu: a zero-size point at
+ * the cursor that rides `element` as it scrolls. `contextElement` ties it to the
+ * right-clicked element so `autoUpdate` tracks that element's scroll container,
+ * while the cursor offset captured on the first read holds the menu at the same
+ * spot within it. Set via `setPositionReference`, never `setReference`, so the
+ * element is not floating-ui's dismissal reference — a press on it dismisses the
+ * menu like any other outside press. Falls back to a fixed viewport point when
+ * the right-click resolves to no element.
+ *
+ * @internal
+ */
+function cursorAnchor(element: Element | null, clientX: number, clientY: number) {
+	let offsetX: number | null = null
+	let offsetY: number | null = null
+
+	return {
+		contextElement: element ?? undefined,
+		getBoundingClientRect() {
+			const rect = element?.getBoundingClientRect()
+
+			const baseX = rect?.x ?? clientX
+			const baseY = rect?.y ?? clientY
+
+			// Capture the cursor's offset within the element on the first read, then
+			// subtract it on every tick so the point rides the element as it scrolls.
+			offsetX ??= baseX - clientX
+			offsetY ??= baseY - clientY
+
+			const x = baseX - offsetX
+			const y = baseY - offsetY
+
+			return { width: 0, height: 0, x, y, top: y, right: x, bottom: y, left: x }
+		},
+	}
+}
+
+/**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the right-click `handleContextMenu` and an
  * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`),
- * right-click context menu (`useClientPoint` opening at the cursor but anchored
- * to the right-clicked element, so it tracks that element on scroll), and
- * static inline (`defaultOpen` with no `placement`).
+ * right-click context menu (a position-only {@link cursorAnchor} opening at the
+ * cursor yet tracking the right-clicked element on scroll), and static inline
+ * (`defaultOpen` with no `placement`).
  *
  * @internal
  * @see {@link useFloatingDisclosure}
@@ -38,8 +75,6 @@ export function useMenuState({
 	const resolvedDensity: Step = size ?? inherited.space
 	const resolvedSize: Step = size ?? inherited.size
 
-	const [point, setPoint] = useState({ x: 0, y: 0 })
-
 	const isDropdown = placement !== undefined
 
 	const isStatic = defaultOpen && !isDropdown
@@ -50,7 +85,7 @@ export function useMenuState({
 	// `aria-controls` to the real menu panel.
 	const menuId = useId()
 
-	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
+	const { open, setOpen, close, triggerRef, refs, floatingStyles, dismiss, role } =
 		useFloatingDisclosure({
 			open: openProp,
 			defaultOpen,
@@ -60,17 +95,7 @@ export function useMenuState({
 			matchReferenceWidth: isDropdown,
 		})
 
-	const clientPoint = useClientPoint(context, {
-		enabled: !isDropdown && open,
-		x: point.x,
-		y: point.y,
-	})
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([
-		...(isDropdown ? [] : [clientPoint]),
-		dismiss,
-		role,
-	])
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	const handleContextMenu = useCallback(
 		(event: MouseEvent) => {
@@ -84,16 +109,21 @@ export function useMenuState({
 			// the native menu (above) and leave the panel where it is.
 			if (refs.floating.current?.contains(event.target as Node)) return
 
-			// Anchor the menu to the right-clicked element, not just the cursor
-			// coordinates. `useClientPoint` reads this reference as its virtual
-			// element's `contextElement` and re-derives the cursor point from the
-			// element's live rect on every `autoUpdate` tick, so the menu opens at
-			// the cursor yet follows the element as the page (or a scroll container)
-			// scrolls. With no reference set the point stays fixed in the viewport
-			// and the menu floats free of the item it was invoked on.
-			if (event.target instanceof Element) refs.setReference(event.target)
-
-			setPoint({ x: event.clientX, y: event.clientY })
+			// Anchor the menu at the cursor while tracking the right-clicked element
+			// so it follows that element as the page (or a scroll container) scrolls
+			// — but as the *position* reference only, never floating-ui's `reference`.
+			// Registering the element as the reference (`setReference`, the
+			// `useClientPoint` route) would exempt it from outside-press dismissal,
+			// so a left-click on the very cell the menu was opened from could not
+			// close it; a position-only anchor keeps the element a normal
+			// outside-press target.
+			refs.setPositionReference(
+				cursorAnchor(
+					event.target instanceof Element ? event.target : null,
+					event.clientX,
+					event.clientY,
+				),
+			)
 
 			setOpen(true)
 		},

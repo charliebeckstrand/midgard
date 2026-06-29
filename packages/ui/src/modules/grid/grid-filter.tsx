@@ -2,8 +2,6 @@
 
 import { startTransition, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/grid'
 import type { GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridFilter}. @internal */
@@ -34,7 +32,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 	}
 
 	return (
-		<div data-slot="grid-filter" className={cn(k.filter.bar)}>
+		<div data-slot="grid-filter">
 			<SearchInput
 				value={text}
 				onChange={(event) => apply(event.target.value)}
