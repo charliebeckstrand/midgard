@@ -200,6 +200,22 @@ export const k = {
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
+		// The library's "lifted" signal on the actively dragged column's *header*:
+		// an inset ring keyed on `data-[dragging]`, in the violet `sen/focus.lifted`
+		// gives a keyboard-lifted List or Kanban card — a picked-up accent set apart
+		// from the blue focus ring the grip already wears. A pointer drag announces
+		// itself by the column tracking the cursor; a Space/Enter keyboard lift moves
+		// nothing until an arrow key, leaving the faint `cell` shadow (over a fill
+		// that matches the surface) as the only prior cue — easy to miss. The ring
+		// makes the held column unmistakable. Header-only: `cell` (shared with the
+		// body) lifts the whole column with the z-promote, opaque fill, and shadow,
+		// but ringing every body cell too would box each one down the column instead
+		// of reading as one lifted header.
+		lifted: [
+			'data-[dragging]:ring-2',
+			'data-[dragging]:ring-inset',
+			...mode('data-[dragging]:ring-violet-600', 'dark:data-[dragging]:ring-violet-500'),
+		],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.

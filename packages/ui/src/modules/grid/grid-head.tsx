@@ -632,6 +632,9 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
+				// Lifted-drag ring (violet, keyed on `data-dragging`) so a keyboard
+				// Space/Enter lift — which moves nothing until an arrow key — is visible.
+				k.reorder.lifted,
 				// Anchor the absolute resize handle on a non-sticky header (a sticky
 				// header already positions itself; this header's shift transform also
 				// forms a containing block, so `relative` just keeps the anchor explicit).
