@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { EMPTY_SET } from './grid-constants'
 import type { GridRowEditing } from './grid-editing-context'
@@ -53,6 +54,49 @@ function flushRow<T>(args: {
 	}
 
 	return changes
+}
+
+/**
+ * Flushes every row that left the editable set since the last render: emits its
+ * staged changes as one `onValueChange` batch, clears its drafts, and returns the
+ * total cells saved across them (for the commit announcement). @internal
+ */
+function flushExitedRows<T>(args: {
+	prev: Set<string | number>
+	next: Set<string | number>
+	drafts: Map<string | number, RowDrafts>
+	columns: GridColumn<T>[]
+	rows: T[]
+	rowKeys: (string | number)[]
+	onValueChange: ((changes: CellChange[]) => void) | undefined
+}): number {
+	let saved = 0
+
+	for (const rowKey of args.prev) {
+		if (args.next.has(rowKey)) continue
+
+		const drafts = args.drafts.get(rowKey)
+
+		args.drafts.delete(rowKey)
+
+		if (!drafts || drafts.size === 0) continue
+
+		const changes = flushRow({
+			rowKey,
+			drafts,
+			columns: args.columns,
+			rows: args.rows,
+			rowKeys: args.rowKeys,
+		})
+
+		if (!changes.length) continue
+
+		args.onValueChange?.(changes)
+
+		saved += changes.length
+	}
+
+	return saved
 }
 
 /**
@@ -128,25 +172,18 @@ export function useGridEditing<T>({
 
 		prevRowsRef.current = editableRows
 
-		for (const rowKey of prev) {
-			if (editableRows.has(rowKey)) continue
+		const saved = flushExitedRows({
+			prev,
+			next: editableRows,
+			drafts: draftsRef.current,
+			columns: dataColumnsRef.current,
+			rows: rowsRef.current,
+			rowKeys: rowKeysRef.current,
+			onValueChange: onValueChangeRef.current,
+		})
 
-			const drafts = draftsRef.current.get(rowKey)
-
-			draftsRef.current.delete(rowKey)
-
-			if (!drafts || drafts.size === 0) continue
-
-			const changes = flushRow({
-				rowKey,
-				drafts,
-				columns: dataColumnsRef.current,
-				rows: rowsRef.current,
-				rowKeys: rowKeysRef.current,
-			})
-
-			if (changes.length) onValueChangeRef.current?.(changes)
-		}
+		// Announce the commit politely, without moving focus (WCAG 4.1.3).
+		if (saved > 0) announce(`${saved} ${saved === 1 ? 'cell' : 'cells'} updated`)
 	}, [editableRows, dataColumnsRef, rowsRef, rowKeysRef])
 
 	const rowEditing = useMemo<GridRowEditing>(

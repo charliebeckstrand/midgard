@@ -193,4 +193,57 @@ describe('Grid per-row editing', () => {
 
 		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Fixed' }])
 	})
+
+	it('links the editor to its validation error for assistive tech', () => {
+		const validatedColumns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+			},
+		]
+
+		const { container, editRow1 } = renderGrid(validatedColumns)
+
+		editRow1()
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		const alert = container.querySelector('[role="alert"]') as HTMLElement
+
+		expect(alert).toHaveTextContent('Required')
+
+		// The editor is marked invalid and points at the message, so the error
+		// reaches AT and not only sighted users.
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(alert.id).toBeTruthy()
+
+		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
+	it('announces the commit politely when a row is saved', async () => {
+		const { container, editRow1, save } = renderGrid()
+
+		const politeRegion = () =>
+			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		save()
+
+		// The announcer sets its region on a microtask; flush it rather than waiting,
+		// so the grid's debounced row-count status doesn't fire mid-test.
+		await Promise.resolve()
+
+		expect(politeRegion()).toHaveTextContent('1 cell updated')
+	})
 })

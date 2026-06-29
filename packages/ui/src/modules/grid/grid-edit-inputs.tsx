@@ -19,6 +19,10 @@ export type GridEditInputProps = {
 	/** Revert this cell to the row's current value (Escape). */
 	cancel: () => void
 	ariaLabel: string
+	/** The cell's current validation error, if any: marks the editor invalid. */
+	error?: string | null
+	/** Id of the error-message element, linked from the editor via `aria-describedby`. */
+	errorId?: string
 }
 
 /** Escape reverts the cell; staging is live, so there is no commit key. @internal */
@@ -31,13 +35,22 @@ const cancelOnEscape = (cancel: () => void) => (event: KeyboardEvent<HTMLElement
 }
 
 /** Text editor for string cells, backed by the `Input` component. @internal */
-function GridTextEditInput({ draft, onValueUpdate, cancel, ariaLabel }: GridEditInputProps) {
+function GridTextEditInput({
+	draft,
+	onValueUpdate,
+	cancel,
+	ariaLabel,
+	error,
+	errorId,
+}: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
 	return (
 		<Input
 			data-slot="grid-edit-input"
 			aria-label={ariaLabel}
+			invalid={error != null || undefined}
+			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
 			value={value}
 			onChange={(event) => onValueUpdate(event.target.value)}
@@ -47,11 +60,20 @@ function GridTextEditInput({ draft, onValueUpdate, cancel, ariaLabel }: GridEdit
 }
 
 /** Number editor for numeric cells, backed by `NumberInput`. @internal */
-function GridNumberEditInput({ draft, onValueUpdate, cancel, ariaLabel }: GridEditInputProps) {
+function GridNumberEditInput({
+	draft,
+	onValueUpdate,
+	cancel,
+	ariaLabel,
+	error,
+	errorId,
+}: GridEditInputProps) {
 	return (
 		<NumberInput
 			data-slot="grid-edit-number-input"
 			aria-label={ariaLabel}
+			invalid={error != null || undefined}
+			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
 			value={typeof draft === 'number' ? draft : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
