@@ -259,9 +259,6 @@ export const k = {
 		],
 	},
 	filter: {
-		// Quick-search / per-column filter input above the table: full width, capped
-		// narrow from `sm`.
-		bar: ['w-full', 'sm:max-w-xs'],
 		// Per-column filter row beneath the header.
 		row: bg.surface,
 		cell: ['px-2', 'py-1', 'align-middle'],

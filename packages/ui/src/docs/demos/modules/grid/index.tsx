@@ -75,12 +75,6 @@ const clientSortColumns: GridColumn<Person>[] = sortableColumns.map((col) => ({
 	value: (row) => String(row[col.id as keyof Person]),
 }))
 
-const resizableColumns: GridColumn<Person>[] = columns.map((col) => ({
-	...col,
-	width: '200px',
-	minWidth: 100,
-}))
-
 const searchableColumns: GridColumn<Person>[] = columns.map((col) => ({
 	...col,
 	value: (row) => String(row[col.id as keyof Person]),
@@ -499,7 +493,7 @@ const ReorderExample = () => {
 }
 
 const ResizableExample = () => (
-	<Grid resizable columns={resizableColumns} rows={people} getKey={(row) => row.id} />
+	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
 const PinnedExample = () => (
