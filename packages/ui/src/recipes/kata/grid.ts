@@ -63,6 +63,20 @@ const resizeMetrics = defineRecipe({
  */
 const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
+/**
+ * Opaque fill the actively dragged reorder column paints while lifted, so the
+ * sibling columns it slides over stay hidden behind it — a transparent `<th>` /
+ * `<td>` let their text bleed through (and `opacity` could only soften, never
+ * stop, that bleed). Tracks the same viewport-aware content host as
+ * {@link hostSurface} — the table's own effective background — so the lifted
+ * column reads as a solid slice of the table rather than a shade-off box, gated
+ * on the `data-[dragging]` state the dragged column's cells carry.
+ */
+const draggingSurface = mode('data-[dragging]:bg-white', [
+	'dark:data-[dragging]:bg-zinc-950',
+	'dark:lg:data-[dragging]:bg-zinc-900',
+])
+
 export const k = {
 	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
 	// which paints the resize cursor grid-wide; head and cells read the matching
@@ -175,10 +189,14 @@ export const k = {
 		badge: ['text-xs', 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
 	},
 	reorder: {
-		// Lift the actively dragged column above its neighbours and soften it. The
+		// Lift the actively dragged column above its neighbours and float it on its
+		// own opaque surface so the columns it slides over stay hidden — without the
+		// fill a transparent cell let their text bleed through, and the former
+		// `opacity-70` softening could only dim that bleed, never stop it. The
 		// z-index only bites where the cell is a positioned box — sticky headers
-		// already are; `shift` promotes the rest for the duration of the drag.
-		cell: 'data-[dragging]:z-20 data-[dragging]:opacity-70',
+		// already are; `shift` promotes the rest for the duration of the drag — and
+		// the shadow reads the lifted column as picked up off the table.
+		cell: ['data-[dragging]:z-20', 'data-[dragging]:shadow-lg', ...draggingSurface],
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
