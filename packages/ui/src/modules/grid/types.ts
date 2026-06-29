@@ -53,7 +53,11 @@ export type GridColumn<T> = {
 	/**
 	 * Marks this as the selection column; renders the row-select checkboxes
 	 * instead of a cell value. Defaults to a natural checkbox width rather than a
-	 * full data-column width; set {@link GridColumn.width} to override.
+	 * full data-column width; set {@link GridColumn.width} to override. Always
+	 * frozen to the far left ahead of any left-{@link GridColumn.pinned | pinned}
+	 * column once the grid pins a column, so the checkboxes stay anchored while the
+	 * grid scrolls sideways; until something is pinned it sits inline like any
+	 * column.
 	 */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */

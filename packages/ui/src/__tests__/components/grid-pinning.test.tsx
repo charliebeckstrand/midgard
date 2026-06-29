@@ -180,6 +180,53 @@ describe('Grid column pinning', () => {
 		expect(head?.style.right).toBe('')
 	})
 
+	it('freezes the selection column to the far left, ahead of a left-pinned column', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The checkbox column is the first cell and sticks at the very left edge.
+		const selectHead = container.querySelector<HTMLElement>('thead th')
+
+		expect(selectHead?.className).toContain('sticky')
+
+		expect(selectHead?.style.left).toBe('0px')
+
+		const selectBody = container.querySelector<HTMLElement>('tbody td')
+
+		expect(selectBody?.className).toContain('sticky')
+
+		expect(selectBody?.style.left).toBe('0px')
+
+		// The left-pinned data column stacks just inside it, offset by the selection
+		// column's natural 48px width.
+		expect(headCell(container, 'name')?.style.left).toBe('48px')
+
+		expect(dataCell(container, 'name')?.style.left).toBe('48px')
+	})
+
+	it('leaves the selection column inline when no data column is pinned', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// With nothing pinned the checkbox column carries no sticky chrome — it sits
+		// inline like any column, so an ordinary grid gains no frozen boundary.
+		const selectHead = container.querySelector<HTMLElement>('thead th')
+
+		expect(selectHead?.className).not.toContain('sticky')
+
+		expect(selectHead?.style.left).toBe('')
+	})
+
 	it('gives a pinned column header an unpin button and leaves scrolling headers without one', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
