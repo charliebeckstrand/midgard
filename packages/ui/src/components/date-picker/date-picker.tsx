@@ -77,6 +77,32 @@ export type DatePickerRelativeProps = {
 }
 
 /**
+ * Footer-button toggles for {@link DatePicker}. Each flag defaults to `true`;
+ * set one `false` to hide that button. `today` applies to the single-date
+ * variant only — the range and relative variants have no Today shortcut, so it
+ * is a no-op there.
+ *
+ * @example
+ * ```tsx
+ * <DatePicker footer={{ today: false }} /> // keep Clear, drop the Today shortcut
+ * ```
+ */
+export type DatePickerFooterConfig = {
+	/**
+	 * Shows the "Today" shortcut in the calendar footer (single-date variant only).
+	 *
+	 * @defaultValue true
+	 */
+	today?: boolean
+	/**
+	 * Shows the "Clear" action in the calendar footer once a value is set.
+	 *
+	 * @defaultValue true
+	 */
+	clear?: boolean
+}
+
+/**
  * Range-agnostic {@link DatePicker} props shared by both arms (single and
  * range); intersected with the discriminated value/handler shape in
  * {@link DatePickerProps}.
@@ -109,6 +135,15 @@ export type DatePickerBaseProps = {
 	 * @defaultValue true
 	 */
 	clearable?: boolean
+	/**
+	 * Toggles the calendar footer's action buttons. Each key defaults to `true`;
+	 * set one `false` to hide that button — e.g. `footer={{ today: false }}` keeps
+	 * Clear but drops the Today shortcut. Honored across variants, though `today`
+	 * only renders in the single-date variant.
+	 *
+	 * @defaultValue { today: true, clear: true }
+	 */
+	footer?: DatePickerFooterConfig
 	className?: string
 	disabled?: boolean
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
@@ -119,8 +154,9 @@ export type DatePickerBaseProps = {
 
 /**
  * Props for {@link DatePicker}: the shared base (`name`, `min`/`max`, `placement`,
- * `size`, `truncate`, …) discriminated on `range`/`relative` into single-`Date`,
- * `[Date, Date]`, or {@link DatePickerRelativeValue}`[]` value/handler shapes.
+ * `size`, `truncate`, `footer`, …) discriminated on `range`/`relative` into
+ * single-`Date`, `[Date, Date]`, or {@link DatePickerRelativeValue}`[]`
+ * value/handler shapes.
  */
 export type DatePickerProps = DatePickerBaseProps &
 	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)
