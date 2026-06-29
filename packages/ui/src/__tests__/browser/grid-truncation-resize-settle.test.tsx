@@ -5,12 +5,11 @@ import { act, renderUI, waitFor } from '../helpers'
 /**
  * Resize-settle reconciliation for the grid's overflow detector. A column
  * drag-resize moves a cell's width through the `<colgroup>` without re-rendering
- * the memoized cell, so the eager commit measure never re-runs for it and
- * detection rides on the shared `ResizeObserver`. When the final width lands a
- * frame after the observer's last delivery, the `truncated` flag would stay
- * stale — a widened cell keeping its reveal tooltip armed. The hook guards this
- * by re-measuring on the next frame whenever its re-measure key (the grid's
- * `resizing` flag) flips.
+ * the memoized cell on its own, so the body takes a settled-width snapshot whose
+ * change re-renders the cell to re-measure. Should the width land a frame after
+ * the synchronous read, the hook's deferred backstop re-measures on the next
+ * frame whenever its re-measure key (the grid's per-column settle width) changes
+ * — which this test drives directly with `signal`.
  *
  * Real layout is required (jsdom reports zero overflow). The clip is flipped by
  * squeezing the *content* (`letter-spacing`) rather than resizing the box, so

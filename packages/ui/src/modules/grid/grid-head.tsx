@@ -350,8 +350,11 @@ function sortDirectionIcon(
  * @internal
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
+	// No settle key: the header cell re-renders on its own engine `width` prop
+	// (drag and nudge alike), so the commit measure already re-runs at settle —
+	// unlike the memoized body cells, which take the snapshot from the grid.
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
 	const { resizing } = useGrid()
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizing)
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the

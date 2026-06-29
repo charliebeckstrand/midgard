@@ -35,6 +35,7 @@ import {
 } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
+import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
 import { useGridColumns } from './use-grid-columns'
@@ -720,6 +721,12 @@ export function GridData<T>({
 		className,
 	})
 
+	// Per-visible-column width snapshot threaded to the body cells' truncation
+	// detector so a settled resize (or keyboard nudge) re-renders just that
+	// column's cells to re-measure overflow; frozen during a drag so the memoized
+	// cells hold frame-to-frame (see `useColumnSettleWidths`).
+	const settleWidths = useColumnSettleWidths(visibleColumns, resize, resizing)
+
 	const context = useMemo(
 		() => ({
 			toggleRow,
@@ -860,6 +867,7 @@ export function GridData<T>({
 					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					truncate={truncate}
+					settleWidths={settleWidths}
 					pinning={pinning}
 					virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
 				/>

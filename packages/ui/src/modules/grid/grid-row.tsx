@@ -69,6 +69,13 @@ export type GridRowsProps<T> = {
 	reorderable: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
+	/**
+	 * Per-visible-column width snapshot threaded to each cell's truncation
+	 * re-measure: `undefined` while a column drags, the settled engine width
+	 * otherwise (see {@link GridCellContent}). Indexed parallel to a row's
+	 * visible cells.
+	 */
+	settleWidths: (number | undefined)[]
 	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
 	pinning: GridColumnPinning | null
 	/** When the rendered body is a window onto a larger set (virtualization/pagination), rows carry global `aria-rowindex`. */
@@ -108,6 +115,7 @@ export function renderGridRow<T>(
 			selectable={props.selectable}
 			reorderable={props.reorderable}
 			truncate={props.truncate}
+			settleWidths={props.settleWidths}
 			pinning={props.pinning}
 			dataRowIndex={dataRowIndex}
 			rowIndex={rowIndex}
@@ -155,6 +163,8 @@ type GridRowProps<T> = {
 	 * the tooltip.
 	 */
 	truncate: boolean
+	/** Per-visible-column settled width snapshot, indexed parallel to this row's cells (see {@link GridRowsProps.settleWidths}). */
+	settleWidths: (number | undefined)[]
 	/** Invoked when the row is clicked or activated by keyboard; `undefined` makes the row inert. */
 	onRowClick?: GridRowClick<T>
 	/**
@@ -208,6 +218,7 @@ function GridRowImpl<T>({
 	selectable,
 	reorderable = false,
 	truncate,
+	settleWidths,
 	onRowClick,
 	rowIndex,
 	dataRowIndex,
@@ -305,6 +316,7 @@ function GridRowImpl<T>({
 						columnIndex={colIdx}
 						reorderable={reorderable}
 						truncate={truncate}
+						resizeSettleKey={settleWidths[colIdx]}
 						pinning={pinning}
 					/>
 				)
@@ -326,6 +338,8 @@ type GridDataCellProps<T> = {
 	columnIndex: number
 	reorderable: boolean
 	truncate: boolean
+	/** This column's settled width snapshot; re-renders the cell to re-measure overflow when a resize settles (see {@link GridCellContent}). */
+	resizeSettleKey: number | undefined
 	pinning: GridColumnPinning | null
 }
 
@@ -344,6 +358,7 @@ function GridDataCellImpl<T>({
 	columnIndex,
 	reorderable,
 	truncate,
+	resizeSettleKey,
 	pinning,
 }: GridDataCellProps<T>) {
 	const cellExtra = col.cellProps?.(row)
@@ -354,7 +369,11 @@ function GridDataCellImpl<T>({
 
 	const content =
 		truncate && rawContent != null ? (
-			<GridCellContent content={rawContent} tooltip={resolveCellTooltip(col, row)} />
+			<GridCellContent
+				content={rawContent}
+				tooltip={resolveCellTooltip(col, row)}
+				resizeSettleKey={resizeSettleKey}
+			/>
 		) : (
 			rawContent
 		)

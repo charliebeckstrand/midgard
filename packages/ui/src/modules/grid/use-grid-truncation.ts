@@ -90,29 +90,31 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 /**
  * Tracks whether an element's single-line content overflows its box (clipped to
  * an ellipsis). Measured eagerly — after every commit, for content changes, on
- * `ResizeObserver` width changes that don't re-render, and once web fonts settle
- * (which reflows text without resizing the box) — because a tooltip gated by
- * this flag won't open mid-hover once `enabled` flips, so truncation must be
- * known before the pointer arrives.
+ * `ResizeObserver` width changes that don't re-render, when a column resize
+ * settles (see `resizeSettleKey`), and once web fonts settle (which reflows text
+ * without resizing the box) — so the resting `cursor-help` affordance reflects
+ * the current overflow. The reveal tooltip's open is re-gated live by the
+ * floating engine, but the cursor has no such backstop, so a stale flag would
+ * mis-cue at rest.
  *
  * Shared by the data-cell ({@link GridCellContent}) and column-header
  * (`GridHeaderTitle`) truncation surfaces.
  *
- * @param remeasureKey - A value whose change schedules a re-measure on the next
- * animation frame, once the new layout has settled. The grid passes its
- * `resizing` flag: a column drag-resize moves the cell's width through the
- * `<colgroup>` alone, without re-rendering the memoized cell, so the commit
- * measure below never re-runs for it and detection rides on the
- * {@link sharedResizeObserver}. As the drag settles (`resizing` flips back),
- * the final width can land a frame after the observer's last delivery, leaving
- * the flag stale — a widened cell keeping its reveal tooltip armed. The deferred
- * pass reconciles it regardless of observer timing.
+ * @param resizeSettleKey - A per-column width snapshot whose change re-measures
+ * truncation: the data cell passes the engine width frozen to `undefined` while
+ * a drag is in flight, then the settled width once the drag ends or a keyboard
+ * nudge lands. A column resize moves the cell's width through the `<colgroup>`
+ * alone, and the body cell is memoized, so the commit measure does not re-run on
+ * its own; the key's change re-renders the cell (re-running the commit measure)
+ * and this hook backs that up with a deferred frame in case the layout settled
+ * after the synchronous read. The header omits it — it already re-renders on its
+ * own `width` prop.
  * @returns `[ref, truncated]`: attach `ref` to the single-line element; read
  * `truncated` to gate the reveal tooltip.
  * @internal
  */
 export function useGridTruncation<E extends HTMLElement>(
-	remeasureKey?: unknown,
+	resizeSettleKey?: unknown,
 ): [RefObject<E | null>, boolean] {
 	const ref = useRef<E>(null)
 
@@ -138,21 +140,33 @@ export function useGridTruncation<E extends HTMLElement>(
 		return observeTruncation(el, measure)
 	}, [measure])
 
-	// Re-measure once `remeasureKey` changes and the frame has settled (see the
-	// param note). No-op where `requestAnimationFrame` is absent (SSR / jsdom),
+	// Deferred backstop for the settle re-measure: the `resizeSettleKey` change
+	// already re-renders the cell (re-running the commit measure above), but a
+	// width that lands a frame late would read stale; re-measure once more on the
+	// next frame. No-op where `requestAnimationFrame` is absent (SSR / jsdom),
 	// matching the observer's own fallback; the same-value bail keeps it from
 	// looping.
+	const mounted = useRef(false)
+
 	useEffect(() => {
-		// Read here so a `remeasureKey` change re-runs this effect (it gates the
+		// Read here so a `resizeSettleKey` change re-runs this effect (it gates the
 		// deferred pass; the frame callback itself doesn't reference it).
-		void remeasureKey
+		void resizeSettleKey
+
+		// Skip the mount run — the layout effect has just measured, and a fresh rAF
+		// per cell on mount is needless work in a wide / virtualized grid.
+		if (!mounted.current) {
+			mounted.current = true
+
+			return
+		}
 
 		if (typeof requestAnimationFrame !== 'function') return
 
 		const frame = requestAnimationFrame(measure)
 
 		return () => cancelAnimationFrame(frame)
-	}, [measure, remeasureKey])
+	}, [measure, resizeSettleKey])
 
 	return [ref, truncated]
 }
