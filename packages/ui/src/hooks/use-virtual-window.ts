@@ -21,6 +21,8 @@ type VirtualWindow = {
 	topSpacer: number
 	/** Pixel height of the spacer standing in for rows below the viewport. */
 	bottomSpacer: number
+	/** Scrolls the item at `index` into the window, mounting it if it was outside it. */
+	scrollToIndex: (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => void
 }
 
 /**
@@ -57,5 +59,5 @@ export function useVirtualWindow({
 
 	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
-	return { virtualItems, topSpacer, bottomSpacer }
+	return { virtualItems, topSpacer, bottomSpacer, scrollToIndex: virtualizer.scrollToIndex }
 }

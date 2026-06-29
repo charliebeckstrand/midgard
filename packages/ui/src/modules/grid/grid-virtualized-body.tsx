@@ -1,15 +1,20 @@
 'use client'
 
-import { type RefObject, useCallback } from 'react'
+import { type RefObject, useCallback, useEffect } from 'react'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+
+/** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
+export type GridScrollRowIntoView = (rowIndex: number) => void
 
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	scrollRef: RefObject<HTMLDivElement | null>
 	estimateSize: number
 	overscan: number
+	/** Published with a scroll-into-view fn while mounted, so the cursor can reach off-window rows. */
+	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 }
 
 /**
@@ -28,12 +33,25 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
-	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
+	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
 		count: rows.length,
 		getScrollElement,
 		estimateSize,
 		overscan,
 	})
+
+	// Publish a row-scroller to the cursor while this windowed body is mounted, so a
+	// keyboard jump can scroll an off-window row into the window before the cursor
+	// points `aria-activedescendant` at it; cleared when the body unmounts.
+	const { scrollIntoViewRef } = props
+
+	useEffect(() => {
+		scrollIntoViewRef.current = (rowIndex) => scrollToIndex(rowIndex, { align: 'auto' })
+
+		return () => {
+			scrollIntoViewRef.current = null
+		}
+	}, [scrollToIndex, scrollIntoViewRef])
 
 	return (
 		<TableBody>

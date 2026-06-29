@@ -38,6 +38,7 @@ import {
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
+import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import {
 	columnLabel,
 	type GridColumn,
@@ -598,6 +599,11 @@ export function GridData<T>({
 		if (key !== undefined) toggleRowRef.current(key)
 	}, [])
 
+	// Published by the virtualized body while mounted (null otherwise), so the cursor
+	// can scroll an off-window row into the rendered window before pointing
+	// `aria-activedescendant` at it.
+	const scrollRowIntoViewRef = useRef<GridScrollRowIntoView | null>(null)
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -615,6 +621,7 @@ export function GridData<T>({
 		onRowActivate,
 		selectableRef,
 		toggleActiveRow,
+		scrollRowIntoViewRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -953,7 +960,11 @@ export function GridData<T>({
 					reorderable={reorderActive}
 					truncate={truncate}
 					pinning={pinning}
-					virtualize={virtualizeEnabled ? { scrollRef, estimateSize, overscan } : null}
+					virtualize={
+						virtualizeEnabled
+							? { scrollRef, estimateSize, overscan, scrollIntoViewRef: scrollRowIntoViewRef }
+							: null
+					}
 				/>
 			</Table>
 		</GridNavContext>

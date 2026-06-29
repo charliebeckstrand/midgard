@@ -125,6 +125,7 @@ export function useGridNavigation({
 	onRowActivate,
 	selectableRef,
 	toggleActiveRow,
+	scrollRowIntoViewRef,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -137,6 +138,8 @@ export function useGridNavigation({
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, when selectable. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
+	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
+	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -207,12 +210,17 @@ export function useGridNavigation({
 
 			if (rowCount === 0 || colCount === 0) return
 
-			setActive({
-				row: clamp(coord.row, 0, rowCount - 1),
-				col: clamp(coord.col, 0, colCount - 1),
-			})
+			const row = clamp(coord.row, 0, rowCount - 1)
+
+			const col = clamp(coord.col, 0, colCount - 1)
+
+			// Bring the target row into the virtualized window so its cell mounts
+			// before `aria-activedescendant` points at it; a no-op when unwindowed.
+			scrollRowIntoViewRef.current?.(row)
+
+			setActive({ row, col })
 		},
-		[rowsRef, colCountRef],
+		[rowsRef, colCountRef, scrollRowIntoViewRef],
 	)
 
 	// Re-clamp the cursor to the current bounds when the data shrinks (filter,

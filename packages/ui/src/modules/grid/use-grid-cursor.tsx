@@ -43,6 +43,7 @@ export function useGridCursor<T>({
 	onRowActivate,
 	selectableRef,
 	toggleActiveRow,
+	scrollRowIntoViewRef,
 	refs,
 }: {
 	navigable: boolean
@@ -54,6 +55,8 @@ export function useGridCursor<T>({
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
+	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
+	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 	refs: GridCursorRefs<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
@@ -82,6 +85,7 @@ export function useGridCursor<T>({
 		onRowActivate,
 		selectableRef,
 		toggleActiveRow,
+		scrollRowIntoViewRef,
 	})
 
 	const editing = useGridEditing<T>({
