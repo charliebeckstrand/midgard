@@ -192,13 +192,25 @@ export function useVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
 	return stable
 }
 
-/** Assembles the table-backed {@link GridColumnResize} controls (all but `sizeToFit`, grafted on by the hook); every method reads it live. @internal */
-export function buildColumnResize<T>(table: Table<T>): Omit<GridColumnResize, 'sizeToFit'> {
+/**
+ * Assembles the table-backed {@link GridColumnResize} controls (all but
+ * `sizeToFit`, grafted on by the hook); every method reads it live. `columnFloors`
+ * carries the autosizer's per-column hard floor, so the resize `min` matches the
+ * width the header needs — a single-word header reports (and can't be dragged
+ * below) its full width, a multi-word one its icons. A column the autosizer hasn't
+ * measured falls back to the engine's `minSize`.
+ *
+ * @internal
+ */
+export function buildColumnResize<T>(
+	table: Table<T>,
+	columnFloors: ReadonlyMap<string, number>,
+): Omit<GridColumnResize, 'sizeToFit'> {
 	const bounds = (id: string | number) => {
 		const column = table.getColumn(String(id))
 
 		return {
-			min: column?.columnDef.minSize ?? DEFAULT_MIN_COLUMN_SIZE,
+			min: columnFloors.get(String(id)) ?? column?.columnDef.minSize ?? DEFAULT_MIN_COLUMN_SIZE,
 			max: column?.columnDef.maxSize ?? Number.MAX_SAFE_INTEGER,
 		}
 	}

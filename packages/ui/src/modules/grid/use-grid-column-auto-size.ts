@@ -19,6 +19,13 @@ type GridColumnAutoSizeOptions<T> = {
 	containerRef: RefObject<HTMLElement | null> | undefined
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
+	/**
+	 * Per-column hard floor (px), written each measurement pass for the drag-resize
+	 * bounds and clamp to read — so a manual resize honors the same minimum the
+	 * allocator does (a single-word header never truncates). A stable map owned by
+	 * the caller; entries merge, so a column held out of a pass keeps its last floor.
+	 */
+	columnFloors: Map<string, number>
 }
 
 /** Empty measurement; the resolved value before the first DOM read. @internal */
@@ -51,6 +58,7 @@ export function useGridColumnAutoSize<T>({
 	columns,
 	containerRef,
 	density,
+	columnFloors,
 }: GridColumnAutoSizeOptions<T>): { sizeToFit: () => void } {
 	const enabled = resizable && !controlled
 
@@ -112,6 +120,13 @@ export function useGridColumnAutoSize<T>({
 
 			const { profiles, fixed } = measurementRef.current
 
+			// Publish each measured column's hard floor so a drag-resize and the keyboard
+			// bounds honor the same minimum the allocator does — a single-word header
+			// stays whole, a multi-word one keeps its affordance icons. Merged, not
+			// cleared, so a manually-held column (excluded from the profiles) keeps the
+			// floor it was last measured at.
+			for (const profile of profiles) columnFloors.set(profile.id, profile.min)
+
 			// Reserve the table's horizontal border chrome — hairline `outline` borders
 			// render the table a pixel or two past the summed column widths, which would
 			// raise a phantom horizontal scrollbar if the columns filled the full width.
@@ -134,7 +149,7 @@ export function useGridColumnAutoSize<T>({
 				return prev
 			})
 		},
-		[enabled, table, columns, containerRef, structSig],
+		[enabled, table, columns, containerRef, structSig, columnFloors],
 	)
 
 	// Promote a drag-resized column to a manual hold once its drag ends, so the
