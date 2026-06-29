@@ -336,6 +336,11 @@ export function useGridNavigation({
 		// drop it only when focus leaves the table entirely.
 		if (next instanceof Node && event.currentTarget.contains(next)) return
 
+		// Keep it seated, too, while focus is in a floating overlay opened from the
+		// grid (e.g. its context menu), so the active cell is restored on close —
+		// mirrors the `onFocus` portal guard that declines to re-seed on return.
+		if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return
+
 		setActive(null)
 	}, [])
 

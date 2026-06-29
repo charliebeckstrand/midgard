@@ -12,9 +12,24 @@ import {
 	PinOff,
 	StretchHorizontal,
 } from 'lucide-react'
-import { type MouseEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
+import {
+	type MouseEvent,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Icon } from '../../components/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from '../../components/menu'
+import {
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuLabel,
+	MenuSeparator,
+	useMenuActions,
+} from '../../components/menu'
 import type { SortState } from './context'
 import type {
 	GridCellMenuContext,
@@ -290,6 +305,10 @@ export function GridContextMenu<T>({
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
 
+	// The grid to restore focus to when a keyboard-opened menu closes; set only on
+	// the keyboard path, so a pointer-opened menu leaves focus where the user left it.
+	const returnFocus = useRef<HTMLElement | null>(null)
+
 	const columnById = useMemo(
 		() => new Map(columns.map((column) => [String(column.id), column])),
 		[columns],
@@ -390,49 +409,120 @@ export function GridContextMenu<T>({
 		[config.cell, columnById, rowByKey, exportCsv, exportLabel],
 	)
 
-	const handleContextMenu = useCallback(
-		(event: MouseEvent<HTMLDivElement>) => {
-			// Ctrl held: defer to the browser's standard menu. Stop the event before
-			// the Menu wrapper opens the custom one, and leave the default intact.
-			if (event.ctrlKey) {
-				event.stopPropagation()
-
-				return
-			}
-
-			const resolved = resolveTarget(
-				event.target as HTMLElement,
-				resolveColumnItems,
-				resolveCellItems,
-			)
-
-			// Nothing to show here: keep the native menu and stop the event before the
-			// Menu wrapper's own handler opens an empty surface.
-			if (!resolved || resolved.length === 0) {
-				event.stopPropagation()
-
-				return
-			}
-
-			setItems(resolved)
-		},
+	const resolveItems = useCallback(
+		(target: HTMLElement): GridMenuItem[] | null =>
+			resolveTarget(target, resolveColumnItems, resolveCellItems),
 		[resolveColumnItems, resolveCellItems],
 	)
 
+	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor —
+	// kept seated by the grid's blur guard — picks up where it left off.
+	const handleOpenChange = useCallback((next: boolean) => {
+		setOpen(next)
+
+		if (!next && returnFocus.current) {
+			returnFocus.current.focus()
+
+			returnFocus.current = null
+		}
+	}, [])
+
 	return (
-		<Menu open={open} onOpenChange={setOpen}>
-			{/*
-			 * `contents` keeps this wrapper out of layout; it records the right-clicked
-			 * target, then lets the event bubble to the Menu wrapper, which opens at
-			 * the cursor. It implements no keyboard model of its own — the menu does.
-			 */}
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: a right-click delegation surface, not an interactive control; the floating menu carries the keyboard model */}
-			<div className="contents" onContextMenu={handleContextMenu}>
+		<Menu open={open} onOpenChange={handleOpenChange}>
+			<GridContextMenuSurface
+				resolveItems={resolveItems}
+				setItems={setItems}
+				returnFocus={returnFocus}
+			>
 				{children}
-			</div>
+			</GridContextMenuSurface>
 
 			<MenuContent>{items.map(renderMenuItem)}</MenuContent>
 		</Menu>
+	)
+}
+
+/**
+ * The right-click / keyboard delegation surface, rendered inside {@link Menu} so it
+ * can open the menu through the menu's {@link useMenuActions} `openAt`. A
+ * `contents` wrapper keeps it out of layout. A right-click resolves the cell or
+ * header under the pointer and opens the menu there; the keyboard context-menu
+ * (Shift+F10 / the ContextMenu key), which fires on the focused grid rather than a
+ * cell, is retargeted to the active cursor cell (WCAG 2.1.1), recording the grid to
+ * restore focus to on close. Stops propagation either way so the menu opens once.
+ *
+ * @internal
+ */
+function GridContextMenuSurface({
+	resolveItems,
+	setItems,
+	returnFocus,
+	children,
+}: {
+	resolveItems: (target: HTMLElement) => GridMenuItem[] | null
+	setItems: (items: GridMenuItem[]) => void
+	returnFocus: RefObject<HTMLElement | null>
+	children: ReactNode
+}) {
+	const { openAt } = useMenuActions()
+
+	const handleContextMenu = useCallback(
+		(event: MouseEvent<HTMLDivElement>) => {
+			// The grid drives the menu through `openAt`; the Menu wrapper must not also
+			// fire for the same event.
+			event.stopPropagation()
+
+			// Ctrl held: defer to the browser's standard menu, default intact.
+			if (event.ctrlKey) return
+
+			const target = event.target as HTMLElement
+
+			const cell = target.closest<HTMLElement>('td[data-grid-col], th[data-grid-col]')
+
+			if (cell) {
+				const items = resolveItems(cell)
+
+				if (!items || items.length === 0) return
+
+				event.preventDefault()
+
+				setItems(items)
+
+				openAt(target, event.clientX, event.clientY)
+
+				return
+			}
+
+			// No cell under the event: a keyboard context menu on the focused grid.
+			// Retarget to the active cursor cell and open there.
+			const grid = target.closest<HTMLElement>('[role="grid"]')
+
+			const active = grid?.querySelector<HTMLElement>('[data-active]')
+
+			if (!active) return
+
+			const items = resolveItems(active)
+
+			if (!items || items.length === 0) return
+
+			event.preventDefault()
+
+			setItems(items)
+
+			returnFocus.current = grid
+
+			const rect = active.getBoundingClientRect()
+
+			openAt(active, rect.left, rect.bottom)
+		},
+		[openAt, resolveItems, setItems, returnFocus],
+	)
+
+	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: a right-click delegation surface, not an interactive control; the floating menu carries the keyboard model
+		<div className="contents" onContextMenu={handleContextMenu}>
+			{children}
+		</div>
 	)
 }
 
