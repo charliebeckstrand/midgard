@@ -583,8 +583,22 @@ export function GridData<T>({
 
 	const dataColumnsRef = useRef<GridColumn<T>[]>([])
 
+	// Selection wiring the cursor reads at key time: whether a selection column is
+	// present (gating Space-to-select) and a toggle for the active row by display
+	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
+	// them through refs, like its bounds above.
+	const selectableRef = useRef(false)
+
+	const toggleRowRef = useRef<(key: string | number) => void>(() => {})
+
+	const toggleActiveRow = useCallback((rowIdx: number) => {
+		const key = rowKeysRef.current[rowIdx]
+
+		if (key !== undefined) toggleRowRef.current(key)
+	}, [])
+
 	// A stable click handler so the memoized rows don't churn when the consumer
-	// passes an inline `onRowClick`; the cursor also activates its row on Enter/Space.
+	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
 
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
@@ -598,6 +612,8 @@ export function GridData<T>({
 		editable,
 		columns: pinnedColumns,
 		onRowActivate,
+		selectableRef,
+		toggleActiveRow,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -722,6 +738,12 @@ export function GridData<T>({
 		setSelection,
 		rowKeys,
 	})
+
+	// Feed the cursor's selection refs now that the engine has resolved them, so its
+	// Space key toggles the active row's selection (see `useGridNavigation`).
+	selectableRef.current = hasSelectionColumn
+
+	toggleRowRef.current = toggleRow
 
 	// Narrate sort and selection changes to assistive tech without moving focus
 	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays

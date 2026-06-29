@@ -41,6 +41,8 @@ export function useGridCursor<T>({
 	editable,
 	columns,
 	onRowActivate,
+	selectableRef,
+	toggleActiveRow,
 	refs,
 }: {
 	navigable: boolean
@@ -48,6 +50,10 @@ export function useGridCursor<T>({
 	/** The pinned/resolved columns to augment. */
 	columns: GridColumn<T>[]
 	onRowActivate: GridRowActivate | undefined
+	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
+	selectableRef: RefObject<boolean>
+	/** Toggles the active row's selection by display index, for the cursor's Space key. */
+	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	refs: GridCursorRefs<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
@@ -67,7 +73,14 @@ export function useGridCursor<T>({
 
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
-	const nav = useGridNavigation({ enabled: cursorEnabled, rowsRef, colCountRef, onRowActivate })
+	const nav = useGridNavigation({
+		enabled: cursorEnabled,
+		rowsRef,
+		colCountRef,
+		onRowActivate,
+		selectableRef,
+		toggleActiveRow,
+	})
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,

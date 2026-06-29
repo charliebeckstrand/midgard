@@ -123,14 +123,20 @@ export function useGridNavigation({
 	rowsRef,
 	colCountRef,
 	onRowActivate,
+	selectableRef,
+	toggleActiveRow,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
 	rowsRef: RefObject<unknown[]>
 	/** Live count of cursor-visitable data columns; backs horizontal bounds. */
 	colCountRef: RefObject<number>
-	/** Activates the row under the cursor on Enter/Space, when the grid has a row click. */
+	/** Activates the row under the cursor on Enter, when the grid has a row click. */
 	onRowActivate: GridRowActivate | undefined
+	/** Whether the grid has a selection column; gates Space-to-select. */
+	selectableRef: RefObject<boolean>
+	/** Toggles the active row's selection by display index, when selectable. */
+	toggleActiveRow: ((rowIdx: number) => void) | undefined
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -149,6 +155,11 @@ export function useGridNavigation({
 	const onRowActivateRef = useRef(onRowActivate)
 
 	onRowActivateRef.current = onRowActivate
+
+	// Read selection toggling through a ref so the key handler's deps stay stable.
+	const toggleActiveRowRef = useRef(toggleActiveRow)
+
+	toggleActiveRowRef.current = toggleActiveRow
 
 	const { sub } = useIdScope()
 
@@ -202,7 +213,7 @@ export function useGridNavigation({
 		[rowsRef, colCountRef],
 	)
 
-	// Enter/Space activates the row under the cursor (when the grid has a row click).
+	// Activates the row under the cursor through the grid's row-click bridge.
 	const activateRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, rowIdx: number) => {
 			const activate = onRowActivateRef.current
@@ -216,6 +227,26 @@ export function useGridNavigation({
 			activate(row, event)
 		},
 		[rowsRef],
+	)
+
+	// Space toggles the active row's selection in a selectable grid (APG grid) and
+	// never scrolls the grid's own tab stop; Enter — and Space when the grid has no
+	// selection — activates a clickable row instead.
+	const activateOrSelectRow = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, rowIdx: number) => {
+			if (event.key === ' ') {
+				event.preventDefault()
+
+				if (selectableRef.current) {
+					toggleActiveRowRef.current?.(rowIdx)
+
+					return
+				}
+			}
+
+			activateRow(event, rowIdx)
+		},
+		[activateRow, selectableRef],
 	)
 
 	const onKeyDown = useCallback(
@@ -236,14 +267,14 @@ export function useGridNavigation({
 
 				moveTo(target)
 			} else if (event.key === 'Enter' || event.key === ' ') {
-				activateRow(event, base.row)
+				activateOrSelectRow(event, base.row)
 			} else if (event.key === 'Escape' && activeRef.current) {
 				event.preventDefault()
 
 				setActive(null)
 			}
 		},
-		[moveTo, activateRow, rowsRef, colCountRef],
+		[moveTo, activateOrSelectRow, rowsRef, colCountRef],
 	)
 
 	const onFocus = useCallback(

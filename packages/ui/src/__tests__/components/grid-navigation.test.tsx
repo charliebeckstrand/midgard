@@ -228,3 +228,70 @@ describe('Grid navigable role', () => {
 		expect(screen.getByRole('grid')).toBeInTheDocument()
 	})
 })
+
+describe('Grid cursor selection', () => {
+	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
+
+	it('toggles the active row selection with Space, never scrolling', () => {
+		renderUI(<Grid columns={selectColumns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		// Seed at the first row, then move the cursor to Bob (row index 1).
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		// fireEvent returns false when a handler calls preventDefault — Space must,
+		// so it never scrolls the grid's own tab stop.
+		const scrolled = fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(scrolled).toBe(false)
+
+		// It toggled the active row's selection (APG grid pattern).
+		expect(screen.getByRole('checkbox', { name: 'Select row 2' })).toBeChecked()
+	})
+
+	it('selects, rather than activates, on Space when the grid is also clickable', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onRowClick={onRowClick}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		// Space selects; Enter is what activates.
+		expect(onRowClick).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('checkbox', { name: 'Select row 2' })).toBeChecked()
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(onRowClick).toHaveBeenCalledTimes(1)
+	})
+
+	it('still activates a clickable row on Space when there is no selection column', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} navigable onRowClick={onRowClick} />,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(onRowClick).toHaveBeenCalledTimes(1)
+	})
+})
