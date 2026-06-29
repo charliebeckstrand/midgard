@@ -53,7 +53,11 @@ export type GridColumn<T> = {
 	/**
 	 * Marks this as the selection column; renders the row-select checkboxes
 	 * instead of a cell value. Defaults to a natural checkbox width rather than a
-	 * full data-column width; set {@link GridColumn.width} to override.
+	 * full data-column width; set {@link GridColumn.width} to override. Always
+	 * frozen to the far left ahead of any left-{@link GridColumn.pinned | pinned}
+	 * column once the grid pins a column, so the checkboxes stay anchored while the
+	 * grid scrolls sideways; until something is pinned it sits inline like any
+	 * column.
 	 */
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
@@ -115,11 +119,14 @@ export type GridColumn<T> = {
 	className?: string
 	headerClassName?: string
 	/**
-	 * Fixes the column at this CSS width, superseding the automatic content sizing
-	 * ({@link GridProps.resizable}). A `px` value also seeds the column's initial
-	 * resize width. Omit it to let the column size to its content: columns share the
-	 * width evenly when there is room to spare, and any column whose content would
-	 * truncate takes more.
+	 * The column's width. In a non-resizable grid this is its fixed CSS width. In a
+	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
+	 * initial width: the column holds it — sitting out the automatic content sizing —
+	 * until you drag-resize it or run the header's "Auto-size columns", which re-fits
+	 * it to content. A drag still can't cross the {@link GridColumn.minWidth} floor,
+	 * so a single-word header stays whole. Omit it to size to content from the first
+	 * render: columns share the width evenly when there is room to spare, and any
+	 * column whose content would truncate takes more.
 	 */
 	width?: string
 	/**

@@ -5,6 +5,7 @@ import { type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import type { DensityLevel } from '../../providers/density/context'
 import { allocateColumnWidths } from './grid-column-allocate'
 import { type ColumnMeasurement, measureColumnIntrinsics } from './grid-column-measure'
+import { parsePxWidth } from './grid-table-options'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnAutoSize}. @internal */
@@ -19,10 +20,17 @@ type GridColumnAutoSizeOptions<T> = {
 	containerRef: RefObject<HTMLElement | null> | undefined
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
+	/**
+	 * Per-column hard floor (px), written each measurement pass for the drag-resize
+	 * bounds and clamp to read — so a manual resize honors the same minimum the
+	 * allocator does (a single-word header never truncates). A stable map owned by
+	 * the caller; entries merge, so a column held out of a pass keeps its last floor.
+	 */
+	columnFloors: Map<string, number>
 }
 
 /** Empty measurement; the resolved value before the first DOM read. @internal */
-const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0 }
+const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: new Map() }
 
 /**
  * Auto-sizes a resizable grid's data columns to their content within the
@@ -38,9 +46,9 @@ const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0 }
  * the engine's default), again on container resize (`ResizeObserver`), when the
  * columns / density / rendered rows change, and once web fonts settle. It stands
  * down when the consumer controls `columnSizing` or the grid is not resizable,
- * and holds a column the user drag-resizes at that width while the rest keep
- * fitting; `sizeToFit` clears those manual holds and re-fits (the "Auto-size
- * columns" action).
+ * and holds a column the user drag-resizes — or one seeded with an explicit
+ * `width` — at that width while the rest keep fitting; `sizeToFit` clears those
+ * holds (drag and `width`) and re-fits (the "Auto-size columns" action).
  *
  * @internal
  */
@@ -51,11 +59,17 @@ export function useGridColumnAutoSize<T>({
 	columns,
 	containerRef,
 	density,
+	columnFloors,
 }: GridColumnAutoSizeOptions<T>): { sizeToFit: () => void } {
 	const enabled = resizable && !controlled
 
 	// Columns the user has drag-resized; held at their width while the rest auto-fit.
 	const manualPinnedRef = useRef<Set<string>>(new Set())
+
+	// `width`-seeded columns the user released via "Auto-size columns"; they rejoin
+	// the fit instead of holding their initial `width`. Persists a deliberate
+	// release — a drag-hold instead lives in `manualPinnedRef`.
+	const widthReleasedRef = useRef<Set<string>>(new Set())
 
 	// Per-column running-max content width, so a wider row paging/scrolling in only
 	// grows a column. Cleared when the column set or density changes (structural).
@@ -106,11 +120,19 @@ export function useGridColumnAutoSize<T>({
 					columns,
 					container,
 					manualPinned: manualPinnedRef.current,
+					released: widthReleasedRef.current,
 					runningContent: runningContentRef.current,
 				})
 			}
 
-			const { profiles, fixed } = measurementRef.current
+			const { profiles, fixed, floors } = measurementRef.current
+
+			// Publish every data column's hard floor — held and `width`-seeded columns
+			// included, so a drag-resize and the keyboard bounds honor the same minimum
+			// the allocator does (a single-word header stays whole, a multi-word one keeps
+			// its icons). Merged, not cleared, so a column dropped from a pass keeps its
+			// last floor.
+			for (const [id, floor] of floors) columnFloors.set(id, floor)
 
 			// Reserve the table's horizontal border chrome — hairline `outline` borders
 			// render the table a pixel or two past the summed column widths, which would
@@ -134,7 +156,7 @@ export function useGridColumnAutoSize<T>({
 				return prev
 			})
 		},
-		[enabled, table, columns, containerRef, structSig],
+		[enabled, table, columns, containerRef, structSig, columnFloors],
 	)
 
 	// Promote a drag-resized column to a manual hold once its drag ends, so the
@@ -190,10 +212,16 @@ export function useGridColumnAutoSize<T>({
 	const sizeToFit = useCallback(() => {
 		manualPinnedRef.current.clear()
 
+		// `width` is the initial size; "Auto-size columns" supersedes it, so release
+		// every `width`-seeded hold to redistribute those columns to their content too.
+		for (const col of columns) {
+			if (parsePxWidth(col.width) != null) widthReleasedRef.current.add(String(col.id))
+		}
+
 		runningContentRef.current.clear()
 
 		run(true)
-	}, [run])
+	}, [run, columns])
 
 	return { sizeToFit }
 }
