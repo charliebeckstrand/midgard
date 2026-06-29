@@ -98,11 +98,22 @@ function observeTruncation(el: Element, measure: () => void): () => void {
  * Shared by the data-cell ({@link GridCellContent}) and column-header
  * (`GridHeaderTitle`) truncation surfaces.
  *
+ * @param remeasureKey - A value whose change schedules a re-measure on the next
+ * animation frame, once the new layout has settled. The grid passes its
+ * `resizing` flag: a column drag-resize moves the cell's width through the
+ * `<colgroup>` alone, without re-rendering the memoized cell, so the commit
+ * measure below never re-runs for it and detection rides on the
+ * {@link sharedResizeObserver}. As the drag settles (`resizing` flips back),
+ * the final width can land a frame after the observer's last delivery, leaving
+ * the flag stale — a widened cell keeping its reveal tooltip armed. The deferred
+ * pass reconciles it regardless of observer timing.
  * @returns `[ref, truncated]`: attach `ref` to the single-line element; read
  * `truncated` to gate the reveal tooltip.
  * @internal
  */
-export function useGridTruncation<E extends HTMLElement>(): [RefObject<E | null>, boolean] {
+export function useGridTruncation<E extends HTMLElement>(
+	remeasureKey?: unknown,
+): [RefObject<E | null>, boolean] {
 	const ref = useRef<E>(null)
 
 	const [truncated, setTruncated] = useState(false)
@@ -126,6 +137,22 @@ export function useGridTruncation<E extends HTMLElement>(): [RefObject<E | null>
 
 		return observeTruncation(el, measure)
 	}, [measure])
+
+	// Re-measure once `remeasureKey` changes and the frame has settled (see the
+	// param note). No-op where `requestAnimationFrame` is absent (SSR / jsdom),
+	// matching the observer's own fallback; the same-value bail keeps it from
+	// looping.
+	useEffect(() => {
+		// Read here so a `remeasureKey` change re-runs this effect (it gates the
+		// deferred pass; the frame callback itself doesn't reference it).
+		void remeasureKey
+
+		if (typeof requestAnimationFrame !== 'function') return
+
+		const frame = requestAnimationFrame(measure)
+
+		return () => cancelAnimationFrame(frame)
+	}, [measure, remeasureKey])
 
 	return [ref, truncated]
 }

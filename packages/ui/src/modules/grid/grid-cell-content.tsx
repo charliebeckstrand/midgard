@@ -37,8 +37,8 @@ type GridCellContentProps = {
  * @internal
  */
 export function GridCellContent({ content, tooltip }: GridCellContentProps) {
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
 	const { resizing } = useGrid()
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizing)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can

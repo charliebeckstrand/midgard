@@ -350,8 +350,8 @@ function sortDirectionIcon(
  * @internal
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
 	const { resizing } = useGrid()
+	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizing)
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
