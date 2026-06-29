@@ -310,7 +310,7 @@ export const k = {
 		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
 		// Row-range status ("1–10 of 47"): the end track from `lg` (right-aligned),
 		// the right of the justified row below it.
-		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
+		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
 		// Page-size picker: the start track from `lg` (left-aligned), the left of the
 		// justified row below it. Always rendered so the track holds even when empty,
 		// keeping the nav centered.
