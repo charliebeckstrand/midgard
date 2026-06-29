@@ -60,6 +60,7 @@ describe('kasane.layers', () => {
 		const all = layers.all.join(' ')
 
 		expect(all).toContain('before:pointer-events-none')
+
 		expect(all).toContain('after:pointer-events-none')
 	})
 })

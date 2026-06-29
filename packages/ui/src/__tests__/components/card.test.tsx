@@ -16,6 +16,7 @@ describe('Card', () => {
 		// Loading trees compose skeleton variants explicitly; the card keeps
 		// its frame around them.
 		expect(bySlot(container, 'card')).toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
@@ -56,6 +57,7 @@ describe('Card size system', () => {
 		// The static CardBody carries its own md padding; the sm card overrides
 		// it from outside through the section projection.
 		expect(bySlot(container, 'card')?.className).toContain('*:data-[slot=card-body]:p-2')
+
 		expect(bySlot(container, 'card-body')?.className).toContain('p-3')
 	})
 
@@ -69,6 +71,7 @@ describe('Card size system', () => {
 		const cls = bySlot(container, 'card')?.className ?? ''
 
 		expect(cls).toContain('*:data-[slot=card-header]:px-4')
+
 		expect(cls).toContain('*:data-[slot=card-header]:pt-4')
 	})
 
@@ -168,6 +171,7 @@ describe('Card size system', () => {
 		)
 
 		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
+
 		// The inner card defaults to md; the outer size does not cascade, and
 		// the direct-child section projection cannot reach into it.
 		expect(cards[1]).toHaveAttribute('data-size', 'md')
@@ -188,7 +192,9 @@ describe('Card size system', () => {
 		const cls = bySlot(container, 'card')?.className ?? ''
 
 		expect(cls).toContain('[&:has(>[data-slot=card-header])]:p-0')
+
 		expect(cls).toContain('[&:has(>[data-slot=card-body])]:p-0')
+
 		expect(cls).toContain('[&:has(>[data-slot=card-footer])]:p-0')
 
 		// No prefix selector: it would also match content slots like card-title.

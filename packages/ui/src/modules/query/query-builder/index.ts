@@ -6,6 +6,7 @@ export {
 	QueryBuilder,
 	type QueryBuilderProps,
 } from './query-builder'
+export { evaluateQuery, matchQueryRule } from './query-builder-evaluate'
 export {
 	QueryBuilderGroup,
 	type QueryBuilderGroupProps,
@@ -23,6 +24,7 @@ export {
 	createGroup,
 	createRule,
 	getOperators,
+	isQueryActive,
 	mapNode,
 	removeChild,
 } from './query-builder-utilities'

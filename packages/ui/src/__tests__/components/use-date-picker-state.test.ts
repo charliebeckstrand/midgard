@@ -4,7 +4,9 @@ import { useDatePickerState } from '../../components/date-picker/use-date-picker
 import { makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
+
 const Jan15 = new Date(2025, 0, 15)
+
 const Feb1 = new Date(2025, 1, 1)
 
 describe('useDatePickerState', () => {
@@ -13,6 +15,7 @@ describe('useDatePickerState', () => {
 			const { result } = renderHook(() => useDatePickerState({}))
 
 			expect(result.current.open).toBe(false)
+
 			expect(result.current.displayValue).toBe('')
 		})
 
@@ -52,6 +55,7 @@ describe('useDatePickerState', () => {
 			act(() => result.current.onOpenChange(false))
 
 			expect(result.current.open).toBe(false)
+
 			expect(result.current.calendar.active).toBeNull()
 		})
 	})
@@ -69,7 +73,9 @@ describe('useDatePickerState', () => {
 			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
+
 			expect(result.current.calendar.value).toEqual(Jan15)
+
 			expect(result.current.open).toBe(false)
 		})
 
@@ -85,7 +91,9 @@ describe('useDatePickerState', () => {
 			act(() => result.current.footer.onClear())
 
 			expect(onChange).toHaveBeenCalledWith(undefined)
+
 			expect(result.current.calendar.value).toBeNull()
+
 			expect(result.current.open).toBe(false)
 		})
 
@@ -99,7 +107,9 @@ describe('useDatePickerState', () => {
 			act(() => result.current.footer.onToday())
 
 			expect(onChange).toHaveBeenCalledTimes(1)
+
 			expect(onChange.mock.calls[0]?.[0]).toBeInstanceOf(Date)
+
 			expect(result.current.open).toBe(false)
 		})
 
@@ -133,7 +143,9 @@ describe('useDatePickerState', () => {
 			act(() => result.current.calendar.onValueChange(Jan15))
 
 			expect(onChange).toHaveBeenCalledWith(Jan15)
+
 			expect(result.current.calendar.value).toEqual(Jan1)
+
 			expect(result.current.open).toBe(false)
 		})
 

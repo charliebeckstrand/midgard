@@ -2,7 +2,8 @@ import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody } from '../../components/dialog'
 import { Icon } from '../../components/icon'
-import { axe, renderUI, userEvent } from '../helpers'
+import { renderUI, userEvent } from '../helpers'
+import { axe } from '../helpers/axe'
 import { baseline, interactive, overlays } from './cases'
 
 /**

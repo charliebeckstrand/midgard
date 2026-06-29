@@ -33,6 +33,7 @@ describe('palette', () => {
 		})
 
 		expect(recipe({ color: 'zinc' })).toContain('z-solid')
+
 		expect(recipe({ color: 'red' })).toContain('r-solid')
 	})
 
@@ -51,6 +52,7 @@ describe('palette', () => {
 		const out = recipe()
 
 		expect(out).toContain('z-bg')
+
 		expect(out).toContain('z-text')
 	})
 

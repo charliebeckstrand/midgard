@@ -92,6 +92,7 @@ describe('extractProjectPropNames', () => {
 		)
 
 		expect(names.has('href')).toBe(true)
+
 		expect(names.has('disabled')).toBe(true)
 	})
 

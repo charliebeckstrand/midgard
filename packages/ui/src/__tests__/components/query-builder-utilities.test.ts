@@ -6,13 +6,16 @@ import {
 	findFocusTarget,
 	getOperators,
 	hasRules,
+	isQueryActive,
 	mapNode,
 	removeChild,
 } from '../../modules/query/query-builder/query-builder-utilities'
 import type { QueryField, QueryNode, QueryRule } from '../../modules/query/query-builder/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
+
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
 const selectField: QueryField = {
 	name: 'role',
 	label: 'Role',
@@ -22,6 +25,7 @@ const selectField: QueryField = {
 		{ value: 'user', label: 'User' },
 	],
 }
+
 const booleanField: QueryField = { name: 'active', label: 'Active', type: 'boolean' }
 
 describe('createRule', () => {
@@ -107,6 +111,12 @@ describe('getOperators', () => {
 	it('falls back to the default operator list per field type', () => {
 		expect(getOperators(numberField).map((o) => o.value)).toContain('gte')
 	})
+
+	it('offers a range between operator for numbers', () => {
+		const between = getOperators(numberField).find((o) => o.value === 'between')
+
+		expect(between?.range).toBe(true)
+	})
 })
 
 describe('hasRules', () => {
@@ -128,6 +138,79 @@ describe('hasRules', () => {
 
 	it('returns false when every child group is empty', () => {
 		expect(hasRules(createGroup('and', [createGroup()]))).toBe(false)
+	})
+})
+
+describe('isQueryActive', () => {
+	const fields = [textField, numberField, booleanField]
+
+	it('returns false for an empty group', () => {
+		expect(isQueryActive(createGroup(), fields)).toBe(false)
+	})
+
+	it('returns false when every rule has no value', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), operator: 'gt', value: '' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats whitespace-only values as empty', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '   ' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('returns true once a rule carries a value', () => {
+		const group = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: 'a' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(true)
+	})
+
+	it('returns true for a value-less operator even with no value', () => {
+		const group = createGroup('and', [{ ...createRule(textField), operator: 'isEmpty', value: '' }])
+
+		expect(isQueryActive(group, fields)).toBe(true)
+	})
+
+	it('finds an active rule nested inside a child group', () => {
+		const inner = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: 'a' },
+		])
+
+		expect(isQueryActive(createGroup('and', [inner]), fields)).toBe(true)
+	})
+
+	it('treats a blank rule whose field is unknown as inactive', () => {
+		// The field can't be resolved, so the value-less operator isn't recognized
+		// and the rule falls back to its (empty) value — inactive.
+		const group = createGroup('and', [
+			{ ...createRule(textField), field: 'gone', operator: 'isEmpty', value: '' },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats a range with every bound blank as inactive', () => {
+		const group = createGroup('and', [
+			{ ...createRule(numberField), operator: 'between', value: ['', ''] },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(false)
+	})
+
+	it('treats a one-sided range as active', () => {
+		const group = createGroup('and', [
+			{ ...createRule(numberField), operator: 'between', value: ['10', ''] },
+		])
+
+		expect(isQueryActive(group, fields)).toBe(true)
 	})
 })
 
@@ -314,7 +397,9 @@ describe('removeChild', () => {
 describe('findFocusTarget', () => {
 	it('prefers the previous sibling, then offers the next, then the group', () => {
 		const a = createRule(textField)
+
 		const b = createRule(textField)
+
 		const c = createRule(textField)
 
 		const root = createGroup('and', [a, b, c])
@@ -329,6 +414,7 @@ describe('findFocusTarget', () => {
 
 	it('omits the previous candidate when removing the first child', () => {
 		const a = createRule(textField)
+
 		const b = createRule(textField)
 
 		const root = createGroup('and', [a, b])

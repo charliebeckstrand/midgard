@@ -6,7 +6,9 @@ import { makeKeyEvent } from '../helpers'
 describe('useTagInputKeyboard', () => {
 	it('Enter key calls addTag and clearInput on success', () => {
 		const addTag = vi.fn(() => true)
+
 		const removeTag = vi.fn()
+
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -16,11 +18,13 @@ describe('useTagInputKeyboard', () => {
 		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
 
 		expect(addTag).toHaveBeenCalledWith('hello')
+
 		expect(clearInput).toHaveBeenCalled()
 	})
 
 	it('Enter key does not clear input when addTag returns false', () => {
 		const addTag = vi.fn(() => false)
+
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -36,11 +40,13 @@ describe('useTagInputKeyboard', () => {
 		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
 
 		expect(addTag).toHaveBeenCalledWith('dup')
+
 		expect(clearInput).not.toHaveBeenCalled()
 	})
 
 	it('comma key calls addTag and clearInput on success', () => {
 		const addTag = vi.fn(() => true)
+
 		const clearInput = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -56,6 +62,7 @@ describe('useTagInputKeyboard', () => {
 		result.current(makeKeyEvent<HTMLInputElement>(','))
 
 		expect(addTag).toHaveBeenCalledWith('tag')
+
 		expect(clearInput).toHaveBeenCalled()
 	})
 

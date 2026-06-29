@@ -42,6 +42,7 @@ describe('Heading', () => {
 			const [one, six] = container.querySelectorAll('[data-slot="heading"]')
 
 			expect(one?.className).toContain('text-3xl')
+
 			expect(six?.className).toContain('text-sm')
 		})
 
@@ -60,6 +61,7 @@ describe('Heading', () => {
 			const [one, six] = container.querySelectorAll('[data-slot="heading"]')
 
 			expect(one?.className).toContain('text-2xl')
+
 			expect(six?.className).toContain('text-xs')
 		})
 
@@ -78,6 +80,7 @@ describe('Heading', () => {
 			const [one, three] = container.querySelectorAll('[data-slot="heading"]')
 
 			expect(one?.className).toContain('text-4xl')
+
 			expect(three?.className).toContain('text-2xl')
 		})
 

@@ -37,6 +37,7 @@ describe('CurrencyInput', () => {
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
 		expect(input.value).toBe('1,234.56')
+
 		expect(container.textContent).toContain('$')
 	})
 
@@ -48,6 +49,7 @@ describe('CurrencyInput', () => {
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
 		expect(input.value).toBe('1,000.00')
+
 		expect(container.textContent).toContain('€')
 	})
 
@@ -129,6 +131,7 @@ describe('CurrencyInput', () => {
 		await user.tab()
 
 		expect(onChange).toHaveBeenLastCalledWith(750.5)
+
 		expect(input.value).toBe('750.50')
 	})
 
@@ -148,6 +151,7 @@ describe('CurrencyInput', () => {
 		await user.tab()
 
 		expect(onChange).toHaveBeenLastCalledWith(undefined)
+
 		expect(input.value).toBe('')
 	})
 

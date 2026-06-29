@@ -1,8 +1,10 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
+import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 
@@ -40,9 +42,11 @@ export function TabContents({ fade = true, ...props }: TabContentsProps) {
  * Idiomatic tab panel; renders when its `value` matches the active tab. Inside
  * `<Tabs>` it auto-wires `role="tabpanel"`, `aria-labelledby` to the matching
  * tab, and a computed `tabIndex` (`0` when the panel has no focusable child,
- * per APG), pairing with its `Tab` via the Tabs base id + value.
+ * per APG), pairing with its `Tab` via the Tabs base id + value. A content-only
+ * panel that becomes tab-focusable signals focus with the design-system blue
+ * ring rather than the browser default.
  */
-export function TabContent({ value, ...props }: TabContentProps) {
+export function TabContent({ value, className, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
 
 	const { triggerId, panelId } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
@@ -59,6 +63,7 @@ export function TabContent({ value, ...props }: TabContentProps) {
 			ref={ref}
 			slotPrefix="tab"
 			value={value}
+			className={cn(k.panel, className)}
 			{...(auto && {
 				role: 'tabpanel',
 				id: panelId,

@@ -98,7 +98,9 @@ describe('extractDefaults — inline destructured defaults', () => {
 		const defaults = extractDefaults(fn)
 
 		expect(defaults.has('size')).toBe(true)
+
 		expect(defaults.has('color')).toBe(true)
+
 		expect(defaults.has('label')).toBe(false)
 	})
 
@@ -158,6 +160,7 @@ describe('extractDefaults — identifier defaults resolved to same-file const li
 		const defaults = extractDefaults(fn)
 
 		expect(defaults.get('zoom')).toBe('[0.5, 1, 2]')
+
 		expect(defaults.get('delay')).toBe('200')
 	})
 })

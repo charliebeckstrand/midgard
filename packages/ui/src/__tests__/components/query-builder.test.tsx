@@ -109,6 +109,22 @@ describe('QueryBuilder', () => {
 		expect(next.children).toHaveLength(0)
 	})
 
+	it('hides a sole rule’s remove button under requireRule, keeping it past one', () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { rerender } = renderUI(<QueryBuilder fields={fields} value={tree} requireRule />)
+
+		// One rule: removing it would empty the query, so the control is hidden.
+		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
+
+		const two = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
+
+		rerender(<QueryBuilder fields={fields} value={two} requireRule />)
+
+		// Two rules: each is removable again.
+		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
+	})
+
 	it('disables the remove rule button when QueryBuilder is disabled', () => {
 		const initialRule = createRule(fields[0])
 
@@ -146,6 +162,29 @@ describe('QueryBuilder', () => {
 		expect(labels).toContain('Field')
 
 		expect(labels).toContain('Operator')
+	})
+
+	it('hides the field selector when hideFieldSelector is set', () => {
+		const tree = createGroup('and', [createRule(fields[0])])
+
+		const { container } = renderUI(<QueryBuilder fields={fields} value={tree} hideFieldSelector />)
+
+		const labels = Array.from(container.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
+			el.getAttribute('aria-label'),
+		)
+
+		expect(labels).not.toContain('Field')
+
+		expect(labels).toContain('Operator')
+	})
+
+	it('hides the "Add group" action when allowGroups is false', () => {
+		renderUI(<QueryBuilder fields={fields} allowGroups={false} />)
+
+		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+
+		// "Add rule" stays available.
+		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
 	})
 
 	it('renders a number input for number-typed rule fields', () => {
@@ -410,6 +449,40 @@ describe('QueryBuilderRuleValue', () => {
 		const input = container.querySelector('input') as HTMLInputElement
 
 		expect(input.value).toBe('')
+	})
+
+	it('renders a NumberInput pair for a range and emits an updated bound tuple', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={onChange} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' }) as HTMLInputElement
+
+		expect(min.value).toBe('5')
+
+		expect(max.value).toBe('')
+
+		fireEvent.change(max, { target: { value: '10' } })
+
+		expect(onChange).toHaveBeenCalledWith([5, 10])
+	})
+
+	it('clears a range bound back to an empty string', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		const onChange = vi.fn()
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, 10]} range onValueChange={onChange} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		fireEvent.change(min, { target: { value: '' } })
+
+		expect(onChange).toHaveBeenCalledWith(['', 10])
 	})
 
 	it('renders a Select for select fields', () => {

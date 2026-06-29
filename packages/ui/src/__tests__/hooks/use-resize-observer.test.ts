@@ -131,6 +131,7 @@ describe('useResizeObserver', () => {
 		expect(callback).toHaveBeenCalledTimes(1)
 
 		rerender({ unrelated: 1 })
+
 		rerender({ unrelated: 2 })
 
 		// Stable callback + stable ref: effect deps unchanged, no re-subscribe.

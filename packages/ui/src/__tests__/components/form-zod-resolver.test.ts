@@ -34,6 +34,7 @@ describe('zodResolver', () => {
 		)
 
 		expect(validators.name?.('', defaults)).toEqual(['required', 'too short'])
+
 		expect(validators.age?.(0, defaults)).toEqual(['too young'])
 	})
 
@@ -54,6 +55,7 @@ describe('zodResolver', () => {
 		const validators = zodResolver(fakeSchema([{ path: ['name'], message: 'required' }]), defaults)
 
 		expect(validators.age?.(30, defaults)).toBeUndefined()
+
 		expect(validators.passwordConfirm?.('', defaults)).toBeUndefined()
 	})
 
@@ -64,6 +66,7 @@ describe('zodResolver', () => {
 		)
 
 		expect(validators.passwordConfirm?.('', defaults)).toEqual(['must match'])
+
 		expect(validators.name?.('', defaults)).toBeUndefined()
 	})
 
@@ -71,6 +74,7 @@ describe('zodResolver', () => {
 		const validators = zodResolver(fakeSchema([{ path: [], message: 'global' }]), defaults)
 
 		expect(validators.name?.('', defaults)).toBeUndefined()
+
 		expect(validators.age?.(0, defaults)).toBeUndefined()
 	})
 
@@ -85,7 +89,9 @@ describe('zodResolver', () => {
 		const values: Values = { ...defaults }
 
 		validators.name?.('', values)
+
 		validators.age?.(0, values)
+
 		validators.passwordConfirm?.('', values)
 
 		expect(schema.safeParse).toHaveBeenCalledTimes(1)
@@ -97,6 +103,7 @@ describe('zodResolver', () => {
 		const validators = zodResolver(schema, defaults)
 
 		validators.name?.('', { ...defaults, name: 'a' })
+
 		validators.name?.('', { ...defaults, name: 'b' })
 
 		expect(schema.safeParse).toHaveBeenCalledTimes(2)
@@ -117,6 +124,7 @@ describe('zodResolver', () => {
 			age: ['too young'],
 			passwordConfirm: undefined,
 		})
+
 		expect(schema.safeParse).toHaveBeenCalledTimes(1)
 	})
 

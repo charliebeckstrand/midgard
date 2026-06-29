@@ -28,25 +28,6 @@ describe('useGridColumns', () => {
 		expect(result.current.hiddenColumns.size).toBe(0)
 	})
 
-	it('exposes the default manage-columns label as "Columns"', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns, columnManagerConfig: undefined }),
-		)
-
-		expect(result.current.manageColumnsLabel).toBe('Columns')
-	})
-
-	it('reads manageColumns from columnManagerConfig.enabled', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { enabled: true },
-			}),
-		)
-
-		expect(result.current.manageColumns).toBe(true)
-	})
-
 	it('honors a controlled order from columnOrderConfig.value', () => {
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
@@ -57,8 +38,6 @@ describe('useGridColumns', () => {
 		)
 
 		expect(result.current.columnOrder).toEqual(['age', 'name', 'status'])
-
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'name', 'status'])
 	})
 
 	it('uses columnOrderConfig.defaultValue when no controlled order is supplied', () => {
@@ -73,7 +52,7 @@ describe('useGridColumns', () => {
 		expect(result.current.columnOrder).toEqual(['status', 'name', 'age'])
 	})
 
-	it('drops a hidden column from visibleColumns', () => {
+	it('marks a hidden column false in the engine columnVisibility map', () => {
 		const { result } = renderHook(() =>
 			useGridColumns<Row>({
 				columns,
@@ -81,11 +60,8 @@ describe('useGridColumns', () => {
 			}),
 		)
 
-		const ids = result.current.visibleColumns.map((c) => c.id)
-
-		expect(ids).not.toContain('age')
-
-		expect(ids).toContain('name')
+		// Only hidden columns appear (false); the rest default to visible (absent).
+		expect(result.current.columnVisibility).toEqual({ age: false })
 	})
 
 	it('fires onHiddenChange when setHiddenColumns is called', () => {
@@ -150,7 +126,7 @@ describe('useGridColumns', () => {
 		expect(onValueChange).toHaveBeenCalledWith(['select', 'status', 'age', 'name'])
 	})
 
-	it('preserves selectable, actions, and pinned columns even when listed as hidden', () => {
+	it('keeps selectable, actions, and pinned columns out of the hidden map even when listed as hidden', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
 			{ id: 'name', title: 'Name', cell: (r) => r.name },
@@ -171,15 +147,9 @@ describe('useGridColumns', () => {
 			}),
 		)
 
-		const visibleIds = result.current.visibleColumns.map((c) => c.id)
-
-		expect(visibleIds).toContain('select')
-
-		expect(visibleIds).toContain('pinned-status')
-
-		expect(visibleIds).toContain('actions')
-
-		expect(visibleIds).not.toContain('name')
+		// Only the hideable data column ('name') is marked hidden; selection,
+		// actions, and pinned columns always stay visible (absent from the map).
+		expect(result.current.columnVisibility).toEqual({ name: false })
 	})
 
 	it('excludes selectable and actions columns from managerItems', () => {
@@ -209,50 +179,6 @@ describe('useGridColumns', () => {
 		)
 
 		expect(result.current.managerItems[0]?.title).toBe('name')
-	})
-
-	it('honors a custom manage-columns label', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { enabled: true, label: 'Manage' },
-			}),
-		)
-
-		expect(result.current.manageColumnsLabel).toBe('Manage')
-	})
-
-	it('appends columns missing from the stored order at the end', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnOrderConfig: { value: ['name'] },
-				columnManagerConfig: undefined,
-			}),
-		)
-
-		const ids = result.current.visibleColumns.map((c) => c.id)
-
-		expect(ids[0]).toBe('name')
-
-		expect(ids).toContain('age')
-
-		expect(ids).toContain('status')
-	})
-
-	it('reuses the previous visibleColumns reference when contents are element-wise identical', () => {
-		const { result, rerender } = renderHook(
-			({ cols }: { cols: GridColumn<Row>[] }) =>
-				useGridColumns<Row>({ columns: cols, columnManagerConfig: undefined }),
-			{ initialProps: { cols: columns } },
-		)
-
-		const first = result.current.visibleColumns
-
-		// Same columns, new array: still reuses the cached reference.
-		rerender({ cols: [...columns] })
-
-		expect(result.current.visibleColumns).toBe(first)
 	})
 
 	it('propagates pinned and hideable=false metadata onto managerItems', () => {
@@ -294,39 +220,6 @@ describe('useGridColumns', () => {
 
 		expect(result.current.hiddenColumns.has('age')).toBe(false)
 
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['age', 'status'])
-	})
-
-	it('returns the new visibleColumns reference when the visible slice actually changes', () => {
-		const { result, rerender } = renderHook(
-			({ hidden }: { hidden: Set<string | number> }) =>
-				useGridColumns<Row>({
-					columns,
-					columnManagerConfig: { hidden },
-				}),
-			{ initialProps: { hidden: new Set<string | number>() } },
-		)
-
-		const first = result.current.visibleColumns
-
-		rerender({ hidden: new Set<string | number>(['age']) })
-
-		expect(result.current.visibleColumns).not.toBe(first)
-
-		expect(result.current.visibleColumns.map((c) => c.id)).toEqual(['name', 'status'])
-	})
-
-	it('honors manageColumns=false when columnManagerConfig.enabled is unset', () => {
-		const { result } = renderHook(() =>
-			useGridColumns<Row>({
-				columns,
-				columnManagerConfig: { label: 'Anything' },
-			}),
-		)
-
-		expect(result.current.manageColumns).toBe(false)
-
-		// Custom label still resolves even when the manager is not enabled.
-		expect(result.current.manageColumnsLabel).toBe('Anything')
+		expect(result.current.columnVisibility).toEqual({ name: false })
 	})
 })

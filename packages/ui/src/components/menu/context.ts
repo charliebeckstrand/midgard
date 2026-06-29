@@ -22,6 +22,12 @@ type MenuActionsValue = {
 	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
+	/**
+	 * Opens the menu as a context menu anchored at a point, tracking `element` as it
+	 * scrolls (the keyboard-triggered counterpart to a right-click). `element` null
+	 * pins it to the fixed viewport point.
+	 */
+	openAt: (element: Element | null, clientX: number, clientY: number) => void
 }
 
 type MenuContextValue = MenuStateValue & MenuActionsValue

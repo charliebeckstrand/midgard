@@ -161,7 +161,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'asc' } }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
 				/>,
 			)
 
@@ -188,7 +188,7 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-			expect(onValueChange).toHaveBeenCalledWith({ column: 'name', direction: 'asc' })
+			expect(onValueChange).toHaveBeenCalledWith([{ column: 'name', direction: 'asc' }])
 		})
 
 		it('toggles direction from asc to desc when clicked again on the same column', async () => {
@@ -199,7 +199,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'asc' }, onValueChange }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
 				/>,
 			)
 
@@ -207,7 +207,28 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith({ column: 'name', direction: 'desc' })
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'desc' }])
+		})
+
+		it('clears the sort on the third click of the same column', async () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
+				/>,
+			)
+
+			const user = userEvent.setup()
+
+			// Starting at desc, the next click completes asc → desc → unsorted.
+			await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+			// The unsorted state is the empty list.
+			expect(onValueChange).toHaveBeenLastCalledWith([])
 		})
 
 		it('resets to asc when sorting on a different column', async () => {
@@ -218,7 +239,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ defaultValue: { column: 'name', direction: 'desc' }, onValueChange }}
+					sort={{ defaultValue: [{ column: 'name', direction: 'desc' }], onValueChange }}
 				/>,
 			)
 
@@ -226,7 +247,99 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Sort by Age' }))
 
-			expect(onValueChange).toHaveBeenLastCalledWith({ column: 'age', direction: 'asc' })
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'age', direction: 'asc' }])
+		})
+
+		it('Shift-click adds a column to the sort in priority order', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ defaultValue: [{ column: 'name', direction: 'asc' }], onValueChange }}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([
+				{ column: 'name', direction: 'asc' },
+				{ column: 'age', direction: 'asc' },
+			])
+		})
+
+		it('Shift-click flips an already-sorted column, leaving the others', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'asc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([
+				{ column: 'name', direction: 'asc' },
+				{ column: 'age', direction: 'desc' },
+			])
+		})
+
+		it('Shift-click drops a descending column from the sort', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'desc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Age/ }), { shiftKey: true })
+
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
+		})
+
+		it('a plain click collapses a multi-column sort to that one column', () => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={sortableColumns}
+					rows={rows}
+					getKey={getKey}
+					sort={{
+						defaultValue: [
+							{ column: 'name', direction: 'asc' },
+							{ column: 'age', direction: 'asc' },
+						],
+						onValueChange,
+					}}
+				/>,
+			)
+
+			fireEvent.click(screen.getByRole('button', { name: /^Sort by Name/ }))
+
+			expect(onValueChange).toHaveBeenLastCalledWith([{ column: 'name', direction: 'asc' }])
 		})
 
 		it('renders the asc icon for the active sorted column', () => {
@@ -235,7 +348,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ value: { column: 'name', direction: 'asc' } }}
+					sort={{ value: [{ column: 'name', direction: 'asc' }] }}
 				/>,
 			)
 
@@ -255,7 +368,7 @@ describe('Grid', () => {
 					columns={sortableColumns}
 					rows={rows}
 					getKey={getKey}
-					sort={{ value: { column: 'age', direction: 'desc' } }}
+					sort={{ value: [{ column: 'age', direction: 'desc' }] }}
 				/>,
 			)
 
@@ -285,6 +398,7 @@ describe('Grid', () => {
 					id: 'name',
 					title: 'Name',
 					cell: (row: { name: string }) => row.name,
+					sortable: false,
 				},
 				{
 					id: 'age',
@@ -299,6 +413,66 @@ describe('Grid', () => {
 			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
+		})
+
+		it('makes data columns sortable by default', () => {
+			const plainColumns = [
+				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
+			]
+
+			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} />)
+
+			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+		})
+
+		it('disables sorting for every column when sortable is false', () => {
+			const plainColumns = [
+				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
+				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age, sortable: true },
+			]
+
+			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} sortable={false} />)
+
+			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
+
+			// A column opting in explicitly still overrides the grid-level default.
+			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
+		})
+
+		it('resolves engine row ids when an index-based getKey sorts client-side', async () => {
+			const user = userEvent.setup()
+
+			// Duplicate ids force the key to fold in the row index — the docs "Sticky
+			// header" pattern. A client sort reorders the rows while their engine ids
+			// stay pinned to the original order, so a lookup key taken from the
+			// rendered index used to miss `table.getRow` and throw "could not find
+			// row with ID".
+			type Dup = { id: number; label: string }
+
+			const dupColumns = [
+				{ id: 'label', title: 'Label', cell: (row: Dup) => row.label, sortable: true },
+			]
+
+			const dupRows: Dup[] = [
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+				{ id: 1, label: 'Charlie' },
+				{ id: 2, label: 'Alice' },
+			]
+
+			const { container } = renderUI(
+				<Grid columns={dupColumns} rows={dupRows} getKey={(row, i) => `${row.id}-${i}`} />,
+			)
+
+			const labels = () =>
+				Array.from(container.querySelectorAll('tbody td')).map((td) => td.textContent)
+
+			expect(labels()).toEqual(['Charlie', 'Alice', 'Charlie', 'Alice'])
+
+			// The client sort reorders without a `getRow` miss; the rows land alphabetical.
+			await user.click(screen.getByRole('button', { name: 'Sort by Label' }))
+
+			expect(labels()).toEqual(['Alice', 'Alice', 'Charlie', 'Charlie'])
 		})
 	})
 
@@ -331,13 +505,41 @@ describe('Grid', () => {
 			expect((headers[1] as HTMLElement).style.width).toBe('200px')
 		})
 
-		it('adds sticky-header chrome when stickyHeader is set', () => {
+		it('adds sticky-header chrome when header position is sticky', () => {
 			const { container } = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} stickyHeader maxHeight="200px" />,
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
 			)
 
 			// Sticky header forces the scroll wrapper to render.
 			expect(container.querySelector('[style*="max-height"]')).toBeInTheDocument()
+		})
+
+		it('paints the sticky header with the viewport-aware content-host surface', () => {
+			// Regression: the sticky header kept a plain `bg.surface` (`dark:bg-zinc-900`),
+			// so on mobile — where the content block is transparent over the darker page —
+			// the header stood out as a box. It now tracks the host: the page background
+			// below `lg`, the card surface at `lg`.
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+				/>,
+			)
+
+			const header = container.querySelector<HTMLElement>('thead th')
+
+			expect(header?.className).toContain('dark:bg-zinc-950')
+
+			expect(header?.className).toContain('dark:lg:bg-zinc-900')
 		})
 	})
 
@@ -473,21 +675,46 @@ describe('Grid', () => {
 	})
 
 	describe('column manager', () => {
-		it('renders the column-manager toolbar when enabled', () => {
-			renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ enabled: true }} />,
-			)
-
-			expect(screen.getByRole('button', { name: /Columns/ })).toBeInTheDocument()
-		})
-
-		it('honors a custom label on the column-manager toolbar', () => {
+		it('renders the toolbar button when toolbarButton is set', () => {
 			renderUI(
 				<Grid
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, label: 'Manage' }}
+					columnManager={{ toolbarButton: true }}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
+		})
+
+		it('hides the toolbar button by default (context-menu only)', () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('hides the toolbar button when the manager is disabled', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ enabled: false, toolbarButton: true }}
+				/>,
+			)
+
+			// `enabled: false` is the master switch; the button opt-in can't override it.
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('honors a custom label on the toolbar button', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ toolbarButton: true, label: 'Manage' }}
 				/>,
 			)
 
@@ -500,7 +727,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: true, defaultHidden: new Set(['age']) }}
+					columnManager={{ defaultHidden: new Set(['age']) }}
 				/>,
 			)
 
@@ -540,7 +767,6 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnManager={{
-						enabled: true,
 						defaultHidden: new Set(['select', 'actions', 'name']),
 					}}
 				/>,
@@ -593,13 +819,13 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnOrder={{ onValueChange }}
-					columnManager={{ enabled: true, onHiddenChange }}
+					columnManager={{ toolbarButton: true, onHiddenChange }}
 				/>,
 			)
 
 			const user = userEvent.setup()
 
-			await user.click(screen.getByRole('button', { name: /Columns/ }))
+			await user.click(screen.getByRole('button', { name: 'Manage columns' }))
 
 			await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
@@ -692,6 +918,20 @@ describe('Grid', () => {
 
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
+
+		it('drives the grip grabbing cursor off the drag state, not :active', () => {
+			// A right-click presses the grip into `:active` like any button; with the
+			// context menu eating the pointerup, an `active:cursor-grabbing` cue would
+			// stay stuck as if the column were held. The cue tracks `data-[dragging]`,
+			// which dnd-kit never sets for a right-click, so it cannot stick.
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} reorder />)
+
+			const handle = screen.getByRole('button', { name: 'Reorder Name' })
+
+			expect(handle.className).toContain('data-[dragging]:cursor-grabbing')
+
+			expect(handle.className).not.toContain('active:cursor-grabbing')
+		})
 	})
 
 	describe('virtualize', () => {
@@ -754,15 +994,70 @@ describe('Grid', () => {
 			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
 		})
 
-		it('exposes grid semantics so the row/col index scheme is honored', () => {
+		it('emits aria-rowcount=-1 for a server feed paginating by pageCount alone', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 0, pageSize: 5 }, pageCount: 5 }}
+				/>,
+			)
+
+			// Only a page count, no known total: advertise ARIA's indeterminate
+			// sentinel rather than misreporting the current page as the whole set.
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '-1')
+		})
+
+		it('withholds the row/column counts over an empty placeholder', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={[]}
+					getKey={getKey}
+					pagination={{ value: { pageIndex: 0, pageSize: 5 }, rowCount: 0 }}
+				/>,
+			)
+
+			// No data rows render (a single spanning cell stands in), so the counts
+			// that would advertise a full structure are withheld.
+			const table = container.querySelector('table')
+
+			expect(table).not.toHaveAttribute('aria-rowcount')
+
+			expect(table).not.toHaveAttribute('aria-colcount')
+		})
+
+		it('withholds the counts while loading but keeps aria-busy', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					loading
+					virtualize
+					maxHeight="300px"
+				/>,
+			)
+
+			const table = container.querySelector('table')
+
+			expect(table).toHaveAttribute('aria-busy', 'true')
+
+			expect(table).not.toHaveAttribute('aria-rowcount')
+		})
+
+		it('exposes windowed table semantics so the row/col index scheme is honored', () => {
 			const { container } = renderUI(
 				<Grid columns={columns} rows={manyRows} getKey={getKey} virtualize maxHeight="300px" />,
 			)
 
 			const table = container.querySelector('table')
 
-			// aria-rowindex/rowcount are inert on a plain role="table".
-			expect(table).toHaveAttribute('role', 'grid')
+			// A windowed but non-navigable grid stays role="table" (no keyboard cursor
+			// backs role="grid"); aria-rowcount/colcount/colindex are valid on table
+			// and convey the full extent despite the DOM holding only the window.
+			expect(table).toHaveAttribute('role', 'table')
 
 			expect(table).toHaveAttribute('aria-colcount', String(columns.length))
 

@@ -1,0 +1,889 @@
+# Grid Module — Accessibility Audit (WCAG 2.2 AA + ARIA APG Grid)
+
+> **Status: PARTIAL — work in progress.** This captures a multi-agent audit that was
+> interrupted before completion. Findings below are **unverified** (the adversarial
+> verification pass had not run when the audit was paused). Treat each as a *candidate*
+> defect with a concrete code anchor, pending confirmation. See
+> [Resuming this audit](#resuming-this-audit) for what remains.
+
+## Scope & method
+
+- **Target:** `packages/ui/src/modules/grid` — ~9,400 LOC across 55 files; a `role="grid"` data grid using an `aria-activedescendant` cursor (not roving `tabindex`), with editable cells, 6 editor widgets, sort/filter, selection, column reorder/resize/pin/hide, a context menu, pagination, and row virtualization.
+- **Standards:** WCAG 2.2 Level AA success criteria + the ARIA Authoring Practices Grid / Data Grid pattern.
+- **Method:** one finder agent per functional surface, each reading the relevant source and judging it against the standards above; a parallel inventory of existing automated a11y coverage. A per-finding adversarial verification pass and a deduplicating synthesis pass were planned but **did not run** before interruption.
+- **Generated:** 2026-06-27 on branch `claude/grid-accessibility-audit-khes05`.
+
+## Completion state
+
+**9 of 13 surfaces audited** · **41 candidate findings** · verification **not yet run**.
+
+| Audited (findings recovered) | Not yet audited |
+| --- | --- |
+| Structure & ARIA semantics | Row virtualization |
+| Keyboard navigation & focus model | Live regions & status messages (cross-cutting) |
+| Editable cell lifecycle | Focus management & visibility (cross-cutting) |
+| Cell editor widgets | Color contrast / focus ring / target size / motion (browser-tier) |
+| Sorting & filtering |  |
+| Row/cell selection |  |
+| Context menu |  |
+| Column reorder / resize / pin / hide |  |
+| Pagination |  |
+
+## Executive summary
+
+Severity tally (candidate, unverified):
+
+| Severity | Count |
+| --- | --- |
+| 🟥 Critical | 4 |
+| 🟧 Serious | 18 |
+| 🟨 Moderate | 11 |
+| ⬜ Minor | 8 |
+| **Total** | **41** |
+
+Highest-impact themes that recur across surfaces:
+
+- **`role="grid"` cursor reaches widgets it can't operate, and the context menu / drag-only interactions are keyboard-unreachable** — the critical findings cluster around keyboard operability (2.1.1) and dragging alternatives (2.5.7).
+- **State changes are not announced.** Sort, filter result counts, selection counts, page changes, edit commit/failure and undo/redo largely lack live regions (4.1.3) — only loading and per-cell edit errors announce today.
+- **`aria-rowcount` / paginated & virtualized index math** misreports the full set in server-driven modes (1.3.1 / APG), so assistive tech narrates the wrong position.
+- **Editable lifecycle gaps** around focus restoration on cancel/commit and programmatic error association (3.3.1 / 4.1.2).
+
+---
+
+## Findings by severity
+
+Each finding is a recovered, **unverified** candidate. `Confidence` is the finder's own rating.
+
+## 🟥 Critical
+
+### `COLU-01` Column context menu (pin/unpin/hide/auto-size) has no keyboard trigger
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 2.1.1 Keyboard (A), 2.5.7 Dragging Movements (AA) · **Confidence:** high
+
+**APG:** APG: every grid operation must be keyboard operable; context menus need Shift+F10 / ContextMenu-key parity.
+
+- **Problem.** The column/cell context menu opens exclusively through `onContextMenu` (pointer right-click). There is no Shift+F10 / ContextMenu-key handler, and no `onKeyDown` on the delegation surface. The `contents` wrapper explicitly 'implements no keyboard model of its own'. The menu is the home of Pin left/right, Unpin, Manage columns, and Auto-size actions.
+- **Impact.** Keyboard-only and most screen-reader users cannot open the menu from a header, so pin/unpin, the column manager, and auto-size are unreachable by keyboard from the grid. Pinning in particular has NO other entry point (drag does not pin; only the per-pinned-header unpin button exists), so a keyboard user can never pin a column at all.
+- **Where.** `packages/ui/src/modules/grid/grid-context-menu.tsx:359`, `packages/ui/src/modules/grid/grid-context-menu.tsx:396`
+- **Recommendation.** Add a keyboard activation path: listen for Shift+F10 and the ContextMenu key on the focused header/cell (or active descendant) and open the same menu anchored to that element. Ensure the menu opens at the element, not the last pointer position, when triggered by keyboard.
+
+```tsx
+<div className="contents" onContextMenu={handleContextMenu}>{children}</div>  // only onContextMenu; comment: 'implements no keyboard model of its own'
+```
+
+### `CONT-01` Context menu cannot be opened by keyboard (no Shift+F10 / ContextMenu key)
+
+**Surface:** Grid cell/column context menu · **WCAG:** 2.1.1 Keyboard (A) · **Confidence:** high
+
+**APG:** APG menu/menu button: a context menu must be invocable from the keyboard (Shift+F10 and the ContextMenu key) on the focused element, in addition to right-click.
+
+- **Problem.** The grid context menu is wired exclusively to the mouse `onContextMenu` event on the `contents` delegation div. The Menu primitive's `handleContextMenu` is the only opener and is bound only via `onContextMenu` (menu.tsx:66). The grid's own key handler (use-grid-navigation.ts onKeyDown) handles arrows/Home/End/Enter/Space/Escape but never Shift+F10 or the ContextMenu key, and nothing else in the grid opens the menu. A keyboard-only user has no way to invoke the cell or column context menu at all, gating operations that are otherwise menu-only (cell Copy; column Pin left/right/Unpin; and, when not surfaced elsewhere, Manage columns / Export to CSV / Auto-size).
+- **Impact.** Keyboard-only and switch users cannot open the context menu, blocking every action exposed solely through it (copy cell value, pin/unpin column, auto-size, manage columns, export).
+- **Where.** `packages/ui/src/modules/grid/grid-context-menu.tsx:396`, `packages/ui/src/components/menu/use-menu-state.ts:75`, `packages/ui/src/modules/grid/use-grid-navigation.ts:221`
+- **Recommendation.** Add a keydown handler on the grid (or the Menu wrapper) that opens the menu on Shift+F10 and the `ContextMenu` key, anchoring to the currently active cell (resolved from the aria-activedescendant coordinate, not event.target) rather than a cursor point.
+
+```tsx
+<div className="contents" onContextMenu={handleContextMenu}>{children}</div>  // grid-context-menu.tsx:396 — only opener; use-menu-state.ts:75 handleContextMenu bound solely via onContextMenu (menu.tsx:66); use-grid-navigation.ts onKeyDown has no F10/ContextMenu branch.
+```
+
+### `CONT-02` Keyboard invocation is structurally broken by the aria-activedescendant focus model even if a key listener existed
+
+**Surface:** Grid cell/column context menu · **WCAG:** 2.1.1 Keyboard (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** aria-activedescendant grids must derive the context-menu target from the active descendant coordinate, not from pointer hit-testing.
+
+- **Problem.** resolveTarget resolves the right-clicked column/cell purely from the DOM `event.target` via `closest('th[data-grid-col]')` / `td[data-grid-col]`. The grid focus model is aria-activedescendant: real DOM focus stays on the `<table>` (tabIndex=0, use-grid-navigation.ts:288), and the active cell is only a virtual descendant. The native ContextMenu key fires `contextmenu` at the real focused element (the table), so event.target is the table, not the active cell — resolveTarget walks up and finds neither th nor td, returning null. No path maps the active {row,col} coordinate to menu items.
+- **Impact.** Even with a key listener added (CONT-01), the existing resolution logic cannot identify which cell/column the keyboard user is on, because resolution is tied to mouse hit-testing rather than the activedescendant coordinate.
+- **Where.** `packages/ui/src/modules/grid/grid-context-menu.tsx:411`, `packages/ui/src/modules/grid/use-grid-navigation.ts:289`
+- **Recommendation.** Provide a coordinate-based resolution path: from the active {row,col} build the column id and row key directly (the grid already owns these) and call resolveColumnItems/resolveCellItems, instead of relying on event.target DOM ancestry. Anchor the floating menu to the active cell's element by id.
+
+```tsx
+const th = target.closest('th[data-grid-col]'); ... const td = target.closest('td[data-grid-col]')  // grid-context-menu.tsx:416-420 — DOM-hit-test only; activedescendant model keeps real focus on the table (use-grid-navigation.ts:288-289).
+```
+
+### `KEYB-01` Virtualized navigable grid: active-descendant cell id does not exist in the DOM and the cursor cannot scroll off-screen rows into view
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 4.1.2 Name, Role, Value (A), 2.4.7 Focus Visible (AA), 2.4.11 Focus Not Obscured Minimum (AA), 2.1.1 Keyboard (A) · **Confidence:** high
+
+**APG:** APG: for aria-activedescendant grids the referenced id MUST exist in the DOM and be present; virtualized off-screen rows violate this. Container also lacks aria-rowcount under plain `navigable` (only `gridSemantics` sets it), but the windowing break is the core defect.
+
+- **Problem.** `navigable` and `virtualize` are independent props with no mutual guard. `useGridNavigation` is enabled by `navigable` (grid-data.tsx:639) and the body unconditionally renders `GridVirtualizedBody` whenever `virtualize` is set (grid-body.tsx:49). The cursor's index space (`rowIndexMapRef`) is built over the full `renderRows` page (grid-data.tsx:716), so `aria-activedescendant` is set to `cellId(active.row, active.col)` = `cell-{row}-{col}` (use-grid-navigation.ts:289) even when that row is outside the virtual window. Under virtualization only the windowed rows are mounted, so the referenced cell `id` is absent from the DOM. Worse, the only scroll-into-view lives in `GridNavCell`'s layout effect (use-grid-navigation-columns.tsx:50), which runs only for *mounted* cells — so an ArrowDown/PageDown/Ctrl+End to an off-screen row neither scrolls the row into view nor produces a present active descendant. The grid silently desyncs.
+- **Impact.** Screen-reader users on a virtualized navigable grid: arrowing past the window points aria-activedescendant at a nonexistent element, so AT announces nothing (no cell content, no position) and the visible focus ring vanishes because no `[role=gridcell]` carries `data-active`. Keyboard-only users see the cursor stop scrolling — the grid appears frozen at the window edge. This breaks the core grid operation (cell navigation) for exactly the configuration virtualization exists for (large datasets).
+- **Where.** `packages/ui/src/modules/grid/grid-data.tsx:639`, `packages/ui/src/modules/grid/grid-data.tsx:910`, `packages/ui/src/modules/grid/grid-body.tsx:49`, `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:43`, `packages/ui/src/modules/grid/use-grid-navigation.ts:289`
+- **Recommendation.** Either forbid `navigable` + `virtualize` at the GridData entry (throw, mirroring the existing `virtualize` requires `maxHeight` guard at grid-data.tsx:589), or make the cursor virtualization-aware: scroll the target row index into view from the nav hook (via the scroll container + estimateSize) before/while the window remounts, and keep `aria-activedescendant` valid by ensuring the active row is always within the rendered window. The pagination path is safe (all page rows are mounted); only DOM windowing is broken.
+
+```tsx
+// grid-body.tsx:49
+if (virtualize) {
+  return <GridVirtualizedBody<T> {...props} {...virtualize} />
+}
+// use-grid-navigation.ts:289
+'aria-activedescendant': active ? cellId(active.row, active.col) : undefined,
+// use-grid-navigation-columns.tsx:50 (only runs for MOUNTED cells)
+if (isActive) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+```
+
+## 🟧 Serious
+
+### `COLU-02` No live-region announcement for pin, unpin, hide/show, or column resize
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+- **Problem.** The only live-region status in the grid is `GridBusyStatus` (loading) and the edit-error `role="alert"`. Pinning (pinColumn via the unpin button or menu), toggling a column's visibility checkbox in the manager, and nudging a resize handle with Arrow keys produce no announcement. Only the column-manager List's keyboard *reorder* announces (use-list-keyboard.ts), and the header drag relies on dnd-kit's default drag announcements.
+- **Impact.** Screen-reader users who pin/unpin a column, show/hide a column via the manager checkbox, or resize a column by keyboard get no confirmation that the state changed — they must hunt to discover the effect.
+- **Where.** `packages/ui/src/modules/grid/grid-head.tsx:504`, `packages/ui/src/modules/grid/grid-head.tsx:408`, `packages/ui/src/modules/grid/grid-column-manager.tsx:150`, `packages/ui/src/modules/grid/grid-data.tsx:392`
+- **Recommendation.** Announce committed state changes via a polite live region (reuse the existing `announce` helper used in use-list-keyboard.ts): e.g. 'Pinned {column} to left', 'Showed/Hid {column}', 'Resized {column} to {n} pixels'.
+
+```tsx
+onClick={() => pinColumn(column.id, false)}  // unpin button: no announce; onChange={() => toggle(col.id)} // visibility checkbox: no announce; resize.nudge(id, ±COLUMN_RESIZE_STEP) // no announce
+```
+
+### `COLU-03` Reorder grip and pin/unpin buttons are below the 24x24px minimum target size
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 2.5.8 Target Size Minimum (AA) · **Confidence:** high
+
+- **Problem.** The reorder grip button (`k.reorder.handle`) and the unpin button (`k.head.pinButton`) are `flex.inline shrink-0` wrappers around a single `<Icon>` with no padding or explicit min size. Default Icon size `md` = `size-5` (20px); the pin button passes `size="sm"` (16px). So the grip is ~20x20 and the unpin button ~16x16 — both under 24x24 CSS px, and neither qualifies for the inline-text or spacing exceptions.
+- **Impact.** Low-vision and motor-impaired pointer users struggle to hit the reorder and unpin controls; the small unpin target is especially hard on a sticky pinned header.
+- **Where.** `packages/ui/src/modules/grid/grid-head.tsx:587`, `packages/ui/src/modules/grid/grid-head.tsx:504`, `packages/ui/src/recipes/kiso/shaku/icon.ts:15`
+- **Recommendation.** Give both buttons a minimum 24x24 hit area (e.g. add padding or `min-w-6 min-h-6` / `size-6` with centered icon), or enlarge the icon and host. The resize handle already meets the bar at `w-6`.
+
+```tsx
+handle: [flex.inline,'shrink-0',text.muted,fg.hover,focus.ring,'cursor-grab touch-none select-none active:cursor-grabbing']  // no min size; <Icon icon={<Pin />} size="sm" /> inside pinButton
+```
+
+### `COLU-04` Active-cell scrollIntoView ignores sticky header and pinned columns (focus obscured)
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 2.4.11 Focus Not Obscured Minimum (AA) · **Confidence:** medium
+
+- **Problem.** Cell navigation scrolls the active cell with `cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })`. `nearest` brings the cell only to the viewport edge, but the grid has `position: sticky` headers and `position: sticky` pinned columns (pinnedClassName / pinnedOffsetStyle). No `scroll-margin`/`scroll-padding` is set anywhere in the grid recipe or cells to offset the sticky/pinned extent, so the focused cell can come to rest underneath a pinned column or sticky header.
+- **Impact.** A keyboard user arrowing left into a column behind a left-pinned column (or up under the sticky header) lands on a cell that is wholly or partly hidden by the frozen layer — the focused cell is obscured.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:50`, `packages/ui/src/modules/grid/grid-pinning.ts:36`
+- **Recommendation.** Set `scroll-margin-left`/`scroll-margin-right` equal to the pinned-column extents and `scroll-margin-top` equal to the sticky-header height on cells (or scroll a non-pinned ancestor with computed offsets), so `scrollIntoView` reveals the active cell clear of the frozen layers.
+
+```tsx
+if (isActive) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })  // no scroll-margin for sticky head / pinned cols
+```
+
+### `CONT-03` Focus is not returned to the grid/triggering cell when the menu closes
+
+**Surface:** Grid cell/column context menu · **WCAG:** 2.4.3 Focus Order (A), 2.4.7 Focus Visible (AA) · **Confidence:** high
+
+- **Problem.** MenuContent's non-static branch renders FloatingSurface without passing a trap-focus context, so FloatingSurface falls to the `surface` branch and never wraps the panel in a FloatingFocusManager (floating-surface.tsx:87-104). PopoverPanel autofocuses its first item on open (popover.tsx autoFocus default true), but on close there is no managed return-focus. Because the grid's real focus was on the `<table>` and the menu pulls focus into the portaled panel, closing the menu (Escape or item selection) drops focus to document.body rather than restoring it to the grid; onBlur also clears the active-cell coordinate (use-grid-navigation.ts:276-284).
+- **Impact.** After using the menu, keyboard/AT users lose their place: focus lands on body, the active-cell ring is gone, and they must Tab back into the grid and re-navigate.
+- **Where.** `packages/ui/src/components/menu/menu-content.tsx:59`, `packages/ui/src/primitives/floating-surface/floating-surface.tsx:87`
+- **Recommendation.** Restore focus to the grid table and re-seat the active-cell coordinate when the menu closes — e.g. wrap the menu surface in a FloatingFocusManager with returnFocus, or explicitly refocus the grid container and restore the prior active coord on close.
+
+```tsx
+<FloatingSurface open={open} setFloating={setFloating} floatingStyles={floatingStyles} getFloatingProps={getFloatingProps}>  // menu-content.tsx:59-65 — no trapFocusContext passed, so floating-surface.tsx:87 renders `surface` with no FloatingFocusManager / returnFocus.
+```
+
+### `EDIT-01` Validation error is not programmatically associated with the editor field (no aria-invalid / aria-errormessage / aria-describedby)
+
+**Surface:** Editable cell lifecycle · **WCAG:** 3.3.1 Error Identification (A), 4.1.2 Name, Role, Value (A), 3.3.3 Error Suggestion (AA) · **Confidence:** high
+
+**APG:** APG editable grid: a cell in an invalid edit state should expose aria-invalid and an associated error message on the editing control.
+
+- **Problem.** When a column's validate() rejects a commit, the editor stays open and the message renders as a sibling <span role="alert"> with no id. The editor <Input> never receives aria-invalid="true", and there is no aria-errormessage or aria-describedby linking the input to the message. The role="alert" announces once on insertion, but focus remains on the input field whose programmatic state still reports valid and undescribed.
+- **Impact.** Screen-reader users who tab/arrow back to or re-query the still-focused editor after a failed commit hear no indication the field is invalid and cannot retrieve the error text on demand (only the one-shot alert). The field's validity state is invisible to assistive tech.
+- **Where.** `packages/ui/src/modules/grid/grid-editable-cell-editor.tsx:40-65`, `packages/ui/src/modules/grid/grid-editable-text-editor.tsx:43-55`, `packages/ui/src/modules/grid/grid-editable-number-editor.tsx:32`
+- **Recommendation.** Give the error span a stable id, set aria-invalid={!!error} on the editor Input, and point aria-errormessage (or aria-describedby) at that id. Plumb error + an errorId through GridEditableEditorProps so all editor slots (text/number/currency/select/date/boolean) wire it consistently.
+
+```tsx
+// grid-editable-cell-editor.tsx
+{error && (
+  <span role="alert" className={cn(k.editError)}>{error}</span>
+)}
+// grid-editable-text-editor.tsx — Input gets only aria-label, no aria-invalid/aria-errormessage
+<Input ref={inputRef} aria-label={ariaLabel} value={draft} ... />
+```
+
+### `EDIT-01` Editor inputs never expose aria-invalid or link to the validation error message
+
+**Surface:** Cell editor widgets · **WCAG:** 3.3.1 Error Identification (A), 4.1.2 Name, Role, Value (A), 1.4.1 Use of Color (A) · **Confidence:** high
+
+**APG:** APG editable grid: a rejected commit keeps the editor open; the field should expose aria-invalid and aria-errormessage/aria-describedby tying the focused control to the message.
+
+- **Problem.** When a commit fails validation the editor stays open and GridEditableCellEditor renders a sibling `<span role="alert">{error}</span>` plus a red ring class (k.editErrorRing). But `error` is consumed only by the wrapper; it is NOT part of GridEditableEditorProps (grid-editable-types.ts:27-46 has no `error` field), so none of the editor widgets receive it. The actual `<input>`/control therefore never gets `aria-invalid`, and the `role="alert"` span has no `id` and is never referenced by the input via aria-describedby/aria-errormessage. The Input component already forwards both `invalid`->aria-invalid (input.tsx:102,125 via invalidAttrs) and aria-describedby (input.tsx:120), so the wiring exists but is unused here.
+- **Impact.** A screen-reader user editing a cell hears the alert once when it first appears, but the field they are focused in is not programmatically marked invalid and is not associated with the error text. On re-focus, virtual-cursor review, or a second failed attempt with the same message, the relationship is lost; the control reports itself as valid. Low-vision/colour-blind users get a red ring (colour + 3px) but the input's own state is unannounced.
+- **Where.** `packages/ui/src/modules/grid/grid-editable-cell-editor.tsx:38`, `packages/ui/src/modules/grid/grid-editable-cell-editor.tsx:60`, `packages/ui/src/modules/grid/grid-editable-types.ts:27`, `packages/ui/src/modules/grid/grid-editable-text-editor.tsx:45`
+- **Recommendation.** Add `error: string | null` to GridEditableEditorProps and pass it from GridEditableCellEditor. In each editor set `aria-invalid={error ? true : undefined}` and `aria-describedby` pointing at a stable id on the alert span (give the span that id). Prefer aria-errormessage + aria-invalid per APG. The Input/NumberInput/CurrencyInput/Checkbox all already forward these attributes, so the change is local to the editors plus the prop contract.
+
+```tsx
+// grid-editable-cell-editor.tsx
+const { draft, error, setDraft, commitEdit, cancelEdit } = useGridEditableEdit()
+...
+<Editor row={row} column={column} draft={draft} setDraft={setDraft} commit={commitEdit} cancel={cancelEdit} align={align} ariaLabel={...} selectAllOnFocus={draft === formatted} />
+{error && (<span role="alert" className={cn(k.editError)}>{error}</span>)}
+// editor never receives `error`; GridEditableEditorProps has no error field; <Input> has no aria-invalid/aria-describedby set.
+```
+
+### `EDIT-02` Edit commit, undo, and redo produce no status announcement (4.1.3)
+
+**Surface:** Editable cell lifecycle · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+**APG:** APG: state changes that don't move focus must be surfaced via a live region.
+
+- **Problem.** The only live region in the grid is the loading role="status" in grid-data.tsx (GridBusyStatus). Nothing announces a successful edit commit, and critically Ctrl/Cmd+Z undo and Ctrl/Cmd+Shift+Z / Ctrl+Y redo re-emit value batches through onValueChange with no live-region output. undo()/redo() mutate data and bump() re-render but never write to any aria-live region.
+- **Impact.** Keyboard/SR users who undo or redo get a silent context change: cell values change underneath them with no announcement, and there is no feedback that an edit committed. Undo/redo is effectively unusable for a non-sighted user because the result is unobservable.
+- **Where.** `packages/ui/src/modules/grid/use-grid-editable-history.ts:88-110`, `packages/ui/src/modules/grid/use-grid-editable-draft.ts:163-201`, `packages/ui/src/modules/grid/grid-editable.tsx:206-256`
+- **Recommendation.** Add a polite aria-live (role="status" sr-only) region owned by GridEditable and announce edit committed, edit failed, 'Undo: N cells restored', and 'Redo: N cells reapplied' from history.undo/redo and the commit path, without moving focus.
+
+```tsx
+// use-grid-editable-history.ts — undo mutates data, no announcement
+const undo = useCallback(() => {
+  const entry = undoStack.current.pop()
+  if (!entry) return
+  redoStack.current.push(entry)
+  bump()
+  onValueChange(entry.inverse)
+}, [onValueChange])
+```
+
+### `EDIT-03` Editable navigation drops the active cell out of the virtualized window, breaking aria-activedescendant (no scroll-into-view)
+
+**Surface:** Editable cell lifecycle · **WCAG:** 2.4.7 Focus Visible (AA), 2.4.11 Focus Not Obscured Minimum (AA), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** aria-activedescendant MUST reference a present DOM element; the referenced cell must be visible (not clipped by virtualization).
+
+- **Problem.** The grid sets aria-activedescendant to cell-${row}-${col} unconditionally whenever nav.active is set. Cell ids exist only for rendered rows; the virtualized body renders only the windowed rows plus overscan. The editable navigation hooks move active by full data index but never call scrollIntoView/scrollToIndex on the active cell. The read-only grid's own navigation does this (use-grid-navigation-columns.tsx:50: cell.scrollIntoView({block:'nearest'})), but the editable grid uses its separate navigation that omits it. So arrow/Tab moves that push the active cell past the window leave aria-activedescendant pointing at an id absent from the DOM.
+- **Impact.** Under virtualization the active descendant can reference a non-existent element (SR reads nothing / loses the cursor), and the visually-focused cell can be scrolled out of view entirely. Affects screen-reader and sighted keyboard users on large/virtualized grids.
+- **Where.** `packages/ui/src/modules/grid/grid-editable.tsx:243-244`, `packages/ui/src/modules/grid/use-grid-editable-navigation.ts:82-161`, `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:247-307`, `packages/ui/src/modules/grid/grid-virtualized-body.tsx:16-51`, `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:50`
+- **Recommendation.** On every active-cell move, scroll the active cell into view (reuse the read-only grid's scrollIntoView pattern or the virtualizer's scrollToIndex) and ensure the active row is mounted before aria-activedescendant references its id; alternatively guard aria-activedescendant to only emit when the cell id is present.
+
+```tsx
+// grid-editable.tsx
+'aria-activedescendant': nav.active
+  ? cells.sub(`cell-${nav.active.row}-${nav.active.col}`)
+  : undefined,
+// editable nav has no scrollIntoView; read-only grid does:
+// use-grid-navigation-columns.tsx:50  if (isActive) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+```
+
+### `EDIT-04` No PageUp/PageDown or Ctrl+Home/Ctrl+End in the editable grid; cannot reach off-window cells by keyboard
+
+**Surface:** Editable cell lifecycle · **WCAG:** 2.1.1 Keyboard (A), 2.4.3 Focus Order (A) · **Confidence:** high
+
+**APG:** APG Data Grid keyboard interaction: Page Up/Down move by viewport; Ctrl+Home/End move to first/last cell.
+
+- **Problem.** handleGridEditableKey handles only ArrowUp/Down/Left/Right, Tab, Home, End, Enter/F2/Space, Delete/Backspace, Escape. It has no PageUp/PageDown (viewport paging) and no Ctrl/Cmd+Home/End (grid extents). The read-only grid navigation (use-grid-navigation.ts) implements all of these, but the editable grid uses its own wrapper that omits them.
+- **Impact.** On a large or virtualized editable grid a keyboard-only user must hold an arrow key to traverse thousands of rows; combined with EDIT-03 (no scroll-into-view) reaching a distant cell by keyboard is impractical. APG grid keyboard model requires PageUp/PageDown and Ctrl+Home/End.
+- **Where.** `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:247-307`, `packages/ui/src/modules/grid/use-grid-navigation.ts:66-106`
+- **Recommendation.** Add PageUp/PageDown (jump by the configured viewport row count) and Ctrl/Cmd+Home / Ctrl/Cmd+End (first/last cell) to handleGridEditableKey, paired with the scroll-into-view fix from EDIT-03.
+
+```tsx
+switch (event.key) {
+  case 'ArrowUp': ... case 'ArrowDown': ... case 'Tab': ...
+  case 'Home': moveToEdge(event, 0, deps); return true
+  case 'End':  moveToEdge(event, deps.editableCols.length - 1, deps); return true
+  case 'Enter': case 'F2': case ' ': beginCellEdit(...) ...
+  // no PageUp / PageDown / Ctrl+Home / Ctrl+End
+}
+```
+
+### `FILT-01` Filter result count is never announced after a filter is applied
+
+**Surface:** Grid sorting & filtering · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+**APG:** APG Grid + 4.1.3: result-count feedback for filter operations.
+
+- **Problem.** Applying a column filter (apply() -> filter.setQuery) or typing in the global search (GridFilter -> filter.setValue) changes the visible row set, but no live region announces the new result count. aria-rowcount is recomputed (grid-data.tsx:827 uses pagination.rowCount which reflects client-side filtering), so the count is exposed for static inspection, but there is no polite announcement of 'N results' when the filter changes. A screen-reader user gets no feedback that the filter narrowed/emptied the grid.
+- **Impact.** Screen-reader and low-vision users who apply a filter or type a search query receive no confirmation of how many rows matched (including the critical 'no results' case), so they cannot tell the filter took effect.
+- **Where.** `packages/ui/src/modules/grid/grid-column-filter-button.tsx:119-123`, `packages/ui/src/modules/grid/grid-filter.tsx:19-31`, `packages/ui/src/modules/grid/grid-data.tsx:826-827`
+- **Recommendation.** After a filter/search change, announce the post-filter row count politely (e.g. 'Showing 12 of 340 rows' / 'No matching rows') via a role="status"/aria-live="polite" region, without moving focus.
+
+```tsx
+function apply() { filter.setQuery(column.id, draft); setOpen(false) }  // no count announced; onChange={(event) => filter.setValue(event.target.value)}  // no count announced
+```
+
+### `FILT-02` Active-filter state on the column filter button is conveyed by color only and not exposed to AT
+
+**Surface:** Grid sorting & filtering · **WCAG:** 1.4.1 Use of Color (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG: a control's current state should be in name/role/value, not visual styling alone.
+
+- **Problem.** When a column carries an active filter, the button distinguishes itself only through color={active ? 'blue' : undefined} and a CSS data-active hook. The accessible name is the constant `Filter ${label}` in both states, there is no aria-pressed, no state suffix in the name, and no aria-describedby. So whether a column is currently filtered is communicated to sighted users purely by a blue tint (Use of Color) and is entirely absent from the accessible name/role/value exposed to a screen reader.
+- **Impact.** Screen-reader users cannot perceive which columns are filtered; users who cannot distinguish the blue accent (color-blindness, low vision, high-contrast modes that drop the tint) also lose the active-state cue.
+- **Where.** `packages/ui/src/modules/grid/grid-column-filter-button.tsx:137-156`
+- **Recommendation.** Expose the active state programmatically: add aria-pressed={active} (toggle semantics) or reflect it in the accessible name (e.g. `Filter ${label}, active` / `${label} filter applied`), so it is not color-only. Pair with a non-color visual indicator (icon change or dot) for 1.4.1.
+
+```tsx
+color={active ? 'blue' : undefined}
+aria-label={`Filter ${label}`}
+data-active={dataAttr(active)}
+className={cn(k.filter.button, !active && k.filter.idle)}
+```
+
+### `PAGI-01` Page change is not announced to screen readers (no live region on the row-range / page status)
+
+**Surface:** Grid pagination footer · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+**APG:** APG Grid: state changes (page change, result count) should be announced via a live region without moving focus.
+
+- **Problem.** The row-range / page status ('1–10 of 47', 'Page 3 of 5', 'Page 3', 'No rows') is rendered in a plain <p> with no aria-live / role=status. Activating Previous, Next, or a numbered page button calls setPageIndex, which swaps the rendered rows and updates this text silently. The grid's only live region is GridBusyStatus (role="status" sr-only) in grid-data.tsx:392-398, which announces only 'Loading' and is empty during client-side pagination. There is no other live region around the footer (confirmed: the only role=status/aria-live in the grid module is the loading one). A screen-reader user paging through data receives no feedback that the page changed or what range/count is now shown.
+- **Impact.** Screen reader users get no confirmation of a page change or the new row range/count after activating any pagination control, defeating the core purpose of the status text.
+- **Where.** `packages/ui/src/modules/grid/grid-pagination.tsx:124`, `packages/ui/src/modules/grid/grid-pagination.tsx:125`, `packages/ui/src/modules/grid/grid-pagination.tsx:88`
+- **Recommendation.** Wrap the status text in a polite live region (aria-live="polite" or role="status") — either make the existing <p> the live region, or render the status string into the grid's existing sr-only status pattern so each page change announces e.g. 'Page 3 of 5, showing 21–30 of 47'.
+
+```tsx
+<p className={cn(k.footer.status)}>{status}</p>   // grid-pagination.tsx:125 — no aria-live/role=status; status recomputed each render at :88
+```
+
+### `SELE-01` Read-only grid never exposes aria-selected on selected rows or cells
+
+**Surface:** Row/cell selection · **WCAG:** 1.3.1 Info and Relationships (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG Grid: selectable rows/cells carry aria-selected so AT can report selection state
+
+- **Problem.** In the read-only Grid, a selected row only receives data-selected on the <tr> (grid-row.tsx:208, via dataAttr(selected)). No aria-selected is ever set on the row or on any gridcell. data-selected is consumed only by CSS; the <Table>/<TableRow> components do nothing with it for accessibility (no aria-selected match anywhere under components/table). The row-selection Set is therefore conveyed to assistive tech solely through the checkbox's checked state inside one cell, never as row/cell selection state on the grid structure.
+- **Impact.** Screen-reader users navigating the grid by row/cell (or by the aria-activedescendant cursor) are not told which rows are selected; the selected state exists visually and in the checkbox only. SRs that announce selection in grids hear nothing on the rows themselves.
+- **Where.** `packages/ui/src/modules/grid/grid-row.tsx:207-209`, `packages/ui/src/modules/grid/grid-data.tsx:891-911`
+- **Recommendation.** Set aria-selected={selected} on the <tr> (or on the gridcells) for selectable read-only grids, mirroring data-selected. Pass selected through to TableRow as aria-selected when selection is enabled.
+
+```tsx
+<TableRow data-selected={dataAttr(selected)} ... aria-rowindex={rowIndex} ...>  // no aria-selected
+```
+
+### `SELE-02` Read-only grid container is missing aria-multiselectable
+
+**Surface:** Row/cell selection · **WCAG:** 1.3.1 Info and Relationships (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG Grid: aria-multiselectable=true on the grid when multiple rows/cells may be selected
+
+- **Problem.** resolveTableProps (grid-data.tsx:289-318) builds the read-only grid's <table> props and sets role="grid" when navigable plus aria-rowcount/aria-colcount, but never sets aria-multiselectable, even though selection is always multi-select (GridSelection is a Set with no single-select mode, grid-data-types.ts:59-71) and selectable is on whenever selection != null (use-grid-table.ts:327). The editable grid hardcodes aria-multiselectable on its grid (grid-editable.tsx:242), but the read-only Grid never does.
+- **Impact.** Screen readers cannot tell users the read-only grid supports selecting multiple rows; the grid presents as a plain grid with no multiselect affordance exposed.
+- **Where.** `packages/ui/src/modules/grid/grid-data.tsx:289-319`, `packages/ui/src/modules/grid/grid-data.tsx:742-746`
+- **Recommendation.** When selection is enabled (selectable) and the table is a role="grid", add aria-multiselectable: true in resolveTableProps (thread a selectable flag in alongside gridSemantics/navigable).
+
+```tsx
+const role = ...(args.navigable ? 'grid' : ...); return { ...args.tableProps, ...args.navTableProps, ...(role ? { role } : {}), ...(args.gridSemantics ? { 'aria-rowcount': ..., 'aria-colcount': ... } : {}) }  // no aria-multiselectable
+```
+
+### `SELE-03` No selection-count status message (selection changes are not announced)
+
+**Surface:** Row/cell selection · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+- **Problem.** Selecting/deselecting rows (per-row checkbox toggleRow, select-all toggleAll) and the resulting selection count are never announced via a live region. The only role="status" region in the grid is GridBusyStatus (grid-data.tsx:392-398), which toggles between 'Loading' and ''; it carries no selection text. The batch-actions Toolbar (grid-data.tsx:958-960) appears when someSelected but is aria-label="Batch actions" with no live region and no count, and its mount/unmount is not an announced status. There is no 'N selected' polite announcement anywhere.
+- **Impact.** A screen-reader user toggling selection (especially Select-all, which flips many rows at once) gets no feedback on how many rows are now selected; without aria-selected on rows (SELE-01) they have no efficient way to learn the new selection state at all.
+- **Where.** `packages/ui/src/modules/grid/grid-data.tsx:392-398`, `packages/ui/src/modules/grid/grid-data.tsx:958-960`, `packages/ui/src/modules/grid/use-grid-selection.ts:74-84`
+- **Recommendation.** Add a polite role="status" (aria-live="polite") sr-only region that announces the selection count on change (e.g. '3 rows selected' / 'All rows selected' / 'Selection cleared'), driven by selection.size, without moving focus.
+
+```tsx
+<span role="status" className="sr-only">{loading ? 'Loading' : ''}</span>  // only status region; no selection count
+```
+
+### `SORT-01` Sort change is never announced to assistive tech (no live region for sort applied/direction)
+
+**Surface:** Grid sorting & filtering · **WCAG:** 4.1.3 Status Messages (AA) · **Confidence:** high
+
+**APG:** APG Grid: sort state is exposed via aria-sort, but APG/4.1.3 also expect dynamic sort changes to be announced.
+
+- **Problem.** Activating the sort button calls toggleSort and re-renders the header with an updated aria-sort and a visual arrow, but nothing is pushed to a live region. The only role="status" region in the grid (GridBusyStatus, grid-data.tsx:392) toggles between 'Loading' and ''; it carries no sort text. A screen-reader user who presses the 'Sort by X' button hears nothing change — the new aria-sort/arrow is silent unless they manually re-navigate back to the columnheader to re-read aria-sort. Sort is a core grid operation whose result (which column, ascending/descending, and that the row order changed) is not announced.
+- **Impact.** Screen-reader users get no confirmation that a sort was applied or in which direction; they must hunt back to the header cell to discover the result, and the reorder of rows is never announced.
+- **Where.** `packages/ui/src/modules/grid/grid-head.tsx:368-384`, `packages/ui/src/modules/grid/grid-data.tsx:392-398`
+- **Recommendation.** On sort change, write a polite message (e.g. 'Sorted by Name, ascending' / 'Sorting cleared') into an aria-live="polite" / role="status" region without moving focus. Reuse or extend the existing sr-only status region rather than adding a second.
+
+```tsx
+onClick={(event) => toggleSort(column.id, event.shiftKey)}  // no live-region announcement;  GridBusyStatus: {loading ? 'Loading' : ''}
+```
+
+### `STRU-01` aria-rowcount misreports the full set in server-paginated grids that supply only pageCount
+
+**Surface:** Grid structure & ARIA semantics · **WCAG:** 1.3.1 Info and Relationships (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG Grid: when rows are paginated the grid MUST carry aria-rowcount reflecting the FULL set; -1 signals an unknown total.
+
+- **Problem.** `ariaRowCount` is computed as `(pagination?.rowCount ?? renderRows.length) + 1`. In manual/server pagination `buildPaginationView` sets `rowCount: args.config.rowCount`, which is `undefined` when the consumer supplies only `pageCount` (a documented, supported configuration — `GridPagination.pageCount` 'takes precedence over deriving from rowCount'). The `?? renderRows.length` fallback then makes aria-rowcount equal to the current page's row count + 1, claiming the grid holds only one page. Worse, each rendered row still gets `aria-rowindex = pageIndex*pageSize + index + 2` (grid-body.tsx:59), so on page 2+ the row indices exceed the advertised aria-rowcount entirely — an internally contradictory tree.
+- **Impact.** Screen-reader users hear the wrong total ('row 41 of 20') or a total that shrinks to a single page, defeating the windowed semantics aria-rowcount exists to provide. Position-in-set announcements become misleading on every page past the first.
+- **Where.** `packages/ui/src/modules/grid/grid.tsx:827`, `packages/ui/src/modules/grid/grid-table-views.ts:287-295`, `packages/ui/src/modules/grid/use-grid-table.ts:394-403`
+- **Recommendation.** When the full total is genuinely unknown, emit `aria-rowcount={-1}` (the ARIA sentinel for unknown), not a current-page fallback. Derive ariaRowCount as a tri-state: known total + 1, or -1 when `pagination && pagination.rowCount == null`. Only fall back to `renderRows.length + 1` when there is no pagination/virtualization at all.
+
+```tsx
+const ariaRowCount = (pagination?.rowCount ?? renderRows.length) + 1  // rowCount is undefined in server mode with only pageCount → reports just one page
+```
+
+### `STRU-02` Navigable grid combined with virtualization can point aria-activedescendant at an unmounted cell id
+
+**Surface:** Grid structure & ARIA semantics · **WCAG:** 2.4.7 Focus Visible (AA), 2.4.11 Focus Not Obscured Minimum (AA), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG aria-activedescendant grids: the active descendant id MUST reference a real, present element; virtualized off-screen rows are the classic failure mode.
+
+- **Problem.** `navigable` and `virtualize` are independent props with no mutual guard (the only throw is `virtualize && !maxHeight`). When both are set, the table is role=grid with aria-activedescendant = `cell-{row}-{col}` where coords span the FULL page: `rowsRef.current = renderRows` (grid.tsx:726) and the cell-id map is built over all `renderRows` (grid.tsx:716-719), while the virtualized body renders only `virtualItems` (the visible window) to the DOM. The cursor's clamp bound is `renderRows.length`, so arrow/PageDown/Ctrl+End can move the active cell to a row that is not mounted; no DOM element carries that id, so aria-activedescendant references a non-existent node and no focus ring is painted (the data-active toggle in GridNavCell only runs for mounted cells).
+- **Impact.** For a keyboard/SR user, the active cell silently vanishes: nothing is announced, no visible ring, and Ctrl+End / PageDown jump 'into the void'. The grid's single tab stop still holds focus but the cursor is unobservable — a core navigation operation breaks.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation.ts:289`, `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:117`, `packages/ui/src/modules/grid/grid.tsx:589-593`, `packages/ui/src/modules/grid/grid-virtualized-body.tsx:51-53`, `packages/ui/src/modules/grid/grid.tsx:726`
+- **Recommendation.** Either (a) throw/warn when `navigable && virtualize` are combined, or (b) keep the active cell within the rendered window by driving the virtualizer's scrollToIndex on moveTo so the active row is mounted before aria-activedescendant is set. Until then, document the combination as unsupported.
+
+```tsx
+'aria-activedescendant': active ? cellId(active.row, active.col) : undefined  // id over full renderRows; only virtualItems are mounted
+```
+
+## 🟨 Moderate
+
+### `COLU-06` Manage-columns dialog (keyboard path to hide/reorder) is gated behind a default-off toolbar button
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 2.1.1 Keyboard (A), 2.5.7 Dragging Movements (AA) · **Confidence:** high
+
+- **Problem.** The column-manager dialog — the keyboard-operable way to hide/show and reorder columns — is reachable two ways: the toolbar trigger button and the context menu's 'Manage columns' item. The toolbar button defaults off (`columnManagerConfig?.toolbarButton ?? false`), and the context-menu item can only be opened by pointer (COLU-01). So out of the box the dialog has no keyboard entry point, even though the dialog itself is fully accessible (trap, return, labelled by DialogTitle, keyboard List reorder).
+- **Impact.** With default configuration a keyboard user cannot open the column manager at all, leaving column hide/show and the non-drag reorder alternative keyboard-unreachable. Fixing COLU-01 resolves this; until then the surface depends on consumers opting into the toolbar button.
+- **Where.** `packages/ui/src/modules/grid/grid-data.tsx:500`, `packages/ui/src/modules/grid/grid-column-manager-dialog.tsx:49`
+- **Recommendation.** Either default the toolbar button on when a column manager is configured, or (preferably) land COLU-01 so the menu item is keyboard-reachable. The dialog and its List keyboard reorder are otherwise correct.
+
+```tsx
+const showButton = managerEnabled && (columnManagerConfig?.toolbarButton ?? false)
+```
+
+### `EDIT-02` Validation error message can be obscured below the focused cell (positioned absolute top-full)
+
+**Surface:** Cell editor widgets · **WCAG:** 2.4.11 Focus Not Obscured Minimum (AA), 1.4.13 Content on Hover or Focus (AA) · **Confidence:** medium
+
+- **Problem.** The error message uses `absolute top-full left-0 z-20` (k.editError), anchoring it immediately below the cell being edited. In a scrollable/virtualized grid body or near a sticky footer/last visible row, the message renders outside the clipping viewport or under sticky chrome and is not scrolled into view. There is no logic to flip the message above the cell or scroll it into view.
+- **Impact.** A keyboard/AT user who commits an invalid value on the last visible row may never see the reason their edit was rejected; the editor stays open with no visible explanation, and (per EDIT-01) the field is not programmatically described by the message either, so there is no fallback channel.
+- **Where.** `packages/ui/src/recipes/kata/grid-editable.ts:71`, `packages/ui/src/modules/grid/grid-editable-cell-editor.tsx:60`
+- **Recommendation.** Detect available space and flip the message above the cell when it would overflow the scroll container, or scroll the message into view on appearance; ensure it is not clipped by overflow:hidden / sticky rows. At minimum pair with EDIT-01's aria-describedby so the text is reachable when visually clipped.
+
+```tsx
+editError: ['absolute top-full left-0 z-20 mt-0.5 max-w-xs', 'rounded px-1.5 py-0.5 text-xs whitespace-normal', 'bg-red-600 text-white shadow dark:bg-red-500']
+```
+
+### `EDIT-05` No way to mark an editable cell as required; aria-required is never emitted
+
+**Surface:** Editable cell lifecycle · **WCAG:** 3.3.2 Labels or Instructions (A), 4.1.2 Name, Role, Value (A) · **Confidence:** medium
+
+**APG:** APG editable grid: required editing controls should expose aria-required.
+
+- **Problem.** GridEditableColumn offers validate/readOnly but no required concept, and no editor or gridcell emits aria-required. A consumer can enforce required-ness only via validate() (which surfaces post-commit through the unassociated alert of EDIT-01); the field is never advertised as required before the user acts.
+- **Impact.** Screen-reader users editing a mandatory field get no advance indication it is required, and emptying it only fails after commit (and even then without programmatic association). Degraded form-editing experience.
+- **Where.** `packages/ui/src/modules/grid/grid-editable-types.ts:64-102`, `packages/ui/src/modules/grid/grid-editable-cell-editor.tsx:40-58`, `packages/ui/src/modules/grid/use-grid-editable-augmented-columns.tsx:88-94`
+- **Recommendation.** Add an optional required flag to GridEditableColumn and set aria-required on the editor control (and optionally on the gridcell). Pair with EDIT-01's aria-invalid wiring.
+
+```tsx
+// grid-editable-types.ts — no `required`; editor receives only ariaLabel/align/etc.
+validate?: (value: unknown, row: T) => string | null
+readOnly?: boolean
+// no aria-required anywhere in the editable module
+```
+
+### `KEYB-02` Active cell never establishes itself as the accessible focus target on initial keyboard entry to off-window or scrolled content; scrollInto023 uses block:'nearest' under sticky header
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 2.4.11 Focus Not Obscured Minimum (AA), 2.4.7 Focus Visible (AA) · **Confidence:** medium
+
+**APG:** APG: the active cell in an aria-activedescendant grid must be visibly focused and not obscured by sticky/pinned regions.
+
+- **Problem.** The active cell is scrolled into view with `scrollIntoView({ block: 'nearest', inline: 'nearest' })` (use-grid-navigation-columns.tsx:50). With `stickyHeader` the head is `sticky top-0 z-10` (grid.ts:57) and overlaps the top of the scroll viewport. `block: 'nearest'` aligns the cell to the nearest viewport edge but is unaware of the sticky header's occluding band, so an active cell scrolled to the top edge sits *under* the sticky header — its focus ring (and content) obscured. Pinned columns (`sticky z-[1]`, grid.ts:67) pose the same risk on the inline axis with `inline: 'nearest'`.
+- **Impact.** Keyboard users navigating up into rows just below the sticky header (or left into rows behind a left-pinned column) get an active cell whose ring is partially or fully hidden behind the frozen header/column — a 2.4.11 (new in 2.2) failure. Low-vision users lose the focus indicator they rely on.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:50`, `packages/ui/src/recipes/kata/grid.ts:57`
+- **Recommendation.** Scroll with awareness of the sticky offsets — e.g. compute the header/pinned-column extents and use `scrollIntoView`'s `block`/`inline` plus a manual scroll adjustment, or `scrollIntoViewIfNeeded`/scroll-margin (`scroll-mt`/`scroll-ml`) on the gridcell sized to the sticky header height and pinned-column widths, so the active cell always clears the frozen chrome.
+
+```tsx
+// use-grid-navigation-columns.tsx:50
+if (isActive) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+// grid.ts:57 — sticky head overlaps viewport top
+head: ['sticky top-0 z-10', bg.surface],
+```
+
+### `KEYB-04` PageUp/PageDown jump a fixed 10 rows rather than one viewport; Ctrl+Home/End and PageUp/PageDown absent from the editable cursor
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 2.1.1 Keyboard (A), 2.4.3 Focus Order (A) · **Confidence:** high
+
+**APG:** APG grid: PageUp/PageDown move by viewport; Ctrl+Home/Ctrl+End move to the first/last cell of the grid. The editable cursor omits both.
+
+- **Problem.** Two distinct gaps in PageUp/PageDown and grid-extent keys. (1) The read-only cursor steps PageUp/PageDown by a hardcoded `NAV_PAGE_STEP = 10` (grid-constants.ts:38, use-grid-navigation.ts:93-96) irrespective of how many rows are actually visible in the scroll viewport, so on a tall or virtualized grid Page keys move a fraction of a page, and on a short grid they overshoot — they are not viewport-relative as APG specifies. (2) The editable cursor's key dispatcher (`handleGridEditableKey`, use-grid-editable-wrapper.ts:252-306) implements Arrows, Tab, Home, End, Enter/F2, Delete — but has NO PageUp/PageDown and NO Ctrl/Cmd+Home/End (Home/End at :281/:286 are row-edge only, with no modifier branch to jump to grid start/end). The read-only cursor supports Ctrl+Home/End (use-grid-navigation.ts:88-92) but the editable one does not, an inconsistency.
+- **Impact.** Keyboard users of large grids cannot page by viewport (read-only) and cannot page at all or jump to the first/last cell of the whole grid in the editable grid — they must hold an arrow key across thousands of rows. Major friction for large editable datasets; moderate elsewhere.
+- **Where.** `packages/ui/src/modules/grid/grid-constants.ts:38`, `packages/ui/src/modules/grid/use-grid-navigation.ts:93`, `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:281`
+- **Recommendation.** Make PageUp/PageDown viewport-relative (rows = floor(viewport height / row height) from the scroll container), and add PageUp/PageDown plus Ctrl/Cmd+Home/End to `handleGridEditableKey` to match the read-only cursor and the APG grid key map.
+
+```tsx
+// grid-constants.ts:38
+export const NAV_PAGE_STEP = 10
+// use-grid-navigation.ts:93
+case 'PageUp':
+  return { row: base.row - NAV_PAGE_STEP, col: base.col }
+// use-grid-editable-wrapper.ts — switch has Home/End but no PageUp/PageDown, no ctrl/meta branch
+case 'Home': moveToEdge(event, 0, deps); return true
+case 'End': moveToEdge(event, deps.editableCols.length - 1, deps); return true
+```
+
+### `KEYB-05` Editable grid binds bare printable characters and Delete/Backspace as always-on single-key actions with no opt-out or remap (2.1.4)
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 2.1.4 Character Key Shortcuts (A), 3.2.2 On Input (A) · **Confidence:** medium
+
+- **Problem.** `tryPrintableEdit` (use-grid-editable-wrapper.ts:310-324) treats any single printable character (no Ctrl/Meta/Alt) as a command: it opens the cell editor and replaces the cell value with that character. `Delete`/`Backspace` (`clearCells`, use-grid-editable-wrapper.ts:295-299) blank the active cell or the whole multi-selection. These are single-character shortcuts active whenever the grid `<table>` holds focus, with no mechanism to turn them off or remap them.
+- **Impact.** 2.1.4 targets speech-input users, whose dictation emits stray characters that the focused grid will interpret as destructive edits (overwriting/clearing cells). Because the grid is the single tab stop and seeds an active cell on focus, an errant keystroke immediately mutates data. The 2.1.4 exception ('active only on focus of the component') is partially met — focus is on the grid — but the criterion still requires the ability to turn the shortcuts off or remap them, which is absent.
+- **Where.** `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:310`, `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:295`
+- **Recommendation.** 2.1.4 is satisfied if the shortcut is only active when the component has focus (which holds here) OR can be turned off/remapped. Document the focus-scoping rationale, and consider a prop to disable type-to-edit / clear-on-Delete for environments where speech input is in use. At minimum ensure these never fire while focus is on a non-cell descendant.
+
+```tsx
+// use-grid-editable-wrapper.ts:313
+if (!active || event.key.length !== 1 || event.metaKey || event.ctrlKey || event.altKey) return
+...
+beginEdit(active, event.key, formatCell(row, col))
+// use-grid-editable-wrapper.ts:295
+case 'Delete':
+case 'Backspace':
+  clearCells(event, deps); return true
+```
+
+### `KEYB-06` Cursor is dropped on every data change (sort/filter/paginate), losing the user's place and the active descendant
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 2.4.3 Focus Order (A), 4.1.2 Name, Role, Value (A) · **Confidence:** medium
+
+- **Problem.** The cursor's `active` is a coord {row,col} over *display* indices, but the cell `id` matched by `aria-activedescendant` is derived from `rowIndexMapRef.get(row)` / `colIndexMapRef.get(col.id)` rebuilt on every sort/filter/paginate (grid-data.tsx:716-724). On a data change the coord is retained but now points at a *different* underlying row (the row formerly at that display index moved), and if the active display index now exceeds the new row count (e.g. a filter shrinks the set) the matching cell `id` no longer renders, leaving `aria-activedescendant` referencing a missing element until the next move. There is no effect that re-clamps or re-seats `active` when `renderRows`/`dataColumns` change.
+- **Impact.** Screen-reader users: after sorting/filtering, the announced active cell silently jumps to whatever row now occupies that display index (confusing), or the active descendant id vanishes (filter that empties below the cursor), producing no announcement and no visible ring. Focus order becomes unpredictable across data changes.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation.ts:185`, `packages/ui/src/modules/grid/use-grid-navigation-columns.tsx:109`, `packages/ui/src/modules/grid/use-grid-navigation.ts:289`
+- **Recommendation.** On `renderRows`/`dataColumns` change, re-clamp `active` to the new bounds (or clear it) in an effect, and ideally re-seat it onto the same underlying row identity where it still exists, so aria-activedescendant always points at a present cell and the cursor doesn't teleport.
+
+```tsx
+// grid-data.tsx:716 — maps rebuilt each render from renderRows/dataColumns
+const rowIndexMap = useMemo(() => new Map(renderRows.map((row, i) => [row, i])), [renderRows])
+// use-grid-navigation.ts:289 — id derived from the (possibly stale) coord
+'aria-activedescendant': active ? cellId(active.row, active.col) : undefined,
+// no effect re-clamps `active` when rowsRef.current.length shrinks
+```
+
+### `PAGI-02` Focus is lost when the focused pagination control unmounts on page change
+
+**Surface:** Grid pagination footer · **WCAG:** 2.4.3 Focus Order (A), 4.1.3 Status Messages (AA) · **Confidence:** high
+
+**APG:** APG Grid: state changes should be announced without moving focus, but focus must remain on a sensible, present control after the activating element unmounts.
+
+- **Problem.** Pagination handlers only call setPageIndex (grid-pagination.tsx:96/110/119); no focus is restored afterward. Two cases lose focus to <body>: (1) clicking Next/Previous that reaches an extent flips canNext/canPrevious so the button becomes disabled — a disabled button is removed from the tab order and DOM focus is dropped; (2) getVisiblePages (grid-pagination-utilities.ts:20-24) re-windows the numbered buttons around the new current page, so the numbered <button> the user just activated can unmount (e.g. clicking page 4 in the head window shifts to the centered window, replacing the '4' node), dropping focus. Because there is also no announcement (see PAGI-01), the keyboard/AT user is left with no focus and no feedback about where they are.
+- **Impact.** Keyboard and screen-reader users can lose their place after paging (focus falls to document body), forcing them to re-traverse from the top of the page; especially disruptive at the first/last page where Prev/Next disables.
+- **Where.** `packages/ui/src/modules/grid/grid-pagination.tsx:96`, `packages/ui/src/modules/grid/grid-pagination.tsx:110`, `packages/ui/src/modules/grid/grid-pagination.tsx:119`, `packages/ui/src/modules/grid/grid-pagination-utilities.ts:15`
+- **Recommendation.** After a page change, move focus to a stable target: keep focus on the now-current page button (mark it and focus it on mount), or when the activated control becomes disabled, shift focus to the still-enabled sibling (Next→Previous, or the current-page marker). Combine with the live-region announcement from PAGI-01.
+
+```tsx
+onClick={() => setPageIndex(pageIndex + 1)} disabled={!canNext}  // grid-pagination.tsx:119 — when this reaches the last page the button disables and focus is dropped
+```
+
+### `SELE-04` Selection cannot be toggled from the keyboard via the cell cursor (Space activates row-click, not selection)
+
+**Surface:** Row/cell selection · **WCAG:** 2.1.1 Keyboard (A) · **Confidence:** medium
+
+**APG:** APG Grid: Space toggles selection of the focused row/cell in a selectable grid
+
+- **Problem.** On the read-only grid's aria-activedescendant cursor, pressing Enter or Space calls activateRow (use-grid-navigation.ts:238-239), which only invokes the onRowClick handler (use-grid-navigation.ts:206-217) and does nothing when no onRowClick is supplied. Space does not toggle row selection. The only keyboard path to selection is to Tab out of the single grid tab stop to each row's checkbox <input> (grid-row.tsx:263-267) and the header select-all checkbox (grid-head.tsx:181-186). Selection is reachable by keyboard (not a hard fail), but the expected grid affordance — Space on the focused row toggles its selection — is absent, and Ctrl+A select-all and Shift+Arrow range-select (present in the editable range model, use-grid-editable-wrapper.ts) are not wired to the row-selection Set in the read-only grid.
+- **Impact.** Keyboard users cannot toggle selection while operating the grid cursor; they must leave the cursor model and find each checkbox. There is no keyboard select-all beyond the header checkbox and no Shift+Arrow range selection over rows.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation.ts:238-244`, `packages/ui/src/modules/grid/use-grid-navigation.ts:206-217`, `packages/ui/src/modules/grid/grid-row.tsx:263-267`
+- **Recommendation.** In the grid cursor onKeyDown, toggle the active row's selection on Space (and optionally Ctrl+A for select-all, Shift+Arrow for range) when selection is enabled, in addition to the activate-row behavior.
+
+```tsx
+} else if (event.key === 'Enter' || event.key === ' ') { activateRow(event, base.row) }  // selection never toggled here
+```
+
+### `SELE-05` Editable grid mirrors range-selection aria-selected via DOM but row-Set selection still has no aria-selected
+
+**Surface:** Row/cell selection · **WCAG:** 1.3.1 Info and Relationships (A), 4.1.2 Name, Role, Value (A) · **Confidence:** medium
+
+**APG:** APG Layout Grid: aria-selected on the selected cells/rows
+
+- **Problem.** In the editable grid, aria-selected is written imperatively onto the owning gridcell <td> from the cell-content div via closest('[role="gridcell"]').setAttribute (grid-editable-cell.tsx:73-74), but only for the spreadsheet range model (selected = isActive || inRange). The row-selection Set (the checkbox selection forwarded to GridData, grid-editable.tsx:227) is not reflected as aria-selected on rows — same gap as the read-only grid (SELE-01). So a row checked via its selection checkbox is not aria-selected, while an active/in-range edit cell is. The imperative setAttribute also bypasses React's reconciliation; if the <td> remounts (virtualization/column rebuild) the attribute can be lost until the next selection change re-runs the effect.
+- **Impact.** Row selection (the checkbox Set) is invisible to AT in the editable grid too; and the two selection concepts (edit range vs row Set) are conveyed inconsistently. Under virtualization the imperative attribute may not survive cell remounts.
+- **Where.** `packages/ui/src/modules/grid/grid-editable-cell.tsx:66-75`
+- **Recommendation.** Reflect row-Set selection as aria-selected on the editable grid's rows as well (SELE-01 fix covers both since GridData renders them), and prefer setting aria-selected through React props rather than imperative setAttribute so it survives remounts.
+
+```tsx
+cellRef.current?.closest('[role="gridcell"]')?.setAttribute('aria-selected', String(selected))  // range model only; row-Set selection unreflected
+```
+
+### `STRU-03` Navigable role=grid has no accessible name
+
+**Surface:** Grid structure & ARIA semantics · **WCAG:** 4.1.2 Name, Role, Value (A), 1.3.1 Info and Relationships (A) · **Confidence:** medium
+
+**APG:** APG Grid: authors SHOULD give the grid an accessible name via aria-label or aria-labelledby; a bare role=grid with no name is announced only as 'grid'.
+
+- **Problem.** When `navigable` (or a caller role) promotes the table to role=grid, nothing supplies a default accessible name. `resolveTableProps` sets role/aria-rowcount/aria-colcount/aria-busy but never aria-label/aria-labelledby, the Table shell adds none, and there is no `<caption>`. The grid exposes a `tableProps` escape hatch so a consumer CAN pass `aria-label`, but the default navigable grid ships nameless. There is no caption mechanism either.
+- **Impact.** Screen-reader users navigating to the grid hear only 'grid' with no indication of what data it contains; multiple grids on a page are indistinguishable. Degraded but not blocking — cell content is still reachable.
+- **Where.** `packages/ui/src/modules/grid/grid.tsx:856-875`, `packages/ui/src/modules/grid/grid.tsx:300-318`, `packages/ui/src/components/table/table.tsx:71-95`
+- **Recommendation.** Accept an optional `label`/`aria-label` (or derive one) and apply aria-label by default on the role=grid path; or expose a caption slot. At minimum, document that a navigable grid requires `tableProps.aria-label`.
+
+```tsx
+...(role ? { role } : {})  // role='grid' set, but no aria-label/aria-labelledby ever defaulted
+```
+
+## ⬜ Minor
+
+### `COLU-05` Resize separator lacks aria-valuetext and Home/End/reset keys
+
+**Surface:** Column reorder / resize / pin / hide · **WCAG:** 2.1.1 Keyboard (A), 4.1.2 Name, Role, Value (A) · **Confidence:** high
+
+**APG:** APG window-splitter: separator should expose value with text and support Home/End.
+
+- **Problem.** The resize `role="separator"` exposes `aria-valuenow/min/max` as raw pixel integers but no `aria-valuetext` (e.g. '320 pixels'), and its keydown only handles ArrowLeft/ArrowRight. There is no Home/End (jump to min/max) and no Enter/double-key reset, and the keyboard step is a fixed 16px with no large-step (PageUp/Down) affordance. The value change is also silent (see COLU-02).
+- **Impact.** Screen readers announce a bare number with no unit; keyboard resizing is slow (16px increments only) with no way to jump to the bounds. Role/value semantics are otherwise correct.
+- **Where.** `packages/ui/src/modules/grid/grid-head.tsx:405`, `packages/ui/src/modules/grid/grid-head.tsx:423`
+- **Recommendation.** Add `aria-valuetext` with a unit, handle Home/End to jump to min/max, and consider a larger PageUp/PageDown step. Pair with the resize announcement from COLU-02.
+
+```tsx
+aria-valuenow={Math.round(resize.getSize(id))} ... // no aria-valuetext; handleKeyDown only checks 'ArrowLeft' / 'ArrowRight'
+```
+
+### `CONT-04` Ctrl+right-click silently suppresses the custom menu, hiding menu-only actions on macOS
+
+**Surface:** Grid cell/column context menu · **WCAG:** 2.1.1 Keyboard (A) · **Confidence:** medium
+
+- **Problem.** handleContextMenu returns early when event.ctrlKey is held, deferring to the browser's native menu. On macOS, Ctrl+click is the standard secondary-click gesture, so a Control-using pointer user consistently gets the native menu and never sees the grid's actions — which, combined with CONT-01, may be that user's only route to menu-only operations.
+- **Impact.** macOS users who secondary-click via Ctrl+click bypass the grid menu entirely and lose access to its actions.
+- **Where.** `packages/ui/src/modules/grid/grid-context-menu.tsx:363`
+- **Recommendation.** Gate the native-menu escape hatch on a less collision-prone modifier or a platform-aware check so Ctrl+click on macOS still opens the grid menu.
+
+```tsx
+if (event.ctrlKey) { event.stopPropagation(); return }  // grid-context-menu.tsx:363-367
+```
+
+### `EDIT-03` Editors provide no required/aria-required signalling path
+
+**Surface:** Cell editor widgets · **WCAG:** 3.3.2 Labels or Instructions (A), 4.1.2 Name, Role, Value (A) · **Confidence:** medium
+
+**APG:** APG editable grid: aria-required on required editable fields.
+
+- **Problem.** GridEditableColumn exposes only `validate` (a post-commit rejector); there is no `required` concept and no editor sets aria-required. A column whose validate rejects empty values is effectively required, but the editor never advertises that to AT before the user commits — they discover it only by failing a commit.
+- **Impact.** Screen-reader users are not told a field is required up front; they learn it reactively via a rejected commit (which itself is under-exposed per EDIT-01). Degraded form-fill experience; not a hard blocker since editing still works.
+- **Where.** `packages/ui/src/modules/grid/grid-editable-types.ts:64`, `packages/ui/src/modules/grid/grid-editable-text-editor.tsx:45`, `packages/ui/src/modules/grid/grid-editable-number-editor.tsx:29`
+- **Recommendation.** If required cells are a supported concept, add a column `required` flag and surface `aria-required` on the editor control (Input/NumberInput/Checkbox/Listbox all accept `required`). Otherwise document that required-ness is validate-only and intentionally not announced.
+
+```tsx
+validate?: (value: unknown, row: T) => string | null // no `required`; readOnly?: boolean; align?: ...  — no required field anywhere in GridEditableEditorProps.
+```
+
+### `EDIT-06` Floating editor panels (select dropdown / date calendar) have no documented keyboard close path back to the grid; blur keeps active state but Escape handling is editor-dependent
+
+**Surface:** Editable cell lifecycle · **WCAG:** 2.1.2 No Keyboard Trap (A), 1.4.13 Content on Hover or Focus (AA) · **Confidence:** low
+
+**APG:** Editor widgets inside cells must remain escapable; focus must always be able to leave.
+
+- **Problem.** onWrapperBlur deliberately keeps the active cell when focus moves into a [data-floating-ui-portal] panel, so the editor (and its portal) stays open. The shared editorKeyHandler maps Escape->cancel and Tab->commit, but a portaled widget that swallows Escape/Tab for its own popup (e.g. closing the calendar without leaving the editor) relies on each editor slot re-dispatching to commit/cancel. The text editor path is fine; this is only verifiable per-editor slot, and the contract does not guarantee focus returns to the grid wrapper after the portal closes.
+- **Impact.** If a custom or built-in floating editor consumes Escape to close its popup without then cancelling/committing, focus can be left in the portal with the grid cursor still active — a potential trap for keyboard users. Low confidence pending the individual editor slots (select/date) which were outside the required read set.
+- **Where.** `packages/ui/src/modules/grid/use-grid-editable-wrapper.ts:560-580`, `packages/ui/src/modules/grid/grid-editable-editor-utilities.ts:14-27`
+- **Recommendation.** Document and enforce in the editor contract that closing a floating panel must return focus to the editor control and that a second Escape cancels the edit (restoring focus to the grid wrapper); add a focus-return assertion in the select/date editors.
+
+```tsx
+// use-grid-editable-wrapper.ts onWrapperBlur
+if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return // keeps active cell
+```
+
+### `KEYB-03` Space key on a non-clickable navigable grid is not prevented, scrolling the page instead of being inert
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 2.1.1 Keyboard (A) · **Confidence:** high
+
+- **Problem.** On `Enter`/`Space` the read-only cursor calls `activateRow` (use-grid-navigation.ts:238), but `activateRow` early-returns without `preventDefault` when `onRowActivateRef.current` is undefined, i.e. the grid has no `onRowClick` (use-grid-navigation.ts:212-216). Because the grid `<table>` is the focused element (tabIndex 0), an unhandled Space then performs the browser's default page scroll while the user is navigating cells.
+- **Impact.** Keyboard users on a navigable grid without a row-click see the page jump on Space — a surprising context shift mid-navigation. Minor: navigation still works, but Space is not inert as a user would expect inside a grid cursor.
+- **Where.** `packages/ui/src/modules/grid/use-grid-navigation.ts:238`, `packages/ui/src/modules/grid/use-grid-navigation.ts:206`
+- **Recommendation.** When the grid is navigable, preventDefault on Space regardless of whether a row activation handler is present (Space inside a grid cursor should not scroll the page), or only treat Space as activation and otherwise swallow it.
+
+```tsx
+// use-grid-navigation.ts:238
+} else if (event.key === 'Enter' || event.key === ' ') {
+  activateRow(event, base.row)
+}
+// use-grid-navigation.ts:212 — returns without preventDefault
+if (!activate || row === undefined) return
+```
+
+### `KEYB-07` Vertical arrow navigation does not skip into non-data (select / actions) columns, but no aria-rowcount on a plain navigable grid means AT cannot announce position
+
+**Surface:** Keyboard navigation & focus model · **WCAG:** 4.1.2 Name, Role, Value (A), 1.3.1 Info and Relationships (A) · **Confidence:** medium
+
+- **Problem.** A plain `navigable` grid (no virtualize/pagination) gets `role="grid"` (grid-data.tsx:302) but `gridSemantics` is false, so `aria-rowcount`/`aria-colcount` are NOT emitted (grid-data.tsx:315) and rows/cells carry no `aria-rowindex`/`aria-colindex`. The cursor's column space also excludes select/actions columns (dataColumns filter, grid-data.tsx:714), so the active-descendant col index space (data-only) does not match the cell's positional column among all rendered columns. For a non-windowed grid native DOM order conveys structure, so this is mostly benign — but a grid advertising `role="grid"` conventionally exposes 1-based indices, and their absence means SR position reporting falls back to raw DOM.
+- **Impact.** Screen-reader users on a navigable grid hear cell content but not 'row X of N, column Y' position context that the grid role implies. Low impact when all rows are present (AT can count), but it is an APG completeness gap that becomes the KEYB-01 break once virtualization is added.
+- **Where.** `packages/ui/src/modules/grid/grid-data.tsx:302`, `packages/ui/src/modules/grid/grid-data.tsx:714`, `packages/ui/src/modules/grid/grid-data.tsx:315`
+- **Recommendation.** Emit aria-rowcount/aria-colcount and per-cell aria-rowindex/aria-colindex for any `role="grid"` (i.e. also under plain `navigable`, not only `gridSemantics`), keeping the cursor's data-column index space distinct from the visual aria-colindex so both are correct.
+
+```tsx
+// grid-data.tsx:315 — counts only under gridSemantics, not plain navigable
+...(args.gridSemantics
+  ? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
+  : {}),
+// grid-data.tsx:714 — cursor columns are data-only
+const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
+```
+
+### `SORT-02` Multi-column sort priority is exposed only as a bare numeric badge
+
+**Surface:** Grid sorting & filtering · **WCAG:** 1.3.1 Info and Relationships (A) · **Confidence:** high
+
+**APG:** APG Grid sort: when multiple sort columns exist, their order should be programmatically discernible.
+
+- **Problem.** Under a multi-column sort, each sorted header renders the precedence as `<span className={k.sort.badge}>{sortPriority}</span>` inside the sort button. The number is button text content, so a screen reader reads something like 'Sort by Name 1' — the digit is technically in the accessible name but its meaning (sort priority/precedence) is not labeled. There is no text like 'sort priority 1' and no other programmatic association of the precedence ordering.
+- **Impact.** Screen-reader users hear an unexplained trailing digit and cannot reliably infer multi-column sort precedence; the meaning of the badge is visual-only.
+- **Where.** `packages/ui/src/modules/grid/grid-head.tsx:380`, `packages/ui/src/modules/grid/grid-head.tsx:128-141`
+- **Recommendation.** Give the priority a programmatic label, e.g. wrap it with an sr-only qualifier ('sort priority 1') or expose it via aria-label so the precedence is conveyed as more than a bare number.
+
+```tsx
+{sortPriority != null && <span className={cn(k.sort.badge)}>{sortPriority}</span>}
+```
+
+### `STRU-04` Empty/error state under grid semantics still advertises full aria-rowcount/aria-colcount over a single spanning cell
+
+**Surface:** Grid structure & ARIA semantics · **WCAG:** 1.3.1 Info and Relationships (A) · **Confidence:** medium
+
+**APG:** APG Grid: aria-rowcount/colcount should reflect the rows/cols actually represented; a single colspan placeholder row is not those cells.
+
+- **Problem.** `resolveTableProps` always attaches aria-rowcount/aria-colcount when `gridSemantics` (virtualize/pagination) is on, but the body in the empty/error/loading branches renders a single `TableEmpty`/`TableLoading` row spanning all columns. The grid therefore claims (e.g.) aria-rowcount=N+1 and aria-colcount=M while exposing one header row plus one placeholder cell. The counts are momentarily inaccurate for the empty rendering.
+- **Impact.** An SR user on an empty paginated/virtualized grid may hear a column/row count that doesn't match the single 'No items' cell present. Edge-case, transient, low impact.
+- **Where.** `packages/ui/src/modules/grid/grid.tsx:865-875`, `packages/ui/src/modules/grid/grid-body.tsx:31-47`, `packages/ui/src/components/table/table-empty.tsx:28-32`
+- **Recommendation.** On the empty/error/loading branches under grid semantics, suppress aria-rowcount/aria-colcount (or set aria-rowcount to 1 for the header), so the advertised structure matches the rendered placeholder.
+
+```tsx
+...(args.gridSemantics ? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount } : {})  // still set when body is a single colspan empty cell
+```
+
+---
+
+## What the module already does well
+
+**Grid structure & ARIA semantics**
+
+- Role gating is principled: resolveTableProps (grid.tsx:289-319) withholds role=grid until a real keyboard model backs it — a windowed-but-non-navigable body stays role=table (which still honors aria-rowcount/aria-colcount) rather than promising cell navigation it doesn't implement. This is exactly the correct table-vs-grid distinction.
+- aria-rowindex/aria-colindex are correctly 1-based and account for the header as row 1: data rows use `rowIndexOffset + index + 2` (grid-body.tsx:59, grid-virtualized-body.tsx:52) and the header row carries aria-rowindex=1 (grid-head.tsx:84); column indices are colIdx+1 over the full visible column set in both header (grid-head.tsx:90) and body (grid-row.tsx:253), so they stay consistent across select/actions/data columns.
+- Under client pagination and virtualization the page/window offset is threaded correctly: resolveGridSemantics computes rowOffset = pageIndex*pageSize (grid.tsx:341) so a paginated row reports its place in the FULL set, and aria-rowcount uses the engine's pre-pagination filtered total (grid-table-views.ts:289), reflecting live client-side filtering rather than the page slice.
+- Virtualization preserves meaningful sequence: leading/trailing gaps are aria-hidden spacer <tr>s (grid-virtualized-body.tsx:42-47, 56-61) so scroll height matches the full count without injecting phantom rows into the accessibility tree, and rendered rows keep their true global aria-rowindex.
+- Header association is native and intact: header cells are real <th scope='col'> via TableHeader (table-header.tsx:22-29), sortable columns carry aria-sort with a real <button> as the name target (grid-head.tsx:486, 368-381), and the Table component deliberately keeps native thead/tbody/th-scope semantics rather than faking roles.
+- Loading semantics are handled on two channels without moving focus: the table gets aria-busy while loading (grid.tsx:310) and a persistent sr-only role='status' region announces 'Loading' (GridBusyStatus, grid.tsx:392-398).
+- aria-activedescendant is omitted (not emptied) when the cursor is unseated (use-grid-navigation.ts:289), and onBlur keeps the cursor while focus moves to focusable cell content inside the grid, dropping it only when focus leaves the table — avoiding a dangling active id in the common (non-virtualized) case.
+- DOM order matches visual order for pinned columns: pinning is applied via sticky offset styles (pinnedOffsetStyle/pinnedClassName) rather than reordering cells in the DOM, so reading order follows the logical column order while columns visually freeze.
+
+**Keyboard navigation & focus model**
+
+- Single tab stop is correct: the navigable `<table>` carries `tabIndex: 0` and `aria-activedescendant`, and cells use marker spans rather than tabindex, so there is exactly one tab stop into the grid (use-grid-navigation.ts:286-294, GridNavTableProps).
+- aria-activedescendant is omitted (undefined) rather than emitted empty when the cursor is unseated, avoiding a dangling reference to a non-existent id when no cell is active (use-grid-navigation.ts:289).
+- Directional entry is handled well: onFocus seeds the last cell when entering backwards (Shift+Tab from after the grid) and the first cell when entering forwards, via compareDocumentPosition (use-grid-navigation.ts:265-271), matching expected focus order.
+- Bounds are read from live refs at event time and `moveTo` clamps to [0, rowCount-1]/[0, colCount-1] (use-grid-navigation.ts:189-203), so arrow keys do not wrap and cannot move the cursor out of range — predictable, no off-by-one escape.
+- No keyboard trap in the read-only cursor: onBlur clears the cursor only when focus leaves the table, and keeps it while focus moves to focusable cell content, so Tab can always exit the grid (use-grid-navigation.ts:276-284); arrow keys preventDefault only when they actually move (navTarget returns null otherwise).
+- The active-cell ring is an inset ring (`ring-inset`) specifically so the scroll container cannot clip the focus indicator, and the table drops its own outline so the cell ring is the single precise indicator (grid.ts:247-259, k.nav).
+- Click-to-focus correctly defers to interactive cell content (links/buttons) via `fromInteractiveContent` before moving the cursor, so a single Tab does not get hijacked and widget clicks are not stolen (use-grid-navigation-columns.tsx:119-129).
+- Escape unseats the cursor and preventDefaults only when a cursor is active (use-grid-navigation.ts:240-244), a clean cancel path.
+- The editable cursor's checkbox bridging and Shift+Tab handoff resolve the target row via `data-row-index` rather than DOM child position, explicitly accounting for virtualization spacer rows (use-grid-editable-wrapper.ts:128-135, 163) — the very robustness the read-only cursor's scroll path (KEYB-01) lacks.
+- Editable blur keeps the active cell alive when focus moves into a floating-ui portal (select/date editors that portal outside the table), preventing the editor from snapping shut mid-edit — a correct keyboard-trap-avoidance nuance (use-grid-editable-wrapper.ts:570).
+- resolveTableProps deliberately withholds role="grid" from a windowed-but-non-navigable table, keeping it role="table" rather than promising cell navigation it does not implement (grid-data.tsx:300-303, 315-317) — honest semantics.
+
+**Editable cell lifecycle**
+
+- Entering edit moves REAL focus into the editor: GridEditableTextEditor focuses the Input in a useLayoutEffect (grid-editable-text-editor.tsx:32-41), so Enter/F2/Space/printable-char/double-click all land keyboard focus in the field rather than relying solely on aria-activedescendant.
+- Escape cancels cleanly and restores focus to the grid wrapper: cancelEdit() sets sessionClosedRef, clears state, and calls wrapperRef.current?.focus() (use-grid-editable-draft.ts:217-227); editorKeyHandler maps Escape->cancel. No keyboard trap on the happy path.
+- Single commit-per-session guard (sessionClosedRef) prevents a blur-commit from double-firing after an explicit Enter/Tab/Escape (use-grid-editable-draft.ts:133, 165, 186), and the draftRef mirror avoids saving a stale draft on same-tick blur.
+- 2.1.4 is respected for printable-character editing: tryPrintableEdit only acts while the grid wrapper has focus and ignores modifier combos (use-grid-editable-wrapper.ts:310-324), so single-character entry is focus-scoped, not a global shortcut.
+- aria-readonly is emitted on read-only cells and edit entry is blocked for them while navigation still visits them (use-grid-editable-augmented-columns.tsx:94, beginEdit guard in use-grid-editable-draft.ts:142-144).
+- Commit-and-advance keeps the cursor in the grid and refocuses the wrapper when it stays (use-grid-editable-draft.ts:196-200), and returns false to let the browser Tab out at the grid edge (moveActiveTab) — avoiding a focus trap at the boundary.
+- Failed validation keeps the editor open and surfaces the message via role="alert", which announces on insertion (grid-editable-cell-editor.tsx:60-64) — a reasonable first-line error notification even though the field-level association (EDIT-01) is missing.
+- Active-cell focus ring is only painted when not editing (isActive && !showEditor => k.cellActive in grid-editable-cell.tsx:86), so the visible indicator moves from the cell ring to the editor without a double indicator.
+- Single tab stop into the grid (tabIndex=0 on the table, aria-activedescendant model) with Shift+Tab from column 0 bridging to the row's selection checkbox via data-row-index rather than DOM position (use-grid-editable-wrapper.ts:150-183), which is virtualization-safe.
+- aria-selected is kept in sync on the owning role=gridcell <td> imperatively since Grid applies the role via non-reactive cellProps (grid-editable-cell.tsx:68-75).
+
+**Cell editor widgets**
+
+- Every editor receives a programmatic accessible name via `ariaLabel` ("Edit {title}, row N", or a coordinate fallback for non-string titles) and forwards it to the real control: GridEditableTextEditor -> Input aria-label, NumberEditor/CurrencyEditor -> props.ariaLabel, DateEditor -> DateInput aria-label, BooleanEditor -> Checkbox aria-label (spread to the input), SelectEditor -> Select/Listbox aria-label (threaded to both combobox trigger and listbox panel). Satisfies 4.1.2 naming. (grid-editable-cell-editor.tsx:52-56)
+- Real focus is moved into the editor on entry, not just aria-activedescendant: text/numeric/date editors call input.focus() in useLayoutEffect; the select editor opens with `open={true}` and FloatingFocusManager lands focus on the selected option/listbox (listbox-panel.tsx:82-96); the boolean editor focuses the checkbox. This honours the APG editable-grid rule that Enter/F2 moves focus into the field.
+- Consistent, trap-free keyboard contract via editorKeyHandler: Enter commits down, Escape cancels and (through the grid) restores focus, Tab commits in the tab direction and only preventDefaults when the cursor stays in the grid (so a real Tab can leave the grid). No keyboard trap. (grid-editable-editor-utilities.ts:14-27)
+- Select editor avoids a keyboard trap and follows the APG select pattern: Escape/click-out closes via onOpenChange and fires cancel(); Listbox's onTabOut closes and carries focus past the trigger in one keystroke; a `committed` ref prevents a trailing close from double-firing cancel. (grid-editable-select-editor.tsx:40-69, listbox.tsx:240-249)
+- Date editor uses the DateInput's own invalid handling: typed-invalid/out-of-range entries set aria-invalid on the input and render an error <Message> wired into aria-describedby (date-input.tsx:202,229-254), so typing-level date errors are self-describing even before the grid-level validate runs.
+- Validity is not conveyed by colour alone for the typed-date and committed-validation cases: both render a text message (DateInput <Message severity="error"> and the grid's role="alert" span) alongside the red ring, giving a non-colour channel for the error content (1.4.1). The remaining gap is the field's own state association, captured in EDIT-01.
+- NumberInput stepper buttons are tabIndex=-1 and mirror each step through the live-region announcer (number-input.tsx:96-98), and use mousedown preventDefault to avoid blurring/committing the cell editor mid-step — good value-change announcement (4.1.3) and no accidental commit.
+- Boolean editor exposes true/false state natively through the checkbox `checked` prop bound to the live field value, and toggles on both pointer and Space (native checkbox onChange) with Enter committing and Escape cancelling — correct role/value exposure and keyboard operability. (grid-editable-boolean-editor.tsx:37-57)
+- Select-all-on-focus is correctly gated on how the edit was opened (selectAllOnFocus / draft === formatted), so type-to-edit doesn't get its first keystroke wiped — a usability correctness detail that also keeps caret/selection behaviour predictable for AT.
+
+**Grid sorting & filtering**
+
+- Sortable columnheaders carry a correct aria-sort: ariaSortValue (grid-head.tsx:296-306) maps to 'ascending'/'descending'/'none' for sortable columns and undefined for non-sortable, and it is applied on the <th> in both the plain (grid-head.tsx:486) and reorderable (grid-head.tsx:573) header variants.
+- The sort affordance is a real <button> (Button component, grid-head.tsx:370-381) with an explicit accessible name `Sort by ${columnLabel(column)}` — APG-compliant 'real button as the accessible name target'.
+- Sort direction is conveyed non-visually via aria-sort on the columnheader, not only by the ArrowUp/ArrowDown icon (grid-head.tsx:308-323) — the icon is supplementary, not the sole channel.
+- The global search filter is a labeled, keyboard-operable control: SearchInput is a native type=search input with aria-label={filter.placeholder} (grid-filter.tsx:27) and a clear button that restores focus to the field on unmount for 2.4.3 (search-input.tsx:98-100).
+- The per-column filter trigger is a real Button with aria-label={`Filter ${label}`}, aria-haspopup="dialog", and aria-expanded={open} (grid-column-filter-button.tsx:148-150), correctly advertising the popup relationship.
+- The filter popover is a modal Sheet (dialog) that is dismissible by Escape, backdrop, and Cancel, traps and restores focus, and discards the draft on dismiss while keeping the applied filter — satisfying 1.4.13 persistence/dismissibility and 2.1.2 no-keyboard-trap (grid-column-filter-button.tsx:110-132, sheet.tsx).
+- The filter sheet has an accessible name via both <SheetTitle>Filter {label}</SheetTitle> and an aria-label fallback (grid-column-filter-button.tsx:158-159).
+- Active-filter affordance remains reachable even when the filter empties the view: showsFilterButton (grid-head.tsx:279-288) keeps the button rendered when filterQuery has children, so a filter that yields zero rows can still be opened and cleared via Reset.
+- Interactive header controls use the Button component, which wraps content in TouchTarget (button.tsx:158) providing a 24px (fine) / 44px (coarse) activation floor — so the sort button, filter button, and pin button meet 2.5.8 Target Size Minimum even when visually small/icon-only.
+- The post-filter row count is reflected in aria-rowcount (grid-data.tsx:826-827 derives from the filtered pagination.rowCount), so the active result set size is at least exposed for static AT inspection (the gap in FILT-01 is the lack of a dynamic announcement).
+
+**Row/cell selection**
+
+- Per-row selection checkbox has a meaningful accessible name: aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`} (grid-row.tsx:266), so each checkbox is individually identifiable rather than a bare 'checkbox'.
+- Select-all control has a real accessible name and tri-state: <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} aria-label={selectAllLabel}> (grid-head.tsx:181-186), and the label narrows to the current page under pagination via resolveGridSemantics (grid-data.tsx:829-835), avoiding the 'select all' overclaim.
+- Selection is conveyed by a native checkbox state (checked/indeterminate), not by color alone, satisfying 1.4.1 Use of Color for the checkbox affordance itself (grid-head.tsx:183, grid-row.tsx:264).
+- Editable grid correctly carries aria-multiselectable=true on its role="grid" table (grid-editable.tsx:242), matching its multi-select-only model.
+- Selection state is owned by a controllable Set source of truth with stable toggleRow/toggleAll callbacks (use-grid-selection.ts:67-86), and selected is passed as a prop to the memoized GridRow so only the flipped row re-renders (grid-row.tsx:130-134) — a sound state model to build the missing aria-selected on top of.
+- toggleAll computes 'every selected' against the live rowKeys ref so select-all/clear-all is correct across filtering/pagination windows (use-grid-selection.ts:74-84).
+
+**Grid cell/column context menu**
+
+- Menu panel uses the correct ARIA menu pattern: PopoverPanel carries role="menu" with itemSelector targeting role="menuitem", typeahead, and roving focus via useA11yRoving (menu-content.tsx:67-72, popover.tsx). Items render as role="menuitem" buttons with tabIndex=-1 (menu-item.tsx:108-117), so the menu is a single composite widget, not a sequence of tab stops.
+- Menu items have proper accessible names: each MenuItem renders a MenuLabel text node alongside the decorative icon (grid-context-menu.tsx:230-235), and disabled items expose aria-disabled (menu-item.tsx:113).
+- Items activate on Enter and Space and then close the menu (handleMenuItemKeyDown, menu-item-utilities.ts:37-43; handleSelect closes, menu-item.tsx:42-48) — correct keyboard activation once the menu is open.
+- Escape closes the menu (MenuContent onKeyDown close() at menu-content.tsx:74-76, plus floating-ui dismiss), and outside-click/scroll dismissal comes from floating-ui's dismiss interaction (use-menu-state.ts:69-73) — satisfying 1.4.13 dismissibility once open.
+- Empty or irrelevant right-clicks are handled gracefully: a click that resolves to no items leaves the native menu intact and does not open an empty surface (grid-context-menu.tsx:377-381).
+- Separators render as MenuSeparator rather than focusable items, and the disabled-item selector excludes data-disabled entries from roving focus (menu-content.tsx:45, menu-item.tsx:62-64), so disabled items are correctly skipped by arrow navigation.
+- The right-click delegation wrapper is intentionally roleless (className="contents") and documents why it stamps no role, avoiding an application-role trap over arbitrary page content (menu.tsx:60-66).
+
+**Column reorder / resize / pin / hide**
+
+- Column reorder has a genuine non-drag alternative in two places. The header grip is a real <button> carrying dnd-kit's keyboard sensor (useGridReorder -> useSortableList with keyboardSensor defaulting true, sortableKeyboardCoordinates wired in use-sortable-sensors.ts), and the column-manager dialog reorders via useListKeyboard (Space to lift, arrows to move, Enter/Escape to drop) with full polite-then-assertive announcements (use-list-keyboard.ts:44, 86, 175). This squarely satisfies 2.5.7 for reorder.
+- The resize handle target meets 2.5.8: k.resize.handle is `w-6 h-[var(--grid-resize-height,100%)]` = 24px wide spanning the full column height, and useGridResizeHeight publishes that full height so the strip is comfortably grabbable.
+- The resize control is a focusable role="separator" with aria-orientation, an accessible name ('Resize {column}'), and aria-valuenow/valuemin/valuemax, plus an ArrowLeft/ArrowRight keyboard nudge — a correct non-drag resize alternative (grid-head.tsx:417-444). The biome-ignore comment correctly justifies role=separator over <hr>.
+- Sortable column headers expose aria-sort ('ascending'/'descending'/'none') only when sortable and interactive, and the sort toggle is a real <button> with an accessible name 'Sort by {column}' — sort isn't color-only (an explicit ArrowUp/ArrowDown icon and a numeric priority badge accompany it).
+- The pinned-header unpin control is a real <button> with aria-label 'Unpin {column}', giving pin removal a keyboard path independent of the context menu, and the decorative pin glyph is aria-hidden (grid-head.tsx:504).
+- The column-manager dialog is correctly modal and labelled: Dialog provides focus trapping and focus return, and DialogTitle supplies aria-labelledby. Pinned columns in the manager are surfaced as checked+disabled checkboxes with aria-label '{column} (pinned)', and non-hideable columns are disabled rather than silently inert.
+- applyColumnReorder commits identical orderings from both the header drag and the manager list by holding non-reorderable ids (selection/actions/pinned/hidden) in place, so reading order stays consistent between the two reorder paths (grid-reorder.ts:109).
+- Keyboard reorder in the List keeps the original item visible during a keyboard move and disables the dnd-kit keyboard sensor on that path (useListDrag keyboardSensor:false) to avoid a double keyboard model — a deliberate, correct separation.
+
+**Grid pagination footer**
+
+- Previous/Next render as real <Button> (native <button>) with default accessible names 'Previous page'/'Next page', not icon-only — pagination-next.tsx:13-18, pagination-previous.tsx:13-18, so 4.1.2/2.1.1 are met even though the visible content is a chevron Icon.
+- Numbered pages render as real <button type="button"> via Polymorphic (polymorphic.tsx:80) and expose aria-current="page" on the active page (pagination-page.tsx:42), driven by current={item === pageNumber} (grid-pagination.tsx:109) — current-page state is programmatic, not color-only.
+- Disabled state at the extents is exposed natively: disabled={!canPrevious}/{!canNext} (grid-pagination.tsx:97,119) wired to TanStack getCanPreviousPage/getCanNextPage (grid-table-views.ts:298-299) — 4.1.2 state is correct.
+- Target size (2.5.8): Previous/Next go through Button → TouchTarget, which floors the activation region to 24px on fine pointers / 44px on coarse (touch-target.tsx:23-24); numbered page buttons are min-w-9 (36px) with p-2 + text-sm (~36px tall), both ≥24px (pagination.ts:15-34).
+- The gap/ellipsis marker is aria-hidden and presentational (pagination-gap.tsx:12-19), so screen readers don't read stray ellipses between page numbers.
+- Pagination is a labeled landmark: <nav aria-label="Pagination"> (pagination.tsx:15), and items use semantic <ol>/<li> structure (pagination-list.tsx, pagination-page.tsx:36).
+- Controls are individually Tab-focusable with no roving-tabindex trap (Pagination doc, pagination.tsx:9-12) — predictable keyboard traversal, no keyboard trap (2.1.1/2.1.2).
+- The page-size Select carries aria-label="Rows per page" and exposes its value (grid-pagination.tsx:130-133) — 4.1.2 name/value met for the picker.
+- Navigation is correctly hidden for a single/empty known page and retained for an unbounded server feed (showNav, grid-pagination.tsx:86), so a lone non-operable control isn't presented.
+
+---
+
+## Existing automated a11y coverage
+
+_Harness:_ "Per CONVENTIONS §10.5, DOM-tree assertions (roles, ARIA attributes, events, focus order) run under jsdom; layout/computed-style/colour assertions (contrast, target-size, geometry, focus traps) run in the browser suite (test:browser). Two complementary jsdom mechanisms exist: (1) a shared a11y cases corpus (a11y/cases/*) swept by gate suites — baseline.test.tsx runs axe over every canonical render via helpers/axe.ts's `axe` (region/color-contrast/target-size disabled), landmarks.test.tsx runs `axePage` (region re-enabled) at document scope, focus.test.tsx asserts overlays move focus off the trigger, and TrapCase entries are asserted only by the real-browser browser/floating-ui/trap-corpus suite. Adding a corpus entry buys coverage in every gate. (2) Component-specific behaviour lives in per-file tests (grid*.test.tsx) querying by role/data-slot. helpers/axe.ts disables color-contrast, target-size, and region in jsdom because jsdom has no layout engine; the only axe-driven grid coverage is the 'data table' and 'editable grid' entries in the baseline corpus — no navigable grid and no opened-overlay grid state is ever axe-scanned. Contrast has a separate token-level guard (helpers/contrast.ts reading Tailwind oklch tokens, calibrated in contrast.test.ts) that does not render the Grid. The browser suite (browser/grid-pinning, browser/grid-resize, browser/virtualization) covers only layout-dependent geometry, not axe rules, and deliberately does not mount the full virtualized Grid (CONVENTIONS §10.3 forbids driving virtualization/floating-ui async lifecycles in tests)."
+
+**Already covered:**
+
+- Static axe-clean baseline for the plain Grid as a 'data table' (sortable column header + keyed rows) — a11y/cases/data-display.tsx:125-129, swept by a11y/baseline.test.tsx 'a11y baseline (axe)' gate.
+- Static axe-clean baseline for the 'editable grid' (role=grid, editable columns, keyed rows) — a11y/cases/data-complex.tsx:111-122, swept by the same baseline.test.tsx gate. This is the ONLY grid exercised in role=grid form by axe.
+- aria-sort on sortable headers: header th reports 'ascending' when sorted and 'none' when sortable-but-unsorted — components/grid.test.tsx:158-178.
+- Accessible names for header controls: 'Sort by <Title>' sort buttons (with id-fallback when title is non-string), 'Filter <Title>' filter buttons, 'Reorder <Title>' reorder handles, 'Resize <Title>' separators, 'Unpin <Title>' pin buttons — components/grid.test.tsx:155/380-392/780-855, grid-column-filters.test.tsx, grid-resize.test.tsx:23-33, grid-pinning.test.tsx:164-180.
+- Multi-sort header semantics: 1-based priority badge text on each sorted header, omitted under single-column sort — components/grid-sort.test.tsx:208-241.
+- role=grid / role=table switching: role=grid + tabindex=0 single tab stop + gridcell roles only when navigable; stays a native table (no grid/gridcell) otherwise; paginated-but-non-navigable stays role=table — grid-navigation.test.tsx:29-50, grid-interaction.test.tsx:154-172, grid.test.tsx:920-947.
+- Keyboard cursor navigation (navigable grid): aria-activedescendant tracks click and Arrow/Home/End/Ctrl+Home/Ctrl+End movement, clamps at edges, seeds at first cell, defers to focusable in-cell content, Enter activates the row, data-active mirrors the cursor — grid-navigation.test.tsx:52-206.
+- Windowed table ARIA: aria-rowcount on virtualized/paginated tables (and absent when not windowed), header aria-rowindex=1, aria-colcount + per-header aria-colindex — grid.test.tsx:900-947, grid-interaction.test.tsx:154-172.
+- aria-busy on the table while loading, cleared otherwise — grid.test.tsx:44-51.
+- Error state exposed as role=alert — grid-interaction.test.tsx:118; editable validation message as role=alert — grid-editable-validation.test.tsx:53.
+- Selection a11y: 'Select all rows' / 'Select row <name>' / custom 'Select Alice, age 30' checkbox accessible names — grid.test.tsx:502-572,963.
+- Editable grid a11y: role=grid + aria-multiselectable=true on the editable table, aria-selected true/false on the selected gridcell range, editor aria-label ('Edit <Title>, row N' with coordinate fallback), Tab/Shift+Tab focus exchange between the cell cursor and row-selection checkboxes, flash overlay marked aria-hidden — grid-editable.test.tsx:36-42,124-133,502-528,560-604,725-726.
+- Context-menu a11y: role=menu with role=menuitem entries (Sort/Copy/Pin/Manage columns/Clear sort/Auto-size etc.) reachable by accessible name and a separator sequence assertion — grid-context-menu.test.tsx:36-352, grid-editable.test.tsx:766-849.
+- Column-manager a11y (jsdom): one list-item per column, checkbox accessible names ('Show <Title>', '<Title> (pinned)'), pinned/hideable=false checkboxes disabled, keyboard reorder via Space-lift + ArrowDown, pinned/orderable rendered as separate lists, dialog opens from toolbar trigger and closes via 'Done' — components/grid-column-manager.test.tsx (full file).
+- Filter/search controls have proper roles+names: role=searchbox quick filter, role=textbox 'Name value', role=combobox 'Operator'/'Role value', role=spinbutton 'Price minimum'/'Price maximum', role=option entries, role=combobox 'Rows per page', pagination 'Next page'/'Previous page' (disabled states) — grid-column-filters.test.tsx, grid-pagination.test.tsx:143-211, grid-filter.test.tsx:20-97.
+- Pinning chrome in jsdom: sticky classes + deterministic inline left/right offsets in header and body, pinned: true treated as left, cumulative stacking, no sticky chrome when unpinned, unpin button presence/absence and behaviour — components/grid-pinning.test.tsx (full file).
+- Browser suite (real geometry) for the layout-dependent halves: left/right-pinned columns hold position while the body scrolls sideways (sticky position computed) — browser/grid-pinning.test.tsx; resize separator spans full column height, grip opacity reveal on hover, pointer-events gating during in-flight resize — browser/grid-resize.test.tsx; virtualization windowing via useVirtualWindow (Grid's shared windowing seam, not the full Grid) — browser/virtualization.test.tsx.
+- Resize handle keyboard affordance reachable as role=separator and focusable — grid-resize.test.tsx:131-200 (focus + key-driven resize in jsdom).
+
+**Gaps (no automated coverage):**
+
+- No axe run ever covers a navigable (role=grid keyboard-cursor) grid: the only grids in the axe baseline corpus are the plain 'data table' and the 'editable grid'. Static ARIA defects specific to the navigable cursor mode (e.g. aria-activedescendant target validity, gridcell labelling, role wiring) are not axe-gated — only hand-asserted attribute checks in grid-navigation.test.tsx.
+- No grid case is exercised in any interactive/focus/overlay axe corpus: the focus, interactive, overlays, and traps corpora contain zero grid entries, so the grid's own popovers/menus opened in context (column-manager dialog, context menu, filter sheet, sort header menu) are never re-scanned by axe at document scope after opening.
+- color-contrast (WCAG 1.4.3/1.4.11) is disabled in jsdom (helpers/axe.ts) and the contrast.ts colour-ramp guard is a token-level Tailwind check, not run against any rendered Grid surface — so grid-specific contrast (active-cell highlight, selected-range tint, pinned-cell surface fill, sort/filter active-state chrome, header text on header bg) has NO automated contrast coverage in either suite.
+- target-size (WCAG 2.5.5) is disabled in jsdom and not asserted in the browser suite — the touch-target geometry of grid controls (sort/filter/reorder/pin buttons, resize separators, row/select checkboxes, pagination controls) is unverified.
+- No focus-management / focus-trap coverage for grid-owned overlays in the browser focus suite: the column-manager dialog and context menu are not in the TrapCase corpus (browser/floating-ui/trap-corpus), so Tab-wrap containment and focus-restore-to-trigger for those grid surfaces are not asserted in a real browser (only jsdom open/close presence checks exist).
+- No automated screen-reader live-region coverage for dynamic grid changes: sort/filter/pagination result changes, selection-count changes, and row add/remove emit no asserted aria-live announcement (no aria-live/role=status assertions anywhere in the grid tests; only static role=alert for error/validation).
+- aria-multiselectable is asserted only on the editable grid (grid-editable.test.tsx:42); the read/navigable selectable Grid's multiselectable semantics and per-row aria-selected on data rows are not asserted.
+- Virtualization a11y under windowing is untested at the grid level: aria-rowindex on virtualized data rows (only the header's aria-rowindex=1 and table-level aria-rowcount are asserted), and the relationship between rendered window and aria-rowcount/aria-rowindex for off-screen rows, are not covered — and the full virtualized Grid is deliberately not mounted in the browser suite (CONVENTIONS §10.3), so only the useVirtualWindow hook is exercised.
+- No keyboard reachability/operability coverage for column resize and pin in a real browser: resize is keyboard-driven only in jsdom (grid-resize.test.tsx focus + keydown); whether the separator's aria-valuenow/min/max or keyboard resize works against real layout is not in browser/grid-resize.test.tsx (that file covers pointer drag + geometry only).
+- Row-level semantics: no assertion that data rows carry role=row in navigable mode or that the row activation target (Enter) is exposed to AT beyond the onRowClick callback; gridcell aria-colindex/aria-rowindex per cell (vs. only header) is unverified.
+
+---
+
+## Resuming this audit
+
+Remaining work, in order:
+
+1. **Audit the 4 unreached surfaces:** row virtualization, cross-cutting live-region/status-message announcements, cross-cutting focus management & visibility, and browser-tier color-contrast / focus-ring / target-size / reduced-motion (the CSS recipes under `packages/ui/src/recipes/kata/grid*.ts`).
+2. **Adversarially verify every candidate** (the 41 above + any new ones) against the source — re-read cited files and sibling files before confirming, since the grid spreads concerns widely; correct severity/WCAG mappings; drop false positives.
+3. **Dedup & synthesize** confirmed findings into the final report and a remediation roadmap (quick wins vs structural).
+4. **Map verified findings to test-coverage gaps** above, respecting CONVENTIONS §10.5 (jsdom DOM-tree assertions vs the browser suite for contrast/target-size/focus-trap; shared guarantees go in the `a11y/cases` corpus).
+
+Machine-readable recovered data (findings + positives + coverage) is in [`grid-a11y-findings.json`](./grid-a11y-findings.json) next to this file — feed it back into the verification/synthesis pass.

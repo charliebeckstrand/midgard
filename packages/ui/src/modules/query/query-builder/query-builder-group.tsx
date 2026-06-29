@@ -28,9 +28,13 @@ export type QueryBuilderGroupProps = {
  * with a hold-to-remove control.
  */
 export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
-	const { disabled } = useQueryBuilderState()
+	const { disabled, allowGroups, requireRule } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
+
+	// With `requireRule`, a group keeps its last rule: the sole remaining rule
+	// hides its remove control so the query can't be emptied.
+	const rulesRemovable = !requireRule || group.children.length > 1
 
 	const addRuleRef = useFocusableRef(focusKeys.add(group.id))
 
@@ -69,7 +73,7 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 							{child.type === 'group' ? (
 								<QueryBuilderGroup group={child} />
 							) : (
-								<QueryBuilderRule rule={child} />
+								<QueryBuilderRule rule={child} removable={rulesRemovable} />
 							)}
 						</div>
 					))
@@ -85,9 +89,16 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 				>
 					Add rule
 				</Button>
-				<Button variant="soft" color="blue" disabled={disabled} onClick={() => addGroup(group.id)}>
-					Add group
-				</Button>
+				{allowGroups && (
+					<Button
+						variant="soft"
+						color="blue"
+						disabled={disabled}
+						onClick={() => addGroup(group.id)}
+					>
+						Add group
+					</Button>
+				)}
 				{!root && (
 					<Flex justify="end">
 						<Tooltip>

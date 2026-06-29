@@ -42,6 +42,7 @@ function nthCall(index: number): [string, RequestInit | undefined] {
 
 beforeEach(() => {
 	fetchMock = vi.fn()
+
 	vi.stubGlobal('fetch', fetchMock)
 })
 
@@ -76,6 +77,7 @@ describe('fetchOsrmRoute', () => {
 		expect(url).toBe(
 			'https://router.project-osrm.org/route/v1/driving/-122.4,37.78;-73.98,40.75?overview=full&geometries=geojson',
 		)
+
 		expect(init).toEqual({ signal: undefined })
 	})
 

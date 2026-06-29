@@ -3,20 +3,12 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 import { announce, cn } from '../../core'
-import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-
-const padding = {
-	sm: 'pr-16',
-	md: 'pr-18',
-	lg: 'pr-20',
-} satisfies Record<ControlSize, string>
 
 /** Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a number-valued change callback. */
 export type NumberInputProps = Omit<
@@ -71,12 +63,6 @@ export function NumberInput({
 		setValue: setCurrent,
 		setTouched,
 	} = useFormValue<number>(name, { value, defaultValue, onValueChange })
-
-	const inherited = useDensity()
-
-	// `size` passes through untouched to `<Input>` for the full density token;
-	// resolved locally only to pick the padding that clears the stepper buttons.
-	const resolvedSize: ControlSize = size ?? inherited.size
 
 	const precision = stepPrecision(step)
 
@@ -145,8 +131,13 @@ export function NumberInput({
 			min={min}
 			max={max}
 			step={step}
-			className={cn(padding[resolvedSize], k.number, className)}
+			className={cn(k.number, className)}
 			suffix={
+				// Keep focus on the input when a stepper is pressed. The buttons are
+				// tabIndex -1 and mutate silently, so a focus shift would blur the
+				// input — ending an enclosing edit (e.g. a Grid editable cell, whose
+				// numeric editor commits on blur) before the click's step lands.
+				// preventDefault cancels only the focus move; the click still fires.
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
 						variant="bare"
@@ -154,6 +145,7 @@ export function NumberInput({
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
+						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
 					>
 						<Icon icon={<Minus />} />
@@ -164,6 +156,7 @@ export function NumberInput({
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
+						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
 					>
 						<Icon icon={<Plus />} />

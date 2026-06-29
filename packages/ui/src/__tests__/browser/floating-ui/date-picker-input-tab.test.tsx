@@ -24,6 +24,7 @@ describe('a11y focus trap (real browser) — date picker input mode', () => {
 		)
 
 		const input = screen.getByLabelText('Date')
+
 		const calendarButton = screen.getByRole('button', { name: 'Open calendar' })
 
 		await userEvent.click(calendarButton)

@@ -12,6 +12,12 @@ export type QueryBuilderStateValue = {
 	fields: QueryField[]
 	getField: (name: string) => QueryField | undefined
 	disabled: boolean
+	/** When false, the "Add group" action is hidden so the query stays a flat rule list. @defaultValue true */
+	allowGroups: boolean
+	/** When true, rules omit their field selector — for a single fixed field. @defaultValue false */
+	hideFieldSelector: boolean
+	/** When true, the query keeps at least one rule: a group's last rule hides its remove control. @defaultValue false */
+	requireRule: boolean
 }
 
 /** Tree-edit actions provided to rule/group consumers; referentially stable across edits. @internal */

@@ -6,7 +6,9 @@ import {
 } from '../../components/date-picker/date-picker-range-reducer'
 
 const start = new Date(2024, 0, 1)
+
 const end = new Date(2024, 0, 10)
+
 const hover = new Date(2024, 0, 5)
 
 describe('datePickerRangeReducer', () => {

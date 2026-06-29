@@ -152,6 +152,7 @@ describe('Drawer size context', () => {
 	// Drawer panels render through Overlay's portal, so they live on
 	// document.body rather than under the test container.
 	const drawerPanel = () => document.querySelector<HTMLElement>('[data-slot="drawer"]')
+
 	const buttonInDrawer = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
 	it('defaults to size="md" and exposes data-size on the panel', () => {

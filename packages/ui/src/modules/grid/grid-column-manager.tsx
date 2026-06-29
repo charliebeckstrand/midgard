@@ -12,7 +12,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { applyColumnReorder } from './grid-reorder'
-import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
+import { columnLabel, type GridColumnManagerItem, type GridColumnManagerPreset } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Props for {@link GridColumnManager}. */
@@ -36,11 +36,6 @@ export type GridColumnManagerProps = {
 	savePresetLabel?: ReactNode
 
 	className?: string
-}
-
-/** A column's display string for ARIA labels: its `title` when a string, else the stringified id. @internal */
-function titleText(title: ReactNode, id: string | number): string {
-	return typeof title === 'string' ? title : String(id)
 }
 
 /**
@@ -131,11 +126,7 @@ export function GridColumnManager({
 							<Control>
 								<CheckboxGroup>
 									<CheckboxField>
-										<Checkbox
-											checked
-											disabled
-											aria-label={`${titleText(col.title, col.id)} (pinned)`}
-										/>
+										<Checkbox checked disabled aria-label={`${columnLabel(col)} (pinned)`} />
 										<Label>{col.title}</Label>
 									</CheckboxField>
 								</CheckboxGroup>
@@ -160,7 +151,7 @@ export function GridColumnManager({
 										checked={!hidden.has(col.id)}
 										disabled={col.hideable === false}
 										onChange={() => toggle(col.id)}
-										aria-label={`Show ${titleText(col.title, col.id)}`}
+										aria-label={`Show ${columnLabel(col)}`}
 									/>
 									<Label>{col.title}</Label>
 								</CheckboxField>

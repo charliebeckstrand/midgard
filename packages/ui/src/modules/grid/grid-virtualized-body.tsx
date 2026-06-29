@@ -1,26 +1,20 @@
 'use client'
 
-import { type RefObject, useCallback } from 'react'
+import { type RefObject, useCallback, useEffect } from 'react'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
-import { GridRow } from './grid-row'
-import type { GridColumn } from './types'
+import { type GridRowsProps, renderGridRow } from './grid-row'
+
+/** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
+export type GridScrollRowIntoView = (rowIndex: number) => void
 
 /** Props for {@link GridVirtualizedBody}. @internal */
-type GridVirtualizedBodyProps<T> = {
+type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	scrollRef: RefObject<HTMLDivElement | null>
-	rows: T[]
-	rowKeys: (string | number)[]
-	visibleColumns: GridColumn<T>[]
-	rowLoading?: (row: T) => boolean
-	rowClassName?: (row: T) => string | undefined
-	rowLabel?: (row: T) => string
-	selection: Set<string | number>
-	toggleRow: (key: string | number) => void
-	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
-	reorderable: boolean
 	estimateSize: number
 	overscan: number
+	/** Published with a scroll-into-view fn while mounted, so the cursor can reach off-window rows. */
+	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 }
 
 /**
@@ -33,29 +27,31 @@ type GridVirtualizedBodyProps<T> = {
  * height (see {@link GridProps.maxHeight}).
  * @internal
  */
-export function GridVirtualizedBody<T>({
-	scrollRef,
-	rows,
-	rowKeys,
-	visibleColumns,
-	rowLoading,
-	rowClassName,
-	rowLabel,
-	selection,
-	toggleRow,
-	reorderable,
-	estimateSize,
-	overscan,
-}: GridVirtualizedBodyProps<T>) {
+export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
+	const { scrollRef, rows, visibleColumns, estimateSize, overscan } = props
+
 	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
-	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
+	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
 		count: rows.length,
 		getScrollElement,
 		estimateSize,
 		overscan,
 	})
+
+	// Publish a row-scroller to the cursor while this windowed body is mounted, so a
+	// keyboard jump can scroll an off-window row into the window before the cursor
+	// points `aria-activedescendant` at it; cleared when the body unmounts.
+	const { scrollIntoViewRef } = props
+
+	useEffect(() => {
+		scrollIntoViewRef.current = (rowIndex) => scrollToIndex(rowIndex, { align: 'auto' })
+
+		return () => {
+			scrollIntoViewRef.current = null
+		}
+	}, [scrollToIndex, scrollIntoViewRef])
 
 	return (
 		<TableBody>
@@ -68,28 +64,11 @@ export function GridVirtualizedBody<T>({
 					/>
 				</tr>
 			)}
-			{virtualItems.map((vr) => {
-				const row = rows[vr.index] as T
-				const key = rowKeys[vr.index] as string | number
-
-				return (
-					<GridRow<T>
-						key={key}
-						row={row}
-						rowKey={key}
-						columns={visibleColumns}
-						loading={rowLoading?.(row) ?? false}
-						className={rowClassName?.(row)}
-						rowLabel={rowLabel?.(row)}
-						selected={selection.has(key)}
-						toggleRow={toggleRow}
-						reorderable={reorderable}
-						dataRowIndex={vr.index}
-						// Header occupies row 1; data rows are offset by 2.
-						rowIndex={vr.index + 2}
-					/>
-				)
-			})}
+			{/* Header occupies row 1; data rows are offset by 2, plus any page offset
+			    (a paginated, virtualized window starts past prior pages). */}
+			{virtualItems.map((vr) =>
+				renderGridRow(props, rows[vr.index] as T, vr.index, props.rowIndexOffset + vr.index + 2),
+			)}
 			{bottomSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
 				<tr data-slot="grid-spacer" aria-hidden="true">

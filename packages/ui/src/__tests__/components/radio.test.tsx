@@ -27,6 +27,7 @@ describe('Radio', () => {
 		const { container } = renderUI(<RadioSkeleton />)
 
 		expect(bySlot(container, 'radio')).not.toBeInTheDocument()
+
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
@@ -99,6 +100,7 @@ describe('RadioField aria-describedby', () => {
 		)
 
 		const input = bySlot(container, 'radio') as HTMLElement
+
 		const description = bySlot(container, 'description') as HTMLElement
 
 		expect(description.id).toBeTruthy()

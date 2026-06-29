@@ -1,97 +1,64 @@
 import type { ReactNode, RefObject } from 'react'
+import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
-import { GridRow } from './grid-row'
-import { GridVirtualizedBody } from './grid-virtualized-body'
-import type { GridColumn } from './types'
+import { type GridRowsProps, renderGridRow } from './grid-row'
+import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 
 /** Props for {@link GridBody}. @internal */
-type GridBodyProps<T> = {
+type GridBodyProps<T> = GridRowsProps<T> & {
 	loading: boolean
-	rows: T[]
-	rowKeys: (string | number)[]
-	visibleColumns: GridColumn<T>[]
-	getKey: (row: T, index: number) => string | number
-	rowLoading?: (row: T) => boolean
-	rowClassName?: (row: T) => string | undefined
-	rowLabel?: (row: T) => string
 	empty: ReactNode
-	selection: Set<string | number>
-	toggleRow: (key: string | number) => void
-	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
-	reorderable: boolean
+	/** Error-state node shown in place of the body; `true` for a default alert. Takes precedence over `empty`. */
+	error: ReactNode
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
 		overscan: number
+		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	} | null
 }
 
 /**
- * Body for {@link Grid}: branches between the loading skeleton, the `empty`
- * slot, the virtualized window, and the plain row map, threading per-row state
- * to each {@link GridRow}.
+ * Body for {@link Grid}: branches between the loading skeleton, the error slot,
+ * the `empty` slot, the virtualized window, and the plain row map, threading
+ * per-row state to each {@link GridRow}.
  *
  * @internal
  */
-export function GridBody<T>({
-	loading,
-	rows,
-	rowKeys,
-	visibleColumns,
-	getKey,
-	rowLoading,
-	rowClassName,
-	rowLabel,
-	empty,
-	selection,
-	toggleRow,
-	reorderable,
-	virtualize,
-}: GridBodyProps<T>) {
+export function GridBody<T>(props: GridBodyProps<T>) {
+	const { loading, rows, visibleColumns, empty, error, gridSemantics, rowIndexOffset, virtualize } =
+		props
+
 	if (loading) return <TableLoading columns={visibleColumns.length} />
+
+	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
+	// cause isn't "no items". `true` renders a default error alert.
+	if (error != null && error !== false) {
+		return (
+			<TableEmpty columns={visibleColumns.length}>
+				{error === true ? (
+					<Alert severity="error" variant="soft" title="Couldn't load data" block />
+				) : (
+					error
+				)}
+			</TableEmpty>
+		)
+	}
 
 	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
 	if (virtualize) {
-		return (
-			<GridVirtualizedBody<T>
-				scrollRef={virtualize.scrollRef}
-				rows={rows}
-				rowKeys={rowKeys}
-				visibleColumns={visibleColumns}
-				rowLoading={rowLoading}
-				rowClassName={rowClassName}
-				rowLabel={rowLabel}
-				selection={selection}
-				toggleRow={toggleRow}
-				reorderable={reorderable}
-				estimateSize={virtualize.estimateSize}
-				overscan={virtualize.overscan}
-			/>
-		)
+		return <GridVirtualizedBody<T> {...props} {...virtualize} />
 	}
 
+	// Header occupies row 1; data rows are offset by 2, plus the page offset so a
+	// paginated row reports its place in the full set. Only emitted under grid
+	// semantics (a plain table conveys it natively).
 	return (
 		<TableBody>
-			{rows.map((row, index) => {
-				const key = rowKeys[index] ?? getKey(row, index)
-
-				return (
-					<GridRow<T>
-						key={key}
-						row={row}
-						rowKey={key}
-						columns={visibleColumns}
-						loading={rowLoading?.(row) ?? false}
-						className={rowClassName?.(row)}
-						rowLabel={rowLabel?.(row)}
-						selected={selection.has(key)}
-						toggleRow={toggleRow}
-						reorderable={reorderable}
-						dataRowIndex={index}
-					/>
-				)
-			})}
+			{rows.map((row, index) =>
+				renderGridRow(props, row, index, gridSemantics ? rowIndexOffset + index + 2 : undefined),
+			)}
 		</TableBody>
 	)
 }

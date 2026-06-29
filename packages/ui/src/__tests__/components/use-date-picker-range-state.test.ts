@@ -4,10 +4,15 @@ import { useDatePickerRangeState } from '../../components/date-picker/use-date-p
 import { makeKeyEvent } from '../helpers'
 
 const Jan1 = new Date(2025, 0, 1)
+
 const Jan10 = new Date(2025, 0, 10)
+
 const Jan15 = new Date(2025, 0, 15)
+
 const Jan20 = new Date(2025, 0, 20)
+
 const Jan31 = new Date(2025, 0, 31)
+
 const Feb15 = new Date(2025, 1, 15)
 
 describe('useDatePickerRangeState', () => {
@@ -16,6 +21,7 @@ describe('useDatePickerRangeState', () => {
 			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
 
 			expect(result.current.open).toBe(false)
+
 			expect(result.current.displayValue).toBe('')
 		})
 
@@ -33,7 +39,9 @@ describe('useDatePickerRangeState', () => {
 			)
 
 			expect(result.current.calendar.rangeStart).toEqual(Jan1)
+
 			expect(result.current.calendar.rangeEnd).toEqual(Jan31)
+
 			expect(result.current.calendar.hoverDate).toBeNull()
 		})
 	})
@@ -51,8 +59,11 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.calendar.onValueChange(Jan10))
 
 			expect(onChange).not.toHaveBeenCalled()
+
 			expect(result.current.calendar.rangeStart).toEqual(Jan10)
+
 			expect(result.current.calendar.rangeEnd).toBeNull()
+
 			expect(result.current.open).toBe(true)
 		})
 
@@ -168,6 +179,7 @@ describe('useDatePickerRangeState', () => {
 			act(() => result.current.footer.onClear())
 
 			expect(result.current.open).toBe(false)
+
 			expect(onChange).toHaveBeenCalledWith(undefined)
 		})
 	})
@@ -217,7 +229,9 @@ describe('useDatePickerRangeState', () => {
 			// After exit-complete, rangeStart is null; calendar surface mirrors the
 			// committed value.
 			expect(result.current.calendar.rangeStart).toEqual(Jan10)
+
 			expect(result.current.calendar.rangeEnd).toEqual(Jan20)
+
 			expect(result.current.calendar.hoverDate).toBeNull()
 		})
 	})
@@ -256,6 +270,7 @@ describe('useDatePickerRangeState', () => {
 			)
 
 			expect(result.current.calendar.rangeStart).toEqual(Jan10)
+
 			expect(result.current.calendar.rangeEnd).toEqual(Feb15)
 		})
 	})

@@ -69,9 +69,13 @@ describe('useControlProps', () => {
 		)
 
 		expect(result.current.id).toBe('mine')
+
 		expect(result.current.autoComplete).toBe('name')
+
 		expect(result.current.disabled).toBe(false)
+
 		expect(result.current.required).toBe(false)
+
 		expect(result.current.readOnly).toBe(false)
 	})
 

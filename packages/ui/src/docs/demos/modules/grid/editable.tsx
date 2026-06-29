@@ -1,8 +1,10 @@
-import { Info } from 'lucide-react'
+import { Check, Info, Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
+import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { CurrencyInput } from '../../../../components/currency-input'
+import { DatePicker } from '../../../../components/date-picker'
 import {
 	Dialog,
 	DialogBody,
@@ -14,8 +16,8 @@ import {
 import { Field, Label } from '../../../../components/fieldset'
 import { Flex } from '../../../../components/flex'
 import { Form, useFormField } from '../../../../components/form'
-import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
 import { Stack } from '../../../../components/stack'
 import { SubmitButton } from '../../../../components/submit-button'
@@ -23,68 +25,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/
 import {
 	type CellChange,
 	Grid,
-	type GridEditableColumn,
-	GridEditableCurrencyEditor,
-	GridEditableNumberEditor,
+	type GridColumn,
+	type GridEditCellContext,
 } from '../../../../modules/grid'
 
-type LaneRate = {
-	id: number
-	state: string
-	perMile: number
-	minCharge: number
-	fuelPct: number
-}
-
-const initialRates: LaneRate[] = [
-	{ id: 1, state: 'CA', perMile: 2.35, minCharge: 250, fuelPct: 28 },
-	{ id: 2, state: 'NV', perMile: 2.2, minCharge: 225, fuelPct: 26 },
-	{ id: 3, state: 'AZ', perMile: 2.1, minCharge: 210, fuelPct: 25 },
-	{ id: 4, state: 'OR', perMile: 2.3, minCharge: 240, fuelPct: 27 },
-	{ id: 5, state: 'WA', perMile: 2.4, minCharge: 255, fuelPct: 28 },
-	{ id: 6, state: 'TX', perMile: 2.15, minCharge: 215, fuelPct: 26 },
-]
-
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-
-// CurrencyInput doesn't bind to Form via `name` the way NumberInput does;
-// this wrapper bridges it for the bulk-edit dialog.
-function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: string }) {
-	const field = useFormField(name)
-
-	return (
-		<CurrencyInput
-			placeholder={placeholder}
-			value={(field?.value as number | undefined) ?? null}
-			onValueChange={(v) => field?.setValue(v)}
-		/>
-	)
-}
-
-const numericColumn = (
-	col: Partial<GridEditableColumn<LaneRate>>,
-): GridEditableColumn<LaneRate> => ({
-	id: col.id as string,
-	title: col.title,
-	parse: (raw) => {
-		const n = Number(raw)
-
-		return Number.isFinite(n) ? n : undefined
-	},
-	...col,
-})
-
+// Applies committed cell changes onto the row state: each change patches one
+// field on the row it keys. The grid emits these (as one batch per row) through
+// `editable.onValueChange` when an editing row is saved.
 function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
 	if (!changes.length) return rows
 
 	const byKey = new Map<string | number, Record<string, unknown>>()
 
-	for (const c of changes) {
-		const entry = byKey.get(c.rowKey) ?? {}
+	for (const change of changes) {
+		const entry = byKey.get(change.rowKey) ?? {}
 
-		entry[c.columnId as string] = c.value
+		entry[change.columnId as string] = change.value
 
-		byKey.set(c.rowKey, entry)
+		byKey.set(change.rowKey, entry)
 	}
 
 	return rows.map((row) => {
@@ -93,36 +51,6 @@ function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]
 		return patch ? ({ ...row, ...patch } as T) : row
 	})
 }
-
-const columns: GridEditableColumn<LaneRate>[] = [
-	{ id: 'state', title: 'State', field: 'state', readOnly: true, width: '80px' },
-	numericColumn({
-		id: 'perMile',
-		title: 'Per-mile',
-		field: 'perMile',
-		format: (r) => currency.format(r.perMile),
-		editor: GridEditableCurrencyEditor,
-	}),
-	numericColumn({
-		id: 'minCharge',
-		title: 'Min charge',
-		field: 'minCharge',
-		format: (r) => currency.format(r.minCharge),
-		editor: GridEditableCurrencyEditor,
-	}),
-	numericColumn({
-		id: 'fuelPct',
-		title: 'Fuel %',
-		field: 'fuelPct',
-		format: (r) => `${r.fuelPct}%`,
-		editor: (props) => <GridEditableNumberEditor {...props} min={0} max={100} step={1} />,
-	}),
-]
-
-const bulkColumns: GridEditableColumn<LaneRate>[] = [
-	{ id: 'select', selectable: true, width: '48px' },
-	...columns,
-]
 
 function EditHelp({ label, children }: { label: string; children: string }) {
 	return (
@@ -139,63 +67,326 @@ function EditHelp({ label, children }: { label: string; children: string }) {
 	)
 }
 
+// Custom editors live in the column's `editCell` slot — the grid exposes no
+// editor components. Each receives the cell value plus the staging callbacks; the
+// row's save flushes the staged values, so the slot only stages (no per-cell
+// commit), mirroring the inferred text / number / yes-no editors the grid mounts.
+
+/** A listbox slot: stages the picked option. */
+function CellListbox({
+	value,
+	options,
+	onValueUpdate,
+	ariaLabel,
+}: {
+	value: string
+	options: { label: string; value: string }[]
+	onValueUpdate: GridEditCellContext<unknown>['onValueUpdate']
+	ariaLabel: string
+}) {
+	return (
+		<Listbox<string>
+			aria-label={ariaLabel}
+			className="w-full"
+			value={value || undefined}
+			onValueChange={(next) => onValueUpdate(next ?? '')}
+			displayValue={(v) => options.find((option) => option.value === v)?.label ?? v}
+		>
+			{options.map((option) => (
+				<ListboxOption key={option.value} value={option.value}>
+					<ListboxLabel>{option.label}</ListboxLabel>
+				</ListboxOption>
+			))}
+		</Listbox>
+	)
+}
+
+function isoToDate(iso: string): Date | undefined {
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+
+	return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : undefined
+}
+
+function dateToIso(date: Date): string {
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+
+	const day = String(date.getDate()).padStart(2, '0')
+
+	return `${date.getFullYear()}-${month}-${day}`
+}
+
+/** A date slot: a typed `DatePicker` in input mode, staging an ISO string. */
+function CellDate({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
+	return (
+		<DatePicker
+			input
+			format="YYYY-MM-DD"
+			aria-label={ariaLabel}
+			className="w-full"
+			value={typeof value === 'string' ? isoToDate(value) : undefined}
+			onValueChange={(date) => onValueUpdate(date ? dateToIso(date) : '')}
+		/>
+	)
+}
+
+/** A currency slot: a `CurrencyInput`, staging a number. */
+function CellCurrency({ value, onValueUpdate, ariaLabel }: GridEditCellContext<unknown>) {
+	return (
+		<CurrencyInput
+			aria-label={ariaLabel}
+			className="w-full"
+			value={typeof value === 'number' ? value : null}
+			onValueChange={(next) => onValueUpdate(next ?? undefined)}
+		/>
+	)
+}
+
+type Person = { id: number; name: string; email: string; role: string; active: boolean }
+
+const initialPeople: Person[] = [
+	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com', role: 'Developer', active: true },
+	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com', role: 'Designer', active: true },
+	{ id: 3, name: 'Devon Webb', email: 'devon@example.com', role: 'Manager', active: false },
+	{ id: 4, name: 'Tom Cook', email: 'tom@example.com', role: 'Developer', active: true },
+]
+
+const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) => ({
+	label: role,
+	value: role,
+}))
+
 export function EditableExample() {
-	const [rates, setRates] = useState<LaneRate[]>(initialRates)
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+	const setRowEditing = (id: number, on: boolean) =>
+		setEditing((prev) => {
+			const next = new Set(prev)
+
+			on ? next.add(id) : next.delete(id)
+
+			return next
+		})
+
+	// `name`/`email` infer a text editor and `active` a yes/no listbox from their
+	// value type; `role` overrides with a listbox slot. The pencil swaps the whole
+	// row into edit mode (every cell becomes an editor); the check saves the row's
+	// edits together.
+	const columns: GridColumn<Person>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+		{
+			id: 'role',
+			title: 'Role',
+			field: 'role',
+			cell: (row) => row.role,
+			editCell: (ctx) => (
+				<CellListbox
+					value={String(ctx.value ?? '')}
+					options={roleOptions}
+					onValueUpdate={ctx.onValueUpdate}
+					ariaLabel={ctx.ariaLabel}
+				/>
+			),
+		},
+		{
+			id: 'active',
+			title: 'Active',
+			field: 'active',
+			cell: (row) => (
+				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
+			),
+		},
+		{
+			id: 'actions',
+			actions: (row) =>
+				editing.has(row.id) ? (
+					<Button
+						variant="bare"
+						color="green"
+						aria-label="Save row"
+						onClick={() => setRowEditing(row.id, false)}
+					>
+						<Icon icon={<Check />} />
+					</Button>
+				) : (
+					<Flex gap="sm">
+						<Button
+							variant="bare"
+							color="blue"
+							aria-label="Edit row"
+							onClick={() => setRowEditing(row.id, true)}
+						>
+							<Icon icon={<Pencil />} />
+						</Button>
+						<Button
+							variant="bare"
+							color="red"
+							aria-label="Delete row"
+							onClick={() => setPeople((prev) => prev.filter((p) => p.id !== row.id))}
+						>
+							<Icon icon={<Trash2 />} />
+						</Button>
+					</Flex>
+				),
+		},
+	]
 
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Double-click, press Enter or Space, or start typing to edit a cell. Press Enter or click
-				away to save, Escape to cancel.
+				Click the pencil to edit a row: every cell becomes an editor at once. Make your changes,
+				then click the check to save them together. Escape reverts a cell.
 			</EditHelp>
 			<Grid
-				editable
-				outline
 				columns={columns}
-				rows={rates}
+				rows={people}
 				getKey={(row) => row.id}
-				onValueChange={(changes) => setRates((prev) => applyChanges(prev, changes))}
+				editable={{
+					rows: editing,
+					onRowsChange: setEditing,
+					onValueChange: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
 			/>
 		</>
 	)
 }
 
+type Task = {
+	id: number
+	title: string
+	status: string
+	due: string
+	done: boolean
+	budget: number
+}
+
+const initialTasks: Task[] = [
+	{
+		id: 1,
+		title: 'Fix login redirect',
+		status: 'in-progress',
+		due: '2026-01-15',
+		done: false,
+		budget: 1200,
+	},
+	{ id: 2, title: 'Add dark mode', status: 'todo', due: '2026-03-01', done: false, budget: 800 },
+	{ id: 3, title: 'Write API docs', status: 'done', due: '2026-02-10', done: true, budget: 500 },
+]
+
+const statusOptions = [
+	{ label: 'Todo', value: 'todo' },
+	{ label: 'In progress', value: 'in-progress' },
+	{ label: 'Done', value: 'done' },
+]
+
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
+export function EditorTypesExample() {
+	const [tasks, setTasks] = useState<Task[]>(initialTasks)
+
+	// Every row is editable here so each editor type shows at once. `title` infers
+	// a text editor and `done` a yes/no listbox; `status`, `due`, and `budget`
+	// override with listbox, date, and currency slots.
+	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [tasks])
+
+	const columns: GridColumn<Task>[] = [
+		{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
+		{
+			id: 'status',
+			title: 'Status',
+			field: 'status',
+			cell: (row) =>
+				statusOptions.find((option) => option.value === row.status)?.label ?? row.status,
+			editCell: (ctx) => (
+				<CellListbox
+					value={String(ctx.value ?? '')}
+					options={statusOptions}
+					onValueUpdate={ctx.onValueUpdate}
+					ariaLabel={ctx.ariaLabel}
+				/>
+			),
+		},
+		{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due, editCell: CellDate },
+		{
+			id: 'budget',
+			title: 'Budget',
+			field: 'budget',
+			cell: (row) => money.format(row.budget),
+			editCell: CellCurrency,
+		},
+		{
+			id: 'done',
+			title: 'Done',
+			field: 'done',
+			cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
+		},
+	]
+
+	return (
+		<>
+			<EditHelp label="Editor types help">
+				Title is a text cell and Done a yes/no listbox, inferred from the value type; Status, Due,
+				and Budget edit through listbox, date-picker, and currency slots.
+			</EditHelp>
+			<Grid
+				columns={columns}
+				rows={tasks}
+				getKey={(row) => row.id}
+				editable={{
+					rows: editing,
+					onValueChange: (changes) => setTasks((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
+type LaneRate = { id: number; state: string; perMile: number; minCharge: number; fuelPct: number }
+
+const initialRates: LaneRate[] = [
+	{ id: 1, state: 'CA', perMile: 2.35, minCharge: 250, fuelPct: 28 },
+	{ id: 2, state: 'NV', perMile: 2.2, minCharge: 225, fuelPct: 26 },
+	{ id: 3, state: 'AZ', perMile: 2.1, minCharge: 210, fuelPct: 25 },
+	{ id: 4, state: 'OR', perMile: 2.3, minCharge: 240, fuelPct: 27 },
+	{ id: 5, state: 'WA', perMile: 2.4, minCharge: 255, fuelPct: 28 },
+	{ id: 6, state: 'TX', perMile: 2.15, minCharge: 215, fuelPct: 26 },
+]
+
+// CurrencyInput doesn't bind to Form via `name` like NumberInput does; this
+// wrapper bridges it for the bulk-edit dialog.
+function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: string }) {
+	const field = useFormField(name)
+
+	return (
+		<CurrencyInput
+			placeholder={placeholder}
+			value={(field?.value as number | undefined) ?? null}
+			onValueChange={(v) => field?.setValue(v)}
+		/>
+	)
+}
+
+const bulkColumns: GridColumn<LaneRate>[] = [
+	{ id: 'select', selectable: true },
+	{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
+	{ id: 'perMile', title: 'Per-mile', cell: (row) => money.format(row.perMile) },
+	{ id: 'minCharge', title: 'Min charge', cell: (row) => money.format(row.minCharge) },
+	{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
+]
+
 export function BulkEditExample() {
-	const [bulkRates, setBulkRates] = useState<LaneRate[]>(initialRates)
+	const [rates, setRates] = useState<LaneRate[]>(initialRates)
 
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
 	const [editOpen, setEditOpen] = useState(false)
 
-	const hasChanges = useMemo(() => {
-		if (!selection.size) return false
-
-		for (const row of bulkRates) {
-			if (selection.has(row.id)) {
-				const original = initialRates.find((r) => r.id === row.id)
-
-				if (
-					original &&
-					(row.perMile !== original.perMile ||
-						row.minCharge !== original.minCharge ||
-						row.fuelPct !== original.fuelPct)
-				) {
-					return true
-				}
-			}
-		}
-
-		return false
-	}, [bulkRates, selection])
-
 	const applyBulkEdit = (patch: Partial<Pick<LaneRate, 'perMile' | 'minCharge' | 'fuelPct'>>) => {
-		if (!Object.keys(patch).length) {
-			setEditOpen(false)
-
-			return
+		if (Object.keys(patch).length) {
+			setRates((prev) => prev.map((row) => (selection.has(row.id) ? { ...row, ...patch } : row)))
 		}
-
-		setBulkRates((prev) => prev.map((row) => (selection.has(row.id) ? { ...row, ...patch } : row)))
 
 		setEditOpen(false)
 	}
@@ -211,22 +402,20 @@ export function BulkEditExample() {
 
 		const [onlyId] = selection
 
-		const row = bulkRates.find((r) => r.id === onlyId)
+		const row = rates.find((r) => r.id === onlyId)
 
 		return row ? { perMile: row.perMile, minCharge: row.minCharge, fuelPct: row.fuelPct } : empty
-	}, [bulkRates, selection])
+	}, [rates, selection])
 
 	return (
 		<>
 			<EditHelp label="Bulk edit help">
-				Select multiple rows using the checkboxes, then edit a cell to apply that change to every
-				selected row.
+				Select rows with the checkboxes, then choose Edit selected to apply one change across every
+				selected row at once through a dialog.
 			</EditHelp>
 			<Grid
-				editable
-				outline
 				columns={bulkColumns}
-				rows={bulkRates}
+				rows={rates}
 				getKey={(row) => row.id}
 				selection={{
 					value: selection,
@@ -239,29 +428,9 @@ export function BulkEditExample() {
 							<Button variant="soft" color="blue" onClick={() => setEditOpen(true)}>
 								Edit selected ({selection.size})
 							</Button>
-							{hasChanges && (
-								<HoldButton
-									color="red"
-									variant="soft"
-									onComplete={() => {
-										setBulkRates((prev) =>
-											prev.map((row) => {
-												if (!selection.has(row.id)) return row
-
-												const original = initialRates.find((r) => r.id === row.id)
-
-												return original ?? row
-											}),
-										)
-									}}
-								>
-									Reset selected
-								</HoldButton>
-							)}
 						</Flex>
 					),
 				}}
-				onValueChange={(changes) => setBulkRates((prev) => applyChanges(prev, changes))}
 			/>
 			<Dialog open={editOpen} onOpenChange={setEditOpen}>
 				<DialogHeader>

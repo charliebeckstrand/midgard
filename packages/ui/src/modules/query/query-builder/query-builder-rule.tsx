@@ -17,16 +17,22 @@ import type { QueryRule } from './types'
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
 	rule: QueryRule
+	/**
+	 * Whether this rule shows its remove control. The enclosing group passes
+	 * `false` for the sole remaining rule under `requireRule`, so the query keeps
+	 * at least one rule. @defaultValue true
+	 */
+	removable?: boolean
 	className?: string
 }
 
 /**
  * Renders one query rule: field and operator {@link Select}s plus a type-aware
- * value input (suppressed for `noValue` operators) and a remove button.
- * Changing the field resets the operator and value. Memoized.
+ * value input (suppressed for `noValue` operators) and, when `removable`, a
+ * remove button. Changing the field resets the operator and value. Memoized.
  */
-function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
-	const { fields, getField, disabled } = useQueryBuilderState()
+function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
+	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
 
 	const { updateRule, remove } = useQueryBuilderActions()
 
@@ -55,9 +61,21 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 
 	const onOperatorChange = useCallback(
 		(v: string | undefined) => {
-			if (v) updateRule(rule.id, { operator: v })
+			if (!v) return
+
+			// Switching between a scalar and a range operator changes the value's
+			// shape, so reset to the matching empty value; staying on the same arity
+			// keeps the current value.
+			const nextRange = operators.find((o) => o.value === v)?.range ?? false
+
+			const patch =
+				nextRange !== (selectedOperator?.range ?? false)
+					? { operator: v, value: nextRange ? ['', ''] : '' }
+					: { operator: v }
+
+			updateRule(rule.id, patch)
 		},
-		[rule.id, updateRule],
+		[rule.id, updateRule, operators, selectedOperator],
 	)
 
 	const onValueChange = useCallback(
@@ -82,20 +100,22 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 	return (
 		<Flex data-slot="query-rule" gap="sm" full className={cn(k.rule, className)}>
 			<Flex flex="1" gap="sm" direction={{ initial: 'col', sm: 'row' }}>
-				<Select
-					value={rule.field}
-					displayValue={displayField}
-					onValueChange={onFieldChange}
-					placeholder="Field"
-					aria-label="Field"
-					className="w-full"
-				>
-					{fields.map((f) => (
-						<ListboxOption key={f.name} value={f.name}>
-							{f.label}
-						</ListboxOption>
-					))}
-				</Select>
+				{!hideFieldSelector && (
+					<Select
+						value={rule.field}
+						displayValue={displayField}
+						onValueChange={onFieldChange}
+						placeholder="Field"
+						aria-label="Field"
+						className="w-full"
+					>
+						{fields.map((f) => (
+							<ListboxOption key={f.name} value={f.name}>
+								{f.label}
+							</ListboxOption>
+						))}
+					</Select>
+				)}
 
 				<Select
 					value={rule.operator}
@@ -117,22 +137,25 @@ function QueryBuilderRuleImpl({ rule, className }: QueryBuilderRuleProps) {
 						field={field}
 						value={rule.value}
 						onValueChange={onValueChange}
+						range={selectedOperator?.range}
 						className="w-full"
 					/>
 				)}
 			</Flex>
 
-			<Button
-				ref={removeRef}
-				variant="bare"
-				color="red"
-				aria-label="Remove rule"
-				disabled={disabled}
-				className={k.rowRemove}
-				onClick={onRemove}
-			>
-				<Icon icon={<Trash />} />
-			</Button>
+			{removable && (
+				<Button
+					ref={removeRef}
+					variant="bare"
+					color="red"
+					aria-label="Remove rule"
+					disabled={disabled}
+					className={k.rowRemove}
+					onClick={onRemove}
+				>
+					<Icon icon={<Trash />} />
+				</Button>
+			)}
 		</Flex>
 	)
 }
