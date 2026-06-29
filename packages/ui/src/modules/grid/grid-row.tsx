@@ -15,6 +15,7 @@ import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
+import { isFrozen } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
@@ -378,7 +379,7 @@ function GridDataCellImpl<T>({
 			rawContent
 		)
 
-	if (reorderable && !col.pinned) {
+	if (reorderable && !isFrozen(col)) {
 		return (
 			<GridReorderableCell
 				id={col.id}

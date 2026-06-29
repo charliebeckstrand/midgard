@@ -1032,6 +1032,7 @@ export function GridData<T>({
 						onOrderChange={setColumnOrder}
 						hidden={hiddenColumns}
 						onHiddenChange={setHiddenColumns}
+						onPinChange={pinColumn}
 						onSavePreset={columnManagerConfig?.onSavePreset}
 					/>
 				)}

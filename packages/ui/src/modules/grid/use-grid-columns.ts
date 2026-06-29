@@ -3,14 +3,16 @@
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
+import { isFrozen, normalizeFreeze } from './grid-pin-overrides'
 import { applyColumnReorder } from './grid-reorder'
 import type { GridColumn, GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /**
  * The engine's `columnVisibility` state ({ id: false }) for the hidden columns —
- * only hideable ones, so non-data and pinned columns are never marked hidden
- * (they always show). Columns absent from the map default to visible.
+ * only hideable ones, so non-data and frozen (pinned or locked) columns are
+ * never marked hidden (they always show). Columns absent from the map default to
+ * visible.
  *
  * @internal
  */
@@ -23,7 +25,7 @@ function toColumnVisibility<T>(
 	for (const id of hiddenColumns) {
 		const col = columnById.get(id)
 
-		if (col && isDataColumn(col) && !col.pinned) visibility[String(id)] = false
+		if (col && isDataColumn(col) && !isFrozen(col)) visibility[String(id)] = false
 	}
 
 	return visibility
@@ -85,15 +87,15 @@ export function useGridColumns<T>({
 	})
 
 	// A header drag only permutes the columns shown with a handle — visible,
-	// non-pinned data columns — so the splice predicate matches that exact set
-	// and holds every other id (selection/actions/pinned/hidden) in place.
+	// non-frozen data columns — so the splice predicate matches that exact set and
+	// holds every other id (selection/actions/pinned/locked/hidden) in place.
 	const reorderColumns = useCallback(
 		(reorderedIds: (string | number)[]) => {
 			setColumnOrder(
 				applyColumnReorder(columnOrder, reorderedIds, (id) => {
 					const col = columnById.get(id)
 
-					return !!col && isDataColumn(col) && !col.pinned && !hiddenColumns.has(id)
+					return !!col && isDataColumn(col) && !isFrozen(col) && !hiddenColumns.has(id)
 				}),
 			)
 		},
@@ -110,8 +112,11 @@ export function useGridColumns<T>({
 			columns.filter(isDataColumn).map((c) => ({
 				id: c.id,
 				title: c.title ?? String(c.id),
-				// Either edge reads as pinned; omitted (not `false`) when the column scrolls.
-				pinned: c.pinned ? true : undefined,
+				// The current pin edge (after any runtime override) and the immutable
+				// lock edge, each normalized to a side or omitted when absent. The
+				// manager places by `locked ?? pinned` and disables the control when locked.
+				pinned: normalizeFreeze(c.pinned),
+				locked: normalizeFreeze(c.locked),
 				hideable: c.hideable,
 			})),
 		[columns],

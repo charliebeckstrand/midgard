@@ -163,6 +163,72 @@ describe('Grid column pinning', () => {
 		expect(head?.className).toContain('dark:lg:bg-zinc-900')
 	})
 
+	it('borders a frozen column on the edge facing the scroll, riding the sticky cell', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The border is a 2px `::after` overlay (`after:w-0.5`) on the sticky cell, not
+		// a CSS border — a collapsed cell border would scroll away with the overflow.
+		// Left-frozen (pinned): on the right edge, header and body.
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(headCell(container, 'name')?.classList.contains('after:w-0.5')).toBe(true)
+
+		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+
+		// Right-frozen (locked): on the left edge.
+		expect(headCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
+
+		expect(dataCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
+
+		// A scrolling column carries no edge overlay.
+		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(false)
+
+		expect(headCell(container, 'email')?.classList.contains('after:left-0')).toBe(false)
+	})
+
+	it('borders only the innermost column of a combined pinned + locked group', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'left' },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Two left-frozen columns — Name locked, Email pinned. Only the innermost
+		// (Email, at the scroll boundary) carries the edge border; the outer Name does
+		// not, so the group shows one rule rather than a divider per column.
+		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(dataCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+
+		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+	})
+
+	it('borders the boundary column, not the auto-frozen selection column ahead of it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Selection freezes far-left ahead of Name, but only Name (the inner boundary)
+		// carries the edge border — the selection column behind it does not.
+		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+
+		expect(container.querySelector('thead th')?.classList.contains('after:right-0')).toBe(false)
+	})
+
 	it('carries no sticky chrome when no column is pinned', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
@@ -262,5 +328,97 @@ describe('Grid column pinning', () => {
 		expect(head?.className).not.toContain('sticky')
 
 		expect(head?.style.left).toBe('')
+	})
+
+	it('isolates the grid stacking context so its frozen header stays scoped within it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The grid root carries `isolation: isolate` so its `z-20` frozen header
+		// can't leak past a host layout's own sticky header (which also rides z-20).
+		expect(container.querySelector('[data-slot="grid"]')?.className).toContain('isolate')
+	})
+
+	it('freezes a locked column to its edge like a pinned one', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headCell(container, 'name')?.className).toContain('sticky')
+
+		expect(headCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(dataCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(headCell(container, 'status')?.className).toContain('sticky')
+
+		expect(headCell(container, 'status')?.style.right).toBe('0px')
+	})
+
+	it('shows no edge arrow in a locked column header (the boundary border marks it)', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The directional arrows live only in the column manager now; the header relies
+		// on the boundary border to mark a locked column.
+		expect(headCell(container, 'name')?.querySelector('.lucide-arrow-left-to-line')).toBeNull()
+
+		expect(headCell(container, 'status')?.querySelector('.lucide-arrow-right-to-line')).toBeNull()
+	})
+
+	it('treats locked: true as left', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: true },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(headCell(container, 'name')?.style.left).toBe('0px')
+
+		expect(headCell(container, 'name')?.style.right).toBe('')
+	})
+
+	it('gives a locked column header no unpin button while a pinned one keeps it', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'right' },
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The pinned column carries an unpin button; the locked column never does —
+		// its freeze can't be released from the grid.
+		expect(screen.getByRole('button', { name: 'Unpin Email' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Unpin Name' })).not.toBeInTheDocument()
+	})
+
+	it('does not reorder or unpin a locked column from the header', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		renderUI(<Grid reorder columns={columns} rows={rows} getKey={getKey} />)
+
+		// A locked column is excluded from drag-reorder (no grip) like a pinned one.
+		expect(screen.queryByRole('button', { name: 'Reorder Name' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reorder Email' })).toBeInTheDocument()
 	})
 })

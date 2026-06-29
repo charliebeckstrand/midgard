@@ -5,6 +5,7 @@ import { useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
+import { frozenSide } from './grid-pin-overrides'
 import type { GridColumn, GridPagination } from './types'
 
 /**
@@ -113,16 +114,17 @@ export function isQueryGroup(value: unknown): value is QueryGroupNode {
 }
 
 /**
- * Derives the engine's `columnPinning` state from each column's `pinned` flag
- * (`true` is left), plus whether any column is pinned at all.
+ * Derives the engine's `columnPinning` state from each column's effective frozen
+ * edge ({@link frozenSide} — its `locked` side, else its `pinned` side, `true`
+ * being left), plus whether any column is frozen at all.
  *
  * @remarks The selection column always leads the left edge, ahead of every
- * left-pinned data column, so the row checkboxes stay anchored to the far left
- * while the grid scrolls sideways. It is held out of the `pinned`-flag filters
- * (so an explicit flag on it can't double-list its id) and never counts toward
+ * left-frozen data column, so the row checkboxes stay anchored to the far left
+ * while the grid scrolls sideways. It is held out of the freeze filters (so an
+ * explicit flag on it can't double-list its id) and never counts toward
  * `hasPinned` — that gate stays driven by the data columns, so a grid with
- * nothing pinned keeps the selection column inline (no sticky offset or boundary
- * shadow); the freeze only resolves once a data column is pinned.
+ * nothing frozen keeps the selection column inline (no sticky offset or boundary
+ * shadow); the freeze only resolves once a data column is pinned or locked.
  *
  * @internal
  */
@@ -133,11 +135,11 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	const select = columns.filter((col) => col.selectable).map((col) => String(col.id))
 
 	const left = columns
-		.filter((col) => !col.selectable && (col.pinned === true || col.pinned === 'left'))
+		.filter((col) => !col.selectable && frozenSide(col) === 'left')
 		.map((col) => String(col.id))
 
 	const right = columns
-		.filter((col) => !col.selectable && col.pinned === 'right')
+		.filter((col) => !col.selectable && frozenSide(col) === 'right')
 		.map((col) => String(col.id))
 
 	return {
