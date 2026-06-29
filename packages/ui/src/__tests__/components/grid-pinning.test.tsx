@@ -297,6 +297,24 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'status')?.style.right).toBe('0px')
 	})
 
+	it('marks a locked column header with a directional edge arrow per side', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, locked: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The locked indicator is a directional arrow pointing to the frozen edge
+		// (not a lock glyph): left → ArrowLeftToLine, right → ArrowRightToLine.
+		expect(headCell(container, 'name')?.querySelector('.lucide-arrow-left-to-line')).not.toBeNull()
+
+		expect(
+			headCell(container, 'status')?.querySelector('.lucide-arrow-right-to-line'),
+		).not.toBeNull()
+	})
+
 	it('treats locked: true as left', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: true },

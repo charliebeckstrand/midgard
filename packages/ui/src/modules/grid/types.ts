@@ -159,7 +159,7 @@ export type GridColumn<T> = {
 	/**
 	 * Freezes the column to an edge like {@link GridColumn.pinned}, but the user
 	 * can't release it: no unpin button on its header, no Pin / Unpin items in its
-	 * context menu, and a non-interactive lock icon (rather than a pin control) in
+	 * context menu, and a non-interactive edge arrow (rather than a pin control) in
 	 * the column manager. `'left'` / `'right'` pick the edge; `true` is `'left'`. It
 	 * still lists in the column manager's matching pinned group — left columns
 	 * prepended, right appended — and is excluded from reorder and hide like a
@@ -191,7 +191,7 @@ export type GridColumnManagerItem = {
 	/**
 	 * The edge the column is locked to, or `undefined` when it isn't locked. A
 	 * locked column is frozen like {@link GridColumnManagerItem.pinned} but the
-	 * manager shows a non-interactive lock icon for it instead of a pin control, so
+	 * manager shows a non-interactive edge arrow for it instead of a pin control, so
 	 * the user can't release it.
 	 */
 	locked?: 'left' | 'right'

@@ -1,7 +1,14 @@
 'use client'
 
 import { useSortable } from '@dnd-kit/sortable'
-import { ArrowDown, ArrowUp, GripVertical, Lock, Pin } from 'lucide-react'
+import {
+	ArrowDown,
+	ArrowLeftToLine,
+	ArrowRightToLine,
+	ArrowUp,
+	GripVertical,
+	Pin,
+} from 'lucide-react'
 import {
 	type KeyboardEvent,
 	memo,
@@ -238,8 +245,8 @@ function GridHeaderCell<T>({
 		pinning,
 		// Unpins a column; backs the pin button a (non-locked) frozen header shows.
 		pinColumn,
-		// A locked column is frozen but immutable: its header shows a static lock
-		// icon rather than an unpin button.
+		// A locked column is frozen but immutable: its header shows a static edge
+		// arrow (pointing to the frozen edge) rather than an unpin button.
 		locked: isLocked(column),
 	}
 
@@ -286,7 +293,7 @@ type GridColumnHeaderProps = {
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
-	/** Whether this column is locked (frozen but immutable); its header shows a static lock icon, not an unpin button. */
+	/** Whether this column is locked (frozen but immutable); its header shows a static edge arrow, not an unpin button. */
 	locked: boolean
 }
 
@@ -520,7 +527,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 
 	// This column's frozen edge (read live from the engine), or `undefined` when it
 	// scrolls; a frozen header leads its title with a pin indicator (an unpin button
-	// when pinned, a static lock icon when locked).
+	// when pinned, a static edge arrow when locked).
 	const pinnedSide = pinning?.side(column.id)
 
 	const label = (
@@ -557,10 +564,10 @@ const GridColumnHeader = memo(function GridColumnHeader({
 				{pinnedSide ? (
 					<span className={cn(k.head.pinned.label)}>
 						{locked ? (
-							// Locked: a static lock glyph in place of the unpin button — the
+							// Locked: a static edge arrow pointing to the frozen edge, in place of the unpin button — the
 							// freeze is immutable, so there's no control to release it.
 							<span aria-hidden="true" className={cn(k.head.pinned.lock)}>
-								<Icon icon={<Lock />} />
+								<Icon icon={pinnedSide === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />} />
 							</span>
 						) : (
 							<button

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeftToLine, ArrowRightToLine, Lock, Pin, PinOff } from 'lucide-react'
+import { ArrowLeftToLine, ArrowRightToLine, Pin, PinOff } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
@@ -34,7 +34,7 @@ export type GridColumnManagerProps = {
 	/**
 	 * Pins a column to an edge, or unpins it with `false`. Its presence turns each
 	 * column's pin indicator into an interactive control: a menu offering Pin left /
-	 * Pin right / Unpin on the scrolling and pinned columns, and a static lock icon
+	 * Pin right / Unpin on the scrolling and pinned columns, and a static edge arrow
 	 * on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only view
 	 * where frozen columns still list in their groups but can't be moved.
 	 */
@@ -121,7 +121,7 @@ function GridColumnPinControl({
 
 /**
  * Leading slot for a frozen row, aligned to where a scrolling row's drag grip
- * sits. A locked column gets a static lock glyph (its freeze is immutable); a
+ * sits. A locked column gets a static edge arrow (its freeze is immutable); a
  * pinned column gets the interactive {@link GridColumnPinControl}; and, when no
  * `onPinChange` handler is supplied, a non-interactive pin indicator.
  *
@@ -132,7 +132,7 @@ function frozenLeading(item: GridColumnManagerItem, onPinChange: PinChange | und
 		return (
 			<span className={cn(k.lead)}>
 				<span aria-hidden="true" className={cn(k.icon)}>
-					<Icon icon={<Lock />} />
+					<Icon icon={item.locked === 'right' ? <ArrowRightToLine /> : <ArrowLeftToLine />} />
 				</span>
 			</span>
 		)
@@ -169,7 +169,7 @@ type GridColumnManagerFrozenGroupProps = {
 /**
  * One fixed group of frozen columns — the prepended left group or the appended
  * right group. Each row is checked and disabled (a frozen column always shows
- * and can't be hidden or reordered), led by its pin control or lock glyph.
+ * and can't be hidden or reordered), led by its pin control or edge arrow.
  *
  * @internal
  */
@@ -207,7 +207,7 @@ function GridColumnManagerFrozenGroup({
  * prepended, right-pinned appended — each checked and disabled. With
  * `onPinChange`, every column's pin indicator becomes an interactive control:
  * Pin left / Pin right / Unpin on the scrolling and pinned columns, a static
- * lock icon on {@link GridColumnManagerItem.locked} ones. Columns with
+ * edge arrow on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
  * button captures the current order and hidden ids as a
  * {@link GridColumnManagerPreset}. Order and hidden set are each controllable.

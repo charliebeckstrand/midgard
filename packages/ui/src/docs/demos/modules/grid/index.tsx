@@ -271,12 +271,32 @@ const employeeColumns: GridColumn<Employee>[] = [
 ]
 
 // `locked` freezes a column like `pinned`, but the user can't release it: no unpin
-// button on its header, no pin items in its context menu, and a static lock icon
-// (rather than a pin control) in the column manager. Here Name is locked to the
-// left, while Status stays user-pinnable on the right — open the column manager to
-// see the lock on Name and the pin control on the others.
-const lockedColumns: GridColumn<Employee>[] = employeeColumns.map((col) =>
+// button on its header, no pin items in its context menu, and a static edge arrow
+// (pointing to the frozen edge, rather than a pin control) in the column manager.
+// The three sets below share `employeeColumns` and vary only which edges are
+// locked — left only, left alongside a user-pinned right, and both edges.
+
+// Name locked to the left, with nothing else frozen.
+const lockedLeftColumns: GridColumn<Employee>[] = employeeColumns.map((col) =>
+	col.id === 'name'
+		? { ...col, pinned: undefined, locked: 'left' }
+		: col.id === 'status'
+			? { ...col, pinned: undefined }
+			: col,
+)
+
+// Name locked to the left (immutable) while Status stays user-pinned to the right.
+const lockedMixedColumns: GridColumn<Employee>[] = employeeColumns.map((col) =>
 	col.id === 'name' ? { ...col, pinned: undefined, locked: 'left' } : col,
+)
+
+// Both edges locked — Name to the left, Status to the right — neither releasable.
+const lockedBothColumns: GridColumn<Employee>[] = employeeColumns.map((col) =>
+	col.id === 'name'
+		? { ...col, pinned: undefined, locked: 'left' }
+		: col.id === 'status'
+			? { ...col, pinned: undefined, locked: 'right' }
+			: col,
 )
 
 function DefaultExample() {
@@ -538,16 +558,44 @@ const PinnedSelectionExample = () => {
 	)
 }
 
-const LockedExample = () => (
-	// Name is locked to the left — frozen with no unpin affordance anywhere — while
-	// Status stays user-pinnable on the right. Open the column manager (the toolbar
-	// button, or right-click a header → "Manage columns") to pin/unpin columns; the
-	// locked Name shows a lock icon instead of a pin control.
+const LockedLeftExample = () => (
+	// Name is locked to the left — frozen with no unpin affordance anywhere. Its
+	// header shows an edge arrow (not a pin button), and the column manager shows
+	// the same arrow instead of a pin control; the other columns scroll past it.
 	<Grid
 		resizable
 		header={{ position: 'sticky' }}
 		maxHeight="320px"
-		columns={lockedColumns}
+		columns={lockedLeftColumns}
+		rows={employees}
+		getKey={(row) => row.id}
+		columnManager={{ toolbarButton: true }}
+	/>
+)
+
+const LockedWithPinnedExample = () => (
+	// Name is locked to the left (immutable) while Status is user-pinned to the
+	// right (the user can unpin it). Open the column manager to see the locked
+	// Name's edge arrow beside the other columns' interactive pin controls.
+	<Grid
+		resizable
+		header={{ position: 'sticky' }}
+		maxHeight="320px"
+		columns={lockedMixedColumns}
+		rows={employees}
+		getKey={(row) => row.id}
+		columnManager={{ toolbarButton: true }}
+	/>
+)
+
+const LockedBothEdgesExample = () => (
+	// Name is locked to the left and Status to the right — both frozen and
+	// immutable, so the row stays anchored on both edges while the middle scrolls.
+	<Grid
+		resizable
+		header={{ position: 'sticky' }}
+		maxHeight="320px"
+		columns={lockedBothColumns}
 		rows={employees}
 		getKey={(row) => row.id}
 		columnManager={{ toolbarButton: true }}
@@ -658,6 +706,7 @@ const tabs = [
 	'Reorder',
 	'Resize',
 	'Pin',
+	'Lock',
 	'Filters',
 	'Header',
 	'Toolbar',
@@ -780,12 +829,30 @@ export function Demo() {
 						>
 							<PinnedSelectionExample />
 						</Example>
+					</Stack>
+				</TabContent>
 
+				<TabContent value="Lock">
+					<Stack gap="xl">
 						<Example
-							title="Locked columns"
+							title="Locked left"
 							code={code`<Grid columns={[{ ...col, locked: 'left' }]} />`}
 						>
-							<LockedExample />
+							<LockedLeftExample />
+						</Example>
+
+						<Example
+							title="Locked with pinnable columns"
+							code={code`<Grid columns={[{ ...col, locked: 'left' }, { ...col, pinned: 'right' }]} />`}
+						>
+							<LockedWithPinnedExample />
+						</Example>
+
+						<Example
+							title="Locked on both edges"
+							code={code`<Grid columns={[{ ...col, locked: 'left' }, { ...col, locked: 'right' }]} />`}
+						>
+							<LockedBothEdgesExample />
 						</Example>
 					</Stack>
 				</TabContent>
