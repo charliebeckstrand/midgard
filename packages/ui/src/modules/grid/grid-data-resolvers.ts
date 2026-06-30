@@ -3,10 +3,12 @@
  * piece of the grid's configuration — a prop shorthand, the rendered-window mode,
  * the resize layout — into the resolved shape head, body, and the `<table>` read,
  * keeping that branching off {@link GridData}'s cognitive-complexity budget and
- * open to direct unit testing.
+ * open to direct unit testing. Kept a `.ts` utility module (per the filename
+ * convention); {@link resolveResizeLayout} builds its `<colgroup>` with
+ * `createElement` rather than JSX so this stays a non-component file.
  */
 
-import type { ReactNode } from 'react'
+import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core'
 import type { DensityLevel } from '../../providers/density/context'
@@ -240,12 +242,14 @@ export function resolveResizeLayout<T>(args: {
 	}
 
 	return {
-		colGroup: (
-			<colgroup>
-				{args.columns.map((col) => (
-					<col key={col.id} style={{ width: resize.getSize(col.id) }} />
-				))}
-			</colgroup>
+		// Built with `createElement` (not JSX) so this resolver collection stays a
+		// `.ts` utility module under the filename convention.
+		colGroup: createElement(
+			'colgroup',
+			null,
+			args.columns.map((col) =>
+				createElement('col', { key: col.id, style: { width: resize.getSize(col.id) } }),
+			),
 		),
 		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
 		tableWidth: resize.totalSize(),

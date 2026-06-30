@@ -1,54 +1,12 @@
-'use client'
+/**
+ * Pure builders for the grid's polite a11y announcements (WCAG 4.1.3): the sort
+ * and selection summaries {@link GridData} narrates through the shared live
+ * region when they change. Kept pure and separate from the busy-status component
+ * so the wording is unit-testable without rendering.
+ */
 
-import { useEffect, useState } from 'react'
 import type { SortState } from './context'
-import { GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
 import { columnLabel, type GridColumn } from './types'
-
-/**
- * The polite live-region message for the grid: `Loading` while loading, then —
- * after a short debounce so a fast filter/search doesn't chatter — a settled
- * row-count summary. Assistive tech hears the load start, its result, and later
- * result-count changes from filtering, search, or paging.
- *
- * @internal
- */
-export function useGridStatusMessage(loading: boolean, rowCount: number): string {
-	const [message, setMessage] = useState('')
-
-	useEffect(() => {
-		if (loading) {
-			setMessage('Loading')
-
-			return
-		}
-
-		const id = setTimeout(() => {
-			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
-		}, GRID_STATUS_DEBOUNCE_MS)
-
-		return () => clearTimeout(id)
-	}, [loading, rowCount])
-
-	return message
-}
-
-/**
- * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
- * region announcing the load start and, on completion, the result count (see
- * {@link useGridStatusMessage}).
- *
- * @internal
- */
-export function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
-	const message = useGridStatusMessage(loading, rowCount)
-
-	return (
-		<span role="status" className="sr-only">
-			{message}
-		</span>
-	)
-}
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive
