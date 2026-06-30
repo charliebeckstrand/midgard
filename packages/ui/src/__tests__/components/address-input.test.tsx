@@ -268,6 +268,35 @@ describe('AddressInput', () => {
 		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 	})
 
+	it('pulses the field while a fetch is in flight, then settles', async () => {
+		let resolve: (suggestions: AddressSuggestion[]) => void = () => {}
+
+		const provider: AddressProvider = () =>
+			new Promise<AddressSuggestion[]>((r) => {
+				resolve = r
+			})
+
+		const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
+
+		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+		const field = bySlot(container, 'address-input')
+
+		const user = userEvent.setup()
+
+		await user.type(input, '123')
+
+		await waitFor(() => {
+			expect(field).toHaveClass('animate-pulse')
+		})
+
+		resolve([{ id: '1', label: '123 Main St' }])
+
+		await waitFor(() => {
+			expect(field).not.toHaveClass('animate-pulse')
+		})
+	})
+
 	it('exports a photonProvider', () => {
 		expect(typeof photonProvider).toBe('function')
 	})
