@@ -34,6 +34,11 @@ export type GridContextValue = {
 	 * suppress their truncation tooltips for the duration: a resize reflows the
 	 * columns, and the overflow tooltip would otherwise flash open over the
 	 * content the drag is reshaping.
+	 *
+	 * @remarks The grid's own truncation surfaces read this flag through the
+	 * narrower {@link useGridResizing} instead, so a resize doesn't re-render every
+	 * cell through this table-wide value; it stays here for external `useGrid()`
+	 * consumers.
 	 */
 	resizing: boolean
 }
@@ -45,3 +50,19 @@ export type GridContextValue = {
  * @throws If called outside a `<Grid>`.
  */
 export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
+
+/**
+ * Reads whether a column drag-resize is in flight, mirroring
+ * {@link GridContextValue.resizing} on a narrower channel. The grid's truncation
+ * surfaces (head titles and body cells) read it to suppress their tooltips for
+ * the duration: a resize reflows the columns, and the overflow tooltip would
+ * otherwise flash open over the content the drag is reshaping.
+ *
+ * @remarks A dedicated context so the per-cell truncation reveal subscribes to
+ * this flag alone, not the table-wide {@link GridContextValue} — a sort or a
+ * select-all churns that value but no longer re-renders every visible truncating
+ * cell. Returns `false` outside a `<Grid>`.
+ */
+export const [GridResizingContext, useGridResizing] = createContext<boolean>('GridResizing', {
+	default: false,
+})

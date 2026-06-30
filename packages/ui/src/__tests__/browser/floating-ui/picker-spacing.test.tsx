@@ -18,7 +18,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * picker keeps it a lone DOM child. Only the real browser sees it: the jsdom
  * suite mocks the focus manager (no fallback span) and has no layout.
  */
-describe('layout stability (real browser) — portal pickers in a space-y container', () => {
+describe('layout stability (real browser): portal pickers in a space-y container', () => {
 	const cases: Array<{
 		name: string
 		element: ReactElement

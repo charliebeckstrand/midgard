@@ -64,7 +64,7 @@ export type GridNavTableProps = {
  * Resolves a movement key to the cursor's next coord (unclamped), or `null` when
  * the key doesn't move the cursor. Arrows step one cell; Home/End jump to the
  * row's edges, or the grid's first/last cell with Ctrl/Cmd (`toGrid`); PageUp/Down
- * jump {@link NAV_PAGE_STEP} rows.
+ * jump `pageStep` rows (a viewport-relative count, see {@link resolvePageStep}).
  *
  * @internal
  */
@@ -74,6 +74,7 @@ function navTarget(
 	rowCount: number,
 	colCount: number,
 	toGrid: boolean,
+	pageStep: number,
 ): Coord | null {
 	switch (key) {
 		case 'ArrowUp':
@@ -91,12 +92,34 @@ function navTarget(
 				? { row: rowCount - 1, col: colCount - 1 }
 				: { row: base.row, col: colCount - 1 }
 		case 'PageUp':
-			return { row: base.row - NAV_PAGE_STEP, col: base.col }
+			return { row: base.row - pageStep, col: base.col }
 		case 'PageDown':
-			return { row: base.row + NAV_PAGE_STEP, col: base.col }
+			return { row: base.row + pageStep, col: base.col }
 		default:
 			return null
 	}
+}
+
+/**
+ * The number of rows a PageUp/PageDown jumps: a viewport-page of rows, measured
+ * from the grid's scroll container height and a rendered row's height (one row of
+ * overlap kept for context), so a tall grid pages by what's visible rather than a
+ * fixed count. Returns {@link NAV_PAGE_STEP} for any non-page key (no layout read),
+ * and as the fallback when there is no scroll container (a fully-visible grid) or
+ * the rows can't be measured (jsdom).
+ *
+ * @internal
+ */
+function resolvePageStep(key: string, container: HTMLElement | null, table: HTMLElement): number {
+	if (key !== 'PageUp' && key !== 'PageDown') return NAV_PAGE_STEP
+
+	const viewport = container?.clientHeight ?? 0
+
+	const rowHeight = table.querySelector<HTMLElement>('tbody tr[data-grid-row]')?.offsetHeight ?? 0
+
+	if (viewport > 0 && rowHeight > 0) return Math.max(1, Math.floor(viewport / rowHeight) - 1)
+
+	return NAV_PAGE_STEP
 }
 
 /**
@@ -126,6 +149,7 @@ export function useGridNavigation({
 	selectableRef,
 	toggleActiveRow,
 	scrollRowIntoViewRef,
+	scrollContainerRef,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -140,6 +164,8 @@ export function useGridNavigation({
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
 	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
+	/** The grid's scroll container, measured for the viewport-relative PageUp/Down step; null when the grid doesn't scroll. */
+	scrollContainerRef: RefObject<HTMLElement | null>
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -288,7 +314,16 @@ export function useGridNavigation({
 			// The cursor seeds at the first cell when a key arrives before focus has.
 			const base = activeRef.current ?? { row: 0, col: 0 }
 
-			const target = navTarget(event.key, base, rowCount, colCount, event.metaKey || event.ctrlKey)
+			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
+			// (a no-op layout read for non-page keys, see `resolvePageStep`).
+			const target = navTarget(
+				event.key,
+				base,
+				rowCount,
+				colCount,
+				event.metaKey || event.ctrlKey,
+				resolvePageStep(event.key, scrollContainerRef.current, event.currentTarget),
+			)
 
 			if (target) {
 				event.preventDefault()
@@ -302,7 +337,7 @@ export function useGridNavigation({
 				setActive(null)
 			}
 		},
-		[moveTo, activateOrSelectRow, rowsRef, colCountRef],
+		[moveTo, activateOrSelectRow, rowsRef, colCountRef, scrollContainerRef],
 	)
 
 	const onFocus = useCallback(

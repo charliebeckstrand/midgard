@@ -12,7 +12,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * variable). Real pointer geometry past the activation distance, so this runs in
  * the browser suite.
  */
-describe('grid column reorder — header/body shift stay in phase (real browser)', () => {
+describe('grid column reorder: header/body shift stay in phase (real browser)', () => {
 	type Row = { id: number; a: string; b: string; c: string }
 
 	const columns: GridColumn<Row>[] = [

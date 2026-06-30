@@ -181,11 +181,11 @@ describe('useGridColumns', () => {
 		expect(result.current.managerItems[0]?.title).toBe('name')
 	})
 
-	it('propagates pinned and hideable=false metadata onto managerItems', () => {
+	it('propagates the pin side, lock side, and hideable=false metadata onto managerItems', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (r) => r.name, pinned: true },
 			{ id: 'age', title: 'Age', cell: (r) => r.age, hideable: false },
-			{ id: 'status', title: 'Status', cell: (r) => r.status },
+			{ id: 'status', title: 'Status', cell: (r) => r.status, locked: 'right' },
 		]
 
 		const { result } = renderHook(() =>
@@ -196,13 +196,48 @@ describe('useGridColumns', () => {
 
 		const byId = Object.fromEntries(items.map((m) => [m.id, m]))
 
-		expect(byId.name?.pinned).toBe(true)
+		// `pinned: true` normalizes to the 'left' side; an unpinned column omits it.
+		expect(byId.name?.pinned).toBe('left')
+
+		expect(byId.name?.locked).toBeUndefined()
 
 		expect(byId.age?.hideable).toBe(false)
+
+		// A locked column carries its lock side and no movable pin side.
+		expect(byId.status?.locked).toBe('right')
 
 		expect(byId.status?.pinned).toBeUndefined()
 
 		expect(byId.status?.hideable).toBeUndefined()
+	})
+
+	it('keeps a locked column out of the hidden map and holds it in place on reorder', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (r) => r.name, locked: 'left' },
+			{ id: 'age', title: 'Age', cell: (r) => r.age },
+			{ id: 'status', title: 'Status', cell: (r) => r.status },
+		]
+
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useGridColumns<Row>({
+				columns: cols,
+				columnOrderConfig: { onValueChange },
+				// The locked column is listed as hidden but always shows: it's excluded
+				// from the visibility map, like a pinned column.
+				columnManagerConfig: { enabled: true, defaultHidden: new Set(['name']) },
+			}),
+		)
+
+		expect(result.current.columnVisibility).toEqual({})
+
+		// A reorder of the scrolling columns holds the locked column in its slot.
+		act(() => {
+			result.current.reorderColumns(['status', 'age'])
+		})
+
+		expect(onValueChange).toHaveBeenCalledWith(['name', 'status', 'age'])
 	})
 
 	it('reflects a controlled hidden set even when defaultHidden is also supplied', () => {

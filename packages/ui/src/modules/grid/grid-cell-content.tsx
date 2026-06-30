@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGrid } from './context'
+import { useGridResizing } from './context'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -43,7 +43,8 @@ type GridCellContentProps = {
  * @internal
  */
 export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
-	const { resizing } = useGrid()
+	const resizing = useGridResizing()
+
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizeSettleKey)
 
 	const span = (

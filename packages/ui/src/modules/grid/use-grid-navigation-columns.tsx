@@ -26,6 +26,12 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
  * chrome (WCAG 2.4.11, Focus Not Obscured). Zero on every side for a grid with
  * neither, so the margin is cleared.
  *
+ * @remarks Read fresh on each activation (O(cols) `getComputedStyle`, human-paced
+ * per keystroke) rather than cached: the insets shift on any resize, pin, or
+ * density change, and a stale value would scroll the cell under the very chrome it
+ * is meant to clear (WCAG 2.4.11). A cache would need a layout-invalidation signal
+ * this hook does not have, so correctness is kept over a micro-optimization.
+ *
  * @internal
  */
 function obscuringInsets(cell: HTMLElement): { top: number; left: number; right: number } {

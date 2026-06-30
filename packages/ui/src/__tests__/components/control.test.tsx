@@ -398,7 +398,15 @@ describe('Control nesting', () => {
 })
 
 describe('Control + size', () => {
-	it.each<[string, () => ReactElement, string]>([
+	// Each case names the size the queried slot must resolve to; `baseline`
+	// renders that slot standalone at the resolved size. The cascade is correct
+	// only when the Control-driven className equals the standalone baseline, so
+	// a broken inherit (falls back to `md`) or a broken override (Control's size
+	// leaks past the local prop) makes the classNames diverge and the row fails.
+	// Distinguishing class is the `text-*` size token (sm `text-sm`, lg
+	// `text-lg`) plus density padding/radius/gap; the probe confirms each size
+	// emits a different className.
+	it.each<[string, () => ReactElement, () => ReactElement, string]>([
 		[
 			'Input inherits size from Control',
 			() => (
@@ -406,6 +414,7 @@ describe('Control + size', () => {
 					<Input />
 				</Control>
 			),
+			() => <Input size="lg" />,
 			'input',
 		],
 		[
@@ -415,6 +424,7 @@ describe('Control + size', () => {
 					<Input size="sm" />
 				</Control>
 			),
+			() => <Input size="sm" />,
 			'input',
 		],
 		[
@@ -424,6 +434,7 @@ describe('Control + size', () => {
 					<Switch />
 				</Control>
 			),
+			() => <Switch size="lg" />,
 			'switch',
 		],
 		[
@@ -435,6 +446,7 @@ describe('Control + size', () => {
 					</Control>
 				</Control>
 			),
+			() => <Input size="sm" />,
 			'input',
 		],
 		[
@@ -446,17 +458,28 @@ describe('Control + size', () => {
 					</Control>
 				</Control>
 			),
+			() => <Input size="lg" />,
 			'input',
 		],
-	])('%s', (_name, ui, slot) => {
+	])('%s', (_name, ui, baseline, slot) => {
 		const { container } = renderUI(ui())
 
-		expect(bySlot(container, slot)).toBeInTheDocument()
+		const { container: expected } = renderUI(baseline())
+
+		expect(bySlot(container, slot)?.className).toBe(bySlot(expected, slot)?.className)
 	})
 })
 
 describe('Control + variant', () => {
-	it.each<[string, () => ReactElement, string]>([
+	// Variant paints the framed surface, not the inner element: `default` adds
+	// `bg-white …` to the control-frame while `outline` leaves it ring-only
+	// (the input/textarea className is variant-invariant). Each case names the
+	// variant the frame must resolve to; `baseline` renders that element
+	// standalone at the resolved variant, and the row passes only when the
+	// Control-driven control-frame className equals it. A broken inherit (frame
+	// stays `default`) or a broken override (Control's variant leaks past the
+	// local prop) diverges the frame className and fails the row.
+	it.each<[string, () => ReactElement, () => ReactElement]>([
 		[
 			'Input inherits variant from Control',
 			() => (
@@ -464,7 +487,7 @@ describe('Control + variant', () => {
 					<Input />
 				</Control>
 			),
-			'input',
+			() => <Input variant="outline" />,
 		],
 		[
 			'Input explicit variant overrides Control variant',
@@ -473,7 +496,7 @@ describe('Control + variant', () => {
 					<Input variant="default" />
 				</Control>
 			),
-			'input',
+			() => <Input variant="default" />,
 		],
 		[
 			'Textarea inherits variant from Control',
@@ -482,11 +505,15 @@ describe('Control + variant', () => {
 					<Textarea />
 				</Control>
 			),
-			'textarea',
+			() => <Textarea variant="outline" />,
 		],
-	])('%s', (_name, ui, slot) => {
+	])('%s', (_name, ui, baseline) => {
 		const { container } = renderUI(ui())
 
-		expect(bySlot(container, slot)).toBeInTheDocument()
+		const { container: expected } = renderUI(baseline())
+
+		expect(bySlot(container, 'control-frame')?.className).toBe(
+			bySlot(expected, 'control-frame')?.className,
+		)
 	})
 })

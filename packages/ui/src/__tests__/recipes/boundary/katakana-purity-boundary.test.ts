@@ -22,7 +22,7 @@ const IMPORT_RE = /import\s+[\s\S]*?from\s+['"]([^'"]+)['"]/g
 const KISO_SPECIFIER = /(?:^|\/)kiso(?:\/|$)/
 
 describe('katakana purity boundary', () => {
-	it('katakana imports nothing from kiso — not values, not types', () => {
+	it('katakana imports nothing from kiso: not values, not types', () => {
 		const violations: string[] = []
 
 		walkSource(katakanaDir, (file, content) => {

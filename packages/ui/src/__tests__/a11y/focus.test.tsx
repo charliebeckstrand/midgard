@@ -18,7 +18,7 @@ import { focus } from './cases'
  * half of focus behaviour jsdom can observe. Each case (`cases/focus.tsx`)
  * drives the real open interaction and returns the trigger focus left.
  */
-describe('a11y focus — overlays capture focus on open', () => {
+describe('a11y focus: overlays capture focus on open', () => {
 	it.each(
 		focus,
 	)('%s moves focus off the trigger into the surface', async (_name, element, open) => {
@@ -46,7 +46,7 @@ describe('a11y focus — overlays capture focus on open', () => {
  * (`useFloatingUI`'s `restoreFocusTo`), which jsdom honours; Menu stands in
  * for that path.
  */
-describe('a11y focus — restoration (dropdown family)', () => {
+describe('a11y focus: restoration (dropdown family)', () => {
 	it('menu returns focus to its trigger on Escape', async () => {
 		const user = userEvent.setup()
 

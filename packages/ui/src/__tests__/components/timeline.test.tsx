@@ -165,7 +165,12 @@ describe('TimelineMarker', () => {
 
 		const marker = bySlot(container, 'timeline-marker')
 
-		expect(marker?.className.length).toBeGreaterThan(0)
+		// The configured palettes, not the 'zinc' defaults: the inbound rail is
+		// painted blue and the outbound rail amber. A prop-less marker emits the
+		// zinc rail classes instead, so these assertions would fail for it.
+		expect(marker?.className).toContain('before:bg-blue-600')
+
+		expect(marker?.className).toContain('after:bg-amber-600')
 	})
 
 	it('applies the color variant when no status is provided', () => {

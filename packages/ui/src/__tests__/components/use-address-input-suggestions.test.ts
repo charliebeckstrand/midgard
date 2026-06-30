@@ -166,6 +166,10 @@ describe('useAddressInputSuggestions', () => {
 		unmount()
 
 		expect(result.current.suggestions).toEqual([])
+
+		expect(result.current.loading).toBe(true)
+
+		expect(result.current.ready).toBe(false)
 	})
 
 	it('clears suggestions and marks ready when the provider rejects with a non-abort error', async () => {

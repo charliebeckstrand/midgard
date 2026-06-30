@@ -6,25 +6,38 @@ import {
 	type ComponentProps,
 	type ReactNode,
 	useCallback,
-	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
 } from 'react'
-import type { TableElementProps } from '../../components/table'
 import { Table } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { GridContext, type SortState } from './context'
+import { GridContext, GridResizingContext, type SortState } from './context'
+import {
+	describeColumnVisibility,
+	describePin,
+	describeSelection,
+	describeSort,
+} from './grid-announcements'
 import { GridBody } from './grid-body'
+import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT, GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
 import { GridContextMenu } from './grid-context-menu'
-import type { GridDataProps, GridExportConfig, GridVirtualize } from './grid-data-types'
+import {
+	resolveAriaRowCount,
+	resolveExport,
+	resolveGridSemantics,
+	resolveHover,
+	resolveResizeLayout,
+	resolveSortable,
+	resolveTableProps,
+	resolveVirtualization,
+} from './grid-data-resolvers'
+import type { GridDataProps } from './grid-data-types'
 import { downloadCsv, rowsToCsv } from './grid-export'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
@@ -47,10 +60,10 @@ import {
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
-import { GridNavContext, type GridNavTableProps, type GridRowActivate } from './use-grid-navigation'
+import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { type GridColumnResize, type GridPaginationView, useGridTable } from './use-grid-table'
+import { useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -152,168 +165,6 @@ function GridRegion<T>({
 }
 
 /**
- * Applies the grid-level `sortable` default to data columns that don't declare
- * their own: an undefined {@link GridColumn.sortable} inherits `defaultSortable`,
- * while an explicit value (and every non-data column) is left untouched.
- *
- * @internal
- */
-function resolveSortable<T>(columns: GridColumn<T>[], defaultSortable: boolean): GridColumn<T>[] {
-	return columns.map((col) =>
-		isDataColumn(col) && col.sortable === undefined ? { ...col, sortable: defaultSortable } : col,
-	)
-}
-
-/**
- * Collapses the `virtualize` prop (boolean or options object) into a resolved
- * enabled flag and sizing.
- *
- * @internal
- */
-function resolveVirtualization(virtualize: GridVirtualize | undefined): {
-	enabled: boolean
-	estimateSize: number
-	overscan: number
-} {
-	const enabled = virtualize != null && virtualize !== false
-
-	const opts = typeof virtualize === 'object' ? virtualize : null
-
-	return {
-		enabled,
-		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
-		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
-	}
-}
-
-/**
- * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
- * into resolved export settings: whether export is on, whether to render the
- * toolbar button (never when export is off), and the label and download
- * filename shared by the button and the header menu's "Export to CSV" item. The
- * boolean `true` enables export with the context-menu item alone.
- *
- * @internal
- */
-function resolveExport(exportable: boolean | GridExportConfig): {
-	enabled: boolean
-	toolbarButton: boolean
-	label: ReactNode
-	filename: string
-} {
-	const config = typeof exportable === 'object' ? exportable : { enabled: exportable }
-
-	const enabled = config.enabled ?? true
-
-	return {
-		enabled,
-		toolbarButton: enabled && (config.toolbarButton ?? false),
-		label: config.label ?? 'Export to CSV',
-		filename: config.filename ?? 'grid.csv',
-	}
-}
-
-/**
- * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
- * while loading, and the role/index scheme. The role is `grid` when the table
- * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
- * editable grid), `table` when the body is only a window onto a larger set
- * (`gridSemantics`: virtualization or pagination) with no cursor, and native
- * otherwise. A windowed body also carries the full row/column counts (valid on
- * both roles); per-cell indices come from head/row.
- *
- * @remarks `role="grid"` is withheld until a keyboard model backs it: a windowed
- * but non-navigable table stays `role="table"`, which still honors
- * `aria-rowcount`/`aria-colcount`, rather than promising cell navigation it
- * doesn't implement.
- * @internal
- */
-function resolveTableProps(args: {
-	tableProps: TableElementProps | undefined
-	/** Cursor props (tab stop, `aria-activedescendant`, key/focus handlers) under `navigable`. */
-	navTableProps: GridNavTableProps | undefined
-	loading: boolean
-	gridSemantics: boolean
-	navigable: boolean
-	ariaRowCount: number
-	colCount: number
-	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
-	multiSelectable: boolean
-	/** The body renders real data rows, not a loading/error/empty placeholder; gates the row/column counts so they never advertise a structure that isn't there. */
-	bodyHasRows: boolean
-	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
-	tableWidth: number | undefined
-}): TableElementProps {
-	const role =
-		args.tableProps?.role ?? (args.navigable ? 'grid' : args.gridSemantics ? 'table' : undefined)
-
-	return {
-		...args.tableProps,
-		...args.navTableProps,
-		// The navigable table drops its own focus outline (the active-cell ring is the
-		// indicator); merge it onto any caller className so it reaches the `<table>`.
-		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),
-		...(args.loading ? { 'aria-busy': true } : {}),
-		...(args.tableWidth != null
-			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
-			: {}),
-		...(role ? { role } : {}),
-		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
-		// when the caller named the grid through neither `tableProps` escape hatch.
-		...(role === 'grid' &&
-		args.tableProps?.['aria-label'] == null &&
-		args.tableProps?.['aria-labelledby'] == null
-			? { 'aria-label': 'Data grid' }
-			: {}),
-		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
-		// native table conveys selection through each row's `aria-selected` alone.
-		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
-		// Withheld over a loading/error/empty placeholder (a single spanning cell),
-		// which would otherwise advertise a full row/column count that isn't rendered.
-		...(args.gridSemantics && args.bodyHasRows
-			? { 'aria-rowcount': args.ariaRowCount, 'aria-colcount': args.colCount }
-			: {}),
-	}
-}
-
-/**
- * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
- * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
- * sentinel for a server feed paginating by `pageCount` alone (no known total),
- * rather than misreporting the current page as the whole set. @internal
- */
-function resolveAriaRowCount(pagination: GridPaginationView | null, renderedCount: number): number {
-	if (pagination && pagination.rowCount == null) return -1
-
-	return (pagination?.rowCount ?? renderedCount) + 1
-}
-
-/** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
-type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabel: string }
-
-/**
- * Derives grid semantics from the rendered-window mode. The body is a window
- * onto a larger set under virtualization (DOM windowing) or pagination (one page
- * of many): both need `role="grid"`, `aria-rowcount`, and a page-/window-aware
- * global row offset so assistive tech reports position in the full set. Under
- * pagination the select-all checkbox toggles only the current page, so its label
- * says so rather than overclaiming "all rows". A plain table conveys all this
- * natively and stays a table.
- *
- * @internal
- */
-function resolveGridSemantics(
-	virtualizeEnabled: boolean,
-	pagination: GridPaginationView | null,
-): GridSemantics {
-	return {
-		enabled: virtualizeEnabled || pagination != null,
-		rowOffset: pagination ? pagination.pageIndex * pagination.pageSize : 0,
-		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
-	}
-}
-
-/**
  * Stabilizes an `onRowClick` callback so the memoized rows hold across renders:
  * returns a referentially-stable handler (or `undefined` when no callback is
  * set) that reads the live callback through a ref, so an inline consumer
@@ -350,158 +201,6 @@ function bridgeRowActivate<T>(
 
 	return (row, event) =>
 		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
-}
-
-/**
- * The polite live-region message for the grid: `Loading` while loading, then —
- * after a short debounce so a fast filter/search doesn't chatter — a settled
- * row-count summary. Assistive tech hears the load start, its result, and later
- * result-count changes from filtering, search, or paging.
- *
- * @internal
- */
-function useGridStatusMessage(loading: boolean, rowCount: number): string {
-	const [message, setMessage] = useState('')
-
-	useEffect(() => {
-		if (loading) {
-			setMessage('Loading')
-
-			return
-		}
-
-		const id = setTimeout(() => {
-			setMessage(rowCount === 1 ? '1 row' : rowCount === 0 ? 'No results' : `${rowCount} rows`)
-		}, GRID_STATUS_DEBOUNCE_MS)
-
-		return () => clearTimeout(id)
-	}, [loading, rowCount])
-
-	return message
-}
-
-/**
- * Visually-hidden polite status backing the grid's `aria-busy`: a stable live
- * region announcing the load start and, on completion, the result count (see
- * {@link useGridStatusMessage}).
- *
- * @internal
- */
-function GridBusyStatus({ loading, rowCount }: { loading: boolean; rowCount: number }) {
-	const message = useGridStatusMessage(loading, rowCount)
-
-	return (
-		<span role="status" className="sr-only">
-			{message}
-		</span>
-	)
-}
-
-/**
- * The polite announcement for the grid's current sort, narrated to assistive
- * tech when it changes (WCAG 4.1.3): `Sorting cleared` when unsorted, else the
- * sorted columns by display label and direction, in priority order (`Sorted by
- * Name ascending, then Age descending`). Resolves each label from the visible
- * columns so multi-column sort priority is spoken, not just shown.
- *
- * @internal
- */
-function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
-	if (sort.length === 0) return 'Sorting cleared'
-
-	const parts = sort.map((entry) => {
-		const column = columns.find((candidate) => candidate.id === entry.column)
-
-		const name = column ? columnLabel(column) : String(entry.column)
-
-		return `${name} ${entry.direction === 'asc' ? 'ascending' : 'descending'}`
-	})
-
-	return `Sorted by ${parts.join(', then ')}`
-}
-
-/**
- * The polite announcement for the row selection, narrated when it changes (WCAG
- * 4.1.3): `All rows selected` — or `All rows on this page selected` when
- * paginated, since the select-all is page-scoped and the label says as much —
- * `Selection cleared`, or the running count (`3 rows selected`). The caller
- * gates announcing on a selection column being present, so a non-selectable grid
- * stays silent.
- *
- * @internal
- */
-function describeSelection(size: number, allSelected: boolean, onPage: boolean): string {
-	if (allSelected) return onPage ? 'All rows on this page selected' : 'All rows selected'
-
-	if (size === 0) return 'Selection cleared'
-
-	return `${size} ${size === 1 ? 'row' : 'rows'} selected`
-}
-
-/**
- * Whether the grid paints the shared {@link Table} `hover` wash: when the
- * consumer opts in with `hover`, or implicitly for a clickable grid
- * (`onRowClick`), whose rows then read as actionable — but never through a
- * column drag-resize (`resizing`), so the row under the pointer doesn't light
- * up mid-drag (matching the truncation tooltips' `!resizing` gate). Pulled out
- * of {@link GridData} so the boolean logic stays off its cognitive-complexity
- * budget.
- *
- * @internal
- */
-function resolveHover<T>(
-	hover: boolean | undefined,
-	onRowClick: GridRowClick<T> | undefined,
-	resizing: boolean,
-): boolean {
-	return (hover === true || onRowClick != null) && !resizing
-}
-
-/**
- * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
- * the `table-fixed` + trailing-padding class, the total table width — so a resize
- * touches only its own column — and `resizing`, whether a pointer drag-resize is
- * in flight (the wrapper flags it to paint the resize cursor grid-wide and drop
- * the hover wash). Inert (no colgroup, no width, not resizing) when the grid is
- * not resizable. Split out of {@link GridData} for its cognitive-complexity budget.
- *
- * @internal
- */
-function resolveResizeLayout<T>(args: {
-	resizable: boolean
-	resize: GridColumnResize | null
-	columns: GridColumn<T>[]
-	density: DensityLevel | undefined
-	className: string | undefined
-}): {
-	colGroup: ReactNode
-	tableClassName: string
-	tableWidth: number | undefined
-	resizing: boolean
-} {
-	const { resize } = args
-
-	if (!args.resizable || !resize) {
-		return {
-			colGroup: null,
-			tableClassName: cn(args.className),
-			tableWidth: undefined,
-			resizing: false,
-		}
-	}
-
-	return {
-		colGroup: (
-			<colgroup>
-				{args.columns.map((col) => (
-					<col key={col.id} style={{ width: resize.getSize(col.id) }} />
-				))}
-			</colgroup>
-		),
-		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
-		tableWidth: resize.totalSize(),
-		resizing: resize.isResizingAny(),
-	}
 }
 
 /**
@@ -576,6 +275,17 @@ export function GridData<T>({
 		[resolvedColumns, pinOverrides],
 	)
 
+	// Resolves a column's display label at call time, read by the `[]`-stable
+	// `pinColumn` and the visibility handler so they can narrate the change without
+	// closing over (and re-creating on) the columns.
+	const columnLabelRef = useRef<(id: string | number) => string>(() => '')
+
+	columnLabelRef.current = (id) => {
+		const column = pinnedColumns.find((candidate) => candidate.id === id)
+
+		return column ? columnLabel(column) : String(id)
+	}
+
 	const pinColumn = useCallback((id: string | number, side: PinSide | false) => {
 		setPinOverrides((prev) => {
 			const next = new Map(prev)
@@ -584,6 +294,9 @@ export function GridData<T>({
 
 			return next
 		})
+
+		// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
+		announce(describePin(columnLabelRef.current(id), side))
 	}, [])
 
 	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
@@ -621,6 +334,10 @@ export function GridData<T>({
 	// `aria-activedescendant` at it.
 	const scrollRowIntoViewRef = useRef<GridScrollRowIntoView | null>(null)
 
+	// The grid's scroll container (sticky/virtualized), attached below; the cursor
+	// measures it for the viewport-relative PageUp/Down step.
+	const scrollRef = useRef<HTMLDivElement>(null)
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -639,6 +356,7 @@ export function GridData<T>({
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
+		scrollContainerRef: scrollRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -667,6 +385,30 @@ export function GridData<T>({
 		reorderColumns,
 		managerItems,
 	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
+
+	// Narrate column show/hide from the manager (WCAG 4.1.3): the incoming hidden
+	// set is concrete (the visibility hook resolves the manager's updater first), so
+	// diff it against the current one to name the column the toggle moved.
+	const hiddenColumnsRef = useRef(hiddenColumns)
+
+	hiddenColumnsRef.current = hiddenColumns
+
+	const handleHiddenChange = useCallback(
+		(next: Set<string | number>) => {
+			const prev = hiddenColumnsRef.current
+
+			for (const id of next) {
+				if (!prev.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), true))
+			}
+
+			for (const id of prev) {
+				if (!next.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), false))
+			}
+
+			setHiddenColumns(next)
+		},
+		[setHiddenColumns],
+	)
 
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
@@ -842,6 +584,10 @@ export function GridData<T>({
 	// cells hold frame-to-frame (see `useColumnSettleWidths`).
 	const settleWidths = useColumnSettleWidths(visibleColumns, resize, resizing)
 
+	// `resizing` stays on this table-wide value for external `useGrid()` consumers,
+	// but the grid's own truncating head/cells read it through the narrower
+	// `GridResizingContext` (below) — so a sort or select-all, which churns this
+	// value, no longer re-renders every visible truncating cell.
 	const context = useMemo(
 		() => ({
 			toggleRow,
@@ -897,8 +643,6 @@ export function GridData<T>({
 		reorderColumns,
 	})
 
-	const scrollRef = useRef<HTMLDivElement>(null)
-
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
@@ -913,7 +657,7 @@ export function GridData<T>({
 		enabled: gridSemantics,
 		rowOffset: pageRowOffset,
 		selectAllLabel,
-	} = resolveGridSemantics(virtualizeEnabled, pagination)
+	} = resolveGridSemantics(virtualizeEnabled, pagination, navigable)
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
@@ -1011,69 +755,72 @@ export function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div
-				ref={wrapperRef}
-				data-slot="grid"
-				// Flags an in-flight column drag-resize so the grid paints the resize
-				// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-				// `resizing` context flag to drop their hover wash and truncation tooltips.
-				data-resizing={dataAttr(resizing)}
-				className={cn(k.wrapper)}
-			>
-				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
-
-				{renderDialog && (
-					<GridColumnManagerDialog
-						open={columnManagerOpen}
-						onOpenChange={setColumnManagerOpen}
-						label={managerLabel}
-						columns={managerItems}
-						order={columnOrder}
-						onOrderChange={setColumnOrder}
-						hidden={hiddenColumns}
-						onHiddenChange={setHiddenColumns}
-						onSavePreset={columnManagerConfig?.onSavePreset}
-					/>
-				)}
-
-				<GridToolbar
-					filter={globalFilter}
-					showColumnManager={showButton}
-					columnManagerLabel={managerLabel}
-					onManageColumns={() => setColumnManagerOpen(true)}
-					showExport={exportToolbarButton}
-					exportLabel={exportLabel}
-					onExport={exportCsv}
-					batchActions={batchActions}
-					hasSelection={someSelected}
-					selection={selection}
-					setSelection={setSelection}
-				/>
-
-				<GridRegion
-					canReorder={reorderActive}
-					dndContextProps={dndContextProps}
-					itemIds={itemIds}
-					strategy={strategy}
-					activeReorderId={activeId}
-					contextMenu={resolvedContextMenu}
-					columns={visibleColumns}
-					rows={renderRows}
-					rowKeys={rowKeys}
-					sort={sort}
-					sortColumn={sortColumn}
-					clearSort={clearSort}
-					pinColumn={pinColumn}
-					autoSizeColumns={autoSizeColumns}
-					chooseColumns={chooseColumns}
-					exportCsv={exportCsv}
-					exportLabel={exportLabel}
+			<GridResizingContext value={resizing}>
+				<div
+					ref={wrapperRef}
+					data-slot="grid"
+					// Flags an in-flight column drag-resize so the grid paints the resize
+					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+					// `resizing` context flag to drop their hover wash and truncation tooltips.
+					data-resizing={dataAttr(resizing)}
+					className={cn(k.wrapper)}
 				>
-					{tableRegion}
-				</GridRegion>
+					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-				{pagination && <GridPaginationFooter pagination={pagination} />}
-			</div>
+					{renderDialog && (
+						<GridColumnManagerDialog
+							open={columnManagerOpen}
+							onOpenChange={setColumnManagerOpen}
+							label={managerLabel}
+							columns={managerItems}
+							order={columnOrder}
+							onOrderChange={setColumnOrder}
+							hidden={hiddenColumns}
+							onHiddenChange={handleHiddenChange}
+							onPinChange={pinColumn}
+							onSavePreset={columnManagerConfig?.onSavePreset}
+						/>
+					)}
+
+					<GridToolbar
+						filter={globalFilter}
+						showColumnManager={showButton}
+						columnManagerLabel={managerLabel}
+						onManageColumns={() => setColumnManagerOpen(true)}
+						showExport={exportToolbarButton}
+						exportLabel={exportLabel}
+						onExport={exportCsv}
+						batchActions={batchActions}
+						hasSelection={someSelected}
+						selection={selection}
+						setSelection={setSelection}
+					/>
+
+					<GridRegion
+						canReorder={reorderActive}
+						dndContextProps={dndContextProps}
+						itemIds={itemIds}
+						strategy={strategy}
+						activeReorderId={activeId}
+						contextMenu={resolvedContextMenu}
+						columns={visibleColumns}
+						rows={renderRows}
+						rowKeys={rowKeys}
+						sort={sort}
+						sortColumn={sortColumn}
+						clearSort={clearSort}
+						pinColumn={pinColumn}
+						autoSizeColumns={autoSizeColumns}
+						chooseColumns={chooseColumns}
+						exportCsv={exportCsv}
+						exportLabel={exportLabel}
+					>
+						{tableRegion}
+					</GridRegion>
+
+					{pagination && <GridPaginationFooter pagination={pagination} />}
+				</div>
+			</GridResizingContext>
 		</GridContext>
 	)
 }

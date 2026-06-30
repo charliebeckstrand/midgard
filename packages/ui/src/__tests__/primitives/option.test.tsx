@@ -196,7 +196,7 @@ describe('createSelectOption', () => {
 		mockSelect.mockClear()
 	})
 
-	it('Option renders with correct data-slot', () => {
+	it('Option renders with its data-slot', () => {
 		const { container } = renderUI(
 			<TestContext>
 				<Option value="a">Item A</Option>
@@ -208,7 +208,7 @@ describe('createSelectOption', () => {
 		expect(el).toBeInTheDocument()
 	})
 
-	it('Label renders with correct data-slot', () => {
+	it('Label renders with its data-slot', () => {
 		const { container } = renderUI(
 			<TestContext>
 				<Label>My Label</Label>
@@ -222,7 +222,7 @@ describe('createSelectOption', () => {
 		expect(screen.getByText('My Label')).toBeInTheDocument()
 	})
 
-	it('Description renders with correct data-slot', () => {
+	it('Description renders with its data-slot', () => {
 		const { container } = renderUI(
 			<TestContext>
 				<Description>My Desc</Description>

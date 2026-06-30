@@ -17,7 +17,7 @@ describe('Split', () => {
 
 		const el = bySlot(container, 'split') as HTMLElement
 
-		expect(el.style.gridTemplateColumns).toBeTruthy()
+		expect(el.style.gridTemplateColumns).toBe('1fr 1fr')
 	})
 
 	it('uses grid-template-rows for vertical orientation', () => {
@@ -25,7 +25,7 @@ describe('Split', () => {
 
 		const el = bySlot(container, 'split') as HTMLElement
 
-		expect(el.style.gridTemplateRows).toBeTruthy()
+		expect(el.style.gridTemplateRows).toBe('1fr 1fr')
 	})
 
 	it('applies the align class when provided', () => {
@@ -33,7 +33,7 @@ describe('Split', () => {
 
 		const el = bySlot(container, 'split')
 
-		expect(el?.className.length).toBeGreaterThan(0)
+		expect(el?.className).toContain('items-center')
 	})
 
 	it('honours an explicit ratio', () => {

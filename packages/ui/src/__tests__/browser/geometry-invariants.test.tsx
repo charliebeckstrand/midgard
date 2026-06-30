@@ -24,7 +24,7 @@ import {
  * floating engine, panel position is the mock's layout, not production
  * geometry, so overlap/overflow assertions would test the mock.
  */
-describe('geometry invariants — baseline', () => {
+describe('geometry invariants: baseline', () => {
 	it.each(baseline)('%s holds the layout invariants', (_name, element) => {
 		const { container } = renderUI(element)
 

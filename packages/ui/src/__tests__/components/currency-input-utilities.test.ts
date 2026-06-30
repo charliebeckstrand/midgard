@@ -41,7 +41,7 @@ describe('isMeaningful', () => {
 })
 
 describe('formatEditing', () => {
-	it('returns the raw integer when locale grouping is unavailable', () => {
+	it('applies locale digit grouping to the integer part', () => {
 		expect(formatEditing('1234567', 'en-US', '.', 2)).toBe('1,234,567')
 	})
 

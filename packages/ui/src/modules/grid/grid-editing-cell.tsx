@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useState } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { GridEditInputs } from './grid-edit-inputs'
@@ -70,6 +70,18 @@ function GridCellEditor<T>({
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
 	const errorId = useId()
 
+	// The message renders below the cell (`top-full`), so a cell at the scroll
+	// container's bottom or right edge can clip it. Scroll it into view when it first
+	// appears — `nearest` is a no-op when it already fits, so it doesn't yank the
+	// view while the error persists (WCAG 1.4.10).
+	const messageRef = useRef<HTMLSpanElement>(null)
+
+	const hasError = error != null
+
+	useEffect(() => {
+		if (hasError) messageRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+	}, [hasError])
+
 	const body = column.editCell ? (
 		column.editCell({
 			row,
@@ -82,6 +94,7 @@ function GridCellEditor<T>({
 			},
 			cancel,
 			ariaLabel,
+			required: column.required ?? false,
 		})
 	) : (
 		<GridEditInputs
@@ -92,6 +105,7 @@ function GridCellEditor<T>({
 			ariaLabel={ariaLabel}
 			error={error}
 			errorId={errorId}
+			required={column.required}
 		/>
 	)
 
@@ -100,7 +114,7 @@ function GridCellEditor<T>({
 			{body}
 
 			{error && (
-				<span id={errorId} role="alert" className={cn(k.edit.error)}>
+				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
 					{error}
 				</span>
 			)}

@@ -244,13 +244,13 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
-	it('is a no-op when oldIdx and newIdx resolve to the same position', () => {
+	it('is a no-op when the over id resolves to no column', () => {
 		const onValueChange = vi.fn()
 
 		const { api } = setup({ onValueChange })
 
-		// 'a' over 'a' is already filtered by the early "same id" guard, but
-		// 'a' over a card whose findIndex returns -1 hits the late return.
+		// 'unknown' is neither a column id nor a card id, so findColumn returns
+		// undefined and the handler bails at the `!activeCol || !overCol` guard.
 		api.handleDragEnd(makeDragEvent('a', 'unknown'))
 
 		expect(onValueChange).not.toHaveBeenCalled()

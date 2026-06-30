@@ -5,6 +5,7 @@ import { useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
+import { frozenSide } from './grid-pin-overrides'
 import type { GridColumn, GridPagination } from './types'
 
 /**
@@ -33,6 +34,8 @@ export type GridColumnResize = {
 	nudge: (id: string | number, delta: number) => void
 	/** Auto-size data columns to fill the container width, re-arming auto-fit. */
 	sizeToFit: () => void
+	/** Reset one column to its default width — re-fit from content, or re-seat a `width`-seeded column. */
+	reset: (id: string | number) => void
 }
 
 /**
@@ -113,16 +116,17 @@ export function isQueryGroup(value: unknown): value is QueryGroupNode {
 }
 
 /**
- * Derives the engine's `columnPinning` state from each column's `pinned` flag
- * (`true` is left), plus whether any column is pinned at all.
+ * Derives the engine's `columnPinning` state from each column's effective frozen
+ * edge ({@link frozenSide} — its `locked` side, else its `pinned` side, `true`
+ * being left), plus whether any column is frozen at all.
  *
  * @remarks The selection column always leads the left edge, ahead of every
- * left-pinned data column, so the row checkboxes stay anchored to the far left
- * while the grid scrolls sideways. It is held out of the `pinned`-flag filters
- * (so an explicit flag on it can't double-list its id) and never counts toward
+ * left-frozen data column, so the row checkboxes stay anchored to the far left
+ * while the grid scrolls sideways. It is held out of the freeze filters (so an
+ * explicit flag on it can't double-list its id) and never counts toward
  * `hasPinned` — that gate stays driven by the data columns, so a grid with
- * nothing pinned keeps the selection column inline (no sticky offset or boundary
- * shadow); the freeze only resolves once a data column is pinned.
+ * nothing frozen keeps the selection column inline (no sticky offset or boundary
+ * shadow); the freeze only resolves once a data column is pinned or locked.
  *
  * @internal
  */
@@ -133,11 +137,11 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	const select = columns.filter((col) => col.selectable).map((col) => String(col.id))
 
 	const left = columns
-		.filter((col) => !col.selectable && (col.pinned === true || col.pinned === 'left'))
+		.filter((col) => !col.selectable && frozenSide(col) === 'left')
 		.map((col) => String(col.id))
 
 	const right = columns
-		.filter((col) => !col.selectable && col.pinned === 'right')
+		.filter((col) => !col.selectable && frozenSide(col) === 'right')
 		.map((col) => String(col.id))
 
 	return {
@@ -251,7 +255,7 @@ export function useColumnSettleWidths<T>(
 export function buildColumnResize<T>(
 	table: Table<T>,
 	columnFloors: ReadonlyMap<string, number>,
-): Omit<GridColumnResize, 'sizeToFit'> {
+): Omit<GridColumnResize, 'sizeToFit' | 'reset'> {
 	const bounds = (id: string | number) => {
 		const column = table.getColumn(String(id))
 
@@ -261,17 +265,35 @@ export function buildColumnResize<T>(
 		}
 	}
 
+	// Resolve resize handlers through a lookup keyed by column id, rebuilt only when
+	// the engine's header set changes (`getFlatHeaders()` is reference-stable until
+	// then). Wiring N columns' handles is then O(cols) across a header row, not the
+	// O(cols²) a linear `.find()` per column would cost.
+	let cachedHeaders: ReturnType<Table<T>['getFlatHeaders']> | null = null
+
+	const handlerById = new Map<string, (event: unknown) => void>()
+
+	const getResizeHandler = (id: string | number) => {
+		const headers = table.getFlatHeaders()
+
+		if (headers !== cachedHeaders) {
+			cachedHeaders = headers
+
+			handlerById.clear()
+
+			for (const header of headers) handlerById.set(header.column.id, header.getResizeHandler())
+		}
+
+		return handlerById.get(String(id))
+	}
+
 	return {
 		getSize: (id) => table.getColumn(String(id))?.getSize() ?? DEFAULT_COLUMN_SIZE,
 		totalSize: () => table.getTotalSize(),
 		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
 		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
 		isResizingAny: () => Boolean(table.getState().columnSizingInfo.isResizingColumn),
-		getResizeHandler: (id) =>
-			table
-				.getFlatHeaders()
-				.find((header) => header.column.id === String(id))
-				?.getResizeHandler(),
+		getResizeHandler,
 		bounds,
 		nudge: (id, delta) => {
 			const column = table.getColumn(String(id))

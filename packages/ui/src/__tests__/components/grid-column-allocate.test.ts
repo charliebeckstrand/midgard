@@ -26,7 +26,7 @@ describe('allocateColumnWidths', () => {
 		expect(allocateColumnWidths([], 500)).toEqual({})
 	})
 
-	describe('surplus — room to spare', () => {
+	describe('surplus: room to spare', () => {
 		it('levels equal-content columns to one width that fills the space', () => {
 			const sizing = allocateColumnWidths(
 				[profile('a', 100), profile('b', 100), profile('c', 100)],
@@ -102,7 +102,7 @@ describe('allocateColumnWidths', () => {
 		})
 	})
 
-	describe('deficit — content meets or exceeds the space', () => {
+	describe('deficit: content meets or exceeds the space', () => {
 		it('holds every column at its content width and overflows the container', () => {
 			const sizing = allocateColumnWidths(
 				[profile('a', 200), profile('b', 200), profile('c', 200)],

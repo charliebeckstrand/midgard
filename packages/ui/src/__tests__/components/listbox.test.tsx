@@ -409,9 +409,7 @@ describe('Listbox', () => {
 		expect(screen.getByText('4 selected')).toBeInTheDocument()
 	})
 
-	it('VirtualOptions is exported and mounts', () => {
-		// Listbox opens on click; exercise the virtualization helper by mounting
-		// it inside a matching role="listbox" container.
+	it('VirtualOptions is exported and mounts its window into a listbox', () => {
 		const items = Array.from({ length: 500 }, (_, i) => ({ value: `v${i}`, label: `L${i}` }))
 
 		const { container } = renderUI(
@@ -428,7 +426,11 @@ describe('Listbox', () => {
 
 		expect(bySlot(container, 'virtual-options')).toBeInTheDocument()
 
-		expect(container.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(items.length)
+		// Windowing renders only the in-viewport rows; with no layout under jsdom
+		// the scroll container measures zero, so zero options mount (never all
+		// 500). Real-viewport windowing is asserted in the browser suite
+		// (CONVENTIONS §10.3, §10.5).
+		expect(container.querySelectorAll('[role="option"]')).toHaveLength(0)
 	})
 })
 

@@ -58,6 +58,19 @@ describe('useGridTable column resolution', () => {
 		expect(visibleIds(cols)).toEqual(['b', 'd', 'c', 'a'])
 	})
 
+	it('freezes locked columns to their edge alongside pinned ones', () => {
+		const cols: GridColumn<Row>[] = [
+			{ id: 'a', title: 'A', cell: cell('a'), locked: 'right' },
+			{ id: 'b', title: 'B', cell: cell('b'), locked: 'left' },
+			{ id: 'c', title: 'C', cell: cell('c') },
+			{ id: 'd', title: 'D', cell: cell('d'), pinned: 'left' },
+		]
+
+		// Left edge holds the left-frozen columns (b locked, d pinned), then the
+		// scrolling column (c), then the right-locked column (a).
+		expect(visibleIds(cols)).toEqual(['b', 'd', 'c', 'a'])
+	})
+
 	it('pulls the selection column to the far left, ahead of a left-pinned column', () => {
 		const cols: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },

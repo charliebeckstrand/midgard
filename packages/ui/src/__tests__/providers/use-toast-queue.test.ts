@@ -44,7 +44,23 @@ describe('useToastQueue', () => {
 			result.current.start()
 		})
 
-		expect(toastsRef.current.find((t) => t.id === 'sticky')).toBeDefined()
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky', 'b'])
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky'])
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky'])
+
+		expect(result.current.runningRef.current).toBe(false)
+
+		expect(sync).toHaveBeenCalledTimes(2)
 	})
 
 	it('clears the running flag and queue on stop()', () => {

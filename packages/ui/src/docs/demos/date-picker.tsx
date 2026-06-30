@@ -5,6 +5,7 @@ import { Example } from '../engine'
 
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
+	const [footerDate, setFooterDate] = useState<Date | undefined>(undefined)
 	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
 	const [typed, setTyped] = useState<Date | undefined>(undefined)
 	const [relative, setRelative] = useState<DatePickerRelativeValue[] | undefined>(undefined)
@@ -40,6 +41,15 @@ export function Demo() {
 					value={relativeMany}
 					onValueChange={setRelativeMany}
 					placeholder="Select ranges"
+				/>
+			</Example>
+
+			<Example title="Footer toggles">
+				<DatePicker
+					footer={{ clear: false }}
+					value={footerDate}
+					onValueChange={setFooterDate}
+					placeholder="No Clear button"
 				/>
 			</Example>
 

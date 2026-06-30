@@ -108,8 +108,15 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		) as HTMLElement
 
-		// Glass backdrop: backdrop-blur token; base backdrop: plain bg.
-		expect(backdrop.className).toMatch(/backdrop-blur|bg-/)
+		// The glass backdrop swaps the denser fill (bg-white/75 + its dark pair)
+		// for the base scrim and drops the blur. Asserting the glass fill plus the
+		// absence of backdrop-blur-sm fails on both counts if `glass` were ignored
+		// and the base backdrop (bg-white/50 + backdrop-blur-sm) rendered instead.
+		expect(backdrop.className).toContain('bg-white/75')
+
+		expect(backdrop.className).toContain('dark:bg-zinc-950/75')
+
+		expect(backdrop.className).not.toContain('backdrop-blur')
 	})
 
 	it('applies a custom className override on the backdrop', () => {

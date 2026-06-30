@@ -31,6 +31,7 @@ import {
 	useMenuActions,
 } from '../../components/menu'
 import type { SortState } from './context'
+import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
 import type {
 	GridCellMenuContext,
 	GridColumn,
@@ -44,15 +45,6 @@ type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
 
 /** Pins a column to an edge, or unpins it with `false`. @internal */
 type PinColumn = (column: string | number, side: 'left' | 'right' | false) => void
-
-/** A column's frozen edge, with `true` collapsed to `'left'`. @internal */
-function normalizePinned(
-	pinned: boolean | 'left' | 'right' | undefined,
-): 'left' | 'right' | undefined {
-	if (pinned === 'right') return 'right'
-
-	return pinned ? 'left' : undefined
-}
 
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
@@ -104,12 +96,14 @@ type ColumnMenuDefaultArgs<T> = {
  * Pin items for a column's menu: "Pin left" / "Pin right" for the edges it is
  * not already frozen to, and "Unpin" once it is frozen. A scrolling column
  * offers both edges; a left-pinned one offers Pin right and Unpin, and vice
- * versa.
+ * versa. A locked column offers none — its freeze is immutable.
  *
  * @internal
  */
 function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
-	const side = normalizePinned(column.pinned)
+	if (isLocked(column)) return []
+
+	const side = normalizeFreeze(column.pinned)
 
 	const items: GridMenuItem[] = []
 
@@ -351,7 +345,8 @@ export function GridContextMenu<T>({
 				sortAscending: () => sortColumn(column.id, 'asc'),
 				sortDescending: () => sortColumn(column.id, 'desc'),
 				clearSort,
-				pinned: normalizePinned(column.pinned),
+				pinned: frozenSide(column),
+				locked: normalizeFreeze(column.locked),
 				pinLeft: () => pinColumn(column.id, 'left'),
 				pinRight: () => pinColumn(column.id, 'right'),
 				unpin: () => pinColumn(column.id, false),
@@ -472,8 +467,12 @@ function GridContextMenuSurface({
 			// fire for the same event.
 			event.stopPropagation()
 
-			// Ctrl held: defer to the browser's standard menu, default intact.
-			if (event.ctrlKey) return
+			// Ctrl + a secondary-button click (`button === 2`) is the escape hatch to the
+			// browser's native menu, on every platform. A Ctrl + primary-button click
+			// (`button === 0`) — macOS's secondary click — falls through to the grid menu
+			// instead, so Mac users reach it without a right button (CONT-04). The two
+			// only differ by button, not platform, so no platform sniff is needed.
+			if (event.ctrlKey && event.button === 2) return
 
 			const target = event.target as HTMLElement
 

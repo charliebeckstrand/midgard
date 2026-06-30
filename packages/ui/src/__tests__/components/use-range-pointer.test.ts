@@ -248,7 +248,12 @@ describe('useRangePointer', () => {
 
 		api.onPointerMove(makeEvent({ clientX: 90 }))
 
-		expect(setRange).toHaveBeenCalled()
+		const updater = setRange.mock.calls[0]?.[0] as (
+			prev: [number, number] | undefined,
+		) => [number, number]
+
+		// Thumb 0 dragged to 90 crosses thumb 1 (30); swap re-sorts to [30, 90].
+		expect(updater([20, 30])).toEqual([30, 90])
 	})
 
 	it('reassigns the upper thumb to slot 0 when it crosses below the lower in swap mode', () => {
@@ -263,7 +268,12 @@ describe('useRangePointer', () => {
 		// at index 0 so subsequent moves track the same finger.
 		api.onPointerMove(makeEvent({ clientX: 10 }))
 
-		expect(setRange).toHaveBeenCalled()
+		const updater = setRange.mock.calls[0]?.[0] as (
+			prev: [number, number] | undefined,
+		) => [number, number]
+
+		// Thumb 1 dragged to 10 crosses thumb 0 (70); swap re-sorts to [10, 70].
+		expect(updater([70, 80])).toEqual([10, 70])
 	})
 
 	it('falls back to min when the track ref is detached', () => {

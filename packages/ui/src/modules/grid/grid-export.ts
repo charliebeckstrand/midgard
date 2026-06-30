@@ -20,17 +20,18 @@ function csvCellText(value: unknown): string {
 }
 
 /**
- * The raw value a column contributes to an export row: its {@link GridColumn.value}
- * accessor when set (the same value sort and filter read), else the row field
- * named by the column id. A column whose cell is purely rendered (no `value`, no
- * matching field) contributes an empty field.
+ * The accessor a column contributes to an export: its {@link GridColumn.value}
+ * (the same value sort and filter read) when set, else the row field named by the
+ * column id. Resolved once per column so the per-cell loop calls it directly,
+ * rather than re-branching on `value` for every row. A column whose cell is purely
+ * rendered (no `value`, no matching field) contributes an empty field.
  *
  * @internal
  */
-function exportValue<T>(column: GridColumn<T>, row: T): unknown {
-	if (column.value) return column.value(row)
+function exportAccessor<T>(column: GridColumn<T>): (row: T) => unknown {
+	if (column.value) return column.value
 
-	return (row as Record<string | number, unknown>)[column.id]
+	return (row) => (row as Record<string | number, unknown>)[column.id]
 }
 
 /**
@@ -50,8 +51,11 @@ export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
 
 	const header = dataColumns.map((column) => escapeCsvField(columnLabel(column))).join(',')
 
+	// Resolve each column's accessor once, not per cell (rows × columns branches).
+	const accessors = dataColumns.map(exportAccessor)
+
 	const body = rows.map((row) =>
-		dataColumns.map((column) => escapeCsvField(csvCellText(exportValue(column, row)))).join(','),
+		accessors.map((accessor) => escapeCsvField(csvCellText(accessor(row)))).join(','),
 	)
 
 	return [header, ...body].join('\r\n')

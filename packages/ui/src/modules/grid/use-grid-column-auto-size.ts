@@ -60,7 +60,10 @@ export function useGridColumnAutoSize<T>({
 	containerRef,
 	density,
 	columnFloors,
-}: GridColumnAutoSizeOptions<T>): { sizeToFit: () => void } {
+}: GridColumnAutoSizeOptions<T>): {
+	sizeToFit: () => void
+	resetColumn: (id: string | number) => void
+} {
 	const enabled = resizable && !controlled
 
 	// Columns the user has drag-resized; held at their width while the rest auto-fit.
@@ -175,26 +178,54 @@ export function useGridColumnAutoSize<T>({
 		}
 	}, [resizingColumn])
 
+	// Keep the latest `run` reachable from the ResizeObserver without listing it in
+	// the observer effect's deps: `run`'s identity shifts whenever the columns,
+	// density, or hard floors change, and tearing the observer down to re-subscribe
+	// on each of those — and on every row-model change — is needless churn.
+	const runRef = useRef(run)
+
+	useLayoutEffect(() => {
+		runRef.current = run
+	}, [run])
+
+	// Re-measure when the inputs `run` closes over change (columns, density, floors)
+	// or the visible rows change (`rowsSig` — a page turn, filter, or sort can bring
+	// wider content into view). The observer effect below performs the initial
+	// synchronous fit, so the first pass here is skipped.
+	const initialFitRef = useRef(false)
+
+	useLayoutEffect(() => {
+		if (!enabled) return
+
+		// Read so a row-model change (page turn, filter, sort) re-runs this effect.
+		void rowsSig
+
+		if (!initialFitRef.current) {
+			initialFitRef.current = true
+
+			return
+		}
+
+		run(true)
+	}, [enabled, run, rowsSig])
+
+	// Own the ResizeObserver in its own effect, keyed only on enablement and the
+	// container, so a width-only container resize is the one thing that recreates it
+	// — not a column or row change. Fit synchronously, before paint, so the first
+	// frame carries real widths instead of flashing the engine's default colgroup.
 	useLayoutEffect(() => {
 		const element = containerRef?.current
 
 		if (!enabled || !element || typeof ResizeObserver === 'undefined') return
 
-		// Fit synchronously, before paint, so the first frame carries real widths
-		// instead of flashing the engine's default colgroup. (`rowsSig` is read here
-		// so a page turn / filter re-runs this effect and re-measures.)
-		void rowsSig
+		runRef.current(true)
 
-		run(true)
-
-		// Width-only changes reuse the cached profiles; the structural-signature check
-		// inside `run` re-measures when the columns, density, or rows changed.
-		const observer = new ResizeObserver(() => run(false))
+		const observer = new ResizeObserver(() => runRef.current(false))
 
 		observer.observe(element)
 
 		return () => observer.disconnect()
-	}, [enabled, run, containerRef, rowsSig])
+	}, [enabled, containerRef])
 
 	useEffect(() => {
 		if (!enabled) return
@@ -223,5 +254,23 @@ export function useGridColumnAutoSize<T>({
 		run(true)
 	}, [run, columns])
 
-	return { sizeToFit }
+	// Reset one column to its default: drop any drag-hold and `width` release so the
+	// next pass re-fits it from content (or re-seats a `width`-seeded column at its
+	// `width`), clearing its running max so the re-measure isn't floored by the old.
+	const resetColumn = useCallback(
+		(id: string | number) => {
+			const key = String(id)
+
+			manualPinnedRef.current.delete(key)
+
+			widthReleasedRef.current.delete(key)
+
+			runningContentRef.current.delete(key)
+
+			run(true)
+		},
+		[run],
+	)
+
+	return { sizeToFit, resetColumn }
 }

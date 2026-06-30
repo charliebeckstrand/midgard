@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { useSortableList } from '../../hooks'
 import { isDataColumn } from '../../utilities'
+import { isFrozen } from './grid-pin-overrides'
 import type { GridColumn } from './types'
 
 /** Stable drag id for a column. @internal */
@@ -23,15 +24,17 @@ type GridReorderOptions<T> = {
 
 /**
  * Wires column reordering onto `@dnd-kit`'s horizontal sortable for
- * {@link Grid}. Only visible, non-pinned data columns are draggable, and a
- * lone draggable column has nowhere to go, so `canReorder` gates the chrome on
- * there being at least two. The data table renders `<DndContext>` /
+ * {@link Grid}. Only visible, non-frozen data columns are draggable (pinned and
+ * locked columns hold their edge), and a lone draggable column has nowhere to
+ * go, so `canReorder` gates the chrome on there being at least two. The data
+ * table renders `<DndContext>` /
  * `<SortableContext>` from the returned props around the whole table region —
  * never the `<table>` itself, since the dnd context injects hidden
  * accessibility nodes that must not be `<table>` children.
  *
- * @returns `canReorder` (render gate) plus the `items`, `strategy`, and
- * `dndContextProps` to spread onto the sortable context and dnd context.
+ * @returns `canReorder` (render gate) plus the `itemIds`, `strategy`,
+ * `dndContextProps`, and `activeId` to spread onto the sortable context and
+ * dnd context.
  * @internal
  */
 export function useGridReorder<T>({
@@ -41,7 +44,7 @@ export function useGridReorder<T>({
 }: GridReorderOptions<T>) {
 	const draggableColumns = useMemo(
 		() =>
-			reorder ? visibleColumns.filter((col) => isDataColumn(col) && !col.pinned) : EMPTY_COLUMNS,
+			reorder ? visibleColumns.filter((col) => isDataColumn(col) && !isFrozen(col)) : EMPTY_COLUMNS,
 		[reorder, visibleColumns],
 	)
 

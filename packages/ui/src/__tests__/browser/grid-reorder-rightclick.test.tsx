@@ -12,7 +12,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * Activation needs real pointer events past the 3px distance constraint, so
  * this runs in the browser suite; the dragged column carries `data-dragging`.
  */
-describe('grid reorder grip — context-menu press (real browser)', () => {
+describe('grid reorder grip: context-menu press (real browser)', () => {
 	type Row = { id: number; name: string; age: number }
 
 	const columns: GridColumn<Row>[] = [

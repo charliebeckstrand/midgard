@@ -67,7 +67,7 @@ function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
 	return spy
 }
 
-describe('useOffcanvas — breakpoint listener', () => {
+describe('useOffcanvas: breakpoint listener', () => {
 	const originalGetComputedStyle = window.getComputedStyle
 
 	const originalMatchMedia = window.matchMedia

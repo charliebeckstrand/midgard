@@ -40,6 +40,7 @@ export function useDatePickerRangeState({
 	onValueChange,
 	min,
 	max,
+	footer,
 	placement = 'bottom-start',
 	disabled = false,
 }: DatePickerBaseProps & DatePickerRangeProps) {
@@ -165,7 +166,8 @@ export function useDatePickerRangeState({
 		[closeCalendar, openCalendar],
 	)
 
-	const showClear = rangeStart === null && value != null
+	// `footer.clear` (default on) gates the only footer button this variant has.
+	const showClear = footer?.clear !== false && rangeStart === null && value != null
 
 	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 

@@ -18,7 +18,7 @@ import { tabbables } from '../helpers/tabbables'
  * vitest.browser.config.ts). Real keystrokes are required: testing-library
  * simulation strands focus on a guard sentinel.
  */
-describe('a11y focus trap (real browser) — modal family', () => {
+describe('a11y focus trap (real browser): modal family', () => {
 	it.each(
 		traps,
 	)('%s contains Tab and restores focus on Escape', async (_name, trigger, element, surface) => {

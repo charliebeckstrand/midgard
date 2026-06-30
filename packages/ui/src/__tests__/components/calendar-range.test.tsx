@@ -73,13 +73,15 @@ describe('CalendarRange', () => {
 	})
 
 	it('uses hoverDate for the effective range end when provided', () => {
-		const { container } = renderUI(
-			<CalendarRange rangeStart={d(2024, 3, 5)} hoverDate={d(2024, 3, 8)} />,
-		)
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} hoverDate={d(2024, 3, 8)} />)
 
-		const selected = container.querySelectorAll('[aria-selected="true"]')
+		expect(findDay(8)).toHaveAttribute('aria-selected', 'true')
 
-		expect(selected.length).toBeGreaterThanOrEqual(1)
+		expect(findDay(7)).toHaveAttribute('aria-selected', 'false')
+
+		expect(findDay(7)?.className).toContain('rounded-none')
+
+		expect(findDay(12)).toHaveAttribute('aria-selected', 'false')
 	})
 
 	it('uses rangeStart as the default month when no end is provided', () => {
