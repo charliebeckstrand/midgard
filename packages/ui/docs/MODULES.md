@@ -4,10 +4,10 @@
 
 A module is larger than a component: it owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. Modules build on the atomic `ui` components and primitives rather than living beside them.
 
-Each module is its own entry point off the package root — flat like a component, since module and component names never collide:
+Each module is its own entry point off the package root — flat like a component, since module and component names never collide. The nested `ui/modules/<name>` path resolves to the same barrel, so both specifiers work:
 
 ```ts
-import { Map } from 'ui/map'
+import { Map } from 'ui/map' // or 'ui/modules/map'
 ```
 
 ## Modules

@@ -7,7 +7,7 @@
 | Surface | Doc | Contents |
 |---|---|---|
 | Components | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) | Every component, grouped by domain (inputs, overlays, data display, layout, …). |
-| Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/*` — complex, multi-part compositions that own their sub-components, hooks, and docs. |
+| Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/*` (also `ui/modules/*`) — complex, multi-part compositions that own their sub-components, hooks, and docs. |
 | Layouts | [`docs/LAYOUTS.md`](docs/LAYOUTS.md) | `ui/layouts` — page scaffolds and app shells (auth, stacked, dashboard, sidebar). |
 | Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks` — state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
 | Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*` — floating/overlay shells, polymorphism, the styling-context cascades. |
