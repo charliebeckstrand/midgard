@@ -27,6 +27,20 @@ export const specializedCases: readonly Case[] = [
 		<ChatPrompt key="cp" value="" onValueChange={noop} onSubmit={noop} placeholder="Message" />,
 	],
 	[
+		// Removable attachment chips: the outline badge + bare remove button must
+		// clear contrast and carry an accessible name.
+		'chat prompt with attachments',
+		<ChatPrompt
+			key="cpa"
+			value=""
+			onValueChange={noop}
+			onSubmit={noop}
+			placeholder="Message"
+			attachments={[new File(['x'], 'report.pdf', { type: 'application/pdf' })]}
+			onRemoveAttachment={noop}
+		/>,
+	],
+	[
 		// Escape hatch: renders its single child untouched, suppressing default
 		// control chrome. Wrapping a labelled input must stay axe-clean.
 		'headless',
