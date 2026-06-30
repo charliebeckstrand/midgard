@@ -10,6 +10,7 @@ import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
 	type ChatContent,
 	ChatLayout,
+	ChatList,
 	ChatListItem,
 	ChatMessage,
 	ChatMessages,
@@ -62,7 +63,7 @@ function ConversationList() {
 	const [current, setCurrent] = useState(1)
 
 	return (
-		<Stack className="max-w-xs gap-0.5">
+		<ChatList aria-label="Conversations" className="max-w-xs">
 			{conversations.map((conversation) => (
 				<ChatListItem
 					key={conversation.id}
@@ -78,7 +79,7 @@ function ConversationList() {
 					}
 				/>
 			))}
-		</Stack>
+		</ChatList>
 	)
 }
 
@@ -94,7 +95,7 @@ function LayoutDemo() {
 	})
 
 	const sidebar = (
-		<Stack className="w-60 shrink-0 gap-0.5 overflow-y-auto">
+		<ChatList aria-label="Conversations" className="w-60 shrink-0 overflow-y-auto">
 			{conversations.map((conversation) => (
 				<ChatListItem
 					key={conversation.id}
@@ -104,7 +105,7 @@ function LayoutDemo() {
 					onSelect={() => setCurrent(conversation.id)}
 				/>
 			))}
-		</Stack>
+		</ChatList>
 	)
 
 	return (

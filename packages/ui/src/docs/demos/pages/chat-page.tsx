@@ -14,6 +14,7 @@ import {
 } from '../../../layouts'
 import {
 	type ChatContent,
+	ChatList,
 	ChatListItem,
 	ChatMessages,
 	ChatPrompt,
@@ -92,7 +93,7 @@ export function Demo() {
 					</Stack>
 				</SidebarHeader>
 				<SidebarBody>
-					<Stack className="gap-0.5">
+					<ChatList aria-label="Conversations">
 						{conversations.map((conversation) => (
 							<ChatListItem
 								key={conversation.id}
@@ -101,21 +102,19 @@ export function Demo() {
 								current={conversation.id === current}
 								onSelect={() => setCurrent(conversation.id)}
 								actions={
-									conversation.id === current ? undefined : (
-										<Button
-											aria-label="Delete conversation"
-											color="red"
-											variant="plain"
-											size="sm"
-											onClick={() => setConfirmOpen(true)}
-										>
-											<Icon icon={<Trash />} />
-										</Button>
-									)
+									<Button
+										aria-label="Delete conversation"
+										color="red"
+										variant="plain"
+										size="sm"
+										onClick={() => setConfirmOpen(true)}
+									>
+										<Icon icon={<Trash />} />
+									</Button>
 								}
 							/>
 						))}
-					</Stack>
+					</ChatList>
 				</SidebarBody>
 			</Sidebar>
 
@@ -152,7 +151,7 @@ export function Demo() {
 						onSubmit={draft.submit}
 						streaming={sending}
 						rows={3}
-						className="max-h-48"
+						className="mt-3 max-h-48"
 						aria-label="Message Project kickoff"
 						onAttach={() => {}}
 						actions={

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chat-list-item'
+import { useInChatList } from './context'
 
 /** Props for {@link ChatListItem}. */
 export type ChatListItemProps = {
@@ -28,7 +29,9 @@ export type ChatListItemProps = {
  * `onSelect` when provided, otherwise a static `<span>`. `actions` render beside
  * it rather than within it, so a control like a delete button never nests inside
  * the select button (nested-interactive markup). The open conversation
- * (`current`) gets `aria-current` and a persistent background wash.
+ * (`current`) gets `aria-current` and a persistent background wash. Inside a
+ * {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
+ * keyboard model; standalone it is a `<div>`.
  */
 export function ChatListItem({
 	title,
@@ -39,6 +42,11 @@ export function ChatListItem({
 	actions,
 	className,
 }: ChatListItemProps) {
+	// Inside a ChatList the row is a list item; standalone it is a plain row.
+	const inList = useInChatList()
+
+	const Wrapper = inList ? 'li' : 'div'
+
 	const body = (
 		<>
 			<span className={k.title}>{title}</span>
@@ -47,7 +55,7 @@ export function ChatListItem({
 	)
 
 	return (
-		<div
+		<Wrapper
 			data-slot="chat-list-item"
 			data-current={current ? '' : undefined}
 			className={cn(k(), className)}
@@ -79,6 +87,6 @@ export function ChatListItem({
 					{actions}
 				</div>
 			)}
-		</div>
+		</Wrapper>
 	)
 }
