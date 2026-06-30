@@ -4,11 +4,17 @@ import { useIdScope } from '../../hooks/use-id-scope'
 
 describe('useIdScope', () => {
 	it('generates a stable id from useId when no override is provided', () => {
-		const { result } = renderHook(() => useIdScope())
+		const { result, rerender } = renderHook(() => useIdScope())
 
-		expect(result.current.id).toBeDefined()
+		const first = result.current.id
 
-		expect(typeof result.current.id).toBe('string')
+		expect(first).not.toBe('')
+
+		expect(result.current.sub('description')).toBe(`${first}-description`)
+
+		rerender()
+
+		expect(result.current.id).toBe(first)
 	})
 
 	it('uses explicit id when provided', () => {

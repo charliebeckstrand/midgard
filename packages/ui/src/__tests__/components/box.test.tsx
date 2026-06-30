@@ -52,13 +52,13 @@ describe('Box', () => {
 	it('applies the outline=true variant', () => {
 		const { container } = renderUI(<Box outline>content</Box>)
 
-		expect(bySlot(container, 'box')).toBeInTheDocument()
+		expect(bySlot(container, 'box')).toHaveClass('outline-zinc-950/10')
 	})
 
 	it('applies an explicit outline weight', () => {
 		const { container } = renderUI(<Box outline="strong">content</Box>)
 
-		expect(bySlot(container, 'box')).toBeInTheDocument()
+		expect(bySlot(container, 'box')).toHaveClass('outline-zinc-950/15')
 	})
 
 	it('applies radius, bg, padding, and margin tokens', () => {
@@ -68,7 +68,7 @@ describe('Box', () => {
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toBeInTheDocument()
+		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3', 'm-2')
 	})
 
 	it('respects px / py / mx / my overrides', () => {
@@ -78,7 +78,7 @@ describe('Box', () => {
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toBeInTheDocument()
+		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2', 'mx-1', 'my-3')
 	})
 
 	it('renders with a custom data-slot', () => {

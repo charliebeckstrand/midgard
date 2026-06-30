@@ -273,11 +273,16 @@ describe('Combobox', () => {
 			</Combobox>,
 		)
 
-		// Panel is in FloatingPortal; query document. jsdom has no layout;
-		// react-virtual renders 0 items, so the count is bounded by options.length.
-		expect(bySlot(document.body, 'virtual-options')).toBeInTheDocument()
+		// Panel is in FloatingPortal; query document. jsdom has no layout, so we
+		// don't drive react-virtual's windowing (CONVENTIONS §10.3); we pin the
+		// structural contract it relies on instead.
+		const virtual = bySlot(document.body, 'virtual-options')
 
-		expect(document.querySelectorAll('[role="option"]').length).toBeLessThanOrEqual(options.length)
+		expect(virtual).toBeInTheDocument()
+
+		// VirtualOptions resolves its scroll parent via closest('[role="listbox"]');
+		// the slot must mount inside the open listbox for that lookup to land.
+		expect(virtual?.closest('[role="listbox"]')).toBe(screen.getByRole('listbox'))
 	})
 })
 

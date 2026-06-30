@@ -365,9 +365,15 @@ describe('TreeItem', () => {
 
 		expect(rows.length).toBe(2)
 
+		const parent = rows[0] as HTMLElement
+
 		const child = rows[1] as HTMLElement
 
-		expect(child.style.paddingLeft).not.toBe('0.5rem')
+		// depth-0 stays at the base inset: 0.5 + 0 * indentStep.md.
+		expect(parent.style.paddingLeft).toBe('0.5rem')
+
+		// depth-1 md item indents by one step: 0.5 + 1 * 1.75 = 2.25rem.
+		expect(child.style.paddingLeft).toBe('2.25rem')
 	})
 
 	it('marks a current TreeItem with aria-current', () => {

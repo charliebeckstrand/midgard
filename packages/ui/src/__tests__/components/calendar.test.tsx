@@ -175,8 +175,11 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={defaultValue} active={{ zone: 'header', index: 1 }} />)
 
-		// Header still renders the label button, confirming Calendar mounts.
-		expect(screen.getByRole('button', { name: /June 2025/ })).toBeInTheDocument()
+		// index 1 is the center picker trigger; `k.day.active` (focus.virtual)
+		// paints its `outline-blue-600` ring. index 0 (Previous month) must stay bare.
+		expect(screen.getByRole('button', { name: /June 2025/ })).toHaveClass('outline-blue-600')
+
+		expect(screen.getByLabelText('Previous month')).not.toHaveClass('outline-blue-600')
 	})
 
 	it('forwards day rendering through getDayProps to customize variants', () => {

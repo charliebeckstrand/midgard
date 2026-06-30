@@ -43,11 +43,15 @@ describe('Badge', () => {
 		expect(screen.getByText('×')).toBeInTheDocument()
 	})
 
-	// Covers the sub-Step branch: xs is below the Step scale, so the badge
-	// opts out of broadcasting a DensityScope scale to its children.
-	it('renders with the xs sub-Step size variant', () => {
+	// xs projects the smallest type step: data-size echoes the prop and the
+	// kata stamps the text-xs row (ji.size.xs) onto the badge slot.
+	it('renders with the xs size variant', () => {
 		const { container } = renderUI(<Badge size="xs">Tiny</Badge>)
 
-		expect(bySlot(container, 'badge')).toBeInTheDocument()
+		const badge = bySlot(container, 'badge')
+
+		expect(badge).toHaveAttribute('data-size', 'xs')
+
+		expect(badge).toHaveClass('text-xs')
 	})
 })
