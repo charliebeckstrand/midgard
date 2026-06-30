@@ -195,10 +195,16 @@ export const k = {
 			// `components/table`), which clips an outset outline at its edge; the focus ring
 			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
 			// `k.sort.button`, whose outset `ring` clears the edge.
+			// The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A centered,
+			// transparent `::before` expands the *hit* area to >=24x24 without moving the
+			// glyph (so the optical `-ml` alignment and inset ring are untouched) — growing
+			// the box itself would re-center the icon off that tuned inset.
 			button: [
 				flex.inline,
 				'shrink-0',
 				'-ml-1',
+				'relative',
+				"before:absolute before:-inset-1 before:content-['']",
 				text.muted,
 				fg.hover,
 				focus.inset,
@@ -261,6 +267,10 @@ export const k = {
 			flex.inline,
 			'shrink-0',
 			'-ml-1.5',
+			// Expand the 20px grip's hit area to >=24x24 (WCAG 2.5.8) via a centered
+			// transparent `::before`, leaving the glyph and its `-ml` inset in place.
+			'relative',
+			"before:absolute before:-inset-1 before:content-['']",
 			text.muted,
 			fg.hover,
 			focus.inset,
