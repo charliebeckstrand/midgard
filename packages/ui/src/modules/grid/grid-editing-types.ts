@@ -32,6 +32,8 @@ export type GridEditCellContext<T> = {
 	cancel: () => void
 	/** Accessible label naming the cell under edit, e.g. `Edit Status, row 2`. */
 	ariaLabel: string
+	/** Whether the column is {@link GridColumn.required | required}; set `aria-required` on the control. */
+	required: boolean
 }
 
 /**

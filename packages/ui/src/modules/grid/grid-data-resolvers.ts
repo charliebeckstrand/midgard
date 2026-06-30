@@ -168,22 +168,26 @@ export function resolveAriaRowCount(
 export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabel: string }
 
 /**
- * Derives grid semantics from the rendered-window mode. The body is a window
- * onto a larger set under virtualization (DOM windowing) or pagination (one page
- * of many): both need `role="grid"`, `aria-rowcount`, and a page-/window-aware
- * global row offset so assistive tech reports position in the full set. Under
- * pagination the select-all checkbox toggles only the current page, so its label
- * says so rather than overclaiming "all rows". A plain table conveys all this
- * natively and stays a table.
+ * Derives grid semantics from the rendered-window mode and the cursor. The body
+ * is a window onto a larger set under virtualization (DOM windowing) or pagination
+ * (one page of many): both need `role="grid"`, `aria-rowcount`, and a
+ * page-/window-aware global row offset so assistive tech reports position in the
+ * full set. A `navigable` grid is also `role="grid"` (the keyboard cursor) even
+ * when it renders the whole set, so it carries the same row/column counts and
+ * indices the role implies — the counts and per-cell indices follow the role, not
+ * just the windowing. Under pagination the select-all checkbox toggles only the
+ * current page, so its label says so rather than overclaiming "all rows". A plain,
+ * non-navigable table conveys all this natively and stays a table.
  *
  * @internal
  */
 export function resolveGridSemantics(
 	virtualizeEnabled: boolean,
 	pagination: GridPaginationView | null,
+	navigable: boolean,
 ): GridSemantics {
 	return {
-		enabled: virtualizeEnabled || pagination != null,
+		enabled: virtualizeEnabled || pagination != null || navigable,
 		rowOffset: pagination ? pagination.pageIndex * pagination.pageSize : 0,
 		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
 	}

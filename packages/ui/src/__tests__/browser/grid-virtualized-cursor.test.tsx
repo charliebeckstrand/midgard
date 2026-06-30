@@ -56,4 +56,41 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		expect(screen.queryByText('Name 200')).not.toBeNull()
 	})
+
+	it('pages PageDown by the visible viewport, not the fixed fallback count', async () => {
+		renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="180px"
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		grid.focus()
+
+		fireEvent.keyDown(grid, { key: 'PageDown' })
+
+		await waitFor(() => {
+			const active = grid.getAttribute('aria-activedescendant')
+
+			expect(active).toBeTruthy()
+
+			const row = Number(/cell-(\d+)-\d+$/.exec(active as string)?.[1])
+
+			// A ~180px viewport over ~36px rows pages ~4 rows: more than one, but fewer
+			// than the fixed NAV_PAGE_STEP of 10 — so the step was measured, not constant.
+			expect(row).toBeGreaterThanOrEqual(2)
+
+			expect(row).toBeLessThan(10)
+		})
+	})
 })

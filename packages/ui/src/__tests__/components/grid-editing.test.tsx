@@ -77,6 +77,21 @@ describe('Grid per-row editing', () => {
 		expect(bySlot(container, 'grid-edit-boolean-input')).toBeInTheDocument()
 	})
 
+	it("marks a required column's editor aria-required, leaving others unmarked", () => {
+		const { container, editRow1 } = renderGrid([
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name, required: true },
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		])
+
+		editRow1()
+
+		// The required column's editor advertises the obligation to AT (WCAG 1.3.1 /
+		// 3.3.2); a non-required column's editor omits it.
+		expect(bySlot(container, 'grid-edit-input')).toHaveAttribute('aria-required', 'true')
+
+		expect(bySlot(container, 'grid-edit-number-input')).not.toHaveAttribute('aria-required')
+	})
+
 	it('saves a row (removing it from the set) as one batch of its changed cells', () => {
 		const { container, editRow1, save, onValueChange } = renderGrid()
 

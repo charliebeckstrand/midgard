@@ -12,12 +12,17 @@ import {
 	useState,
 } from 'react'
 import { Table } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { GridContext, type SortState } from './context'
-import { describeSelection, describeSort } from './grid-announcements'
+import { GridContext, GridResizingContext, type SortState } from './context'
+import {
+	describeColumnVisibility,
+	describePin,
+	describeSelection,
+	describeSort,
+} from './grid-announcements'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
@@ -48,7 +53,11 @@ import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
+import {
+	columnLabel,
+	type GridColumn,
+	type GridContextMenu as GridContextMenuConfig,
+} from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
@@ -266,6 +275,17 @@ export function GridData<T>({
 		[resolvedColumns, pinOverrides],
 	)
 
+	// Resolves a column's display label at call time, read by the `[]`-stable
+	// `pinColumn` and the visibility handler so they can narrate the change without
+	// closing over (and re-creating on) the columns.
+	const columnLabelRef = useRef<(id: string | number) => string>(() => '')
+
+	columnLabelRef.current = (id) => {
+		const column = pinnedColumns.find((candidate) => candidate.id === id)
+
+		return column ? columnLabel(column) : String(id)
+	}
+
 	const pinColumn = useCallback((id: string | number, side: PinSide | false) => {
 		setPinOverrides((prev) => {
 			const next = new Map(prev)
@@ -274,6 +294,9 @@ export function GridData<T>({
 
 			return next
 		})
+
+		// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
+		announce(describePin(columnLabelRef.current(id), side))
 	}, [])
 
 	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
@@ -311,6 +334,10 @@ export function GridData<T>({
 	// `aria-activedescendant` at it.
 	const scrollRowIntoViewRef = useRef<GridScrollRowIntoView | null>(null)
 
+	// The grid's scroll container (sticky/virtualized), attached below; the cursor
+	// measures it for the viewport-relative PageUp/Down step.
+	const scrollRef = useRef<HTMLDivElement>(null)
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -329,6 +356,7 @@ export function GridData<T>({
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
+		scrollContainerRef: scrollRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -357,6 +385,30 @@ export function GridData<T>({
 		reorderColumns,
 		managerItems,
 	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
+
+	// Narrate column show/hide from the manager (WCAG 4.1.3): the incoming hidden
+	// set is concrete (the visibility hook resolves the manager's updater first), so
+	// diff it against the current one to name the column the toggle moved.
+	const hiddenColumnsRef = useRef(hiddenColumns)
+
+	hiddenColumnsRef.current = hiddenColumns
+
+	const handleHiddenChange = useCallback(
+		(next: Set<string | number>) => {
+			const prev = hiddenColumnsRef.current
+
+			for (const id of next) {
+				if (!prev.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), true))
+			}
+
+			for (const id of prev) {
+				if (!next.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), false))
+			}
+
+			setHiddenColumns(next)
+		},
+		[setHiddenColumns],
+	)
 
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
@@ -532,6 +584,10 @@ export function GridData<T>({
 	// cells hold frame-to-frame (see `useColumnSettleWidths`).
 	const settleWidths = useColumnSettleWidths(visibleColumns, resize, resizing)
 
+	// `resizing` stays on this table-wide value for external `useGrid()` consumers,
+	// but the grid's own truncating head/cells read it through the narrower
+	// `GridResizingContext` (below) — so a sort or select-all, which churns this
+	// value, no longer re-renders every visible truncating cell.
 	const context = useMemo(
 		() => ({
 			toggleRow,
@@ -587,8 +643,6 @@ export function GridData<T>({
 		reorderColumns,
 	})
 
-	const scrollRef = useRef<HTMLDivElement>(null)
-
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
@@ -603,7 +657,7 @@ export function GridData<T>({
 		enabled: gridSemantics,
 		rowOffset: pageRowOffset,
 		selectAllLabel,
-	} = resolveGridSemantics(virtualizeEnabled, pagination)
+	} = resolveGridSemantics(virtualizeEnabled, pagination, navigable)
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
@@ -701,70 +755,72 @@ export function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div
-				ref={wrapperRef}
-				data-slot="grid"
-				// Flags an in-flight column drag-resize so the grid paints the resize
-				// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-				// `resizing` context flag to drop their hover wash and truncation tooltips.
-				data-resizing={dataAttr(resizing)}
-				className={cn(k.wrapper)}
-			>
-				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
-
-				{renderDialog && (
-					<GridColumnManagerDialog
-						open={columnManagerOpen}
-						onOpenChange={setColumnManagerOpen}
-						label={managerLabel}
-						columns={managerItems}
-						order={columnOrder}
-						onOrderChange={setColumnOrder}
-						hidden={hiddenColumns}
-						onHiddenChange={setHiddenColumns}
-						onPinChange={pinColumn}
-						onSavePreset={columnManagerConfig?.onSavePreset}
-					/>
-				)}
-
-				<GridToolbar
-					filter={globalFilter}
-					showColumnManager={showButton}
-					columnManagerLabel={managerLabel}
-					onManageColumns={() => setColumnManagerOpen(true)}
-					showExport={exportToolbarButton}
-					exportLabel={exportLabel}
-					onExport={exportCsv}
-					batchActions={batchActions}
-					hasSelection={someSelected}
-					selection={selection}
-					setSelection={setSelection}
-				/>
-
-				<GridRegion
-					canReorder={reorderActive}
-					dndContextProps={dndContextProps}
-					itemIds={itemIds}
-					strategy={strategy}
-					activeReorderId={activeId}
-					contextMenu={resolvedContextMenu}
-					columns={visibleColumns}
-					rows={renderRows}
-					rowKeys={rowKeys}
-					sort={sort}
-					sortColumn={sortColumn}
-					clearSort={clearSort}
-					pinColumn={pinColumn}
-					autoSizeColumns={autoSizeColumns}
-					chooseColumns={chooseColumns}
-					exportCsv={exportCsv}
-					exportLabel={exportLabel}
+			<GridResizingContext value={resizing}>
+				<div
+					ref={wrapperRef}
+					data-slot="grid"
+					// Flags an in-flight column drag-resize so the grid paints the resize
+					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+					// `resizing` context flag to drop their hover wash and truncation tooltips.
+					data-resizing={dataAttr(resizing)}
+					className={cn(k.wrapper)}
 				>
-					{tableRegion}
-				</GridRegion>
+					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-				{pagination && <GridPaginationFooter pagination={pagination} />}
-			</div>
+					{renderDialog && (
+						<GridColumnManagerDialog
+							open={columnManagerOpen}
+							onOpenChange={setColumnManagerOpen}
+							label={managerLabel}
+							columns={managerItems}
+							order={columnOrder}
+							onOrderChange={setColumnOrder}
+							hidden={hiddenColumns}
+							onHiddenChange={handleHiddenChange}
+							onPinChange={pinColumn}
+							onSavePreset={columnManagerConfig?.onSavePreset}
+						/>
+					)}
+
+					<GridToolbar
+						filter={globalFilter}
+						showColumnManager={showButton}
+						columnManagerLabel={managerLabel}
+						onManageColumns={() => setColumnManagerOpen(true)}
+						showExport={exportToolbarButton}
+						exportLabel={exportLabel}
+						onExport={exportCsv}
+						batchActions={batchActions}
+						hasSelection={someSelected}
+						selection={selection}
+						setSelection={setSelection}
+					/>
+
+					<GridRegion
+						canReorder={reorderActive}
+						dndContextProps={dndContextProps}
+						itemIds={itemIds}
+						strategy={strategy}
+						activeReorderId={activeId}
+						contextMenu={resolvedContextMenu}
+						columns={visibleColumns}
+						rows={renderRows}
+						rowKeys={rowKeys}
+						sort={sort}
+						sortColumn={sortColumn}
+						clearSort={clearSort}
+						pinColumn={pinColumn}
+						autoSizeColumns={autoSizeColumns}
+						chooseColumns={chooseColumns}
+						exportCsv={exportCsv}
+						exportLabel={exportLabel}
+					>
+						{tableRegion}
+					</GridRegion>
+
+					{pagination && <GridPaginationFooter pagination={pagination} />}
+				</div>
+			</GridResizingContext>
 		</GridContext>
 	)
 }

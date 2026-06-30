@@ -210,18 +210,33 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
-	it('defers to the native menu when Ctrl is held during the right-click', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
+	const nameHeader = () => {
 		const header = screen
 			.getAllByRole('columnheader')
 			.find((element) => element.textContent?.includes('Name'))
 
 		if (!header) throw new Error('no Name columnheader')
 
-		fireEvent.contextMenu(header, { ctrlKey: true })
+		return header
+	}
+
+	it('defers to the native menu on a Ctrl + right-click (button 2)', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// The secondary button held with Ctrl is the escape hatch to the browser menu.
+		fireEvent.contextMenu(nameHeader(), { ctrlKey: true, button: 2 })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('opens the grid menu on a Ctrl + click (button 0, macOS secondary click)', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
+
+		// A primary-button Ctrl+click is macOS's secondary click; it reaches the grid
+		// menu rather than the native one, so Mac users get there without a right button.
+		fireEvent.contextMenu(nameHeader(), { ctrlKey: true, button: 0 })
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
 	it('offers "Clear sort" only for the sorted column', () => {

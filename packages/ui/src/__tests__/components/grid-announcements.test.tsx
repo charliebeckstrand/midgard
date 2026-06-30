@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, userEvent, waitFor } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -110,5 +110,84 @@ describe('Grid announcements', () => {
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
 
 		await vi.waitFor(() => expect(status).toHaveTextContent(/6.10 of 12/))
+	})
+
+	it('announces an unpin from the pinned column button', async () => {
+		const user = userEvent.setup()
+
+		const pinnedColumns: GridColumn<Row>[] = [
+			{ ...columns[0], pinned: 'left' } as GridColumn<Row>,
+			columns[1] as GridColumn<Row>,
+		]
+
+		renderUI(<Grid columns={pinnedColumns} rows={rows} getKey={getKey} />)
+
+		await user.click(screen.getByRole('button', { name: 'Unpin Name' }))
+
+		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Unpinned Name'))
+	})
+
+	it('announces a column hide from the manager', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnManager={{ toolbarButton: true }}
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
+
+		await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
+
+		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Hid Age column'))
+	})
+
+	it('announces a settled column resize after a keyboard nudge', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		// Debounced: settles into one "Name column N pixels" message. The RTL `waitFor`
+		// (not `vi.waitFor`) polls under act, so the grid's busy-status debounce — which
+		// settles in the same window — is a tracked update, not an out-of-act warning.
+		await waitFor(() => expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/))
+	})
+})
+
+/**
+ * Pure announcement builders (WCAG 4.1.3): unit-tested without rendering so the
+ * exact wording the live region speaks is pinned.
+ */
+describe('Grid announcement builders', () => {
+	it('describes a pin to each edge and an unpin', async () => {
+		const { describePin } = await import('../../modules/grid/grid-announcements')
+
+		expect(describePin('Name', 'left')).toBe('Pinned Name to the left')
+
+		expect(describePin('Name', 'right')).toBe('Pinned Name to the right')
+
+		expect(describePin('Name', false)).toBe('Unpinned Name')
+	})
+
+	it('describes a show and a hide', async () => {
+		const { describeColumnVisibility } = await import('../../modules/grid/grid-announcements')
+
+		expect(describeColumnVisibility('Age', true)).toBe('Hid Age column')
+
+		expect(describeColumnVisibility('Age', false)).toBe('Showed Age column')
+	})
+
+	it('describes a settled resize, rounding the width', async () => {
+		const { describeResize } = await import('../../modules/grid/grid-announcements')
+
+		expect(describeResize('Name', 240.6)).toBe('Name column 241 pixels')
 	})
 })

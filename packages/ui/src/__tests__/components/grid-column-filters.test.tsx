@@ -109,6 +109,10 @@ describe('Grid per-column filters', () => {
 		expect(button.className).toMatch(/text-blue/)
 
 		expect(button.className).not.toMatch(/text-zinc-500/)
+
+		// The icon also swaps to the "+" variant, so the applied state reads by shape,
+		// not the accent colour alone (WCAG 1.4.1).
+		expect(button.querySelector('.lucide-list-filter-plus')).toBeInTheDocument()
 	})
 
 	it('leaves the filter button unaccented when no filter is active', () => {
@@ -119,6 +123,11 @@ describe('Grid per-column filters', () => {
 		expect(button).not.toHaveAttribute('data-active')
 
 		expect(button.className).not.toMatch(/text-blue/)
+
+		// Idle keeps the plain filter icon, not the active "+" variant.
+		expect(button.querySelector('.lucide-list-filter')).toBeInTheDocument()
+
+		expect(button.querySelector('.lucide-list-filter-plus')).not.toBeInTheDocument()
 	})
 
 	it('leaves the button unaccented when a rule carries no value', () => {

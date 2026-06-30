@@ -8,6 +8,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	useCallback,
+	useEffect,
 	useRef,
 } from 'react'
 import { Button } from '../../components/button'
@@ -15,14 +16,19 @@ import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableHead, TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { cn, dataAttr } from '../../core'
+import { announce, cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
-import { type SortState, useGrid } from './context'
+import { type SortState, useGrid, useGridResizing } from './context'
+import { describeResize } from './grid-announcements'
 import { GridColumnFilterButton } from './grid-column-filter-button'
-import { COLUMN_RESIZE_STEP } from './grid-constants'
+import {
+	COLUMN_RESIZE_PAGE_STEP,
+	COLUMN_RESIZE_STEP,
+	GRID_STATUS_DEBOUNCE_MS,
+} from './grid-constants'
 import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
@@ -361,7 +367,8 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
-	const { resizing } = useGrid()
+
+	const resizing = useGridResizing()
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
@@ -444,16 +451,59 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 
 	const { min, max } = resize.bounds(id)
 
+	// Debounce the post-resize announcement so a run of keyboard nudges settles into
+	// one polite message rather than chattering on every keystroke (WCAG 4.1.3).
+	const announceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+	useEffect(() => () => clearTimeout(announceTimer.current), [])
+
+	function announceSettledWidth() {
+		clearTimeout(announceTimer.current)
+
+		announceTimer.current = setTimeout(
+			() => announce(describeResize(label, resize.getSize(id))),
+			GRID_STATUS_DEBOUNCE_MS,
+		)
+	}
+
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
-		if (event.key === 'ArrowLeft') {
-			event.preventDefault()
+		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
+		// reset the column to its default — the window-splitter key set (WCAG 4.1.2).
+		const size = resize.getSize(id)
 
-			resize.nudge(id, -COLUMN_RESIZE_STEP)
-		} else if (event.key === 'ArrowRight') {
-			event.preventDefault()
-
-			resize.nudge(id, COLUMN_RESIZE_STEP)
+		switch (event.key) {
+			case 'ArrowLeft':
+				resize.nudge(id, -COLUMN_RESIZE_STEP)
+				break
+			case 'ArrowRight':
+				resize.nudge(id, COLUMN_RESIZE_STEP)
+				break
+			case 'PageDown':
+				resize.nudge(id, -COLUMN_RESIZE_PAGE_STEP)
+				break
+			case 'PageUp':
+				resize.nudge(id, COLUMN_RESIZE_PAGE_STEP)
+				break
+			case 'Home':
+				resize.nudge(id, min - size)
+				break
+			case 'End':
+				// To the max when bounded; an unbounded column grows a coarse step instead.
+				resize.nudge(
+					id,
+					(max < Number.MAX_SAFE_INTEGER ? max : size + COLUMN_RESIZE_PAGE_STEP) - size,
+				)
+				break
+			case 'Enter':
+				resize.reset(id)
+				break
+			default:
+				return
 		}
+
+		event.preventDefault()
+
+		announceSettledWidth()
 	}
 
 	return (

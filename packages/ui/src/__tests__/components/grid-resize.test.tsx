@@ -180,6 +180,80 @@ describe('Grid resizable columns', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith({ name: 184 })
 	})
 
+	it('jumps a coarse step with PageUp and PageDown', async () => {
+		const user = userEvent.setup()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onValueChange }}
+			/>,
+		)
+
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		// 200 + COLUMN_RESIZE_PAGE_STEP (64)
+		await user.keyboard('{PageUp}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ name: 264 })
+
+		// 264 - 64, back to the start
+		await user.keyboard('{PageDown}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ name: 200 })
+	})
+
+	it('snaps to the minimum width with Home', async () => {
+		const user = userEvent.setup()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onValueChange }}
+			/>,
+		)
+
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		await user.keyboard('{Home}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ name: 80 })
+	})
+
+	it('snaps to the maximum width with End when the column is bounded', async () => {
+		const user = userEvent.setup()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={[
+					{ id: 'name', title: 'Name', cell: (row) => row.name, width: '200px', maxWidth: 400 },
+				]}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onValueChange }}
+			/>,
+		)
+
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		await user.keyboard('{End}')
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ name: 400 })
+	})
+
 	it('clamps to the column minimum width', async () => {
 		const user = userEvent.setup()
 

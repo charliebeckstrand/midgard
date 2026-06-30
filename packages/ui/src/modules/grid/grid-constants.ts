@@ -44,6 +44,9 @@ export const HEADER_TRUNCATE_ALLOWANCE = 24
 /** Pixels a keyboard arrow nudges a column resize handle. @internal */
 export const COLUMN_RESIZE_STEP = 16
 
+/** Pixels a keyboard PageUp/PageDown jumps a column resize handle — a coarse step over the arrow nudge. @internal */
+export const COLUMN_RESIZE_PAGE_STEP = 64
+
 /** Rows a PageUp/PageDown jumps the read-only cell cursor. @internal */
 export const NAV_PAGE_STEP = 10
 

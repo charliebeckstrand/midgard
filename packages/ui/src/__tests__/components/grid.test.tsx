@@ -1068,6 +1068,27 @@ describe('Grid', () => {
 			expect(headers[headers.length - 1]).toHaveAttribute('aria-colindex', String(columns.length))
 		})
 
+		it('emits the row/column counts and indices on a plain navigable grid', () => {
+			const { container } = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} navigable />,
+			)
+
+			const table = container.querySelector('table')
+
+			// A navigable grid is role="grid" even fully rendered, so it carries the
+			// counts and per-cell indices the role implies (KEYB-07), not only when
+			// windowed by virtualization or pagination.
+			expect(table).toHaveAttribute('role', 'grid')
+
+			expect(table).toHaveAttribute('aria-rowcount', String(rows.length + 1))
+
+			expect(table).toHaveAttribute('aria-colcount', String(columns.length))
+
+			const headers = container.querySelectorAll('thead th')
+
+			expect(headers[0]).toHaveAttribute('aria-colindex', '1')
+		})
+
 		it('keeps the native table role when not virtualized', () => {
 			const { container } = renderUI(<Grid columns={columns} rows={manyRows} getKey={getKey} />)
 
