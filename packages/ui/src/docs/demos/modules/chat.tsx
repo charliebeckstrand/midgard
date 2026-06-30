@@ -1,4 +1,4 @@
-import { CircleDashed, Pencil, RotateCcw } from 'lucide-react'
+import { CircleDashed, Pencil, RotateCcw, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
@@ -7,8 +7,118 @@ import { Icon } from '../../../components/icon'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
-import { ChatMessage, ChatPrompt } from '../../../modules/chat'
+import {
+	type ChatContent,
+	ChatLayout,
+	ChatListItem,
+	ChatMessage,
+	ChatMessages,
+	ChatPrompt,
+	type ChatTransport,
+	useChatSend,
+} from '../../../modules/chat'
 import { Example } from '../../engine'
+
+const conversations = [
+	{ id: 1, title: 'Project kickoff', preview: 'Let me help you plan…', time: '2h' },
+	{ id: 2, title: 'Bug investigation', preview: 'I found the root cause…', time: '5h' },
+	{ id: 3, title: 'Code review', preview: 'The implementation looks…', time: '1d' },
+	{ id: 4, title: 'Architecture design', preview: 'Here are the trade-offs…', time: '3d' },
+]
+
+const transcript: ChatContent[] = [
+	{ id: '1', role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
+	{
+		id: '2',
+		role: 'agent',
+		content: "Of course! Who's attending, and what outcome do you need from it?",
+	},
+	{
+		id: '3',
+		role: 'user',
+		content: 'Engineering, product, and design — to align on the Q2 roadmap.',
+	},
+]
+
+// A mock transport that streams a canned reply word by word, emitting the
+// cumulative text on each tick (the snapshot shape ChatTransport expects).
+const mockTransport: ChatTransport = () =>
+	(async function* () {
+		const reply =
+			'Thanks for sharing that. Here is a streamed reply so the transcript scrolls and the composer toggles to its stop control while a response is in flight.'
+
+		let snapshot = ''
+
+		for (const word of reply.split(' ')) {
+			snapshot = snapshot ? `${snapshot} ${word}` : word
+
+			await new Promise((resolve) => setTimeout(resolve, 50))
+
+			yield snapshot
+		}
+	})()
+
+function ConversationList() {
+	const [current, setCurrent] = useState(1)
+
+	return (
+		<Stack className="max-w-xs gap-0.5">
+			{conversations.map((conversation) => (
+				<ChatListItem
+					key={conversation.id}
+					title={conversation.title}
+					preview={conversation.preview}
+					timestamp={conversation.time}
+					current={conversation.id === current}
+					onSelect={() => setCurrent(conversation.id)}
+					actions={
+						<Button variant="plain" size="sm" color="red" aria-label="Delete conversation">
+							<Icon icon={<Trash />} />
+						</Button>
+					}
+				/>
+			))}
+		</Stack>
+	)
+}
+
+function LayoutDemo() {
+	const [current, setCurrent] = useState(1)
+
+	const { messages, sending, send } = useChatSend({
+		transport: mockTransport,
+		initialMessages: [
+			{ role: 'user', content: 'Can you help me plan the kickoff?' },
+			{ role: 'agent', content: 'Of course — who will be attending?' },
+		],
+	})
+
+	const sidebar = (
+		<Stack className="w-60 shrink-0 gap-0.5 overflow-y-auto">
+			{conversations.map((conversation) => (
+				<ChatListItem
+					key={conversation.id}
+					title={conversation.title}
+					preview={conversation.preview}
+					current={conversation.id === current}
+					onSelect={() => setCurrent(conversation.id)}
+				/>
+			))}
+		</Stack>
+	)
+
+	return (
+		<div className="h-96">
+			<ChatLayout
+				messages={messages}
+				sending={sending}
+				onSend={send}
+				sidebar={sidebar}
+				aria-label="Message the assistant"
+			/>
+		</div>
+	)
+}
 
 function DefaultPrompt() {
 	const [value, setValue] = useState('')
@@ -87,6 +197,9 @@ export function Demo() {
 			<TabList aria-label="Chat module">
 				<Tab value="Message">Message</Tab>
 				<Tab value="Prompt">Prompt</Tab>
+				<Tab value="Transcript">Transcript</Tab>
+				<Tab value="Conversations">Conversations</Tab>
+				<Tab value="Layout">Layout</Tab>
 			</TabList>
 			<TabContents fade={false}>
 				<TabContent value="Message">
@@ -158,6 +271,26 @@ export function Demo() {
 							<StreamingPrompt />
 						</Example>
 					</Stack>
+				</TabContent>
+
+				<TabContent value="Transcript">
+					<Example title="Transcript">
+						<div className="h-80">
+							<ChatMessages messages={transcript} />
+						</div>
+					</Example>
+				</TabContent>
+
+				<TabContent value="Conversations">
+					<Example title="Conversation list">
+						<ConversationList />
+					</Example>
+				</TabContent>
+
+				<TabContent value="Layout">
+					<Example title="Full composition">
+						<LayoutDemo />
+					</Example>
 				</TabContent>
 			</TabContents>
 		</Tabs>
