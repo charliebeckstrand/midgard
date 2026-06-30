@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { renderUI, screen, userEvent, waitFor } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -155,10 +155,10 @@ describe('Grid announcements', () => {
 
 		await user.keyboard('{ArrowRight}')
 
-		// Debounced: settles into one "Name column N pixels" message.
-		await vi.waitFor(() =>
-			expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/),
-		)
+		// Debounced: settles into one "Name column N pixels" message. The RTL `waitFor`
+		// (not `vi.waitFor`) polls under act, so the grid's busy-status debounce — which
+		// settles in the same window — is a tracked update, not an out-of-act warning.
+		await waitFor(() => expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/))
 	})
 })
 
@@ -171,7 +171,9 @@ describe('Grid announcement builders', () => {
 		const { describePin } = await import('../../modules/grid/grid-announcements')
 
 		expect(describePin('Name', 'left')).toBe('Pinned Name to the left')
+
 		expect(describePin('Name', 'right')).toBe('Pinned Name to the right')
+
 		expect(describePin('Name', false)).toBe('Unpinned Name')
 	})
 
@@ -179,6 +181,7 @@ describe('Grid announcement builders', () => {
 		const { describeColumnVisibility } = await import('../../modules/grid/grid-announcements')
 
 		expect(describeColumnVisibility('Age', true)).toBe('Hid Age column')
+
 		expect(describeColumnVisibility('Age', false)).toBe('Showed Age column')
 	})
 
