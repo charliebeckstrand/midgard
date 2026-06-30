@@ -1,7 +1,6 @@
-import { ChatMessage } from '../../../components/chat-message'
-import { ChatPrompt } from '../../../components/chat-prompt'
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
+import { ChatMessage, ChatPrompt } from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
 import type { Case } from './types'
 

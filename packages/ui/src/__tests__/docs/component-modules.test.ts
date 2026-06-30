@@ -29,6 +29,16 @@ describe('docs engine ⇄ ui component map', () => {
 		expect(info?.module).toBe('providers/glass')
 	})
 
+	it('resolves a module name to its nested `modules/*` module', () => {
+		// Modules carry the canonical nested specifier; derived imports read
+		// `ui/modules/map`. The bare `ui/map` shorthand also resolves.
+		const info = defaultRegistry.byName.get('Map')
+
+		expect(info?.name).toBe('Map')
+
+		expect(info?.module).toBe('modules/map')
+	})
+
 	it('resolves a demo package import to an external entry', () => {
 		// Demos import lucide icons (`Star` in the icon demo); the plugin records
 		// them under their bare package specifier with the external mark.

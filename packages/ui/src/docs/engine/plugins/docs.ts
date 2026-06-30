@@ -178,8 +178,9 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 
 	if (rel[0] === 'layouts' && rel[1] === 'index.ts') return 'layouts'
 
-	// Modules carry the full `modules/<name>`, matching the nested public
-	// specifier (`ui/modules/grid`).
+	// Modules carry the full `modules/<name>`, matching the canonical nested
+	// public specifier (`ui/modules/grid`). The bare `ui/grid` shorthand also
+	// resolves, but derived snippets show the canonical path.
 	if (rel[0] === 'modules' && rel[2] === 'index.ts') return rel[1] ? `modules/${rel[1]}` : null
 
 	return null

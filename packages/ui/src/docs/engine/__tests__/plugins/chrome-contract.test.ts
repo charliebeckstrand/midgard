@@ -25,12 +25,16 @@ describe('chrome contract: the docs subtree is never tagged', () => {
 })
 
 describe('chrome contract: real public modules are still tagged', () => {
-	it('names component, provider, and layout index barrels', () => {
+	it('names component, provider, layout, and module index barrels', () => {
 		expect(moduleNameFor(at('components', 'button', 'index.ts'), SRC)).toBe('button')
 
 		expect(moduleNameFor(at('providers', 'glass', 'index.ts'), SRC)).toBe('providers/glass')
 
 		expect(moduleNameFor(at('layouts', 'index.ts'), SRC)).toBe('layouts')
+
+		// Modules carry the canonical nested specifier (`ui/modules/grid`); the
+		// bare `ui/grid` shorthand also resolves but snippets show the full path.
+		expect(moduleNameFor(at('modules', 'grid', 'index.ts'), SRC)).toBe('modules/grid')
 	})
 
 	it('declines non-index files inside a real component directory', () => {

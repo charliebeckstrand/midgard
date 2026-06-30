@@ -4,15 +4,15 @@
 
 A module is larger than a component: it owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. Modules build on the atomic `ui` components and primitives rather than living beside them.
 
-Each module is its own entry point under `ui/modules/*`:
+Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel — module and component names never collide — so both specifiers work; canonical docs and snippets use the nested path:
 
 ```ts
-import { Map } from 'ui/modules/map'
+import { Map } from 'ui/modules/map' // or the 'ui/map' shorthand
 ```
 
 ## Modules
 
-`grid` · `map` · `query`
+`chat` · `grid` · `map` · `query`
 
 ---
 
