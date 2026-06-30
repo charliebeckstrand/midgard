@@ -334,6 +334,10 @@ export function GridData<T>({
 	// `aria-activedescendant` at it.
 	const scrollRowIntoViewRef = useRef<GridScrollRowIntoView | null>(null)
 
+	// The grid's scroll container (sticky/virtualized), attached below; the cursor
+	// measures it for the viewport-relative PageUp/Down step.
+	const scrollRef = useRef<HTMLDivElement>(null)
+
 	// A stable click handler so the memoized rows don't churn when the consumer
 	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
 	const handleRowClick = useStableRowClick(onRowClick)
@@ -352,6 +356,7 @@ export function GridData<T>({
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
+		scrollContainerRef: scrollRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -637,8 +642,6 @@ export function GridData<T>({
 		visibleColumns,
 		reorderColumns,
 	})
-
-	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 

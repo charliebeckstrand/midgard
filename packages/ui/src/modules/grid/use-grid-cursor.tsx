@@ -44,6 +44,7 @@ export function useGridCursor<T>({
 	selectableRef,
 	toggleActiveRow,
 	scrollRowIntoViewRef,
+	scrollContainerRef,
 	refs,
 }: {
 	navigable: boolean
@@ -57,6 +58,8 @@ export function useGridCursor<T>({
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
 	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
+	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
+	scrollContainerRef: RefObject<HTMLElement | null>
 	refs: GridCursorRefs<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
@@ -86,6 +89,7 @@ export function useGridCursor<T>({
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
+		scrollContainerRef,
 	})
 
 	const editing = useGridEditing<T>({
