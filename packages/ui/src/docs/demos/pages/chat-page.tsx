@@ -4,6 +4,7 @@ import { Button } from '../../../components/button'
 import { Confirm } from '../../../components/confirm'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
+import { Sidebar, SidebarBody, SidebarHeader } from '../../../components/sidebar'
 import {
 	type ChatContent,
 	ChatLayout,
@@ -73,31 +74,36 @@ export function Demo() {
 	const [confirmOpen, setConfirmOpen] = useState(false)
 
 	const sidebar = (
-		<div className="flex w-64 shrink-0 flex-col gap-3 overflow-y-auto">
-			<Heading level={3}>Messages</Heading>
-
-			<ChatList aria-label="Conversations">
-				{conversations.map((conversation) => (
-					<ChatListItem
-						key={conversation.id}
-						title={conversation.title}
-						preview={conversation.preview}
-						current={conversation.id === current}
-						onSelect={() => setCurrent(conversation.id)}
-						actions={
-							<Button
-								aria-label="Delete conversation"
-								color="red"
-								variant="plain"
-								size="sm"
-								onClick={() => setConfirmOpen(true)}
-							>
-								<Icon icon={<Trash />} />
-							</Button>
-						}
-					/>
-				))}
-			</ChatList>
+		<>
+			<Sidebar className="w-64 shrink-0">
+				<SidebarHeader>
+					<Heading level={3}>Messages</Heading>
+				</SidebarHeader>
+				<SidebarBody>
+					<ChatList aria-label="Conversations">
+						{conversations.map((conversation) => (
+							<ChatListItem
+								key={conversation.id}
+								title={conversation.title}
+								preview={conversation.preview}
+								current={conversation.id === current}
+								onSelect={() => setCurrent(conversation.id)}
+								actions={
+									<Button
+										aria-label="Delete conversation"
+										color="red"
+										variant="plain"
+										size="sm"
+										onClick={() => setConfirmOpen(true)}
+									>
+										<Icon icon={<Trash />} />
+									</Button>
+								}
+							/>
+						))}
+					</ChatList>
+				</SidebarBody>
+			</Sidebar>
 
 			<Confirm
 				open={confirmOpen}
@@ -107,7 +113,7 @@ export function Demo() {
 				title="Delete conversation"
 				description="Are you sure you want to delete this conversation? This action cannot be undone."
 			/>
-		</div>
+		</>
 	)
 
 	return (
