@@ -1,6 +1,6 @@
 'use client'
 
-import { ListFilter } from 'lucide-react'
+import { ListFilter, ListFilterPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -154,7 +154,9 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				className={cn(k.filter.button, !active && k.filter.idle)}
 				onClick={() => handleOpenChange(true)}
 			>
-				<Icon icon={<ListFilter />} />
+				{/* The active icon adds a "+" so the applied state reads by shape, not the
+				    accent colour alone (WCAG 1.4.1). */}
+				<Icon icon={active ? <ListFilterPlus /> : <ListFilter />} />
 			</Button>
 
 			<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>

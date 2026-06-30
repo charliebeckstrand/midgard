@@ -654,7 +654,7 @@ export function GridData<T>({
 		enabled: gridSemantics,
 		rowOffset: pageRowOffset,
 		selectAllLabel,
-	} = resolveGridSemantics(virtualizeEnabled, pagination)
+	} = resolveGridSemantics(virtualizeEnabled, pagination, navigable)
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer

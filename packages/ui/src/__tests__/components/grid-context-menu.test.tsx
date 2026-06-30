@@ -210,18 +210,51 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
-	it('defers to the native menu when Ctrl is held during the right-click', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	const withPlatform = (platform: string, run: () => void) => {
+		const original = Object.getOwnPropertyDescriptor(navigator, 'platform')
 
-		const header = screen
-			.getAllByRole('columnheader')
-			.find((element) => element.textContent?.includes('Name'))
+		Object.defineProperty(navigator, 'platform', { value: platform, configurable: true })
 
-		if (!header) throw new Error('no Name columnheader')
+		try {
+			run()
+		} finally {
+			if (original) Object.defineProperty(navigator, 'platform', original)
+			else Reflect.deleteProperty(navigator, 'platform')
+		}
+	}
 
-		fireEvent.contextMenu(header, { ctrlKey: true })
+	it('defers to the native menu on a Ctrl+right-click on a non-Apple platform', () => {
+		withPlatform('Win32', () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+			const header = screen
+				.getAllByRole('columnheader')
+				.find((element) => element.textContent?.includes('Name'))
+
+			if (!header) throw new Error('no Name columnheader')
+
+			fireEvent.contextMenu(header, { ctrlKey: true })
+
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		})
+	})
+
+	it('opens the grid menu on a macOS Ctrl+click (the platform secondary click)', () => {
+		withPlatform('MacIntel', () => {
+			renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />,
+			)
+
+			const header = screen
+				.getAllByRole('columnheader')
+				.find((element) => element.textContent?.includes('Name'))
+
+			if (!header) throw new Error('no Name columnheader')
+
+			fireEvent.contextMenu(header, { ctrlKey: true })
+
+			expect(screen.getByRole('menu')).toBeInTheDocument()
+		})
 	})
 
 	it('offers "Clear sort" only for the sorted column', () => {
