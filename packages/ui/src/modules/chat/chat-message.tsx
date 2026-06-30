@@ -18,24 +18,23 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 // reach; each selector below pairs a class with that tag name, so it outranks
 // the plain utility class already on the element (one more specificity rung)
 // regardless of light/dark mode or stylesheet order, without touching
-// CodeBlock's syntax-highlighted spans (never named here).
-const PROSE_TAGS_WITH_OWN_COLOR = [
-	'h1',
-	'h2',
-	'h3',
-	'h4',
-	'h5',
-	'h6',
-	'strong',
-	'a',
-	'blockquote',
-	'th',
-]
-
+// CodeBlock's syntax-highlighted spans (never named here). Every class is
+// spelled out as a literal — Tailwind's scanner matches complete strings in
+// source text, so a templated `` `[&_${tag}]:text-inherit` `` (built from an
+// array of tag names) is invisible to it and silently emits no CSS at all.
 const BUBBLE_PROSE_CLASS = [
 	'text-inherit',
 	'dark:text-inherit',
-	...PROSE_TAGS_WITH_OWN_COLOR.map((tag) => `[&_${tag}]:text-inherit`),
+	'[&_h1]:text-inherit',
+	'[&_h2]:text-inherit',
+	'[&_h3]:text-inherit',
+	'[&_h4]:text-inherit',
+	'[&_h5]:text-inherit',
+	'[&_h6]:text-inherit',
+	'[&_strong]:text-inherit',
+	'[&_a]:text-inherit',
+	'[&_blockquote]:text-inherit',
+	'[&_th]:text-inherit',
 ].join(' ')
 
 /** Props for {@link ChatMessage}. */
