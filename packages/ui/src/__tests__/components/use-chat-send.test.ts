@@ -81,4 +81,201 @@ describe('useChatSend', () => {
 
 		expect(result.current.sending).toBe(false)
 	})
+
+	it('retry regenerates the reply to the last user message, dropping the previous reply', async () => {
+		const transports = [streamOf('first reply'), streamOf('second reply')]
+
+		let call = 0
+
+		const transport: ChatTransport = (content) =>
+			transports[call++]?.(content) ?? streamOf()(content)
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages[1]).toMatchObject({ content: 'first reply' })
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
+
+		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'second reply' })
+	})
+
+	it('retry resends after a failed send, with no prior agent reply to drop', async () => {
+		let call = 0
+
+		const transport: ChatTransport = (content) => {
+			call += 1
+
+			if (call === 1) {
+				// biome-ignore lint/correctness/useYield: throws before yielding to exercise the failure path.
+				return (async function* () {
+					throw new Error('boom')
+				})()
+			}
+
+			return streamOf('recovered')(content)
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages).toHaveLength(1)
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'recovered' })
+	})
+
+	it('retry no-ops with no user message in the transcript', async () => {
+		const transport = vi.fn(streamOf('x'))
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		expect(transport).not.toHaveBeenCalled()
+
+		expect(result.current.messages).toHaveLength(0)
+	})
+
+	it('edit replaces a user message and regenerates from there, dropping later turns', async () => {
+		const transports = [streamOf('first reply'), streamOf('second reply')]
+
+		let call = 0
+
+		const transport: ChatTransport = (content) =>
+			transports[call++]?.(content) ?? streamOf()(content)
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		const userId = result.current.messages[0]?.id as string
+
+		await act(async () => {
+			await result.current.edit(userId, 'edited message')
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'edited message' })
+
+		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'second reply' })
+	})
+
+	it('edit no-ops for an unknown id, a non-user message, or empty content', async () => {
+		const transport = vi.fn(streamOf('x'))
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [
+					{ role: 'user', content: 'hi' },
+					{ role: 'agent', content: 'hello' },
+				],
+			}),
+		)
+
+		const userId = result.current.messages[0]?.id as string
+
+		const agentId = result.current.messages[1]?.id as string
+
+		await act(async () => {
+			await result.current.edit('unknown-id', 'x')
+		})
+
+		await act(async () => {
+			await result.current.edit(agentId, 'x')
+		})
+
+		await act(async () => {
+			await result.current.edit(userId, '   ')
+		})
+
+		expect(transport).not.toHaveBeenCalled()
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
+	})
+
+	it('send/retry/edit no-op while a send is already in flight', async () => {
+		const calls: string[] = []
+
+		let releaseTransport: (() => void) | undefined
+
+		const transport: ChatTransport = (content) => {
+			calls.push(content)
+
+			return (async function* () {
+				await new Promise<void>((resolve) => {
+					releaseTransport = resolve
+				})
+
+				yield 'reply'
+			})()
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let firstSend!: Promise<void>
+
+		act(() => {
+			firstSend = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.sending).toBe(true))
+
+		const userId = result.current.messages[0]?.id as string
+
+		await act(async () => {
+			await result.current.send('again')
+		})
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		await act(async () => {
+			await result.current.edit(userId, 'edited')
+		})
+
+		// Only the original send reached the transport; retry/edit/the second
+		// send all no-opped while it was still in flight.
+		expect(calls).toEqual(['hi'])
+
+		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
+
+		releaseTransport?.()
+
+		await act(async () => {
+			await firstSend
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
+
+		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'reply' })
+	})
 })

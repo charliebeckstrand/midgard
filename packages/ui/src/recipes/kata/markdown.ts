@@ -3,14 +3,14 @@
  * marked's tokens to a React tree and pulls each element's classes from the
  * matching slot, so styling rides on the target element, not the wrapper. No
  * variants axis — one slot per prose element: `root`/`inline`, the `heading`
- * level map, block text, lists, `code`/`pre`, table parts, and `img`.
+ * level map, block text, lists, table parts, and `img`. Code spans and fenced
+ * blocks render through the `Code` / `CodeBlock` components instead of a slot
+ * here — see `markdown-renderer.tsx`.
  */
-import { iro, ji, kasane, omote, sen, shaku } from '../kiso'
+import { iro, ji, sen } from '../kiso'
 
 const { palette, text } = iro
 const { size, weight } = ji
-const { rounded } = kasane
-const { mark } = shaku
 
 const headingBase = [...text.default, weight.semibold]
 
@@ -47,12 +47,6 @@ export const k = {
 	li: 'my-1 [&>ul]:my-1 [&>ol]:my-1',
 	task: 'list-none',
 	checkbox: 'mr-2',
-
-	// Inline code reuses the shared `mark` chrome; fenced blocks sit on the kiso
-	// code canvas with light text, and the nested `<code>` inherits both.
-	code: [...mark.base, ...mark.size.sm, ...text.default],
-	pre: [omote.bg.code, rounded.lg, 'my-4 overflow-x-auto p-4', size.sm, 'text-zinc-100'],
-	preCode: 'font-mono text-inherit',
 
 	blockquote: [...text.muted, 'my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700'],
 	hr: ['border-0 border-t', ...sen.border.defaultColor, 'my-6'],

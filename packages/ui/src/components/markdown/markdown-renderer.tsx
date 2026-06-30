@@ -1,7 +1,9 @@
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
+import type { BundledLanguage } from 'shiki'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
+import { Code, CodeBlock } from '../code'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
@@ -10,9 +12,13 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
  * recursing through each token's inline children.
  *
  * @remarks
- * Pure and hook-free, so the {@link Markdown} leaf that mounts it stays static
- * and server-renderable. Raw HTML tokens render nothing: the tree is built only
- * from elements this renderer controls, so source markup never reaches the DOM.
+ * Pure and hook-free itself, so the {@link Markdown} leaf that mounts it stays
+ * static and server-renderable; a fenced code token is the one exception,
+ * rendered through {@link CodeBlock} (a `'use client'` leaf that lazily
+ * syntax-highlights), so a code-bearing tree picks up one client boundary
+ * there while the rest stays static. Raw HTML tokens render nothing: the tree
+ * is built only from elements this renderer controls, so source markup never
+ * reaches the DOM.
  *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
  */
@@ -85,16 +91,12 @@ function renderToken(token: Token, index: number): ReactNode {
 			)
 		case 'codespan':
 			return (
-				<code key={index} className={cn(k.code)}>
+				<Code key={index} size="sm">
 					{token.text}
-				</code>
+				</Code>
 			)
 		case 'code':
-			return (
-				<pre key={index} className={cn(k.pre)}>
-					<code className={cn(k.preCode)}>{token.text}</code>
-				</pre>
-			)
+			return <CodeBlock key={index} code={token.text} lang={resolveLang(token.lang)} />
 		case 'blockquote':
 			return (
 				<blockquote key={index} className={cn(k.blockquote)}>
@@ -188,4 +190,15 @@ function renderTable(token: Tokens.Table, key: number): ReactNode {
 
 function alignClass(align: Tokens.TableCell['align']): string | undefined {
 	return align ? k.align[align] : undefined
+}
+
+/**
+ * Resolve a fenced code block's info string to a Shiki grammar id: its first
+ * word (info strings carry extra metadata, e.g. a filename, after the
+ * language), or `'text'` — Shiki's built-in no-highlight grammar — for an
+ * unlabeled fence. An id Shiki doesn't bundle still renders: {@link CodeBlock}
+ * falls back to plain text rather than throwing.
+ */
+function resolveLang(lang: string | undefined): BundledLanguage {
+	return (lang?.trim().split(/\s+/, 1)[0] || 'text') as BundledLanguage
 }

@@ -1,4 +1,5 @@
 import { Marked } from 'marked'
+import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
 import { MarkdownRenderer } from './markdown-renderer'
@@ -37,8 +38,17 @@ export type MarkdownProps = {
  * controls — raw HTML in the source is dropped, never injected — so untrusted
  * Markdown cannot reach the DOM as markup. (Untrusted input can still produce
  * surprising links or images; validate those at the call site if needed.)
+ *
+ * Memoized on its (shallow-equal) props: re-lexing is wasted work when a
+ * parent re-renders for unrelated reasons, e.g. a list of chat bubbles
+ * re-rendering on every streamed chunk of the *last* message while every
+ * earlier, settled bubble's `children` stays the same string.
  */
-export function Markdown({ children, className, inline = false }: MarkdownProps) {
+export const Markdown = memo(function Markdown({
+	children,
+	className,
+	inline = false,
+}: MarkdownProps) {
 	if (inline) {
 		return (
 			<span data-slot="markdown" className={cn(k.inline, className)}>
@@ -52,4 +62,4 @@ export function Markdown({ children, className, inline = false }: MarkdownProps)
 			<MarkdownRenderer tokens={md.lexer(children)} />
 		</div>
 	)
-}
+})

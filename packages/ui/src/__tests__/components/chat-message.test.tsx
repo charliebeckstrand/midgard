@@ -62,4 +62,38 @@ describe('ChatMessage', () => {
 
 		expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
 	})
+
+	it('renders settled content as Markdown', () => {
+		const { container } = renderUI(<ChatMessage>Some **bold** text</ChatMessage>)
+
+		expect(bySlot(container, 'markdown')).toBeInTheDocument()
+
+		expect(container.querySelector('strong')?.textContent).toBe('bold')
+	})
+
+	it('keeps streaming content as raw text, not parsed Markdown', () => {
+		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
+
+		expect(bySlot(container, 'markdown')).not.toBeInTheDocument()
+
+		expect(container.querySelector('strong')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Some **bold** text')
+	})
+
+	it("overrides Markdown's prose colors to inherit the user bubble's foreground", () => {
+		const { container } = renderUI(<ChatMessage type="user">content</ChatMessage>)
+
+		expect(bySlot(container, 'markdown')).toHaveClass('text-inherit')
+	})
+
+	it("leaves Markdown's own palette untouched for assistant and system bubbles", () => {
+		const { container: assistant } = renderUI(<ChatMessage type="assistant">content</ChatMessage>)
+
+		expect(bySlot(assistant, 'markdown')).not.toHaveClass('text-inherit')
+
+		const { container: system } = renderUI(<ChatMessage type="system">content</ChatMessage>)
+
+		expect(bySlot(system, 'markdown')).not.toHaveClass('text-inherit')
+	})
 })
