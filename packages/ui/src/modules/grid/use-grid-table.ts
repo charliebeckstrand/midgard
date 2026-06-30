@@ -446,7 +446,7 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
-	const { sizeToFit } = useGridColumnAutoSize<T>({
+	const { sizeToFit, resetColumn } = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
@@ -458,8 +458,11 @@ export function useGridTable<T>({
 	})
 
 	const resize = useMemo<GridColumnResize | null>(
-		() => (resizable ? { ...buildColumnResize(table, columnFloorsRef.current), sizeToFit } : null),
-		[resizable, table, sizeToFit],
+		() =>
+			resizable
+				? { ...buildColumnResize(table, columnFloorsRef.current), sizeToFit, reset: resetColumn }
+				: null,
+		[resizable, table, sizeToFit, resetColumn],
 	)
 
 	const globalFilter = useMemo<GridGlobalFilterView | null>(

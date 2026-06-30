@@ -48,3 +48,35 @@ export function describeSelection(size: number, allSelected: boolean, onPage: bo
 
 	return `${size} ${size === 1 ? 'row' : 'rows'} selected`
 }
+
+/**
+ * The polite announcement for a column pin change, narrated when the header menu
+ * or pin button moves a column (WCAG 4.1.3): `Pinned Name to the left`, `Pinned
+ * Name to the right`, or `Unpinned Name` when released.
+ *
+ * @internal
+ */
+export function describePin(label: string, side: 'left' | 'right' | false): string {
+	return side === false ? `Unpinned ${label}` : `Pinned ${label} to the ${side}`
+}
+
+/**
+ * The polite announcement for a column show/hide from the column manager (WCAG
+ * 4.1.3): `Hid Name column` or `Showed Name column`.
+ *
+ * @internal
+ */
+export function describeColumnVisibility(label: string, hidden: boolean): string {
+	return hidden ? `Hid ${label} column` : `Showed ${label} column`
+}
+
+/**
+ * The polite announcement for a settled column resize, narrated on commit (a
+ * keyboard resize debounces so a run of nudges doesn't chatter; WCAG 4.1.3):
+ * `Name column 240 pixels`.
+ *
+ * @internal
+ */
+export function describeResize(label: string, width: number): string {
+	return `${label} column ${Math.round(width)} pixels`
+}

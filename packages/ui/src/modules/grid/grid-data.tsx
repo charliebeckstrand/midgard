@@ -12,12 +12,17 @@ import {
 	useState,
 } from 'react'
 import { Table } from '../../components/table'
-import { cn, dataAttr } from '../../core'
+import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
-import { describeSelection, describeSort } from './grid-announcements'
+import {
+	describeColumnVisibility,
+	describePin,
+	describeSelection,
+	describeSort,
+} from './grid-announcements'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
@@ -48,7 +53,11 @@ import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import type { GridColumn, GridContextMenu as GridContextMenuConfig } from './types'
+import {
+	columnLabel,
+	type GridColumn,
+	type GridContextMenu as GridContextMenuConfig,
+} from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
@@ -266,6 +275,17 @@ export function GridData<T>({
 		[resolvedColumns, pinOverrides],
 	)
 
+	// Resolves a column's display label at call time, read by the `[]`-stable
+	// `pinColumn` and the visibility handler so they can narrate the change without
+	// closing over (and re-creating on) the columns.
+	const columnLabelRef = useRef<(id: string | number) => string>(() => '')
+
+	columnLabelRef.current = (id) => {
+		const column = pinnedColumns.find((candidate) => candidate.id === id)
+
+		return column ? columnLabel(column) : String(id)
+	}
+
 	const pinColumn = useCallback((id: string | number, side: PinSide | false) => {
 		setPinOverrides((prev) => {
 			const next = new Map(prev)
@@ -274,6 +294,9 @@ export function GridData<T>({
 
 			return next
 		})
+
+		// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
+		announce(describePin(columnLabelRef.current(id), side))
 	}, [])
 
 	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
@@ -357,6 +380,30 @@ export function GridData<T>({
 		reorderColumns,
 		managerItems,
 	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
+
+	// Narrate column show/hide from the manager (WCAG 4.1.3): the incoming hidden
+	// set is concrete (the visibility hook resolves the manager's updater first), so
+	// diff it against the current one to name the column the toggle moved.
+	const hiddenColumnsRef = useRef(hiddenColumns)
+
+	hiddenColumnsRef.current = hiddenColumns
+
+	const handleHiddenChange = useCallback(
+		(next: Set<string | number>) => {
+			const prev = hiddenColumnsRef.current
+
+			for (const id of next) {
+				if (!prev.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), true))
+			}
+
+			for (const id of prev) {
+				if (!next.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), false))
+			}
+
+			setHiddenColumns(next)
+		},
+		[setHiddenColumns],
+	)
 
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
@@ -726,7 +773,7 @@ export function GridData<T>({
 							order={columnOrder}
 							onOrderChange={setColumnOrder}
 							hidden={hiddenColumns}
-							onHiddenChange={setHiddenColumns}
+							onHiddenChange={handleHiddenChange}
 							onPinChange={pinColumn}
 							onSavePreset={columnManagerConfig?.onSavePreset}
 						/>

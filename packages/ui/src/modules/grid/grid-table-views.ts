@@ -34,6 +34,8 @@ export type GridColumnResize = {
 	nudge: (id: string | number, delta: number) => void
 	/** Auto-size data columns to fill the container width, re-arming auto-fit. */
 	sizeToFit: () => void
+	/** Reset one column to its default width — re-fit from content, or re-seat a `width`-seeded column. */
+	reset: (id: string | number) => void
 }
 
 /**
@@ -253,7 +255,7 @@ export function useColumnSettleWidths<T>(
 export function buildColumnResize<T>(
 	table: Table<T>,
 	columnFloors: ReadonlyMap<string, number>,
-): Omit<GridColumnResize, 'sizeToFit'> {
+): Omit<GridColumnResize, 'sizeToFit' | 'reset'> {
 	const bounds = (id: string | number) => {
 		const column = table.getColumn(String(id))
 

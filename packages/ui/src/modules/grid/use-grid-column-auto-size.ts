@@ -60,7 +60,10 @@ export function useGridColumnAutoSize<T>({
 	containerRef,
 	density,
 	columnFloors,
-}: GridColumnAutoSizeOptions<T>): { sizeToFit: () => void } {
+}: GridColumnAutoSizeOptions<T>): {
+	sizeToFit: () => void
+	resetColumn: (id: string | number) => void
+} {
 	const enabled = resizable && !controlled
 
 	// Columns the user has drag-resized; held at their width while the rest auto-fit.
@@ -251,5 +254,23 @@ export function useGridColumnAutoSize<T>({
 		run(true)
 	}, [run, columns])
 
-	return { sizeToFit }
+	// Reset one column to its default: drop any drag-hold and `width` release so the
+	// next pass re-fits it from content (or re-seats a `width`-seeded column at its
+	// `width`), clearing its running max so the re-measure isn't floored by the old.
+	const resetColumn = useCallback(
+		(id: string | number) => {
+			const key = String(id)
+
+			manualPinnedRef.current.delete(key)
+
+			widthReleasedRef.current.delete(key)
+
+			runningContentRef.current.delete(key)
+
+			run(true)
+		},
+		[run],
+	)
+
+	return { sizeToFit, resetColumn }
 }
