@@ -113,7 +113,9 @@ describe('Overlay', () => {
 		// absence of backdrop-blur-sm fails on both counts if `glass` were ignored
 		// and the base backdrop (bg-white/50 + backdrop-blur-sm) rendered instead.
 		expect(backdrop.className).toContain('bg-white/75')
+
 		expect(backdrop.className).toContain('dark:bg-zinc-950/75')
+
 		expect(backdrop.className).not.toContain('backdrop-blur')
 	})
 
