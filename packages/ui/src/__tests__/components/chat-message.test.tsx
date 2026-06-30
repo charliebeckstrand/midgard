@@ -85,9 +85,25 @@ describe('ChatMessage', () => {
 		'user',
 		'assistant',
 		'system',
-	] as const)("overrides Markdown's prose colors to inherit the %s bubble's own foreground", (type) => {
+	] as const)("overrides Markdown's prose colors to inherit the %s bubble's own foreground, in both modes", (type) => {
 		const { container } = renderUI(<ChatMessage type={type}>content</ChatMessage>)
 
-		expect(bySlot(container, 'markdown')).toHaveClass('text-inherit')
+		const markdown = bySlot(container, 'markdown')
+
+		expect(markdown).toHaveClass('text-inherit', 'dark:text-inherit')
+
+		// The unscoped override alone doesn't evict Markdown's own `dark:`
+		// class — tailwind-merge only dedupes same-variant classes — so assert
+		// root's muted color is actually gone, not just that the override is
+		// present alongside it.
+		expect(markdown?.className).not.toMatch(/(?:^|\s)text-zinc-500(?:\s|$)/)
+		expect(markdown?.className).not.toMatch(/dark:text-zinc-400/)
+
+		// Headings, strong, links, blockquotes, and table headers set their own
+		// color independently of root, each on its own element tailwind-merge
+		// can't reach — each needs its own paired-with-the-tag override.
+		for (const tag of ['h1', 'strong', 'a', 'blockquote', 'th']) {
+			expect(markdown?.className).toContain(`[&_${tag}]:text-inherit`)
+		}
 	})
 })

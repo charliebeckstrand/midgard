@@ -4,17 +4,39 @@ import { ShinyText } from '../../components/shiny-text'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 
-// Markdown's own palette (muted body text, zinc-950/white headings, blue
-// links) is tuned for a page/card surface, where the body and the emphasis
-// elements are meant to read as two different weights. A bubble already
-// carries its *one* intended foreground per type (white on the user bubble's
-// blue fill, zinc-950/white "default" on the assistant bubble, muted zinc on
-// the system bubble) — Markdown's muted body would otherwise read fainter
-// than the bubble's own (unstyled) text always did, and the user bubble's
-// blue link would nearly vanish against its blue fill. Forcing every element
-// to inherit the bubble's own foreground keeps a message's color uniform,
-// matching what plain (pre-Markdown) bubble text looked like.
-const BUBBLE_PROSE_CLASS = 'text-inherit [&_*]:text-inherit'
+// Markdown's per-element prose colors (`recipes/kata/markdown.ts`) are tuned
+// for a page/card surface, where the muted body and the emphasis elements
+// read as two different weights. A bubble carries its *one* intended
+// foreground per type instead (white on the user bubble's blue fill,
+// zinc-950/white on the assistant bubble, muted zinc on the system bubble),
+// so every Markdown element needs to inherit it. `root`'s own color is
+// cancelled by pairing the unscoped and `dark:` variants in one className —
+// tailwind-merge only dedupes same-variant classes, so the unscoped half
+// alone leaves `dark:text-zinc-400` in place and dark-mode bubbles stay
+// muted. The remaining elements that set their own color (headings, strong,
+// links, blockquote, table headers) are separate nodes tailwind-merge can't
+// reach; each selector below pairs a class with that tag name, so it outranks
+// the plain utility class already on the element (one more specificity rung)
+// regardless of light/dark mode or stylesheet order, without touching
+// CodeBlock's syntax-highlighted spans (never named here).
+const PROSE_TAGS_WITH_OWN_COLOR = [
+	'h1',
+	'h2',
+	'h3',
+	'h4',
+	'h5',
+	'h6',
+	'strong',
+	'a',
+	'blockquote',
+	'th',
+]
+
+const BUBBLE_PROSE_CLASS = [
+	'text-inherit',
+	'dark:text-inherit',
+	...PROSE_TAGS_WITH_OWN_COLOR.map((tag) => `[&_${tag}]:text-inherit`),
+].join(' ')
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
