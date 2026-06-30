@@ -210,51 +210,33 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
-	const withPlatform = (platform: string, run: () => void) => {
-		const original = Object.getOwnPropertyDescriptor(navigator, 'platform')
+	const nameHeader = () => {
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((element) => element.textContent?.includes('Name'))
 
-		Object.defineProperty(navigator, 'platform', { value: platform, configurable: true })
+		if (!header) throw new Error('no Name columnheader')
 
-		try {
-			run()
-		} finally {
-			if (original) Object.defineProperty(navigator, 'platform', original)
-			else Reflect.deleteProperty(navigator, 'platform')
-		}
+		return header
 	}
 
-	it('defers to the native menu on a Ctrl+right-click on a non-Apple platform', () => {
-		withPlatform('Win32', () => {
-			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('defers to the native menu on a Ctrl + right-click (button 2)', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-			const header = screen
-				.getAllByRole('columnheader')
-				.find((element) => element.textContent?.includes('Name'))
+		// The secondary button held with Ctrl is the escape hatch to the browser menu.
+		fireEvent.contextMenu(nameHeader(), { ctrlKey: true, button: 2 })
 
-			if (!header) throw new Error('no Name columnheader')
-
-			fireEvent.contextMenu(header, { ctrlKey: true })
-
-			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-		})
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
-	it('opens the grid menu on a macOS Ctrl+click (the platform secondary click)', () => {
-		withPlatform('MacIntel', () => {
-			renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />,
-			)
+	it('opens the grid menu on a Ctrl + click (button 0, macOS secondary click)', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
 
-			const header = screen
-				.getAllByRole('columnheader')
-				.find((element) => element.textContent?.includes('Name'))
+		// A primary-button Ctrl+click is macOS's secondary click; it reaches the grid
+		// menu rather than the native one, so Mac users get there without a right button.
+		fireEvent.contextMenu(nameHeader(), { ctrlKey: true, button: 0 })
 
-			if (!header) throw new Error('no Name columnheader')
-
-			fireEvent.contextMenu(header, { ctrlKey: true })
-
-			expect(screen.getByRole('menu')).toBeInTheDocument()
-		})
+		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
 	it('offers "Clear sort" only for the sorted column', () => {

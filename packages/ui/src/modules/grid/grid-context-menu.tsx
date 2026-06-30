@@ -438,19 +438,6 @@ export function GridContextMenu<T>({
 }
 
 /**
- * Whether the runtime is an Apple platform, where Ctrl+click is the standard
- * secondary click rather than a modifier on a primary click. Read at event time
- * (client only); falls back to the user-agent string where `platform` is absent.
- *
- * @internal
- */
-function isApplePlatform(): boolean {
-	if (typeof navigator === 'undefined') return false
-
-	return /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent)
-}
-
-/**
  * The right-click / keyboard delegation surface, rendered inside {@link Menu} so it
  * can open the menu through the menu's {@link useMenuActions} `openAt`. A
  * `contents` wrapper keeps it out of layout. A right-click resolves the cell or
@@ -480,10 +467,12 @@ function GridContextMenuSurface({
 			// fire for the same event.
 			event.stopPropagation()
 
-			// Ctrl held on a non-Apple platform: defer to the browser's standard menu,
-			// default intact. On macOS Ctrl+click IS the secondary click, so it must
-			// open the grid menu rather than be swallowed by this escape hatch (CONT-04).
-			if (event.ctrlKey && !isApplePlatform()) return
+			// Ctrl + a secondary-button click (`button === 2`) is the escape hatch to the
+			// browser's native menu, on every platform. A Ctrl + primary-button click
+			// (`button === 0`) — macOS's secondary click — falls through to the grid menu
+			// instead, so Mac users reach it without a right button (CONT-04). The two
+			// only differ by button, not platform, so no platform sniff is needed.
+			if (event.ctrlKey && event.button === 2) return
 
 			const target = event.target as HTMLElement
 
