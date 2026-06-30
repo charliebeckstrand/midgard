@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { bench, describe } from 'vitest'
-import { Grid, type GridColumn } from '../modules/grid'
+import { Grid, type GridColumn, type SortState } from '../modules/grid'
 import { makeShipments, type Shipment } from './fixtures'
 
 const COLUMNS: GridColumn<Shipment>[] = [
@@ -104,6 +104,30 @@ describe('Grid · virtualized initial render', () => {
 
 	bench('10,000 rows × 8 cols · virtualize', () => {
 		render(<Grid columns={COLUMNS} rows={rows10k} getKey={getKey} virtualize maxHeight="600px" />)
+
+		cleanup()
+	})
+})
+
+describe('Grid · rerender after sort toggle (1,000 rows · truncating)', () => {
+	// A resizable grid is fixed-layout and truncating, so every visible cell
+	// mounts a `GridCellContent`. This exercises the path the performance audit
+	// flagged: a sort change must not re-render every truncating cell (each reads
+	// only the narrow resizing context, not the table-wide value the sort lives in).
+	bench('5 toggles/iter', () => {
+		let sort: SortState[] = [{ column: 'origin', direction: 'asc' }]
+
+		const { rerender } = render(
+			<Grid columns={COLUMNS} rows={rows1k} getKey={getKey} resizable sort={{ value: sort }} />,
+		)
+
+		for (let i = 0; i < 5; i++) {
+			sort = [{ column: 'origin', direction: i % 2 === 0 ? 'desc' : 'asc' }]
+
+			rerender(
+				<Grid columns={COLUMNS} rows={rows1k} getKey={getKey} resizable sort={{ value: sort }} />,
+			)
+		}
 
 		cleanup()
 	})

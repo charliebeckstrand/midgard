@@ -20,6 +20,10 @@ The module is high performance. The four traps that sink a data grid at scale �
 
 What remains is a small set of **bounded P2/P3 refinements**. The one with real leverage is the width of the `GridContext` consumed by every truncating cell: a column-resize gesture or a sort re-renders every visible cell, where it need only re-render on the cell's own data. Everything else is a per-interaction or one-shot constant-factor cost on the column axis, not the row axis.
 
+## Remediation outcomes
+
+The top finding is fixed. A dedicated `GridResizingContext` (`context.ts`) now carries the in-flight-resize flag on a narrow channel, and the two truncation surfaces that gate their tooltips on it — `GridCellContent` (per body cell) and `GridHeaderTitle` (per header cell) — read `useGridResizing()` instead of `useGrid()`. The flag still lives on the table-wide `GridContextValue` for external `useGrid()` consumers (a public, exported type — left intact rather than broken), but the grid's own cells no longer subscribe to that value. The real win: a **sort or a select-all no longer re-renders any truncating cell**, since those cells no longer read the value the sort and selection flags live on — only a resize start/end re-renders them, through the narrow context, which is unavoidable and correct (they must close their tooltips while the columns reflow). Verified by `tsc`, `biome check`, the grid component suite, and the cell/header truncate-tooltip and resize browser suites (the `!resizing` tooltip-suppression behavior is unchanged). A `Grid · rerender after sort toggle (1,000 rows · truncating)` benchmark was added to `grid.bench.tsx` to guard the path against regression — the coverage gap noted below. The findings below are left as the original point-in-time record; this section is the authoritative disposition of the P2 it supersedes.
+
 ## Strengths
 
 These are the design decisions that make the module fast; they are load-bearing for the verdict and worth preserving through any refactor.

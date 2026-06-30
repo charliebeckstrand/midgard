@@ -20,7 +20,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
-import { type SortState, useGrid } from './context'
+import { type SortState, useGrid, useGridResizing } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
 import { isFrozen, isLocked } from './grid-pin-overrides'
@@ -361,7 +361,7 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
-	const { resizing } = useGrid()
+	const resizing = useGridResizing()
 
 	return (
 		// `!resizing` holds the tooltip closed through a column drag-resize: the

@@ -16,7 +16,7 @@ import { cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { GridContext, type SortState } from './context'
+import { GridContext, GridResizingContext, type SortState } from './context'
 import { describeSelection, describeSort } from './grid-announcements'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
@@ -532,6 +532,10 @@ export function GridData<T>({
 	// cells hold frame-to-frame (see `useColumnSettleWidths`).
 	const settleWidths = useColumnSettleWidths(visibleColumns, resize, resizing)
 
+	// `resizing` stays on this table-wide value for external `useGrid()` consumers,
+	// but the grid's own truncating head/cells read it through the narrower
+	// `GridResizingContext` (below) — so a sort or select-all, which churns this
+	// value, no longer re-renders every visible truncating cell.
 	const context = useMemo(
 		() => ({
 			toggleRow,
@@ -701,70 +705,72 @@ export function GridData<T>({
 
 	return (
 		<GridContext value={context}>
-			<div
-				ref={wrapperRef}
-				data-slot="grid"
-				// Flags an in-flight column drag-resize so the grid paints the resize
-				// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-				// `resizing` context flag to drop their hover wash and truncation tooltips.
-				data-resizing={dataAttr(resizing)}
-				className={cn(k.wrapper)}
-			>
-				<GridBusyStatus loading={loading} rowCount={dataRowCount} />
-
-				{renderDialog && (
-					<GridColumnManagerDialog
-						open={columnManagerOpen}
-						onOpenChange={setColumnManagerOpen}
-						label={managerLabel}
-						columns={managerItems}
-						order={columnOrder}
-						onOrderChange={setColumnOrder}
-						hidden={hiddenColumns}
-						onHiddenChange={setHiddenColumns}
-						onPinChange={pinColumn}
-						onSavePreset={columnManagerConfig?.onSavePreset}
-					/>
-				)}
-
-				<GridToolbar
-					filter={globalFilter}
-					showColumnManager={showButton}
-					columnManagerLabel={managerLabel}
-					onManageColumns={() => setColumnManagerOpen(true)}
-					showExport={exportToolbarButton}
-					exportLabel={exportLabel}
-					onExport={exportCsv}
-					batchActions={batchActions}
-					hasSelection={someSelected}
-					selection={selection}
-					setSelection={setSelection}
-				/>
-
-				<GridRegion
-					canReorder={reorderActive}
-					dndContextProps={dndContextProps}
-					itemIds={itemIds}
-					strategy={strategy}
-					activeReorderId={activeId}
-					contextMenu={resolvedContextMenu}
-					columns={visibleColumns}
-					rows={renderRows}
-					rowKeys={rowKeys}
-					sort={sort}
-					sortColumn={sortColumn}
-					clearSort={clearSort}
-					pinColumn={pinColumn}
-					autoSizeColumns={autoSizeColumns}
-					chooseColumns={chooseColumns}
-					exportCsv={exportCsv}
-					exportLabel={exportLabel}
+			<GridResizingContext value={resizing}>
+				<div
+					ref={wrapperRef}
+					data-slot="grid"
+					// Flags an in-flight column drag-resize so the grid paints the resize
+					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+					// `resizing` context flag to drop their hover wash and truncation tooltips.
+					data-resizing={dataAttr(resizing)}
+					className={cn(k.wrapper)}
 				>
-					{tableRegion}
-				</GridRegion>
+					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-				{pagination && <GridPaginationFooter pagination={pagination} />}
-			</div>
+					{renderDialog && (
+						<GridColumnManagerDialog
+							open={columnManagerOpen}
+							onOpenChange={setColumnManagerOpen}
+							label={managerLabel}
+							columns={managerItems}
+							order={columnOrder}
+							onOrderChange={setColumnOrder}
+							hidden={hiddenColumns}
+							onHiddenChange={setHiddenColumns}
+							onPinChange={pinColumn}
+							onSavePreset={columnManagerConfig?.onSavePreset}
+						/>
+					)}
+
+					<GridToolbar
+						filter={globalFilter}
+						showColumnManager={showButton}
+						columnManagerLabel={managerLabel}
+						onManageColumns={() => setColumnManagerOpen(true)}
+						showExport={exportToolbarButton}
+						exportLabel={exportLabel}
+						onExport={exportCsv}
+						batchActions={batchActions}
+						hasSelection={someSelected}
+						selection={selection}
+						setSelection={setSelection}
+					/>
+
+					<GridRegion
+						canReorder={reorderActive}
+						dndContextProps={dndContextProps}
+						itemIds={itemIds}
+						strategy={strategy}
+						activeReorderId={activeId}
+						contextMenu={resolvedContextMenu}
+						columns={visibleColumns}
+						rows={renderRows}
+						rowKeys={rowKeys}
+						sort={sort}
+						sortColumn={sortColumn}
+						clearSort={clearSort}
+						pinColumn={pinColumn}
+						autoSizeColumns={autoSizeColumns}
+						chooseColumns={chooseColumns}
+						exportCsv={exportCsv}
+						exportLabel={exportLabel}
+					>
+						{tableRegion}
+					</GridRegion>
+
+					{pagination && <GridPaginationFooter pagination={pagination} />}
+				</div>
+			</GridResizingContext>
 		</GridContext>
 	)
 }
