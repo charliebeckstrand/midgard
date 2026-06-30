@@ -87,7 +87,7 @@ describe('ChatLayout', () => {
 		expect(onConversationSelect).toHaveBeenCalledWith('a')
 	})
 
-	it('removes a conversation from its row control, only with a handler', async () => {
+	it('confirms before removing a conversation, only with a handler', async () => {
 		const { rerender } = renderUI(
 			<ChatLayout messages={messages} onSend={noop} conversations={conversations} />,
 		)
@@ -109,7 +109,37 @@ describe('ChatLayout', () => {
 			screen.getAllByRole('button', { name: 'Remove conversation' })[0] as HTMLElement,
 		)
 
+		// The remove is gated by a confirmation; the first click only opens it.
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+
+		expect(onConversationRemove).not.toHaveBeenCalled()
+
+		await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+
 		expect(onConversationRemove).toHaveBeenCalledWith('a')
+	})
+
+	it('creates a conversation from the title + button, only with a handler', async () => {
+		const { rerender } = renderUI(
+			<ChatLayout messages={messages} onSend={noop} conversations={conversations} />,
+		)
+
+		expect(screen.queryByRole('button', { name: 'New conversation' })).not.toBeInTheDocument()
+
+		const onConversationCreate = vi.fn()
+
+		rerender(
+			<ChatLayout
+				messages={messages}
+				onSend={noop}
+				conversations={conversations}
+				onConversationCreate={onConversationCreate}
+			/>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'New conversation' }))
+
+		expect(onConversationCreate).toHaveBeenCalledOnce()
 	})
 
 	it('opens the conversation rail in a sheet from the header menu button', async () => {

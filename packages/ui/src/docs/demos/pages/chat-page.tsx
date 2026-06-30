@@ -82,6 +82,9 @@ const initialTranscripts: Record<string, ChatContent[]> = {
 	],
 }
 
+// New conversations open on a single agent greeting (shown with the prompt docked).
+const newChatGreeting = 'Hi! How can I help you today?'
+
 // A mock transport that streams a canned reply word by word, emitting the
 // cumulative text on each tick (the snapshot shape ChatTransport expects).
 const mockTransport: ChatTransport = () =>
@@ -140,6 +143,26 @@ export function Demo() {
 		}
 	}
 
+	// A new conversation opens as a draft seeded with an agent greeting, then becomes current.
+	function createConversation() {
+		const id = crypto.randomUUID()
+
+		const greeting: ChatContent = {
+			id: crypto.randomUUID(),
+			role: 'agent',
+			content: newChatGreeting,
+		}
+
+		setConversations((prev) => [{ id, title: 'New conversation', preview: 'Draft' }, ...prev])
+
+		// Stash the live transcript before swapping in the new one.
+		setTranscripts((prev) => ({ ...prev, [currentId]: messages, [id]: [greeting] }))
+
+		setMessages([greeting])
+
+		setCurrentId(id)
+	}
+
 	return (
 		<Example>
 			<div className="h-136">
@@ -154,6 +177,7 @@ export function Demo() {
 					currentConversationId={currentId}
 					onConversationSelect={openConversation}
 					onConversationRemove={removeConversation}
+					onConversationCreate={createConversation}
 					promptActions={
 						<Button variant="plain" size="sm">
 							<Icon icon={<CircleDashed />} />

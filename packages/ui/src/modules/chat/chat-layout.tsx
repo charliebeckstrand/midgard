@@ -1,8 +1,9 @@
 'use client'
 
-import { Menu, Trash } from 'lucide-react'
-import type { ReactNode, Ref } from 'react'
+import { Menu, Plus, Trash } from 'lucide-react'
+import { type ReactNode, type Ref, useState } from 'react'
 import { Button } from '../../components/button'
+import { Confirm } from '../../components/confirm'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Sheet, SheetBody, SheetClose, SheetFooter, SheetTitle } from '../../components/sheet'
@@ -62,8 +63,10 @@ export type ChatLayoutProps = {
 	currentConversationId?: string
 	/** Called with a conversation's id when its row is selected; makes rows selectable when set. */
 	onConversationSelect?: (id: string) => void
-	/** Called with a conversation's id when its remove control is used; adds a per-row remove button when set. */
+	/** Called with a conversation's id once a remove is confirmed; adds a per-row remove button (gated by a {@link Confirm}) when set. */
 	onConversationRemove?: (id: string) => void
+	/** Called when the sidebar's new-conversation (+) button is pressed; adds that button beside the title when set. */
+	onConversationCreate?: () => void
 	className?: string
 }
 
@@ -76,12 +79,14 @@ export type ChatLayoutProps = {
  * through {@link useChatDraft} so callers wire only `messages` and `onSend`. In
  * `isDraft` mode (or with no messages) the transcript is hidden and the prompt is
  * centered. Pass `conversations` and the layout builds its own navigation rail —
- * a {@link ChatList} of {@link ChatListItem} rows, each with a remove button when
- * `onConversationRemove` is set — shown inline on desktop and, below the `lg`
- * breakpoint, in a {@link Sheet} opened by a menu button beside the `header`
- * (auto-closing when the viewport grows back to desktop). The layout reflects
- * data and emits events; reach for {@link ChatListItem} / {@link ChatMessage} /
- * {@link ChatMessages} directly when you need finer control.
+ * a {@link ChatList} of {@link ChatListItem} rows, each with a remove button
+ * (guarded by a {@link Confirm}) when `onConversationRemove` is set, and a `+`
+ * button beside the title when `onConversationCreate` is set — shown inline on
+ * desktop and, below the `lg` breakpoint, in a {@link Sheet} opened by a menu
+ * button beside the `header` (auto-closing when the viewport grows back to
+ * desktop). The layout reflects data and emits events; reach for
+ * {@link ChatListItem} / {@link ChatMessage} / {@link ChatMessages} directly when
+ * you need finer control.
  */
 export function ChatLayout({
 	messages,
@@ -99,6 +104,7 @@ export function ChatLayout({
 	currentConversationId,
 	onConversationSelect,
 	onConversationRemove,
+	onConversationCreate,
 	className,
 }: ChatLayoutProps) {
 	const draft = useChatDraft({ onSubmit: onSend })
@@ -106,6 +112,9 @@ export function ChatLayout({
 	// Drives the mobile sidebar Sheet; auto-closes when the viewport crosses back
 	// to desktop. Inert (and the Sheet/menu button unrendered) without conversations.
 	const { open, setOpen } = useOffcanvas()
+
+	// The conversation id awaiting remove confirmation, or null when the Confirm is closed.
+	const [pendingRemoval, setPendingRemoval] = useState<string | null>(null)
 
 	const showTranscript = !isDraft && messages.length > 0
 
@@ -131,7 +140,7 @@ export function ChatLayout({
 									color="red"
 									variant="plain"
 									size="sm"
-									onClick={() => onConversationRemove(conversation.id)}
+									onClick={() => setPendingRemoval(conversation.id)}
 								>
 									<Icon icon={<Trash />} />
 								</Button>
@@ -141,6 +150,21 @@ export function ChatLayout({
 				))}
 			</ChatList>
 		) : null
+
+	// New-conversation (+) control, shown across from the sidebar title. Closing the
+	// Sheet reveals the freshly created draft on mobile; a no-op on desktop.
+	const newConversationButton = onConversationCreate ? (
+		<Button
+			variant="bare"
+			aria-label="New conversation"
+			onClick={() => {
+				onConversationCreate?.()
+				setOpen(false)
+			}}
+		>
+			<Icon icon={<Plus />} />
+		</Button>
+	) : null
 
 	// With a sidebar, the header gains a menu button that opens the mobile Sheet;
 	// it hides at `lg`, where the rail sits inline instead. With no header to
@@ -194,7 +218,11 @@ export function ChatLayout({
 		<div className={cn('flex h-full gap-4', className)}>
 			{/* Inline rail on desktop; the menu button takes over below `lg`. */}
 			<div className="flex flex-col gap-2 w-64 shrink-0 max-lg:hidden">
-				<Heading level={2}>Conversations</Heading>
+				<div className="flex items-center justify-between gap-2">
+					<Heading level={2}>Conversations</Heading>
+
+					{newConversationButton}
+				</div>
 
 				<div className="flex-1 min-h-0 overflow-y-auto">{conversationList}</div>
 			</div>
@@ -202,7 +230,12 @@ export function ChatLayout({
 			{/* Same rail in an edge Sheet on mobile. Closed, the overlay is
 			    unmounted, so the rail never renders twice in the a11y tree. */}
 			<Sheet side="left" open={open} onOpenChange={setOpen}>
-				<SheetTitle>Conversations</SheetTitle>
+				{/* The title keeps its padding on the row so the + button sits across from it. */}
+				<div className="flex items-center justify-between gap-2 px-6 pt-6">
+					<SheetTitle className="p-0">Conversations</SheetTitle>
+
+					{newConversationButton}
+				</div>
 
 				<SheetBody>{conversationList}</SheetBody>
 
@@ -212,6 +245,22 @@ export function ChatLayout({
 					</SheetClose>
 				</SheetFooter>
 			</Sheet>
+
+			{/* Removing a conversation is destructive, so it routes through a confirmation. */}
+			<Confirm
+				open={pendingRemoval !== null}
+				onOpenChange={(next) => {
+					if (!next) setPendingRemoval(null)
+				}}
+				onConfirm={() => {
+					if (pendingRemoval !== null) onConversationRemove?.(pendingRemoval)
+
+					setPendingRemoval(null)
+				}}
+				title="Remove conversation?"
+				description="This conversation will be permanently removed. This action cannot be undone."
+				confirm={{ label: 'Remove', color: 'red' }}
+			/>
 
 			<div className="flex-1 min-w-0">{surface}</div>
 		</div>
