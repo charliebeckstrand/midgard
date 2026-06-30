@@ -148,8 +148,7 @@ export function ChatLayout({
 	const headerRow = conversationList ? (
 		<div className={cn('flex items-center gap-2', !header && 'lg:hidden')}>
 			<Button
-				variant="plain"
-				size="sm"
+				variant="bare"
 				aria-label="Open conversations"
 				className="lg:hidden"
 				onClick={() => setOpen(true)}
@@ -209,9 +208,7 @@ export function ChatLayout({
 
 				<SheetFooter>
 					<SheetClose>
-						<Button variant="outline" className="w-full">
-							Close
-						</Button>
+						<Button variant="outline">Close</Button>
 					</SheetClose>
 				</SheetFooter>
 			</Sheet>
