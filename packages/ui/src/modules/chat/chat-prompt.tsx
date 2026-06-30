@@ -1,12 +1,13 @@
 'use client'
 
-import { ArrowUp, Paperclip, Square } from 'lucide-react'
+import { ArrowUp, Paperclip, Square, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, type Ref, useCallback } from 'react'
+import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
+import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
-import { cn } from '../../core'
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
@@ -37,7 +38,14 @@ export type ChatPromptProps = {
 	onAttach?: (files: File[]) => void
 	/** Accepted attachment types (e.g. `".pdf,.csv"`); forwarded to the file picker. */
 	accept?: string
-	/** Model picker, slash-command trigger, etc. rendered on the left of the action row. */
+	/**
+	 * Picked attachments to surface as chips below the field. Each chip gains a
+	 * remove button when {@link ChatPromptProps.onRemoveAttachment} is provided.
+	 */
+	attachments?: readonly File[]
+	/** Called with the index of the attachment whose remove button was clicked. */
+	onRemoveAttachment?: (index: number) => void
+	/** Model picker, slash-command trigger, etc. rendered at the start of the action row, before the paperclip and send controls. */
 	actions?: ReactNode
 	className?: string
 	/** Ref to the underlying textarea (e.g. to focus the composer imperatively). */
@@ -52,7 +60,14 @@ export type ChatPromptProps = {
 	'aria-labelledby'?: string
 }
 
-/** Auto-resizing chat composer built on Textarea. Submits on Enter (Shift+Enter for newlines), toggles its send button to a stop control while `streaming`, and offers a paperclip file picker when `onAttach` is provided. */
+/**
+ * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
+ * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
+ * newlines), toggles its send button to a stop control while `streaming`, offers
+ * a paperclip file picker when `onAttach` is provided, and surfaces `attachments`
+ * as removable chips below the field. The action row — extra `actions`, the
+ * paperclip, and send/stop — sits beneath the textarea, right-justified.
+ */
 export function ChatPrompt({
 	value,
 	onValueChange,
@@ -64,6 +79,8 @@ export function ChatPrompt({
 	disabled,
 	onAttach,
 	accept,
+	attachments,
+	onRemoveAttachment,
 	actions,
 	className,
 	ref,
@@ -96,57 +113,92 @@ export function ChatPrompt({
 	)
 
 	return (
-		<Textarea
-			ref={ref}
-			data-slot="chat-prompt"
-			value={value}
-			onChange={(event) => onValueChange(event.target.value)}
-			onKeyDown={handleKeyDown}
-			autoResize
-			rows={rows}
-			placeholder={placeholder}
-			{...labelProps}
-			className={cn('max-h-64', className)}
-			actions={
-				<>
-					{actions}
-					{onAttach && (
-						<>
-							{/* Sibling of the button, not nested inside it: a focusable
-							    `<input>` inside an interactive control produces
-							    nested-interactive markup. */}
-							<input
-								ref={inputRef}
-								type="file"
-								aria-label="Add attachment"
-								accept={accept}
-								multiple
-								onChange={handleChange}
-								className="sr-only"
-								tabIndex={-1}
-							/>
-							<Button variant="plain" size="sm" aria-label="Add attachment" onClick={openPicker}>
-								<Icon icon={<Paperclip />} />
+		// Control supplies the stable id the textarea resolves through useControlProps.
+		<Control className={className}>
+			<Textarea
+				ref={ref}
+				data-slot="chat-prompt"
+				value={value}
+				onChange={(event) => onValueChange(event.target.value)}
+				onKeyDown={handleKeyDown}
+				autoResize
+				rows={rows}
+				placeholder={placeholder}
+				{...labelProps}
+				className="max-h-64"
+				actions={
+					<>
+						{actions}
+						{onAttach && (
+							<>
+								{/* Sibling of the button, not nested inside it: a focusable
+								    `<input>` inside an interactive control produces
+								    nested-interactive markup. */}
+								<input
+									ref={inputRef}
+									type="file"
+									aria-label="Add attachment"
+									accept={accept}
+									multiple
+									onChange={handleChange}
+									className="sr-only"
+									tabIndex={-1}
+								/>
+								<Button variant="plain" size="sm" aria-label="Add attachment" onClick={openPicker}>
+									<Icon icon={<Paperclip />} />
+								</Button>
+							</>
+						)}
+						{streaming ? (
+							<Button
+								size="sm"
+								color="blue"
+								aria-label="Stop generating"
+								onClick={() => onStop?.()}
+							>
+								<Icon icon={<Square />} />
 							</Button>
-						</>
-					)}
-					{streaming ? (
-						<Button size="sm" color="blue" aria-label="Stop generating" onClick={() => onStop?.()}>
-							<Icon icon={<Square />} />
-						</Button>
-					) : (
-						<Button
-							size="sm"
-							color="blue"
-							aria-label="Send message"
-							disabled={!canSubmit}
-							onClick={() => canSubmit && onSubmit()}
+						) : (
+							<Button
+								size="sm"
+								color="blue"
+								aria-label="Send message"
+								disabled={!canSubmit}
+								onClick={() => canSubmit && onSubmit()}
+							>
+								<Icon icon={<ArrowUp />} />
+							</Button>
+						)}
+					</>
+				}
+			/>
+			{attachments && attachments.length > 0 && (
+				<div data-slot="chat-prompt-attachments" className="mt-2 flex flex-wrap gap-1">
+					{attachments.map((file, index) => (
+						<Badge
+							key={`${file.name}-${file.lastModified}-${file.size}`}
+							// Outline (page-surface bg) keeps the bare remove button's muted
+							// `onSurface` glyph above the 3:1 non-text-contrast floor; a solid
+							// fill would sink it. Matches the TagInput removable chip.
+							variant="outline"
+							suffix={
+								onRemoveAttachment && (
+									<Button
+										variant="bare"
+										size="sm"
+										aria-label={`Remove ${file.name}`}
+										onClick={() => onRemoveAttachment(index)}
+									>
+										<Icon icon={<X />} />
+									</Button>
+								)
+							}
 						>
-							<Icon icon={<ArrowUp />} />
-						</Button>
-					)}
-				</>
-			}
-		/>
+							{file.name}
+						</Badge>
+					))}
+				</div>
+			)}
+		</Control>
 	)
 }

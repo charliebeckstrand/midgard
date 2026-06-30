@@ -56,7 +56,7 @@ describe('Textarea', () => {
 		expect(bySlot(container, 'textarea')).toBeInTheDocument()
 	})
 
-	it('renders actions next to the textarea', () => {
+	it('renders actions below the textarea', () => {
 		const { container } = renderUI(<Textarea actions={<span>send</span>} />)
 
 		expect(bySlot(container, 'textarea')).toBeInTheDocument()

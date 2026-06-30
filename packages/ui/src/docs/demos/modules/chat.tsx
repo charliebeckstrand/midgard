@@ -1,6 +1,5 @@
 import { CircleDashed, Pencil, RotateCcw, Trash } from 'lucide-react'
 import { useState } from 'react'
-import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Icon } from '../../../components/icon'
@@ -150,25 +149,18 @@ function PromptWithAttachments() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
-		<div className="flex flex-col gap-2">
-			<ChatPrompt
-				value={value}
-				onValueChange={setValue}
-				onSubmit={() => {
-					setValue('')
-					setFiles([])
-				}}
-				onAttach={(picked) => setFiles((prev) => [...prev, ...picked])}
-				accept=".pdf,.csv,.txt"
-			/>
-			{files.length > 0 && (
-				<div className="flex flex-wrap gap-1">
-					{files.map((file) => (
-						<Badge key={`${file.name}-${file.lastModified}`}>{file.name}</Badge>
-					))}
-				</div>
-			)}
-		</div>
+		<ChatPrompt
+			value={value}
+			onValueChange={setValue}
+			onSubmit={() => {
+				setValue('')
+				setFiles([])
+			}}
+			onAttach={(picked) => setFiles((prev) => [...prev, ...picked])}
+			accept=".pdf,.csv,.txt"
+			attachments={files}
+			onRemoveAttachment={(index) => setFiles((prev) => prev.filter((_, i) => i !== index))}
+		/>
 	)
 }
 
