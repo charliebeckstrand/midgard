@@ -3,7 +3,7 @@ export type {
 	ChatMessageBubbleVariants,
 	ChatMessageVariants,
 } from '../../recipes/kata/chat-message'
-export { ChatLayout, type ChatLayoutProps } from './chat-layout'
+export { type ChatConversation, ChatLayout, type ChatLayoutProps } from './chat-layout'
 export { ChatList, type ChatListProps } from './chat-list'
 export { ChatListItem, type ChatListItemProps } from './chat-list-item'
 export { ChatMessage, type ChatMessageProps } from './chat-message'
