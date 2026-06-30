@@ -29,14 +29,14 @@ describe('docs engine ⇄ ui component map', () => {
 		expect(info?.module).toBe('providers/glass')
 	})
 
-	it('resolves a module name to its flat module', () => {
-		// Modules resolve flat off the package root; derived imports read `ui/map`,
-		// matching the package's `./*` export falling through to `src/modules/*`.
+	it('resolves a module name to its nested `modules/*` module', () => {
+		// Modules carry the canonical nested specifier; derived imports read
+		// `ui/modules/map`. The bare `ui/map` shorthand also resolves.
 		const info = defaultRegistry.byName.get('Map')
 
 		expect(info?.name).toBe('Map')
 
-		expect(info?.module).toBe('map')
+		expect(info?.module).toBe('modules/map')
 	})
 
 	it('resolves a demo package import to an external entry', () => {

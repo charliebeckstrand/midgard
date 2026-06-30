@@ -32,9 +32,9 @@ describe('chrome contract: real public modules are still tagged', () => {
 
 		expect(moduleNameFor(at('layouts', 'index.ts'), SRC)).toBe('layouts')
 
-		// Modules name flat like components — `ui/grid`, not `ui/modules/grid` —
-		// resolved by the package's `./*` export falling through to `src/modules/*`.
-		expect(moduleNameFor(at('modules', 'grid', 'index.ts'), SRC)).toBe('grid')
+		// Modules carry the canonical nested specifier (`ui/modules/grid`); the
+		// bare `ui/grid` shorthand also resolves but snippets show the full path.
+		expect(moduleNameFor(at('modules', 'grid', 'index.ts'), SRC)).toBe('modules/grid')
 	})
 
 	it('declines non-index files inside a real component directory', () => {

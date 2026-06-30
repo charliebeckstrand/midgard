@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { ChatMessage } from 'ui/chat'
+import { ChatMessage } from 'ui/modules/chat'
 import type { ChatContent } from './types'
 import { useScrollToBottom } from './use-scroll-to-bottom'
 
