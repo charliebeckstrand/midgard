@@ -25,13 +25,15 @@ export type ChatListItemProps = {
  * optional `preview`, with an optional `timestamp` and trailing `actions`.
  *
  * @remarks
- * The title/preview region is the selectable target — a `<button>` invoking
- * `onSelect` when provided, otherwise a static `<span>`. `actions` render beside
- * it rather than within it, so a control like a delete button never nests inside
- * the select button (nested-interactive markup). The open conversation
- * (`current`) gets `aria-current` and a persistent background wash. Inside a
- * {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
- * keyboard model; standalone it is a `<div>`.
+ * The title/preview region is a `<button>` invoking `onSelect` when provided,
+ * otherwise a static `<span>`. The button's hit area stretches across the whole
+ * row via a pointer-capturing `::after`, so clicking the surrounding chrome (row
+ * padding, the gap, the timestamp) also selects. `actions` render beside it rather
+ * than within it — so a control like a delete button never nests inside the select
+ * button (nested-interactive markup) — and sit above the overlay to stay clickable.
+ * The open conversation (`current`) gets `aria-current` and a persistent background
+ * wash. Inside a {@link ChatList} the row is an `<li>` and joins the list's
+ * roving-tabindex keyboard model; standalone it is a `<div>`.
  */
 export function ChatListItem({
 	title,
@@ -66,7 +68,7 @@ export function ChatListItem({
 					data-slot="chat-list-item-select"
 					aria-current={current ? 'true' : undefined}
 					onClick={onSelect}
-					className={k.select}
+					className={cn(k.select, k.overlay)}
 				>
 					{body}
 				</button>

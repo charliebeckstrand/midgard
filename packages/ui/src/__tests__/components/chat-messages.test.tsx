@@ -31,13 +31,15 @@ describe('ChatMessages', () => {
 		expect(bySlot(container, 'chat-messages')).toBeInTheDocument()
 	})
 
-	it('shimmers only the last agent bubble while streaming', () => {
+	it('pulses only the last agent bubble while streaming', () => {
 		const { container } = renderUI(<ChatMessages messages={messages} streaming />)
 
-		const shiny = allBySlot(container, 'shiny-text')
+		const pulsing = allBySlot(container, 'markdown').filter((el) =>
+			el.classList.contains('animate-pulse'),
+		)
 
-		expect(shiny).toHaveLength(1)
+		expect(pulsing).toHaveLength(1)
 
-		expect(present(shiny[0], 'streaming bubble')).toHaveTextContent('Hello!')
+		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 })

@@ -56,7 +56,6 @@ const tab = defineRecipe({
 	base: [
 		'relative',
 		flex.row,
-		'gap-2',
 		weight.medium,
 		text.muted,
 		fg.current,

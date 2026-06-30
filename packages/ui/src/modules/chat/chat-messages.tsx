@@ -9,7 +9,7 @@ import { useChatScroll } from './use-chat-scroll'
 export type ChatMessagesProps = {
 	/** The transcript, oldest first. */
 	messages: ChatContent[]
-	/** Whether a reply is currently streaming; shimmers the latest agent bubble. */
+	/** Whether a reply is currently streaming; pulses the latest agent bubble. */
 	streaming?: boolean
 	className?: string
 }
@@ -19,7 +19,7 @@ export type ChatMessagesProps = {
  *
  * @remarks
  * Maps each message's `role` to the `ChatMessage` `type` (`agent` →
- * `assistant`). When `streaming`, only the last agent bubble shimmers. Scrolls
+ * `assistant`). When `streaming`, only the last agent bubble pulses. Scrolls
  * to the bottom on every `messages` change via {@link useChatScroll}, so
  * streamed chunks stay in view.
  */

@@ -36,10 +36,18 @@ export const k = defineRecipe({
 		// inside the select button. Its ring is suppressed — the row draws it. The
 		// pointer cursor is restated here: a `<button>` resets it over its own box.
 		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', ...cursor],
+		// Stretches the select button's hit area over the whole `relative` row via a
+		// pointer-capturing `::after` (the inverse of `layers.overlay`, which adds
+		// `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
+		// without this the padding, gap, and timestamp chrome wouldn't select. Applied
+		// to the `<button>` branch only — a static `<span>` has nothing to trigger.
+		overlay: ['after:absolute after:inset-0'],
 		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
 		preview: ['truncate', size.sm, ...text.muted],
 		timestamp: ['shrink-0', size.xs, ...text.muted],
-		actions: ['shrink-0', flex.row, 'gap-0.5'],
+		// `relative z-10` lifts the action controls above the select overlay so they
+		// stay clickable; the timestamp stays beneath it, so clicking it still selects.
+		actions: ['shrink-0', flex.row, 'gap-0.5', 'relative z-10'],
 	},
 })
 

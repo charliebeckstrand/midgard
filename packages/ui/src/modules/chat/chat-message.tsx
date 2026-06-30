@@ -1,6 +1,5 @@
 import { memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
-import { ShinyText } from '../../components/shiny-text'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 
@@ -8,39 +7,36 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Sweeps a ShinyText shimmer across the bubble content for streaming responses. */
+	/** Pulses the bubble content while a response streams in. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
 	className?: string
-	/** Message text. Renders as Markdown once settled — see {@link ChatMessageProps.streaming}. */
+	/** Message text, rendered as GitHub-flavored Markdown. */
 	children: string
 }
 
 /**
  * Conversational message bubble sided and colored by `type` (`user`,
  * `assistant`, or `system`; defaults to `assistant`), with an optional
- * `timestamp`, `actions` rail, and a `streaming` ShinyText shimmer over its
- * content.
+ * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
  *
  * @remarks
  * Side and color alone convey the speaker visually, so a visually hidden author
  * label ("You said", "Assistant said", or "System") announces it to assistive
  * tech.
  *
- * Settled content renders as GitHub-flavored Markdown ({@link Markdown},
- * complete with syntax-highlighted code fences). {@link Markdown} sets no
- * color of its own, so the prose inherits the bubble's foreground for free —
- * white on the user bubble's blue fill, the default tone on the assistant
- * bubble, muted on the system bubble — in both light and dark mode. While
- * `streaming`, content stays raw text under the {@link ShinyText} shimmer
- * instead — Markdown's structure would fight the shimmer's gradient clip, and
- * re-lexing on every streamed chunk is wasted work besides — snapping to
- * formatted Markdown the moment streaming ends.
+ * Content renders as GitHub-flavored Markdown ({@link Markdown}, complete with
+ * syntax-highlighted code fences). {@link Markdown} sets no color of its own,
+ * so the prose inherits the bubble's foreground for free — white on the user
+ * bubble's blue fill, the default tone on the assistant bubble, muted on the
+ * system bubble — in both light and dark mode. While `streaming`, the content
+ * pulses (`animate-pulse`) to signal the response is still arriving, settling
+ * to a steady bubble the moment streaming ends.
  *
- * Memoized on its (shallow-equal) props, so a transcript's already-settled
- * bubbles skip re-rendering — and re-lexing their Markdown — while only the
- * streaming bubble's `children` actually changes from chunk to chunk.
+ * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
+ * re-rendering — and re-lexing their Markdown — while only the streaming
+ * bubble's `children` actually changes from chunk to chunk.
  */
 export const ChatMessage = memo(function ChatMessage({
 	type,
@@ -64,7 +60,7 @@ export const ChatMessage = memo(function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				{streaming ? <ShinyText>{children}</ShinyText> : <Markdown>{children}</Markdown>}
+				<Markdown className={streaming ? 'animate-pulse' : ''}>{children}</Markdown>
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>

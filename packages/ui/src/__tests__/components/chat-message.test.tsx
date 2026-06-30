@@ -11,7 +11,7 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
 	})
 
-	it('defaults to an assistant message with no timestamp or shiny-text slots', () => {
+	it('defaults to an assistant message with no timestamp and no streaming pulse', () => {
 		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
@@ -20,7 +20,7 @@ describe('ChatMessage', () => {
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'shiny-text')).not.toBeInTheDocument()
+		expect(bySlot(container, 'markdown')).not.toHaveClass('animate-pulse')
 	})
 
 	it('reflects the type prop on data-type', () => {
@@ -41,14 +41,14 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('wraps content in ShinyText when streaming', () => {
+	it('pulses the bubble content while streaming', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
-		const shiny = bySlot(container, 'shiny-text')
+		const markdown = bySlot(container, 'markdown')
 
-		expect(shiny).toBeInTheDocument()
+		expect(markdown).toHaveClass('animate-pulse')
 
-		expect(shiny).toHaveTextContent('content')
+		expect(markdown).toHaveTextContent('content')
 	})
 
 	it('renders the actions slot when provided', () => {
@@ -71,14 +71,12 @@ describe('ChatMessage', () => {
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
-	it('keeps streaming content as raw text, not parsed Markdown', () => {
+	it('renders streaming content as Markdown, pulsing while it arrives', () => {
 		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
-		expect(bySlot(container, 'markdown')).not.toBeInTheDocument()
+		expect(bySlot(container, 'markdown')).toHaveClass('animate-pulse')
 
-		expect(container.querySelector('strong')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Some **bold** text')
+		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
 	it.each([

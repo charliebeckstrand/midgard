@@ -27,6 +27,35 @@ describe('ChatListItem', () => {
 		expect(bySlot(container, 'chat-list-item-select')).toHaveClass('cursor-pointer')
 	})
 
+	it('stretches the select hit area across the row chrome', () => {
+		const { container } = renderUI(<ChatListItem title="Bug investigation" onSelect={vi.fn()} />)
+
+		// A pointer-capturing `::after` overlays the whole row so clicking the
+		// padding, gap, or timestamp still selects.
+		expect(bySlot(container, 'chat-list-item-select')).toHaveClass(
+			'after:absolute',
+			'after:inset-0',
+		)
+	})
+
+	it('keeps action controls above the select overlay', () => {
+		const { container } = renderUI(
+			<ChatListItem
+				title="With actions"
+				onSelect={vi.fn()}
+				actions={<button type="button">Delete</button>}
+			/>,
+		)
+
+		expect(bySlot(container, 'chat-list-item-actions')).toHaveClass('relative', 'z-10')
+	})
+
+	it('leaves the static title without a select overlay', () => {
+		const { container } = renderUI(<ChatListItem title="Read only" />)
+
+		expect(bySlot(container, 'chat-list-item-select')).not.toHaveClass('after:absolute')
+	})
+
 	it('renders a static, non-interactive title when onSelect is omitted', () => {
 		const { container } = renderUI(<ChatListItem title="Read only" />)
 
