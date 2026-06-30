@@ -34,6 +34,12 @@ export type MarkdownProps = {
  * Static, server-renderable leaf: lexing and rendering are synchronous and
  * hook-free, so it composes inside React Server Components.
  *
+ * Color-agnostic: the prose carries rhythm, weight, and size but no `text-*`
+ * color, so the whole tree inherits the foreground of whatever container it
+ * renders in. Set the color on the wrapper (or an ancestor) — via `className`
+ * or the surrounding element — and headings, body, links, and tables all
+ * follow; there is no baked-in palette to override.
+ *
  * Security: the source is walked token by token into elements this component
  * controls — raw HTML in the source is dropped, never injected — so untrusted
  * Markdown cannot reach the DOM as markup. (Untrusted input can still produce
