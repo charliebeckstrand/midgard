@@ -27,7 +27,7 @@ export function ChatMessages({ messages, streaming, className }: ChatMessagesPro
 	const { ref } = useChatScroll(messages)
 
 	return (
-		<div data-slot="chat-messages" className={cn('flex-1 grow overflow-y-auto', className)}>
+		<div data-slot="chat-messages" className={cn('flex-1 grow overflow-y-auto min-h-0', className)}>
 			{messages.length > 0 && (
 				<>
 					<div className="flex flex-col gap-6 mx-auto">

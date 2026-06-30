@@ -4,22 +4,12 @@ import { Button } from '../../../components/button'
 import { Confirm } from '../../../components/confirm'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
-import { Sidebar, SidebarBody, SidebarHeader } from '../../../components/sidebar'
-import { Stack } from '../../../components/stack'
-import {
-	SidebarLayout,
-	SidebarLayoutBody,
-	SidebarLayoutFooter,
-	SidebarLayoutHeader,
-} from '../../../layouts'
 import {
 	type ChatContent,
+	ChatLayout,
 	ChatList,
 	ChatListItem,
-	ChatMessages,
-	ChatPrompt,
 	type ChatTransport,
-	useChatDraft,
 	useChatSend,
 } from '../../../modules/chat'
 import { Example } from '../../engine'
@@ -78,91 +68,67 @@ const mockTransport: ChatTransport = () =>
 export function Demo() {
 	const { messages, sending, send } = useChatSend({ transport: mockTransport, initialMessages })
 
-	const draft = useChatDraft({ onSubmit: send })
-
 	const [current, setCurrent] = useState(1)
 
 	const [confirmOpen, setConfirmOpen] = useState(false)
 
 	const sidebar = (
-		<>
-			<Sidebar>
-				<SidebarHeader>
-					<Stack direction="row" align="center" gap="sm">
-						<Heading level={3}>Messages</Heading>
-					</Stack>
-				</SidebarHeader>
-				<SidebarBody>
-					<ChatList aria-label="Conversations">
-						{conversations.map((conversation) => (
-							<ChatListItem
-								key={conversation.id}
-								title={conversation.title}
-								preview={conversation.preview}
-								current={conversation.id === current}
-								onSelect={() => setCurrent(conversation.id)}
-								actions={
-									<Button
-										aria-label="Delete conversation"
-										color="red"
-										variant="plain"
-										size="sm"
-										onClick={() => setConfirmOpen(true)}
-									>
-										<Icon icon={<Trash />} />
-									</Button>
-								}
-							/>
-						))}
-					</ChatList>
-				</SidebarBody>
-			</Sidebar>
+		<div className="flex w-64 shrink-0 flex-col gap-3 overflow-y-auto">
+			<Heading level={3}>Messages</Heading>
+
+			<ChatList aria-label="Conversations">
+				{conversations.map((conversation) => (
+					<ChatListItem
+						key={conversation.id}
+						title={conversation.title}
+						preview={conversation.preview}
+						current={conversation.id === current}
+						onSelect={() => setCurrent(conversation.id)}
+						actions={
+							<Button
+								aria-label="Delete conversation"
+								color="red"
+								variant="plain"
+								size="sm"
+								onClick={() => setConfirmOpen(true)}
+							>
+								<Icon icon={<Trash />} />
+							</Button>
+						}
+					/>
+				))}
+			</ChatList>
 
 			<Confirm
 				open={confirmOpen}
 				onOpenChange={setConfirmOpen}
-				onConfirm={() => {
-					setConfirmOpen(false)
-				}}
+				onConfirm={() => setConfirmOpen(false)}
 				confirm={{ color: 'red' }}
 				title="Delete conversation"
 				description="Are you sure you want to delete this conversation? This action cannot be undone."
 			/>
-		</>
+		</div>
 	)
 
 	return (
 		<Example>
-			<SidebarLayout sidebar={sidebar}>
-				<SidebarLayoutHeader>
-					<Stack direction="row" align="center" gap="md">
-						<Heading level={3}>Project kickoff</Heading>
-					</Stack>
-				</SidebarLayoutHeader>
-
-				<SidebarLayoutBody>
-					<ChatMessages messages={messages} streaming={sending} className="min-h-0" />
-				</SidebarLayoutBody>
-
-				<SidebarLayoutFooter>
-					<ChatPrompt
-						value={draft.value}
-						onValueChange={draft.setValue}
-						onSubmit={draft.submit}
-						streaming={sending}
-						rows={3}
-						className="mt-3 max-h-48"
-						aria-label="Message Project kickoff"
-						onAttach={() => {}}
-						actions={
-							<Button variant="plain" size="sm">
-								<Icon icon={<CircleDashed />} />
-								Data Analyst
-							</Button>
-						}
-					/>
-				</SidebarLayoutFooter>
-			</SidebarLayout>
+			<div className="h-[34rem]">
+				<ChatLayout
+					messages={messages}
+					sending={sending}
+					onSend={send}
+					onAttach={() => {}}
+					aria-label="Message Project kickoff"
+					header={<Heading level={3}>Project kickoff</Heading>}
+					sidebar={sidebar}
+					composerActions={
+						<Button variant="plain" size="sm">
+							<Icon icon={<CircleDashed />} />
+							Data Analyst
+						</Button>
+					}
+				/>
+			</div>
 		</Example>
 	)
 }

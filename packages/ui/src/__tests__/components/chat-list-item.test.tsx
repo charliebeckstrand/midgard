@@ -21,6 +21,12 @@ describe('ChatListItem', () => {
 		expect(onSelect).toHaveBeenCalledOnce()
 	})
 
+	it('gives the select control a pointer cursor', () => {
+		const { container } = renderUI(<ChatListItem title="Bug investigation" onSelect={vi.fn()} />)
+
+		expect(bySlot(container, 'chat-list-item-select')).toHaveClass('cursor-pointer')
+	})
+
 	it('renders a static, non-interactive title when onSelect is omitted', () => {
 		const { container } = renderUI(<ChatListItem title="Read only" />)
 

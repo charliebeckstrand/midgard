@@ -33,8 +33,9 @@ export const k = defineRecipe({
 		// The selectable region (title over preview); the component renders it as a
 		// `<button>` when `onSelect` is set, a plain `<span>` otherwise. Affixes
 		// (timestamp, actions) sit beside it so a focusable control never nests
-		// inside the select button. Its ring is suppressed — the row draws it.
-		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none'],
+		// inside the select button. Its ring is suppressed — the row draws it. The
+		// pointer cursor is restated here: a `<button>` resets it over its own box.
+		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', ...cursor],
 		title: ['truncate', 'font-medium', size.sm, ...mode('text-zinc-950', 'dark:text-white')],
 		preview: ['truncate', size.xs, ...text.muted],
 		timestamp: ['shrink-0', size.xs, ...text.muted],

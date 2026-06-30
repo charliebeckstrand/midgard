@@ -66,7 +66,9 @@ export function ChatLayout({
 	const showTranscript = !isDraft && messages.length > 0
 
 	const surface = (
-		<div className={cn('flex flex-col gap-6 h-full justify-center', !sidebar && className)}>
+		// gap-3 (the md step) sets the chrome gap between the transcript and the
+		// composer — the structural spacing the layout owns, not the caller.
+		<div className={cn('flex flex-col gap-3 h-full justify-center', !sidebar && className)}>
 			{header}
 
 			{showTranscript && <ChatMessages messages={messages} streaming={sending} />}
