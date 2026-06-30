@@ -232,15 +232,15 @@ export function Demo() {
 								timestamp="11:10 AM"
 								actions={
 									<>
-										<CopyButton size="xs" value="Heading out now, ETA 3pm." />
+										<CopyButton size="sm" value="Heading out now, ETA 3pm." />
 										<ToggleIconButton
-											size="xs"
+											size="sm"
 											pressed={false}
 											icon={<RotateCcw />}
 											aria-label="Retry"
 										/>
 										<ToggleIconButton
-											size="xs"
+											size="sm"
 											pressed={false}
 											icon={<Pencil />}
 											aria-label="Edit"

@@ -83,13 +83,13 @@ export function Demo() {
 					</Toolbar>
 
 					<Toolbar variant="solid" aria-label="Clipboard">
-						<Button variant="plain" aria-label="Copy">
+						<Button variant="bare" aria-label="Copy">
 							Copy
 						</Button>
-						<Button variant="plain" aria-label="Cut">
+						<Button variant="bare" aria-label="Cut">
 							Cut
 						</Button>
-						<Button variant="plain" aria-label="Paste">
+						<Button variant="bare" aria-label="Paste">
 							Paste
 						</Button>
 					</Toolbar>

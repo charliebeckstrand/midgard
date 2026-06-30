@@ -36,8 +36,8 @@ export const k = defineRecipe({
 		// inside the select button. Its ring is suppressed — the row draws it. The
 		// pointer cursor is restated here: a `<button>` resets it over its own box.
 		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', ...cursor],
-		title: ['truncate', 'font-medium', size.sm, ...mode('text-zinc-950', 'dark:text-white')],
-		preview: ['truncate', size.xs, ...text.muted],
+		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
+		preview: ['truncate', size.sm, ...text.muted],
 		timestamp: ['shrink-0', size.xs, ...text.muted],
 		actions: ['shrink-0', flex.row, 'gap-0.5'],
 	},

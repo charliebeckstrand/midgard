@@ -9,7 +9,7 @@ const { flex } = narabi
 const { focus } = sen
 
 const list = defineRecipe({
-	base: [flex.row, 'flex-wrap', 'gap-2', 'break-words', size.md],
+	base: [flex.row, 'gap-2', 'break-words', size.md],
 })
 
 const item = defineRecipe({

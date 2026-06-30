@@ -75,9 +75,9 @@ export function Demo() {
 
 	const sidebar = (
 		<>
-			<Sidebar className="w-64 shrink-0">
+			<Sidebar className="w-64 shrink-0 p-0">
 				<SidebarHeader>
-					<Heading level={3}>Messages</Heading>
+					<Heading level={2}>Messages</Heading>
 				</SidebarHeader>
 				<SidebarBody>
 					<ChatList aria-label="Conversations">
@@ -118,14 +118,14 @@ export function Demo() {
 
 	return (
 		<Example>
-			<div className="h-[34rem]">
+			<div className="h-136">
 				<ChatLayout
 					messages={messages}
 					sending={sending}
 					onSend={send}
 					onAttach={() => {}}
 					aria-label="Message Project kickoff"
-					header={<Heading level={3}>Project kickoff</Heading>}
+					header={<Heading level={2}>Project kickoff</Heading>}
 					sidebar={sidebar}
 					composerActions={
 						<Button variant="plain" size="sm">
