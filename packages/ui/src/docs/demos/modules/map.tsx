@@ -72,7 +72,7 @@ function PresetsExample() {
 		<Example
 			title="Rendering presets"
 			code={code`
-				import { Map, type MapPreset } from 'ui/modules/map'
+				import { Map, type MapPreset } from 'ui/map'
 
 				const [preset, setPreset] = useState<MapPreset>('demo')
 
@@ -107,7 +107,7 @@ function InteractiveRouteExample() {
 		<Example
 			title="Interactive route"
 			code={code`
-				import { Map, MapRoute } from 'ui/modules/map'
+				import { Map, MapRoute } from 'ui/map'
 
 				<div className="h-96">
 					<Map camera={{ center: [-122.18, 37.65], zoom: 7.5 }}>
@@ -139,7 +139,7 @@ function ShipmentsExample() {
 		<Example
 			title="Shipment info"
 			code={code`
-				import { Map, MapShipment } from 'ui/modules/map'
+				import { Map, MapShipment } from 'ui/map'
 
 				<div className="h-96">
 					<Map camera={{ center: [-122.47, 37.69], zoom: 11 }}>
@@ -187,7 +187,7 @@ function InfoOnlyExample() {
 		<Example
 			title="Shipment without chat"
 			code={code`
-				import { Map, MapShipment } from 'ui/modules/map'
+				import { Map, MapShipment } from 'ui/map'
 
 				<div className="h-96">
 					<Map camera={{ center: [-122.47, 37.69], zoom: 11 }}>

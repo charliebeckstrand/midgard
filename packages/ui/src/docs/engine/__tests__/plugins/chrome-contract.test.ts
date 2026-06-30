@@ -25,12 +25,16 @@ describe('chrome contract: the docs subtree is never tagged', () => {
 })
 
 describe('chrome contract: real public modules are still tagged', () => {
-	it('names component, provider, and layout index barrels', () => {
+	it('names component, provider, layout, and module index barrels', () => {
 		expect(moduleNameFor(at('components', 'button', 'index.ts'), SRC)).toBe('button')
 
 		expect(moduleNameFor(at('providers', 'glass', 'index.ts'), SRC)).toBe('providers/glass')
 
 		expect(moduleNameFor(at('layouts', 'index.ts'), SRC)).toBe('layouts')
+
+		// Modules name flat like components — `ui/grid`, not `ui/modules/grid` —
+		// resolved by the package's `./*` export falling through to `src/modules/*`.
+		expect(moduleNameFor(at('modules', 'grid', 'index.ts'), SRC)).toBe('grid')
 	})
 
 	it('declines non-index files inside a real component directory', () => {
