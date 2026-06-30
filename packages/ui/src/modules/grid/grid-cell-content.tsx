@@ -44,6 +44,7 @@ type GridCellContentProps = {
  */
 export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
 	const resizing = useGridResizing()
+
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizeSettleKey)
 
 	const span = (

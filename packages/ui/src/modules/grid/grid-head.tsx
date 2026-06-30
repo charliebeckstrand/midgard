@@ -361,6 +361,7 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 	// (drag and nudge alike), so the commit measure already re-runs at settle —
 	// unlike the memoized body cells, which take the snapshot from the grid.
 	const [ref, truncated] = useGridTruncation<HTMLSpanElement>()
+
 	const resizing = useGridResizing()
 
 	return (
