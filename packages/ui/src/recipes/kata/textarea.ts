@@ -19,8 +19,10 @@ export const k = bridge.control(control, {
 		bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
 		/** ControlFrame border when an actions slot is present. */
 		frame: [...border.default],
-		/** Actions row beneath the textarea. */
-		actions: 'flex items-center mt-auto gap-2 pr-2 pb-2',
+		/** Stacks the field above its actions row when an actions slot is present. */
+		stack: 'flex-col items-stretch',
+		/** Right-justified actions row beneath the textarea. */
+		actions: 'flex items-center justify-end mt-auto gap-2 pr-2 pb-2',
 	},
 	defaults: { resize: 'none', autoResize: false },
 	skeleton: textarea,

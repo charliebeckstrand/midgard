@@ -3,7 +3,6 @@ import { useId, useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
-import { Spacer } from '../../components/spacer'
 import { Textarea } from '../../components/textarea'
 import { capitalize, Example } from '../engine'
 
@@ -27,7 +26,6 @@ function WithActionsExample() {
 				placeholder="Ask anything"
 				actions={
 					<>
-						<Spacer />
 						<Button aria-label="Attach file" variant="plain" size="sm">
 							<Icon icon={<Paperclip />} />
 						</Button>
