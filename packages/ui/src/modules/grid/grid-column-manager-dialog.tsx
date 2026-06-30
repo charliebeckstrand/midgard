@@ -16,6 +16,8 @@ type GridColumnManagerDialogProps = {
 	onOrderChange: (order: (string | number)[]) => void
 	hidden: Set<string | number>
 	onHiddenChange: (hidden: Set<string | number>) => void
+	/** Pins a column to an edge, or unpins it with `false`; backs the manager's per-column pin control. */
+	onPinChange: (id: string | number, side: 'left' | 'right' | false) => void
 	onSavePreset?: (preset: GridColumnManagerPreset) => void
 }
 
@@ -36,6 +38,7 @@ export function GridColumnManagerDialog({
 	onOrderChange,
 	hidden,
 	onHiddenChange,
+	onPinChange,
 	onSavePreset,
 }: GridColumnManagerDialogProps) {
 	return (
@@ -48,6 +51,7 @@ export function GridColumnManagerDialog({
 					onOrderChange={onOrderChange}
 					hidden={hidden}
 					onHiddenChange={onHiddenChange}
+					onPinChange={onPinChange}
 					onSavePreset={onSavePreset}
 				/>
 			</DialogBody>

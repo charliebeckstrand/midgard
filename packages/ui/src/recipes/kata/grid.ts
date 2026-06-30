@@ -78,10 +78,18 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 ])
 
 export const k = {
+	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
+	// stacking context: the frozen header rides `z-20` and the sticky header `z-10`,
+	// which must layer among themselves but must not leak out to overlap a host's
+	// sticky chrome — e.g. a SidebarLayout's own `z-20` page header the grid scrolls
+	// beneath (without isolation the grid's later-in-DOM `z-20` frozen header wins
+	// the tie and paints over it). Portaled surfaces (the column-manager dialog,
+	// context menus, tooltips) render at the body, outside this context, so they
+	// still overlay the page.
 	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
 	// which paints the resize cursor grid-wide; head and cells read the matching
 	// `resizing` context flag to drop their hover wash and truncation tooltips.
-	wrapper: ['relative', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	wrapper: ['relative', 'isolate', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
 	sticky: {
 		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
@@ -104,6 +112,26 @@ export const k = {
 		// colour at every width — which, on mobile, stood out as a box against the
 		// transparent content block over the darker page.
 		head: ['sticky z-20', hostSurface],
+		// Edge border on a frozen group's scroll-facing boundary: a 2px rule on the
+		// right of a left group's innermost column, the left of a right group's. Only
+		// that boundary column carries it (see `pinnedClassName`), so a stack of pinned
+		// and/or locked columns shows one rule, not one per column. Drawn as an
+		// `::after` overlay, not a CSS `border`: the table collapses borders
+		// (`border-collapse: collapse`), so a real cell border joins the table grid and
+		// scrolls away with the overflow instead of staying on the frozen column. The
+		// overlay rides the sticky cell and holds — the same reason the edge cue below
+		// is a box-shadow. `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner
+		// edge; `pointer-events-none` keeps it inert.
+		borderRight: [
+			"after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-0.5 after:content-['']",
+			'after:bg-zinc-950/10',
+			'dark:after:bg-white/10',
+		],
+		borderLeft: [
+			"after:pointer-events-none after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:content-['']",
+			'after:bg-zinc-950/10',
+			'dark:after:bg-white/10',
+		],
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
 		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
 		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
@@ -196,7 +224,21 @@ export const k = {
 		// z-index only bites where the cell is a positioned box — sticky headers
 		// already are; `shift` promotes the rest for the duration of the drag — and
 		// the shadow reads the lifted column as picked up off the table.
-		cell: ['data-[dragging]:z-20', 'data-[dragging]:shadow-lg', ...draggingSurface],
+		cell: [
+			'data-[dragging]:z-20',
+			'data-[dragging]:shadow-lg',
+			// The held column dims its text to the muted foreground — header and body
+			// alike, since this class is shared — so the dragged column reads as
+			// lifted/in transit and a Space/Enter keyboard lift, which moves nothing
+			// until an arrow key, isn't left without a cue. Mirrors `iro.text.muted`;
+			// the header already sits at this shade (table `header` base), so the
+			// visible shift is the bright body (`text.default`) dimming to meet it.
+			// `data-[dragging]` out-specifies the cell's resting colour, so the
+			// override lands without `!`.
+			'data-[dragging]:text-zinc-500',
+			'dark:data-[dragging]:text-zinc-400',
+			...draggingSurface,
+		],
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
@@ -310,7 +352,7 @@ export const k = {
 		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
 		// Row-range status ("1–10 of 47"): the end track from `lg` (right-aligned),
 		// the right of the justified row below it.
-		status: [size.sm, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
+		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
 		// Page-size picker: the start track from `lg` (left-aligned), the left of the
 		// justified row below it. Always rendered so the track holds even when empty,
 		// keeping the nav centered.

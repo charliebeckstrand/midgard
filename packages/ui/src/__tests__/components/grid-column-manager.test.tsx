@@ -5,7 +5,7 @@ import { GridColumnManagerDialog } from '../../modules/grid/grid-column-manager-
 import { allBySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [
-	{ id: 'name', title: 'Name', pinned: true },
+	{ id: 'name', title: 'Name', pinned: 'left' },
 	{ id: 'email', title: 'Email' },
 	{ id: 'role', title: 'Role' },
 ]
@@ -155,7 +155,7 @@ describe('GridColumnManager', () => {
 		renderUI(
 			<GridColumnManager
 				columns={[
-					{ id: 'name', title: 'Name', pinned: true },
+					{ id: 'name', title: 'Name', pinned: 'left' },
 					{ id: 'email', title: 'Email', hideable: false },
 				]}
 			/>,
@@ -197,7 +197,7 @@ describe('GridColumnManager', () => {
 
 	it('falls back to a generated label when a pinned column title is non-string', () => {
 		renderUI(
-			<GridColumnManager columns={[{ id: 'name', title: <span>Name</span>, pinned: true }]} />,
+			<GridColumnManager columns={[{ id: 'name', title: <span>Name</span>, pinned: 'left' }]} />,
 		)
 
 		// The aria-label falls back to the id when title is non-string.
@@ -223,6 +223,129 @@ describe('GridColumnManager', () => {
 	})
 })
 
+describe('GridColumnManager pinning', () => {
+	it('renders left-pinned columns prepended and right-pinned appended', () => {
+		const cols: GridColumnManagerItem[] = [
+			{ id: 'a', title: 'A' },
+			{ id: 'b', title: 'B', pinned: 'left' },
+			{ id: 'c', title: 'C', pinned: 'right' },
+			{ id: 'd', title: 'D' },
+		]
+
+		renderUI(<GridColumnManager columns={cols} />)
+
+		const labels = Array.from(document.querySelectorAll('label'))
+			.map((l) => l.textContent)
+			.filter((t): t is string => !!t && t.length > 0)
+
+		// Left group prepended, the scrolling columns in the middle, right appended.
+		expect(labels).toEqual(['B', 'A', 'D', 'C'])
+	})
+
+	it('pins a scrolling column to the left through its pin control', () => {
+		const onPinChange = vi.fn()
+
+		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Pin Email' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
+
+		expect(onPinChange).toHaveBeenCalledWith('email', 'left')
+	})
+
+	it('pins a scrolling column to the right through its pin control', () => {
+		const onPinChange = vi.fn()
+
+		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Pin Role' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin right' }))
+
+		expect(onPinChange).toHaveBeenCalledWith('role', 'right')
+	})
+
+	it('offers the opposite edge and Unpin on a pinned column, and unpins on select', () => {
+		const onPinChange = vi.fn()
+
+		renderUI(<GridColumnManager columns={columns} onPinChange={onPinChange} />)
+
+		// Name is pinned left: its control offers Pin right and Unpin, not Pin left.
+		fireEvent.click(screen.getByRole('button', { name: 'Pin Name' }))
+
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Unpin' }))
+
+		expect(onPinChange).toHaveBeenCalledWith('name', false)
+	})
+
+	it('shows a locked column with a static lock and no pin control', () => {
+		const onPinChange = vi.fn()
+
+		const cols: GridColumnManagerItem[] = [
+			{ id: 'id', title: 'ID', locked: 'left' },
+			{ id: 'email', title: 'Email' },
+		]
+
+		renderUI(<GridColumnManager columns={cols} onPinChange={onPinChange} />)
+
+		// The locked column exposes no interactive pin control...
+		expect(screen.queryByRole('button', { name: 'Pin ID' })).not.toBeInTheDocument()
+
+		// ...its checkbox is disabled and marked locked...
+		expect(screen.getByRole('checkbox', { name: 'ID (locked)' })).toBeDisabled()
+
+		// ...while the scrolling column still gets one.
+		expect(screen.getByRole('button', { name: 'Pin Email' })).toBeInTheDocument()
+	})
+
+	it('marks a locked column with a directional edge arrow by side', () => {
+		const cols: GridColumnManagerItem[] = [
+			{ id: 'name', title: 'Name', locked: 'left' },
+			{ id: 'email', title: 'Email' },
+			{ id: 'actions', title: 'Actions', locked: 'right' },
+		]
+
+		const { container } = renderUI(<GridColumnManager columns={cols} onPinChange={() => {}} />)
+
+		// Both locked rows lead with a directional edge arrow (not a lock glyph),
+		// prepended to the row: left → ArrowLeftToLine, right → ArrowRightToLine.
+		expect(container.querySelector('.lucide-arrow-left-to-line')).not.toBeNull()
+
+		expect(container.querySelector('.lucide-arrow-right-to-line')).not.toBeNull()
+	})
+
+	it('appends a right-locked column to the list', () => {
+		const cols: GridColumnManagerItem[] = [
+			{ id: 'a', title: 'A' },
+			{ id: 'actions', title: 'Actions', locked: 'right' },
+		]
+
+		renderUI(<GridColumnManager columns={cols} />)
+
+		const labels = Array.from(document.querySelectorAll('label'))
+			.map((l) => l.textContent)
+			.filter((t): t is string => !!t && t.length > 0)
+
+		expect(labels).toEqual(['A', 'Actions'])
+	})
+
+	it('omits pin controls entirely when no onPinChange handler is given', () => {
+		renderUI(<GridColumnManager columns={columns} />)
+
+		// The pinned column still lists (disabled checkbox) but offers no pin button.
+		expect(screen.getByRole('checkbox', { name: /Name \(pinned\)/ })).toBeDisabled()
+
+		expect(screen.queryByRole('button', { name: 'Pin Name' })).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Pin Email' })).not.toBeInTheDocument()
+	})
+})
+
 describe('GridColumnManagerDialog', () => {
 	// The dialog is purely controlled; its trigger lives in `GridToolbar` (covered
 	// through `<Grid>`). The harness drives `open` itself to exercise the dialog.
@@ -244,6 +367,7 @@ describe('GridColumnManagerDialog', () => {
 					onOrderChange={() => {}}
 					hidden={new Set()}
 					onHiddenChange={() => {}}
+					onPinChange={() => {}}
 				/>
 			</>
 		)

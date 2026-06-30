@@ -23,6 +23,7 @@ import type { QueryGroupNode } from '../query'
 import { type SortState, useGrid } from './context'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { COLUMN_RESIZE_STEP } from './grid-constants'
+import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
@@ -235,13 +236,17 @@ function GridHeaderCell<T>({
 		filterQuery: filters?.getQuery(column.id),
 		// Frozen-column controls; the header reads them so a pinned cell sticks.
 		pinning,
-		// Unpins a column; backs the pin button a frozen header shows.
+		// Unpins a column; backs the pin button a (non-locked) frozen header shows.
 		pinColumn,
+		// A locked column is frozen but immutable: its header shows a static edge
+		// arrow (pointing to the frozen edge) rather than an unpin button.
+		locked: isLocked(column),
 	}
 
 	// `reorderable` already folds in the source-data gate (its caller passes
 	// `canReorder && hasData`), so the cell drops the drag activator with no data.
-	if (reorderable && isDataColumn(column) && !column.pinned) {
+	// Frozen columns (pinned or locked) are never reorderable.
+	if (reorderable && isDataColumn(column) && !isFrozen(column)) {
 		return <GridReorderableColumnHeader {...shared} />
 	}
 
@@ -281,6 +286,8 @@ type GridColumnHeaderProps = {
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	/** Whether this column is locked (frozen but immutable); its header shows a static edge arrow, not an unpin button. */
+	locked: boolean
 }
 
 /**
@@ -489,6 +496,37 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 	)
 }
 
+/**
+ * Pinned column header: an unpin button leading its title. A locked column shows
+ * no indicator here — its frozen edge is marked by the boundary border — and a
+ * scrolling column renders its title alone; both bypass this.
+ *
+ * @internal
+ */
+function GridPinnedHeaderLabel({
+	column,
+	pinColumn,
+	label,
+}: {
+	column: Pick<GridColumn<unknown>, 'id' | 'title'>
+	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
+	label: ReactNode
+}) {
+	return (
+		<span className={cn(k.head.pinned.label)}>
+			<button
+				type="button"
+				className={cn(k.head.pinned.button)}
+				aria-label={`Unpin ${columnLabel(column)}`}
+				onClick={() => pinColumn(column.id, false)}
+			>
+				<Icon icon={<Pin />} />
+			</button>
+			{label}
+		</span>
+	)
+}
+
 /** Single column header cell; renders a sort-toggle button and, when resizable, a resize separator. @internal */
 const GridColumnHeader = memo(function GridColumnHeader({
 	column,
@@ -507,11 +545,13 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	filterQuery,
 	pinning,
 	pinColumn,
+	locked,
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
 	// This column's frozen edge (read live from the engine), or `undefined` when it
-	// scrolls; a frozen header leads its title with a pin indicator.
+	// scrolls. A pinned header leads its title with an unpin button; a locked one
+	// shows no indicator (its frozen edge reads from the boundary border).
 	const pinnedSide = pinning?.side(column.id)
 
 	const label = (
@@ -545,18 +585,8 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			{/* `data-grid-header` marks the header's flex row so the autosizer can
 			    subtract its justified free space and measure the title + affordances. */}
 			<span data-grid-header className={cn(k.filter.slot)}>
-				{pinnedSide ? (
-					<span className={cn(k.head.pinned.label)}>
-						<button
-							type="button"
-							className={cn(k.head.pinned.button)}
-							aria-label={`Unpin ${columnLabel(column)}`}
-							onClick={() => pinColumn(column.id, false)}
-						>
-							<Icon icon={<Pin />} />
-						</button>
-						{label}
-					</span>
+				{pinnedSide && !locked ? (
+					<GridPinnedHeaderLabel column={column} pinColumn={pinColumn} label={label} />
 				) : (
 					label
 				)}
