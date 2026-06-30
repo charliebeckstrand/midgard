@@ -2,6 +2,7 @@
 
 import { MapPin } from 'lucide-react'
 import { type InputHTMLAttributes, useState } from 'react'
+import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
 import { useControl } from '../control/context'
@@ -47,7 +48,8 @@ export type AddressInputProps = {
  * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
  * labeled option with optional description. The suffix tracks selection state,
  * showing a `<LoadingSpinner>` while fetching, a `<MapPin>` when empty or
- * disabled, and otherwise ceding the slot to the Combobox clear button.
+ * disabled, and otherwise ceding the slot to the Combobox clear button. The
+ * whole field pulses (`animate-pulse`) while a fetch is in flight.
  *
  * @remarks
  * Client component. Defaults to {@link photonProvider}. In-flight requests are
@@ -63,6 +65,7 @@ export function AddressInput({
 	minQueryLength = 3,
 	placeholder = 'Enter an address',
 	autoComplete = 'off',
+	className,
 	'aria-label': ariaLabel,
 	...props
 }: AddressInputProps) {
@@ -105,6 +108,7 @@ export function AddressInput({
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
 			onValueChange={setSelected}
+			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}
 			autoComplete={autoComplete}
