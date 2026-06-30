@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
+import { Markdown } from '../../components/markdown'
 import { ShinyText } from '../../components/shiny-text'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
@@ -12,7 +13,8 @@ export type ChatMessageProps = ChatMessageVariants & {
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
 	className?: string
-	children?: ReactNode
+	/** Message text. Renders as Markdown once settled — see {@link ChatMessageProps.streaming}. */
+	children: string
 }
 
 /**
@@ -25,8 +27,22 @@ export type ChatMessageProps = ChatMessageVariants & {
  * Side and color alone convey the speaker visually, so a visually hidden author
  * label ("You said", "Assistant said", or "System") announces it to assistive
  * tech.
+ *
+ * Settled content renders as GitHub-flavored Markdown ({@link Markdown},
+ * complete with syntax-highlighted code fences). {@link Markdown} sets no
+ * color of its own, so the prose inherits the bubble's foreground for free —
+ * white on the user bubble's blue fill, the default tone on the assistant
+ * bubble, muted on the system bubble — in both light and dark mode. While
+ * `streaming`, content stays raw text under the {@link ShinyText} shimmer
+ * instead — Markdown's structure would fight the shimmer's gradient clip, and
+ * re-lexing on every streamed chunk is wasted work besides — snapping to
+ * formatted Markdown the moment streaming ends.
+ *
+ * Memoized on its (shallow-equal) props, so a transcript's already-settled
+ * bubbles skip re-rendering — and re-lexing their Markdown — while only the
+ * streaming bubble's `children` actually changes from chunk to chunk.
  */
-export function ChatMessage({
+export const ChatMessage = memo(function ChatMessage({
 	type,
 	timestamp,
 	streaming,
@@ -48,7 +64,7 @@ export function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				{streaming ? <ShinyText>{children}</ShinyText> : children}
+				{streaming ? <ShinyText>{children}</ShinyText> : <Markdown>{children}</Markdown>}
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>
@@ -62,4 +78,4 @@ export function ChatMessage({
 			)}
 		</div>
 	)
-}
+})

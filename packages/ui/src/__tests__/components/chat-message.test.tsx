@@ -62,4 +62,38 @@ describe('ChatMessage', () => {
 
 		expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
 	})
+
+	it('renders settled content as Markdown', () => {
+		const { container } = renderUI(<ChatMessage>Some **bold** text</ChatMessage>)
+
+		expect(bySlot(container, 'markdown')).toBeInTheDocument()
+
+		expect(container.querySelector('strong')?.textContent).toBe('bold')
+	})
+
+	it('keeps streaming content as raw text, not parsed Markdown', () => {
+		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
+
+		expect(bySlot(container, 'markdown')).not.toBeInTheDocument()
+
+		expect(container.querySelector('strong')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Some **bold** text')
+	})
+
+	it.each([
+		'user',
+		'assistant',
+		'system',
+	] as const)('injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground', (type) => {
+		const { container } = renderUI(<ChatMessage type={type}>content</ChatMessage>)
+
+		// Markdown is color-agnostic and the bubble sets its own foreground, so
+		// ChatMessage must not pour any `text-*` color (nor a per-element
+		// override) onto the markdown wrapper — the bubble's color cascades in.
+		const markdown = bySlot(container, 'markdown')
+
+		expect(markdown?.className ?? '').not.toMatch(/text-(?:inherit|zinc|white|black)/)
+		expect(markdown?.className ?? '').not.toMatch(/\[&_/)
+	})
 })
