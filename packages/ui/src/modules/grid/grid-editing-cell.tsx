@@ -82,6 +82,7 @@ function GridCellEditor<T>({
 			},
 			cancel,
 			ariaLabel,
+			required: column.required ?? false,
 		})
 	) : (
 		<GridEditInputs
@@ -92,6 +93,7 @@ function GridCellEditor<T>({
 			ariaLabel={ariaLabel}
 			error={error}
 			errorId={errorId}
+			required={column.required}
 		/>
 	)
 

@@ -23,6 +23,8 @@ export type GridEditInputProps = {
 	error?: string | null
 	/** Id of the error-message element, linked from the editor via `aria-describedby`. */
 	errorId?: string
+	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
+	required?: boolean
 }
 
 /** Escape reverts the cell; staging is live, so there is no commit key. @internal */
@@ -42,6 +44,7 @@ function GridTextEditInput({
 	ariaLabel,
 	error,
 	errorId,
+	required,
 }: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
@@ -49,6 +52,7 @@ function GridTextEditInput({
 		<Input
 			data-slot="grid-edit-input"
 			aria-label={ariaLabel}
+			aria-required={required || undefined}
 			invalid={error != null || undefined}
 			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
@@ -67,11 +71,13 @@ function GridNumberEditInput({
 	ariaLabel,
 	error,
 	errorId,
+	required,
 }: GridEditInputProps) {
 	return (
 		<NumberInput
 			data-slot="grid-edit-number-input"
 			aria-label={ariaLabel}
+			aria-required={required || undefined}
 			invalid={error != null || undefined}
 			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
@@ -88,11 +94,12 @@ const BOOLEAN_OPTIONS = [
 ]
 
 /** Boolean editor for true/false cells, a yes/no `Listbox`. @internal */
-function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel }: GridEditInputProps) {
+function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {
 	return (
 		<Listbox<string>
 			data-slot="grid-edit-boolean-input"
 			aria-label={ariaLabel}
+			aria-required={required || undefined}
 			className={k.edit.input}
 			value={draft === true ? 'true' : 'false'}
 			onValueChange={(next) => onValueUpdate(next === 'true')}

@@ -96,6 +96,15 @@ export type GridColumn<T> = {
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**
+	 * Marks this column's cells as required in an {@link GridProps.editable | editable}
+	 * grid: each editor carries `aria-required`, so assistive tech announces the
+	 * obligation (WCAG 1.3.1 / 3.3.2). This is the programmatic cue only — enforcing
+	 * a non-empty value remains the consumer's, through {@link GridColumn.validate}.
+	 * No effect on a non-editable or `readOnly` column.
+	 * @defaultValue false
+	 */
+	required?: boolean
+	/**
 	 * Tooltip shown when this column's cell content is truncated (see
 	 * {@link GridProps.truncate}). Receives the row and returns the tooltip
 	 * content; return `null` to disable the tooltip for the column. When omitted,
