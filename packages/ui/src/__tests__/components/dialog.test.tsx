@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogClose, DialogHeader, DialogTitle } from '../../components/dialog'
 import { DensityProvider } from '../../providers/density'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Dialog', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -73,17 +73,35 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Top-placed')).toBeInTheDocument()
+		// The panel's flex wrapper carries placementClasses[placement]; 'top'
+		// aligns to the start, distinct from the 'center' default.
+		const wrapper = bySlot(document.body, 'dialog')?.parentElement
+
+		expect(wrapper?.className).toContain('sm:items-start')
+
+		expect(wrapper?.className).not.toContain('sm:items-center')
 	})
 
 	it('respects dismissOnBackdrop=false', () => {
+		const onOpenChange = vi.fn()
+
 		renderUI(
-			<Dialog open dismissOnBackdrop={false} onOpenChange={() => {}}>
+			<Dialog open dismissOnBackdrop={false} onOpenChange={onOpenChange}>
 				Locked
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Locked')).toBeInTheDocument()
+		// The backdrop receives no click handler when dismissal is disabled, so
+		// a press neither closes the dialog nor fires onOpenChange.
+		const backdrop = bySlot(document.body, 'overlay-backdrop')
+
+		expect(backdrop).not.toBeNull()
+
+		fireEvent.click(backdrop as HTMLElement)
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
 	it('renders with the glass surface', () => {
@@ -93,7 +111,13 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Glassy')).toBeInTheDocument()
+		// glass resolves the panel to the transparent glass surface variant;
+		// the flat default fills with bg-white instead.
+		const panel = bySlot(document.body, 'dialog')
+
+		expect(panel?.className).toContain('bg-transparent')
+
+		expect(panel?.className).not.toContain('bg-white')
 	})
 
 	it('DialogTitle holds the text-lg baseline at neutral density', () => {

@@ -148,11 +148,17 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByText('Dismissable')).toBeInTheDocument()
 
+		// First dismiss marks the toast as dismissed; a follow-up dismiss runs the
+		// "already dismissed" filter-removal branch.
 		act(() => {
 			api?.dismiss({ id })
 		})
 
-		expect(api).not.toBeNull()
+		act(() => {
+			api?.dismiss({ id })
+		})
+
+		expect(screen.queryByText('Dismissable')).not.toBeInTheDocument()
 	})
 
 	it('caps active toasts at maxToasts by dismissing the oldest', () => {

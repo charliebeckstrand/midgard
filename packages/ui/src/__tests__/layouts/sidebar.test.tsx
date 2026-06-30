@@ -297,6 +297,11 @@ describe('SidebarLayout floating mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
+		// Opening paints the right-edge buffer — the open-state signal.
+		expect(document.body.querySelector('[class*="left-80"]')).toBeInTheDocument()
+
+		// Flipping `floating` off resets the sheet to closed; flipping it back on
+		// must re-mount it closed, so the buffer stays absent.
 		rerender(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
 		rerender(
@@ -305,6 +310,6 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		expect(container).toBeInTheDocument()
+		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
 	})
 })

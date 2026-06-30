@@ -129,7 +129,7 @@ describe('useTimeAgoRelativeTime', () => {
 	it('uses adaptive interval steps when interval="auto"', () => {
 		const setIntervalSpy = vi.spyOn(window, 'setInterval')
 
-		// 1 week ago picks the HOUR interval per the adaptive ladder.
+		// 3 days ago sits below the WEEK threshold, so the adaptive ladder picks the HOUR interval.
 		renderHook(() => useTimeAgoRelativeTime({ date: new Date(NOW.getTime() - 3 * DAY) }))
 
 		expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), HOUR)

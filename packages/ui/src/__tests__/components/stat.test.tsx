@@ -50,12 +50,12 @@ describe('StatValue size resolution', () => {
 	it('renders with the explicit size prop applied', () => {
 		const { container } = renderUI(<StatValue size="sm">100</StatValue>)
 
-		expect(bySlot(container, 'stat-value')).toBeInTheDocument()
+		expect(bySlot(container, 'stat-value')).toHaveClass('text-2xl')
 	})
 
 	it('accepts trend on StatDelta', () => {
 		const { container } = renderUI(<StatDelta trend="up">+5%</StatDelta>)
 
-		expect(bySlot(container, 'stat-delta')).toBeInTheDocument()
+		expect(bySlot(container, 'stat-delta')).toHaveClass('text-green-700')
 	})
 })

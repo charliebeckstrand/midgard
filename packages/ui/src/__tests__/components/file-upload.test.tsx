@@ -61,10 +61,20 @@ describe('FileUpload button variant', () => {
 		expect(screen.getByRole('button', { name: 'Pick a file' })).toBeInTheDocument()
 	})
 
-	it('disables the button when disabled is set', () => {
+	it('leaves the button enabled when disabled is not set', () => {
 		renderUI(<FileUpload variant="button">Pick</FileUpload>)
 
-		expect(screen.getByRole('button', { name: 'Pick' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Pick' })).not.toBeDisabled()
+	})
+
+	it('disables the button when disabled is set', () => {
+		renderUI(
+			<FileUpload variant="button" disabled>
+				Pick
+			</FileUpload>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Pick' })).toBeDisabled()
 	})
 })
 

@@ -65,26 +65,36 @@ describe('ScrollArea', () => {
 		expect(container.querySelector('[data-slot="scroll-area-scrollbar"]')).toBeNull()
 	})
 
-	it('reflects orientation="horizontal" so only the horizontal scrollbar may render', () => {
+	it('reflects orientation="horizontal" on the viewport overflow axes', () => {
 		const { container } = renderUI(<ScrollArea orientation="horizontal">content</ScrollArea>)
 
-		const wrapper = bySlot(container, 'scroll-area')
+		const viewport = bySlot(container, 'scroll-area-viewport')
 
-		// Wrapper recipe encodes the orientation; verify the viewport mounted under it.
-		expect(wrapper).toBeInTheDocument()
-
-		expect(bySlot(container, 'scroll-area-viewport')).toBeInTheDocument()
+		// The viewport recipe encodes orientation; horizontal scrolls X and clamps Y.
+		// Vertical (overflow-x-hidden overflow-y-auto) and both (overflow-auto) lack
+		// this exact pair, so this would fail for any other orientation.
+		expect(viewport).toHaveClass('overflow-x-auto', 'overflow-y-hidden')
 	})
 
-	it('reflects orientation="both" on the wrapper', () => {
+	it('reflects orientation="both" on the viewport overflow axes', () => {
 		const { container } = renderUI(<ScrollArea orientation="both">content</ScrollArea>)
 
-		expect(bySlot(container, 'scroll-area-viewport')).toBeInTheDocument()
+		const viewport = bySlot(container, 'scroll-area-viewport')
+
+		// Both scrolls on every axis (size-full overflow-auto); neither vertical nor
+		// horizontal emits overflow-auto, so this would fail for any other orientation.
+		expect(viewport).toHaveClass('size-full', 'overflow-auto')
 	})
 
 	it('uses scrollbar="visible" to keep the scrollbar in the active state', () => {
 		const { container } = renderUI(<ScrollArea scrollbar="visible">content</ScrollArea>)
 
-		expect(bySlot(container, 'scroll-area')).toBeInTheDocument()
+		const scrollbar = bySlot(container, 'scroll-area-scrollbar')
+
+		// visible pins the scrollbar to its active state (opacity-100); auto would be
+		// opacity-0 group-hover:opacity-100 and hidden renders no scrollbar element.
+		expect(scrollbar).toHaveClass('opacity-100')
+
+		expect(scrollbar).not.toHaveClass('opacity-0')
 	})
 })
