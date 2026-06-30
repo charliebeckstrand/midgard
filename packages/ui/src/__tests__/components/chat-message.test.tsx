@@ -81,19 +81,13 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'shiny-text')).toHaveTextContent('Some **bold** text')
 	})
 
-	it("overrides Markdown's prose colors to inherit the user bubble's foreground", () => {
-		const { container } = renderUI(<ChatMessage type="user">content</ChatMessage>)
+	it.each([
+		'user',
+		'assistant',
+		'system',
+	] as const)("overrides Markdown's prose colors to inherit the %s bubble's own foreground", (type) => {
+		const { container } = renderUI(<ChatMessage type={type}>content</ChatMessage>)
 
 		expect(bySlot(container, 'markdown')).toHaveClass('text-inherit')
-	})
-
-	it("leaves Markdown's own palette untouched for assistant and system bubbles", () => {
-		const { container: assistant } = renderUI(<ChatMessage type="assistant">content</ChatMessage>)
-
-		expect(bySlot(assistant, 'markdown')).not.toHaveClass('text-inherit')
-
-		const { container: system } = renderUI(<ChatMessage type="system">content</ChatMessage>)
-
-		expect(bySlot(system, 'markdown')).not.toHaveClass('text-inherit')
 	})
 })

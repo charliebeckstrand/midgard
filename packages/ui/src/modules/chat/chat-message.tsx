@@ -4,15 +4,17 @@ import { ShinyText } from '../../components/shiny-text'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 
-// The user bubble is the one solid-color (`bg-blue-600 text-white`) surface;
-// Markdown's own palette (muted body, zinc-950/white headings, blue links) is
-// tuned for a page/card surface and reads wrong against it — body text too
-// faint, light-mode headings dark-on-blue, links blue-on-blue. Forcing every
-// element to inherit the bubble's own (always-white) foreground fixes it. The
-// assistant and system bubbles already share Markdown's intended palette (the
-// assistant bubble's own text color *is* `text.default`), so they render
-// Markdown unmodified.
-const USER_BUBBLE_PROSE_CLASS = 'text-inherit [&_*]:text-inherit'
+// Markdown's own palette (muted body text, zinc-950/white headings, blue
+// links) is tuned for a page/card surface, where the body and the emphasis
+// elements are meant to read as two different weights. A bubble already
+// carries its *one* intended foreground per type (white on the user bubble's
+// blue fill, zinc-950/white "default" on the assistant bubble, muted zinc on
+// the system bubble) — Markdown's muted body would otherwise read fainter
+// than the bubble's own (unstyled) text always did, and the user bubble's
+// blue link would nearly vanish against its blue fill. Forcing every element
+// to inherit the bubble's own foreground keeps a message's color uniform,
+// matching what plain (pre-Markdown) bubble text looked like.
+const BUBBLE_PROSE_CLASS = 'text-inherit [&_*]:text-inherit'
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
@@ -39,13 +41,14 @@ export type ChatMessageProps = ChatMessageVariants & {
  * tech.
  *
  * Settled content renders as GitHub-flavored Markdown ({@link Markdown},
- * complete with syntax-highlighted code fences); the user bubble overrides
- * Markdown's prose colors to inherit its own (always-white) foreground, since
- * Markdown's default palette is tuned for a page surface, not a solid color
- * fill. While `streaming`, content stays raw text under the {@link ShinyText}
- * shimmer instead — Markdown's per-element colors would fight the shimmer's
- * gradient clip, and re-lexing on every streamed chunk is wasted work besides
- * — snapping to formatted Markdown the moment streaming ends.
+ * complete with syntax-highlighted code fences), its prose colors overridden
+ * to inherit the bubble's own foreground — Markdown's default palette is
+ * tuned for a page surface, not a chat bubble, and would otherwise mute body
+ * text and clash on the user bubble's blue fill. While `streaming`, content
+ * stays raw text under the {@link ShinyText} shimmer instead — Markdown's
+ * per-element colors would fight the shimmer's gradient clip, and re-lexing
+ * on every streamed chunk is wasted work besides — snapping to formatted
+ * Markdown the moment streaming ends.
  *
  * Memoized on its (shallow-equal) props, so a transcript's already-settled
  * bubbles skip re-rendering — and re-lexing their Markdown — while only the
@@ -76,9 +79,7 @@ export const ChatMessage = memo(function ChatMessage({
 				{streaming ? (
 					<ShinyText>{children}</ShinyText>
 				) : (
-					<Markdown className={resolvedType === 'user' ? USER_BUBBLE_PROSE_CLASS : undefined}>
-						{children}
-					</Markdown>
+					<Markdown className={BUBBLE_PROSE_CLASS}>{children}</Markdown>
 				)}
 			</div>
 			{timestamp !== undefined && (
