@@ -263,17 +263,35 @@ export function buildColumnResize<T>(
 		}
 	}
 
+	// Resolve resize handlers through a lookup keyed by column id, rebuilt only when
+	// the engine's header set changes (`getFlatHeaders()` is reference-stable until
+	// then). Wiring N columns' handles is then O(cols) across a header row, not the
+	// O(cols²) a linear `.find()` per column would cost.
+	let cachedHeaders: ReturnType<Table<T>['getFlatHeaders']> | null = null
+
+	const handlerById = new Map<string, (event: unknown) => void>()
+
+	const getResizeHandler = (id: string | number) => {
+		const headers = table.getFlatHeaders()
+
+		if (headers !== cachedHeaders) {
+			cachedHeaders = headers
+
+			handlerById.clear()
+
+			for (const header of headers) handlerById.set(header.column.id, header.getResizeHandler())
+		}
+
+		return handlerById.get(String(id))
+	}
+
 	return {
 		getSize: (id) => table.getColumn(String(id))?.getSize() ?? DEFAULT_COLUMN_SIZE,
 		totalSize: () => table.getTotalSize(),
 		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
 		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
 		isResizingAny: () => Boolean(table.getState().columnSizingInfo.isResizingColumn),
-		getResizeHandler: (id) =>
-			table
-				.getFlatHeaders()
-				.find((header) => header.column.id === String(id))
-				?.getResizeHandler(),
+		getResizeHandler,
 		bounds,
 		nudge: (id, delta) => {
 			const column = table.getColumn(String(id))

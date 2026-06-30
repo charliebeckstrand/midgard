@@ -46,9 +46,18 @@ function intrinsicWidth(el: HTMLElement): number {
  * reads the same tight width whatever the column's current width — no feedback as
  * the autosizer resizes it.
  *
+ * `slotGap` is the flex row's `column-gap` (px), passed in because it is set by
+ * one recipe class and so is identical across columns — read once per pass rather
+ * than recomputed (a forced style flush) per column.
+ *
  * @internal
  */
-function headerWidth(th: HTMLElement, titleLeaf: HTMLElement, titleIntrinsic: number): number {
+function headerWidth(
+	th: HTMLElement,
+	titleLeaf: HTMLElement,
+	titleIntrinsic: number,
+	slotGap: number,
+): number {
 	const slot = th.querySelector<HTMLElement>('[data-grid-header]')
 
 	if (!slot) return th.getBoundingClientRect().width
@@ -57,9 +66,7 @@ function headerWidth(th: HTMLElement, titleLeaf: HTMLElement, titleIntrinsic: nu
 
 	const childrenWidth = children.reduce((sum, child) => sum + child.offsetWidth, 0)
 
-	const gap = Number.parseFloat(getComputedStyle(slot).columnGap) || 0
-
-	const minGaps = Math.max(0, children.length - 1) * gap
+	const minGaps = Math.max(0, children.length - 1) * slotGap
 
 	// The free space the flex row spreads between its items beyond their natural
 	// widths and the fixed gaps; subtract it to reach the tight row.
@@ -68,6 +75,25 @@ function headerWidth(th: HTMLElement, titleLeaf: HTMLElement, titleIntrinsic: nu
 	const titleGrowth = Math.max(0, titleIntrinsic - titleLeaf.offsetWidth)
 
 	return th.getBoundingClientRect().width - free + titleGrowth
+}
+
+/**
+ * The header flex row's `column-gap` in px, read once per measurement pass from
+ * the first header that carries a `data-grid-header` slot. The gap comes from one
+ * recipe class, so every column's slot shares it — reading it per column would
+ * force a style flush for each (see {@link headerWidth}). Zero when no header is
+ * rendered.
+ *
+ * @internal
+ */
+function headerSlotGap(headers: Map<string, HTMLElement>): number {
+	for (const th of headers.values()) {
+		const slot = th.querySelector<HTMLElement>('[data-grid-header]')
+
+		if (slot) return Number.parseFloat(getComputedStyle(slot).columnGap) || 0
+	}
+
+	return 0
 }
 
 /** Whether a column title is a single whitespace-free word — the headers that never truncate. @internal */
@@ -172,14 +198,14 @@ type MeasureOptions<T> = {
  *
  * @internal
  */
-function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined): number {
+function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap: number): number {
 	const titleLeaf = th?.querySelector<HTMLElement>('[data-grid-content]') ?? null
 
 	const titleIntrinsic = titleLeaf ? intrinsicWidth(titleLeaf) : 0
 
 	const header =
 		th && titleLeaf
-			? headerWidth(th, titleLeaf, titleIntrinsic)
+			? headerWidth(th, titleLeaf, titleIntrinsic, slotGap)
 			: (th?.getBoundingClientRect().width ?? 0)
 
 	const max = col.maxWidth ?? Number.MAX_SAFE_INTEGER
@@ -271,6 +297,10 @@ export function measureColumnIntrinsics<T>({
 }: MeasureOptions<T>): ColumnMeasurement {
 	const { headers, bodies } = collectCells(container)
 
+	// The header flex row's `column-gap` is identical across columns (one recipe
+	// class), so read it once for the whole pass instead of per column.
+	const slotGap = headerSlotGap(headers)
+
 	const profiles: ColumnSizeProfile[] = []
 
 	const floors = new Map<string, number>()
@@ -289,7 +319,7 @@ export function measureColumnIntrinsics<T>({
 
 		// Every data column gets a floor — a `width`-held or drag-held one honors it on
 		// a resize even though it sits out the distribution.
-		const floor = columnFloor(col, headers.get(id))
+		const floor = columnFloor(col, headers.get(id), slotGap)
 
 		floors.set(id, floor)
 
