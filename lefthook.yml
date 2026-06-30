@@ -13,8 +13,10 @@ pre-push:
   jobs:
     - name: biome check
       run: pnpm biome check .
-    - name: full gate
-      run: pnpm turbo run check-types test knip
+    - name: affected gate
+      run: pnpm turbo run check-types test --affected
+    - name: knip
+      run: pnpm turbo run knip
 
 commit-msg:
   jobs:
