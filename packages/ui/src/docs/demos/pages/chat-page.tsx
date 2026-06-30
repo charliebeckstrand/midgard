@@ -75,7 +75,7 @@ export function Demo() {
 
 	const sidebar = (
 		<>
-			<Sidebar className="w-64 shrink-0 p-0">
+			<Sidebar className="w-full lg:w-64 shrink-0 p-0">
 				<SidebarHeader>
 					<Heading level={2}>Messages</Heading>
 				</SidebarHeader>
