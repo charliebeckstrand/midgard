@@ -1,5 +1,6 @@
 'use client'
 
+import { useLayoutEffect, useRef } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -87,15 +88,54 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 	const status = pageStatus({ from, to, rowCount, pageNumber, pageCount })
 
+	// When a page change disables the control the user activated (reaching an
+	// extent), or scrolls its number out of the window, the browser drops focus to
+	// the body. Restore it to the current-page marker so focus stays in the nav
+	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFocus`.
+	const navRef = useRef<HTMLDivElement>(null)
+
+	const restoreFocus = useRef(false)
+
+	const goToPage = (index: number) => {
+		restoreFocus.current = true
+
+		setPageIndex(index)
+	}
+
+	useLayoutEffect(() => {
+		// Re-run on each page change so a restore can follow the control that moved.
+		void pageIndex
+
+		if (!restoreFocus.current) return
+
+		restoreFocus.current = false
+
+		const nav = navRef.current
+
+		if (!nav) return
+
+		const active = document.activeElement
+
+		// Focus survived on an enabled control still in the nav — leave it. A control
+		// that just disabled is dropped (it can't hold focus, even if the browser's
+		// blur to the body lags this commit), as is one that unmounted (a number that
+		// scrolled out of the window).
+		const heldInNav =
+			active instanceof HTMLElement &&
+			nav.contains(active) &&
+			!(active instanceof HTMLButtonElement && active.disabled)
+
+		if (heldInNav) return
+
+		nav.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
+	}, [pageIndex])
+
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
 			{showNav && (
-				<div className={cn(k.footer.nav)}>
+				<div ref={navRef} className={cn(k.footer.nav)}>
 					<Pagination>
-						<PaginationPrevious
-							onClick={() => setPageIndex(pageIndex - 1)}
-							disabled={!canPrevious}
-						/>
+						<PaginationPrevious onClick={() => goToPage(pageIndex - 1)} disabled={!canPrevious} />
 
 						{knownPages && (
 							<PaginationList>
@@ -107,7 +147,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 										<PaginationPage
 											key={item}
 											current={item === pageNumber}
-											onClick={() => setPageIndex(item - 1)}
+											onClick={() => goToPage(item - 1)}
 										>
 											{item}
 										</PaginationPage>
@@ -116,7 +156,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 							</PaginationList>
 						)}
 
-						<PaginationNext onClick={() => setPageIndex(pageIndex + 1)} disabled={!canNext} />
+						<PaginationNext onClick={() => goToPage(pageIndex + 1)} disabled={!canNext} />
 					</Pagination>
 				</div>
 			)}
