@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ChatMessage } from '../../components/chat-message'
+import { ChatMessage } from '../../modules/chat'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('ChatMessage', () => {

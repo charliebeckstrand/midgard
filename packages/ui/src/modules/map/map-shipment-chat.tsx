@@ -4,11 +4,11 @@ import { ArrowUp } from 'lucide-react'
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { Alert, AlertTitle } from '../../components/alert'
 import { Button } from '../../components/button'
-import { ChatMessage } from '../../components/chat-message'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Stack } from '../../components/stack'
 import { cn } from '../../core'
+import { ChatMessage } from '../chat'
 import type { ChatMessage as ChatMessageData } from './types'
 
 type MapShipmentChatProps = {

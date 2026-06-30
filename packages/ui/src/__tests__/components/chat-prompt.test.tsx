@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ChatPrompt } from '../../components/chat-prompt'
+import { ChatPrompt } from '../../modules/chat'
 import { bySlot, fireEvent, makeFileList, noop, renderUI, screen, userEvent } from '../helpers'
 
 describe('ChatPrompt', () => {

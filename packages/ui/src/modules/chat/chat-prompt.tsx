@@ -2,11 +2,11 @@
 
 import { ArrowUp, Paperclip, Square } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, type Ref, useCallback } from 'react'
+import { Button } from '../../components/button'
+import { useFileUploadHandlers } from '../../components/file-upload'
+import { Icon } from '../../components/icon'
+import { Textarea } from '../../components/textarea'
 import { cn } from '../../core'
-import { Button } from '../button'
-import { useFileUploadHandlers } from '../file-upload'
-import { Icon } from '../icon'
-import { Textarea } from '../textarea'
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {

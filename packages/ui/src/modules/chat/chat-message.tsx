@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
+import { ShinyText } from '../../components/shiny-text'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
-import { ShinyText } from '../shiny-text'
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
