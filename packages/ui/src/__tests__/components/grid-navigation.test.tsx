@@ -65,7 +65,7 @@ describe('Grid navigable cursor', () => {
 		expect(screen.getAllByRole('gridcell')).toHaveLength(6)
 	})
 
-	it('stays a native table — no cursor — without navigable', () => {
+	it('stays a plain native table with no cursor when not navigable', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.queryByRole('grid')).not.toBeInTheDocument()

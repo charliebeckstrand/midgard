@@ -36,7 +36,7 @@ describe('recipes internal-boundary contract', () => {
 		expect(leaks, `recipes barrel re-exports internals: ${leaks.join(', ')}`).toEqual([])
 	})
 
-	it('src/recipes/index.ts is types-only — no value exports', () => {
+	it('src/recipes/index.ts is types-only: no value exports', () => {
 		const source = readFileSync(join(uiRoot, 'src/recipes/index.ts'), 'utf8')
 
 		// Strip block comments (the JSDoc header may contain code-like snippets)

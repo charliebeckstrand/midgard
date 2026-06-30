@@ -11,7 +11,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * mocks `@floating-ui/react` away (the custom outside-press listener no-ops with
  * a null floating ref), so only this project can assert it.
  */
-describe('nested overlay dismiss (real browser) — date picker month/year picker', () => {
+describe('nested overlay dismiss (real browser): date picker month/year picker', () => {
 	it('keeps the dialog open when selecting a year inside the picker', async () => {
 		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 

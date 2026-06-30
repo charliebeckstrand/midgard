@@ -444,7 +444,7 @@ describe('useA11yRoving', () => {
 	})
 })
 
-describe('useA11yRoving — manageTabIndex', () => {
+describe('useA11yRoving: manageTabIndex', () => {
 	// Native <button>s start tabbable (tabIndex 0); the hook collapses them to
 	// a single resting stop.
 	function makeButtons(count: number, currentIndex?: number) {
@@ -552,7 +552,7 @@ describe('useA11yRoving — manageTabIndex', () => {
 	})
 })
 
-describe('useA11yRoving — row actions', () => {
+describe('useA11yRoving: row actions', () => {
 	const ROW = {
 		rowSelector: '[data-slot="row"]',
 		actionSelector: '[data-slot="action"]:not(:disabled)',

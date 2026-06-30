@@ -44,7 +44,7 @@ describe('isAutoSized', () => {
 		expect(isAutoSized(select, NONE, NONE)).toBe(false)
 	})
 
-	it('treats a non-px width as auto-sized — a relative width is not a fixed seed', () => {
+	it('treats a non-px width as auto-sized: a relative width is not a fixed seed', () => {
 		expect(isAutoSized(column({ width: '50%' }), NONE, NONE)).toBe(true)
 	})
 })

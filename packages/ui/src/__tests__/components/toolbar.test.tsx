@@ -78,7 +78,7 @@ describe('Toolbar', () => {
 		expect(document.activeElement).toBe(buttons[2])
 	})
 
-	it('is a single Tab stop — only the resting item is tabbable, and the stop follows arrows', () => {
+	it('is a single Tab stop: only the resting item is tabbable, and the stop follows arrows', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor">
 				<button type="button">A</button>

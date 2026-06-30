@@ -13,7 +13,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * can assert it: the jsdom suite mocks `@floating-ui/react`, and real Tab
  * keystrokes are what engage (or leak past) the trap.
  */
-describe('a11y focus trap (real browser) — date picker input mode', () => {
+describe('a11y focus trap (real browser): date picker input mode', () => {
 	it('cycles Tab through the input, calendar button, and dialog while open', async () => {
 		renderUI(
 			<>

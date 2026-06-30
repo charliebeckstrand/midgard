@@ -29,7 +29,7 @@ describe('a11y baseline (axe)', () => {
  * asserts the whole document is clean. Cleanup resets `document.body`
  * between cases.
  */
-describe('a11y baseline (axe) — overlays', () => {
+describe('a11y baseline (axe): overlays', () => {
 	it.each(overlays)('%s has no axe violations', async (_name, element) => {
 		renderUI(element)
 
@@ -43,7 +43,7 @@ describe('a11y baseline (axe) — overlays', () => {
  * drives the real interaction before the axe check runs. Same body scope
  * and cleanup as the overlays gate.
  */
-describe('a11y baseline (axe) — interactive', () => {
+describe('a11y baseline (axe): interactive', () => {
 	it.each(interactive)('%s has no axe violations', async (_name, element, open) => {
 		const user = userEvent.setup()
 
@@ -57,7 +57,7 @@ describe('a11y baseline (axe) — interactive', () => {
 
 // Teeth check: asserts a known defect (icon-only button with no accessible
 // name, WCAG 4.1.2) surfaces, confirming the matcher is wired.
-describe('a11y baseline (axe) — teeth check', () => {
+describe('a11y baseline (axe): teeth check', () => {
 	it('detects an icon-only button with no accessible name', async () => {
 		const { container } = renderUI(
 			<Button>
@@ -73,7 +73,7 @@ describe('a11y baseline (axe) — teeth check', () => {
 
 // Overlay teeth check: an open dialog with no accessible name (no title or
 // aria-label, WCAG 4.1.2) must surface against `document.body`.
-describe('a11y baseline (axe) — overlays teeth check', () => {
+describe('a11y baseline (axe): overlays teeth check', () => {
 	it('detects an open dialog with no accessible name', async () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
