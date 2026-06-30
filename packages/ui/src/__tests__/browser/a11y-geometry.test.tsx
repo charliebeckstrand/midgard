@@ -20,7 +20,7 @@ const GEOMETRY_EXEMPT = new Set(['kanban'])
 
 const geometryBaseline = baseline.filter(([name]) => !GEOMETRY_EXEMPT.has(name))
 
-describe('a11y geometry (axe) — baseline', () => {
+describe('a11y geometry (axe): baseline', () => {
 	it.each(geometryBaseline)('%s meets contrast and target-size', async (_name, element) => {
 		const { container } = renderUI(element)
 
@@ -32,7 +32,7 @@ describe('a11y geometry (axe) — baseline', () => {
  * Overlays portal to `document.body`, leaving the container empty; asserts
  * the whole document, matching the jsdom overlay gate.
  */
-describe('a11y geometry (axe) — overlays', () => {
+describe('a11y geometry (axe): overlays', () => {
 	it.each(overlays)('%s meets contrast and target-size', async (_name, element) => {
 		renderUI(element)
 

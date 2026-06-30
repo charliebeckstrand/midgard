@@ -138,7 +138,7 @@ describe('grid column filter sheet (real browser)', () => {
  * portals out of the sheet, and must layer *above* the sheet's backdrop — the
  * regression was a calendar painting behind the dimming scrim, unreachable.
  */
-describe('grid column filter sheet — date picker layering (real browser)', () => {
+describe('grid column filter sheet: date picker layering (real browser)', () => {
 	type Task = { id: number; due: string }
 
 	const columns: GridColumn<Task>[] = [

@@ -14,7 +14,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * three render paths. Only this project sees it: the jsdom suite mocks the
  * focus manager (no fallback span) and has no layout.
  */
-describe('layout stability (real browser) — date picker in space-y container', () => {
+describe('layout stability (real browser): date picker in space-y container', () => {
 	const cases: Array<{ name: string; element: ReactElement }> = [
 		{ name: 'trigger', element: <DatePicker defaultValue={new Date(2025, 5, 15)} /> },
 		{ name: 'input', element: <DatePicker input defaultValue={new Date(2025, 5, 15)} /> },

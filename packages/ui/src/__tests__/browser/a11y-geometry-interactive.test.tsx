@@ -16,7 +16,7 @@ const GEOMETRY_DEFERRED = new Set(['select', 'listbox'])
 
 const interactiveGeometry = interactive.filter(([name]) => !GEOMETRY_DEFERRED.has(name))
 
-describe('a11y geometry (axe) — interactive', () => {
+describe('a11y geometry (axe): interactive', () => {
 	it.each(
 		interactiveGeometry,
 	)('%s meets contrast and target-size when open', async (_name, element, open) => {

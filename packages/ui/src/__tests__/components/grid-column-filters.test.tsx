@@ -54,7 +54,7 @@ describe('Grid per-column filters', () => {
 		expect(screen.queryByRole('button', { name: /^Filter / })).not.toBeInTheDocument()
 	})
 
-	it('opens a single-column query builder — rules only, no field selector or groups', () => {
+	it('opens a single-column query builder: rules only, no field selector or groups', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))

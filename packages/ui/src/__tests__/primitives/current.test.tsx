@@ -28,7 +28,7 @@ describe('useCurrentState', () => {
 })
 
 describe('CurrentContents / CurrentContent', () => {
-	it('CurrentContents renders with correct data-slot', () => {
+	it('CurrentContents renders with its data-slot', () => {
 		const { container } = renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
 				<CurrentContents slotPrefix="test" fade={false}>

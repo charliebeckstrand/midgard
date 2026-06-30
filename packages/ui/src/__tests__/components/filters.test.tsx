@@ -274,7 +274,7 @@ describe('useFilters', () => {
 		return <span data-slot="count">{activeCount}</span>
 	}
 
-	it('reports activeCount correctly', () => {
+	it('reports activeCount as the number of non-empty values', () => {
 		const { container } = renderUI(
 			<Filters aria-label="Filters" value={{ a: 'yes', b: '', c: undefined, d: [], e: [1] }}>
 				<ActiveCount />

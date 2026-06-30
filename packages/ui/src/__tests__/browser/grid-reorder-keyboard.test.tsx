@@ -13,7 +13,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../helpers'
  *
  * Real focus, layout, and computed colour, so this runs in the browser suite.
  */
-describe('grid column reorder — keyboard lift indicator (real browser)', () => {
+describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 	type Row = { id: number; a: string; b: string }
 
 	const columns: GridColumn<Row>[] = [

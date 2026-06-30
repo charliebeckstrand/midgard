@@ -459,7 +459,7 @@ describe('Field aria-describedby', () => {
 	})
 })
 
-describe('Field aria-describedby — composite triggers', () => {
+describe('Field aria-describedby: composite triggers', () => {
 	const cases: Array<[string, React.ReactNode, string]> = [
 		[
 			'Listbox',

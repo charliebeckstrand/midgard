@@ -10,7 +10,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * rather than let focus walk out into the calendar beneath. The jsdom suite
  * mocks `@floating-ui/react` away, so only this project can assert it.
  */
-describe('a11y focus trap (real browser) — calendar month picker', () => {
+describe('a11y focus trap (real browser): calendar month picker', () => {
 	it('cycles Tab inside the open month picker', async () => {
 		renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 

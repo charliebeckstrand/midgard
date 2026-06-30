@@ -9,7 +9,7 @@ import { fireEvent, renderUI, waitFor } from '../helpers'
  * leaving the column stuck tracking the pointer. Proven against real layout:
  * the column width only moves for a primary-button drag.
  */
-describe('grid resize handle — right-click (real browser)', () => {
+describe('grid resize handle: right-click (real browser)', () => {
 	type Row = { id: number; name: string; age: number }
 
 	const columns: GridColumn<Row>[] = [

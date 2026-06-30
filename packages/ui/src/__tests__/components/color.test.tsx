@@ -74,7 +74,7 @@ describe('color conversions', () => {
 		expect(hsvaToRgba(rgbaToHsva(rgba))).toEqual(rgba)
 	})
 
-	it('reaches every byte value on a channel — the RGB inputs never snap', () => {
+	it('reaches every byte value on a channel: the RGB inputs never snap', () => {
 		// Full-precision HSV round-trips every RGB byte value exactly
 		// (0-255 inclusive).
 		for (let n = 0; n <= 255; n++) {
