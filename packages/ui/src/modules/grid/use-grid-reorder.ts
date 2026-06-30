@@ -32,8 +32,9 @@ type GridReorderOptions<T> = {
  * never the `<table>` itself, since the dnd context injects hidden
  * accessibility nodes that must not be `<table>` children.
  *
- * @returns `canReorder` (render gate) plus the `items`, `strategy`, and
- * `dndContextProps` to spread onto the sortable context and dnd context.
+ * @returns `canReorder` (render gate) plus the `itemIds`, `strategy`,
+ * `dndContextProps`, and `activeId` to spread onto the sortable context and
+ * dnd context.
  * @internal
  */
 export function useGridReorder<T>({

@@ -6,6 +6,7 @@ import { EMPTY_SET } from './grid-constants'
 
 type ColumnLike = { id: string | number }
 
+/** Options for {@link useGridColumnVisibility}. @internal */
 type GridColumnVisibilityOptions<T extends ColumnLike> = {
 	columns: T[]
 	/** Controlled column order, as a list of column ids. */
