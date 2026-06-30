@@ -12,6 +12,16 @@ Findings are ranked by verified severity, not by raw tool output; a large share 
 
 The module is high quality. The real linter is clean, there is no duplication and no circular dependency, and average cyclomatic complexity is 2.22. The only defensible structural finding is the size of `grid-data.tsx`; everything else is minor or a tool artifact.
 
+## Remediation outcomes
+
+These findings were worked through on `claude/grid-code-quality-audit-drcppu`, merging `main` first so each was judged against current code — which mattered, since `#788` (lockable columns) had grown the prop-heavy components after the initial scan. This section is the authoritative disposition; where it supersedes a recommendation below (P2 and the `useGridSelection` finding), follow this section.
+
+P1 is fixed. `grid-data.tsx` was split into three sibling modules — `grid-data-resolvers.ts` (the pure config resolvers), `grid-announcements.ts` (the `describeSort` / `describeSelection` builders), and `grid-busy-status.tsx` (the `GridBusyStatus` component) — taking it from 1,080 to 770 lines with no behavior and no public-export change, verified by `biome check`, `tsc`, and the full grid suite. The two extracted `.ts` files stay non-component utility modules per the component-filename convention, so `resolveResizeLayout` builds its `<colgroup>` with `createElement` to remain JSX-free.
+
+The other three findings resolved into tool artifacts or intentional design and were left unchanged. The `useGridSelection` "dead export" is the file's required namesake under the component-filename boundary test — the intended composing hook, tested, with `useGridSelectionState` / `useGridSelectionActions` as the engine-ordering escape hatch `GridData` uses; removing it fails the convention, and its TSDoc is in fact accurate. The "excessive-parameters" components each take one destructured props/options object, and the `memo`-wrapped header cells take flat primitive props by design (so each re-renders only when its own data changes) — grouping them into per-render objects, or reading context inside the memo, would defeat that memoization rather than fix anything. The 14 magic numbers are all either in comments (WCAG / RFC references, sort examples) or already named, documented constants (`grid-constants.ts`, plus locals like `OVERFLOW_SLACK` and `SHIFT_SPRING`).
+
+Net: one genuine structural defect (P1), now fixed; the rest confirm the module's quality.
+
 ## Strengths
 
 `biome check` reports zero issues across all 48 files.
@@ -44,11 +54,15 @@ Several of these props arrive as correlated bundles (sort, resize, pin, filter h
 
 Recommendation (composition): group correlated props into cohesive objects, or source stable handlers from the existing grid context rather than threading them through every header render. `GridData`'s own ~37 props are excluded — that is the component's public API contract and is acceptable.
 
+**Outcome — superseded:** declined. On inspection these are intentional: the `memo`-wrapped header cells (`GridColumnHeader`, `GridReorderableColumnHeader`) take flat primitive props so each re-renders only on its own data, and grouping them into per-render objects — or reading context inside the memo — would regress that memoization. See [Remediation outcomes](#remediation-outcomes).
+
 ### P3 — `useGridSelection` wrapper is unexported and unused in production
 
 `useGridSelection` (`use-grid-selection.ts:109`) is flagged by `find_dead_code` (medium confidence). It is not re-exported from `index.ts`, and `grid-data.tsx` composes the two sub-hooks (`useGridSelectionState` + `useGridSelectionActions`) inline — it must thread engine-derived `rowKeys` between them, so the convenience wrapper cannot serve it. The wrapper is referenced only by its own test.
 
 Recommendation (YAGNI): remove it (~5 lines), or, if it is meant as public composition, export it from `index.ts` and document the intent. Its TSDoc claim that "`Grid` calls [it] directly" is currently inaccurate.
+
+**Outcome — superseded:** kept. The component-filename boundary test requires `use-grid-selection.ts` to export its `useGridSelection` namesake, so it is the file's intended composing hook (tested), with the sub-hooks as `GridData`'s escape hatch; removing it fails the convention. The TSDoc is in fact accurate — it says `Grid` calls the two *sub-hooks* directly, which it does. See [Remediation outcomes](#remediation-outcomes).
 
 ### P3 — Residual magic numbers
 
@@ -70,15 +84,15 @@ The seven "orphan files" from `analyze_import_graph` are not unused — the labe
 
 The MCP `check_style` "0 issues" result used a basic fallback, not the project's Biome config; the clean result was reconfirmed by running `biome check` directly.
 
-## Suggested remediation order
+## Remediation status
 
-1. (P1, optional) Split `grid-data.tsx` — extract the `resolve*` resolvers and the a11y status helpers into two sibling modules. Largest readability and SRP win, low risk.
+1. P1 — done. `grid-data.tsx` split into `grid-data-resolvers.ts`, `grid-announcements.ts`, and `grid-busy-status.tsx` (1,080 → 770 lines).
 
-2. (P2) Narrow the internal sub-component prop surfaces via prop grouping or the existing grid context.
+2. P2 — declined. Intentional design; grouping the `memo`-wrapped header props would regress memoization (see [Remediation outcomes](#remediation-outcomes)).
 
-3. (P3) Remove or export-and-document `useGridSelection`.
+3. `useGridSelection` — kept. Required namesake under the component-filename convention, and not actually dead (see [Remediation outcomes](#remediation-outcomes)).
 
-4. (P3) Fold residual opaque literals into `grid-constants.ts` opportunistically.
+4. Magic numbers — no action. All in comments or already named, documented constants.
 
 ---
 
