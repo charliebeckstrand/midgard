@@ -106,6 +106,11 @@ describe('TabList', () => {
 
 		expect(viewport?.className).toContain('overflow-x-auto')
 
+		// The cross axis keeps its content floor: overflow zeroes the automatic
+		// flex minimum, so without min-h-fit a column flex parent under space
+		// pressure crushes the strip to height 0 (tabs paint under the page body).
+		expect(viewport?.className).toContain('min-h-fit')
+
 		expect(viewport).toContainElement(bySlot(container, 'tab-list'))
 	})
 
@@ -118,7 +123,11 @@ describe('TabList', () => {
 			</Tabs>,
 		)
 
-		expect(bySlot(container, 'tab-list-scroll')?.className).toContain('overflow-y-auto')
+		const viewport = bySlot(container, 'tab-list-scroll')
+
+		expect(viewport?.className).toContain('overflow-y-auto')
+
+		expect(viewport?.className).toContain('min-w-fit')
 	})
 
 	it('omits the scroll viewport for the segment variant', () => {

@@ -42,12 +42,19 @@ const list = defineRecipe({
  * active-indicator/focus rail sits flush with the content edge, so nothing is
  * lost), and the native scrollbar is hidden so it never crosses the rail — the
  * active tab scrolls into view and roving keeps every tab reachable.
+ *
+ * The cross axis needs an explicit `min-*-fit`: overflow ≠ visible zeroes a
+ * flex item's automatic minimum size, so a flex parent distributing shortage
+ * (e.g. a column page body whose content outgrows it) would otherwise crush
+ * the whole strip to 0 while the list stays painted underneath the content.
+ * Only the scroll axis stays squeezable — that squeeze is what makes it
+ * scroll.
  */
 const scroll = defineRecipe({
 	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
-		horizontal: 'overflow-x-auto overflow-y-hidden',
-		vertical: 'overflow-y-auto overflow-x-hidden',
+		horizontal: 'overflow-x-auto overflow-y-hidden min-h-fit',
+		vertical: 'overflow-y-auto overflow-x-hidden min-w-fit',
 	},
 	defaults: { orientation: 'horizontal' },
 })
