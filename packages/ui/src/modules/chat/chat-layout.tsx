@@ -11,8 +11,8 @@ import { cn } from '../../core'
 import { useOffcanvas } from '../../hooks'
 import { ChatList } from './chat-list'
 import { ChatListItem } from './chat-list-item'
-import { ChatMessages } from './chat-messages'
 import { ChatPrompt } from './chat-prompt'
+import { ChatTranscript } from './chat-transcript'
 import type { ChatContent } from './types'
 import { useChatDraft } from './use-chat-draft'
 
@@ -75,10 +75,10 @@ export type ChatLayoutProps = {
  * conversation sidebar.
  *
  * @remarks
- * Composes {@link ChatMessages} with {@link ChatPrompt}, owning the prompt draft
+ * Composes {@link ChatTranscript} with {@link ChatPrompt}, owning the prompt draft
  * through {@link useChatDraft} so callers wire only `messages` and `onSend`. In
  * `isDraft` mode (or with no messages) the transcript is hidden and the prompt is
- * centered. {@link ChatMessages} is keyed on `currentConversationId`, so
+ * centered. {@link ChatTranscript} is keyed on `currentConversationId`, so
  * switching conversations remounts it and its transcript opens already
  * scrolled to the bottom instead of animating there. Pass `conversations` and
  * the layout builds its own navigation rail —
@@ -88,7 +88,7 @@ export type ChatLayoutProps = {
  * desktop and, below the `lg` breakpoint, in a {@link Sheet} opened by a menu
  * button beside the `header` (auto-closing when the viewport grows back to
  * desktop). The layout reflects data and emits events; reach for
- * {@link ChatListItem} / {@link ChatMessage} / {@link ChatMessages} directly when
+ * {@link ChatListItem} / {@link ChatMessage} / {@link ChatTranscript} directly when
  * you need finer control.
  */
 export function ChatLayout({
@@ -197,7 +197,7 @@ export function ChatLayout({
 			{headerRow}
 
 			{showTranscript && (
-				<ChatMessages key={currentConversationId} messages={messages} streaming={sending} />
+				<ChatTranscript key={currentConversationId} messages={messages} streaming={sending} />
 			)}
 
 			<div className={cn('w-full', isDraft && 'lg:max-w-md mx-auto')}>

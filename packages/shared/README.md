@@ -11,7 +11,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 | Path | Purpose |
 |---|---|
 | `shared/auth` | Auth UI built on `auth`: `LoginPage`, `RegisterPage`. |
-| `shared/chat` | Chat client: `ChatLayout`, `ChatMessages`, `useChat` / `useSendMessage` (SSE stream parser), `Chat` / `ChatContent` types. |
+| `shared/chat` | Chat client: `ChatLayout`, `ChatTranscript`, `useChat` / `useSendMessage` (SSE stream parser), `Chat` / `ChatContent` types. |
 | `shared/theme.css` | Theme tokens. |
 | `shared/globals.css` | Global resets and base styles. |
 

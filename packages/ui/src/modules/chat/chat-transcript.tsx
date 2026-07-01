@@ -5,8 +5,8 @@ import { ChatMessage } from './chat-message'
 import type { ChatContent } from './types'
 import { useChatScroll } from './use-chat-scroll'
 
-/** Props for {@link ChatMessages}. */
-export type ChatMessagesProps = {
+/** Props for {@link ChatTranscript}. */
+export type ChatTranscriptProps = {
 	/** The transcript, oldest first. */
 	messages: ChatContent[]
 	/** Whether a reply is currently streaming; pulses the latest agent bubble. */
@@ -25,11 +25,14 @@ export type ChatMessagesProps = {
  * chunks stay in view. Mount this fresh per conversation (e.g. `key`d on its
  * id) so switching chats doesn't animate from the old scroll position.
  */
-export function ChatMessages({ messages, streaming, className }: ChatMessagesProps) {
+export function ChatTranscript({ messages, streaming, className }: ChatTranscriptProps) {
 	const { ref } = useChatScroll(messages)
 
 	return (
-		<div data-slot="chat-messages" className={cn('flex-1 grow overflow-y-auto min-h-0', className)}>
+		<div
+			data-slot="chat-transcript"
+			className={cn('flex-1 grow overflow-y-auto min-h-0', className)}
+		>
 			{messages.length > 0 && (
 				<>
 					<div className="flex flex-col gap-6 mx-auto">

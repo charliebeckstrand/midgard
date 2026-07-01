@@ -12,8 +12,8 @@ import {
 	ChatList,
 	ChatListItem,
 	ChatMessage,
-	ChatMessages,
 	ChatPrompt,
+	ChatTranscript,
 	type ChatTransport,
 	useChatSend,
 } from '../../../modules/chat'
@@ -262,7 +262,7 @@ export function Demo() {
 				<TabContent value="Transcript">
 					<Example title="Transcript">
 						<div className="h-80">
-							<ChatMessages messages={transcript} />
+							<ChatTranscript messages={transcript} />
 						</div>
 					</Example>
 				</TabContent>
