@@ -262,7 +262,7 @@ export function ChatLayout({
 
 					setPendingRemoval(null)
 				}}
-				title={pendingConversation ? <>Remove {pendingConversation.title}</> : undefined}
+				title={pendingConversation ? <>Remove {pendingConversation.title}?</> : undefined}
 				description="This can't be undone."
 				confirm={{ label: 'Remove', color: 'red' }}
 			/>

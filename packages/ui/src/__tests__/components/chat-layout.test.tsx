@@ -110,7 +110,7 @@ describe('ChatLayout', () => {
 		)
 
 		// The remove is gated by a confirmation naming the conversation; the first click only opens it.
-		expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Remove Project kickoff')
+		expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Remove Project kickoff?')
 
 		expect(onConversationRemove).not.toHaveBeenCalled()
 
