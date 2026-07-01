@@ -87,8 +87,8 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content) =>
-			transports[call++]?.(content) ?? streamOf()(content)
+		const transport: ChatTransport = (content, signal) =>
+			transports[call++]?.(content, signal) ?? streamOf()(content, signal)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -112,7 +112,7 @@ describe('useChatSend', () => {
 	it('retry resends after a failed send, with no prior agent reply to drop', async () => {
 		let call = 0
 
-		const transport: ChatTransport = (content) => {
+		const transport: ChatTransport = (content, signal) => {
 			call += 1
 
 			if (call === 1) {
@@ -122,7 +122,7 @@ describe('useChatSend', () => {
 				})()
 			}
 
-			return streamOf('recovered')(content)
+			return streamOf('recovered')(content, signal)
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -161,8 +161,8 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content) =>
-			transports[call++]?.(content) ?? streamOf()(content)
+		const transport: ChatTransport = (content, signal) =>
+			transports[call++]?.(content, signal) ?? streamOf()(content, signal)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -277,5 +277,119 @@ describe('useChatSend', () => {
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
 		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'reply' })
+	})
+
+	it('stop aborts the in-flight send, keeping the last snapshot and skipping onError/onSent', async () => {
+		const onError = vi.fn()
+
+		const onSent = vi.fn()
+
+		let capturedSignal: AbortSignal | undefined
+
+		let yieldSecond: (() => void) | undefined
+
+		const transport: ChatTransport = (_content, signal) => {
+			capturedSignal = signal
+
+			return (async function* () {
+				yield 'first'
+
+				await new Promise<void>((resolve) => {
+					yieldSecond = resolve
+				})
+
+				yield 'second'
+			})()
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport, onError, onSent }))
+
+		let sendPromise!: Promise<void>
+
+		act(() => {
+			sendPromise = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.messages[1]).toMatchObject({ content: 'first' }))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		expect(capturedSignal?.aborted).toBe(true)
+
+		yieldSecond?.()
+
+		await act(async () => {
+			await sendPromise
+		})
+
+		// The second snapshot arrived after the stop, so it's dropped; the bubble
+		// stays at the last snapshot applied before the abort.
+		expect(result.current.messages[1]).toMatchObject({ content: 'first' })
+
+		expect(result.current.sending).toBe(false)
+
+		expect(onError).not.toHaveBeenCalled()
+
+		expect(onSent).not.toHaveBeenCalled()
+	})
+
+	it('stop no-ops when nothing is in flight', () => {
+		const { result } = renderHook(() => useChatSend({ transport: streamOf('x') }))
+
+		expect(() => result.current.stop()).not.toThrow()
+
+		expect(result.current.sending).toBe(false)
+	})
+
+	it('a send after a stopped send still completes normally', async () => {
+		let releaseFirst: (() => void) | undefined
+
+		let call = 0
+
+		const transport: ChatTransport = (content, signal) => {
+			call += 1
+
+			if (call === 1) {
+				return (async function* () {
+					await new Promise<void>((resolve) => {
+						releaseFirst = resolve
+					})
+
+					yield 'first reply'
+				})()
+			}
+
+			return streamOf('second reply')(content, signal)
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let firstSend!: Promise<void>
+
+		act(() => {
+			firstSend = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.sending).toBe(true))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		releaseFirst?.()
+
+		await act(async () => {
+			await firstSend
+		})
+
+		await act(async () => {
+			await result.current.send('again')
+		})
+
+		expect(result.current.messages.at(-1)).toMatchObject({ role: 'agent', content: 'second reply' })
+
+		expect(result.current.sending).toBe(false)
 	})
 })

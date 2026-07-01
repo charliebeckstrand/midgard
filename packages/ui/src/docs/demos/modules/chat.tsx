@@ -42,7 +42,9 @@ const transcript: ChatContent[] = [
 
 // A mock transport that streams a canned reply word by word, emitting the
 // cumulative text on each tick (the snapshot shape ChatTransport expects).
-const mockTransport: ChatTransport = () =>
+// Checks `signal` between words so the demo's stop control has something real
+// to cancel.
+const mockTransport: ChatTransport = (_content, signal) =>
 	(async function* () {
 		const reply =
 			'Thanks for sharing that. Here is a streamed reply so the transcript scrolls and the prompt toggles to its stop control while a response is in flight.'
@@ -50,6 +52,8 @@ const mockTransport: ChatTransport = () =>
 		let snapshot = ''
 
 		for (const word of reply.split(' ')) {
+			if (signal.aborted) return
+
 			snapshot = snapshot ? `${snapshot} ${word}` : word
 
 			await new Promise((resolve) => setTimeout(resolve, 50))
@@ -85,7 +89,7 @@ function ConversationList() {
 function LayoutDemo() {
 	const [current, setCurrent] = useState('1')
 
-	const { messages, sending, send } = useChatSend({
+	const { messages, sending, send, stop } = useChatSend({
 		transport: mockTransport,
 		initialMessages: [
 			{ role: 'user', content: 'Can you help me plan the kickoff?' },
@@ -99,6 +103,7 @@ function LayoutDemo() {
 				messages={messages}
 				sending={sending}
 				onSend={send}
+				onStop={stop}
 				conversations={conversations}
 				currentConversationId={current}
 				onConversationSelect={setCurrent}
