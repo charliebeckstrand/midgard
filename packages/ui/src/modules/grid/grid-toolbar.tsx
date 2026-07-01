@@ -4,9 +4,11 @@ import { Download, SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import type { GridExportAction } from './export/types'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
 import type { GridGlobalFilterView } from './use-grid-table'
@@ -24,12 +26,11 @@ type GridToolbarProps = {
 	columnManagerLabel: ReactNode
 	/** Opens the column-manager dialog. */
 	onManageColumns: () => void
-	/** Render the CSV-export trigger in the tools cluster at the end of the top row. */
-	showExport?: boolean
-	/** Label on the export trigger (matches the header menu's "Export to CSV" item). */
-	exportLabel?: ReactNode
-	/** Downloads the filtered/sorted rows as CSV; `null` when export is off. */
-	onExport?: (() => void) | null
+	/**
+	 * One action per configured export type. Renders an "Export" dropdown in the
+	 * tools cluster listing one menu item per action; empty hides it entirely.
+	 */
+	exportActions: GridExportAction[]
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
 	batchActions: GridSelection['batchActions']
 	/** Whether at least one row is selected — gates the batch-action row. */
@@ -43,12 +44,13 @@ type GridToolbarProps = {
 /**
  * The Grid's toolbar region: the single place its above-table controls are
  * assembled. The top row carries the quick-search field at the start and a
- * "Table tools" cluster at the end — the column-manager trigger and the
- * CSV-export trigger, each shown when enabled; a second row hosts the batch
- * actions while a row is selected, so the search stays reachable beside them. The
- * tools and batch actions are each their own labelled {@link Toolbar} — "Table
- * tools" and "Batch actions" — while the search stays a plain field, so the
- * toolbars' roving-tabindex arrow navigation never swallows the text cursor.
+ * "Table tools" cluster at the end — the column-manager trigger and, when any
+ * export type is active, an "Export" dropdown listing one item per action; a
+ * second row hosts the batch actions while a row is selected, so the search
+ * stays reachable beside them. The tools and batch actions are each their own
+ * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
+ * search stays a plain field, so the toolbars' roving-tabindex arrow
+ * navigation never swallows the text cursor.
  *
  * Renders nothing when none of its slots are active, so an unconfigured grid
  * carries no toolbar chrome (and no stray gap above the table).
@@ -60,17 +62,15 @@ export function GridToolbar({
 	showColumnManager,
 	columnManagerLabel,
 	onManageColumns,
-	showExport = false,
-	exportLabel,
-	onExport,
+	exportActions,
 	batchActions,
 	hasSelection,
 	selection,
 	setSelection,
 }: GridToolbarProps) {
-	const showExportButton = showExport && Boolean(onExport)
+	const showExport = exportActions.length > 0
 
-	const showTools = showColumnManager || showExportButton
+	const showTools = showColumnManager || showExport
 
 	const showBatch = Boolean(batchActions) && hasSelection
 
@@ -93,11 +93,22 @@ export function GridToolbar({
 								</Button>
 							)}
 
-							{showExportButton && (
-								<Button variant="plain" onClick={() => onExport?.()}>
-									<Icon icon={<Download />} />
-									{exportLabel}
-								</Button>
+							{showExport && (
+								<Menu placement="bottom-start">
+									<MenuTrigger>
+										<Button variant="plain">
+											<Icon icon={<Download />} />
+											Export
+										</Button>
+									</MenuTrigger>
+									<MenuContent>
+										{exportActions.map((action) => (
+											<MenuItem key={action.type} onAction={action.run}>
+												<MenuLabel>{action.label}</MenuLabel>
+											</MenuItem>
+										))}
+									</MenuContent>
+								</Menu>
 							)}
 						</Toolbar>
 					)}

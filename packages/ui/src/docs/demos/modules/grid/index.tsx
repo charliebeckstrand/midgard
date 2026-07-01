@@ -637,15 +637,15 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// `exportable` adds an "Export to CSV" item to the header and cell right-click
-// menus; it downloads the filtered/sorted rows — or just the selected rows when a
-// selection is active — each column read through its `value`. Passing a config
-// object instead of `true` also surfaces a toolbar button (mirroring the column
-// manager's `toolbarButton`, beside it in the grid's toolbar), and tunes the
-// label and download filename.
+// `exportable` adds one item per export type to the header and cell right-click
+// menus, plus an "Export" toolbar dropdown listing them; each downloads (or, for
+// `print`, opens the print dialog over) the filtered/sorted rows — or just the
+// selected rows when a selection is active — every column read through its
+// `value`. `true` enables the full default set (CSV, Excel, print); an explicit
+// array picks a subset instead.
 const ExportExample = () => (
 	<Grid
-		exportable={{ toolbarButton: true, filename: 'people.csv' }}
+		exportable={['csv', 'excel']}
 		columns={filterableColumns}
 		rows={people}
 		getKey={(row) => row.id}
@@ -707,6 +707,7 @@ const tabs = [
 	'Filters',
 	'Header',
 	'Toolbar',
+	'Export',
 	'Pagination',
 	'State',
 	'Editable',
@@ -898,8 +899,12 @@ export function Demo() {
 						<Example title="Column manager">
 							<ColumnManagerExample />
 						</Example>
+					</Stack>
+				</TabContent>
 
-						<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
+				<TabContent value="Export">
+					<Stack gap="xl">
+						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
 						</Example>
 					</Stack>

@@ -15,7 +15,7 @@ import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
-import type { GridExportConfig, GridVirtualize } from './grid-data-types'
+import type { GridVirtualize } from './grid-data-types'
 import type { GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
@@ -56,33 +56,6 @@ export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 		enabled,
 		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
-	}
-}
-
-/**
- * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
- * into resolved export settings: whether export is on, whether to render the
- * toolbar button (never when export is off), and the label and download
- * filename shared by the button and the header menu's "Export to CSV" item. The
- * boolean `true` enables export with the context-menu item alone.
- *
- * @internal
- */
-export function resolveExport(exportable: boolean | GridExportConfig): {
-	enabled: boolean
-	toolbarButton: boolean
-	label: ReactNode
-	filename: string
-} {
-	const config = typeof exportable === 'object' ? exportable : { enabled: exportable }
-
-	const enabled = config.enabled ?? true
-
-	return {
-		enabled,
-		toolbarButton: enabled && (config.toolbarButton ?? false),
-		label: config.label ?? 'Export to CSV',
-		filename: config.filename ?? 'grid.csv',
 	}
 }
 
