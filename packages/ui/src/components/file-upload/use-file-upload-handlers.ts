@@ -29,8 +29,8 @@ type FileHandlersOptions = {
  * @param options - Constraints (`maxSize`, `maxCount`), the `disabled` flag, and
  * the `onFiles`/`onReject` callbacks.
  * @returns The hidden input `ref`, current `dragOver` flag and accepted `files`,
- * plus the `openPicker`, `handleChange`, and drag/drop event handlers to spread
- * onto the trigger and dropzone.
+ * plus the `openPicker`, `handleChange`, `clearFiles`, and drag/drop event
+ * handlers to spread onto the trigger and dropzone.
  */
 export function useFileUploadHandlers({
 	disabled,
@@ -93,6 +93,16 @@ export function useFileUploadHandlers({
 		},
 		[handleFiles],
 	)
+
+	const clearFiles = useCallback(() => {
+		setFiles([])
+
+		onFiles?.([])
+
+		// Mirrors handleChange's reset: an empty value lets the same file be
+		// picked again immediately after clearing.
+		if (inputRef.current) inputRef.current.value = ''
+	}, [onFiles])
 
 	// Disabled dropzones skip `preventDefault`: the element never becomes a
 	// valid drop target, `data-drag-over` is never set, and the browser
@@ -159,6 +169,7 @@ export function useFileUploadHandlers({
 		files,
 		openPicker,
 		handleChange,
+		clearFiles,
 		handleDragEnter,
 		handleDragOver,
 		handleDragLeave,

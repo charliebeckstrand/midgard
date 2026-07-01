@@ -21,14 +21,15 @@ function directoryNames(dir: string): string[] {
 }
 
 /**
- * Demo file basenames (sans `.tsx`). A component demo is `demos/<name>.tsx`; a
- * few provider-like components (e.g. `headless`, `toast`) are namespaced under
- * `demos/providers/<name>.tsx`, so both directories count toward coverage.
+ * Demo file basenames (sans `.tsx`). A component demo is
+ * `demos/components/<name>.tsx`; a few provider-like components (e.g.
+ * `headless`, `toast`) are namespaced under `demos/providers/<name>.tsx`, so
+ * both directories count toward coverage.
  */
 function demoBasenames(): Set<string> {
 	const names = new Set<string>()
 
-	for (const dir of [DEMOS, join(DEMOS, 'providers')]) {
+	for (const dir of [join(DEMOS, 'components'), join(DEMOS, 'providers')]) {
 		for (const entry of readdirSync(dir, { withFileTypes: true })) {
 			if (entry.isFile() && entry.name.endsWith('.tsx')) names.add(entry.name.replace(/\.tsx$/, ''))
 		}
@@ -55,7 +56,7 @@ describe('demo coverage', () => {
 
 		expect(
 			missing,
-			'components without a demo (add one under src/docs/demos/, or allowlist)',
+			'components without a demo (add one under src/docs/demos/components/, or allowlist)',
 		).toEqual([])
 	})
 })

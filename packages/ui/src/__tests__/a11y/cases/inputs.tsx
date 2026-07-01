@@ -79,7 +79,7 @@ export const inputCases: readonly Case[] = [
 			<Slider defaultValue={50} />
 		</Field>,
 	],
-	['file upload (area)', <FileUpload key="fu" variant="area" />],
+	['file upload (drop)', <FileUpload key="fu" variant="drop" />],
 	['file upload (button)', <FileUpload key="fu" variant="button" />],
 	[
 		'checkbox',

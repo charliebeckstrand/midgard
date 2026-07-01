@@ -3,6 +3,7 @@ import {
 	fileListToArray,
 	formatFileNames,
 	partitionFiles,
+	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
 import { makeFileList } from '../helpers'
 
@@ -50,6 +51,38 @@ describe('formatFileNames', () => {
 		const c = new File(['c'], 'c.txt')
 
 		expect(formatFileNames([a, b, c])).toBe('a.txt, b.txt, c.txt')
+	})
+})
+
+describe('selectionSummary', () => {
+	it('returns undefined when no files are provided', () => {
+		expect(selectionSummary([], true)).toBeUndefined()
+	})
+
+	it('returns the lone filename for a single-file selection', () => {
+		const file = new File(['x'], 'report.pdf')
+
+		expect(selectionSummary([file], false)).toBe('report.pdf')
+
+		expect(selectionSummary([file], true)).toBe('report.pdf')
+	})
+
+	it('joins names when multiple files are selected but multiple is falsy', () => {
+		const a = new File(['a'], 'a.txt')
+
+		const b = new File(['b'], 'b.txt')
+
+		expect(selectionSummary([a, b], false)).toBe('a.txt, b.txt')
+	})
+
+	it('summarizes as "x files selected" once multiple yields more than one file', () => {
+		const a = new File(['a'], 'a.txt')
+
+		const b = new File(['b'], 'b.txt')
+
+		const c = new File(['c'], 'c.txt')
+
+		expect(selectionSummary([a, b, c], true)).toBe('3 files selected')
 	})
 })
 
