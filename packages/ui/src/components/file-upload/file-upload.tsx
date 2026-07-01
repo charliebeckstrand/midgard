@@ -178,7 +178,15 @@ function renderInputVariant(props: FileUploadInputProps, state: FileUploadRender
 									<Icon icon={<X />} />
 								</Button>
 							) : (
-								<Icon icon={<Upload />} />
+								<Button
+									variant="bare"
+									className="pointer-events-auto"
+									aria-label="Browse files"
+									disabled={disabled}
+									onClick={openPicker}
+								>
+									<Icon icon={<Upload />} />
+								</Button>
 							)
 						}
 					/>

@@ -106,6 +106,18 @@ describe('FileUpload input variant', () => {
 
 		expect(screen.getByPlaceholderText('Choose a file')).toBeDisabled()
 	})
+
+	it('renders the empty-state upload affordance as a button that opens the picker', () => {
+		const { container } = renderUI(<FileUpload variant="input" />)
+
+		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		const click = vi.spyOn(fileInput, 'click')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Browse files' }))
+
+		expect(click).toHaveBeenCalledTimes(1)
+	})
 })
 
 describe('FileUpload input variant selection', () => {
