@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { ChatListContext } from './context'
 
 /** Props for {@link ChatList}. */
@@ -26,7 +27,9 @@ export type ChatListProps = {
  * Up/Down arrows rove between items, and Left/Right rove into that row's action
  * controls and back — the actions stay out of the Tab order, so Tab always
  * re-enters on an item. Establishes the {@link useInChatList} context so nested
- * items take `role="listitem"`.
+ * items take `role="listitem"`, and an `ActiveIndicatorScope` so the current
+ * row's indicator morphs between siblings rather than against indicators
+ * outside the list.
  */
 export function ChatList({
 	'aria-label': ariaLabel,
@@ -50,20 +53,22 @@ export function ChatList({
 	})
 
 	return (
-		<ChatListContext value={true}>
-			<ul
-				ref={ref}
-				data-slot="chat-list"
-				aria-label={ariaLabel}
-				aria-labelledby={ariaLabelledBy}
-				className={cn('flex flex-col gap-0.5', className)}
-				onKeyDown={(event) => {
-					handleKeyDown(event)
-					onKeyDown?.(event)
-				}}
-			>
-				{children}
-			</ul>
-		</ChatListContext>
+		<ActiveIndicatorScope>
+			<ChatListContext value={true}>
+				<ul
+					ref={ref}
+					data-slot="chat-list"
+					aria-label={ariaLabel}
+					aria-labelledby={ariaLabelledBy}
+					className={cn('flex flex-col gap-0.5', className)}
+					onKeyDown={(event) => {
+						handleKeyDown(event)
+						onKeyDown?.(event)
+					}}
+				>
+					{children}
+				</ul>
+			</ChatListContext>
+		</ActiveIndicatorScope>
 	)
 }

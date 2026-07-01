@@ -72,6 +72,28 @@ describe('ChatListItem', () => {
 		expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-current', 'true')
 	})
 
+	it('mounts an active indicator for the current conversation only', () => {
+		const { container } = renderUI(<ChatListItem title="Active" current onSelect={vi.fn()} />)
+
+		expect(bySlot(container, 'active-indicator')).toBeInTheDocument()
+	})
+
+	it('omits the active indicator when not current', () => {
+		const { container } = renderUI(<ChatListItem title="Inactive" onSelect={vi.fn()} />)
+
+		expect(bySlot(container, 'active-indicator')).not.toBeInTheDocument()
+	})
+
+	it('re-draws the focus ring on the active indicator of the current row', () => {
+		const { container } = renderUI(<ChatListItem title="Active" current onSelect={vi.fn()} />)
+
+		// The row's own ring paints beneath the indicator's opaque fill, so the
+		// focused current row re-draws the ring on the indicator.
+		expect(bySlot(container, 'active-indicator')?.className).toContain(
+			'group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2',
+		)
+	})
+
 	it('renders timestamp and actions as siblings of the select button', () => {
 		const { container } = renderUI(
 			<ChatListItem

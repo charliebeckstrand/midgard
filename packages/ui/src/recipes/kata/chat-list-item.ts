@@ -20,9 +20,6 @@ export const k = defineRecipe({
 		radius.r('2'),
 		...cursor,
 		nav.tint,
-		// Active conversation: a persistent wash, distinct from the transient hover
-		// tint, marked by `data-current` on the row.
-		...mode('data-current:bg-zinc-950/5', 'dark:data-current:bg-white/10'),
 		// Keyboard focus projects onto the whole item: when the inner select control
 		// is focus-visible the ring wraps the entire row, not just the text region.
 		// Action controls keep their own ring, so roving into them reads distinctly.
@@ -35,7 +32,9 @@ export const k = defineRecipe({
 		// (timestamp, actions) sit beside it so a focusable control never nests
 		// inside the select button. Its ring is suppressed — the row draws it. The
 		// pointer cursor is restated here: a `<button>` resets it over its own box.
-		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', ...cursor],
+		// `relative z-10` lifts it above the active indicator, the row's other
+		// absolutely-positioned child, so the title/preview text stays legible.
+		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', 'relative z-10', ...cursor],
 		// Stretches the select button's hit area over the whole `relative` row via a
 		// pointer-capturing `::after` (the inverse of `layers.overlay`, which adds
 		// `pointer-events-none` to *stop* this). The button only spans `flex-1`, so
@@ -44,10 +43,20 @@ export const k = defineRecipe({
 		overlay: ['after:absolute after:inset-0'],
 		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
 		preview: ['truncate', size.sm, ...text.muted],
-		timestamp: ['shrink-0', size.xs, ...text.muted],
-		// `relative z-10` lifts the action controls above the select overlay so they
-		// stay clickable; the timestamp stays beneath it, so clicking it still selects.
+		// `relative z-10` keeps the label legible over the active indicator's fill.
+		timestamp: ['shrink-0', size.xs, ...text.muted, 'relative z-10'],
+		// `relative z-10` lifts the action controls above the active indicator and the
+		// select overlay so they stay clickable; the timestamp stays beneath the select
+		// overlay (though above the indicator), so clicking it still selects.
 		actions: ['shrink-0', flex.row, 'gap-0.5', 'relative z-10'],
+		// Focus projection for the active indicator: browsers paint the row's own
+		// ring beneath the indicator's opaque fill (rings render with the element's
+		// own layer, under positioned descendants), so the focused current row
+		// re-draws the ring on the indicator itself — the topmost full-row surface.
+		indicator: [
+			'ring-inset',
+			'group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2 group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-blue-600',
+		],
 	},
 })
 
