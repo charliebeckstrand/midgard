@@ -19,9 +19,11 @@ export type ChatMessagesProps = {
  *
  * @remarks
  * Maps each message's `role` to the `ChatMessage` `type` (`agent` →
- * `assistant`). When `streaming`, only the last agent bubble pulses. Scrolls
- * to the bottom on every `messages` change via {@link useChatScroll}, so
- * streamed chunks stay in view.
+ * `assistant`). When `streaming`, only the last agent bubble pulses. Opens
+ * already scrolled to the bottom (no animation), then smooth-scrolls there on
+ * every subsequent `messages` change via {@link useChatScroll}, so streamed
+ * chunks stay in view. Mount this fresh per conversation (e.g. `key`d on its
+ * id) so switching chats doesn't animate from the old scroll position.
  */
 export function ChatMessages({ messages, streaming, className }: ChatMessagesProps) {
 	const { ref } = useChatScroll(messages)
