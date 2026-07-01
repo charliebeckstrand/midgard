@@ -14,9 +14,11 @@ import {
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
+import { useDensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
+import type { GridExportAction } from './export/types'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -29,7 +31,6 @@ import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { GridContextMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
-	resolveExport,
 	resolveGridSemantics,
 	resolveHover,
 	resolveResizeLayout,
@@ -38,7 +39,6 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
-import { downloadCsv, rowsToCsv } from './grid-export'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -60,10 +60,12 @@ import {
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
+import { useGridExport } from './use-grid-export'
+import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { useGridTable } from './use-grid-table'
+import { type GridColumnPinning, useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -98,9 +100,8 @@ type GridRegionProps<T> = {
 	pinColumn: (column: string | number, side: PinSide | false) => void
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
-	exportCsv: (() => void) | null
-	/** Label on the header menu's "Export to CSV" item, shared with the export toolbar button. */
-	exportLabel: ReactNode
+	/** One action per configured export type; empty when export is off. */
+	exportActions: GridExportAction[]
 	children: ReactNode
 }
 
@@ -128,8 +129,7 @@ function GridRegion<T>({
 	pinColumn,
 	autoSizeColumns,
 	chooseColumns,
-	exportCsv,
-	exportLabel,
+	exportActions,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -156,8 +156,7 @@ function GridRegion<T>({
 			pinColumn={pinColumn}
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
-			exportCsv={exportCsv}
-			exportLabel={exportLabel}
+			exportActions={exportActions}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -204,6 +203,29 @@ function bridgeRowActivate<T>(
 }
 
 /**
+ * Resolves the column-group band row for the rendered columns: the
+ * {@link GridGroupHeader} spans (from the visible column ids and their pin
+ * sides) and whether any band actually spans columns. Kept out of
+ * {@link GridData} so its branch doesn't weigh on the component's complexity.
+ *
+ * @internal
+ */
+function resolveGroupHeaderRow<T>(
+	group: GridGroupResult,
+	visibleColumns: GridColumn<T>[],
+	pinning: GridColumnPinning | null,
+): { header: GridGroupHeader | null; hasGroupRow: boolean } {
+	if (!group.hasGroups) return { header: null, hasGroupRow: false }
+
+	const header = group.resolveHeader(
+		visibleColumns.map((c) => c.id),
+		(id) => pinning?.side(id),
+	)
+
+	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -220,6 +242,7 @@ export function GridData<T>({
 	selection: selectionConfig,
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
+	groups: groupsConfig,
 	pagination: paginationConfig,
 	resizable = true,
 	columnSizing: columnSizingConfig,
@@ -242,7 +265,7 @@ export function GridData<T>({
 	error,
 	virtualize,
 	tableProps,
-	density,
+	density: densityProp,
 	bleed,
 	outline,
 	striped,
@@ -255,7 +278,16 @@ export function GridData<T>({
 		)
 	}
 
-	const { enabled: virtualizeEnabled, estimateSize, overscan } = resolveVirtualization(virtualize)
+	// Unlike the bare `Table` (a static/RSC leaf that reads no context), Grid is
+	// always client-rendered, so it can inherit an enclosing `DensityProvider`
+	// when the caller passes no explicit `density`.
+	const density = useDensityLevel(densityProp)
+
+	const {
+		enabled: virtualizeEnabled,
+		estimateSize,
+		overscan,
+	} = resolveVirtualization(virtualize, density)
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
 	// wrapper); resolved from the `header` config's `position`.
@@ -345,6 +377,10 @@ export function GridData<T>({
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
 
+	// Column groups: the controllable binding, collapse state, the ids collapsed
+	// groups hide from the engine, and the band-row resolver rendered below.
+	const group = useGridGroup(groupsConfig)
+
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
@@ -384,7 +420,13 @@ export function GridData<T>({
 		columnVisibility,
 		reorderColumns,
 		managerItems,
-	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
+	} = useGridColumns<T>({
+		columns: pinnedColumns,
+		columnOrderConfig,
+		columnManagerConfig,
+		groups: group.groups,
+		forcedHidden: group.collapsedHidden,
+	})
 
 	// Narrate column show/hide from the manager (WCAG 4.1.3): the incoming hidden
 	// set is concrete (the visibility hook resolves the manager's updater first), so
@@ -528,43 +570,13 @@ export function GridData<T>({
 		enabled: hasSelectionColumn,
 	})
 
-	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
-	// flag, the opt-in toolbar button, and the label/filename shared by the button
-	// and the header menu's "Export to CSV" item.
-	const {
-		enabled: exportEnabled,
-		toolbarButton: exportToolbarButton,
-		label: exportLabel,
-		filename: exportFilename,
-	} = resolveExport(exportable)
-
-	// Export to a CSV download: the selected rows when a selection is active, else
-	// the full filtered + sorted set (all pages). The engine's sorted row model
-	// reflects active filters and sort and carries each row's selected state (the
-	// grid mirrors its selection `Set` into the engine), so the selected subset
-	// keeps the displayed order; `null` keeps the menu items and the toolbar
-	// button out unless export is enabled.
-	const exportCsv = useMemo(
-		() =>
-			exportEnabled
-				? () => {
-						const sorted = table.getSortedRowModel().rows
-
-						const selected = sorted.filter((modelRow) => modelRow.getIsSelected())
-
-						const exported = selected.length > 0 ? selected : sorted
-
-						downloadCsv(
-							exportFilename,
-							rowsToCsv(
-								visibleColumns,
-								exported.map((modelRow) => modelRow.original),
-							),
-						)
-					}
-				: null,
-		[exportEnabled, exportFilename, visibleColumns, table],
-	)
+	// Resolve the `exportable` prop into one action per configured export type,
+	// each reading the selected rows when a selection is active, else the full
+	// filtered + sorted set (all pages) — the engine mirrors the grid's
+	// selection `Set` into its own state, so the selected subset keeps the
+	// displayed order. Shared by the toolbar's "Export" dropdown and both
+	// context menus.
+	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table })
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
@@ -645,7 +657,17 @@ export function GridData<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
-	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
+	// Resolve the group band row from the rendered columns and their pin sides.
+	// `hasGroupRow` is true only when a band actually spans columns, so an empty or
+	// fully-ungrouped binding leaves the header a single row.
+	const { header: groupHeader, hasGroupRow } = resolveGroupHeaderRow(group, visibleColumns, pinning)
+
+	// The band adds a header row: the aria row count and the body's global row
+	// offset each shift by this (0 or 1) so assistive tech counts both header rows.
+	// Folded into the count resolver so the indeterminate `-1` sentinel is kept.
+	const groupRowOffset = Number(hasGroupRow)
+
+	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length, groupRowOffset)
 
 	// Full filtered row extent (the server total when paginating) for the busy
 	// region's result announcement; the header row the aria count adds is excluded.
@@ -704,6 +726,7 @@ export function GridData<T>({
 					resize={resize}
 					filters={filters}
 					pinning={pinning}
+					groups={groupHeader}
 				/>
 
 				<GridBody<T>
@@ -719,7 +742,7 @@ export function GridData<T>({
 					empty={empty}
 					error={error}
 					gridSemantics={gridSemantics}
-					rowIndexOffset={pageRowOffset}
+					rowIndexOffset={pageRowOffset + groupRowOffset}
 					selection={selection}
 					toggleRow={toggleRow}
 					selectable={hasSelectionColumn}
@@ -778,6 +801,8 @@ export function GridData<T>({
 							hidden={hiddenColumns}
 							onHiddenChange={handleHiddenChange}
 							onPinChange={pinColumn}
+							groups={group.editorGroups}
+							onGroupsChange={group.editorSetGroups}
 							onSavePreset={columnManagerConfig?.onSavePreset}
 						/>
 					)}
@@ -787,9 +812,7 @@ export function GridData<T>({
 						showColumnManager={showButton}
 						columnManagerLabel={managerLabel}
 						onManageColumns={() => setColumnManagerOpen(true)}
-						showExport={exportToolbarButton}
-						exportLabel={exportLabel}
-						onExport={exportCsv}
+						exportActions={exportActions}
 						batchActions={batchActions}
 						hasSelection={someSelected}
 						selection={selection}
@@ -812,8 +835,7 @@ export function GridData<T>({
 						pinColumn={pinColumn}
 						autoSizeColumns={autoSizeColumns}
 						chooseColumns={chooseColumns}
-						exportCsv={exportCsv}
-						exportLabel={exportLabel}
+						exportActions={exportActions}
 					>
 						{tableRegion}
 					</GridRegion>

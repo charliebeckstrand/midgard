@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ChatPrompt } from '../../components/chat-prompt'
+import { ChatPrompt } from '../../modules/chat'
 import { bySlot, fireEvent, makeFileList, noop, renderUI, screen, userEvent } from '../helpers'
 
 describe('ChatPrompt', () => {
@@ -269,5 +269,59 @@ describe('ChatPrompt', () => {
 		)
 
 		expect(container.querySelector('input[type="file"]')).toHaveAttribute('accept', '.pdf,.csv')
+	})
+
+	it('gives the textarea an inherent id via the built-in Control', () => {
+		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+
+		expect(el.id).toBeTruthy()
+	})
+
+	it('renders a chip per attachment', () => {
+		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+		renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[first, second]} />,
+		)
+
+		expect(screen.getByText('first.pdf')).toBeInTheDocument()
+
+		expect(screen.getByText('second.pdf')).toBeInTheDocument()
+	})
+
+	it('omits chip remove buttons when onRemoveAttachment is not provided', () => {
+		const file = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} attachments={[file]} />)
+
+		expect(screen.queryByRole('button', { name: 'Remove first.pdf' })).not.toBeInTheDocument()
+	})
+
+	it('clicking a chip remove button calls onRemoveAttachment with its index', async () => {
+		const onRemoveAttachment = vi.fn()
+
+		const first = new File(['a'], 'first.pdf', { type: 'application/pdf' })
+
+		const second = new File(['b'], 'second.pdf', { type: 'application/pdf' })
+
+		renderUI(
+			<ChatPrompt
+				value=""
+				onValueChange={noop}
+				onSubmit={noop}
+				attachments={[first, second]}
+				onRemoveAttachment={onRemoveAttachment}
+			/>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('button', { name: 'Remove second.pdf' }))
+
+		expect(onRemoveAttachment).toHaveBeenCalledWith(1)
 	})
 })

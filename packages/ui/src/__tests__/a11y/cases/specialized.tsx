@@ -1,7 +1,6 @@
-import { ChatMessage } from '../../../components/chat-message'
-import { ChatPrompt } from '../../../components/chat-prompt'
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
+import { ChatMessage, ChatPrompt } from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
 import type { Case } from './types'
 
@@ -26,6 +25,20 @@ export const specializedCases: readonly Case[] = [
 		// Controlled prompt composer; the textarea is the labelled control.
 		'chat prompt',
 		<ChatPrompt key="cp" value="" onValueChange={noop} onSubmit={noop} placeholder="Message" />,
+	],
+	[
+		// Removable attachment chips: the outline badge + bare remove button must
+		// clear contrast and carry an accessible name.
+		'chat prompt with attachments',
+		<ChatPrompt
+			key="cpa"
+			value=""
+			onValueChange={noop}
+			onSubmit={noop}
+			placeholder="Message"
+			attachments={[new File(['x'], 'report.pdf', { type: 'application/pdf' })]}
+			onRemoveAttachment={noop}
+		/>,
 	],
 	[
 		// Escape hatch: renders its single child untouched, suppressing default

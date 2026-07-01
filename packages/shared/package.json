@@ -8,11 +8,6 @@
 			"import": "./dist/auth.js",
 			"default": "./dist/auth.js"
 		},
-		"./chat": {
-			"types": "./src/chat/index.ts",
-			"import": "./dist/chat.js",
-			"default": "./dist/chat.js"
-		},
 		"./theme.css": "./src/theme.css",
 		"./globals.css": "./src/globals.css"
 	},
@@ -25,8 +20,6 @@
 		"format": "biome format --config-path=../.. --write ."
 	},
 	"dependencies": {
-		"@heroicons/react": "^2.2.0",
-		"eventsource-parser": "^3.0.6",
 		"ui": "workspace:*"
 	},
 	"peerDependencies": {

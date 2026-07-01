@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
+import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid', () => {
@@ -1097,6 +1098,34 @@ describe('Grid', () => {
 			expect(table).not.toHaveAttribute('role', 'grid')
 
 			expect(table).not.toHaveAttribute('aria-colcount')
+		})
+	})
+
+	describe('density', () => {
+		it('defaults to snug outside any DensityProvider', () => {
+			const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+			expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
+		})
+
+		it('inherits an enclosing DensityProvider when no density prop is given', () => {
+			const { container } = renderUI(
+				<DensityProvider density="compact">
+					<Grid columns={columns} rows={rows} getKey={getKey} />
+				</DensityProvider>,
+			)
+
+			expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
+		})
+
+		it('an explicit density prop overrides the ambient DensityProvider', () => {
+			const { container } = renderUI(
+				<DensityProvider density="compact">
+					<Grid columns={columns} rows={rows} getKey={getKey} density="loose" />
+				</DensityProvider>,
+			)
+
+			expect(container.querySelector('table')).toHaveAttribute('data-density', 'lg')
 		})
 	})
 

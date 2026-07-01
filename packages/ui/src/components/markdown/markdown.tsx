@@ -1,4 +1,5 @@
 import { Marked } from 'marked'
+import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
 import { MarkdownRenderer } from './markdown-renderer'
@@ -33,12 +34,27 @@ export type MarkdownProps = {
  * Static, server-renderable leaf: lexing and rendering are synchronous and
  * hook-free, so it composes inside React Server Components.
  *
+ * Color-agnostic: the prose carries rhythm, weight, and size but no `text-*`
+ * color, so the whole tree inherits the foreground of whatever container it
+ * renders in. Set the color on the wrapper (or an ancestor) — via `className`
+ * or the surrounding element — and headings, body, links, and tables all
+ * follow; there is no baked-in palette to override.
+ *
  * Security: the source is walked token by token into elements this component
  * controls — raw HTML in the source is dropped, never injected — so untrusted
  * Markdown cannot reach the DOM as markup. (Untrusted input can still produce
  * surprising links or images; validate those at the call site if needed.)
+ *
+ * Memoized on its (shallow-equal) props: re-lexing is wasted work when a
+ * parent re-renders for unrelated reasons, e.g. a list of chat bubbles
+ * re-rendering on every streamed chunk of the *last* message while every
+ * earlier, settled bubble's `children` stays the same string.
  */
-export function Markdown({ children, className, inline = false }: MarkdownProps) {
+export const Markdown = memo(function Markdown({
+	children,
+	className,
+	inline = false,
+}: MarkdownProps) {
 	if (inline) {
 		return (
 			<span data-slot="markdown" className={cn(k.inline, className)}>
@@ -52,4 +68,4 @@ export function Markdown({ children, className, inline = false }: MarkdownProps)
 			<MarkdownRenderer tokens={md.lexer(children)} />
 		</div>
 	)
-}
+})

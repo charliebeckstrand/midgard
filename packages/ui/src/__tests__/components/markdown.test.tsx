@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Markdown } from '../../components/markdown'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, waitFor } from '../helpers'
+
+vi.mock('shiki', () => ({
+	codeToHtml: vi.fn(
+		async (code: string, options: { lang: string }) =>
+			`<pre class="shiki" data-lang="${options.lang}"><code>${code}</code></pre>`,
+	),
+}))
 
 describe('Markdown', () => {
 	it('renders parsed Markdown into a data-slot="markdown" div', () => {
@@ -101,5 +108,29 @@ describe('Markdown', () => {
 
 		// Surrounding Markdown still renders.
 		expect(el?.querySelector('strong')?.textContent).toBe('text')
+	})
+
+	it('renders inline code through the Code component', () => {
+		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
+
+		expect(bySlot(container, 'code')).toHaveTextContent('code')
+	})
+
+	it('renders a fenced code block through CodeBlock, resolving the language from the info string', async () => {
+		const { container } = renderUI(<Markdown>{'```tsx\nconst x = 1\n```'}</Markdown>)
+
+		expect(bySlot(container, 'code-block')).toBeInTheDocument()
+
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx'),
+		)
+	})
+
+	it('falls back to the text grammar for an unlabeled fence', async () => {
+		const { container } = renderUI(<Markdown>{'```\nplain\n```'}</Markdown>)
+
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'text'),
+		)
 	})
 })

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
 import { GridColumnManager } from './grid-column-manager'
+import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 
 /** Props for {@link GridColumnManagerDialog}. @internal */
@@ -18,6 +19,10 @@ type GridColumnManagerDialogProps = {
 	onHiddenChange: (hidden: Set<string | number>) => void
 	/** Pins a column to an edge, or unpins it with `false`; backs the manager's per-column pin control. */
 	onPinChange: (id: string | number, side: 'left' | 'right' | false) => void
+	/** Column groups the editor mutates, or `undefined` when grouping is off. */
+	groups?: GridColumnGroup[]
+	/** Commits the next groups from the editor; paired with `groups` to enable it. */
+	onGroupsChange?: (groups: GridColumnGroup[]) => void
 	onSavePreset?: (preset: GridColumnManagerPreset) => void
 }
 
@@ -39,6 +44,8 @@ export function GridColumnManagerDialog({
 	hidden,
 	onHiddenChange,
 	onPinChange,
+	groups,
+	onGroupsChange,
 	onSavePreset,
 }: GridColumnManagerDialogProps) {
 	return (
@@ -52,6 +59,8 @@ export function GridColumnManagerDialog({
 					hidden={hidden}
 					onHiddenChange={onHiddenChange}
 					onPinChange={onPinChange}
+					groups={groups}
+					onGroupsChange={onGroupsChange}
 					onSavePreset={onSavePreset}
 				/>
 			</DialogBody>

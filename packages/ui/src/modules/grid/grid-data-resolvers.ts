@@ -14,8 +14,8 @@ import { cn } from '../../core'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
-import type { GridExportConfig, GridVirtualize } from './grid-data-types'
+import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './grid-constants'
+import type { GridVirtualize } from './grid-data-types'
 import type { GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
@@ -39,11 +39,16 @@ export function resolveSortable<T>(
 
 /**
  * Collapses the `virtualize` prop (boolean or options object) into a resolved
- * enabled flag and sizing.
+ * enabled flag and sizing. The row-height default scales with `density` (see
+ * {@link ROW_HEIGHT_BY_DENSITY}) so the estimate tracks the cell padding the
+ * table actually renders; an explicit `estimateSize` still overrides it.
  *
  * @internal
  */
-export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
+export function resolveVirtualization(
+	virtualize: GridVirtualize | undefined,
+	density: DensityLevel | undefined,
+): {
 	enabled: boolean
 	estimateSize: number
 	overscan: number
@@ -54,35 +59,8 @@ export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 
 	return {
 		enabled,
-		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
+		estimateSize: opts?.estimateSize ?? ROW_HEIGHT_BY_DENSITY[density ?? 'snug'],
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
-	}
-}
-
-/**
- * Collapses the `exportable` prop (boolean shorthand or {@link GridExportConfig})
- * into resolved export settings: whether export is on, whether to render the
- * toolbar button (never when export is off), and the label and download
- * filename shared by the button and the header menu's "Export to CSV" item. The
- * boolean `true` enables export with the context-menu item alone.
- *
- * @internal
- */
-export function resolveExport(exportable: boolean | GridExportConfig): {
-	enabled: boolean
-	toolbarButton: boolean
-	label: ReactNode
-	filename: string
-} {
-	const config = typeof exportable === 'object' ? exportable : { enabled: exportable }
-
-	const enabled = config.enabled ?? true
-
-	return {
-		enabled,
-		toolbarButton: enabled && (config.toolbarButton ?? false),
-		label: config.label ?? 'Export to CSV',
-		filename: config.filename ?? 'grid.csv',
 	}
 }
 
@@ -153,15 +131,18 @@ export function resolveTableProps(args: {
  * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
  * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
  * sentinel for a server feed paginating by `pageCount` alone (no known total),
- * rather than misreporting the current page as the whole set. @internal
+ * rather than misreporting the current page as the whole set. `extraHeaderRows`
+ * adds any header rows beyond the column header — the column-group band row — so
+ * the count spans both; the indeterminate sentinel is left untouched. @internal
  */
 export function resolveAriaRowCount(
 	pagination: GridPaginationView | null,
 	renderedCount: number,
+	extraHeaderRows = 0,
 ): number {
 	if (pagination && pagination.rowCount == null) return -1
 
-	return (pagination?.rowCount ?? renderedCount) + 1
+	return (pagination?.rowCount ?? renderedCount) + 1 + extraHeaderRows
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */

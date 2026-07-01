@@ -3,13 +3,13 @@
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth/user'
 import { useCallback, useEffect, useState } from 'react'
-import type { Chat, ChatContent } from 'shared/chat'
-import { ChatMessages } from 'shared/chat'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
+import type { Chat, ChatContent } from 'ui/modules/chat'
+import { ChatTranscript } from 'ui/modules/chat'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
@@ -139,7 +139,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					{loadingMessages ? (
 						<Placeholder />
 					) : chatMessages.length > 0 ? (
-						<ChatMessages messages={chatMessages} />
+						<ChatTranscript messages={chatMessages} />
 					) : (
 						<Text className="text-zinc-500">No messages in this chat.</Text>
 					)}

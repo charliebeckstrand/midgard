@@ -1,6 +1,6 @@
 import { bifrost } from 'auth'
 import type { User } from 'auth/user'
-import type { Chat } from 'shared/chat'
+import type { Chat } from 'ui/modules/chat'
 import { UserDetailsClient } from './client'
 
 /**

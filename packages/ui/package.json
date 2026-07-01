@@ -37,10 +37,16 @@
 			"types": "./src/modules/*/index.ts",
 			"default": "./src/modules/*/index.ts"
 		},
-		"./*": {
-			"types": "./src/components/*/index.ts",
-			"default": "./src/components/*/index.ts"
-		}
+		"./*": [
+			{
+				"types": "./src/components/*/index.ts",
+				"default": "./src/components/*/index.ts"
+			},
+			{
+				"types": "./src/modules/*/index.ts",
+				"default": "./src/modules/*/index.ts"
+			}
+		]
 	},
 	"scripts": {
 		"build": "tsup && tsc --emitDeclarationOnly --outDir dist",

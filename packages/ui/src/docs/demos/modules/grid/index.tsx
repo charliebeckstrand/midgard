@@ -10,6 +10,7 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../compone
 import {
 	Grid,
 	type GridColumn,
+	type GridColumnGroup,
 	type GridPaginationState,
 	type SortState,
 } from '../../../../modules/grid'
@@ -637,15 +638,70 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// `exportable` adds an "Export to CSV" item to the header and cell right-click
-// menus; it downloads the filtered/sorted rows — or just the selected rows when a
-// selection is active — each column read through its `value`. Passing a config
-// object instead of `true` also surfaces a toolbar button (mirroring the column
-// manager's `toolbarButton`, beside it in the grid's toolbar), and tunes the
-// label and download filename.
+// A `groups` array bands a contiguous run of columns under a colored, labeled
+// header. Each group names its member `columns` (kept adjacent and moved as a
+// block), a `title`, and a `color` from the standard + extended Badge palette.
+const columnGroups: GridColumnGroup[] = [
+	{ id: 'contact', title: 'Contact', color: 'blue', columns: ['name', 'email'] },
+	{ id: 'org', title: 'Organization', color: 'violet', columns: ['role', 'status'] },
+]
+
+const GroupsExample = () => (
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={columnGroups} />
+)
+
+// A `collapsible` group folds to its first column behind an expand toggle,
+// hiding the rest until reopened; `defaultCollapsed` seeds it folded. `icon` and
+// `description` (a tooltip) round out the band.
+const collapsibleGroups: GridColumnGroup[] = [
+	{
+		id: 'contact',
+		title: 'Contact',
+		color: 'blue',
+		description: 'How to reach this person',
+		columns: ['name', 'email'],
+		collapsible: true,
+	},
+	{
+		id: 'org',
+		title: 'Organization',
+		color: 'violet',
+		columns: ['role', 'status'],
+		collapsible: true,
+		defaultCollapsed: true,
+	},
+]
+
+const CollapsibleGroupsExample = () => (
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={collapsibleGroups} />
+)
+
+// Passing a `groups` binding turns on the column manager's group editor: a "New
+// group" button, a zone per group (name, color, remove), and an ungrouped pool.
+// Drag columns between zones — or use a row's "Move" menu — to change membership.
+const GroupManagerExample = () => {
+	const [groups, setGroups] = useState<GridColumnGroup[]>(columnGroups)
+
+	return (
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			groups={{ value: groups, onValueChange: setGroups }}
+			columnManager={{ toolbarButton: true }}
+		/>
+	)
+}
+
+// `exportable` adds one item per export type to the header and cell right-click
+// menus, plus an "Export" toolbar dropdown listing them; each downloads (or, for
+// `print`, opens the print dialog over) the filtered/sorted rows — or just the
+// selected rows when a selection is active — every column read through its
+// `value`. `true` enables the full default set (CSV, Excel, print); an explicit
+// array picks a subset instead.
 const ExportExample = () => (
 	<Grid
-		exportable={{ toolbarButton: true, filename: 'people.csv' }}
+		exportable={['csv', 'excel']}
 		columns={filterableColumns}
 		rows={people}
 		getKey={(row) => row.id}
@@ -704,9 +760,11 @@ const tabs = [
 	'Resize',
 	'Pin',
 	'Lock',
+	'Groups',
 	'Filters',
 	'Header',
 	'Toolbar',
+	'Export',
 	'Pagination',
 	'State',
 	'Editable',
@@ -893,13 +951,42 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
+				<TabContent value="Groups">
+					<Stack gap="xl">
+						<Example
+							title="Column groups"
+							code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+						>
+							<GroupsExample />
+						</Example>
+
+						<Example
+							title="Collapsible groups"
+							code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+						>
+							<CollapsibleGroupsExample />
+						</Example>
+
+						<Example
+							title="Group editor"
+							code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+						>
+							<GroupManagerExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
 				<TabContent value="Toolbar">
 					<Stack gap="xl">
 						<Example title="Column manager">
 							<ColumnManagerExample />
 						</Example>
+					</Stack>
+				</TabContent>
 
-						<Example title="CSV export" code={code`<Grid exportable={{ toolbarButton: true }} />`}>
+				<TabContent value="Export">
+					<Stack gap="xl">
+						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
 						</Example>
 					</Stack>

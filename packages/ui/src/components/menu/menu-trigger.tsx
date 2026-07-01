@@ -24,6 +24,7 @@ export type MenuTriggerProps =
  */
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
+
 	const { setOpen, triggerRef, setReference } = useMenuActions()
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference)

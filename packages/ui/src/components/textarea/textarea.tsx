@@ -16,7 +16,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'
 	className?: string
-	/** Trailing control slot; its presence pins `resize: none` and a min-height floor. */
+	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none` and a min-height floor. */
 	actions?: ReactNode
 	ref?: Ref<HTMLTextAreaElement>
 } & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
@@ -28,8 +28,9 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  *
  * @remarks Stays controlled when a `value` prop is present, even `null` or
  * `undefined`; binds to the Form field named `name` otherwise, sharing the
- * Input value cascade through {@link useInputValue}. With `actions`,
- * `field-sizing: content` ignores `rows`, so `rows` becomes a min-height floor.
+ * Input value cascade through {@link useInputValue}. With `actions`, the frame
+ * stacks the field above a right-justified actions row and `field-sizing:
+ * content` ignores `rows`, so `rows` becomes a min-height floor.
  */
 export function Textarea(props: TextareaProps) {
 	// A wrapper that passes value={null} or value={undefined} stays controlled;
@@ -105,13 +106,18 @@ export function Textarea(props: TextareaProps) {
 
 	const hasActions = actions !== undefined
 
-	// `field-sizing: content` ignores `rows`; enforce it as a min-height floor.
-	// Extra space covers padding and gap when actions are present.
-	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 4rem)`, ...style } : style
+	// `field-sizing: content` ignores `rows`; floor the field at `rows` lines plus
+	// its own vertical padding. The actions row sits below as its own flex item
+	// (see `k.stack`), so its height is no longer reserved here.
+	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 1.5rem)`, ...style } : style
 
 	return (
 		<ControlFrame
-			className={cn(hasActions && k.frame, k.inputControl({ variant: resolvedVariant }))}
+			className={cn(
+				hasActions && k.frame,
+				hasActions && k.stack,
+				k.inputControl({ variant: resolvedVariant }),
+			)}
 		>
 			<textarea
 				data-slot="textarea"

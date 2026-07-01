@@ -69,6 +69,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
 | `useSortableItem` | Wraps dnd-kit `useSortable` with standard transform/transition/drag-opacity style composition. |
 | `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. |
+| `useGrabbingCursor` | Forces the grabbing cursor document-wide while active; ref-counted, injected as one universal rule. |
 
 ## Formatting & input
 

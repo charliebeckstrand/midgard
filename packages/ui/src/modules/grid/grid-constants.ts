@@ -1,5 +1,16 @@
-/** Estimated row height (px) for virtualization when {@link GridVirtualize} sets none. @internal */
-export const DEFAULT_ROW_HEIGHT = 44
+import type { DensityLevel } from '../../providers/density/context'
+
+/**
+ * Estimated row height (px) for virtualization when {@link GridVirtualize}
+ * sets none, keyed by density — matching the `sm`/`md`/`lg` cell-padding
+ * steps in `recipes/kata/table.ts` (±8px vertical padding per step) so the
+ * virtualizer's estimate tracks the actually-rendered row height. @internal
+ */
+export const ROW_HEIGHT_BY_DENSITY = {
+	compact: 36,
+	snug: 44,
+	loose: 52,
+} satisfies Record<DensityLevel, number>
 
 /** Rows rendered beyond the viewport on each side under virtualization, when unset. @internal */
 export const DEFAULT_OVERSCAN = 10
