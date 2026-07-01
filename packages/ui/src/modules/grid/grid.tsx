@@ -12,6 +12,7 @@ export type {
 	GridSort,
 	GridVirtualize,
 } from './grid-data-types'
+export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 
 /**
  * Props for {@link Grid}: a flat `rows` source mapped through `columns`. Pass an

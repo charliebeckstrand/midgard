@@ -17,11 +17,15 @@ export type CardProps = BoxProps<'radius'> & {
 /**
  * Outlined, padded surface built on Box. Renders in React Server Components:
  * the card never reads context — `size` is explicit (default `md`) and the
- * matching section padding is projected onto direct `data-slot=card-*`
- * children from outside. An explicit `size` additionally opens a density
- * scope so size-aware client children (Button, Input, …) inherit the step;
- * an unsized card stays fully static and lets ambient density flow through.
- * A nested section collapses the Card's own padding to zero.
+ * matching section gap is projected onto direct `data-slot=card-*` children
+ * from outside. An explicit `size` additionally opens a density scope so
+ * size-aware client children (Button, Input, …) inherit the step; an unsized
+ * card stays fully static and lets ambient density flow through.
+ *
+ * The frame owns the outer padding for every child, bare or structural; a
+ * section pads only the inner edge it shares with a sibling (header below,
+ * footer above), so padding has a single source on each edge. A header
+ * directly followed by a body collapses that gap to zero — the two sit flush.
  */
 export function Card({
 	size,
@@ -43,13 +47,16 @@ export function Card({
 			radius={k.radius[step]}
 			className={cn(
 				'overflow-hidden -outline-offset-1',
-				// Collapse the Card's own padding only for structural slots that bring
-				// their own; a bare CardTitle/CardDescription child supplies none and
-				// keeps the frame padding.
-				'[&:has(>[data-slot=card-header])]:p-0',
-				'[&:has(>[data-slot=card-body])]:p-0',
-				'[&:has(>[data-slot=card-footer])]:p-0',
-				k.sections[step],
+				/**
+				 * Zeroes the header's gap whenever a CardBody is its next sibling — a header
+				 * with no next sibling, or a non-body one (e.g. a footer with no body between
+				 * them), keeps the `slots` gap above. The extra `[data-slot=card-header]`
+				 * attribute check makes this compound projection strictly more specific than
+				 * the plain `slots` row it overrides, so it always wins outright, at every
+				 * step, regardless of class order.
+				 */
+				'*:data-[slot=card-header]:has-[+[data-slot=card-body]]:pb-0',
+				k.slots[step],
 				className,
 			)}
 			{...props}

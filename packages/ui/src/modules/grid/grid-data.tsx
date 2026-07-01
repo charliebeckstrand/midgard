@@ -61,10 +61,11 @@ import {
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { useGridExport } from './use-grid-export'
+import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { useGridTable } from './use-grid-table'
+import { type GridColumnPinning, useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -202,6 +203,29 @@ function bridgeRowActivate<T>(
 }
 
 /**
+ * Resolves the column-group band row for the rendered columns: the
+ * {@link GridGroupHeader} spans (from the visible column ids and their pin
+ * sides) and whether any band actually spans columns. Kept out of
+ * {@link GridData} so its branch doesn't weigh on the component's complexity.
+ *
+ * @internal
+ */
+function resolveGroupHeaderRow<T>(
+	group: GridGroupResult,
+	visibleColumns: GridColumn<T>[],
+	pinning: GridColumnPinning | null,
+): { header: GridGroupHeader | null; hasGroupRow: boolean } {
+	if (!group.hasGroups) return { header: null, hasGroupRow: false }
+
+	const header = group.resolveHeader(
+		visibleColumns.map((c) => c.id),
+		(id) => pinning?.side(id),
+	)
+
+	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -218,6 +242,7 @@ export function GridData<T>({
 	selection: selectionConfig,
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
+	groups: groupsConfig,
 	pagination: paginationConfig,
 	resizable = true,
 	columnSizing: columnSizingConfig,
@@ -352,6 +377,10 @@ export function GridData<T>({
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
 
+	// Column groups: the controllable binding, collapse state, the ids collapsed
+	// groups hide from the engine, and the band-row resolver rendered below.
+	const group = useGridGroup(groupsConfig)
+
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
@@ -391,7 +420,13 @@ export function GridData<T>({
 		columnVisibility,
 		reorderColumns,
 		managerItems,
-	} = useGridColumns<T>({ columns: pinnedColumns, columnOrderConfig, columnManagerConfig })
+	} = useGridColumns<T>({
+		columns: pinnedColumns,
+		columnOrderConfig,
+		columnManagerConfig,
+		groups: group.groups,
+		forcedHidden: group.collapsedHidden,
+	})
 
 	// Narrate column show/hide from the manager (WCAG 4.1.3): the incoming hidden
 	// set is concrete (the visibility hook resolves the manager's updater first), so
@@ -622,7 +657,17 @@ export function GridData<T>({
 
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
-	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length)
+	// Resolve the group band row from the rendered columns and their pin sides.
+	// `hasGroupRow` is true only when a band actually spans columns, so an empty or
+	// fully-ungrouped binding leaves the header a single row.
+	const { header: groupHeader, hasGroupRow } = resolveGroupHeaderRow(group, visibleColumns, pinning)
+
+	// The band adds a header row: the aria row count and the body's global row
+	// offset each shift by this (0 or 1) so assistive tech counts both header rows.
+	// Folded into the count resolver so the indeterminate `-1` sentinel is kept.
+	const groupRowOffset = Number(hasGroupRow)
+
+	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length, groupRowOffset)
 
 	// Full filtered row extent (the server total when paginating) for the busy
 	// region's result announcement; the header row the aria count adds is excluded.
@@ -681,6 +726,7 @@ export function GridData<T>({
 					resize={resize}
 					filters={filters}
 					pinning={pinning}
+					groups={groupHeader}
 				/>
 
 				<GridBody<T>
@@ -696,7 +742,7 @@ export function GridData<T>({
 					empty={empty}
 					error={error}
 					gridSemantics={gridSemantics}
-					rowIndexOffset={pageRowOffset}
+					rowIndexOffset={pageRowOffset + groupRowOffset}
 					selection={selection}
 					toggleRow={toggleRow}
 					selectable={hasSelectionColumn}
@@ -755,6 +801,8 @@ export function GridData<T>({
 							hidden={hiddenColumns}
 							onHiddenChange={handleHiddenChange}
 							onPinChange={pinColumn}
+							groups={group.editorGroups}
+							onGroupsChange={group.editorSetGroups}
 							onSavePreset={columnManagerConfig?.onSavePreset}
 						/>
 					)}

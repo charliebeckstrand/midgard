@@ -26,6 +26,7 @@ export type {
 	GridEditCell,
 	GridEditCellContext,
 } from './grid-editing-types'
+export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type {
 	GridCellMenu,
 	GridCellMenuContext,

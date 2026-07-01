@@ -29,10 +29,12 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './grid-constants'
+import { GridGroupHead } from './grid-group-head'
 import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import { columnLabel, type GridColumn } from './types'
+import type { GridGroupHeader } from './use-grid-group'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
 
@@ -71,6 +73,12 @@ type GridHeadProps<T> = {
 	filters?: GridColumnFilter | null
 	/** Frozen-column controls; pins matching headers sticky to an edge. `null` when none. */
 	pinning?: GridColumnPinning | null
+	/**
+	 * Resolved column-group band row, rendered above the column headers. When it
+	 * carries at least one group span the header gains a leading band row and the
+	 * column headers drop to the second row; `null`/absent leaves a single row.
+	 */
+	groups?: GridGroupHeader | null
 }
 
 /**
@@ -92,10 +100,24 @@ export function GridHead<T>({
 	resize,
 	filters,
 	pinning,
+	groups,
 }: GridHeadProps<T>) {
+	// The band row renders only when a group actually spans columns; a groups
+	// binding with no visible band leaves the header a single row.
+	const hasGroupRow = !!groups && groups.spans.some((span) => span.kind === 'group')
+
 	return (
 		<TableHead>
-			<TableRow aria-rowindex={gridSemantics ? 1 : undefined}>
+			{hasGroupRow && groups && (
+				<GridGroupHead
+					header={groups}
+					pinning={pinning ?? null}
+					ariaRowIndex={gridSemantics ? 1 : undefined}
+					gridSemantics={!!gridSemantics}
+				/>
+			)}
+
+			<TableRow aria-rowindex={gridSemantics ? (hasGroupRow ? 2 : 1) : undefined}>
 				{columns.map((col, colIdx) => (
 					<GridHeaderCell
 						key={col.id}

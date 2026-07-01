@@ -4,6 +4,7 @@ import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
 import type { GridExportEntry } from './export/types'
 import type { GridEditableConfig } from './grid-editing-types'
+import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowClick } from './grid-row'
 import type {
 	GridColumn,
@@ -181,6 +182,21 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
 	columnManager?: GridColumnManagerConfig
+
+	/**
+	 * Column groups: a colored, labeled band drawn above a contiguous run of
+	 * columns. Pass a plain array of {@link GridColumnGroup} for the declarative
+	 * case, or a {@link GridColumnGroups} binding to control the group layout the
+	 * column manager produces. Each group names its member `columns` (kept
+	 * adjacent and moved as a block), a `title`, and a `color` from the standard +
+	 * extended {@link Badge} palette; a `collapsible` group folds to its first
+	 * column with an expand toggle. When the column manager is enabled, its dialog
+	 * gains a group editor — create a group, drag columns into it, and set its name
+	 * and color.
+	 *
+	 * @see {@link GridColumnGroups}
+	 */
+	groups?: GridColumnGroups
 
 	/**
 	 * Pagination binding backed by the grid's TanStack Table engine. In server

@@ -131,15 +131,18 @@ export function resolveTableProps(args: {
  * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
  * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
  * sentinel for a server feed paginating by `pageCount` alone (no known total),
- * rather than misreporting the current page as the whole set. @internal
+ * rather than misreporting the current page as the whole set. `extraHeaderRows`
+ * adds any header rows beyond the column header — the column-group band row — so
+ * the count spans both; the indeterminate sentinel is left untouched. @internal
  */
 export function resolveAriaRowCount(
 	pagination: GridPaginationView | null,
 	renderedCount: number,
+	extraHeaderRows = 0,
 ): number {
 	if (pagination && pagination.rowCount == null) return -1
 
-	return (pagination?.rowCount ?? renderedCount) + 1
+	return (pagination?.rowCount ?? renderedCount) + 1 + extraHeaderRows
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */
