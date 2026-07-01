@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
@@ -11,7 +12,7 @@ export type ChatListItemProps = {
 	preview?: ReactNode
 	/** Trailing label, typically a relative timestamp. */
 	timestamp?: ReactNode
-	/** Marks this row as the open conversation (`aria-current="true"`, persistent wash). */
+	/** Marks this row as the open conversation (`aria-current="true"`, morphing indicator). */
 	current?: boolean
 	/** Selects this conversation. When set, the title/preview region is a button. */
 	onSelect?: () => void
@@ -31,9 +32,12 @@ export type ChatListItemProps = {
  * padding, the gap, the timestamp) also selects. `actions` render beside it rather
  * than within it — so a control like a delete button never nests inside the select
  * button (nested-interactive markup) — and sit above the overlay to stay clickable.
- * The open conversation (`current`) gets `aria-current` and a persistent background
- * wash. Inside a {@link ChatList} the row is an `<li>` and joins the list's
- * roving-tabindex keyboard model; standalone it is a `<div>`.
+ * The open conversation (`current`) gets `aria-current` and an {@link ActiveIndicator}
+ * that morphs between rows as selection moves, mirroring `SidebarItem`; it resolves
+ * its `layoutId` from the nearest `ActiveIndicatorScope` — {@link ChatList} opens one,
+ * so its rows morph against each other rather than any indicator outside the list.
+ * Inside a {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
+ * keyboard model; standalone it is a `<div>`.
  */
 export function ChatListItem({
 	title,
@@ -89,6 +93,8 @@ export function ChatListItem({
 					{actions}
 				</div>
 			)}
+
+			{current && <ActiveIndicator className={k.indicator} />}
 		</Wrapper>
 	)
 }
