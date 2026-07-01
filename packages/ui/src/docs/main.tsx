@@ -6,8 +6,7 @@ import './app.css'
 mount(
 	import.meta.glob<import('react').ComponentType>(
 		[
-			'./demos/*.tsx',
-			'./demos/pages/*.tsx',
+			'./demos/components/*.tsx',
 			'./demos/providers/*.tsx',
 			'./demos/modules/*.tsx',
 			'./demos/modules/*/index.tsx',

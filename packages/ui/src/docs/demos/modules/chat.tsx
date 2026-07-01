@@ -26,6 +26,39 @@ const conversations = [
 	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
 
+// Each conversation opens on its own transcript, so selecting a row swaps the
+// messages area.
+const initialTranscripts: Record<string, ChatContent[]> = {
+	'1': [
+		{ role: 'user', content: 'Can you help me plan the kickoff?' },
+		{ role: 'agent', content: 'Of course — who will be attending?' },
+	],
+	'2': [
+		{ role: 'user', content: 'The checkout endpoint times out under load. Any ideas?' },
+		{
+			role: 'agent',
+			content:
+				'I found the root cause: the orders table is missing an index on `customer_id`, so the join falls back to a full scan.',
+		},
+	],
+	'3': [
+		{ role: 'user', content: 'Can you review the new pagination helper?' },
+		{
+			role: 'agent',
+			content:
+				'The implementation looks solid. One note: the cursor is decoded on every call — memoize it so repeated reads stay cheap.',
+		},
+	],
+	'4': [
+		{ role: 'user', content: 'Should we split the monolith into services now?' },
+		{
+			role: 'agent',
+			content:
+				'Here are the trade-offs. Extracting the billing boundary first buys the most isolation for the least churn.',
+		},
+	],
+}
+
 const transcript: ChatContent[] = [
 	{ id: '1', role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
 	{
@@ -80,15 +113,25 @@ function ConversationList() {
 }
 
 function LayoutDemo() {
-	const [current, setCurrent] = useState('1')
+	const [transcripts, setTranscripts] = useState(initialTranscripts)
 
-	const { messages, sending, send, stop } = useChatSend({
+	const [currentId, setCurrentId] = useState('1')
+
+	const { messages, sending, send, stop, setMessages } = useChatSend({
 		transport: mockTransport,
-		initialMessages: [
-			{ role: 'user', content: 'Can you help me plan the kickoff?' },
-			{ role: 'agent', content: 'Of course — who will be attending?' },
-		],
+		initialMessages: initialTranscripts['1'],
 	})
+
+	// Stash the live transcript under the outgoing id, then load the target's.
+	function openConversation(id: string) {
+		if (id === currentId) return
+
+		setTranscripts((prev) => ({ ...prev, [currentId]: messages }))
+
+		setMessages(transcripts[id] ?? [])
+
+		setCurrentId(id)
+	}
 
 	return (
 		<div className="h-96">
@@ -98,8 +141,8 @@ function LayoutDemo() {
 				onSend={send}
 				onStop={stop}
 				conversations={conversations}
-				currentConversationId={current}
-				onConversationSelect={setCurrent}
+				currentConversationId={currentId}
+				onConversationSelect={openConversation}
 				aria-label="Message the assistant"
 			/>
 		</div>

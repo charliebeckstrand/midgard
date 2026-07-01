@@ -15,7 +15,7 @@ export { App }
  * import { mount } from './engine/host'
  * import './app.css'
  *
- * mount(import.meta.glob(['./demos/*.tsx', './demos/pages/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
+ * mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
  * ```
  *
  * @param loaders - The demo loader map from `import.meta.glob`, run in the
