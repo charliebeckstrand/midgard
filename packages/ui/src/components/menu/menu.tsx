@@ -59,7 +59,10 @@ export function Menu({
 			<MenuStateContext value={state}>
 				<div
 					data-slot="menu"
-					className={cn(className)}
+					// contents: this wrapper must not participate in layout, or it
+					// introduces a box between the trigger/content and whatever flex or
+					// grid container the caller placed the menu in, breaking alignment.
+					className={cn('contents', className)}
 					// No role: the wrapper holds arbitrary page content and implements no
 					// keyboard model of its own. Stamping role="application" here would
 					// suppress AT browse-mode for everything inside it, so it is omitted.
