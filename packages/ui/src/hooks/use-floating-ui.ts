@@ -197,6 +197,65 @@ export function useFloatingPanel({
 	return { refs, floatingStyles, context }
 }
 
+/** Ref shape {@link isFloatingOutsidePress} needs from a floating panel's `refs`. @internal */
+type FloatingOutsidePressRefs = Pick<ExtendedRefs<ReferenceType>, 'floating' | 'domReference'>
+
+/**
+ * True when a document `pointerdown` at `event` falls outside the floating
+ * panel described by `refs` — not inside the panel or its reference, not a
+ * press on the panel's own scrollbar, and not inside a *nested* floating-ui
+ * portal (e.g. a Select listbox opened from within this panel). A press
+ * inside a *different* floating-ui portal than this panel's own is spared
+ * only when that portal is a nested overlay opened from WITHIN this panel —
+ * a descendant (e.g. the calendar's month/year picker popover inside the
+ * DatePicker dialog). Those portals teleport outside this panel's DOM
+ * subtree, so the plain containment checks above miss them; floating-ui's
+ * native outsidePress spares them via its node tree, which this check stands
+ * in for. A target portal that *contains* this panel's own reference — e.g.
+ * the enclosing Dialog/Sheet a bare `FloatingPortal` nests inside by default —
+ * is instead an ANCESTOR portal: genuinely outside, so a press there must
+ * still dismiss.
+ *
+ * @see {@link useFloatingUI} and `useFloatingDisclosure`, the two document
+ * `pointerdown` listeners that share this predicate instead of floating-ui's
+ * built-in `useDismiss` outsidePress, which — via its "third-party element"
+ * escape hatch — spares *any* outside press once some other modal on the page
+ * has marked sibling elements `inert`, exactly the case whenever a floating
+ * panel opens inside a Dialog/Sheet.
+ */
+export function isFloatingOutsidePress(
+	event: PointerEvent,
+	refs: FloatingOutsidePressRefs,
+): boolean {
+	const target = event.target
+
+	if (!(target instanceof Node)) return false
+
+	const floating = refs.floating.current
+
+	if (!floating) return false
+
+	const insideFloating = floating.contains(target)
+
+	const insideReference = !!refs.domReference.current?.contains(target)
+
+	const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
+
+	const targetPortal =
+		target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
+
+	const ownPortal = floating.closest('[data-floating-ui-portal]')
+
+	const reference = refs.domReference.current
+
+	const insideNestedFloating =
+		!!targetPortal &&
+		targetPortal !== ownPortal &&
+		!(reference != null && targetPortal.contains(reference))
+
+	return !insideFloating && !insideReference && !onScrollbar && !insideNestedFloating
+}
+
 type FloatingUIOptions = FloatingPanelOptions & {
 	/**
 	 * Popup role floating-ui stamps on the floating element, plus the matching
@@ -260,43 +319,8 @@ export function useFloatingUI({
 		if (!open) return
 
 		const onPointerDown = (event: PointerEvent) => {
-			const target = event.target
-
-			if (!(target instanceof Node)) return
-
-			const floating = refs.floating.current
-
-			const insideFloating = !!floating && floating.contains(target)
-
-			const insideReference = !!refs.domReference.current?.contains(target)
-
-			const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
-
-			// A press inside a *different* floating-ui portal than this panel's own
-			// is spared only when that portal is a nested overlay opened from WITHIN
-			// this panel — a descendant (e.g. the calendar's month/year picker
-			// popover inside the DatePicker dialog). Those portals teleport outside
-			// this panel's DOM subtree, so `insideFloating` misses them; floating-ui's
-			// native outsidePress spares them via its node tree, which this custom
-			// listener stands in for. An ANCESTOR portal — one that contains this
-			// panel's own reference, e.g. the filter Popover hosting this listbox's
-			// trigger — is genuinely outside, so a press there must still dismiss.
-			const targetPortal =
-				target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
-
-			const ownPortal = floating?.closest('[data-floating-ui-portal]') ?? null
-
-			const reference = refs.domReference.current
-
-			const insideNestedFloating =
-				!!targetPortal &&
-				targetPortal !== ownPortal &&
-				!(reference != null && targetPortal.contains(reference))
-
-			if (!floating || insideFloating || insideReference || onScrollbar || insideNestedFloating)
-				return
-
-			onOpenChangeRef.current(false, event, 'outside-press')
+			if (isFloatingOutsidePress(event, refs))
+				onOpenChangeRef.current(false, event, 'outside-press')
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)
