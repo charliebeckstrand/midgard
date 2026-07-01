@@ -5,13 +5,15 @@ import {
 	addGroupTo,
 	assignColumn,
 	buildManagerZones,
-	locateDropZones,
+	findZoneId,
+	moveBetweenZones,
 	recolorGroupIn,
 	removeGroupFrom,
 	renameGroupIn,
-	reorderZoneColumns,
-	setGroupColumnsIn,
+	settleDragEnd,
 	UNGROUPED,
+	type ZoneMap,
+	zoneMapToStores,
 } from '../../modules/grid/use-grid-group-manager'
 import { fireEvent, renderUI, screen } from '../helpers'
 
@@ -64,42 +66,83 @@ describe('group manager reducers', () => {
 
 		expect(zones[2]?.columnIds).toEqual(['d'])
 	})
-
-	it('replaces a group’s member order for a within-group reorder', () => {
-		expect(setGroupColumnsIn(groups, 'g1', ['b', 'a'])[0]?.columns).toEqual(['b', 'a'])
-	})
 })
 
 describe('group manager drag helpers', () => {
-	const zones = buildManagerZones([{ id: 'g', columns: ['a', 'b'] }], ['a', 'b', 'c', 'd'])
+	const map: ZoneMap = { g: ['a', 'b'], [UNGROUPED]: ['c', 'd'] }
 
-	it('locates the source and target zones of a drop', () => {
-		// Drop column 'c' (ungrouped) onto column 'a' (group g).
-		const located = locateDropZones(zones, 'c', 'a')
+	it('finds the zone owning a column, and a zone id itself', () => {
+		expect(findZoneId(map, 'a')).toBe('g')
 
-		expect(located?.sourceZone.id).toBe(UNGROUPED)
+		expect(findZoneId(map, 'd')).toBe(UNGROUPED)
 
-		expect(located?.targetZone.id).toBe('g')
+		// A drop on the zone droppable (e.g. an empty zone) resolves to that zone.
+		expect(findZoneId(map, 'g')).toBe('g')
+
+		expect(findZoneId(map, 'missing')).toBeUndefined()
 	})
 
-	it('resolves a drop on a zone id to that zone', () => {
-		expect(locateDropZones(zones, 'a', UNGROUPED)?.targetZone.id).toBe(UNGROUPED)
+	it('moves a column into another zone at the over-item slot', () => {
+		// Drop 'c' onto 'a' (top half) → into g before 'a'.
+		expect(moveBetweenZones(map, 'c', 'a', false)).toEqual({
+			g: ['c', 'a', 'b'],
+			[UNGROUPED]: ['d'],
+		})
+
+		// Below the over-item's midpoint inserts after it.
+		expect(moveBetweenZones(map, 'c', 'a', true)).toEqual({
+			g: ['a', 'c', 'b'],
+			[UNGROUPED]: ['d'],
+		})
 	})
 
-	const groupZone = zones[0] // ['a', 'b']
-
-	const poolZone = zones[1] // ungrouped: ['c', 'd']
-
-	it('reorders within a zone, moving the active before the over column', () => {
-		expect(poolZone && reorderZoneColumns(poolZone, 'd', 'c')).toEqual(['d', 'c'])
+	it('appends when dropped on the target zone id itself', () => {
+		expect(moveBetweenZones(map, 'c', 'g', false)).toEqual({
+			g: ['a', 'b', 'c'],
+			[UNGROUPED]: ['d'],
+		})
 	})
 
-	it('drops on the zone itself to move to the end', () => {
-		expect(groupZone && reorderZoneColumns(groupZone, 'a', 'g')).toEqual(['b', 'a'])
+	it('is a no-op (same reference) for a within-zone move', () => {
+		expect(moveBetweenZones(map, 'a', 'b', false)).toBe(map)
 	})
 
-	it('returns null for a no-op reorder', () => {
-		expect(groupZone ? reorderZoneColumns(groupZone, 'a', 'a') : 'missing').toBeNull()
+	it('settles a same-zone reorder on drop, and leaves cross-zone maps untouched', () => {
+		expect(settleDragEnd(map, 'd', 'c')).toEqual({ g: ['a', 'b'], [UNGROUPED]: ['d', 'c'] })
+
+		// Dropped on the zone id → move to the end.
+		expect(settleDragEnd(map, 'a', 'g')).toEqual({ g: ['b', 'a'], [UNGROUPED]: ['c', 'd'] })
+
+		// Cross-zone (already applied live in onDragOver) → unchanged.
+		expect(settleDragEnd(map, 'a', 'c')).toBe(map)
+	})
+})
+
+describe('zoneMapToStores', () => {
+	const groups: GridColumnGroup[] = [{ id: 'g', title: 'G', columns: ['a', 'b'] }]
+
+	const order = ['a', 'b', 'c', 'd']
+
+	const orderableIds = ['a', 'b', 'c', 'd']
+
+	it('rebuilds group membership + order and reorders the ungrouped pool', () => {
+		// 'b' moved out to ungrouped between c and d; 'a' stays in g.
+		const map: ZoneMap = { g: ['a'], [UNGROUPED]: ['c', 'b', 'd'] }
+
+		const next = zoneMapToStores(groups, order, orderableIds, map)
+
+		expect(next.groups[0]?.columns).toEqual(['a'])
+
+		// The ungrouped ids are spliced back in their new order, holding 'a' (grouped).
+		expect(next.order).toEqual(['a', 'c', 'b', 'd'])
+	})
+
+	it('captures a column pulled into a group', () => {
+		const map: ZoneMap = { g: ['a', 'b', 'c'], [UNGROUPED]: ['d'] }
+
+		const next = zoneMapToStores(groups, order, orderableIds, map)
+
+		expect(next.groups[0]?.columns).toEqual(['a', 'b', 'c'])
 	})
 })
 

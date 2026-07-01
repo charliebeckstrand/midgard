@@ -1,16 +1,30 @@
 'use client'
 
-import { type DragEndEvent, useDroppable } from '@dnd-kit/core'
-import { arrayMove, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { type CSSProperties, useCallback, useId, useMemo, useRef } from 'react'
+import {
+	type DragEndEvent,
+	type DragOverEvent,
+	type DragStartEvent,
+	useDroppable,
+} from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
+import { useSortableItem } from '../../hooks'
 import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
 import type { GridColumnManagerItem } from './types'
 
 /** Sentinel zone id for the ungrouped column pool. @internal */
 export const UNGROUPED = '__grid_ungrouped__'
+
+/**
+ * A live zone → member-id map. Keys are stringified zone ids (a group id or
+ * {@link UNGROUPED}), values are stringified column ids in zone order — the flat
+ * shape the drag layer mutates each pointer move and the dnd ids match.
+ *
+ * @internal
+ */
+export type ZoneMap = Record<string, string[]>
 
 /** Appends a new group. @internal */
 export function addGroupTo(groups: GridColumnGroup[], group: GridColumnGroup): GridColumnGroup[] {
@@ -45,6 +59,8 @@ export function recolorGroupIn(
  * pulled from every group it currently sits in (so it lives in one group at
  * most), then appended to the target group's members unless `groupId` is `null`.
  * Empty groups after the pull are kept — the user may still be filling them.
+ * Backs the accessible "Move to" menu (the drag path commits through
+ * {@link zoneMapToStores}).
  *
  * @internal
  */
@@ -62,15 +78,6 @@ export function assignColumn(
 
 		return { ...g, columns: without }
 	})
-}
-
-/** Replaces a group's member order with `columns`, backing a within-group drag reorder. @internal */
-export function setGroupColumnsIn(
-	groups: GridColumnGroup[],
-	id: string | number,
-	columns: (string | number)[],
-): GridColumnGroup[] {
-	return groups.map((g) => (g.id === id ? { ...g, columns } : g))
 }
 
 /** A rendered zone in the group manager: a group, or the ungrouped pool. @internal */
@@ -112,49 +119,114 @@ export function buildManagerZones(
 }
 
 /**
- * Locates the zone a drag started in and the zone it was dropped on (a zone
- * directly, or the zone owning the column dropped on), or `null` when either is
- * missing.
+ * Resolves an id to its zone key: the zone whose id equals it (a drop on the
+ * zone droppable itself — e.g. an empty zone), else the zone whose member list
+ * contains it. `undefined` when it belongs to no zone.
  *
  * @internal
  */
-export function locateDropZones(
-	zones: GridGroupManagerZone[],
-	activeStr: string,
-	overStr: string,
-): { sourceZone: GridGroupManagerZone; targetZone: GridGroupManagerZone } | null {
-	const sourceZone = zones.find((z) => z.columnIds.some((id) => String(id) === activeStr))
+export function findZoneId(map: ZoneMap, id: string): string | undefined {
+	if (id in map) return id
 
-	const targetZone =
-		zones.find((z) => String(z.id) === overStr) ??
-		zones.find((z) => z.columnIds.some((id) => String(id) === overStr))
-
-	if (!sourceZone || !targetZone) return null
-
-	return { sourceZone, targetZone }
+	return Object.keys(map).find((zoneId) => map[zoneId]?.includes(id))
 }
 
 /**
- * The zone's member ids after moving `activeStr` to where `overStr` sits (or to
- * the end when dropped on the zone itself), or `null` when the move is a no-op.
+ * Moves `activeStr` out of its zone and into `overStr`'s zone at the insertion
+ * point — the end when dropping on the zone itself, else the over-item's slot,
+ * nudged past it when the pointer is below the over-item's midpoint (`below`).
+ * Returns the map unchanged (same reference) for a within-zone or invalid move,
+ * so a no-op over-event skips the re-render. Drives the live cross-zone
+ * re-parent in `onDragOver`.
  *
  * @internal
  */
-export function reorderZoneColumns(
-	zone: GridGroupManagerZone,
+export function moveBetweenZones(
+	map: ZoneMap,
 	activeStr: string,
 	overStr: string,
-): (string | number)[] | null {
-	const oldIndex = zone.columnIds.findIndex((id) => String(id) === activeStr)
+	below: boolean,
+): ZoneMap {
+	const from = findZoneId(map, activeStr)
 
-	const newIndex =
-		overStr === String(zone.id)
-			? zone.columnIds.length - 1
-			: zone.columnIds.findIndex((id) => String(id) === overStr)
+	const to = findZoneId(map, overStr)
 
-	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return null
+	if (!from || !to || from === to) return map
 
-	return arrayMove(zone.columnIds, oldIndex, newIndex)
+	const fromIds = map[from] ?? []
+
+	const toIds = map[to] ?? []
+
+	if (!fromIds.includes(activeStr)) return map
+
+	// Dropping on the zone itself appends; over a column inserts at its slot,
+	// one past it when the pointer has crossed the column's midpoint.
+	const overIndex = toIds.indexOf(overStr)
+
+	const insertIndex =
+		overStr === to || overIndex === -1 ? toIds.length : overIndex + (below ? 1 : 0)
+
+	return {
+		...map,
+		[from]: fromIds.filter((id) => id !== activeStr),
+		[to]: [...toIds.slice(0, insertIndex), activeStr, ...toIds.slice(insertIndex)],
+	}
+}
+
+/**
+ * Settles a same-zone reorder on drop (a cross-zone move already landed live in
+ * `onDragOver`). Moves `activeStr` to `overStr`'s slot within their shared zone —
+ * to the end when dropped on the zone id itself — or returns the map unchanged
+ * for a cross-zone drop or a no-op.
+ *
+ * @internal
+ */
+export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string): ZoneMap {
+	const from = findZoneId(map, activeStr)
+
+	const to = findZoneId(map, overStr)
+
+	if (!from || !to || from !== to) return map
+
+	const ids = map[from] ?? []
+
+	const oldIndex = ids.indexOf(activeStr)
+
+	const newIndex = overStr === from ? ids.length - 1 : ids.indexOf(overStr)
+
+	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
+
+	return { ...map, [from]: arrayMove(ids, oldIndex, newIndex) }
+}
+
+/**
+ * Translates a settled {@link ZoneMap} back into the group editor's two external
+ * stores: each group's `columns` (membership + order, read straight from its
+ * zone) and the ungrouped pool's order spliced back into the full column `order`
+ * (holding grouped and frozen ids in place). One derivation covers both a
+ * cross-zone membership change and a within-zone reorder, so the split commit
+ * stays consistent.
+ *
+ * @internal
+ */
+export function zoneMapToStores(
+	groups: GridColumnGroup[],
+	order: (string | number)[],
+	orderableIds: (string | number)[],
+	map: ZoneMap,
+): { groups: GridColumnGroup[]; order: (string | number)[] } {
+	// The map carries stringified ids; resolve each back to its real column id.
+	const realId = (id: string): string | number => orderableIds.find((c) => String(c) === id) ?? id
+
+	const nextGroups = groups.map((g) => ({ ...g, columns: (map[String(g.id)] ?? []).map(realId) }))
+
+	const ungroupedIds = (map[UNGROUPED] ?? []).map(realId)
+
+	const ungroupedSet = new Set(ungroupedIds)
+
+	const nextOrder = applyColumnReorder(order, ungroupedIds, (id) => ungroupedSet.has(id))
+
+	return { groups: nextGroups, order: nextOrder }
 }
 
 /** Options for {@link useGridGroupManager}. @internal */
@@ -169,13 +241,25 @@ type GridGroupManagerOptions = {
 	onOrderChange: (order: (string | number)[]) => void
 }
 
+/** Whether the dragged item sits below the over-item's vertical midpoint (for the insertion nudge). @internal */
+function isBelowOverMidpoint(event: DragOverEvent): boolean {
+	const overRect = event.over?.rect
+
+	const translated = event.active.rect.current.translated
+
+	return !!overRect && !!translated && translated.top > overRect.top + overRect.height / 2
+}
+
 /**
- * State and handlers for the column-manager's group editor: the zones (groups +
- * ungrouped pool), the create/remove/rename/recolor and column-assignment
- * actions (each a pure reducer committed through `onGroupsChange`), and the
- * dnd-kit drag wiring. A drag within a zone reorders it — a group's member order
- * through `onGroupsChange`, the ungrouped pool's through `onOrderChange`; a drag
- * across zones changes the column's membership.
+ * State and handlers for the column-manager's group editor. The zones (groups +
+ * ungrouped pool) and the create/remove/rename/recolor/assign actions commit
+ * through `onGroupsChange`. Dragging follows the house multi-container pattern
+ * (see {@link Kanban}): a local {@link ZoneMap} override re-parents the active
+ * column between zones live in `onDragOver` — so it never disappears and the
+ * reflow animates — then `onDragEnd` settles the same-zone order and translates
+ * the map back into the split stores via {@link zoneMapToStores}. `zoneMap` is
+ * the render source (override while dragging, else derived from props);
+ * `activeId` drives the drag overlay.
  *
  * @internal
  */
@@ -190,9 +274,25 @@ export function useGridGroupManager({
 
 	const idCounter = useRef(0)
 
+	// The dragged column id (drives the overlay), and the live zone→ids override
+	// that wins over the derived zones during a drag. Both null/absent when idle.
+	const [activeId, setActiveId] = useState<string | null>(null)
+
+	const [override, setOverride] = useState<ZoneMap | null>(null)
+
 	const orderableIds = useMemo(() => columns.map((c) => c.id), [columns])
 
 	const zones = useMemo(() => buildManagerZones(groups, orderableIds), [groups, orderableIds])
+
+	// Zone→ids derived from props — the render source when idle, and the seed the
+	// drag override starts from. Recomputed from the committed props after a drop,
+	// so it equals the just-settled override (no flicker).
+	const baseZoneMap = useMemo<ZoneMap>(
+		() => Object.fromEntries(zones.map((z) => [String(z.id), z.columnIds.map(String)])),
+		[zones],
+	)
+
+	const zoneMap = override ?? baseZoneMap
 
 	const addGroup = useCallback(() => {
 		idCounter.current += 1
@@ -228,61 +328,73 @@ export function useGridGroupManager({
 		[groups, onGroupsChange],
 	)
 
-	const handleDragEnd = useCallback(
-		(event: DragEndEvent) => {
+	const handleDragStart = useCallback(
+		(event: DragStartEvent) => {
+			setActiveId(String(event.active.id))
+
+			setOverride(baseZoneMap)
+		},
+		[baseZoneMap],
+	)
+
+	const handleDragOver = useCallback(
+		(event: DragOverEvent) => {
 			const { active, over } = event
 
 			if (!over) return
 
-			const activeStr = String(active.id)
+			const below = isBelowOverMidpoint(event)
 
-			// Resolve the drag id (stringified) back to a real column id.
-			const realId = orderableIds.find((id) => String(id) === activeStr)
-
-			if (realId === undefined) return
-
-			const located = locateDropZones(zones, activeStr, String(over.id))
-
-			if (!located) return
-
-			const { sourceZone, targetZone } = located
-
-			// Across zones: change the column's membership (append into the target
-			// group, or drop it back to the ungrouped pool); order is re-derived.
-			if (String(sourceZone.id) !== String(targetZone.id)) {
-				assign(realId, targetZone.group ? targetZone.group.id : null)
-
-				return
-			}
-
-			// Within a zone: reorder its members.
-			const nextIds = reorderZoneColumns(sourceZone, activeStr, String(over.id))
-
-			if (!nextIds) return
-
-			if (sourceZone.group) {
-				onGroupsChange(setGroupColumnsIn(groups, sourceZone.group.id, nextIds))
-
-				return
-			}
-
-			// The ungrouped pool lives in the column order: splice the reordered
-			// ungrouped ids back into the full order, holding every other id in place.
-			const ungroupedSet = new Set(sourceZone.columnIds)
-
-			onOrderChange(applyColumnReorder(order, nextIds, (id) => ungroupedSet.has(id)))
+			setOverride((prev) =>
+				moveBetweenZones(prev ?? baseZoneMap, String(active.id), String(over.id), below),
+			)
 		},
-		[zones, orderableIds, groups, order, onGroupsChange, onOrderChange, assign],
+		[baseZoneMap],
 	)
+
+	const commit = useCallback(
+		(map: ZoneMap) => {
+			const next = zoneMapToStores(groups, order, orderableIds, map)
+
+			onGroupsChange(next.groups)
+
+			onOrderChange(next.order)
+		},
+		[groups, order, orderableIds, onGroupsChange, onOrderChange],
+	)
+
+	const handleDragEnd = useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event
+
+			if (over && override) commit(settleDragEnd(override, String(active.id), String(over.id)))
+
+			setOverride(null)
+
+			setActiveId(null)
+		},
+		[override, commit],
+	)
+
+	const handleDragCancel = useCallback(() => {
+		setOverride(null)
+
+		setActiveId(null)
+	}, [])
 
 	return {
 		zones,
+		zoneMap,
+		activeId,
 		addGroup,
 		removeGroup,
 		renameGroup,
 		recolorGroup,
 		assign,
+		handleDragStart,
+		handleDragOver,
 		handleDragEnd,
+		handleDragCancel,
 	}
 }
 
@@ -294,32 +406,13 @@ export function useGroupZoneDroppable(zoneId: string | number) {
 }
 
 /**
- * Registers a sortable column row for the group editor. Unlike the shared
- * {@link useSortableItem} — which hides the source row (`opacity: 0`) for a
- * `<DragOverlay>` to stand in — this keeps the row visible and animates it in
- * place through the sortable transform/transition, so siblings glide aside and
- * the dragged row settles into its slot rather than snapping. `dragging` lifts
- * the row above its siblings and gates its checkbox.
+ * Registers a sortable column row for the group editor. Delegates to the shared
+ * {@link useSortableItem}, so the source row hides (`opacity: 0`) while dragging
+ * and the editor's `<DragOverlay>` stands in — the same composition List and
+ * Kanban use. `dragging` also gates the row's checkbox.
  *
  * @internal
  */
 export function useGroupColumnSortable(columnId: string | number) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({ id: String(columnId) })
-
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		zIndex: isDragging ? 1 : undefined,
-		position: isDragging ? 'relative' : undefined,
-	}
-
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
+	return useSortableItem({ id: String(columnId) })
 }

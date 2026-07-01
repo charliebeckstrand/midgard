@@ -5,13 +5,14 @@
  * carries only the band's flex layout, the collapse toggle, and the separating
  * rule beneath the row.
  */
-import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { bg } = omote
 const { border, focus } = sen
 
 export const k = {
@@ -46,6 +47,9 @@ export const k = {
 		// One column row: the drag grip, the visibility checkbox + label, and the
 		// move menu, in a line.
 		row: [flex.row, 'items-center', 'gap-2', 'px-1', 'py-0.5'],
+		// The dragged row's overlay clone: an opaque, rounded, shadowed surface so it
+		// reads as lifted above the dialog while it tracks the pointer.
+		rowOverlay: [bg.surface, rounded.md, 'shadow-lg'],
 		// Drag grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
 		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, 'cursor-grab', 'select-none'],
 		// The row's move menu trigger and the remove button, styled like the grip.

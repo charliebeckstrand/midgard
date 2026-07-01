@@ -1,9 +1,9 @@
 'use client'
 
-import { closestCenter, DndContext } from '@dnd-kit/core'
+import { closestCorners, DndContext, DragOverlay, MeasuringStrategy } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { FolderInput, GripVertical, Plus, Trash2 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
@@ -84,8 +84,22 @@ export function GridGroupManager({
 
 	const sensors = useSortableSensors()
 
+	// String-keyed lookup so a zone (whose live ids are stringified) and the drag
+	// overlay can resolve a column id back to its manager item.
+	const byId = useMemo(() => new Map(columns.map((c) => [String(c.id), c])), [columns])
+
+	const activeItem = mgr.activeId ? byId.get(mgr.activeId) : undefined
+
 	return (
-		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={mgr.handleDragEnd}>
+		<DndContext
+			sensors={sensors}
+			collisionDetection={closestCorners}
+			measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+			onDragStart={mgr.handleDragStart}
+			onDragOver={mgr.handleDragOver}
+			onDragEnd={mgr.handleDragEnd}
+			onDragCancel={mgr.handleDragCancel}
+		>
 			<div className={cn(k.manager.root)}>
 				<Button variant="soft" size="sm" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
@@ -96,8 +110,9 @@ export function GridGroupManager({
 					<GridGroupManagerZoneView
 						key={zone.id}
 						zone={zone}
+						columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+						byId={byId}
 						groups={groups}
-						columns={columns}
 						hidden={hidden}
 						onToggle={onToggle}
 						colorOptions={colorOptions}
@@ -108,6 +123,18 @@ export function GridGroupManager({
 					/>
 				))}
 			</div>
+
+			{/* The dragged row's stand-in — a full, inert clone (grip, disabled
+			    checkbox, label) — so the source row can hide while dragging without
+			    the checkbox appearing to vanish. Mounted always; child gated on drag. */}
+			<DragOverlay dropAnimation={null}>
+				{activeItem ? (
+					<GridGroupManagerColumnRowOverlay
+						item={activeItem}
+						checked={!hidden.has(activeItem.id)}
+					/>
+				) : null}
+			</DragOverlay>
 		</DndContext>
 	)
 }
@@ -115,8 +142,11 @@ export function GridGroupManager({
 /** Props for {@link GridGroupManagerZoneView}. @internal */
 type GridGroupManagerZoneViewProps = {
 	zone: GridGroupManagerZone
+	/** The zone's live member ids (stringified), from the drag-aware zone map. */
+	columnIds: string[]
+	/** Shared id → item lookup (string-keyed to match the live ids). */
+	byId: Map<string, GridColumnManagerItem>
 	groups: GridColumnGroup[]
-	columns: GridColumnManagerItem[]
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
 	colorOptions: PaletteColor[]
@@ -129,8 +159,9 @@ type GridGroupManagerZoneViewProps = {
 /** One droppable zone: a group (with its config header) or the ungrouped pool, holding its column rows. @internal */
 function GridGroupManagerZoneView({
 	zone,
+	columnIds,
+	byId,
 	groups,
-	columns,
 	hidden,
 	onToggle,
 	colorOptions,
@@ -140,8 +171,6 @@ function GridGroupManagerZoneView({
 	assign,
 }: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, isOver } = useGroupZoneDroppable(zone.id)
-
-	const byId = new Map(columns.map((c) => [c.id, c]))
 
 	return (
 		<div ref={setNodeRef} className={cn(k.manager.zone, isOver && k.manager.zoneOver)}>
@@ -157,13 +186,13 @@ function GridGroupManagerZoneView({
 				<span className={cn(k.manager.poolLabel)}>Ungrouped</span>
 			)}
 
-			{zone.columnIds.length === 0 ? (
+			{columnIds.length === 0 ? (
 				<p className={cn(k.manager.empty)}>
 					{zone.group ? 'Drag columns here to add them.' : 'All columns are grouped.'}
 				</p>
 			) : (
-				<SortableContext items={zone.columnIds.map(String)} strategy={verticalListSortingStrategy}>
-					{zone.columnIds.map((id) => {
+				<SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
+					{columnIds.map((id) => {
 						const item = byId.get(id)
 
 						if (!item) return null
@@ -332,6 +361,41 @@ function GridGroupManagerColumnRow({
 					</MenuContent>
 				</Menu>
 			)}
+		</div>
+	)
+}
+
+/**
+ * Presentational clone of a column row for the {@link DragOverlay}: the grip, a
+ * disabled visibility checkbox, and the label — no sortable refs, no move menu,
+ * no handlers. It stands in for the source row (which hides while dragging) so
+ * the dragged item, checkbox and all, tracks the pointer without vanishing.
+ *
+ * @internal
+ */
+function GridGroupManagerColumnRowOverlay({
+	item,
+	checked,
+}: {
+	item: GridColumnManagerItem
+	checked: boolean
+}) {
+	const label = columnLabel(item)
+
+	return (
+		<div className={cn(k.manager.row, k.manager.rowOverlay)} data-dragging="">
+			<span className={cn(k.manager.grip)}>
+				<Icon icon={<GripVertical />} />
+			</span>
+
+			<Control>
+				<CheckboxGroup>
+					<CheckboxField>
+						<Checkbox checked={checked} disabled aria-label={`Show ${label}`} />
+						<Label>{item.title}</Label>
+					</CheckboxField>
+				</CheckboxGroup>
+			</Control>
 		</div>
 	)
 }
