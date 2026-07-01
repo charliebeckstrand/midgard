@@ -1,7 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useDensity } from '../../primitives/density'
-import { DensityProvider, densityLevels, densityToSize } from '../../providers/density'
+import {
+	DensityProvider,
+	densityLevels,
+	densityToSize,
+	sizeToDensityLevel,
+	useDensityLevel,
+} from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('densityToSize', () => {
@@ -45,6 +51,36 @@ describe('DensityProvider broadcast', () => {
 		})
 
 		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
+	})
+})
+
+describe('sizeToDensityLevel', () => {
+	it('inverts densityToSize', () => {
+		expect(sizeToDensityLevel).toEqual({ lg: 'loose', md: 'snug', sm: 'compact' })
+	})
+})
+
+describe('useDensityLevel', () => {
+	it('falls back to snug outside any provider', () => {
+		const { result } = renderHook(() => useDensityLevel())
+
+		expect(result.current).toBe('snug')
+	})
+
+	it('inherits the ambient DensityProvider level when omitted', () => {
+		const { result } = renderHook(() => useDensityLevel(), {
+			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
+		})
+
+		expect(result.current).toBe('compact')
+	})
+
+	it('an explicit level overrides the ambient one', () => {
+		const { result } = renderHook(() => useDensityLevel('loose'), {
+			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
+		})
+
+		expect(result.current).toBe('loose')
 	})
 })
 

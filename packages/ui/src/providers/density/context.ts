@@ -25,3 +25,14 @@ export const densityToSize = {
 	snug: 'md',
 	compact: 'sm',
 } satisfies Record<DensityLevel, Step>
+
+/**
+ * `Step` carried by the ambient Density cascade → friendly level, the inverse
+ * of {@link densityToSize}. Backs `useDensityLevel`'s ambient fallback for
+ * context-reading components whose prop surface speaks `DensityLevel`.
+ */
+export const sizeToDensityLevel = {
+	lg: 'loose',
+	md: 'snug',
+	sm: 'compact',
+} satisfies Record<Step, DensityLevel>

@@ -14,7 +14,7 @@ import { cn } from '../../core'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './grid-constants'
+import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './grid-constants'
 import type { GridVirtualize } from './grid-data-types'
 import type { GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
@@ -39,11 +39,16 @@ export function resolveSortable<T>(
 
 /**
  * Collapses the `virtualize` prop (boolean or options object) into a resolved
- * enabled flag and sizing.
+ * enabled flag and sizing. The row-height default scales with `density` (see
+ * {@link ROW_HEIGHT_BY_DENSITY}) so the estimate tracks the cell padding the
+ * table actually renders; an explicit `estimateSize` still overrides it.
  *
  * @internal
  */
-export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
+export function resolveVirtualization(
+	virtualize: GridVirtualize | undefined,
+	density: DensityLevel | undefined,
+): {
 	enabled: boolean
 	estimateSize: number
 	overscan: number
@@ -54,7 +59,7 @@ export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 
 	return {
 		enabled,
-		estimateSize: opts?.estimateSize ?? DEFAULT_ROW_HEIGHT,
+		estimateSize: opts?.estimateSize ?? ROW_HEIGHT_BY_DENSITY[density ?? 'snug'],
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
 	}
 }

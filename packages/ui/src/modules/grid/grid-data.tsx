@@ -14,6 +14,7 @@ import {
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
+import { useDensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
@@ -239,7 +240,7 @@ export function GridData<T>({
 	error,
 	virtualize,
 	tableProps,
-	density,
+	density: densityProp,
 	bleed,
 	outline,
 	striped,
@@ -252,7 +253,16 @@ export function GridData<T>({
 		)
 	}
 
-	const { enabled: virtualizeEnabled, estimateSize, overscan } = resolveVirtualization(virtualize)
+	// Unlike the bare `Table` (a static/RSC leaf that reads no context), Grid is
+	// always client-rendered, so it can inherit an enclosing `DensityProvider`
+	// when the caller passes no explicit `density`.
+	const density = useDensityLevel(densityProp)
+
+	const {
+		enabled: virtualizeEnabled,
+		estimateSize,
+		overscan,
+	} = resolveVirtualization(virtualize, density)
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
 	// wrapper); resolved from the `header` config's `position`.
