@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { downloadCsv, rowsToCsv } from '../../modules/grid/grid-export'
+import { downloadCsv, rowsToCsv } from '../../modules/grid/export/csv'
 import { fireEvent, renderUI, screen, within } from '../helpers'
 
 describe('rowsToCsv', () => {
@@ -107,7 +107,7 @@ describe('downloadCsv', () => {
 	})
 })
 
-describe('Grid CSV export', () => {
+describe('Grid export', () => {
 	type Row = { id: number; name: string; role: string }
 
 	const columns: GridColumn<Row>[] = [
@@ -132,15 +132,55 @@ describe('Grid CSV export', () => {
 		fireEvent.contextMenu(node)
 	}
 
-	it('omits the export item unless exportable is set', () => {
+	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+
+	it('omits every export item and the toolbar button unless exportable is set', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		expect(screen.queryByRole('button', { name: 'Export' })).toBeNull()
 
 		rightClickHeader('Name')
 
 		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
 	})
 
-	it('downloads the rows as CSV from the header menu when exportable', async () => {
+	it('enables the default CSV + Excel + print set for the boolean shorthand', () => {
+		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Print' })).toBeInTheDocument()
+	})
+
+	it('lists one item per action in the toolbar Export dropdown', () => {
+		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+
+		openExportMenu()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Print' })).toBeInTheDocument()
+	})
+
+	it('narrows to an explicit subset of types', () => {
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to Excel' })).toBeNull()
+
+		expect(screen.queryByRole('menuitem', { name: 'Print' })).toBeNull()
+	})
+
+	it('downloads the rows as CSV from the header menu', async () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
@@ -149,7 +189,7 @@ describe('Grid CSV export', () => {
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClickHeader('Name')
 
@@ -172,13 +212,7 @@ describe('Grid CSV export', () => {
 		click.mockRestore()
 	})
 
-	it('omits the toolbar button for the boolean shorthand', () => {
-		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
-
-		expect(screen.queryByRole('button', { name: 'Export to CSV' })).toBeNull()
-	})
-
-	it('renders a toolbar button that downloads the CSV when toolbarButton is set', async () => {
+	it('downloads the rows from the toolbar Export dropdown', async () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
 		URL.createObjectURL = createObjectURL
@@ -187,96 +221,17 @@ describe('Grid CSV export', () => {
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-		renderUI(
-			<Grid exportable={{ toolbarButton: true }} columns={columns} rows={rows} getKey={getKey} />,
-		)
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
 		expect(createObjectURL).toHaveBeenCalledTimes(1)
 
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
-		const text = await blob.text()
-
-		expect(text).toContain('Name,Role')
-
-		expect(text).toContain('Alice,Developer')
-
-		expect(click).toHaveBeenCalledTimes(1)
-
-		click.mockRestore()
-	})
-
-	it('keeps the header menu item alongside the toolbar button', () => {
-		renderUI(
-			<Grid exportable={{ toolbarButton: true }} columns={columns} rows={rows} getKey={getKey} />,
-		)
-
-		rightClickHeader('Name')
-
-		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeTruthy()
-	})
-
-	it('drops the menu item and toolbar button when enabled is false', () => {
-		renderUI(
-			<Grid
-				exportable={{ enabled: false, toolbarButton: true }}
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-			/>,
-		)
-
-		expect(screen.queryByRole('button', { name: 'Export to CSV' })).toBeNull()
-
-		rightClickHeader('Name')
-
-		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
-	})
-
-	it('labels the button and menu item with a custom label', () => {
-		renderUI(
-			<Grid
-				exportable={{ toolbarButton: true, label: 'Download CSV' }}
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-			/>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Download CSV' })).toBeTruthy()
-
-		rightClickHeader('Name')
-
-		expect(screen.getByRole('menuitem', { name: 'Download CSV' })).toBeTruthy()
-	})
-
-	it('uses the configured filename for the download', () => {
-		URL.createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.revokeObjectURL = vi.fn()
-
-		let downloadName: string | undefined
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
-			this: HTMLAnchorElement,
-		) {
-			downloadName = this.download
-		})
-
-		renderUI(
-			<Grid
-				exportable={{ toolbarButton: true, filename: 'people.csv' }}
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-			/>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
-
-		expect(downloadName).toBe('people.csv')
+		expect(await blob.text()).toContain('Alice,Developer')
 
 		click.mockRestore()
 	})
@@ -285,7 +240,7 @@ describe('Grid CSV export', () => {
 		renderUI(
 			<Grid
 				columnManager={{ toolbarButton: true }}
-				exportable={{ toolbarButton: true }}
+				exportable
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -296,7 +251,7 @@ describe('Grid CSV export', () => {
 
 		expect(within(tools).getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
 
-		expect(within(tools).getByRole('button', { name: 'Export to CSV' })).toBeInTheDocument()
+		expect(within(tools).getByRole('button', { name: 'Export' })).toBeInTheDocument()
 	})
 
 	it('exports only the selected rows when a selection is active', async () => {
@@ -310,7 +265,7 @@ describe('Grid CSV export', () => {
 
 		renderUI(
 			<Grid
-				exportable={{ toolbarButton: true }}
+				exportable={['csv']}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -318,7 +273,9 @@ describe('Grid CSV export', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
@@ -346,7 +303,7 @@ describe('Grid CSV export', () => {
 
 		renderUI(
 			<Grid
-				exportable
+				exportable={['csv']}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -385,7 +342,7 @@ describe('Grid CSV export', () => {
 
 		renderUI(
 			<Grid
-				exportable={{ toolbarButton: true }}
+				exportable={['csv']}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -393,7 +350,9 @@ describe('Grid CSV export', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
@@ -404,5 +363,57 @@ describe('Grid CSV export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		click.mockRestore()
+	})
+
+	it("replaces a built-in type's behavior with an object entry's onExport", () => {
+		const onExport = vi.fn()
+
+		renderUI(
+			<Grid exportable={[{ csv: { onExport } }]} columns={columns} rows={rows} getKey={getKey} />,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(onExport).toHaveBeenCalledTimes(1)
+
+		// The grid resolves each column's `sortable` default before handing them to
+		// the export context, so compare rows exactly and columns by id/value only.
+		const context = onExport.mock.calls[0]?.[0]
+
+		expect(context.rows).toEqual(rows)
+
+		expect(context.columns.map((column: GridColumn<Row>) => column.id)).toEqual(['name', 'role'])
+	})
+
+	it('supports a custom export type via onExport, labeled generically', () => {
+		const onExport = vi.fn()
+
+		renderUI(
+			<Grid exportable={[{ pdf: { onExport } }]} columns={columns} rows={rows} getKey={getKey} />,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
+
+		expect(onExport).toHaveBeenCalledTimes(1)
+	})
+
+	it('drops an entry naming an unknown type with no onExport', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(<Grid exportable={['csv', 'pdf']} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to pdf' })).toBeNull()
+
+		expect(warn).toHaveBeenCalled()
+
+		warn.mockRestore()
 	})
 })

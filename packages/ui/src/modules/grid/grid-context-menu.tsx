@@ -10,10 +10,12 @@ import {
 	Copy,
 	Download,
 	PinOff,
+	Printer,
 	StretchHorizontal,
 } from 'lucide-react'
 import {
 	type MouseEvent,
+	type ReactElement,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -31,6 +33,7 @@ import {
 	useMenuActions,
 } from '../../components/menu'
 import type { SortState } from './context'
+import type { GridExportAction } from './export/types'
 import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
 import type {
 	GridCellMenuContext,
@@ -39,6 +42,11 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridMenuItem,
 } from './types'
+
+/** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
+function exportIcon(type: GridExportAction['type']): ReactElement {
+	return type === 'print' ? <Printer /> : <Download />
+}
 
 /** Sets the sort to a column in a fixed direction. @internal */
 type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
@@ -65,10 +73,8 @@ type GridContextMenuProps<T> = {
 	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
-	/** Exports to CSV — the selected rows when a selection is active, else the filtered/sorted set — or `null` when export is off. Shared by the column menu, the cell menu, and the toolbar button. */
-	exportCsv: (() => void) | null
-	/** Label on the "Export to CSV" item, shared with the export toolbar button. */
-	exportLabel: ReactNode
+	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
+	exportActions: GridExportAction[]
 	children: ReactNode
 }
 
@@ -87,9 +93,7 @@ type ColumnMenuDefaultArgs<T> = {
 	pinColumn: PinColumn
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
-	exportCsv: (() => void) | null
-	/** Label on the "Export to CSV" item, shared with the export toolbar button. */
-	exportLabel: ReactNode
+	exportActions: GridExportAction[]
 }
 
 /**
@@ -142,7 +146,7 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
  * "Clear sort" once it is the sorted column and the column's pin controls (Pin
  * left / Pin right / Unpin), then the table-wide tools under a separator —
  * "Auto-size columns" (when resizing is on), "Manage columns" (when a manager is
- * reachable), and "Export to CSV" (when export is on).
+ * reachable), and one item per active export type (when export is on).
  *
  * @internal
  */
@@ -155,8 +159,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		pinColumn,
 		autoSizeColumns,
 		chooseColumns,
-		exportCsv,
-		exportLabel,
+		exportActions,
 	} = args
 
 	const items: GridMenuItem[] = []
@@ -214,14 +217,14 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		})
 	}
 
-	if (exportCsv) {
-		tools.push({
-			key: 'export-csv',
-			label: exportLabel,
-			icon: <Download />,
-			onSelect: exportCsv,
-		})
-	}
+	tools.push(
+		...exportActions.map((action) => ({
+			key: `export-${action.type}`,
+			label: action.label,
+			icon: exportIcon(action.type),
+			onSelect: action.run,
+		})),
+	)
 
 	if (tools.length > 0) {
 		if (items.length > 0) items.push({ key: 'tools-separator', separator: true })
@@ -233,24 +236,26 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 }
 
 /**
- * Default cell-menu items: Copy, then — when export is on — "Export to CSV" under
- * a separator. Copy acts on the right-clicked cell; export is a grid-wide tool
- * (scoped to the selection when rows are selected), so it sits apart below the
- * divider, mirroring the column menu's grouping of its table-wide tools.
+ * Default cell-menu items: Copy, then — when export is on — one item per
+ * active export type under a separator. Copy acts on the right-clicked cell;
+ * export is a grid-wide tool (scoped to the selection when rows are selected),
+ * so it sits apart below the divider, mirroring the column menu's grouping of
+ * its table-wide tools.
  *
  * @internal
  */
-function cellMenuDefaults(
-	copy: () => void,
-	exportCsv: (() => void) | null,
-	exportLabel: ReactNode,
-): GridMenuItem[] {
+function cellMenuDefaults(copy: () => void, exportActions: GridExportAction[]): GridMenuItem[] {
 	const items: GridMenuItem[] = [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
 
-	if (exportCsv) {
+	if (exportActions.length > 0) {
 		items.push(
 			{ key: 'export-separator', separator: true },
-			{ key: 'export-csv', label: exportLabel, icon: <Download />, onSelect: exportCsv },
+			...exportActions.map((action) => ({
+				key: `export-${action.type}`,
+				label: action.label,
+				icon: exportIcon(action.type),
+				onSelect: action.run,
+			})),
 		)
 	}
 
@@ -291,8 +296,7 @@ export function GridContextMenu<T>({
 	pinColumn,
 	autoSizeColumns,
 	chooseColumns,
-	exportCsv,
-	exportLabel,
+	exportActions,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -331,8 +335,7 @@ export function GridContextMenu<T>({
 				pinColumn,
 				autoSizeColumns,
 				chooseColumns,
-				exportCsv,
-				exportLabel,
+				exportActions,
 			})
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
@@ -352,7 +355,7 @@ export function GridContextMenu<T>({
 				unpin: () => pinColumn(column.id, false),
 				autoSizeColumns: autoSizeColumns ?? undefined,
 				chooseColumns: () => chooseColumns?.(),
-				exportCsv: exportCsv ?? undefined,
+				exportActions,
 			}
 
 			return config.column(context, defaults)
@@ -366,8 +369,7 @@ export function GridContextMenu<T>({
 			pinColumn,
 			autoSizeColumns,
 			chooseColumns,
-			exportCsv,
-			exportLabel,
+			exportActions,
 		],
 	)
 
@@ -385,7 +387,7 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(value == null ? '' : String(value))
 
-			const defaults = cellMenuDefaults(copy, exportCsv, exportLabel)
+			const defaults = cellMenuDefaults(copy, exportActions)
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
@@ -396,12 +398,12 @@ export function GridContextMenu<T>({
 				column,
 				value,
 				copy,
-				exportCsv: exportCsv ?? undefined,
+				exportActions,
 			}
 
 			return config.cell(context, defaults)
 		},
-		[config.cell, columnById, rowByKey, exportCsv, exportLabel],
+		[config.cell, columnById, rowByKey, exportActions],
 	)
 
 	const resolveItems = useCallback(

@@ -7,7 +7,6 @@ export type {
 	GridColumnManagerConfig,
 	GridColumnOrder,
 	GridDataProps,
-	GridExportConfig,
 	GridHeader,
 	GridSelection,
 	GridSort,
