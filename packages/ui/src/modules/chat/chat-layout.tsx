@@ -214,6 +214,11 @@ export function ChatLayout({
 
 	if (!conversationList) return surface
 
+	// The conversation targeted by the open remove confirmation, named in its title.
+	const pendingConversation = conversations?.find(
+		(conversation) => conversation.id === pendingRemoval,
+	)
+
 	return (
 		<div className={cn('flex h-full gap-4', className)}>
 			{/* Inline rail on desktop; the menu button takes over below `lg`. */}
@@ -257,8 +262,8 @@ export function ChatLayout({
 
 					setPendingRemoval(null)
 				}}
-				title="Remove conversation?"
-				description="This conversation will be permanently removed. This action cannot be undone."
+				title={pendingConversation ? <>Remove {pendingConversation.title}</> : undefined}
+				description="This can't be undone."
 				confirm={{ label: 'Remove', color: 'red' }}
 			/>
 
