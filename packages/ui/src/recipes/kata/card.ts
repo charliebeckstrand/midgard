@@ -1,38 +1,33 @@
-import { iro, ji, ma, type Step, sun } from '../kiso'
+import { iro, ji, type Step, sun } from '../kiso'
 
 const { text } = iro
 const { size } = ji
-const { gap, p, pb, pt, px } = ma
 
 /**
- * Density-keyed body padding from `ma.p`: sm → p-2, md → p-3, lg → p-4.
- * Header / footer pad three sides via the directional maps below; the edge
- * facing the body stays open and the body slot closes the box.
+ * Card-side projections onto its direct `data-slot=card-*` children. Header
+ * and footer carry none of their own spacing — like the body, they're static
+ * leaves that can't read `size` — so the card is the single source for the
+ * header's gap to the body (`pb`), the footer's gap from the body (`pt`), and
+ * the footer's own action-row gap (one step tighter than `ma.gap`, so actions
+ * sit close). Direct-child selectors keep nested cards independent.
  */
-const bodyPadding = {
-	sm: p.sm,
-	md: p.md,
-	lg: p.lg,
-} as const satisfies Record<Step, string>
-
-const headerPadding = {
-	sm: [px.sm, pt.sm, 'pb-0'],
-	md: [px.md, pt.md, 'pb-0'],
-	lg: [px.lg, pt.lg, 'pb-0'],
+const slots = {
+	sm: [
+		'*:data-[slot=card-header]:pb-2',
+		'*:data-[slot=card-footer]:pt-2',
+		'*:data-[slot=card-footer]:gap-1',
+	],
+	md: [
+		'*:data-[slot=card-header]:pb-3',
+		'*:data-[slot=card-footer]:pt-3',
+		'*:data-[slot=card-footer]:gap-2',
+	],
+	lg: [
+		'*:data-[slot=card-header]:pb-4',
+		'*:data-[slot=card-footer]:pt-4',
+		'*:data-[slot=card-footer]:gap-3',
+	],
 } as const satisfies Record<Step, readonly string[]>
-
-const footerPadding = {
-	sm: [px.sm, pb.sm, 'pt-0'],
-	md: [px.md, pb.md, 'pt-0'],
-	lg: [px.lg, pb.lg, 'pt-0'],
-} as const satisfies Record<Step, readonly string[]>
-
-// One step tighter than `ma.gap` at each density; footer actions sit close.
-const footerGap = {
-	sm: gap.xs,
-	md: gap.sm,
-	lg: gap.md,
-} as const satisfies Record<Step, string>
 
 const radius = {
 	sm: sun.sm.radius,
@@ -40,44 +35,9 @@ const radius = {
 	lg: sun.lg.radius,
 } as const satisfies Record<Step, 'sm' | 'md' | 'lg'>
 
-/**
- * Card-side projections that keep direct-child sections in step with a
- * non-md `size`. Sections are static leaves carrying their own md padding;
- * the card overrides the step-varying properties from outside. Direct-child
- * selectors keep nested cards independent. md has no row: at the default
- * step the section's own classes already match, and a consumer `className`
- * on a section keeps overriding them. The `px`/`pt`/`p`/`gap` values mirror
- * the `ma`-derived header/footer/body maps above; they're written as literals
- * (not projected from `ma`) because Tailwind emits a `*:data-[slot=…]:`
- * variant only where it scans the full class.
- */
-const sections = {
-	sm: [
-		'*:data-[slot=card-header]:px-2',
-		'*:data-[slot=card-header]:pt-2',
-		'*:data-[slot=card-body]:p-2',
-		'*:data-[slot=card-footer]:px-2',
-		'*:data-[slot=card-footer]:pb-2',
-		'*:data-[slot=card-footer]:gap-1',
-	],
-	md: [],
-	lg: [
-		'*:data-[slot=card-header]:px-4',
-		'*:data-[slot=card-header]:pt-4',
-		'*:data-[slot=card-body]:p-4',
-		'*:data-[slot=card-footer]:px-4',
-		'*:data-[slot=card-footer]:pb-4',
-		'*:data-[slot=card-footer]:gap-3',
-	],
-} as const satisfies Record<Step, readonly string[]>
-
 export const k = {
+	slots,
 	radius,
-	bodyPadding,
-	headerPadding,
-	footerPadding,
-	footerGap,
-	sections,
 	header: text.default,
 	description: [size.sm, text.muted],
 } as const

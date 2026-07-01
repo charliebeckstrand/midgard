@@ -9,10 +9,11 @@ import {
 	MeasuringStrategy,
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { FolderInput, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { GripVertical, Plus, SendToBack, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
+import { Card, CardBody, CardHeader } from '../../components/card'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
@@ -149,10 +150,13 @@ export function GridGroupManager({
 			onDragCancel={mgr.handleDragCancel}
 		>
 			<div className={cn(k.manager.root)}>
-				<Button variant="soft" size="sm" onClick={mgr.addGroup} className="self-start">
-					<Icon icon={<Plus />} />
-					{addGroupLabel}
-				</Button>
+				{ungroupedZone && (
+					<GridGroupManagerZoneView
+						zone={ungroupedZone}
+						columnIds={mgr.zoneMap[UNGROUPED] ?? []}
+						{...shared}
+					/>
+				)}
 
 				{/* Groups reorder as a vertical list, dragged by the handle beside each
 				    name; the grid's group order follows this order. */}
@@ -167,13 +171,10 @@ export function GridGroupManager({
 					))}
 				</SortableContext>
 
-				{ungroupedZone && (
-					<GridGroupManagerZoneView
-						zone={ungroupedZone}
-						columnIds={mgr.zoneMap[UNGROUPED] ?? []}
-						{...shared}
-					/>
-				)}
+				<Button variant="soft" onClick={mgr.addGroup} className="self-start">
+					<Icon icon={<Plus />} />
+					{addGroupLabel}
+				</Button>
 			</div>
 
 			{/* The dragged row's stand-in — a full, inert clone (grip, disabled
@@ -225,7 +226,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 		<button
 			type="button"
 			ref={setActivatorNodeRef}
-			className={cn(k.manager.grip)}
+			className={cn(k.manager.row.grip)}
 			aria-label={`Reorder group ${props.zone.group ? groupTitle(props.zone.group) : ''}`}
 			{...attributes}
 			{...listeners}
@@ -256,54 +257,60 @@ function GridGroupManagerZoneView({
 	assign,
 	handle,
 }: GridGroupManagerZoneViewProps) {
-	const { setNodeRef, isOver } = useGroupZoneDroppable(zone.id)
+	const { setNodeRef } = useGroupZoneDroppable(zone.id)
 
 	return (
-		<div
+		<Card
 			ref={setNodeRef}
 			// The drop-over border cues a column landing in a group; the ungrouped
 			// pool takes columns too but skips the cue (the user asked for it off there).
-			className={cn(k.manager.zone, zone.group && isOver && k.manager.zoneOver)}
+			className={cn(k.manager.zone.root)}
 		>
-			{zone.group ? (
-				<GridGroupManagerZoneHeader
-					group={zone.group}
-					handle={handle}
-					colorOptions={colorOptions}
-					renameGroup={renameGroup}
-					recolorGroup={recolorGroup}
-					removeGroup={removeGroup}
-				/>
-			) : (
-				<span className={cn(k.manager.poolLabel)}>Ungrouped</span>
-			)}
+			<CardHeader>
+				{zone.group ? (
+					<GridGroupManagerZoneHeader
+						group={zone.group}
+						handle={handle}
+						colorOptions={colorOptions}
+						renameGroup={renameGroup}
+						recolorGroup={recolorGroup}
+						removeGroup={removeGroup}
+					/>
+				) : (
+					'Ungrouped'
+				)}
+			</CardHeader>
 
-			{columnIds.length === 0 ? (
-				<p className={cn(k.manager.empty)}>
-					{zone.group ? 'Drag columns here to add them.' : 'All columns are grouped.'}
-				</p>
-			) : (
-				<SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
-					{columnIds.map((id) => {
-						const item = byId.get(id)
+			<CardBody>
+				{columnIds.length === 0 ? (
+					zone.group ? (
+						'No columns in this group'
+					) : (
+						'No ungrouped columns'
+					)
+				) : (
+					<SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
+						{columnIds.map((id) => {
+							const item = byId.get(id)
 
-						if (!item) return null
+							if (!item) return null
 
-						return (
-							<GridGroupManagerColumnRow
-								key={id}
-								item={item}
-								zoneId={zone.id}
-								groups={groups}
-								hidden={hidden}
-								onToggle={onToggle}
-								assign={assign}
-							/>
-						)
-					})}
-				</SortableContext>
-			)}
-		</div>
+							return (
+								<GridGroupManagerColumnRow
+									key={id}
+									item={item}
+									zoneId={zone.id}
+									groups={groups}
+									hidden={hidden}
+									onToggle={onToggle}
+									assign={assign}
+								/>
+							)
+						})}
+					</SortableContext>
+				)}
+			</CardBody>
+		</Card>
 	)
 }
 
@@ -330,11 +337,11 @@ function GridGroupManagerZoneHeader({
 	const label = groupTitle(group)
 
 	return (
-		<div className={cn(k.manager.zoneHeader)}>
+		<div className={cn(k.manager.zone.header)}>
 			{handle}
 
 			<Input
-				className={cn(k.manager.nameField)}
+				className={cn(k.manager.zone.name)}
 				aria-label={`Group name for ${label}`}
 				placeholder="Group name"
 				value={typeof group.title === 'string' ? group.title : ''}
@@ -342,7 +349,7 @@ function GridGroupManagerZoneHeader({
 			/>
 
 			<Listbox<PaletteColor>
-				className={cn(k.manager.colorField)}
+				className={cn(k.manager.zone.color)}
 				placement="bottom-end"
 				nullable
 				clearable
@@ -403,13 +410,13 @@ function GridGroupManagerColumnRow({
 		<div
 			ref={setNodeRef}
 			style={style}
-			className={cn(k.manager.row)}
+			className={cn(k.manager.row.root)}
 			data-dragging={dataAttr(dragging)}
 		>
 			<button
 				type="button"
 				ref={setActivatorNodeRef}
-				className={cn(k.manager.grip)}
+				className={cn(k.manager.row.grip)}
 				aria-label={`Reorder ${label}`}
 				{...attributes}
 				{...listeners}
@@ -438,9 +445,9 @@ function GridGroupManagerColumnRow({
 			{groups.length > 0 && (
 				<Menu placement="bottom-end" className="ml-auto">
 					<MenuTrigger>
-						<button type="button" className={cn(k.manager.action)} aria-label={`Move ${label}`}>
-							<Icon icon={<FolderInput />} />
-						</button>
+						<Button variant="bare" aria-label={`Move ${label}`}>
+							<Icon icon={<SendToBack />} />
+						</Button>
 					</MenuTrigger>
 					<MenuContent>
 						{groups
@@ -480,8 +487,8 @@ function GridGroupManagerColumnRowOverlay({
 	const label = columnLabel(item)
 
 	return (
-		<div className={cn(k.manager.row, k.manager.rowOverlay)} data-dragging="">
-			<span className={cn(k.manager.grip)}>
+		<div className={cn(k.manager.row.root, k.manager.row.overlay)} data-dragging="">
+			<span className={cn(k.manager.row.grip)}>
 				<Icon icon={<GripVertical />} />
 			</span>
 

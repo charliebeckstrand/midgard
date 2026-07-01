@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
-import { Card, CardBody, CardHeader, CardTitle } from '../../components/card'
+import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
+import type { Step } from '../../recipes'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Card', () => {
@@ -47,44 +48,74 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card')?.className).toContain('rounded-md')
 	})
 
-	it('projects sm section padding onto direct children', () => {
+	it.each<[string, () => ReactElement, string]>([
+		[
+			'sm',
+			() => (
+				<Card size="sm">
+					<CardHeader>header</CardHeader>
+				</Card>
+			),
+			'pb-2',
+		],
+		[
+			'the md default',
+			() => (
+				<Card>
+					<CardHeader>header</CardHeader>
+				</Card>
+			),
+			'pb-3',
+		],
+		[
+			'lg',
+			() => (
+				<Card size="lg">
+					<CardHeader>header</CardHeader>
+				</Card>
+			),
+			'pb-4',
+		],
+	])('projects the %s header gap onto direct children', (_label, ui, expected) => {
+		const { container } = renderUI(ui())
+
+		// CardHeader carries none of its own gap at any step; the card is the
+		// single source, so even the md default shows up as a projection.
+		expect(bySlot(container, 'card')?.className).toContain(`*:data-[slot=card-header]:${expected}`)
+
+		expect(bySlot(container, 'card-header')?.className ?? '').not.toMatch(/\bpb-\d/)
+	})
+
+	it.each<Step>([
+		'sm',
+		'md',
+		'lg',
+	])('collapses the header gap to zero ahead of a body, at size %s', (step) => {
 		const { container } = renderUI(
-			<Card size="sm">
+			<Card size={step}>
+				<CardHeader>header</CardHeader>
 				<CardBody>body</CardBody>
 			</Card>,
 		)
 
-		// The static CardBody carries its own md padding; the sm card overrides
-		// it from outside through the section projection.
-		expect(bySlot(container, 'card')?.className).toContain('*:data-[slot=card-body]:p-2')
-
-		expect(bySlot(container, 'card-body')?.className).toContain('p-3')
-	})
-
-	it('projects lg section padding onto direct children', () => {
-		const { container } = renderUI(
-			<Card size="lg">
-				<CardHeader>header</CardHeader>
-			</Card>,
+		// Unconditional on size: the same compound rule shows up at every step.
+		expect(bySlot(container, 'card')?.className).toContain(
+			'*:data-[slot=card-header]:has-[+[data-slot=card-body]]:pb-0',
 		)
-
-		const cls = bySlot(container, 'card')?.className ?? ''
-
-		expect(cls).toContain('*:data-[slot=card-header]:px-4')
-
-		expect(cls).toContain('*:data-[slot=card-header]:pt-4')
 	})
 
-	it('carries no section projection at the md default', () => {
+	it('keeps the header gap when a body does not directly follow it', () => {
 		const { container } = renderUI(
 			<Card>
-				<CardBody>body</CardBody>
+				<CardHeader>header</CardHeader>
+				<CardFooter>footer</CardFooter>
 			</Card>,
 		)
 
-		// At md the section's own classes already match; omitting the
-		// projection keeps a consumer className on the section authoritative.
-		expect(bySlot(container, 'card')?.className).not.toContain('*:data-[slot=card-body]')
+		// The header-collapse rule only matches a CardBody next sibling; it's
+		// present in the class list but its `:has()` guard won't fire here, so
+		// the plain md gap projection from the section table is what applies.
+		expect(bySlot(container, 'card')?.className).toContain('*:data-[slot=card-header]:pb-3')
 	})
 
 	it('CardTitle text size follows its explicit size prop, bumped one step up', () => {
@@ -177,12 +208,11 @@ describe('Card size system', () => {
 		expect(cards[1]).toHaveAttribute('data-size', 'md')
 	})
 
-	// Card always carries a static `p-{density}`; the `:has(>[data-slot=card-…])`
-	// selectors zero that padding when structural slot children (CardHeader/
-	// CardBody/CardFooter) own the layout. Content slots (CardTitle/
-	// CardDescription) supply no padding of their own and must not collapse
-	// the frame.
-	it('suppresses its outer padding only for structural slot children', () => {
+	// The frame owns the outer padding on every edge: Card carries a static
+	// `p-{density}` for any child, structural or bare, and never collapses it.
+	// Sections pad only the inner edge they share with a sibling, so the body
+	// itself carries no padding.
+	it('keeps its frame padding around a structural section', () => {
 		const { container } = renderUI(
 			<Card size="md">
 				<CardBody>body</CardBody>
@@ -191,13 +221,12 @@ describe('Card size system', () => {
 
 		const cls = bySlot(container, 'card')?.className ?? ''
 
-		expect(cls).toContain('[&:has(>[data-slot=card-header])]:p-0')
+		// Frame padding survives — no `:has` collapse zeroes it.
+		expect(cls).toContain('p-3')
 
-		expect(cls).toContain('[&:has(>[data-slot=card-body])]:p-0')
+		expect(cls).not.toContain(':p-0')
 
-		expect(cls).toContain('[&:has(>[data-slot=card-footer])]:p-0')
-
-		// No prefix selector: it would also match content slots like card-title.
-		expect(cls).not.toContain('[&:has(>[data-slot^=card-])]:p-0')
+		// The body leans on the frame; it brings no padding of its own.
+		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp-\d/)
 	})
 })
