@@ -5,6 +5,7 @@
  * carries only the band's flex layout, the collapse toggle, and the separating
  * rule beneath the row.
  */
+import type { PaletteColor } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
 
 const { fg } = hannou
@@ -14,7 +15,28 @@ const { flex } = narabi
 const { bg } = omote
 const { focus } = sen
 
+/**
+ * A faint (10% opacity) fill tinting a group's column cells to its color, keyed
+ * by {@link PaletteColor} so a column reads `columnTint[group.color]`. Mirrors the
+ * soft-variant `-600` shade at a lower alpha; full literals for Tailwind's
+ * scanner, and a single value that reads over both light and dark surfaces.
+ */
+const columnTint: Record<PaletteColor, string> = {
+	zinc: 'bg-zinc-600/10',
+	red: 'bg-red-600/10',
+	amber: 'bg-amber-600/10',
+	green: 'bg-green-600/10',
+	blue: 'bg-blue-600/10',
+	mist: 'bg-mist-600/10',
+	rose: 'bg-rose-600/10',
+	violet: 'bg-violet-600/10',
+	sky: 'bg-sky-600/10',
+}
+
 export const k = {
+	// Per-group column tint (see {@link columnTint}); merged onto a grouped
+	// column's body cells so its data reads in the group's color.
+	columnTint,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],

@@ -48,6 +48,25 @@ describe('Grid column groups', () => {
 		expect(bandCell(container)).toBeNull()
 	})
 
+	it('tints a colored group’s member body cells and leaves others plain', () => {
+		const colored: GridColumnGroup[] = [
+			{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
+		]
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+		)
+
+		const cell = (id: string) => container.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`)
+
+		expect(cell('first')?.className).toContain('bg-blue-600/10')
+
+		expect(cell('last')?.className).toContain('bg-blue-600/10')
+
+		// The ungrouped column stays untinted.
+		expect(cell('email')?.className ?? '').not.toContain('bg-blue-600/10')
+	})
+
 	it('keeps grouped columns contiguous despite declaration order', () => {
 		const split: GridColumn<Row>[] = [
 			{ id: 'first', title: 'First', cell: (r) => r.first },
