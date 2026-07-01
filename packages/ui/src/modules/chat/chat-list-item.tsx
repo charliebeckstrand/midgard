@@ -1,3 +1,5 @@
+'use client'
+
 import { Trash } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
