@@ -236,7 +236,13 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	)
 
 	return (
-		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
+		<div
+			ref={setNodeRef}
+			style={style}
+			// While reordering, force the grabbing cursor over the whole moving zone.
+			className={cn(dragging && k.grabbing)}
+			data-dragging={dataAttr(dragging)}
+		>
 			<GridGroupManagerZoneView {...props} handle={handle} />
 		</div>
 	)
@@ -259,12 +265,18 @@ function GridGroupManagerZoneView({
 }: GridGroupManagerZoneViewProps) {
 	const { setNodeRef } = useGroupZoneDroppable(zone.id)
 
+	// Colors already taken by other groups — offered disabled, so a color maps to
+	// at most one group.
+	const usedColors = new Set(
+		groups.filter((g) => g.id !== zone.group?.id && g.color).map((g) => g.color as PaletteColor),
+	)
+
 	return (
 		<Card
 			ref={setNodeRef}
-			// The drop-over border cues a column landing in a group; the ungrouped
-			// pool takes columns too but skips the cue (the user asked for it off there).
-			className={cn(k.manager.zone.root)}
+			// A colored group tints its Card outline to match; the ungrouped pool and
+			// colorless groups keep the default neutral outline.
+			className={cn(k.manager.zone.root, zone.group?.color && k.cardOutline[zone.group.color])}
 		>
 			<CardHeader>
 				{zone.group ? (
@@ -272,6 +284,7 @@ function GridGroupManagerZoneView({
 						group={zone.group}
 						handle={handle}
 						colorOptions={colorOptions}
+						usedColors={usedColors}
 						renameGroup={renameGroup}
 						recolorGroup={recolorGroup}
 						removeGroup={removeGroup}
@@ -320,6 +333,8 @@ type GridGroupManagerZoneHeaderProps = {
 	/** The group-reorder drag handle, rendered leading the name Input. */
 	handle?: ReactNode
 	colorOptions: PaletteColor[]
+	/** Colors already used by other groups; offered disabled so each maps to one group. */
+	usedColors: Set<PaletteColor>
 	renameGroup: (id: string | number, title: string) => void
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
@@ -330,6 +345,7 @@ function GridGroupManagerZoneHeader({
 	group,
 	handle,
 	colorOptions,
+	usedColors,
 	renameGroup,
 	recolorGroup,
 	removeGroup,
@@ -360,7 +376,7 @@ function GridGroupManagerZoneHeader({
 				onValueChange={(color) => recolorGroup(group.id, color)}
 			>
 				{colorOptions.map((color) => (
-					<ListboxOption key={color} value={color}>
+					<ListboxOption key={color} value={color} disabled={usedColors.has(color)}>
 						<Badge color={color} variant="soft">
 							{colorLabel(color)}
 						</Badge>

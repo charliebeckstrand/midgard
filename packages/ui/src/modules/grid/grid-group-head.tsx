@@ -97,9 +97,10 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
-	// A colored group draws a 2px rule under its Badge, spanning its columns.
-	const bandBorder =
-		span.kind === 'group' && span.group.color ? k.bandBorder[span.group.color] : null
+	// A colored group draws a 2px rule under its Badge, spanning the cell's content
+	// width — inset by the header padding, so it aligns with the column titles and
+	// splits from the neighbouring group.
+	const ruleColor = span.kind === 'group' && span.group.color ? k.bandColor[span.group.color] : null
 
 	return (
 		<TableHeader
@@ -110,16 +111,21 @@ function GridGroupHeadCell({
 				k.cell,
 				stickyHeader && gridK.sticky.head,
 				pinned && pinnedClassName(pinning, span.leadColumnId, { header: true }),
-				bandBorder,
 			)}
 			style={pinned ? pinnedOffsetStyle(pinning, span.leadColumnId) : undefined}
 		>
 			{span.kind === 'group' && (
-				<GridGroupBand
-					group={span.group}
-					collapsed={header.collapsed.has(span.group.id)}
-					onToggleCollapse={header.onToggleCollapse}
-				/>
+				<div className={cn(k.content)}>
+					<GridGroupBand
+						group={span.group}
+						collapsed={header.collapsed.has(span.group.id)}
+						onToggleCollapse={header.onToggleCollapse}
+					/>
+
+					{ruleColor && (
+						<div data-slot="grid-group-rule" className={cn(k.rule, ruleColor)} aria-hidden="true" />
+					)}
+				</div>
 			)}
 		</TableHeader>
 	)

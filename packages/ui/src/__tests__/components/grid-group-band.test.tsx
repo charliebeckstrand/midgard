@@ -48,7 +48,10 @@ describe('Grid column groups', () => {
 		expect(bandCell(container)).toBeNull()
 	})
 
-	it('underlines a colored group’s band in its color, and leaves an uncolored band plain', () => {
+	const bandRule = (root: HTMLElement) =>
+		root.querySelector<HTMLElement>('thead th[scope="colgroup"] [data-slot="grid-group-rule"]')
+
+	it('underlines a colored group’s band in its color', () => {
 		const colored: GridColumnGroup[] = [
 			{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
 		]
@@ -57,11 +60,7 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
-		const band = bandCell(container)
-
-		expect(band?.className).toContain('border-blue-600')
-
-		expect(band?.className).toContain('border-b-2')
+		expect(bandRule(container)?.className).toContain('bg-blue-600')
 	})
 
 	it('draws no band underline for a colorless group', () => {
@@ -69,7 +68,7 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
 		)
 
-		expect(bandCell(container)?.className ?? '').not.toContain('border-b-2')
+		expect(bandRule(container)).toBeNull()
 	})
 
 	it('keeps grouped columns contiguous despite declaration order', () => {

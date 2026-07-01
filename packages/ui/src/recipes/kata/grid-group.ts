@@ -16,30 +16,57 @@ const { bg } = omote
 const { focus } = sen
 
 /**
- * A 2px bottom rule in a group's color, drawn under the band across its columns,
- * keyed by {@link PaletteColor} so a band reads `bandBorder[group.color]`. Full
- * literals for Tailwind's scanner; the `-600` shade reads over both light and
- * dark surfaces.
+ * The fill for a group's 2px underline rule, keyed by {@link PaletteColor} so a
+ * band reads `bandColor[group.color]`. Full literals for Tailwind's scanner; the
+ * `-600` shade reads over both light and dark surfaces.
  */
-const bandBorder: Record<PaletteColor, string> = {
-	zinc: 'border-b-2 border-zinc-600',
-	red: 'border-b-2 border-red-600',
-	amber: 'border-b-2 border-amber-600',
-	green: 'border-b-2 border-green-600',
-	blue: 'border-b-2 border-blue-600',
-	mist: 'border-b-2 border-mist-600',
-	rose: 'border-b-2 border-rose-600',
-	violet: 'border-b-2 border-violet-600',
-	sky: 'border-b-2 border-sky-600',
+const bandColor: Record<PaletteColor, string> = {
+	zinc: 'bg-zinc-600',
+	red: 'bg-red-600',
+	amber: 'bg-amber-600',
+	green: 'bg-green-600',
+	blue: 'bg-blue-600',
+	mist: 'bg-mist-600',
+	rose: 'bg-rose-600',
+	violet: 'bg-violet-600',
+	sky: 'bg-sky-600',
+}
+
+/**
+ * The outline color for a group's editor Card, keyed by {@link PaletteColor} so a
+ * zone reads `cardOutline[group.color]`. `!` forces it over the Card's default
+ * neutral outline; full literals for Tailwind's scanner.
+ */
+const cardOutline: Record<PaletteColor, string> = {
+	zinc: '!outline-zinc-600',
+	red: '!outline-red-600',
+	amber: '!outline-amber-600',
+	green: '!outline-green-600',
+	blue: '!outline-blue-600',
+	mist: '!outline-mist-600',
+	rose: '!outline-rose-600',
+	violet: '!outline-violet-600',
+	sky: '!outline-sky-600',
 }
 
 export const k = {
-	// Per-group band underline in the group's color (see {@link bandBorder}); a
-	// colored 2px rule under the Badge, spanning the group's columns.
-	bandBorder,
+	// Outline color for a group's editor Card in its color (see {@link cardOutline}).
+	cardOutline,
+	// Forces the grabbing cursor across a group zone (and its children) while it is
+	// dragged, over the grip's resting grab and any inner control cursors.
+	grabbing: ['cursor-grabbing', '[&_*]:!cursor-grabbing'],
+	// Fill for a group's underline rule in its color (see {@link bandColor}).
+	bandColor,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],
+	// A group band's cell content: the Badge row above the colored rule, stacked so
+	// the rule spans the cell's content width — inset by the header's cell padding,
+	// so it lines up with the column titles and leaves a gap between groups.
+	content: [flex.col, 'gap-2'],
+	// A colored group's 2px underline rule: a rounded bar spanning the band content
+	// width, under the Badge. Only a group with a `color` draws it.
+	rule: ['h-0.5', rounded.full],
 	// A group band's row: the colored Badge, then the bare chevron toggle when
 	// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
 	// within the band rather than overrun.

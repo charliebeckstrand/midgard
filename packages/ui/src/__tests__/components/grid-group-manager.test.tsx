@@ -218,4 +218,35 @@ describe('Grid column-group editor', () => {
 		// Now the move menu appears on each column row.
 		expect(screen.getAllByRole('button', { name: /^Move / }).length).toBeGreaterThan(0)
 	})
+
+	it('disables a color already taken by another group', () => {
+		function ColoredHarness() {
+			const [groups, setGroups] = useState<GridColumnGroup[]>([
+				{ id: 'contact', title: 'Contact', color: 'blue', columns: ['first'] },
+				{ id: 'org', title: 'Org', columns: ['last'] },
+			])
+
+			return (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					groups={{ value: groups, onValueChange: setGroups }}
+					columnManager={{ toolbarButton: true, defaultOpen: true }}
+				/>
+			)
+		}
+
+		renderUI(<ColoredHarness />)
+
+		// Open the second group's color picker; blue (used by the first group) is
+		// offered disabled, while a free color stays selectable.
+		fireEvent.click(screen.getByRole('combobox', { name: 'Color for Org' }))
+
+		expect(screen.getByRole('option', { name: 'Blue' }).getAttribute('aria-disabled')).toBe('true')
+
+		expect(screen.getByRole('option', { name: 'Red' }).getAttribute('aria-disabled')).not.toBe(
+			'true',
+		)
+	})
 })
