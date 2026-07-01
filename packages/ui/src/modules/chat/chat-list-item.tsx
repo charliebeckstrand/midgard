@@ -17,8 +17,6 @@ export type ChatListItemProps = {
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message), truncated. */
 	preview?: ReactNode
-	/** Trailing label, typically a relative timestamp. */
-	timestamp?: ReactNode
 	/** Marks this row as the open conversation (`aria-current="true"`, morphing indicator). */
 	current?: boolean
 	/** Selects this conversation. When set, the title/preview region is a button. */
@@ -34,13 +32,14 @@ export type ChatListItemProps = {
 
 /**
  * A single conversation row for a chat list or sidebar: a `title` over an
- * optional `preview`, with an optional `timestamp` and trailing `actions`.
+ * optional `preview`, and
+ * trailing `actions`.
  *
  * @remarks
- * The title/preview region is a `<button>` invoking `onSelect` when provided,
- * otherwise a static `<span>`. The button's hit area stretches across the whole
- * row via a pointer-capturing `::after`, so clicking the surrounding chrome (row
- * padding, the gap, the timestamp) also selects. `actions` render beside it rather
+ * The title/preview region is a `<button>` invoking `onSelect` when
+ * provided, otherwise a static `<span>`. The button's hit area stretches across
+ * the whole row via a pointer-capturing `::after`, so clicking the surrounding
+ * chrome (row padding, the gap) also selects. `actions` render beside it rather
  * than within it — so a control like a delete button never nests inside the select
  * button (nested-interactive markup) — and sit above the overlay to stay clickable.
  * The open conversation (`current`) gets `aria-current` and an {@link ActiveIndicator}
@@ -56,7 +55,6 @@ export type ChatListItemProps = {
 export function ChatListItem({
 	title,
 	preview,
-	timestamp,
 	current,
 	onSelect,
 	actions,
@@ -97,12 +95,6 @@ export function ChatListItem({
 			) : (
 				<span data-slot="chat-list-item-select" className={k.select}>
 					{body}
-				</span>
-			)}
-
-			{timestamp !== undefined && (
-				<span data-slot="chat-list-item-timestamp" className={k.timestamp}>
-					{timestamp}
 				</span>
 			)}
 

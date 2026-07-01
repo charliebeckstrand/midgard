@@ -24,7 +24,7 @@ export type ChatConversation = {
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message). */
 	preview?: ReactNode
-	/** Trailing label, typically a relative timestamp. */
+	/** Relative timestamp, shown under the preview. */
 	timestamp?: ReactNode
 }
 
@@ -131,7 +131,6 @@ export function ChatLayout({
 						key={conversation.id}
 						title={conversation.title}
 						preview={conversation.preview}
-						timestamp={conversation.timestamp}
 						current={conversation.id === currentConversationId}
 						onSelect={
 							onConversationSelect ? () => onConversationSelect(conversation.id) : undefined

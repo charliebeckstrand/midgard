@@ -31,7 +31,7 @@ describe('ChatListItem', () => {
 		const { container } = renderUI(<ChatListItem title="Bug investigation" onSelect={vi.fn()} />)
 
 		// A pointer-capturing `::after` overlays the whole row so clicking the
-		// padding, gap, or timestamp still selects.
+		// padding or gap still selects.
 		expect(bySlot(container, 'chat-list-item-select')).toHaveClass(
 			'after:absolute',
 			'after:inset-0',
@@ -94,17 +94,14 @@ describe('ChatListItem', () => {
 		)
 	})
 
-	it('renders timestamp and actions as siblings of the select button', () => {
+	it('keeps actions as a sibling of the select button', () => {
 		const { container } = renderUI(
 			<ChatListItem
-				title="With affixes"
-				timestamp="2h"
+				title="With actions"
 				onSelect={vi.fn()}
 				actions={<button type="button">Delete</button>}
 			/>,
 		)
-
-		expect(bySlot(container, 'chat-list-item-timestamp')).toHaveTextContent('2h')
 
 		const actions = bySlot(container, 'chat-list-item-actions')
 
