@@ -94,17 +94,50 @@ describe('ChatListItem', () => {
 		)
 	})
 
-	it('renders timestamp and actions as siblings of the select button', () => {
+	it('shows a bare timestamp under the preview', () => {
 		const { container } = renderUI(
 			<ChatListItem
-				title="With affixes"
+				title="With timestamp"
+				preview="Preview text"
 				timestamp="2h"
+				onSelect={vi.fn()}
+			/>,
+		)
+
+		const timestamp = bySlot(container, 'chat-list-item-timestamp')
+
+		expect(timestamp).toHaveTextContent('2h')
+
+		// It renders inside the select button, as the line under the preview.
+		const select = bySlot(container, 'chat-list-item-select')
+
+		expect(select?.contains(timestamp)).toBe(true)
+	})
+
+	it('hides the timestamp when show is explicitly false', () => {
+		const { container } = renderUI(
+			<ChatListItem title="No timestamp shown" timestamp={{ value: '2h', show: false }} />,
+		)
+
+		expect(bySlot(container, 'chat-list-item-timestamp')).not.toBeInTheDocument()
+	})
+
+	it('shows the timestamp when passed as an options object without show', () => {
+		const { container } = renderUI(
+			<ChatListItem title="With timestamp options" timestamp={{ value: '2h' }} />,
+		)
+
+		expect(bySlot(container, 'chat-list-item-timestamp')).toHaveTextContent('2h')
+	})
+
+	it('keeps actions as a sibling of the select button', () => {
+		const { container } = renderUI(
+			<ChatListItem
+				title="With actions"
 				onSelect={vi.fn()}
 				actions={<button type="button">Delete</button>}
 			/>,
 		)
-
-		expect(bySlot(container, 'chat-list-item-timestamp')).toHaveTextContent('2h')
 
 		const actions = bySlot(container, 'chat-list-item-actions')
 

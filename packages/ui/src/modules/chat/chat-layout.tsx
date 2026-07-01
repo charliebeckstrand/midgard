@@ -24,7 +24,7 @@ export type ChatConversation = {
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message). */
 	preview?: ReactNode
-	/** Trailing label, typically a relative timestamp. */
+	/** Relative timestamp, shown under the preview. */
 	timestamp?: ReactNode
 }
 
