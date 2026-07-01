@@ -126,7 +126,7 @@ type GridGroupBandProps = {
 	onToggleCollapse: (id: string | number) => void
 }
 
-/** The colored band content: collapse toggle, icon + title Badge, and a `+N` count when collapsed. @internal */
+/** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
 function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProps) {
 	const label = groupLabel(group)
 
@@ -143,33 +143,37 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 		</Badge>
 	)
 
+	// A description reveals as a tooltip over the Badge, whether or not it folds.
+	const badgeWithTooltip: ReactNode = group.description ? (
+		<Tooltip>
+			<TooltipTrigger>{badge}</TooltipTrigger>
+
+			<TooltipContent>{group.description}</TooltipContent>
+		</Tooltip>
+	) : (
+		badge
+	)
+
+	// Non-collapsible: the Badge alone, flush with its column's left edge.
+	if (!group.collapsible) return <span className={cn(k.band)}>{badgeWithTooltip}</span>
+
+	// Collapsible: the Badge leads (so it still lines up with the column), the fold
+	// chevron trails it, and both live in one toggle — a click anywhere folds the
+	// group. The `+N` count sits outside the control, after the chevron.
 	return (
 		<span className={cn(k.band)}>
-			{group.collapsible && (
-				<button
-					type="button"
-					className={cn(k.toggle)}
-					aria-expanded={!collapsed}
-					aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
-					onClick={() => onToggleCollapse(group.id)}
-				>
-					<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} />
-				</button>
-			)}
+			<button
+				type="button"
+				className={cn(k.bandButton)}
+				aria-expanded={!collapsed}
+				aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
+				onClick={() => onToggleCollapse(group.id)}
+			>
+				{badgeWithTooltip}
+				<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} className={cn(k.chevron)} />
+			</button>
 
-			{group.description ? (
-				<Tooltip>
-					<TooltipTrigger>{badge}</TooltipTrigger>
-
-					<TooltipContent>{group.description}</TooltipContent>
-				</Tooltip>
-			) : (
-				badge
-			)}
-
-			{group.collapsible && collapsed && hiddenCount > 0 && (
-				<span className={cn(k.count)}>+{hiddenCount}</span>
-			)}
+			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}
 		</span>
 	)
 }

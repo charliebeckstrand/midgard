@@ -1,6 +1,7 @@
 'use client'
 
 import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { FolderInput, GripVertical, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '../../components/badge'
@@ -22,7 +23,7 @@ import {
 	type GridGroupManagerZone,
 	UNGROUPED,
 	useGridGroupManager,
-	useGroupColumnDraggable,
+	useGroupColumnSortable,
 	useGroupZoneDroppable,
 } from './use-grid-group-manager'
 
@@ -48,6 +49,10 @@ export type GridGroupManagerProps = {
 	/** The user-hidden set; a row's checkbox reflects and toggles it. */
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
+	/** Current column order; a within-ungrouped drag reorders it. */
+	order: (string | number)[]
+	/** Commits the next column order after a within-ungrouped reorder. */
+	onOrderChange: (order: (string | number)[]) => void
 	/** Palette presets for the color Listbox; defaults to the full standard + extended palette. */
 	colorOptions?: PaletteColor[]
 	/** Label on the "New group" button. @defaultValue 'New group' */
@@ -70,10 +75,12 @@ export function GridGroupManager({
 	columns,
 	hidden,
 	onToggle,
+	order,
+	onOrderChange,
 	colorOptions = DEFAULT_COLOR_OPTIONS,
 	addGroupLabel = 'New group',
 }: GridGroupManagerProps) {
-	const mgr = useGridGroupManager({ groups, onGroupsChange, columns })
+	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
 	const sensors = useSortableSensors()
 
@@ -173,23 +180,25 @@ function GridGroupManagerZoneView({
 					{zone.group ? 'Drag columns here to add them.' : 'All columns are grouped.'}
 				</p>
 			) : (
-				zone.columnIds.map((id) => {
-					const item = byId.get(id)
+				<SortableContext items={zone.columnIds.map(String)} strategy={verticalListSortingStrategy}>
+					{zone.columnIds.map((id) => {
+						const item = byId.get(id)
 
-					if (!item) return null
+						if (!item) return null
 
-					return (
-						<GridGroupManagerColumnRow
-							key={id}
-							item={item}
-							zoneId={zone.id}
-							groups={groups}
-							hidden={hidden}
-							onToggle={onToggle}
-							assign={assign}
-						/>
-					)
-				})
+						return (
+							<GridGroupManagerColumnRow
+								key={id}
+								item={item}
+								zoneId={zone.id}
+								groups={groups}
+								hidden={hidden}
+								onToggle={onToggle}
+								assign={assign}
+							/>
+						)
+					})}
+				</SortableContext>
 			)}
 		</div>
 	)
@@ -218,7 +227,6 @@ function GridGroupManagerZoneHeader({
 		<div className={cn(k.manager.zoneHeader)}>
 			<Input
 				className={cn(k.manager.nameField)}
-				size="sm"
 				aria-label={`Group name for ${label}`}
 				placeholder="Group name"
 				value={typeof group.title === 'string' ? group.title : ''}
@@ -227,7 +235,6 @@ function GridGroupManagerZoneHeader({
 
 			<Listbox<PaletteColor>
 				className={cn(k.manager.colorField)}
-				size="sm"
 				nullable
 				clearable
 				aria-label={`Color for ${label}`}
@@ -238,21 +245,21 @@ function GridGroupManagerZoneHeader({
 			>
 				{colorOptions.map((color) => (
 					<ListboxOption key={color} value={color}>
-						<Badge color={color} variant="soft" size="sm">
+						<Badge color={color} variant="soft">
 							{colorLabel(color)}
 						</Badge>
 					</ListboxOption>
 				))}
 			</Listbox>
 
-			<button
-				type="button"
-				className={cn(k.manager.action)}
+			<Button
+				variant="plain"
+				color="red"
 				aria-label={`Remove group ${label}`}
 				onClick={() => removeGroup(group.id)}
 			>
 				<Icon icon={<Trash2 />} />
-			</button>
+			</Button>
 		</div>
 	)
 }
@@ -276,16 +283,23 @@ function GridGroupManagerColumnRow({
 	onToggle,
 	assign,
 }: GridGroupManagerColumnRowProps) {
-	const { setNodeRef, attributes, listeners, isDragging } = useGroupColumnDraggable(item.id)
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
+		useGroupColumnSortable(item.id)
 
 	const label = columnLabel(item)
 
 	const inGroup = zoneId !== UNGROUPED
 
 	return (
-		<div ref={setNodeRef} className={cn(k.manager.row)} data-dragging={dataAttr(isDragging)}>
+		<div
+			ref={setNodeRef}
+			style={style}
+			className={cn(k.manager.row)}
+			data-dragging={dataAttr(dragging)}
+		>
 			<button
 				type="button"
+				ref={setActivatorNodeRef}
 				className={cn(k.manager.grip)}
 				aria-label={`Reorder ${label}`}
 				{...attributes}
@@ -308,27 +322,31 @@ function GridGroupManagerColumnRow({
 				</CheckboxGroup>
 			</Control>
 
-			<Menu placement="bottom-end" className="ml-auto">
-				<MenuTrigger>
-					<button type="button" className={cn(k.manager.action)} aria-label={`Move ${label}`}>
-						<Icon icon={<FolderInput />} />
-					</button>
-				</MenuTrigger>
-				<MenuContent>
-					{groups
-						.filter((group) => group.id !== zoneId)
-						.map((group) => (
-							<MenuItem key={group.id} onAction={() => assign(item.id, group.id)}>
-								<MenuLabel>Move to {groupTitle(group)}</MenuLabel>
+			{/* The "Move to" menu only means something once a group exists to move into
+			    (or out of); with no groups it would open empty, so it's withheld. */}
+			{groups.length > 0 && (
+				<Menu placement="bottom-end" className="ml-auto">
+					<MenuTrigger>
+						<button type="button" className={cn(k.manager.action)} aria-label={`Move ${label}`}>
+							<Icon icon={<FolderInput />} />
+						</button>
+					</MenuTrigger>
+					<MenuContent>
+						{groups
+							.filter((group) => group.id !== zoneId)
+							.map((group) => (
+								<MenuItem key={group.id} onAction={() => assign(item.id, group.id)}>
+									<MenuLabel>Move to {groupTitle(group)}</MenuLabel>
+								</MenuItem>
+							))}
+						{inGroup && (
+							<MenuItem onAction={() => assign(item.id, null)}>
+								<MenuLabel>Remove from group</MenuLabel>
 							</MenuItem>
-						))}
-					{inGroup && (
-						<MenuItem onAction={() => assign(item.id, null)}>
-							<MenuLabel>Remove from group</MenuLabel>
-						</MenuItem>
-					)}
-				</MenuContent>
-			</Menu>
+						)}
+					</MenuContent>
+				</Menu>
+			)}
 		</div>
 	)
 }

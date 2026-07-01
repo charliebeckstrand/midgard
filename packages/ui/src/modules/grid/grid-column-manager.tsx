@@ -323,6 +323,8 @@ export function GridColumnManager({
 					columns={orderableColumns}
 					hidden={hidden}
 					onToggle={toggle}
+					order={order}
+					onOrderChange={setOrder}
 				/>
 			) : (
 				<List

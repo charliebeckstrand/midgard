@@ -15,16 +15,18 @@ const { flex } = narabi
 const { border, focus } = sen
 
 export const k = {
-	// The group row's cells carry a bottom rule so the band reads as a distinct
-	// tier above the column headers, and vertical-middle alignment so a lone Badge
-	// centers in the band.
-	cell: ['align-middle', 'border-b', ...border.subtleColor],
+	// The group row's cells align their band vertically; no bottom rule — the
+	// colored Badge alone sets the tier off from the column headers.
+	cell: ['align-middle'],
 	// A group band's content: the colored Badge and, when collapsible, the toggle.
 	// `min-w-0` lets the Badge label truncate within the band rather than overrun.
 	band: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
-	// Collapse/expand toggle on a collapsible band: an icon button, muted at rest,
-	// tinting on hover/focus like the header's other affordances.
-	toggle: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+	// Collapsible band toggle: one control wrapping the Badge and the trailing
+	// chevron, so the Badge stays flush with its column's left edge (the chevron
+	// sits after it) and a click anywhere on it folds the group.
+	bandButton: [flex.inline, 'items-center', 'gap-1', 'min-w-0', focus.ring, cursor, 'select-none'],
+	// The fold chevron trailing the Badge: muted and non-shrinking.
+	chevron: ['shrink-0', text.muted],
 	// The "+N" hidden-count shown on a collapsed band, beside the expand toggle.
 	count: [size.xs, text.muted, 'tabular-nums'],
 	// Column-manager group editor: the create button, group zones, and column rows.
@@ -36,8 +38,8 @@ export const k = {
 		zone: [flex.col, 'gap-1', 'p-2', 'border', ...border.subtleColor, rounded.md],
 		zoneOver: border.emphasisColor,
 		// A group zone's header row: the name Input, the color Listbox, and the
-		// remove button, laid out inline and wrapping on a narrow dialog.
-		zoneHeader: [flex.row, 'items-center', 'gap-2', 'flex-wrap'],
+		// remove button, kept inline on one row.
+		zoneHeader: [flex.row, 'items-center', 'gap-2'],
 		// The name Input grows to fill the header row; the color Listbox holds a
 		// natural width beside it.
 		nameField: 'grow',

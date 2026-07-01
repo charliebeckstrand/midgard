@@ -5,9 +5,12 @@ import {
 	addGroupTo,
 	assignColumn,
 	buildManagerZones,
+	locateDropZones,
 	recolorGroupIn,
 	removeGroupFrom,
 	renameGroupIn,
+	reorderZoneColumns,
+	setGroupColumnsIn,
 	UNGROUPED,
 } from '../../modules/grid/use-grid-group-manager'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -61,6 +64,43 @@ describe('group manager reducers', () => {
 
 		expect(zones[2]?.columnIds).toEqual(['d'])
 	})
+
+	it('replaces a group’s member order for a within-group reorder', () => {
+		expect(setGroupColumnsIn(groups, 'g1', ['b', 'a'])[0]?.columns).toEqual(['b', 'a'])
+	})
+})
+
+describe('group manager drag helpers', () => {
+	const zones = buildManagerZones([{ id: 'g', columns: ['a', 'b'] }], ['a', 'b', 'c', 'd'])
+
+	it('locates the source and target zones of a drop', () => {
+		// Drop column 'c' (ungrouped) onto column 'a' (group g).
+		const located = locateDropZones(zones, 'c', 'a')
+
+		expect(located?.sourceZone.id).toBe(UNGROUPED)
+
+		expect(located?.targetZone.id).toBe('g')
+	})
+
+	it('resolves a drop on a zone id to that zone', () => {
+		expect(locateDropZones(zones, 'a', UNGROUPED)?.targetZone.id).toBe(UNGROUPED)
+	})
+
+	const groupZone = zones[0] // ['a', 'b']
+
+	const poolZone = zones[1] // ungrouped: ['c', 'd']
+
+	it('reorders within a zone, moving the active before the over column', () => {
+		expect(poolZone && reorderZoneColumns(poolZone, 'd', 'c')).toEqual(['d', 'c'])
+	})
+
+	it('drops on the zone itself to move to the end', () => {
+		expect(groupZone && reorderZoneColumns(groupZone, 'a', 'g')).toEqual(['b', 'a'])
+	})
+
+	it('returns null for a no-op reorder', () => {
+		expect(groupZone ? reorderZoneColumns(groupZone, 'a', 'a') : 'missing').toBeNull()
+	})
 })
 
 describe('Grid column-group editor', () => {
@@ -112,5 +152,17 @@ describe('Grid column-group editor', () => {
 		fireEvent.change(nameInput, { target: { value: 'Identity' } })
 
 		expect(band(container)?.textContent).toContain('Identity')
+	})
+
+	it('withholds the move menu until a group exists', () => {
+		renderUI(<Harness />)
+
+		// No groups yet — nothing to move a column into.
+		expect(screen.queryByRole('button', { name: /^Move / })).toBeNull()
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		// Now the move menu appears on each column row.
+		expect(screen.getAllByRole('button', { name: /^Move / }).length).toBeGreaterThan(0)
 	})
 })
