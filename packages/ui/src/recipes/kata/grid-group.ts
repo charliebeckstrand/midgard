@@ -16,27 +16,27 @@ const { bg } = omote
 const { focus } = sen
 
 /**
- * A faint (10% opacity) fill tinting a group's column cells to its color, keyed
- * by {@link PaletteColor} so a column reads `columnTint[group.color]`. Mirrors the
- * soft-variant `-600` shade at a lower alpha; full literals for Tailwind's
- * scanner, and a single value that reads over both light and dark surfaces.
+ * A 2px bottom rule in a group's color, drawn under the band across its columns,
+ * keyed by {@link PaletteColor} so a band reads `bandBorder[group.color]`. Full
+ * literals for Tailwind's scanner; the `-600` shade reads over both light and
+ * dark surfaces.
  */
-const columnTint: Record<PaletteColor, string> = {
-	zinc: 'bg-zinc-600/10',
-	red: 'bg-red-600/10',
-	amber: 'bg-amber-600/10',
-	green: 'bg-green-600/10',
-	blue: 'bg-blue-600/10',
-	mist: 'bg-mist-600/10',
-	rose: 'bg-rose-600/10',
-	violet: 'bg-violet-600/10',
-	sky: 'bg-sky-600/10',
+const bandBorder: Record<PaletteColor, string> = {
+	zinc: 'border-b-2 border-zinc-600',
+	red: 'border-b-2 border-red-600',
+	amber: 'border-b-2 border-amber-600',
+	green: 'border-b-2 border-green-600',
+	blue: 'border-b-2 border-blue-600',
+	mist: 'border-b-2 border-mist-600',
+	rose: 'border-b-2 border-rose-600',
+	violet: 'border-b-2 border-violet-600',
+	sky: 'border-b-2 border-sky-600',
 }
 
 export const k = {
-	// Per-group column tint (see {@link columnTint}); merged onto a grouped
-	// column's body cells so its data reads in the group's color.
-	columnTint,
+	// Per-group band underline in the group's color (see {@link bandBorder}); a
+	// colored 2px rule under the Badge, spanning the group's columns.
+	bandBorder,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],

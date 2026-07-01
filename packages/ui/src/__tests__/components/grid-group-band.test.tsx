@@ -48,7 +48,7 @@ describe('Grid column groups', () => {
 		expect(bandCell(container)).toBeNull()
 	})
 
-	it('tints a colored group’s member body cells and leaves others plain', () => {
+	it('underlines a colored group’s band in its color, and leaves an uncolored band plain', () => {
 		const colored: GridColumnGroup[] = [
 			{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
 		]
@@ -57,14 +57,19 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
-		const cell = (id: string) => container.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`)
+		const band = bandCell(container)
 
-		expect(cell('first')?.className).toContain('bg-blue-600/10')
+		expect(band?.className).toContain('border-blue-600')
 
-		expect(cell('last')?.className).toContain('bg-blue-600/10')
+		expect(band?.className).toContain('border-b-2')
+	})
 
-		// The ungrouped column stays untinted.
-		expect(cell('email')?.className ?? '').not.toContain('bg-blue-600/10')
+	it('draws no band underline for a colorless group', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+		)
+
+		expect(bandCell(container)?.className ?? '').not.toContain('border-b-2')
 	})
 
 	it('keeps grouped columns contiguous despite declaration order', () => {

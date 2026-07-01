@@ -97,6 +97,10 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
+	// A colored group draws a 2px rule under its Badge, spanning its columns.
+	const bandBorder =
+		span.kind === 'group' && span.group.color ? k.bandBorder[span.group.color] : null
+
 	return (
 		<TableHeader
 			scope={span.kind === 'group' ? 'colgroup' : 'col'}
@@ -106,6 +110,7 @@ function GridGroupHeadCell({
 				k.cell,
 				stickyHeader && gridK.sticky.head,
 				pinned && pinnedClassName(pinning, span.leadColumnId, { header: true }),
+				bandBorder,
 			)}
 			style={pinned ? pinnedOffsetStyle(pinning, span.leadColumnId) : undefined}
 		>

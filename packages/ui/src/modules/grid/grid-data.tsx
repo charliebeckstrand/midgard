@@ -15,7 +15,6 @@ import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
-import { k as groupK } from '../../recipes/kata/grid-group'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
 import type { GridExportAction } from './export/types'
@@ -39,11 +38,10 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
-import type { GridColumnGroup } from './grid-group-types'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import { applyPinOverrides, isFrozen, type PinOverrides, type PinSide } from './grid-pin-overrides'
+import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
 import {
 	GridReorderContext,
 	restrictToFirstScrollableAncestor,
@@ -201,39 +199,6 @@ function bridgeRowActivate<T>(
 
 	return (row, event) =>
 		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
-}
-
-/**
- * Merges each colored group's faint tint onto its member columns' body cells, so
- * a group reads down the grid in its color. The first group to claim a column
- * wins; a group with no color, and non-data or frozen columns (their cells carry
- * an opaque pinned surface the tint can't sit over), are left untouched. Returns
- * the columns as-is when nothing is tinted, so a groupless grid is unchanged.
- *
- * @internal
- */
-function applyGroupTint<T>(columns: GridColumn<T>[], groups: GridColumnGroup[]): GridColumn<T>[] {
-	if (groups.length === 0) return columns
-
-	const tintById = new Map<string | number, string>()
-
-	for (const group of groups) {
-		if (!group.color) continue
-
-		const tint = groupK.columnTint[group.color]
-
-		for (const id of group.columns) if (!tintById.has(id)) tintById.set(id, tint)
-	}
-
-	if (tintById.size === 0) return columns
-
-	return columns.map((column) => {
-		const tint = tintById.get(column.id)
-
-		if (!tint || !isDataColumn(column) || isFrozen(column)) return column
-
-		return { ...column, className: cn(column.className, tint) }
-	})
 }
 
 /**
@@ -406,21 +371,13 @@ export function GridData<T>({
 	// groups hide from the engine, and the band-row resolver rendered below.
 	const group = useGridGroup(groupsConfig)
 
-	// Tint each grouped column's body cells to its group color, so the group reads
-	// down the grid. Resolved before the cursor and engine so the tint rides the
-	// same column objects head and body render from.
-	const tintedColumns = useMemo(
-		() => applyGroupTint(pinnedColumns, group.groups),
-		[pinnedColumns, group.groups],
-	)
-
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
 	const cursor = useGridCursor<T>({
 		navigable,
 		editable,
-		columns: tintedColumns,
+		columns: pinnedColumns,
 		onRowActivate,
 		selectableRef,
 		toggleActiveRow,
@@ -454,7 +411,7 @@ export function GridData<T>({
 		reorderColumns,
 		managerItems,
 	} = useGridColumns<T>({
-		columns: tintedColumns,
+		columns: pinnedColumns,
 		columnOrderConfig,
 		columnManagerConfig,
 		groups: group.groups,
