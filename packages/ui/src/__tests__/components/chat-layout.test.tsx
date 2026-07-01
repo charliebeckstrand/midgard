@@ -16,7 +16,7 @@ describe('ChatLayout', () => {
 
 		expect(screen.getByText('Hi there')).toBeInTheDocument()
 
-		expect(bySlot(container, 'chat-messages')).toBeInTheDocument()
+		expect(bySlot(container, 'chat-transcript')).toBeInTheDocument()
 
 		expect(bySlot(container, 'chat-prompt')).toBeInTheDocument()
 	})
@@ -181,7 +181,7 @@ describe('ChatLayout', () => {
 			/>,
 		)
 
-		const before = bySlot(container, 'chat-messages')
+		const before = bySlot(container, 'chat-transcript')
 
 		rerender(
 			<ChatLayout
@@ -192,7 +192,7 @@ describe('ChatLayout', () => {
 			/>,
 		)
 
-		const after = bySlot(container, 'chat-messages')
+		const after = bySlot(container, 'chat-transcript')
 
 		// A fresh DOM node — not just new content — so the transcript opens
 		// already scrolled to the bottom instead of animating from wherever

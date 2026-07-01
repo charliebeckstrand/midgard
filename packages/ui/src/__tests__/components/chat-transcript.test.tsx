@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ChatContent } from '../../modules/chat'
-import { ChatMessages } from '../../modules/chat'
+import { ChatTranscript } from '../../modules/chat'
 import { allBySlot, bySlot, present, renderUI, screen } from '../helpers'
 
 const messages: ChatContent[] = [
@@ -8,9 +8,9 @@ const messages: ChatContent[] = [
 	{ id: '2', role: 'agent', content: 'Hello!' },
 ]
 
-describe('ChatMessages', () => {
+describe('ChatTranscript', () => {
 	it('renders each message, mapping agent role to an assistant bubble', () => {
-		const { container } = renderUI(<ChatMessages messages={messages} />)
+		const { container } = renderUI(<ChatTranscript messages={messages} />)
 
 		expect(screen.getByText('Hi there')).toBeInTheDocument()
 
@@ -24,15 +24,15 @@ describe('ChatMessages', () => {
 	})
 
 	it('renders nothing in the list when there are no messages', () => {
-		const { container } = renderUI(<ChatMessages messages={[]} />)
+		const { container } = renderUI(<ChatTranscript messages={[]} />)
 
 		expect(allBySlot(container, 'chat-message')).toHaveLength(0)
 
-		expect(bySlot(container, 'chat-messages')).toBeInTheDocument()
+		expect(bySlot(container, 'chat-transcript')).toBeInTheDocument()
 	})
 
 	it('pulses only the last agent bubble while streaming', () => {
-		const { container } = renderUI(<ChatMessages messages={messages} streaming />)
+		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
 		const pulsing = allBySlot(container, 'markdown').filter((el) =>
 			el.classList.contains('animate-pulse'),

@@ -9,7 +9,7 @@ import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import type { Chat, ChatContent } from 'ui/modules/chat'
-import { ChatMessages } from 'ui/modules/chat'
+import { ChatTranscript } from 'ui/modules/chat'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
@@ -139,7 +139,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					{loadingMessages ? (
 						<Placeholder />
 					) : chatMessages.length > 0 ? (
-						<ChatMessages messages={chatMessages} />
+						<ChatTranscript messages={chatMessages} />
 					) : (
 						<Text className="text-zinc-500">No messages in this chat.</Text>
 					)}
