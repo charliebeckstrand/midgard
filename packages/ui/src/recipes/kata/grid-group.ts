@@ -94,6 +94,9 @@ export const k = {
 		// move menu, in a line.
 		row: {
 			root: [flex.row, 'items-center', 'gap-2'],
+			// The checkbox Control grows to fill the row, pushing the move menu (or,
+			// on the overlay, the row's own right edge) flush against it.
+			control: 'grow',
 			// The dragged row's overlay clone: an opaque, rounded, shadowed surface so it
 			// reads as lifted above the dialog while it tracks the pointer.
 			overlay: [bg.surface, rounded.md, 'shadow-lg'],

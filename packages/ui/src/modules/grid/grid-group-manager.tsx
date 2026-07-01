@@ -439,7 +439,7 @@ function GridGroupManagerColumnRow({
 				<Icon icon={<GripVertical />} />
 			</button>
 
-			<Control>
+			<Control className={cn(k.manager.row.control)}>
 				<CheckboxGroup>
 					<CheckboxField>
 						<Checkbox
@@ -458,7 +458,7 @@ function GridGroupManagerColumnRow({
 			{/* The "Move to" menu only means something once a group exists to move into
 			    (or out of); with no groups it would open empty, so it's withheld. */}
 			{groups.length > 0 && (
-				<Menu placement="bottom-end" className="ml-auto">
+				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button variant="bare" aria-label={`Move ${label}`}>
 							<Icon icon={<EllipsisVertical />} />
@@ -507,7 +507,7 @@ function GridGroupManagerColumnRowOverlay({
 				<Icon icon={<GripVertical />} />
 			</span>
 
-			<Control>
+			<Control className={cn(k.manager.row.control)}>
 				<CheckboxGroup>
 					<CheckboxField>
 						<Checkbox checked={checked} disabled aria-label={`Show ${label}`} />
