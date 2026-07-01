@@ -12,6 +12,8 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
+import { GridGroupManager } from './grid-group-manager'
+import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
 import { columnLabel, type GridColumnManagerItem, type GridColumnManagerPreset } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
@@ -39,6 +41,17 @@ export type GridColumnManagerProps = {
 	 * where frozen columns still list in their groups but can't be moved.
 	 */
 	onPinChange?: PinChange
+
+	/**
+	 * Column groups the manager can edit. When paired with `onGroupsChange`, the
+	 * orderable region becomes a group editor — a "New group" button, a zone per
+	 * group (name, color, remove), and an ungrouped pool — where columns drag
+	 * between zones to change membership. Omit both for the flat reorderable list.
+	 */
+	groups?: GridColumnGroup[]
+
+	/** Commits the next groups from the group editor; its presence turns on the editor. */
+	onGroupsChange?: (groups: GridColumnGroup[]) => void
 
 	/** Called with the current order and hidden ids when the save-preset button is pressed; presence of the handler also shows the button. */
 	onSavePreset?: (preset: GridColumnManagerPreset) => void
@@ -225,6 +238,8 @@ export function GridColumnManager({
 	defaultHidden,
 	onHiddenChange,
 	onPinChange,
+	groups,
+	onGroupsChange,
 	onSavePreset,
 	savePresetLabel = 'Save as preset',
 	className,
@@ -299,42 +314,54 @@ export function GridColumnManager({
 					onPinChange={onPinChange}
 				/>
 			)}
-			<List
-				items={orderableColumns}
-				getKey={getKey}
-				onReorder={handleReorder}
-				variant="plain"
-				aria-label="Reorder columns"
-			>
-				{(col) => (
-					<ListItem
-						suffix={
-							onPinChange ? (
-								<GridColumnPinControl
-									item={col}
-									side={undefined}
-									onPinChange={onPinChange}
-									placement="bottom-end"
-								/>
-							) : undefined
-						}
-					>
-						<Control>
-							<CheckboxGroup>
-								<CheckboxField>
-									<Checkbox
-										checked={!hidden.has(col.id)}
-										disabled={col.hideable === false}
-										onChange={() => toggle(col.id)}
-										aria-label={`Show ${columnLabel(col)}`}
+			{groups && onGroupsChange ? (
+				// The group editor owns the orderable region: columns move between
+				// group zones and the ungrouped pool, keeping their membership.
+				<GridGroupManager
+					groups={groups}
+					onGroupsChange={onGroupsChange}
+					columns={orderableColumns}
+					hidden={hidden}
+					onToggle={toggle}
+				/>
+			) : (
+				<List
+					items={orderableColumns}
+					getKey={getKey}
+					onReorder={handleReorder}
+					variant="plain"
+					aria-label="Reorder columns"
+				>
+					{(col) => (
+						<ListItem
+							suffix={
+								onPinChange ? (
+									<GridColumnPinControl
+										item={col}
+										side={undefined}
+										onPinChange={onPinChange}
+										placement="bottom-end"
 									/>
-									<Label>{col.title}</Label>
-								</CheckboxField>
-							</CheckboxGroup>
-						</Control>
-					</ListItem>
-				)}
-			</List>
+								) : undefined
+							}
+						>
+							<Control>
+								<CheckboxGroup>
+									<CheckboxField>
+										<Checkbox
+											checked={!hidden.has(col.id)}
+											disabled={col.hideable === false}
+											onChange={() => toggle(col.id)}
+											aria-label={`Show ${columnLabel(col)}`}
+										/>
+										<Label>{col.title}</Label>
+									</CheckboxField>
+								</CheckboxGroup>
+							</Control>
+						</ListItem>
+					)}
+				</List>
+			)}
 			{rightColumns.length > 0 && (
 				<GridColumnManagerFrozenGroup
 					items={rightColumns}

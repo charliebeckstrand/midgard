@@ -1,4 +1,4 @@
-import { PencilIcon } from 'lucide-react'
+import { MailIcon, PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
@@ -10,6 +10,7 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../compone
 import {
 	Grid,
 	type GridColumn,
+	type GridColumnGroup,
 	type GridPaginationState,
 	type SortState,
 } from '../../../../modules/grid'
@@ -637,6 +638,62 @@ const ColumnManagerExample = () => {
 	)
 }
 
+// A `groups` array bands a contiguous run of columns under a colored, labeled
+// header. Each group names its member `columns` (kept adjacent and moved as a
+// block), a `title`, and a `color` from the standard + extended Badge palette.
+const columnGroups: GridColumnGroup[] = [
+	{ id: 'contact', title: 'Contact', color: 'blue', columns: ['name', 'email'] },
+	{ id: 'org', title: 'Organization', color: 'violet', columns: ['role', 'status'] },
+]
+
+const GroupsExample = () => (
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={columnGroups} />
+)
+
+// A `collapsible` group folds to its first column behind an expand toggle,
+// hiding the rest until reopened; `defaultCollapsed` seeds it folded. `icon` and
+// `description` (a tooltip) round out the band.
+const collapsibleGroups: GridColumnGroup[] = [
+	{
+		id: 'contact',
+		title: 'Contact',
+		color: 'blue',
+		icon: <MailIcon />,
+		description: 'How to reach this person',
+		columns: ['name', 'email'],
+		collapsible: true,
+	},
+	{
+		id: 'org',
+		title: 'Organization',
+		color: 'violet',
+		columns: ['role', 'status'],
+		collapsible: true,
+		defaultCollapsed: true,
+	},
+]
+
+const CollapsibleGroupsExample = () => (
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={collapsibleGroups} />
+)
+
+// Passing a `groups` binding turns on the column manager's group editor: a "New
+// group" button, a zone per group (name, color, remove), and an ungrouped pool.
+// Drag columns between zones — or use a row's "Move" menu — to change membership.
+const GroupManagerExample = () => {
+	const [groups, setGroups] = useState<GridColumnGroup[]>(columnGroups)
+
+	return (
+		<Grid
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			groups={{ value: groups, onValueChange: setGroups }}
+			columnManager={{ toolbarButton: true }}
+		/>
+	)
+}
+
 // `exportable` adds an "Export to CSV" item to the header and cell right-click
 // menus; it downloads the filtered/sorted rows — or just the selected rows when a
 // selection is active — each column read through its `value`. Passing a config
@@ -704,6 +761,7 @@ const tabs = [
 	'Resize',
 	'Pin',
 	'Lock',
+	'Groups',
 	'Filters',
 	'Header',
 	'Toolbar',
@@ -889,6 +947,31 @@ export function Demo() {
 								rows={[...people, ...people]}
 								getKey={(row, i) => `${row.id}-${i}`}
 							/>
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Groups">
+					<Stack gap="xl">
+						<Example
+							title="Column groups"
+							code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+						>
+							<GroupsExample />
+						</Example>
+
+						<Example
+							title="Collapsible groups"
+							code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+						>
+							<CollapsibleGroupsExample />
+						</Example>
+
+						<Example
+							title="Group editor"
+							code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+						>
+							<GroupManagerExample />
 						</Example>
 					</Stack>
 				</TabContent>
