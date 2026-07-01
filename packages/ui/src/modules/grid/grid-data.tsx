@@ -17,6 +17,7 @@ import { useA11yAnnouncements } from '../../hooks'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
+import type { GridExportAction } from './export/types'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -29,7 +30,6 @@ import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { GridContextMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
-	resolveExport,
 	resolveGridSemantics,
 	resolveHover,
 	resolveResizeLayout,
@@ -38,7 +38,6 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
-import { downloadCsv, rowsToCsv } from './grid-export'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -60,6 +59,7 @@ import {
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
+import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
@@ -99,9 +99,8 @@ type GridRegionProps<T> = {
 	pinColumn: (column: string | number, side: PinSide | false) => void
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
-	exportCsv: (() => void) | null
-	/** Label on the header menu's "Export to CSV" item, shared with the export toolbar button. */
-	exportLabel: ReactNode
+	/** One action per configured export type; empty when export is off. */
+	exportActions: GridExportAction[]
 	children: ReactNode
 }
 
@@ -129,8 +128,7 @@ function GridRegion<T>({
 	pinColumn,
 	autoSizeColumns,
 	chooseColumns,
-	exportCsv,
-	exportLabel,
+	exportActions,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -157,8 +155,7 @@ function GridRegion<T>({
 			pinColumn={pinColumn}
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
-			exportCsv={exportCsv}
-			exportLabel={exportLabel}
+			exportActions={exportActions}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -563,43 +560,13 @@ export function GridData<T>({
 		enabled: hasSelectionColumn,
 	})
 
-	// Resolve the `exportable` prop (boolean shorthand or config) into the enabled
-	// flag, the opt-in toolbar button, and the label/filename shared by the button
-	// and the header menu's "Export to CSV" item.
-	const {
-		enabled: exportEnabled,
-		toolbarButton: exportToolbarButton,
-		label: exportLabel,
-		filename: exportFilename,
-	} = resolveExport(exportable)
-
-	// Export to a CSV download: the selected rows when a selection is active, else
-	// the full filtered + sorted set (all pages). The engine's sorted row model
-	// reflects active filters and sort and carries each row's selected state (the
-	// grid mirrors its selection `Set` into the engine), so the selected subset
-	// keeps the displayed order; `null` keeps the menu items and the toolbar
-	// button out unless export is enabled.
-	const exportCsv = useMemo(
-		() =>
-			exportEnabled
-				? () => {
-						const sorted = table.getSortedRowModel().rows
-
-						const selected = sorted.filter((modelRow) => modelRow.getIsSelected())
-
-						const exported = selected.length > 0 ? selected : sorted
-
-						downloadCsv(
-							exportFilename,
-							rowsToCsv(
-								visibleColumns,
-								exported.map((modelRow) => modelRow.original),
-							),
-						)
-					}
-				: null,
-		[exportEnabled, exportFilename, visibleColumns, table],
-	)
+	// Resolve the `exportable` prop into one action per configured export type,
+	// each reading the selected rows when a selection is active, else the full
+	// filtered + sorted set (all pages) — the engine mirrors the grid's
+	// selection `Set` into its own state, so the selected subset keeps the
+	// displayed order. Shared by the toolbar's "Export" dropdown and both
+	// context menus.
+	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table })
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
@@ -835,9 +802,7 @@ export function GridData<T>({
 						showColumnManager={showButton}
 						columnManagerLabel={managerLabel}
 						onManageColumns={() => setColumnManagerOpen(true)}
-						showExport={exportToolbarButton}
-						exportLabel={exportLabel}
-						onExport={exportCsv}
+						exportActions={exportActions}
 						batchActions={batchActions}
 						hasSelection={someSelected}
 						selection={selection}
@@ -860,8 +825,7 @@ export function GridData<T>({
 						pinColumn={pinColumn}
 						autoSizeColumns={autoSizeColumns}
 						chooseColumns={chooseColumns}
-						exportCsv={exportCsv}
-						exportLabel={exportLabel}
+						exportActions={exportActions}
 					>
 						{tableRegion}
 					</GridRegion>

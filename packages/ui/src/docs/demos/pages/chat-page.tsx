@@ -87,7 +87,9 @@ const newChatGreeting = 'Hi! How can I help you today?'
 
 // A mock transport that streams a canned reply word by word, emitting the
 // cumulative text on each tick (the snapshot shape ChatTransport expects).
-const mockTransport: ChatTransport = () =>
+// Checks `signal` between words so the demo's stop control has something real
+// to cancel.
+const mockTransport: ChatTransport = (_content, signal) =>
 	(async function* () {
 		const reply =
 			'Thanks for sharing that. Let me think about the best approach and get back to you with a detailed plan.'
@@ -95,6 +97,8 @@ const mockTransport: ChatTransport = () =>
 		let snapshot = ''
 
 		for (const word of reply.split(' ')) {
+			if (signal.aborted) return
+
 			snapshot = snapshot ? `${snapshot} ${word}` : word
 
 			await new Promise((resolve) => setTimeout(resolve, 60))
@@ -110,7 +114,7 @@ export function Demo() {
 
 	const [currentId, setCurrentId] = useState('1')
 
-	const { messages, sending, send, setMessages } = useChatSend({
+	const { messages, sending, send, stop, setMessages } = useChatSend({
 		transport: mockTransport,
 		initialMessages: initialTranscripts['1'],
 	})
@@ -170,6 +174,7 @@ export function Demo() {
 					messages={messages}
 					sending={sending}
 					onSend={send}
+					onStop={stop}
 					onAttach={() => {}}
 					aria-label={`Message ${currentTitle ?? 'conversation'}`}
 					header={<Heading level={2}>{currentTitle}</Heading>}

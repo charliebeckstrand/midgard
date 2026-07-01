@@ -1,9 +1,15 @@
 export { type GridContextValue, type SortState, useGrid } from './context'
+export type {
+	GridExportAction,
+	GridExportContext,
+	GridExportEntry,
+	GridExportType,
+	GridExportTypeConfig,
+} from './export/types'
 export {
 	Grid,
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
-	type GridExportConfig,
 	type GridHeader,
 	type GridProps,
 	type GridSelection,

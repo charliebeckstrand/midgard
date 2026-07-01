@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
+import type { GridExportAction } from './export/types'
 import type { GridEditCell } from './grid-editing-types'
 
 /**
@@ -372,8 +373,8 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumns: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
-	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
-	exportCsv: (() => void) | undefined
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	exportActions: GridExportAction[]
 }
 
 /**
@@ -403,15 +404,16 @@ export type GridCellMenuContext<T> = {
 	value: unknown
 	/** Copies the cell value to the clipboard. */
 	copy: () => void
-	/** Exports the rows to a CSV download — the selected rows when a selection is active, else the filtered/sorted set — or `undefined` when {@link GridProps.exportable} is off. */
-	exportCsv: (() => void) | undefined
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	exportActions: GridExportAction[]
 }
 
 /**
  * Body-cell context-menu config: `true` (or omit / `false`) for the default
- * items — Copy, plus "Export to CSV" when {@link GridProps.exportable} is on — or
- * a builder receiving the {@link GridCellMenuContext} and those defaults,
- * returning the final item list.
+ * items — Copy, plus one item per active export type when
+ * {@link GridProps.exportable} is on — or a builder receiving the
+ * {@link GridCellMenuContext} and those defaults, returning the final item
+ * list.
  *
  * @typeParam T - Shape of a single row.
  */
