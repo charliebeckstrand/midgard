@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { downloadCsv, rowsToCsv } from '../../modules/grid/export/csv'
+import { downloadCsv, rowsToCsv } from '../../modules/grid/export/export-csv'
 import { fireEvent, renderUI, screen, within } from '../helpers'
 
 describe('rowsToCsv', () => {

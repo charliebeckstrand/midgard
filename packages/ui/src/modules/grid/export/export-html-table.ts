@@ -1,7 +1,7 @@
 'use client'
 
 import type { GridColumn } from '../types'
-import { exportFields } from './accessor'
+import { exportFields } from './export-accessor'
 
 /** Escapes text for safe placement inside an HTML element. @internal */
 function escapeHtml(value: string): string {

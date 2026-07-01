@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
-import { downloadExcel, rowsToExcelHtml } from '../../modules/grid/export/excel'
-import { rowsToHtmlTable } from '../../modules/grid/export/html-table'
-import { printRows, rowsToPrintHtml } from '../../modules/grid/export/print'
+import { downloadExcel, rowsToExcelHtml } from '../../modules/grid/export/export-excel'
+import { rowsToHtmlTable } from '../../modules/grid/export/export-html-table'
+import { printRows, rowsToPrintHtml } from '../../modules/grid/export/export-print'
 
 type Row = { id: number; name: string; role: string }
 

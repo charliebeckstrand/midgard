@@ -1,4 +1,4 @@
-import { BUILTIN_EXPORT_LABEL, BUILTIN_EXPORTERS, DEFAULT_EXPORT_TYPES } from './registry'
+import { BUILTIN_EXPORT_LABEL, BUILTIN_EXPORTERS, DEFAULT_EXPORT_TYPES } from './export-registry'
 import type { GridExportAction, GridExportContext, GridExportEntry, GridExportType } from './types'
 
 /** Whether `type` names one of the shipped exporters (has a built-in and a default label). @internal */

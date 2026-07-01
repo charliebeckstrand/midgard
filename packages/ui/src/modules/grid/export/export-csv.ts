@@ -1,8 +1,8 @@
 'use client'
 
 import type { GridColumn } from '../types'
-import { exportFields } from './accessor'
-import { downloadBlob } from './download'
+import { exportFields } from './export-accessor'
+import { downloadBlob } from './export-download'
 
 /**
  * Quotes a CSV field per RFC 4180: a field carrying the delimiter, a quote, or

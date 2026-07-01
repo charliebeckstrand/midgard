@@ -2,7 +2,7 @@
 
 import type { Table } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { resolveExportActions } from './export/resolve'
+import { resolveExportActions } from './export/export-resolve'
 import type { GridExportAction, GridExportEntry } from './export/types'
 import type { GridColumn } from './types'
 

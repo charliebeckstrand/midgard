@@ -1,8 +1,8 @@
 'use client'
 
 import type { GridColumn } from '../types'
-import { downloadBlob } from './download'
-import { rowsToHtmlTable } from './html-table'
+import { downloadBlob } from './export-download'
+import { rowsToHtmlTable } from './export-html-table'
 
 /**
  * Serializes rows to an Excel-openable document: the shared HTML table,
