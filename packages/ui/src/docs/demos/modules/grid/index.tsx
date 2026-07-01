@@ -707,6 +707,7 @@ const tabs = [
 	'Filters',
 	'Header',
 	'Toolbar',
+	'Export',
 	'Pagination',
 	'State',
 	'Editable',
@@ -898,8 +899,12 @@ export function Demo() {
 						<Example title="Column manager">
 							<ColumnManagerExample />
 						</Example>
+					</Stack>
+				</TabContent>
 
-						<Example title="Export" code={code`<Grid exportable={['csv', 'excel']} />`}>
+				<TabContent value="Export">
+					<Stack gap="xl">
+						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
 						</Example>
 					</Stack>
