@@ -226,27 +226,24 @@ describe('FileUpload button variant selection', () => {
 		fireEvent.change(input, { target: { files: makeFileList(files) } })
 	}
 
-	it('swaps the trigger to a Reset button once a file is selected', () => {
+	it('keeps the Upload trigger and adds a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUpload variant="button" />)
+
+		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		expect(screen.queryByRole('button', { name: 'Upload' })).not.toBeInTheDocument()
-
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+
+		// The trigger stays operable so a different file can be picked.
+		const click = vi.spyOn(fileInput, 'click')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Upload' }))
+
+		expect(click).toHaveBeenCalledTimes(1)
 	})
 
-	it('keeps the Upload trigger beside Reset when multiple files are selected', () => {
-		const { container } = renderUI(<FileUpload variant="button" multiple />)
-
-		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
-
-		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
-	})
-
-	it('clears the selection and restores the trigger when Reset is clicked', () => {
+	it('clears the selection and removes Reset when Reset is clicked', () => {
 		const onFiles = vi.fn()
 
 		const { container } = renderUI(<FileUpload variant="button" onFiles={onFiles} />)
@@ -256,6 +253,8 @@ describe('FileUpload button variant selection', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
 		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
 
 		expect(onFiles).toHaveBeenLastCalledWith([])
 	})

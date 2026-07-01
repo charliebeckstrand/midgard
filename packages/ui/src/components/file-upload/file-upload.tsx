@@ -111,9 +111,9 @@ type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * The `drop` label truncates to one line and reveals the full name(s) in a
  * tooltip when the summary hides them or a single name is clipped, and its
  * dropzone stays clickable, focusable, and keyboard-operable so a different file
- * can be picked without clearing first. `button` swaps its trigger for `Reset`,
- * except under `multiple`, where the upload trigger stays and `Reset` sits beside
- * it.
+ * can be picked without clearing first. `button` keeps its upload trigger and
+ * adds `Reset` beside it once a selection exists, so a different file can be
+ * picked (or the selection cleared) without the trigger swapping out.
  *
  * @see {@link FileUploadProps}
  * @see {@link useFileUploadHandlers}
@@ -209,11 +209,9 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 	const { accept, multiple, disabled, className, children, size, color } = props
 	const { control, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
 
-	// A single-file selection swaps the trigger for `Reset`. Under `multiple` the
-	// upload trigger stays and `Reset` sits beside it, so more files can be picked
-	// without clearing first.
-	const showUpload = !hasFiles || multiple
-
+	// The upload trigger always stays; a selection adds `Reset` beside it, so a
+	// different file can be picked — or the selection cleared — without the
+	// trigger swapping out.
 	return (
 		<div data-slot="file-upload" className={cn('inline-flex gap-2', className)}>
 			<FileUploadHiddenInput
@@ -226,18 +224,16 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>
-			{showUpload && (
-				<Button
-					size={size}
-					color={color}
-					disabled={disabled}
-					className={cn(k.cursor)}
-					onClick={openPicker}
-				>
-					<Icon icon={<Upload />} />
-					{children ?? 'Upload'}
-				</Button>
-			)}
+			<Button
+				size={size}
+				color={color}
+				disabled={disabled}
+				className={cn(k.cursor)}
+				onClick={openPicker}
+			>
+				<Icon icon={<Upload />} />
+				{children ?? 'Upload'}
+			</Button>
 			{hasFiles && (
 				<Button
 					size={size}
