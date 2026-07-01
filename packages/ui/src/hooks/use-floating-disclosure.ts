@@ -8,10 +8,15 @@ import {
 	useDismiss,
 	useRole,
 } from '@floating-ui/react'
-import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
+import { type CSSProperties, type RefObject, useCallback, useEffect, useRef } from 'react'
+import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { useControllable } from './use-controllable'
 import { useEscapeLayer } from './use-escape-layer'
-import { type FloatingPanelOptions, useFloatingPanel } from './use-floating-ui'
+import {
+	type FloatingPanelOptions,
+	isFloatingOutsidePress,
+	useFloatingPanel,
+} from './use-floating-ui'
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
@@ -109,30 +114,37 @@ export function useFloatingDisclosure({
 	// Dialog/Sheet consumes the press without also closing the surface
 	// beneath. Tooltips stay unlayered: incidental hover surfaces close on
 	// any Escape without swallowing the press meant for the layer below.
-	const dismiss = useDismiss(context, {
-		escapeKey: false,
-		// Spare presses that land in a *nested* floating portal — e.g. a Select
-		// listbox opened from within this surface — which teleports outside this
-		// panel's DOM subtree. There's no floating-ui node tree here, so match the
-		// portal the way `useFloatingPanel`'s own listener does.
-		outsidePress: (event) => {
-			const target = event.target
-
-			if (!(target instanceof Element)) return true
-
-			const ownPortal = refs.floating.current?.closest('[data-floating-ui-portal]') ?? null
-
-			const targetPortal = target.closest('[data-floating-ui-portal]')
-
-			return !(targetPortal && targetPortal !== ownPortal)
-		},
-	})
+	// Outside-press is disabled here too: floating-ui's built-in outsidePress
+	// has a "third-party element" escape hatch that spares *any* outside
+	// press once some other modal on the page has marked sibling elements
+	// `inert` — exactly the case whenever this disclosure opens inside a
+	// Dialog/Sheet. The effect below stands in with the same document
+	// `pointerdown` listener `useFloatingUI` uses, sidestepping that hatch.
+	const dismiss = useDismiss(context, { escapeKey: false, outsidePress: false })
 
 	useEscapeLayer({
 		open,
 		layered: roleProp !== 'tooltip',
 		onDismiss: close,
 	})
+
+	// Dismissals route through `context.onOpenChange` rather than `setOpen`
+	// directly, so the close reason reaches `useFloatingPanel`'s focus-return
+	// effect.
+	const onOpenChangeRef = useRef(context.onOpenChange)
+
+	onOpenChangeRef.current = context.onOpenChange
+
+	useEffect(() => {
+		if (!open) return
+
+		const onPointerDown = (event: PointerEvent) => {
+			if (isFloatingOutsidePress(event, refs))
+				onOpenChangeRef.current(false, event, 'outside-press')
+		}
+
+		return subscribeDocumentEvent('pointerdown', onPointerDown)
+	}, [open, refs])
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.
