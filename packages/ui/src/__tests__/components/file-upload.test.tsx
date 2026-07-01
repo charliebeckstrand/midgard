@@ -24,6 +24,66 @@ describe('FileUpload', () => {
 	})
 })
 
+describe('FileUpload drop variant selection', () => {
+	function selectFiles(container: HTMLElement, files: File[]) {
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { files: makeFileList(files) } })
+	}
+
+	it('shows the drop prompt when empty', () => {
+		renderUI(<FileUpload />)
+
+		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
+	})
+
+	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
+		const { container } = renderUI(<FileUpload />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.queryByText('Drop files here or click to browse')).not.toBeInTheDocument()
+
+		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+	})
+
+	it('shows an "x files selected" summary for a multi-file selection', () => {
+		const { container } = renderUI(<FileUpload multiple />)
+
+		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
+
+		expect(screen.getByText('2 files selected')).toBeInTheDocument()
+	})
+
+	it('clears the selection and restores the drop prompt when Reset is clicked', () => {
+		const onFiles = vi.fn()
+
+		const { container } = renderUI(<FileUpload onFiles={onFiles} />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
+
+		expect(onFiles).toHaveBeenLastCalledWith([])
+	})
+
+	it('ignores the built-in selection display when custom children are provided', () => {
+		const { container } = renderUI(<FileUpload>Custom prompt</FileUpload>)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.getByText('Custom prompt')).toBeInTheDocument()
+
+		expect(screen.queryByText('resume.pdf')).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+	})
+})
+
 describe('FileUpload input variant', () => {
 	it('renders a read-only input with the configured placeholder', () => {
 		renderUI(<FileUpload variant="input" placeholder="Choose…" />)
@@ -45,6 +105,56 @@ describe('FileUpload input variant', () => {
 		renderUI(<FileUpload variant="input" disabled />)
 
 		expect(screen.getByPlaceholderText('Choose a file')).toBeDisabled()
+	})
+})
+
+describe('FileUpload input variant selection', () => {
+	function selectFiles(container: HTMLElement, files: File[]) {
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { files: makeFileList(files) } })
+	}
+
+	it('shows the filename as the value once a file is selected', () => {
+		const { container } = renderUI(<FileUpload variant="input" />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.getByDisplayValue('resume.pdf')).toBeInTheDocument()
+	})
+
+	it('shows an "x files selected" summary for a multi-file selection', () => {
+		const { container } = renderUI(<FileUpload variant="input" multiple />)
+
+		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
+
+		expect(screen.getByDisplayValue('2 files selected')).toBeInTheDocument()
+	})
+
+	it('swaps the suffix to a clear button once a file is selected', () => {
+		const { container } = renderUI(<FileUpload variant="input" />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.getByRole('button', { name: 'Clear selected file(s)' })).toBeInTheDocument()
+	})
+
+	it('clears the selection and restores the placeholder when the clear button is clicked', () => {
+		const onFiles = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload variant="input" placeholder="Choose…" onFiles={onFiles} />,
+		)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file(s)' }))
+
+		expect(screen.getByPlaceholderText('Choose…')).toHaveValue('')
+
+		expect(onFiles).toHaveBeenLastCalledWith([])
 	})
 })
 
@@ -75,6 +185,38 @@ describe('FileUpload button variant', () => {
 		)
 
 		expect(screen.getByRole('button', { name: 'Pick' })).toBeDisabled()
+	})
+})
+
+describe('FileUpload button variant selection', () => {
+	function selectFiles(container: HTMLElement, files: File[]) {
+		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		fireEvent.change(input, { target: { files: makeFileList(files) } })
+	}
+
+	it('swaps the trigger to a Reset button once a file is selected', () => {
+		const { container } = renderUI(<FileUpload variant="button" />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		expect(screen.queryByRole('button', { name: 'Upload' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+	})
+
+	it('clears the selection and restores the trigger when Reset is clicked', () => {
+		const onFiles = vi.fn()
+
+		const { container } = renderUI(<FileUpload variant="button" onFiles={onFiles} />)
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
+
+		expect(onFiles).toHaveBeenLastCalledWith([])
 	})
 })
 

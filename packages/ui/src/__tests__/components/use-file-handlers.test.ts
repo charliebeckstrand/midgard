@@ -196,6 +196,48 @@ describe('useFileUploadHandlers', () => {
 		expect(result.current.dragOver).toBe(false)
 	})
 
+	it('clearFiles empties the selection and invokes onFiles with an empty array', () => {
+		const onFiles = vi.fn()
+
+		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+
+		const file = makeFile()
+
+		const event = makeChangeEvent<HTMLInputElement>({
+			target: { files: makeFileList([file]) } as HTMLInputElement,
+		})
+
+		act(() => {
+			result.current.handleChange(event)
+		})
+
+		expect(result.current.files).toEqual([file])
+
+		act(() => {
+			result.current.clearFiles()
+		})
+
+		expect(result.current.files).toEqual([])
+
+		expect(onFiles).toHaveBeenLastCalledWith([])
+	})
+
+	it('clearFiles resets the input value so a cleared file can be reselected', () => {
+		const { result } = renderHook(() => useFileUploadHandlers({}))
+
+		const input = document.createElement('input')
+
+		input.value = 'C:\\fakepath\\a.txt'
+
+		;(result.current.inputRef as { current: HTMLInputElement | null }).current = input
+
+		act(() => {
+			result.current.clearFiles()
+		})
+
+		expect(input.value).toBe('')
+	})
+
 	it('handleDrop clears dragOver and passes files to onFiles', () => {
 		const onFiles = vi.fn()
 
