@@ -158,6 +158,46 @@ describe('DatePicker (relative)', () => {
 		expect(onChange).toHaveBeenLastCalledWith(undefined)
 	})
 
+	it('labels a span collision by the picked preset, not the first list match', async () => {
+		const user = openPicker()
+
+		// Two presets that resolve to the identical span — the real case is
+		// "Last 6 months" ≡ "This year" on 1 July. A bare range match would label the
+		// selection by whichever preset is listed first (Alpha); the click must win.
+		const fixed = new Date(2025, 0, 1)
+
+		function CollidingPicker() {
+			const [value, setValue] = useState<DatePickerRelativeValue[] | undefined>(undefined)
+
+			return (
+				<DatePicker
+					relative={{
+						presets: [
+							{ id: 'alpha', label: 'Alpha', resolve: () => ({ from: fixed, to: fixed }) },
+							{ id: 'beta', label: 'Beta', resolve: () => ({ from: fixed, to: fixed }) },
+						],
+					}}
+					value={value}
+					onValueChange={setValue}
+					aria-label="Reporting range"
+				/>
+			)
+		}
+
+		const { container } = renderUI(<CollidingPicker />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Beta' }))
+
+		// Chip + row highlight follow the pick, not the list order.
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Beta')
+
+		expect(screen.getByRole('button', { name: 'Beta' })).toHaveAttribute('aria-pressed', 'true')
+
+		expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute('aria-pressed', 'false')
+	})
+
 	it('renders only the supplied presets when overridden', async () => {
 		const user = openPicker()
 

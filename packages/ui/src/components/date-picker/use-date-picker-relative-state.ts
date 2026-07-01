@@ -96,6 +96,15 @@ export function useDatePickerRelativeState({
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
 
+	// The presets the user explicitly picked this interaction. Several presets can
+	// resolve to the same span on a given day (e.g. "Last 6 months" ≡ "This year" on
+	// 1 July; "This month" ≡ "This quarter" in a quarter's first month); the committed
+	// value is a bare span, so a plain range match would label/highlight whichever
+	// preset is listed first, not the one clicked. Biasing the match toward these keeps
+	// the chip, the row highlight, and toggle-off aligned with the actual choice. A
+	// hydrated value (shared link) carries no pick, so it still range-matches.
+	const [pickedIds, setPickedIds] = useState<Set<string>>(() => new Set())
+
 	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const footerRef = useRef<HTMLDivElement>(null)
@@ -115,7 +124,7 @@ export function useDatePickerRelativeState({
 
 	const draftRef = useRef<{ from?: Date; to?: Date }>({})
 
-	const customActive = isCustomActive(value, presets, nowRef.current)
+	const customActive = isCustomActive(value, presets, nowRef.current, pickedIds)
 
 	// The committed custom span, if any — used to seed the Start/End inputs when the
 	// user re-enters custom mode so an existing custom range shows pre-filled.
@@ -123,9 +132,36 @@ export function useDatePickerRelativeState({
 
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
-			setValue(togglePresetValue(value, preset, presets, nowRef.current, multiple))
+			const now = nowRef.current
+
+			// Which presets read as selected right now, biased by the existing picks so a
+			// collision toggles off the picked preset rather than re-selecting a twin.
+			const selected = selectedPresetIds(value, presets, now, pickedIds)
+
+			// Derive the next value and the next picks from the SAME snapshot. `setValue`
+			// takes a concrete value (not an updater) and `value` is often a controlled
+			// prop, so both writes are last-write-wins across a batch; a `setPickedIds`
+			// updater reading `prev` would instead accumulate and desync the picks from
+			// the committed value.
+			setValue(togglePresetValue(value, preset, presets, now, multiple, pickedIds))
+
+			let nextPicked: Set<string>
+
+			if (!multiple) {
+				nextPicked = selected.has(preset.id) ? new Set() : new Set([preset.id])
+			} else if (isCustomActive(value, presets, now, pickedIds)) {
+				// A custom range was replaced wholesale by this preset.
+				nextPicked = new Set([preset.id])
+			} else {
+				nextPicked = new Set(pickedIds)
+
+				if (selected.has(preset.id)) nextPicked.delete(preset.id)
+				else nextPicked.add(preset.id)
+			}
+
+			setPickedIds(nextPicked)
 		},
-		[multiple, presets, setValue, value],
+		[multiple, pickedIds, presets, setValue, value],
 	)
 
 	const openPicker = useCallback(() => {
@@ -155,6 +191,8 @@ export function useDatePickerRelativeState({
 		draftRef.current = {}
 
 		setDraft({})
+
+		setPickedIds(new Set())
 
 		setValue(undefined)
 	}, [setValue])
@@ -214,6 +252,10 @@ export function useDatePickerRelativeState({
 				next.from.getTime() <= next.to.getTime()
 					? { from: next.from, to: next.to }
 					: { from: next.to, to: next.from }
+
+			// A custom range isn't a preset, so drop any prior pick — the chip/highlight
+			// should range-match, not favor a stale preset.
+			setPickedIds(new Set())
 
 			setValue([span])
 		},
@@ -318,13 +360,13 @@ export function useDatePickerRelativeState({
 	// --- Display derivations ---
 
 	const chips = useMemo<RelativeChip[]>(
-		() => relativeChips(value, presets, nowRef.current),
-		[value, presets],
+		() => relativeChips(value, presets, nowRef.current, pickedIds),
+		[value, presets, pickedIds],
 	)
 
 	const selectedIds = useMemo(
-		() => selectedPresetIds(value, presets, nowRef.current),
-		[value, presets],
+		() => selectedPresetIds(value, presets, nowRef.current, pickedIds),
+		[value, presets, pickedIds],
 	)
 
 	return {

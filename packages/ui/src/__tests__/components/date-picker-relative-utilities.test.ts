@@ -207,3 +207,75 @@ describe('relativeChips', () => {
 		])
 	})
 })
+
+describe('matchRelativePreset with an explicit pick (span collisions)', () => {
+	// On 1 January, "Today", "This month", and "This year" all resolve to the same
+	// single-day span — the ambiguity where a bare range match would label a selection
+	// by the wrong preset. The real Ship Date cases are "Last 6 months" ≡ "This year"
+	// on 1 July and "This month" ≡ "This quarter" in a quarter's first month.
+	const NEW_YEAR = new Date(2025, 0, 1)
+	const presets = DEFAULT_RELATIVE_PRESETS
+	const span = preset('this-year').resolve(NEW_YEAR)
+
+	it('confirms the presets collide on 1 January', () => {
+		expect(preset('today').resolve(NEW_YEAR)).toEqual(span)
+
+		expect(preset('this-month').resolve(NEW_YEAR)).toEqual(span)
+	})
+
+	it('falls back to the first list match with no pick', () => {
+		expect(matchRelativePreset(span, presets, NEW_YEAR)?.id).toBe('today')
+	})
+
+	it('prefers a picked preset that still resolves to the span', () => {
+		expect(matchRelativePreset(span, presets, NEW_YEAR, new Set(['this-year']))?.id).toBe(
+			'this-year',
+		)
+
+		expect(matchRelativePreset(span, presets, NEW_YEAR, new Set(['this-month']))?.id).toBe(
+			'this-month',
+		)
+	})
+
+	it('prefers the most recently picked id among colliding presets', () => {
+		// Set insertion order = click order; the newest pick that still resolves to the
+		// span wins, not the earliest in the preset list.
+		expect(matchRelativePreset(span, presets, NEW_YEAR, new Set(['today', 'this-year']))?.id).toBe(
+			'this-year',
+		)
+
+		expect(matchRelativePreset(span, presets, NEW_YEAR, new Set(['this-year', 'today']))?.id).toBe(
+			'today',
+		)
+	})
+
+	it('ignores a stale pick that no longer matches the span', () => {
+		expect(matchRelativePreset(span, presets, NEW_YEAR, new Set(['yesterday']))?.id).toBe('today')
+	})
+
+	it('drives selectedPresetIds and relativeChips by the pick', () => {
+		expect(selectedPresetIds([span], presets, NEW_YEAR, new Set(['this-year']))).toEqual(
+			new Set(['this-year']),
+		)
+
+		expect(relativeChips([span], presets, NEW_YEAR, new Set(['this-year']))).toEqual([
+			{ key: 'preset-this-year', label: 'This year' },
+		])
+	})
+
+	it('toggles off the picked preset instead of re-selecting its twin', () => {
+		expect(
+			togglePresetValue(
+				[span],
+				preset('this-year'),
+				presets,
+				NEW_YEAR,
+				false,
+				new Set(['this-year']),
+			),
+		).toBeUndefined()
+
+		// Without the pick, single-select reads 'today' as active and re-commits the span.
+		expect(togglePresetValue([span], preset('this-year'), presets, NEW_YEAR, false)).toEqual([span])
+	})
+})

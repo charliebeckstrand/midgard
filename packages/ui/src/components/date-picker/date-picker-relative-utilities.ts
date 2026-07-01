@@ -155,13 +155,33 @@ function isSameSpan(a: DatePickerRelativeValue, b: DatePickerRelativeValue): boo
  * The preset whose resolved span (at `now`) matches `span` day-for-day, else
  * `null`. Used for chip labels and selection highlight.
  *
+ * Several presets can resolve to the same span on a given day — e.g. "Last 6
+ * months" and "This year" coincide on 1 July; "This month" and "This quarter"
+ * coincide in the first month of a quarter. When the caller knows which presets
+ * the user picked (`preferredIds`, in click order), the most recently picked one
+ * that still resolves to `span` wins, so the chip and highlight reflect the
+ * latest choice rather than list order. With no picks it falls back to the first
+ * list match.
+ *
  * @internal
  */
 export function matchRelativePreset(
 	span: DatePickerRelativeValue,
 	presets: DatePickerRelativePreset[],
 	now: Date,
+	preferredIds?: ReadonlySet<string>,
 ): DatePickerRelativePreset | null {
+	if (preferredIds?.size) {
+		// A Set preserves insertion order, so the most recently picked id is last. Walk
+		// newest→oldest and take the first pick that still resolves to the span, so when
+		// several picked presets collide on it the user's latest choice wins.
+		for (const id of [...preferredIds].reverse()) {
+			const preset = presets.find((option) => option.id === id)
+
+			if (preset && isSameSpan(preset.resolve(now), span)) return preset
+		}
+	}
+
 	return presets.find((preset) => isSameSpan(preset.resolve(now), span)) ?? null
 }
 
@@ -170,13 +190,14 @@ export function selectedPresetIds(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
 	now: Date,
+	preferredIds?: ReadonlySet<string>,
 ): Set<string> {
 	const ids = new Set<string>()
 
 	if (value === undefined) return ids
 
 	for (const span of value) {
-		const preset = matchRelativePreset(span, presets, now)
+		const preset = matchRelativePreset(span, presets, now, preferredIds)
 
 		if (preset) ids.add(preset.id)
 	}
@@ -189,10 +210,11 @@ export function isCustomActive(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
 	now: Date,
+	preferredIds?: ReadonlySet<string>,
 ): boolean {
 	if (value === undefined) return false
 
-	return value.some((span) => matchRelativePreset(span, presets, now) === null)
+	return value.some((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
 }
 
 /**
@@ -212,16 +234,17 @@ export function togglePresetValue(
 	presets: DatePickerRelativePreset[],
 	now: Date,
 	multiple: boolean,
+	preferredIds?: ReadonlySet<string>,
 ): DatePickerRelativeValue[] | undefined {
 	if (!multiple) {
-		const selected = selectedPresetIds(value, presets, now)
+		const selected = selectedPresetIds(value, presets, now, preferredIds)
 
 		return selected.has(preset.id) ? undefined : [preset.resolve(now)]
 	}
 
-	if (isCustomActive(value, presets, now)) return [preset.resolve(now)]
+	if (isCustomActive(value, presets, now, preferredIds)) return [preset.resolve(now)]
 
-	const selected = selectedPresetIds(value, presets, now)
+	const selected = selectedPresetIds(value, presets, now, preferredIds)
 
 	if (selected.has(preset.id)) selected.delete(preset.id)
 	else selected.add(preset.id)
@@ -243,11 +266,12 @@ export function relativeChips(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
 	now: Date,
+	preferredIds?: ReadonlySet<string>,
 ): RelativeChip[] {
 	if (value === undefined) return []
 
 	return value.map((span, index) => {
-		const preset = matchRelativePreset(span, presets, now)
+		const preset = matchRelativePreset(span, presets, now, preferredIds)
 
 		if (preset) return { key: `preset-${preset.id}`, label: preset.label }
 
