@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '../../components/badge'
+import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
@@ -162,7 +163,8 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 	// group. The `+N` count sits outside the control, after the chevron.
 	return (
 		<span className={cn(k.band)}>
-			<button
+			<Button
+				variant="bare"
 				type="button"
 				className={cn(k.bandButton)}
 				aria-expanded={!collapsed}
@@ -171,7 +173,7 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 			>
 				{badgeWithTooltip}
 				<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} className={cn(k.chevron)} />
-			</button>
+			</Button>
 
 			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}
 		</span>

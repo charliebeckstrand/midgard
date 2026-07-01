@@ -21,10 +21,11 @@ export const k = {
 	// A group band's content: the colored Badge and, when collapsible, the toggle.
 	// `min-w-0` lets the Badge label truncate within the band rather than overrun.
 	band: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
-	// Collapsible band toggle: one control wrapping the Badge and the trailing
-	// chevron, so the Badge stays flush with its column's left edge (the chevron
-	// sits after it) and a click anywhere on it folds the group.
-	bandButton: [flex.inline, 'items-center', 'gap-1', 'min-w-0', focus.ring, cursor, 'select-none'],
+	// Collapsible band toggle: layout for the bare Button wrapping the Badge and the
+	// trailing chevron, so the Badge stays flush with its column's left edge (the
+	// chevron sits after it). `min-w-0` lets the Badge label truncate; the Button
+	// carries its own focus ring and cursor.
+	bandButton: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
 	// The fold chevron trailing the Badge: muted and non-shrinking.
 	chevron: ['shrink-0', text.muted],
 	// The "+N" hidden-count shown on a collapsed band, beside the expand toggle.
