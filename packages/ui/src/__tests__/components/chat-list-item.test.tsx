@@ -115,4 +115,37 @@ describe('ChatListItem', () => {
 
 		expect(select?.contains(screen.getByRole('button', { name: 'Delete' }))).toBe(false)
 	})
+
+	it('renders a remove button that calls onRemove', async () => {
+		const onRemove = vi.fn()
+
+		renderUI(<ChatListItem title="Bug investigation" remove onRemove={onRemove} />)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+
+		expect(onRemove).toHaveBeenCalledOnce()
+	})
+
+	it('omits the remove button when remove is not set', () => {
+		renderUI(<ChatListItem title="Bug investigation" />)
+
+		expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+	})
+
+	it('renders the remove button after actions', () => {
+		const { container } = renderUI(
+			<ChatListItem
+				title="With actions"
+				actions={<button type="button">Pin</button>}
+				remove
+				onRemove={vi.fn()}
+			/>,
+		)
+
+		const buttons = bySlot(container, 'chat-list-item-actions')?.querySelectorAll('button')
+
+		expect(buttons?.[0]).toHaveTextContent('Pin')
+
+		expect(buttons?.[1]).toHaveAccessibleName('Remove')
+	})
 })

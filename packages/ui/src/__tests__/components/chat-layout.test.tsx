@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ChatContent, ChatConversation } from '../../modules/chat'
 import { ChatLayout } from '../../modules/chat'
-import { bySlot, noop, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, noop, renderUI, screen, userEvent, within } from '../helpers'
 
 const messages: ChatContent[] = [{ id: '1', role: 'user', content: 'Hi there' }]
 
@@ -92,7 +92,7 @@ describe('ChatLayout', () => {
 			<ChatLayout messages={messages} onSend={noop} conversations={conversations} />,
 		)
 
-		expect(screen.queryByRole('button', { name: 'Remove conversation' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
 
 		const onConversationRemove = vi.fn()
 
@@ -105,16 +105,16 @@ describe('ChatLayout', () => {
 			/>,
 		)
 
-		await userEvent.click(
-			screen.getAllByRole('button', { name: 'Remove conversation' })[0] as HTMLElement,
-		)
+		await userEvent.click(screen.getAllByRole('button', { name: 'Remove' })[0] as HTMLElement)
 
 		// The remove is gated by a confirmation naming the conversation; the first click only opens it.
-		expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Remove Project kickoff?')
+		const dialog = screen.getByRole('alertdialog')
+
+		expect(dialog).toHaveAccessibleName('Remove Project kickoff?')
 
 		expect(onConversationRemove).not.toHaveBeenCalled()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Remove' }))
+		await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }))
 
 		expect(onConversationRemove).toHaveBeenCalledWith('a')
 	})
