@@ -108,6 +108,9 @@ describe('ChatListItem', () => {
 
 		expect(timestamp).toHaveTextContent('2h')
 
+		// It renders as a Badge chip.
+		expect(timestamp).toHaveClass('inline-flex', 'w-fit')
+
 		// It renders inside the select button, as the line under the preview.
 		const select = bySlot(container, 'chat-list-item-select')
 

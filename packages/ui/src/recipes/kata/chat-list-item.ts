@@ -47,9 +47,10 @@ export const k = defineRecipe({
 		overlay: ['after:absolute after:inset-0'],
 		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
 		preview: ['truncate', size.sm, ...text.muted],
-		// Third line under the preview, shown per `timestamp`'s `show`; nested
+		// Spacing for the timestamp Badge under the preview — the Badge owns its
+		// own type, color, and padding. Shown per `timestamp`'s `show`; nested
 		// inside `select`, so it already sits above the active indicator.
-		timestamp: ['truncate', size.xs, ...text.muted],
+		timestamp: ['mt-1'],
 		// `relative z-10` lifts the action controls above the active indicator and the
 		// select overlay so they stay clickable.
 		actions: ['shrink-0', flex.row, 'gap-0.5', 'relative z-10'],

@@ -2,6 +2,7 @@
 
 import { Trash } from 'lucide-react'
 import { isValidElement, type ReactNode } from 'react'
+import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
@@ -18,8 +19,8 @@ export type ChatListItemProps = {
 	/** Secondary line under the title (e.g. the last message), truncated. */
 	preview?: ReactNode
 	/**
-	 * Relative timestamp rendered under the preview. Pass the value directly to
-	 * show it, or `{ value, show: false }` to keep it hidden.
+	 * Relative timestamp rendered as a {@link Badge} under the preview. Pass the
+	 * value directly to show it, or `{ value, show: false }` to keep it hidden.
 	 */
 	timestamp?: ReactNode | { value: ReactNode; show?: boolean }
 	/** Marks this row as the open conversation (`aria-current="true"`, morphing indicator). */
@@ -104,9 +105,9 @@ export function ChatListItem({
 			<span className={k.title}>{title}</span>
 			{preview !== undefined && <span className={k.preview}>{preview}</span>}
 			{showTimestamp && timestampValue !== undefined && (
-				<span data-slot="chat-list-item-timestamp" className={k.timestamp}>
+				<Badge data-slot="chat-list-item-timestamp" size="xs" className={k.timestamp}>
 					{timestampValue}
-				</span>
+				</Badge>
 			)}
 		</>
 	)
