@@ -1,4 +1,4 @@
-import { MailIcon, PencilIcon } from 'lucide-react'
+import { PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
@@ -658,7 +658,6 @@ const collapsibleGroups: GridColumnGroup[] = [
 		id: 'contact',
 		title: 'Contact',
 		color: 'blue',
-		icon: <MailIcon />,
 		description: 'How to reach this person',
 		columns: ['name', 'email'],
 		collapsible: true,

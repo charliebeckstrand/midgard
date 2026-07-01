@@ -9,7 +9,7 @@ import {
 	MeasuringStrategy,
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { GripVertical, Plus, SendToBack, Trash2 } from 'lucide-react'
+import { EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -462,7 +462,7 @@ function GridGroupManagerColumnRow({
 				<Menu placement="bottom-end" className="ml-auto">
 					<MenuTrigger>
 						<Button variant="bare" aria-label={`Move ${label}`}>
-							<Icon icon={<SendToBack />} />
+							<Icon icon={<EllipsisVertical />} />
 						</Button>
 					</MenuTrigger>
 					<MenuContent>
