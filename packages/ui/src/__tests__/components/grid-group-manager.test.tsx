@@ -241,11 +241,13 @@ describe('Grid column-group editor', () => {
 
 		// Open the second group's color picker; blue (used by the first group) is
 		// offered disabled, while a free color stays selectable.
-		fireEvent.click(screen.getByRole('combobox', { name: 'Color for Org' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Color for Org' }))
 
-		expect(screen.getByRole('option', { name: 'Blue' }).getAttribute('aria-disabled')).toBe('true')
+		expect(screen.getByRole('menuitem', { name: 'Blue' }).getAttribute('aria-disabled')).toBe(
+			'true',
+		)
 
-		expect(screen.getByRole('option', { name: 'Red' }).getAttribute('aria-disabled')).not.toBe(
+		expect(screen.getByRole('menuitem', { name: 'Red' }).getAttribute('aria-disabled')).not.toBe(
 			'true',
 		)
 	})

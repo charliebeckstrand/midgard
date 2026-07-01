@@ -19,7 +19,6 @@ import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Listbox, ListboxOption } from '../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
@@ -57,7 +56,7 @@ const groupAwareCollision: CollisionDetection = (args) => {
 	return (groupDrag ? closestCenter : closestCorners)({ ...args, droppableContainers })
 }
 
-/** The palette presets offered by the color Listbox: standard palette then extended. @internal */
+/** The palette presets offered by the color Menu: standard palette then extended. @internal */
 const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
 
 /** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
@@ -83,7 +82,7 @@ export type GridGroupManagerProps = {
 	order: (string | number)[]
 	/** Commits the next column order after a within-ungrouped reorder. */
 	onOrderChange: (order: (string | number)[]) => void
-	/** Palette presets for the color Listbox; defaults to the full standard + extended palette. */
+	/** Palette presets for the color Menu; defaults to the full standard + extended palette. */
 	colorOptions?: PaletteColor[]
 	/** Label on the "New group" button. @defaultValue 'New group' */
 	addGroupLabel?: ReactNode
@@ -91,7 +90,7 @@ export type GridGroupManagerProps = {
 
 /**
  * The column-manager's group editor: a "New group" button, a zone per group
- * (with a name {@link Input}, a color {@link Listbox}, a remove button, and its
+ * (with a name {@link Input}, a color {@link Menu}, a remove button, and its
  * member columns), and an ungrouped pool. Columns drag between zones (pointer or
  * keyboard) to change membership; each row also carries a "Move to" menu as an
  * accessible alternative to the drag. Group edits commit through
@@ -340,7 +339,7 @@ type GridGroupManagerZoneHeaderProps = {
 	removeGroup: (id: string | number) => void
 }
 
-/** A group zone's config header: the reorder handle, name Input, color Listbox, and remove button. @internal */
+/** A group zone's config header: the reorder handle, name Input, color Menu, and remove button. @internal */
 function GridGroupManagerZoneHeader({
 	group,
 	handle,
@@ -364,25 +363,26 @@ function GridGroupManagerZoneHeader({
 				onChange={(event) => renameGroup(group.id, event.target.value)}
 			/>
 
-			<Listbox<PaletteColor>
-				className={cn(k.manager.zone.color)}
-				placement="bottom-end"
-				nullable
-				clearable
-				aria-label={`Color for ${label}`}
-				placeholder="Color"
-				value={group.color}
-				displayValue={colorLabel}
-				onValueChange={(color) => recolorGroup(group.id, color)}
-			>
-				{colorOptions.map((color) => (
-					<ListboxOption key={color} value={color} disabled={usedColors.has(color)}>
-						<Badge color={color} variant="soft">
-							{colorLabel(color)}
-						</Badge>
-					</ListboxOption>
-				))}
-			</Listbox>
+			<Menu aria-label={`Color menu for ${label}`} placement="bottom-end">
+				<MenuTrigger>
+					<Button color={group.color} variant="soft" aria-label={`Color for ${label}`}>
+						{group.color ? colorLabel(group.color) : 'Color'}
+					</Button>
+				</MenuTrigger>
+				<MenuContent>
+					{colorOptions.map((color) => (
+						<MenuItem
+							key={color}
+							onAction={() => recolorGroup(group.id, color)}
+							disabled={usedColors.has(color)}
+						>
+							<Badge color={color} variant="soft">
+								{colorLabel(color)}
+							</Badge>
+						</MenuItem>
+					))}
+				</MenuContent>
+			</Menu>
 
 			<Button
 				variant="bare"
