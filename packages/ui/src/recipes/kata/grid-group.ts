@@ -29,7 +29,7 @@ export const k = {
 	// The fold chevron trailing the Badge: muted and non-shrinking.
 	chevron: ['shrink-0', text.muted],
 	// The "+N" hidden-count shown on a collapsed band, beside the expand toggle.
-	count: [size.xs, text.muted, 'tabular-nums'],
+	count: [text.muted, 'tabular-nums'],
 	// Column-manager group editor: the create button, group zones, and column rows.
 	manager: {
 		// Vertical stack of the "New group" action and the zones beneath it.

@@ -235,6 +235,7 @@ function GridGroupManagerZoneHeader({
 
 			<Listbox<PaletteColor>
 				className={cn(k.manager.colorField)}
+				placement="bottom-end"
 				nullable
 				clearable
 				aria-label={`Color for ${label}`}
@@ -253,7 +254,7 @@ function GridGroupManagerZoneHeader({
 			</Listbox>
 
 			<Button
-				variant="plain"
+				variant="bare"
 				color="red"
 				aria-label={`Remove group ${label}`}
 				onClick={() => removeGroup(group.id)}
