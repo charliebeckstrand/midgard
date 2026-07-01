@@ -50,6 +50,22 @@ export function formatFileNames(files: File[]): string | undefined {
 	return files.map((f) => f.name).join(', ')
 }
 
+/**
+ * Selection status text for the `drop` and `input` variants: the file name
+ * for a single pick, or an "x files selected" summary once `multiple` yields
+ * more than one.
+ *
+ * @returns The status text, or `undefined` when there are no files.
+ * @internal
+ */
+export function selectionSummary(files: File[], multiple?: boolean): string | undefined {
+	if (files.length === 0) return undefined
+
+	if (multiple && files.length > 1) return `${files.length} files selected`
+
+	return formatFileNames(files)
+}
+
 /** A file excluded from a selection, paired with the constraint it tripped. */
 export type FileRejection = {
 	file: File

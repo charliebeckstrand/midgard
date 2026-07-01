@@ -1,111 +1,172 @@
-import { Upload } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
-import { FileUpload } from '../../../components/file-upload'
-import { Icon } from '../../../components/icon'
+import { FileUpload, formatFileNames } from '../../../components/file-upload'
 import { Stack } from '../../../components/stack'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Text } from '../../../components/text'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Example } from '../../engine'
 
 function Sizer({ children, className }: { children: ReactNode; className?: string }) {
 	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
 }
 
-function AreaExample() {
-	const [files, setFiles] = useState<File[]>([])
-
+function DropSingleExample() {
 	return (
 		<Sizer>
-			<Stack gap="md">
-				<FileUpload accept="image/*" onFiles={setFiles} />
-				{files.length > 0 && (
-					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-				)}
-			</Stack>
+			<FileUpload />
 		</Sizer>
 	)
 }
 
-function CustomContentExample() {
-	const [files, setFiles] = useState<File[]>([])
-
+function DropMultipleExample() {
 	return (
 		<Sizer>
-			<Stack gap="md">
-				<FileUpload accept=".pdf,.doc,.docx" onFiles={setFiles}>
-					<Icon icon={<Upload />} size="lg" />
-					<Text>Upload documents</Text>
-					<Text severity="muted">PDF, DOC up to 10MB</Text>
-				</FileUpload>
-				{files.length > 0 && (
-					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-				)}
-			</Stack>
+			<FileUpload multiple />
 		</Sizer>
 	)
 }
 
-function InputExample() {
-	const [files, setFiles] = useState<File[]>([])
-
+function DropAcceptExample() {
 	return (
 		<Sizer>
-			<Stack gap="md">
-				<FileUpload variant="input" accept="image/*" onFiles={setFiles} />
-				{files.length > 0 && (
-					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
-				)}
-			</Stack>
+			<FileUpload accept="image/*" />
 		</Sizer>
 	)
 }
 
-function ButtonExample() {
+function InputSingleExample() {
+	return (
+		<Sizer>
+			<FileUpload variant="input" />
+		</Sizer>
+	)
+}
+
+function InputMultipleExample() {
+	return (
+		<Sizer>
+			<FileUpload variant="input" multiple />
+		</Sizer>
+	)
+}
+
+function InputAcceptExample() {
+	return (
+		<Sizer>
+			<FileUpload variant="input" accept="image/*" />
+		</Sizer>
+	)
+}
+
+function ButtonSingleExample() {
 	const [files, setFiles] = useState<File[]>([])
 
 	return (
 		<Sizer>
 			<Stack gap="md">
 				<FileUpload variant="button" onFiles={setFiles} />
+				{files.length > 0 && <Text severity="muted">Selected: {formatFileNames(files)}</Text>}
+			</Stack>
+		</Sizer>
+	)
+}
+
+function ButtonMultipleExample() {
+	const [files, setFiles] = useState<File[]>([])
+
+	const manyFiles = files.length > 1
+
+	return (
+		<Sizer>
+			<Stack gap="md">
+				<FileUpload variant="button" multiple onFiles={setFiles} />
 				{files.length > 0 && (
-					<Text severity="muted">Selected: {files.map((f) => f.name).join(', ')}</Text>
+					<Tooltip enabled={manyFiles}>
+						<TooltipTrigger>
+							<Text severity="muted">
+								Selected: {manyFiles ? `${files.length} files` : formatFileNames(files)}
+							</Text>
+						</TooltipTrigger>
+						<TooltipContent>{formatFileNames(files)}</TooltipContent>
+					</Tooltip>
 				)}
 			</Stack>
 		</Sizer>
 	)
 }
 
-function DisabledExample() {
+function ButtonAcceptExample() {
+	const [files, setFiles] = useState<File[]>([])
+
 	return (
-		<Sizer className="flex flex-col gap-4">
-			<FileUpload disabled />
-			<FileUpload variant="input" disabled />
-			<FileUpload variant="button" disabled />
+		<Sizer>
+			<Stack gap="md">
+				<FileUpload variant="button" accept="image/*" onFiles={setFiles} />
+				{files.length > 0 && <Text severity="muted">Selected: {formatFileNames(files)}</Text>}
+			</Stack>
 		</Sizer>
 	)
 }
 
 export function Demo() {
 	return (
-		<>
-			<Example title="Default">
-				<AreaExample />
-			</Example>
+		<Tabs defaultValue="drop">
+			<Stack gap="lg">
+				<TabList aria-label="FileUpload variant">
+					<Tab value="drop">Drop</Tab>
+					<Tab value="input">Input</Tab>
+					<Tab value="button">Button</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="drop">
+						<Stack gap="xl">
+							<Example title="Single">
+								<DropSingleExample />
+							</Example>
 
-			<Example title="Custom content">
-				<CustomContentExample />
-			</Example>
+							<Example title="Multiple">
+								<DropMultipleExample />
+							</Example>
 
-			<Example title="Input variant">
-				<InputExample />
-			</Example>
+							<Example title="Accept">
+								<DropAcceptExample />
+							</Example>
+						</Stack>
+					</TabContent>
 
-			<Example title="Button variant">
-				<ButtonExample />
-			</Example>
+					<TabContent value="input">
+						<Stack gap="xl">
+							<Example title="Single">
+								<InputSingleExample />
+							</Example>
 
-			<Example title="Disabled">
-				<DisabledExample />
-			</Example>
-		</>
+							<Example title="Multiple">
+								<InputMultipleExample />
+							</Example>
+
+							<Example title="Accept">
+								<InputAcceptExample />
+							</Example>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="button">
+						<Stack gap="xl">
+							<Example title="Single">
+								<ButtonSingleExample />
+							</Example>
+
+							<Example title="Multiple">
+								<ButtonMultipleExample />
+							</Example>
+
+							<Example title="Accept">
+								<ButtonAcceptExample />
+							</Example>
+						</Stack>
+					</TabContent>
+				</TabContents>
+			</Stack>
+		</Tabs>
 	)
 }
