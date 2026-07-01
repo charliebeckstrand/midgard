@@ -104,12 +104,26 @@ export function useGridColumns<T>({
 		onHiddenChange: columnManagerConfig?.onHiddenChange,
 	})
 
-	// Groups keep their members contiguous: the effective order pulls each group's
-	// columns together (idempotent, so it re-derives safely every render). Reorder
+	// A manager-controlled column: a non-frozen data column, the set the column
+	// manager (and thus the group editor) reorders. Selection/actions and frozen
+	// columns hold their slots.
+	const isOrderable = useCallback(
+		(id: string | number) => {
+			const col = columnById.get(id)
+
+			return !!col && isDataColumn(col) && !isFrozen(col)
+		},
+		[columnById],
+	)
+
+	// Groups drive the display order so the grid matches the column manager: the
+	// effective order leads with the groups' columns (in group order) then the
+	// ungrouped ones (idempotent, so it re-derives safely every render). Reorder
 	// and the manager both read this grouped order, so their writes stay grouped.
 	const columnOrder = useMemo(
-		() => (groups && groups.length > 0 ? groupedColumnOrder(rawOrder, groups) : rawOrder),
-		[rawOrder, groups],
+		() =>
+			groups && groups.length > 0 ? groupedColumnOrder(rawOrder, groups, isOrderable) : rawOrder,
+		[rawOrder, groups, isOrderable],
 	)
 
 	// A header drag only permutes the columns shown with a handle — visible,

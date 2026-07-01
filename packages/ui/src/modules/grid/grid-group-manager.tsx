@@ -1,6 +1,13 @@
 'use client'
 
-import { closestCorners, DndContext, DragOverlay, MeasuringStrategy } from '@dnd-kit/core'
+import {
+	type CollisionDetection,
+	closestCenter,
+	closestCorners,
+	DndContext,
+	DragOverlay,
+	MeasuringStrategy,
+} from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { FolderInput, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
@@ -20,12 +27,34 @@ import { k } from '../../recipes/kata/grid-group'
 import type { GridColumnGroup } from './grid-group-types'
 import { columnLabel, type GridColumnManagerItem } from './types'
 import {
+	GROUP_PREFIX,
 	type GridGroupManagerZone,
+	isGroupDragId,
 	UNGROUPED,
 	useGridGroupManager,
 	useGroupColumnSortable,
 	useGroupZoneDroppable,
+	useGroupZoneSortable,
 } from './use-grid-group-manager'
+
+/**
+ * Collision detection that keeps the two sortables apart: a group drag only
+ * considers group droppables, a column drag only the zone/column droppables — so
+ * a dragged group never targets a column slot and vice versa. Group reorder uses
+ * `closestCenter` (a plain vertical list); column moves use `closestCorners`,
+ * which resolves empty zones (see the multi-container notes in `useGridGroupManager`).
+ *
+ * @internal
+ */
+const groupAwareCollision: CollisionDetection = (args) => {
+	const groupDrag = isGroupDragId(String(args.active.id))
+
+	const droppableContainers = args.droppableContainers.filter(
+		(container) => isGroupDragId(String(container.id)) === groupDrag,
+	)
+
+	return (groupDrag ? closestCenter : closestCorners)({ ...args, droppableContainers })
+}
 
 /** The palette presets offered by the color Listbox: standard palette then extended. @internal */
 const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
@@ -90,10 +119,29 @@ export function GridGroupManager({
 
 	const activeItem = mgr.activeId ? byId.get(mgr.activeId) : undefined
 
+	// The group zones (sortable) and the fixed ungrouped pool that trails them.
+	const groupZones = mgr.zones.filter((zone) => zone.group)
+
+	const ungroupedZone = mgr.zones.find((zone) => !zone.group)
+
+	const groupSortIds = groupZones.map((zone) => `${GROUP_PREFIX}${zone.id}`)
+
+	const shared = {
+		byId,
+		groups,
+		hidden,
+		onToggle,
+		colorOptions,
+		renameGroup: mgr.renameGroup,
+		recolorGroup: mgr.recolorGroup,
+		removeGroup: mgr.removeGroup,
+		assign: mgr.assign,
+	}
+
 	return (
 		<DndContext
 			sensors={sensors}
-			collisionDetection={closestCorners}
+			collisionDetection={groupAwareCollision}
 			measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
 			onDragStart={mgr.handleDragStart}
 			onDragOver={mgr.handleDragOver}
@@ -106,22 +154,26 @@ export function GridGroupManager({
 					{addGroupLabel}
 				</Button>
 
-				{mgr.zones.map((zone) => (
+				{/* Groups reorder as a vertical list, dragged by the handle beside each
+				    name; the grid's group order follows this order. */}
+				<SortableContext items={groupSortIds} strategy={verticalListSortingStrategy}>
+					{groupZones.map((zone) => (
+						<GridGroupManagerGroupZone
+							key={zone.id}
+							zone={zone}
+							columnIds={mgr.zoneMap[String(zone.id)] ?? []}
+							{...shared}
+						/>
+					))}
+				</SortableContext>
+
+				{ungroupedZone && (
 					<GridGroupManagerZoneView
-						key={zone.id}
-						zone={zone}
-						columnIds={mgr.zoneMap[String(zone.id)] ?? []}
-						byId={byId}
-						groups={groups}
-						hidden={hidden}
-						onToggle={onToggle}
-						colorOptions={colorOptions}
-						renameGroup={mgr.renameGroup}
-						recolorGroup={mgr.recolorGroup}
-						removeGroup={mgr.removeGroup}
-						assign={mgr.assign}
+						zone={ungroupedZone}
+						columnIds={mgr.zoneMap[UNGROUPED] ?? []}
+						{...shared}
 					/>
-				))}
+				)}
 			</div>
 
 			{/* The dragged row's stand-in — a full, inert clone (grip, disabled
@@ -154,6 +206,39 @@ type GridGroupManagerZoneViewProps = {
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
+	/** The group-reorder drag handle, placed ahead of the name Input; absent on the ungrouped pool. */
+	handle?: ReactNode
+}
+
+/**
+ * A group zone wrapped as a sortable item: the group reorders as a unit, dragged
+ * by the handle beside its name. Sorts in place (one vertical list), so it dims
+ * rather than hides while dragging.
+ *
+ * @internal
+ */
+function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
+	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
+		useGroupZoneSortable(props.zone.id)
+
+	const handle = (
+		<button
+			type="button"
+			ref={setActivatorNodeRef}
+			className={cn(k.manager.grip)}
+			aria-label={`Reorder group ${props.zone.group ? groupTitle(props.zone.group) : ''}`}
+			{...attributes}
+			{...listeners}
+		>
+			<Icon icon={<GripVertical />} />
+		</button>
+	)
+
+	return (
+		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
+			<GridGroupManagerZoneView {...props} handle={handle} />
+		</div>
+	)
 }
 
 /** One droppable zone: a group (with its config header) or the ungrouped pool, holding its column rows. @internal */
@@ -169,14 +254,21 @@ function GridGroupManagerZoneView({
 	recolorGroup,
 	removeGroup,
 	assign,
+	handle,
 }: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, isOver } = useGroupZoneDroppable(zone.id)
 
 	return (
-		<div ref={setNodeRef} className={cn(k.manager.zone, isOver && k.manager.zoneOver)}>
+		<div
+			ref={setNodeRef}
+			// The drop-over border cues a column landing in a group; the ungrouped
+			// pool takes columns too but skips the cue (the user asked for it off there).
+			className={cn(k.manager.zone, zone.group && isOver && k.manager.zoneOver)}
+		>
 			{zone.group ? (
 				<GridGroupManagerZoneHeader
 					group={zone.group}
+					handle={handle}
 					colorOptions={colorOptions}
 					renameGroup={renameGroup}
 					recolorGroup={recolorGroup}
@@ -218,15 +310,18 @@ function GridGroupManagerZoneView({
 /** Props for {@link GridGroupManagerZoneHeader}. @internal */
 type GridGroupManagerZoneHeaderProps = {
 	group: GridColumnGroup
+	/** The group-reorder drag handle, rendered leading the name Input. */
+	handle?: ReactNode
 	colorOptions: PaletteColor[]
 	renameGroup: (id: string | number, title: string) => void
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
 }
 
-/** A group zone's config header: the name Input, the color Listbox, and the remove button. @internal */
+/** A group zone's config header: the reorder handle, name Input, color Listbox, and remove button. @internal */
 function GridGroupManagerZoneHeader({
 	group,
+	handle,
 	colorOptions,
 	renameGroup,
 	recolorGroup,
@@ -236,6 +331,8 @@ function GridGroupManagerZoneHeader({
 
 	return (
 		<div className={cn(k.manager.zoneHeader)}>
+			{handle}
+
 			<Input
 				className={cn(k.manager.nameField)}
 				aria-label={`Group name for ${label}`}

@@ -10,6 +10,7 @@ import {
 	recolorGroupIn,
 	removeGroupFrom,
 	renameGroupIn,
+	reorderGroups,
 	settleDragEnd,
 	UNGROUPED,
 	type ZoneMap,
@@ -55,6 +56,15 @@ describe('group manager reducers', () => {
 		const next = assignColumn(groups, 'a', null)
 
 		expect(next[0]?.columns).toEqual(['b'])
+	})
+
+	it('reorders the groups array, moving a group to another’s slot', () => {
+		expect(reorderGroups(groups, 'g2', 'g1').map((g) => g.id)).toEqual(['g2', 'g1'])
+
+		// A missing id or a no-op returns the array unchanged (same reference).
+		expect(reorderGroups(groups, 'g1', 'g1')).toBe(groups)
+
+		expect(reorderGroups(groups, 'missing', 'g1')).toBe(groups)
 	})
 
 	it('partitions orderable columns into group zones and an ungrouped pool', () => {

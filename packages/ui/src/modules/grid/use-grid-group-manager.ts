@@ -6,8 +6,9 @@ import {
 	type DragStartEvent,
 	useDroppable,
 } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { arrayMove, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { type CSSProperties, useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useSortableItem } from '../../hooks'
 import type { GridColumnGroup } from './grid-group-types'
@@ -16,6 +17,46 @@ import type { GridColumnManagerItem } from './types'
 
 /** Sentinel zone id for the ungrouped column pool. @internal */
 export const UNGROUPED = '__grid_ungrouped__'
+
+/**
+ * Prefix distinguishing a group's dnd id (reordering whole groups) from a
+ * column's (moving columns within/between zones), so one `DndContext` carries
+ * both sortables without id collisions.
+ *
+ * @internal
+ */
+export const GROUP_PREFIX = 'group:'
+
+/** Whether a dnd id is a group-reorder id (vs a column id). @internal */
+export function isGroupDragId(id: string): boolean {
+	return id.startsWith(GROUP_PREFIX)
+}
+
+/** The group id carried by a {@link GROUP_PREFIX}-prefixed dnd id. @internal */
+export function groupIdFromDragId(id: string): string {
+	return id.slice(GROUP_PREFIX.length)
+}
+
+/**
+ * Reorders the `groups` array, moving the group with `activeGroupId` to
+ * `overGroupId`'s slot. Returns the array unchanged when either is missing or the
+ * move is a no-op. Ids are compared stringified (dnd ids are strings).
+ *
+ * @internal
+ */
+export function reorderGroups(
+	groups: GridColumnGroup[],
+	activeGroupId: string,
+	overGroupId: string,
+): GridColumnGroup[] {
+	const from = groups.findIndex((g) => String(g.id) === activeGroupId)
+
+	const to = groups.findIndex((g) => String(g.id) === overGroupId)
+
+	if (from === -1 || to === -1 || from === to) return groups
+
+	return arrayMove(groups, from, to)
+}
 
 /**
  * A live zone → member-id map. Keys are stringified zone ids (a group id or
@@ -330,9 +371,13 @@ export function useGridGroupManager({
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
-			setActiveId(String(event.active.id))
+			const id = String(event.active.id)
 
-			setOverride(baseZoneMap)
+			setActiveId(id)
+
+			// Only a column drag needs the live zone map; a group reorder is a plain
+			// single-list sort committed on drop.
+			if (!isGroupDragId(id)) setOverride(baseZoneMap)
 		},
 		[baseZoneMap],
 	)
@@ -341,7 +386,7 @@ export function useGridGroupManager({
 		(event: DragOverEvent) => {
 			const { active, over } = event
 
-			if (!over) return
+			if (!over || isGroupDragId(String(active.id))) return
 
 			const below = isBelowOverMidpoint(event)
 
@@ -367,13 +412,24 @@ export function useGridGroupManager({
 		(event: DragEndEvent) => {
 			const { active, over } = event
 
-			if (over && override) commit(settleDragEnd(override, String(active.id), String(over.id)))
+			const activeStr = String(active.id)
+
+			if (isGroupDragId(activeStr)) {
+				// Reorder the whole group to the group it was dropped on.
+				if (over) {
+					onGroupsChange(
+						reorderGroups(groups, groupIdFromDragId(activeStr), groupIdFromDragId(String(over.id))),
+					)
+				}
+			} else if (over && override) {
+				commit(settleDragEnd(override, activeStr, String(over.id)))
+			}
 
 			setOverride(null)
 
 			setActiveId(null)
 		},
-		[override, commit],
+		[override, commit, groups, onGroupsChange],
 	)
 
 	const handleDragCancel = useCallback(() => {
@@ -415,4 +471,35 @@ export function useGroupZoneDroppable(zoneId: string | number) {
  */
 export function useGroupColumnSortable(columnId: string | number) {
 	return useSortableItem({ id: String(columnId) })
+}
+
+/**
+ * Registers a group zone as a sortable item (id {@link GROUP_PREFIX} + group id)
+ * so whole groups reorder in a single vertical list. Unlike the column rows it
+ * sorts in place — the group is one container, so dnd-kit animates the reflow
+ * without an overlay; the source dims rather than hides. The handle beside the
+ * group name carries the returned `attributes`/`listeners`.
+ *
+ * @internal
+ */
+export function useGroupZoneSortable(groupId: string | number) {
+	const {
+		setNodeRef,
+		setActivatorNodeRef,
+		attributes,
+		listeners,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: `${GROUP_PREFIX}${groupId}` })
+
+	const style: CSSProperties = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		opacity: isDragging ? 0.6 : 1,
+		zIndex: isDragging ? 1 : undefined,
+		position: isDragging ? 'relative' : undefined,
+	}
+
+	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
 }

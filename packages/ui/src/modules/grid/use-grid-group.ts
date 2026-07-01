@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
+import { applyColumnReorder } from './grid-reorder'
 
 /**
  * Maps each grouped column id to its {@link GridColumnGroup}. The first group to
@@ -24,55 +25,41 @@ export function groupByColumn(groups: GridColumnGroup[]): Map<string | number, G
 }
 
 /**
- * Reorders `order` so each group's members are contiguous and in the group's own
- * `columns` order, anchored at the position of the group's first member in the
- * incoming order. Non-member ids hold their relative order. Idempotent: a
- * grouped order maps to itself, so it is safe to feed the engine every render.
+ * Reorders the manager-controlled data columns so the grid matches the column
+ * manager: the groups' members lead, in `groups` order then each group's own
+ * `columns` order (the first group claims a shared column), followed by the
+ * ungrouped columns in their incoming relative order. The resulting sequence is
+ * spliced back into the orderable-data slots of `order`, holding selection,
+ * actions, and frozen columns in place. `isOrderable` marks a manager-controlled
+ * column (a non-frozen data column). Idempotent: a grouped order maps to itself,
+ * so it is safe to feed the engine every render.
  *
  * @internal
  */
 export function groupedColumnOrder(
 	order: (string | number)[],
 	groups: GridColumnGroup[],
+	isOrderable: (id: string | number) => boolean,
 ): (string | number)[] {
 	if (groups.length === 0) return order
 
-	const orderSet = new Set(order)
+	const claimed = new Set<string | number>()
 
-	const colToGroup = groupByColumn(groups)
-
-	// Each group's members that actually appear in `order`, in the group's column
-	// order — the contiguous block emitted when the group is first encountered.
-	const blockFor = new Map<string | number, (string | number)[]>()
+	const grouped: (string | number)[] = []
 
 	for (const group of groups) {
-		blockFor.set(
-			group.id,
-			group.columns.filter((id) => orderSet.has(id)),
-		)
-	}
+		for (const id of group.columns) {
+			if (isOrderable(id) && !claimed.has(id)) {
+				claimed.add(id)
 
-	const emitted = new Set<string | number>()
-
-	const next: (string | number)[] = []
-
-	for (const id of order) {
-		const group = colToGroup.get(id)
-
-		if (!group) {
-			next.push(id)
-
-			continue
+				grouped.push(id)
+			}
 		}
-
-		if (emitted.has(group.id)) continue
-
-		emitted.add(group.id)
-
-		next.push(...(blockFor.get(group.id) ?? []))
 	}
 
-	return next
+	const ungrouped = order.filter((id) => isOrderable(id) && !claimed.has(id))
+
+	return applyColumnReorder(order, [...grouped, ...ungrouped], isOrderable)
 }
 
 /**

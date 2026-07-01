@@ -12,30 +12,53 @@ const noPin = () => undefined
 describe('groupedColumnOrder', () => {
 	const groups: GridColumnGroup[] = [{ id: 'g', title: 'Group', columns: ['b', 'd'] }]
 
-	it('pulls a group’s members contiguous at the first member’s position', () => {
-		expect(groupedColumnOrder(['a', 'b', 'c', 'd', 'e'], groups)).toEqual(['a', 'b', 'd', 'c', 'e'])
+	// Every id is a manager-controlled (orderable) data column present in the order.
+	const orderable = (order: (string | number)[]) => (id: string | number) => order.includes(id)
+
+	it('leads with the group’s members, then the ungrouped columns in order', () => {
+		const order = ['a', 'b', 'c', 'd', 'e']
+
+		expect(groupedColumnOrder(order, groups, orderable(order))).toEqual(['b', 'd', 'a', 'c', 'e'])
 	})
 
-	it('orders members by the group’s column order, not the incoming order', () => {
-		const g: GridColumnGroup[] = [{ id: 'g', columns: ['d', 'b'] }]
+	it('orders group blocks by the groups array, then each group’s column order', () => {
+		const order = ['a', 'b', 'c', 'd']
 
-		expect(groupedColumnOrder(['a', 'b', 'c', 'd'], g)).toEqual(['a', 'd', 'b', 'c'])
+		const g: GridColumnGroup[] = [
+			{ id: 'g1', columns: ['d', 'b'] },
+			{ id: 'g2', columns: ['a'] },
+		]
+
+		expect(groupedColumnOrder(order, g, orderable(order))).toEqual(['d', 'b', 'a', 'c'])
+	})
+
+	it('holds non-orderable (selection/actions/frozen) columns in place', () => {
+		const order = ['sel', 'a', 'b', 'c', 'd', 'act']
+
+		// Only the data columns a–d are orderable; sel/act keep their slots.
+		const isData = (id: string | number) => id !== 'sel' && id !== 'act'
+
+		expect(groupedColumnOrder(order, groups, isData)).toEqual(['sel', 'b', 'd', 'a', 'c', 'act'])
 	})
 
 	it('is idempotent on an already-grouped order', () => {
-		const once = groupedColumnOrder(['a', 'b', 'c', 'd', 'e'], groups)
+		const order = ['a', 'b', 'c', 'd', 'e']
 
-		expect(groupedColumnOrder(once, groups)).toEqual(once)
+		const once = groupedColumnOrder(order, groups, orderable(order))
+
+		expect(groupedColumnOrder(once, groups, orderable(once))).toEqual(once)
 	})
 
 	it('ignores group members absent from the order', () => {
-		expect(groupedColumnOrder(['a', 'b', 'c'], groups)).toEqual(['a', 'b', 'c'])
+		const order = ['a', 'b', 'c']
+
+		expect(groupedColumnOrder(order, groups, orderable(order))).toEqual(['b', 'a', 'c'])
 	})
 
 	it('returns the order untouched with no groups', () => {
 		const order = ['a', 'b', 'c']
 
-		expect(groupedColumnOrder(order, [])).toBe(order)
+		expect(groupedColumnOrder(order, [], () => true)).toBe(order)
 	})
 })
 
