@@ -1,6 +1,6 @@
 'use client'
 
-import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core'
+import { closestCenter, DndContext } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { FolderInput, GripVertical, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -84,17 +84,8 @@ export function GridGroupManager({
 
 	const sensors = useSortableSensors()
 
-	const activeItem =
-		mgr.activeId != null ? columns.find((c) => String(c.id) === mgr.activeId) : undefined
-
 	return (
-		<DndContext
-			sensors={sensors}
-			collisionDetection={closestCenter}
-			onDragStart={mgr.handleDragStart}
-			onDragEnd={mgr.handleDragEnd}
-			onDragCancel={mgr.handleDragCancel}
-		>
+		<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={mgr.handleDragEnd}>
 			<div className={cn(k.manager.root)}>
 				<Button variant="soft" size="sm" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
@@ -117,15 +108,6 @@ export function GridGroupManager({
 					/>
 				))}
 			</div>
-
-			<DragOverlay>
-				{activeItem ? (
-					<div className={cn(k.manager.row)}>
-						<Icon icon={<GripVertical />} className={cn(k.manager.grip)} />
-						<Label>{activeItem.title}</Label>
-					</div>
-				) : null}
-			</DragOverlay>
 		</DndContext>
 	)
 }
@@ -314,7 +296,9 @@ function GridGroupManagerColumnRow({
 					<CheckboxField>
 						<Checkbox
 							checked={!hidden.has(item.id)}
-							disabled={item.hideable === false}
+							// Held disabled through a drag so it stays put (visible, not toggled)
+							// rather than hiding the row and snapping on drop.
+							disabled={dragging || item.hideable === false}
 							onChange={() => onToggle(item.id)}
 							aria-label={`Show ${label}`}
 						/>

@@ -1,10 +1,10 @@
 'use client'
 
-import { type DragEndEvent, type DragStartEvent, useDroppable } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { type DragEndEvent, useDroppable } from '@dnd-kit/core'
+import { arrayMove, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { type CSSProperties, useCallback, useId, useMemo, useRef } from 'react'
 import type { PaletteColor } from '../../core/recipe'
-import { useSortableItem } from '../../hooks'
 import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
 import type { GridColumnManagerItem } from './types'
@@ -190,19 +190,9 @@ export function useGridGroupManager({
 
 	const idCounter = useRef(0)
 
-	const [activeId, setActiveId] = useState<string | null>(null)
-
 	const orderableIds = useMemo(() => columns.map((c) => c.id), [columns])
 
 	const zones = useMemo(() => buildManagerZones(groups, orderableIds), [groups, orderableIds])
-
-	const titleById = useMemo(() => {
-		const map = new Map<string | number, GridColumnManagerItem>()
-
-		for (const col of columns) map.set(col.id, col)
-
-		return map
-	}, [columns])
 
 	const addGroup = useCallback(() => {
 		idCounter.current += 1
@@ -238,14 +228,8 @@ export function useGridGroupManager({
 		[groups, onGroupsChange],
 	)
 
-	const handleDragStart = useCallback((event: DragStartEvent) => {
-		setActiveId(String(event.active.id))
-	}, [])
-
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
-			setActiveId(null)
-
 			const { active, over } = event
 
 			if (!over) return
@@ -291,20 +275,14 @@ export function useGridGroupManager({
 		[zones, orderableIds, groups, order, onGroupsChange, onOrderChange, assign],
 	)
 
-	const handleDragCancel = useCallback(() => setActiveId(null), [])
-
 	return {
 		zones,
-		activeId,
-		titleById,
 		addGroup,
 		removeGroup,
 		renameGroup,
 		recolorGroup,
 		assign,
-		handleDragStart,
 		handleDragEnd,
-		handleDragCancel,
 	}
 }
 
@@ -315,7 +293,33 @@ export function useGroupZoneDroppable(zoneId: string | number) {
 	return { setNodeRef, isOver }
 }
 
-/** Registers a sortable column row; returns the dnd wiring for its node, grip, and lift style. @internal */
+/**
+ * Registers a sortable column row for the group editor. Unlike the shared
+ * {@link useSortableItem} — which hides the source row (`opacity: 0`) for a
+ * `<DragOverlay>` to stand in — this keeps the row visible and animates it in
+ * place through the sortable transform/transition, so siblings glide aside and
+ * the dragged row settles into its slot rather than snapping. `dragging` lifts
+ * the row above its siblings and gates its checkbox.
+ *
+ * @internal
+ */
 export function useGroupColumnSortable(columnId: string | number) {
-	return useSortableItem({ id: String(columnId) })
+	const {
+		setNodeRef,
+		setActivatorNodeRef,
+		attributes,
+		listeners,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: String(columnId) })
+
+	const style: CSSProperties = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		zIndex: isDragging ? 1 : undefined,
+		position: isDragging ? 'relative' : undefined,
+	}
+
+	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
 }
