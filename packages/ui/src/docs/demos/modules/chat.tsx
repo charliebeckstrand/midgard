@@ -20,10 +20,10 @@ import {
 import { Example } from '../../engine'
 
 const conversations = [
-	{ id: 1, title: 'Project kickoff', preview: 'Let me help you plan…', time: '2h' },
-	{ id: 2, title: 'Bug investigation', preview: 'I found the root cause…', time: '5h' },
-	{ id: 3, title: 'Code review', preview: 'The implementation looks…', time: '1d' },
-	{ id: 4, title: 'Architecture design', preview: 'Here are the trade-offs…', time: '3d' },
+	{ id: '1', title: 'Project kickoff', preview: 'Let me help you plan…', timestamp: '2h' },
+	{ id: '2', title: 'Bug investigation', preview: 'I found the root cause…', timestamp: '5h' },
+	{ id: '3', title: 'Code review', preview: 'The implementation looks…', timestamp: '1d' },
+	{ id: '4', title: 'Architecture design', preview: 'Here are the trade-offs…', timestamp: '3d' },
 ]
 
 const transcript: ChatContent[] = [
@@ -45,7 +45,7 @@ const transcript: ChatContent[] = [
 const mockTransport: ChatTransport = () =>
 	(async function* () {
 		const reply =
-			'Thanks for sharing that. Here is a streamed reply so the transcript scrolls and the composer toggles to its stop control while a response is in flight.'
+			'Thanks for sharing that. Here is a streamed reply so the transcript scrolls and the prompt toggles to its stop control while a response is in flight.'
 
 		let snapshot = ''
 
@@ -59,7 +59,7 @@ const mockTransport: ChatTransport = () =>
 	})()
 
 function ConversationList() {
-	const [current, setCurrent] = useState(1)
+	const [current, setCurrent] = useState('1')
 
 	return (
 		<ChatList aria-label="Conversations" className="max-w-xs">
@@ -68,7 +68,7 @@ function ConversationList() {
 					key={conversation.id}
 					title={conversation.title}
 					preview={conversation.preview}
-					timestamp={conversation.time}
+					timestamp={conversation.timestamp}
 					current={conversation.id === current}
 					onSelect={() => setCurrent(conversation.id)}
 					actions={
@@ -83,7 +83,7 @@ function ConversationList() {
 }
 
 function LayoutDemo() {
-	const [current, setCurrent] = useState(1)
+	const [current, setCurrent] = useState('1')
 
 	const { messages, sending, send } = useChatSend({
 		transport: mockTransport,
@@ -93,27 +93,15 @@ function LayoutDemo() {
 		],
 	})
 
-	const sidebar = (
-		<ChatList aria-label="Conversations" className="w-60 shrink-0 overflow-y-auto">
-			{conversations.map((conversation) => (
-				<ChatListItem
-					key={conversation.id}
-					title={conversation.title}
-					preview={conversation.preview}
-					current={conversation.id === current}
-					onSelect={() => setCurrent(conversation.id)}
-				/>
-			))}
-		</ChatList>
-	)
-
 	return (
 		<div className="h-96">
 			<ChatLayout
 				messages={messages}
 				sending={sending}
 				onSend={send}
-				sidebar={sidebar}
+				conversations={conversations}
+				currentConversationId={current}
+				onConversationSelect={setCurrent}
 				aria-label="Message the assistant"
 			/>
 		</div>

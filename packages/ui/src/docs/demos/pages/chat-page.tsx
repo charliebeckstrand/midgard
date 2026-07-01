@@ -1,29 +1,25 @@
-import { CircleDashed, Trash } from 'lucide-react'
+import { CircleDashed } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Confirm } from '../../../components/confirm'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
-import { Sidebar, SidebarBody, SidebarHeader } from '../../../components/sidebar'
 import {
 	type ChatContent,
 	ChatLayout,
-	ChatList,
-	ChatListItem,
 	type ChatTransport,
 	useChatSend,
 } from '../../../modules/chat'
 import { Example } from '../../engine'
 
-const conversations = [
-	{ id: 1, title: 'Project kickoff', preview: 'Let me help you plan...' },
-	{ id: 2, title: 'Bug investigation', preview: 'I found the root cause...' },
-	{ id: 3, title: 'Code review', preview: 'The implementation looks...' },
-	{ id: 4, title: 'Architecture design', preview: 'Here are the trade-offs...' },
-	{ id: 5, title: 'Deployment strategy', preview: 'For zero-downtime...' },
+const initialConversations = [
+	{ id: '1', title: 'Project kickoff', preview: 'Let me help you plan...' },
+	{ id: '2', title: 'Bug investigation', preview: 'I found the root cause...' },
+	{ id: '3', title: 'Code review', preview: 'The implementation looks...' },
+	{ id: '4', title: 'Architecture design', preview: 'Here are the trade-offs...' },
+	{ id: '5', title: 'Deployment strategy', preview: 'For zero-downtime...' },
 ]
 
-const initialMessages: ChatContent[] = [
+const kickoffMessages: ChatContent[] = [
 	{ role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
 	{
 		role: 'agent',
@@ -48,6 +44,47 @@ const initialMessages: ChatContent[] = [
 	},
 ]
 
+// Each conversation opens on its own transcript, so selecting a row swaps the
+// messages area.
+const initialTranscripts: Record<string, ChatContent[]> = {
+	'1': kickoffMessages,
+	'2': [
+		{ role: 'user', content: 'The checkout endpoint times out under load. Any ideas?' },
+		{
+			role: 'agent',
+			content:
+				'I found the root cause: the orders table is missing an index on `customer_id`, so the join falls back to a full scan. Adding it should bring latency back under budget.',
+		},
+	],
+	'3': [
+		{ role: 'user', content: 'Can you review the new pagination helper?' },
+		{
+			role: 'agent',
+			content:
+				'The implementation looks solid. One note: the cursor is decoded on every call — memoize it so repeated reads on the same page stay cheap.',
+		},
+	],
+	'4': [
+		{ role: 'user', content: 'Should we split the monolith into services now?' },
+		{
+			role: 'agent',
+			content:
+				"Here are the trade-offs. Extracting the billing boundary first buys the most isolation for the least churn; the rest can stay in place until there's a clear seam.",
+		},
+	],
+	'5': [
+		{ role: 'user', content: 'How do we ship this without downtime?' },
+		{
+			role: 'agent',
+			content:
+				'For zero-downtime, roll out behind a flag, migrate the schema in expand/contract phases, and drain the old pods only after the new ones pass health checks.',
+		},
+	],
+}
+
+// New conversations open on a single agent greeting (shown with the prompt docked).
+const newChatGreeting = 'Hi! How can I help you today?'
+
 // A mock transport that streams a canned reply word by word, emitting the
 // cumulative text on each tick (the snapshot shape ChatTransport expects).
 const mockTransport: ChatTransport = () =>
@@ -67,54 +104,64 @@ const mockTransport: ChatTransport = () =>
 	})()
 
 export function Demo() {
-	const { messages, sending, send } = useChatSend({ transport: mockTransport, initialMessages })
+	const [conversations, setConversations] = useState(initialConversations)
 
-	const [current, setCurrent] = useState(1)
+	const [transcripts, setTranscripts] = useState(initialTranscripts)
 
-	const [confirmOpen, setConfirmOpen] = useState(false)
+	const [currentId, setCurrentId] = useState('1')
 
-	const sidebar = (
-		<>
-			<Sidebar className="w-64 shrink-0 p-0">
-				<SidebarHeader>
-					<Heading level={2}>Messages</Heading>
-				</SidebarHeader>
-				<SidebarBody>
-					<ChatList aria-label="Conversations">
-						{conversations.map((conversation) => (
-							<ChatListItem
-								key={conversation.id}
-								title={conversation.title}
-								preview={conversation.preview}
-								current={conversation.id === current}
-								onSelect={() => setCurrent(conversation.id)}
-								actions={
-									<Button
-										aria-label="Delete conversation"
-										color="red"
-										variant="plain"
-										size="sm"
-										onClick={() => setConfirmOpen(true)}
-									>
-										<Icon icon={<Trash />} />
-									</Button>
-								}
-							/>
-						))}
-					</ChatList>
-				</SidebarBody>
-			</Sidebar>
+	const { messages, sending, send, setMessages } = useChatSend({
+		transport: mockTransport,
+		initialMessages: initialTranscripts['1'],
+	})
 
-			<Confirm
-				open={confirmOpen}
-				onOpenChange={setConfirmOpen}
-				onConfirm={() => setConfirmOpen(false)}
-				confirm={{ color: 'red' }}
-				title="Delete conversation"
-				description="Are you sure you want to delete this conversation? This action cannot be undone."
-			/>
-		</>
-	)
+	const currentTitle = conversations.find((conversation) => conversation.id === currentId)?.title
+
+	// Stash the live transcript under the outgoing id, then load the target's.
+	function openConversation(id: string) {
+		if (id === currentId) return
+
+		setTranscripts((prev) => ({ ...prev, [currentId]: messages }))
+
+		setMessages(transcripts[id] ?? [])
+
+		setCurrentId(id)
+	}
+
+	function removeConversation(id: string) {
+		const remaining = conversations.filter((conversation) => conversation.id !== id)
+
+		setConversations(remaining)
+
+		setTranscripts(({ [id]: _removed, ...rest }) => rest)
+
+		// Fall back to the first remaining conversation when the open one is removed.
+		if (id === currentId && remaining[0]) {
+			setMessages(transcripts[remaining[0].id] ?? [])
+
+			setCurrentId(remaining[0].id)
+		}
+	}
+
+	// A new conversation opens as a draft seeded with an agent greeting, then becomes current.
+	function createConversation() {
+		const id = crypto.randomUUID()
+
+		const greeting: ChatContent = {
+			id: crypto.randomUUID(),
+			role: 'agent',
+			content: newChatGreeting,
+		}
+
+		setConversations((prev) => [{ id, title: 'New conversation', preview: 'Draft' }, ...prev])
+
+		// Stash the live transcript before swapping in the new one.
+		setTranscripts((prev) => ({ ...prev, [currentId]: messages, [id]: [greeting] }))
+
+		setMessages([greeting])
+
+		setCurrentId(id)
+	}
 
 	return (
 		<Example>
@@ -124,10 +171,14 @@ export function Demo() {
 					sending={sending}
 					onSend={send}
 					onAttach={() => {}}
-					aria-label="Message Project kickoff"
-					header={<Heading level={2}>Project kickoff</Heading>}
-					sidebar={sidebar}
-					composerActions={
+					aria-label={`Message ${currentTitle ?? 'conversation'}`}
+					header={<Heading level={2}>{currentTitle}</Heading>}
+					conversations={conversations}
+					currentConversationId={currentId}
+					onConversationSelect={openConversation}
+					onConversationRemove={removeConversation}
+					onConversationCreate={createConversation}
+					promptActions={
 						<Button variant="plain" size="sm">
 							<Icon icon={<CircleDashed />} />
 							Data Analyst
