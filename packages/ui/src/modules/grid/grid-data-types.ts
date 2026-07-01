@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
+import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
 import type { GridExportEntry } from './export/types'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -149,7 +150,18 @@ export type GridHeader = {
  *
  * @internal
  */
-export type GridDataProps<T> = TableVariants & {
+export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
+	/**
+	 * Density level driving cell padding and grid-internal metrics (resize
+	 * handles, column autosize measurement, the virtualized row-height
+	 * estimate). Unlike the bare `Table` — a static/RSC leaf that reads no
+	 * context — an omitted `density` falls back to an enclosing
+	 * `DensityProvider`, since Grid is always client-rendered.
+	 * @defaultValue 'snug'
+	 * @see {@link useDensityLevel} for the explicit-then-ambient resolution.
+	 */
+	density?: DensityLevel
+
 	/** Column definitions, in declaration order; `columnOrder`, `reorder`, and the column manager can reorder and hide a subset. */
 	columns: GridColumn<T>[]
 	rows: T[]
@@ -353,8 +365,10 @@ export type GridDataProps<T> = TableVariants & {
 	 * the scroll viewport (plus overscan) render to the DOM. Requires
 	 * `maxHeight`, which sizes the scroll container.
 	 *
-	 * Pass `true` for defaults (44px row height, 10 overscan), or an object
-	 * to tune. Assumes uniform row heights.
+	 * Pass `true` for defaults (10 overscan, and a row-height estimate that
+	 * scales with {@link GridDataProps.density} — 36 / 44 / 52px for
+	 * compact / snug / loose), or an object to tune. Assumes uniform row
+	 * heights.
 	 *
 	 * Without virtualization every row in `rows` renders to the DOM; past
 	 * ~500 rows initial render and column-state changes become slow. Enable
