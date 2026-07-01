@@ -72,7 +72,6 @@ function ConversationList() {
 					key={conversation.id}
 					title={conversation.title}
 					preview={conversation.preview}
-					timestamp={conversation.timestamp}
 					current={conversation.id === current}
 					onSelect={() => setCurrent(conversation.id)}
 					remove

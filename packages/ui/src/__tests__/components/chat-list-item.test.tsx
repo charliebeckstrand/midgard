@@ -31,7 +31,7 @@ describe('ChatListItem', () => {
 		const { container } = renderUI(<ChatListItem title="Bug investigation" onSelect={vi.fn()} />)
 
 		// A pointer-capturing `::after` overlays the whole row so clicking the
-		// padding, gap, or timestamp still selects.
+		// padding or gap still selects.
 		expect(bySlot(container, 'chat-list-item-select')).toHaveClass(
 			'after:absolute',
 			'after:inset-0',
@@ -92,45 +92,6 @@ describe('ChatListItem', () => {
 		expect(bySlot(container, 'active-indicator')?.className).toContain(
 			'group-has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2',
 		)
-	})
-
-	it('shows a bare timestamp under the preview', () => {
-		const { container } = renderUI(
-			<ChatListItem
-				title="With timestamp"
-				preview="Preview text"
-				timestamp="2h"
-				onSelect={vi.fn()}
-			/>,
-		)
-
-		const timestamp = bySlot(container, 'chat-list-item-timestamp')
-
-		expect(timestamp).toHaveTextContent('2h')
-
-		// It renders as a Badge chip.
-		expect(timestamp).toHaveClass('inline-flex', 'w-fit')
-
-		// It renders inside the select button, as the line under the preview.
-		const select = bySlot(container, 'chat-list-item-select')
-
-		expect(select?.contains(timestamp)).toBe(true)
-	})
-
-	it('hides the timestamp when show is explicitly false', () => {
-		const { container } = renderUI(
-			<ChatListItem title="No timestamp shown" timestamp={{ value: '2h', show: false }} />,
-		)
-
-		expect(bySlot(container, 'chat-list-item-timestamp')).not.toBeInTheDocument()
-	})
-
-	it('shows the timestamp when passed as an options object without show', () => {
-		const { container } = renderUI(
-			<ChatListItem title="With timestamp options" timestamp={{ value: '2h' }} />,
-		)
-
-		expect(bySlot(container, 'chat-list-item-timestamp')).toHaveTextContent('2h')
 	})
 
 	it('keeps actions as a sibling of the select button', () => {

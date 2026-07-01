@@ -131,7 +131,6 @@ export function ChatLayout({
 						key={conversation.id}
 						title={conversation.title}
 						preview={conversation.preview}
-						timestamp={conversation.timestamp}
 						current={conversation.id === currentConversationId}
 						onSelect={
 							onConversationSelect ? () => onConversationSelect(conversation.id) : undefined

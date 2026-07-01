@@ -1,8 +1,7 @@
 'use client'
 
 import { Trash } from 'lucide-react'
-import { isValidElement, type ReactNode } from 'react'
-import { Badge } from '../../components/badge'
+import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
@@ -18,11 +17,6 @@ export type ChatListItemProps = {
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message), truncated. */
 	preview?: ReactNode
-	/**
-	 * Relative timestamp rendered as a {@link Badge} under the preview. Pass the
-	 * value directly to show it, or `{ value, show: false }` to keep it hidden.
-	 */
-	timestamp?: ReactNode | { value: ReactNode; show?: boolean }
 	/** Marks this row as the open conversation (`aria-current="true"`, morphing indicator). */
 	current?: boolean
 	/** Selects this conversation. When set, the title/preview region is a button. */
@@ -37,34 +31,12 @@ export type ChatListItemProps = {
 }
 
 /**
- * Normalizes `timestamp` into `{ value, show }`, treating a bare value as
- * shown — `show` only ever opts out.
- *
- * @internal
- */
-function normalizeTimestamp(timestamp: ChatListItemProps['timestamp']): {
-	value: ReactNode
-	show: boolean
-} {
-	if (
-		typeof timestamp === 'object' &&
-		timestamp !== null &&
-		!isValidElement(timestamp) &&
-		'value' in timestamp
-	) {
-		return { value: timestamp.value, show: timestamp.show ?? true }
-	}
-
-	return { value: timestamp, show: timestamp !== undefined }
-}
-
-/**
  * A single conversation row for a chat list or sidebar: a `title` over an
- * optional `preview`, with an optional `timestamp` beneath the preview and
+ * optional `preview`, and
  * trailing `actions`.
  *
  * @remarks
- * The title/preview/timestamp region is a `<button>` invoking `onSelect` when
+ * The title/preview region is a `<button>` invoking `onSelect` when
  * provided, otherwise a static `<span>`. The button's hit area stretches across
  * the whole row via a pointer-capturing `::after`, so clicking the surrounding
  * chrome (row padding, the gap) also selects. `actions` render beside it rather
@@ -83,7 +55,6 @@ function normalizeTimestamp(timestamp: ChatListItemProps['timestamp']): {
 export function ChatListItem({
 	title,
 	preview,
-	timestamp,
 	current,
 	onSelect,
 	actions,
@@ -98,17 +69,10 @@ export function ChatListItem({
 
 	const density = useDensity()
 
-	const { value: timestampValue, show: showTimestamp } = normalizeTimestamp(timestamp)
-
 	const body = (
 		<>
 			<span className={k.title}>{title}</span>
 			{preview !== undefined && <span className={k.preview}>{preview}</span>}
-			{showTimestamp && timestampValue !== undefined && (
-				<Badge data-slot="chat-list-item-timestamp" size="xs" className={k.timestamp}>
-					{timestampValue}
-				</Badge>
-			)}
 		</>
 	)
 
