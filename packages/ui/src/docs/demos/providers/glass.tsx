@@ -27,7 +27,7 @@ import { Text } from '../../../components/text'
 import { GlassProvider } from '../../../providers/glass'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Glass Provider' }
+export const meta = { name: 'Glass' }
 
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 

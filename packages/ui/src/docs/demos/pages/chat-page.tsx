@@ -12,11 +12,11 @@ import {
 import { Example } from '../../engine'
 
 const initialConversations = [
-	{ id: '1', title: 'Project kickoff', preview: 'Let me help you plan...' },
-	{ id: '2', title: 'Bug investigation', preview: 'I found the root cause...' },
-	{ id: '3', title: 'Code review', preview: 'The implementation looks...' },
-	{ id: '4', title: 'Architecture design', preview: 'Here are the trade-offs...' },
-	{ id: '5', title: 'Deployment strategy', preview: 'For zero-downtime...' },
+	{ id: '1', title: 'Project kickoff' },
+	{ id: '2', title: 'Bug investigation' },
+	{ id: '3', title: 'Code review' },
+	{ id: '4', title: 'Architecture design' },
+	{ id: '5', title: 'Deployment strategy' },
 ]
 
 const kickoffMessages: ChatContent[] = [

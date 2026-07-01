@@ -5,7 +5,7 @@ import { Toast } from '../../../components/toast'
 import { ToastProvider, useToast } from '../../../providers/toast'
 import { code, Example } from '../../engine'
 
-export const meta = { name: 'Toast Provider' }
+export const meta = { name: 'Toast' }
 
 function BasicExample() {
 	const { toast } = useToast()

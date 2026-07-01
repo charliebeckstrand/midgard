@@ -7,7 +7,7 @@ import { Group } from '../../../components/group'
 import { LocaleProvider } from '../../../providers/locale'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Locale Provider' }
+export const meta = { name: 'Locale' }
 
 const PRESETS = [
 	{ label: 'US', locale: 'en-US', currency: 'USD' },
