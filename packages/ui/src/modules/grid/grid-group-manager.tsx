@@ -22,7 +22,7 @@ import { Input } from '../../components/input'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
-import { useSortableSensors } from '../../hooks'
+import { useGrabbingCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
 import type { GridColumnGroup } from './grid-group-types'
 import { columnLabel, type GridColumnManagerItem } from './types'
@@ -112,6 +112,11 @@ export function GridGroupManager({
 	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
 	const sensors = useSortableSensors()
+
+	// Force the grabbing cursor across the document for the whole drag — the group
+	// reorder sorts in place with no overlay, so mid-drag the pointer is usually
+	// over a reflowing sibling zone or the dialog, not the dragged card.
+	useGrabbingCursor(mgr.activeId != null)
 
 	// String-keyed lookup so a zone (whose live ids are stringified) and the drag
 	// overlay can resolve a column id back to its manager item.
@@ -235,13 +240,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	)
 
 	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			// While reordering, force the grabbing cursor over the whole moving zone.
-			className={cn(dragging && k.grabbing)}
-			data-dragging={dataAttr(dragging)}
-		>
+		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
 			<GridGroupManagerZoneView {...props} handle={handle} />
 		</div>
 	)

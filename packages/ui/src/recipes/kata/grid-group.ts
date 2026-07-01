@@ -52,9 +52,6 @@ const cardOutline: Record<PaletteColor, string> = {
 export const k = {
 	// Outline color for a group's editor Card in its color (see {@link cardOutline}).
 	cardOutline,
-	// Forces the grabbing cursor across a group zone (and its children) while it is
-	// dragged, over the grip's resting grab and any inner control cursors.
-	grabbing: ['cursor-grabbing', '[&_*]:!cursor-grabbing'],
 	// Fill for a group's underline rule in its color (see {@link bandColor}).
 	bandColor,
 	// The group row's cells align their band vertically; no bottom rule — the
