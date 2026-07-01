@@ -30,7 +30,7 @@ export default defineDocsConfig({ packageName: 'ui' })
 import { mount } from './engine/host'
 import './app.css'
 
-mount(import.meta.glob(['./demos/*.tsx', './demos/pages/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
+mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
 ```
 
 The chrome renders with ui's own components (imported relatively from
