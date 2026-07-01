@@ -158,21 +158,21 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 	// Non-collapsible: the Badge alone, flush with its column's left edge.
 	if (!group.collapsible) return <span className={cn(k.band)}>{badgeWithTooltip}</span>
 
-	// Collapsible: the Badge leads (so it still lines up with the column), the fold
-	// chevron trails it, and both live in one toggle — a click anywhere folds the
-	// group. The `+N` count sits outside the control, after the chevron.
+	// Collapsible: the Badge leads (so it lines up with the column), then a bare
+	// icon Button folds the group — the chevron alone lives in the button, so it
+	// brightens on hover. The `+N` count trails the toggle when collapsed.
 	return (
 		<span className={cn(k.band)}>
+			{badgeWithTooltip}
+
 			<Button
 				variant="bare"
 				type="button"
-				className={cn(k.bandButton)}
 				aria-expanded={!collapsed}
 				aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
 				onClick={() => onToggleCollapse(group.id)}
 			>
-				{badgeWithTooltip}
-				<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} className={cn(k.chevron)} />
+				<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} />
 			</Button>
 
 			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}
