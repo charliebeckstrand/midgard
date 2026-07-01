@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu, Plus, Trash } from 'lucide-react'
+import { Menu, Plus } from 'lucide-react'
 import { type ReactNode, type Ref, useState } from 'react'
 import { Button } from '../../components/button'
 import { Confirm } from '../../components/confirm'
@@ -136,19 +136,8 @@ export function ChatLayout({
 						onSelect={
 							onConversationSelect ? () => onConversationSelect(conversation.id) : undefined
 						}
-						actions={
-							onConversationRemove ? (
-								<Button
-									aria-label="Remove conversation"
-									color="red"
-									variant="plain"
-									size="sm"
-									onClick={() => setPendingRemoval(conversation.id)}
-								>
-									<Icon icon={<Trash />} />
-								</Button>
-							) : undefined
-						}
+						remove={onConversationRemove !== undefined}
+						onRemove={() => setPendingRemoval(conversation.id)}
 					/>
 				))}
 			</ChatList>

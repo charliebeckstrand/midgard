@@ -1,4 +1,4 @@
-import { CircleDashed, Pencil, RotateCcw, Trash } from 'lucide-react'
+import { CircleDashed, Pencil, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
@@ -75,11 +75,7 @@ function ConversationList() {
 					timestamp={conversation.timestamp}
 					current={conversation.id === current}
 					onSelect={() => setCurrent(conversation.id)}
-					actions={
-						<Button variant="plain" size="sm" color="red" aria-label="Delete conversation">
-							<Icon icon={<Trash />} />
-						</Button>
-					}
+					remove
 				/>
 			))}
 		</ChatList>

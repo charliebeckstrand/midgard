@@ -1,6 +1,11 @@
+import { Trash } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
+import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
@@ -18,6 +23,10 @@ export type ChatListItemProps = {
 	onSelect?: () => void
 	/** Trailing controls (e.g. a delete button), kept as a sibling of the select button so it never nests interactives. */
 	actions?: ReactNode
+	/** Shows a trailing remove button after `actions`. Call `onRemove` to wire it up. */
+	remove?: boolean
+	/** Called when the remove button is activated. */
+	onRemove?: () => void
 	className?: string
 }
 
@@ -38,6 +47,9 @@ export type ChatListItemProps = {
  * so its rows morph against each other rather than any indicator outside the list.
  * Inside a {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
  * keyboard model; standalone it is a `<div>`.
+ * `actions` and the `remove` button (rendered last, to its right) share a
+ * stepped-down size — `sm` at the ambient `md` Density — broadcast through an
+ * `Affix`, so a passed-in `Button` needs no explicit `size` to match.
  */
 export function ChatListItem({
 	title,
@@ -46,12 +58,16 @@ export function ChatListItem({
 	current,
 	onSelect,
 	actions,
+	remove,
+	onRemove,
 	className,
 }: ChatListItemProps) {
 	// Inside a ChatList the row is a list item; standalone it is a plain row.
 	const inList = useInChatList()
 
 	const Wrapper = inList ? 'li' : 'div'
+
+	const density = useDensity()
 
 	const body = (
 		<>
@@ -88,9 +104,16 @@ export function ChatListItem({
 				</span>
 			)}
 
-			{actions !== undefined && (
+			{(actions !== undefined || remove) && (
 				<div data-slot="chat-list-item-actions" className={k.actions}>
-					{actions}
+					<AffixContext value={affixStepDown(density.size)}>
+						{actions}
+						{remove && (
+							<Button aria-label="Remove" variant="bare" color="red" onClick={onRemove}>
+								<Icon icon={<Trash />} />
+							</Button>
+						)}
+					</AffixContext>
 				</div>
 			)}
 
