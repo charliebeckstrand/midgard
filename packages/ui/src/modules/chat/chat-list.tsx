@@ -26,7 +26,7 @@ export type ChatListProps = {
  * (`aria-current="true"`, else the first item). While an item holds focus,
  * Up/Down arrows rove between items, and Left/Right rove into that row's action
  * controls and back — the actions stay out of the Tab order, so Tab always
- * re-enters on an item. Establishes the {@link useInChatList} context so nested
+ * re-enters on an item. Establishes the {@link useChatList} context so nested
  * items take `role="listitem"`, and an `ActiveIndicatorScope` so the current
  * row's indicator morphs between siblings rather than against indicators
  * outside the list.

@@ -7,6 +7,6 @@ import { createContext } from '../../core'
  * owns the roving-tabindex keyboard model; an item reads this to take
  * `role="listitem"` (paired with the list's `role="list"`) when nested.
  */
-export const [ChatListContext, useInChatList] = createContext<boolean>('ChatList', {
+export const [ChatListContext, useChatList] = createContext<boolean>('ChatList', {
 	default: false,
 })

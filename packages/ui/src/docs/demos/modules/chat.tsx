@@ -20,10 +20,10 @@ import {
 import { Example } from '../../engine'
 
 const conversations = [
-	{ id: '1', title: 'Project kickoff', preview: 'Let me help you plan…', timestamp: '2h' },
-	{ id: '2', title: 'Bug investigation', preview: 'I found the root cause…', timestamp: '5h' },
-	{ id: '3', title: 'Code review', preview: 'The implementation looks…', timestamp: '1d' },
-	{ id: '4', title: 'Architecture design', preview: 'Here are the trade-offs…', timestamp: '3d' },
+	{ id: '1', title: 'Project kickoff', timestamp: '2h' },
+	{ id: '2', title: 'Bug investigation', timestamp: '5h' },
+	{ id: '3', title: 'Code review', timestamp: '1d' },
+	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
 
 // Each conversation opens on its own transcript, so selecting a row swaps the
@@ -104,10 +104,8 @@ function ConversationList() {
 				<ChatListItem
 					key={conversation.id}
 					title={conversation.title}
-					preview={conversation.preview}
 					current={conversation.id === current}
 					onSelect={() => setCurrent(conversation.id)}
-					remove
 				/>
 			))}
 		</ChatList>
@@ -230,16 +228,12 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example title="Default">
 							<Stack gap="sm">
-								<ChatMessage type="assistant" timestamp="11:10 AM">
-									Heading out now, ETA 3pm.
-								</ChatMessage>
-								<ChatMessage type="user" timestamp="11:12 AM">
-									Got it — door code is 4421.
-								</ChatMessage>
+								<ChatMessage type="assistant">Hi there! How can I help you today?</ChatMessage>
+								<ChatMessage type="user">Can you help me plan the project kickoff?</ChatMessage>
 							</Stack>
 						</Example>
 
-						<Example title="System message">
+						<Example title="System">
 							<ChatMessage type="system">Conversation started</ChatMessage>
 						</Example>
 
@@ -249,10 +243,18 @@ export function Demo() {
 							</ChatMessage>
 						</Example>
 
+						<Example title="Timestamped">
+							<ChatMessage type="assistant" timestamp="11:10 AM">
+								Heading out now, ETA 3pm.
+							</ChatMessage>
+							<ChatMessage type="user" timestamp="11:12 AM">
+								Got it — door code is 4421.
+							</ChatMessage>
+						</Example>
+
 						<Example title="With actions">
 							<ChatMessage
 								type="assistant"
-								timestamp="11:10 AM"
 								actions={
 									<>
 										<CopyButton size="sm" value="Heading out now, ETA 3pm." />

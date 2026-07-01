@@ -6,7 +6,7 @@ import { Stack } from '../../../components/stack'
 import { HeadlessProvider } from '../../../providers/headless'
 import { Example } from '../../engine'
 
-export const meta = { name: 'Headless Provider' }
+export const meta = { name: 'Headless' }
 
 export function Demo() {
 	return (

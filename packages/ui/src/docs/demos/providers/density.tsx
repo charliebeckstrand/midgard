@@ -29,7 +29,7 @@ import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../
 import { type DensityLevel, DensityProvider } from '../../../providers/density'
 import { DensityListbox, Example } from '../../engine'
 
-export const meta = { name: 'Density Provider' }
+export const meta = { name: 'Density' }
 
 const navItems = [
 	{ icon: <Inbox />, label: 'Inbox', current: true },
