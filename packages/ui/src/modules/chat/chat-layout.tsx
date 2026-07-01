@@ -78,7 +78,10 @@ export type ChatLayoutProps = {
  * Composes {@link ChatMessages} with {@link ChatPrompt}, owning the prompt draft
  * through {@link useChatDraft} so callers wire only `messages` and `onSend`. In
  * `isDraft` mode (or with no messages) the transcript is hidden and the prompt is
- * centered. Pass `conversations` and the layout builds its own navigation rail —
+ * centered. {@link ChatMessages} is keyed on `currentConversationId`, so
+ * switching conversations remounts it and its transcript opens already
+ * scrolled to the bottom instead of animating there. Pass `conversations` and
+ * the layout builds its own navigation rail —
  * a {@link ChatList} of {@link ChatListItem} rows, each with a remove button
  * (guarded by a {@link Confirm}) when `onConversationRemove` is set, and a `+`
  * button beside the title when `onConversationCreate` is set — shown inline on
@@ -193,7 +196,9 @@ export function ChatLayout({
 		>
 			{headerRow}
 
-			{showTranscript && <ChatMessages messages={messages} streaming={sending} />}
+			{showTranscript && (
+				<ChatMessages key={currentConversationId} messages={messages} streaming={sending} />
+			)}
 
 			<div className={cn('w-full', isDraft && 'lg:max-w-md mx-auto')}>
 				<ChatPrompt

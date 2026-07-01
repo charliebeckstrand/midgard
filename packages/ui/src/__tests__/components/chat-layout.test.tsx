@@ -170,4 +170,33 @@ describe('ChatLayout', () => {
 
 		expect(screen.queryByRole('button', { name: 'Open conversations' })).not.toBeInTheDocument()
 	})
+
+	it('remounts the transcript when the current conversation changes', () => {
+		const { container, rerender } = renderUI(
+			<ChatLayout
+				messages={messages}
+				onSend={noop}
+				conversations={conversations}
+				currentConversationId="a"
+			/>,
+		)
+
+		const before = bySlot(container, 'chat-messages')
+
+		rerender(
+			<ChatLayout
+				messages={[{ id: '2', role: 'user', content: 'New chat' }]}
+				onSend={noop}
+				conversations={conversations}
+				currentConversationId="b"
+			/>,
+		)
+
+		const after = bySlot(container, 'chat-messages')
+
+		// A fresh DOM node — not just new content — so the transcript opens
+		// already scrolled to the bottom instead of animating from wherever
+		// the previous conversation happened to be scrolled.
+		expect(after).not.toBe(before)
+	})
 })
