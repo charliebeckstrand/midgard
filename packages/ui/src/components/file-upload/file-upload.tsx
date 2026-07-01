@@ -1,8 +1,9 @@
 'use client'
 
 import { Upload, X } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useIsTruncated } from '../../hooks'
 import { k } from '../../recipes/kata/file-upload'
 import { AspectRatio, type AspectRatioProps } from '../aspect-ratio'
 import { Button } from '../button'
@@ -86,8 +87,10 @@ export type FileUploadProps = FileUploadDropProps | FileUploadInputProps | FileU
 type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	control: ReturnType<typeof useControl>
 	hasFiles: boolean
-	/** A tooltip disambiguates the "x files selected" summary; a single name is
-	 * already fully visible, so it never needs one. */
+	/** Forces the selection tooltip open for the "x files selected" summary,
+	 * whose collapsed count hides the names. A single name needs it only when
+	 * clipped — the `drop` variant detects that per render (`useIsTruncated`); the
+	 * `input` variant relies on this flag alone. */
 	showTooltip: boolean
 }
 
@@ -103,9 +106,14 @@ type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * announced to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
  * `maxSize`/`maxCount` filtering live in {@link useFileUploadHandlers}. Once a
  * selection exists, `drop` and `input` show the file name (or an "x files
- * selected" summary once `multiple` yields more than one, tooltipped with the
- * full list) and a control to clear it — a suffix button for `input`, a `Reset`
- * button under the label for `drop`; `button` swaps its trigger for `Reset`.
+ * selected" summary once `multiple` yields more than one) and a control to clear
+ * it — a suffix button for `input`, a `Reset` button under the label for `drop`.
+ * The `drop` label truncates to one line and reveals the full name(s) in a
+ * tooltip when the summary hides them or a single name is clipped, and its
+ * dropzone stays clickable, focusable, and keyboard-operable so a different file
+ * can be picked without clearing first. `button` keeps its upload trigger and
+ * adds `Reset` beside it once a selection exists, so a different file can be
+ * picked (or the selection cleared) without the trigger swapping out.
  *
  * @see {@link FileUploadProps}
  * @see {@link useFileUploadHandlers}
@@ -201,8 +209,11 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 	const { accept, multiple, disabled, className, children, size, color } = props
 	const { control, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
 
+	// The upload trigger always stays; a selection adds `Reset` beside it, so a
+	// different file can be picked — or the selection cleared — without the
+	// trigger swapping out.
 	return (
-		<div data-slot="file-upload" className={cn('inline-flex', className)}>
+		<div data-slot="file-upload" className={cn('inline-flex gap-2', className)}>
 			<FileUploadHiddenInput
 				ariaLabel={triggerLabel(children, 'Upload')}
 				control={control}
@@ -213,7 +224,17 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>
-			{hasFiles ? (
+			<Button
+				size={size}
+				color={color}
+				disabled={disabled}
+				className={cn(k.cursor)}
+				onClick={openPicker}
+			>
+				<Icon icon={<Upload />} />
+				{children ?? 'Upload'}
+			</Button>
+			{hasFiles && (
 				<Button
 					size={size}
 					variant="soft"
@@ -224,47 +245,92 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 				>
 					Reset
 				</Button>
-			) : (
-				<Button
-					size={size}
-					color={color}
-					disabled={disabled}
-					className={cn(k.cursor)}
-					onClick={openPicker}
-				>
-					<Icon icon={<Upload />} />
-					{children ?? 'Upload'}
-				</Button>
 			)}
 		</div>
 	)
 }
 
-/** The dropzone's icon plus its label/reset content, shared by both interactivity states. */
-function dropContent(props: FileUploadDropProps, state: FileUploadRenderState) {
-	const { children, multiple, disabled } = props
-	const { files, hasFiles, showTooltip, clearFiles } = state
-
+/** The empty dropzone's icon and prompt, or the caller's `children` in its place. */
+function dropPrompt(children: ReactNode) {
 	return (
-		children ??
-		(hasFiles ? (
-			<>
-				<Tooltip enabled={showTooltip}>
-					<TooltipTrigger>
-						<div className={cn(k.label)}>{selectionSummary(files, multiple)}</div>
-					</TooltipTrigger>
-					<TooltipContent>{formatFileNames(files)}</TooltipContent>
-				</Tooltip>
-				<Button variant="soft" color="red" disabled={disabled} onClick={clearFiles}>
-					Reset
-				</Button>
-			</>
-		) : (
+		children ?? (
 			<>
 				<Icon icon={<Upload />} size="lg" className={k.icon} />
 				<div className={cn(k.label)}>Drop files here or click to browse</div>
 			</>
-		))
+		)
+	)
+}
+
+/** Props for {@link DropSelection}. @internal */
+type DropSelectionProps = {
+	files: File[]
+	multiple?: boolean
+	disabled?: boolean
+	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
+	alwaysTooltip: boolean
+	/** Re-opens the picker; also fired by clicking the dropzone overlay. */
+	onPick: () => void
+	onClear: () => void
+}
+
+/**
+ * The `drop` variant's filled state: a full-area overlay trigger to re-pick,
+ * the selection label, and a `Reset` button. The overlay is a sibling of
+ * `Reset` (never its parent, which would nest interactive controls); the label
+ * paints above it but stays `pointer-events-none`, so a click anywhere but
+ * `Reset` re-opens the picker. The label truncates to one line, and the overlay
+ * — as the tooltip trigger — reveals the full name(s) on hover or focus when the
+ * multi-file summary hides them or a single name is clipped.
+ *
+ * @internal
+ */
+function DropSelection({
+	files,
+	multiple,
+	disabled,
+	alwaysTooltip,
+	onPick,
+	onClear,
+}: DropSelectionProps) {
+	const labelRef = useRef<HTMLDivElement>(null)
+
+	const text = selectionSummary(files, multiple) ?? ''
+
+	const truncated = useIsTruncated(labelRef, text)
+
+	return (
+		<>
+			<Tooltip enabled={alwaysTooltip || truncated}>
+				<TooltipTrigger>
+					<button
+						type="button"
+						aria-label="Choose a different file"
+						disabled={disabled}
+						onClick={onPick}
+						className={cn(k.overlay)}
+					/>
+				</TooltipTrigger>
+				<TooltipContent>{formatFileNames(files)}</TooltipContent>
+			</Tooltip>
+			{/* Above the overlay so it reads, but click-transparent so the overlay
+			    still catches the pick anywhere the text sits. */}
+			<div
+				ref={labelRef}
+				className={cn(k.label, 'pointer-events-none relative z-10 w-full truncate text-center')}
+			>
+				{text}
+			</div>
+			<Button
+				variant="soft"
+				color="red"
+				disabled={disabled}
+				onClick={onClear}
+				className="relative z-10"
+			>
+				Reset
+			</Button>
+		</>
 	)
 }
 
@@ -273,9 +339,12 @@ function renderDropVariant(props: FileUploadDropProps, state: FileUploadRenderSt
 	const {
 		control,
 		inputRef,
+		files,
 		hasFiles,
+		showTooltip,
 		handleChange,
 		openPicker,
+		clearFiles,
 		dragOver,
 		handleDragEnter,
 		handleDragOver,
@@ -291,6 +360,12 @@ function renderDropVariant(props: FileUploadDropProps, state: FileUploadRenderSt
 		onDrop: handleDrop,
 	}
 
+	// The built-in filled state carries its own `Reset` button, which can't nest
+	// inside a trigger `<button>`; it renders a plain container plus the overlay
+	// trigger in {@link DropSelection}. Empty, or caller `children` (no built-in
+	// Reset): a single trigger `<button>` opens the picker.
+	const filled = hasFiles && children == null
+
 	return (
 		<AspectRatio ratio={ratio ?? '16/9'} className="overflow-visible">
 			{/* Sibling of the trigger, not nested inside it: a focusable `<input>`
@@ -305,17 +380,21 @@ function renderDropVariant(props: FileUploadDropProps, state: FileUploadRenderSt
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>
-			{hasFiles ? (
-				// Static: once files land, the Reset button in `dropContent` is the
-				// sole focusable control. A real `<button>` here would nest one
-				// interactive element inside another.
+			{filled ? (
 				<div
 					data-slot="file-upload"
 					data-disabled={dataAttr(disabled)}
-					className={cn(k.dropzone, 'size-full', className)}
+					className={cn(k.dropzone, 'relative size-full', className)}
 					{...dragProps}
 				>
-					{dropContent(props, state)}
+					<DropSelection
+						files={files}
+						multiple={multiple}
+						disabled={disabled}
+						alwaysTooltip={showTooltip}
+						onPick={openPicker}
+						onClear={clearFiles}
+					/>
 				</div>
 			) : (
 				<button
@@ -326,7 +405,7 @@ function renderDropVariant(props: FileUploadDropProps, state: FileUploadRenderSt
 					className={cn(k.dropzone, 'size-full', className)}
 					{...dragProps}
 				>
-					{dropContent(props, state)}
+					{dropPrompt(children)}
 				</button>
 			)}
 		</AspectRatio>

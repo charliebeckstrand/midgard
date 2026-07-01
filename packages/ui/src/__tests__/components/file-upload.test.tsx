@@ -37,6 +37,11 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
+	// The truncation-tooltip label mirrors its text into an off-screen,
+	// aria-hidden span (useIsTruncated); ignore it so the visible label is the
+	// single match.
+	const IGNORE_MIRROR = { ignore: 'script, style, [aria-hidden="true"]' }
+
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUpload />)
 
@@ -44,9 +49,23 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.queryByText('Drop files here or click to browse')).not.toBeInTheDocument()
 
-		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
+		expect(screen.getByText('resume.pdf', IGNORE_MIRROR)).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+	})
+
+	it('keeps the dropzone operable so a different file can be picked after a selection', () => {
+		const { container } = renderUI(<FileUpload />)
+
+		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
+
+		selectFiles(container, [new File(['x'], 'resume.pdf')])
+
+		const click = vi.spyOn(fileInput, 'click')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Choose a different file' }))
+
+		expect(click).toHaveBeenCalledTimes(1)
 	})
 
 	it('shows an "x files selected" summary for a multi-file selection', () => {
@@ -54,7 +73,7 @@ describe('FileUpload drop variant selection', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		expect(screen.getByText('2 files selected')).toBeInTheDocument()
+		expect(screen.getByText('2 files selected', IGNORE_MIRROR)).toBeInTheDocument()
 	})
 
 	it('clears the selection and restores the drop prompt when Reset is clicked', () => {
@@ -207,17 +226,24 @@ describe('FileUpload button variant selection', () => {
 		fireEvent.change(input, { target: { files: makeFileList(files) } })
 	}
 
-	it('swaps the trigger to a Reset button once a file is selected', () => {
+	it('keeps the Upload trigger and adds a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUpload variant="button" />)
+
+		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
-		expect(screen.queryByRole('button', { name: 'Upload' })).not.toBeInTheDocument()
-
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+
+		// The trigger stays operable so a different file can be picked.
+		const click = vi.spyOn(fileInput, 'click')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Upload' }))
+
+		expect(click).toHaveBeenCalledTimes(1)
 	})
 
-	it('clears the selection and restores the trigger when Reset is clicked', () => {
+	it('clears the selection and removes Reset when Reset is clicked', () => {
 		const onFiles = vi.fn()
 
 		const { container } = renderUI(<FileUpload variant="button" onFiles={onFiles} />)
@@ -227,6 +253,8 @@ describe('FileUpload button variant selection', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
 		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
 
 		expect(onFiles).toHaveBeenLastCalledWith([])
 	})
