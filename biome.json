@@ -58,7 +58,8 @@
 			"!**/dist",
 			"!**/.next",
 			"!**/next-env.d.ts",
-			"!.mcp-servers"
+			"!.mcp-servers",
+			"!.claude/worktrees"
 		],
 		"ignoreUnknown": true
 	},
