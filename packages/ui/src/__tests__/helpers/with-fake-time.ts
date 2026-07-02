@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { vi } from 'vitest'
+import { onTestFinished, vi } from 'vitest'
 
 type FakeClock = {
 	/**
@@ -54,6 +54,29 @@ export async function withFakeTime(run: (clock: FakeClock) => Promise<void> | vo
 
 	globalWithJest.jest = { advanceTimersByTime: (ms) => vi.advanceTimersByTime(ms) }
 
+	let restored = false
+
+	const restore = () => {
+		if (restored) {
+			return
+		}
+
+		restored = true
+
+		if (priorJest === undefined) {
+			delete globalWithJest.jest
+		} else {
+			globalWithJest.jest = priorJest
+		}
+
+		vi.useRealTimers()
+	}
+
+	// A test aborted by testTimeout leaves `run` hanging, so the finally below
+	// never executes; the runner still settles the task and calls this hook,
+	// keeping the leaked fake clock from cascading into the file's later tests.
+	onTestFinished(restore)
+
 	try {
 		await run({
 			advance: (ms) =>
@@ -63,12 +86,6 @@ export async function withFakeTime(run: (clock: FakeClock) => Promise<void> | vo
 			user: userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) }),
 		})
 	} finally {
-		if (priorJest === undefined) {
-			delete globalWithJest.jest
-		} else {
-			globalWithJest.jest = priorJest
-		}
-
-		vi.useRealTimers()
+		restore()
 	}
 }

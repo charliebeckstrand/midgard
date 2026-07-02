@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
+import { afterEach } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
 
 import './jsdom-stubs'
@@ -11,13 +11,6 @@ import './jsdom-stubs'
 configure({ asyncUtilTimeout: process.env.CI ? 4_000 : 1_000 })
 
 afterEach(() => {
-	// withFakeTime restores real timers in its finally, but a test aborted by
-	// testTimeout never runs that finally — without this backstop the leaked
-	// fake clock cascades timeouts through every later test in the file.
-	if (vi.isFakeTimers()) {
-		vi.useRealTimers()
-	}
-
 	cleanup()
 
 	// The announcer's live region lives on document.body, outside React's tree;
