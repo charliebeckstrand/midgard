@@ -2,9 +2,14 @@ import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { createLinkResolver } from '../../api-reference/engine/link-resolver'
 
-/** A ts-morph project spanning several files, mirroring the package's cross-file layout. */
+/**
+ * A ts-morph project spanning several files, mirroring the package's
+ * cross-file layout. Link resolution reads declarations and JSDoc, never the
+ * checker's lib types, so skipping lib loading cuts most of the per-test
+ * Project construction cost.
+ */
 function project(files: Record<string, string>): Project {
-	const project = new Project({ useInMemoryFileSystem: true })
+	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	for (const [name, text] of Object.entries(files)) project.createSourceFile(name, text)
 
