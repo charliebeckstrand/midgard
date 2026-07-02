@@ -10,6 +10,8 @@ export {
 	Grid,
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
+	type GridFooter,
+	type GridFooterStats,
 	type GridHeader,
 	type GridProps,
 	type GridSelection,

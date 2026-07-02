@@ -32,6 +32,7 @@ import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { GridContextMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
+	resolveFooterStats,
 	resolveGridSemantics,
 	resolveHover,
 	resolveResizeLayout,
@@ -40,6 +41,7 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
+import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -303,6 +305,7 @@ export function GridData<T>({
 	rowLoading,
 	empty,
 	error,
+	footer,
 	virtualize,
 	tableProps,
 	density: densityProp,
@@ -719,6 +722,16 @@ export function GridData<T>({
 	// region's result announcement; the header row the aria count adds is excluded.
 	const dataRowCount = pagination?.rowCount ?? renderRows.length
 
+	// Live counts for the optional summary footer, read live off `table` so they
+	// track client-side search/filtering (see `resolveFooterStats`); `null` when no
+	// `footer` is configured, so no bar renders.
+	const footerStats = resolveFooterStats({
+		footer,
+		table,
+		filteredCount: dataRowCount,
+		selected: selection.size,
+	})
+
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
 	const {
@@ -885,6 +898,8 @@ export function GridData<T>({
 					>
 						<CondensedCascade active={condensed}>{tableRegion}</CondensedCascade>
 					</GridRegion>
+
+					<GridFooterBar config={footer} stats={footerStats} />
 
 					{pagination && <GridPaginationFooter pagination={pagination} />}
 				</div>

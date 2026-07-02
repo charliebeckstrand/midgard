@@ -392,6 +392,15 @@ export const k = {
 		// text (the dominant size cue; its icon slot rides the `icon` rule above).
 		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
+	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
+	// status bar. Wraps on narrow viewports; the trailing cluster (selected count +
+	// custom content) is pushed to the far edge by `ml-auto`, across from the
+	// leading row-count total.
+	summary: {
+		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
+		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
+		item: 'whitespace-nowrap',
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
