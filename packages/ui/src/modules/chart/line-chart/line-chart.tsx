@@ -1,27 +1,15 @@
 'use client'
 
-import { motion } from 'motion/react'
-import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
-import { k } from '../../../recipes/kata/chart'
 import { ChartAxis } from '../chart-axis'
-import {
-	AREA_FADE,
-	AREA_FILL_OPACITY,
-	LINE_DRAW,
-	LINE_STROKE_WIDTH,
-	MARKER_RADIUS,
-	MARKER_RING_WIDTH,
-	POINT_POP,
-} from '../chart-constants'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
-import type { SeriesPaint } from '../chart-series'
+import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import type { CartesianChartProps } from '../types'
 import { useChartCartesian } from '../use-chart-cartesian'
-import { type LineSeriesGeometry, lineGeometry } from './line-chart-geometry'
+import { lineGeometry } from './line-chart-geometry'
 
 /**
  * Props for {@link LineChart}. Requires an accessible name (`aria-label` or
@@ -40,121 +28,6 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	 * @defaultValue false
 	 */
 	fill?: boolean
-}
-
-/** One series' render inputs, shared by the static and animated renderers. @internal */
-type LineSeries = {
-	label: string
-	paint: SeriesPaint
-	geometry: LineSeriesGeometry
-	markers: boolean
-}
-
-/** Shared shape for the static and animated mark renderers. @internal */
-type LineChartMarksProps = {
-	list: LineSeries[]
-	fill: boolean
-}
-
-/** The marker dot with its surface ring, static form. @internal */
-function markerClass(paint: SeriesPaint): string {
-	return cn(paint.fill, k.gap)
-}
-
-/** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
-function LineChartMarks({ list, fill }: LineChartMarksProps) {
-	return list.map(({ label, paint, geometry, markers }) => (
-		<g key={label} data-slot="chart-line-series">
-			{fill &&
-				geometry.areas.map((area) => (
-					<path
-						key={area}
-						data-slot="chart-area"
-						d={area}
-						stroke="none"
-						fillOpacity={AREA_FILL_OPACITY}
-						className={cn(paint.fill)}
-					/>
-				))}
-
-			{geometry.segments.map((segment) => (
-				<path
-					key={segment}
-					data-slot="chart-line"
-					d={segment}
-					fill="none"
-					strokeWidth={LINE_STROKE_WIDTH}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					className={cn(paint.stroke)}
-				/>
-			))}
-
-			{(markers ? geometry.points : geometry.isolated).map((point) => (
-				<circle
-					key={`${point.x}:${point.y}`}
-					data-slot="chart-point"
-					cx={point.x}
-					cy={point.y}
-					r={MARKER_RADIUS}
-					strokeWidth={MARKER_RING_WIDTH}
-					className={markerClass(paint)}
-				/>
-			))}
-		</g>
-	))
-}
-
-/** The Framer Motion lines: each segment draws itself, washes and dots follow. @internal */
-function AnimatedLineChartMarks({ list, fill }: LineChartMarksProps) {
-	return list.map(({ label, paint, geometry, markers }) => (
-		<g key={label} data-slot="chart-line-series">
-			{fill &&
-				geometry.areas.map((area) => (
-					<motion.path
-						key={area}
-						data-slot="chart-area"
-						d={area}
-						stroke="none"
-						fillOpacity={AREA_FILL_OPACITY}
-						className={cn(paint.fill)}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={AREA_FADE}
-					/>
-				))}
-
-			{geometry.segments.map((segment) => (
-				<motion.path
-					key={segment}
-					data-slot="chart-line"
-					d={segment}
-					fill="none"
-					strokeWidth={LINE_STROKE_WIDTH}
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					className={cn(paint.stroke)}
-					initial={{ pathLength: 0 }}
-					animate={{ pathLength: 1 }}
-					transition={LINE_DRAW}
-				/>
-			))}
-
-			{(markers ? geometry.points : geometry.isolated).map((point) => (
-				<motion.circle
-					key={`${point.x}:${point.y}`}
-					data-slot="chart-point"
-					cx={point.x}
-					cy={point.y}
-					strokeWidth={MARKER_RING_WIDTH}
-					className={markerClass(paint)}
-					initial={{ r: 0, opacity: 0 }}
-					animate={{ r: MARKER_RADIUS, opacity: 1 }}
-					transition={POINT_POP}
-				/>
-			))}
-		</g>
-	))
 }
 
 /**
@@ -205,7 +78,7 @@ export function LineChart<T>({
 
 	const yScale = chart.yScale
 
-	const list: LineSeries[] = yScale
+	const list: ChartLineSeries[] = yScale
 		? chart.metas.map((meta) => ({
 				label: meta.label,
 				paint: meta.paint,
@@ -220,9 +93,9 @@ export function LineChart<T>({
 		: []
 
 	const marksNode = animate ? (
-		<AnimatedLineChartMarks list={list} fill={fill} />
+		<AnimatedChartLineMarks list={list} fill={fill} />
 	) : (
-		<LineChartMarks list={list} fill={fill} />
+		<ChartLineMarks list={list} fill={fill} />
 	)
 
 	return (

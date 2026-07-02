@@ -1,17 +1,14 @@
 'use client'
 
-import { motion } from 'motion/react'
-import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { ChartAxis } from '../chart-axis'
-import { BAR_GROW, BAR_STAGGER } from '../chart-constants'
+import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
-import type { SeriesPaint } from '../chart-series'
 import type { CartesianChartProps } from '../types'
 import { useChartCartesian } from '../use-chart-cartesian'
-import { type BarMark, barMarks } from './bar-chart-geometry'
+import { barMarks } from './bar-chart-geometry'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
@@ -19,50 +16,6 @@ import { type BarMark, barMarks } from './bar-chart-geometry'
  * name for it.
  */
 export type BarChartProps<T> = CartesianChartProps<T>
-
-/** Shared shape for the static and animated mark renderers. @internal */
-type BarChartMarksProps = {
-	marks: (BarMark | null)[][]
-	paints: SeriesPaint[]
-}
-
-/** The plain-SVG bars: the cheap default with no motion runtime work. @internal */
-function BarChartMarks({ marks, paints }: BarChartMarksProps) {
-	return marks.flatMap((row, seriesIndex) =>
-		row.map(
-			(mark) =>
-				mark && (
-					<path
-						key={mark.x}
-						data-slot="chart-bar"
-						d={mark.d}
-						className={cn(paints[seriesIndex]?.fill, 'hover:brightness-110')}
-					/>
-				),
-		),
-	)
-}
-
-/** The Framer Motion bars, rising from the zero baseline in sequence. @internal */
-function AnimatedBarChartMarks({ marks, paints }: BarChartMarksProps) {
-	return marks.flatMap((row, seriesIndex) =>
-		row.map(
-			(mark, index) =>
-				mark && (
-					<motion.path
-						key={mark.x}
-						data-slot="chart-bar"
-						d={mark.d}
-						className={cn(paints[seriesIndex]?.fill, 'hover:brightness-110')}
-						initial={{ scaleY: 0 }}
-						animate={{ scaleY: 1 }}
-						style={{ originY: mark.up ? 1 : 0 }}
-						transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
-					/>
-				),
-		),
-	)
-}
 
 /**
  * A grouped bar chart: one band per row of `data`, one zero-baseline bar per
@@ -121,9 +74,9 @@ export function BarChart<T>({
 	const paints = chart.metas.map((meta) => meta.paint)
 
 	const marksNode = animate ? (
-		<AnimatedBarChartMarks marks={marks} paints={paints} />
+		<AnimatedChartBarMarks marks={marks} paints={paints} />
 	) : (
-		<BarChartMarks marks={marks} paints={paints} />
+		<ChartBarMarks marks={marks} paints={paints} />
 	)
 
 	return (
