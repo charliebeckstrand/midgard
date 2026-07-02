@@ -35,6 +35,35 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 }
 
 /**
+ * One readout row: a series with its swatch and the pre-formatted value per
+ * category (an em-dash where the datum is non-finite).
+ *
+ * @internal
+ */
+export type ChartReadoutRow = {
+	label: string
+	/** Background class carrying the series colour. */
+	swatchClass: string
+	/** Swatch shape, mirroring the mark. */
+	swatch: 'rect' | 'line'
+	/** Formatted value per category index. */
+	values: string[]
+}
+
+/**
+ * The values a chart exposes off the marks: category labels crossed with one
+ * row per series. The tooltip reads one column on hover; the visually-hidden
+ * table renders all of it for assistive tech, so no value is gated behind a
+ * pointer.
+ *
+ * @internal
+ */
+export type ChartReadout = {
+	categories: string[]
+	rows: ChartReadoutRow[]
+}
+
+/**
  * Props shared by the cartesian charts (Bar / Line / Combo): the data plus
  * the frame's axes, legend, tooltip, sizing, and animation switches.
  *

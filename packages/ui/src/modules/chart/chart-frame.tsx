@@ -1,0 +1,98 @@
+'use client'
+
+import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import { cn } from '../../core'
+import type { AccessibleName } from '../../types'
+import type { ChartAnchor, PlotRect } from './chart-layout'
+import { ChartLegend, type ChartLegendItem } from './chart-legend'
+import { ChartTable } from './chart-table'
+import { ChartTooltip } from './chart-tooltip'
+import { ChartHoverContext } from './context'
+import type { ChartReadout } from './types'
+
+/** Props for {@link ChartFrame}. @internal */
+export type ChartFrameProps = {
+	/** The chart's accessible name props, spread onto the `role="img"` plot region. */
+	label: AccessibleName
+	/** Wrapper ref from `useChartPlot`, attached for container measurement. */
+	ref: RefObject<HTMLDivElement | null>
+	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
+	width: number
+	/** Explicit width prop, fixing the wrapper instead of filling the container. */
+	fixedWidth?: number
+	height: number
+	/** The plot rectangle inside the frame; the tooltip flips sides at its midpoint. */
+	plot: PlotRect
+	/** Legend entries, or `null` to omit the row (single series). */
+	legend: ChartLegendItem[] | null
+	/** The values behind the marks, or `null` when there is nothing to read. */
+	readout: ChartReadout | null
+	/** Per-category tooltip anchors, indexed like the readout's categories. */
+	anchors: ChartAnchor[]
+	/** Mount the hover tooltip. */
+	tooltip: boolean
+	className?: string
+	/** The SVG content: axes, gridlines, marks, and the hit layer. */
+	children: ReactNode
+}
+
+/**
+ * The shared chart shell: legend and visually-hidden data table as plain
+ * HTML around a `role="img"` plot region holding the `aria-hidden` SVG and
+ * the tooltip overlay. Owns the hover index and provides it through
+ * `ChartHoverContext`, so pointer movement re-renders the overlays — never
+ * the marks.
+ *
+ * @internal
+ */
+export function ChartFrame({
+	label,
+	ref,
+	width,
+	fixedWidth,
+	height,
+	plot,
+	legend,
+	readout,
+	anchors,
+	tooltip,
+	className,
+	children,
+}: ChartFrameProps) {
+	const [index, setIndex] = useState<number | null>(null)
+
+	const hover = useMemo(() => ({ index, setIndex }), [index])
+
+	return (
+		<div
+			ref={ref}
+			data-slot="chart"
+			className={cn('block', fixedWidth === undefined && 'w-full', className)}
+			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
+		>
+			<ChartHoverContext value={hover}>
+				{legend && <ChartLegend items={legend} />}
+
+				<div data-slot="chart-plot" role="img" {...label} className="relative" style={{ height }}>
+					{width > 0 && (
+						<svg
+							aria-hidden="true"
+							className="block"
+							width={width}
+							height={height}
+							viewBox={`0 0 ${width} ${height}`}
+						>
+							{children}
+						</svg>
+					)}
+
+					{tooltip && readout && width > 0 && (
+						<ChartTooltip plot={plot} anchors={anchors} readout={readout} />
+					)}
+				</div>
+			</ChartHoverContext>
+
+			{readout && <ChartTable readout={readout} />}
+		</div>
+	)
+}
