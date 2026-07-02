@@ -85,6 +85,7 @@ Per-row inline editing is baked into Grid via the `editable` binding (a controll
 |---|---|
 | CSV / Excel / print export | Shipped — `exportable`; one item per active type in the header/cell menus and an "Export" toolbar dropdown, over the filtered/sorted row model (scoped to the selection when active); Excel is an HTML-table `.xls`, not a real workbook |
 | Clipboard-paste export (structured copy for pasting into a spreadsheet) | A TSV serializer alongside `csv.ts`, written to the clipboard instead of downloaded |
+| In-cell sparklines | Shipped — the reusable `Sparkline` (`components/sparkline`; line/bar marks, optional `fill` area and `endPoint` marker) drops into a column's `cell` renderer, no engine wiring. A per-row numeric series plots a trend beside its data; `truncate={false}` (or a bounded column) keeps the chart from clipping. The grid broadcasts its resolved density as a cascade over the table region (the same `DensityCascade` the `condensed` preset rides, layered on the Table's CSS projection), so a cell `Sparkline` — and any size-aware client leaf — scales with `density` / `condensed` without an explicit `size` |
 
 ### Rendering & performance
 

@@ -22,6 +22,7 @@ import { progress } from './progress'
 import { radio } from './radio'
 import { segment } from './segment'
 import { slider } from './slider'
+import { sparkline } from './sparkline'
 import { stepper } from './stepper'
 import { switchRecipe } from './switch'
 import { tabs } from './tabs'
@@ -45,6 +46,7 @@ export const kokkaku = {
 	radio,
 	segment,
 	slider,
+	sparkline,
 	stepper,
 	switch: switchRecipe,
 	tabs,
