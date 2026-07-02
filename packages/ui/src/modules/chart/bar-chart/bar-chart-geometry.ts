@@ -11,8 +11,10 @@ import type { BandScale } from '../chart-scale'
 export type BarMark = {
 	/** One-end-rounded path: a 4px arc on the data end, square at the baseline. */
 	d: string
-	/** The bar's left edge — unique per mark, a stable React key. */
+	/** The bar's left edge, in `viewBox` units. */
 	x: number
+	/** Stable series-and-category key: geometry-free, so a resize never remounts the mark. */
+	key: string
 	/** Whether the bar grows upward from the baseline (positive value). */
 	up: boolean
 }
@@ -88,7 +90,12 @@ export function barMarks(
 
 			if (valueY === baseline) return null
 
-			return { d: barPath(x0, x0 + width, valueY, baseline), x: x0, up: valueY < baseline }
+			return {
+				d: barPath(x0, x0 + width, valueY, baseline),
+				x: x0,
+				key: `${seriesIndex}:${index}`,
+				up: valueY < baseline,
+			}
 		}),
 	)
 }

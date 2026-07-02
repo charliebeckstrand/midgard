@@ -1,13 +1,14 @@
 'use client'
 
-import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { ChartAxis } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
+import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../types'
+import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { barMarks } from './bar-chart-geometry'
 
@@ -78,6 +79,8 @@ export function BarChart<T>({
 		(meta) => chart.emphasis !== null && meta.index !== chart.emphasis,
 	)
 
+	const animationKey = useChartAnimationKey(chart.width, animate)
+
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	) : (
@@ -116,7 +119,9 @@ export function BarChart<T>({
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
 
-			{animate ? <ReducedMotion>{marksNode}</ReducedMotion> : marksNode}
+			<ChartMarksLayer animate={animate} generation={animationKey}>
+				{marksNode}
+			</ChartMarksLayer>
 
 			{tooltip && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />

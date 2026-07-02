@@ -27,8 +27,10 @@ export function ChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
 		row.map(
 			(mark) =>
 				mark && (
+					// `mark.key` is geometry-free: a resize shifts the bar's x but must
+					// not remount the mark, which would replay the grow animation.
 					<path
-						key={mark.x}
+						key={mark.key}
 						data-slot="chart-bar"
 						d={mark.d}
 						className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}
@@ -45,7 +47,7 @@ export function AnimatedChartBarMarks({ marks, paints, dimmed }: ChartBarMarksPr
 			(mark, index) =>
 				mark && (
 					<motion.path
-						key={mark.x}
+						key={mark.key}
 						data-slot="chart-bar"
 						d={mark.d}
 						className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}

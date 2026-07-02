@@ -1,6 +1,5 @@
 'use client'
 
-import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { ChartAxis } from '../chart-axis'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
@@ -8,7 +7,9 @@ import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
+import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../types'
+import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { lineGeometry } from './line-chart-geometry'
 
@@ -94,6 +95,8 @@ export function LineChart<T>({
 			}))
 		: []
 
+	const animationKey = useChartAnimationKey(chart.width, animate)
+
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={fill} />
 	) : (
@@ -132,7 +135,9 @@ export function LineChart<T>({
 
 			<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
 
-			{animate ? <ReducedMotion>{marksNode}</ReducedMotion> : marksNode}
+			<ChartMarksLayer animate={animate} generation={animationKey}>
+				{marksNode}
+			</ChartMarksLayer>
 
 			{tooltip && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />

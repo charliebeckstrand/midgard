@@ -1,20 +1,20 @@
 'use client'
 
-import { ReducedMotion } from '../../../primitives/reduced-motion'
 import type { AccessibleName } from '../../../types'
 import { barMarks } from '../bar-chart/bar-chart-geometry'
 import { ChartAxis } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { COMBO_LINE_DELAY } from '../chart-constants'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
+import { ChartMarksLayer } from '../chart-marks-layer'
 import type { SeriesMeta } from '../chart-series'
 import { lineGeometry } from '../line-chart/line-chart-geometry'
 import type { ComboChartSeries } from '../types'
+import { useChartAnimationKey } from '../use-chart-animation-key'
 import { type CartesianData, useChartCartesian } from '../use-chart-cartesian'
 
 /**
@@ -40,8 +40,8 @@ export type ComboChartProps<T> = AccessibleName &
  * cartesian standard: axes, gridlines, legend, crosshair tooltip, and the
  * visually-hidden data table.
  *
- * @remarks Under `animate`, the bars rise first and the lines hold until
- * they land, then draw themselves.
+ * @remarks Under `animate`, the bars rise and the lines draw together — one
+ * synchronized reveal across the x and y motions.
  * @example
  * ```tsx
  * <ComboChart
@@ -121,11 +121,15 @@ export function ComboChart<T>({
 
 	const barDims = barMetas.map(dim)
 
+	const animationKey = useChartAnimationKey(chart.width, animate)
+
+	// No line delay: the bars rise and the lines draw at once, so the x and y
+	// motions land together rather than the lines waiting on the bars.
 	const marksNode = animate ? (
 		<>
 			<AnimatedChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
 
-			<AnimatedChartLineMarks list={lines} fill={false} delay={COMBO_LINE_DELAY} />
+			<AnimatedChartLineMarks list={lines} fill={false} />
 		</>
 	) : (
 		<>
@@ -169,7 +173,9 @@ export function ComboChart<T>({
 
 			<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
 
-			{animate ? <ReducedMotion>{marksNode}</ReducedMotion> : marksNode}
+			<ChartMarksLayer animate={animate} generation={animationKey}>
+				{marksNode}
+			</ChartMarksLayer>
 
 			{tooltip && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />

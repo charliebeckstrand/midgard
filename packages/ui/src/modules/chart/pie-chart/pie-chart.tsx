@@ -4,7 +4,6 @@ import { motion } from 'motion/react'
 import type { PointerEvent, ReactNode } from 'react'
 import { cn } from '../../../core'
 import { useResolvedSize } from '../../../primitives/density'
-import { ReducedMotion } from '../../../primitives/reduced-motion'
 import type { Step } from '../../../recipes'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
@@ -18,9 +17,11 @@ import {
 } from '../chart-constants'
 import { ChartFrame } from '../chart-frame'
 import { ChartLegend } from '../chart-legend'
+import { ChartMarksLayer } from '../chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from '../chart-series'
 import { useChartHover } from '../context'
 import type { ChartReadout, DataKey } from '../types'
+import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartPlot } from '../use-chart-plot'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
 import { type PieSlice, pieCentroidRadius, pieSlices, segmentLabelFits } from './pie-chart-geometry'
@@ -365,6 +366,8 @@ export function PieChart<T>({
 		innerRadius,
 	})
 
+	const animationKey = useChartAnimationKey(frameWidth, animate)
+
 	const marks = (
 		<>
 			<PieChartMarks slices={slices} paints={paints} animate={animate} emphasis={emphasis} />
@@ -404,7 +407,9 @@ export function PieChart<T>({
 				) : undefined
 			}
 		>
-			{animate ? <ReducedMotion>{marks}</ReducedMotion> : marks}
+			<ChartMarksLayer animate={animate} generation={animationKey}>
+				{marks}
+			</ChartMarksLayer>
 		</ChartFrame>
 	)
 }
