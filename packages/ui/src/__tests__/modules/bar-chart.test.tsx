@@ -151,7 +151,7 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
 	})
 
-	it('tracks the pointer precisely on a glass tooltip surface', () => {
+	it('tracks the pointer precisely on the tooltip surface', () => {
 		const { container } = renderUI(chart())
 
 		const hit = bySlot(container, 'chart-hit') as Element
@@ -159,9 +159,6 @@ describe('BarChart', () => {
 		fireEvent.pointerMove(hit, { clientX: 30, clientY: 40 })
 
 		const tooltip = bySlot(container, 'chart-tooltip') as HTMLElement
-
-		// The Tooltip component's glass surface, adopted through GlassProvider.
-		expect(tooltip.className).toContain('backdrop-blur')
 
 		const first = tooltip.style.left
 

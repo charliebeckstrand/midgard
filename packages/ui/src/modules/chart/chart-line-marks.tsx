@@ -40,9 +40,9 @@ export type ChartLineMarksProps = {
 	delay?: number
 }
 
-/** The marker dot's classes: series fill under a surface-colour ring. @internal */
+/** The marker dot's classes: series fill under a white ring, legible on any line or fill. @internal */
 function markerClass(paint: SeriesPaint): string {
-	return cn(paint.fill, k.gap)
+	return cn(paint.fill, k.pointRing)
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */

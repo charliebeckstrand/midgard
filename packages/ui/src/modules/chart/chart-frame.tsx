@@ -2,7 +2,6 @@
 
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { GlassProvider } from '../../providers/glass'
 import type { AccessibleName } from '../../types'
 import type { PlotRect } from './chart-layout'
 import { ChartTable } from './chart-table'
@@ -95,11 +94,7 @@ export function ChartFrame({
 
 					{overlay}
 
-					{tooltip && readout && width > 0 && (
-						<GlassProvider>
-							<ChartTooltip plot={plot} readout={readout} />
-						</GlassProvider>
-					)}
+					{tooltip && readout && width > 0 && <ChartTooltip plot={plot} readout={readout} />}
 				</div>
 			</ChartHoverContext>
 

@@ -210,6 +210,9 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
  * shared hover index, and the 2px surface-colour stroke keeps neighbours
  * separated at every radius.
  *
+ * @remarks `paint-order: stroke` paints each slice's stroke under its own
+ * fill, so the separator only shows in the gap between neighbours and never
+ * bites into the solid face — the fill keeps its full radius to the arc edge.
  * @internal
  */
 function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps) {
@@ -221,7 +224,8 @@ function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps
 				const shared = {
 					'data-slot': 'chart-slice',
 					d: slice.d,
-					strokeWidth: MARK_GAP,
+					strokeWidth: MARK_GAP * 2,
+					paintOrder: 'stroke' as const,
 					className: cn(paints[slice.index]?.fill, k.gap, 'hover:brightness-110'),
 					onPointerEnter: () => set(slice.index, slice.centroid),
 					onPointerMove: (event: PointerEvent<SVGPathElement>) => {

@@ -1,7 +1,6 @@
 'use client'
 
 import { cn } from '../../core'
-import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/chart'
 import { k as tooltip } from '../../recipes/kata/tooltip'
 import type { PlotRect } from './chart-layout'
@@ -20,9 +19,9 @@ const TRACK_OFFSET = 12
 /**
  * The hover readout: one tooltip listing every series at the pointed
  * category, values leading their labels. It wears the Tooltip component's
- * surface — glass under the frame's `GlassProvider` — and tracks the pointer
- * precisely, flipping past it at the plot's midlines so it never runs out of
- * the frame. Positioned by math alone, it never needs to measure itself.
+ * opaque surface and tracks the pointer precisely, flipping past it at the
+ * plot's midlines so it never runs out of the frame. Positioned by math
+ * alone, it never needs to measure itself.
  *
  * @remarks A pointer enhancement, `aria-hidden` by design: the same values
  * ship in the visually-hidden table, so nothing is gated behind hover.
@@ -30,8 +29,6 @@ const TRACK_OFFSET = 12
  */
 export function ChartTooltip({ plot, readout }: ChartTooltipProps) {
 	const { index, point } = useChartHover()
-
-	const glass = useGlass()
 
 	if (index === null || point === null) return null
 
@@ -55,7 +52,7 @@ export function ChartTooltip({ plot, readout }: ChartTooltipProps) {
 			className={cn(
 				'pointer-events-none absolute z-10',
 				tooltip.content({ size: 'sm' }),
-				tooltip.surface[glass ? 'glass' : 'default'],
+				tooltip.surface.default,
 			)}
 			style={position}
 		>
