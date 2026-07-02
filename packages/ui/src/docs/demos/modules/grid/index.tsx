@@ -827,45 +827,69 @@ const metrics: Metric[] = [
 ]
 
 // A sparkline is a plain cell renderer: drop the reusable `Sparkline` into a
-// column's `cell` and hand it the row's series. The Trend column adds `animate`
-// (the line draws itself and the area fades in on mount, honouring
-// reduced-motion); the By-period column uses the bar variant. Both read the same
-// per-row `trend`, and each carries a summarizing `aria-label` since the chart is
-// `role="img"`.
-const sparklineColumns: GridColumn<Metric>[] = [
-	{ id: 'name', title: 'Metric', cell: (row) => row.name },
-	{ id: 'total', title: 'Total', cell: (row) => row.total },
-	{
-		id: 'trend',
-		title: 'Trend',
-		cell: (row) => (
-			<Sparkline
-				data={row.trend}
-				color="blue"
-				fill
-				endPoint
-				animate
-				aria-label={`${row.name} trend, last 12 periods`}
-			/>
-		),
-	},
-	{
-		id: 'bars',
-		title: 'By period',
-		cell: (row) => (
-			<Sparkline
-				data={row.trend}
-				variant="bar"
-				color="green"
-				aria-label={`${row.name} by period, last 12 periods`}
-			/>
-		),
-	},
-]
+// column's `cell` and hand it the row's series. Both chart columns declare a
+// `value` (the latest period) so their headers sort, and both `animate` — the
+// line draws itself and the area fades in, the bars rise from the baseline, each
+// honouring reduced-motion. The `key={sortKey}` re-keys every sparkline on the
+// active sort: a sort remounts the cells, so the marks redraw as the rows settle
+// into their new order (without it, memoized rows that keep their place — the top
+// row after a sort that doesn't move it — would hold their drawn state). Both
+// read the same per-row `trend`, and each carries a summarizing `aria-label`
+// since the chart is `role="img"`.
+function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
+	return [
+		{ id: 'name', title: 'Metric', cell: (row) => row.name },
+		{ id: 'total', title: 'Total', cell: (row) => row.total },
+		{
+			id: 'trend',
+			title: 'Trend',
+			value: (row) => row.trend.at(-1) ?? 0,
+			cell: (row) => (
+				<Sparkline
+					key={sortKey}
+					data={row.trend}
+					color="blue"
+					fill
+					endPoint
+					animate
+					aria-label={`${row.name} trend, last 12 periods`}
+				/>
+			),
+		},
+		{
+			id: 'bars',
+			title: 'By period',
+			value: (row) => row.trend.at(-1) ?? 0,
+			cell: (row) => (
+				<Sparkline
+					key={sortKey}
+					data={row.trend}
+					variant="bar"
+					color="green"
+					animate
+					aria-label={`${row.name} by period, last 12 periods`}
+				/>
+			),
+		},
+	]
+}
 
-const SparklineExample = () => (
-	<Grid columns={sparklineColumns} rows={metrics} getKey={(row) => row.id} />
-)
+const SparklineExample = () => {
+	// A controlled sort so the cell renderers can key each sparkline on it: sorting
+	// flips `sortKey`, remounting every sparkline so it redraws in the new order.
+	const [sort, setSort] = useState<SortState[]>([])
+
+	const columns = useMemo(() => sparklineColumns(JSON.stringify(sort)), [sort])
+
+	return (
+		<Grid
+			columns={columns}
+			rows={metrics}
+			getKey={(row) => row.id}
+			sort={{ value: sort, onValueChange: setSort }}
+		/>
+	)
+}
 
 // The demo is sectioned into tabs so the long example list reads as discrete
 // capabilities rather than one scroll. Panels unmount when inactive
@@ -1146,7 +1170,7 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example
 							title="In-cell sparklines"
-							code={code`<Grid columns={[{ ...col, cell: (row) => <Sparkline data={row.trend} /> }]} />`}
+							code={code`{ value: (r) => r.trend.at(-1), cell: (r) => <Sparkline key={sortKey} data={r.trend} animate /> }`}
 						>
 							<SparklineExample />
 						</Example>
