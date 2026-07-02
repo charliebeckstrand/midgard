@@ -27,8 +27,10 @@ export default defineConfig({
 		// pin the zone so every machine renders the same wall-clock day.
 		env: { TZ: 'UTC' },
 		sequence: { shuffle: true },
-		// Pools reset the module graph per file, but within a file a vi.spyOn or
-		// vi.stubGlobal outlives its test unless restored, and sequence.shuffle
+		// Forks and threads reset the module graph per file; vmThreads does NOT —
+		// it shares evaluated modules across a worker's files (the price of its
+		// speed), so cross-file bleed is possible there. Within a file a vi.spyOn
+		// or vi.stubGlobal outlives its test unless restored, and sequence.shuffle
 		// randomizes sibling order — so an unrestored spy/stub leaks into
 		// whichever test runs next. restoreMocks runs vi.restoreAllMocks() before
 		// each test and unstubGlobals runs vi.unstubAllGlobals(), both ahead of
@@ -113,9 +115,11 @@ export default defineConfig({
 				extends: true,
 				// Environment-boundary suites: virtualizer, canvas, PDF, map —
 				// integrations that schedule work past a test's lifetime or lean on
-				// jsdom's edges. Process-isolated forks keep their leakage from
-				// perturbing sibling files; everything else stays on the fast
-				// shared-worker pool above.
+				// jsdom's edges — plus suites that vi.mock a shared source module
+				// (use-chat-scroll) and need forks' per-file module graph for the
+				// mock to stay authoritative. Process-isolated forks keep their
+				// leakage from perturbing sibling files; everything else stays on
+				// the fast shared-worker pool above.
 				test: {
 					name: 'boundary',
 					setupFiles,
