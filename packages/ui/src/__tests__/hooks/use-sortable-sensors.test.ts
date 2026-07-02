@@ -18,4 +18,15 @@ describe('useSortableSensors', () => {
 
 		expect(withoutKeyboard.length).toBe(withKeyboard.length - 1)
 	})
+
+	it('threads a custom keyboardCoordinateGetter into the keyboard sensor', () => {
+		const keyboardCoordinateGetter = () => undefined
+
+		const { result } = renderHook(() => useSortableSensors({ keyboardCoordinateGetter }))
+
+		// The keyboard sensor trails the pointer sensor; its options carry the getter.
+		const keyboardSensor = result.current.at(-1)
+
+		expect(keyboardSensor?.options).toMatchObject({ coordinateGetter: keyboardCoordinateGetter })
+	})
 })

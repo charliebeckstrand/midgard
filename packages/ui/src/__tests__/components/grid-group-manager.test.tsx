@@ -1,6 +1,8 @@
+import type { ClientRect, DroppableContainer, UniqueIdentifier } from '@dnd-kit/core'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
+import { groupAwareKeyboardCoordinates } from '../../modules/grid/grid-group-manager'
 import {
 	addGroupTo,
 	assignColumn,
@@ -153,6 +155,88 @@ describe('zoneMapToStores', () => {
 		const next = zoneMapToStores(groups, order, orderableIds, map)
 
 		expect(next.groups[0]?.columns).toEqual(['a', 'b', 'c'])
+	})
+})
+
+describe('groupAwareKeyboardCoordinates', () => {
+	// A stand-in for dnd-kit's DroppableContainersMap: the getter rebuilds the
+	// scoped map via `droppableContainers.constructor`, so this must be a Map
+	// subclass exposing `getEnabled()`.
+	class FakeContainers extends Map<UniqueIdentifier, DroppableContainer> {
+		getEnabled(): DroppableContainer[] {
+			return [...this.values()]
+		}
+	}
+
+	const rect = (top: number, height: number): ClientRect => ({
+		top,
+		left: 0,
+		right: 200,
+		bottom: top + height,
+		width: 200,
+		height,
+	})
+
+	function container(id: string, node: HTMLElement): DroppableContainer {
+		// `data.current` present but without `sortable`, so dnd-kit's `hasSortableData`
+		// guard reads it safely and returns false (no cross-container offset applied).
+		return {
+			id,
+			key: id,
+			disabled: false,
+			node: { current: node },
+			data: { current: {} },
+		} as DroppableContainer
+	}
+
+	// A group (top 0, height 100) whose body holds column "a" (top 30), trailed by
+	// a second group (top 110) — the layout the grid manager renders. A Down press
+	// while "group:g1" is lifted must step to "group:g2", not the nearer column.
+	function context() {
+		const nodes = new Map<string, HTMLElement>()
+
+		const rects = new Map<UniqueIdentifier, ClientRect>()
+
+		const containers = new FakeContainers()
+
+		const add = (id: string, r: ClientRect) => {
+			const node = document.createElement('div')
+
+			nodes.set(id, node)
+
+			rects.set(id, r)
+
+			containers.set(id, container(id, node))
+		}
+
+		add('group:g1', rect(0, 100))
+
+		add('a', rect(30, 20))
+
+		add('group:g2', rect(110, 100))
+
+		return {
+			active: 'group:g1' as UniqueIdentifier,
+			currentCoordinates: { x: 0, y: 0 },
+			context: {
+				active: { id: 'group:g1' },
+				collisionRect: rect(0, 100),
+				droppableRects: rects,
+				droppableContainers: containers,
+				over: null,
+				scrollableAncestors: [],
+			},
+		}
+	}
+
+	const arrowDown = { code: 'ArrowDown', preventDefault: () => {} } as unknown as KeyboardEvent
+
+	it('steps a lifted group to the next group, skipping the nearer column row', () => {
+		// biome-ignore lint/suspicious/noExplicitAny: hand-built minimal SensorContext
+		const coords = groupAwareKeyboardCoordinates(arrowDown, context() as any)
+
+		// The next group's top (110), not column "a" (30) that sits between them.
+		expect(coords?.y).toBe(110)
 	})
 })
 
