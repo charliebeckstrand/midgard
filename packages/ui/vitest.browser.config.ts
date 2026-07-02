@@ -21,6 +21,13 @@ import { configDefaults, defineConfig } from 'vitest/config'
  *   mocked for determinism).
  *
  * `pnpm test:browser` runs both; `--project <name>` scopes to one.
+ *
+ * Instance-level `setupFiles` merge additively onto project-level ones
+ * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
+ * instances — sit at project level as ordinary relative paths; only the
+ * per-instance `module-mocks` boundary needs an absolute path, since
+ * instance options are merged directly into the already-resolved project
+ * config, unlike project-level paths which Vite resolves normally.
  */
 export default defineConfig({
 	plugins: [tailwindcss()],
@@ -60,23 +67,20 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
+		setupFiles: [
+			'./src/__tests__/browser/setup/index.ts',
+			'./src/__tests__/browser/setup/act-environment.ts',
+		],
 		browser: {
 			enabled: true,
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
-			// Instance-level paths must be absolute: Vitest merges raw instance
-			// options into the already-resolved project config, so relative
-			// setupFiles would reach the browser runner unnormalized.
 			instances: [
 				{
 					browser: 'chromium',
 					name: 'browser',
-					setupFiles: [
-						resolve(import.meta.dirname, 'src/__tests__/browser/setup/index.ts'),
-						resolve(import.meta.dirname, 'src/__tests__/browser/setup/act-environment.ts'),
-						resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts'),
-					],
+					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
 					include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
 					exclude: [...configDefaults.exclude, 'src/__tests__/browser/floating-ui/**'],
 				},
@@ -84,8 +88,6 @@ export default defineConfig({
 					browser: 'chromium',
 					name: 'floating-ui',
 					setupFiles: [
-						resolve(import.meta.dirname, 'src/__tests__/browser/setup/index.ts'),
-						resolve(import.meta.dirname, 'src/__tests__/browser/setup/act-environment.ts'),
 						resolve(import.meta.dirname, 'src/__tests__/browser/floating-ui/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/floating-ui/**/*.test.{ts,tsx}'],

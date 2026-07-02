@@ -11,8 +11,8 @@ declare module 'vitest' {
 	}
 }
 
-// The waitFor/findBy budget is provided by vitest.base.config.ts, which owns
-// the CI wall-clock headroom policy alongside testTimeout.
+// The waitFor/findBy budget is provided by vitest.config.ts, which owns the
+// CI wall-clock headroom policy alongside testTimeout.
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 afterEach(() => {
