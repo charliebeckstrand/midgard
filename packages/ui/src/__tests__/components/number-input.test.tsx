@@ -2,7 +2,7 @@ import { type ComponentProps, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
-import { renderUI, screen, userEvent } from '../helpers'
+import { liveRegion, renderUI, screen, userEvent } from '../helpers'
 
 describe('NumberInput', () => {
 	it('renders an input with type number alongside decrease and increase buttons', () => {
@@ -49,11 +49,7 @@ describe('NumberInput', () => {
 
 		await user.click(screen.getByLabelText('Increase'))
 
-		const politeRegion = document.body.querySelector(
-			'[data-slot="live-region"][aria-live="polite"]',
-		)
-
-		expect(politeRegion).toHaveTextContent('5')
+		expect(liveRegion()).toHaveTextContent('5')
 	})
 
 	it('keeps focus on the input when a stepper is pressed', async () => {

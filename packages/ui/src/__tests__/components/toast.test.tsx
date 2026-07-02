@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toast } from '../../components/toast'
 import { ToastProvider, useToast } from '../../providers/toast'
-import { act, fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Toast', () => {
 	it('renders a toast viewport in the document', () => {
@@ -122,11 +122,10 @@ describe('Toast: useToast behavior', () => {
 		})
 
 		// The announcer writes asynchronously (microtask) so insertion and text
-		// land in separate frames.
+		// land in separate frames. `vi.waitFor`, not `expectAnnouncement`: this
+		// suite runs fake timers, which deadlock RTL's waitFor polling.
 		await vi.waitFor(() => {
-			const announcer = document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
-			expect(announcer?.textContent).toContain('Saved')
+			expect(liveRegion()?.textContent).toContain('Saved')
 		})
 	})
 

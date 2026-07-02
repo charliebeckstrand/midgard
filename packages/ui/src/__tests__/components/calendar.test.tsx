@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle, CalendarSkeleton } from '../../components/calendar'
 import { Form } from '../../components/form'
-import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, liveRegion, renderUI, screen, userEvent } from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -70,15 +70,12 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-		const politeRegion = () =>
-			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 		// Lazily created on first announce; absent means nothing was announced on mount.
-		expect(politeRegion()?.textContent ?? '').toBe('')
+		expect(liveRegion()?.textContent ?? '').toBe('')
 
 		await user.click(screen.getByLabelText('Next month'))
 
-		expect(politeRegion()).toHaveTextContent('July 2025')
+		expect(liveRegion()).toHaveTextContent('July 2025')
 	})
 
 	it('changes the month when the previous / next nav buttons are clicked', async () => {

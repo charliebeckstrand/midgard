@@ -16,6 +16,10 @@ export function liveRegion(politeness: 'polite' | 'assertive' = 'polite'): HTMLE
  * The announcer writes on a queued microtask (core/announcer.ts), so the text
  * lands after the act() that triggered it; polling keeps the wait on RTL's
  * CI-scaled budget instead of a hand-rolled flush.
+ *
+ * Real timers only: waitFor's polling rides the clock, so under installed
+ * fake timers this deadlocks — assert on {@link liveRegion} after driving the
+ * clock instead.
  */
 export async function expectAnnouncement(
 	text: string | RegExp,

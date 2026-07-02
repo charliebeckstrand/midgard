@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
-import { fireEvent, renderUI, screen, userEvent, withFakeTime } from '../helpers'
+import { fireEvent, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -24,20 +24,17 @@ describe('Grid announcements', () => {
 
 	const getKey = (row: Row) => row.name
 
-	const politeRegion = () =>
-		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 	it('announces the sort politely on change, skipping mount', async () => {
 		const user = userEvent.setup()
 
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		// Lazily created on first announce; absent/empty means mount stayed silent.
-		expect(politeRegion()?.textContent ?? '').toBe('')
+		expect(liveRegion()?.textContent ?? '').toBe('')
 
 		await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-		expect(politeRegion()).toHaveTextContent('Sorted by Name ascending')
+		expect(liveRegion()).toHaveTextContent('Sorted by Name ascending')
 	})
 
 	it('announces the selection count when a selectable grid changes', async () => {
@@ -49,7 +46,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }))
 
-		expect(politeRegion()).toHaveTextContent('All rows selected')
+		expect(liveRegion()).toHaveTextContent('All rows selected')
 	})
 
 	it('scopes the select-all announcement to the page when paginated', async () => {
@@ -72,7 +69,7 @@ describe('Grid announcements', () => {
 		// rather than overclaiming every row across all pages.
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows on this page' }))
 
-		expect(politeRegion()).toHaveTextContent('All rows on this page selected')
+		expect(liveRegion()).toHaveTextContent('All rows on this page selected')
 	})
 
 	it('stays silent on selection changes when no column is selectable', async () => {
@@ -83,7 +80,7 @@ describe('Grid announcements', () => {
 		await user.click(screen.getByText('Alice'))
 
 		// No selection column, so a row interaction never narrates a selection count.
-		expect(politeRegion()?.textContent ?? '').toBe('')
+		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 
 	it('exposes the paginated range as a polite live region that tracks navigation', async () => {
@@ -123,7 +120,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Unpin Name' }))
 
-		expect(politeRegion()).toHaveTextContent('Unpinned Name')
+		expect(liveRegion()).toHaveTextContent('Unpinned Name')
 	})
 
 	it('announces a column hide from the manager', async () => {
@@ -142,7 +139,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
-		expect(politeRegion()).toHaveTextContent('Hid Age column')
+		expect(liveRegion()).toHaveTextContent('Hid Age column')
 	})
 
 	it('announces a settled column resize after a keyboard nudge', async () => {
@@ -162,7 +159,7 @@ describe('Grid announcements', () => {
 			// once the settle window elapses.
 			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-			expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
+			expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 		})
 	})
 })

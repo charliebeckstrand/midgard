@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
 
 /**
  * Per-row inline editing baked into Grid: a row in the `editable` set puts all of
@@ -244,9 +244,6 @@ describe('Grid per-row editing', () => {
 	it('announces the commit politely when a row is saved', async () => {
 		const { container, editRow1, save } = renderGrid()
 
-		const politeRegion = () =>
-			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 		editRow1()
 
 		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
@@ -259,6 +256,6 @@ describe('Grid per-row editing', () => {
 		// so the grid's debounced row-count status doesn't fire mid-test.
 		await Promise.resolve()
 
-		expect(politeRegion()).toHaveTextContent('1 cell updated')
+		expect(liveRegion()).toHaveTextContent('1 cell updated')
 	})
 })
