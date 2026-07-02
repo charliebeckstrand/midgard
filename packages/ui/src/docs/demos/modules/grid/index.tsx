@@ -835,6 +835,13 @@ export function Demo() {
 						<Example title="Outline">
 							<Grid outline columns={columns} rows={people} getKey={(row) => row.id} />
 						</Example>
+
+						<Example
+							title="Condensed"
+							code={code`<Grid condensed columns={columns} rows={rows} getKey={...} />`}
+						>
+							<Grid condensed columns={columns} rows={people} getKey={(row) => row.id} />
+						</Example>
 					</Stack>
 				</TabContent>
 
