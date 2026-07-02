@@ -979,6 +979,7 @@ export function GridData<T>({
 					groupColumnId={grouping}
 					groupRenderHeader={groupRenderHeader}
 					getKey={getKey}
+					density={density}
 					truncate={truncate}
 					settleWidths={settleWidths}
 					pinning={pinning}

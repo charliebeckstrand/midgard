@@ -3,7 +3,7 @@
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type Cell, flexRender, type Row, type Table } from '@tanstack/react-table'
+import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
 import {
 	type CSSProperties,
@@ -142,45 +142,6 @@ export function renderGridRow<T>(
 }
 
 /**
- * Renders one grouped leaf row directly from its engine {@link Row} (a group's
- * data row under grouping), reading cells and key off the engine row rather than
- * the flat `rowKeys`/`table.getRow` path. Grouping runs without grid semantics or
- * row reorder, so the row carries no `aria-rowindex` and is never a drag node.
- *
- * @internal
- */
-export function renderGroupedLeafRow<T>(
-	props: GridRowsProps<T>,
-	engineRow: Row<T>,
-	getKey: (row: T, index: number) => string | number,
-): ReactElement {
-	const row = engineRow.original
-
-	const key = getKey(row, engineRow.index)
-
-	const rowProps = {
-		cells: engineRow.getVisibleCells(),
-		row,
-		rowKey: key,
-		loading: props.rowLoading?.(row) ?? false,
-		className: props.rowClassName?.(row),
-		rowLabel: props.rowLabel?.(row),
-		onRowClick: props.onRowClick,
-		selected: props.selection.has(key),
-		toggleRow: props.toggleRow,
-		selectable: props.selectable,
-		reorderable: false,
-		truncate: props.truncate,
-		settleWidths: props.settleWidths,
-		pinning: props.pinning,
-		dataRowIndex: engineRow.index,
-		rowIndex: undefined,
-	} satisfies GridRowProps<T>
-
-	return <GridRow<T> key={key} {...rowProps} />
-}
-
-/**
  * The dnd-kit sortable bindings a {@link GridReorderableRow} threads into its
  * row: the `<tr>` node ref and lifted transform/transition style, plus the
  * activator ref, attributes, and listeners the drag-handle grip carries. @internal
@@ -269,7 +230,7 @@ type GridRowProps<T> = {
  *
  * @internal
  */
-function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
+export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 	if (col.cellTooltip == null) return { kind: 'auto' }
 
 	const node = col.cellTooltip(row)

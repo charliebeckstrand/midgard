@@ -50,8 +50,8 @@ export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGr
 		: `${formatGroupValue(value)} (${count})`
 
 	return (
-		<TableRow data-group-row data-expanded={dataAttr(expanded)} className={cn(k.rowGroup.row)}>
-			<TableCell colSpan={colSpan}>
+		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
+			<TableCell colSpan={colSpan} className={cn(k.rowGroup.rail)}>
 				<Button
 					variant="bare"
 					block

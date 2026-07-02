@@ -315,9 +315,12 @@ export const k = {
 		],
 	},
 	rowGroup: {
-		// Group-header row: a tinted full-width band above each group's leaf rows,
-		// setting the group off from the data rows beneath it.
-		row: bg.tint,
+		// A 2px colored rail down the group's leading edge — carried by the leftmost
+		// cell of every row in the group (its header and each leaf) so it reads as one
+		// continuous bar, the row-group analog of a column group's underline rule. For
+		// now it takes a neutral tint; a forthcoming row manager will swap in a
+		// per-group palette colour.
+		rail: ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')],
 		// Bare disclosure button filling the group cell: the label at the start, the
 		// chevron pushed to the end (`justify-between`). `px-0` drops the button's own
 		// horizontal inset so the label lines up with the data cells' content (the
@@ -329,6 +332,29 @@ export const k = {
 		chevron: 'shrink-0',
 		// Group label ("Developer (3)"): the group's value and row count, emphasized.
 		label: [weight.medium, size.sm],
+		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose track
+		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
+		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is
+		// not. Transitions the track over 200ms, honouring `prefers-reduced-motion`.
+		reveal: [
+			'grid',
+			'[grid-template-rows:0fr]',
+			'data-[open]:[grid-template-rows:1fr]',
+			'transition-[grid-template-rows]',
+			'duration-200',
+			'ease-in-out',
+			'motion-reduce:transition-none',
+		],
+		// The clip between the grid track and the content: `min-h-0` lets the track
+		// shrink past the content, `overflow-hidden` hides what the collapse clips.
+		revealClip: ['overflow-hidden', 'min-h-0'],
+		// Per-density cell padding on the reveal wrapper, mirroring kata/table's `density`
+		// leaf padding (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
+		// matches an ordinary one — and collapses that padding to nothing at height 0.
+		revealPad: defineRecipe({
+			density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
+			defaults: { density: 'snug' },
+		}),
 	},
 	resize: {
 		// Fixed layout + a <colgroup> of exact widths so resizing one column

@@ -165,10 +165,10 @@ type UseGridTableResult<T> = {
 	/** Whether row grouping is active (a valid `grouping` column is set). */
 	grouped: boolean
 	/**
-	 * The engine's grouped/expanded display rows — group-header rows interleaved
-	 * with their visible leaf rows, in order — for the grouped body to render, or
-	 * `null` when grouping is off. {@link renderRows} / {@link rowKeys} still carry
-	 * the flat leaf set for selection and counts.
+	 * The top-level group-header rows in display order (each with all its leaves on
+	 * `subRows`) for the grouped body to render, or `null` when grouping is off. The
+	 * body keeps the leaves mounted and animates them open/closed. {@link renderRows}
+	 * / {@link rowKeys} still carry the flat leaf set for selection and counts.
 	 */
 	groupedRows: Row<T>[] | null
 	/** Footer view model, or `null` when pagination is not configured. */
@@ -314,7 +314,13 @@ function useGridRowModel<T>(args: {
 		[displayRows, grouped],
 	)
 
-	const groupedRows = grouped ? displayRows : null
+	// The top-level group-header rows, in display order. Each carries every one of
+	// its leaves on `subRows` (regardless of expansion), so the body can keep the
+	// leaves mounted and animate them open/closed rather than mount/unmount them.
+	const groupedRows = useMemo<Row<T>[] | null>(
+		() => (grouped && displayRows ? displayRows.filter((row) => row.getIsGrouped()) : null),
+		[grouped, displayRows],
+	)
 
 	const renderRows = useMemo(
 		() => (leafRows ? leafRows.map((leaf) => leaf.original) : rows),

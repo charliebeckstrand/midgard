@@ -2,12 +2,20 @@
 
 import { SortableContext } from '@dnd-kit/sortable'
 import type { Row } from '@tanstack/react-table'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
+import {
+	type ComponentProps,
+	Fragment,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+} from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
+import type { DensityLevel } from '../../providers/density'
 import type { GridGroupBy } from './grid-data-types'
+import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
-import { type GridRowsProps, renderGridRow, renderGroupedLeafRow } from './grid-row'
+import { type GridRowsProps, renderGridRow } from './grid-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
@@ -40,6 +48,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Row-key resolver, so grouped leaf rows derive their key straight from the engine row. */
 	getKey: (row: T, index: number) => string | number
+	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
+	density: DensityLevel
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -49,9 +59,66 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 }
 
 /**
+ * Renders one group as a header row ({@link GridGroupRow}) followed by every one
+ * of its leaves ({@link GridGroupLeafRow}). The leaves stay mounted whatever the
+ * group's expansion — each animates open/closed from the `expanded` flag — so the
+ * collapse plays reliably (rather than relying on `AnimatePresence` to track a
+ * table row's exit). Resolved from the shared body wiring, keyed by engine row id.
+ *
+ * @internal
+ */
+function renderGroup<T>(
+	groupRow: Row<T>,
+	args: {
+		props: GridBodyProps<T>
+		columnId: string | number
+		renderHeader: GridGroupBy['renderHeader']
+		getKey: (row: T, index: number) => string | number
+		density: DensityLevel
+	},
+): ReactElement {
+	const { props, columnId, renderHeader, getKey, density } = args
+
+	const expanded = groupRow.getIsExpanded()
+
+	return (
+		<Fragment key={groupRow.id}>
+			<GridGroupRow<T>
+				row={groupRow}
+				colSpan={props.visibleColumns.length}
+				columnId={columnId}
+				renderHeader={renderHeader}
+			/>
+			{groupRow.subRows.map((leaf) => {
+				const key = getKey(leaf.original, leaf.index)
+
+				return (
+					<GridGroupLeafRow<T>
+						key={leaf.id}
+						expanded={expanded}
+						cells={leaf.getVisibleCells()}
+						row={leaf.original}
+						rowKey={key}
+						selected={props.selection.has(key)}
+						toggleRow={props.toggleRow}
+						selectable={props.selectable}
+						rowLabel={props.rowLabel?.(leaf.original)}
+						onRowClick={props.onRowClick}
+						truncate={props.truncate}
+						settleWidths={props.settleWidths}
+						pinning={props.pinning}
+						density={density}
+					/>
+				)
+			})}
+		</Fragment>
+	)
+}
+
+/**
  * Body for {@link Grid}: branches between the loading skeleton, the error slot,
- * the `empty` slot, the virtualized window, and the plain row map, threading
- * per-row state to each {@link GridRow}.
+ * the `empty` slot, the grouped body, the virtualized window, and the plain row
+ * map, threading per-row state to each {@link GridRow}.
  *
  * @internal
  */
@@ -69,6 +136,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		groupColumnId,
 		groupRenderHeader,
 		getKey,
+		density,
 		virtualize,
 	} = props
 
@@ -90,25 +158,22 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
-	// Grouping renders its own body: the engine's display rows, group headers as
-	// full-width disclosure rows and their expanded leaves as ordinary rows. It
-	// stands down virtualization / pagination / grid semantics (see `GridData`), so
-	// this precedes the virtualized branch and needs no aria-row bookkeeping.
+	// Grouping renders its own body: each group's header row followed by all its
+	// leaf rows, which stay mounted and animate open/closed with the group via a
+	// CSS reveal (see `renderGroup` / `GridGroupLeafRow`). It stands down
+	// virtualization / pagination / grid semantics (see `GridData`), so this
+	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
 		return (
 			<TableBody>
-				{groupedRows.map((engineRow) =>
-					engineRow.getIsGrouped() ? (
-						<GridGroupRow<T>
-							key={engineRow.id}
-							row={engineRow}
-							colSpan={visibleColumns.length}
-							columnId={groupColumnId}
-							renderHeader={groupRenderHeader}
-						/>
-					) : (
-						renderGroupedLeafRow(props, engineRow, getKey)
-					),
+				{groupedRows.map((groupRow) =>
+					renderGroup(groupRow, {
+						props,
+						columnId: groupColumnId,
+						renderHeader: groupRenderHeader,
+						getKey,
+						density,
+					}),
 				)}
 			</TableBody>
 		)

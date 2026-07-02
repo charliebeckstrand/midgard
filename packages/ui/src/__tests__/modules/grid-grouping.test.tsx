@@ -32,6 +32,12 @@ describe('Grid row grouping', () => {
 		return screen.getAllByRole('button', { name: /group/ })
 	}
 
+	// A leaf row's `<tr>`, found by its cell text — collapsed groups keep their
+	// rows mounted (hidden via `aria-hidden`) rather than unmounting them.
+	function leafRow(name: string) {
+		return screen.getByText(name).closest('tr')
+	}
+
 	it('draws a group-header row with a count per distinct value, expanded by default', () => {
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
@@ -53,19 +59,23 @@ describe('Grid row grouping', () => {
 
 		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
 
+		// Expanded by default: the Developer rows show and aren't hidden.
+		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
+
 		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
 
-		// The Developer leaves drop; other groups are untouched.
-		expect(screen.queryByText('Wade')).not.toBeInTheDocument()
+		// The Developer leaves stay mounted but hide (collapsed height + `aria-hidden`);
+		// other groups are untouched.
+		expect(leafRow('Wade')).toHaveAttribute('aria-hidden', 'true')
 
-		expect(screen.queryByText('Tom')).not.toBeInTheDocument()
+		expect(leafRow('Tom')).toHaveAttribute('aria-hidden', 'true')
 
-		expect(screen.getByText('Arlene')).toBeInTheDocument()
+		expect(leafRow('Arlene')).not.toHaveAttribute('aria-hidden')
 
 		// The header stays (now an expand affordance) and re-opens the group.
 		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
 
-		expect(screen.getByText('Wade')).toBeInTheDocument()
+		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
 	})
 
 	it('starts collapsed under defaultExpanded: false', () => {
@@ -78,10 +88,10 @@ describe('Grid row grouping', () => {
 			/>,
 		)
 
-		// Headers show; no leaf rows until a group is expanded.
+		// Headers show; the leaf rows are present but hidden until a group expands.
 		expect(screen.getByText('Developer (2)')).toBeInTheDocument()
 
-		expect(screen.queryByText('Wade')).not.toBeInTheDocument()
+		expect(leafRow('Wade')).toHaveAttribute('aria-hidden', 'true')
 
 		expect(groupToggles()).toHaveLength(3)
 	})
