@@ -1,20 +1,12 @@
 import { defineConfig } from 'vitest/config'
-import { baseTest } from './vitest.base.config'
 
 export default defineConfig({
 	test: {
-		...baseTest,
+		environment: 'jsdom',
+		globals: true,
+		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
+		// pin the zone so every machine renders the same wall-clock day.
+		env: { TZ: 'UTC' },
 		setupFiles: ['./src/__benchmarks__/setup.ts'],
-		include: [
-			'src/__benchmarks__/**/*.bench.{ts,tsx}',
-			'src/docs/engine/__benchmarks__/**/*.bench.{ts,tsx}',
-		],
-		benchmark: {
-			include: [
-				'src/__benchmarks__/**/*.bench.{ts,tsx}',
-				'src/docs/engine/__benchmarks__/**/*.bench.{ts,tsx}',
-			],
-			reporters: ['default'],
-		},
 	},
 })

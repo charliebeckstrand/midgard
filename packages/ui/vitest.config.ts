@@ -1,19 +1,43 @@
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docsPlugin } from './src/docs/engine/plugins'
-import { baseTest, setupFiles, testIsolation } from './vitest.base.config'
 
-// Options shared by both jsdom projects; project-specific keys (pool,
-// include) stay at the project so the split reads at a glance.
-const jsdomProject = {
-	...baseTest,
-	...testIsolation,
-	sequence: { shuffle: true },
-	setupFiles,
-}
+const CI = Boolean(process.env.CI)
+
+// Setup files for both jsdom projects (unit, boundary).
+const setupFiles = [
+	'./src/__tests__/setup/index.ts',
+	'./src/__tests__/setup/module-mocks.ts',
+	'./src/__tests__/setup/restore-prototype-focus.ts',
+]
 
 export default defineConfig({
 	test: {
-		reporters: process.env.CI ? ['default', 'junit'] : ['default'],
+		environment: 'jsdom',
+		globals: true,
+		// Machine speed must change when a test passes, never whether it passes:
+		// CI agents are slower and noisier than dev machines, so wall-clock
+		// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
+		// injected by src/__tests__/setup/index.ts; it stays well below
+		// testTimeout so a stuck wait fails as an RTL timeout carrying the
+		// callback's last error, not an opaque test timeout.
+		testTimeout: CI ? 15_000 : 5_000,
+		hookTimeout: CI ? 15_000 : 10_000,
+		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
+		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
+		// pin the zone so every machine renders the same wall-clock day.
+		env: { TZ: 'UTC' },
+		sequence: { shuffle: true },
+		// Pools reset the module graph per file, but within a file a vi.spyOn or
+		// vi.stubGlobal outlives its test unless restored, and sequence.shuffle
+		// randomizes sibling order — so an unrestored spy/stub leaks into
+		// whichever test runs next. restoreMocks runs vi.restoreAllMocks() before
+		// each test and unstubGlobals runs vi.unstubAllGlobals(), both ahead of
+		// beforeEach so beforeEach/test-body setup is reapplied untouched.
+		// mockRestore only reverts vi.spyOn() spies, so the plain vi.fn() and
+		// Object.defineProperty jsdom stubs in setup/ are left intact.
+		restoreMocks: true,
+		unstubGlobals: true,
+		reporters: CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
 		},
@@ -32,12 +56,12 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'cobertura'],
-			reportsDirectory: 'coverage',
 			include: ['src/**/*.{ts,tsx}'],
 			exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**', 'src/index.ts'],
 		},
 		projects: [
 			{
+				extends: true,
 				// The docs engine, pointed at ui, backs the `docs/*` integration
 				// tests under src/__tests__/docs/ (the real component-modules map +
 				// barrel tagging) and runs its own suite under
@@ -45,7 +69,7 @@ export default defineConfig({
 				plugins: [docsPlugin({ vitest: true })],
 				test: {
 					name: 'unit',
-					...jsdomProject,
+					setupFiles,
 					pool: 'vmThreads',
 					// Recycle a worker before its heap grows enough to slow jsdom
 					// work into waitFor budgets — the vmThreads failure mode that
@@ -71,6 +95,7 @@ export default defineConfig({
 				},
 			},
 			{
+				extends: true,
 				// Architectural rule suites (*-boundary.test.ts): node:fs walks over
 				// source text — no DOM, no React, no mocks. A plain node environment
 				// on one shared worker strips the per-file fork + jsdom + setup cost
@@ -78,15 +103,14 @@ export default defineConfig({
 				// clock on few-core CI agents.
 				test: {
 					name: 'rules',
-					...baseTest,
-					environment: 'node' as const,
+					environment: 'node',
 					pool: 'threads',
 					isolate: false,
-					sequence: { shuffle: true },
 					include: ['src/__tests__/boundary/*-boundary.test.ts'],
 				},
 			},
 			{
+				extends: true,
 				// Environment-boundary suites: virtualizer, canvas, PDF, map —
 				// integrations that schedule work past a test's lifetime or lean on
 				// jsdom's edges. Process-isolated forks keep their leakage from
@@ -94,7 +118,7 @@ export default defineConfig({
 				// shared-worker pool above.
 				test: {
 					name: 'boundary',
-					...jsdomProject,
+					setupFiles,
 					pool: 'forks',
 					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
 					exclude: [...configDefaults.exclude, '**/*-boundary.test.ts'],
