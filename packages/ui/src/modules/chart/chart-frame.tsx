@@ -10,10 +10,8 @@ import { ChartTooltip } from './chart-tooltip'
 import { ChartHoverContext } from './context'
 import type { ChartReadout } from './types'
 
-/** Props for {@link ChartFrame}. @internal */
-export type ChartFrameProps = {
-	/** The chart's accessible name props, spread onto the `role="img"` plot region. */
-	label: AccessibleName
+/** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
+export type ChartFrameProps = AccessibleName & {
 	/** Wrapper ref from `useChartPlot`, attached for container measurement. */
 	ref: RefObject<HTMLDivElement | null>
 	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
@@ -46,7 +44,6 @@ export type ChartFrameProps = {
  * @internal
  */
 export function ChartFrame({
-	label,
 	ref,
 	width,
 	fixedWidth,
@@ -58,6 +55,7 @@ export function ChartFrame({
 	tooltip,
 	className,
 	children,
+	...label
 }: ChartFrameProps) {
 	const [index, setIndex] = useState<number | null>(null)
 

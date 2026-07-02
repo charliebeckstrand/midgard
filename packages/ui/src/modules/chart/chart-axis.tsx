@@ -16,6 +16,12 @@ export type ChartAxisProps = {
 	axis: 'x' | 'y'
 	plot: PlotRect
 	ticks: ChartAxisTick[]
+	/**
+	 * The x axis line's y — the zero line once negative values pull it off the
+	 * plot floor. Labels stay under the plot regardless.
+	 * @defaultValue the plot floor
+	 */
+	baseline?: number
 }
 
 /**
@@ -25,7 +31,7 @@ export type ChartAxisProps = {
  *
  * @internal
  */
-export function ChartAxis({ axis, plot, ticks }: ChartAxisProps) {
+export function ChartAxis({ axis, plot, ticks, baseline }: ChartAxisProps) {
 	if (axis === 'y') {
 		return (
 			<g data-slot="chart-axis-y">
@@ -45,15 +51,17 @@ export function ChartAxis({ axis, plot, ticks }: ChartAxisProps) {
 		)
 	}
 
-	const baseline = plot.y + plot.height
+	const floor = plot.y + plot.height
+
+	const lineY = baseline ?? floor
 
 	return (
 		<g data-slot="chart-axis-x">
 			<line
 				x1={plot.x}
-				y1={baseline}
+				y1={lineY}
 				x2={plot.x + plot.width}
-				y2={baseline}
+				y2={lineY}
 				strokeWidth={1}
 				shapeRendering="crispEdges"
 				className={cn(k.axis)}
@@ -63,7 +71,7 @@ export function ChartAxis({ axis, plot, ticks }: ChartAxisProps) {
 				<text
 					key={tick.at}
 					x={tick.at}
-					y={baseline + GUTTER_GAP}
+					y={floor + GUTTER_GAP}
 					textAnchor="middle"
 					dominantBaseline="hanging"
 					className={cn(k.tick)}

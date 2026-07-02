@@ -16,7 +16,7 @@ const PLOT = { x: 40, y: 8, width: 360, height: 200 }
 function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>) {
 	return (
 		<ChartFrame
-			label={{ 'aria-label': 'Revenue by quarter' }}
+			aria-label="Revenue by quarter"
 			ref={createRef<HTMLDivElement>()}
 			width={width}
 			height={240}

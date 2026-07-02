@@ -69,3 +69,22 @@ export function bandAnchors(band: BandScale, count: number, plot: PlotRect): Cha
 		y: plot.y,
 	}))
 }
+
+/**
+ * The category indexes whose x labels fit without colliding: every label when
+ * there is room, else every nth — thinned, never rotated. The estimate reuses
+ * the tabular glyph width, with a slot of air between neighbours.
+ *
+ * @internal
+ */
+export function thinnedTicks(count: number, plotWidth: number, longestChars: number): number[] {
+	if (count <= 0) return []
+
+	const slot = longestChars * TICK_CHAR_WIDTH + GUTTER_GAP
+
+	const fit = Math.max(1, Math.floor(plotWidth / Math.max(1, slot)))
+
+	const nth = Math.ceil(count / fit)
+
+	return Array.from({ length: count }, (_, index) => index).filter((index) => index % nth === 0)
+}
