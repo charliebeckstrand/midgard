@@ -30,6 +30,8 @@ export type ChartFrameProps = AccessibleName & {
 	/** Mount the hover tooltip. */
 	tooltip: boolean
 	className?: string
+	/** HTML layered over the SVG inside the plot region — a donut's center content. */
+	overlay?: ReactNode
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -54,6 +56,7 @@ export function ChartFrame({
 	anchors,
 	tooltip,
 	className,
+	overlay,
 	children,
 	...label
 }: ChartFrameProps) {
@@ -83,6 +86,8 @@ export function ChartFrame({
 							{children}
 						</svg>
 					)}
+
+					{overlay}
 
 					{tooltip && readout && width > 0 && (
 						<ChartTooltip plot={plot} anchors={anchors} readout={readout} />

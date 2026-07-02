@@ -52,7 +52,7 @@ export function ChartTooltip({ plot, anchors, readout }: ChartTooltipProps) {
 						<span
 							className={cn(
 								row.swatch === 'rect' ? 'size-2 rounded-xs' : 'h-0.5 w-2.5 rounded-full',
-								row.swatchClass,
+								row.swatchClasses?.[index] ?? row.swatchClass,
 							)}
 						/>
 

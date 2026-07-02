@@ -44,6 +44,8 @@ export type ChartReadoutRow = {
 	label: string
 	/** Background class carrying the series colour. */
 	swatchClass: string
+	/** Per-category swatch overrides — pie slices, where the colour follows the category. */
+	swatchClasses?: string[]
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
 	/** Formatted value per category index. */
