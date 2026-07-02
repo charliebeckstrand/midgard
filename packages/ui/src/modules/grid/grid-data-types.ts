@@ -45,6 +45,31 @@ export type GridSort = {
 }
 
 /**
+ * Row drag-reorder binding for {@link GridProps.rowReorder}. The consumer owns
+ * the `rows` source, so the grid reports the reordered rows through `onReorder`
+ * rather than mutating them — apply the new order to your state (or persist it)
+ * to make it stick.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridRowReorder<T> = {
+	/**
+	 * Fires when a drag settles the rows into a new order, with the full row set
+	 * in that order (the same shape {@link List}'s `onReorder` takes). Reassign it
+	 * to your `rows` to commit the move.
+	 */
+	onReorder: (rows: T[]) => void
+	/**
+	 * Turns the drag handles off without dropping the handle column, e.g. while a
+	 * mutation is in flight. The grid also stands reordering down on its own
+	 * whenever a manual order wouldn't be meaningful — an active column sort,
+	 * pagination, virtualization, an empty/loading grid, or a filtered view.
+	 * @defaultValue false
+	 */
+	disabled?: boolean
+}
+
+/**
  * Controlled/uncontrolled column-order binding for
  * {@link GridProps.columnOrder}: the column ids in display order. Drives
  * both the column-manager dialog and the `reorder` header drag handles, so the
@@ -369,6 +394,24 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue false
 	 */
 	reorder?: boolean
+
+	/**
+	 * Enables drag-reordering of rows. Add a {@link GridColumn.dragHandle} column
+	 * (usually leading) for the grip, and pass this binding's `onReorder` to
+	 * commit the new order back onto your `rows` — the consumer owns the data, so
+	 * the grid reports the reordered set rather than mutating it. Each row's grip
+	 * drags by pointer or keyboard (`@dnd-kit`), moving the row within the set.
+	 *
+	 * Reordering is a manual ordering of the natural row order, so the grid stands
+	 * it down — the handles turn inert — whenever that order isn't what's shown: an
+	 * active column {@link GridProps.sort | sort}, a filtered/searched view,
+	 * {@link GridProps.pagination | pagination}, {@link GridProps.virtualize |
+	 * virtualization}, or an empty/loading grid. Not combinable with column
+	 * {@link GridProps.reorder} on the same grid (row reorder takes precedence).
+	 *
+	 * @see {@link GridRowReorder}
+	 */
+	rowReorder?: GridRowReorder<T>
 
 	/**
 	 * Adds a keyboard cell cursor over the data cells. The grid becomes a single

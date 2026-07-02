@@ -22,7 +22,7 @@ import {
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery } from '../query'
 import type { SortState } from './context'
-import { SELECT_COLUMN_SIZE } from './grid-constants'
+import { DRAG_HANDLE_COLUMN_SIZE, SELECT_COLUMN_SIZE } from './grid-constants'
 import { compareSortKeys, type SortKey, toSortKey } from './grid-sorting-utilities'
 import { isQueryGroup } from './grid-table-views'
 import type { GridColumn, GridPagination } from './types'
@@ -188,10 +188,13 @@ function deriveColumnBehavior<T>(col: GridColumn<T>) {
 
 /** Maps a grid column to its engine `ColumnDef`: identity, the capability gates, the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds. @internal */
 export function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
-	// A width-less column takes the engine's 150px default; the selection column
-	// instead holds a natural checkbox width so it isn't that wide. (The
-	// non-resizable auto layout already sizes it to content via `w-px`.)
-	const size = parsePxWidth(col.width) ?? (col.selectable ? SELECT_COLUMN_SIZE : undefined)
+	// A width-less column takes the engine's 150px default; the selection and
+	// drag-handle columns instead hold a natural affordance width so they aren't
+	// that wide. (The non-resizable auto layout already sizes them to content via
+	// `w-px`.)
+	const size =
+		parsePxWidth(col.width) ??
+		(col.selectable ? SELECT_COLUMN_SIZE : col.dragHandle ? DRAG_HANDLE_COLUMN_SIZE : undefined)
 
 	const { accessorFn, sortingFn, filterFn } = deriveColumnBehavior(col)
 

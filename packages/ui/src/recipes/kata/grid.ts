@@ -277,6 +277,43 @@ export const k = {
 			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
 		],
 	},
+	rowReorder: {
+		// The row drag-handle cell: a narrow, centered column holding the grip,
+		// sized to content like the selection cell.
+		cell: 'w-px text-center align-middle [line-height:0]',
+		// Grip button carrying the row's drag activator. Mirrors the column
+		// reorder handle (`k.reorder.handle`): grab cursor tracking the live drag
+		// (`data-[dragging]`, not `:active`, so a context-menu press doesn't strand
+		// it), muted at rest and tinting on hover, an inset focus ring (clip-safe in
+		// the scroll wrapper), and a centered transparent `::before` expanding the
+		// 20px glyph's hit area to >=24x24 (WCAG 2.5.8). `touch-none` keeps a
+		// touch-drag from scrolling the page instead of lifting the row.
+		handle: [
+			flex.inline,
+			'shrink-0',
+			'relative',
+			"before:absolute before:-inset-1 before:content-['']",
+			text.muted,
+			fg.hover,
+			focus.inset,
+			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
+		],
+		// The grip while reordering is unavailable — a column sort orders the rows,
+		// or `rowReorder.disabled` is set: shown for layout stability but inert and
+		// dimmed, so it reads as "not draggable now" rather than missing.
+		handleDisabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+		// Lifts the actively dragged row above its siblings on an opaque surface
+		// with a shadow, so the rows it slides over stay hidden behind it — a
+		// transparent `<tr>` would let their content bleed through. Gated on the
+		// `data-[dragging]` the row carries; the fill tracks the content host
+		// across viewports (see `hostSurface`/`draggingSurface`).
+		dragging: [
+			'data-[dragging]:relative',
+			'data-[dragging]:z-10',
+			'data-[dragging]:shadow-lg',
+			...draggingSurface,
+		],
+	},
 	resize: {
 		// Fixed layout + a <colgroup> of exact widths so resizing one column
 		// changes only that column (and the table's total width) instead of

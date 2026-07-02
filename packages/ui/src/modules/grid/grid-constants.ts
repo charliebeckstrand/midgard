@@ -33,6 +33,14 @@ export const DEFAULT_COLUMN_SIZE = 150
  */
 export const SELECT_COLUMN_SIZE = 48
 
+/**
+ * Natural width (px) the row drag-handle column holds in the fixed (resizable)
+ * layout when it sets no `width` — wide enough for the grip, like
+ * {@link SELECT_COLUMN_SIZE} for the checkbox. The non-resizable auto layout
+ * sizes it to content via `w-px`, so this seeds only the fixed-layout colgroup. @internal
+ */
+export const DRAG_HANDLE_COLUMN_SIZE = 44
+
 /** Floor (px) a resizable column can shrink to when it sets no `minWidth`. @internal */
 export const DEFAULT_MIN_COLUMN_SIZE = 40
 

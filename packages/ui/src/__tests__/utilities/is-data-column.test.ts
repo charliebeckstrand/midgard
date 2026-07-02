@@ -14,6 +14,10 @@ describe('isDataColumn', () => {
 		expect(isDataColumn({ actions: () => null })).toBe(false)
 	})
 
+	it('is false for the row drag-handle column', () => {
+		expect(isDataColumn({ dragHandle: true })).toBe(false)
+	})
+
 	it('is true when selectable is explicitly false and actions is absent', () => {
 		expect(isDataColumn({ selectable: false })).toBe(true)
 	})

@@ -180,10 +180,48 @@ function columnSort(
 }
 
 /**
+ * Header cell for the row drag-handle column: an empty, grip-width `<th>` (the
+ * handles live in the body rows) carrying a screen-reader label so the column
+ * still names itself. Sticky/pinned like any header.
+ *
+ * @internal
+ */
+function GridDragHandleHeaderCell<T>({
+	column,
+	colIndex,
+	stickyHeader,
+	pinning,
+}: {
+	column: GridColumn<T>
+	colIndex: number | undefined
+	stickyHeader: boolean
+	pinning: GridColumnPinning | null
+}) {
+	return (
+		<TableHeader
+			aria-colindex={colIndex}
+			className={cn(
+				k.rowReorder.cell,
+				stickyHeader && k.sticky.head,
+				pinnedClassName(pinning, column.id, { header: true }),
+				column.headerClassName,
+			)}
+			style={{
+				...(column.width ? { width: column.width } : null),
+				...pinnedOffsetStyle(pinning, column.id),
+			}}
+		>
+			<span className="sr-only">Reorder rows</span>
+		</TableHeader>
+	)
+}
+
+/**
  * Routes one column to its header cell: the select-all checkbox for the
- * selectable column, a reorderable header for draggable data columns, or a
- * plain sort header otherwise — resolving the engine width and resize controls
- * for data columns along the way.
+ * selectable column, the empty drag-handle header for the row-reorder column, a
+ * reorderable header for draggable data columns, or a plain sort header
+ * otherwise — resolving the engine width and resize controls for data columns
+ * along the way.
  *
  * @internal
  */
@@ -226,6 +264,17 @@ function GridHeaderCell<T>({
 					/>
 				)}
 			</TableHeader>
+		)
+	}
+
+	if (column.dragHandle) {
+		return (
+			<GridDragHandleHeaderCell
+				column={column}
+				colIndex={colIndex}
+				stickyHeader={stickyHeader}
+				pinning={pinning}
+			/>
 		)
 	}
 

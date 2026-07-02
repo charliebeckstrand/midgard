@@ -63,6 +63,16 @@ export type GridColumn<T> = {
 	selectable?: boolean
 	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
 	actions?: (row: T) => ReactNode
+	/**
+	 * Marks this as the row drag-handle column: renders a grip that drags its row
+	 * to reorder it, rather than a cell value. Effective only while the grid is
+	 * {@link GridProps.rowReorder | row-reorderable}; the handle is present but
+	 * inert otherwise (and while a column sort orders the rows, since a manual
+	 * order only holds against the natural order). Like {@link GridColumn.selectable}
+	 * it is a non-data column — never sorted, filtered, resized, or column-reordered
+	 * — and defaults to a natural grip width; set {@link GridColumn.width} to override.
+	 */
+	dragHandle?: boolean
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
