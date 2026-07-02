@@ -4,7 +4,12 @@ import { type HTMLMotionProps, motion } from 'motion/react'
 import type { ComponentPropsWithoutRef, Ref } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
-import { useCurrent, useCurrentFade } from './current'
+import {
+	CurrentPanelActiveContext,
+	useCurrent,
+	useCurrentFade,
+	useCurrentPanelActive,
+} from './current'
 
 export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-content"`. */
@@ -33,7 +38,14 @@ export function CurrentContent({
 
 	const fade = useCurrentFade()
 
+	const inheritedActive = useCurrentPanelActive()
+
 	const current = value === undefined || context?.value === undefined || context.value === value
+
+	// Fold across nesting: a panel is active only when it matches and every
+	// ancestor panel does too, so a fade-mode panel kept mounted inside a hidden
+	// one still reads as inactive.
+	const active = inheritedActive && current
 
 	if (!fade) {
 		if (!current) return null
@@ -46,7 +58,7 @@ export function CurrentContent({
 				style={style}
 				{...props}
 			>
-				{children}
+				<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 			</div>
 		)
 	}
@@ -72,7 +84,7 @@ export function CurrentContent({
 			inert={!current}
 			className={className}
 		>
-			{children}
+			<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 		</motion.div>
 	)
 }

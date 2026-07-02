@@ -7,7 +7,7 @@ import { type RenderOptions, type RenderResult, render } from '@testing-library/
 import type { ReactElement, ReactNode } from 'react'
 import { GlassContext } from '../../../providers/glass'
 
-export { screen } from '@testing-library/react'
+export { fireEvent, screen } from '@testing-library/react'
 
 type UIRenderOptions = { glass?: boolean } & Omit<RenderOptions, 'wrapper'>
 
