@@ -105,6 +105,7 @@
 		"@vitest/coverage-v8": "^4.1.8",
 		"jest-axe": "^10.0.0",
 		"jsdom": "^29.0.2",
+		"motion-dom": "^12.40.0",
 		"playwright": "1.56.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.2.4",

@@ -230,6 +230,9 @@ importers:
       jsdom:
         specifier: ^29.0.2
         version: 29.1.1
+      motion-dom:
+        specifier: ^12.40.0
+        version: 12.40.0
       playwright:
         specifier: 1.56.1
         version: 1.56.1
