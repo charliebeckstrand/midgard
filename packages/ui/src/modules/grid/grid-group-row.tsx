@@ -54,17 +54,18 @@ export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGr
 			<TableCell colSpan={colSpan} className={cn(k.rowGroup.rail)}>
 				<Button
 					variant="bare"
-					block
 					onClick={row.getToggleExpandedHandler()}
 					aria-expanded={expanded}
 					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${formatGroupValue(value)}`}
-					className={cn(k.rowGroup.toggle)}
+					className="p-0"
+					suffix={
+						<Icon
+							icon={expanded ? <ChevronDown /> : <ChevronRight />}
+							className={cn(k.rowGroup.chevron)}
+						/>
+					}
 				>
-					<span className={cn(k.rowGroup.label)}>{label}</span>
-					<Icon
-						icon={expanded ? <ChevronDown /> : <ChevronRight />}
-						className={cn(k.rowGroup.chevron)}
-					/>
+					{label}
 				</Button>
 			</TableCell>
 		</TableRow>

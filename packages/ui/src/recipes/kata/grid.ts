@@ -288,20 +288,22 @@ export const k = {
 		// the scroll wrapper), and a centered transparent `::before` expanding the
 		// 20px glyph's hit area to >=24x24 (WCAG 2.5.8). `touch-none` keeps a
 		// touch-drag from scrolling the page instead of lifting the row.
-		handle: [
-			flex.inline,
-			'shrink-0',
-			'relative',
-			"before:absolute before:-inset-1 before:content-['']",
-			text.muted,
-			fg.hover,
-			focus.inset,
-			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
-		],
-		// The grip while reordering is unavailable — a column sort orders the rows,
-		// or `rowReorder.disabled` is set: shown for layout stability but inert and
-		// dimmed, so it reads as "not draggable now" rather than missing.
-		handleDisabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+		handle: {
+			root: [
+				flex.inline,
+				'shrink-0',
+				'relative',
+				"before:absolute before:-inset-1 before:content-['']",
+				text.muted,
+				fg.hover,
+				focus.inset,
+				'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
+			],
+			// The grip while reordering is unavailable — a column sort orders the rows,
+			// or `rowReorder.disabled` is set: shown for layout stability but inert and
+			// dimmed, so it reads as "not draggable now" rather than missing.
+			disabled: [flex.inline, 'shrink-0', text.muted, 'opacity-50', 'cursor-not-allowed'],
+		},
 		// Lifts the actively dragged row above its siblings on an opaque surface
 		// with a shadow, so the rows it slides over stay hidden behind it — a
 		// transparent `<tr>` would let their content bleed through. Gated on the
@@ -320,18 +322,11 @@ export const k = {
 		// continuous bar, the row-group analog of a column group's underline rule. For
 		// now it takes a neutral tint; a forthcoming row manager will swap in a
 		// per-group palette colour.
-		rail: ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')],
-		// Bare disclosure button filling the group cell: the label with the chevron
-		// tucked right beside it (`gap-1.5`), both at the leading edge. `px-0` drops
-		// the button's own horizontal inset so the label lines up with the data cells'
-		// content (the cell keeps its density padding); the whole band toggles the group.
-		toggle: ['w-full', 'items-center', 'justify-start', 'gap-1.5', 'px-0', 'text-left'],
+		rail: ['border-l-2', 'py-0', ...mode('border-zinc-950/5', 'dark:border-white/10')],
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.
 		chevron: 'shrink-0',
-		// Group label ("Developer (3)"): the group's value and row count, emphasized.
-		label: [weight.medium, size.sm],
 		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose track
 		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
 		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is
@@ -480,7 +475,6 @@ export const k = {
 		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
 		item: 'whitespace-nowrap',
 	},
-	rowLoading: [css.pulse, 'opacity-60'],
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
 		// ring (the row is a tab stop). Its hover wash is the shared `<Table hover>`
@@ -488,6 +482,7 @@ export const k = {
 		// (buttons, the select checkbox) handles its own clicks; the row guard skips
 		// those.
 		clickable: ['cursor-pointer', focus.ring],
+		loading: [css.pulse, 'opacity-50'],
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its

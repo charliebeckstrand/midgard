@@ -67,7 +67,7 @@ function leafCellInner<T>(args: {
 				type="button"
 				disabled
 				aria-label={`Reorder ${name}`}
-				className={cn(k.rowReorder.handleDisabled)}
+				className={cn(k.rowReorder.handle.disabled)}
 			>
 				<Icon icon={<GripVertical />} />
 			</button>
