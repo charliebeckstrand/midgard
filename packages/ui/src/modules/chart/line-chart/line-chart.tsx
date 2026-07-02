@@ -119,7 +119,6 @@ export function LineChart<T>({
 				)
 			}
 			readout={chart.readout}
-			anchors={chart.anchors}
 			tooltip={tooltip}
 			className={className}
 		>

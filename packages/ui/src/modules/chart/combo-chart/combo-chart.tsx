@@ -154,7 +154,6 @@ export function ComboChart<T>({
 				)
 			}
 			readout={chart.readout}
-			anchors={chart.anchors}
 			tooltip={tooltip}
 			className={className}
 		>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import type { PointerEvent, ReactNode } from 'react'
 import { cn } from '../../../core'
 import { useResolvedSize } from '../../../primitives/density'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
@@ -213,17 +213,24 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
  * @internal
  */
 function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps) {
-	const { setIndex } = useChartHover()
+	const { set } = useChartHover()
 
 	return (
-		<g data-slot="chart-slices" onPointerLeave={() => setIndex(null)}>
+		<g data-slot="chart-slices" onPointerLeave={() => set(null, null)}>
 			{slices.map((slice, order) => {
 				const shared = {
 					'data-slot': 'chart-slice',
 					d: slice.d,
 					strokeWidth: MARK_GAP,
 					className: cn(paints[slice.index]?.fill, k.gap, 'hover:brightness-110'),
-					onPointerEnter: () => setIndex(slice.index),
+					onPointerEnter: () => set(slice.index, slice.centroid),
+					onPointerMove: (event: PointerEvent<SVGPathElement>) => {
+						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+
+						if (!box) return
+
+						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+					},
 				}
 
 				return (
@@ -344,12 +351,6 @@ export function PieChart<T>({
 				}))
 			: null
 
-	const anchors = data.map((_, index) => {
-		const slice = slices.find((candidate) => candidate.index === index)
-
-		return slice ? slice.centroid : { x: frameWidth / 2, y: frameHeight / 2 }
-	})
-
 	const labelItems = segmentLabelItems({
 		kind: segmentLabels === true ? 'percent' : segmentLabels,
 		slices,
@@ -389,7 +390,6 @@ export function PieChart<T>({
 				)
 			}
 			readout={readout}
-			anchors={anchors}
 			tooltip={tooltip}
 			className={className}
 			overlay={

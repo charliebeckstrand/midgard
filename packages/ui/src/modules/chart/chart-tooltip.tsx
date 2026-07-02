@@ -1,48 +1,63 @@
 'use client'
 
 import { cn } from '../../core'
+import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/chart'
-import type { ChartAnchor, PlotRect } from './chart-layout'
+import { k as tooltip } from '../../recipes/kata/tooltip'
+import type { PlotRect } from './chart-layout'
 import { useChartHover } from './context'
 import type { ChartReadout } from './types'
 
 /** Props for {@link ChartTooltip}. @internal */
 export type ChartTooltipProps = {
 	plot: PlotRect
-	/** Per-category attachment points, indexed like the readout's categories. */
-	anchors: ChartAnchor[]
 	readout: ChartReadout
 }
 
+/** The pointer offset keeping the readout clear of the cursor. @internal */
+const TRACK_OFFSET = 12
+
 /**
  * The hover readout: one tooltip listing every series at the pointed
- * category, values leading their labels. Positioned by math alone — right of
- * the anchor on the plot's left half, left of it on the right half, clamped
- * into the frame — so it never needs to measure itself.
+ * category, values leading their labels. It wears the Tooltip component's
+ * surface — glass under the frame's `GlassProvider` — and tracks the pointer
+ * precisely, flipping past it at the plot's midlines so it never runs out of
+ * the frame. Positioned by math alone, it never needs to measure itself.
  *
  * @remarks A pointer enhancement, `aria-hidden` by design: the same values
  * ship in the visually-hidden table, so nothing is gated behind hover.
  * @internal
  */
-export function ChartTooltip({ plot, anchors, readout }: ChartTooltipProps) {
-	const { index } = useChartHover()
+export function ChartTooltip({ plot, readout }: ChartTooltipProps) {
+	const { index, point } = useChartHover()
 
-	if (index === null) return null
+	const glass = useGlass()
 
-	const anchor = anchors[index]
+	if (index === null || point === null) return null
 
-	if (!anchor) return null
+	const flippedX = point.x > plot.x + plot.width / 2
 
-	const flipped = anchor.x > plot.x + plot.width / 2
+	const flippedY = point.y > plot.y + plot.height / 2
 
-	const side = flipped ? { right: `calc(100% - ${anchor.x - 8}px)` } : { left: anchor.x + 8 }
+	const position = {
+		...(flippedX
+			? { right: `calc(100% - ${point.x - TRACK_OFFSET}px)` }
+			: { left: point.x + TRACK_OFFSET }),
+		...(flippedY
+			? { bottom: `calc(100% - ${point.y - TRACK_OFFSET}px)` }
+			: { top: point.y + TRACK_OFFSET }),
+	}
 
 	return (
 		<div
 			data-slot="chart-tooltip"
 			aria-hidden="true"
-			className={cn('pointer-events-none absolute z-10 px-2.5 py-1.5', k.tooltip)}
-			style={{ top: Math.max(0, anchor.y), ...side }}
+			className={cn(
+				'pointer-events-none absolute z-10',
+				tooltip.content({ size: 'sm' }),
+				tooltip.surface[glass ? 'glass' : 'default'],
+			)}
+			style={position}
 		>
 			<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
 

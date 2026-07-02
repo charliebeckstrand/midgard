@@ -20,7 +20,7 @@ export type ChartHitAreaProps = {
  * @internal
  */
 export function ChartHitArea({ plot, band, count }: ChartHitAreaProps) {
-	const handlers = useChartPointer(band, count, plot.x)
+	const handlers = useChartPointer(band, count, plot)
 
 	return (
 		<rect

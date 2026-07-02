@@ -151,6 +151,28 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
 	})
 
+	it('tracks the pointer precisely on a glass tooltip surface', () => {
+		const { container } = renderUI(chart())
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		fireEvent.pointerMove(hit, { clientX: 30, clientY: 40 })
+
+		const tooltip = bySlot(container, 'chart-tooltip') as HTMLElement
+
+		// The Tooltip component's glass surface, adopted through GlassProvider.
+		expect(tooltip.className).toContain('backdrop-blur')
+
+		const first = tooltip.style.left
+
+		expect(first).not.toBe('')
+
+		// Same band, different pointer x: the tooltip follows the pointer, not the band.
+		fireEvent.pointerMove(hit, { clientX: 40, clientY: 40 })
+
+		expect((bySlot(container, 'chart-tooltip') as HTMLElement).style.left).not.toBe(first)
+	})
+
 	it('routes formatValue through ticks, tooltip, and the data table', () => {
 		const { container } = renderUI(chart({ formatValue: (value) => `$${value}` }))
 

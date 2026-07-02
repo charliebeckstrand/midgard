@@ -2,11 +2,12 @@
 
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import { GlassProvider } from '../../providers/glass'
 import type { AccessibleName } from '../../types'
-import type { ChartAnchor, PlotRect } from './chart-layout'
+import type { PlotRect } from './chart-layout'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
-import { ChartHoverContext } from './context'
+import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
 import type { ChartReadout } from './types'
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
@@ -24,8 +25,6 @@ export type ChartFrameProps = AccessibleName & {
 	legend: ReactNode
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
-	/** Per-category tooltip anchors, indexed like the readout's categories. */
-	anchors: ChartAnchor[]
 	/** Mount the hover tooltip. */
 	tooltip: boolean
 	className?: string
@@ -52,16 +51,24 @@ export function ChartFrame({
 	plot,
 	legend,
 	readout,
-	anchors,
 	tooltip,
 	className,
 	overlay,
 	children,
 	...label
 }: ChartFrameProps) {
-	const [index, setIndex] = useState<number | null>(null)
+	const [pointed, setPointed] = useState<{ index: number | null; point: ChartPoint | null }>({
+		index: null,
+		point: null,
+	})
 
-	const hover = useMemo(() => ({ index, setIndex }), [index])
+	const hover = useMemo<ChartHover>(
+		() => ({
+			...pointed,
+			set: (index, point) => setPointed({ index, point }),
+		}),
+		[pointed],
+	)
 
 	return (
 		<div
@@ -89,7 +96,9 @@ export function ChartFrame({
 					{overlay}
 
 					{tooltip && readout && width > 0 && (
-						<ChartTooltip plot={plot} anchors={anchors} readout={readout} />
+						<GlassProvider>
+							<ChartTooltip plot={plot} readout={readout} />
+						</GlassProvider>
 					)}
 				</div>
 			</ChartHoverContext>

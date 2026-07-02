@@ -135,13 +135,5 @@ export const k = {
 	],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],
-	/** The tooltip's floating surface. */
-	tooltip: [
-		rounded.md,
-		'shadow-md',
-		'ring-1',
-		...mode('bg-white', 'dark:bg-zinc-800'),
-		...mode('ring-zinc-950/10', 'dark:ring-white/10'),
-	],
 	skeleton: kokkaku.chart,
 } as const

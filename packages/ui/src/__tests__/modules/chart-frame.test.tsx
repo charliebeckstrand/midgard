@@ -37,7 +37,6 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 					{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect', values: ['1', '2'] },
 				],
 			}}
-			anchors={[]}
 			tooltip={true}
 			{...extras}
 		>
