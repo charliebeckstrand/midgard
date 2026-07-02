@@ -18,13 +18,15 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, kasane, kokkaku } from '../kiso'
+import { hannou, iro, kasane, kokkaku, sen } from '../kiso'
 
 const { cursor, tint } = hannou
 
 const { text } = iro
 
 const { rounded } = kasane
+
+const { focus } = sen
 
 /**
  * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
@@ -124,7 +126,7 @@ export const k = {
 	pointRing: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-xs', ...text.muted],
-	/** An interactive legend entry: pointer cursor, ghost hover/focus wash, quiet outline. */
+	/** An interactive legend entry: pointer cursor, ghost hover/focus wash, keyboard focus ring. */
 	legendItem: [
 		'flex',
 		'items-center',
@@ -132,9 +134,9 @@ export const k = {
 		'px-1.5',
 		'py-0.5',
 		rounded.md,
-		'outline-hidden',
 		...cursor,
 		...tint,
+		...focus.ring,
 	],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],

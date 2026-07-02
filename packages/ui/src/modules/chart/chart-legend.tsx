@@ -1,6 +1,8 @@
 'use client'
 
+import { type KeyboardEvent, useRef } from 'react'
 import { cn } from '../../core'
+import { useA11yRoving } from '../../hooks/a11y'
 import { k } from '../../recipes/kata/chart'
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
@@ -21,22 +23,56 @@ export type ChartLegendProps = {
 	onToggle: (index: number) => void
 	/** Emphasises an item's series (`null` clears); other marks dim while set. */
 	onFocus: (index: number | null) => void
+	/**
+	 * Lay the entries out in a responsive grid rather than a centered wrap row —
+	 * for the static side panel beside a pie or donut.
+	 */
+	grid?: boolean
 }
 
 /**
- * The centered legend row above the plot — the dependable identity channel
- * for two or more series, and the chart's series switchboard: pointing an
- * entry dims every other series, clicking toggles its series off. Plain
- * HTML buttons outside the `role="img"` region, so assistive tech reads and
+ * The legend — the dependable identity channel for two or more series, and
+ * the chart's series switchboard: pointing (or keyboard-focusing) an entry
+ * dims every other series, clicking toggles its series off. Plain HTML
+ * buttons outside the `role="img"` region, so assistive tech reads and
  * operates them; swatches carry the colour, the text stays in ink.
  *
+ * @remarks The row is one Tab stop; the arrow keys rove between entries
+ * (Home / End jump to the ends) and Escape drops focus, clearing the
+ * emphasis. Swatches carry the colour, the text stays in ink.
  * @internal
  */
-export function ChartLegend({ items, hidden, onToggle, onFocus }: ChartLegendProps) {
+export function ChartLegend({ items, hidden, onToggle, onFocus, grid = false }: ChartLegendProps) {
+	const ref = useRef<HTMLDivElement>(null)
+
+	const onKeyDown = useA11yRoving(ref, {
+		itemSelector: '[data-slot="chart-legend-item"]',
+		orientation: 'horizontal',
+		manageTabIndex: true,
+	})
+
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.key === 'Escape') {
+			;(document.activeElement as HTMLElement | null)?.blur()
+
+			return
+		}
+
+		onKeyDown(event)
+	}
+
 	return (
 		<div
+			ref={ref}
 			data-slot="chart-legend"
-			className="mb-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+			role="toolbar"
+			aria-orientation="horizontal"
+			onKeyDown={handleKeyDown}
+			className={cn(
+				grid
+					? 'grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3'
+					: 'mb-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
+			)}
 		>
 			{items.map((item, index) => {
 				const off = hidden.has(index)
@@ -47,7 +83,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus }: ChartLegendPro
 						type="button"
 						data-slot="chart-legend-item"
 						aria-pressed={!off}
-						className={cn(k.legendItem)}
+						className={cn(k.legendItem, grid && 'justify-self-start')}
 						onClick={() => onToggle(index)}
 						onPointerEnter={() => onFocus(index)}
 						onPointerLeave={() => onFocus(null)}

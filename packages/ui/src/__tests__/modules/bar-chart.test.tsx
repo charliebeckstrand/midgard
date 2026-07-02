@@ -109,6 +109,31 @@ describe('BarChart', () => {
 		expect(item?.className).toContain('cursor-pointer')
 	})
 
+	it('roves legend focus with the arrow keys as one tab stop, clearing on Escape', async () => {
+		const { container } = renderUI(chart())
+
+		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		// Single tab stop: exactly one item is arrow-reachable at rest.
+		expect(items.filter((el) => el.tabIndex === 0)).toHaveLength(1)
+
+		items[0]?.focus()
+
+		fireEvent.keyDown(items[0] as Element, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(items[1])
+
+		fireEvent.keyDown(items[1] as Element, { key: 'Escape' })
+
+		expect(document.activeElement).not.toBe(items[1])
+	})
+
+	it('carries a keyboard focus ring on legend entries', () => {
+		const { container } = renderUI(chart())
+
+		expect(bySlot(container, 'chart-legend-item')?.className).toContain('focus-visible:outline')
+	})
+
 	it('dims the other series while a legend entry is hovered', () => {
 		const { container } = renderUI(chart())
 
