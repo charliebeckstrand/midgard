@@ -5,6 +5,7 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { Segment, SegmentControl, SegmentItem } from '../../../../components/segment'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -537,6 +538,47 @@ const RowReorderExample = () => {
 		/>
 	)
 }
+
+const RowGroupExample = () => {
+	// `groupBy` collects rows sharing a column's value under an expandable
+	// group-header row (the value plus a count). Switch the grouped column, or pick
+	// "None" to ungroup; groups start expanded — toggle a header to collapse it.
+	// Sorting, filtering, and selection still apply within the groups.
+	const [groupBy, setGroupBy] = useState<string | number | null>('role')
+
+	return (
+		<Stack gap="md">
+			<Segment
+				value={groupBy == null ? 'none' : String(groupBy)}
+				onValueChange={(next) => setGroupBy(next == null || next === 'none' ? null : next)}
+			>
+				<SegmentControl aria-label="Group by">
+					<SegmentItem value="role">By role</SegmentItem>
+					<SegmentItem value="status">By status</SegmentItem>
+					<SegmentItem value="none">None</SegmentItem>
+				</SegmentControl>
+			</Segment>
+
+			<Grid
+				columns={sortableColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				groupBy={{ value: groupBy, onValueChange: setGroupBy }}
+			/>
+		</Stack>
+	)
+}
+
+const CollapsedGroupExample = () => (
+	// `defaultExpanded: false` starts every group collapsed — just the value/count
+	// summaries — until a header is expanded.
+	<Grid
+		columns={columns}
+		rows={people}
+		getKey={(row) => row.id}
+		groupBy={{ value: 'status', defaultExpanded: false }}
+	/>
+)
 
 const ResizableExample = () => (
 	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
@@ -1126,28 +1168,58 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Groups">
-					<Stack gap="xl">
-						<Example
-							title="Column groups"
-							code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
-						>
-							<GroupsExample />
-						</Example>
+					{/* A second row of tabs splits column groups (banding a run of columns)
+					    from row groups (collecting rows by a column's value). */}
+					<Tabs defaultValue="Column">
+						<TabList aria-label="Group type">
+							<Tab value="Column">Column</Tab>
+							<Tab value="Row">Row</Tab>
+						</TabList>
+						<TabContents fade={false}>
+							<TabContent value="Column">
+								<Stack gap="xl">
+									<Example
+										title="Column groups"
+										code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+									>
+										<GroupsExample />
+									</Example>
 
-						<Example
-							title="Collapsible groups"
-							code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
-						>
-							<CollapsibleGroupsExample />
-						</Example>
+									<Example
+										title="Collapsible groups"
+										code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+									>
+										<CollapsibleGroupsExample />
+									</Example>
 
-						<Example
-							title="Group editor"
-							code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
-						>
-							<GroupManagerExample />
-						</Example>
-					</Stack>
+									<Example
+										title="Group editor"
+										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+									>
+										<GroupManagerExample />
+									</Example>
+								</Stack>
+							</TabContent>
+
+							<TabContent value="Row">
+								<Stack gap="xl">
+									<Example
+										title="Group by column"
+										code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
+									>
+										<RowGroupExample />
+									</Example>
+
+									<Example
+										title="Collapsed groups"
+										code={code`<Grid groupBy={{ value: 'status', defaultExpanded: false }} />`}
+									>
+										<CollapsedGroupExample />
+									</Example>
+								</Stack>
+							</TabContent>
+						</TabContents>
+					</Tabs>
 				</TabContent>
 
 				<TabContent value="Toolbar">

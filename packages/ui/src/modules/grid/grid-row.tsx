@@ -230,7 +230,7 @@ type GridRowProps<T> = {
  *
  * @internal
  */
-function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
+export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 	if (col.cellTooltip == null) return { kind: 'auto' }
 
 	const node = col.cellTooltip(row)
@@ -308,7 +308,7 @@ function GridRowImpl<T>({
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
 			// that `GridData` enables for a row-click handler.
 			className={cn(
-				loading && k.rowLoading,
+				loading && k.row.loading,
 				onRowClick && k.row.clickable,
 				sortable && k.rowReorder.dragging,
 				className,
@@ -446,7 +446,12 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 
 	if (!sortable) {
 		return (
-			<button type="button" disabled aria-label={label} className={cn(k.rowReorder.handleDisabled)}>
+			<button
+				type="button"
+				disabled
+				aria-label={label}
+				className={cn(k.rowReorder.handle.disabled)}
+			>
 				<Icon icon={<GripVertical />} />
 			</button>
 		)
@@ -457,7 +462,7 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 			type="button"
 			ref={sortable.setActivatorNodeRef}
 			data-dragging={dataAttr(sortable.dragging)}
-			className={cn(k.rowReorder.handle)}
+			className={cn(k.rowReorder.handle.root)}
 			aria-label={label}
 			{...sortable.attributes}
 			{...sortable.listeners}

@@ -12,6 +12,8 @@ export {
 	type GridColumnOrder,
 	type GridFooter,
 	type GridFooterStats,
+	type GridGroupBy,
+	type GridGroupHeaderContext,
 	type GridHeader,
 	type GridProps,
 	type GridRowReorder,

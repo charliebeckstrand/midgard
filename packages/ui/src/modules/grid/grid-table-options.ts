@@ -4,10 +4,14 @@ import {
 	type ColumnOrderState,
 	type ColumnPinningState,
 	type ColumnSizingState,
+	type ExpandedState,
 	type FilterFn,
+	type GroupingState,
+	getExpandedRowModel,
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
+	getGroupedRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	type OnChangeFn,
@@ -80,11 +84,14 @@ export function usesClientModel(args: {
 	filtersConfigured: boolean
 	filtersManual: boolean
 	sortClient: boolean
+	grouped: boolean
 }): boolean {
 	return (
 		(args.paginated && !args.paginationManual) ||
 		(args.filtersConfigured && !args.filtersManual) ||
-		args.sortClient
+		args.sortClient ||
+		// Grouping always transforms the flat rows into group + leaf display rows.
+		args.grouped
 	)
 }
 
@@ -206,6 +213,9 @@ export function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
 		// Quick search stays scoped to columns that declare `value`.
 		enableGlobalFilter: Boolean(col.value),
 		enableSorting: Boolean(col.sortable),
+		// Only data columns group (they carry the accessor grouping keys on); the
+		// selection / actions / drag-handle columns can't be a `groupBy` target.
+		enableGrouping: isDataColumn(col),
 		// The accessor feeds sort/filter without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
 		...(sortingFn ? { sortingFn } : {}),
@@ -286,6 +296,30 @@ export function sortOptions<T>(args: {
 	}
 }
 
+/**
+ * Row-grouping slice of the table options, or `{}` when grouping is off: the
+ * grouped and expanded row models plus their change handlers. Client-side only
+ * (`manualGrouping: false`), so the engine collects the groups from the filtered
+ * rows itself.
+ *
+ * @internal
+ */
+export function groupingOptions<T>(args: {
+	grouped: boolean
+	onGroupingChange: OnChangeFn<GroupingState>
+	onExpandedChange: OnChangeFn<ExpandedState>
+}): Partial<TableOptions<T>> {
+	if (!args.grouped) return {}
+
+	return {
+		getGroupedRowModel: getGroupedRowModel(),
+		getExpandedRowModel: getExpandedRowModel(),
+		onGroupingChange: args.onGroupingChange,
+		onExpandedChange: args.onExpandedChange,
+		manualGrouping: false,
+	}
+}
+
 /** Column-resize slice of the table options, or `{}` when resizing is off. @internal */
 export function resizeOptions<T>(args: {
 	resizable: boolean
@@ -352,6 +386,8 @@ type GridControlledState = {
 	sorting?: SortingState
 	columnPinning?: ColumnPinningState
 	rowSelection?: RowSelectionState
+	grouping?: GroupingState
+	expanded?: ExpandedState
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 }
@@ -372,6 +408,9 @@ export function buildState(args: {
 	columnPinning: ColumnPinningState
 	selectable: boolean
 	rowSelection: RowSelectionState
+	grouped: boolean
+	grouping: GroupingState
+	expanded: ExpandedState
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 }): GridControlledState {
@@ -387,6 +426,12 @@ export function buildState(args: {
 	if (args.globalFiltered) state.globalFilter = args.globalFilter
 
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
+
+	if (args.grouped) {
+		state.grouping = args.grouping
+
+		state.expanded = args.expanded
+	}
 
 	if (args.sortClient) state.sorting = args.sorting
 
